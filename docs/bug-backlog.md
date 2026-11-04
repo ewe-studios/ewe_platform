@@ -121,13 +121,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
-- **`StateStore` has no conditional write.** `set` always replaces. Two processes that read a
-  resource, change it and `set` it lose one update (a lost update), and the proxy state lock
-  (`foundation_proxy`) exists only to hide this. `FileStateStore::set` is atomic now (temp
-  file, `fsync`, `rename`), which stops torn reads but not lost updates. Design need: a
-  version or `ETag` on `ResourceState` and `set_if_version(id, state, expected)` returning
-  `StorageError::PreconditionFailed` (the variant exists); file store: compare under a lock
-  file; SQL stores: `UPDATE ... WHERE version = ?`; D1/R2: `If-Match`.
+- **`StateStore::set_if_version` is not atomic on `R2Store`, and the proxy still has its file lock.**
+  `set_if_version` (compare on `updated_at`) is atomic on the file, libsql, D1 and namespaced
+  stores. `R2Store` uses the read-compare-write default: the R2 conditional put needs the
+  object's `ETag`, which the state API does not carry. `foundation_proxy` can drop its flock
+  where it uses a store with an atomic `set_if_version` (lane A owns the proxy). `D1Store`'s
+  version is tested only on a hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
 - **`d1r2_document_store_tests` fail against local wrangler (2 of 4).**
   `append_orders_by_scru128_and_counts` gets the documents' JSON where it expects ids, and
   `large_document_offloads_to_r2_and_reads_through` finds an `r2_key` on a small document, with
@@ -181,37 +180,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   happen at release time so 0.0.7 publishes before `foundation_reactor`.
 ## 17. foundation_vectors
 
-- **Code-graph function and method ids ignore the class, so a second method with the same
-  name is dropped.** `extract_function` (`src/code_graph/lang_config.rs`, and the Rust and Go
-  walkers) builds the node id from the file stem and the bare name (`make_id(stem, name)`),
-  then skips the node when the id is already in `seen_ids`. Two classes in one file that both
-  define `handle` give one node, and the calls inside the second body are never extracted
-  (found with the TypeScript source in `tests/lang_config_tests.rs`: an abstract `handle` in
-  `BaseController` hides `UserController::handle` and its `this.repo.findAll()` call). Fix:
-  put the parent (class or impl) in the id, then give `ts_raw_calls_extraction` the two-class
-  source back.
-
-## 18. ewe_channels (crates/channels)
-
-- **`ArcWake::wake_by_ref` prints a debug line** (`src/executor.rs`):
-  `println!("Sent wake action")` fires on every task wake. Fix: delete the
-  `println!` (use `tracing::debug!` if a trace is wanted).
-- **`DEFAULT_TASK_PENDING_CAPACITY` is a hard-coded limit** (`src/executor.rs`,
-  `const DEFAULT_TASK_PENDING_CAPACITY: usize = 10`). Limits are configuration,
-  not constants (rule 8). Fix: add a capacity field to the executor config with
-  a documented default.
-- **`ReceiveChannel::is_closed` reports `Ok(false)` while its receive side is
-  open, even after every sender has dropped** (`src/mspc.rs`). It checks only
-  whether this receive side was closed, not the underlying channel. Fix: reflect
-  `async_channel::Receiver::is_closed`, or rename the method to match its meaning.
-
-## 19. ewe_domain (crates/domain)
-
-- **`DEFAULT_SUBSCRIBER_START_CAPACITY` is a hard-coded limit**
-  (`src/servicer.rs`, `const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10`).
-  Limits are configuration, not constants (rule 8). Fix: move it to a config
-  field with a documented default.
-
 ## 21. foundation_deployment_cloudflare on wasm32
 
 - **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
@@ -235,27 +203,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   The `future_incompatible` lint warns on `DrivenStreamIterator<FutureTask<..>>:
   IntoIterator` at `src/bin/keychain.rs:28`. Fix: raise the crate recursion
   limit, or break the valtron stream chain into a smaller type.
-
-## 23. examples/todo
-
-- **`src/lib.rs` holds only a dead `fn main`.** A library has no `main`
-  entry point, so the function is never called and the crate publishes
-  nothing. The example is a stub. Fix: delete `fn main` and add a real
-  public item, or remove the example.
-- **Ten dependencies are unused** (`Cargo.toml`): `anyhow`,
-  `console_error_panic_hook`, `serde`, `serde_json`, `serde_with`,
-  `thiserror`, `tracing`, `tracing-subscriber`, `wasm-bindgen-futures` and
-  `web-sys`. The stub `src/lib.rs` uses none of them. Fix: add code that
-  uses them, or remove them.
-
-## 24. bin/platform templates (web-app)
-
-- **`web-app` scaffolding is dead code and produces warnings in the generated
-  project.** `src/app.rs` (`pub struct App {}`), `src/config.rs` (`DevServer`,
-  `AppServer`, `ServerConfig`) and the private re-exports in `src/lib.rs`
-  (`use app::*; use config::*;`) are never used by the app or dev binaries.
-  Fix: deserialize the config into `ServerConfig` in the dev binary and wire
-  `App` into the app binary, or delete the unused scaffolding.
 
 ## 25. foundation_auth
 

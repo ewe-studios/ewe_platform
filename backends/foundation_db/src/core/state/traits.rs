@@ -80,6 +80,44 @@ pub trait StateStore: Send + Sync {
     /// Returns an error if serialization or I/O fails.
     async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()>;
 
+    /// Write `state` only if the stored state is still the one the caller read
+    /// (compare-and-set). The version is the stored `updated_at`:
+    ///
+    /// - `expected = None`: write only if the resource is absent;
+    /// - `expected = Some(t)`: write only if the resource exists and its stored
+    ///   `updated_at` equals `t`.
+    ///
+    /// Returns `true` if it wrote, `false` if the condition failed (nothing
+    /// changed). The caller gives the new state a new `updated_at`, so the
+    /// next compare-and-set sees a new version. Use it instead of an external
+    /// lock when several writers share one store.
+    ///
+    /// Atomic (two writers with the same expected version: one wins) on:
+    /// `FileStateStore` (an exclusive file lock around read, compare and
+    /// rename, so also across processes), `LibsqlStore` and `D1Store` (one
+    /// `INSERT ... DO NOTHING` or `UPDATE ... WHERE updated_at = ?`
+    /// statement), and `NamespacedStore` over any of them. `R2Store` keeps this
+    /// default, which is a read, a compare and a write and is **not atomic**
+    /// (two writers can both pass). The R2 conditional put needs the object's
+    /// `ETag`, which the state API does not carry yet.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the I/O or encoding fails.
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        let current = self.get(resource_id).await?.map(|s| s.updated_at);
+        if current != expected {
+            return Ok(false);
+        }
+        self.set(resource_id, state).await?;
+        Ok(true)
+    }
+
     /// Delete a resource's state (absent is not an error).
     ///
     /// # Errors

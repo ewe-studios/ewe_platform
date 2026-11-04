@@ -58,6 +58,24 @@ fn state_upsert_sql(table_name: &str) -> String {
     )
 }
 
+/// `INSERT` that does nothing if the id exists (for `set_if_version` with no
+/// expected version).
+fn state_insert_if_absent_sql(table_name: &str) -> String {
+    format!(
+        "INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+    )
+}
+
+/// `UPDATE` that changes the row only if its `updated_at` is the expected one
+/// (for `set_if_version`). Parameters: `kind`, `provider`, `status`,
+/// `environment`, `config_hash`, `output`, `config_snapshot`, the new
+/// `updated_at`, `id`, and the expected `updated_at`.
+fn state_update_if_version_sql(table_name: &str) -> String {
+    format!(
+        "UPDATE {table_name} SET kind = ?, provider = ?, status = ?, environment = ?, config_hash = ?, output = ?, config_snapshot = ?, updated_at = ? WHERE id = ? AND updated_at = ?",
+    )
+}
+
 fn state_create_indexes_sql(table_name: &str) -> String {
     format!(
         "CREATE INDEX IF NOT EXISTS idx_{table_name}_kind ON {table_name}(kind);\
@@ -581,6 +599,38 @@ impl StateStore for D1Store {
         self.execute_sql_async(&state_upsert_sql(self.state_table()), &params)
             .await?;
         Ok(())
+    }
+
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        // One statement: D1 runs it atomically, and `meta.changes` says whether
+        // the row was written.
+        let state = state.with_id(resource_id);
+        let mut params = state_to_params(&state)?;
+        let (sql, params) = match expected {
+            None => (state_insert_if_absent_sql(self.state_table()), params),
+            Some(version) => {
+                let updated_at = params.pop().unwrap_or(serde_json::Value::Null);
+                params.pop(); // created_at is not changed
+                let id = params.remove(0);
+                params.push(updated_at);
+                params.push(id);
+                params.push(serde_json::Value::String(version.to_rfc3339()));
+                (state_update_if_version_sql(self.state_table()), params)
+            }
+        };
+        let response = self.execute_sql_async(&sql, &params).await?;
+        let changes = response
+            .result
+            .first()
+            .and_then(|statement| statement.meta.as_ref())
+            .and_then(|meta| meta.changes)
+            .map_or(0, i64::unsigned_abs);
+        Ok(changes == 1)
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {

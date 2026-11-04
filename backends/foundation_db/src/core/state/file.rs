@@ -128,6 +128,36 @@ fn stream_of<T: Send + 'static>(items: Vec<StorageResult<T>>) -> StateStoreStrea
     Box::pin(futures_lite::stream::iter(items))
 }
 
+/// An exclusive lock on a file, released when dropped.
+struct LockGuard {
+    // Held for the lock's life: closing the file releases the `flock`.
+    _file: std::fs::File,
+    _process: std::sync::MutexGuard<'static, ()>,
+}
+
+impl LockGuard {
+    fn lock(file: std::fs::File) -> StorageResult<Self> {
+        // One lock per process too: `flock` on two handles of one file in one
+        // process also excludes, but this makes it hold on every platform.
+        static PROCESS: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        let process = PROCESS
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("lock poisoned: {e}")))?;
+        #[cfg(unix)]
+        {
+            use std::os::fd::AsRawFd;
+            // SAFETY: `fd` is a valid open file descriptor owned by `file`.
+            if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) } != 0 {
+                return Err(std::io::Error::last_os_error().into());
+            }
+        }
+        Ok(Self {
+            _file: file,
+            _process: process,
+        })
+    }
+}
+
 #[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
 impl StateStore for FileStateStore {
@@ -184,6 +214,38 @@ impl StateStore for FileStateStore {
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         Self::write_atomically(&path, content.as_bytes())?;
         Ok(())
+    }
+
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        std::fs::create_dir_all(&self.root_dir)?;
+        // An exclusive `flock` on a lock file covers read, compare and rename,
+        // so writers in other threads and other processes take turns. (On a
+        // platform without `flock`, only writers in this process take turns.)
+        let lock = std::fs::OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .write(true)
+            .open(self.root_dir.join(".state.lock"))?;
+        let _lock = LockGuard::lock(lock)?;
+        let path = self.resource_path(resource_id);
+        let current = if path.exists() {
+            Some(Self::read_state(&path)?.updated_at)
+        } else {
+            None
+        };
+        if current != expected {
+            return Ok(false);
+        }
+        let state = state.with_id(resource_id);
+        let content = serde_json::to_string_pretty(&state)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        Self::write_atomically(&path, content.as_bytes())?;
+        Ok(true)
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {

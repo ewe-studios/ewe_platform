@@ -64,6 +64,9 @@ async-lock = "3"
 turso = { version = "0.8.3", optional = true, default-features = false }
 libsql = { version = "0.6", optional = true }
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"  # flock for FileStateStore::set_if_version
+
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"

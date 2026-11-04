@@ -52,6 +52,24 @@ fn state_upsert_sql(table_name: &str) -> String {
     )
 }
 
+/// `INSERT` that does nothing if the id exists (for `set_if_version` with no
+/// expected version).
+fn state_insert_if_absent_sql(table_name: &str) -> String {
+    format!(
+        "INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+    )
+}
+
+/// `UPDATE` that changes the row only if its `updated_at` is the expected one
+/// (for `set_if_version`). Parameters: `kind`, `provider`, `status`,
+/// `environment`, `config_hash`, `output`, `config_snapshot`, the new
+/// `updated_at`, `id`, and the expected `updated_at`.
+fn state_update_if_version_sql(table_name: &str) -> String {
+    format!(
+        "UPDATE {table_name} SET kind = ?, provider = ?, status = ?, environment = ?, config_hash = ?, output = ?, config_snapshot = ?, updated_at = ? WHERE id = ? AND updated_at = ?",
+    )
+}
+
 fn state_create_indexes_sql(table_name: &str) -> String {
     format!(
         "CREATE INDEX IF NOT EXISTS idx_{table_name}_kind ON {table_name}(kind);\
@@ -953,6 +971,39 @@ impl StateStore for LibsqlStore {
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
         Ok(())
+    }
+
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        // One statement under the write guard: the row changes only if the
+        // condition holds, so two writers cannot both win.
+        let _guard = self.write().await?;
+        let state = state.with_id(resource_id);
+        let mut params = state_to_params(&state)?;
+        let (sql, params) = match expected {
+            None => (state_insert_if_absent_sql(self.state_table()), params),
+            Some(version) => {
+                // id, kind, provider, status, environment, hash, output,
+                // snapshot, created_at, updated_at  ->  the UPDATE order.
+                let updated_at = params.pop().unwrap_or(libsql::Value::Null);
+                params.pop(); // created_at is not changed
+                let id = params.remove(0);
+                params.push(updated_at);
+                params.push(id);
+                params.push(libsql::Value::Text(version.to_rfc3339()));
+                (state_update_if_version_sql(self.state_table()), params)
+            }
+        };
+        let changed = self
+            .conn
+            .execute(&sql, params)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(changed == 1)
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {
