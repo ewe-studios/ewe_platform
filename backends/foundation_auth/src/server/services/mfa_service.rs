@@ -93,6 +93,10 @@ fn encrypt_secret(
     let (key_id, key) = ring
         .active()
         .ok_or_else(|| StorageOpError::Query("no TOTP encryption key is configured".into()))?;
+    // The zero array is only the buffer. The next line fills all 12 bytes from
+    // the CSPRNG, so every call gets a fresh random 96-bit nonce, as
+    // ChaCha20-Poly1305 requires. The nonce is stored with the ciphertext.
+    // If the fill is removed or made conditional, this becomes a nonce reuse bug.
     let mut nonce_bytes = [0u8; 12];
     foundation_compact::rng::rng().fill_bytes(&mut nonce_bytes);
     let plaintext = Zeroizing::new(secret.to_base32().into_bytes());
@@ -148,6 +152,12 @@ fn decrypt_secret(
 }
 
 fn challenge_key(challenge_id: &str) -> String {
+    // `challenge_id` is not a password. It is a 256-bit random token from
+    // `create_challenge`, which fills 32 bytes from the CSPRNG. This hash is
+    // only the cache lookup key, so a cache dump does not reveal live ids.
+    // Slow password hashes (Argon2 and the like) are for low-entropy, guessable
+    // secrets. For a 256-bit random value, SHA-256 is correct and preimage-resistant.
+    // Re-check this if the id ever becomes user-chosen or shorter.
     let digest = Sha256::digest(challenge_id.as_bytes());
     let mut key = String::from("mfa:challenge:");
     for byte in digest {
