@@ -40,6 +40,9 @@ impl SignalBus {
 
     /// Subscribe a valtron task — returns a queue that receives all signal events
     /// and wakes the task parked on its readiness (`EventQueue::readiness`).
+    ///
+    /// # Panics
+    /// Panics if the subscriber list lock is poisoned.
     pub fn subscribe_events(&self) -> EventQueue<SignalEvent> {
         let queue = EventQueue::unbounded();
         self.event_subscribers.lock().unwrap().push(queue.clone());

@@ -50,6 +50,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   50 ms cap). The cap measures the whole process, so any other thread's work counts. Likely
   fix: measure only the connection task's CPU (or the reactor and worker threads by thread id),
   or find what still wakes the process while idle; do not raise the cap blindly.
+- **`ConnectionHandler::idle_timeout` (`native/server/connection.rs:173`) is the size-based
+  read timeout of a streaming context, 100 ms (`TimeoutConfig::min_read_timeout`) when the
+  body is unsized** (the same mistake that made the SSE client reconnect a quiet stream, fixed
+  in feature 80 with `sse_idle_timeout`). `idle_exceeded` compares the time since the connection
+  went idle with it. Check whether a keep-alive connection that is quiet for 100 ms is closed;
+  if so, give the server an idle timeout of its own in `TimeoutConfig` (default from nginx
+  `keepalive_timeout`, 75 s). The WebSocket task has the same call for its sleep
+  (`websocket/native/task.rs:882`, only a delay there).
 
 ## 4. foundation_core / valtron
 
@@ -65,6 +73,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
+- **`foundation_core` test `io::readers_tests::batch_reader_would_block_is_not_an_error_log`
+  fails about one run in five of the default-feature `--test mod` run** ("a real read error
+  must emit an ERROR record (proves capture works)"). It installs a thread-local
+  `tracing` subscriber with `with_default`; another test thread's subscriber lets
+  `tracing` cache the callsite interest as "never" first, so the event is dropped. Seen on
+  `wip/f80-valtron-wake` (1 of 5 runs). Fix: capture with a global subscriber installed
+  once (`tracing_test`), or assert on the reader's return value instead of on a log.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
@@ -72,6 +87,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   foundation_iogate --no-deps` reports about ten `doc_markdown` warnings (items
   such as `io_uring` and `CompletionSocket` without backticks) in `lib.rs`,
   `shared/mod.rs` and `native/`. Fix: add the backticks.
+- **`foundation_nativeapis` `signal/linux.rs` delivers the signal from the signal handler
+  itself.** `signal_handler` calls `deliver_signal`, which locks `SignalBus` mutexes and
+  pushes to queues (allocation, `EventQueue` wake). That is not async-signal-safe: a signal
+  that interrupts a thread holding the subscriber lock deadlocks. Fix: the handler writes one
+  byte to the eventfd (or a self-pipe) and a thread or task reads it and delivers.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
@@ -117,22 +137,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **`QueueVacancyReadiness::new` and `QueueReadiness::new` keep the 1 ms re-check
-  for raw users.** Feature 77 added `event_driven` constructors (used by the
-  core pipe, the observer/collector queues, the future/stream/state task wake
-  queues, the http and netio wake queues). The `new` constructors stay polling
-  because callers may push or pop the queue directly. Remaining raw users:
-  `foundation_core` `executors/task_iters.rs` (six `QueueVacancyReadiness::new`
-  over the delivery queue, whose `NotifyQueue::pop` fires the space wake but does
-  not call `request_executor_resume`), the vacancy side of the `extensions/{tasks,
-  streams}` queues (a raw `queue.pop()` frees the slot), and lane B crates
-  (`foundation_toolings`, `foundation_ai`, `foundation_netio`
-  `shared/http/pushable_body.rs`, `quic/traits.rs`). Fix: make `NotifyQueue::pop`
-  resume when a producer waits, add `resume` after the extension pops, then switch
-  each site to `event_driven`.
-- **`foundation_nativeapis` `signal/task.rs` parks on `SignalHandle` readiness,
-  which keeps the default `needs_polling() == true`.** Fix: check that the signal
-  delivery calls `request_executor_resume`, then return `false`.
+- **Lane B crates still build `QueueReadiness::new` over a plain queue, which keeps the
+  1 ms re-check.** Feature 80 made `EventQueue` (its push, pop and close wake the parked
+  task) the way to park on a queue and deprecated `QueueReadiness::new`,
+  `QueueVacancyReadiness::new` and their `event_driven` aliases. Remaining users, all
+  lane B: `foundation_toolings` (`runner/mod.rs:83`, `watcher/mod.rs:63`,
+  `builder/mod.rs:70,72`), `foundation_ai` (`agentic/steering.rs:169,176`),
+  `foundation_netio` `shared/http/pushable_body.rs` and `quic/traits.rs` (doc mentions).
+  Fix: feature 81 switches each queue to `EventQueue`, then deletes the deprecated
+  constructors.
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.
@@ -250,8 +263,9 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   in. Fix: gate them on the features that use them.
 - **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
   `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
-  `foundation_core::valtron::request_executor_resume` (`reactor.rs:840`) and
-  `EventReadiness::clear` (`fd_readiness.rs:143`) that were added to the local tree after 0.0.6 was
+  `foundation_core::valtron::{EventReadiness::register, ReadinessNotifier, ReadinessWaker}`
+  (`reactor.rs`, `shutdown_signal.rs`, `fd_readiness.rs`) and `EventReadiness::clear`
+  (`fd_readiness.rs`) that were added to the local tree after 0.0.6 was
   published. `release-plz release` verifies the tarball against the published 0.0.6, so it fails with
   E0425/E0407. The 0.0.7 bump has landed (`foundation_core` and `foundation_macros` are now
   0.0.7 on `fix/io-35-turso-async-trait-overflow`); the crates.io publish still needs to
