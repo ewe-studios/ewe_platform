@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
+  lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
+  the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers
+  first and checks again, and a new test fails on the old code (505 ms) and passes now (0 ms)
+  on one thread and on a pool. (2) The SSE reconnect replay test reset its first connection
+  before macOS sent the buffered event; a 100 ms wait in the handler makes it pass 20 of 20.
+  (3) The `lib.rs` comment named the private `idle_wake` module, so the CI guard failed;
+  reworded. Checks: `foundation_core --test mod` 785/785 (`multi`) and 745/745 (default) in
+  5 runs, the new test 10 runs, the idle-CPU test 10 of 10 green natively, `foundation_netio`
+  Linux CI green in both feature sets (with the three tests that failed on the PR) and
+  `foundation_proxy` green (with `connect_unary_via_h1_proxy` and
+  `grpc_web_unary_via_grpc_backend`); wasm checks green; the executor-wake guard and its unit
+  tests green. Backlog: three new entries.
 - 2026-11-04: feature 46 done on `wip/f46-driven-stream-wake` (from `fix/io-41-50-lane-a`). A
   single-thread `DrivenStreamIterator` now wakes its async consumer when a parked task becomes
   ready: through a new `WakeableStream::wake_send` (Send callback), a one-shot resume listener in
