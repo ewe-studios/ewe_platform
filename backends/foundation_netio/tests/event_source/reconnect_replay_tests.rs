@@ -93,9 +93,79 @@ fn stream_idle_timeout_defaults_to_sixty_seconds_and_is_configurable() {
         TimeoutCalculator::default().streaming_idle_timeout(),
         Duration::from_secs(60)
     );
-    let calc = TimeoutCalculator::with_config(TimeoutConfig {
-        sse_idle_timeout: Duration::from_secs(5),
-        ..TimeoutConfig::default()
-    });
+    let calc = TimeoutCalculator::with_config(
+        TimeoutConfig::default().with_sse_idle_timeout(Duration::from_secs(5)),
+    );
     assert_eq!(calc.streaming_idle_timeout(), Duration::from_secs(5));
+}
+
+/// A complete SSE response that has a `Content-Length` ends at that length, even
+/// when the server keeps the connection open (the provider tests do this).
+///
+/// WHY: the reader waited for end of file past the last byte. With the test
+/// server the wait did not end at all: the stream stalled after its last event
+/// (in the provider test the stall ended on the read timeout, the task reported a
+/// stream error, reconnected, and the replayed response was appended to the first
+/// one: "Hello worldHello world").
+///
+/// The stream runs on its own thread so a stall fails the test instead of hanging it.
+#[test]
+#[serial(valtron_pool)]
+fn a_response_with_content_length_ends_without_a_reconnect() {
+    use foundation_testing::http::{HttpResponse, TestHttpServer};
+
+    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
+    let body: &'static [u8] = b"event: a\ndata: Hello\n\nevent: a\ndata:  world\n\n";
+    let server = TestHttpServer::with_response(move |_req| HttpResponse {
+        status: 200,
+        status_text: "OK".to_string(),
+        headers: vec![
+            ("Content-Type".to_string(), "text/event-stream".to_string()),
+            ("Content-Length".to_string(), body.len().to_string()),
+        ],
+        body: body.to_vec(),
+    });
+    let addr: SocketAddr = server
+        .base_url()
+        .strip_prefix("http://")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let url = server.base_url().to_string();
+
+    let (done, finished) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut task = ReconnectingEventSourceTask::connect(StaticSocketAddr::new(addr), &url)
+            .unwrap()
+            .with_max_retries(3);
+        let started = std::time::Instant::now();
+        let mut order = Vec::new();
+        let mut steps = 0;
+        while let Some(status) = task.next_status(Ctx::new()) {
+            if let TaskStatus::Ready(parse_result) = status {
+                match parse_result.event {
+                    Event::Reconnect => order.push("reconnect".to_string()),
+                    Event::Message { data, .. } => order.push(data),
+                    Event::Comment(_) => {}
+                }
+            }
+            steps += 1;
+            if steps >= 500 {
+                break;
+            }
+        }
+        let _ = done.send((order, started.elapsed()));
+    });
+    let (order, elapsed) = finished
+        .recv_timeout(Duration::from_secs(20))
+        .expect("the stream stalled after its last event instead of ending at its Content-Length");
+    assert_eq!(
+        order,
+        vec!["Hello", " world"],
+        "each event once, no reconnect"
+    );
+    assert!(
+        elapsed < Duration::from_secs(2),
+        "the stream must end at its Content-Length, not at the read timeout: {elapsed:?}"
+    );
 }

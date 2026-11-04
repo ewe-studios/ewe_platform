@@ -252,8 +252,3 @@ path = "examples/manual_openrouter.rs"
 
 [lints]
 workspace = true
-
-[[test]]
-name = "tmp_anthropic"
-path = "tests/tmp_anthropic.rs"
-required-features = ["testing"]

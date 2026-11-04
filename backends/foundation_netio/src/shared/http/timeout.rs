@@ -155,6 +155,16 @@ pub struct TimeoutConfig {
     pub sse_idle_timeout: Duration,
 }
 
+impl TimeoutConfig {
+    /// Set [`Self::sse_idle_timeout`], how long an open streaming response may
+    /// stay silent before the client reconnects.
+    #[must_use]
+    pub fn with_sse_idle_timeout(mut self, timeout: Duration) -> Self {
+        self.sse_idle_timeout = timeout;
+        self
+    }
+}
+
 impl Default for TimeoutConfig {
     /// Returns production-quality default timeout configuration.
     ///
