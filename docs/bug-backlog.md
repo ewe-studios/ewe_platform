@@ -58,6 +58,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   if so, give the server an idle timeout of its own in `TimeoutConfig` (default from nginx
   `keepalive_timeout`, 75 s). The WebSocket task has the same call for its sleep
   (`websocket/native/task.rs:882`, only a delay there).
+- **`foundation_http` test `http3_server_echoes_a_request_over_quic` is flaky** (about 1 to 3 runs
+  in 100 alone, with and without feature 80: 3 of 100 on `b3f0aa6a1`, 1 of 60 on
+  `wip/f80-valtron-wake`). The client's `poll_headers` gets no response headers within its
+  deadline ("response headers" `expect` at `tests/http3_server_tests.rs:209`, after a 15 s
+  wait). Not a valtron wake: the same rate before the change. Likely a lost datagram or a
+  handshake timing race between the test's client driver and the server `H3AcceptTask`.
+  Fix: capture the QUIC and H3 state of a failing run (`tracing`), then close the race.
 
 ## 4. foundation_core / valtron
 
