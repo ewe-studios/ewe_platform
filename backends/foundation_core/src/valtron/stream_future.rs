@@ -67,7 +67,7 @@ where
                 }
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
-                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                    match iter.wake_send(Box::new(move || waker.wake())) {
                         WakeResult::Successful => {
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
@@ -152,7 +152,7 @@ where
                 Some(Stream::Ignore) => {}
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
-                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                    match iter.wake_send(Box::new(move || waker.wake())) {
                         WakeResult::Successful => {
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
@@ -246,7 +246,7 @@ where
                 Some(Stream::Ignore) => {}
                 Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
-                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                    match iter.wake_send(Box::new(move || waker.wake())) {
                         WakeResult::Successful => {
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
@@ -390,7 +390,7 @@ where
                 Some(Stream::Ignore) => {}
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
-                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                    match iter.wake_send(Box::new(move || waker.wake())) {
                         WakeResult::Successful => {
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
@@ -501,7 +501,7 @@ where
                 Some(Stream::Ignore) => {}
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
-                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                    match iter.wake_send(Box::new(move || waker.wake())) {
                         WakeResult::Successful => {
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the

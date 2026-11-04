@@ -1,6 +1,6 @@
 ---
 feature: "valtron: a single-thread DrivenStreamIterator can park an async consumer"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -21,22 +21,24 @@ nothing to the queue and fires no queue wake. So an async consumer
 (`into_collect_future` under smol/tokio, without feature `multi`) whose task stays parked
 longer than about two blocking waits gets `Pending` with nothing to wake it: a hang.
 
-## Design
+## Design (as built; replaces the first design, which was written before feature 75)
 
-1. Let readiness sources register a wake. Find `EventReadiness` (and `WakeSignal`,
-   `FdReadiness`, `DeadlineReadiness`, `AnyReadiness`) and add
-   `fn register_wake(&self, cb: SendWakeCallback)` (a `Box<dyn FnOnce() + Send>`; the
-   existing `WakeCallback` is not `Send` without `multi`, so add a Send variant rather than
-   change it). Default implementation: none (returns `false` = not supported).
-2. The single-thread engine keeps its sleepers (tasks parked on `Depends`). Add an engine
-   method that registers `cb` on every current sleeper's readiness (one-shot; fire once on the
-   first ready).
-3. `DrivenStreamIterator::wake` registers on the queue **and** on the engine's sleepers. Keep
-   the rule from feature 01: do not switch the inner stream to non-blocking mode.
-4. Make sure `multi` is unchanged (its engines already wake through worker threads).
-
-Stop and report to the main session before implementing if step 1 needs a change to more
-than about 6 readiness types or to a public trait in another track's crate.
+1. `WakeableStream::wake_send(SendWakeCallback)`: a new defaulted method. `SendWakeCallback` is
+   a `Box<dyn FnOnce() + Send>`. `WakeCallback` is not `Send` without `multi`, so it is not
+   changed. The default adapts the callback to `wake`; every wrapper forwards both methods. The
+   async bridges in `stream_future.rs` call `wake_send` with the consumer's `Waker`. `multi` takes
+   the default and is unchanged.
+2. `DrivenStreamIterator::wake_send` (single-thread only) keeps the consumer's latest wake in one
+   slot, and arms three triggers on that slot. Each trigger is armed at most once at a time, so
+   repeated polls cannot grow any list:
+   - the output queue (as before);
+   - `idle_wake::register_resume_listener`: a one-shot list that `resume_idle()` (called by
+     `request_executor_resume`) takes and fires. It is cleared when it fires;
+   - a timed wake on the shared `valtron-timer` thread (`timer::call_at`, no new thread). The
+     delay is `LocalThreadExecutor::parked_wake_after()`: the nearest sleeper deadline, bounded by
+     `readiness_poll_quantum` when a sleeper has `needs_polling() == true`; `None` (nothing armed)
+     when no sleeper needs a timed wake. Replacing the handle cancels the previous timed wake.
+3. The inner stream stays blocking (the rule from feature 01).
 
 ## Tests (`backends/foundation_core/tests/valtron/`; run without and with `--features multi`)
 
@@ -56,5 +58,5 @@ Flake check: 20 runs of each new test, in both feature sets.
 
 ## Done when
 
-- [ ] New tests hang on master (time out) and pass now, in default features; multi unchanged.
-- [ ] §4 entry deleted. CI green.
+- [x] New tests hang on master (time out) and pass now, in default features; multi unchanged.
+- [x] §4 entry deleted. CI green (focused local checks; the full CI run is the main session's).

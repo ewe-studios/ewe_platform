@@ -1199,11 +1199,55 @@ pub fn run_once() {
 /// This is good for non send-safe types you want to use in non-send contexts.
 ///
 /// It internally uses the [`run_until_next_state`] function.
-pub struct DrivenStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>)
+pub struct DrivenStreamIterator<T>(
+    Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>,
+    ConsumerWake,
+)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static;
+
+/// What an async consumer of a [`DrivenStreamIterator`] is woken by.
+///
+/// WHY: the iterator drives the engine inside `next`, so while the consumer is
+/// `Pending` nothing runs the engine. A parked task becomes runnable on a foreign
+/// thread (a readiness flip plus `request_executor_resume`) or by the clock (a
+/// deadline, a readiness that must be re-checked); neither pushes to the output
+/// queue. The consumer's wake is therefore also armed on those two events.
+///
+/// The consumer's latest wake sits in `slot`; the queue, the resume list and the
+/// timer each hold a small trigger that takes it, so it fires once whichever
+/// event comes first. Each source is armed at most once at a time (`*_armed`),
+/// so repeated polls cannot grow the resume list or the timer map.
+struct ConsumerWake {
+    slot: Arc<ConsumerSlot>,
+    /// The scheduled timed wake, replaced (and so cancelled) on each poll.
+    #[cfg(not(target_family = "wasm"))]
+    timer: Option<crate::valtron::timer::TimerCall>,
+}
+
+#[derive(Default)]
+struct ConsumerSlot {
+    wake: std::sync::Mutex<Option<crate::valtron::SendWakeCallback>>,
+    queue_armed: std::sync::atomic::AtomicBool,
+    #[cfg(not(target_family = "wasm"))]
+    resume_armed: std::sync::atomic::AtomicBool,
+}
+
+impl ConsumerSlot {
+    /// Fire the consumer's wake if it is still waiting.
+    fn fire(&self) {
+        let wake = self
+            .wake
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take();
+        if let Some(wake) = wake {
+            wake();
+        }
+    }
+}
 
 impl<T> DrivenStreamIterator<T>
 where
@@ -1213,7 +1257,14 @@ where
 {
     #[must_use]
     pub fn new(task_iterator: NotifyQueueStreamIterator<T::Ready, T::Pending>) -> Self {
-        Self(Some(task_iterator))
+        Self(
+            Some(task_iterator),
+            ConsumerWake {
+                slot: Arc::new(ConsumerSlot::default()),
+                #[cfg(not(target_family = "wasm"))]
+                timer: None,
+            },
+        )
     }
 
     /// True when no item is currently buffered (nothing ready to pull).
@@ -1305,6 +1356,66 @@ where
                 WakeResult::NotSupported
             }
         }
+    }
+
+    /// Wake the consumer on the three events that can make a parked task
+    /// runnable: the output queue gets an item (as [`Self::wake`]); a foreign
+    /// thread asks the executor to resume (`request_executor_resume`); the clock
+    /// reaches the nearest sleeper deadline, or the readiness poll quantum for a
+    /// sleeper that must be re-checked.
+    ///
+    /// The inner stream stays blocking (see [`Self::wake`]).
+    fn wake_send(&mut self, cb: crate::valtron::SendWakeCallback) -> WakeResult {
+        let Some(inner) = self.0.as_ref() else {
+            let _ = cb;
+            return WakeResult::NotSupported;
+        };
+        let slot = Arc::clone(&self.1.slot);
+        *slot
+            .wake
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cb);
+
+        // 1. The output queue.
+        if !slot
+            .queue_armed
+            .swap(true, std::sync::atomic::Ordering::SeqCst)
+        {
+            let queue_slot = Arc::clone(&slot);
+            inner.chan().register_wake(Box::new(move || {
+                queue_slot
+                    .queue_armed
+                    .store(false, std::sync::atomic::Ordering::SeqCst);
+                queue_slot.fire();
+            }));
+        }
+
+        #[cfg(not(target_family = "wasm"))]
+        {
+            // 2. A foreign thread flips a readiness and asks the executor to run.
+            if !slot
+                .resume_armed
+                .swap(true, std::sync::atomic::Ordering::SeqCst)
+            {
+                let resume_slot = Arc::clone(&slot);
+                super::idle_wake::register_resume_listener(Box::new(move || {
+                    resume_slot
+                        .resume_armed
+                        .store(false, std::sync::atomic::Ordering::SeqCst);
+                    resume_slot.fire();
+                }));
+            }
+
+            // 3. The clock: a sleeper's deadline, or a sleeper that is re-checked
+            // on the readiness quantum. Replacing the handle cancels the last one.
+            self.1.timer = single::parked_wake_after().map(|after| {
+                let timer_slot = Arc::clone(&slot);
+                crate::valtron::timer::call_at(std::time::Instant::now() + after, move || {
+                    timer_slot.fire();
+                })
+            });
+        }
+        WakeResult::Successful
     }
 }
 

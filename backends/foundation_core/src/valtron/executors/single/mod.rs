@@ -195,6 +195,17 @@ pub fn has_runnable_work() -> bool {
     })
 }
 
+/// How long a consumer driving this thread's engine may stay parked before it
+/// must look again: the nearest sleeper deadline, or the readiness poll quantum
+/// when a sleeper needs polling. `None` when no sleeper needs a timed wake, or
+/// the engine has not been initialized. See
+/// [`LocalThreadExecutor::parked_wake_after`].
+#[must_use]
+pub fn parked_wake_after() -> Option<core::time::Duration> {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE
+        .with(|pool| pool.get().and_then(LocalThreadExecutor::parked_wake_after))
+}
+
 /// Whether this thread's engine has been initialized ([`initialize_pool`]).
 ///
 /// Host callbacks that resume the executor (a JS timer or microtask queued by a

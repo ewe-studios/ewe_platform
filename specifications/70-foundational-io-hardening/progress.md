@@ -2,6 +2,13 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-04: feature 46 done on `wip/f46-driven-stream-wake` (from `fix/io-41-50-lane-a`). A
+  single-thread `DrivenStreamIterator` now wakes its async consumer when a parked task becomes
+  ready: through a new `WakeableStream::wake_send` (Send callback), a one-shot resume listener in
+  `idle_wake` (fired by `request_executor_resume`), and a timed wake on the shared timer thread
+  (`timer::call_at`) at the nearest sleeper deadline or the readiness poll quantum. Six new tests in
+  `tests/valtron/driven_stream_async_wake.rs` (smol and tokio; signal, deadline-only and
+  needs-polling parks) timed out on the old code and pass now. `multi` is unchanged.
 - 2026-11-03: feature 75 done (and feature 72 done through it) on `fix/io-41-50-lane-a`.
   Measured cause: the executor re-checked readiness-parked tasks every 1 ms (idle cost) and the
   idle back-off `SpinWait` sleep in `block_on` could outlast a wake (the feature 72 upload stall).
