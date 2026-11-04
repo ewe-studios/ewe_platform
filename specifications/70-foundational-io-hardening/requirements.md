@@ -3,7 +3,7 @@ description: "Fix every open entry in docs/bug-backlog.md (sections 1–21), fou
 status: "in-progress"
 priority: "critical"
 created: 2026-10-28
-updated: 2026-11-02
+updated: 2026-11-04
 author: "Main Agent"
 metadata:
   version: "2.0"
@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 34
-  total: 76
+  uncompleted: 35
+  total: 77
   completion_percentage: 66%
 ---
 
@@ -197,6 +197,7 @@ done
 | 74 | [Auth correctness follow-ups; vectors migration](./features/74-auth-correctness-followups/feature.md) | §8 catalogue rows 77–81 (sonnet) | 68 | M |
 | 75 | [Readiness deadlines; idle QUIC listener; land 72 E1](./features/75-readiness-deadlines/feature.md) | §8 catalogue rows 82–84 (sonnet) | 72 | M |
 | 76 | [D1 binding types; db follow-ups](./features/76-d1-binding-and-db-followups/feature.md) | §8 catalogue rows 91–94 (sonnet) | 56 | M |
+| 77 | [Event-driven readiness follow-ups](./features/77-event-driven-readiness-followups/feature.md) | §8 catalogue rows 95–98 (sonnet) | 75 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -365,6 +366,10 @@ fixed in code but not deleted.
 | 92 | `d1r2_document_store_tests` fail 2 of 4 on local wrangler | found in 56 | 76 |
 | 93 | code-graph method ids ignore the class | found in 56 | 76 |
 | 94 | `StateStore` has no conditional write | found in 45, 56 | 76 |
+| 95 | valtron: deadline tests pass on the old 1 ms polling (they do not discriminate) | found in 75 | 77 |
+| 96 | valtron: idle `multi` worker on a `ResumeSignal` uses about 20 ms CPU/s | found in 75 | 77 |
+| 97 | `BoolSignal` raw stores and queue readiness types still poll | found in 75 | 77 |
+| 98 | nativeapis `FdRegistration`/`RegisteredFd` still poll | found in 75 | 77 |
 
 ### 8.1 Lanes, branches and models
 
@@ -377,7 +382,7 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 77 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
 | B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → 76 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
@@ -401,3 +406,9 @@ the choice.
 3. **Report** to the main session after each feature: what changed, before/after test results,
    commands and results. The main session reviews against the feature's "Done when" list
    before the next feature starts.
+4. **CI runs on GitHub, not locally (owner decision 2026-11-04).** Locally, run only the
+   targeted tests and clippy for what you changed. After a push, the main session starts
+   `check.yaml` by `workflow_dispatch` on the lane branch with the changed packages and reads
+   the result. Do not run `ci.py run` locally.
+5. **One lane builds at a time.** The disk does not hold two full lane `target` directories.
+   The main session pauses one lane while the other builds.
