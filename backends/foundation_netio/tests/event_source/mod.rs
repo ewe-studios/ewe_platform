@@ -9,6 +9,7 @@ mod reconnecting_integration_tests;
 mod reconnecting_task_integration_tests;
 mod reconnecting_task_tests;
 mod response_tests;
+mod sse_client_tests;
 mod sse_parser_tests;
 mod task_integration_tests;
 mod task_tests;
