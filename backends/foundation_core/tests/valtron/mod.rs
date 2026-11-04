@@ -62,6 +62,8 @@ mod background_jobs;
 #[cfg(not(target_family = "wasm"))]
 mod delayed_iterators;
 mod drain;
+#[cfg(not(target_family = "wasm"))]
+mod driven_stream_async_wake;
 mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]

@@ -3220,6 +3220,30 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         }
     }
 
+    /// How long a consumer that drives this engine from its own thread (a
+    /// `DrivenStreamIterator` under an async runtime) may stay parked before it
+    /// must look again, or `None` when no sleeper needs a timed wake.
+    ///
+    /// Like [`Self::sleeper_wait`], the nearest sleeper deadline bounds it, and a
+    /// sleeper that can become ready without a wake
+    /// ([`EventReadiness::needs_polling`]) bounds it by the readiness quantum.
+    /// Sleepers woken by an event (`request_executor_resume`) with no deadline
+    /// need no timed wake.
+    #[must_use]
+    pub fn parked_wake_after(&self) -> Option<time::Duration> {
+        if self.state.number_of_sleepers() == 0 {
+            return None;
+        }
+        let until = self.state.time_until_next_wakeup();
+        if self.state.sleepers_need_polling() {
+            Some(until.map_or(self.readiness_poll_quantum, |d| {
+                d.min(self.readiness_poll_quantum)
+            }))
+        } else {
+            until
+        }
+    }
+
     /// `block_on` usually should in a separate thread where it will block
     /// the thread until either a panic occurs or the kill signal is sent
     /// to the thread.

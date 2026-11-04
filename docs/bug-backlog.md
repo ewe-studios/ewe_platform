@@ -53,17 +53,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
-- **A single-thread `DrivenStreamIterator` cannot park an async consumer**
-  (`executors/non_sendables.rs`, `wake`). The iterator drives the engine in
-  `next`, and a parked task becomes runnable when a foreign thread flips its
-  readiness (`WakeSignal`, a future's waker, a socket) - which pushes nothing
-  and fires no queue wake. So its `wake` only registers on the queue and the
-  inner pull still blocks once (`max_spins` timed waits); an async consumer
-  (`into_collect_future` under smol/tokio) whose task stays parked for more
-  than about two of those waits returns `Pending` with nothing to wake it.
-  Likely fix: let `EventReadiness` sources register a wake (a `Send` callback;
-  `WakeCallback` is not `Send` without `multi`), and have this `wake` register
-  on the sleepers of the engine as well as on the queue.
+- **`foundation_core` and `foundation_nostd` fail `clippy -D warnings`.** Seen on
+  `fix/io-41-50-lane-a` (2026-11-04), `cargo clippy -p foundation_core --no-deps
+  --profile dev --lib -- -D warnings`: 19 errors, none in feature 46 code. Files:
+  `executors/background.rs:283,299` and `task.rs:214` (`double_must_use`),
+  `executors/local.rs:374,375,391,392` and `future_task.rs:616` (`arc_with_non_send_sync`),
+  `future_task.rs:936`, `task_iters.rs:127,449` (`question_mark`),
+  `extensions/streams/non_sendable.rs:1296,1306` (`while_let_on_iterator`),
+  `pipe.rs:114` (`new_ret_no_self`), `pipe_mapped.rs:43,81` (`result_unit_err`,
+  `len_without_is_empty`), `io/ioutils/mod.rs:950,1542,1705`. Without `--no-deps` the run
+  stops earlier on 5 `redundant_closure_for_method_calls` errors in
+  `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
+  the crate at zero.
+
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
 - **`foundation_iogate` clippy doc-backtick warnings are open.** `cargo clippy -p

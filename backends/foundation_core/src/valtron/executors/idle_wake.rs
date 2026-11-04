@@ -46,9 +46,37 @@ pub fn checking() {
 }
 static SLEEPING: Mutex<Vec<(u64, Interrupt)>> = Mutex::new(Vec::new());
 
+/// One-shot callbacks run by the next [`resume_idle`].
+static LISTENERS: Mutex<Vec<Box<dyn FnOnce() + Send>>> = Mutex::new(Vec::new());
+
+/// Run `cb` once, on the thread that next calls [`resume_idle`].
+///
+/// WHY: an async consumer of a single-thread `DrivenStreamIterator` drives the
+/// engine itself and has no executor thread to interrupt. A parked task becomes
+/// ready when a foreign thread flips its readiness and calls
+/// `request_executor_resume`; the consumer's waker is registered here so that
+/// call also wakes the consumer.
+///
+/// The list is cleared when it fires, so it holds a callback only until the next
+/// resume. A caller that registers on every poll must keep its own "already
+/// registered" flag, or a long quiet period grows the list.
+// Used by the single-thread `DrivenStreamIterator` only.
+#[cfg_attr(feature = "multi", allow(dead_code))]
+pub fn register_resume_listener(cb: Box<dyn FnOnce() + Send>) {
+    LISTENERS
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .push(cb);
+}
+
 /// Wake every sleeping executor thread: a parked task may be ready.
 pub fn resume_idle() {
     RESUMES.fetch_add(1, Ordering::SeqCst);
+    // Taken out of the lock first: a listener may register another one.
+    let listeners = std::mem::take(&mut *LISTENERS.lock().unwrap_or_else(PoisonError::into_inner));
+    for listener in listeners {
+        listener();
+    }
     let sleeping: Vec<Interrupt> = SLEEPING
         .lock()
         .unwrap_or_else(PoisonError::into_inner)

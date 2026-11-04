@@ -3903,7 +3903,7 @@ where
 // WakeableStream impls (Feature 02) — forward (per-item) vs default (buffering)
 // ============================================================================
 
-use crate::valtron::{WakeCallback, WakeResult, WakeableStream};
+use crate::valtron::{SendWakeCallback, WakeCallback, WakeResult, WakeableStream};
 
 impl<I, R> WakeableStream for TryMapDone<I, R>
 where
@@ -3913,6 +3913,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -3930,6 +3934,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -3945,6 +3953,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -3957,6 +3969,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -3974,6 +3990,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -3989,6 +4009,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4002,6 +4026,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4020,6 +4048,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4034,6 +4066,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4052,6 +4088,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4066,6 +4106,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4084,6 +4128,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4098,6 +4146,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4116,6 +4168,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4132,6 +4188,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4145,6 +4205,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4163,6 +4227,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4177,6 +4245,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4195,6 +4267,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4208,6 +4284,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
@@ -4225,6 +4305,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4239,6 +4323,10 @@ where
         self.inner.wake(cb)
     }
 
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4251,6 +4339,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
     }
 
     fn announce(&mut self) {
