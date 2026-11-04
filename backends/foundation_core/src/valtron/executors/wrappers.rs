@@ -11,7 +11,7 @@ use std::time::Duration;
 // ============================================================================
 
 #[cfg(feature = "std")]
-use std::time::Instant;
+use foundation_compact::Instant;
 
 /// Wraps a `TaskIterator` with a timeout.
 ///

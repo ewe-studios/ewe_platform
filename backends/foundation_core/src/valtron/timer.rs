@@ -16,13 +16,14 @@
 //! thread cannot be started the futures still complete, by checking the clock
 //! each time they are polled.
 
+use foundation_compact::Instant;
 use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
 use std::task::{Context, Poll, Wake, Waker};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 /// The deadlines waiting to fire, keyed by `(deadline, id)`.
 struct Timers {

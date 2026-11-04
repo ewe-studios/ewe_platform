@@ -85,15 +85,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
-- **valtron still reads `std::time::Instant::now()` in code that runs on JS wasm, where it
-  panics.** Seen 2026-11-04 while adding the feature 80 E5 wasm tests. The executor's
-  sleepers, readiness deadlines and `EventReadiness::deadline` now use
-  `foundation_compact::Instant` (`ReadinessInstant`), but these still call std:
-  `executors/sleep.rs` (`SleepingTask`), `timer.rs` (`sleep`, `call_at`),
-  `delayed_iterators.rs` (`SleepIterator`, `from_now`), `executors/wrappers.rs`
-  (`TimeoutTask`) and `synca/waitgroup.rs`, `synca/mpp.rs`. A task that sleeps with one of
-  them panics on wasm32. Fix: switch each to `foundation_compact::Instant` and add a wasm
-  runtime test per construct next to `wasm_wake_support.rs`.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 

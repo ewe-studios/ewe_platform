@@ -1,6 +1,6 @@
 use std::{
     sync::Arc,
-    time::{self, Duration, Instant},
+    time::{self, Duration},
 };
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
@@ -112,7 +112,7 @@ impl<T> Receiver<T> {
     /// It internally uses [`std::thread::park_timeout`] to block the current thread
     /// for a given duration until a value is received or the timeout is reached.
     pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
-        let started = Instant::now();
+        let started = foundation_compact::Instant::now();
 
         let mut remaining_timeout = dur;
         loop {

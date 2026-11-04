@@ -202,7 +202,7 @@ pub fn has_runnable_work() -> bool {
 /// Returns `false` when the engine has not been initialized.
 #[cfg(not(target_family = "wasm"))]
 #[must_use]
-pub fn wait_for_sleepers(until: std::time::Instant) -> bool {
+pub fn wait_for_sleepers(until: foundation_compact::Instant) -> bool {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         pool.get()
             .is_some_and(|engine| engine.wait_for_sleepers(until))

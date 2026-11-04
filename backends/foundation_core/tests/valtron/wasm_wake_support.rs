@@ -38,10 +38,11 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use foundation_compact::Instant;
+use foundation_core::synca::WaitGroup;
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
     AnyReadiness, Ctx, EventQueue, EventReadiness, EventReadinessPtr, FnReady, ReadinessWaker,
-    ResumeSignal, TaskIterator, TaskStatus,
+    ResumeSignal, SleepingTask, TaskIterator, TaskStatus, TimeoutTask,
 };
 
 /// The host timer a suite supplies: run the callback after `delay_ms` on the
@@ -675,4 +676,134 @@ pub fn any_readiness_park(after: After) -> Scenario {
             );
         }),
     }
+}
+
+/// Forwards a task and records how often it was polled and when it ended.
+struct Observed<T> {
+    inner: T,
+    polls: Arc<AtomicUsize>,
+    ended_at: Stamp,
+}
+
+impl<T: TaskIterator> TaskIterator for Observed<T> {
+    type Ready = T::Ready;
+    type Pending = T::Pending;
+
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.polls.fetch_add(1, Ordering::SeqCst);
+        let next = self.inner.next_status(ctx);
+        if next.is_none() {
+            self.ended_at.mark();
+        }
+        next
+    }
+}
+
+/// Run `task` and check that it ends `nominal` after the start, within
+/// [`DEADLINE_LATE_WINDOW`] plus `slack`, after at most `max_polls` polls.
+fn timed_end<T>(
+    name: &'static str,
+    seed: u64,
+    task: T,
+    nominal: Duration,
+    slack: Duration,
+    max_polls: usize,
+) -> Scenario
+where
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+{
+    initialize_pool(seed);
+    let start = Instant::now();
+    let (polls, ended_at) = (Arc::new(AtomicUsize::new(0)), Stamp::default());
+    spawn_task(Observed {
+        inner: task,
+        polls: Arc::clone(&polls),
+        ended_at: ended_at.clone(),
+    });
+    run_until_complete();
+
+    let done = ended_at.clone();
+    Scenario {
+        name,
+        done: Box::new(move || done.get().is_some()),
+        verify: Box::new(move || {
+            let ended = ended_at.require("end");
+            let took = since(ended, start);
+            assert!(
+                took + Duration::from_millis(5) >= nominal,
+                "{name}: ended after {took:?}, before {nominal:?}"
+            );
+            assert!(
+                took < nominal + DEADLINE_LATE_WINDOW + slack,
+                "{name}: ended after {took:?} (nominal {nominal:?}, window {DEADLINE_LATE_WINDOW:?})"
+            );
+            let calls = polls.load(Ordering::SeqCst);
+            assert!(
+                calls <= max_polls,
+                "{name}: polled {calls} times (bound {max_polls}); a sleeping task must wait for \
+                 its timer, not spin"
+            );
+        }),
+    }
+}
+
+/// A `SleepingTask` (the valtron `sleep`) ends at its deadline, in few polls.
+///
+/// WHY: it read `std::time::Instant::now()`, which panics on wasm32. A sleep is
+/// a `Delayed` park: the executor must hand the thread to the host and come back
+/// at the deadline.
+pub fn sleep_task(_after: After) -> Scenario {
+    let nominal = Duration::from_millis(EVENT_DELAY_MS as u64);
+    timed_end(
+        "sleep_task",
+        106,
+        SleepingTask::sleep(nominal),
+        nominal,
+        Duration::ZERO,
+        4,
+    )
+}
+
+/// A `TimeoutTask` over a task that polls every 10 ms ends once its 50 ms
+/// timeout passed.
+///
+/// WHY: it read `std::time::Instant::now()` on every poll, which panics on wasm32.
+pub fn timeout_task(_after: After) -> Scenario {
+    struct Ticker;
+    impl TaskIterator for Ticker {
+        type Ready = ();
+        type Pending = ();
+
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+            Some(TaskStatus::Delayed(Duration::from_millis(10)))
+        }
+    }
+    let timeout = Duration::from_millis(EVENT_DELAY_MS as u64);
+    // The task notices the timeout on the first poll after it, up to one tick late.
+    timed_end(
+        "timeout_task",
+        107,
+        TimeoutTask::new(Ticker, timeout),
+        timeout,
+        Duration::from_millis(10),
+        12,
+    )
+}
+
+/// `WaitGroup::wait_timeout` on a group with nothing outstanding reads the clock
+/// and returns `true` at once.
+///
+/// WHY: it read `std::time::Instant::now()`, which panics on wasm32. A wait that
+/// has to block cannot run on one JS thread (a condition variable cannot be
+/// woken while the thread waits), so only the idle path is testable on wasm.
+pub fn waitgroup_idle_wait_timeout() {
+    let group = WaitGroup::new();
+    let start = Instant::now();
+    assert!(
+        group.wait_timeout(Duration::from_millis(500)),
+        "an idle group is done"
+    );
+    assert!(since(Instant::now(), start) < Duration::from_millis(100));
 }

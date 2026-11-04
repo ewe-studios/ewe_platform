@@ -482,7 +482,7 @@ impl<T> NotifyQueue<T> {
         // spurious wake-up goes round again until the total is spent.
         let max_spins = self.max_spins.load(Ordering::Relaxed);
         let total = timeout.saturating_mul(u32::try_from(max_spins).unwrap_or(u32::MAX));
-        let deadline = time::Instant::now().checked_add(total);
+        let deadline = foundation_compact::Instant::now().checked_add(total);
         let mut guard = self.mutex.lock().unwrap();
 
         loop {
@@ -500,7 +500,9 @@ impl<T> NotifyQueue<T> {
             }
 
             let left = match deadline {
-                Some(deadline) => deadline.saturating_duration_since(time::Instant::now()),
+                Some(deadline) => {
+                    deadline.saturating_duration_since(foundation_compact::Instant::now())
+                }
                 None => total,
             };
             if left.is_zero() {
@@ -2951,7 +2953,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// (a wake of a parked task) interrupts the sleep. Returns `false` at once
     /// when nothing is parked, so the caller blocks as before.
     #[cfg(not(target_family = "wasm"))]
-    pub fn wait_for_sleepers(&self, until: time::Instant) -> bool {
+    pub fn wait_for_sleepers(&self, until: foundation_compact::Instant) -> bool {
         crate::valtron::executors::idle_wake::checking();
         if self.state.number_of_sleepers() == 0 {
             return false;
@@ -2962,7 +2964,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         }
         let planned = self
             .sleeper_wait()
-            .min(until.saturating_duration_since(time::Instant::now()));
+            .min(until.saturating_duration_since(foundation_compact::Instant::now()));
         self.yielder.yield_for(planned);
         true
     }

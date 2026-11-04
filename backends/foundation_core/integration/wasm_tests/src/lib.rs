@@ -502,3 +502,22 @@ async fn deadline_only_park_resumes_at_its_deadline() {
 async fn any_readiness_resumes_when_a_child_is_ready() {
     finish(wake::any_readiness_park(host_after)).await;
 }
+
+/// A valtron `sleep` ends at its deadline. See `wake::sleep_task`.
+#[wasm_test]
+async fn sleep_task_ends_at_its_deadline() {
+    finish(wake::sleep_task(host_after)).await;
+}
+
+/// A `TimeoutTask` ends at its timeout. See `wake::timeout_task`.
+#[wasm_test]
+async fn timeout_task_ends_at_its_timeout() {
+    finish(wake::timeout_task(host_after)).await;
+}
+
+/// `WaitGroup::wait_timeout` on an idle group does not panic on the clock. See
+/// `wake::waitgroup_idle_wait_timeout`.
+#[wasm_test]
+fn waitgroup_idle_wait_timeout_reads_the_clock() {
+    wake::waitgroup_idle_wait_timeout();
+}
