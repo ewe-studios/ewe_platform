@@ -897,6 +897,11 @@ fn batch_reader_would_block_is_not_an_error_log() {
             targets: targets.clone(),
         }),
         || {
+            // `tracing` caches each callsite's interest process-wide. If another
+            // test thread reached these callsites first with no subscriber, they
+            // are cached as "never" and this thread-local capture sees nothing.
+            // Re-evaluate the cache now that this subscriber is the default.
+            tracing::callsite::rebuild_interest_cache();
             let reader = BatchReader::new(AlwaysWouldBlock).max_consecutive_retries(3);
             let _ = reader.count();
         },
@@ -911,6 +916,7 @@ fn batch_reader_would_block_is_not_an_error_log() {
             targets: targets.clone(),
         }),
         || {
+            tracing::callsite::rebuild_interest_cache();
             let reader = BatchReader::new(RealError);
             let _ = reader.count();
         },

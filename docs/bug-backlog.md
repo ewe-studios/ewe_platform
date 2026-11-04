@@ -80,13 +80,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
-- **`foundation_core` test `io::readers_tests::batch_reader_would_block_is_not_an_error_log`
-  fails about one run in five of the default-feature `--test mod` run** ("a real read error
-  must emit an ERROR record (proves capture works)"). It installs a thread-local
-  `tracing` subscriber with `with_default`; another test thread's subscriber lets
-  `tracing` cache the callsite interest as "never" first, so the event is dropped. Seen on
-  `wip/f80-valtron-wake` (1 of 5 runs). Fix: capture with a global subscriber installed
-  once (`tracing_test`), or assert on the reader's return value instead of on a log.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
