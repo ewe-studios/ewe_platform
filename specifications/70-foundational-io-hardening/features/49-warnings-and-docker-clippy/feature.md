@@ -12,7 +12,7 @@ catalogue_rows: [13, 14, 15, 31]
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they are. Follow [requirements.md](../../requirements.md) sections 3, 4 and 8._
 
-## E1. `Poll::rearm_readable` is dead on wasm (backlog §16)
+## E1. `Poll::rearm_readable` is dead on wasm (backlog §16) — MOVED to feature 78 E4 (owner priority 2026-11-04); skip it here
 
 `foundation_reactor/src/poll/mod.rs` ~323 is `pub(crate)`, called only from a native path
 (`reactor.rs` ~607). Gate the method with the same `cfg` as its call site.

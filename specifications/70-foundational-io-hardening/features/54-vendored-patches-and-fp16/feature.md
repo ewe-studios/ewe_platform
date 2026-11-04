@@ -88,3 +88,14 @@ dispatch in `gemm-f16` is not patched at all. The upstream fix (prepared 2026-11
 `patches/gemm-common/UPSTREAM.md` to link the upstream issue and PR once they exist, and note
 that `gemm-f16` (a separate crate) is not patched in the workspace unless a build path needs it
 (check whether candle uses f16 gemm; if it does, vendor and patch `gemm-f16` the same way).
+
+## E6. Vendor and patch `gemm-f16` too (found in E5)
+
+`cargo tree -i gemm-f16@0.19.0` shows `gemm-f16` in the graph (candle-core → gemm). Its
+`init_gemm_fn` (`src/gemm.rs` ~806) has the same `feature_detected!("fma")` check and calls
+`V3::try_new().unwrap()` in the `fma` kernel, so the same panic happens on the f16 path. Vendor
+`gemm-f16` 0.19.0 as `patches/gemm-f16` (unchanged except the fix), add it to
+`[patch.crates-io]`, and apply the gemm-f16 part of the prepared upstream diff (dispatch on
+`gemm_common::simd::V3::try_new().is_some()` / `V4`). Check: `cargo check -p gemm-f16@0.19.0`
+and, in a scratch copy, `--features x86-v4`. Update the §10 backlog entry (only the upstream
+link remains).
