@@ -1,13 +1,12 @@
 #![cfg(feature = "multi")]
 
-use concurrent_queue::ConcurrentQueue;
+use crate::valtron::EventQueue;
 
 use std::sync::Arc;
 
 use crate::valtron::branches::{BroadcastPolicy, CollectionState};
 use crate::valtron::{
-    Ctx, QueueReadiness, QueueVacancyReadiness, Stream, TaskIterator, TaskShortCircuit, TaskSpread,
-    TaskStatus,
+    Ctx, QueueReadiness, Stream, TaskIterator, TaskShortCircuit, TaskSpread, TaskStatus,
 };
 
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
@@ -758,14 +757,14 @@ where
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + Send + 'static,
     {
-        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        let queue = EventQueue::bounded(queue_size);
         tracing::debug!(
             "split_collector: creating observer and continuation with queue_size={}",
             queue_size
         );
 
         let observer = CollectorStreamIterator {
-            queue: Arc::clone(&queue),
+            queue: queue.clone(),
         };
 
         let continuation = SplitCollectorContinuation {
@@ -881,14 +880,14 @@ where
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> CollectionState + Send + 'static,
     {
-        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        let queue = EventQueue::bounded(queue_size);
         tracing::debug!(
             "split_collect_until: creating observer and continuation with queue_size={}",
             queue_size
         );
 
         let observer = SplitUntilObserver {
-            queue: Arc::clone(&queue),
+            queue: queue.clone(),
         };
 
         let continuation = SplitUntilContinuation {
@@ -917,14 +916,14 @@ where
         Self::Pending: Clone,
         F: Fn(&Self::Ready) -> (CollectionState, Option<D>) + Send + 'static,
     {
-        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        let queue = EventQueue::bounded(queue_size);
         tracing::debug!(
             "split_collect_until_map: creating observer and continuation with queue_size={}",
             queue_size
         );
 
         let observer = SplitUntilObserverMap {
-            queue: Arc::clone(&queue),
+            queue: queue.clone(),
         };
 
         let continuation = SplitUntilContinuationMap {
@@ -953,14 +952,14 @@ where
         Self::Pending: Clone,
         F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static,
     {
-        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        let queue = EventQueue::bounded(queue_size);
         tracing::debug!(
             "split_collector_map: creating observer and continuation with queue_size={}",
             queue_size
         );
 
         let observer = SplitCollectorMapObserver {
-            queue: Arc::clone(&queue),
+            queue: queue.clone(),
         };
 
         let continuation = SplitCollectorMapContinuation {
@@ -1907,14 +1906,9 @@ where
 /// # Panics
 /// Never panics.
 #[inline]
-fn split_observer_push<T>(queue: &ConcurrentQueue<T>, item: T) -> Option<T> {
+fn split_observer_push<T>(queue: &EventQueue<T>, item: T) -> Option<T> {
     match queue.push(item) {
-        Ok(()) => {
-            // Ask the executor to run again: an observer parked on the queue
-            // is not re-checked on a timer.
-            crate::valtron::request_executor_resume();
-            None
-        }
+        Ok(()) => None,
         Err(concurrent_queue::PushError::Full(item)) => Some(item),
         Err(concurrent_queue::PushError::Closed(_)) => None,
     }
@@ -1926,20 +1920,20 @@ fn split_observer_push<T>(queue: &ConcurrentQueue<T>, item: T) -> Option<T> {
 /// Yields `Stream::Next` for matched items, forwards Pending/Delayed from source.
 pub struct CollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
-    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    queue: EventQueue<Stream<D, P>>,
 }
 
 impl<D, P> CollectorStreamIterator<D, P> {
     /// WHY: A task-path consumer parks on an observer natively via
     /// `Depends(QueueReadiness)` (F45 Resolution 3), but the observer's queue is
     /// private. WHAT: expose a [`QueueReadiness`] over the shared queue. HOW:
-    /// clones the `Arc<ConcurrentQueue<..>>` the observer reads from.
+    /// clones the `EventQueue<..>` the observer reads from.
     ///
     /// # Panics
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::event_driven(self.queue.clone())
+        self.queue.readiness()
     }
 }
 
@@ -1980,7 +1974,6 @@ impl<D, P> Drop for CollectorStreamIterator<D, P> {
     /// copying to this branch and keeps forwarding.
     fn drop(&mut self) {
         self.queue.close();
-        crate::valtron::request_executor_resume();
     }
 }
 
@@ -1992,7 +1985,7 @@ pub struct SplitCollectorContinuation<I: TaskIterator> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
-    queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
+    queue: EventQueue<Stream<I::Ready, I::Pending>>,
     /// Predicate to determine which items to copy
     predicate: Box<dyn Fn(&I::Ready) -> bool + Send>,
     /// A matched observer item that could not be delivered because the observer
@@ -2020,9 +2013,7 @@ where
         if let Some(stream_item) = self.pending_push.take() {
             if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
                 self.pending_push = Some(stashed);
-                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                    self.queue.clone(),
-                ))));
+                return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
             }
             return self.pending_forward.take();
         }
@@ -2032,7 +2023,6 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
-            crate::valtron::request_executor_resume();
             tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2056,9 +2046,7 @@ where
         if park {
             // Hold the source item back until the observer drains a slot.
             self.pending_forward = Some(item);
-            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                self.queue.clone(),
-            ))));
+            return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
         }
 
         // Always forward to continuation
@@ -2073,7 +2061,6 @@ where
     fn drop(&mut self) {
         // Close the queue to signal that the source is done
         self.queue.close();
-        crate::valtron::request_executor_resume();
         tracing::debug!("SplitCollectorContinuation: dropped, queue closed");
     }
 }
@@ -2111,9 +2098,9 @@ where
     let mut observers = Vec::with_capacity(n);
     let mut queues = Vec::with_capacity(n);
     for _ in 0..n {
-        let queue = Arc::new(ConcurrentQueue::bounded(cap));
+        let queue = EventQueue::bounded(cap);
         observers.push(CollectorStreamIterator {
-            queue: Arc::clone(&queue),
+            queue: queue.clone(),
         });
         queues.push(queue);
     }
@@ -2139,7 +2126,7 @@ pub struct BroadcastContinuation<I: TaskIterator> {
     /// The wrapped source iterator.
     inner: I,
     /// One bounded queue per observer branch.
-    queues: Vec<Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>>,
+    queues: Vec<EventQueue<Stream<I::Ready, I::Pending>>>,
     /// Which `Ready` values to fan out.
     predicate: Box<dyn Fn(&I::Ready) -> bool + Send>,
     /// How a full branch is handled (park / drop-newest / drop-oldest).
@@ -2165,7 +2152,6 @@ impl<I: TaskIterator> BroadcastContinuation<I> {
     fn close_all(&self) {
         for queue in &self.queues {
             queue.close();
-            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2194,9 +2180,7 @@ where
                 }
                 // Backpressure (room pre-checked) / DropNewest (full → dropped).
                 BroadcastPolicy::Backpressure | BroadcastPolicy::DropNewest => {
-                    if queue.push(Stream::Next(value.clone())).is_ok() {
-                        crate::valtron::request_executor_resume();
-                    }
+                    let _ = queue.push(Stream::Next(value.clone()));
                 }
             }
         }
@@ -2218,9 +2202,7 @@ where
         if let Some(value) = self.pending_value.take() {
             if let Some(idx) = self.first_full_branch() {
                 self.pending_value = Some(value);
-                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                    self.queues[idx].clone(),
-                ))));
+                return Some(TaskStatus::Depends(Arc::new(self.queues[idx].vacancy())));
             }
             self.deliver(&value);
             return self.pending_forward.take();
@@ -2244,9 +2226,7 @@ where
                             // and none is dropped. Hold the source item back.
                             self.pending_value = Some(value.clone());
                             self.pending_forward = Some(item);
-                            return Some(TaskStatus::Depends(Arc::new(
-                                QueueVacancyReadiness::new(self.queues[idx].clone()),
-                            )));
+                            return Some(TaskStatus::Depends(Arc::new(self.queues[idx].vacancy())));
                         }
                         self.deliver(value);
                     }
@@ -2282,7 +2262,7 @@ where
 /// is closed and the observer completes.
 pub struct SplitUntilObserver<D, P> {
     /// Shared queue receiving copied items from the splitter
-    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    queue: EventQueue<Stream<D, P>>,
 }
 
 impl<D, P> SplitUntilObserver<D, P> {
@@ -2293,7 +2273,7 @@ impl<D, P> SplitUntilObserver<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::event_driven(self.queue.clone())
+        self.queue.readiness()
     }
 }
 
@@ -2337,7 +2317,6 @@ impl<D, P> Drop for SplitUntilObserver<D, P> {
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
         self.queue.close();
-        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2350,7 +2329,7 @@ pub struct SplitUntilContinuation<I: TaskIterator> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
-    queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
+    queue: EventQueue<Stream<I::Ready, I::Pending>>,
     /// Predicate to determine when to close observer
     predicate: Box<dyn Fn(&I::Ready) -> CollectionState + Send>,
     /// A matched observer item awaiting a free slot (F45 Part C1 backpressure).
@@ -2376,14 +2355,11 @@ where
         if let Some(stream_item) = self.pending_push.take() {
             if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
                 self.pending_push = Some(stashed);
-                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                    self.queue.clone(),
-                ))));
+                return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
             }
             if self.pending_close {
                 self.pending_close = false;
                 self.queue.close();
-                crate::valtron::request_executor_resume();
             }
             return self.pending_forward.take();
         }
@@ -2393,7 +2369,6 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
-            crate::valtron::request_executor_resume();
             tracing::debug!("SplitUntilContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2437,7 +2412,6 @@ where
                     }
                     if !park {
                         self.queue.close();
-                        crate::valtron::request_executor_resume();
                         tracing::debug!("SplitUntilContinuation: observer queue closed after CollectionState::Close");
                     }
                 }
@@ -2446,9 +2420,7 @@ where
 
         if park {
             self.pending_forward = Some(item);
-            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                self.queue.clone(),
-            ))));
+            return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
         }
 
         // Always forward to continuation
@@ -2465,7 +2437,6 @@ where
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuation: dropped before completion, closing queue");
             self.queue.close();
-            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2480,7 +2451,7 @@ where
 /// is closed and the observer completes.
 pub struct SplitUntilObserverMap<D, P> {
     /// Shared queue receiving transformed copied items from the splitter
-    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    queue: EventQueue<Stream<D, P>>,
 }
 
 impl<D, P> SplitUntilObserverMap<D, P> {
@@ -2491,7 +2462,7 @@ impl<D, P> SplitUntilObserverMap<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::event_driven(self.queue.clone())
+        self.queue.readiness()
     }
 }
 
@@ -2535,7 +2506,6 @@ impl<D, P> Drop for SplitUntilObserverMap<D, P> {
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
         self.queue.close();
-        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2548,7 +2518,7 @@ pub struct SplitUntilContinuationMap<I: TaskIterator, D> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send transformed copied items to observer
-    queue: Arc<ConcurrentQueue<Stream<D, I::Pending>>>,
+    queue: EventQueue<Stream<D, I::Pending>>,
     /// Combined predicate + transform function
     transform: Box<dyn Fn(&I::Ready) -> (CollectionState, Option<D>) + Send>,
     /// A transformed observer item awaiting a free slot (F45 Part C1 backpressure).
@@ -2573,14 +2543,11 @@ where
         if let Some(stream_item) = self.pending_push.take() {
             if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
                 self.pending_push = Some(stashed);
-                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                    self.queue.clone(),
-                ))));
+                return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
             }
             if self.pending_close {
                 self.pending_close = false;
                 self.queue.close();
-                crate::valtron::request_executor_resume();
             }
             return self.pending_forward.take();
         }
@@ -2590,7 +2557,6 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
-            crate::valtron::request_executor_resume();
             tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
             return None;
         };
@@ -2638,7 +2604,6 @@ where
                     }
                     if !park {
                         self.queue.close();
-                        crate::valtron::request_executor_resume();
                         tracing::debug!("SplitUntilContinuationMap: observer queue closed after CollectionState::Close");
                     }
                 }
@@ -2647,9 +2612,7 @@ where
 
         if park {
             self.pending_forward = Some(item);
-            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                self.queue.clone(),
-            ))));
+            return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
         }
 
         // Always forward to continuation
@@ -2666,7 +2629,6 @@ where
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuationMap: dropped before completion, closing queue");
             self.queue.close();
-            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2681,7 +2643,7 @@ where
 /// The observer yields `Stream<M, P>` where M is the mapped type from the transform function.
 pub struct SplitCollectorMapObserver<M, P> {
     /// Shared queue receiving transformed items from the continuation
-    queue: Arc<ConcurrentQueue<Stream<M, P>>>,
+    queue: EventQueue<Stream<M, P>>,
 }
 
 impl<M, P> SplitCollectorMapObserver<M, P> {
@@ -2692,7 +2654,7 @@ impl<M, P> SplitCollectorMapObserver<M, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<M, P>> {
-        QueueReadiness::event_driven(self.queue.clone())
+        self.queue.readiness()
     }
 }
 
@@ -2730,7 +2692,6 @@ impl<M, P> Drop for SplitCollectorMapObserver<M, P> {
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
         self.queue.close();
-        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2745,7 +2706,7 @@ pub struct SplitCollectorMapContinuation<I: TaskIterator, M> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send transformed items to observer
-    queue: Arc<ConcurrentQueue<Stream<M, I::Pending>>>,
+    queue: EventQueue<Stream<M, I::Pending>>,
     /// Combined predicate + transform function
     transform: Box<dyn Fn(&I::Ready) -> (bool, Option<M>) + Send>,
     /// A transformed observer item awaiting a free slot (F45 Part C1 backpressure).
@@ -2768,9 +2729,7 @@ where
         if let Some(stream_item) = self.pending_push.take() {
             if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
                 self.pending_push = Some(stashed);
-                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                    self.queue.clone(),
-                ))));
+                return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
             }
             return self.pending_forward.take();
         }
@@ -2779,7 +2738,6 @@ where
             item
         } else {
             self.queue.close();
-            crate::valtron::request_executor_resume();
             tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2805,9 +2763,7 @@ where
 
         if park {
             self.pending_forward = Some(item);
-            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                self.queue.clone(),
-            ))));
+            return Some(TaskStatus::Depends(Arc::new(self.queue.vacancy())));
         }
 
         Some(item)
@@ -2821,7 +2777,6 @@ where
     fn drop(&mut self) {
         if !self.queue.is_closed() {
             self.queue.close();
-            crate::valtron::request_executor_resume();
         }
     }
 }

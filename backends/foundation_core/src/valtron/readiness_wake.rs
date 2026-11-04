@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::task::{Wake, Waker};
 
-use concurrent_queue::{ConcurrentQueue, PopError, PushError};
+use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
 
 use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
 
@@ -323,6 +323,17 @@ impl<T> EventQueue<T> {
         self.0.queue.push(item)?;
         self.0.items.notify();
         Ok(())
+    }
+
+    /// Push an item, evicting the oldest one if the queue is full, and wake the
+    /// tasks that wait for an item. Returns the evicted item, if any.
+    ///
+    /// # Errors
+    /// The queue is closed; the item is handed back.
+    pub fn force_push(&self, item: T) -> Result<Option<T>, ForcePushError<T>> {
+        let evicted = self.0.queue.force_push(item)?;
+        self.0.items.notify();
+        Ok(evicted)
     }
 
     /// Pop an item and wake the tasks that wait for room.

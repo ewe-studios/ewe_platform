@@ -409,6 +409,9 @@ pub struct NotifyQueue<T> {
     /// One-shot callbacks for a producer waiting on a full queue, fired when
     /// an item is taken through this queue and on `close`.
     space: Arc<WakeRegistry>,
+    /// Woken after an item is taken through this queue and on `close`: the
+    /// producer task parked on [`Self::vacancy_readiness`].
+    space_tasks: Arc<crate::valtron::ReadinessNotifier>,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -420,6 +423,7 @@ impl<T> Clone for NotifyQueue<T> {
             max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
             wake: self.wake.clone(),
             space: self.space.clone(),
+            space_tasks: self.space_tasks.clone(),
         }
     }
 }
@@ -439,6 +443,7 @@ impl<T> NotifyQueue<T> {
             max_spins: AtomicUsize::new(config.max_spins),
             wake: Arc::new(WakeRegistry::new()),
             space: Arc::new(WakeRegistry::new()),
+            space_tasks: Arc::new(crate::valtron::ReadinessNotifier::new()),
         }
     }
 
@@ -456,6 +461,7 @@ impl<T> NotifyQueue<T> {
             max_spins: AtomicUsize::new(config.max_spins),
             wake: Arc::new(WakeRegistry::new()),
             space: Arc::new(WakeRegistry::new()),
+            space_tasks: Arc::new(crate::valtron::ReadinessNotifier::new()),
         }
     }
 
@@ -488,6 +494,8 @@ impl<T> NotifyQueue<T> {
         if self.space.has_waiters() {
             self.space.fire();
         }
+        // A producer task parked on `vacancy_readiness`, if any.
+        self.space_tasks.notify();
         Ok(item)
     }
 
@@ -584,6 +592,7 @@ impl<T> NotifyQueue<T> {
             self.wake.fire();
             // And a producer waiting for space, which will now see `Closed`.
             self.space.fire();
+            self.space_tasks.notify();
             // And a consumer blocked in `wait_for_item`, which waits for a push
             // or a close and not on a timer.
             let mut guard = self.mutex.lock().unwrap();
@@ -624,6 +633,17 @@ impl<T> NotifyQueue<T> {
     /// `Arc<ConcurrentQueue<T>>` — not a borrow.
     pub fn queue_arc(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
+    }
+
+    /// A readiness for a producer task that found this bounded queue full: ready
+    /// when an item is taken through this queue ([`Self::pop`]) or the queue
+    /// closes, and the parked task is woken then (`register` returns `true`).
+    #[must_use]
+    pub fn vacancy_readiness(&self) -> crate::valtron::QueueVacancyReadiness<T> {
+        crate::valtron::QueueVacancyReadiness::with_notifier(
+            self.queue.clone(),
+            self.space_tasks.clone(),
+        )
     }
 
     /// Number of registered consumer wakes ([`Self::register_wake`]) not yet

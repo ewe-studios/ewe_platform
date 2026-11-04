@@ -109,16 +109,15 @@ fn can_queue_and_complete_task_with_iterator() {
         .schedule_iter(Duration::from_nanos(50))
         .expect("should deliver task");
 
+    // `NotificationItem::None` means "nothing yet" (the 50 ns wait ended before the
+    // worker produced the next item), not the end of the stream: the iterator
+    // ends when the task finishes. Stopping at the first `None` made this test
+    // fail about one run in ten.
     let complete: Vec<usize> = iter
-        .map(|item| match item {
-            NotificationItem::Ready(inner) => match inner {
-                TaskStatus::Ready(value) => Some(value),
-                _ => None,
-            },
-            NotificationItem::None => None,
+        .filter_map(|item| match item {
+            NotificationItem::Ready(TaskStatus::Ready(value)) => Some(value),
+            _ => None,
         })
-        .take_while(|t: &Option<usize>| t.is_some())
-        .map(|t: Option<usize>| t.unwrap())
         .collect();
 
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
@@ -138,13 +137,13 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
         )
         .expect("should deliver task");
 
+    // `Stream::Wait` means "nothing yet", not the end: the iterator ends when the
+    // task finishes (see the test above).
     let complete: Vec<usize> = iter
-        .map(|item| match item {
+        .filter_map(|item| match item {
             Stream::Next(value) => Some(value),
             _ => None,
         })
-        .take_while(|t| t.is_some())
-        .map(|t| t.unwrap())
         .collect();
 
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);

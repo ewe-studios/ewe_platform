@@ -19,7 +19,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
     execute, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr, ReadinessNotifier,
-    ReadinessWaker, ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
+    ReadinessWaker, ResumeSignal, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -238,4 +238,70 @@ fn a_notifier_does_not_grow_with_repeated_registers() {
         format!("{notifier:?}").contains("registered: 1"),
         "one task, one waker: {notifier:?}"
     );
+}
+
+/// A source task for the observer tests: yields 1, 2, 3 and ends.
+struct Count(u32);
+
+impl TaskIterator for Count {
+    type Ready = u32;
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<u32, ()>> {
+        if self.0 >= 3 {
+            return None;
+        }
+        self.0 += 1;
+        Some(TaskStatus::Ready(self.0))
+    }
+}
+
+/// Parks a task on the observer's readiness of `split_collector`; a thread drives
+/// the continuation (which pushes the copied items, then closes the queue). The
+/// task must run again soon after the first push (`close = false`) or after the
+/// close with nothing pushed (`close = true`, the predicate matches nothing).
+/// The queue's own push and close do the wake: nothing else calls an executor.
+async fn observer_wakes(close: bool) -> u64 {
+    let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+    let driver = std::thread::spawn(move || {
+        let (observer, mut continuation) = Count(0).split_collector(move |_| !close, 8);
+        ready_tx.send(observer.readiness()).expect("send readiness");
+        std::thread::sleep(Duration::from_millis(200));
+        while continuation.next_status(Ctx::new()).is_some() {}
+        drop(continuation);
+        // Keep the observer alive until the continuation is done: dropping it
+        // closes the queue too.
+        drop(observer);
+    });
+    let readiness: EventReadinessPtr = Arc::new(ready_rx.recv().expect("readiness"));
+    let mut stream = execute(
+        ParkThenReport {
+            created: Instant::now(),
+            signal: Some(readiness),
+            reported: false,
+        },
+        None,
+    )
+    .expect("execute")
+    .into_next_stream();
+    let ms = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx))
+        .await
+        .expect("the task runs again after the observer's queue changed");
+    driver.join().expect("driver thread");
+    ms
+}
+
+/// An observer push wakes the task parked on the observer's readiness.
+#[valtron_test(threads = 1, timeout = 10_000)]
+async fn an_observer_push_wakes_the_parked_task() {
+    let ms = observer_wakes(false).await;
+    assert!((200..450).contains(&ms), "the task ran again after {ms} ms");
+}
+
+/// Closing the observer's queue wakes the task parked on the observer's
+/// readiness, even when nothing was pushed.
+#[valtron_test(threads = 1, timeout = 10_000)]
+async fn an_observer_close_wakes_the_parked_task() {
+    let ms = observer_wakes(true).await;
+    assert!((200..450).contains(&ms), "the task ran again after {ms} ms");
 }

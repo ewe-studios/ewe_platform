@@ -1,9 +1,9 @@
 //! `FdRegistration` / `RegisteredFd` are event-driven on the reactor path
 //! (spec 70 feature 77, E4).
 //!
-//! WHY: the shared reactor's drain thread latches readiness and then calls
-//! `request_executor_resume`, so an executor need not re-check a parked fd on a
-//! 1 ms timer. The legacy private-`Poll` path has no such wake and keeps polling.
+//! WHY: the shared reactor's drain thread latches readiness and then wakes the
+//! waker of the task parked on the fd (`EventReadiness::register`), so an executor
+//! need not re-check a parked fd on a 1 ms timer. The legacy private-`Poll` path has no such wake and keeps polling.
 //!
 //! WHAT: a task parks on a `RegisteredFd` over an empty pipe; another thread
 //! writes 200 ms later. The task must read the bytes soon after, and a counting
@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
     collect_result, execute, initialize_pool, Ctx, EventReadiness, EventReadinessPtr, PoolGuard,
-    TaskIterator, TaskStatus,
+    ReadinessWaker, TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::native::fd::{Reactor, RegisteredFd};
 use foundation_nativeapis::{Poll, Token};
@@ -39,8 +39,8 @@ impl EventReadiness for Counting {
         self.inner.clear();
     }
 
-    fn needs_polling(&self) -> bool {
-        self.inner.needs_polling()
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.inner.register(waker)
     }
 }
 
@@ -115,7 +115,7 @@ fn park_and_write(fd: RegisteredFd<OwnedFd>, writer: OwnedFd) -> (u128, usize, V
     (ms, checks.load(Ordering::SeqCst), results[0].clone())
 }
 
-/// Reactor path: `needs_polling` is `false`, the task wakes on the write, and the
+/// Reactor path: `register` takes the waker, the task wakes on the write, and the
 /// executor checks the readiness only a few times while it is parked.
 #[test]
 #[foundation_macros::timeout(30_000)]
@@ -125,7 +125,10 @@ fn reactor_registered_fd_wakes_on_write_without_polling() {
     let (reader, writer) = make_pipe();
     let reactor = Reactor::get().expect("shared reactor");
     let fd = RegisteredFd::new(reader, reactor.registry(), Token(0)).expect("register fd");
-    assert!(!fd.needs_polling(), "reactor path is event-driven");
+    assert!(
+        fd.register(&ReadinessWaker::noop()),
+        "reactor path is event-driven"
+    );
 
     let (ms, checks, bytes) = park_and_write(fd, writer);
     eprintln!("reactor path: {ms} ms, {checks} checks");
@@ -146,7 +149,10 @@ fn legacy_registered_fd_keeps_polling_and_wakes() {
     let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("poll");
     let fd = RegisteredFd::new(reader, &poll.registry(), Token(1)).expect("register fd");
-    assert!(fd.needs_polling(), "legacy path must keep polling");
+    assert!(
+        !fd.register(&ReadinessWaker::noop()),
+        "legacy path must keep polling"
+    );
 
     let (ms, checks, bytes) = park_and_write(fd, writer);
     eprintln!("legacy path: {ms} ms, {checks} checks");
@@ -196,14 +202,14 @@ fn stop_signal_wakes_a_parked_task_without_polling() {
             self.0.is_ready(dur)
         }
 
-        fn needs_polling(&self) -> bool {
-            self.0.needs_polling()
+        fn register(&self, waker: &ReadinessWaker) -> bool {
+            self.0.register(waker)
         }
     }
 
     let _guard: PoolGuard = initialize_pool(42, Some(3));
     let stop = StopSignal::new();
-    assert!(!stop.needs_polling());
+    assert!(stop.register(&ReadinessWaker::noop()));
     let checks = Arc::new(AtomicUsize::new(0));
     let stopper = stop.clone();
     thread::spawn(move || {
