@@ -579,16 +579,22 @@ impl FdRegistration {
     }
 }
 
-// `needs_polling` stays at its default (`true`) for `FdRegistration` and
-// `RegisteredFd`: this crate's reactor latches readiness without calling
-// `request_executor_resume`, and the legacy path polls with a syscall, so an
-// executor that slept on them could miss a transition.
+// `needs_polling`: on the shared-reactor path the reactor's drain thread latches
+// every readiness bit and then calls `request_executor_resume`
+// (`foundation_reactor::reactor::drain_loop`), so an executor that sleeps on the
+// registration is woken by the event: `false`. On the legacy path a private
+// `Poll` is queried with a zero-timeout syscall and nothing resumes the
+// executor, so the executor must re-check on a timer: `true`.
 impl EventReadiness for FdRegistration {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         match self.query_readiness() {
             Ok(r) => !r.is_empty(),
             Err(_) => false,
         }
+    }
+
+    fn needs_polling(&self) -> bool {
+        self.reactor.is_none()
     }
 }
 
@@ -637,6 +643,12 @@ pub struct RegisteredFd<T: AsRawFd> {
 impl<T: AsRawFd + Send + Sync> EventReadiness for RegisteredFd<T> {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.registration.is_ready(dur)
+    }
+
+    /// See the note on [`FdRegistration`]'s `EventReadiness` impl: `false` on the
+    /// shared-reactor path, `true` on the legacy private-`Poll` path.
+    fn needs_polling(&self) -> bool {
+        self.registration.needs_polling()
     }
 }
 

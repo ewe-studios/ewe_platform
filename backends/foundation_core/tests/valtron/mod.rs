@@ -13,6 +13,8 @@ mod channel_backpressure_tests;
 mod cross_runtime;
 #[cfg(feature = "std")]
 mod ctx;
+#[cfg(not(target_family = "wasm"))]
+mod event_driven_queue_readiness;
 mod flatten_combinators;
 mod futures_in_valtron;
 mod local_executor;

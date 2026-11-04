@@ -681,7 +681,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                     )));
                 }
                 let deadline = st.deadline;
-                let queue = Arc::new(QueueReadiness::new(st.wake_queue.clone()));
+                let queue = Arc::new(QueueReadiness::event_driven(st.wake_queue.clone()));
                 let signal = io_or_deadline(queue, deadline);
                 self.0 = Some(HttpRequestRedirectState::Resolving(Some(st)));
                 TaskStatus::Depends(signal)

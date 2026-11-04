@@ -23,6 +23,9 @@ impl StopSignal {
     /// return `None`, terminating the task.
     pub fn stop(&self) {
         self.0.store(true, Ordering::Relaxed);
+        // Ask the executor to run again: a task parked on this signal is not
+        // re-checked on a timer (`needs_polling` is `false`).
+        foundation_core::valtron::request_executor_resume();
     }
 
     /// Check if the stop signal has been set.
@@ -44,6 +47,11 @@ impl Default for StopSignal {
 impl EventReadiness for StopSignal {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.is_stopped()
+    }
+
+    /// `stop` resumes the executor, so no timer re-check is needed.
+    fn needs_polling(&self) -> bool {
+        false
     }
 }
 

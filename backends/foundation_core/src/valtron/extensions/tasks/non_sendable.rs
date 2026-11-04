@@ -1925,7 +1925,12 @@ where
 #[inline]
 fn split_observer_push<T>(queue: &ConcurrentQueue<T>, item: T) -> Option<T> {
     match queue.push(item) {
-        Ok(()) => None,
+        Ok(()) => {
+            // Ask the executor to run again: an observer parked on the queue
+            // is not re-checked on a timer.
+            crate::valtron::request_executor_resume();
+            None
+        }
         Err(concurrent_queue::PushError::Full(item)) => Some(item),
         Err(concurrent_queue::PushError::Closed(_)) => None,
     }
@@ -1950,7 +1955,7 @@ impl<D, P> CollectorStreamIterator<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -1991,6 +1996,7 @@ impl<D, P> Drop for CollectorStreamIterator<D, P> {
     /// copying to this branch and keeps forwarding.
     fn drop(&mut self) {
         self.queue.close();
+        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2042,6 +2048,7 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
+            crate::valtron::request_executor_resume();
             tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2082,6 +2089,7 @@ where
     fn drop(&mut self) {
         // Close the queue to signal that the source is done
         self.queue.close();
+        crate::valtron::request_executor_resume();
         tracing::debug!("SplitCollectorContinuation: dropped, queue closed");
     }
 }
@@ -2173,6 +2181,7 @@ impl<I: TaskIterator> BroadcastContinuation<I> {
     fn close_all(&self) {
         for queue in &self.queues {
             queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2201,7 +2210,9 @@ where
                 }
                 // Backpressure (room pre-checked) / DropNewest (full → dropped).
                 BroadcastPolicy::Backpressure | BroadcastPolicy::DropNewest => {
-                    let _ = queue.push(Stream::Next(value.clone()));
+                    if queue.push(Stream::Next(value.clone())).is_ok() {
+                        crate::valtron::request_executor_resume();
+                    }
                 }
             }
         }
@@ -2298,7 +2309,7 @@ impl<D, P> SplitUntilObserver<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -2342,6 +2353,7 @@ impl<D, P> Drop for SplitUntilObserver<D, P> {
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
         self.queue.close();
+        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2387,6 +2399,7 @@ where
             if self.pending_close {
                 self.pending_close = false;
                 self.queue.close();
+                crate::valtron::request_executor_resume();
             }
             return self.pending_forward.take();
         }
@@ -2396,6 +2409,7 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
+            crate::valtron::request_executor_resume();
             tracing::debug!("SplitUntilContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2439,6 +2453,7 @@ where
                     }
                     if !park {
                         self.queue.close();
+                        crate::valtron::request_executor_resume();
                         tracing::debug!("SplitUntilContinuation: observer queue closed after CollectionState::Close");
                     }
                 }
@@ -2466,6 +2481,7 @@ where
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuation: dropped before completion, closing queue");
             self.queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2491,7 +2507,7 @@ impl<D, P> SplitUntilObserverMap<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -2535,6 +2551,7 @@ impl<D, P> Drop for SplitUntilObserverMap<D, P> {
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
         self.queue.close();
+        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2579,6 +2596,7 @@ where
             if self.pending_close {
                 self.pending_close = false;
                 self.queue.close();
+                crate::valtron::request_executor_resume();
             }
             return self.pending_forward.take();
         }
@@ -2588,6 +2606,7 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
+            crate::valtron::request_executor_resume();
             tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
             return None;
         };
@@ -2635,6 +2654,7 @@ where
                     }
                     if !park {
                         self.queue.close();
+                        crate::valtron::request_executor_resume();
                         tracing::debug!("SplitUntilContinuationMap: observer queue closed after CollectionState::Close");
                     }
                 }
@@ -2662,6 +2682,7 @@ where
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuationMap: dropped before completion, closing queue");
             self.queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2687,7 +2708,7 @@ impl<M, P> SplitCollectorMapObserver<M, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<M, P>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -2725,6 +2746,7 @@ impl<M, P> Drop for SplitCollectorMapObserver<M, P> {
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
         self.queue.close();
+        crate::valtron::request_executor_resume();
     }
 }
 
@@ -2773,6 +2795,7 @@ where
             item
         } else {
             self.queue.close();
+            crate::valtron::request_executor_resume();
             tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2814,6 +2837,7 @@ where
     fn drop(&mut self) {
         if !self.queue.is_closed() {
             self.queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }

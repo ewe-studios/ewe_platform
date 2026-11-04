@@ -1737,7 +1737,12 @@ where
 #[inline]
 fn sstream_observer_push<T>(queue: &ConcurrentQueue<T>, item: T) -> Option<T> {
     match queue.push(item) {
-        Ok(()) => None,
+        Ok(()) => {
+            // Ask the executor to run again: an observer parked on the queue
+            // is not re-checked on a timer.
+            crate::valtron::request_executor_resume();
+            None
+        }
         Err(concurrent_queue::PushError::Full(item)) => Some(item),
         Err(concurrent_queue::PushError::Closed(_)) => None,
     }
@@ -1760,7 +1765,7 @@ impl<D, P> SCollectorStreamIterator<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -1802,6 +1807,7 @@ impl<D, P> Drop for SCollectorStreamIterator<D, P> {
     /// branch and keeps forwarding to the survivors.
     fn drop(&mut self) {
         self.queue.close();
+        crate::valtron::request_executor_resume();
     }
 }
 
@@ -1850,6 +1856,7 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
+            crate::valtron::request_executor_resume();
             return None;
         };
 
@@ -1874,6 +1881,7 @@ where
     fn drop(&mut self) {
         // Close the queue to signal that the source is done
         self.queue.close();
+        crate::valtron::request_executor_resume();
         tracing::debug!("SSplitCollectorContinuation: dropped, queue closed");
     }
 }
@@ -1960,6 +1968,7 @@ where
     fn close_all(&self) {
         for queue in &self.queues {
             queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -1982,7 +1991,9 @@ where
                     let _ = queue.force_push(item.clone());
                 }
                 BroadcastPolicy::Backpressure | BroadcastPolicy::DropNewest => {
-                    let _ = queue.push(item.clone());
+                    if queue.push(item.clone()).is_ok() {
+                        crate::valtron::request_executor_resume();
+                    }
                 }
             }
         }
@@ -2069,7 +2080,7 @@ impl<D, P> SSplitUntilObserver<D, P> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -2139,6 +2150,7 @@ where
             if self.pending_close {
                 self.pending_close = false;
                 self.queue.close();
+                crate::valtron::request_executor_resume();
             }
             return self.pending_forward.take();
         }
@@ -2148,6 +2160,7 @@ where
         } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
+            crate::valtron::request_executor_resume();
             return None;
         };
 
@@ -2176,6 +2189,7 @@ where
                     }
                 }
                 self.queue.close();
+                crate::valtron::request_executor_resume();
             }
         }
 
@@ -2193,6 +2207,7 @@ where
         if !self.queue.is_closed() {
             tracing::debug!("SSplitUntilContinuation: dropped before completion, closing queue");
             self.queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }
@@ -2219,7 +2234,7 @@ impl<DM, PM> SSplitCollectorMapObserver<DM, PM> {
     /// Never panics.
     #[must_use]
     pub fn readiness(&self) -> QueueReadiness<Stream<DM, PM>> {
-        QueueReadiness::new(self.queue.clone())
+        QueueReadiness::event_driven(self.queue.clone())
     }
 }
 
@@ -2295,6 +2310,7 @@ where
             item
         } else {
             self.queue.close();
+            crate::valtron::request_executor_resume();
             return None;
         };
 
@@ -2323,6 +2339,7 @@ where
                 "SSplitCollectorMapContinuation: dropped before completion, closing queue"
             );
             self.queue.close();
+            crate::valtron::request_executor_resume();
         }
     }
 }

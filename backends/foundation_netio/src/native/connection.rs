@@ -1434,11 +1434,11 @@ impl Connection {
             #[cfg(unix)]
             Self::Completion(_) => None,
             Self::Overlay(o) => {
-                let signal = foundation_core::valtron::BoolSignal::new(false);
-                let flag = signal.clone_inner();
-                let waker: ConnWaker = std::sync::Arc::new(move || {
-                    flag.store(true, std::sync::atomic::Ordering::SeqCst)
-                });
+                // `ResumeSignal::set` asks the executor to run again, so the parked
+                // task needs no re-check on a timer.
+                let signal = foundation_core::valtron::ResumeSignal::new(false);
+                let flag = signal.clone();
+                let waker: ConnWaker = std::sync::Arc::new(move || flag.set(true));
                 match interest {
                     IoInterest::Readable => o.set_read_waker(waker),
                     IoInterest::Writable => o.set_write_waker(waker),

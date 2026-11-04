@@ -442,19 +442,32 @@ impl<T> EventReadiness for QueueReadiness<T> {
 ///     Err(PushError::Closed(_)) => None,
 /// }
 /// ```
-pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>);
+pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>, bool);
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueVacancyReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self(self.0.clone(), self.1)
     }
 }
 
 impl<T> QueueVacancyReadiness<T> {
     /// Create a `QueueVacancyReadiness` that watches the given queue for capacity.
+    ///
+    /// A consumer may free a slot with a raw `queue().pop()` that does not ask
+    /// the executor to run again, so the executor re-checks this readiness on a
+    /// timer ([`EventReadiness::needs_polling`] is `true`). Use
+    /// [`Self::event_driven`] when every consumer resumes the executor.
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue)
+        Self(queue, false)
+    }
+
+    /// Create a `QueueVacancyReadiness` whose every consumer asks the executor
+    /// to run again after a pop or a close ([`QueueVacancyReadiness::pop`],
+    /// `request_executor_resume`). The executor then sleeps until the pop
+    /// ([`EventReadiness::needs_polling`] is `false`).
+    pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
+        Self(queue, true)
     }
 
     /// Get a clone of the underlying queue for external mutation (popping messages).
@@ -493,12 +506,20 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
         // a full-then-closed pipe unparks to observe the close on its next push.
         self.0.is_closed() || !self.0.is_full()
     }
+
+    fn needs_polling(&self) -> bool {
+        !self.1
+    }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         self.0.is_closed() || !self.0.is_full()
+    }
+
+    fn needs_polling(&self) -> bool {
+        !self.1
     }
 }
 

@@ -115,23 +115,22 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **A worker with an event-driven sleeper still uses about 20 ms of CPU per second.**
-  Feature 75 stops the 1 ms re-check for signals that resume the executor, but a
-  `multi` worker parked on a `ResumeSignal` still used about 21 ms of CPU per second
-  in `event_driven_cpu` (about 55 ms with a polling signal). The idle back-off and
-  the 100 ms `max_yield_duration` wake-ups do not explain it. Fix: sample per
-  thread (`/proc/<tid>/schedstat`) and find the loop.
-- **`BoolSignal` and the queue readiness types keep the 1 ms re-check.** Code in
-  `foundation_http` `connection.rs` and `foundation_netio` `native/connection.rs`
-  stores into a `BoolSignal` through `clone_inner` without calling
-  `request_executor_resume`, and other code pushes to a raw queue, so they cannot
-  report `needs_polling() == false`. Fix: replace those raw stores with
-  `ResumeSignal` (or `set`), then mark the queue types event-driven.
-- **`FdRegistration` and `RegisteredFd` (`foundation_nativeapis`) keep the 1 ms
-  re-check.** That crate's reactor latches readiness without
-  `request_executor_resume`, and its legacy path polls with a syscall. Fix: call
-  `request_executor_resume` after the latch, then return `false` from
-  `needs_polling`.
+- **`QueueVacancyReadiness::new` and `QueueReadiness::new` keep the 1 ms re-check
+  for raw users.** Feature 77 added `event_driven` constructors (used by the
+  core pipe, the observer/collector queues, the future/stream/state task wake
+  queues, the http and netio wake queues). The `new` constructors stay polling
+  because callers may push or pop the queue directly. Remaining raw users:
+  `foundation_core` `executors/task_iters.rs` (six `QueueVacancyReadiness::new`
+  over the delivery queue, whose `NotifyQueue::pop` fires the space wake but does
+  not call `request_executor_resume`), the vacancy side of the `extensions/{tasks,
+  streams}` queues (a raw `queue.pop()` frees the slot), and lane B crates
+  (`foundation_toolings`, `foundation_ai`, `foundation_netio`
+  `shared/http/pushable_body.rs`, `quic/traits.rs`). Fix: make `NotifyQueue::pop`
+  resume when a producer waits, add `resume` after the extension pops, then switch
+  each site to `event_driven`.
+- **`foundation_nativeapis` `signal/task.rs` parks on `SignalHandle` readiness,
+  which keeps the default `needs_polling() == true`.** Fix: check that the signal
+  delivery calls `request_executor_resume`, then return `false`.
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.
