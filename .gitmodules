@@ -17,6 +17,3 @@
 [submodule "tools/llama.cpp"]
 	path = tools/llama.cpp
 	url = https://github.com/ggml-org/llama.cpp
-[submodule "artefacts/models/whisper.cpp"]
-	path = artefacts/models/whisper.cpp
-	url = https://huggingface.co/ggerganov/whisper.cpp

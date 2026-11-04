@@ -213,3 +213,4 @@ infrastructure/docker/docker-android/
 
 # wasm-testbed bindgen-* runs regenerate these (wasm-bindgen output + run.js) on every run
 backends/*/integrations/bindgen-*/
+.fff
