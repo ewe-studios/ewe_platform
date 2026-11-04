@@ -4,7 +4,7 @@
 #![allow(clippy::type_complexity)]
 
 // valtron's `multi` executor is a native thread pool: it does not compile for
-// wasm32 (no threads, no `idle_wake`). Cargo merges features across the whole
+// wasm32 (no threads, no idle-wake path). Cargo merges features across the whole
 // graph, so one dependency that asks for `foundation_core/multi` (directly or
 // through `foundation_netio/multi`, `foundation_db/multi`, ...) turns it on for
 // every wasm build of the graph. Fail with the cause instead of deep inside the

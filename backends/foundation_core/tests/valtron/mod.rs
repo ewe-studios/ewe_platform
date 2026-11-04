@@ -23,6 +23,7 @@ mod map_circuit;
 mod notification_based_waiting;
 mod park_busy_loop;
 mod readiness_deadline_tests;
+mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
 mod shutdown_mechanism_tests;
 mod sleep_tests;

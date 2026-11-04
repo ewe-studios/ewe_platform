@@ -1904,15 +1904,32 @@ impl ExecutorState {
                 // park must clear it or the count accumulates over the task's
                 // whole lifetime and eventually panics a healthy hot task.
                 self.depends_true_violations.borrow_mut().remove(&top_entry);
-                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 // Hand the readiness this task's waker: a signal that takes it
                 // wakes this task (and this executor's thread) when it is ready,
                 // and is not re-checked on a timer.
                 let state = crate::valtron::ParkState::new();
                 let accepted = signal.register(&state.waker());
+                // The check above must come BEFORE the register, because a
+                // signal that is ready never wakes anybody. It also opens a
+                // window: a change between that check and the register found
+                // no waker to wake (the notifier had nobody registered), and
+                // the task would then sleep to its deadline (a 30 s DNS
+                // timeout, first seen in the HTTP client). Look once more now
+                // that the waker is stored: the register-before-check protocol
+                // closes the window, because every later change wakes this
+                // task and every earlier one is visible here.
+                if accepted && signal.is_ready(None) {
+                    // Release first: a source that still holds the waker must
+                    // not park this task again after it runs.
+                    state.release();
+                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                    self.processing.borrow_mut().push_back(top_entry);
+                    return ProgressIndicator::CanProgress(Some(State::Pending(None)));
+                }
                 // Dropping the guard of a signal that did not accept the waker
                 // makes any waker it kept a no-op.
                 let park = accepted.then_some(crate::valtron::ParkGuard(state));
+                self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 self.sleepers
                     .insert(top_entry, Sleepable::Readiness(signal, top_entry, park));
 
