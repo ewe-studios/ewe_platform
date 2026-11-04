@@ -304,4 +304,77 @@ mod event_driven_cpu {
          second; a polling one used {polling:?}"
         );
     }
+
+    /// Per-thread CPU and wake-ups: (tid, comm) -> (cpu ns, voluntary context switches).
+    fn thread_stats() -> std::collections::BTreeMap<String, (u64, u64)> {
+        let mut out = std::collections::BTreeMap::new();
+        for entry in std::fs::read_dir("/proc/self/task")
+            .expect("task dir")
+            .flatten()
+        {
+            let tid = entry.file_name().to_string_lossy().into_owned();
+            let comm = std::fs::read_to_string(entry.path().join("comm")).unwrap_or_default();
+            let cpu = std::fs::read_to_string(entry.path().join("schedstat"))
+                .unwrap_or_default()
+                .split_whitespace()
+                .next()
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(0);
+            let switches = std::fs::read_to_string(entry.path().join("status"))
+                .unwrap_or_default()
+                .lines()
+                .find_map(|l| l.strip_prefix("voluntary_ctxt_switches:"))
+                .and_then(|v| v.trim().parse::<u64>().ok())
+                .unwrap_or(0);
+            out.insert(format!("{tid} {}", comm.trim()), (cpu, switches));
+        }
+        out
+    }
+
+    /// An idle pool, with its only task parked on a `ResumeSignal`, costs each of
+    /// its threads under 2 ms of CPU and under 30 wake-ups in one second.
+    ///
+    /// The thread that waits for the task's output (the test thread here) used to
+    /// wake every millisecond (`NotifyQueue::wait_for_item` made 100 timed waits of
+    /// 1 ms): about 27 ms of CPU and 900 wake-ups per second. The workers wake once
+    /// per `max_yield_duration` (100 ms) at most: about 10 wake-ups per second.
+    #[valtron_test(threads = 1, timeout = 20_000)]
+    async fn idle_threads_parked_on_a_resume_signal_use_almost_no_cpu() {
+        let _stream = execute(
+            ParkForever {
+                signal: Some(Arc::new(ResumeSignal::new(false))),
+            },
+            None,
+        )
+        .expect("execute")
+        .into_next_stream();
+        std::thread::sleep(Duration::from_millis(300));
+        let before = thread_stats();
+        std::thread::sleep(Duration::from_secs(1));
+        let after = thread_stats();
+        std::mem::forget(_stream);
+
+        let comm = "valtron::readin";
+        let mut worst_cpu = Duration::ZERO;
+        let mut worst_wakeups = 0;
+        for (name, (cpu, switches)) in &after {
+            if !name.ends_with(comm) {
+                continue;
+            }
+            let (cpu0, switches0) = before.get(name).copied().unwrap_or((0, 0));
+            let used = Duration::from_nanos(cpu.saturating_sub(cpu0));
+            let wakeups = switches.saturating_sub(switches0);
+            eprintln!("thread {name}: {used:?} CPU, {wakeups} wake-ups");
+            worst_cpu = worst_cpu.max(used);
+            worst_wakeups = worst_wakeups.max(wakeups);
+        }
+        assert!(
+            worst_cpu < Duration::from_millis(2),
+            "an idle thread used {worst_cpu:?} of CPU in one second; the bound is 2 ms"
+        );
+        assert!(
+            worst_wakeups < 30,
+            "an idle thread woke {worst_wakeups} times in one second; the bound is 30"
+        );
+    }
 }

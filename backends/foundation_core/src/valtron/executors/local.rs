@@ -452,16 +452,17 @@ impl<T> NotifyQueue<T> {
             Err(PopError::Empty) => {}
         }
 
+        // The wait is one timed condvar wait of `timeout * max_spins` in total,
+        // not `max_spins` waits of `timeout`: a consumer that waits for an item
+        // is woken by a push or a close, so it need not wake every `timeout` to
+        // look (that cost ~1 000 wake-ups per second per idle consumer). A
+        // spurious wake-up goes round again until the total is spent.
         let max_spins = self.max_spins.load(Ordering::Relaxed);
-        let mut spins = 0;
+        let total = timeout.saturating_mul(u32::try_from(max_spins).unwrap_or(u32::MAX));
+        let deadline = time::Instant::now().checked_add(total);
         let mut guard = self.mutex.lock().unwrap();
 
         loop {
-            if spins >= max_spins {
-                *guard = false;
-                return Some(NotificationItem::None);
-            }
-
             // Check queue after acquiring lock
             match self.pop() {
                 Ok(item) => {
@@ -475,25 +476,20 @@ impl<T> NotifyQueue<T> {
                 Err(PopError::Empty) => {}
             }
 
-            // Wait with timeout - returns guard when notified or timeout
-            let result = self.condvar.wait_timeout(guard, timeout).unwrap();
-            guard = result.0;
-            spins += 1;
-
-            // Check if item available after waking up
-            match self.pop() {
-                Ok(item) => {
-                    *guard = false;
-                    return Some(NotificationItem::Ready(item));
-                }
-                Err(PopError::Closed) => {
-                    *guard = false;
-                    return None;
-                }
-                Err(PopError::Empty) => {}
+            let left = match deadline {
+                Some(deadline) => deadline.saturating_duration_since(time::Instant::now()),
+                None => total,
+            };
+            if left.is_zero() {
+                *guard = false;
+                return Some(NotificationItem::None);
             }
 
-            // Reset notification flag and loop again
+            // Wait with timeout - returns guard when notified or timeout
+            let result = self.condvar.wait_timeout(guard, left).unwrap();
+            guard = result.0;
+
+            // A notification (push or close) was consumed by this wake-up.
             *guard = false;
         }
     }
@@ -522,6 +518,11 @@ impl<T> NotifyQueue<T> {
             self.wake.fire();
             // And a producer waiting for space, which will now see `Closed`.
             self.space.fire();
+            // And a consumer blocked in `wait_for_item`, which waits for a push
+            // or a close and not on a timer.
+            let mut guard = self.mutex.lock().unwrap();
+            *guard = true;
+            self.condvar.notify_all();
         }
         closed
     }
