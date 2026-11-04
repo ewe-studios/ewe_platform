@@ -17,8 +17,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventReadiness, EventReadinessPtr, StreamIteratorExt, TaskIterator,
-    TaskStatus, WakeSignal,
+    execute, valtron_test, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker,
+    StreamIteratorExt, TaskIterator, TaskStatus, WakeSignal,
 };
 
 /// How long each task stays parked.
@@ -69,13 +69,13 @@ impl EventReadiness for DeadlineOnly {
         Some(self.0)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }
 
-/// A raw flag flipped by a thread that does not ask the executor to run again.
-/// It keeps the default `needs_polling() == true`.
+/// A raw flag flipped by a thread that does not wake the task. It keeps the
+/// default `register` (`false`) and is re-checked on a timer.
 struct RawFlag(Arc<AtomicBool>);
 
 impl EventReadiness for RawFlag {

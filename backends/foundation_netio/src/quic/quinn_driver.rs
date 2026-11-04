@@ -38,7 +38,8 @@ use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
 use foundation_core::valtron::{
-    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ResumeSignal, TaskIterator, TaskStatus,
+    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
+    TaskIterator, TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -85,8 +86,8 @@ impl EventReadiness for DeadlinePassed {
         Some(self.0)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }
 

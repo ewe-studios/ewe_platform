@@ -31,7 +31,7 @@ use bytes::Bytes;
 use foundation_core::synca::WaitGroupGuard;
 use foundation_core::valtron::{
     AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, FutureTask, Pipe,
-    PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
+    PipeReceiver, PipeSender, ReadinessWaker, TaskIterator, TaskStatus, TryRecvError,
 };
 #[cfg(unix)]
 use foundation_iogate::FdReadiness as SocketReadiness;
@@ -218,8 +218,8 @@ impl EventReadiness for DeadlinePassed {
         Some(self.0)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }
 
@@ -231,9 +231,9 @@ impl EventReadiness for ShutdownRequested {
         self.0.probe()
     }
 
-    /// `ShutdownSignal::turn_on` asks the executor to run again.
-    fn needs_polling(&self) -> bool {
-        false
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
     }
 }
 

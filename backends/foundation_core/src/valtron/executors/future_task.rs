@@ -12,9 +12,8 @@ use core::marker::PhantomData;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::{Ctx, QueueReadiness, TaskIterator, TaskStatus};
+use crate::valtron::{Ctx, TaskIterator, TaskStatus};
 #[cfg(any(feature = "std", feature = "alloc"))]
-use concurrent_queue::ConcurrentQueue;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::pin::Pin;
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -114,7 +113,7 @@ pub struct WakeToken {
 /// only bumps the strong count and `wake()` can recover both the queue and id.
 #[cfg(any(feature = "std", feature = "alloc"))]
 struct WakerState {
-    queue: Arc<ConcurrentQueue<WakeToken>>,
+    queue: crate::valtron::EventQueue<WakeToken>,
     id: u64,
 }
 
@@ -137,41 +136,6 @@ unsafe fn queue_waker_clone(data: *const ()) -> RawWaker {
     RawWaker::new(data, &QUEUE_WAKER_VTABLE)
 }
 
-thread_local! {
-    /// The wake queue of the future this thread is polling right now, or null.
-    static POLLING: core::cell::Cell<*const ConcurrentQueue<WakeToken>> =
-        const { core::cell::Cell::new(core::ptr::null()) };
-}
-
-/// Marks that the calling thread is polling the future that owns `queue`.
-///
-/// WHY: a future that wakes itself while it is polled (`cx.waker().wake_by_ref()`,
-/// a busy loop of a `poll_fn`) pushes its token and returns `Pending`; the poller
-/// then sees the token and runs the task again. No other thread has to be told, so
-/// that wake must not call `request_executor_resume`. Calling it anyway made every
-/// self-waking future in the process interrupt every idle executor and fire every
-/// resume listener, thousands of times a second (a wake storm that made each
-/// parked `DrivenStreamIterator` consumer re-check its readiness over and over).
-/// A wake from any other thread, or of any other future, still resumes.
-struct PollScope(*const ConcurrentQueue<WakeToken>);
-
-impl PollScope {
-    fn enter(queue: &Arc<ConcurrentQueue<WakeToken>>) -> Self {
-        Self(POLLING.with(|c| c.replace(Arc::as_ptr(queue))))
-    }
-
-    /// Whether this thread is polling the future that owns `queue`.
-    fn is_polling(queue: &Arc<ConcurrentQueue<WakeToken>>) -> bool {
-        POLLING.with(|c| core::ptr::eq(c.get(), Arc::as_ptr(queue)))
-    }
-}
-
-impl Drop for PollScope {
-    fn drop(&mut self) {
-        POLLING.with(|c| c.set(self.0));
-    }
-}
-
 /// Wake (by value): push this waker's token, then drop the owned strong ref.
 ///
 /// # Safety
@@ -183,11 +147,9 @@ unsafe fn queue_waker_wake(data: *const ()) {
     // Unbounded queue: push only fails if closed, in which case the woken task
     // has already gone away and dropping the token is the correct outcome.
     let _ = state.queue.push(WakeToken { id: state.id });
-    // Tell an idle executor the parked task is ready (else it oversleeps),
-    // unless the future woke itself while this thread polls it (`PollScope`).
-    if !PollScope::is_polling(&state.queue) {
-        crate::valtron::request_executor_resume();
-    }
+    // The push wakes the task parked on the queue's readiness, and only that
+    // task (`EventQueue`). A future that wakes itself while it is polled has no
+    // parked task to wake.
 }
 
 /// Wake by reference: push this waker's token without consuming the strong ref.
@@ -200,9 +162,6 @@ unsafe fn queue_waker_wake(data: *const ()) {
 unsafe fn queue_waker_wake_by_ref(data: *const ()) {
     let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<WakerState>()));
     let _ = state.queue.push(WakeToken { id: state.id });
-    if !PollScope::is_polling(&state.queue) {
-        crate::valtron::request_executor_resume();
-    }
 }
 
 /// Drop: reclaim and release one `Arc<WakerState>` strong reference.
@@ -230,7 +189,7 @@ unsafe fn queue_waker_drop(data: *const ()) {
 /// Never panics.
 #[cfg(any(feature = "std", feature = "alloc"))]
 #[must_use]
-pub fn queue_waker(queue: Arc<ConcurrentQueue<WakeToken>>, id: u64) -> Waker {
+pub fn queue_waker(queue: crate::valtron::EventQueue<WakeToken>, id: u64) -> Waker {
     let state = Arc::new(WakerState { queue, id });
     let raw = RawWaker::new(Arc::into_raw(state).cast::<()>(), &QUEUE_WAKER_VTABLE);
     // SAFETY: `raw` is built from a fresh `Arc<WakerState>` and the vtable
@@ -257,7 +216,7 @@ where
     completed: bool,
     /// Wake queue watched via [`QueueReadiness`]; the future's `Waker` pushes a
     /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: crate::valtron::EventQueue<WakeToken>,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -269,7 +228,7 @@ where
         Self {
             future: Box::pin(future),
             completed: false,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
         }
     }
 
@@ -278,7 +237,7 @@ where
         Self {
             future,
             completed: false,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
         }
     }
 }
@@ -303,7 +262,6 @@ where
         // wake-before-park race) stays in the queue and keeps the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
-        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -333,9 +291,7 @@ where
                 // the executor requeues, and we drain it on the next poll.
                 if self.wake_queue.is_empty() {
                     // No self-wake: genuine park.
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     // Self-wake: requeue without parking.
                     Some(TaskStatus::Ignore)
@@ -363,7 +319,6 @@ where
         // the full rationale.
         while self.wake_queue.pop().is_ok() {}
 
-        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -374,9 +329,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -404,7 +357,7 @@ where
     exhausted: bool,
     /// Wake queue watched via [`QueueReadiness`]; the stream's `Waker` pushes a
     /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: crate::valtron::EventQueue<WakeToken>,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -416,7 +369,7 @@ where
         Self {
             stream: Box::pin(stream),
             exhausted: false,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
         }
     }
 }
@@ -439,7 +392,6 @@ where
         // wake that arrives after this drain survives to keep the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
-        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -451,9 +403,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -481,7 +431,6 @@ where
         // wake that arrives after this drain survives to keep the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
-        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -493,9 +442,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -545,8 +492,13 @@ impl crate::valtron::EventReadiness for CancelOrReadiness {
         self.inner.deadline()
     }
 
-    // The cancel flag is a plain atomic that nothing asks the executor to
-    // re-check, so the default (`needs_polling` is `true`) stays.
+    // The cancel flag is a plain atomic that nothing wakes on, so this signal
+    // stays on the timed re-check (`false`) even though the inner one is
+    // registered: a flip of the flag is seen at the next re-check.
+    fn register(&self, waker: &crate::valtron::ReadinessWaker) -> bool {
+        self.inner.register(waker);
+        false
+    }
 }
 
 /// Wraps a [`FutureTask`] with an `Arc<AtomicBool>` cancel signal.

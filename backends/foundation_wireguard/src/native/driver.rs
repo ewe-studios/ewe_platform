@@ -27,7 +27,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::shared::tunnel::{WgOutcome, WgTunnel};
-use foundation_core::valtron::{Ctx, EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, EventReadiness, ReadinessWaker, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;
@@ -451,7 +451,8 @@ impl EventReadiness for TimedReadiness {
         Some(self.deadline)
     }
 
-    fn needs_polling(&self) -> bool {
-        self.fd.needs_polling()
+    /// The socket wakes the task; the deadline is the executor's timer.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.fd.register(waker)
     }
 }

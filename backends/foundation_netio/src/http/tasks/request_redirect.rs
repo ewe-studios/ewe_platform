@@ -40,10 +40,9 @@ use crate::shared::http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor,
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken,
+    queue_waker, AnyReadiness, Ctx, EventQueue, TaskIterator, TaskStatus, WakeToken,
 };
 use std::future::Future;
 use std::io::Write;
@@ -189,7 +188,7 @@ pub struct Resolving<R: DnsResolver + Send + 'static> {
         Pin<Box<dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>> + Send>>,
     /// Fixed DNS deadline (feature 36).
     deadline: Instant,
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: EventQueue<WakeToken>,
 }
 
 /// A TCP connect in flight on a non-blocking socket (feature 04 §2.1).
@@ -637,7 +636,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 exchange,
                 future,
                 deadline,
-                wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+                wake_queue: EventQueue::unbounded(),
             },
         ))));
         TaskStatus::Pending(HttpOperationState::Connecting)
@@ -681,7 +680,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                     )));
                 }
                 let deadline = st.deadline;
-                let queue = Arc::new(QueueReadiness::event_driven(st.wake_queue.clone()));
+                let queue = Arc::new(st.wake_queue.readiness());
                 let signal = io_or_deadline(queue, deadline);
                 self.0 = Some(HttpRequestRedirectState::Resolving(Some(st)));
                 TaskStatus::Depends(signal)

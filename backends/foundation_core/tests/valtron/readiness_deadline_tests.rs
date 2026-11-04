@@ -18,8 +18,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
-    execute, valtron_test, AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ResumeSignal,
-    StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker,
+    ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -36,8 +36,9 @@ impl EventReadiness for DeadlineSignal {
         Some(self.0)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    /// Nothing signals it: the executor wakes at its deadline.
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }
 
@@ -48,8 +49,9 @@ impl EventReadiness for DeadlineSignal {
 /// an executor that sleeps checks the readiness a few times, a polling one
 /// checks it hundreds of times.
 ///
-/// With `force_polling` it reports `needs_polling() == true`, which makes the
-/// executor re-check it on the readiness quantum: it is the old behaviour.
+/// With `force_polling` it refuses the task's waker (`register` returns `false`),
+/// which makes the executor re-check it on the readiness quantum: it is the old
+/// behaviour.
 struct Counting {
     inner: EventReadinessPtr,
     checks: Arc<AtomicUsize>,
@@ -82,8 +84,9 @@ impl EventReadiness for Counting {
         self.inner.clear();
     }
 
-    fn needs_polling(&self) -> bool {
-        self.force_polling || self.inner.needs_polling()
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let registered = self.inner.register(waker);
+        registered && !self.force_polling
     }
 }
 
@@ -257,7 +260,7 @@ mod event_driven_cpu {
         Duration::from_nanos(total)
     }
 
-    /// A signal that never fires and keeps the default `needs_polling` (`true`): the
+    /// A signal that never fires and keeps the default `register` (`false`): the
     /// executor must re-check it on the readiness quantum.
     struct PollingSignal;
 
@@ -287,7 +290,7 @@ mod event_driven_cpu {
     }
 
     /// A worker whose only task is parked on an event-driven signal
-    /// (`EventReadiness::needs_polling` is `false`) sleeps: it does not re-check the
+    /// (`EventReadiness::register` returns `true`) sleeps: it does not re-check the
     /// signal on the 1 ms readiness quantum. Over one second it uses at most two
     /// thirds of the CPU of a worker that parks on a default (polling) signal; in
     /// practice about half.

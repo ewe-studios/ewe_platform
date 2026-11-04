@@ -10,6 +10,7 @@ mod iterators;
 mod notifiers;
 mod pipe;
 mod pipe_mapped;
+mod readiness_wake;
 mod stream_future;
 mod streams;
 mod task;
@@ -48,6 +49,10 @@ pub use iterators::*;
 pub use notifiers::*;
 pub use pipe::*;
 pub use pipe_mapped::*;
+#[doc(hidden)]
+pub use readiness_wake::ParkGuard;
+pub(crate) use readiness_wake::ParkState;
+pub use readiness_wake::{EventQueue, ReadinessNotifier, ReadinessWaker};
 pub use stream_future::*;
 pub use streams::*;
 pub use task::*;

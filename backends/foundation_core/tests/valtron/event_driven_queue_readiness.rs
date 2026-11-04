@@ -1,9 +1,10 @@
 //! Queue readiness types are event-driven (spec 70 feature 77, E3).
 //!
 //! WHY: a task parked on a queue readiness was re-checked every millisecond,
-//! because a push could come from code that did not ask the executor to run
-//! again. Every producer in the crate now resumes the executor, so the
-//! readiness reports `needs_polling() == false`.
+//! because a push could come from code that did not wake the task. The queues of
+//! valtron now wake the parked task themselves (`EventQueue`, feature 80), so
+//! their readiness registers the task's waker (`register` returns `true`) and the
+//! executor does not re-check it on a timer.
 //!
 //! WHAT: for each type, a task parks on it, a thread stores into it 200 ms
 //! later, and the task runs again soon after. A counting adapter (public trait
@@ -17,8 +18,8 @@ use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventReadiness, EventReadinessPtr, Pipe, QueueReadiness,
-    ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr, Pipe,
+    QueueReadiness, ReadinessWaker, ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -42,8 +43,8 @@ impl EventReadiness for Counting {
         self.inner.clear();
     }
 
-    fn needs_polling(&self) -> bool {
-        self.inner.needs_polling()
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.inner.register(waker)
     }
 }
 
@@ -73,18 +74,14 @@ impl TaskIterator for ParkThenReport {
 
 /// Park a task on `signal`; run `trigger` on another thread after 200 ms. Returns
 /// the milliseconds until the task ran again and the readiness checks it cost.
-async fn park_and_trigger<F>(
-    signal: EventReadinessPtr,
-    needs_polling: bool,
-    trigger: F,
-) -> (u64, usize)
+async fn park_and_trigger<F>(signal: EventReadinessPtr, registers: bool, trigger: F) -> (u64, usize)
 where
     F: FnOnce() + Send + 'static,
 {
     assert_eq!(
-        signal.needs_polling(),
-        needs_polling,
-        "needs_polling of the readiness under test"
+        signal.register(&ReadinessWaker::noop()),
+        registers,
+        "whether the readiness under test takes the task's waker"
     );
     let checks = Arc::new(AtomicUsize::new(0));
     let counted: EventReadinessPtr = Arc::new(Counting {
@@ -133,14 +130,13 @@ fn assert_woke(label: &str, ms: u64, checks: usize) {
 
 #[valtron_test(threads = 1, timeout = 10_000)]
 async fn queue_readiness_wakes_on_a_push_from_another_thread() {
-    let queue = Arc::new(ConcurrentQueue::unbounded());
-    let readiness = QueueReadiness::event_driven(queue);
-    let pusher = readiness.clone();
-    let (ms, checks) = park_and_trigger(Arc::new(readiness), false, move || {
+    let queue = EventQueue::unbounded();
+    let pusher = queue.clone();
+    let (ms, checks) = park_and_trigger(Arc::new(queue.readiness()), true, move || {
         pusher.push(1u32).expect("push");
     })
     .await;
-    assert_woke("QueueReadiness::event_driven", ms, checks);
+    assert_woke("EventQueue::readiness", ms, checks);
 }
 
 #[valtron_test(threads = 1, timeout = 10_000)]
@@ -148,7 +144,7 @@ async fn queue_readiness_new_keeps_polling_for_raw_pushers() {
     let queue = Arc::new(ConcurrentQueue::unbounded());
     let raw = queue.clone();
     let readiness = QueueReadiness::new(queue);
-    let (ms, checks) = park_and_trigger(Arc::new(readiness), true, move || {
+    let (ms, checks) = park_and_trigger(Arc::new(readiness), false, move || {
         raw.push(1u32).expect("raw push");
     })
     .await;
@@ -162,7 +158,7 @@ async fn queue_readiness_new_keeps_polling_for_raw_pushers() {
 #[valtron_test(threads = 1, timeout = 10_000)]
 async fn pipe_receiver_readiness_wakes_on_try_send_from_another_thread() {
     let (tx, rx) = Pipe::<u32>::with_depth(4);
-    let (ms, checks) = park_and_trigger(Arc::new(rx.readiness()), false, move || {
+    let (ms, checks) = park_and_trigger(Arc::new(rx.readiness()), true, move || {
         tx.try_send(7).expect("send");
     })
     .await;
@@ -173,7 +169,7 @@ async fn pipe_receiver_readiness_wakes_on_try_send_from_another_thread() {
 async fn pipe_sender_vacancy_wakes_on_recv_from_another_thread() {
     let (tx, rx) = Pipe::<u32>::with_depth(1);
     tx.try_send(1).expect("fill the pipe");
-    let (ms, checks) = park_and_trigger(Arc::new(tx.vacancy()), false, move || {
+    let (ms, checks) = park_and_trigger(Arc::new(tx.vacancy()), true, move || {
         assert_eq!(rx.try_recv().expect("recv"), 1);
     })
     .await;
@@ -184,6 +180,6 @@ async fn pipe_sender_vacancy_wakes_on_recv_from_another_thread() {
 async fn resume_signal_wakes_on_set_from_another_thread() {
     let signal = ResumeSignal::new(false);
     let setter = signal.clone();
-    let (ms, checks) = park_and_trigger(Arc::new(signal), false, move || setter.set(true)).await;
+    let (ms, checks) = park_and_trigger(Arc::new(signal), true, move || setter.set(true)).await;
     assert_woke("ResumeSignal", ms, checks);
 }

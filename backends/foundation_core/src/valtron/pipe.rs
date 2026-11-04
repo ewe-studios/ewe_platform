@@ -30,10 +30,10 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
 
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use concurrent_queue::{ConcurrentQueue, PopError, PushError};
+use concurrent_queue::{PopError, PushError};
 
 use crate::compati::Mutex;
 use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
@@ -43,7 +43,7 @@ use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
 pub(crate) struct PipeInner<T> {
     /// Bounded queue. Held behind its own `Arc` so the readiness accessors can
     /// hand out `QueueReadiness`/`QueueVacancyReadiness` over the same queue.
-    pub(crate) queue: Arc<ConcurrentQueue<T>>,
+    pub(crate) queue: crate::valtron::EventQueue<T>,
     /// Number of live sender handles sharing this pipe. The send direction
     /// closes only when the last one drops, so a `PipeSender` clone handing a
     /// second producer the pipe can drop without EOF-ing the stream.
@@ -61,29 +61,14 @@ pub(crate) struct PipeInner<T> {
     /// Kept apart from `producer_waker` so a sender can wait for the close and
     /// send at the same time without the two stealing each other's wake.
     pub(crate) close_wakers: Mutex<Vec<Waker>>,
-    /// A valtron task may park on this pipe's readiness
-    /// ([`PipeReceiver::readiness`], [`PipeSender::vacancy`] were called). Such a
-    /// task holds no `Waker`, so only a resume of the executor wakes it. Set once
-    /// and never cleared: a pipe used only through futures never resumes the
-    /// executor, which would wake every idle worker per item.
-    pub(crate) task_readiness: AtomicBool,
 }
 
 impl<T> PipeInner<T> {
-    /// Ask the executor to run again, if a task may be parked on this pipe's
-    /// readiness (see `task_readiness`).
-    fn resume_tasks(&self) {
-        if self.task_readiness.load(Ordering::Acquire) {
-            crate::valtron::request_executor_resume();
-        }
-    }
-
     /// Wake a consumer parked on an empty pipe (called after a successful push).
     pub(crate) fn wake_consumer(&self) {
         if let Some(waker) = self.consumer_waker.lock().unwrap().take() {
             waker.wake();
         }
-        self.resume_tasks();
     }
 
     /// Wake a producer parked on a full pipe (called after a successful pop).
@@ -91,7 +76,6 @@ impl<T> PipeInner<T> {
         if let Some(waker) = self.producer_waker.lock().unwrap().take() {
             waker.wake();
         }
-        self.resume_tasks();
     }
 
     /// Close the queue and wake everything that waits on the close.
@@ -101,7 +85,6 @@ impl<T> PipeInner<T> {
         for waker in wakers {
             waker.wake();
         }
-        self.resume_tasks();
         closed
     }
 }
@@ -140,13 +123,12 @@ impl<T> Pipe<T> {
     #[must_use]
     pub fn with_depth(depth: usize) -> (PipeSender<T>, PipeReceiver<T>) {
         let inner = Arc::new(PipeInner {
-            queue: Arc::new(ConcurrentQueue::bounded(depth.max(1))),
+            queue: crate::valtron::EventQueue::bounded(depth.max(1)),
             sender_count: AtomicUsize::new(1),
             receiver_count: AtomicUsize::new(1),
             consumer_waker: Mutex::new(None),
             producer_waker: Mutex::new(None),
             close_wakers: Mutex::new(Vec::new()),
-            task_readiness: AtomicBool::new(false),
         });
         (
             PipeSender {
@@ -227,8 +209,7 @@ impl<T> PipeSender<T> {
     where
         T: Send,
     {
-        self.inner.task_readiness.store(true, Ordering::Release);
-        QueueVacancyReadiness::event_driven(self.inner.queue.clone())
+        self.inner.queue.vacancy()
     }
 
     /// Wake `waker` when an item is popped or the pipe closes. For a producer
@@ -448,8 +429,7 @@ impl<T> PipeReceiver<T> {
     where
         T: Send,
     {
-        self.inner.task_readiness.store(true, Ordering::Release);
-        QueueReadiness::event_driven(self.inner.queue.clone())
+        self.inner.queue.readiness()
     }
 
     /// Wake `waker` on the next push or close. For a consumer that is not a

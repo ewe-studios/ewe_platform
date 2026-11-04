@@ -12,7 +12,7 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::EventReadiness;
+use foundation_core::valtron::{EventReadiness, ReadinessWaker};
 
 /// A wall-clock `EventReadiness` fallback for when no kernel reactor is available.
 ///
@@ -52,7 +52,7 @@ impl EventReadiness for TimerReadiness {
         Some(*self.last_ready.lock().unwrap() + self.interval)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }

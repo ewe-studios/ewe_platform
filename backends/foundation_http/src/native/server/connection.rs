@@ -12,12 +12,11 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroupGuard;
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, QueueReadiness,
-    ResumeSignal, TaskIterator, TaskStatus, WakeToken,
+    queue_waker, AnyReadiness, Ctx, EventQueue, EventReadiness, EventReadinessPtr, QueueReadiness,
+    ReadinessWaker, ResumeSignal, TaskIterator, TaskStatus, WakeToken,
 };
 use foundation_errstacks::ErrorTrace;
 use foundation_iogate::ShutdownSignal;
@@ -79,8 +78,9 @@ impl EventReadiness for DeadlinePassed {
         Some(self.0)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    /// Nothing signals it: the executor wakes at the deadline.
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }
 
@@ -116,7 +116,7 @@ pub struct ConnectionHandler {
     /// The wake queue backing an `Awaiting` future's waker. One connection has at
     /// most one `Awaiting` at a time, so one unbounded queue is enough. It is
     /// drained before each poll (the `FutureTask` bridge pattern).
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: EventQueue<WakeToken>,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
@@ -155,7 +155,7 @@ impl ConnectionHandler {
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
             alt_svc_h3_port,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: EventQueue::unbounded(),
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
@@ -980,7 +980,7 @@ impl ConnectionHandler {
                 });
                 if self.wake_queue.is_empty() {
                     Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
-                        future: QueueReadiness::event_driven(self.wake_queue.clone()),
+                        future: self.wake_queue.readiness(),
                         shutdown: self.shutdown.clone(),
                     })))
                 } else {
@@ -1064,10 +1064,13 @@ impl EventReadiness for AsyncReadiness {
         self.shutdown.probe() || self.future.is_ready(dur)
     }
 
-    /// The wake queue is filled by a queue waker (it resumes the executor) and
-    /// `ShutdownSignal::turn_on` resumes it too: no timer re-check.
-    fn needs_polling(&self) -> bool {
-        self.future.needs_polling()
+    /// The wake queue is an `EventQueue` (its push wakes the registered task) and
+    /// `ShutdownSignal::turn_on` wakes it too: no timer re-check when both take
+    /// the waker.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let shutdown = self.shutdown.register_readiness(waker);
+        let future = self.future.register(waker);
+        shutdown && future
     }
 }
 

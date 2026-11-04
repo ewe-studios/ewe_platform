@@ -45,6 +45,7 @@ use std::time::Duration;
 
 use crate::poll::{Backend, BackendPreference, Events, Interest, Poll, Registry, Token};
 use crate::ready::Ready;
+use foundation_core::valtron::{ReadinessNotifier, ReadinessWaker};
 
 /// Per-registration readiness tracking.
 ///
@@ -61,6 +62,10 @@ struct Entry {
     /// thread wakes it after latching readiness, so a native-executor task
     /// (tokio/smol) can park on the same edge the valtron task path uses.
     waker: Mutex<Option<Waker>>,
+    /// The valtron tasks parked on this fd's readiness
+    /// ([`Reactor::register_task_waker`]). The drain thread wakes them after it
+    /// latched readiness; each wake reaches only that task's executor.
+    tasks: Arc<ReadinessNotifier>,
 }
 
 impl std::fmt::Debug for Entry {
@@ -438,6 +443,7 @@ impl Reactor {
                 ready: AtomicU8::new(Ready::EMPTY.bits()),
                 interest,
                 waker: Mutex::new(None),
+                tasks: Arc::new(ReadinessNotifier::new()),
             },
         );
         Ok(())
@@ -510,6 +516,7 @@ impl Reactor {
                 ready: AtomicU8::new(Ready::EMPTY.bits()),
                 interest,
                 waker: Mutex::new(None),
+                tasks: Arc::new(ReadinessNotifier::new()),
             },
         );
         Ok(armed)
@@ -634,6 +641,28 @@ impl Reactor {
             true
         } else {
             false
+        }
+    }
+
+    /// Register the waker of a valtron task that parks on `token`'s readiness.
+    ///
+    /// WHAT: the drain thread wakes it (only that task's executor) every time it
+    /// latches readiness for `token`. Unlike [`Reactor::register_waker`] it is not
+    /// disarmed by [`Reactor::clear`]: a task registers again on every park, and a
+    /// waker of a task that runs again is a no-op. Returns whether `token` is
+    /// still registered.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
+    pub fn register_task_waker(&self, token: Token, waker: &ReadinessWaker) -> bool {
+        match self
+            .entries
+            .read()
+            .expect("entries lock poisoned")
+            .get(&token)
+        {
+            Some(entry) => entry.tasks.register(waker),
+            None => false,
         }
     }
 
@@ -874,6 +903,7 @@ fn drain_loop(
                 // lock drops, alongside the valtron resume, so a wake never
                 // re-enters the reactor while it holds the entry map lock.
                 let mut to_wake: Vec<Waker> = Vec::new();
+                let mut tasks_to_wake: Vec<Arc<ReadinessNotifier>> = Vec::new();
                 {
                     // Read lock only: bits are latched with an atomic OR.
                     let entries = entries.read().expect("entries lock poisoned");
@@ -897,6 +927,9 @@ fn drain_loop(
 
                         if let Some(entry) = entries.get(&event.token()) {
                             entry.ready.fetch_or(ready.bits(), Ordering::AcqRel);
+                            if entry.tasks.has_waiters() {
+                                tasks_to_wake.push(Arc::clone(&entry.tasks));
+                            }
                             if let Some(waker) =
                                 entry.waker.lock().expect("waker lock poisoned").as_ref()
                             {
@@ -923,10 +956,11 @@ fn drain_loop(
                     for waker in to_wake.drain(..) {
                         waker.wake();
                     }
-                    // Tasks parked on `Depends(reactor readiness)` are re-checked
-                    // by their executor; wake idle executor threads now rather
-                    // than leaving them to sleep out their back-off.
-                    foundation_core::valtron::request_executor_resume();
+                    // Tasks parked on `Depends(reactor readiness)`: wake each one,
+                    // and only its executor, now that the readiness is latched.
+                    for tasks in tasks_to_wake.drain(..) {
+                        tasks.notify();
+                    }
                 }
             }
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
@@ -993,9 +1027,9 @@ impl foundation_core::valtron::EventReadiness for SharedReadiness {
         self.reactor.is_ready(self.token)
     }
 
-    /// Readiness is latched only by the reactor's event drain, which calls
-    /// `request_executor_resume` after every batch of events.
-    fn needs_polling(&self) -> bool {
-        false
+    /// Readiness is latched only by the reactor's event drain, which wakes the
+    /// registered tasks after every batch of events.
+    fn register(&self, waker: &foundation_core::valtron::ReadinessWaker) -> bool {
+        self.reactor.register_task_waker(self.token, waker)
     }
 }

@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use crate::valtron::{Ctx, Stream};
+use crate::valtron::{Ctx, ReadinessNotifier, ReadinessWaker, Stream};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
 
@@ -63,55 +63,69 @@ pub trait EventReadiness {
         None
     }
 
-    /// Whether the executor must re-check this signal on a timer.
+    /// Register the waker of the task that parks on this readiness.
     ///
-    /// WHY: a signal flipped by code that does not ask the executor to run again
-    /// (a raw atomic store, a flag in another crate) is seen only when the
-    /// executor looks. So by default a worker whose only work is parked tasks
-    /// re-checks them every readiness quantum (1 ms), which costs CPU while idle.
+    /// WHY: the executor must run the task again when the readiness becomes ready.
+    /// Instead of every source calling an executor function, the executor hands the
+    /// readiness a waker that belongs to **that task**, and the source only calls
+    /// [`ReadinessWaker::wake`] (the `core::task::Waker` pattern).
     ///
-    /// The rule: return `false` only if every transition to ready calls
-    /// [`request_executor_resume`](crate::valtron::request_executor_resume), or
-    /// happens at [`Self::deadline`]. A signal that is flipped by a raw atomic
-    /// store, or that another crate may flip without a resume, keeps the default.
+    /// WHAT: the readiness keeps `waker` (a [`ReadinessNotifier`] does this for
+    /// it) and wakes it when it becomes ready or closes. A second `register` for the
+    /// same task must not add a second waker, and one for a new park replaces the
+    /// old. The wake reaches only the executor that owns the task.
     ///
-    /// Returns `true` by default (safe). A signal returns `false` when it
-    /// becomes ready only by an event that calls
-    /// [`request_executor_resume`](crate::valtron::request_executor_resume) (the
-    /// reactor, [`ResumeSignal`], [`WakeSignal`]) or at its [`Self::deadline`].
-    /// Then the executor sleeps until the nearest deadline or the next resume.
-    fn needs_polling(&self) -> bool {
-        true
+    /// Returns `true` when the readiness wakes the waker on **every** change to
+    /// ready (or is ready only at its [`Self::deadline`]). The executor then does not
+    /// re-check it on a timer and sleeps until the wake or the deadline.
+    ///
+    /// Returns `false` by default (safe): a readiness that cannot wake is still
+    /// re-checked on the executor's readiness quantum (1 ms), so a custom
+    /// implementation outside valtron keeps working until it opts in. A readiness
+    /// that combines others returns `true` only if all of them do.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let _ = waker;
+        false
     }
 }
 
-/// A readiness flag that asks the executor to run again when it is set.
+/// A readiness flag that wakes the tasks parked on it when it is set.
 ///
 /// WHY: unlike [`BoolSignal`], it has no raw access to its flag, so every change
-/// calls `request_executor_resume`. The executor then never has to re-check it
-/// on a timer ([`EventReadiness::needs_polling`] is `false`).
+/// wakes the parked tasks (through the wakers they registered). The executor
+/// then never has to re-check it on a timer ([`EventReadiness::register`] returns
+/// `true`).
 #[derive(Clone, Default)]
-pub struct ResumeSignal(Arc<AtomicBool>);
+pub struct ResumeSignal(Arc<ResumeSignalInner>);
+
+#[derive(Default)]
+struct ResumeSignalInner {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
 
 impl ResumeSignal {
     /// A new signal with the given value.
     #[must_use]
     pub fn new(value: bool) -> Self {
-        Self(Arc::new(AtomicBool::new(value)))
+        Self(Arc::new(ResumeSignalInner {
+            flag: AtomicBool::new(value),
+            notifier: ReadinessNotifier::new(),
+        }))
     }
 
-    /// Set the value. Setting it to `true` asks the executor to run again.
+    /// Set the value. Setting it to `true` wakes the tasks parked on it.
     pub fn set(&self, value: bool) {
-        self.0.store(value, Ordering::SeqCst);
+        self.0.flag.store(value, Ordering::SeqCst);
         if value {
-            crate::valtron::request_executor_resume();
+            self.0.notifier.notify();
         }
     }
 
     /// The current value.
     #[must_use]
     pub fn get(&self) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
     }
 }
 
@@ -120,8 +134,8 @@ impl EventReadiness for ResumeSignal {
         self.get()
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.notifier.register(waker)
     }
 }
 
@@ -199,7 +213,13 @@ impl EventReadiness for BoolSignal {
 /// [`WakeCallback`]: crate::valtron::WakeCallback
 /// [`request_executor_resume`]: crate::valtron::request_executor_resume
 #[derive(Clone, Default)]
-pub struct WakeSignal(Arc<AtomicBool>);
+pub struct WakeSignal(Arc<WakeSignalInner>);
+
+#[derive(Default)]
+struct WakeSignalInner {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
 
 impl WakeSignal {
     /// A new, not-yet-ready signal.
@@ -209,24 +229,24 @@ impl WakeSignal {
     }
 
     /// The wake callback to register on the stream: marks the signal ready and
-    /// asks the executor host to run again.
+    /// wakes the task parked on it.
     #[must_use]
     pub fn callback(&self) -> crate::valtron::WakeCallback {
-        let flag = Arc::clone(&self.0);
+        let inner = Arc::clone(&self.0);
         Box::new(move || {
-            flag.store(true, Ordering::SeqCst);
-            crate::valtron::request_executor_resume();
+            inner.flag.store(true, Ordering::SeqCst);
+            inner.notifier.notify();
         })
     }
 }
 
 impl EventReadiness for WakeSignal {
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.notifier.register(waker)
     }
 
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
     }
 }
 
@@ -332,60 +352,87 @@ impl<D, P> TaskStatus<D, P> {
 /// }
 /// Some(TaskStatus::Depends(Arc::new(readiness)))
 /// ```
-pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>, bool);
+pub struct QueueReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken after a push and on close. `None` for a queue that valtron does not
+    /// own: nothing wakes on its push, so the executor re-checks it on a timer.
+    notifier: Option<Arc<ReadinessNotifier>>,
+}
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone(), self.1)
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
     }
 }
 
 impl<T> QueueReadiness<T> {
     /// Create a `QueueReadiness` that watches the given queue for messages.
     ///
-    /// The queue may be filled by code that does not ask the executor to run
-    /// again (a raw `queue().push`), so the executor re-checks this readiness on
-    /// a timer ([`EventReadiness::needs_polling`] is `true`). Use
-    /// [`Self::event_driven`] when every producer resumes the executor.
+    /// The queue is a plain `ConcurrentQueue`: a push does not wake the task, so
+    /// the executor re-checks this readiness on a timer (`register` returns
+    /// `false`). Prefer an [`EventQueue`] and [`EventQueue::readiness`], whose push
+    /// wakes the parked task.
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue, false)
+        Self {
+            queue,
+            notifier: None,
+        }
     }
 
-    /// Create a `QueueReadiness` whose every producer asks the executor to run
-    /// again after a push or a close ([`QueueReadiness::push`],
-    /// [`request_executor_resume`](crate::valtron::request_executor_resume), a
-    /// queue waker). The executor then sleeps until the push instead of
-    /// re-checking the queue ([`EventReadiness::needs_polling`] is `false`).
+    /// Same as [`Self::new`]: a plain queue cannot wake the task.
+    ///
+    /// Kept for code that built a readiness over a raw queue and resumed the
+    /// executor itself; it is re-checked on a timer like [`Self::new`]. Use
+    /// [`EventQueue`].
     pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue, true)
+        Self::new(queue)
+    }
+
+    /// A readiness over a queue whose pushes and close call `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self {
+            queue,
+            notifier: Some(notifier),
+        }
     }
 
     /// Get a clone of the underlying queue for external mutation (pushing messages).
     ///
-    /// A producer outside the executor (JS-side async work on wasm) should
-    /// push with [`QueueReadiness::push`] instead, which asks the executor to
-    /// run again; a raw push leaves a parked consumer asleep on a JS wasm build.
+    /// Push with [`QueueReadiness::push`] (or through the [`EventQueue`]) so the
+    /// parked consumer is woken; a raw push is seen only by a timed re-check.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
-        self.0.clone()
+        self.queue.clone()
     }
 
-    /// Push `item` and ask the executor's host to run again, so a consumer
-    /// parked on this readiness is re-polled.
+    fn changed(&self) {
+        match &self.notifier {
+            Some(notifier) => notifier.notify(),
+            None => crate::valtron::request_executor_resume(),
+        }
+    }
+
+    /// Push `item` and wake the consumer parked on this readiness.
     ///
     /// # Errors
     /// The queue is full or closed; the item is handed back.
     pub fn push(&self, item: T) -> Result<(), concurrent_queue::PushError<T>> {
-        self.0.push(item)?;
-        crate::valtron::request_executor_resume();
+        self.queue.push(item)?;
+        self.changed();
         Ok(())
     }
 
-    /// Close the queue and ask the executor to run again, so a parked consumer
-    /// observes the end. Returns `true` if this call closed it.
+    /// Close the queue and wake the parked consumer, so it observes the end.
+    /// Returns `true` if this call closed it.
     pub fn close(&self) -> bool {
-        let closed = self.0.close();
-        crate::valtron::request_executor_resume();
+        let closed = self.queue.close();
+        self.changed();
         closed
     }
 }
@@ -396,22 +443,26 @@ impl<T: Send> EventReadiness for QueueReadiness<T> {
         // Closed-aware: a closed queue is "ready" so a parked consumer unparks to
         // observe end-of-stream (its next `pop` drains any backlog then returns
         // `Closed`) instead of sleeping forever.
-        !self.0.is_empty() || self.0.is_closed()
+        !self.queue.is_empty() || self.queue.is_closed()
     }
 
-    fn needs_polling(&self) -> bool {
-        !self.1
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        !self.0.is_empty() || self.0.is_closed()
+        !self.queue.is_empty() || self.queue.is_closed()
     }
 
-    fn needs_polling(&self) -> bool {
-        !self.1
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
@@ -442,59 +493,84 @@ impl<T> EventReadiness for QueueReadiness<T> {
 ///     Err(PushError::Closed(_)) => None,
 /// }
 /// ```
-pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>, bool);
+pub struct QueueVacancyReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken after a pop and on close. `None` for a queue that valtron does not
+    /// own: nothing wakes on its pop, so the executor re-checks it on a timer.
+    notifier: Option<Arc<ReadinessNotifier>>,
+}
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueVacancyReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone(), self.1)
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
     }
 }
 
 impl<T> QueueVacancyReadiness<T> {
     /// Create a `QueueVacancyReadiness` that watches the given queue for capacity.
     ///
-    /// A consumer may free a slot with a raw `queue().pop()` that does not ask
-    /// the executor to run again, so the executor re-checks this readiness on a
-    /// timer ([`EventReadiness::needs_polling`] is `true`). Use
-    /// [`Self::event_driven`] when every consumer resumes the executor.
+    /// The queue is a plain `ConcurrentQueue`: a pop does not wake the task, so
+    /// the executor re-checks this readiness on a timer (`register` returns
+    /// `false`). Prefer an [`EventQueue`] and [`EventQueue::vacancy`], whose pop
+    /// wakes the parked producer.
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue, false)
+        Self {
+            queue,
+            notifier: None,
+        }
     }
 
-    /// Create a `QueueVacancyReadiness` whose every consumer asks the executor
-    /// to run again after a pop or a close ([`QueueVacancyReadiness::pop`],
-    /// `request_executor_resume`). The executor then sleeps until the pop
-    /// ([`EventReadiness::needs_polling`] is `false`).
+    /// Same as [`Self::new`]: a plain queue cannot wake the task. Use
+    /// [`EventQueue`].
     pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue, true)
+        Self::new(queue)
+    }
+
+    /// A readiness over a queue whose pops and close call `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self {
+            queue,
+            notifier: Some(notifier),
+        }
     }
 
     /// Get a clone of the underlying queue for external mutation (popping messages).
     ///
-    /// A consumer outside the executor should pop with
-    /// [`QueueVacancyReadiness::pop`] instead, which asks the executor to run
-    /// again; a raw pop leaves a parked producer asleep on a JS wasm build.
+    /// Pop with [`QueueVacancyReadiness::pop`] (or through the [`EventQueue`]) so the
+    /// parked producer is woken; a raw pop is seen only by a timed re-check.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
-        self.0.clone()
+        self.queue.clone()
     }
 
-    /// Pop an item and ask the executor's host to run again, so a producer
-    /// parked on the full queue is re-polled.
+    fn changed(&self) {
+        match &self.notifier {
+            Some(notifier) => notifier.notify(),
+            None => crate::valtron::request_executor_resume(),
+        }
+    }
+
+    /// Pop an item and wake the producer parked on the full queue.
     ///
     /// # Errors
     /// The queue is empty or closed.
     pub fn pop(&self) -> Result<T, concurrent_queue::PopError> {
-        let item = self.0.pop()?;
-        crate::valtron::request_executor_resume();
+        let item = self.queue.pop()?;
+        self.changed();
         Ok(item)
     }
 
-    /// Close the queue and ask the executor to run again, so a parked producer
-    /// observes the close. Returns `true` if this call closed it.
+    /// Close the queue and wake the parked producer, so it observes the close.
+    /// Returns `true` if this call closed it.
     pub fn close(&self) -> bool {
-        let closed = self.0.close();
-        crate::valtron::request_executor_resume();
+        let closed = self.queue.close();
+        self.changed();
         closed
     }
 }
@@ -504,22 +580,26 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: report ready when the queue closes so a producer parked on
         // a full-then-closed pipe unparks to observe the close on its next push.
-        self.0.is_closed() || !self.0.is_full()
+        self.queue.is_closed() || !self.queue.is_full()
     }
 
-    fn needs_polling(&self) -> bool {
-        !self.1
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.is_closed() || !self.0.is_full()
+        self.queue.is_closed() || !self.queue.is_full()
     }
 
-    fn needs_polling(&self) -> bool {
-        !self.1
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
@@ -582,10 +662,15 @@ impl EventReadiness for AnyReadiness {
         self.0.iter().filter_map(|child| child.deadline()).min()
     }
 
-    /// The executor must poll when any child needs polling: that child can
-    /// become ready without a resume.
-    fn needs_polling(&self) -> bool {
-        self.0.iter().any(|child| child.needs_polling())
+    /// Registers `waker` with every child (no short-circuit: each child must
+    /// hold it). Returns `true` only if every child wakes on change, so a child
+    /// that cannot wake keeps the whole signal on the timed re-check.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let mut all = true;
+        for child in &self.0 {
+            all &= child.register(waker);
+        }
+        all
     }
 }
 

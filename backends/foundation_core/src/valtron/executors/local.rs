@@ -270,7 +270,12 @@ pub enum Sleepable {
 
     /// Readiness represents a task waiting on an arbitrary `EventReadiness`
     /// signal. The executor calls `is_ready(None)` to check without blocking.
-    Readiness(EventReadinessPtr, Entry),
+    ///
+    /// When the signal accepted the task's waker (`EventReadiness::register`
+    /// returned `true`) the third field holds the task's wake state, and the
+    /// signal is re-checked only after a wake or at its deadline. Without it the
+    /// signal is re-checked on the readiness quantum.
+    Readiness(EventReadinessPtr, Entry, Option<crate::valtron::ParkGuard>),
 }
 
 impl core::fmt::Debug for Sleepable {
@@ -278,7 +283,7 @@ impl core::fmt::Debug for Sleepable {
         match self {
             Self::Timable(inner) => f.debug_tuple("Timable").field(inner).finish(),
             Self::Atomic(_, entry) => f.debug_tuple("Atomic").field(entry).finish(),
-            Self::Readiness(_, entry) => f.debug_tuple("Readiness").field(entry).finish(),
+            Self::Readiness(_, entry, _) => f.debug_tuple("Readiness").field(entry).finish(),
         }
     }
 }
@@ -293,7 +298,7 @@ impl Sleepable {
         match self {
             Sleepable::Timable(inner) => Some(inner.deadline()),
             Sleepable::Atomic(_, _) => None,
-            Sleepable::Readiness(signal, _) => signal.deadline(),
+            Sleepable::Readiness(signal, _, _) => signal.deadline(),
         }
     }
 }
@@ -303,7 +308,7 @@ impl Timeable for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
             Sleepable::Atomic(_, _) => None,
-            Sleepable::Readiness(signal, _) => signal
+            Sleepable::Readiness(signal, _, _) => signal
                 .deadline()
                 .map(|deadline| deadline.saturating_duration_since(time::Instant::now())),
         }
@@ -315,7 +320,8 @@ impl Timeable for Sleepable {
             // A bare atomic flag is set by code that need not ask the executor
             // to run again.
             Sleepable::Atomic(_, _) => true,
-            Sleepable::Readiness(signal, _) => signal.needs_polling(),
+            // Re-checked on a timer unless the signal took the task's waker.
+            Sleepable::Readiness(_, _, park) => park.is_none(),
         }
     }
 }
@@ -325,7 +331,16 @@ impl Waiter for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.is_ready(dur),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
-            Sleepable::Readiness(signal, _) => signal.is_ready(dur),
+            Sleepable::Readiness(signal, _, Some(park)) => {
+                // The signal wakes this task: look at it only after a wake (the
+                // first look is after the park, see `ParkState::new`) or when its
+                // deadline has passed. A wake for another task costs nothing here.
+                let due = signal
+                    .deadline()
+                    .is_some_and(|deadline| time::Instant::now() >= deadline);
+                (park.0.take_woken() || due) && signal.is_ready(dur)
+            }
+            Sleepable::Readiness(signal, _, None) => signal.is_ready(dur),
         }
     }
 }
@@ -1188,7 +1203,7 @@ impl ExecutorState {
             match matured {
                 Sleepable::Timable(wakeable) => self.wake_up(wakeable.handle),
                 Sleepable::Atomic(_, entry) => self.wake_up(entry),
-                Sleepable::Readiness(_, entry) => self.wake_up(entry),
+                Sleepable::Readiness(_, entry, _) => self.wake_up(entry),
             }
         }
     }
@@ -1222,7 +1237,7 @@ impl ExecutorState {
     }
 
     /// Whether any sleeper can become ready without a wake, so the worker must
-    /// re-check on the readiness quantum. See [`EventReadiness::needs_polling`].
+    /// re-check on the readiness quantum. See [`EventReadiness::register`].
     #[inline]
     #[must_use]
     pub fn sleepers_need_polling(&self) -> bool {
@@ -1919,8 +1934,16 @@ impl ExecutorState {
                 // whole lifetime and eventually panics a healthy hot task.
                 self.depends_true_violations.borrow_mut().remove(&top_entry);
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                // Hand the readiness this task's waker: a signal that takes it
+                // wakes this task (and this executor's thread) when it is ready,
+                // and is not re-checked on a timer.
+                let state = crate::valtron::ParkState::new();
+                let accepted = signal.register(&state.waker());
+                // Dropping the guard of a signal that did not accept the waker
+                // makes any waker it kept a no-op.
+                let park = accepted.then_some(crate::valtron::ParkGuard(state));
                 self.sleepers
-                    .insert(top_entry, Sleepable::Readiness(signal, top_entry));
+                    .insert(top_entry, Sleepable::Readiness(signal, top_entry, park));
 
                 if self.has_incoming_global_tasks() || self.has_inflight_task() {
                     return ProgressIndicator::CanProgress(None);
@@ -3166,7 +3189,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             //
             // When sleepers are parked, `sleeper_wait` applies the same rule as
             // `block_on`: a sleeper that can become ready without a wake
-            // (`EventReadiness::needs_polling`) is re-checked on the readiness
+            // (`EventReadiness::register`) is re-checked on the readiness
             // quantum, and an event-driven one is not re-checked until its
             // deadline or a resume.
             let yield_duration = if self.state.number_of_sleepers() > 0 {
@@ -3269,7 +3292,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ///
     /// The nearest sleeper deadline bounds it (a timer, or a readiness that
     /// reports a [`deadline`](EventReadiness::deadline)). When a sleeper can
-    /// become ready without a wake ([`EventReadiness::needs_polling`]) it is
+    /// become ready without a wake ([`EventReadiness::register`]) it is
     /// also bounded by the readiness quantum, so that sleeper is re-checked.
     /// When every sleeper is woken by an event, the worker sleeps until the
     /// deadline, or at most `max_yield_duration` when there is none: a resume
@@ -3298,7 +3321,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ///
     /// Like [`Self::sleeper_wait`], the nearest sleeper deadline bounds it, and a
     /// sleeper that can become ready without a wake
-    /// ([`EventReadiness::needs_polling`]) bounds it by the readiness quantum.
+    /// ([`EventReadiness::register`]) bounds it by the readiness quantum.
     /// Sleepers woken by an event (`request_executor_resume`) with no deadline
     /// need no timed wake.
     #[must_use]

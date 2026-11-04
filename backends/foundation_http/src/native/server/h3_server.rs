@@ -23,7 +23,8 @@ use std::task::{Wake, Waker};
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    AnyReadiness, Ctx, EventReadiness, FutureTask, ResumeSignal, Stream, TaskIterator, TaskStatus,
+    AnyReadiness, Ctx, EventReadiness, FutureTask, ReadinessWaker, ResumeSignal, Stream,
+    TaskIterator, TaskStatus,
 };
 #[cfg(unix)]
 use foundation_iogate::FdReadiness as SocketReadiness;
@@ -171,9 +172,9 @@ impl EventReadiness for ShutdownRequested {
         self.0.probe()
     }
 
-    /// `ShutdownSignal::turn_on` asks the executor to run again.
-    fn needs_polling(&self) -> bool {
-        false
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
     }
 }
 

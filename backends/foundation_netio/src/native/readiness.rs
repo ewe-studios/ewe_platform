@@ -29,7 +29,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr};
+use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 
 /// Which direction of I/O a parked task is waiting for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -169,8 +169,8 @@ impl EventReadiness for DeadlineReadiness {
         Some(self.deadline)
     }
 
-    fn needs_polling(&self) -> bool {
-        false
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }
 
