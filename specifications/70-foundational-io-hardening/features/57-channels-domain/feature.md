@@ -1,12 +1,14 @@
 ---
 feature: "crates/channels and crates/domain: no println on wake, capacities from config, correct is_closed"
-status: "pending"
+status: "dropped"
 lane: "B"
 model: "haiku"
 branch: "fix/io-51-60-lane-b"
 crates: ["crates/channels", "crates/domain"]
 catalogue_rows: [27]
 ---
+
+> **Dropped by the owner (2026-11-04).** Old code; not scheduled. Do not work on it. Its backlog entries move to the backlog "Paused" section (feature 60).
 
 # Feature 57: channels and domain
 
