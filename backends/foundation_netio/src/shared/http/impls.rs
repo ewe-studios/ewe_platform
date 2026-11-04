@@ -6149,8 +6149,31 @@ impl BodyExtractor for SimpleHttpBody {
                     "SseBody: returning SSE body iterator with headers={:?}",
                     headers
                 );
-                let sse_iterator =
-                    Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4));
+                // A response with a Content-Length ends after that many bytes, even
+                // when the server keeps the connection open for the next request.
+                // Reading to EOF would wait for the read timeout on every such
+                // response, and block the worker thread that does it.
+                let framed_len = if headers.contains_key(&SimpleHeader::TRANSFER_ENCODING) {
+                    None
+                } else {
+                    headers
+                        .get(&SimpleHeader::CONTENT_LENGTH)
+                        .and_then(|values| values.first())
+                        .and_then(|value| value.trim().parse::<u64>().ok())
+                };
+                let sse_iterator: BoxedSendableIterator<
+                    crate::event_source::ParseResult,
+                    SendableBoxedError,
+                > = match framed_len {
+                    Some(len) => {
+                        let bounded = SharedByteBufferStream::rwrite(std::io::Read::take(
+                            stream.clone(),
+                            len,
+                        ));
+                        Box::new(SimpleSseIterator::new(headers, bounded).with_limits(self.4))
+                    }
+                    None => Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4)),
+                };
                 Ok(SendSafeBody::SseStream(Some(sse_iterator)))
             }
         }

@@ -4,6 +4,7 @@ mod core_tests;
 mod error_tests;
 mod parser_tests;
 mod queue_reader_tests;
+mod reconnect_replay_tests;
 mod reconnecting_integration_tests;
 mod reconnecting_task_integration_tests;
 mod reconnecting_task_tests;

@@ -22,7 +22,7 @@ use crate::http::HttpClientConnection;
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::timeout::TimeoutCalculator;
 use crate::shared::http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
@@ -611,8 +611,9 @@ where
                 conn,
             } => {
                 // Calculate idle timeout from calculator for streaming context
-                let ctx = TimeoutContext::default().streaming();
-                let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
+                // An open stream is silent between events: use the stream idle
+                // timeout, not the size-based read timeout (100 ms when unsized).
+                let idle_timeout = self.timeout_calculator.streaming_idle_timeout();
 
                 if last_activity.elapsed() > idle_timeout {
                     warn!(
@@ -667,8 +668,9 @@ where
                 conn,
             } => {
                 // Calculate idle timeout from calculator for streaming context
-                let ctx = TimeoutContext::default().streaming();
-                let idle_timeout = self.timeout_calculator.calculate_read_timeout(&ctx);
+                // An open stream is silent between events: use the stream idle
+                // timeout, not the size-based read timeout (100 ms when unsized).
+                let idle_timeout = self.timeout_calculator.streaming_idle_timeout();
 
                 if last_activity.elapsed() > idle_timeout {
                     warn!(
