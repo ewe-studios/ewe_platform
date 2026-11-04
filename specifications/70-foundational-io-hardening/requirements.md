@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 35
-  total: 79
+  uncompleted: 37
+  total: 81
   dropped: 2
   completion_percentage: 66%
 ---
@@ -200,6 +200,8 @@ done
 | 76 | [D1 binding types; db follow-ups](./features/76-d1-binding-and-db-followups/feature.md) | §8 catalogue rows 91–94 (sonnet) | 56 | M |
 | 77 | [Event-driven readiness follow-ups](./features/77-event-driven-readiness-followups/feature.md) | §8 catalogue rows 95–98 (sonnet) | 75 | M |
 | 78 | [io_uring in CI; core bare wasm; reactor wasm dead code](./features/78-io-uring-in-ci-and-core-bare-wasm/feature.md) | §8 catalogue rows 99–101 (sonnet) | 72 | S |
+| 80 | [valtron owns executor wake-up](./features/80-valtron-owns-executor-wake/feature.md) | §8 catalogue rows 104–106 (sonnet) | 77, 46 | L |
+| 81 | [Lane B on valtron wake constructs](./features/81-lane-b-valtron-wake-constructs/feature.md) | §8 catalogue row 107 (sonnet) | 80 | M |
 | 79 | [vms clippy in CI](./features/79-deployment-platform-vms-clippy/feature.md) | §8 catalogue row 102 (haiku) | — | S |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
@@ -377,6 +379,10 @@ fixed in code but not deleted.
 | 100 | `foundation_core` bare wasm32 build (no `std`, no `alloc`) fails | found in 71 | 78 |
 | 101 | `foundation_reactor` `rearm_readable` dead on wasm (moved from 49 E1) | backlog §16 | 78 |
 | 103 | nativeapis `vfs-preload` does not compile (use after move of `guard`) | found in 76 | 78 |
+| 104 | executor wake called directly by foundation_reactor and foundation_nativeapis | owner 2026-11-04 | 80 |
+| 105 | ~80 hand-placed executor wakes inside valtron (every producer must remember) | owner 2026-11-04 | 80 |
+| 106 | raw signal/queue readiness that cannot wake (lane A sites) | found in 77 | 80 |
+| 107 | raw queues with polling readiness in lane B crates | found in 77 | 81 |
 | 102 | CI has no clippy run for `foundation_deployment_platform --features vms` (kept from dropped 58 E3) | backlog §7 | 79 |
 
 ### 8.1 Lanes, branches and models
@@ -390,8 +396,8 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 77 → 46 → 78 → 47 → 48 (priority: valtron, nativeapis, reactor, io_uring, nostd) → 49 → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
-| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → 76 → 59, then 60 again, then 79 last (57 and 58 dropped by the owner, 2026-11-04; 58 E3 kept as 79) | every other crate and directory, the root `Cargo.toml` and `patches/` |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 77 → 46 → 80 → 78 → 47 → 48 (priority: valtron, nativeapis, reactor, io_uring, nostd) → 49 → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → 76 → 81 (after 80) → 59, then 60 again, then 79 last (57 and 58 dropped by the owner, 2026-11-04; 58 E3 kept as 79) | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
   reports to the main session. (Feature 54 may change only the boringtun line of
