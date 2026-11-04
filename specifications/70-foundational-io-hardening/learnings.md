@@ -19,6 +19,15 @@ _What an agent learned that the next agent needs. Newest first._
   `register` and does not wake the waker, which is the exact window. The old code ran the task
   after 505 ms (the deadline); the new code runs it after 0 ms with two readiness checks. It
   runs on the single-thread executor and on a pool.
+- 2026-11-05 (CI image and submodules): master commit 2512754fa deleted the
+  `tools/whisper.cpp` gitlink but left its `.gitmodules` entry and the `WHISPER_DIR`
+  setting in `mise.toml`. GitHub checks out a pull request as its merge commit, so the
+  deletion reached the image job, and `images.nu prepare` stopped with "submodule
+  tools/whisper.cpp is not in HEAD". A branch that does not change the path cannot stop a
+  deletion in master from landing in the merge. To keep a submodule, merge master into the
+  branch and re-add the gitlink (mode 160000) in a commit on top, which makes the path a
+  change that the merge keeps. Check with `git merge-tree --write-tree HEAD origin/master`
+  and `git ls-tree <tree> tools/whisper.cpp` before you push.
 - 2026-11-05 (Docker runs of `foundation_core` on an Apple Silicon Mac): the tests measure
   the CPU time of idle threads with a bound of 2 ms per second. An amd64 container on an arm64
   Mac runs under emulation, and `idle_threads_parked_on_a_resume_signal_use_almost_no_cpu`

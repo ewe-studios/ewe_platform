@@ -16,10 +16,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `grpc_web_unary_via_grpc_backend`); wasm checks green; the executor-wake guard and its unit
   tests green. Backlog: three new entries.
   The GitHub CI image job then failed before any package job ran: master commit 2512754fa
-  removed the `tools/whisper.cpp` submodule, the PR merge drops it, and
-  `ci/ewe-platform-image/config.toml` still listed it, so `images.nu prepare` stopped with
-  "submodule tools/whisper.cpp is not in HEAD". The config now lists only `tools/llama.cpp` and
-  `tools/emsdk`; a simulated merge tree shows no `tools/whisper.cpp`.
+  removed the `tools/whisper.cpp` gitlink, the PR merge drops it, and
+  `ci/ewe-platform-image/config.toml` lists it, so `images.nu prepare` stopped with
+  "submodule tools/whisper.cpp is not in HEAD". The branch now merges master and re-adds the
+  `tools/whisper.cpp` gitlink at 35cb684, so the merge keeps the submodule and the image bakes
+  it again. The config keeps its three submodule entries.
 - 2026-11-04: feature 46 done on `wip/f46-driven-stream-wake` (from `fix/io-41-50-lane-a`). A
   single-thread `DrivenStreamIterator` now wakes its async consumer when a parked task becomes
   ready: through a new `WakeableStream::wake_send` (Send callback), a one-shot resume listener in
