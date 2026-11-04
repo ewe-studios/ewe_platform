@@ -32,6 +32,21 @@ Re-grep at start; convert every site found.
 - Tests: per crate, the existing tests pass; add one test per converted producer that a
   parked consumer wakes promptly (check-count bound from feature 77).
 
+## Also from feature 80 (2026-11-04)
+
+- `foundation_ai` providers (anthropic, openai, openai_responses, workers_ai) ignore the new
+  `Event::Reconnect` that netio's reconnecting SSE task now yields before any replayed event.
+  On it, discard the accumulated text and tool-call state for the current message, so a real
+  reconnect cannot duplicate output. Test per provider: force one reconnect, the text is not
+  doubled.
+- `foundation_wasm` `docs/per-host-scheduling.md:38` still names `request_executor_resume`
+  (now private). Update it to the `register` / `ReadinessWaker` model.
+- Exact raw-queue sites found by feature 80: `foundation_toolings` `runner/mod.rs:83`,
+  `watcher/mod.rs:63`, `builder/mod.rs:70,72`; `foundation_ai` `agentic/steering.rs:169,176`.
+  After they move to `EventQueue`, delete the deprecated `QueueReadiness::new`,
+  `QueueReadiness::event_driven`, `QueueVacancyReadiness::new` and
+  `QueueVacancyReadiness::event_driven` (lane A file: the main session merges that part).
+
 ## Done when
 
 - [ ] No lane B crate uses a raw queue with polling readiness or touches the executor wake;
