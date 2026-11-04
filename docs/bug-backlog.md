@@ -36,6 +36,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   and `raw_stream.rs:414` has `if let Self::AsPlain(inner, _) = self`, an irrefutable pattern
   (the `if let` always matches). Fix: delete the import; replace the `if let` with a `let`
   binding (keep the behaviour the same and check it with the netio tests).
+- **Clippy `too_many_lines` in `SimpleHttpBody::extract`.** File:
+  `backends/foundation_netio/src/shared/http/impls.rs:6045`. Problem: the function has 109 lines and
+  the limit is 100. `cargo clippy --profile uat -p foundation_netio --all-targets` warns. Fix: move
+  each content-coding branch into its own helper function, then keep the function below the limit.
+  Do not add `#[allow(clippy::too_many_lines)]`. Seen in the Linux CI run of feature 80 (2026-11-05).
+- **Unused optional dependency `rustls-pemfile`.** File: `backends/foundation_netio/Cargo.toml:75`.
+  Problem: the `ssl-rustls` feature enables the dependency, but only the `quic` module calls it. The
+  default feature set enables `ssl`, so the default build warns (`unused dependency`,
+  `cargo::unused_dependencies` is `warn`). Fix: remove `dep:rustls-pemfile` from the `ssl-rustls`
+  feature list and keep it in `quic`. Seen in the Linux CI run of feature 80 (2026-11-05).
 
 ## 3. foundation_http
 
@@ -85,6 +95,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
+- **Intermittent `.expect("execute")` panic in `tests/valtron/event_driven_queue_readiness.rs`.**
+  File: `backends/foundation_core/tests/valtron/event_driven_queue_readiness.rs:99`. Problem: one
+  full-suite run (2026-11-05) panicked there; four reruns were green. The run was under heavy load.
+  Likely cause: the test pool for one test stops while a body thread of another test still calls
+  `execute`, or the `valtron_test` timeout drops the pool too early. Fix: give each test its own
+  pool and make the body thread end before the test ends; then stress the suite under load.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
