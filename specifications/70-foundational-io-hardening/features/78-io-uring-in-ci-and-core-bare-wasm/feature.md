@@ -5,7 +5,7 @@ lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
 crates: ["foundation_iogate", "foundation_nativeapis", "foundation_proxy", "foundation_core", "foundation_reactor", ".github/workflows/check.yaml", "ci/packages.toml"]
-catalogue_rows: [99, 100, 101]
+catalogue_rows: [99, 100, 101, 103]
 ---
 
 # Feature 78: io_uring in CI, core bare wasm, reactor wasm dead code
@@ -54,6 +54,15 @@ This moves here from feature 49 E1. On wasm32, `Poll::rearm_readable` is never u
 on the native targets that call it (do not `allow(dead_code)`). Add the wasm32 check to
 `foundation_reactor` in `ci/packages.toml` if it is not there.
 
+## E5. `foundation_nativeapis` `vfs-preload` does not compile (found in feature 76)
+
+`src/native/vfs/shim/mod.rs` (around lines 163 to 190) uses `guard` after it moved (`E0382`), so
+the feature does not build and `tests/vfs_shim_vfs` cannot run. Fix the ownership (keep the
+lock held for exactly the span the code needs; do not clone a guard), then run
+`cargo test -p foundation_nativeapis --features vfs-preload --test vfs_shim_vfs` (its D1 setup
+was moved to wrangler's local explorer API by feature 76 and is untested). Add the feature to
+the package's CI runs in `ci/packages.toml` so it cannot break silently again.
+
 ## Verify
 
 ```bash
@@ -67,4 +76,4 @@ Full CI on GitHub (requirements.md §8.2 rule 4).
 
 ## Done when
 
-- [ ] CI runs the io_uring tests with `EWE_REQUIRE_IO_URING=1` and they pass (or the job fails with a clear reason that the main session reports); nativeapis uring tests follow the same rule; the bare wasm32 core build is supported or refused with a clear error, checked in CI; reactor wasm dead code gone; backlog entries deleted.
+- [ ] CI runs the io_uring tests with `EWE_REQUIRE_IO_URING=1` and they pass (or the job fails with a clear reason that the main session reports); nativeapis uring tests follow the same rule; the bare wasm32 core build is supported or refused with a clear error, checked in CI; reactor wasm dead code gone; `vfs-preload` builds and `vfs_shim_vfs` passes, and CI builds it; backlog entries deleted.

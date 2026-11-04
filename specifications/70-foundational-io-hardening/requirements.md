@@ -376,6 +376,7 @@ fixed in code but not deleted.
 | 99 | CI never runs io_uring tests (`EWE_REQUIRE_IO_URING` unset); nativeapis uring tests skip silently | found in 72 | 78 |
 | 100 | `foundation_core` bare wasm32 build (no `std`, no `alloc`) fails | found in 71 | 78 |
 | 101 | `foundation_reactor` `rearm_readable` dead on wasm (moved from 49 E1) | backlog §16 | 78 |
+| 103 | nativeapis `vfs-preload` does not compile (use after move of `guard`) | found in 76 | 78 |
 | 102 | CI has no clippy run for `foundation_deployment_platform --features vms` (kept from dropped 58 E3) | backlog §7 | 79 |
 
 ### 8.1 Lanes, branches and models
