@@ -43,6 +43,14 @@ pub struct ExecutorWake {
     listeners: Mutex<Vec<Box<dyn FnOnce() + Send>>>,
 }
 
+/// Every executor thread's wake handle, for the process-wide [`resume_idle`].
+///
+/// WHY `Weak`: each handle is owned by its thread (the `CURRENT` thread-local
+/// below). When the thread exits, the thread-local drops its `Arc` and the
+/// handle must go with it. A strong reference here would keep the handle of
+/// every thread that ever ran an executor alive for the whole process, and
+/// `resume_idle` would keep waking handles that no thread sleeps on. With
+/// `Weak`, a dead thread's entry fails to upgrade and is skipped.
 static HANDLES: Mutex<Vec<Weak<ExecutorWake>>> = Mutex::new(Vec::new());
 
 thread_local! {
@@ -58,7 +66,16 @@ impl ExecutorWake {
             listeners: Mutex::new(Vec::new()),
         });
         let mut all = HANDLES.lock().unwrap_or_else(PoisonError::into_inner);
+        // Drop the entries of threads that have exited (their `Weak` no longer
+        // upgrades) before adding this one. Pruning here, once per new thread,
+        // keeps the list as long as the live executor threads plus those that
+        // exited since the last thread started, so a program that starts and
+        // stops worker threads for a long time does not grow it without bound.
+        // `resume_idle` only skips dead entries; it does not prune, so a wake
+        // never pays for the clean-up.
         all.retain(|weak| weak.strong_count() > 0);
+        // Register this thread's handle so `resume_idle` reaches it. Only a
+        // `Weak` is stored: the thread-local keeps the one strong reference.
         all.push(Arc::downgrade(&handle));
         handle
     }
