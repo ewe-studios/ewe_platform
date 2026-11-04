@@ -127,6 +127,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   object's `ETag`, which the state API does not carry. `foundation_proxy` can drop its flock
   where it uses a store with an atomic `set_if_version` (lane A owns the proxy). `D1Store`'s
   version is tested only on a hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
+
+- **`foundation_nativeapis` `vfs-preload` does not compile.** `src/native/vfs/shim/mod.rs` (around
+  lines 163 to 190) uses `guard` after it moved (`E0382`), so `tests/vfs_shim_vfs` cannot run.
+  Found while moving the CF tests to the local explorer API (feature 76).
+- **R2 range read and conditional put have no test yet.** Wrangler's local explorer API does not
+  serve them; they need the wasm-testbed harness on the real R2 binding (feature 76 E0).
+
 ## 16. Workspace / process
 
 - **`foundation_wireguard` warnings in its tests and manifest.** `cargo check -p foundation_wireguard --tests`
