@@ -20,6 +20,12 @@ _What an agent learned that the next agent needs. Newest first._
   - Cargo's new build layout breaks "exe parent is the profile directory" arithmetic.
     Find the profile directory by walking the executable's ancestors to the one that
     holds `.cargo-lock`.
+  - **A code-scanning alert lives in a code region, not only on a line.** Feature 67
+    rewrote the assertion around a fake password in `foundation_keychain/tests/identity.rs`.
+    The sink did not change, but GitHub closed the old alert and opened a new one, so the
+    `CodeQL` check failed on a construct that `master` already carries. The repository's
+    convention is to dismiss a test fixture with the built-in reason "used in tests"
+    (seven alerts already use it). Dismiss it, and say why in the comment.
 
 - 2026-11-05 (feature 84, a closed `ServeOutcome`): a type that can express a nested
   future forces every caller to handle a case that no caller uses. The server logged
