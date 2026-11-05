@@ -108,15 +108,16 @@ wasm-runs = ["--no-default-features"]
 # valtron has two executors chosen at compile time: the single-threaded one
 # (default features) and the thread pool (`multi`). Many tests are gated on
 # `multi` or `not(multi)`, so test both executors. The `test-clock` run enables
-# the `SimulatedClock` and its six clock-injection tests.
-# The default run used to get `multi`
-# anyway through a dev-dependency (foundation_testing -> foundation_netio's
-# default `multi`), which meant the single-threaded executor was never tested.
+# the `SimulatedClock` and its six clock-injection tests. The default run used
+# to get `multi` anyway through a dev-dependency (foundation_testing ->
+# foundation_netio's default `multi`), which meant the single-threaded executor
+# was never tested.
 runs = ["", "multi", "test-clock"]
 # The executors differ by feature, so lint both trees: the `multi` tree compiles
 # `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
-# the single-threaded executor.
-clippy-runs = ["", "multi"]
+# the single-threaded executor. `test-clock` compiles `SimulatedClock`, which
+# exists in no other tree.
+clippy-runs = ["", "multi", "test-clock"]
 # At zero clippy warnings in both trees: a new one fails CI (spec 70 feature 116).
 clippy-deny-warnings = true
 wasm = "enforce"
