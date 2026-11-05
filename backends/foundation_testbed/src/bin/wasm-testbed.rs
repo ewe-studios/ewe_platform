@@ -317,8 +317,19 @@ fn run_bindgen_wrangler(
     // table slot.
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
     let content = std::fs::read_to_string(&js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
+    // The wasm-bindgen CLI emits this call; a version that stops emitting it
+    // would leave the libtest `main` in place and skip the table setup, with
+    // no error at this point. Fail with the version rule instead.
+    const START_CALL: &str = "wasm.__wbindgen_start();";
+    if !content.contains(START_CALL) {
+        return Err(WasmTestbedError::WasmParseFailed(format!(
+            "the wasm-bindgen `module` output has no `{START_CALL}`; update the \
+             testbed's shim for the installed wasm-bindgen version"
+        ))
+        .trace());
+    }
     let content = content.replace(
-        "wasm.__wbindgen_start();",
+        START_CALL,
         "const __initTable = Object.values(__wbg_get_imports())\n  .map((m) => m && m.__wbindgen_init_externref_table)\n  .find((f) => f);\nif (__initTable) __initTable();",
     );
     std::fs::write(&js_file, format!("{content}\nexport {{ wasm }};\n"))
