@@ -254,6 +254,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
+- **`foundation_shell` is an empty placeholder crate.** `backends/foundation_shell/src/lib.rs`
+  holds only `add(left, right)`, and nothing in the workspace depends on it. It still has a CI
+  package entry, so every run builds it for no benefit. Spec 59 puts the shell work in a new
+  `foundation_shell_repl` crate instead. Fix: delete the crate and its `ci/packages.toml`
+  entry, or give it the real implementation. Found while auditing the errors for feature 67
+  (2026-11-05).
 - **`foundation_wireguard` clippy debt in its source and tests.** `cargo clippy
   -p foundation_wireguard --all-targets --no-deps` reports 180 warnings:
   `doc_markdown` (72), `must_use_candidate` (14), `missing_errors_doc` (8),
