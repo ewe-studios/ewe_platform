@@ -206,10 +206,18 @@ done
 | 82 | [Async SSE event writes; no truncated event](./features/82-sse-async-event-writer/feature.md) | backlog §3 (sonnet) | 63 | M |
 | 83 | [ptrace spawn tests on native amd64 CI](./features/83-ptrace-native-amd64-ci/feature.md) | backlog §16 (sonnet) | 47 | M |
 | 84 | [`ServeFuture` resolves to a closed `ServeOutcome`](./features/84-serve-outcome-enum/feature.md) | owner review 2026-11-05 (sonnet) | 63 | M |
+| 108 | [The `Expect: 100-continue` timer test is deterministic](./features/108-netio-expect-continue-timer-test/feature.md) | backlog §2, found in 82 (sonnet) | 82 | S |
+| 109 | [`foundation_browser` clippy debt](./features/109-browser-clippy-debt/feature.md) | backlog §33, found in 82 (haiku) | — | S |
+| 110 | [Stale `foundation_toolings` template pin](./features/110-toolings-template-pin/feature.md) | backlog §34, found in 82 (haiku) | — | S |
+| 111 | [ptrace `O_TRUNC` and `dup2` destination close](./features/111-ptrace-truncate-and-dup2/feature.md) | backlog §5, found in 83 (sonnet) | 83 | M |
 
 Priority for 82–84: **82 first** (a data-loss bug on every SSE event). 83 starts after 82, or
 with it when two agents are free. 84 follows 82 because both change `foundation_http`; it
 runs before every lower-priority open feature.
+
+Priority for 108–111: these are findings from features 82 and 83. 108 comes first because a
+flaky test hides real failures in CI. 109, 110 and 111 are independent and can run in
+parallel when two agents are free.
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
