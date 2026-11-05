@@ -322,6 +322,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   E0425/E0407. The 0.0.7 bump has landed (`foundation_core` and `foundation_macros` are now
   0.0.7 on `fix/io-35-turso-async-trait-overflow`); the crates.io publish still needs to
   happen at release time so 0.0.7 publishes before `foundation_reactor`.
+- **`platform-docker-tests.yml` fails on every run, on master too.** All three
+  jobs fail. `platform-unit` (ubuntu-latest, no CI container) runs
+  `cargo test -p foundation_platform`, whose Linux dependency tree includes
+  `tauri` → `gtk` → `gobject-sys`, so `gobject-sys`' build script stops on a
+  missing `gobject-2.0` pkg-config file (no `libgtk-3-dev` or `libglib2.0-dev`
+  on the runner). `windows-tests` and `macos-tests` fail in the same workflow.
+  Fix: install the GTK development packages in the job, or gate the GUI
+  dependency behind a feature the job does not enable; then find the cause of
+  the other two jobs. Found while reading the spec 70 pull request checks
+  (2026-11-05); it is not caused by them.
+
 ## 17. foundation_vectors
 
 ## 21. foundation_deployment_cloudflare on wasm32
