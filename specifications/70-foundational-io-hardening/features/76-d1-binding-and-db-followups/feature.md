@@ -1,6 +1,6 @@
 ---
 feature: "Wasm stores tested on the real wrangler bindings (no stub); D1 binding keeps integer types and i64 precision; native REST clients tested on wrangler's local REST API (stub deleted); d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
-status: "partial"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "spec70/f76-f55-db-generators"
@@ -141,7 +141,7 @@ CF_INTEGRATION_TEST=1 cargo test -p foundation_db --profile dev --test d1r2_docu
 - [x] E0 harness runs the wasm stores on real bindings in CI; the REST tests run on the local
       explorer API and `worker-stub.js` is gone; E1–E4 fixed with tests; backlog entries
       deleted.
-- [ ] CI green: the GitHub CI run on the PR (the local verify commands below pass).
+- [x] CI green: run 42040473182 on `e01e83d80` (PR #179); the D1 and R2 jobs pass.
 
 ## Result (2026-11-05, branch `spec70/f76-f55-db-generators`)
 

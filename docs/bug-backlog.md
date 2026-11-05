@@ -135,10 +135,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   not the tracer. Native coverage comes from GitHub CI: the `foundation_nativeapis` `package`
   job runs on the `ubuntu-latest` x86_64 runner, inside the linux/amd64 image, which shares
   the runner kernel. Its `ptrace probe` step prints `ptrace probe: available`, and the named
-  `vfs-native,vfs-ptrace` run executes the suite (feature 83). A local
-  `scripts/ci/linux.sh foundation_nativeapis` still reports the spawn-test failures for this
-  reason; that is the recorded emulation limit, not a code defect. Found in feature 47,
-  updated in feature 83.
+  `vfs-native,vfs-ptrace` run executes the suite (feature 83). CI run 42040473182 on
+  `e01e83d80` confirms this: the `foundation_nativeapis` job is green with
+  `EWE_REQUIRE_PTRACE=1`. A local `scripts/ci/linux.sh foundation_nativeapis` still reports
+  the spawn-test failures for this reason; that is the recorded emulation limit, not a code
+  defect. Found in feature 47, updated in feature 83.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

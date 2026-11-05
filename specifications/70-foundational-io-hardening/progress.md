@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: status close-out after the PR #179 merge. PR #179 merged as `75ca092dc`.
+  Run 42040473182 on its head commit `e01e83d80` has 111 jobs success, 0 failure and
+  3 skipped. The `foundation_wireguard` job is still `in_progress`: it stopped at the
+  `Free runner disk` step at 14:28 UTC and never ran a build step. That is a runner
+  fault, not a test result, and the same package runs in the master run.
+  - Features 47, 55, 76, 81, 110, 112 and 114 are `done`. Their only open item was a CI
+    proof, and the named job is green in that run: `foundation_nativeapis`, `foundation_codegen`,
+    `foundation_openapi`, `foundation_codegentools`, `foundation_deployment_cloudflare`,
+    `foundation_toolings`, `foundation_ai`, `foundation_core`, `foundation_wasm`,
+    `foundation_wasm_ui`, `ewe_platform` and `foundation_connectrpc`.
+  - Feature 47's native amd64 proof comes from the `vfs-native,vfs-ptrace` run with
+    `EWE_REQUIRE_PTRACE=1`. The local 20-run repeat is still impossible on the Apple
+    Silicon host, because the amd64 emulation returns `EIO` from `PTRACE_GETREGS`.
+  - Feature 49 stays `partial`: E10 is open (`foundation_core` test targets and examples
+    report 327 warnings).
+  - The next work is the follow-up list, features 108, 111, 113 and 109, on branch
+    `spec70/priority-followups` (PR #180).
+
 - 2026-11-05: PR #179 CI fix pass, fourth round. The Platform Docker Tests jobs ran Linux
   commands with `docker exec` and called the result macOS and Windows testing. Run
   42037634257 shows both jobs red.

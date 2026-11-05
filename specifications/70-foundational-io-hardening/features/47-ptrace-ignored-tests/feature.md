@@ -1,6 +1,6 @@
 ---
 feature: "foundation_nativeapis: the seven ignored ptrace fork-tracing tests run again, or are tracked with a precise cause"
-status: "partial"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "spec70/f47-f50-lane-a-mechanical"
@@ -49,8 +49,15 @@ rg -n '#\[ignore' backends/foundation_nativeapis/tests/ptrace_vfs   # none, or e
 
 ## Done when
 
-- [ ] Cause named. Tests un-ignored and pass 20/20, or each remaining ignore has a backlog
+- [x] Cause named. Tests un-ignored and pass 20/20, or each remaining ignore has a backlog
       entry with the kernel and the evidence.
+
+Native amd64 evidence: run 42040473182, `foundation_nativeapis` job success on `e01e83d80`
+(PR #179). The job runs `tests/ptrace_vfs` on the `ubuntu-latest` x86_64 kernel with
+`EWE_REQUIRE_PTRACE=1` and the named `vfs-native,vfs-ptrace` feature set, so the eight spawn
+tests ran and passed; a probe failure would fail the job, not skip the suite. The Apple
+Silicon host cannot repeat the run 20 times: `PTRACE_GETREGS` returns `EIO` under the
+OrbStack amd64 emulation.
 
 ## Result
 

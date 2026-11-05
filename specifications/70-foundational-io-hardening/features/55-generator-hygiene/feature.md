@@ -1,6 +1,6 @@
 ---
 feature: "Generators and Cloudflare crates: rustfmt-clean shims, openapi/codegentools clippy debt, wasm unused dependencies"
-status: "partial"
+status: "done"
 lane: "B"
 model: "haiku"
 branch: "spec70/f76-f55-db-generators"
@@ -54,8 +54,9 @@ python3 scripts/ci/ci.py run foundation_deployment_cloudflare --profile dev
 
 ## Done when
 
-- [ ] No rustfmt ignore for generated shims; clippy at zero for both crates; §8 and §21
-      entries deleted (coordinate the §8 docker part with feature 49). CI green.
+- [x] No rustfmt ignore for generated shims; clippy at zero for both crates; §8 and §21
+      entries deleted (coordinate the §8 docker part with feature 49). CI green. See the
+      status list below.
 
 ## Result (2026-11-02, branch `fix/io-51-60-lane-b`)
 
@@ -82,7 +83,9 @@ python3 scripts/ci/ci.py run foundation_deployment_cloudflare --profile dev
 - [x] `foundation_deployment_cloudflare` wasm32 check clean (see §21 of the backlog).
 - [x] Backlog §8 shim entry, the §8 `foundation_openapi`/`foundation_codegentools` clippy entry,
       §11 slow-check entry and §21 entry replaced by the remaining §21 items.
-- [ ] CI green: the GitHub CI run on the PR (the local commands below pass).
+- [x] CI green: run 42040473182 on `e01e83d80` (PR #179); the `foundation_codegen`,
+      `foundation_openapi`, `foundation_codegentools` and
+      `foundation_deployment_cloudflare` jobs pass.
 
 ## Result (2026-11-05, branch `spec70/f76-f55-db-generators`)
 

@@ -2,6 +2,22 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (status close-out after the PR #179 merge):
+  - **Read job conclusions, not the run status.** A run stays `in_progress` while one
+    job is stuck. Run 42040473182 has 111 jobs `success`, 0 `failure` and 1 job at
+    `in_progress`: `foundation_wireguard` stopped at `Free runner disk` before any build
+    step. The run never completes, and the web page shows it as running a long time.
+    Use `gh run view <id> --json jobs` and read each `conclusion`.
+  - **A CI proof belongs to the job that runs the package.** A package job runs every
+    feature set in `runs` from `ci/packages.toml`. The `foundation_nativeapis` job green
+    proves the `vfs-native,vfs-ptrace` spawn suite only because that set is named in
+    `runs` and `EWE_REQUIRE_PTRACE=1` fails instead of skipping. Check both before you
+    accept the proof.
+  - **A host limit can block a repeat count.** Feature 47 asked for 20 runs of the
+    ptrace spawn tests. The Apple Silicon host cannot run one, because the amd64
+    emulation returns `EIO` from `PTRACE_GETREGS`. The native CI job gives one run of
+    the full suite, and the feature file records that limit in place of the count.
+
 - 2026-11-05 (PR #179 CI fix pass, fourth round):
   - **`docker exec` into a virtual machine image reaches the Linux host, not the guest.**
     Commands such as `sw_vers`, `cargo` and `cmd` run on Ubuntu. A green step proves only
