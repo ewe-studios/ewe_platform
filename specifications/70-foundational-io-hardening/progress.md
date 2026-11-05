@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 62 done on `spec70/f77-f62-f78-readiness-ci`.
+  `idle_h2_connection_uses_no_cpu` now measures only the server's threads: the threads that
+  appear after `initialize_pool` (pool and background workers), plus `reactor-drain` by name.
+  It reads per-thread CPU from `/proc/self/task/<tid>/schedstat` on Linux and from
+  `proc_pidinfo` on macOS. Measured over one idle second on macOS: both pool workers 0 us,
+  four background workers 0 us, `reactor-drain` 218 to 233 us. The drain thread wakes on its
+  100 ms `drain_poll_timeout`; there is no busy loop. Cap: 8 ms for the server threads, down
+  from 50 ms for the whole process. Checks: the test 20 of 20 with `--exact` and the full target
+  20 of 20. The §3 backlog entry is deleted; a new entry records the pre-existing
+  foundation_http clippy debt.
 - 2026-11-05: feature 77 done on `spec70/f77-f62-f78-readiness-ci`. T0: E1 to E4 were already
   in master through PR #173, and the four backlog entries were already deleted. This branch
   tightens the E1 check bound from 20 to 5 and verifies the work. Measured over a 300 ms park:

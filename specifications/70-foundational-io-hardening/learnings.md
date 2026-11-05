@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 62, measuring one crate's threads): a whole-process CPU cap cannot hold
+  when the test binary runs other tests in parallel. Find the server's threads instead: snapshot
+  the thread list before `initialize_pool`, and treat the threads that appear after it as the
+  server's. Add any process-wide thread by name (the shared `reactor-drain`). On Linux read
+  `/proc/self/task/<tid>/schedstat` (CPU in nanoseconds). On macOS use `proc_pidinfo` with
+  `PROC_PIDLISTTHREADS` (6, not exported by libc) and `PROC_PIDTHREADINFO` (5); `pth_user_time`
+  and `pth_system_time` are nanoseconds and `pth_name` holds the thread name. Do not use
+  `libc::mach_task_self`: libc deprecates it. An idle HTTP/2 connection on macOS costs about
+  0.2 ms per second, all on the reactor drain thread (100 ms poll); the workers are at 0 us.
+  Gate helper functions and imports on the same `feature = "multi"` as their tests, or a
+  default-feature `cargo clippy --all-targets` reports them as dead code.
 - 2026-11-05 (feature 77, already landed): PR #173 already contained feature 77 E1 to E4, but
   the feature file still said `pending`. Check the code and `git log -S` before you implement a
   feature file. The code is the truth. E1 measured 4 readiness checks in the default set and 3

@@ -60,11 +60,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `native/upgrade/mod.rs`, which write a few hundred bytes into an empty send buffer. Likely fix:
   move each handler caller to `native::writer::send_*` (or `ResponseWriter`), then deprecate the
   synchronous `respond::*` for sockets.
-- `backends/foundation_http/tests/h2_parking_tests.rs` (`idle_h2_connection_uses_no_cpu`): fails
-  about half the runs on the dev VM, on master as well (54 ms of process CPU in 1 s against a
-  50 ms cap). The cap measures the whole process, so any other thread's work counts. Likely
-  fix: measure only the connection task's CPU (or the reactor and worker threads by thread id),
-  or find what still wakes the process while idle; do not raise the cap blindly.
+- **`foundation_http` fails `cargo clippy --all-targets -- -D warnings`.** Seen on
+  `spec70/f77-f62-f78-readiness-ci` (2026-11-05, feature 62): 32 errors in the lib and the
+  tests. Examples: missing `# Errors` sections in `shared/serve/mod.rs` (7) and
+  `shared/router/method.rs`; `doc_markdown` in `native/server/mod.rs`, `native/server/connection.rs`
+  and eight test files; `must_use` on `shared/middleware/compression.rs`, `shared/web_conn.rs` and
+  `shared/middleware/cors.rs`; `too_many_lines` in `native/server/mod.rs` (`serve_loop`, 126/100)
+  and `native/server/connection.rs` (147/100); `needless_continue`,
+  `redundant_closure_for_method_calls` and `map_unwrap_or` in `native/server/mod.rs`. Fix: clear
+  each lint and set `clippy-deny-warnings` for the package. Another agent cleans the lane A
+  crates on a separate branch; check that branch before starting.
 - **`ConnectionHandler::idle_timeout` (`native/server/connection.rs:173`) is the size-based
   read timeout of a streaming context, 100 ms (`TimeoutConfig::min_read_timeout`) when the
   body is unsized** (the same mistake that made the SSE client reconnect a quiet stream, fixed
