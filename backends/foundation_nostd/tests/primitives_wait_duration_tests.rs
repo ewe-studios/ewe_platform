@@ -1,5 +1,3 @@
-use foundation_nostd::primitives::wait_duration::*;
-
 #[cfg(feature = "std")]
 mod when_std {
     extern crate std;

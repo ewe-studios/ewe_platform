@@ -1,8 +1,6 @@
 //! `ids::id` tests (moved from `src/ids/id.rs`).
 
-use foundation_compact::ids::{
-    Generator, Id, ParseErrorKind, RandSource, StdSystemTime, TimeSource,
-};
+use foundation_compact::ids::{Generator, Id, RandSource, StdSystemTime, TimeSource};
 
 /// A generator with a real RNG and the test time source.
 fn for_testing() -> Generator<impl RandSource, impl TimeSource> {

@@ -1,4 +1,4 @@
-//! Tests for the no_std tracing subscriber (`foundation_nostd::trace`).
+//! Tests for the `no_std` tracing subscriber (`foundation_nostd::trace`).
 
 #![cfg(feature = "trace")]
 

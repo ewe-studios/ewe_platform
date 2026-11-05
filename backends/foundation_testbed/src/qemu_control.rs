@@ -321,6 +321,7 @@ impl fmt::Debug for QemuConsole {
 /// Strip ANSI CSI escape sequences (HMP uses them for terminal control).
 ///
 /// Public so an integration test can pin the terminal-output cleanup.
+#[must_use]
 pub fn strip_ansi(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();

@@ -4,8 +4,8 @@ use core::time::Duration;
 use foundation_nostd::primitives::spin_waiter::*;
 use std::time::Instant;
 
-/// WHY: Validates SpinWaiter construction with custom settings
-/// WHAT: Creating a SpinWaiter should store configuration correctly
+/// WHY: Validates `SpinWaiter` construction with custom settings
+/// WHAT: Creating a `SpinWaiter` should store configuration correctly
 #[test]
 fn test_new() {
     let waiter = SpinWaiter::new(50_000);
@@ -14,7 +14,7 @@ fn test_new() {
 }
 
 /// WHY: Validates WASM-specific constructor
-/// WHAT: wasm() should create SpinWaiter with 100K iterations/ms
+/// WHAT: `wasm()` should create `SpinWaiter` with 100K iterations/ms
 #[test]
 fn test_wasm() {
     let waiter = SpinWaiter::wasm();
@@ -22,7 +22,7 @@ fn test_wasm() {
 }
 
 /// WHY: Validates embedded-specific constructor
-/// WHAT: embedded() should create SpinWaiter with 1M iterations/ms
+/// WHAT: `embedded()` should create `SpinWaiter` with 1M iterations/ms
 #[test]
 fn test_embedded() {
     let waiter = SpinWaiter::embedded();
@@ -33,12 +33,12 @@ fn test_embedded() {
 /// WHAT: Default should use WASM settings (100K iterations/ms)
 #[test]
 fn test_default() {
-    let waiter: SpinWaiter = Default::default();
+    let waiter = SpinWaiter::default();
     assert_eq!(waiter.iterations_per_ms(), 100_000);
 }
 
 /// WHY: Validates wait completes normally
-/// WHAT: wait() should spin for approximately the requested duration
+/// WHAT: `wait()` should spin for approximately the requested duration
 #[test]
 fn test_wait_completes() {
     // Use very low iterations for faster test execution
@@ -54,7 +54,7 @@ fn test_wait_completes() {
 }
 
 /// WHY: Validates interrupt functionality
-/// WHAT: interrupt() should cause wait() to return immediately
+/// WHAT: `interrupt()` should cause `wait()` to return immediately
 #[test]
 fn test_interrupt() {
     let waiter = SpinWaiter::new(1_000_000); // High iterations
@@ -70,13 +70,12 @@ fn test_interrupt() {
     // Should return almost immediately due to interrupt
     assert!(
         elapsed < Duration::from_millis(100),
-        "wait() took too long after interrupt: {:?}",
-        elapsed
+        "wait() took too long after interrupt: {elapsed:?}"
     );
 }
 
 /// WHY: Validates reset clears interrupt
-/// WHAT: reset() should allow subsequent waits to complete normally
+/// WHAT: `reset()` should allow subsequent waits to complete normally
 #[test]
 fn test_reset() {
     let waiter = SpinWaiter::new(100_000);
@@ -98,7 +97,7 @@ fn test_reset() {
 }
 
 /// WHY: Validates interrupt during wait
-/// WHAT: interrupt() called during wait should wake early
+/// WHAT: `interrupt()` called during wait should wake early
 #[test]
 fn test_interrupt_during_wait() {
     use std::sync::Arc;
@@ -124,13 +123,12 @@ fn test_interrupt_during_wait() {
     // Should have been interrupted and returned early
     assert!(
         elapsed < Duration::from_millis(500),
-        "wait() was not interrupted early enough: {:?}",
-        elapsed
+        "wait() was not interrupted early enough: {elapsed:?}"
     );
 }
 
 /// WHY: Validates zero duration returns immediately
-/// WHAT: wait(Duration::ZERO) should not spin at all
+/// WHAT: `wait(Duration::ZERO)` should not spin at all
 #[test]
 fn test_zero_duration() {
     let waiter = SpinWaiter::new(100_000);

@@ -584,6 +584,7 @@ impl TestEnvironment {
 /// Whether a TCP connect to `host:port` succeeds within two seconds.
 ///
 /// Public so an integration test can pin the reachability probe.
+#[must_use]
 pub fn port_is_open(host: &str, port: u16) -> bool {
     std::net::TcpStream::connect_timeout(
         &format!("{host}:{port}").parse().unwrap(),

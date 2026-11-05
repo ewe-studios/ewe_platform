@@ -279,6 +279,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
+- **`foundation_wireguard` clippy debt in its source and tests.** `cargo clippy
+  -p foundation_wireguard --all-targets --no-deps` reports 180 warnings:
+  `doc_markdown` (72), `must_use_candidate` (14), `missing_errors_doc` (8),
+  `ip_constant` (7), casts, `unused_imports` (5) and the rest. The feature 49 E8
+  work fixed only the manifest. Fix: a clippy-cleanup pass, then set
+  `clippy-deny-warnings = true`. Found in feature 50.
+- **`foundation_reactor` clippy debt.** `cargo clippy -p foundation_reactor
+  --all-targets --no-deps` reports 124 warnings: `must_use_candidate` (33),
+  `missing_errors_doc` (23), `doc_markdown` (17), `cast_possible_wrap` (13) and
+  the rest. Found in feature 50. Fix: a clippy-cleanup pass.
 
 
 - **`foundation_boringtun` (fork of upstream boringtun) keeps upstream's inline tests and nine bare `#[ignore]`s.**

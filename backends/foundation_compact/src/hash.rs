@@ -1,7 +1,7 @@
 //! Deterministic, wasm-safe content hashing (foldhash).
 //!
 //! WHY: several crates need a non-cryptographic `Hasher` for content
-//! fingerprints — tool-call loop detection, embedding cache keys, SimHash,
+//! fingerprints — tool-call loop detection, embedding cache keys, `SimHash`,
 //! bloom filters. The common choice, `ahash`, pulls in `getrandom 0.3` through
 //! its default `runtime-rng` feature, and `getrandom 0.3` does not compile on
 //! `wasm32-unknown-unknown` without an extra backend feature — a hard build
@@ -15,7 +15,7 @@
 //! (equal inputs hash equal within a process), plus re-exports of foldhash's
 //! [`FixedState`]/[`RandomState`] for `HashMap`/`HashSet` use.
 //!
-//! WHY quality over `foldhash::fast`: SimHash (used by `foundation_ai`'s loop
+//! WHY quality over `foldhash::fast`: `SimHash` (used by `foundation_ai`'s loop
 //! detector) relies on the *statistical* properties of per-token hashes —
 //! foldhash's own docs recommend the `quality` variant for such algorithms,
 //! while `fast` "has known statistical imperfections" and is meant for hash

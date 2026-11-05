@@ -5,11 +5,6 @@ use std::cell;
 use foundation_compact::ids::{Generator, Id, RandSource, StdSystemTime, TimeSource};
 use foundation_compact::rng::Rng;
 
-/// A generator with a real RNG and the test time source.
-fn for_testing() -> Generator<impl RandSource, impl TimeSource> {
-    Generator::with_rand_and_time_sources(new_rand_source(), new_time_source())
-}
-
 fn new_rand_source() -> impl RandSource {
     struct MockRandSource;
     impl RandSource for MockRandSource {
