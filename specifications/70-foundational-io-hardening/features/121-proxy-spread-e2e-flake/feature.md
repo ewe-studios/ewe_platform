@@ -82,6 +82,12 @@ changes the selector by fd number alone, and a socket that closed earlier can ha
 number to a new socket. The late deregistration then deletes the new socket's selector
 entry, and a task parked on that socket never wakes. Feature 122 fixes the cause.
 
+The trace run below puts the stalled wait after the backend handshake: the proxy holds an
+established backend connection, and the backend never reads the forwarded request. That
+matches the feature 122 shape most closely: the backend connection's fd number is freshly
+allocated, the previous test's late deregistration removes its selector entry, its first
+read succeeds from the kernel buffer, and its next park never wakes.
+
 The accept loop is not the stalled wait: on `WouldBlock` it parks with
 `accept_shutdown_poll`, which defaults to 10 ms (`ServerConfig`, `server/mod.rs:213`), and
 it calls `accept` again on every wake. A clobbered listener registration would cost one
@@ -129,10 +135,16 @@ use different selectors, compare only like with like.
 
 ### 2. Locate the stall
 
-Add a temporary watchdog that prints once a second: proxy accepted-connection count,
-connection-handler start count, and how many client calls completed. In run 2 the
-question is whether `accept_connection` returned for the stalled connection. The accept
-loop parks on `FdReadiness::wait_for_events`; check whether that wait ever returns.
+The trace run already narrows it: the front accepts, parses and dispatches, and the
+backend completes the handshake but never receives the request. Start from the relay's
+own reads: the front-to-backend request-body pump, and the backend connection's read of
+the forwarded frames. Add a temporary watchdog that prints once a second: bytes read and
+written in each direction of the relay, and which of the two waits is parked. Enable
+`foundation_proxy=trace` and `foundation_netio=debug` for the run.
+
+Also log the registry state for the two fds when a wait exceeds one second: the entries
+map token, the selector's live token for that number, and whether the waker is installed.
+That answers the feature 122 question directly.
 
 ### 3. Fix the cause
 
@@ -224,6 +236,25 @@ Measured while the plan was written:
   accepted. That is why Design 2 adds a counter.
 - Both loops together: three different tests fail, all of them proxy e2e tests that make
   a client call soon after another test's servers stopped.
+- A third loop with `RUST_LOG=foundation_http=trace,foundation_proxy=debug` failed on
+  run 6 with two tests. The trace localises the stall:
+  - `connect_client_stream_via_grpc_backend`: the front accepted the client at T+0.00,
+    parsed the request by T+0.08, dispatched it, and the backend accepted the proxy's
+    dial at T+0.14 and completed the HTTP/2 handshake at T+0.15. At T+5.10 the client's
+    own transport logged `[INTRO] no response head before the deadline timeout=5s` and
+    the call failed with `[unavailable] transport connect failure: Timeout occurred`.
+    The proxy's front handler stayed parked until the harness dropped it at teardown
+    (`Awaiting: server draining, dropping the handler future`), and the harness reported
+    that pool workers were still blocked when it killed the test.
+  - `connect_bidi_via_grpc_backend`: the front received `HEADERS` and four `DATA`
+    frames and routed the request, and the backend completed its handshake. The backend
+    then logged `h2 server: idle — waiting for frames` four times and never saw the
+    request.
+  - So the request reaches the proxy front and the proxy dials the backend, but the
+    backend never receives it. The stalled wait is in the front-to-backend relay, not in
+    the client-to-proxy leg and not in the accept loop.
+  - No `[DEPENDS] already-ready` line appears in this run; the two in the earlier run
+    were incidental.
 - Attempt 1 of audit run 42099300473 failed `foundation_proxy` again, while
   `foundation_core`, `foundation_macros` and `foundation_netio` passed.
 

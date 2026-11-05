@@ -15,6 +15,12 @@ _What an agent learned that the next agent needs. Newest first._
   - **A recorded deadline is not an enforced deadline.** `Ctx::with_deadline`
     stores `now + d` and starts no timer. A hung client call waits for the
     transport's own idle timeout. Feature 123.
+  - **Trace logs localise a hang faster than a watchdog.** Setting
+    `RUST_LOG=foundation_http=trace,foundation_proxy=debug` and keeping the
+    failing run's log showed the exact stop point in one reproduction: the
+    proxy front parsed and dispatched the request, the backend completed its
+    handshake, and then the backend never read the request. A watchdog would
+    have needed the same number of runs plus a rebuild.
   - **Constrain the CPUs to reproduce a load-dependent flake.** Five runs of both
     proxy binaries in the Linux CI image on this host pass; with
     `docker run --cpus=2` the same loop failed once in five, on a third test

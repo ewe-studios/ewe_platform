@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: the proxy stall localised to the front-to-backend relay.
+  Branch `spec70/priority-followups`.
+  - Three local loops with `--cpus=2` failed four different e2e tests in
+    total. Failure rate is about 1 run in 5.
+  - A trace run (`RUST_LOG=foundation_http=trace,foundation_proxy=debug`) shows
+    the front accepts, parses and dispatches the request, the proxy dials the
+    backend, and the backend completes its HTTP/2 handshake. The backend then
+    never reads the forwarded request, and the client waits until its timeout.
+  - That shape matches feature 122: the backend connection's fd number is
+    fresh, a previous test's late deregistration can remove its selector entry,
+    its first read succeeds from the buffer, and its next park never wakes.
+  - No fix is applied. Features 121, 122 and 123 stay planned.
+
 - 2026-11-06: the audit run is green; features 115, 116 and 119 are `done`.
   Branch `spec70/priority-followups`, commit `9b1138a63`.
   - Audit run 42099300473 attempt 2 finished `success`. Check runs for the

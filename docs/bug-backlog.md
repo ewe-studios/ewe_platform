@@ -230,7 +230,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Fix: reproduce with the full binaries in a loop on Linux, land feature 122,
   instrument the connection read path, and make a hung client call fail on its
   own deadline with a useful message. Do not raise a cap as the fix. Scheduled
-  as feature 121.
+  as feature 121. Reproduced on 2026-11-06 with `docker run --cpus=2`: the
+  loops failed four different tests in total, and a trace run localises
+  the stall: the proxy front accepts, parses and dispatches the request, the
+  proxy dials the backend and the backend completes its HTTP/2 handshake, then
+  the backend never reads the forwarded request while the client waits. So the
+  stalled wait is in the front-to-backend relay, after the handshake.
 
 ## 10. foundation_ai
 
