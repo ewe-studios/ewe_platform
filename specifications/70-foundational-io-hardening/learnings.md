@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 83, ptrace on native amd64 CI): a shell redirect does not keep the
+  virtual fd number. `echo x > /virtual/y` makes dash `dup2` the virtual fd to fd 1, so a
+  dispatch guard such as `VirtualFdTable::is_virtual_fd(fd)` (fd >= 10,000) no longer finds
+  it. The write then passes through to a kernel fd that does not exist and fails with
+  `EBADF`. Dispatch must use the `VirtualFdTable` entry as the source of truth, and `dup2`
+  must copy the entry for the new number. The probe's pure decision function must sit outside
+  the `target_os = "linux"` gate, or a macOS host cannot test it: gate the probe test and its
+  `mod common;`, not the whole file. In the forked child, exit at once if `PTRACE_TRACEME`
+  fails: an untraced `SIGSTOP` hangs the parent. Always `PTRACE_DETACH` and `waitpid`, so a
+  failed probe leaves no stopped process or zombie. Two dispatch bugs remain and are in the
+  backlog: `O_CREAT` on an existing virtual file returns `EEXIST` instead of truncating, and
+  a virtual `dup2` over a real fd leaves that real fd open.
+
 - 2026-11-05 (features 82 and 83, recorded from owner reports): an empty test binary passes.
   `ptrace_vfs/mod.rs` is gated on `target_os = "linux"` plus two features, so a wrong feature
   set in `ci/packages.toml` builds nothing and CI stays green. Give such a suite a named run

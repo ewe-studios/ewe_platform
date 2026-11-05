@@ -80,34 +80,34 @@ pub fn on_syscall_entry(
         CREAT => handle_creat(pid, args, mount_table, fd_table),
 
         // ── FD operations (virtual FD only) ──
-        READ if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        READ if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_read(pid, args, fd_table)
         }
-        WRITE if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        WRITE if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_write(pid, args, fd_table)
         }
-        PREAD64 if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        PREAD64 if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_pread(pid, args, fd_table)
         }
-        PWRITE64 if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        PWRITE64 if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_pwrite(pid, args, fd_table)
         }
-        LSEEK if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        LSEEK if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_lseek(pid, args, fd_table)
         }
-        CLOSE if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        CLOSE if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_close(pid, args, fd_table)
         }
-        FSTAT if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        FSTAT if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_fstat(pid, args, fd_table)
         }
-        FTRUNCATE if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        FTRUNCATE if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_ftruncate(pid, args, fd_table)
         }
-        FCHMOD if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        FCHMOD if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_fchmod(pid, args, fd_table)
         }
-        GETDENTS64 if VirtualFdTable::is_virtual_fd(args.arg0 as u64) => {
+        GETDENTS64 if is_tracked_virtual_fd(pid, args.arg0, fd_table) => {
             handle_vfs_getdents64(pid, args, fd_table)
         }
 
@@ -245,6 +245,15 @@ pub fn on_syscall_entry(
 /// Resolve a path argument from tracee memory and check if it's virtual.
 fn resolve_tracee_path(pid: nix::unistd::Pid, addr: u64) -> Option<String> {
     memory::read_tracee_string(pid, addr, 4096).ok()
+}
+
+/// Whether `fd` names a virtual entry for `pid`.
+///
+/// The table is the source of truth. A shell redirect calls `dup2` on the
+/// virtual fd, which moves the entry to a low number (fd 1, for example), so
+/// the `FD_VIRTUAL_BASE` range alone does not find it.
+fn is_tracked_virtual_fd(pid: nix::unistd::Pid, fd: u64, fd_table: &VirtualFdTable) -> bool {
+    VirtualFdTable::is_virtual_fd(fd) || fd_table.get(pid.as_raw() as u32, fd).is_some()
 }
 
 /// Resolve a path from tracee memory, handling AT_FDCWD for relative paths.
@@ -1169,16 +1178,20 @@ fn handle_dup(
         fd_table.alloc_fd()
     };
 
-    if !VirtualFdTable::is_virtual_fd(old_fd) {
-        return SyscallAction::passthrough();
-    }
-
+    // The table lookup, not the fd number, decides: a previous `dup2` can move
+    // a virtual entry to a low fd.
     match fd_table.get(pid.as_raw() as u32, old_fd) {
         Some(entry) => {
-            fd_table.insert(pid.as_raw() as u32, new_fd, entry.clone());
+            fd_table.insert(pid.as_raw() as u32, new_fd, entry);
             SyscallAction::skip(new_fd as i64)
         }
-        None => SyscallAction::passthrough(),
+        None => {
+            // The source is a real fd, so the kernel handles the call. It
+            // replaces whatever `new_fd` was: drop a virtual entry there, or a
+            // restored stdout would keep writing into the virtual file.
+            fd_table.remove(pid.as_raw() as u32, new_fd);
+            SyscallAction::passthrough()
+        }
     }
 }
 

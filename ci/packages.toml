@@ -282,15 +282,21 @@ wasm-runs = [""]
 # suite (Linux); it did not compile for a while, so it gets its own run.
 # `fd,uring` compiles and runs the io_uring suites (`uring_completion_*` and
 # `completion_source_seam`); their code is Linux-only, and the run compiles to
-# empty test binaries elsewhere. The last run compiles every remaining VFS
+# empty test binaries elsewhere. `vfs-native,vfs-ptrace` is the ptrace spawn
+# suite (`tests/ptrace_vfs`), named on its own so a failure says "ptrace",
+# not "the full VFS set". It needs a native amd64 kernel: under emulation
+# `PTRACE_GETREGS` returns `EIO`. The last run compiles every remaining VFS
 # backend together so a backend that only breaks under a specific feature set is
 # caught in CI.
-runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
+runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
 # `uring_completion_*` and `completion_source_seam` skip on a kernel without
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
+# The ptrace spawn tests must likewise fail on a kernel that cannot trace a
+# child, not pass as an empty or skipping binary.
 # `container-options` is read by `scripts/ci/ci.py` and added to this job's
-# container, because Docker's default seccomp profile blocks `io_uring_setup`.
-env = { EWE_REQUIRE_IO_URING = "1" }
+# container, because Docker's default seccomp profile blocks `io_uring_setup`
+# and `ptrace`.
+env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_iogate]
