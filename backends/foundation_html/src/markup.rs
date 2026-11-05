@@ -5,10 +5,18 @@ use foundation_core::io::mem::{
 };
 
 use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use std::{cell, rc};
 
-pub type ElementResult<T> = std::result::Result<T, ElementError>;
+/// Result type of the element (markup tree) API.
+pub type ElementResult<T> = std::result::Result<T, ErrorTrace<ElementError>>;
+
+impl From<ElementError> for ErrorTrace<ElementError> {
+    fn from(err: ElementError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
 
 #[derive(Debug, Display, Error)]
 pub enum ElementError {
@@ -325,54 +333,54 @@ impl<'a> FragmentDef<'a> {
     pub fn after_node_size(&self) -> ElementResult<usize> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(n) => Ok(n.after_node_size()),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn before_node_size(&self) -> ElementResult<usize> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(n) => Ok(n.before_node_size()),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn children_size(&self) -> ElementResult<usize> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(n) => Ok(n.children_size()),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn get_node_mut(&mut self, _index: usize) -> ElementResult<&Option<Fragment<'a>>> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => Ok(container),
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn get_node(&self, _index: usize) -> ElementResult<&Option<Fragment<'a>>> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => Ok(container),
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn get_before(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => Ok(node.get_before(index)),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
@@ -382,43 +390,43 @@ impl<'a> FragmentDef<'a> {
     ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => Ok(node.get_before_mut(index)),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn name(&mut self, name: &'a str) -> ElementResult<()> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => {
                     node.name(name);
                     Ok(())
                 }
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn add_before(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => Ok(node.add_before(elem)),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn get_after(&mut self, index: usize) -> ElementResult<Option<&Option<FragmentDef<'a>>>> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => Ok(node.get_after(index)),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
@@ -428,20 +436,20 @@ impl<'a> FragmentDef<'a> {
     ) -> ElementResult<Option<&'a mut Option<FragmentDef<'a>>>> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => Ok(node.get_after_mut(index)),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
     pub fn add_after(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         match self {
             FragmentDef::NoChildHTML(container) | FragmentDef::HTML(container) => match container {
-                None => Err(ElementError::NotUsable),
+                None => Err(ElementError::NotUsable.into()),
                 Some(node) => Ok(node.add_after(elem)),
             },
-            _ => Err(ElementError::NotUsable),
+            _ => Err(ElementError::NotUsable.into()),
         }
     }
 
@@ -449,7 +457,7 @@ impl<'a> FragmentDef<'a> {
         if let FragmentDef::HTML(Some(node)) = self {
             return Ok(node.get_child(index));
         }
-        Err(ElementError::NotUsable)
+        Err(ElementError::NotUsable.into())
     }
 
     pub fn get_child_mut(
@@ -459,14 +467,14 @@ impl<'a> FragmentDef<'a> {
         if let FragmentDef::HTML(Some(node)) = self {
             return Ok(node.get_child_mut(index));
         }
-        Err(ElementError::NotUsable)
+        Err(ElementError::NotUsable.into())
     }
 
     pub fn add_child(&mut self, elem: FragmentDef<'a>) -> ElementResult<usize> {
         if let FragmentDef::HTML(Some(node)) = self {
             return Ok(node.add_child(elem));
         }
-        Err(ElementError::NotUsable)
+        Err(ElementError::NotUsable.into())
     }
 }
 
@@ -536,9 +544,9 @@ impl<'a> Fragment<'a> {
 
                 Ok(fragment)
             }
-            Err(_err) => Err(ElementError::CantRender(String::from(
-                "memory limit exceeded",
-            ))),
+            Err(_err) => {
+                Err(ElementError::CantRender(String::from("memory limit exceeded")).into())
+            }
         }
     }
 
@@ -673,7 +681,7 @@ impl<'a> Fragment<'a> {
     pub fn remove_child_at(&mut self, index: usize) -> ElementResult<()> {
         let child_size = self.content.len();
         if index >= child_size {
-            return Err(ElementError::OutofBoundIndex(index));
+            return Err(ElementError::OutofBoundIndex(index).into());
         }
 
         deallocate_markup(
@@ -788,29 +796,38 @@ pub enum IslandError {
     FragmentFailed(String),
 }
 
+impl From<IslandError> for ErrorTrace<IslandError> {
+    fn from(err: IslandError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+/// Result type of the island rendering API.
+pub type IslandResult<T> = std::result::Result<T, ErrorTrace<IslandError>>;
+
 /// Islands are the fundamental means to define unique components and the underlying content
 /// they generate. It takes a root into which it pushes the core result into.
 pub trait Island<'a> {
     /// `render_into` renders the given fragment as a content of the root.   fn `render_into(&self`, root: Fragment<'a>) -> Result<(), `IslandError`>;
-    fn render_into(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    fn render_into(&self, root: Fragment<'a>) -> IslandResult<()>;
 
     /// `render_before` renders given fragment as a before content of the root.   fn `render_into(&self`, root: Fragment<'a>) -> Result<(), `IslandError`>;
-    fn render_before(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    fn render_before(&self, root: Fragment<'a>) -> IslandResult<()>;
 
     /// `render_after` renders the given fragment as a after content of the root.   fn `render_into(&self`, root: Fragment<'a>) -> Result<(), `IslandError`>;
-    fn render_after(&self, root: Fragment<'a>) -> Result<(), IslandError>;
+    fn render_after(&self, root: Fragment<'a>) -> IslandResult<()>;
 }
 
 impl<'a> Island<'a> for Fragment<'a> {
-    fn render_into(&self, _root: Fragment<'a>) -> Result<(), IslandError> {
+    fn render_into(&self, _root: Fragment<'a>) -> IslandResult<()> {
         todo!()
     }
 
-    fn render_before(&self, _root: Fragment<'a>) -> Result<(), IslandError> {
+    fn render_before(&self, _root: Fragment<'a>) -> IslandResult<()> {
         todo!()
     }
 
-    fn render_after(&self, _root: Fragment<'a>) -> Result<(), IslandError> {
+    fn render_after(&self, _root: Fragment<'a>) -> IslandResult<()> {
         todo!()
     }
 }

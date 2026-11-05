@@ -7,10 +7,35 @@ use std::{
     time::Instant,
 };
 
+use derive_more::{Display, Error, From};
+use foundation_errstacks::ErrorTrace;
 use notify::Watcher;
 use notify_debouncer_full::{new_debouncer, DebounceEventResult};
 
-pub type Result<T> = std::result::Result<T, anyhow::Error>;
+/// Errors from the file-watching utilities.
+#[derive(Debug, Display, Error, From)]
+pub enum WatchUtilsError {
+    /// The `notify` watcher or the OS watch call failed.
+    #[display("file watcher error: {_0}")]
+    Notify(#[from] notify::Error),
+
+    /// A change handler returned an error.
+    #[display("file watcher task failed: {_0}")]
+    #[from(ignore)]
+    Handler(#[error(not(source))] String),
+}
+
+impl From<WatchUtilsError> for ErrorTrace<WatchUtilsError> {
+    fn from(err: WatchUtilsError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+/// Result type of the crate's public fallible API.
+pub type WatchUtilsResult<T> = std::result::Result<T, ErrorTrace<WatchUtilsError>>;
+
+/// Backward-compatible alias.
+pub type Result<T> = WatchUtilsResult<T>;
 
 #[cfg(all(target_os = "macos", not(feature = "macos_kqueue")))]
 pub type NotifyWatcher = notify_debouncer_full::Debouncer<
@@ -45,7 +70,8 @@ pub fn create_notify_watcher(
     sender: std::sync::mpsc::Sender<DebounceEventResult>,
 ) -> Result<NotifyWatcher> {
     let watcher: NotifyWatcher =
-        new_debouncer(Duration::from_millis(debounce_millis), None, sender)?;
+        new_debouncer(Duration::from_millis(debounce_millis), None, sender)
+            .map_err(WatchUtilsError::from)?;
     Ok(watcher)
 }
 
@@ -75,7 +101,8 @@ pub fn watch_path(
     for watcher_path in target_paths {
         watcher
             .watcher()
-            .watch(Path::new(&watcher_path).as_ref(), r_mode)?;
+            .watch(Path::new(&watcher_path).as_ref(), r_mode)
+            .map_err(WatchUtilsError::from)?;
     }
 
     // listen for change events

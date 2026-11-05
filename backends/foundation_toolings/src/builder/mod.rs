@@ -20,7 +20,8 @@ use crate::ToolingError;
 
 // -- BuildResult
 
-pub type BuildResult = std::result::Result<BuildOutput, ToolingError>;
+pub type BuildResult =
+    std::result::Result<BuildOutput, foundation_errstacks::ErrorTrace<ToolingError>>;
 
 #[derive(Debug, Clone)]
 pub enum BuildOutput {

@@ -150,7 +150,7 @@ fn delete_removes_folder() {
     let c = ctx.clone();
     let got = drive(async move { folders::get(&c, USER_A, &id).await });
     assert!(
-        matches!(got, Err(AppError::NotFound(_))),
+        matches!(got, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))),
         "deleted folder must be gone"
     );
 
@@ -182,7 +182,7 @@ fn ownership_is_enforced() {
     let c = ctx.clone();
     let got = drive(async move { folders::get(&c, USER_B, &id).await });
     assert!(
-        matches!(got, Err(AppError::Forbidden)),
+        matches!(got, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)),
         "cross-user get must be Forbidden"
     );
 
@@ -201,7 +201,7 @@ fn ownership_is_enforced() {
         .await
     });
     assert!(
-        matches!(upd, Err(AppError::Forbidden)),
+        matches!(upd, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)),
         "cross-user update must be Forbidden"
     );
 
@@ -210,7 +210,7 @@ fn ownership_is_enforced() {
     let c = ctx.clone();
     let del = drive(async move { folders::delete(&c, USER_B, &id).await });
     assert!(
-        matches!(del, Err(AppError::Forbidden)),
+        matches!(del, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)),
         "cross-user delete must be Forbidden"
     );
 
@@ -237,7 +237,7 @@ fn empty_name_is_rejected() {
         folders::create(&c, USER_A, FolderCreateRequest { name: "   ".into() }).await
     });
     assert!(
-        matches!(res, Err(AppError::BadRequest(_))),
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_))),
         "blank name must be BadRequest"
     );
 }
@@ -247,5 +247,5 @@ fn get_missing_folder_is_not_found() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { folders::get(&c, USER_A, "does-not-exist").await });
-    assert!(matches!(res, Err(AppError::NotFound(_))));
+    assert!(matches!(res, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))));
 }

@@ -59,9 +59,10 @@ pub fn connect<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseSt
     let n = handshake
         .write_message(&[], &mut scratch)
         .map_err(noise_err)?;
-    write_frame(&mut inner, &scratch[..n])?;
+    write_frame(&mut inner, &scratch[..n]).map_err(WgError::from)?;
     // <- e, ee
-    let msg = read_frame(&mut inner)?
+    let msg = read_frame(&mut inner)
+        .map_err(WgError::from)?
         .ok_or_else(|| WgError::Protocol("peer closed during noise handshake".into()))?;
     handshake
         .read_message(&msg, &mut scratch)
@@ -94,7 +95,8 @@ pub fn accept<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseStr
 
     let mut scratch = vec![0u8; MAX_NOISE_MSG];
     // -> psk, e
-    let msg = read_frame(&mut inner)?
+    let msg = read_frame(&mut inner)
+        .map_err(WgError::from)?
         .ok_or_else(|| WgError::Protocol("peer closed during noise handshake".into()))?;
     handshake
         .read_message(&msg, &mut scratch)
@@ -103,7 +105,7 @@ pub fn accept<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseStr
     let n = handshake
         .write_message(&[], &mut scratch)
         .map_err(noise_err)?;
-    write_frame(&mut inner, &scratch[..n])?;
+    write_frame(&mut inner, &scratch[..n]).map_err(WgError::from)?;
 
     let transport = handshake.into_transport_mode().map_err(noise_err)?;
     Ok(NoiseStream::new(inner, transport))

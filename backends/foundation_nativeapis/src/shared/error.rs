@@ -1,24 +1,25 @@
-use thiserror::Error;
+use derive_more::{Display, Error, From};
 
 /// Errors that can occur during file watching operations.
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error, From)]
 pub enum WatchError {
-    #[error("I/O error: {0}")]
+    #[display("I/O error: {_0}")]
     Io(#[from] std::io::Error),
 
-    #[error("path is not valid UTF-8: {0:?}")]
-    InvalidPath(std::path::PathBuf),
+    #[display("path is not valid UTF-8: {_0:?}")]
+    #[from(ignore)]
+    InvalidPath(#[error(not(source))] std::path::PathBuf),
 
-    #[error("watch limit reached: too many paths registered")]
+    #[display("watch limit reached: too many paths registered")]
     WatchLimit,
 
-    #[error("path is not being watched")]
+    #[display("path is not being watched")]
     NotWatched,
 
-    #[error("the requested API is not available on this platform")]
+    #[display("the requested API is not available on this platform")]
     UnsupportedPlatform,
 
-    #[error("all configured API backends failed")]
+    #[display("all configured API backends failed")]
     AllBackendsFailed,
 }
 

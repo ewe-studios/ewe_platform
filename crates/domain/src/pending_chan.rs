@@ -1,21 +1,28 @@
 use std::{collections, sync};
 
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use ewe_channels::mspc::{self};
 
 use crate::domains;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum PendingChannelError {
-    #[error("Failed to find any pending channels registered with {0}")]
-    NotFound(String),
+    #[display("Failed to find any pending channels registered with {_0}")]
+    NotFound(#[error(not(source))] String),
 
-    #[error("Corresponding channel sender for {0} was closed")]
-    ClosedSender(domains::Id),
+    #[display("Corresponding channel sender for {_0} was closed")]
+    ClosedSender(#[error(not(source))] domains::Id),
 }
 
-pub type PendingChannelResult<E> = std::result::Result<E, PendingChannelError>;
+impl From<PendingChannelError> for ErrorTrace<PendingChannelError> {
+    fn from(err: PendingChannelError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+pub type PendingChannelResult<E> = std::result::Result<E, ErrorTrace<PendingChannelError>>;
 
 /// `PendingChannelsRegistry` provide a way to register a target channel
 /// which is to carry provides a temporary storage of a [`ChannelGroup`]
@@ -103,7 +110,7 @@ impl<E> PendingChannelsRegistry<E> {
     pub fn resolve(&mut self, id: domains::Id) -> PendingChannelResult<mspc::SendChannel<E>> {
         let mut registry = self.pending.lock().unwrap();
         if !registry.contains_key(&id) {
-            return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.clone()));
+            return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.clone()).into());
         }
 
         if let Some((_, entry)) = registry.remove_entry(&id) {
@@ -112,7 +119,7 @@ impl<E> PendingChannelsRegistry<E> {
             }
         }
 
-        PendingChannelResult::Err(PendingChannelError::ClosedSender(id))
+        PendingChannelResult::Err(PendingChannelError::ClosedSender(id).into())
     }
 
     /// Clears all pending channels.

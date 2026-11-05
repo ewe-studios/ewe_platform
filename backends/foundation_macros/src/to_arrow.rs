@@ -45,6 +45,7 @@ pub fn to_arrow_derive(item: TokenStream2) -> TokenStream2 {
                     #( #single_array_exprs ),*
                 ];
                 #arrow::arrow_array::RecordBatch::try_new(schema, columns)
+                .map_err(#arrow::ipc::arrow_err)
             }
 
             fn to_arrow_batch(values: &[Self]) -> #arrow::ipc::IpcResult<#arrow::arrow_array::RecordBatch> {
@@ -54,6 +55,7 @@ pub fn to_arrow_derive(item: TokenStream2) -> TokenStream2 {
                     #( #batch_array_exprs ),*
                 ];
                 #arrow::arrow_array::RecordBatch::try_new(schema, columns)
+                .map_err(#arrow::ipc::arrow_err)
             }
         }
     }

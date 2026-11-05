@@ -320,6 +320,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 22. foundation_keychain
 
+- **`tests/streamed_body.rs::slow_request_body_does_not_hold_worker` fails on macOS.**
+  The slow clients' `read_response` helper panics with `WouldBlock` at
+  `tests/streamed_body.rs:123` (`read response: Os { code: 35, kind: WouldBlock }`).
+  The fast request before it returns `200`, so the server keeps both uploads open.
+  Fix: give the test socket a read timeout, or retry `read` on `WouldBlock` in
+  `read_response`. Reproduce with
+  `cargo test -p foundation_keychain --test streamed_body slow_request_body_does_not_hold_worker`.
+  Confirmed on `spec70/io-hardening-final` with this feature's changes reverted, so
+  it predates feature 67.
 
 - **`poll_ready` single-polls a handler future with a noop waker.**
   `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the
@@ -431,6 +440,29 @@ are clean. Each item needs the per-crate clippy workflow in
   (1 each) have style warnings; the manifest reports one unused dependency.
 - **`foundation_repl`**: `tests/wrapping.rs` and `tests/layout.rs` have one
   warning each.
+- **`foundation_wireguard`**: `cargo clippy -p foundation_wireguard --profile uat
+  --all-targets --no-deps -- -D warnings` reports pedantic debt (about 134
+  warnings, mostly `must_use_candidate` and `missing_errors_doc` in
+  `src/wasm/mod.rs` and the tests/examples). The crate has no
+  `cli-allow`-style exception and no `clippy-deny-warnings` entry in
+  `ci/packages.toml`. Fix: apply the per-crate clippy workflow, then add
+  `clippy-deny-warnings = true`. Feature 67 did not introduce these warnings.
+- **`foundation_sshkit`**: the same `-D warnings` run reports 16 pedantic
+  warnings (doc backticks in `src/lib.rs`, `missing_errors_doc` on the
+  `Backend` trait in `src/backends/mod.rs`, `must_use_candidate`,
+  `redundant_closure_for_method_calls` and `default_trait_access` in
+  `command.rs`/`host.rs`). All predate feature 67. Fix: the same workflow,
+  then `clippy-deny-warnings = true`.
+- **`foundation_arrow`**: the same run reports 19 pedantic warnings, mostly
+  `missing_errors_doc` on the public `ipc.rs` functions (they returned
+  `Result` before feature 67 too), plus style warnings in `dom_ops.rs` and
+  `traits.rs`. Fix: add `# Errors` sections and clear the rest, then
+  `clippy-deny-warnings = true`.
+- **`foundation_nativeapis`**: the same run reports 188 pedantic warnings in the
+  default feature tree. The crate has no crate-level allow list and no
+  `clippy-deny-warnings` entry. Fix: clear the tree feature by feature (start
+  with the default tree), then deny warnings. Feature 67 changed only the
+  error derives.
 
 ## 32. foundation_toolings
 

@@ -23,7 +23,9 @@ use crate::core::store::ciphers as store;
 use crate::core::store::ciphers::CipherRow;
 
 fn to_json(cipher: &Cipher) -> AppResult<String> {
-    serde_json::to_string(cipher).map_err(|e| AppError::Internal(format!("serialize cipher: {e}")))
+    serde_json::to_string(cipher)
+        .map_err(|e| AppError::Internal(format!("serialize cipher: {e}")))
+        .map_err(Into::into)
 }
 
 /// Reconstruct the API [`Cipher`] from a row: deserialize the stored content, then
@@ -46,7 +48,7 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Ci
         .await?
         .ok_or_else(|| AppError::NotFound("cipher not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }
@@ -75,7 +77,7 @@ pub async fn create(
     req: CipherCreateRequest,
 ) -> AppResult<Cipher> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("cipher name is required".into()));
+        return Err(AppError::BadRequest("cipher name is required".into()).into());
     }
     let now = Utc::now();
     let uuid = crypto::new_uuid_v4()?.to_string();
@@ -139,7 +141,7 @@ pub async fn update(
 
     if let Some(name) = req.name {
         if name.trim().is_empty() {
-            return Err(AppError::BadRequest("cipher name is required".into()));
+            return Err(AppError::BadRequest("cipher name is required".into()).into());
         }
         cipher.name = name;
     }

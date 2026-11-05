@@ -40,6 +40,7 @@ fn empty() -> AppResult<(u16, serde_json::Value)> {
 fn from_json<T: serde::de::DeserializeOwned>(body: &str) -> AppResult<T> {
     serde_json::from_str(body)
         .map_err(|e| AppError::BadRequest(format!("invalid request body: {e}")))
+        .map_err(Into::into)
 }
 
 fn json_value(body: &str) -> serde_json::Value {
@@ -296,6 +297,6 @@ pub async fn route(
             empty()
         }
 
-        _ => Err(AppError::NotFound(format!("no route for {method} {path}"))),
+        _ => Err(AppError::NotFound(format!("no route for {method} {path}")).into()),
     }
 }

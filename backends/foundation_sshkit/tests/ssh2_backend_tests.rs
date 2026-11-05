@@ -24,8 +24,9 @@ fn test_execute_connection_refused_returns_error() {
 
     assert!(result.is_err(), "connecting to a closed port must fail");
     let err = result.unwrap_err();
+    let rendered = format!("{err:?}");
     assert!(
-        err.contains("connect"),
-        "error should originate from the TCP connect, got: {err:?}"
+        rendered.contains("connect"),
+        "error should originate from the TCP connect, got: {rendered}"
     );
 }

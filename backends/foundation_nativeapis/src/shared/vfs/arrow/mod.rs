@@ -11,14 +11,16 @@ use foundation_arrow::arrow_array::{
     UInt8Array,
 };
 use foundation_arrow::arrow_schema::{ArrowError, DataType, Field, Schema};
-use foundation_arrow::{ArrowSchema, ArrowValue, FromArrow, IpcResult, ToArrow};
+use foundation_arrow::{ArrowIpcError, ArrowSchema, ArrowValue, FromArrow, IpcResult, ToArrow};
+use foundation_errstacks::ErrorTrace;
 
 use crate::shared::vfs::types::{
     Checksum, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata,
 };
 
-fn err(s: String) -> ArrowError {
-    ArrowError::ComputeError(s)
+/// Build an errstacks trace from a VFS row-conversion failure.
+fn err(s: String) -> ErrorTrace<ArrowIpcError> {
+    ArrowIpcError::from(ArrowError::ComputeError(s)).into()
 }
 
 // ──────────────────────────────────────────────

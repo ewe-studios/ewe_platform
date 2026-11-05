@@ -46,7 +46,7 @@ fn run_cargo_check(workspace: &str) -> BuildResult {
     if output.status.success() {
         Ok(BuildOutput::CheckPassed)
     } else {
-        Err(ToolingError::Build("cargo check failed".into()))
+        Err(ToolingError::Build("cargo check failed".into()).into())
     }
 }
 
@@ -71,6 +71,6 @@ fn run_cargo_build(workspace: &str, crate_name: &str, args: &[String]) -> BuildR
             binary: crate_name.into(),
         })
     } else {
-        Err(ToolingError::Build("cargo build failed".into()))
+        Err(ToolingError::Build("cargo build failed".into()).into())
     }
 }

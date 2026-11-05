@@ -9,6 +9,7 @@
 
 pub mod backends;
 pub mod command;
+pub mod error;
 pub mod host;
 pub mod pool;
 pub mod powershell;
@@ -17,6 +18,7 @@ pub mod shell;
 
 pub use backends::Backend;
 pub use command::{Command, CommandResult};
+pub use error::{SshKitError, SshKitResult};
 pub use host::Host;
 pub use pool::ConnectionPool;
 pub use runner::Runner;

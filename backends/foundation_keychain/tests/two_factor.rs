@@ -73,7 +73,9 @@ fn full_totp_lifecycle() {
     // A wrong code cannot enable.
     let c = ctx.clone();
     let bad = drive(async move { two_factor::enable_authenticator(&c, USER, "000000").await });
-    assert!(matches!(bad, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(bad, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 
     // The current code enables it and yields a recovery code.
     let code = current_code(&key);

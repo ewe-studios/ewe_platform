@@ -185,7 +185,7 @@ fn hard_delete_removes() {
 
     let c = ctx.clone();
     let got = drive(async move { ciphers::get(&c, USER_A, &id).await });
-    assert!(matches!(got, Err(AppError::NotFound(_))));
+    assert!(matches!(got, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))));
 }
 
 #[valtron_test]
@@ -199,11 +199,11 @@ fn ownership_is_enforced() {
     let c = ctx.clone();
     let id2 = id.clone();
     let got = drive(async move { ciphers::get(&c, USER_B, &id2).await });
-    assert!(matches!(got, Err(AppError::Forbidden)));
+    assert!(matches!(got, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)));
 
     let c = ctx.clone();
     let del = drive(async move { ciphers::delete(&c, USER_B, &id).await });
-    assert!(matches!(del, Err(AppError::Forbidden)));
+    assert!(matches!(del, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)));
 }
 
 #[valtron_test]
@@ -211,5 +211,7 @@ fn empty_name_rejected() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { ciphers::create(&c, USER_A, login_req("   ", "u")).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }

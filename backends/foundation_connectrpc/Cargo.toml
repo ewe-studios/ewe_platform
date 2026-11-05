@@ -14,7 +14,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
 tracing = "0.1"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.3", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.4", optional = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", optional = true, default-features = false }
 buffa = { version = "0.9.2", features = ["json"] }
 bytes = "1.5"

@@ -44,7 +44,7 @@ impl ProjectBuilder for WasmBuilder {
                 binary: format!("{}.wasm", self.crate_path),
             })
         } else {
-            Err(ToolingError::Build("wasm cargo build failed".into()))
+            Err(ToolingError::Build("wasm cargo build failed".into()).into())
         }
     }
 }

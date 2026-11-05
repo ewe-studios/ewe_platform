@@ -57,6 +57,7 @@ pub fn mint_access_token(
     signing_key
         .sign_claims(&claims)
         .map_err(|e| AppError::Internal(format!("sign access token: {e}")))
+        .map_err(Into::into)
 }
 
 /// Mint a Bitwarden refresh token for `user_uuid` on `device_identifier`.
@@ -81,6 +82,7 @@ pub fn mint_refresh_token(
     signing_key
         .sign_claims(&claims)
         .map_err(|e| AppError::Internal(format!("sign refresh token: {e}")))
+        .map_err(Into::into)
 }
 
 /// The authenticated principal extracted from a verified access token.
@@ -112,7 +114,7 @@ fn custom_str(claims: &foundation_auth::shared::jwt::VerifiedClaims, key: &str) 
 pub fn verify_access_token(verifier: &JwtVerifier, token: &str) -> AppResult<AuthedToken> {
     let claims = verifier.verify(token).map_err(|_| AppError::Unauthorized)?;
     if custom_str(&claims, "type").as_deref() != Some(TYPE_ACCESS) {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Unauthorized.into());
     }
     let security_stamp = custom_str(&claims, "sstamp");
     let device = custom_str(&claims, "device");
@@ -134,7 +136,7 @@ pub fn verify_refresh_token(
 ) -> AppResult<(String, Option<String>)> {
     let claims = verifier.verify(token).map_err(|_| AppError::Unauthorized)?;
     if custom_str(&claims, "type").as_deref() != Some(TYPE_REFRESH) {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Unauthorized.into());
     }
     let device = custom_str(&claims, "device");
     Ok((claims.sub, device))

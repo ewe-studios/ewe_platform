@@ -32,8 +32,8 @@ pub enum WasmBinError {
         source: toml::de::Error,
     },
 
-    /// `foundation_codegen` scanning error
-    ScanError(foundation_codegen::CodegenError),
+    /// `foundation_codegen` scanning error, flattened to its display text.
+    ScanError(String),
 
     /// File I/O error
     Io {
@@ -114,7 +114,6 @@ impl std::error::Error for WasmBinError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::CargoTomlParse { source, .. } => Some(source),
-            Self::ScanError(e) => Some(e),
             Self::Io { source, .. } => Some(source),
             _ => None,
         }
@@ -123,6 +122,6 @@ impl std::error::Error for WasmBinError {
 
 impl From<foundation_codegen::CodegenError> for WasmBinError {
     fn from(e: foundation_codegen::CodegenError) -> Self {
-        Self::ScanError(e)
+        Self::ScanError(e.to_string())
     }
 }

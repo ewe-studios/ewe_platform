@@ -108,7 +108,9 @@ impl WasmBundleGenerator {
             ("wasm_service", BundleMode::Service),
         ] {
             let scanner = CrateScanner::new(attr);
-            let registry = scanner.scan_crate(crate_dir)?;
+            let registry = scanner
+                .scan_crate(crate_dir)
+                .map_err(|e| WasmBinError::ScanError(e.to_string()))?;
             for target in registry.filter_by_kind(&ItemKind::Function) {
                 entrypoints.push(entrypoint_from_attrs(
                     &target.item_name,

@@ -6,6 +6,7 @@
 use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 
+use crate::error::{SshKitError, SshKitResult};
 use crate::Host;
 
 /// Open an interactive SSH session to `host`.
@@ -15,7 +16,7 @@ use crate::Host;
 ///
 /// # Errors
 /// Returns an error if `ssh` fails to spawn or exits non-zero.
-pub fn interactive(host: &Host) -> Result<(), String> {
+pub fn interactive(host: &Host) -> SshKitResult<()> {
     let status = Command::new("ssh")
         .args([
             "-tt",
@@ -30,10 +31,10 @@ pub fn interactive(host: &Host) -> Result<(), String> {
             &format!("{}@{}", host.user, host.hostname),
         ])
         .status()
-        .map_err(|e| format!("spawning ssh: {e}"))?;
+        .map_err(|e| SshKitError::Operation(format!("spawning ssh: {e}")))?;
 
     if !status.success() {
-        return Err(format!("ssh exited with status {status:?}"));
+        return Err(SshKitError::Operation(format!("ssh exited with status {status:?}")).into());
     }
     Ok(())
 }
@@ -46,8 +47,9 @@ pub fn interactive(host: &Host) -> Result<(), String> {
 ///
 /// # Errors
 /// Returns an error if `ssh` fails to spawn or the process exits abnormally.
-pub fn exec_streaming(host: &Host, cmd: &str) -> Result<i32, String> {
-    let key_path = find_ssh_key().ok_or_else(|| "no SSH key found".to_string())?;
+pub fn exec_streaming(host: &Host, cmd: &str) -> SshKitResult<i32> {
+    let key_path =
+        find_ssh_key().ok_or_else(|| SshKitError::Operation("no SSH key found".to_string()))?;
 
     let mut child = Command::new("ssh")
         .args([
@@ -70,7 +72,7 @@ pub fn exec_streaming(host: &Host, cmd: &str) -> Result<i32, String> {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("spawning ssh: {e}"))?;
+        .map_err(|e| SshKitError::Operation(format!("spawning ssh: {e}")))?;
 
     // Stream stdout and stderr to terminal in real time
     let stdout = child.stdout.take().expect("stdout piped");
@@ -94,7 +96,9 @@ pub fn exec_streaming(host: &Host, cmd: &str) -> Result<i32, String> {
         }
     });
 
-    let status = child.wait().map_err(|e| format!("waiting for ssh: {e}"))?;
+    let status = child
+        .wait()
+        .map_err(|e| SshKitError::Operation(format!("waiting for ssh: {e}")))?;
     Ok(status.code().unwrap_or(1))
 }
 

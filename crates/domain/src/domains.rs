@@ -4,7 +4,8 @@ use std::sync::Arc;
 use std::{fmt::Display, result};
 
 use futures::{future, Future};
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use tracing::{debug, error};
 
@@ -85,57 +86,104 @@ impl<'a, T: Clone> NamedEvent<T> {
     }
 }
 
-#[derive(Error, Debug)]
+/// Errors from domain operations.
+///
+/// The payload types implement `Display` for `E: Clone`, so this enum needs
+/// no `Debug` or `Display` bound on the domain's event and request types.
 pub enum DomainOpsErrors<E: Clone> {
-    #[error("no response channel: {0}")]
+    /// No response channel exists for the id.
     NotFound(Id),
 
-    #[error("response was closed: {0}")]
+    /// The response channel was closed.
     ClosedChannel(Id),
 
-    #[error("no NamedRequests was found matching the event: {0}")]
+    /// No named request matches the event.
     NoMatchingRequestForEvent(NamedEvent<E>),
 
-    #[error("Failed to deliver provided NamedEvent: {0}")]
+    /// The event could not be delivered.
     UnableToDeliverEvents(NamedEvent<E>),
 
-    #[error("no NamedRequests was found matching the event: {0}")]
+    /// The request could not be sent.
     UnableToSendRequest(NamedRequest<E>),
 
-    #[error("NamedRequest {0} could not be processsed")]
+    /// The named request failed processing.
     RequestFailedProcessing(NamedRequest<E>),
 }
 
-pub type DomainOpsResult<R, E> = result::Result<R, DomainOpsErrors<E>>;
+impl<E: Clone> std::fmt::Display for DomainOpsErrors<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NotFound(id) => write!(f, "no response channel: {id}"),
+            Self::ClosedChannel(id) => write!(f, "response was closed: {id}"),
+            Self::NoMatchingRequestForEvent(event) => {
+                write!(f, "no NamedRequests was found matching the event: {event}")
+            }
+            Self::UnableToDeliverEvents(event) => {
+                write!(f, "Failed to deliver provided NamedEvent: {event}")
+            }
+            Self::UnableToSendRequest(request) => {
+                write!(f, "no NamedRequests was found matching the event: {request}")
+            }
+            Self::RequestFailedProcessing(request) => {
+                write!(f, "NamedRequest {request} could not be processsed")
+            }
+        }
+    }
+}
 
-#[derive(Debug, Error)]
+impl<E: Clone> std::fmt::Debug for DomainOpsErrors<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self, f)
+    }
+}
+
+pub type DomainOpsResult<R, E> = result::Result<R, ErrorTrace<DomainOpsErrors<E>>>;
+
+impl<E> std::error::Error for DomainOpsErrors<E> where E: Clone + Send + Sync + 'static {}
+
+impl<E> From<DomainOpsErrors<E>> for ErrorTrace<DomainOpsErrors<E>>
+where
+    E: Clone + Send + Sync + 'static,
+{
+    fn from(err: DomainOpsErrors<E>) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+#[derive(Debug, Display, Error)]
 pub enum DomainErrors {
-    #[error("Failed to schedule function")]
+    #[display("Failed to schedule function")]
     FailedScheduling,
 
-    #[error("Request receiver was closed, suspect and needs investigation")]
+    #[display("Request receiver was closed, suspect and needs investigation")]
     ClosedRequestReceiver,
 
-    #[error("Failed to spawn function")]
+    #[display("Failed to spawn function")]
     FailedSpawning,
 
-    #[error("Domain shell is not working anymore")]
+    #[display("Domain shell is not working anymore")]
     ClosedDomainShell,
 
-    #[error("Request response send_channel was closed unexpectedly")]
+    #[display("Request response send_channel was closed unexpectedly")]
     UnexpectedSenderClosure,
 
-    #[error("Request response send_channel does not exists, needs investigation")]
+    #[display("Request response send_channel does not exists, needs investigation")]
     RequestSenderNotFound,
 
-    #[error("System in problematic and unexpected state")]
+    #[display("System in problematic and unexpected state")]
     ProblematicState,
 
-    #[error("System request closing of domain servicer")]
+    #[display("System request closing of domain servicer")]
     CloseRequested,
 }
 
-pub type DomainResult<R> = result::Result<R, DomainErrors>;
+pub type DomainResult<R> = result::Result<R, ErrorTrace<DomainErrors>>;
+
+impl From<DomainErrors> for ErrorTrace<DomainErrors> {
+    fn from(err: DomainErrors) -> Self {
+        ErrorTrace::new(err)
+    }
+}
 
 /// `TaskExecutor` defines a trait that other relevant implementations
 /// must implement to be able to work with the `CoreExecutor` which manages
@@ -159,10 +207,10 @@ pub trait TaskExecutor {
 // e.g DomainShell().serve(Domain)
 pub trait DomainShell: Clone {
     // Enum defining your target event types
-    type Events: Send + Clone + 'static;
+    type Events: Send + Sync + Clone + 'static;
 
     // Enum defining your target request types.
-    type Requests: Send + Clone + 'static;
+    type Requests: Send + Sync + Clone + 'static;
 
     // The platform provider context the domain will use.
     type Platform: Clone + 'static;
@@ -298,10 +346,10 @@ pub trait MasterShell: DomainShell {
 // via central handling function [`Domain.handle`].
 pub trait Domain: Clone + Default {
     // Enum defining your target event types
-    type Events: Clone + Send + 'static;
+    type Events: Clone + Send + Sync + 'static;
 
     // Enum defining your target request types.
-    type Requests: Clone + Send + 'static;
+    type Requests: Clone + Send + Sync + 'static;
 
     // The platform provider context the domain
     // will use to access platform features, usually
@@ -380,8 +428,8 @@ pub trait UseCase: Clone {
 pub struct UseCaseExecutor<
     Shell,
     U,
-    E: Clone + Send + 'static,
-    R: Clone + Send + 'static,
+    E: Clone + Send + Sync + 'static,
+    R: Clone + Send + Sync + 'static,
     P: Clone + 'static,
 > where
     Shell: DomainShell<Events = E, Requests = R, Platform = P>,
@@ -392,7 +440,7 @@ pub struct UseCaseExecutor<
     receiver: mspc::ReceiveChannel<Arc<NamedRequest<R>>>,
 }
 
-impl<S, U, E: Clone + Send + 'static, R: Clone + Send + 'static, P: Clone + 'static>
+impl<S, U, E: Clone + Send + Sync + 'static, R: Clone + Send + Sync + 'static, P: Clone + 'static>
     UseCaseExecutor<S, U, E, R, P>
 where
     S: DomainShell<Events = E, Requests = R, Platform = P>,
@@ -412,7 +460,7 @@ where
     }
 }
 
-impl<S, U, E: Clone + Send + 'static, R: Clone + Send + 'static, P: Clone + 'static> TaskExecutor
+impl<S, U, E: Clone + Send + Sync + 'static, R: Clone + Send + Sync + 'static, P: Clone + 'static> TaskExecutor
     for UseCaseExecutor<S, U, E, R, P>
 where
     S: DomainShell<Events = E, Requests = R, Platform = P>,
@@ -431,13 +479,15 @@ where
                 self.use_case
                     .handle_request(req, sender, self.shell.clone());
             }
-            Err(ChannelError::ReceiveFailed(err)) => {
-                error!("UseCase executor failed with a receive error: {}", err);
-            }
-            Err(ChannelError::Closed) => {
-                error!("UseCase executor receiver was closed");
-            }
-            _ => {}
+            Err(trace) => match trace.current_context() {
+                ChannelError::ReceiveFailed(err) => {
+                    error!("UseCase executor failed with a receive error: {}", err);
+                }
+                ChannelError::Closed => {
+                    error!("UseCase executor receiver was closed");
+                }
+                _ => {}
+            },
         }
     }
 }

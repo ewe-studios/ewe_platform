@@ -203,6 +203,6 @@ pub fn load_config(target: &path::Path) -> crate::config::Result<crate::config::
                 .map_err(|_| crate::config::ConfigError::FailedReading)?;
             crate::config::Config::json(content.as_str())
         }
-        _ => Err(crate::config::ConfigError::UnknownFormat),
+        _ => Err(crate::config::ConfigError::UnknownFormat.into()),
     }
 }

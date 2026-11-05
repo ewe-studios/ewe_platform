@@ -42,7 +42,7 @@ pub mod tls;
 
 pub use config::{
     BackendProtocol, BackendState, BackendTarget, HealthCheckConfig, ProxyConfig, ProxyError,
-    ServiceConfig, SslConfig, SslProvider,
+    ProxyResult, ServiceConfig, SslConfig, SslProvider,
 };
 pub use forward::SharedHttpClient;
 pub use foundation_macros::proxy;

@@ -105,7 +105,9 @@ pub fn random_bytes(len: usize) -> AppResult<Vec<u8>> {
 ///
 /// Returns `AppError::Internal` if the platform entropy source is unavailable.
 pub fn new_uuid_v4() -> AppResult<Uuid> {
-    uuid::new_v4().map_err(|e| AppError::Internal(format!("entropy source unavailable: {e}")))
+    uuid::new_v4()
+        .map_err(|e| AppError::Internal(format!("entropy source unavailable: {e}")))
+        .map_err(Into::into)
 }
 
 /// A fresh 16-byte random salt from the platform entropy source.

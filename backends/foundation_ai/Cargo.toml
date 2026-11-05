@@ -25,7 +25,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
 foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.3" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.3", features = ["serde"] }
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.3" }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.4" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).

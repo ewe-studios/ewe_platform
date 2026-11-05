@@ -21,6 +21,42 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   warnings once feature 63 made the template warnings an assertion. The library now exposes
   `pub mod app; pub mod config;`. The template test run is recorded below.
 
+- 2026-11-05: feature 67 done on `fix/io-67-errstacks`. Thirteen crates now
+  report through `foundation_errstacks` and no first-party manifest names
+  `thiserror`. Each crate keeps or gets a `derive_more` error enum and returns
+  `Result<T, ErrorTrace<CrateError>>` from its public fallible API:
+  `foundation_wireguard` (`WgResult`), `foundation_proxy` (`ProxyResult`),
+  `foundation_html` (`ElementResult`, `ParsingResult`, `IslandResult`),
+  `foundation_arrow` (`IpcResult` over the new `ArrowIpcError`),
+  `foundation_sshkit` (`SshKitResult`), `foundation_toolings`
+  (`ToolingResult`/`BuildResult`), `foundation_codegen` (`Result` over
+  `CodegenError`), `foundation_nativeapis` (thiserror removed; `VfsResult`
+  already used ErrorTrace), `foundation_keychain` (`AppResult`),
+  `ewe_channels` (`ChannelResult`, `ExecutorResult`), `ewe_domain`
+  (`DomainResult`, `DomainOpsResult`, `PendingChannelResult`), `ewe_watchers`
+  (config `Result`) and `ewe_watch_utils` (`WatchUtilsResult`). Callers in
+  `foundation_macros`, `foundation_codegentools`, `foundation_wasm`, the
+  keychain servers and the handler tests were updated; matches on the old enum
+  now read `current_context()`. Versions bumped: wireguard 0.0.4, proxy 0.1.7,
+  html 0.0.6, arrow 0.0.4, sshkit 0.1.3, toolings 0.0.5, codegen 0.1.3,
+  keychain 0.1.5, and every `crates/*` crate to 0.0.2, with every consumer
+  requirement. New CI guard `scripts/ci/check_errstacks.py` (run by the
+  `foundation_core` build step through `python3 -m unittest discover -s
+  scripts/ci/tests`) fails on a `thiserror` manifest line or an unused
+  `foundation_errstacks` dependency, and skips `foundation_boringtun` by name.
+  Each crate has an error-trace test that checks the current context and the
+  attached context. Known pre-existing failures, recorded in
+  `docs/bug-backlog.md`: `foundation_proxy`'s websocket upgrade test on macOS
+  (§9) and `foundation_keychain`'s streamed-body timing test (§22). The
+  pedantic clippy debt of `foundation_wireguard`, `foundation_sshkit`,
+  `foundation_arrow` and `foundation_nativeapis` is recorded in §31. The
+  branch also fixes a missed feature-63 migration: `foundation_browser`'s
+  `StreamHandler` now returns `ConnectionResult::Async` and awaits the async
+  `SseStream::new`, so `cargo check --workspace --all-targets` gets past it.
+  That command stops later at `infrastructure_llama_bindings` because this
+  worktree has no `tools/llama.cpp` checkout (`llama.h` is missing); every
+  changed crate and each first-party dependent was therefore checked and
+  tested on its own.
 - 2026-11-05: feature 63 done on `fix/io-63-respond-async`. Every native caller
   of the synchronous `respond::*` now uses the async writer. The module is
   renamed `respond_to_buffer` and kept only for in-memory writers (tests over a

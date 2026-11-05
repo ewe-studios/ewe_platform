@@ -90,10 +90,16 @@ fn error_when_package_section_missing() {
     fs::write(tmp.path().join("Cargo.toml"), "[dependencies]\n").unwrap();
 
     let result = CrateMetadata::from_cargo_toml(&tmp.path().join("Cargo.toml"));
-    assert!(
-        matches!(result, Err(CodegenError::MissingPackageSection(_))),
-        "should produce MissingPackageSection"
-    );
+    match result {
+        Err(trace) => assert!(
+            matches!(
+                trace.current_context(),
+                CodegenError::MissingPackageSection(_)
+            ),
+            "should produce MissingPackageSection"
+        ),
+        Ok(_) => panic!("expected MissingPackageSection"),
+    }
 }
 
 #[test]
@@ -109,10 +115,13 @@ fn error_when_package_name_missing() {
     .unwrap();
 
     let result = CrateMetadata::from_cargo_toml(&tmp.path().join("Cargo.toml"));
-    assert!(
-        matches!(result, Err(CodegenError::MissingPackageName(_))),
-        "should produce MissingPackageName"
-    );
+    match result {
+        Err(trace) => assert!(
+            matches!(trace.current_context(), CodegenError::MissingPackageName(_)),
+            "should produce MissingPackageName"
+        ),
+        Ok(_) => panic!("expected MissingPackageName"),
+    }
 }
 
 #[test]
@@ -125,10 +134,13 @@ fn error_when_src_dir_missing() {
     .unwrap();
 
     let result = CrateMetadata::from_cargo_toml(&tmp.path().join("Cargo.toml"));
-    assert!(
-        matches!(result, Err(CodegenError::MissingSrcDir(_))),
-        "should produce MissingSrcDir"
-    );
+    match result {
+        Err(trace) => assert!(
+            matches!(trace.current_context(), CodegenError::MissingSrcDir(_)),
+            "should produce MissingSrcDir"
+        ),
+        Ok(_) => panic!("expected MissingSrcDir"),
+    }
 }
 
 // -- Edge cases --

@@ -8,7 +8,7 @@ pub enum SchemaGenError {
         path: PathBuf,
         source: toml::de::Error,
     },
-    ScanError(foundation_codegen::CodegenError),
+    ScanError(foundation_errstacks::ErrorTrace<foundation_codegen::CodegenError>),
     ParseError {
         path: PathBuf,
         message: String,
@@ -61,6 +61,12 @@ impl std::error::Error for SchemaGenError {
 
 impl From<foundation_codegen::CodegenError> for SchemaGenError {
     fn from(e: foundation_codegen::CodegenError) -> Self {
+        Self::ScanError(e.into())
+    }
+}
+
+impl From<foundation_errstacks::ErrorTrace<foundation_codegen::CodegenError>> for SchemaGenError {
+    fn from(e: foundation_errstacks::ErrorTrace<foundation_codegen::CodegenError>) -> Self {
         Self::ScanError(e)
     }
 }

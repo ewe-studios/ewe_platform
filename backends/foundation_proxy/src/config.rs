@@ -298,17 +298,19 @@ impl ProxyConfig {
     ///
     /// # Errors
     /// Returns `ProxyError::Config` if the file cannot be read or parsed.
-    pub fn load_file(path: &str) -> Result<Self, ProxyError> {
+    pub fn load_file(path: &str) -> ProxyResult<Self> {
         let contents = std::fs::read_to_string(path)
-            .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))?;
-        toml::from_str(&contents).map_err(|e| ProxyError::Config(format!("parse {path}: {e}")))
+            .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))
+            .map_err(foundation_errstacks::ErrorTrace::new)?;
+        toml::from_str(&contents)
+            .map_err(|e| ProxyError::Config(format!("parse {path}: {e}")).into())
     }
 
     /// Start the proxy from this configuration.
     ///
     /// # Errors
     /// Returns `ProxyError` if validation fails or the listener cannot bind.
-    pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
+    pub async fn start(self) -> ProxyResult<crate::server::ProxyServer> {
         crate::server::ProxyServer::start(self).await
     }
 }
@@ -723,3 +725,12 @@ pub enum ProxyError {
 }
 
 impl std::error::Error for ProxyError {}
+
+impl From<ProxyError> for foundation_errstacks::ErrorTrace<ProxyError> {
+    fn from(err: ProxyError) -> Self {
+        foundation_errstacks::ErrorTrace::new(err)
+    }
+}
+
+/// Result type of the crate's public fallible API.
+pub type ProxyResult<T> = Result<T, foundation_errstacks::ErrorTrace<ProxyError>>;
