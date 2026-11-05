@@ -45,7 +45,7 @@ Test counts per crate before and after in the PR body. CI green.
 
 ## Result
 
-Moved 129 inline tests out of 11 lane B crates. Each crate keeps the same
+Moved 170 inline tests out of 11 lane B crates. Each crate keeps the same
 test count and assertions:
 
 | Crate | Tests moved | Public item added |

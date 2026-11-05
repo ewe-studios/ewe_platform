@@ -3,7 +3,7 @@
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
 - 2026-11-05: feature 59 done on `spec70/f59-f60-f79-lane-b-mechanical`. Moved
-  129 inline tests out of 11 lane B crates into `tests/`: foundation_shell 1,
+  170 inline tests out of 11 lane B crates into `tests/`: foundation_shell 1,
   foundation_repl 4, foundation_logging 12, foundation_codegen 9, ewe_watchers
   5, foundation_html 47, foundation_testing 35, foundation_platform 36,
   foundation_packager 10, foundation_wasmtime 3, foundation_connectrpc_codegen
