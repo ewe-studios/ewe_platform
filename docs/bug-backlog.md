@@ -334,6 +334,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `.agents/AGENTS.md`, then set `clippy-deny-warnings` for the package in
   `ci/packages.toml`.
 
+## 27. foundation_packager
+
+- **The crate is not clippy-clean.** `cargo clippy --profile uat -p
+  foundation_packager --all-targets --no-deps` reports about 80 warnings in the
+  vendored `src/tinytemplate/` copy (format-argument, doc-backtick and legacy
+  lint items) and about 16 in `src/files.rs` and `src/package.rs` (missing
+  `# Errors`/`# Panics` sections, `needless_pass_by_value`, `too_many_lines`,
+  `assigning_clones`). `foundation_conditional` is used by features only, so
+  cargo also reports it as an unused dependency. Found in feature 59; the moved
+  test files are clean. Fix: clean the vendored copy by upgrading it from
+  upstream TinyTemplate, clean the two source files, and set
+  `clippy-deny-warnings` in `ci/packages.toml`.
+
 ## Paused
 
 - Windows/macOS VM images (#69).
