@@ -521,3 +521,116 @@ fn test_spawn_multiple_children() {
         assert_eq!(h.wait().expect("wait failed"), 0);
     }
 }
+
+// ── NixInterceptor: the traced child sees the virtual mount ──
+
+/// FNV-1a over 64 bits. The test needs a stable value on every host and does
+/// not want a new dependency for one checksum.
+fn fnv1a64(bytes: &[u8]) -> u64 {
+    let mut hash = 0xcbf2_9ce4_8422_2325_u64;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3_u64);
+    }
+    hash
+}
+
+#[test]
+#[ntest::timeout(60_000)]
+fn the_traced_child_reads_the_virtual_mount() {
+    // The child's `cat` must get its bytes from the MemoryFs, not from the
+    // real filesystem: without the syscall loop /virtual does not exist.
+    let i = NixInterceptor::new();
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/hello.txt", b"virtual mount content\n")
+        .unwrap();
+
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+
+    let tmp = TempDir::new("read_virtual");
+    let out = tmp.path().join("out.txt");
+    let script = format!("cat /virtual/hello.txt > {}", out.display());
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", &script])
+        .expect("spawn failed");
+    assert_eq!(
+        h.wait().expect("wait failed"),
+        0,
+        "the traced child must read /virtual through the mount table"
+    );
+    assert_eq!(
+        std::fs::read(&out).unwrap(),
+        b"virtual mount content\n",
+        "the real file must hold the virtual file's bytes"
+    );
+}
+
+#[test]
+#[ntest::timeout(60_000)]
+fn the_traced_child_writes_to_the_virtual_mount() {
+    // A shell redirect opens the path and then `dup2`s the virtual fd to
+    // stdout, so dispatch must follow the entry, not the fd number.
+    let i = NixInterceptor::new();
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+
+    let h = i
+        .spawn(
+            mt,
+            "/bin/sh",
+            &["-c", "echo virtual-write > /virtual/written.txt"],
+        )
+        .expect("spawn failed");
+    assert_eq!(
+        h.wait().expect("wait failed"),
+        0,
+        "the traced child must write /virtual through the mount table"
+    );
+    assert_eq!(
+        fs.read_file("/virtual/written.txt").unwrap(),
+        b"virtual-write\n",
+        "the MemoryFs must hold what the child wrote"
+    );
+}
+
+#[test]
+#[ntest::timeout(60_000)]
+fn the_traced_child_stdout_arrives_whole() {
+    // A bulk copy catches descriptor or pipe corruption in the syscall loop:
+    // every byte and the checksum must survive the round trip.
+    let i = NixInterceptor::new();
+    let mt = MountTable::new();
+    let tmp = TempDir::new("stdout_whole");
+    let source = tmp.path().join("source.bin");
+    let dest = tmp.path().join("dest.bin");
+
+    let payload: Vec<u8> = (0..(64 * 1024 + 17)).map(|n| (n % 251) as u8).collect();
+    std::fs::write(&source, &payload).unwrap();
+
+    let script = format!("cat {} > {}", source.display(), dest.display());
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", &script])
+        .expect("spawn failed");
+    assert_eq!(
+        h.wait().expect("wait failed"),
+        0,
+        "cat through the tracer must succeed"
+    );
+
+    let received = std::fs::read(&dest).unwrap();
+    assert_eq!(
+        received.len(),
+        payload.len(),
+        "the traced child lost bytes on the way"
+    );
+    assert_eq!(
+        fnv1a64(&received),
+        fnv1a64(&payload),
+        "the content changed through the tracer"
+    );
+}

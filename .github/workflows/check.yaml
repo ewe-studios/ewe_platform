@@ -168,6 +168,15 @@ jobs:
         if: matrix.package == 'foundation_iogate'
         run: cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
 
+      - name: ptrace probe
+        # Record whether this kernel lets a tracer read its child's registers
+        # before the ptrace spawn tests run. EWE_REQUIRE_PTRACE makes a missing
+        # kernel fail here with the cause, not as 8 spawn-test failures below.
+        if: matrix.package == 'foundation_nativeapis'
+        env:
+          EWE_REQUIRE_PTRACE: "1"
+        run: cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
+
       - name: test
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
@@ -235,6 +244,12 @@ jobs:
       - name: io_uring probe
         if: matrix.package == 'foundation_iogate'
         run: docker exec ci cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
+
+      - name: ptrace probe
+        # Same probe as the `package` job. `docker exec` does not inherit the
+        # step environment, so pass the variable into the container.
+        if: matrix.package == 'foundation_nativeapis'
+        run: docker exec --env EWE_REQUIRE_PTRACE=1 ci cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
       - name: test
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
