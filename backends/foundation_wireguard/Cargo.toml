@@ -33,7 +33,7 @@ toml = { workspace = true }
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
 foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
-foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 # The project error standard. It is a common dependency: the error types in
 # `shared/error.rs` compile for every target, including wasm32.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
@@ -45,7 +45,7 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 # Enable the multi-threaded executor so EventReadinessPtr + Send+S Sync is
 # available to foundation_netio's ExchangeContinuation (which requires Send on
 # non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
-foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.8", features = ["multi"] }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.7", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
@@ -68,7 +68,7 @@ snow = { version = "0.10", default-features = false, features = ["default-resolv
 # `#[valtron_bindgen]` expands to `foundation_core::valtron` calls, and the
 # browser tests use `foundation_core::valtron` directly. The native section
 # turns on `multi`; wasm keeps the single-threaded executor.
-foundation_core = { path = "../foundation_core", version = "0.0.7" }
+foundation_core = { path = "../foundation_core", version = "0.0.8" }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).

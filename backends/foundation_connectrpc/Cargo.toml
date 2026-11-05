@@ -10,9 +10,9 @@ description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foun
 keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.7" }
+foundation_core = { path = "../foundation_core", version = "0.0.8" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.4", optional = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", optional = true, default-features = false }

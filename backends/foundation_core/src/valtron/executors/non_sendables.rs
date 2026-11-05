@@ -162,10 +162,23 @@ use crate::valtron::ThreadedValue;
 #[must_use]
 pub fn initialize_pool(
     seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+) -> super::single::PoolGuard {
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+}
+
+/// [`initialize_pool`] with an explicit engine root.
+///
+/// Every task the engine drives gets a fork of `root`. This is the startup hook
+/// for a deterministic simulation test (DST).
+#[must_use]
+pub fn initialize_pool_with_ctx(
+    seed_for_rng: u64,
     _user_thread_num: Option<usize>,
+    root: Ctx,
 ) -> super::single::PoolGuard {
     tracing::debug!("Starting under not(feature=multi), so single threaded");
-    single::initialize_pool(seed_for_rng);
+    single::initialize_pool_with_ctx(seed_for_rng, root);
     single::PoolGuard
 }
 
@@ -182,7 +195,15 @@ pub fn initialize_pool(
 /// Idempotent: a thread that already has an engine keeps it. Under `multi` the
 /// same function is a no-op, because that pool is process-wide.
 pub fn initialize_current_thread(seed_for_rng: u64) {
-    single::initialize_pool(seed_for_rng);
+    initialize_current_thread_with_ctx(seed_for_rng, Ctx::new());
+}
+
+/// [`initialize_current_thread`] with an explicit engine root.
+///
+/// Idempotent like [`initialize_current_thread`]: a thread that already has an
+/// engine keeps it, and keeps the root it was built with.
+pub fn initialize_current_thread_with_ctx(seed_for_rng: u64, root: Ctx) {
+    single::initialize_pool_with_ctx(seed_for_rng, root);
 }
 
 /// Submit a blocking closure for execution on the appropriate background executor.

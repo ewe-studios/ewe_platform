@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.7"
+version = "0.0.8"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -25,7 +25,7 @@ crate-type = ["rlib"]
 foundation_compact = { path = "../foundation_compact", version = "0.2.3", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 
 # -- Workspace dependencies
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
@@ -84,6 +84,9 @@ log_info = []
 alloc = ["futures-core/alloc"]
 std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std", "dep:futures-lite"]
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
+# Test-only `SimulatedClock` for deterministic time control. It needs `std`
+# (the `Ctx` module is std-gated).
+test-clock = ["std"]
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 # Each also picks foundation_compact's matching wasm32 time/entropy backend.

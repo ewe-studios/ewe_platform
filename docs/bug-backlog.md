@@ -41,14 +41,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
-- **A test cannot install a simulated clock in the pool's `Ctx`.** `Ctx::clock()`
-  (`valtron/ctx.rs:218`) returns the private `CtxInner.clock` field, and
-  `ThreadRegistry.root` (`executors/multi/mod.rs:1448`) is private, so no code outside
-  `foundation_core` can replace the engine clock. `Ctx::insert` adds a typed entry, but
-  `clock()` never reads the map. Feature 108 needed a simulated clock for the
-  `Expect: 100-continue` timer and carried it in the request `Extensions` instead. Fix:
-  add `Ctx::with_clock(Arc<dyn Clock>) -> Ctx` (a fork with a replaced clock), or read a
-  typed `Env` entry in `clock()` before the default `MonotonicClock`.
+- **Executor parking stays on the real monotonic clock.** Feature 115 makes the
+  clock in `Ctx` replaceable, so a task reads an injected clock from
+  `ctx.clock()`. The executor's own waits do not read that clock: the single
+  executor parks with `std::thread::park_timeout`, and the multi workers back
+  off on `thread::sleep`. A simulated clock therefore does not drive a sleep or
+  a deadline. A test that advances a simulated clock past a deadline must also
+  wake the worker (feature 108's `Expect: 100-continue` test does this with a
+  second poll). Fix: route the executor's idle wait and timer deadlines through
+  the injected `Clock`, behind a wake path that a simulated clock can trigger.
+  Found in feature 115.
 - **`#[task]` forces the transition's context by value.** The macro's generated
   `StateTask` uses the function pointer type `fn(Ctx, T)`, and its validation
   accepts only a bare `Ctx` type (`backends/foundation_macros/src/state_task.rs`,
@@ -421,6 +423,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 30. Proc-macro crates (foundation_macros, crates/html-macro, crates/template-macro)
 
+- **`foundation_macros` has 62 pedantic clippy diagnostics.** The workspace sets
+  `clippy::pedantic = "warn"` and the crate inherits it, but the crate is not in
+  `ci/packages.toml`, so CI never lints it. `cargo clippy -p foundation_macros
+  --all-targets --no-deps -- -D warnings` fails with 62 errors: 20 missing
+  backticks in docs, 6 single-pattern `match`, 4 wildcard matches, 4 by-value
+  arguments, 4 similar binding names, 3 `format!` inline arguments, 6
+  `too_many_lines`, and smaller groups. Four are in `valtron_entry.rs`; the rest
+  span the other macro modules. The manifest also warns that `chrono` is
+  unused. Found in feature 115, which left them in place
+  because they predate it and are outside its scope. Fix: run the per-crate
+  clippy workflow in `.agents/AGENTS.md`, then add the crate to
+  `ci/packages.toml` with `clippy-deny-warnings = true`. Scheduled as
+  feature 120.
 - **Their inline tests cannot move to `tests/` as they stand.** A
   `proc-macro = true` crate can export only macros, so integration tests can
   reach only the macros. The inline modules in `foundation_macros`

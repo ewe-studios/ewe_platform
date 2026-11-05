@@ -2,6 +2,27 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 115, clock injection):
+  - **A multi-pool task did not read `ThreadRegistry.root`.** The worker's
+    `LocalThreadExecutor` had its own `Ctx::new()`, and that is what
+    `ExecutorState::root.fork()` gives a task. Injecting the registry root alone
+    changes nothing. Fix in this feature: build the worker executor with
+    `from_seed_with_root(..., self.root.clone())`.
+  - **`std::time::Instant` is opaque, so a simulated clock cannot be rebuilt
+    from a `Duration`.** Store a base `Instant::now()` and a `Mutex<Duration>`
+    offset; `now()` is `base + offset`. Differences stay exact; the absolute
+    value is not an epoch.
+  - **A `catch_unwind` closure that owns a `Ctx` is not `UnwindSafe`.** The
+    `Arc<dyn Clock>` is not `RefUnwindSafe`. Wrap the worker closure in
+    `AssertUnwindSafe` when the closure only builds a local executor.
+  - **A macro expression used on two threads must be bound once.** In the
+    `timeout` path the same `ctx = expr` would be evaluated on the outer thread
+    and on the body thread. A local `Ctx` would move twice; bind it once and
+    clone for the outer pool.
+  - **`foundation_macros` is not a CI package and has 62 pedantic diagnostics.**
+    The feature's `-D warnings` command fails before and after the change.
+    Recorded in `docs/bug-backlog.md` §30 and scheduled as feature 120.
+
 - 2026-11-06 (feature 119, tracing capture test):
   - **`tracing`'s interest cache is process-wide, and `rebuild_interest_cache`
     does not close the race.** Another test thread in the same binary that

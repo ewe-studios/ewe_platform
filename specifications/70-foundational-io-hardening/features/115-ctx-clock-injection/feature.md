@@ -1,6 +1,6 @@
 ---
 feature: "A host installs its own clock in the pool `Ctx`, and `Ctx::with_clock` returns a new `Ctx`"
-status: "pending"
+status: "pending (CI proof)"
 lane: "after 116"
 model: "sonnet"
 branch: "spec70/f115-ctx-clock-injection"
@@ -196,18 +196,83 @@ in the same change:
 
 ## Done when
 
-- [ ] `Ctx::with_clock` returns the given clock and leaves the original unchanged.
-- [ ] `initialize_pool_with_ctx` and `initialize_current_thread_with_ctx` exist and the
+- [x] `Ctx::with_clock` returns the given clock and leaves the original unchanged.
+- [x] `initialize_pool_with_ctx` and `initialize_current_thread_with_ctx` exist and the
       old functions call them with `Ctx::new()`.
-- [ ] The `ctx` macro argument works for `#[valtron]` and `#[valtron_test]`, with and
+- [x] The `ctx` macro argument works for `#[valtron]` and `#[valtron_test]`, with and
       without `timeout`.
-- [ ] `SimulatedClock` is behind the `test-clock` feature.
-- [ ] The six tests pass; test 4 fails on the old tree.
-- [ ] Both crates and every workspace requirement move to 0.0.8.
-- [ ] `docs/bug-backlog.md` §4 entry for the clock is deleted; the parking entry is
+- [x] `SimulatedClock` is behind the `test-clock` feature.
+- [x] The six tests pass; test 4 fails on the old tree.
+- [x] Both crates and every workspace requirement move to 0.0.8.
+- [x] `docs/bug-backlog.md` §4 entry for the clock is deleted; the parking entry is
       added.
 - [ ] CI green.
 
 ## Result
 
-Not started.
+Implemented on branch `spec70/priority-followups` (2026-11-06).
+
+Public API added:
+
+- `Ctx::with_clock(&self, clock: Arc<dyn Clock>) -> Ctx`.
+- `initialize_pool_with_ctx` in the dispatch layer, `sendables.rs` and
+  `non_sendables.rs`; `initialize_current_thread_with_ctx` in the same two files.
+- `multi::initialize_pool_with_ctx` and
+  `multi::initialize_pool_with_config_and_ctx`;
+  `ThreadRegistry::with_config_and_root`.
+- `single::initialize_pool_with_ctx`.
+- `LocalThreadExecutor::from_seed_with_root`.
+- `valtron::SimulatedClock` (`new`, `advance`, `Clock`) behind `test-clock`.
+- The `ctx = expr` argument for `#[valtron]` and `#[valtron_test]`.
+
+Measured facts:
+
+- The six clock tests are in `tests/valtron/clock_injection.rs`. The default
+  `test-clock` run has 749 tests in the `mod` binary (743 before this feature),
+  0 failed. The other five test binaries plus the doctests are unchanged.
+- Test 4, `the_pool_root_carries_the_injected_clock`, fails when
+  `Ctx::with_clock` keeps the old clock: `left: Instant { tv_sec: 100422,
+  tv_nsec: 205134916 }` (real monotonic time), `right: Instant { tv_sec: 104029,
+  tv_nsec: 205084458 }` (simulated). The same test passes after the restore.
+- `SimulatedClock::now()` is `base + offset`. On native, `Instant` is
+  `std::time::Instant`, which cannot be built from a `Duration`, so the type
+  stores a base `Instant` and a `Mutex<Duration>` offset. Differences between
+  reads are exact; the absolute value is monotonic time shifted by the offset,
+  not an epoch.
+- The multi pool now builds each worker's `LocalThreadExecutor` from
+  `LocalThreadExecutor::from_seed_with_root` with the registry root. Before this
+  change a worker task read a fresh `Ctx::new()`, so an injected root could not
+  reach it.
+- The timeout path binds the `ctx` expression once (`__valtron_ctx`) and clones
+  it for the outer pool, because the macro uses the same expression on the
+  outer thread and on the body thread. Inlining the expression twice would move
+  a non-`Copy` local twice.
+- This feature adds no allow attribute. The only new compiler error found was
+  `catch_unwind` now seeing the root `Ctx`; the worker closure uses
+  `AssertUnwindSafe` with a comment, because it only builds a local executor.
+
+Version bump: `foundation_core` and `foundation_macros` go from 0.0.7 to 0.0.8.
+The change updates 99 inline requirements and 9 table-form `[dependencies.*]`
+requirements (108 in all) in the workspace. `Cargo.lock` is refreshed once.
+
+Local verify:
+
+- `cargo fmt --all --check`: clean.
+- `cargo clippy -p foundation_core --all-targets --no-deps -- -D warnings`:
+  clean (default tree).
+- The same with `--features multi`: clean.
+- The same with `--features test-clock`: clean.
+- `cargo test -p foundation_core`: 743 in `mod`, 0 failed.
+- `cargo test -p foundation_core --features multi`: 784 in `mod`, 0 failed.
+- `cargo test -p foundation_core --features test-clock`: 749 in `mod`, 0 failed
+  (the six new tests included).
+- `cargo test -p foundation_macros`: 99 passed, 0 failed.
+- `cargo clippy -p foundation_macros --all-targets --no-deps -- -D warnings`
+  fails with 62 pre-existing pedantic diagnostics, none of them new. The crate
+  is not in `ci/packages.toml`. The debt is recorded in
+  `docs/bug-backlog.md` §30 and scheduled as feature 120.
+
+Known limit (also in `docs/bug-backlog.md` §4): the executor still parks on the
+real monotonic clock. An injected clock changes what a task reads, not how long
+a worker sleeps.
+

@@ -2,6 +2,28 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 115, the engine clock is replaceable at startup and by
+  `Ctx::with_clock`. Branch `spec70/priority-followups`.
+  - New: `Ctx::with_clock`, `initialize_pool_with_ctx`,
+    `initialize_current_thread_with_ctx`,
+    `multi::initialize_pool_with_config_and_ctx`,
+    `ThreadRegistry::with_config_and_root`, `single::initialize_pool_with_ctx`,
+    `LocalThreadExecutor::from_seed_with_root`, `SimulatedClock` behind
+    `test-clock`, and the `ctx = expr` macro argument.
+  - Multi workers now build their local executor from the registry root. Before,
+    a task read a fresh `Ctx::new()` and missed the pool clock.
+  - Six clock tests in `tests/valtron/clock_injection.rs`; the `test-clock` run
+    of the `mod` binary has 749 tests (743 before), 0 failed. Test 4 fails on the
+    old `with_clock` behaviour (`left` real monotonic, `right` simulated).
+  - `foundation_core` and `foundation_macros` move to 0.0.8: 108 workspace
+    requirements updated, `Cargo.lock` refreshed once.
+  - `ci/packages.toml`: `[packages.foundation_core]` runs now include
+    `test-clock`.
+  - Clippy: `foundation_core` clean in the default, `multi` and `test-clock`
+    trees. `foundation_macros` has 62 pre-existing pedantic diagnostics and is
+    not a CI package; recorded in `docs/bug-backlog.md` §30.
+  - Status is `pending (CI proof)`.
+
 - 2026-11-06: feature 119, the tracing capture test gets its own binary.
   Branch `spec70/priority-followups`.
   - GitHub run 42072422806 failed the `foundation_core` test step on a

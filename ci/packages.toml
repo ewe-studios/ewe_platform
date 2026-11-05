@@ -107,10 +107,12 @@ wasm-runs = ["--no-default-features"]
 [packages.foundation_core]
 # valtron has two executors chosen at compile time: the single-threaded one
 # (default features) and the thread pool (`multi`). Many tests are gated on
-# `multi` or `not(multi)`, so test both. The default run used to get `multi`
+# `multi` or `not(multi)`, so test both executors. The `test-clock` run enables
+# the `SimulatedClock` and its six clock-injection tests.
+# The default run used to get `multi`
 # anyway through a dev-dependency (foundation_testing -> foundation_netio's
 # default `multi`), which meant the single-threaded executor was never tested.
-runs = ["", "multi"]
+runs = ["", "multi", "test-clock"]
 # The executors differ by feature, so lint both trees: the `multi` tree compiles
 # `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
 # the single-threaded executor.

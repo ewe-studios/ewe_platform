@@ -82,6 +82,12 @@
 //! absent → `None` (engine default); `seed = N` → that seed, absent → a random
 //! one (see "The default seed" below).
 //!
+//! Both macros also take `ctx = expr`, the root `Ctx` the engine starts with.
+//! With it, the expansion calls `initialize_pool_with_ctx`; without it, the
+//! expansion is the same as before this argument existed. A `timeout` body runs
+//! on a new thread and receives the same root through
+//! `initialize_current_thread_with_ctx`.
+//!
 //! # Why the guard handling is the whole point
 //!
 //! `initialize_pool` returns a `PoolGuard` whose `Drop` tears the engine down.
@@ -114,6 +120,9 @@ struct Args {
     seed: Option<syn::Expr>,
     threads: Option<syn::Expr>,
     timeout: Option<syn::Expr>,
+    /// `ctx = expr` — the `Ctx` the engine starts with. Absent → the engine
+    /// uses its default `Ctx::new()`.
+    ctx: Option<syn::Expr>,
     /// `shutdown_grace = ms` — after a `timeout`, how long the pool gets to stop
     /// before stuck workers are detached. Default
     /// `foundation_core::valtron::DEFAULT_TEST_SHUTDOWN_GRACE`.
@@ -141,6 +150,7 @@ const KNOWN_ARGS: &[&str] = &[
     "seed",
     "threads",
     "timeout",
+    "ctx",
     "shutdown_grace",
     "tracing",
     "tracing_targets",
@@ -170,7 +180,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `key = value` pairs (seed, threads, timeout, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
+            "expected `key = value` pairs (seed, threads, timeout, ctx, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
         )
     })?;
     for pair in pairs {
@@ -183,6 +193,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),
             "timeout" => args.timeout = Some(pair.value),
+            "ctx" => args.ctx = Some(pair.value),
             "shutdown_grace" => args.shutdown_grace = Some(pair.value),
             "tracing" => args.tracing = Some(pair.value),
             "tracing_targets" => args.tracing_targets = Some(pair.value),
@@ -384,6 +395,38 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         Some(expr) => quote! { ::core::option::Option::Some((#expr) as usize) },
     };
 
+    // `ctx = expr`: the engine root. Absent → the expansion is the same as
+    // before this argument existed. With `timeout`, the body runs on a new
+    // thread that must bring its own (single-threaded) engine up, so bind the
+    // root once and clone it for the outer pool.
+    let ctx_expr = args.ctx.as_ref();
+    let ctx_binding = match ctx_expr {
+        None => quote! {},
+        Some(expr) => quote! { let __valtron_ctx: #fc::valtron::Ctx = (#expr); },
+    };
+    let init_pool_direct = match ctx_expr {
+        None => quote! { #fc::valtron::initialize_pool(#seed, #threads) },
+        Some(expr) => quote! { #fc::valtron::initialize_pool_with_ctx(#seed, #threads, (#expr)) },
+    };
+    let init_pool_timeout = if ctx_expr.is_some() {
+        quote! {
+            #fc::valtron::initialize_pool_with_ctx(
+                __valtron_seed,
+                #threads,
+                __valtron_ctx.clone(),
+            )
+        }
+    } else {
+        quote! { #fc::valtron::initialize_pool(__valtron_seed, #threads) }
+    };
+    let init_current_thread_timeout = if ctx_expr.is_some() {
+        quote! {
+            #fc::valtron::initialize_current_thread_with_ctx(__valtron_seed, __valtron_ctx)
+        }
+    } else {
+        quote! { #fc::valtron::initialize_current_thread(__valtron_seed) }
+    };
+
     let test_attr = if is_test {
         quote! { #[test] }
     } else {
@@ -411,7 +454,8 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 // spawn time, so a later init leaves every worker thread silent.
                 #tracing_init;
                 let __valtron_seed: u64 = #seed;
-                let __valtron_guard = #fc::valtron::initialize_pool(__valtron_seed, #threads);
+                #ctx_binding
+                let __valtron_guard = #init_pool_timeout;
                 let __timeout_ms: u64 = #timeout_ms;
                 let __timeout_start = std::time::Instant::now();
                 type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
@@ -419,7 +463,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 std::thread::spawn(move || {
                     // The body runs on this thread. Without `multi` the engine is
                     // thread-local, so bring it up here too (a no-op under `multi`).
-                    #fc::valtron::initialize_current_thread(__valtron_seed);
+                    #init_current_thread_timeout;
                     let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                         #run_call
                     }));
@@ -479,7 +523,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // without feature "multi" the guard has no `Drop` impl, and that call
             // is the no-op `clippy::drop_non_drop` reports.
             {
-                let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+                let __valtron_guard = #init_pool_direct;
 
                 // Sync: call the inner fn. Async: drive the body future to
                 // completion (`.await` points park on the engine — Decision 00).
