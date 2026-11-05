@@ -109,9 +109,10 @@ E1 bound from 20 checks to 5.
   `needs_polling()` with `EventReadiness::register`, so the reactor path registers the task's
   waker and the legacy syscall path keeps its timed re-check.
 
-Tests: `readiness_deadline_tests` 20 of 20 in both feature sets; `event_driven_queue_readiness`
-5 of 5 (reactor path 4 checks against 288 on the polling constructor); `fd_event_driven_tests`
-3 of 3 (reactor path 4 checks against 138 on the legacy path).
+Tests, each 20 of 20 runs: `readiness_deadline_tests` in both feature sets;
+`event_driven_queue_readiness` in both feature sets (reactor path 4 checks against 288 on the
+polling constructor); `fd_event_driven_tests` (reactor path 4 checks against 138 on the legacy
+path).
 
 Backlog: the four entries were deleted in PR #173. A new §4 entry records that the idle CPU
 tests match every thread whose name starts with `valtron::readin`, so they can count another
