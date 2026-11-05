@@ -64,8 +64,8 @@ fn generate_buildkit() {
     println!("cargo:rerun-if-changed={root}");
 }
 
-/// Generate ConnectRPC service code (trait + register fn + typed client) for the
-/// BuildKit services, one file per service so each service's `pub mod procedure`
+/// Generate `ConnectRPC` service code (trait + register fn + typed client) for the
+/// `BuildKit` services, one file per service so each service's `pub mod procedure`
 /// lands in its own module (avoids duplicate-module collisions for multi-service
 /// protos). Message types are the buffa types generated above and brought into
 /// scope by `src/buildkit/generated.rs`.
@@ -109,11 +109,7 @@ fn generate_services(root: &str, files: &[String]) {
         let file = fds
             .file
             .iter()
-            .find(|f| {
-                f.name
-                    .as_deref()
-                    .map_or(false, |n| n.ends_with(file_suffix))
-            })
+            .find(|f| f.name.as_deref().is_some_and(|n| n.ends_with(file_suffix)))
             .unwrap_or_else(|| panic!("descriptor for {file_suffix} not found"));
 
         // Retain only the one service so its `pub mod procedure` is unique.

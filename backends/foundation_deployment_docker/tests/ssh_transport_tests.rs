@@ -7,12 +7,12 @@
 //!
 //!   docker run -d --privileged --name ewe-dind-tls docker:dind
 //!   docker exec ewe-dind-tls sh -c 'apk add openssh && ssh-keygen -A && \
-//!     mkdir -p /root/.ssh && echo "<pubkey>" > /root/.ssh/authorized_keys && \
+//!     mkdir -p /root/.ssh && echo "<pubkey>" > /`root/.ssh/authorized_keys` && \
 //!     /usr/sbin/sshd'
 //!
 //! then run with the key loaded into an ssh-agent (sshkit falls back to the
 //! agent when the `ssh://` URL carries no key) and:
-//!   EWE_DOCKER_SSH_HOST=root@<container-ip>
+//!   `EWE_DOCKER_SSH_HOST=root`@<container-ip>
 //!
 //! Skips cleanly when the host is unset or unreachable.
 

@@ -30,8 +30,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path =
         std::path::PathBuf::from("/tmp").join(format!("ewe_docker_lc_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
@@ -93,7 +92,7 @@ fn route(method: &str, path: &str) -> (u16, String) {
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         let Some(req) = mock_socket::read_request(&mut stream) else {
             return;
         };

@@ -13,9 +13,13 @@ use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
 use crate::error::DockerError;
-use crate::generated::connect::{network_connect_request, NetworkConnectArgs};
+use crate::generated::connect::{
+    network_connect_request, NetworkConnectArgs, NetworkConnectRequest,
+};
 use crate::generated::create::{network_create_request, NetworkCreateArgs, NetworkCreateResponse};
-use crate::generated::disconnect::{network_disconnect_request, NetworkDisconnectArgs};
+use crate::generated::disconnect::{
+    network_disconnect_request, NetworkDisconnectArgs, NetworkDisconnectRequest,
+};
 use crate::generated::networks::{
     network_delete_request, network_inspect_request, network_list_request, NetworkDeleteArgs,
     NetworkInspect, NetworkInspectArgs, NetworkListArgs,
@@ -153,7 +157,7 @@ impl DockerClient {
     ) -> Result<(), DockerError> {
         let args = NetworkConnectArgs {
             id: id.to_string(),
-            body: Default::default(),
+            body: NetworkConnectRequest::default(),
         };
         let mut body = serde_json::json!({"Container": container_id});
         if !aliases.is_empty() {
@@ -193,7 +197,7 @@ impl DockerClient {
     ) -> Result<(), DockerError> {
         let args = NetworkDisconnectArgs {
             id: id.to_string(),
-            body: Default::default(),
+            body: NetworkDisconnectRequest::default(),
         };
         let body = serde_json::json!({"Container": container_id, "Force": force});
         network_disconnect_request(

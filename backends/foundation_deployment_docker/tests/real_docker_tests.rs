@@ -45,7 +45,7 @@ async fn real_docker_lifecycle_stop_while_running() {
         )
         .await
         .expect("create container");
-    assert!(!id.id.is_empty());
+    assert_ne!(id.id, "");
 
     client
         .start_container(&id.id)
@@ -99,9 +99,9 @@ async fn real_docker_stop_already_exited_handles_304() {
 }
 
 #[valtron_test]
-/// FIXME: hangs on remove_container after pause/unpause chain
+/// FIXME: hangs on `remove_container` after pause/unpause chain
 /// — netio connection pool dials a dead socket (known netio bug, not a
-/// DockerClient issue). Re-enable when netio connection reuse is fixed.
+/// `DockerClient` issue). Re-enable when netio connection reuse is fixed.
 #[ignore = "netio dial-after-close bug (container removed; test logic is correct)"]
 async fn real_docker_pause_unpause() {
     let client = common::client_with_alpine().await;

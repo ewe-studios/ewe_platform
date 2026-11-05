@@ -206,8 +206,8 @@ pub async fn node_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/nodes",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/nodes");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -252,8 +252,8 @@ pub async fn node_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/nodes/{}", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/nodes/{}", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -296,8 +296,8 @@ pub async fn node_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/nodes/{}", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/nodes/{}", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

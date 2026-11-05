@@ -13,7 +13,7 @@ use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
 use crate::error::DockerError;
-use crate::generated::create::{volume_create_request, VolumeCreateArgs};
+use crate::generated::create::{volume_create_request, VolumeCreateArgs, VolumeCreateRequest};
 use crate::generated::prune::{volume_prune_request, VolumePruneArgs};
 use crate::generated::shared::Volume;
 use crate::generated::volumes::{
@@ -87,7 +87,7 @@ impl DockerClient {
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn volume_create(&self, config: serde_json::Value) -> Result<Volume, DockerError> {
         let args = VolumeCreateArgs {
-            body: Default::default(),
+            body: VolumeCreateRequest::default(),
         };
         let response = volume_create_request(
             self.api(),
@@ -127,7 +127,7 @@ impl DockerClient {
 
     /// Update a volume (`PUT /volumes/{name}`).
     ///
-    /// WHY: Updates a volume's configuration (ClusterVolumeSpec).
+    /// WHY: Updates a volume's configuration (`ClusterVolumeSpec`).
     ///
     /// WHAT: Sends `config` as the body, read into the generated
     /// `VolumeUpdateRequest`.
