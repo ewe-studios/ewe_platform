@@ -2,8 +2,8 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-05: feature 81 on `fix/io-51-60-lane-b` (branched from the lane A head, because it
-  needs feature 80's API and PR #173 is not merged). The six live polling sites now use
+- 2026-11-05: feature 81 on `spec70/f81-lane-b-wake` (PR #176), branched from `master` after
+  #173 merged. The six live polling sites now use
   `EventQueue`: the watcher pump, the builder change and result queues, the runner build
   queue, and the agent steering priority and follow-up queues. `SteeringQueues.priority` and
   `follow_up` are `EventQueue<Messages>`, and both readiness methods return

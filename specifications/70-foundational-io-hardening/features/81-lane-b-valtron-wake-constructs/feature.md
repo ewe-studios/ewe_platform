@@ -3,7 +3,7 @@ feature: "Lane B crates use valtron's self-waking constructs (event queue, Resum
 status: "pending"
 lane: "B"
 model: "sonnet"
-branch: "fix/io-51-60-lane-b"
+branch: "spec70/f81-lane-b-wake"
 crates: ["foundation_toolings", "foundation_ai", "foundation_wasm", "foundation_wasm_ui"]
 catalogue_rows: [107]
 ---
