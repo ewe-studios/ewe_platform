@@ -19,7 +19,7 @@ use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::DynNetClient;
 
 use crate::acme::{AcmeClient, Dns01Setter, ACME_PRODUCTION};
-use crate::config::{ProxyConfig, ProxyError, SslConfig, SslProvider};
+use crate::config::{ProxyConfig, ProxyError, ProxyResult, SslConfig, SslProvider};
 
 /// A loaded cert + key pair.
 #[derive(Debug, Clone)]
@@ -37,13 +37,13 @@ pub trait CertManager: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
-    fn get_cert(&self) -> Result<CertPair, ProxyError>;
+    fn get_cert(&self) -> ProxyResult<CertPair>;
     /// Force renewal. For `StaticCertManager`, re-reads from disk.
     ///
     /// # Errors
     ///
     /// Returns an error if the operation fails.
-    fn renew_cert(&self) -> Result<CertPair, ProxyError>;
+    fn renew_cert(&self) -> ProxyResult<CertPair>;
 }
 
 // ── StaticCertManager ──
@@ -64,7 +64,7 @@ impl StaticCertManager {
         }
     }
 
-    fn load_from_disk(&self) -> Result<CertPair, ProxyError> {
+    fn load_from_disk(&self) -> ProxyResult<CertPair> {
         let cert_chain = std::fs::read(&self.cert_path)
             .map_err(|e| ProxyError::Ssl(format!("read cert {}: {e}", self.cert_path.display())))?;
         let private_key = std::fs::read(&self.key_path)
@@ -77,7 +77,7 @@ impl StaticCertManager {
 }
 
 impl CertManager for StaticCertManager {
-    fn get_cert(&self) -> Result<CertPair, ProxyError> {
+    fn get_cert(&self) -> ProxyResult<CertPair> {
         let mut cache = self.cached.lock().unwrap();
         if let Some(ref pair) = *cache {
             return Ok(pair.clone());
@@ -87,7 +87,7 @@ impl CertManager for StaticCertManager {
         Ok(pair)
     }
 
-    fn renew_cert(&self) -> Result<CertPair, ProxyError> {
+    fn renew_cert(&self) -> ProxyResult<CertPair> {
         let mut cache = self.cached.lock().unwrap();
         let pair = self.load_from_disk()?;
         *cache = Some(pair.clone());
@@ -137,7 +137,7 @@ impl AcmeCertManager {
     }
 
     /// Run one full ACME provisioning round and return the resulting cert+key.
-    fn provision(&self) -> Result<CertPair, ProxyError> {
+    fn provision(&self) -> ProxyResult<CertPair> {
         use base64::Engine;
         use p256::ecdsa::{signature::Signer, Signature, SigningKey};
 
@@ -185,7 +185,7 @@ impl AcmeCertManager {
 }
 
 impl CertManager for AcmeCertManager {
-    fn get_cert(&self) -> Result<CertPair, ProxyError> {
+    fn get_cert(&self) -> ProxyResult<CertPair> {
         let mut cache = self.cached.lock().unwrap();
         if let Some(pair) = &*cache {
             return Ok(pair.clone());
@@ -195,7 +195,7 @@ impl CertManager for AcmeCertManager {
         Ok(pair)
     }
 
-    fn renew_cert(&self) -> Result<CertPair, ProxyError> {
+    fn renew_cert(&self) -> ProxyResult<CertPair> {
         let pair = self.provision()?;
         *self.cached.lock().unwrap() = Some(pair.clone());
         Ok(pair)
@@ -228,7 +228,7 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
 pub fn build_cert_manager(
     config: &ProxyConfig,
     client: DynNetClient,
-) -> Result<Arc<dyn CertManager>, ProxyError> {
+) -> ProxyResult<Arc<dyn CertManager>> {
     match &config.ssl.provider {
         SslProvider::Static { cert, key } => {
             Ok(Arc::new(StaticCertManager::new(cert.clone(), key.clone())))
@@ -256,10 +256,11 @@ pub fn build_cert_manager(
         SslProvider::Cloudflare { zone_id } => Err(ProxyError::Ssl(format!(
             "Cloudflare Origin CA (zone {zone_id}) not yet supported; provision \
              an Origin CA cert and configure it via the Static provider."
-        ))),
-        SslProvider::None => Err(ProxyError::Ssl(
-            "TLS requested but no SSL provider configured".into(),
-        )),
+        ))
+        .into()),
+        SslProvider::None => {
+            Err(ProxyError::Ssl("TLS requested but no SSL provider configured".into()).into())
+        }
     }
 }
 
@@ -268,7 +269,7 @@ pub fn build_cert_manager(
 /// # Errors
 ///
 /// Returns an error if the operation fails.
-pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> Result<Arc<SSLAcceptor>, ProxyError> {
+pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> ProxyResult<Arc<SSLAcceptor>> {
     acceptor_from_pair(&mgr.get_cert()?)
 }
 
@@ -278,7 +279,7 @@ pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> Result<Arc<SSLAccept
 /// # Errors
 ///
 /// Returns an error if the operation fails.
-pub fn acceptor_from_pair(pair: &CertPair) -> Result<Arc<SSLAcceptor>, ProxyError> {
+pub fn acceptor_from_pair(pair: &CertPair) -> ProxyResult<Arc<SSLAcceptor>> {
     let acceptor = SSLAcceptor::from_pem(pair.cert_chain.clone(), pair.private_key.clone().into())
         .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
     Ok(Arc::new(acceptor))
@@ -303,7 +304,7 @@ fn acme_domains(config: &ProxyConfig) -> Vec<String> {
 /// # Errors
 ///
 /// Returns an error if the operation fails.
-pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError> {
+pub fn build_acceptor(config: &SslConfig) -> ProxyResult<Arc<SSLAcceptor>> {
     match &config.provider {
         SslProvider::Static { cert, key } => {
             let manager = StaticCertManager::new(cert.clone(), key.clone());
@@ -316,14 +317,16 @@ pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError
             "Let's Encrypt ACME configured for {email}. \
                  Set ACME_SIGNER_KEY_PATH to your account private key (PEM) \
                  or ACME_SIGNER_CMD to a JWS-signing subprocess."
-        ))),
+        ))
+        .into()),
         SslProvider::Cloudflare { zone_id } => Err(ProxyError::Ssl(format!(
             "Cloudflare Origin CA configured for zone {zone_id}. \
                  Use the cloudflare API to provision an Origin CA certificate \
                  and configure it via the Static provider."
-        ))),
-        SslProvider::None => Err(ProxyError::Ssl(
-            "TLS requested but no SSL provider configured".into(),
-        )),
+        ))
+        .into()),
+        SslProvider::None => {
+            Err(ProxyError::Ssl("TLS requested but no SSL provider configured".into()).into())
+        }
     }
 }

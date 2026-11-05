@@ -32,7 +32,7 @@ use foundation_netio::http::HttpConnectionPool;
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 
-use crate::config::{BackendState, ProxyConfig, ProxyError, SslProvider};
+use crate::config::{BackendState, ProxyConfig, ProxyError, ProxyResult, SslProvider};
 use crate::control::ControlSocket;
 use crate::h2_proxy::H2ProxyHandler;
 use crate::handler::ProxyHandler;
@@ -88,7 +88,7 @@ impl ProxyServer {
     /// caller; without it the front end cannot submit connections.)
     // `services`, `svc` and `server` are distinct names in one startup flow.
     #[allow(clippy::similar_names)]
-    pub async fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
+    pub async fn start(config: ProxyConfig) -> ProxyResult<Self> {
         tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
         // Validate: no duplicate routes. A route is a (host, path_prefix) pair —
@@ -102,7 +102,8 @@ impl ProxyServer {
                 return Err(ProxyError::Config(format!(
                     "duplicate route: host {} with path_prefix {:?}",
                     svc.host, svc.path_prefix
-                )));
+                ))
+                .into());
             }
         }
 
@@ -599,7 +600,7 @@ fn spawn_h3_server(
     cert_pair: &crate::tls::CertPair,
     proxy_state: Arc<ProxyState>,
     shutdown: Arc<ShutdownSignal>,
-) -> Result<SocketAddr, ProxyError> {
+) -> ProxyResult<SocketAddr> {
     let addr: SocketAddr = h3_addr
         .parse()
         .map_err(|e| ProxyError::Startup(format!("parse h3 bind {h3_addr}: {e}")))?;
