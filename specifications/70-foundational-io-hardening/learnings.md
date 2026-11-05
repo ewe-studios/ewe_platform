@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 116's Linux proof):
+  - **A platform-gated test module hides its lints from the host.** The module
+    behind `#[cfg(all(target_os = "linux", feature = "multi"))]` in
+    `tests/valtron/readiness_deadline_tests.rs` is not compiled on macOS, so a
+    local zero count is not a Linux zero count. GitHub run 42087629722 found two
+    `clippy::used_underscore_binding` errors (`mem::forget(_stream)`). Name a
+    binding you use, even in a test. To check a Linux-only module before the CI
+    round trip, run the clippy command in the CI image with
+    `docker run ... scripts/ci/linux.sh`-style mounts.
+
 - 2026-11-06 (feature 115, clock injection):
   - **A multi-pool task did not read `ThreadRegistry.root`.** The worker's
     `LocalThreadExecutor` had its own `Ctx::new()`, and that is what

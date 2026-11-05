@@ -226,3 +226,15 @@ local change cannot remove:
 
 CI is not run here. The GitHub run on this branch must show the two
 deny-warning clippy runs green. The box above stays unticked until then.
+
+### Linux CI found two more diagnostics (2026-11-06)
+
+The local zero count is a macOS count. GitHub run 42087629722 (Linux amd64)
+failed the `--features multi` clippy run on two `clippy::used_underscore_binding`
+errors at `tests/valtron/readiness_deadline_tests.rs:296` and `:366`. Both
+read `std::mem::forget(_stream)` while binding `let _stream = execute(..)`.
+
+The module is `#[cfg(all(target_os = "linux", feature = "multi"))]`, so no macOS
+run compiles it. The names are now `stream`, which removes the lint. This is a
+real gap in the local proof: a platform-gated module can hide a lint. Check a
+Linux-only or wasm-only module on its own target, not only on the host.

@@ -281,7 +281,7 @@ mod event_driven_cpu {
     /// Park a task on `signal`, let it settle, and return the CPU the test's threads
     /// use over the next second.
     fn cpu_while_parked(signal: EventReadinessPtr, comm: &str) -> Duration {
-        let _stream = execute(
+        let stream = execute(
             ParkForever {
                 signal: Some(signal),
             },
@@ -293,7 +293,7 @@ mod event_driven_cpu {
         let before = own_threads_cpu(comm);
         std::thread::sleep(Duration::from_secs(1));
         let used = own_threads_cpu(comm).saturating_sub(before);
-        std::mem::forget(_stream);
+        std::mem::forget(stream);
         used
     }
 
@@ -351,7 +351,7 @@ mod event_driven_cpu {
     /// per `max_yield_duration` (100 ms) at most: about 10 wake-ups per second.
     #[valtron_test(threads = 1, timeout = 20_000)]
     async fn idle_threads_parked_on_a_resume_signal_use_almost_no_cpu() {
-        let _stream = execute(
+        let stream = execute(
             ParkForever {
                 signal: Some(Arc::new(ResumeSignal::new(false))),
             },
@@ -363,7 +363,7 @@ mod event_driven_cpu {
         let before = thread_stats();
         std::thread::sleep(Duration::from_secs(1));
         let after = thread_stats();
-        std::mem::forget(_stream);
+        std::mem::forget(stream);
 
         let comm = "valtron::readin";
         let mut worst_cpu = Duration::ZERO;
