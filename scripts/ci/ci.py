@@ -346,6 +346,18 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+        # Spec 70 feature 76: the standalone Cloudflare wasm store tests. The
+        # wrangler run below compiles them too, but this step names a compile
+        # break directly, before the harness starts.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_db/integration/wasm_cf/Cargo.toml"],
+        # This package sets fmt = "off" (the workspace fmt step cannot see a
+        # crate outside the workspace), so the standalone crate's formatting
+        # is checked here.
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
     ]
     plan["test"] = [
         ["mise", "run", "test:wasm-testbed:deno"],
