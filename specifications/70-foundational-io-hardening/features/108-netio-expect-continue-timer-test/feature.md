@@ -1,6 +1,6 @@
 ---
 feature: "The `Expect: 100-continue` timer test is deterministic under load"
-status: "pending"
+status: "done"
 lane: "after 84"
 model: "sonnet"
 branch: "spec70/f108-expect-continue-timer-test"
@@ -62,7 +62,71 @@ python3 scripts/ci/ci.py run foundation_netio --profile uat   # in the Linux CI 
 
 ## Done when
 
-- [ ] The test reads no system clock and does not sleep.
-- [ ] The test passes 20 of 20 under concurrent load.
-- [ ] The backlog §2 entry is deleted.
+- [x] The test reads no system clock and does not sleep.
+- [x] The test passes 20 of 20 under concurrent load.
+- [x] The backlog §2 entry is deleted.
 - [ ] CI green.
+
+## Result (2026-11-05)
+
+### Cause, measured
+
+The old test measured the wait with the wall clock: `s.body_at - s.head_at < 2 s`
+(`tests/simple_http/nonblocking_client_tests.rs:459`). The wait is about 300 ms, so a
+scheduling stall of 1.7 s fails it. Reproduced by suspending the test process for
+2.5 s in the middle of the wait, then resuming it. The old test failed with:
+
+```text
+body arrived 2.670018334s after the head; expected about the 300ms timer
+```
+
+The same test passed 12 of 12 runs under 8 busy CPU loops and 6 of 6 runs at
+`nice -n 20`. CPU load alone did not reproduce it on this host. A process that is not
+scheduled for 2 s does.
+
+### Design
+
+- The `Expect: 100-continue` timer now runs on a clock from the `Clock` trait
+  (`foundation_core::valtron::Clock`), not on `std::time::Instant::now()`.
+  `GetHttpRequestRedirectTask` resolves the engine clock from `Ctx` on its first poll
+  (AGENTS rule 11). A request may carry its own `Arc<dyn Clock>` as a typed entry in its
+  `Extensions`; that clock then replaces the engine clock for the request.
+- The request extension is the injection point because a test cannot seed the pool's
+  root `Ctx`: `Ctx::clock()` returns a private field and `ThreadRegistry.root` is
+  private. The limitation is backlog entry §4 (foundation_core / valtron).
+- The test server moves a test clock. It advances only after the client's first clock
+  read, so the client's deadline cannot move with the advance. The server records the
+  simulated instant of the head and of the body. The assertion is a statement about
+  simulated time: the body goes out at exactly `expect_continue_timeout`.
+- The server also proves "not before": it moves the clock to one millisecond before the
+  deadline, waits for the client to poll again without sending, then moves the clock
+  past the deadline. The second test uses 450 ms, not the 3 s default, so it proves the
+  timeout comes from configuration (AGENTS rule 8).
+- The blocking transports (`await_continue_blocking`) keep kernel read timeouts. A clock
+  cannot drive a kernel wait. The tests use a non-blocking TCP socket.
+
+### Verification (macOS, `--profile uat`)
+
+| Command | Result |
+|---|---|
+| `cargo fmt -p foundation_netio --check` | clean |
+| `cargo clippy --profile uat -p foundation_netio --all-targets --no-deps -- -D warnings` | clean |
+| `cargo test --profile uat -p foundation_netio --test foundation_netio_tests silent_server_gets_body_when_the_timer_fires` | 1 passed |
+| 20 runs of that test | 20 of 20 passed |
+| `cargo test ... expect_continue_timer_fires_at_the_configured_deadline_and_not_before` | 1 passed |
+| 20 runs of that test | 20 of 20 passed |
+| 20 runs of it with two other netio suites and 8 CPU loops in parallel | 20 of 20 passed |
+| `cargo test --profile uat -p foundation_netio --test foundation_netio_tests` | 1217 passed, 0 failed |
+
+- Both tests pass with the process suspended for 2.5 s during the wait. The old test
+  failed the same treatment.
+- With the production timer temporarily changed back to `Instant::now()`, the rewritten
+  test fails (`Timeout occurred`, 5 s response-head deadline). The restored code passes.
+  So the test discriminates on the clock, not only on the bound.
+- The new test shortens the wait's real duration to the configured timeout; it does not
+  remove it. The executor sleeps to the mapped deadline. The assertion no longer reads
+  real time.
+
+### Remaining
+
+- CI green is for the PR's GitHub run.

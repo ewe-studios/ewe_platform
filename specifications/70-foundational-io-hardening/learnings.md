@@ -2,6 +2,32 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 108, deterministic `Expect: 100-continue` timer test):
+  - **A timer test must assert on the clock it injects, not on `Instant::now()`.**
+    The engine `Ctx` clock reaches the task through `next_status(ctx)`, but no code
+    outside `foundation_core` can replace it: `Ctx::clock()` returns a private field and
+    `ThreadRegistry.root` is private. A request `Arc<dyn Clock>` in its `Extensions` is
+    the remaining typed seam in `foundation_netio`. The production path still reads
+    `ctx.clock()`; only the test sets the extension.
+  - **Advance the simulated clock only after the client has fixed its deadline.** The
+    client computes `send_body_at = clock.now() + timeout` in the same poll as the head
+    write. If the server advances first, the deadline moves. The test clock counts
+    reads; the server waits for the first read before it advances. This removes the
+    race in both arrival orders.
+  - **Parking on a readiness that cannot wake is re-checked on the readiness quantum.**
+    `SocketReadiness` does not implement `register`, so `AnyReadiness::register` returns
+    `false` and the task is re-polled every 1 ms. That is what lets an injected clock
+    fire before the real deadline passes.
+  - **A wall-clock failure needs a scheduling stall, not CPU load.** Eight busy CPU
+    loops did not reproduce the 2 s bound failure. `SIGSTOP` of the test process for
+    2.5 s did, on the first try. Use `kill -STOP`/`-CONT` by PID to prove a wall-clock
+    dependence.
+  - **A simulated clock still maps to a real `Instant`.** `std::time::Instant` has no
+    public constructor from an arbitrary value, so the test clock anchors at one real
+    `Instant::now()` and moves forward from it. The executor still sleeps to the mapped
+    deadline, so the test keeps the timer's real duration. Only the assertion is
+    simulated, and that is the flaky part.
+
 - 2026-11-05 (status close-out after the PR #179 merge):
   - **Read job conclusions, not the run status.** A run stays `in_progress` while one
     job is stuck. Run 42040473182 has 111 jobs `success`, 0 `failure` and 1 job at

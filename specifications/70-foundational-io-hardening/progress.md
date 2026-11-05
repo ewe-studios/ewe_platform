@@ -2,6 +2,26 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 108, the `Expect: 100-continue` timer test is deterministic.
+  Branch `spec70/priority-followups`.
+  - The `Expect: 100-continue` timer in `foundation_netio` now reads a `Clock` from the
+    `Clock` trait: the engine clock from `Ctx`, or an `Arc<dyn Clock>` that a request
+    carries in its `Extensions`. No `Instant::now()` is left in that timer path.
+  - `silent_server_gets_body_when_the_timer_fires` asserts on a simulated clock. The test
+    server moves the clock to the configured timer after the client fixes its deadline.
+    The assertion is `waited == 300 ms` in simulated time.
+  - New test `expect_continue_timer_fires_at_the_configured_deadline_and_not_before`
+    moves the clock to 449 ms, proves the client still waits, then moves it to 450 ms.
+    It uses 450 ms, not the 3 s default, so it also proves the value comes from
+    configuration.
+  - Measured: the old test failed with "body arrived 2.670018334s after the head" when
+    the process was suspended for 2.5 s mid-wait. The rewritten test passed that test and
+    20 of 20 runs under concurrent load. Full suite: 1217 passed.
+  - New backlog entry §4: a test cannot install a simulated clock in the pool's `Ctx`.
+    `Ctx::clock()` and `ThreadRegistry.root` are private. Feature 108 used the request
+    `Extensions` instead. A follow-up should add `Ctx::with_clock` or a typed `Env`
+    entry.
+
 - 2026-11-05: status close-out after the PR #179 merge. PR #179 merged as `75ca092dc`.
   Run 42040473182 on its head commit `e01e83d80` has 111 jobs success, 0 failure and
   3 skipped. The `foundation_wireguard` job is still `in_progress`: it stopped at the

@@ -15,14 +15,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **`silent_server_gets_body_when_the_timer_fires` is timing-flaky under load.**
-  A full `foundation_netio` run on 2026-11-05 failed this test once while two other
-  cargo test suites built and ran on the same machine. It passed 10 of 10 solo
-  reruns. The test expects the server to wait about its 300 ms
-  `Expect: 100-continue` timer, and asserts the wait is under 2 s
-  (`tests/simple_http/nonblocking_client_tests.rs:459`). Load stretches the wait past
-  that bound. Unrelated to feature 82. Fix: drive the timer from a simulated clock, or
-  widen the bound only with a measured justification.
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
   variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
@@ -49,6 +41,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
+- **A test cannot install a simulated clock in the pool's `Ctx`.** `Ctx::clock()`
+  (`valtron/ctx.rs:218`) returns the private `CtxInner.clock` field, and
+  `ThreadRegistry.root` (`executors/multi/mod.rs:1448`) is private, so no code outside
+  `foundation_core` can replace the engine clock. `Ctx::insert` adds a typed entry, but
+  `clock()` never reads the map. Feature 108 needed a simulated clock for the
+  `Expect: 100-continue` timer and carried it in the request `Extensions` instead. Fix:
+  add `Ctx::with_clock(Arc<dyn Clock>) -> Ctx` (a fork with a replaced clock), or read a
+  typed `Env` entry in `clock()` before the default `MonotonicClock`.
 - **`foundation_core` and `foundation_nostd` fail `clippy -D warnings`.** Seen on
   `fix/io-41-50-lane-a` (2026-11-04), `cargo clippy -p foundation_core --no-deps
   --profile dev --lib -- -D warnings`: 19 errors, none in feature 46 code. Files:
