@@ -1,6 +1,6 @@
 [package]
 name = "foundation_html"
-version = "0.0.4"
+version = "0.0.5"
 description = "foundation_html crate for web and non-web based html generation"
 edition.workspace = true
 rust-version.workspace = true
@@ -12,21 +12,14 @@ keywords.workspace = true
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_conditional = { path = "../foundation_conditional", version = "0.1.2" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 derive_more = { workspace = true }
 
 regex = { version = "1.10" }
 lazy-regex = { version = "3.1" }
-phf = { version = "0.11.2", features = ["macros"] }
-strum = { version = "0.26" }
-strum_macros = { version = "0.26" }
 lazy_static = { version = "1.4.0" }
-lazycell = { version = "1.3.0" }
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
-anyhow = { version = "1.0.80" }
-thiserror = { version = "2.0.17" }
 
 
 [dev-dependencies]
