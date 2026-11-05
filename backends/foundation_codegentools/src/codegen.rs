@@ -554,11 +554,14 @@ impl Codegen {
         let (output, provider_dir) = self.roots()?;
         self.run_generator(
             &resolved,
-            output.clone(),
-            provider_dir.clone(),
-            self.groups_dir.clone(),
-            self.shared_crate_dir.clone(),
-            false,
+            &GeneratorTargets {
+                output: output.clone(),
+                provider_dir: provider_dir.clone(),
+                groups_dir: self.groups_dir.clone(),
+                shared_crate_dir: self.shared_crate_dir.clone(),
+                sibling_crates: self.groups_dir.clone(),
+                shared_only: false,
+            },
         )?;
 
         let generated_dir = self.provider_root(output, &provider_dir)?.join("generated");
@@ -653,11 +656,16 @@ impl Codegen {
             let scratch_shared = scratch.path().join("shared_crate");
             self.run_generator(
                 &resolved,
-                scratch.path().to_path_buf(),
-                scratch_provider_dir,
-                Some(scratch_groups.clone()),
-                Some(scratch_shared.clone()),
-                false,
+                &GeneratorTargets {
+                    output: scratch.path().to_path_buf(),
+                    provider_dir: scratch_provider_dir,
+                    groups_dir: Some(scratch_groups.clone()),
+                    shared_crate_dir: Some(scratch_shared.clone()),
+                    // The scratch tree has no sibling crates in it, so the group
+                    // manifests read their versions from the shipped workspace.
+                    sibling_crates: self.groups_dir.clone(),
+                    shared_only: false,
+                },
             )?;
 
             merge_prefixed(
@@ -718,11 +726,14 @@ impl Codegen {
         } else {
             self.run_generator(
                 &resolved,
-                scratch.path().to_path_buf(),
-                scratch_provider_dir.clone(),
-                None,
-                None,
-                false,
+                &GeneratorTargets {
+                    output: scratch.path().to_path_buf(),
+                    provider_dir: scratch_provider_dir.clone(),
+                    groups_dir: None,
+                    shared_crate_dir: None,
+                    sibling_crates: None,
+                    shared_only: false,
+                },
             )?;
             let fresh_dir = self
                 .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
@@ -788,11 +799,14 @@ impl Codegen {
         let scratch_shared = scratch.path().join("shared_crate");
         self.run_generator(
             &resolved,
-            scratch.path().to_path_buf(),
-            Some(scratch.path().join("src")),
-            Some(scratch.path().join("groups")),
-            Some(scratch_shared.clone()),
-            true,
+            &GeneratorTargets {
+                output: scratch.path().to_path_buf(),
+                provider_dir: Some(scratch.path().join("src")),
+                groups_dir: Some(scratch.path().join("groups")),
+                shared_crate_dir: Some(scratch_shared.clone()),
+                sibling_crates: self.groups_dir.clone(),
+                shared_only: true,
+            },
         )?;
 
         let fresh = read_file_tree(&scratch_shared.join(REL), REL)?;
@@ -825,25 +839,30 @@ impl Codegen {
     fn run_generator(
         &self,
         resolved: &serde_json::Value,
-        output: PathBuf,
-        provider_dir: Option<PathBuf>,
-        groups_dir: Option<PathBuf>,
-        shared_crate_dir: Option<PathBuf>,
-        shared_only: bool,
+        targets: &GeneratorTargets,
     ) -> Result<(), CodegenError> {
         let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
             missing: "provider",
         })?;
 
-        let mut generator =
-            UnifiedGenerator::new(output).with_typed_unions(self.typed_unions.iter());
-        if let Some(dir) = provider_dir {
-            generator = generator.with_provider_dir(dir);
+        let mut generator = UnifiedGenerator::new(targets.output.clone())
+            .with_typed_unions(self.typed_unions.iter());
+        if let Some(dir) = &targets.provider_dir {
+            generator = generator.with_provider_dir(dir.clone());
         }
-        if let (Some(groups_dir), Some(shared_crate_dir)) = (groups_dir, shared_crate_dir) {
-            generator = generator.split_group_crates(groups_dir, shared_crate_dir);
+        if let (Some(groups_dir), Some(shared_crate_dir)) =
+            (&targets.groups_dir, &targets.shared_crate_dir)
+        {
+            generator = generator
+                .split_group_crates(groups_dir.clone(), shared_crate_dir.clone())
+                .with_sibling_crates(
+                    targets
+                        .sibling_crates
+                        .clone()
+                        .unwrap_or_else(|| groups_dir.clone()),
+                );
         }
-        if shared_only {
+        if targets.shared_only {
             generator = generator.shared_types_only();
         }
         let body = serde_json::to_string(resolved).expect("a resolved spec serializes");
@@ -851,6 +870,25 @@ impl Codegen {
             .generate(provider, &body, &self.options)
             .map_err(CodegenError::Generate)
     }
+}
+
+/// Where one [`Codegen::run_generator`] call writes, and where the group
+/// manifests read their sibling versions from.
+struct GeneratorTargets {
+    /// The crate root the umbrella shim is rendered into.
+    output: PathBuf,
+    /// The umbrella crate's provider directory, when it overrides the default.
+    provider_dir: Option<PathBuf>,
+    /// The workspace root the group crates are written under.
+    groups_dir: Option<PathBuf>,
+    /// The crate that receives the shared types module.
+    shared_crate_dir: Option<PathBuf>,
+    /// The workspace root that holds the group crates' sibling crates. The
+    /// shipped root, even when `groups_dir` is a scratch tree: a scratch tree
+    /// has no siblings in it, and the manifests need their versions.
+    sibling_crates: Option<PathBuf>,
+    /// Render the shared types module only.
+    shared_only: bool,
 }
 
 /// Every file under `dir`, keyed by its path relative to `dir`.

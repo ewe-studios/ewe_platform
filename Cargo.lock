@@ -6006,7 +6006,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_openapi"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "derive_more",
  "indexmap 2.11.4",
