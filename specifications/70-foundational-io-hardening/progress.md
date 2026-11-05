@@ -2,6 +2,37 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 82 done on `spec70/f82-sse-async-event-writer`. No native SSE
+  write now goes through a synchronous `Write`. `foundation_netio` has
+  `SseEvent::render`/`rendered` (one wire-format renderer) and `render_comment`;
+  `EventWriter` keeps its `W: Write` API for in-memory writers and calls them. Its
+  docs say not to use it on a non-blocking socket. `foundation_http` has `SseWriter`,
+  which holds one `ResponseWriter`, renders to bytes, calls `write_all` and `flush`.
+  `SseStream` holds `SseWriter`; `send`, `message`, `binary` and `comment` are async,
+  and `SseStream::new` keeps the head writer for the events. `foundation_toolings`
+  `SseReloadHandler` now runs as a `ConnectionResult::Async` continuation and awaits
+  every write; the polling sleep is a valtron timer. `foundation_browser`
+  `SseTransport` pushes frames into a bounded valtron `Pipe` that a per-client driver
+  task drains with the async `SseStream`; `SseTransportConfig::queue_depth` is
+  configuration with a documented default of 256 frames, and a full queue drops that
+  client (the broadcaster reconnects it and replays the backlog). The regression test
+  `sse_writer_delivers_a_whole_event_to_a_slow_client` uses the deterministic overlay
+  fake: before the fix the synchronous path returned `WouldBlock` after 64 bytes (54
+  filler and a 10-byte event prefix) of a 16406-byte event; the new path delivers all
+  16406 bytes to a client that reads one byte per poll. New tests: `render` equals
+  `EventWriter::send` bytes, the SSE writer regression test, a proxy SSE test that
+  reads one byte per poll, and a browser transport test that receives one whole
+  binary frame over a slow SSE client. Each threaded test passed 20 of 20 flake
+  runs. Versions: `foundation_netio` 0.0.5 → 0.0.6,
+  `foundation_http` 0.0.4 → 0.0.5 and `foundation_browser` 0.0.3 → 0.0.4 (the queue
+  config is new public API), with every workspace requirement and template pin.
+  The backlog §3 SSE entry is deleted. New backlog entry §33 records 56 pre-existing
+  `foundation_browser` clippy errors in files this feature did not touch. Backlog §2
+  records `silent_server_gets_body_when_the_timer_fires`: it failed once in the full
+  `foundation_netio` run while two other suites ran on the same machine, and passed 10
+  of 10 solo reruns. Backlog §34 records the stale `foundation_toolings` pin in the
+  `web-app` and `api-app` templates.
+
 - 2026-11-05: CI run 41999359118 failed `foundation_browser` at the build step. Feature 63
   made `SseStream::new` async, and `foundation_browser/src/test/stream.rs` still matched its
   result directly. The upgrade now runs as `ConnectionResult::Async`, awaits

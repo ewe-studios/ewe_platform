@@ -2,6 +2,24 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 82, async SSE event writes): an SSE event is a complete unit.
+  A synchronous `writeln!` on a non-blocking socket can write a prefix and return
+  `WouldBlock`, so the client never sees the dispatch blank line. Render the event to
+  bytes first, then write the whole buffer through `ResponseWriter`; it parks on
+  readiness and resumes at the accepted offset. Keep one renderer: `EventWriter` and
+  the async `SseWriter` must call `SseEvent::render`, or the two paths drift.
+  `SseStream::new` must keep the head `ResponseWriter` for the events. A second writer
+  on the same stream loses the idle-timer and readiness state that the head write
+  started. The browser broadcaster is synchronous (`BroadcastTx::push` runs on the
+  App's thread), so an async `FrameTransport` is not possible without changing that
+  call chain. Use a bounded valtron `Pipe` and one driver task per client. The queue
+  depth is configuration; a full queue makes `send_*` return `false` and the
+  broadcaster drops the client, which then reconnects and replays the backlog. Do not
+  silently drop a frame. `foundation_browser` has 56 pre-existing clippy errors in
+  files feature 82 did not touch (backlog §33); its `test/stream.rs` is clean.
+  Measured before/after: the synchronous path returned `WouldBlock` after 10 event
+  bytes on a 64-byte fake socket; the async path delivered all 16406 bytes to a client
+  reading one byte per poll.
 - 2026-11-05 (features 82 and 83, recorded from owner reports): an empty test binary passes.
   `ptrace_vfs/mod.rs` is gated on `target_os = "linux"` plus two features, so a wrong feature
   set in `ci/packages.toml` builds nothing and CI stays green. Give such a suite a named run
