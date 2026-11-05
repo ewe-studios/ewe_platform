@@ -30,8 +30,12 @@ services:
       - 5900:5900/tcp
       - 5900:5900/udp
     volumes:
-      - /home/darkvoid/Boxxed/@dev/sandbox/macos:/storage
-      - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
+      # Override these on a machine that keeps its data somewhere else, and in
+      # CI. Without the override a missing host path is not an error: Docker
+      # creates an empty directory, and the container then has no repository at
+      # `/shared` and no VM disk at `/storage`.
+      - ${EWE_MACOS_STORAGE:-/home/darkvoid/Boxxed/@dev/sandbox/macos}:/storage
+      - ${EWE_SHARED_DIR:-/home/darkvoid/Boxxed/@dev/ewe_platform}:/shared
     restart: unless-stopped
     stop_grace_period: 2m
     profiles: [macos]
@@ -76,8 +80,8 @@ services:
       - "3389:3389/udp" # RDP (UDP for better performance)
       - "5900:5900/tcp" # raw VNC
     volumes:
-      - /home/darkvoid/Boxxed/@dev/sandbox/windows:/storage
-      - /home/darkvoid/Boxxed/@dev/ewe_platform:/shared
+      - ${EWE_WINDOWS_STORAGE:-/home/darkvoid/Boxxed/@dev/sandbox/windows}:/storage
+      - ${EWE_SHARED_DIR:-/home/darkvoid/Boxxed/@dev/ewe_platform}:/shared
     restart: unless-stopped
     stop_grace_period: 2m
     profiles: [windows]

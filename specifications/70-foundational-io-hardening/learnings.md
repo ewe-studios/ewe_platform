@@ -2,6 +2,23 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (PR #179 CI fix pass, fourth round):
+  - **`docker exec` into a virtual machine image reaches the Linux host, not the guest.**
+    Commands such as `sw_vers`, `cargo` and `cmd` run on Ubuntu. A green step proves only
+    that the Linux side answered. The log line `default host tuple is
+    x86_64-unknown-linux-gnu` is the tell that a "macOS" step ran on Linux.
+  - **Docker answers a missing bind source with an empty directory.** A wrong absolute
+    path in `docker-compose.yaml` is silent, and the container starts with an empty
+    `/shared`. Take mount sources from environment variables with developer defaults,
+    then assert a file from the mount inside the container.
+  - **`--lib` with a name filter can select zero tests and still pass.** `cargo test -p
+    foundation_testbed --features docker-tests --lib -- docker` matched no library test,
+    because `docker_tests` is an integration test. Use `--test <file>` and read the test
+    count in the log.
+  - **A cold runner needs a host-side check, not a guest boot.** A guest install takes
+    30 minutes or more and cannot fit a pull request. Check what the host can prove in
+    two minutes, and leave in-guest builds to the provisioned images that accept SSH.
+
 - 2026-11-05 (PR #179 CI fix pass, third round):
   - **A generator that writes manifests is a second source of versions.** The Cloudflare
     build script regenerates group crates when its output is stale, and it compares the

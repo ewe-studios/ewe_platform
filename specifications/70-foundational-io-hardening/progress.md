@@ -2,6 +2,34 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: PR #179 CI fix pass, fourth round. The Platform Docker Tests jobs ran Linux
+  commands with `docker exec` and called the result macOS and Windows testing. Run
+  42037634257 shows both jobs red.
+  - **The guest is not reachable with `docker exec`.** The images run the guest operating
+    system in QEMU inside a Linux container, so `docker exec` reaches the container's
+    Linux side. The macOS job installed `stable-x86_64-unknown-linux-gnu` and then failed
+    at `cd /shared/examples/platform_ios/src-tauri`: `/shared` was empty.
+  - **The compose file mounted host paths that exist only on the owner's machine.**
+    Docker creates an empty directory for a missing bind source, so `/shared` and
+    `/storage` were empty on the runner. Both mounts now take `EWE_SHARED_DIR` and
+    `EWE_{MACOS,WINDOWS}_STORAGE`, and the jobs point them at the checkout and a runner
+    directory.
+  - **The readiness probe proved nothing.** `docker exec ewe_macos sh -c 'echo ready'`
+    and `docker exec ewe_windows cmd /c "echo ready"` ran on the Linux side; the second
+    one cannot succeed at all. `scripts/ci/vm-host-smoke.sh` now waits for the container
+    state, for the web console port (`8006` for macOS, `8008` for Windows), and checks
+    `/shared/Cargo.toml` inside the container.
+  - **The `docker` tests never ran.** `--lib` selects library unit tests; `docker_tests`
+    is an integration test. Each job now runs `--test docker_tests` with only its own
+    container's case.
+  - **The iOS check moved out.** No job builds `examples/platform_ios` for
+    `aarch64-apple-ios` now. The backlog holds the fix: run it in the `macos-ssh` job of
+    `platform-vms.yaml`, which reaches the guest over SSH.
+  - A change to `docker-compose.yaml`, the smoke script or the workflow now triggers the
+    workflow.
+  - `specifications/52-tauri-foundation-platform/features/F30-docker-test-infra/feature.md`
+    records the correction.
+
 - 2026-11-05: PR #179 CI fix pass, third round. Run 42029393923 and the two jobs from
   run 42029385105:
   - **`foundation_deployment_cloudflare` (feature 114).** The `cargo metadata` failure now

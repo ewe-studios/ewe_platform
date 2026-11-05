@@ -12,7 +12,7 @@
 //! HOW: All operations shell out to `docker` CLI. Zero new Rust dependencies.
 //! Feature-gated behind `docker-tests`.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Output};
 use std::time::{Duration, Instant};
 
@@ -338,7 +338,7 @@ impl TestEnvironment {
         self.docker_exec
             .exec(&format!("screencapture -x {tmp_in}"))?;
 
-        let mut out = Command::new("docker")
+        let out = Command::new("docker")
             .args(["cp", &format!("{}:{tmp_in}", self.container), "-"])
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::null())

@@ -15,7 +15,10 @@ fn builder_container_not_found_when_not_running() {
 
 #[test]
 fn builder_with_vnc_configures_correctly() {
-    let builder = TestEnvironmentBuilder::new("macos").with_vnc(5900);
+    // `docker-compose.yaml` names the macOS container `ewe_macos`. This test
+    // needs that container to run; the Platform Docker Tests workflow starts
+    // it in the `macos-tests` job before it runs this file.
+    let builder = TestEnvironmentBuilder::new("ewe_macos").with_vnc(5900);
     assert!(builder.is_running()); // macOS container should be up
 }
 
