@@ -41,7 +41,7 @@ fn run_cargo_check(workspace: &str) -> BuildResult {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .output()
-        .map_err(|e| ToolingError::Io(e))?;
+        .map_err(ToolingError::Io)?;
 
     if output.status.success() {
         Ok(BuildOutput::CheckPassed)
@@ -64,7 +64,7 @@ fn run_cargo_build(workspace: &str, crate_name: &str, args: &[String]) -> BuildR
         cmd.arg(arg);
     }
 
-    let output = cmd.output().map_err(|e| ToolingError::Io(e))?;
+    let output = cmd.output().map_err(ToolingError::Io)?;
 
     if output.status.success() {
         Ok(BuildOutput::BuildComplete {

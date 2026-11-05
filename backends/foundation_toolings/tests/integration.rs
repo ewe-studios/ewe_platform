@@ -1,7 +1,7 @@
 // Integration tests for foundation_toolings.
 
 use foundation_toolings::builder::{CargoBuilder, ProjectBuilder};
-use foundation_toolings::proxy::{copy_bidirectional, TunnelProxyTrait};
+use foundation_toolings::proxy::copy_bidirectional;
 use foundation_toolings::runner::DurationSleeper;
 use foundation_toolings::watcher::FileChange;
 use foundation_toolings::VecStringExt;

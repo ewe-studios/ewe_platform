@@ -108,6 +108,29 @@ pull request's GitHub CI.
 - Tests: per crate, the existing tests pass; add one test per converted producer that a
   parked consumer wakes promptly (check-count bound from feature 77).
 
+### Result (2026-11-05)
+
+- All six sites use `EventQueue`; the re-grep returns nothing, and no lane B crate calls the
+  executor wake. The four deprecated constructors and the test
+  `queue_readiness_new_keeps_polling_for_raw_pushers` are deleted.
+- `SteeringQueues` fields are `EventQueue<Messages>`, as planned. Both readiness methods also
+  change their return type to `EventReadinessPtr`: the old `Arc<dyn EventReadiness>` cannot
+  go into `TaskStatus::Depends` under `multi`, so the method did not compile for its caller.
+- `foundation_toolings` bumps to 0.0.4, although this plan said no bump was needed. The
+  struct fields are private, but `ProjectBuilderTask::new`, `BinaryRunnerTask::new` and the
+  public `FileChangeEventPump.queue` field changed type. Both consumers (`bin/platform`,
+  `examples/devbinary`) require the new version.
+- The readiness check bound is 4, not 3: the executor checks twice before the park (once on
+  its own, once after it registers the waker) and twice when the wake releases the task. A
+  bound of 3 fails every run. A 1 ms re-check makes about 200 checks over the same park, so
+  the bound still separates the two behaviours.
+- The wake tests hold the push-to-run delay under 100 ms and log it. The 1 ms figure in this
+  plan is not assertable: the first Linux container run measured 19.4 ms with 4 checks, so
+  the delay measures thread scheduling. The check count is the proof (see
+  [learnings](../../learnings.md)).
+- Warnings cleared in `foundation_toolings` (8 clippy lints, one unused import, two unused
+  dependencies), because the zero-warning rule applies to every crate the change touches.
+
 ## Done when
 
 - [ ] No lane B crate uses a raw queue with polling readiness or touches the executor wake;

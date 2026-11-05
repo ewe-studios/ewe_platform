@@ -2,6 +2,18 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 81, wake tests): do not assert how fast a parked task wakes. The
+  delay between the push and the task running again measures thread scheduling, not the
+  wake path. On the emulated amd64 container the delay was 19 ms one run while the
+  readiness check count stayed at 4, so a 1 ms bound failed about one test in four runs.
+  The readiness check count is the discriminator: an event-driven park costs 4 checks (two
+  before the park, two when the wake releases it), and a 1 ms re-check costs about 200
+  over a 200 ms park. Keep the delay in the log and hold it under a loose limit only.
+- 2026-11-05 (feature 81, `TaskStatus::Depends` needs `EventReadinessPtr`): a readiness
+  typed `Arc<dyn EventReadiness>` does not compile into `TaskStatus::Depends` under the
+  `multi` executor. `SteeringQueues::priority_readiness` returned that type and was
+  therefore unusable with the executor. Return `EventReadinessPtr` (the alias that the
+  `Depends` arm takes) from every readiness-producing method.
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run

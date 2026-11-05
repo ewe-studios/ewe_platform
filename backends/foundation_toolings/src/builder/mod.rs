@@ -10,9 +10,8 @@ pub use wasm_pack::WasmPackBuilder;
 
 use std::sync::Arc;
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::run_background_job;
-use foundation_core::valtron::QueueReadiness;
+use foundation_core::valtron::{EventQueue, QueueReadiness};
 use foundation_nativeapis::shared::WatchEvent;
 use foundation_nativeapis::valtron::CompositeReadiness;
 
@@ -48,28 +47,24 @@ pub trait ProjectBuilder: Send + Sync + std::fmt::Debug {
 pub struct ProjectBuilderTask {
     builders: Vec<Arc<dyn ProjectBuilder>>,
     change_rx: foundation_core::synca::mpp::Receiver<WatchEvent>,
-    change_queue: Arc<ConcurrentQueue<FileChange>>,
-    change_ready: QueueReadiness<FileChange>,
-    result_queue: Arc<ConcurrentQueue<BuildResult>>,
-    result_ready: QueueReadiness<BuildResult>,
-    build_complete_queue: Arc<ConcurrentQueue<()>>,
+    /// File changes, in order. Its push wakes the parked task.
+    change_queue: EventQueue<FileChange>,
+    /// Build results from the background jobs. Their push wakes the parked task.
+    result_queue: EventQueue<BuildResult>,
+    build_complete_queue: EventQueue<()>,
     stop_on_failure: bool,
 }
 
 impl ProjectBuilderTask {
     pub fn new(
         change_rx: foundation_core::synca::mpp::Receiver<WatchEvent>,
-        build_complete_queue: Arc<ConcurrentQueue<()>>,
+        build_complete_queue: EventQueue<()>,
     ) -> Self {
-        let change_queue = Arc::new(ConcurrentQueue::unbounded());
-        let result_queue = Arc::new(ConcurrentQueue::unbounded());
         Self {
             builders: Vec::new(),
             change_rx,
-            change_queue: change_queue.clone(),
-            change_ready: QueueReadiness::new(change_queue),
-            result_queue: result_queue.clone(),
-            result_ready: QueueReadiness::new(result_queue),
+            change_queue: EventQueue::unbounded(),
+            result_queue: EventQueue::unbounded(),
             build_complete_queue,
             stop_on_failure: false,
         }
@@ -85,10 +80,26 @@ impl ProjectBuilderTask {
         self
     }
 
+    /// A readiness that is ready when a file change is queued. A push into the
+    /// change queue wakes the task parked on it.
+    #[must_use]
+    pub fn change_readiness(&self) -> Arc<QueueReadiness<FileChange>> {
+        Arc::new(self.change_queue.readiness())
+    }
+
+    /// A readiness that is ready when a build result is queued. A push from the
+    /// background job wakes the task parked on it.
+    #[must_use]
+    pub fn result_readiness(&self) -> Arc<QueueReadiness<BuildResult>> {
+        Arc::new(self.result_queue.readiness())
+    }
+
+    /// The readiness of the whole task: ready when a file change **or** a build
+    /// result arrives.
     pub fn readiness(&self) -> Arc<CompositeReadiness> {
         Arc::new(CompositeReadiness::new(
-            Arc::new(self.change_ready.clone()),
-            Arc::new(self.result_ready.clone()),
+            self.change_readiness(),
+            self.result_readiness(),
         ))
     }
 }

@@ -37,7 +37,7 @@ impl ProjectBuilder for WasmBuilder {
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
 
-        let output = cmd.output().map_err(|e| ToolingError::Io(e))?;
+        let output = cmd.output().map_err(ToolingError::Io)?;
 
         if output.status.success() {
             Ok(BuildOutput::BuildComplete {
