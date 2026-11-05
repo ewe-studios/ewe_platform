@@ -35,7 +35,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{self, FutureTask, Pipe, PipeReceiver, PipeSender};
 use foundation_http::native::upgrade::SseStream;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_wasm_ui::server::{Broadcaster, FrameTransport};
@@ -163,13 +163,13 @@ impl Serve for StreamHandler {
         // synchronously (spec 70 feature 82).
         ConnectionResult::Async(Box::pin(async move {
             let Some(bc) = bag.get::<Broadcaster>() else {
-                return ConnectionResult::Close(None);
+                return ServeOutcome::Close(None);
             };
             let sse = match SseStream::new(&conn).await {
                 Ok(sse) => sse,
                 Err(e) => {
                     tracing::warn!("SSE upgrade failed: {e}");
-                    return ConnectionResult::Close(None);
+                    return ServeOutcome::Close(None);
                 }
             };
 
@@ -177,13 +177,13 @@ impl Serve for StreamHandler {
             let driver = FutureTask::new(drive_sse(sse, receiver));
             if let Err(e) = valtron::send(driver) {
                 tracing::warn!("Cannot start the SSE frame driver: {e}");
-                return ConnectionResult::Close(None);
+                return ServeOutcome::Close(None);
             }
 
             // The connection is Arc-shared; the driver's clone keeps it
             // open after the worker drops its handle on Take.
             bc.register(SseTransport { frames });
-            ConnectionResult::Take
+            ServeOutcome::Take
         }))
     }
 }

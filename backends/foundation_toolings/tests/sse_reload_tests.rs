@@ -20,7 +20,7 @@ use std::time::{Duration, Instant};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{self, FutureTask};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_toolings::proxy::SseReloadHandler;
 use foundation_toolings::watcher::FileChange;
@@ -111,7 +111,7 @@ fn proxy_sse_client_reading_one_byte_per_poll_receives_the_whole_event() {
         .recv_timeout(Duration::from_secs(10))
         .expect("the handler stops after the connection closes");
     assert!(
-        matches!(result, ConnectionResult::Take | ConnectionResult::Close(_)),
+        matches!(result, ServeOutcome::Take | ServeOutcome::Close(_)),
         "a failed write must end the handler"
     );
 }

@@ -16,7 +16,7 @@ use std::time::{Duration, Instant};
 
 use foundation_browser::test::stream::{SseTransportConfig, StreamHandler};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_wasm_ui::server::Broadcaster;
 
@@ -97,7 +97,7 @@ fn browser_sse_transport_delivers_the_whole_frame_to_a_slow_client() {
         .recv_timeout(Duration::from_secs(10))
         .expect("the upgrade completes after registering the client");
     assert!(
-        matches!(result, ConnectionResult::Take),
+        matches!(result, ServeOutcome::Take),
         "the handler must hand the connection to the frame driver"
     );
 

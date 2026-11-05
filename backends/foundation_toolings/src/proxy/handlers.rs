@@ -8,7 +8,7 @@ use foundation_core::valtron::timer;
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::{render_message, ResponseWriter, WriterConfig};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_netio::event_source::{SseEvent, SseResponse};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
@@ -56,18 +56,18 @@ impl Serve for SseReloadHandler {
                 Ok(head) => head,
                 Err(e) => {
                     tracing::error!("Failed to render the SSE response head: {e}");
-                    return ConnectionResult::Close(None);
+                    return ServeOutcome::Close(None);
                 }
             };
 
             let mut response = ResponseWriter::new(conn, WriterConfig::default());
             if let Err(e) = response.write_all(&head).await {
                 tracing::debug!("SSE head write failed: {e}");
-                return ConnectionResult::Take;
+                return ServeOutcome::Take;
             }
             if let Err(e) = response.flush().await {
                 tracing::debug!("SSE head flush failed: {e}");
-                return ConnectionResult::Take;
+                return ServeOutcome::Take;
             }
             let mut writer = SseWriter::from_writer(response);
 
@@ -77,14 +77,14 @@ impl Serve for SseReloadHandler {
                 while reload_rx.pop().is_ok() {
                     let event = SseEvent::new().event("reload").data("ready").build();
                     if writer.send(&event).await.is_err() {
-                        return ConnectionResult::Take;
+                        return ServeOutcome::Take;
                     }
                 }
 
                 // Send a keep-alive every second.
                 if last_keepalive.elapsed() >= Duration::from_secs(1) {
                     if writer.comment("keep-alive").await.is_err() {
-                        return ConnectionResult::Take;
+                        return ServeOutcome::Take;
                     }
                     last_keepalive = Instant::now();
                 }
