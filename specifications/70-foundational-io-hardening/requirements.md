@@ -203,6 +203,13 @@ done
 | 80 | [valtron owns executor wake-up](./features/80-valtron-owns-executor-wake/feature.md) | §8 catalogue rows 104–106 (sonnet) | 77, 46 | L |
 | 81 | [Lane B on valtron wake constructs](./features/81-lane-b-valtron-wake-constructs/feature.md) | §8 catalogue row 107 (sonnet) | 80 | M |
 | 79 | [vms clippy in CI](./features/79-deployment-platform-vms-clippy/feature.md) | §8 catalogue row 102 (haiku) | — | S |
+| 82 | [Async SSE event writes; no truncated event](./features/82-sse-async-event-writer/feature.md) | backlog §3 (sonnet) | 63 | M |
+| 83 | [ptrace spawn tests on native amd64 CI](./features/83-ptrace-native-amd64-ci/feature.md) | backlog §16 (sonnet) | 47 | M |
+| 84 | [`ServeFuture` resolves to a closed `ServeOutcome`](./features/84-serve-outcome-enum/feature.md) | owner review 2026-11-05 (sonnet) | 63 | M |
+
+Priority for 82–84: **82 first** (a data-loss bug on every SSE event). 83 starts after 82, or
+with it when two agents are free. 84 follows 82 because both change `foundation_http`; it
+runs before every lower-priority open feature.
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.

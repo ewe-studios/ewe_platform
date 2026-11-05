@@ -2,6 +2,18 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (features 82 and 83, recorded from owner reports): an empty test binary passes.
+  `ptrace_vfs/mod.rs` is gated on `target_os = "linux"` plus two features, so a wrong feature
+  set in `ci/packages.toml` builds nothing and CI stays green. Give such a suite a named run
+  and a probe target that asserts when `EWE_REQUIRE_*` is set (the `io_uring_probe` pattern).
+  The ptrace suite is Linux-only: macOS has no Linux `ptrace` and this workspace has no macOS
+  backend, so a macOS runner cannot cover it, amd64 or not. The native amd64 kernel that the
+  OrbStack `PTRACE_GETREGS` `EIO` failure needs is the GitHub `ubuntu-latest` x86_64 runner,
+  which runs the linux/amd64 image as a container on its own kernel.
+  SSE has the same truncation hazard as `respond::*` had: an `EventWriter` over a non-blocking
+  socket uses `writeln!` and drops the rest of an event on `WouldBlock`. Rendering to bytes and
+  writing through `ResponseWriter` is the fix; keep one renderer so the wire format does not
+  fork.
 - 2026-11-05 (feature 63, retiring the sync response path): a test that must
   prove a writer parks needs a transport whose readiness the test controls.
   Loopback TCP did not work: with `SO_SNDBUF` and `SO_RCVBUF` set to 4 KiB,

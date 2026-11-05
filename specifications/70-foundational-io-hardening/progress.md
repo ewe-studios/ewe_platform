@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: features 82 and 83 recorded from two owner requests. 82 is the priority: SSE
+  events still go through the synchronous `EventWriter`, so a slow client can truncate an
+  event (backlog §3). 83 makes the ptrace spawn suite prove itself on native amd64 CI
+  (backlog §16). 83 records the platform fact: the suite is Linux-only, so a macOS runner
+  cannot run it; native amd64 coverage comes from `ubuntu-latest` (x86_64 kernel) running the
+  linux/amd64 CI image. Both are added to the feature table. No code change yet.
+- 2026-11-05: the `ewe_platform` CI job failed `templates_build` on `14deb2c55`:
+  the `web-app` template's private `mod app; mod config;` scaffold built with `unused import`
+  warnings once feature 63 made the template warnings an assertion. The library now exposes
+  `pub mod app; pub mod config;`. The template test run is recorded below.
+
 - 2026-11-05: feature 63 done on `fix/io-63-respond-async`. Every native caller
   of the synchronous `respond::*` now uses the async writer. The module is
   renamed `respond_to_buffer` and kept only for in-memory writers (tests over a
