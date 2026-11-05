@@ -267,17 +267,12 @@ impl Drop for Miniflare {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum MinflareTool {
+    #[default]
     Wrangler,
     Miniflare,
     Custom(PathBuf),
-}
-
-impl Default for MinflareTool {
-    fn default() -> Self {
-        Self::Wrangler
-    }
 }
 
 pub struct MiniflareConfig {

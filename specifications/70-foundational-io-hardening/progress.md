@@ -35,6 +35,40 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `cargo clippy --no-deps -- -D warnings` commands clean. The bare command
   without `--no-deps` still reports the lane A `foundation_nostd` fair_gate
   debt (backlog §4), which CI does not lint because it passes `--no-deps`.
+- 2026-11-05: feature 81 on `spec70/f81-lane-b-wake`, branched from `master` after
+  #173 merged. The six live polling sites now use
+  `EventQueue`: the watcher pump, the builder change and result queues, the runner build
+  queue, and the agent steering priority and follow-up queues. `SteeringQueues.priority` and
+  `follow_up` are `EventQueue<Messages>`, and both readiness methods return
+  `EventReadinessPtr`; the old `Arc<dyn EventReadiness>` cannot go into
+  `TaskStatus::Depends` under `multi`, so the method was unusable there. The four deprecated
+  constructors and the test that re-polled on a raw push are deleted, so `EventQueue` is now
+  the only way to make a `QueueReadiness` or a `QueueVacancyReadiness`.
+  Published crates bump in the same change: `foundation_ai` 0.0.6 (`answerme-agent`,
+  `bin/platform`) and `foundation_toolings` 0.0.4 (`bin/platform`, `examples/devbinary`); the
+  toolings public constructors and the pump's `queue` field changed type even though the
+  struct fields are private.
+  Tests: four toolings tests and two `foundation_ai` tests. Each parks a task on a converted
+  producer's readiness, pushes from another thread after 200 ms, and asserts at most 4
+  readiness checks; a 1 ms re-check over that park makes about 200.
+  The first Linux container run failed one test: the wake took 19.4 ms against a < 1 ms
+  latency assertion, while the check count stayed at 4. The delay measures thread scheduling
+  and is inert under emulated amd64, so the tests now log it and hold it under 100 ms; the
+  check count is the proof that the wake is event-driven (see learnings). The re-run is
+  green, with wakes from 1.9 ms to 12.2 ms.
+  Warnings cleared in `foundation_toolings` while the crate was open: 8 clippy lints (four
+  redundant closures, one derivable `Default`, two `new_without_default`, one `while let`
+  loop), one unused test import and two unused dependencies. Local `cargo fmt --check` and
+  clippy report no warning for the three crates.
+  Checks: macOS toolings tests 4 wake + 11 integration, `foundation_ai` steering wake 2 of 2
+  and the full `agentic_tests` 331, `foundation_core --features multi --test mod` 785, the
+  doctests 70 (default) and 73 (`multi`). Linux CI green for `foundation_toolings` and
+  `foundation_ai`. Backlog: three new toolings entries (the builder never sees a second file
+  change; the unused pump; `DurationSleeper` reads the wall clock) and two `foundation_ai`
+  entries (`BashTool` never reads its `timeout`; clippy debt per test target). The lane B
+  entry is deleted. Its `ewe_platform` CI job then failed: both project templates still
+  pinned `foundation_toolings` 0.0.3, so `[patch.crates-io]` did not apply and cargo
+  fetched the broken registry copy. Both templates now require 0.0.4.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers

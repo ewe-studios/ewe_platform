@@ -16,10 +16,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
     execute, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr, Pipe,
-    QueueReadiness, ReadinessWaker, ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
+    ReadinessWaker, ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -137,23 +136,6 @@ async fn queue_readiness_wakes_on_a_push_from_another_thread() {
     })
     .await;
     assert_woke("EventQueue::readiness", ms, checks);
-}
-
-#[valtron_test(threads = 1, timeout = 10_000)]
-#[allow(deprecated)]
-async fn queue_readiness_new_keeps_polling_for_raw_pushers() {
-    let queue = Arc::new(ConcurrentQueue::unbounded());
-    let raw = queue.clone();
-    let readiness = QueueReadiness::new(queue);
-    let (ms, checks) = park_and_trigger(Arc::new(readiness), false, move || {
-        raw.push(1u32).expect("raw push");
-    })
-    .await;
-    eprintln!("QueueReadiness::new: {ms} ms, {checks} checks");
-    assert!(
-        (200..400).contains(&ms),
-        "a raw push is still seen: {ms} ms"
-    );
 }
 
 #[valtron_test(threads = 1, timeout = 10_000)]

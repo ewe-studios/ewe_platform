@@ -141,15 +141,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **Lane B crates still build `QueueReadiness::new` over a plain queue, which keeps the
-  1 ms re-check.** Feature 80 made `EventQueue` (its push, pop and close wake the parked
-  task) the way to park on a queue and deprecated `QueueReadiness::new`,
-  `QueueVacancyReadiness::new` and their `event_driven` aliases. Remaining users, all
-  lane B: `foundation_toolings` (`runner/mod.rs:83`, `watcher/mod.rs:63`,
-  `builder/mod.rs:70,72`), `foundation_ai` (`agentic/steering.rs:169,176`),
-  `foundation_netio` `shared/http/pushable_body.rs` and `quic/traits.rs` (doc mentions).
-  Fix: feature 81 switches each queue to `EventQueue`, then deletes the deprecated
-  constructors.
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.
@@ -193,6 +184,18 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   prepared on branch `fix-fma-without-avx2` of the sarah-ek/gemm clone; link pending
   (see `patches/gemm-common/UPSTREAM.md`). Fix: file it, then drop
   `patches/gemm-f16` when a fixed release is out and candle accepts it.
+
+- **`BashTool` stores a `timeout` and never reads it.** `src/agentic/tools/files.rs:264`
+  keeps `timeout` ("Max wall-clock time before the command is killed"), but the build and
+  run paths never read the field, so a bash command has no time limit (the lib clippy run
+  reports it as dead code). Fix: kill the child at the timeout, or delete the field and its
+  configuration. Seen in the Linux CI run of feature 81 (2026-11-05).
+- **`foundation_ai` has clippy debt in every test and example target.** The Linux CI run of
+  feature 81 counted 163 warnings in `foundation_ai_tests`, 40 in `provider_tests`, 36 in
+  `tool_tests`, 33 in `agentic_tests`, 25 in `candle_tests`, 19 in `model_tests`, 2 in
+  `memory_tests`, 1 to 10 in each example, and 1 in the lib. Most are pedantic style
+  (`doc_markdown`, `collapsible_match`, `manual_repeat_n`). None come from the feature 81
+  files. Fix: a cleanup pass per target, then keep the zero-warning rule.
 
 ## 11. foundation_db and its sync callers
 
@@ -274,6 +277,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   call site is compiled out, so `cargo check --tests --target wasm32` on
   foundation_wireguard/foundation_netio emits `method rearm_readable is never
   used`. Fix: gate the method on the same `cfg` as its call site.
+- **`platform-docker-tests.yml` fails on every run, on master too.** All three
+  jobs fail. `platform-unit` (ubuntu-latest, no CI container) runs
+  `cargo test -p foundation_platform`, whose Linux dependency tree includes
+  `tauri` → `gtk` → `gobject-sys`, so `gobject-sys`' build script stops on a
+  missing `gobject-2.0` pkg-config file (no `libgtk-3-dev` or `libglib2.0-dev`
+  on the runner). `windows-tests` and `macos-tests` fail in the same workflow.
+  Fix: install the GTK development packages in the job, or gate the GUI
+  dependency behind a feature the job does not enable; then find the cause of
+  the other two jobs. Found while reading the spec 70 pull request checks
+  (2026-11-05); it is not caused by them.
+
 ## 17. foundation_vectors
 
 ## 21. foundation_deployment_cloudflare on wasm32
@@ -414,6 +428,26 @@ are clean. Each item needs the per-crate clippy workflow in
   (1 each) have style warnings; the manifest reports one unused dependency.
 - **`foundation_repl`**: `tests/wrapping.rs` and `tests/layout.rs` have one
   warning each.
+
+## 32. foundation_toolings
+
+- **The dev builder task cannot see a second file change.** `ProjectBuilderTask` parks on
+  its change and result readinesses, but the watch events arrive on `change_rx` (an
+  `mpp::Receiver`), and nothing wakes the task when a sender calls `send`. The task also
+  never pops `change_queue`, so after the first queued change the composite readiness stays
+  ready and the executor re-runs the task in a hot loop (`builder/mod.rs`,
+  `change_readiness` and `result_readiness`). Feature 81 converted the queues to
+  `EventQueue` and did not change these two faults. Fix: push each watch event into
+  `change_queue` (its push wakes the task) and pop it when consumed, or park on the
+  receiver's own readiness.
+- **`FileChangeEventPump` has no user and duplicates its readiness.** No crate or test calls
+  it, and its `ready` field is a second copy of `queue.readiness()` (`watcher/mod.rs`).
+  Fix: delete the pump, or delete `ready` and build the readiness from the queue on
+  demand.
+- **`DurationSleeper` reads the wall clock directly.** `runner/mod.rs` calls
+  `SystemTime::now()`, which project rule 11 forbids in core logic: clocks must come from
+  the `Env` bundle in `Ctx`. Fix: read a clock trait from `Ctx`, and use a simulated clock
+  in the tests.
 
 ## Paused
 
