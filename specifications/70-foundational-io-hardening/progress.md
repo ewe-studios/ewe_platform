@@ -22,6 +22,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     `foundation_proxy`; the rerun passed it.
   - Features 115, 116 and 119 move from `pending (CI proof)` to `done`, each
     with the run cited in its Result.
+  - Audit run 42109733327 on the later head `3cf80db3b` also finished
+    `success`: 119 success, 3 skipped. The proxy suite passed in both runs.
   - The proxy flake is still open. Two local loops with `--cpus=2` failed three
     different tests, so the PR passes or fails depending on load. Features 121,
     122 and 123 carry the plan.
