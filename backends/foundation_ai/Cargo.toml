@@ -49,7 +49,7 @@ futures-lite = "2"
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", features = ["turso"], default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.5", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.6", features = ["multi"] }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.6", features = ["vfs", "vfs-search", "vfs-search-fff"] }
@@ -57,7 +57,7 @@ foundation_deployment_huggingface = { path = "../foundation_deployment_huggingfa
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", features = ["wasm"], default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.5", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.6", default-features = false, features = ["wasm-fetch"] }
 # VFS traits + in-code searcher only (`vfs` + `vfs-search`, no `vfs-search-fff`:
 # the fff engine and the CLI rg/grep cascade are native-only, already
 # cfg(not(target_family = "wasm"))-gated in foundation_nativeapis).

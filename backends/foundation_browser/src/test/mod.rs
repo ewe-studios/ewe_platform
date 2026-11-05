@@ -17,7 +17,7 @@ pub use harness::{Harness, TestConfig};
 pub use server::{
     Encoding, PageSource, StaticMount, TestServer, ARROW_LIB_PATH, PRIMAL_TEST_PATH, RUNTIME_PATH,
 };
-pub use stream::STREAM_PATH;
+pub use stream::{SseTransportConfig, STREAM_PATH};
 
 // Server-driven UI fan-out + the App protocol sink now live in foundation_wasm_ui.
 pub use foundation_wasm_ui::server::{BroadcastSink, BroadcastTx, Broadcaster};

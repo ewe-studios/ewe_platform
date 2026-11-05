@@ -74,7 +74,7 @@ optional = true
 # buildkitd). Optional; only the `buildkit` feature needs it.
 [dependencies.foundation_http]
 path = "../foundation_http"
-version = "0.0.4"
+version = "0.0.5"
 optional = true
 
 [dependencies.foundation_macros]
@@ -87,7 +87,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.5"
+version = "0.0.6"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"

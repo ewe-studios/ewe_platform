@@ -1267,13 +1267,13 @@ impl Serve for SseCounterHandler {
                     .id(i.to_string())
                     .build();
 
-                if let Err(e) = sse.send(&event) {
+                if let Err(e) = sse.send(&event).await {
                     tracing::error!("Failed to send SSE event: {:?}", e);
                     break;
                 }
 
                 // Small delay between events
-                std::thread::sleep(Duration::from_millis(10));
+                foundation_core::valtron::timer::sleep_for(Duration::from_millis(10)).await;
             }
 
             ConnectionResult::Take

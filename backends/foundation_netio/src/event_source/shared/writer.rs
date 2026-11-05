@@ -3,15 +3,35 @@
 //! WHY: Servers need to format SSE events according to W3C specification.
 //! WHAT: [`EventWriter`] formats and writes SSE events to output streams.
 //!
+//! NOTE: [`EventWriter`] is synchronous (`W: Write`). It is for in-memory
+//! writers and tests. A non-blocking socket must use
+//! `foundation_http::native::upgrade::SseWriter`, which writes the same bytes
+//! through `ResponseWriter` and parks on write readiness instead of truncating
+//! an event with `WouldBlock`.
+//!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
 use crate::event_source::SseEvent;
 use std::io::Write;
 
+/// Append a comment line (`: <text>\n`) to `out`.
+///
+/// WHY: Comments (keep-alive) are part of the SSE wire format too. The
+/// synchronous writer and the async native writer must produce the same line.
+/// WHAT: Appends `": "`, the text, and a newline.
+pub fn render_comment(text: &str, out: &mut Vec<u8>) {
+    out.extend_from_slice(b": ");
+    out.extend_from_slice(text.as_bytes());
+    out.push(b'\n');
+}
+
 /// [`EventWriter`] formats and writes SSE events to an output stream.
 ///
 /// WHY: Server needs to send properly formatted SSE events to clients.
 /// WHAT: Wraps a Write stream and provides methods to send events.
+///
+/// NOTE: Synchronous. Do not wrap a non-blocking socket in this writer; use the
+/// async `SseWriter` in `foundation_http` for that.
 pub struct EventWriter<W>
 where
     W: Write,
@@ -35,7 +55,8 @@ where
     /// Send an SSE event to the client.
     ///
     /// WHY: Primary method for transmitting events.
-    /// WHAT: Formats event according to SSE spec and writes to stream.
+    /// WHAT: Renders the event with [`SseEvent::render`] and writes the bytes
+    /// to the stream, then flushes.
     ///
     /// # Format
     /// ```text
@@ -51,47 +72,26 @@ where
     ///
     /// Returns [`std::io::Error`] if writing to the stream fails.
     pub fn send(&mut self, event: &SseEvent) -> Result<(), std::io::Error> {
-        // Write event type if present
-        if let Some(event_type) = event.event_type() {
-            writeln!(self.writer, "event: {event_type}")?;
-        }
-
-        // Write ID if present
-        if let Some(id) = event.id() {
-            writeln!(self.writer, "id: {id}")?;
-        }
-
-        // Write retry if present
-        if let Some(retry) = event.retry_ms() {
-            writeln!(self.writer, "retry: {retry}")?;
-        }
-
-        // Write data lines (each prefixed with "data: ")
-        for data_line in event.data_lines() {
-            writeln!(self.writer, "data: {data_line}")?;
-        }
-
-        // Empty line to dispatch event
-        writeln!(self.writer)?;
-
-        // Flush to ensure immediate delivery
-        self.writer.flush()?;
-
-        Ok(())
+        let mut bytes = Vec::new();
+        event.render(&mut bytes);
+        self.writer.write_all(&bytes)?;
+        // Flush to ensure immediate delivery.
+        self.writer.flush()
     }
 
     /// Send a comment (keep-alive) to the client.
     ///
     /// WHY: Comments are used for keep-alive and debugging.
-    /// WHAT: Writes a comment line starting with ":".
+    /// WHAT: Renders the comment with [`render_comment`] and writes it.
     ///
     /// # Errors
     ///
     /// Returns [`std::io::Error`] if writing to the stream fails.
     pub fn comment(&mut self, comment: &str) -> Result<(), std::io::Error> {
-        writeln!(self.writer, ": {comment}")?;
-        self.writer.flush()?;
-        Ok(())
+        let mut bytes = Vec::new();
+        render_comment(comment, &mut bytes);
+        self.writer.write_all(&bytes)?;
+        self.writer.flush()
     }
 
     /// Send a simple message without event type.
