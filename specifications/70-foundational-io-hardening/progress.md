@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: the audit run is green; features 115, 116 and 119 are `done`.
+  Branch `spec70/priority-followups`, commit `9b1138a63`.
+  - Audit run 42099300473 attempt 2 finished `success`. Check runs for the
+    commit: 117 success, 1 neutral (CodeQL), 3 skipped. Attempt 1 had failed
+    `foundation_proxy`; the rerun passed it.
+  - Features 115, 116 and 119 move from `pending (CI proof)` to `done`, each
+    with the run cited in its Result.
+  - The proxy flake is still open. Two local loops with `--cpus=2` failed three
+    different tests, so the PR passes or fails depending on load. Features 121,
+    122 and 123 carry the plan.
+
 - 2026-11-06: the second proxy failure, its mechanism, and two new features.
   Branch `spec70/priority-followups`, commit `9b1138a63`.
   - Audit run 42099300473 (attempt 1) failed `foundation_proxy` again, on

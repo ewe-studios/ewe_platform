@@ -214,6 +214,16 @@ Measured while the plan was written:
 - Ten more runs with `--cpus=2` reproduce it once: run 5 failed
   `connect_client_stream_via_grpc_backend` after 29.14 s. The failure rate is about 1 in
   5, so the 30-run loop must run several times.
+- A second loop of only `rpc_proxy_e2e_tests`, twenty runs, failed on run 5 in
+  `connect_bidi_via_grpc_backend`: the 30 s cap fired. The saved log of that run
+  shows the epoll backend (this container has no
+  io_uring: `io_uring_setup failed: Function not implemented`), the proxy started at
+  T+0.000, two `[DEPENDS] Task ... returned already-ready signal` warnings within 0.2 s,
+  and then no further line until the harness killed the test at T+30 s. The accept line
+  is `tracing::trace!`, so an INFO capture cannot say whether the connection was
+  accepted. That is why Design 2 adds a counter.
+- Both loops together: three different tests fail, all of them proxy e2e tests that make
+  a client call soon after another test's servers stopped.
 - Attempt 1 of audit run 42099300473 failed `foundation_proxy` again, while
   `foundation_core`, `foundation_macros` and `foundation_netio` passed.
 

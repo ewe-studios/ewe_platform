@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_core` reaches zero clippy warnings and denies them in CI"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority (owner comment, PR #180, 2026-11-05)"
 model: "sonnet"
 branch: "spec70/f116-core-clippy-debt"
@@ -238,3 +238,9 @@ The module is `#[cfg(all(target_os = "linux", feature = "multi"))]`, so no macOS
 run compiles it. The names are now `stream`, which removes the lint. This is a
 real gap in the local proof: a platform-gated module can hide a lint. Check a
 Linux-only or wasm-only module on its own target, not only on the host.
+
+**CI proof, 2026-11-06.** GitHub audit run
+[42099300473](https://github.com/ewe-studios/ewe_platform/actions/runs/42099300473)
+attempt 2 on commit `9b1138a63` finished `success` (117 success, 1 neutral, 3
+skipped). Both `foundation_core` deny-warning clippy runs, including the
+`--features multi` tree that failed in attempt 1, print no warning.

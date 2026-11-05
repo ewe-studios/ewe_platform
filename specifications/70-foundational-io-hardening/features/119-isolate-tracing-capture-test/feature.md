@@ -1,6 +1,6 @@
 ---
 feature: "Move the tracing capture test into its own test binary"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority (blocks CI green on the branch)"
 model: "haiku"
 branch: "spec70/f119-tracing-capture-isolation"
@@ -107,3 +107,8 @@ cargo test --profile uat -p foundation_core --features multi
 The race remains possible for a future test that installs a scoped subscriber
 inside the large `mod` binary. The pattern is: put such a test in its own target.
 The Linux CI run is the cross-platform proof.
+
+**CI proof, 2026-11-06.** GitHub audit run
+[42099300473](https://github.com/ewe-studios/ewe_platform/actions/runs/42099300473)
+attempt 2 on commit `9b1138a63` finished `success` (117 success, 1 neutral, 3
+skipped); the `foundation_core` job runs the new single-test target on Linux.

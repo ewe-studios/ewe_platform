@@ -1,6 +1,6 @@
 ---
 feature: "A host installs its own clock in the pool `Ctx`, and `Ctx::with_clock` returns a new `Ctx`"
-status: "pending (CI proof)"
+status: "done"
 lane: "after 116"
 model: "sonnet"
 branch: "spec70/f115-ctx-clock-injection"
@@ -280,3 +280,10 @@ Known limit (also in `docs/bug-backlog.md` §4): the executor still parks on the
 real monotonic clock. An injected clock changes what a task reads, not how long
 a worker sleeps.
 
+
+**CI proof, 2026-11-06.** GitHub audit run
+[42099300473](https://github.com/ewe-studios/ewe_platform/actions/runs/42099300473)
+attempt 2 on commit `9b1138a63` finished `success`: 117 success, 1 neutral
+(CodeQL), 3 skipped. Attempt 1 failed the `foundation_core` job on a Linux-only
+lint in the `--features multi` tree; commit `9b1138a63` fixed that test. The
+clock tests passed in both attempts.
