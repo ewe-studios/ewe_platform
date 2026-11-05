@@ -117,7 +117,9 @@ pub struct SecureNoteData {
     Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
 )]
 #[repr(u8)]
+#[derive(Default)]
 pub enum CipherRepromptType {
+    #[default]
     None = 0,
     Password = 1,
 }
@@ -155,10 +157,4 @@ pub struct CipherUpdateRequest {
     pub data: Option<String>,
     pub favorite: Option<bool>,
     pub folder_id: Option<String>,
-}
-
-impl Default for CipherRepromptType {
-    fn default() -> Self {
-        Self::None
-    }
 }

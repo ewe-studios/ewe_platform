@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Sends API — portable handlers (spec-57, F008 Stage 1).
 //!
 //! WHY: time-limited, access-counted secure sharing. Ported from OrangeVault
@@ -66,6 +70,10 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Se
 }
 
 /// `GET /api/sends` — the user's sends.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Send>> {
     Ok(store::find_by_user(ctx.db(), user_uuid)
         .await?
@@ -75,6 +83,10 @@ pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Send>
 }
 
 /// `POST /api/sends` — create a text/file send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -113,11 +125,19 @@ pub async fn create(
 }
 
 /// `GET /api/sends/:id` — an owned send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Send> {
     Ok(to_send(&owned(ctx, user_uuid, id).await?))
 }
 
 /// `PUT /api/sends/:id` — update an owned send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -158,6 +178,10 @@ pub async fn update(
 }
 
 /// `DELETE /api/sends/:id` — delete an owned send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<()> {
     owned(ctx, user_uuid, id).await?;
     store::delete(ctx.db(), id).await
@@ -168,6 +192,10 @@ pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResu
 /// Enforces disabled / deletion / expiry / max-access-count / password, then
 /// increments the access counter and returns the send (a "not found" is returned
 /// for any access-denied case so a probe can't distinguish reasons).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> AppResult<Send> {
     let mut row = store::find(ctx.db(), id)
         .await?

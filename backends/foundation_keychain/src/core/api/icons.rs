@@ -41,6 +41,10 @@ fn is_plausible_domain(domain: &str) -> bool {
 }
 
 /// `GET /icons/:domain/icon.png` — fetch a site's favicon (SSRF-guarded).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn fetch_icon(domain: &str) -> AppResult<IconData> {
     let domain = domain.trim().to_lowercase();
     if !is_plausible_domain(&domain) {

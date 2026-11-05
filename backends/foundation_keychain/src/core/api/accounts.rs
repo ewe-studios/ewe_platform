@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Accounts API — portable handlers (spec-57, F008 Stage 1).
 //!
 //! WHY: Bitwarden account lifecycle — prelogin (KDF params), registration
@@ -70,6 +74,10 @@ fn to_profile(row: &UserRow) -> ProfileResponse {
 }
 
 /// `POST /identity/accounts/prelogin` — KDF params for the email, or defaults.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn prelogin(ctx: &KeychainContext, email: &str) -> AppResult<PreloginResponse> {
     let email = normalize_email(email);
     match store::find_by_email(ctx.db(), &email).await? {
@@ -91,6 +99,10 @@ pub async fn prelogin(ctx: &KeychainContext, email: &str) -> AppResult<PreloginR
 
 /// `POST /identity/accounts/register` — create an account with a server-side
 /// password verifier. Fails with `Conflict` if the email is taken.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<UserAccount> {
     let email = normalize_email(&req.email);
     if email.is_empty() || !email.contains('@') {
@@ -138,6 +150,10 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
 }
 
 /// `GET /api/accounts/profile` — the user's profile.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get_profile(ctx: &KeychainContext, user_uuid: &str) -> AppResult<ProfileResponse> {
     let user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
@@ -146,6 +162,10 @@ pub async fn get_profile(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Pr
 }
 
 /// The user's account summary (the `profile` block of a sync payload).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn account(ctx: &KeychainContext, user_uuid: &str) -> AppResult<UserAccount> {
     let user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
@@ -154,6 +174,10 @@ pub async fn account(ctx: &KeychainContext, user_uuid: &str) -> AppResult<UserAc
 }
 
 /// `PUT /api/accounts/profile` — update mutable profile fields.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update_profile(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -185,6 +209,10 @@ pub async fn update_profile(
 ///
 /// Used by `POST /api/accounts/verify-password` and the `connect/token` password
 /// grant. Returns `false` for a wrong password; `Unauthorized` for no such user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn verify_master_password(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -197,6 +225,10 @@ pub async fn verify_master_password(
 }
 
 /// Verify a password against an already-loaded user row.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn verify_user_password(user: &UserRow, master_password_hash: &str) -> AppResult<bool> {
     let expected = STANDARD
         .decode(&user.password_hash)

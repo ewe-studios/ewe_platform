@@ -76,7 +76,7 @@ fn create_then_list_and_get() {
     .expect("create");
     // name is trimmed
     assert_eq!(created.name, "Personal");
-    assert!(!created.id.is_empty());
+    assert_ne!(created.id, "");
 
     let c = ctx.clone();
     let listed = drive(async move { folders::list(&c, USER_A).await }).expect("list");

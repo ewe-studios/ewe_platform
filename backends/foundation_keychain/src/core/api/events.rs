@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Events API — portable audit-log handlers (spec-57, F008 Stage 1).
 //!
 //! WHY: Bitwarden clients `POST /events/collect` a batch of user-activity events;
@@ -47,6 +51,10 @@ fn to_response(row: &EventRow) -> EventResponse {
 }
 
 /// `POST /api/events/collect` — record a batch of events.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn collect(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -74,6 +82,10 @@ pub async fn collect(
 }
 
 /// `GET /api/events` — the user's recorded events (newest first).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<EventResponse>> {
     Ok(store::find_by_user(ctx.db(), user_uuid)
         .await?

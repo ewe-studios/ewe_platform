@@ -31,6 +31,10 @@ fn map_row(row: &SqlRow) -> AppResult<EventRow> {
 }
 
 /// Append an event.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &EventRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_events (uuid, user_uuid, atype, cipher_uuid, event_date, created_at) \
@@ -53,6 +57,10 @@ pub async fn insert(db: &dyn QueryStore, row: &EventRow) -> AppResult<()> {
 }
 
 /// The user's events, newest first.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<EventRow>> {
     let rows = db
         .query(

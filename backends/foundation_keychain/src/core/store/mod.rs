@@ -37,6 +37,10 @@ pub const SCHEMA: &str = include_str!("../../../migrations/0001_initial.sql");
 /// each non-empty statement via `execute` (which every backend supports).
 /// DDL is idempotent (`CREATE TABLE IF NOT EXISTS`), so this doubles as the
 /// migration runner for the server backends.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn apply_schema(db: &dyn QueryStore) -> AppResult<()> {
     // Strip `--` comments (full-line and inline) before splitting; the DDL has no
     // string literals containing `--`, so a plain cut at the first `--` is safe.
@@ -59,6 +63,8 @@ pub async fn apply_schema(db: &dyn QueryStore) -> AppResult<()> {
 }
 
 /// Map a `foundation_db` storage error into the keychain's internal error.
+// The mapper takes the error by value so it reads as `.map_err(store_err)`.
+#[allow(clippy::needless_pass_by_value)]
 pub(crate) fn store_err(e: foundation_db::StorageError) -> AppError {
     AppError::Internal(e.to_string())
 }

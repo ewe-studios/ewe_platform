@@ -1,6 +1,6 @@
-//! Bitwarden-specific auth adapters over foundation_auth (spec-57, F008).
+//! Bitwarden-specific auth adapters over `foundation_auth` (spec-57, F008).
 //!
-//! WHY: foundation_auth provides general JWT/TOTP/PBKDF2; Bitwarden adds
+//! WHY: `foundation_auth` provides general JWT/TOTP/PBKDF2; Bitwarden adds
 //! specific claims (`sstamp` for security stamp, `orgowner`/`orgadmin` for
 //! org roles) and a distinctive login response shape (`Key`, `PrivateKey`,
 //! `Kdf`, `UserDecryptionOptions`).

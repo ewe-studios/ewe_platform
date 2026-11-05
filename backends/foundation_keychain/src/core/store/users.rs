@@ -1,6 +1,6 @@
 //! User persistence (spec-57, F008 Stage 1).
 //!
-//! Ported from OrangeVault `db/queries.rs` (users) onto `foundation_db`'s
+//! Ported from `OrangeVault` `db/queries.rs` (users) onto `foundation_db`'s
 //! `QueryStore`. The row carries the server-side password verifier
 //! (`password_hash` + `salt` + `password_iterations`), the client KDF params the
 //! prelogin endpoint echoes back, and the `security_stamp` that invalidates
@@ -38,6 +38,8 @@ const COLUMNS: &str = "uuid, email, name, password_hash, salt, password_iteratio
      security_stamp, akey, client_kdf_type, client_kdf_iter, client_kdf_memory, \
      client_kdf_parallelism, master_password_hint, email_verified, created_at, updated_at";
 
+// Callers hold the row fields by reference; `&Option` avoids a clone.
+#[allow(clippy::ref_option)]
 fn opt_text(o: &Option<String>) -> DataValue {
     match o {
         Some(s) => DataValue::Text(s.clone()),
@@ -79,6 +81,10 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
 }
 
 /// Insert a new user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_accounts \
@@ -125,16 +131,28 @@ async fn find_one(db: &dyn QueryStore, where_col: &str, value: &str) -> AppResul
 }
 
 /// Find a user by (already-normalized) email.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_email(db: &dyn QueryStore, email: &str) -> AppResult<Option<UserRow>> {
     find_one(db, "email", email).await
 }
 
 /// Find a user by uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_uuid(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<UserRow>> {
     find_one(db, "uuid", uuid).await
 }
 
 /// Update the mutable profile fields (name, master password hint).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update_profile(
     db: &dyn QueryStore,
     uuid: &str,

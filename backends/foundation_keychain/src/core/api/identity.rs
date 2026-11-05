@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Identity API — `connect/token` (spec-57, F008 Stage 1).
 //!
 //! WHY: The Bitwarden login endpoint. Two OAuth2 grants: `password` (verify the
@@ -30,6 +34,10 @@ use crate::core::store::users::{self, UserRow};
 use base64::Engine;
 
 /// `POST /identity/connect/token` — dispatch on `grant_type`.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn connect_token(ctx: &KeychainContext, req: TokenRequest) -> AppResult<LoginResponse> {
     match req.grant_type.as_str() {
         "password" => password_grant(ctx, req).await,

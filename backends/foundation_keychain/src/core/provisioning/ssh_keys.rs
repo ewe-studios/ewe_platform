@@ -60,6 +60,10 @@ async fn owned(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<S
 }
 
 /// `POST /api/credentials/ssh-keys` — generate + store a key for the app.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     master_key: &str,
@@ -93,6 +97,10 @@ pub async fn create(
 }
 
 /// `GET /api/credentials/ssh-keys` — the app's keys (public only).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, app_id: &str) -> AppResult<Vec<SshKeyResponse>> {
     Ok(store::find_keys_by_app(ctx.db(), app_id)
         .await?
@@ -102,6 +110,10 @@ pub async fn list(ctx: &KeychainContext, app_id: &str) -> AppResult<Vec<SshKeyRe
 }
 
 /// `GET /api/credentials/ssh-keys/:id` — one key with the decrypted private key.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(
     ctx: &KeychainContext,
     master_key: &str,
@@ -116,6 +128,10 @@ pub async fn get(
 }
 
 /// `DELETE /api/credentials/ssh-keys/:id` — delete an owned key.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<()> {
     owned(ctx, app_id, key_id).await?;
     store::delete_key(ctx.db(), key_id).await
