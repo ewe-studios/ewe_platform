@@ -123,11 +123,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 7. foundation_deployment_platform
 
-- **CI does not lint the `vms` feature tree.** The CI clippy and build steps run
-  default features only (`runs[0] = ""`); `vms` compiles only under
-  `cargo test --features vms`, which does not lint. The `vms` tree is now at
-  zero clippy warnings (cleaned 2026-11-02), but nothing keeps it there.
-  Fix: extend the CI clippy run to the `vms` feature so this debt stays zero.
+(no open entries)
 
 ## 8. foundation_openapi / foundation_codegentools
 
@@ -213,38 +209,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
   server writes milliseconds for its own rows. Fix: pick one unit per column,
   document it in the migrations, and make cleanup follow it.
-- **`KVWasmStorage`'s rate limiter isn't atomic**
-  (`src/wasm/wasm_storage/kv_wasm.rs`): a record reads the entry, then
-  writes it back, so two concurrent hits can count once (and KV is
-  eventually consistent across locations). Fix: use a Durable Object or D1
-  for rate limits on Workers, and document KV as best-effort.
-- **Databases created by the old rate-limit code have the wrong table.**
-  Before F04 T11 a store that wasn't migrated created
-  `rate_limits (key PRIMARY KEY, count, window_start)`; the store now uses the
-  migration 014 shape (`id`, `key UNIQUE`, `count`, `window_start`,
-  `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
-  old-shape table. Fix: a migration that rebuilds an old-shape table (rate
-  limit rows are disposable), or drop it on detection.
-- **The wasm stores keep a second, inherent `*_async` API.** `D1WasmStorage`,
-  `KVWasmStorage` and `R2WasmStorage` (`src/wasm/wasm_storage/*.rs`) have
-  public inherent methods with the old trait names (`get_async`,
-  `query_async`, `put_blob_async`, ...). They return `!Send` futures, and
-  `D1WasmStorage::list_keys_async` / `KVWasmStorage::list_keys_async` return
-  a `Vec` instead of a stream. The trait impls, `StorageProvider`,
-  `WasmCredentialStore`, `foundation_auth`'s `CredentialStore for
-  D1WasmStorage` and `examples/cf-login-app` call these. Spec 50 F05 T3
-  dropped the suffix from the trait methods, so the two APIs no longer share
-  a name, but a caller can still pick either by accident. Fix: make the
-  inherent methods private helpers (as the native stores' `*_internal` ones
-  are) and route every caller through the traits (`list_keys` +
-  `collect_all` where a `Vec` is needed).
-- **No CI job builds the example workspaces** (`examples/cf-*`,
-  `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
-  loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
-  runs that had rotted (foundation_db `libsql`, foundation_nativeapis
-  `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
-  `server-test`) are in `ci/packages.toml` since F04 T12.
-
 - **Turso store rejects overlapping calls: "Backend error: concurrent use forbidden".**
   `turso_sdk_kit` allows one use of a connection at a time, and the Turso
   `StorageProvider` shares one connection. Now that the keychain server runs
@@ -310,15 +274,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   call site is compiled out, so `cargo check --tests --target wasm32` on
   foundation_wireguard/foundation_netio emits `method rearm_readable is never
   used`. Fix: gate the method on the same `cfg` as its call site.
-- **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
-  `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
-  `foundation_core::valtron::{EventReadiness::register, ReadinessNotifier, ReadinessWaker}`
-  (`reactor.rs`, `shutdown_signal.rs`, `fd_readiness.rs`) and `EventReadiness::clear`
-  (`fd_readiness.rs`) that were added to the local tree after 0.0.6 was
-  published. `release-plz release` verifies the tarball against the published 0.0.6, so it fails with
-  E0425/E0407. The 0.0.7 bump has landed (`foundation_core` and `foundation_macros` are now
-  0.0.7 on `fix/io-35-turso-async-trait-overflow`); the crates.io publish still needs to
-  happen at release time so 0.0.7 publishes before `foundation_reactor`.
 ## 17. foundation_vectors
 
 ## 21. foundation_deployment_cloudflare on wasm32
@@ -365,6 +320,100 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 ## 25. foundation_auth
 
 (no open entries; features 68, 73 and 74 fixed the ones found in the ToS gate work)
+
+## 26. foundation_platform
+
+- **The crate is not clippy-clean.** `cargo clippy --profile uat -p
+  foundation_platform --all-targets --no-deps` reports 146 warnings in the
+  library (61 after duplicate removal) and more in the existing test targets.
+  The main lints are `doc_markdown`, `must_use_candidate`, `missing_errors_doc`
+  and `redundant_closure_for_method_calls`, in `src/session.rs`,
+  `src/backend/`, `src/capability.rs`, `src/codegen.rs`, `src/multi_app.rs` and
+  others. Found in feature 59 when its inline tests moved out; the moved tests
+  themselves are clean. Fix: run the per-crate clippy workflow in
+  `.agents/AGENTS.md`, then set `clippy-deny-warnings` for the package in
+  `ci/packages.toml`.
+
+## 27. foundation_packager
+
+- **The crate is not clippy-clean.** `cargo clippy --profile uat -p
+  foundation_packager --all-targets --no-deps` reports about 80 warnings in the
+  vendored `src/tinytemplate/` copy (format-argument, doc-backtick and legacy
+  lint items) and about 16 in `src/files.rs` and `src/package.rs` (missing
+  `# Errors`/`# Panics` sections, `needless_pass_by_value`, `too_many_lines`,
+  `assigning_clones`). `foundation_conditional` is used by features only, so
+  cargo also reports it as an unused dependency. Found in feature 59; the moved
+  test files are clean. Fix: clean the vendored copy by upgrading it from
+  upstream TinyTemplate, clean the two source files, and set
+  `clippy-deny-warnings` in `ci/packages.toml`.
+
+## 28. infrastructure_llama_cpp
+
+- **A worktree without submodule content cannot build this crate.** A worktree
+  has no `tools/llama.cpp/llama.h`, so `infrastructure_llama_bindings`' build
+  script stops with `fatal error: 'llama.h' file not found`. The main checkout
+  has the submodule: the seven moved tests compile and pass there (2026-11-05).
+  Fix: run `git submodule update --init tools/llama.cpp` in a worktree before
+  building this crate.
+
+## 29. foundation_jsonschema
+
+- **Accepted exception: the crate is a vendored copy of the upstream
+  `jsonschema` crate, so its inline tests stay.** About 40 source files carry
+  `#[cfg(test)] mod tests`. Feature 59 (rule 7) does not move them, because the
+  copy tracks upstream and moving them would grow the fork diff. The owner
+  must confirm this exception. If the crate is no longer a vendored copy, move
+  the tests and delete this entry.
+
+## 30. Proc-macro crates (foundation_macros, crates/html-macro, crates/template-macro)
+
+- **Their inline tests cannot move to `tests/` as they stand.** A
+  `proc-macro = true` crate can export only macros, so integration tests can
+  reach only the macros. The inline modules in `foundation_macros`
+  (`wasm_modes.rs`, `wasm_logs.rs`, `connectrpc_service.rs`,
+  `html_macro/{parser,scoped_css}.rs`, 33 tests) call private helpers
+  (`wasm_bin`, `wasm_service`, `wasm_logs`, `parse_template`,
+  `transform_scoped_css`). `crates/html-macro` and `crates/template-macro` have
+  a trybuild harness each. Fix: move the helpers into a normal library crate
+  that the proc-macro crate calls (the feature 59 guidance), then test them
+  from `tests/`.
+
+- **`crates/template-macro`'s trybuild harness is broken.** Its
+  `test/jinja/main.rs` fixture imports `foundation_packager::minijinja`, but
+  `foundation_packager` does not re-export `minijinja`, and
+  `foundation_packager` is not a dev-dependency of the macro crate. The
+  `jinja` pass case fails with `E0432: unresolved import`. The crate is excluded
+  from the root workspace (`crates/*`), so the harness never ran. Found in
+  feature 59 when the move was attempted; the move was reverted. Fix: re-export
+  `minijinja` from `foundation_packager`, make the macro crate a standalone
+  workspace root, then move the harness to `tests/`.
+
+- **`crates/html-macro`'s trybuild pass fixtures need `dioxus`.** The
+  `test/attribute/passes.rs` fixture uses `dioxus::prelude::*`, but `dioxus` is
+  not a dev-dependency. The crate is excluded from the workspace and cannot
+  build. Found in feature 59; its harness stays inline. Fix: add a `dioxus`
+  dev-dependency (choose a version that matches the `rsx!` output) and move the
+  harness, or record why the macro is no longer supported.
+
+## 31. Lane B clippy debt found while moving tests (feature 59)
+
+These warnings are in code the feature did not change. The moved test files
+are clean. Each item needs the per-crate clippy workflow in
+`.agents/AGENTS.md`, then `clippy-deny-warnings` in `ci/packages.toml`.
+
+- **`foundation_connectrpc_codegen`**: `src/generator.rs` has 76
+  `clippy::format_push_string` warnings (use `write!` into the output
+  `String`), one `too_many_lines`, one `missing_panics_doc` and one
+  doc-backtick warning. The generator tests assert the generated output, so
+  they guard the rewrite.
+- **`foundation_testing`**: the existing `tests/scenarios/barrier_debug.rs`
+  (4), `tests/scenarios/integration_tests.rs` (5) and
+  `tests/integration_tests.rs` (1) have style warnings.
+- **`foundation_codegen`**: `tests/wasm_roundtrip_tests.rs` (1) and
+  `tests/units/{foundation_codegen_visitor_tests,foundation_codegen_file_walker_tests}.rs`
+  (1 each) have style warnings; the manifest reports one unused dependency.
+- **`foundation_repl`**: `tests/wrapping.rs` and `tests/layout.rs` have one
+  warning each.
 
 ## Paused
 

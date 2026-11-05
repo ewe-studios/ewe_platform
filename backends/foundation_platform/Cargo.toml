@@ -1,6 +1,6 @@
 [package]
 name = "foundation_platform"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -42,7 +42,7 @@ tracing = { workspace = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
 
 # Wasmtime shell — Surface 3 WASM runtime (F33)
-foundation_wasmtime = { path = "../foundation_wasmtime", version = "0.1.0" }
+foundation_wasmtime = { path = "../foundation_wasmtime", version = "0.1.1" }
 
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }

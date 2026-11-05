@@ -137,6 +137,11 @@ runs = ["", "--no-default-features --features single_threaded"]
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
 runs = ["", "vms"]
+# Lint both feature trees: a warning in `vms` code must fail CI too
+# (spec 70 feature 79).
+clippy-runs = ["", "vms"]
+# At zero clippy warnings in both feature trees: a new one fails CI.
+clippy-deny-warnings = true
 
 [packages.foundation_testbed]
 # `vms` re-exports foundation_deployment_platform (with its `vms` feature) as

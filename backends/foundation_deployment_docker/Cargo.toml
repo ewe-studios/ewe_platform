@@ -34,7 +34,7 @@ optional = true
 # build.rs pattern uses (README Mode 1), driven per-service here.
 [build-dependencies.foundation_connectrpc_codegen]
 path = "../foundation_connectrpc_codegen"
-version = "0.0.2"
+version = "0.0.3"
 optional = true
 
 [build-dependencies.prost]

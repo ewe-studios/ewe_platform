@@ -2,6 +2,39 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 59 done on `spec70/f59-f60-f79-lane-b-mechanical`. Moved
+  170 inline tests out of 11 lane B crates into `tests/`: foundation_shell 1,
+  foundation_repl 4, foundation_logging 12, foundation_codegen 9, ewe_watchers
+  5, foundation_html 47, foundation_testing 35, foundation_platform 36,
+  foundation_packager 10, foundation_wasmtime 3, foundation_connectrpc_codegen
+  8. Test counts and assertions are unchanged. Private items became public
+  where a test needed them, and the crates were version-bumped where the API
+  grew. `ewe_watchers` was excluded from the root workspace but inherited
+  `workspace = true`, so it never built; it is now a standalone workspace root.
+  `infrastructure_llama_cpp` moved 7 tests; the main checkout has the
+  `tools/llama.cpp` submodule, so all seven compile and pass, and the crate
+  bumps to 0.0.5 with its consumers (`foundation_ai`, the four examples).
+  Remaining
+  inline tests: jsonschema (accepted vendored copy), boringtun (upstream fork,
+  out of this feature's list), and the proc-macro crates (need a companion
+  library crate). Checks: each touched crate's fmt, clippy (`--all-targets
+  --no-deps`) and `cargo test --profile uat`, all green except llama-cpp.
+- 2026-11-05: feature 60 done on `spec70/f59-f60-f79-lane-b-mechanical`. Deleted
+  five stale backlog entries after checking each against the code: KVWasmStorage
+  best-effort rate limiting, migration 027, the wasm inherent `*_async` API, the
+  missing examples CI job, and the foundation_reactor publish note. The E-drop
+  entries (§18, §19, §23, §24) were already gone. E3: lane B catalogue rows 29,
+  30 and 102 are fixed; the other lane B rows stay with their unlanded features.
+  The spec 70 `tasks` counts now match the feature files (67 done, 12 open,
+  2 dropped, 83%).
+- 2026-11-05: feature 79 done on `spec70/f59-f60-f79-lane-b-mechanical`.
+  `ci/packages.toml` now lints `foundation_deployment_platform` with
+  `clippy-runs = ["", "vms"]` and `clippy-deny-warnings = true`.
+  `python3 scripts/ci/ci.py list` shows `clippy=enforce+deny`, and
+  `ci.py run foundation_deployment_platform --step clippy` ran both planned
+  `cargo clippy --no-deps -- -D warnings` commands clean. The bare command
+  without `--no-deps` still reports the lane A `foundation_nostd` fair_gate
+  debt (backlog §4), which CI does not lint because it passes `--no-deps`.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers

@@ -2,6 +2,33 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 59, moving tests out of lane B): three surprises.
+  First, `crates/*` is in the root workspace's `exclude` list but its packages
+  still use `workspace = true` fields, so cargo rejects them with "current
+  package believes it's in a workspace when it's not". Add an empty
+  `[workspace]` table, copy the inherited values, and add
+  `[profile.uat] inherits = "dev"`; `ewe_watchers` then builds and its tests
+  run. Second, a test module is not always at the end of a file. In
+  `foundation_platform/src/ewe.rs` it sits in the middle, and truncating at
+  its `#[cfg(test)]` line deleted `select_protocol` and friends. Check for
+  code after the module before truncating; delete the block with an exact
+  edit instead. Third, making an item public for a test is new public API, so
+  the crate needs a version bump and every consumer's requirement must change
+  in the same commit. When the consumer is owned by another agent (here
+  `foundation_ai` pins `infrastructure_llama_cpp` 0.0.4 under PR #176), keep
+  the old version, record the deferred bump, and say so in the report.
+- 2026-11-05 (feature 59, proc-macro crates): a `proc-macro = true` crate
+  exports only macros, so `tests/` cannot call its helper functions even when
+  they are `pub`. The inline tests in `foundation_macros` test helpers such as
+  `parse_template` and `transform_scoped_css`; they stay inline until those
+  helpers move to a normal library crate that the macro crate calls.
+- 2026-11-05 (feature 79, clippy without `--no-deps`): `cargo clippy -p
+  <crate> --all-targets -- -D warnings` also lints every workspace path
+  dependency. For `foundation_deployment_platform` it fails on lane A's
+  `foundation_nostd/src/comp/fair_gate.rs`, not on the target crate. CI's
+  `clippy-deny-warnings` adds `--no-deps`, which keeps the gate on the
+  package's own code. Use both commands when a feature says "run clippy and
+  fix what it reports": the `--no-deps` run is the CI verdict.
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run

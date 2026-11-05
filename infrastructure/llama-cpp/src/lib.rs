@@ -47,7 +47,7 @@ use std::string::FromUtf8Error;
 pub mod context;
 pub mod llama_backend;
 pub mod llama_batch;
-mod log;
+pub mod log;
 pub mod model;
 #[cfg(feature = "mtmd")]
 pub mod mtmd;
@@ -527,7 +527,11 @@ impl LogOptions {
     }
 }
 
-extern "C" fn logs_to_trace(
+/// Native llama.cpp log callback.
+///
+/// The bindings call this function for every log line. It is public so the
+/// buffering and level-mapping behaviour has a test from `tests/`.
+pub extern "C" fn logs_to_trace(
     level: infrastructure_llama_bindings::ggml_log_level,
     text: *const ::std::os::raw::c_char,
     data: *mut ::std::os::raw::c_void,
