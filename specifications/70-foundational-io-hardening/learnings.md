@@ -8,6 +8,12 @@ _What an agent learned that the next agent needs. Newest first._
     `ExecutorState::root.fork()` gives a task. Injecting the registry root alone
     changes nothing. Fix in this feature: build the worker executor with
     `from_seed_with_root(..., self.root.clone())`.
+  - **Giving workers the pool root also shares its `config` and `rng`.** Before
+    feature 115 each worker built its own `Ctx::new()`, so its seed-0 RNG stream
+    was separate. A task now forks the pool root, so one stream serves the pool.
+    That is the deterministic simulation testing (DST) behaviour a host wants,
+    and no test depended on the separation. State such a side effect when you
+    change where a root comes from.
   - **`std::time::Instant` is opaque, so a simulated clock cannot be rebuilt
     from a `Duration`.** Store a base `Instant::now()` and a `Mutex<Duration>`
     offset; `now()` is `base + offset`. Differences stay exact; the absolute

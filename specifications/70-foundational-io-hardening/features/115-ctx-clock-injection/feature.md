@@ -242,7 +242,11 @@ Measured facts:
 - The multi pool now builds each worker's `LocalThreadExecutor` from
   `LocalThreadExecutor::from_seed_with_root` with the registry root. Before this
   change a worker task read a fresh `Ctx::new()`, so an injected root could not
-  reach it.
+  reach it. Side effect: every task now forks the pool root, so all tasks share
+  the root's `config` and `rng` `Arc`s. Before, each worker had its own
+  `Ctx::new()` and its own seed-0 RNG stream. A deterministic simulation test
+  (DST) wants one stream, which is this behaviour; no test depended on the old
+  separation.
 - The timeout path binds the `ctx` expression once (`__valtron_ctx`) and clones
   it for the outer pool, because the macro uses the same expression on the
   outer thread and on the body thread. Inlining the expression twice would move
