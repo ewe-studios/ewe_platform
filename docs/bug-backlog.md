@@ -447,6 +447,22 @@ are clean. Each item needs the per-crate clippy workflow in
   `cli-allow`-style exception and no `clippy-deny-warnings` entry in
   `ci/packages.toml`. Fix: apply the per-crate clippy workflow, then add
   `clippy-deny-warnings = true`. Feature 67 did not introduce these warnings.
+- **`foundation_sshkit`**: the same `-D warnings` run reports 16 pedantic
+  warnings (doc backticks in `src/lib.rs`, `missing_errors_doc` on the
+  `Backend` trait in `src/backends/mod.rs`, `must_use_candidate`,
+  `redundant_closure_for_method_calls` and `default_trait_access` in
+  `command.rs`/`host.rs`). All predate feature 67. Fix: the same workflow,
+  then `clippy-deny-warnings = true`.
+- **`foundation_arrow`**: the same run reports 19 pedantic warnings, mostly
+  `missing_errors_doc` on the public `ipc.rs` functions (they returned
+  `Result` before feature 67 too), plus style warnings in `dom_ops.rs` and
+  `traits.rs`. Fix: add `# Errors` sections and clear the rest, then
+  `clippy-deny-warnings = true`.
+- **`foundation_nativeapis`**: the same run reports 188 pedantic warnings in the
+  default feature tree. The crate has no crate-level allow list and no
+  `clippy-deny-warnings` entry. Fix: clear the tree feature by feature (start
+  with the default tree), then deny warnings. Feature 67 changed only the
+  error derives.
 
 ## 32. foundation_toolings
 
