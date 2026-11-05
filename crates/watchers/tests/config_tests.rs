@@ -56,14 +56,17 @@ fn test_watcher_config_parsing_should_fail_if_configuration_is_invalid() {
         "#,
     ];
 
-    let results: Vec<Result<Config, ConfigError>> = candidates
+    let results: Vec<ewe_watchers::config::Result<Config>> = candidates
         .iter()
         .map(move |config| Config::json(config))
         .collect();
 
     for r in results {
         assert!(r.is_err());
-        assert!(!matches!(r, Err(ConfigError::FailedDeserialization(_))));
+        assert!(!matches!(
+            r,
+            Err(trace) if matches!(trace.current_context(), ConfigError::FailedDeserialization(_))
+        ));
     }
 }
 

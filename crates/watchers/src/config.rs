@@ -1,27 +1,34 @@
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use serde::{Deserialize, Serialize};
 
 use serde_with::skip_serializing_none;
 
-pub type Result<T> = anyhow::Result<T, ConfigError>;
+pub type Result<T> = std::result::Result<T, ErrorTrace<ConfigError>>;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum ConfigError {
-    #[error("Configuration file is not found")]
+    #[display("Configuration file is not found")]
     FileNotFound,
 
-    #[error("Configuration file could not be read")]
+    #[display("Configuration file could not be read")]
     FailedReading,
 
-    #[error("Configuration file format not supported")]
+    #[display("Configuration file format not supported")]
     UnknownFormat,
 
-    #[error("Configuration is invalid due to: {0}")]
+    #[display("Configuration is invalid due to: {_0}")]
     BadConfiguration(serde_json::Error),
 
-    #[error("Could not serialize configuration due to: {0}")]
+    #[display("Could not serialize configuration due to: {_0}")]
     FailedDeserialization(serde_json::Error),
+}
+
+impl From<ConfigError> for ErrorTrace<ConfigError> {
+    fn from(err: ConfigError) -> Self {
+        ErrorTrace::new(err)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
@@ -107,7 +114,7 @@ impl Config {
     pub fn json(config_str: &str) -> Result<Config> {
         match serde_json::from_str(config_str) {
             Ok(config) => Result::Ok(config),
-            Err(err) => Result::Err(ConfigError::BadConfiguration(err)),
+            Err(err) => Result::Err(ConfigError::BadConfiguration(err).into()),
         }
     }
 
@@ -119,7 +126,7 @@ impl Config {
     pub fn as_json(&self) -> Result<String> {
         match serde_json::to_string(&self) {
             Ok(val) => Result::Ok(val),
-            Err(err) => Result::Err(ConfigError::FailedDeserialization(err)),
+            Err(err) => Result::Err(ConfigError::FailedDeserialization(err).into()),
         }
     }
 }
