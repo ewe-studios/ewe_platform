@@ -4,7 +4,8 @@
 //! or [`sleep_async`](crate::valtron::executors::sleep_async()) (returns a
 //! `Future` via `execute()` + `into_ready_future()`).
 
-use std::time::{Duration, Instant};
+use foundation_compact::Instant;
+use std::time::Duration;
 
 use crate::valtron::{Ctx, TaskIterator, TaskStatus};
 

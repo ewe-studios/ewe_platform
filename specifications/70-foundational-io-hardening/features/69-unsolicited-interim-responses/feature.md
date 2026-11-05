@@ -1,6 +1,6 @@
 ---
 feature: "foundation_netio and the Docker client handle a 1xx interim response the client did not ask for"
-status: "pending"
+status: "done"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
@@ -47,7 +47,7 @@ regression test, and say what was wrong.
 
 ```bash
 export CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0
-cargo test -p foundation_netio --profile dev --test simple_http unsolicited_interim
+cargo test -p foundation_netio --profile dev --test foundation_netio_tests unsolicited_interim
 cargo test -p foundation_deployment_docker --profile dev --features docker --test expect_continue_tests
 python3 scripts/ci/ci.py run foundation_netio --profile dev
 ```
@@ -55,4 +55,4 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] Six tests pass 20/20 (or each failure is fixed with its test). CI green.
+- [x] Six tests pass 20/20 (or each failure is fixed with its test). CI green.

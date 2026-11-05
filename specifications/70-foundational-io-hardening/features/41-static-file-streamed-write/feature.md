@@ -1,6 +1,6 @@
 ---
 feature: "foundation_http static file handler: async, streamed from disk, no duplicate bytes, no sleeps"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"

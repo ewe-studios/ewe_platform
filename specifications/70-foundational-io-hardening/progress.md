@@ -2,6 +2,209 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
+  lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
+  the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers
+  first and checks again, and a new test fails on the old code (505 ms) and passes now (0 ms)
+  on one thread and on a pool. (2) The SSE reconnect replay test reset its first connection
+  before macOS sent the buffered event; a 100 ms wait in the handler makes it pass 20 of 20.
+  (3) The `lib.rs` comment named the private `idle_wake` module, so the CI guard failed;
+  reworded. Checks: `foundation_core --test mod` 785/785 (`multi`) and 745/745 (default) in
+  5 runs, the new test 10 runs, the idle-CPU test 10 of 10 green natively, `foundation_netio`
+  Linux CI green in both feature sets (with the three tests that failed on the PR) and
+  `foundation_proxy` green (with `connect_unary_via_h1_proxy` and
+  `grpc_web_unary_via_grpc_backend`); wasm checks green; the executor-wake guard and its unit
+  tests green. Backlog: three new entries.
+  The GitHub CI image job then failed before any package job ran: master commit 2512754fa
+  removed the `tools/whisper.cpp` gitlink, the PR merge drops it, and
+  `ci/ewe-platform-image/config.toml` lists it, so `images.nu prepare` stopped with
+  "submodule tools/whisper.cpp is not in HEAD". The branch now merges master and re-adds the
+  `tools/whisper.cpp` gitlink at 35cb684, so the merge keeps the submodule and the image bakes
+  it again. The config keeps its three submodule entries.
+  Then the `foundation_core` job failed on one test: `valtron::multi_workers::can_queue_and_complete_task`
+  panicked with "Thread pool not initialized". Cause: `PoolGuard::shutdown` cleared the global
+  pool slots even for a private guard from `PoolGuard::new`, so the test's own private-guard
+  tests (running in parallel in the same binary) wiped the live pool between `initialize_pool`
+  and `get_pool`. Each slot now clears only when it holds the guard's own registry. The new test
+  `private_pool_guard_drop_keeps_the_global_pool` fails on the old code and passes now. Checks:
+  macOS `foundation_core` green (787 `multi`, 745 default); Linux CI image green in both sets
+  except the emulated-amd64 CPU-time test that also fails on the old code there. This also
+  explains the open `.expect("execute")` flake, so its backlog entry is deleted.
+  Still open: 57 `ignore` doc examples in `foundation_core` never compile or run; a conversion
+  to executing doctests is in progress.
+  Doctests converted (same day): all 57 now execute and assert real behaviour. Checks: default
+  set 70 doctests, `multi` set 73, both "0 ignored"; full suites green (745 + 70 default,
+  786 + 73 `multi` on macOS); `cargo fmt --check` clean; clippy errors 0 with no warning on
+  an edited file. The backlog entry for the ignored examples is deleted.
+  GitHub run 41953248793 (commit 7126b1616): **green**, every job passed, including
+  `foundation_core` in both feature sets on native amd64. Feature 80 is done and marked
+  `status: "done"`. Next: feature 81 (lane B), branched from this branch because it needs
+  feature 80's API and PR #173 is not merged yet.
+- 2026-11-04: feature 46 done on `wip/f46-driven-stream-wake` (from `fix/io-41-50-lane-a`). A
+  single-thread `DrivenStreamIterator` now wakes its async consumer when a parked task becomes
+  ready: through a new `WakeableStream::wake_send` (Send callback), a one-shot resume listener in
+  `idle_wake` (fired by `request_executor_resume`), and a timed wake on the shared timer thread
+  (`timer::call_at`) at the nearest sleeper deadline or the readiness poll quantum. Six new tests in
+  `tests/valtron/driven_stream_async_wake.rs` (smol and tokio; signal, deadline-only and
+  needs-polling parks) timed out on the old code and pass now. `multi` is unchanged.
+- 2026-11-03: feature 75 done (and feature 72 done through it) on `fix/io-41-50-lane-a`.
+  Measured cause: the executor re-checked readiness-parked tasks every 1 ms (idle cost) and the
+  idle back-off `SpinWait` sleep in `block_on` could outlast a wake (the feature 72 upload stall).
+  Added `EventReadiness::deadline`/`needs_polling`, `ResumeSignal`, deadline plumbing in six
+  crates, a kill check after sleep and per-step `idle_wake::checking()`. Idle QUIC listener: 92 ms
+  to under 20 ms CPU per second. Feature 72's three H3 tests pass 20 of 20. CI: foundation_core
+  1655 tests, foundation_netio 2720 tests, foundation_proxy `--features quic` 137 tests,
+  plus reactor, wireguard, nativeapis and http tests, all green. New backlog entries for the
+  signals that still poll.
+
+- 2026-11-03: feature 72 partial on `fix/io-41-50-lane-a`. E2 done: the io_uring tests of
+  `foundation_iogate` and `foundation_proxy` fail when `EWE_REQUIRE_IO_URING=1` and io_uring is
+  missing; the CI variable is not set (Docker/seccomp support unconfirmed, recorded in the backlog).
+  E1 not merged: the streamed H3 request body works (peak 1420 bytes, 413 over the limit, 0 idle
+  polls) but exposes a QUIC driver bug: a parked driver does not wake for its QUIC timers, so a
+  16 MiB upload stalls about one run in four. Work is on branch `wip/f72-h3-request-body`; the
+  fix (an `EventReadiness` deadline hint) is a new backlog entry.
+
+- 2026-11-03: feature 70 done on `fix/io-41-50-lane-a`. E1 deletes the polling
+  `splice_bidirectional` (the io_uring splice test uses `aio::splice`). E2 makes the io_uring
+  upstream dial non-blocking (`dial_tcp` parks on write readiness, `iogate::adopt_connected`
+  registers the socket) and adds `connect_timeout`. E3 streams the H3 response body with the
+  H3 flow control; the root cause was `LimitedBatchStreamReader`/`LimitedEOFStreamReader` in
+  `foundation_core` handing out pieces as big as the remaining cap. Tests:
+  `completion_dial_does_not_hold_worker`, `h3_forward_streams_large_body`, two reader tests,
+  `adopt_connected_registers_an_already_connected_upstream`. Three new backlog entries.
+
+- 2026-11-02: feature 69 (unsolicited 1xx interim responses skipped with `Expect` off) done on
+  `fix/io-41-50-lane-a`. T0: open (no client bug; the skip logic in `request_redirect.rs` was
+  already correct). Six new tests, all passed on the first run, so no client change was made:
+  five in `foundation_netio` (`simple_http/unsolicited_interim_tests.rs`: 100 before 200 over TCP
+  and Unix socket, 103 with `Link` skipped, 100 then 102 then 200, 100 on GET) and one in
+  `foundation_deployment_docker` (`tests/expect_continue_tests.rs`:
+  `docker_client_skips_unsolicited_100`). Each test has a hard time limit (`valtron_test`
+  timeout, server read limit 10 s). Flake check: 20 of 20 for each of the six. Correction to the
+  feature verify commands: the netio test binary is `foundation_netio_tests` (feature `multi`),
+  not `simple_http`. `python3 scripts/ci/ci.py run foundation_netio --profile dev` exit 0 (the
+  run had two clippy warnings in the new test file; fixed, and the six tests pass again). Two
+  older clippy warnings in other files are logged in `docs/bug-backlog.md` section 2. Limitation:
+  the tests prove the skip path; they were not shown to fail on the old code because no old code
+  path was changed.
+
+- 2026-11-02: feature 65 (the rest of the proxy's threads and polling loops) done on
+  `fix/io-41-50-lane-a`. T0: open. E1: no exchange starts a thread. The upgrade splice, the raw
+  TCP tunnel and the gRPC-Web and Connect translators run in the `Async` future (new `aio.rs`:
+  `AsyncFd`, `splice`, `dial_tcp`); errors before the first byte answer through the async writer.
+  E2: `TcpPassthrough` and `UdpPassthrough` are futures parked on socket readiness
+  (`PassthroughConfig`). E3: the H2 plain forward is async (no feeder thread, no sleeps); the H3
+  waits are timer parks; the remaining thread and sleep sites are justified in comments with config
+  intervals (`HealthCheckConfig::shutdown_check_millis`, `ProxyConfig::drain_poll`,
+  `redirect_accept_poll`). E4: the control socket is futures (`ControlConfig`). E5: a slow client
+  upload used to fail with "body truncated" (502); the body now streams through a pipe, capped by
+  `ProxyConfig::max_request_body` (default 1 MiB, 0 = none; 413). E6: `load` takes `LOCK_SH`. Each
+  new test failed on the old code (thread counts 13 to 63, 11 to 61, 12 to 62; control socket
+  unanswered; upload 502; torn read). E1 and E2 share one commit.
+
+- 2026-11-02: feature 45 (proxy async relay, state lock, unused feature dependency) done on
+  `fix/io-41-50-lane-a`. T0: open (all three). E1: `ProxyHandler::serve` returns
+  `ConnectionResult::Async` for an ordinary HTTP exchange. The future owns the connection (in a
+  `ResponseWriter`), request, backend lease and cloned state, awaits `send_async` upstream, reads the
+  upstream body as an `AsyncSendSafeBody` with the upstream socket's read-wake source and writes each
+  piece with the feature 61 writer (a `Content-Length` body is kept; any other is re-framed chunk by
+  chunk). A failure before the head sends 502 through the writer; after it, only a close. The
+  handler's early 404/503 answers use `send_text`/`send_not_found`. Upgrade, raw TCP and the gRPC-Web
+  and Connect translators stay on a thread (blocking boundary, backlog §9). New
+  `ProxyConfig::relay_send_timeout` (default 60 s, nginx `send_timeout`). Test
+  `proxy_relay_does_not_spawn_threads` failed on the old code (12 to 62 threads with 50 open
+  relays); `proxy_relay_holds_no_worker` passes before and after (the thread relay did not hold a
+  worker either); three streaming tests added. E2: `ProxyStateStore` takes a `flock` on a lock file
+  in the state directory for each load-change-save (the state store has no conditional write); test
+  `two_stores_on_one_backend_do_not_lose_updates` failed before, passes after. E3: the Cloudflare
+  DNS-01 path does not exist (the ACME flow takes a caller-made setter), so the unused dependency was
+  removed; the feature name stays (`cloudflare = []`). Backlog §9: two entries deleted, six added;
+  §11: one added.
+
+- 2026-11-02: feature 64 (keychain streamed request body) done on `fix/io-41-50-lane-a`. T0:
+  open. `ServeAdapter::serve` no longer reads the body; the async future reads it with
+  `AsyncSendSafeBody` plus the connection's `read_wake_source`, through `collect_bytes_bounded`
+  (cap + 1 bytes, to tell "at the cap" from "over"). New `KeychainServerConfig`
+  (`max_request_body`, default 1 MiB, nginx `client_max_body_size`; builders on the config and
+  `KeychainServer::with_max_request_body`), stored in the `ContextBag`. Over the cap: 413 with
+  `Connection: close`, rest unread, connection closed. Test `slow_request_body_does_not_hold_worker`
+  failed on the feature 44 code: `try_collect_bytes` hit `WouldBlock` on the non-blocking socket
+  and silently returned a truncated body ("slow body was truncated, prelogin answered:
+  kdfIterations 600000" instead of 123456), so the old code was worse than a held worker. Now
+  passes; `request_body_over_cap_is_413` passes. 20/20 runs each. New backlog entry (§11): the
+  Turso store fails overlapping calls with "concurrent use forbidden" (now reachable through
+  concurrent async handlers); the slow test staggers its two uploads. §22 sync-body entry deleted.
+
+- 2026-11-02: feature 44 (keychain async serve) done on `fix/io-41-50-lane-a`. T0: open.
+  `ServeAdapter::serve` now returns `ConnectionResult::Async`. The future owns the method,
+  path, body, bearer, master key, a clone of `KeychainContext` (all `Arc` fields) and the
+  connection; it runs `provisioning_route` / `route` with `.await` and writes the JSON with
+  `render_head` + `write_response` (the feature 61 non-blocking writer). `poll_ready`,
+  `noop_waker`, `status_code` and the sync `write_json` are deleted. The recursion lint is
+  fixed with `#![recursion_limit = "256"]` in `src/bin/keychain.rs` (same cause and fix as
+  `foundation_db`); the 12 keychain test files that warned for the same lint got the same
+  attribute. New test `tests/async_serve.rs::keychain_handler_that_awaits_does_not_panic`
+  (a store that yields `Pending` once with a real wake): before, panic at
+  `native.rs:272` "did not complete in a single poll"; after, 200. Two new backlog entries
+  (sync `read_body`, keychain clippy debt); both §22 entries deleted.
+
+- 2026-11-02: feature 43 (Docker `100 Continue` stall) done on `fix/io-41-50-lane-a`. T0:
+  open. Root cause: `HttpClientBuilder::read_timeout` in
+  `foundation_netio/src/network_client.rs` (the line `set_expect_continue_read_timeout(timeout)`,
+  old line 183) also set the `Expect: 100-continue` wait. `DockerClient::connect_unix` builds its
+  client with `read_timeout(120 s)`, so the wait became 120 s; the state machine
+  (`park_for_continue`, `request_redirect.rs` ~1188) was correct and always parks on the
+  send-body deadline. Fix: `read_timeout` no longer touches the handshake wait
+  (`expect_continue_timeout` is the only setter); `ClientConfig::blocking_body_read_timeout`
+  now returns the larger of the handshake wait and `min_read_timeout`, so sync body reads keep
+  their long timeout. The Docker client (unix, tcp, tls, ssh) also calls `expect_continue(false)`.
+  New tests: netio `expect_continue_timeout_tests` (4: timer over TCP and Unix, and
+  `read_timeout` does not lengthen the wait over TCP and Unix); docker `expect_continue_tests`
+  (2: no `Expect` header, POST does not wait). The two `read_timeout_...` netio tests failed
+  before the fix (body arrived 10.0 s after the head) and pass now; the timer-only tests pass
+  on the old code, which proves the state machine is correct. 20/20 runs of each. No Docker
+  daemon was available here, so no real-daemon timing.
+
+- 2026-11-02: feature 42 (netio dead wait loops) done on `fix/io-41-50-lane-a`. T0: no
+  real caller of `collect_exchange`, `drain_exchange_head` or `QuicListener` anywhere in the
+  repo (only definitions, the `pub mod` line, a deprecation note and a comment). Deleted
+  `collect_exchange` and `drain_exchange_head` from `shared/client/body_reader.rs` (about 80
+  lines, including the `yield_now` loops and the now-unused `BytesMut` and `SimpleResponse`
+  imports), and `native/quic_listener.rs` (101 lines, `QuicListener`, `QuicBind`, its 1 ms
+  sleep and 30 s constant) with its `pub mod` line. Deprecation note in
+  `foundation_deployment/src/providers/common/api_types.rs` now names
+  `split_exchange`/`send_and_split`. `split_exchange` and `send_and_split` are kept. No
+  `yield_now` remains in netio `src`. Verified: `ci.py run foundation_netio --profile dev`
+  EXIT=0 (lib, unit, integration and doc suites ok, 13 test result blocks, no unused-import
+  warnings); `ci.py run foundation_deployment --profile dev` EXIT=0 (5 test result blocks ok).
+  The `collect_exchange_parks_while_waiting` test is not needed on the delete branch.
+
+- 2026-11-02: feature 61 (shared response writer, idle send timeout) done on
+  `fix/io-41-50-lane-a`. New `native::writer`: `ResponseWriter` (offset-tracking write and
+  flush that parks on write readiness), `WriterConfig`, and `send_bytes`/`send_text`/
+  `send_json`/`send_html`/`send_not_found`/`send_server_error`, which return
+  `ConnectionResult::Async`. `StaticFileHandler`, `StaticAssetHandler` (body written from its
+  shared slice, no copy) and the native `HealthHandler` use it. `send_timeout` (was
+  `write_timeout`, kept as a deprecated builder) now means nginx `send_timeout`: the timer
+  restarts after every write that takes at least one byte. The reactor watch registers on
+  the first `WouldBlock` and `FdReadiness` deregisters in its `Drop`. The synchronous
+  `respond::*` keep their `impl Write` signature (other crates and wasm call them); the
+  backlog entry (section 3) stays, narrowed to those callers and the small closing writes.
+  New tests: `respond_large_body_is_byte_exact`, `static_asset_large_body_is_byte_exact`,
+  `send_timeout_is_idle_not_total`, `send_timeout_closes_stalled_client`.
+
+- 2026-11-02: feature 41 (static file handler streams correctly) done on
+  `fix/io-41-50-lane-a`. T0: open on master. `StaticFileHandler` now returns
+  `ConnectionResult::Async`. It reads the file in `StaticFileConfig::chunk_size` chunks
+  (default 64 KiB), writes each with an offset that tracks what the socket took (the old
+  `write_all(&wire)` retry restarted at byte 0 and sent duplicate bytes), and on `WouldBlock`
+  parks on write readiness (shared reactor, or the overlay wake callback). It never sleeps a
+  thread. A reset, aborted or broken peer ends the response at once; a `write_timeout` (default
+  60 s, nginx `send_timeout`) closes a stalled client. `MAX_RETRIES` and every `thread::sleep`
+  are gone; the head carries `Content-Length`, and `HEAD` sends no body. New tests in
+  `tests/static_file_tests.rs` (all fail on master). New backlog entry: `StaticAssetHandler`
+  and `respond::*` have the same partial-write bug (section 3).
 - 2026-11-02: feature 66 (auth stubs and session lookup) done on `fix/io-51-60-lane-b`. E1:
   `generate_tos_code` and `verify_tos_code` are deleted. Evidence: no code calls them; the login
   handler never issues a `tos_await_code` (that is only in the spec 48 sketch); `tos_accept`

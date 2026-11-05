@@ -20,7 +20,7 @@ use std::time::Duration;
 /// Runtime hooks for ACME provisioning (Decision 18, F15).
 ///
 /// Not part of the serialisable config: the DNS-01 setter is a callback (publish
-/// a TXT record for a domain), typically backed by `foundation_deployment_cloudflare`.
+/// a TXT record for a domain), for example one that calls the Cloudflare DNS API.
 #[derive(Clone)]
 pub struct AcmeRuntime {
     /// Override the CA directory URL (defaults to Let's Encrypt production). A
@@ -99,6 +99,32 @@ pub struct ProxyConfig {
     /// serialised — set it via the programmatic builder.
     #[serde(skip)]
     pub io_mode: ServerIo,
+    /// The longest a proxied client may take no byte of a relayed response
+    /// before the relay closes the connection. The timer restarts after every
+    /// write that takes at least one byte, so a long download to a slow but
+    /// live client is not cut. Defaults to 60 seconds (nginx `send_timeout`).
+    #[serde(default = "default_relay_send_timeout", with = "duration_millis")]
+    pub relay_send_timeout: Duration,
+    /// The longest an HTTP/3 client may take no byte of the request head or body
+    /// before the proxy gives up on the request. The wait parks the task. Defaults
+    /// to 60 seconds (nginx `client_header_timeout` / `client_body_timeout`).
+    #[serde(default = "default_client_read_timeout", with = "duration_millis")]
+    pub client_read_timeout: Duration,
+    /// The longest the proxy waits for a TCP connect to a backend (the tunnel
+    /// and upgrade relays) to finish. The wait parks the task; it holds no
+    /// thread. Defaults to 60 seconds (nginx `proxy_connect_timeout`).
+    #[serde(default = "default_connect_timeout", with = "duration_millis")]
+    pub connect_timeout: Duration,
+    /// The largest request body, in bytes, the proxy relays to a backend. A
+    /// larger declared `Content-Length`, or a streamed body that passes the
+    /// limit, is answered `413 Payload Too Large`. `0` turns the limit off, for
+    /// streaming uploads. Defaults to 1 MiB (nginx `client_max_body_size`).
+    #[serde(default = "default_max_request_body")]
+    pub max_request_body: usize,
+    /// How often [`crate::ProxyServer::drain_complete`] re-checks the in-flight
+    /// count. Defaults to 50 ms.
+    #[serde(default = "default_drain_poll", with = "duration_millis")]
+    pub drain_poll: Duration,
 }
 
 impl ProxyConfig {
@@ -119,7 +145,51 @@ impl ProxyConfig {
             redirect_read_timeout: default_redirect_read_timeout(),
             redirect_accept_poll: default_redirect_accept_poll(),
             io_mode: ServerIo::default(),
+            relay_send_timeout: default_relay_send_timeout(),
+            connect_timeout: default_connect_timeout(),
+            client_read_timeout: default_client_read_timeout(),
+            max_request_body: default_max_request_body(),
+            drain_poll: default_drain_poll(),
         }
+    }
+
+    /// Set [`Self::drain_poll`]. Default 50 ms.
+    #[must_use]
+    pub fn drain_poll(mut self, poll: Duration) -> Self {
+        self.drain_poll = poll;
+        self
+    }
+
+    /// Set [`Self::max_request_body`]. `0` means no limit. Default 1 MiB (nginx
+    /// `client_max_body_size`).
+    #[must_use]
+    pub fn max_request_body(mut self, limit: usize) -> Self {
+        self.max_request_body = limit;
+        self
+    }
+
+    /// Set [`Self::relay_send_timeout`]. Default 60 seconds (nginx
+    /// `send_timeout`).
+    #[must_use]
+    pub fn relay_send_timeout(mut self, timeout: Duration) -> Self {
+        self.relay_send_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::client_read_timeout`]. Default 60 seconds (nginx
+    /// `client_body_timeout`).
+    #[must_use]
+    pub fn client_read_timeout(mut self, timeout: Duration) -> Self {
+        self.client_read_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::connect_timeout`]. Default 60 seconds (nginx
+    /// `proxy_connect_timeout`).
+    #[must_use]
+    pub fn connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = timeout;
+        self
     }
 
     /// Set the I/O mode for the front end and the dialed upstream legs (F50).
@@ -253,6 +323,32 @@ const fn default_redirect_head_limit() -> usize {
 /// Caddy uses).
 fn default_redirect_read_timeout() -> Duration {
     Duration::from_secs(2)
+}
+
+/// The default drain poll: 50 milliseconds.
+fn default_drain_poll() -> Duration {
+    Duration::from_millis(50)
+}
+
+/// The default request body limit: 1 MiB (nginx `client_max_body_size`).
+const fn default_max_request_body() -> usize {
+    1024 * 1024
+}
+
+/// The default relay send timeout: 60 seconds (nginx `send_timeout`).
+fn default_relay_send_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default client read timeout: 60 seconds (nginx `client_body_timeout`).
+fn default_client_read_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default backend connect timeout: 60 seconds (nginx
+/// `proxy_connect_timeout`).
+fn default_connect_timeout() -> Duration {
+    Duration::from_secs(60)
 }
 
 /// The default redirect accept poll: 10 milliseconds (the `accept_shutdown_poll`
@@ -556,6 +652,15 @@ pub struct HealthCheckConfig {
     pub timeout: Duration,
     pub healthy_threshold: u32,
     pub unhealthy_threshold: u32,
+    /// How often a probe thread that is waiting out its `interval` wakes to
+    /// check for shutdown, in milliseconds. Defaults to 100 ms.
+    #[serde(default = "default_shutdown_check_millis")]
+    pub shutdown_check_millis: u64,
+}
+
+/// The default shutdown check of an idle probe thread: 100 milliseconds.
+const fn default_shutdown_check_millis() -> u64 {
+    100
 }
 
 impl Default for HealthCheckConfig {
@@ -566,6 +671,7 @@ impl Default for HealthCheckConfig {
             timeout: Duration::from_secs(2),
             healthy_threshold: 2,
             unhealthy_threshold: 3,
+            shutdown_check_millis: default_shutdown_check_millis(),
         }
     }
 }

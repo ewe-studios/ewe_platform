@@ -144,6 +144,9 @@ pub fn spawn_service_probes(
         let config = config.clone();
         let client = client.clone();
         let shutdown = Arc::clone(&shutdown);
+        // Kept: a dedicated thread per backend (not per request). The probe
+        // uses the blocking `DynNetClient`, so it is a real blocking boundary
+        // that must not run on a pool worker.
         let handle = std::thread::spawn(move || {
             probe_loop(&backend, &config, &client, &shutdown);
         });
@@ -181,7 +184,7 @@ fn probe_loop(
         }
 
         // Sleep the interval in small slices so shutdown is responsive.
-        if !sleep_interruptible(config.interval, shutdown) {
+        if !sleep_interruptible(config, shutdown) {
             return;
         }
     }
@@ -433,9 +436,12 @@ fn join_url(base_url: &str, path: &str) -> String {
     }
 }
 
-/// Sleep `total` in short slices, returning `false` if shutdown fired.
-fn sleep_interruptible(total: Duration, shutdown: &Arc<ShutdownSignal>) -> bool {
-    let slice = Duration::from_millis(100);
+/// Sleep `config.interval` in slices of `config.shutdown_check_millis`,
+/// returning `false` if shutdown fired. Runs on the dedicated probe thread (a
+/// blocking boundary), never on a pool worker.
+fn sleep_interruptible(config: &HealthCheckConfig, shutdown: &Arc<ShutdownSignal>) -> bool {
+    let total = config.interval;
+    let slice = Duration::from_millis(config.shutdown_check_millis.max(1));
     let start = Instant::now();
     while start.elapsed() < total {
         if shutdown.probe() {

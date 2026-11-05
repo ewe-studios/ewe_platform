@@ -16,6 +16,8 @@
 //! is set before the wake, so a woken waiter always observes it.
 
 use std::io;
+
+use foundation_core::valtron::{ReadinessNotifier, ReadinessWaker};
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(unix)]
 use std::sync::{Arc, OnceLock};
@@ -31,6 +33,8 @@ pub struct ShutdownSignal {
     /// [`ShutdownSignal::register_wake`]; absent on non-unix.
     #[cfg(unix)]
     reactor: OnceLock<Arc<Reactor>>,
+    /// The valtron tasks parked on this signal, woken by `turn_on`.
+    tasks: ReadinessNotifier,
 }
 
 impl ShutdownSignal {
@@ -59,10 +63,19 @@ impl ShutdownSignal {
             if let Some(reactor) = self.reactor.get() {
                 reactor.wake_waiters();
             }
+            // Wake the tasks parked on this signal, and only their executors.
+            self.tasks.notify();
             true
         } else {
             false
         }
+    }
+
+    /// Register the waker of a valtron task that parks on this signal: `turn_on`
+    /// wakes it. Always `true`, so an `EventReadiness` over this signal returns it
+    /// from `register`.
+    pub fn register_readiness(&self, waker: &ReadinessWaker) -> bool {
+        self.tasks.register(waker)
     }
 
     /// Clear the signal. Returns `true` on the true-to-false change.

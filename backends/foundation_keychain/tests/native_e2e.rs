@@ -5,6 +5,10 @@
 //! cipher create over actual TCP with the platform client (`HttpClientBuilder`), proving the whole native
 //! stack (routing, auth middleware, JSON, single-poll async handler drive).
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 use std::time::Duration;
 

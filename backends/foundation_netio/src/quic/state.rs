@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::task::Waker;
 
 use bytes::Bytes;
-use foundation_core::valtron::BoolSignal;
+use foundation_core::valtron::ResumeSignal;
 use quinn_proto::{ConnectionHandle, Dir};
 
 use super::traits::QuicConnError;
@@ -65,7 +65,7 @@ pub(crate) struct ConnState {
     /// it after queueing outgoing data (reset, write, finish, stop, close, or a
     /// datagram), so a driver parked on socket readiness transmits it at once
     /// instead of waiting for the next socket edge or timer.
-    pub(crate) driver_wake: BoolSignal,
+    pub(crate) driver_wake: ResumeSignal,
 }
 
 impl ConnState {
@@ -105,10 +105,10 @@ impl ConnState {
 
     /// Wake the driver: this connection has queued outgoing data to transmit.
     ///
-    /// `set(true)` also asks the executor host to run again, so a driver parked
-    /// on `TaskStatus::Depends` is re-polled on native at once (and re-scheduled
-    /// on wasm). Safe to call under the connection lock: `resume_idle` takes a
-    /// different lock and never runs the driver inline.
+    /// `set(true)` wakes the driver task's waker, so a driver parked on
+    /// `TaskStatus::Depends` is re-polled on native at once (and re-scheduled on
+    /// wasm). Safe to call under the connection lock: the wake takes a different
+    /// lock and never runs the driver inline.
     pub(crate) fn wake_driver(&self) {
         self.driver_wake.set(true);
     }

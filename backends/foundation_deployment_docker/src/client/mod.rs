@@ -376,6 +376,10 @@ impl DockerClient {
         let http = HttpClientBuilder::new()
             .unix_socket(&socket_path)
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Self {
             http,
@@ -400,6 +404,10 @@ impl DockerClient {
         let socket_path = PathBuf::from(format!("tcp://{host}"));
         let http = HttpClientBuilder::new()
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Self {
             http,
@@ -437,6 +445,10 @@ impl DockerClient {
         let http = HttpClientBuilder::new()
             .with_tls_connector(connector)
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Ok(Self {
             http,
@@ -481,6 +493,10 @@ impl DockerClient {
         let http = HttpClientBuilder::new()
             .with_connector(connector)
             .read_timeout(std::time::Duration::from_secs(120))
+            // Docker never sends `100 Continue`. With the handshake on, every POST with
+            // a body (`containers/create`, `containers/start`) waited before it sent
+            // its body: 2 minutes in the field (spec 70 feature 43).
+            .expect_continue(false)
             .build();
         Ok(Self {
             http,

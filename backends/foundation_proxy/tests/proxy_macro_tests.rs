@@ -343,6 +343,7 @@ fn test_proxy_macro_health_check_all_fields() {
                     timeout: Duration::from_secs(3),
                     healthy_threshold: 3,
                     unhealthy_threshold: 2,
+                    ..HealthCheckConfig::default()
                 }),
         )
         .build();

@@ -13,14 +13,13 @@ use std::sync::Arc;
 use core::future::Future;
 use core::task::{Context, Poll};
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, BoolSignal, EventReadiness, EventReadinessPtr, Pipe, TryRecvError,
-    TrySendError, WakeToken,
+    queue_waker, AnyReadiness, BoolSignal, EventQueue, EventReadiness, EventReadinessPtr, Pipe,
+    TryRecvError, TrySendError, WakeToken,
 };
 
 /// Build a `Context` whose waker pushes an observable `WakeToken` onto `obs`.
-fn observing_cx(obs: &Arc<ConcurrentQueue<WakeToken>>) -> core::task::Waker {
+fn observing_cx(obs: &EventQueue<WakeToken>) -> core::task::Waker {
     queue_waker(obs.clone(), 0)
 }
 
@@ -41,7 +40,7 @@ fn send_and_receive_roundtrip() {
     assert_eq!(rx.try_recv(), Err(TryRecvError::Empty));
 
     // Async surface (ready immediately — no parking needed here).
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
@@ -67,7 +66,7 @@ fn producer_parks_on_full_and_wakes_on_pop() {
     tx.try_send(2).expect("send 2");
     assert!(tx.is_full(), "pipe filled to depth");
 
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
@@ -100,7 +99,7 @@ fn producer_parks_on_full_and_wakes_on_pop() {
 fn consumer_parks_on_empty_and_wakes_on_push() {
     let (tx, rx) = Pipe::<u32>::with_depth(2);
 
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
@@ -131,7 +130,7 @@ fn sender_drop_signals_end_of_stream() {
     tx.try_send(2).expect("send 2");
 
     // A parked consumer must wake on close: park first, then drop the sender.
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let (tx2, rx2) = Pipe::<u32>::with_depth(4);
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
@@ -163,7 +162,7 @@ fn sender_drop_signals_end_of_stream() {
 #[test]
 fn sender_closed_wakes_when_receiver_goes_away() {
     let (tx, rx) = Pipe::<u32>::with_depth(1);
-    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let obs = EventQueue::<WakeToken>::unbounded();
     let waker = observing_cx(&obs);
     let mut cx = Context::from_waker(&waker);
 
@@ -174,7 +173,7 @@ fn sender_closed_wakes_when_receiver_goes_away() {
 
     // A send parked on the full pipe at the same time.
     tx.try_send(1).expect("fill the pipe");
-    let send_obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let send_obs = EventQueue::<WakeToken>::unbounded();
     let send_waker = observing_cx(&send_obs);
     let mut send_cx = Context::from_waker(&send_waker);
     let mut send = Box::pin(tx.send(2));
@@ -299,7 +298,7 @@ fn send_recheck_closes_wake_before_park_race() {
         let (tx, rx) = Pipe::<u32>::with_depth(1);
         tx.try_send(1).expect("fill");
 
-        let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+        let obs = EventQueue::<WakeToken>::unbounded();
         let waker = observing_cx(&obs);
         let mut cx = Context::from_waker(&waker);
 

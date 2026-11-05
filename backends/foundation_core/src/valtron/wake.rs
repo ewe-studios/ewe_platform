@@ -38,6 +38,13 @@ pub type WakeCallback = Box<dyn Fn() + Send + 'static>;
 #[cfg(not(feature = "multi"))]
 pub type WakeCallback = Box<dyn Fn() + 'static>;
 
+/// One-shot wake callback that can cross threads.
+///
+/// [`WakeCallback`] is not `Send` without `multi`, so it cannot be handed to a
+/// foreign thread. A consumer whose wake is a `Waker` (which is `Send`) uses
+/// this type through [`WakeableStream::wake_send`].
+pub type SendWakeCallback = Box<dyn FnOnce() + Send + 'static>;
+
 /// Opt-in readiness side-channel for [`StreamIterator`]s.
 ///
 /// The default implementation returns [`WakeResult::NotSupported`]; only types that
@@ -50,6 +57,26 @@ pub trait WakeableStream: StreamIterator {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         let _ = cb; // default: cannot deliver the signal
         WakeResult::NotSupported
+    }
+
+    /// Like [`Self::wake`], but the callback may be run from any thread.
+    ///
+    /// A stream whose readiness changes on a foreign thread without touching its
+    /// queue (`DrivenStreamIterator`, see its impl) overrides this to register the
+    /// callback where that thread will find it. The default adapts `cb` to
+    /// [`Self::wake`], so every stream keeps its old behaviour; a wrapper must
+    /// forward both methods to its inner stream.
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        let cell = std::sync::Mutex::new(Some(cb));
+        self.wake(Box::new(move || {
+            let cb = cell
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .take();
+            if let Some(cb) = cb {
+                cb();
+            }
+        }))
     }
 
     /// Idempotently announce that an async consumer will pull this stream,

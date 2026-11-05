@@ -14,9 +14,7 @@ use crate::valtron::{
     task::{TaskSpread, TaskStatus},
     BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
-use crate::valtron::{
-    BoxedExecutionIterator, Ctx, ExecutionIterator, QueueVacancyReadiness, State,
-};
+use crate::valtron::{BoxedExecutionIterator, Ctx, ExecutionIterator, State};
 // Only the `multi`-gated `Into<BoxedSendExecutionIterator>` impls use this alias.
 #[cfg(feature = "multi")]
 use crate::valtron::BoxedSendExecutionIterator;
@@ -327,9 +325,8 @@ where
     Pending: Send + 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full =
-            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -342,9 +339,8 @@ where
     Pending: 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full =
-            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -622,9 +618,8 @@ where
     Pending: Send + 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full =
-            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -637,9 +632,8 @@ where
     Pending: 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full =
-            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -880,9 +874,8 @@ where
     Pending: Send + 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full =
-            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -895,9 +888,8 @@ where
     Pending: 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full =
-            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }

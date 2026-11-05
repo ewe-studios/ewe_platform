@@ -15,15 +15,15 @@ use std::{
 };
 
 use crate::{
+    synca::Timeable,
+    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask},
+};
+use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{
         AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State, TaskIterator,
         TaskStatus,
     },
-};
-use crate::{
-    synca::{Timeable, Timing},
-    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask},
 };
 use foundation_compact::rng::ChaCha8Rng;
 use foundation_compact::rng::SeedableRng;
@@ -219,7 +219,12 @@ pub enum Sleepable {
 
     /// Readiness represents a task waiting on an arbitrary `EventReadiness`
     /// signal. The executor calls `is_ready(None)` to check without blocking.
-    Readiness(EventReadinessPtr, Entry),
+    ///
+    /// When the signal accepted the task's waker (`EventReadiness::register`
+    /// returned `true`) the third field holds the task's wake state, and the
+    /// signal is re-checked only after a wake or at its deadline. Without it the
+    /// signal is re-checked on the readiness quantum.
+    Readiness(EventReadinessPtr, Entry, Option<crate::valtron::ParkGuard>),
 }
 
 impl core::fmt::Debug for Sleepable {
@@ -227,7 +232,7 @@ impl core::fmt::Debug for Sleepable {
         match self {
             Self::Timable(inner) => f.debug_tuple("Timable").field(inner).finish(),
             Self::Atomic(_, entry) => f.debug_tuple("Atomic").field(entry).finish(),
-            Self::Readiness(_, entry) => f.debug_tuple("Readiness").field(entry).finish(),
+            Self::Readiness(_, entry, _) => f.debug_tuple("Readiness").field(entry).finish(),
         }
     }
 }
@@ -235,11 +240,14 @@ impl core::fmt::Debug for Sleepable {
 impl Sleepable {
     /// Returns the deadline when this sleeper will be ready.
     /// For Timable sleepers, returns the Instant when duration expires.
-    /// For Atomic and Readiness sleepers, returns None (no specific deadline).
-    pub fn deadline(&self) -> Option<time::Instant> {
+    /// For a Readiness sleeper, returns the deadline its signal reports (a
+    /// signal such as "socket ready or timer passed" can be ready at that
+    /// instant without any event). For Atomic sleepers, returns None.
+    pub fn deadline(&self) -> Option<foundation_compact::Instant> {
         match self {
             Sleepable::Timable(inner) => Some(inner.deadline()),
-            Sleepable::Atomic(_, _) | Sleepable::Readiness(_, _) => None,
+            Sleepable::Atomic(_, _) => None,
+            Sleepable::Readiness(signal, _, _) => signal.deadline(),
         }
     }
 }
@@ -248,7 +256,21 @@ impl Timeable for Sleepable {
     fn remaining_duration(&self) -> Option<time::Duration> {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
-            Sleepable::Atomic(_, _) | Sleepable::Readiness(_, _) => None,
+            Sleepable::Atomic(_, _) => None,
+            Sleepable::Readiness(signal, _, _) => signal.deadline().map(|deadline| {
+                deadline.saturating_duration_since(foundation_compact::Instant::now())
+            }),
+        }
+    }
+
+    fn needs_polling(&self) -> bool {
+        match self {
+            Sleepable::Timable(_) => false,
+            // A bare atomic flag is set by code that need not ask the executor
+            // to run again.
+            Sleepable::Atomic(_, _) => true,
+            // Re-checked on a timer unless the signal took the task's waker.
+            Sleepable::Readiness(_, _, park) => park.is_none(),
         }
     }
 }
@@ -258,7 +280,16 @@ impl Waiter for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.is_ready(dur),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
-            Sleepable::Readiness(signal, _) => signal.is_ready(dur),
+            Sleepable::Readiness(signal, _, Some(park)) => {
+                // The signal wakes this task: look at it only after a wake (the
+                // first look is after the park, see `ParkState::new`) or when its
+                // deadline has passed. A wake for another task costs nothing here.
+                let due = signal
+                    .deadline()
+                    .is_some_and(|deadline| foundation_compact::Instant::now() >= deadline);
+                (park.0.take_woken() || due) && signal.is_ready(dur)
+            }
+            Sleepable::Readiness(signal, _, None) => signal.is_ready(dur),
         }
     }
 }
@@ -327,6 +358,9 @@ pub struct NotifyQueue<T> {
     /// One-shot callbacks for a producer waiting on a full queue, fired when
     /// an item is taken through this queue and on `close`.
     space: Arc<WakeRegistry>,
+    /// Woken after an item is taken through this queue and on `close`: the
+    /// producer task parked on [`Self::vacancy_readiness`].
+    space_tasks: Arc<crate::valtron::ReadinessNotifier>,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -338,6 +372,7 @@ impl<T> Clone for NotifyQueue<T> {
             max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
             wake: self.wake.clone(),
             space: self.space.clone(),
+            space_tasks: self.space_tasks.clone(),
         }
     }
 }
@@ -357,6 +392,7 @@ impl<T> NotifyQueue<T> {
             max_spins: AtomicUsize::new(config.max_spins),
             wake: Arc::new(WakeRegistry::new()),
             space: Arc::new(WakeRegistry::new()),
+            space_tasks: Arc::new(crate::valtron::ReadinessNotifier::new()),
         }
     }
 
@@ -374,6 +410,7 @@ impl<T> NotifyQueue<T> {
             max_spins: AtomicUsize::new(config.max_spins),
             wake: Arc::new(WakeRegistry::new()),
             space: Arc::new(WakeRegistry::new()),
+            space_tasks: Arc::new(crate::valtron::ReadinessNotifier::new()),
         }
     }
 
@@ -406,6 +443,8 @@ impl<T> NotifyQueue<T> {
         if self.space.has_waiters() {
             self.space.fire();
         }
+        // A producer task parked on `vacancy_readiness`, if any.
+        self.space_tasks.notify();
         Ok(item)
     }
 
@@ -436,16 +475,17 @@ impl<T> NotifyQueue<T> {
             Err(PopError::Empty) => {}
         }
 
+        // The wait is one timed condvar wait of `timeout * max_spins` in total,
+        // not `max_spins` waits of `timeout`: a consumer that waits for an item
+        // is woken by a push or a close, so it need not wake every `timeout` to
+        // look (that cost ~1 000 wake-ups per second per idle consumer). A
+        // spurious wake-up goes round again until the total is spent.
         let max_spins = self.max_spins.load(Ordering::Relaxed);
-        let mut spins = 0;
+        let total = timeout.saturating_mul(u32::try_from(max_spins).unwrap_or(u32::MAX));
+        let deadline = foundation_compact::Instant::now().checked_add(total);
         let mut guard = self.mutex.lock().unwrap();
 
         loop {
-            if spins >= max_spins {
-                *guard = false;
-                return Some(NotificationItem::None);
-            }
-
             // Check queue after acquiring lock
             match self.pop() {
                 Ok(item) => {
@@ -459,25 +499,22 @@ impl<T> NotifyQueue<T> {
                 Err(PopError::Empty) => {}
             }
 
-            // Wait with timeout - returns guard when notified or timeout
-            let result = self.condvar.wait_timeout(guard, timeout).unwrap();
-            guard = result.0;
-            spins += 1;
-
-            // Check if item available after waking up
-            match self.pop() {
-                Ok(item) => {
-                    *guard = false;
-                    return Some(NotificationItem::Ready(item));
+            let left = match deadline {
+                Some(deadline) => {
+                    deadline.saturating_duration_since(foundation_compact::Instant::now())
                 }
-                Err(PopError::Closed) => {
-                    *guard = false;
-                    return None;
-                }
-                Err(PopError::Empty) => {}
+                None => total,
+            };
+            if left.is_zero() {
+                *guard = false;
+                return Some(NotificationItem::None);
             }
 
-            // Reset notification flag and loop again
+            // Wait with timeout - returns guard when notified or timeout
+            let result = self.condvar.wait_timeout(guard, left).unwrap();
+            guard = result.0;
+
+            // A notification (push or close) was consumed by this wake-up.
             *guard = false;
         }
     }
@@ -506,6 +543,12 @@ impl<T> NotifyQueue<T> {
             self.wake.fire();
             // And a producer waiting for space, which will now see `Closed`.
             self.space.fire();
+            self.space_tasks.notify();
+            // And a consumer blocked in `wait_for_item`, which waits for a push
+            // or a close and not on a timer.
+            let mut guard = self.mutex.lock().unwrap();
+            *guard = true;
+            self.condvar.notify_all();
         }
         closed
     }
@@ -541,6 +584,17 @@ impl<T> NotifyQueue<T> {
     /// `Arc<ConcurrentQueue<T>>` — not a borrow.
     pub fn queue_arc(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
+    }
+
+    /// A readiness for a producer task that found this bounded queue full: ready
+    /// when an item is taken through this queue ([`Self::pop`]) or the queue
+    /// closes, and the parked task is woken then (`register` returns `true`).
+    #[must_use]
+    pub fn vacancy_readiness(&self) -> crate::valtron::QueueVacancyReadiness<T> {
+        crate::valtron::QueueVacancyReadiness::with_notifier(
+            self.queue.clone(),
+            self.space_tasks.clone(),
+        )
     }
 
     /// Number of registered consumer wakes ([`Self::register_wake`]) not yet
@@ -1120,7 +1174,7 @@ impl ExecutorState {
             match matured {
                 Sleepable::Timable(wakeable) => self.wake_up(wakeable.handle),
                 Sleepable::Atomic(_, entry) => self.wake_up(entry),
-                Sleepable::Readiness(_, entry) => self.wake_up(entry),
+                Sleepable::Readiness(_, entry, _) => self.wake_up(entry),
             }
         }
     }
@@ -1151,6 +1205,14 @@ impl ExecutorState {
     #[must_use]
     pub fn number_of_depends_true_violations(&self) -> usize {
         self.depends_true_violations.borrow().len()
+    }
+
+    /// Whether any sleeper can become ready without a wake, so the worker must
+    /// re-check on the readiness quantum. See [`EventReadiness::register`].
+    #[inline]
+    #[must_use]
+    pub fn sleepers_need_polling(&self) -> bool {
+        self.sleepers.needs_polling()
     }
 
     #[inline]
@@ -1351,10 +1413,9 @@ impl ExecutorState {
                     // every shorter timer fire late by the gap to the longest
                     // sleeper — a 10ms-polling I/O pump next to a 1s sleeper
                     // woke ~1s late, collapsing transport throughput.
-                    if let Some(min_sleep_dur) = self.sleepers.min_duration() {
-                        return ProgressIndicator::SpinWait(min_sleep_dur);
-                    }
-
+                    // The caller sleeps for `sleeper_wait`: the nearest sleeper
+                    // deadline, bounded by the readiness quantum when a sleeper
+                    // can become ready without a wake.
                     return ProgressIndicator::CanProgress(None);
                 }
 
@@ -1843,9 +1904,34 @@ impl ExecutorState {
                 // park must clear it or the count accumulates over the task's
                 // whole lifetime and eventually panics a healthy hot task.
                 self.depends_true_violations.borrow_mut().remove(&top_entry);
+                // Hand the readiness this task's waker: a signal that takes it
+                // wakes this task (and this executor's thread) when it is ready,
+                // and is not re-checked on a timer.
+                let state = crate::valtron::ParkState::new();
+                let accepted = signal.register(&state.waker());
+                // The check above must come BEFORE the register, because a
+                // signal that is ready never wakes anybody. It also opens a
+                // window: a change between that check and the register found
+                // no waker to wake (the notifier had nobody registered), and
+                // the task would then sleep to its deadline (a 30 s DNS
+                // timeout, first seen in the HTTP client). Look once more now
+                // that the waker is stored: the register-before-check protocol
+                // closes the window, because every later change wakes this
+                // task and every earlier one is visible here.
+                if accepted && signal.is_ready(None) {
+                    // Release first: a source that still holds the waker must
+                    // not park this task again after it runs.
+                    state.release();
+                    self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+                    self.processing.borrow_mut().push_back(top_entry);
+                    return ProgressIndicator::CanProgress(Some(State::Pending(None)));
+                }
+                // Dropping the guard of a signal that did not accept the waker
+                // makes any waker it kept a no-op.
+                let park = accepted.then_some(crate::valtron::ParkGuard(state));
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 self.sleepers
-                    .insert(top_entry, Sleepable::Readiness(signal, top_entry));
+                    .insert(top_entry, Sleepable::Readiness(signal, top_entry, park));
 
                 if self.has_incoming_global_tasks() || self.has_inflight_task() {
                     return ProgressIndicator::CanProgress(None);
@@ -2079,6 +2165,19 @@ impl ReferencedExecutorState {
     #[must_use]
     pub fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
+    }
+
+    /// See [`ExecutorState::wakeup_ready_sleepers`].
+    #[inline]
+    pub fn wakeup_ready_sleepers(&self) {
+        self.inner.wakeup_ready_sleepers();
+    }
+
+    /// See [`ExecutorState::sleepers_need_polling`].
+    #[inline]
+    #[must_use]
+    pub fn sleepers_need_polling(&self) -> bool {
+        self.inner.sleepers_need_polling()
     }
 
     /// See [`ExecutorState::readiness_wait`].
@@ -2765,9 +2864,69 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// Default is 16. Lower values check more frequently but add overhead.
     ///
     /// # Example
-    /// ```ignore
-    /// let executor = LocalThreadExecutor::from_seed(...)
-    ///     .with_kill_signal_check_interval(32);
+    /// ```
+    /// use std::sync::Arc;
+    /// use std::time::Duration;
+    ///
+    /// use concurrent_queue::ConcurrentQueue;
+    /// use foundation_core::retries::ExponentialBackoffDecider;
+    /// use foundation_core::synca::{IdleMan, SleepyMan};
+    /// use foundation_core::valtron::{
+    ///     ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor,
+    ///     NotificationItem, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
+    ///     TaskStatus, WrapTask,
+    /// };
+    ///
+    /// # #[derive(Default, Clone)]
+    /// # struct NoYielder;
+    /// #
+    /// # impl ProcessController for NoYielder {
+    /// #     type YieldSignal = ();
+    /// #
+    /// #     fn yield_for(&self, _duration: Duration) {}
+    /// # }
+    /// #
+    /// let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(4));
+    /// let executor = LocalThreadExecutor::from_seed(
+    ///     0,
+    ///     "doctest".into(),
+    ///     global,
+    ///     IdleMan::new(
+    ///         3,
+    ///         None,
+    ///         SleepyMan::new(3, ExponentialBackoffDecider::default()),
+    ///     ),
+    ///     PriorityOrder::Bottom,
+    ///     NoYielder,
+    ///     Duration::from_millis(50),
+    ///     None,
+    ///     None,
+    /// )
+    /// .with_kill_signal_check_interval(32);
+    ///
+    /// // The configured executor still schedules and runs a task to completion.
+    /// let task = WrapTask::new(vec![1u8, 2, 3].into_iter());
+    /// let (mut action, receiver) =
+    ///     InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_millis(10));
+    /// action
+    ///     .apply(None, executor.boxed_engine())
+    ///     .expect("schedule the task");
+    /// executor.run_until(|state| ProgressIndicator::NoWork == state);
+    ///
+    /// let got: Vec<_> = receiver
+    ///     .filter_map(|item| match item {
+    ///         NotificationItem::Ready(status) => Some(status),
+    ///         NotificationItem::None => None,
+    ///     })
+    ///     .collect();
+    /// assert_eq!(
+    ///     got,
+    ///     vec![
+    ///         TaskStatus::Ready(1u8),
+    ///         TaskStatus::Ready(2u8),
+    ///         TaskStatus::Ready(3u8),
+    ///     ]
+    /// );
     /// ```
     pub fn with_kill_signal_check_interval(mut self, interval: usize) -> Self {
         self.kill_signal_check_interval = interval;
@@ -2855,12 +3014,51 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
+    /// Native: when nothing here can run but parked sleepers remain, sleep this
+    /// thread as long as the sleepers allow, then return `true`.
+    ///
+    /// WHY: a caller that drives this engine between its own steps (the
+    /// single-threaded stream driver) used to block on its own output queue when
+    /// nothing was runnable. The queue only fills when this very thread runs a
+    /// task, so the block was a fixed wait that ignored the sleepers: a parked
+    /// task was re-checked once per wait, and a deadline was met up to a whole
+    /// wait late.
+    ///
+    /// WHAT: wakes the sleepers that are ready; if one became runnable, returns
+    /// `false` so the caller runs it. Otherwise sleeps [`Self::sleeper_wait`], but
+    /// not past `until`, and returns `true`. A resume
+    /// (a wake of a parked task) interrupts the sleep. Returns `false` at once
+    /// when nothing is parked, so the caller blocks as before.
+    #[cfg(not(target_family = "wasm"))]
+    pub fn wait_for_sleepers(&self, until: foundation_compact::Instant) -> bool {
+        crate::valtron::executors::idle_wake::checking();
+        if self.state.number_of_sleepers() == 0 {
+            return false;
+        }
+        self.state.wakeup_ready_sleepers();
+        if self.state.has_runnable_work() {
+            return false;
+        }
+        let planned = self
+            .sleeper_wait()
+            .min(until.saturating_duration_since(foundation_compact::Instant::now()));
+        self.yielder.yield_for(planned);
+        true
+    }
+
+    /// How long a caller that drives this engine may wait for parked sleepers
+    /// in one call: `max_yield_duration`.
+    #[must_use]
+    pub fn sleeper_budget(&self) -> time::Duration {
+        self.max_yield_duration
+    }
+
     /// Every remaining task is parked on a readiness signal and none on a timer:
     /// nothing can run until the signal's owner flips it.
     ///
     /// On JS wasm the drivers return to the event loop in this state instead of
     /// spinning (which would starve the async work being waited on) or polling on
-    /// a timer; the owner calls `request_executor_resume` when the signal flips.
+    /// a timer; the owner wakes the task's waker when the signal flips.
     #[cfg(all(
         target_family = "wasm",
         any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
@@ -2924,7 +3122,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // a stream read) completes, so hand the thread back to the event loop.
             // Neither spin here (that starves the very work we wait on and freezes
             // the isolate) nor poll on a timer: whoever flips the signal asks for a
-            // run via `request_executor_resume` (`WakeSignal` does it for you).
+            // run by the wake of its `ReadinessWaker` (`WakeSignal` does it for you).
             #[cfg(all(
                 target_family = "wasm",
                 any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
@@ -3024,12 +3222,36 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // or fall back to the default yield duration if no sleepers exist.
             // Cap at `max_yield_duration` to ensure threads periodically check
             // for new work.
-            let yield_duration = self
-                .state
-                .time_until_next_wakeup()
-                .unwrap_or(self.no_work_yield)
-                .min(self.max_yield_duration);
-            self.yielder.yield_for(yield_duration);
+            //
+            // When sleepers are parked, `sleeper_wait` applies the same rule as
+            // `block_on`: a sleeper that can become ready without a wake
+            // (`EventReadiness::register`) is re-checked on the readiness
+            // quantum, and an event-driven one is not re-checked until its
+            // deadline or a resume.
+            let yield_duration = if self.state.number_of_sleepers() > 0 {
+                self.sleeper_wait()
+            } else {
+                self.state
+                    .time_until_next_wakeup()
+                    .unwrap_or(self.no_work_yield)
+            };
+            let wait = yield_duration.min(self.max_yield_duration);
+            // JS: only parked sleepers remain, and one of them has a deadline (a
+            // timer, or a readiness with a `deadline`). The yield queued a host
+            // timer that re-enters the executor then. Return to the event loop:
+            // looping here would spin until the deadline, blocking the host
+            // (its timers and microtasks cannot run) and queueing a timer per
+            // spin. The wake of a `ReadinessWaker` still resumes the executor
+            // earlier by a microtask.
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            {
+                let signal = self.yielder.yield_for(wait);
+                if self.yielder.should_stop(&signal) {
+                    break;
+                }
+            }
+            #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+            self.yielder.yield_for(wait);
         }
     }
 
@@ -3055,7 +3277,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
                 // JS: every remaining task is parked on a readiness signal (none
                 // on a timer). Return to the event loop; the signal's owner
-                // requests a resume (`request_executor_resume`) when it flips.
+                // wakes the task's waker when it flips.
                 // Looping here would spin without ever letting JS run.
                 #[cfg(all(
                     target_family = "wasm",
@@ -3113,7 +3335,68 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 .state
                 .time_until_next_wakeup()
                 .unwrap_or(self.no_work_yield);
+            // JS: the timer queued by this yield re-enters the executor; return to
+            // the event loop instead of spinning until it is due.
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            {
+                let signal = self.yielder.yield_for(yield_duration);
+                if self.yielder.should_stop(&signal) {
+                    break 'main_loop;
+                }
+            }
+            #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
             self.yielder.yield_for(yield_duration);
+        }
+    }
+
+    /// How long a worker whose only work is parked sleepers may sleep.
+    ///
+    /// The nearest sleeper deadline bounds it (a timer, or a readiness that
+    /// reports a [`deadline`](EventReadiness::deadline)). When a sleeper can
+    /// become ready without a wake ([`EventReadiness::register`]) it is
+    /// also bounded by the readiness quantum, so that sleeper is re-checked.
+    /// When every sleeper is woken by an event, the worker sleeps until the
+    /// deadline, or at most `max_yield_duration` when there is none: a resume
+    /// from the reactor or a signal interrupts the sleep.
+    fn sleeper_wait(&self) -> time::Duration {
+        let until = self.state.time_until_next_wakeup();
+        if self.state.sleepers_need_polling() {
+            until.map_or(self.readiness_poll_quantum, |d| {
+                d.min(self.readiness_poll_quantum)
+            })
+        } else {
+            until.unwrap_or(self.max_yield_duration)
+        }
+    }
+
+    /// How often a sleeper that can become ready without a wake is re-checked
+    /// (`with_readiness_poll_quantum`).
+    #[must_use]
+    pub fn readiness_poll_quantum(&self) -> time::Duration {
+        self.readiness_poll_quantum
+    }
+
+    /// How long a consumer that drives this engine from its own thread (a
+    /// `DrivenStreamIterator` under an async runtime) may stay parked before it
+    /// must look again, or `None` when no sleeper needs a timed wake.
+    ///
+    /// Like [`Self::sleeper_wait`], the nearest sleeper deadline bounds it, and a
+    /// sleeper that can become ready without a wake
+    /// ([`EventReadiness::register`]) bounds it by the readiness quantum.
+    /// Sleepers woken by an event (a `ReadinessWaker` wake) with no deadline
+    /// need no timed wake.
+    #[must_use]
+    pub fn parked_wake_after(&self) -> Option<time::Duration> {
+        if self.state.number_of_sleepers() == 0 {
+            return None;
+        }
+        let until = self.state.time_until_next_wakeup();
+        if self.state.sleepers_need_polling() {
+            Some(until.map_or(self.readiness_poll_quantum, |d| {
+                d.min(self.readiness_poll_quantum)
+            }))
+        } else {
+            until
         }
     }
 
@@ -3142,21 +3425,34 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
             // Feature 04: Check kill signal every N iterations instead of every iteration
             // This reduces overhead while still ensuring timely shutdown
+            // After a sleep the kill signal is checked at once: a shutdown
+            // interrupts the sleep, and the next sleep could last a long time
+            // now that a worker with event-driven sleepers is not re-checked on
+            // a timer.
+            let mut slept = false;
             for i in 0..200 {
                 // Check kill signal at configured interval (default: every 16 iterations)
-                if i % self.kill_signal_check_interval == 0 && kill_signal.probe() {
+                if (slept || i % self.kill_signal_check_interval == 0) && kill_signal.probe() {
                     return;
                 }
 
+                slept = false;
+                // A wake that lands between this check for work and the sleep
+                // below must not be lost: `park_idle` skips the sleep for it.
+                // Needed on every step, not only once per batch, now that a
+                // worker with event-driven sleepers is not re-checked on a timer.
+                #[cfg(not(target_family = "wasm"))]
+                crate::valtron::executors::idle_wake::checking();
                 match self.run_once() {
                     ProgressIndicator::CanProgress(_) => {
                         // The step reported progress, but when nothing is actually
                         // runnable — only readiness-parked sleepers remain — sleep
                         // the readiness quantum instead of busy-spinning until one
                         // is woken. The reactor (or a bridged future's waker) calls
-                        // `request_executor_resume`, which interrupts this wait.
+                        // a wake of the task, which interrupts this wait.
                         if !self.state.has_runnable_work() && self.state.number_of_sleepers() > 0 {
-                            self.yielder.yield_for(self.readiness_poll_quantum);
+                            self.yielder.yield_for(self.sleeper_wait());
+                            slept = true;
                         }
                     }
                     ProgressIndicator::NoWork => {
@@ -3172,15 +3468,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         // blind `no_work_yield` (seconds) here turned every
                         // cross-worker pipe handoff into a multi-second stall
                         // (first seen collapsing BuildKit tar-export throughput).
-                        let yield_duration =
-                            self.state.time_until_next_wakeup().unwrap_or_else(|| {
-                                if self.state.number_of_sleepers() > 0 {
-                                    self.readiness_poll_quantum
-                                } else {
-                                    self.no_work_yield
-                                }
-                            });
+                        let yield_duration = if self.state.number_of_sleepers() > 0 {
+                            self.sleeper_wait()
+                        } else {
+                            self.state
+                                .time_until_next_wakeup()
+                                .unwrap_or(self.no_work_yield)
+                        };
                         self.yielder.yield_for(yield_duration);
+                        slept = true;
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         // Also check kill signal during spin wait
@@ -3188,7 +3484,17 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                             return;
                         }
 
-                        self.yielder.yield_for(duration);
+                        // The idle back-off must not outlast what the sleepers allow:
+                        // a parked task that can become ready without a wake is
+                        // re-checked on the quantum, and every sleeper is
+                        // re-checked at its deadline.
+                        let wait = if self.state.number_of_sleepers() > 0 {
+                            duration.min(self.sleeper_wait())
+                        } else {
+                            duration
+                        };
+                        self.yielder.yield_for(wait);
+                        slept = true;
                     }
                     ProgressIndicator::Wait => {
                         // A task said "re-poll me" (no deadline). Cap the wait
@@ -3201,6 +3507,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
                         self.yielder
                             .yield_for(self.no_work_yield.min(self.max_yield_duration));
+                        slept = true;
                     }
                 }
             }

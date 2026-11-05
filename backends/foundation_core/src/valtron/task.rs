@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use crate::valtron::{Ctx, Stream};
+use crate::valtron::{Ctx, ReadinessNotifier, ReadinessWaker, Stream};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
 
@@ -46,6 +46,97 @@ pub trait EventReadiness {
     /// `WouldBlock` still wakes the parked task (see
     /// `foundation_reactor::FdReadiness`).
     fn clear(&self) {}
+
+    /// The instant after which this signal becomes ready on its own, if it has
+    /// one.
+    ///
+    /// WHY: an executor that parks with nothing runnable must wake at the
+    /// nearest deadline of its sleepers. A signal such as "socket ready OR
+    /// timer passed" is only re-checked when something else wakes the
+    /// executor, so without this hint the task sleeps past its timer.
+    ///
+    /// Defaults to `None`: most signals (queues, atomics, sockets) become ready
+    /// only by an outside event and have no instant of their own. A time-based
+    /// signal returns its instant; a signal that combines others returns the
+    /// earliest of theirs.
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
+        None
+    }
+
+    /// Register the waker of the task that parks on this readiness.
+    ///
+    /// WHY: the executor must run the task again when the readiness becomes ready.
+    /// Instead of every source calling an executor function, the executor hands the
+    /// readiness a waker that belongs to **that task**, and the source only calls
+    /// [`ReadinessWaker::wake`] (the `core::task::Waker` pattern).
+    ///
+    /// WHAT: the readiness keeps `waker` (a [`ReadinessNotifier`] does this for
+    /// it) and wakes it when it becomes ready or closes. A second `register` for the
+    /// same task must not add a second waker, and one for a new park replaces the
+    /// old. The wake reaches only the executor that owns the task.
+    ///
+    /// Returns `true` when the readiness wakes the waker on **every** change to
+    /// ready (or is ready only at its [`Self::deadline`]). The executor then does not
+    /// re-check it on a timer and sleeps until the wake or the deadline.
+    ///
+    /// Returns `false` by default (safe): a readiness that cannot wake is still
+    /// re-checked on the executor's readiness quantum (1 ms), so a custom
+    /// implementation outside valtron keeps working until it opts in. A readiness
+    /// that combines others returns `true` only if all of them do.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let _ = waker;
+        false
+    }
+}
+
+/// A readiness flag that wakes the tasks parked on it when it is set.
+///
+/// WHY: unlike [`BoolSignal`], it has no raw access to its flag, so every change
+/// wakes the parked tasks (through the wakers they registered). The executor
+/// then never has to re-check it on a timer ([`EventReadiness::register`] returns
+/// `true`).
+#[derive(Clone, Default)]
+pub struct ResumeSignal(Arc<ResumeSignalInner>);
+
+#[derive(Default)]
+struct ResumeSignalInner {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
+
+impl ResumeSignal {
+    /// A new signal with the given value.
+    #[must_use]
+    pub fn new(value: bool) -> Self {
+        Self(Arc::new(ResumeSignalInner {
+            flag: AtomicBool::new(value),
+            notifier: ReadinessNotifier::new(),
+        }))
+    }
+
+    /// Set the value. Setting it to `true` wakes the tasks parked on it.
+    pub fn set(&self, value: bool) {
+        self.0.flag.store(value, Ordering::SeqCst);
+        if value {
+            self.0.notifier.notify();
+        }
+    }
+
+    /// The current value.
+    #[must_use]
+    pub fn get(&self) -> bool {
+        self.0.flag.load(Ordering::SeqCst)
+    }
+}
+
+impl EventReadiness for ResumeSignal {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.get()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.notifier.register(waker)
+    }
 }
 
 /// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.
@@ -63,46 +154,77 @@ pub type EventReadinessPtr = Arc<dyn EventReadiness>;
 /// A simple readiness signal backed by an `Arc<AtomicBool>`.
 ///
 /// The task considers itself ready when the atomic bool is `true`.
+///
+/// [`BoolSignal::set`] wakes the tasks parked on the signal, so a signal that is only
+/// changed through `set` is not re-checked on a timer. A signal built from a raw
+/// atomic ([`BoolSignal::from_atomic`], [`BoolSignal::clone_inner`]) may be stored to
+/// by code that wakes nobody, so it stays on the timed re-check.
 #[derive(Clone)]
-pub struct BoolSignal(Arc<AtomicBool>);
+pub struct BoolSignal(Arc<BoolSignalInner>);
+
+struct BoolSignalInner {
+    flag: Arc<AtomicBool>,
+    notifier: ReadinessNotifier,
+    /// A raw writer exists: a store may not wake the tasks parked on the signal.
+    raw: AtomicBool,
+}
 
 impl BoolSignal {
     /// Create a new `BoolSignal` with the given initial value.
     pub fn new(value: bool) -> Self {
-        Self(Arc::new(AtomicBool::new(value)))
+        Self(Arc::new(BoolSignalInner {
+            flag: Arc::new(AtomicBool::new(value)),
+            notifier: ReadinessNotifier::new(),
+            raw: AtomicBool::new(false),
+        }))
     }
 
     /// Create a `BoolSignal` from an existing `Arc<AtomicBool>`.
+    ///
+    /// Whoever holds the atomic can store to it without waking a parked task, so
+    /// the signal is re-checked on a timer.
     pub fn from_atomic(inner: Arc<AtomicBool>) -> Self {
-        Self(inner)
+        Self(Arc::new(BoolSignalInner {
+            flag: inner,
+            notifier: ReadinessNotifier::new(),
+            raw: AtomicBool::new(true),
+        }))
     }
 
     /// Get a clone of the underlying `Arc<AtomicBool>` for external mutation.
     ///
-    /// Prefer [`BoolSignal::set`]: a raw store does not ask the executor to
-    /// run again, so on a JS wasm build (which hands control back to the event
-    /// loop while every task is parked) a task parked on this signal is never
-    /// re-polled unless the writer also calls
-    /// [`request_executor_resume`](crate::valtron::request_executor_resume).
+    /// Prefer [`BoolSignal::set`]: a raw store wakes nobody. Taking the atomic
+    /// puts the signal on the timed re-check, so a raw store is still seen.
     pub fn clone_inner(&self) -> Arc<AtomicBool> {
-        self.0.clone()
+        self.0.raw.store(true, Ordering::SeqCst);
+        self.0.flag.clone()
     }
 
-    /// Set the signal. Turning it on asks the executor's host to run again
-    /// ([`request_executor_resume`](crate::valtron::request_executor_resume)),
-    /// so a task parked on it is re-polled even when the writer is JS-side async
-    /// work on a wasm build, and at once on native.
+    /// Set the signal. Turning it on wakes the tasks parked on it, and on a JS wasm
+    /// build asks the host to run the executor again, so a task parked on it is
+    /// re-polled even when the writer is JS-side async work.
     pub fn set(&self, value: bool) {
-        self.0.store(value, Ordering::SeqCst);
+        self.0.flag.store(value, Ordering::SeqCst);
         if value {
-            crate::valtron::request_executor_resume();
+            self.0.notifier.notify();
+            if self.0.raw.load(Ordering::SeqCst) {
+                // A timed re-check task (no waker) parked on a raw signal: nudge
+                // the executors of the process.
+                crate::valtron::request_executor_resume();
+            }
         }
     }
 }
 
 impl EventReadiness for BoolSignal {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
+    }
+
+    /// Takes the waker only while no raw writer exists (see the type docs).
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let registered = self.0.notifier.register(waker);
+        registered && !self.0.raw.load(Ordering::SeqCst)
     }
 }
 
@@ -113,16 +235,21 @@ impl EventReadiness for BoolSignal {
 /// stream has data. This ties the two together.
 ///
 /// HOW: [`WakeSignal::callback`] builds a one-shot [`WakeCallback`] that sets the
-/// flag and calls [`request_executor_resume`] (so a JS wasm executor that has
+/// flag and wakes the task parked on the signal (so a JS wasm executor that has
 /// handed control back to the event loop is run again). Register it with
 /// `stream.wake(signal.callback())`; if that returns `WakeResult::Successful`,
 /// return `TaskStatus::Depends(Arc::new(signal))`.
 ///
 /// [`WakeableStream`]: crate::valtron::WakeableStream
 /// [`WakeCallback`]: crate::valtron::WakeCallback
-/// [`request_executor_resume`]: crate::valtron::request_executor_resume
 #[derive(Clone, Default)]
-pub struct WakeSignal(Arc<AtomicBool>);
+pub struct WakeSignal(Arc<WakeSignalInner>);
+
+#[derive(Default)]
+struct WakeSignalInner {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
 
 impl WakeSignal {
     /// A new, not-yet-ready signal.
@@ -132,20 +259,24 @@ impl WakeSignal {
     }
 
     /// The wake callback to register on the stream: marks the signal ready and
-    /// asks the executor host to run again.
+    /// wakes the task parked on it.
     #[must_use]
     pub fn callback(&self) -> crate::valtron::WakeCallback {
-        let flag = Arc::clone(&self.0);
+        let inner = Arc::clone(&self.0);
         Box::new(move || {
-            flag.store(true, Ordering::SeqCst);
-            crate::valtron::request_executor_resume();
+            inner.flag.store(true, Ordering::SeqCst);
+            inner.notifier.notify();
         })
     }
 }
 
 impl EventReadiness for WakeSignal {
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.notifier.register(waker)
+    }
+
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
     }
 }
 
@@ -158,11 +289,27 @@ impl EventReadiness for WakeSignal {
 /// cannot signal readiness ([`WakeResult::NotSupported`]) gets
 /// [`TaskStatus::Wait`], the plain re-poll.
 ///
-/// ```ignore
-/// match stream.next() {
-///     Some(Stream::Wait) => park_on(&mut stream),
-///     // ...
-/// }
+/// ```
+/// use std::sync::Arc;
+/// use std::time::Duration;
+///
+/// use foundation_core::valtron::{
+///     park_on, EventReadiness, NotifyQueue, NotifyQueueStreamIterator, Stream, TaskStatus,
+/// };
+///
+/// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
+/// let mut stream = NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1));
+///
+/// // An empty stream parks the task on a signal instead of re-polling it.
+/// let status: TaskStatus<u32, ()> = park_on(&mut stream);
+/// let TaskStatus::Depends(signal) = status else {
+///     panic!("a waking stream parks on Depends");
+/// };
+/// assert!(!signal.is_ready(None));
+///
+/// // A push flips the signal, so the executor resumes the task.
+/// queue.push(Stream::Next(7)).expect("push");
+/// assert!(signal.is_ready(None));
 /// ```
 ///
 /// [`WakeResult::NotSupported`]: crate::valtron::WakeResult::NotSupported
@@ -194,11 +341,32 @@ impl<D, P> TaskStatus<D, P> {
     /// A task that needs the value handles `Ready` and returns everything
     /// else as-is:
     ///
-    /// ```ignore
-    /// match TaskStatus::from_stream(&mut self.stream)? {
-    ///     TaskStatus::Ready(chunk) => { self.collected.push(chunk); Some(TaskStatus::Ignore) }
-    ///     other => Some(other),
-    /// }
+    /// ```
+    /// use std::sync::Arc;
+    /// use std::time::Duration;
+    ///
+    /// use foundation_core::valtron::{
+    ///     EventReadiness, NotifyQueue, NotifyQueueStreamIterator, Stream, TaskStatus,
+    /// };
+    ///
+    /// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
+    /// let mut stream = NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1));
+    ///
+    /// // With no item yet, the task parks on the stream's wake signal.
+    /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
+    /// let Some(TaskStatus::Depends(signal)) = status else {
+    ///     panic!("an empty, open stream parks on Depends");
+    /// };
+    /// assert!(!signal.is_ready(None));
+    ///
+    /// // An item turns the next pull into Ready.
+    /// queue.push(Stream::Next(7)).expect("push");
+    /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
+    /// assert!(matches!(status, Some(TaskStatus::Ready(7))));
+    ///
+    /// // A closed, drained stream ends with None.
+    /// queue.close();
+    /// assert!(TaskStatus::<u32, ()>::from_stream(&mut stream).is_none());
     /// ```
     pub fn from_stream<S>(stream: &mut S) -> Option<Self>
     where
@@ -241,56 +409,111 @@ impl<D, P> TaskStatus<D, P> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// let queue = Arc::new(ConcurrentQueue::unbounded());
-/// let readiness = QueueReadiness::new(queue.clone());
-///
-/// // In TaskIterator::next_status():
-/// if let Ok(msg) = queue.pop() {
-///     return Some(TaskStatus::Ready(msg));
-/// }
-/// Some(TaskStatus::Depends(Arc::new(readiness)))
 /// ```
-pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>);
+/// use foundation_core::valtron::{EventQueue, EventReadiness};
+///
+/// let queue = EventQueue::<u32>::unbounded();
+/// let readiness = queue.readiness();
+///
+/// // Empty: the task parks on the readiness instead of taking a message.
+/// assert!(!readiness.is_ready(None));
+///
+/// // Non-empty: the task can take the message now.
+/// queue.push(7).expect("push");
+/// assert!(readiness.is_ready(None));
+/// assert_eq!(queue.pop().expect("item"), 7);
+/// assert!(!readiness.is_ready(None));
+/// ```
+pub struct QueueReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken after a push and on close. `None` for a queue that valtron does not
+    /// own: nothing wakes on its push, so the executor re-checks it on a timer.
+    notifier: Option<Arc<ReadinessNotifier>>,
+}
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
     }
 }
 
 impl<T> QueueReadiness<T> {
     /// Create a `QueueReadiness` that watches the given queue for messages.
+    ///
+    /// The queue is a plain `ConcurrentQueue`: a push does not wake the task, so
+    /// the executor re-checks this readiness on a timer (`register` returns
+    /// `false`). Prefer an [`EventQueue`] and [`EventQueue::readiness`], whose push
+    /// wakes the parked task.
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::readiness()` (spec 70 feature 80)"
+    )]
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue)
+        Self {
+            queue,
+            notifier: None,
+        }
+    }
+
+    /// Same as [`Self::new`]: a plain queue cannot wake the task.
+    ///
+    /// Kept for code that built a readiness over a raw queue and resumed the
+    /// executor itself; it is re-checked on a timer like [`Self::new`]. Use
+    /// [`EventQueue`].
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::readiness()` (spec 70 feature 80)"
+    )]
+    #[allow(deprecated)]
+    pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
+        Self::new(queue)
+    }
+
+    /// A readiness over a queue whose pushes and close call `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self {
+            queue,
+            notifier: Some(notifier),
+        }
     }
 
     /// Get a clone of the underlying queue for external mutation (pushing messages).
     ///
-    /// A producer outside the executor (JS-side async work on wasm) should
-    /// push with [`QueueReadiness::push`] instead, which asks the executor to
-    /// run again; a raw push leaves a parked consumer asleep on a JS wasm build.
+    /// Push with [`QueueReadiness::push`] (or through the [`EventQueue`]) so the
+    /// parked consumer is woken; a raw push is seen only by a timed re-check.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
-        self.0.clone()
+        self.queue.clone()
     }
 
-    /// Push `item` and ask the executor's host to run again, so a consumer
-    /// parked on this readiness is re-polled.
+    fn changed(&self) {
+        match &self.notifier {
+            Some(notifier) => notifier.notify(),
+            None => crate::valtron::request_executor_resume(),
+        }
+    }
+
+    /// Push `item` and wake the consumer parked on this readiness.
     ///
     /// # Errors
     /// The queue is full or closed; the item is handed back.
     pub fn push(&self, item: T) -> Result<(), concurrent_queue::PushError<T>> {
-        self.0.push(item)?;
-        crate::valtron::request_executor_resume();
+        self.queue.push(item)?;
+        self.changed();
         Ok(())
     }
 
-    /// Close the queue and ask the executor to run again, so a parked consumer
-    /// observes the end. Returns `true` if this call closed it.
+    /// Close the queue and wake the parked consumer, so it observes the end.
+    /// Returns `true` if this call closed it.
     pub fn close(&self) -> bool {
-        let closed = self.0.close();
-        crate::valtron::request_executor_resume();
+        let closed = self.queue.close();
+        self.changed();
         closed
     }
 }
@@ -301,14 +524,26 @@ impl<T: Send> EventReadiness for QueueReadiness<T> {
         // Closed-aware: a closed queue is "ready" so a parked consumer unparks to
         // observe end-of-stream (its next `pop` drains any backlog then returns
         // `Closed`) instead of sleeping forever.
-        !self.0.is_empty() || self.0.is_closed()
+        !self.queue.is_empty() || self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        !self.0.is_empty() || self.0.is_closed()
+        !self.queue.is_empty() || self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
@@ -330,55 +565,109 @@ impl<T> EventReadiness for QueueReadiness<T> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// // In a producer TaskIterator::next_status():
-/// match queue.push(item) {
-///     Ok(()) => Some(TaskStatus::Ready(())),
-///     Err(PushError::Full(_)) =>
-///         Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(queue.clone())))),
-///     Err(PushError::Closed(_)) => None,
-/// }
 /// ```
-pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>);
+/// use foundation_core::valtron::{EventReadiness, Pipe};
+///
+/// let (tx, rx) = Pipe::<u32>::with_depth(1);
+/// let vacancy = tx.vacancy();
+///
+/// // An empty pipe has room for the producer.
+/// assert!(vacancy.is_ready(None));
+///
+/// // A full pipe has none: the producer parks until a pop frees a slot.
+/// tx.try_send(1).expect("fill the pipe");
+/// assert!(!vacancy.is_ready(None));
+///
+/// assert_eq!(rx.try_recv().expect("item"), 1);
+/// assert!(vacancy.is_ready(None));
+/// ```
+pub struct QueueVacancyReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken after a pop and on close. `None` for a queue that valtron does not
+    /// own: nothing wakes on its pop, so the executor re-checks it on a timer.
+    notifier: Option<Arc<ReadinessNotifier>>,
+}
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueVacancyReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
     }
 }
 
 impl<T> QueueVacancyReadiness<T> {
     /// Create a `QueueVacancyReadiness` that watches the given queue for capacity.
+    ///
+    /// The queue is a plain `ConcurrentQueue`: a pop does not wake the task, so
+    /// the executor re-checks this readiness on a timer (`register` returns
+    /// `false`). Prefer an [`EventQueue`] and [`EventQueue::vacancy`], whose pop
+    /// wakes the parked producer.
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::vacancy()` (spec 70 feature 80)"
+    )]
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue)
+        Self {
+            queue,
+            notifier: None,
+        }
+    }
+
+    /// Same as [`Self::new`]: a plain queue cannot wake the task. Use
+    /// [`EventQueue`].
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::vacancy()` (spec 70 feature 80)"
+    )]
+    #[allow(deprecated)]
+    pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
+        Self::new(queue)
+    }
+
+    /// A readiness over a queue whose pops and close call `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self {
+            queue,
+            notifier: Some(notifier),
+        }
     }
 
     /// Get a clone of the underlying queue for external mutation (popping messages).
     ///
-    /// A consumer outside the executor should pop with
-    /// [`QueueVacancyReadiness::pop`] instead, which asks the executor to run
-    /// again; a raw pop leaves a parked producer asleep on a JS wasm build.
+    /// Pop with [`QueueVacancyReadiness::pop`] (or through the [`EventQueue`]) so the
+    /// parked producer is woken; a raw pop is seen only by a timed re-check.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
-        self.0.clone()
+        self.queue.clone()
     }
 
-    /// Pop an item and ask the executor's host to run again, so a producer
-    /// parked on the full queue is re-polled.
+    fn changed(&self) {
+        match &self.notifier {
+            Some(notifier) => notifier.notify(),
+            None => crate::valtron::request_executor_resume(),
+        }
+    }
+
+    /// Pop an item and wake the producer parked on the full queue.
     ///
     /// # Errors
     /// The queue is empty or closed.
     pub fn pop(&self) -> Result<T, concurrent_queue::PopError> {
-        let item = self.0.pop()?;
-        crate::valtron::request_executor_resume();
+        let item = self.queue.pop()?;
+        self.changed();
         Ok(item)
     }
 
-    /// Close the queue and ask the executor to run again, so a parked producer
-    /// observes the close. Returns `true` if this call closed it.
+    /// Close the queue and wake the parked producer, so it observes the close.
+    /// Returns `true` if this call closed it.
     pub fn close(&self) -> bool {
-        let closed = self.0.close();
-        crate::valtron::request_executor_resume();
+        let closed = self.queue.close();
+        self.changed();
         closed
     }
 }
@@ -388,14 +677,26 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: report ready when the queue closes so a producer parked on
         // a full-then-closed pipe unparks to observe the close on its next push.
-        self.0.is_closed() || !self.0.is_full()
+        self.queue.is_closed() || !self.queue.is_full()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.is_closed() || !self.0.is_full()
+        self.queue.is_closed() || !self.queue.is_full()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier
+            .as_ref()
+            .is_some_and(|notifier| notifier.register(waker))
     }
 }
 
@@ -417,13 +718,29 @@ impl<T> EventReadiness for QueueVacancyReadiness<T> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// // Park on "pipe has vacancy OR the call was cancelled":
+/// ```
+/// use std::sync::Arc;
+///
+/// use foundation_core::valtron::{
+///     AnyReadiness, EventReadiness, EventReadinessPtr, Pipe, ResumeSignal,
+/// };
+///
+/// // Park on "the pipe has vacancy OR the call was cancelled".
+/// let (tx, _rx) = Pipe::<u32>::with_depth(1);
+/// tx.try_send(1).expect("fill the pipe");
+/// let vacancy: EventReadinessPtr = Arc::new(tx.vacancy());
+/// let cancelled = ResumeSignal::new(false);
 /// let signal = AnyReadiness::new(vec![
-///     Arc::new(pipe.vacancy()) as Arc<dyn EventReadiness>,
-///     cancel_signal,
+///     vacancy,
+///     Arc::new(cancelled.clone()) as EventReadinessPtr,
 /// ]);
-/// Some(TaskStatus::Depends(Arc::new(signal)))
+///
+/// // The pipe is full and the call is not cancelled: neither child is ready.
+/// assert!(!signal.is_ready(None));
+///
+/// // One ready child is enough.
+/// cancelled.set(true);
+/// assert!(signal.is_ready(None));
 /// ```
 pub struct AnyReadiness(Vec<EventReadinessPtr>);
 
@@ -449,6 +766,24 @@ impl AnyReadiness {
 impl EventReadiness for AnyReadiness {
     fn is_ready(&self, dur: Option<time::Duration>) -> bool {
         self.0.iter().any(|child| child.is_ready(dur))
+    }
+
+    /// The earliest deadline of the children: the signal is ready as soon as
+    /// any child is, so it can be ready at the first of their instants. `None`
+    /// when no child has one.
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
+        self.0.iter().filter_map(|child| child.deadline()).min()
+    }
+
+    /// Registers `waker` with every child (no short-circuit: each child must
+    /// hold it). Returns `true` only if every child wakes on change, so a child
+    /// that cannot wake keeps the whole signal on the timed re-check.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let mut all = true;
+        for child in &self.0 {
+            all &= child.register(waker);
+        }
+        all
     }
 }
 
@@ -1745,19 +2080,61 @@ where
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let task = my_task
-///     .map_circuit(|status| {
-///         match status {
-///             TaskStatus::Ready(err) if err.is_error() => {
-///                 TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(err))
-///             }
-///             TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
-///                 TaskShortCircuit::Continue(status)
-///             }
-///             _ => TaskShortCircuit::Stop,
-///         }
-///     });
+/// ```
+/// use foundation_core::valtron::{
+///     Ctx, TaskIterator, TaskIteratorExt, TaskShortCircuit, TaskStatus,
+/// };
+///
+/// # #[derive(Clone, Copy, PartialEq, Debug)]
+/// # enum Outcome {
+/// #     Ok(u32),
+/// #     Err(&'static str),
+/// # }
+/// #
+/// # struct Steps {
+/// #     items: Vec<Outcome>,
+/// #     index: usize,
+/// # }
+/// #
+/// # impl TaskIterator for Steps {
+/// #     type Ready = Outcome;
+/// #     type Pending = ();
+/// #
+/// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Outcome, ()>> {
+/// #         let item = self.items.get(self.index).copied();
+/// #         self.index += 1;
+/// #         item.map(TaskStatus::Ready)
+/// #     }
+/// # }
+/// #
+/// # let ctx = Ctx::new();
+/// # let task = Steps {
+/// #     items: vec![
+/// #         Outcome::Ok(1),
+/// #         Outcome::Ok(2),
+/// #         Outcome::Err("boom"),
+/// #         Outcome::Ok(3),
+/// #     ],
+/// #     index: 0,
+/// # };
+/// let mut task = task.map_circuit(|status| match status {
+///     TaskStatus::Ready(Outcome::Err(err)) => {
+///         TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(Outcome::Err(err)))
+///     }
+///     TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
+///         TaskShortCircuit::Continue(status)
+///     }
+///     _ => TaskShortCircuit::Stop,
+/// });
+///
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(Outcome::Ok(1))));
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(Outcome::Ok(2))));
+/// // The error is returned, then iteration stops; Ok(3) is never reached.
+/// assert_eq!(
+///     task.next_status(ctx.clone()),
+///     Some(TaskStatus::Ready(Outcome::Err("boom")))
+/// );
+/// assert_eq!(task.next_status(ctx), None);
 /// ```
 pub enum TaskShortCircuit<D, P> {
     /// Continue iteration with the wrapped item

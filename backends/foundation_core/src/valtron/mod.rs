@@ -10,6 +10,7 @@ mod iterators;
 mod notifiers;
 mod pipe;
 mod pipe_mapped;
+mod readiness_wake;
 mod stream_future;
 mod streams;
 mod task;
@@ -48,6 +49,10 @@ pub use iterators::*;
 pub use notifiers::*;
 pub use pipe::*;
 pub use pipe_mapped::*;
+#[doc(hidden)]
+pub use readiness_wake::ParkGuard;
+pub(crate) use readiness_wake::ParkState;
+pub use readiness_wake::{EventQueue, ReadinessNotifier, ReadinessWaker};
 pub use stream_future::*;
 pub use streams::*;
 pub use task::*;
@@ -78,15 +83,18 @@ pub const BLOCKING_BOUNDARY: bool = !cfg!(all(
 /// imports its blocking helpers inside this macro so they exist exactly
 /// where valtron can block.
 ///
-/// ```ignore
+/// ```
 /// foundation_core::blocking_boundary! {
+///     #[allow(unused_imports)]
 ///     use foundation_core::valtron::block_on_future;
 /// }
+///
 /// // Or with an `else` arm for the JS-hosted wasm build:
 /// foundation_core::blocking_boundary! {
-///     if { pub const CAN_BLOCK: bool = true; }
-///     else { pub const CAN_BLOCK: bool = false; }
+///     if { const CAN_BLOCK: bool = true; }
+///     else { const CAN_BLOCK: bool = false; }
 /// }
+/// assert_eq!(CAN_BLOCK, foundation_core::valtron::BLOCKING_BOUNDARY);
 /// ```
 #[cfg(not(all(
     target_family = "wasm",
@@ -164,3 +172,13 @@ pub use futures_lite::StreamExt;
 // foundation_core::valtron::trace::try_init_tracing_with() without every
 // crate adding foundation_compact as a direct dependency.
 pub use foundation_compact::trace;
+
+/// The instant type of [`EventReadiness::deadline`].
+///
+/// WHY: `std::time::Instant::now()` panics on `wasm32-unknown-unknown`, and a
+/// deadline the executor reads (to wake at it) is compared with the clock. This
+/// is `std::time::Instant` on every other target, and the host-clock instant on
+/// JS wasm, so one readiness source compiles and runs on both. A crate that
+/// implements `deadline` names this type, so it does not need a direct
+/// dependency on `foundation_compact`.
+pub use foundation_compact::Instant as ReadinessInstant;

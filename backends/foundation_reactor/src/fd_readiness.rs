@@ -138,6 +138,12 @@ impl EventReadiness for FdReadiness {
     fn clear(&self) {
         self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
     }
+
+    /// Delegates to the reactor readiness, which wakes the registered task on
+    /// every event.
+    fn register(&self, waker: &foundation_core::valtron::ReadinessWaker) -> bool {
+        EventReadiness::register(&self.readiness, waker)
+    }
 }
 
 impl Drop for FdReadiness {

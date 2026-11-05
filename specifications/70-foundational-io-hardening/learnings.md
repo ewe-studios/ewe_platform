@@ -2,6 +2,62 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
+  cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
+  `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run
+  in parallel with every other plain `#[test]` in the same binary (for example
+  `test_poolguard_drop_triggers_shutdown` next to `can_queue_and_complete_task`). Its
+  drop therefore wiped the live pool of another test. In `block_on` the window is
+  between `initialize_pool` (installs the registry) and `get_pool` (reads it), so the
+  panic was "Thread pool not initialized, ensure to call block_on or initialize_pool
+  first", and it looked like a random flake. The fix compares the `Arc` and clears a
+  slot only when it still holds the registry this guard owns; the `PoolGuard` docs
+  already promised this "generation still matches" rule. Test:
+  `private_pool_guard_drop_keeps_the_global_pool` in `tests/valtron/multi_workers.rs`.
+  Lesson: a process-wide singleton needs an owner check on every teardown path, and a
+  guard that did not install a slot must never clear it.
+- 2026-11-05 (feature 80, ignored doctests): `foundation_core` marked 57 doc examples
+  `ignore`, so `cargo test --doc` reported them as ignored instead of running them.
+  They were pseudo-code (`MyTask::new()`, undefined types), and `ignore` hid that the
+  documented API was never compiled. All 57 are now real doctests: each builds a small
+  local task or a plain `Vec<Stream<..>>` iterator, runs the documented call and asserts
+  the result. The default set runs 70 doctests and the `multi` set runs 73; both report
+  zero ignored. Write a doctest as an external crate: use only `foundation_core::...`
+  paths. A hidden `# let _pool = initialize_pool(7, Some(3));` line brings up a pool for
+  the `execute` family and has the same signature in both executors.
+
+- 2026-11-05 (feature 80, lost wake in the `Depends` park path): the executor checked a
+  readiness with `is_ready(None)` before it called `register`, because a ready signal never
+  wakes anybody. A source that became ready between the two calls found no waker: the notifier
+  count was zero, so `notify` returned early. The task then slept to its deadline. In the HTTP
+  client the deadline is the 30 s DNS timeout, so a lookup that had already finished still
+  stalled the request for 30 s. The Linux CI runs showed the stall in three netio tests (the
+  Expect-Continue upload timing test and two unsolicited-interim tests) and in two proxy e2e
+  tests (`connect_unary_via_h1_proxy`, `grpc_web_unary_via_grpc_backend`).
+  The fix registers first and checks again. It runs that second check only when `register`
+  returned `true`: a signal that did not take the waker keeps its timed re-check. When the
+  signal is ready at once, the handler releases the park state before it unparks the task, so a
+  source that still holds the waker cannot park the task again. Do not remove the second check:
+  the single check before `register` is the bug.
+  Test: `tests/valtron/readiness_register_race.rs`. Its readiness becomes ready inside
+  `register` and does not wake the waker, which is the exact window. The old code ran the task
+  after 505 ms (the deadline); the new code runs it after 0 ms with two readiness checks. It
+  runs on the single-thread executor and on a pool.
+- 2026-11-05 (CI image and submodules): master commit 2512754fa deleted the
+  `tools/whisper.cpp` gitlink but left its `.gitmodules` entry and the `WHISPER_DIR`
+  setting in `mise.toml`. GitHub checks out a pull request as its merge commit, so the
+  deletion reached the image job, and `images.nu prepare` stopped with "submodule
+  tools/whisper.cpp is not in HEAD". A branch that does not change the path cannot stop a
+  deletion in master from landing in the merge. To keep a submodule, merge master into the
+  branch and re-add the gitlink (mode 160000) in a commit on top, which makes the path a
+  change that the merge keeps. Check with `git merge-tree --write-tree HEAD origin/master`
+  and `git ls-tree <tree> tools/whisper.cpp` before you push.
+- 2026-11-05 (Docker runs of `foundation_core` on an Apple Silicon Mac): the tests measure
+  the CPU time of idle threads with a bound of 2 ms per second. An amd64 container on an arm64
+  Mac runs under emulation, and `idle_threads_parked_on_a_resume_signal_use_almost_no_cpu`
+  fails there with 2.3 to 3.1 ms. The old code fails too (2.44 ms), so the failure is the
+  emulation, not a regression. Judge CPU-time tests by the native GitHub job or by a native
+  run. The same host runs the test 10 times out of 10 green.
 - 2026-11-02 (feature 39, rustfmt version pin): the nightly channel name and
   the rustfmt commit date differ by one day. The CI image's rustfmt is
   `1.10.0-nightly (feaadeeaca 2026-09-19)`. The channel that gives that

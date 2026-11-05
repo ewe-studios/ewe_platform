@@ -31,7 +31,7 @@ use bytes::Bytes;
 use foundation_core::synca::WaitGroupGuard;
 use foundation_core::valtron::{
     AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, FutureTask, Pipe,
-    PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
+    PipeReceiver, PipeSender, ReadinessWaker, TaskIterator, TaskStatus, TryRecvError,
 };
 #[cfg(unix)]
 use foundation_iogate::FdReadiness as SocketReadiness;
@@ -213,6 +213,14 @@ impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         Instant::now() >= self.0
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
 }
 
 /// Ready once the server is shutting down.
@@ -221,6 +229,11 @@ struct ShutdownRequested(Arc<ShutdownSignal>);
 impl EventReadiness for ShutdownRequested {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
     }
 }
 

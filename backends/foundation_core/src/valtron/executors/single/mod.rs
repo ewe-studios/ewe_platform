@@ -195,6 +195,57 @@ pub fn has_runnable_work() -> bool {
     })
 }
 
+/// Native: sleep this thread while only parked sleepers remain, as long as the
+/// sleepers allow. Returns `true` if it slept. See
+/// [`LocalThreadExecutor::wait_for_sleepers`].
+///
+/// Returns `false` when the engine has not been initialized.
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn wait_for_sleepers(until: foundation_compact::Instant) -> bool {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get()
+            .is_some_and(|engine| engine.wait_for_sleepers(until))
+    })
+}
+
+/// Native: how long one call of a caller that drives this engine may wait for
+/// parked sleepers (the executor's `max_yield_duration`).
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn sleeper_budget() -> std::time::Duration {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get().map_or(
+            std::time::Duration::ZERO,
+            LocalThreadExecutor::sleeper_budget,
+        )
+    })
+}
+
+/// How long a consumer driving this thread's engine may stay parked before it
+/// must look again: the nearest sleeper deadline, or the readiness poll quantum
+/// when a sleeper needs polling. `None` when no sleeper needs a timed wake, or
+/// the engine has not been initialized. See
+/// [`LocalThreadExecutor::parked_wake_after`].
+#[must_use]
+pub fn parked_wake_after() -> Option<core::time::Duration> {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE
+        .with(|pool| pool.get().and_then(LocalThreadExecutor::parked_wake_after))
+}
+
+/// This thread's engine readiness poll quantum, or the default when the engine
+/// has not been initialized. See [`LocalThreadExecutor::readiness_poll_quantum`].
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn readiness_poll_quantum() -> core::time::Duration {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get().map_or(
+            super::constants::DEFAULT_READINESS_POLL_QUANTUM,
+            LocalThreadExecutor::readiness_poll_quantum,
+        )
+    })
+}
+
 /// Whether this thread's engine has been initialized ([`initialize_pool`]).
 ///
 /// Host callbacks that resume the executor (a JS timer or microtask queued by a

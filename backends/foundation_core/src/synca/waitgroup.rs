@@ -97,10 +97,12 @@ impl WaitGroup {
     #[must_use]
     pub fn wait_timeout(&self, timeout: std::time::Duration) -> bool {
         let (lock, cond) = &*self.inner;
-        let deadline = std::time::Instant::now() + timeout;
+        let deadline = foundation_compact::Instant::now() + timeout;
         let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
         while *count != 0 {
-            let Some(remaining) = deadline.checked_duration_since(std::time::Instant::now()) else {
+            let Some(remaining) =
+                deadline.checked_duration_since(foundation_compact::Instant::now())
+            else {
                 return false;
             };
             let (next, res) = cond

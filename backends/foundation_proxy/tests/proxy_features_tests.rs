@@ -365,7 +365,7 @@ fn redirect_rejects_head_over_limit() {
 
 /// A backend that completes a `101 Switching Protocols` handshake and then
 /// echoes every byte — a stand-in for a WebSocket server. Exercises the proxy's
-/// upgrade path (`forward_upgrade` + `splice_bidirectional`).
+/// upgrade path (`forward_upgrade` + `aio::splice`).
 fn start_ws_echo_backend() -> (u16, Backend) {
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind ws backend");
     listener.set_nonblocking(true).ok();

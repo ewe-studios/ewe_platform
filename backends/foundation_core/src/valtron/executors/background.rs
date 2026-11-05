@@ -17,9 +17,10 @@ use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 
+use foundation_compact::Instant;
 use foundation_nostd::comp::condvar_comp::{CondVar, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crate::synca::WaitGroup;
 use crate::valtron::GenericResult;

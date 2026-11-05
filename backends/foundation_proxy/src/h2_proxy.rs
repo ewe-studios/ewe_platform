@@ -22,19 +22,14 @@
 
 use std::io;
 use std::sync::Arc;
-use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{
-    Pipe, PipeReceiver, PipeSender, Stream, TryRecvError, TrySendError,
-};
+use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
 use foundation_netio::http::ClientRequestBuilder;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
-use foundation_netio::shared::client::body_reader::{
-    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
-};
+use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
     pushable_request_body_with_readiness, Proto, RequestDescriptor, SendSafeBody, SimpleHeader,
@@ -61,11 +56,6 @@ use crate::rpc_relay::{
 };
 use crate::runtime::BackendLease;
 use crate::state::ProxyState;
-
-/// How long a full pipe / empty pipe is polled before retrying on the blocking
-/// forward path. Small enough to add negligible latency, large enough to avoid a
-/// hot spin while the concurrent connection task drains the other end.
-const POLL_BACKOFF: Duration = Duration::from_millis(1);
 
 pub struct H2ProxyHandler {
     state: Arc<ProxyState>,
@@ -153,25 +143,25 @@ impl H2Serve for H2ProxyHandler {
                 relay_connect_unary_h2(lease, header, orig_headers, client_ip, scheme, body, &tx)
                     .await;
             } else {
-                // The upstream exchange blocks (the shared client drives its own I/O),
-                // so run it off the worker pool on a dedicated thread. The lease moves
-                // in so the backend's in-flight count is held for the whole exchange.
-                // The future returns immediately: the response flows back through `tx`,
-                // which the h2 connection task drains and writes to the socket.
-                std::thread::spawn(move || {
-                    forward_upstream(
-                        lease,
-                        method,
-                        host,
-                        path,
-                        orig_headers,
-                        client_ip,
-                        scheme,
-                        client,
-                        body,
-                        &tx,
-                    );
-                });
+                // Forward over HTTP/1.1 through the shared client. Async all the
+                // way, like the relays above: the request body is pumped from the
+                // H2 DATA frames into a pushable body, the response flows back as
+                // H2 frames through `tx`, and every wait parks on a waker. The
+                // lease moves in so the backend's in-flight count is held for the
+                // whole exchange.
+                forward_upstream(
+                    lease,
+                    method,
+                    host,
+                    path,
+                    orig_headers,
+                    client_ip,
+                    scheme,
+                    client,
+                    body,
+                    &tx,
+                )
+                .await;
             }
             Ok(())
         })
@@ -179,9 +169,15 @@ impl H2Serve for H2ProxyHandler {
 }
 
 /// Forward one H2 stream to its backend over HTTP/1.1 via the shared client and
-/// relay the response back as H2 frames. Runs on a dedicated OS thread.
+/// relay the response back as H2 frames.
+///
+/// HOW: one future. The request body is pumped from the H2 DATA frames into a
+/// pushable body by a sibling future that runs beside the upstream request;
+/// the response body is read as an [`AsyncSendSafeBody`] that parks on the
+/// upstream socket; each frame is sent with `PipeSender::send`, which parks on a
+/// full pipe. No thread is started and nothing sleeps.
 #[allow(clippy::too_many_arguments)]
-fn forward_upstream(
+async fn forward_upstream(
     lease: BackendLease,
     method: SimpleMethod,
     host: String,
@@ -201,129 +197,123 @@ fn forward_upstream(
     headers.insert(SimpleHeader::HOST, vec![host]);
 
     // Stream the request body: H2 DATA frames feed a pushable body that the
-    // client pulls as it renders the request. A dedicated feeder thread keeps the
-    // producer (this pipe) and the consumer (the client's request renderer)
-    // running concurrently.
+    // client pulls as it renders the request.
     let (pushable, body_stream, readiness) =
         pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
-    let feeder = std::thread::spawn(move || {
-        loop {
-            match body.try_recv() {
-                Ok(H2IncomingFrame::Data(bytes)) => {
-                    let mut chunk = bytes;
-                    loop {
-                        match pushable.try_push(chunk) {
-                            Ok(()) => break,
-                            Err(TrySendError::Full(returned)) => {
-                                chunk = returned;
-                                std::thread::sleep(POLL_BACKOFF);
-                            }
-                            Err(TrySendError::Closed(_)) => return,
-                        }
+    let feeder = async move {
+        while let Some(frame) = body.receive().await {
+            match frame {
+                H2IncomingFrame::Data(bytes) => {
+                    if pushable.push(bytes).await.is_err() {
+                        return;
                     }
                 }
-                Ok(H2IncomingFrame::Reset(_)) => break,
-                Err(TryRecvError::Empty) => std::thread::sleep(POLL_BACKOFF),
-                Err(TryRecvError::Closed) => break,
+                H2IncomingFrame::Reset(_) => break,
             }
         }
         pushable.close();
-    });
-
-    let builder = match ClientRequestBuilder::<SystemDnsResolver>::new(method, &url) {
-        Ok(b) => b
-            .headers(headers)
-            .body(body_stream)
-            .with_body_readiness(readiness),
-        Err(e) => {
-            tracing::warn!(%url, "H2 build upstream request failed: {e}");
-            let _ = blocking_send(tx, h2_status(502, true));
-            let _ = feeder.join();
-            return;
-        }
     };
 
-    let response = match client.request(builder).and_then(|req| req.send()) {
-        Ok(resp) => resp,
-        Err(e) => {
-            tracing::warn!(%url, "H2 upstream request failed: {e}");
-            let _ = blocking_send(tx, h2_status(502, true));
-            let _ = feeder.join();
-            return;
-        }
-    };
-
-    let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
-
-    // Response HEADERS: strip hop-by-hop, then hand every value to the encoder,
-    // which adds `:status` from the numeric code.
-    let out_headers = strip_hop_by_hop(&resp_headers);
-    let h2_hdrs = simple_headers_to_h2(&out_headers);
-    let code = u16::try_from(Into::<usize>::into(status)).unwrap_or(502);
-    if blocking_send(
-        tx,
-        H2Frame::Headers {
-            status: code,
-            headers: h2_hdrs,
-            end_stream: false,
-        },
-    )
-    .is_err()
-    {
-        let _ = feeder.join();
-        return;
-    }
-
-    // Response body → H2 DATA frames, chunk at a time.
-    let mut chunks = SendSafeBodyBytesIterator::new(resp_body);
-    loop {
-        match chunks.next() {
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
-                if bytes.is_empty() {
-                    continue;
-                }
-                if blocking_send(
-                    tx,
-                    H2Frame::Data {
-                        payload: bytes,
-                        end_stream: false,
-                    },
-                )
-                .is_err()
-                {
-                    let _ = feeder.join();
+    let exchange = async {
+        let builder = match ClientRequestBuilder::<SystemDnsResolver>::new(method, &url) {
+            Ok(b) => b
+                .headers(headers)
+                .body(body_stream)
+                .with_body_readiness(readiness),
+            Err(e) => {
+                tracing::warn!(%url, "H2 build upstream request failed: {e}");
+                let _ = tx.send(h2_status(502, true)).await;
+                return;
+            }
+        };
+        let response = match client.request(builder) {
+            Ok(request) => match request.send_async().await {
+                Ok(resp) => resp,
+                Err(e) => {
+                    tracing::warn!(%url, "H2 upstream request failed: {e}");
+                    let _ = tx.send(h2_status(502, true)).await;
                     return;
                 }
+            },
+            Err(e) => {
+                tracing::warn!(%url, "H2 upstream request failed: {e}");
+                let _ = tx.send(h2_status(502, true)).await;
+                return;
             }
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
-                tracing::warn!(%url, "H2 upstream body stream error: {e}");
-                break;
-            }
-            // Honour an explicit delay hint; every other non-data signal
-            // (`Ignore`/`Wait`/`Init`/…) is transient "no data yet" — back off.
-            Some(Stream::Delayed(d)) => std::thread::sleep(d),
-            Some(_) => std::thread::sleep(POLL_BACKOFF),
-            None => break,
+        };
+
+        let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
+
+        // Response HEADERS: strip hop-by-hop, then hand every value to the
+        // encoder, which adds `:status` from the numeric code.
+        let out_headers = strip_hop_by_hop(&resp_headers);
+        let h2_hdrs = simple_headers_to_h2(&out_headers);
+        let code = u16::try_from(Into::<usize>::into(status)).unwrap_or(502);
+        if tx
+            .send(H2Frame::Headers {
+                status: code,
+                headers: h2_hdrs,
+                end_stream: false,
+            })
+            .await
+            .is_err()
+        {
+            return;
         }
+
+        // Response body → H2 DATA frames, chunk at a time.
+        let mut chunks = AsyncSendSafeBody::from(resp_body);
+        if let Some(source) = conn.as_ref().and_then(|c| c.read_wake_source()) {
+            chunks = chunks.with_read_wake(source);
+        }
+        while let Some(piece) = chunks.next().await {
+            match piece {
+                Ok(bytes) if bytes.is_empty() => {}
+                Ok(bytes) => {
+                    if tx
+                        .send(H2Frame::Data {
+                            payload: Bytes::from(bytes),
+                            end_stream: false,
+                        })
+                        .await
+                        .is_err()
+                    {
+                        return;
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(%url, "H2 upstream body stream error: {e}");
+                    break;
+                }
+            }
+        }
+
+        // Terminate the response stream with an empty END_STREAM DATA frame.
+        let _ = tx
+            .send(H2Frame::Data {
+                payload: Bytes::new(),
+                end_stream: true,
+            })
+            .await;
+
+        // Return the upstream socket to the pool for reuse (drain residue first),
+        // mirroring the H1 forward path.
+        if let (Some(pool), Some(mut stream)) = (pool, conn) {
+            stream.drain_stream();
+            pool.return_to_pool(stream);
+        }
+    };
+
+    // The request body pump runs beside the exchange. The exchange ending ends
+    // the stream (a pump still waiting on the client is dropped); the pump
+    // ending first does not.
+    futures_util::pin_mut!(feeder, exchange);
+    if let futures_util::future::Either::Right(((), exchange)) =
+        futures_util::future::select(exchange, feeder).await
+    {
+        // The body ended first (the normal case): the exchange goes on.
+        exchange.await;
     }
-
-    // Terminate the response stream with an empty END_STREAM DATA frame.
-    let _ = blocking_send(
-        tx,
-        H2Frame::Data {
-            payload: Bytes::new(),
-            end_stream: true,
-        },
-    );
-
-    // Return the upstream socket to the pool for reuse (drain residue first),
-    // mirroring the H1 forward path.
-    if let (Some(pool), Some(mut stream)) = (pool, conn) {
-        stream.drain_stream();
-        pool.return_to_pool(stream);
-    }
-
-    let _ = feeder.join();
     drop(lease);
 }
 
@@ -848,26 +838,6 @@ fn simple_headers_to_h2(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
         }
     }
     out
-}
-
-/// Push one response frame into the pipe from the blocking forward thread.
-///
-/// `PipeSender::send` is async and cannot be awaited here, so use `try_send` and
-/// park the thread briefly while the bounded pipe is full — the h2 connection
-/// task drains `resp_rx` concurrently, so a full pipe is always transient.
-/// Returns `Err(())` once the receiver is gone (the client stream closed).
-fn blocking_send(tx: &PipeSender<H2Frame>, frame: H2Frame) -> Result<(), ()> {
-    let mut item = frame;
-    loop {
-        match tx.try_send(item) {
-            Ok(()) => return Ok(()),
-            Err(TrySendError::Full(returned)) => {
-                item = returned;
-                std::thread::sleep(POLL_BACKOFF);
-            }
-            Err(TrySendError::Closed(_)) => return Err(()),
-        }
-    }
 }
 
 /// A status-only response frame (no headers, optionally ending the stream).

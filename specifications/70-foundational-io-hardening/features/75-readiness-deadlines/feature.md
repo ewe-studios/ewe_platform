@@ -1,6 +1,6 @@
 ---
 feature: "valtron: a task parked on a readiness that contains a deadline wakes at that deadline; idle QUIC listener uses no CPU; then land feature 72 E1"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -69,5 +69,26 @@ cargo test -p foundation_proxy --profile dev --features quic
 
 ## Done when
 
-- [ ] Deadline-carrying readiness wakes on time in both executors; idle QUIC listener idle;
+- [x] Deadline-carrying readiness wakes on time in both executors; idle QUIC listener idle;
       feature 72 E1 merged with 20/20 flake runs. Backlog entries deleted. CI green.
+
+## Result (2026-11-03)
+
+- The measured cause differs from the problem text: deadlines were already honored, because a
+  worker with only readiness sleepers re-checks them every 1 ms (`readiness_poll_quantum`). That
+  re-check is the idle cost (92 ms of CPU per second for an idle H3 listener) and it hid a lost
+  wake in `block_on`'s idle back-off (`SpinWait`), which stalled the feature 72 upload.
+- Added `EventReadiness::deadline()` and `EventReadiness::needs_polling()` (rule: return `false`
+  only if every transition to ready calls `request_executor_resume`, or happens at the deadline),
+  `ResumeSignal`, the deadline plumbing in netio, http, wireguard, nativeapis and the quinn
+  driver, and `needs_polling() == false` for the reactor readiness, `ResumeSignal`, `WakeSignal`
+  and the deadline-only signals. `BoolSignal`, the queue types and the nativeapis fd types keep
+  polling (backlog §9).
+- `block_on`: sleeps until the nearest deadline, bounded by the quantum only when a sleeper needs
+  polling; the idle back-off is bounded by that wait; the kill signal is checked after a sleep;
+  `idle_wake::checking()` runs before every step. The H3 accept task and QUIC driver wake through
+  `ResumeSignal`, and `ShutdownSignal::turn_on` resumes the executor.
+- Tests: `idle_quic_listener_uses_no_cpu` (92 ms before, under 20 ms after; 20 of 20),
+  `readiness_deadline_tests` in both feature sets (they need the new method, so they did not fail
+  on the old code: the old executor woke on time by polling), `event_driven_cpu` (multi: about
+  21 ms against 55 ms for a polling signal), `expect_continue_body_sent_on_time_with_no_other_activity`.

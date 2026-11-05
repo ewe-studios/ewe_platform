@@ -70,6 +70,16 @@ crate. Remove only `thiserror` (unused; `derive_more` is the standard for the er
 
 About ten `doc_markdown` warnings. Fix them; 0 warnings.
 
+## E10. `foundation_core` and `foundation_nostd` clippy debt (found in feature 46)
+
+`cargo clippy -p foundation_core --no-deps --profile dev --lib -- -D warnings` fails with 19
+existing errors, and without `--no-deps` it stops first on 5
+`redundant_closure_for_method_calls` errors in `foundation_nostd/src/comp/fair_gate.rs`. The
+backlog §4 entry lists file and line for each. Fix each lint in the code (no blanket
+`allow`), in both feature sets (default and `multi`), then make CI deny clippy warnings for
+`foundation_core` and `foundation_nostd` in `ci/packages.toml` (as feature 71 did for
+crates at zero).
+
 ## Verify
 
 ```bash

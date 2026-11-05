@@ -18,9 +18,7 @@ use core::task::{Context, Poll};
 use std::boxed::Box;
 use std::sync::Arc;
 
-use concurrent_queue::ConcurrentQueue;
-
-use crate::valtron::{queue_waker, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken};
+use crate::valtron::{queue_waker, Ctx, TaskIterator, TaskStatus, WakeToken};
 
 /// The async transition's return: the next state plus a [`TaskStatus`].
 pub type TransitionOutput<T, R, P> = Option<(T, TaskStatus<R, P>)>;
@@ -118,7 +116,7 @@ where
     state: Option<T>,
     transition: AsyncTransition<T, R, P>,
     future: Option<AsyncStateFuture<T, R, P>>,
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: crate::valtron::EventQueue<WakeToken>,
     completed: bool,
 }
 
@@ -134,7 +132,7 @@ where
             state: Some(state),
             transition,
             future: None,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
             completed: false,
         }
     }
@@ -188,9 +186,7 @@ where
                 //  - self-wake (token pushed during poll): `Ignore` (requeue, no park);
                 //  - external-wake (no token): park on the queue readiness.
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -239,9 +235,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }

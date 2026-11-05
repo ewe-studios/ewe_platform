@@ -27,7 +27,11 @@ pub enum Delayed<T> {
     ///    (this is more of a bonus).
     ///
     /// This allows more communication about an operation still awaiting completion.
-    Pending(std::time::Instant, std::time::Duration, std::time::Duration),
+    Pending(
+        foundation_compact::Instant,
+        std::time::Duration,
+        std::time::Duration,
+    ),
 
     /// Ready is the final state where we consider the delay
     /// finished/ended with relevant result.
@@ -121,15 +125,15 @@ impl<T> Iterator for DelayedAsIterator<T> {
 /// for sleeping to end which indicates to the caller to perform whatever
 /// task they were waiting for.
 #[derive(Clone, Debug)]
-pub struct SleepIterator<T>(std::time::Instant, std::time::Duration, Option<T>);
+pub struct SleepIterator<T>(foundation_compact::Instant, std::time::Duration, Option<T>);
 
 impl<T> SleepIterator<T> {
-    pub fn new(from: std::time::Instant, until: std::time::Duration, value: T) -> Self {
+    pub fn new(from: foundation_compact::Instant, until: std::time::Duration, value: T) -> Self {
         Self(from, until, Some(value))
     }
 
     pub fn until(duration: std::time::Duration, value: T) -> Self {
-        let from = std::time::Instant::now();
+        let from = foundation_compact::Instant::now();
         Self(from, duration, Some(value))
     }
 }
@@ -140,8 +144,8 @@ impl<T> SleepIterator<T> {
 /// Returns `None` when the deadline is in the past, is exactly `now`, or overflowed
 /// (`completed_at` is `None`). `None` means the sleep is done.
 pub fn remaining(
-    completed_at: Option<std::time::Instant>,
-    now: std::time::Instant,
+    completed_at: Option<foundation_compact::Instant>,
+    now: foundation_compact::Instant,
 ) -> Option<std::time::Duration> {
     let diff = completed_at?.checked_duration_since(now)?;
     if diff > std::time::Duration::ZERO {
@@ -157,7 +161,7 @@ impl<T> DelayedIterator for SleepIterator<T> {
     fn next(&mut self) -> Option<Delayed<Self::Item>> {
         self.2.as_ref()?;
 
-        let now = std::time::Instant::now();
+        let now = foundation_compact::Instant::now();
         let completed_at = self.0.checked_add(self.1);
         let result = match remaining(completed_at, now) {
             Some(diff) => Delayed::Pending(self.0, self.1, diff),

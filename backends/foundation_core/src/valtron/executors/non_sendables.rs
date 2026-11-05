@@ -592,15 +592,41 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// use crate::valtron::executors::{execute_with_config, StreamConfig};
+/// ```
+/// use foundation_core::valtron::{
+///     execute_with_config, initialize_pool, Ctx, Stream, StreamConfig, TaskIterator,
+///     TaskStatus,
+/// };
 /// use std::time::Duration;
 ///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
 /// let config = StreamConfig::default()
 ///     .with_max_turns(50)
 ///     .with_park_duration(Duration::from_nanos(50));
 ///
-/// let result = execute_with_config(my_task, config)?;
+/// let values: Vec<u32> = execute_with_config(MyTask(3), config)
+///     .expect("schedule the task")
+///     .filter_map(|item| match item {
+///         Stream::Next(value) => Some(value),
+///         _ => None,
+///     })
+///     .collect();
+/// assert_eq!(values, vec![3, 2, 1]);
 /// ```
 pub fn execute_with_config<T>(
     task: T,
@@ -726,9 +752,36 @@ where
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let task = MyTask::new();
-/// let result = execute(task)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_as_task, initialize_pool, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let iter = execute_as_task(MyTask(3), None).expect("schedule the task");
+/// let mut values: Vec<u32> = iter
+///     .filter_map(|status| match status {
+///         TaskStatus::Ready(value) => Some(value),
+///         _ => None,
+///     })
+///     .collect();
+/// values.sort_unstable();
+/// assert_eq!(values, vec![1, 2, 3]);
 /// ```
 ///
 /// WHY: Provides single API that works across all platforms/configurations
@@ -821,8 +874,25 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let value: MyValue = sync_collect_one(my_task)?;
+/// ```
+/// use foundation_core::valtron::{
+///     initialize_pool, sync_collect_one, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(Option<u32>);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         self.0.take().map(TaskStatus::Ready)
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let value: u32 = sync_collect_one(MyTask(Some(42))).expect("run the task");
+/// assert_eq!(value, 42);
 /// ```
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
@@ -861,8 +931,30 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let results: Vec<MyValue> = sync_one(my_task)?;
+/// ```
+/// use foundation_core::valtron::{
+///     initialize_pool, sync_one, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let mut results: Vec<u32> = sync_one(MyTask(3)).expect("run the task");
+/// results.sort_unstable();
+/// assert_eq!(results, vec![1, 2, 3]);
 /// ```
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
@@ -901,9 +993,31 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let tasks = vec![task_a, task_b, task_c];
-/// let all_results: Vec<MyValue> = sync_all(tasks)?;
+/// ```
+/// use foundation_core::valtron::{
+///     initialize_pool, sync_all, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(3), MyTask(2), MyTask(1)];
+/// let mut all_results: Vec<u32> = sync_all(tasks).expect("run every task");
+/// all_results.sort_unstable();
+/// assert_eq!(all_results, vec![1, 1, 1, 2, 2, 3]);
 /// ```
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
@@ -964,17 +1078,40 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let tasks = vec![task1, task2, task3];
-/// let collected = execute_collect_all(tasks, None)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_collect_all, initialize_pool, Ctx, Stream, TaskIterator, TaskStatus,
+/// };
 ///
-/// for stream_item in collected {
-///     match stream_item {
-///         Stream::Pending(count) => println!("{count} still pending..."),
-///         Stream::Next(results) => process(results),
-///         Stream::Delayed(dur) => continue,
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
 ///     }
 /// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(3), MyTask(2)];
+/// let collected = execute_collect_all(tasks, None).expect("schedule the tasks");
+///
+/// let mut results = Vec::new();
+/// for stream_item in collected {
+///     match stream_item {
+///         Stream::Pending(_) => continue,
+///         Stream::Next(values) => results.extend(values),
+///         _ => continue,
+///     }
+/// }
+/// results.sort_unstable();
+/// assert_eq!(results, vec![1, 1, 2, 2, 3]);
 /// ```
 pub fn execute_collect_all<T>(
     tasks: Vec<T>,
@@ -1199,11 +1336,59 @@ pub fn run_once() {
 /// This is good for non send-safe types you want to use in non-send contexts.
 ///
 /// It internally uses the [`run_until_next_state`] function.
-pub struct DrivenStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>)
+pub struct DrivenStreamIterator<T>(
+    Option<NotifyQueueStreamIterator<T::Ready, T::Pending>>,
+    ConsumerWake,
+)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static;
+
+/// What an async consumer of a [`DrivenStreamIterator`] is woken by.
+///
+/// WHY: the iterator drives the engine inside `next`, so while the consumer is
+/// `Pending` nothing runs the engine. A parked task becomes runnable on a foreign
+/// thread (the task's `ReadinessWaker` is woken) or by the clock (a deadline, a
+/// readiness that must be re-checked); neither pushes to the output queue. The
+/// consumer's wake is therefore also armed on those two events.
+///
+/// The consumer's latest wake sits in `slot`; the queue, the executor's wake
+/// handle and the timer each hold a small trigger that takes it, so it fires once
+/// whichever event comes first. Each source is armed at most once at a time
+/// (`*_armed`), so repeated polls cannot grow the listener list or the timer map.
+///
+/// The executor's wake handle belongs to this thread's engine only: a wake for a
+/// task of another executor never reaches this consumer, so there is no
+/// process-wide traffic to space out.
+struct ConsumerWake {
+    slot: Arc<ConsumerSlot>,
+    /// The scheduled timed wake, replaced (and so cancelled) on each poll.
+    #[cfg(not(target_family = "wasm"))]
+    timer: Option<crate::valtron::timer::TimerCall>,
+}
+
+#[derive(Default)]
+struct ConsumerSlot {
+    wake: std::sync::Mutex<Option<crate::valtron::SendWakeCallback>>,
+    queue_armed: std::sync::atomic::AtomicBool,
+    #[cfg(not(target_family = "wasm"))]
+    executor_armed: std::sync::atomic::AtomicBool,
+}
+
+impl ConsumerSlot {
+    /// Fire the consumer's wake if it is still waiting.
+    fn fire(&self) {
+        let wake = self
+            .wake
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take();
+        if let Some(wake) = wake {
+            wake();
+        }
+    }
+}
 
 impl<T> DrivenStreamIterator<T>
 where
@@ -1213,7 +1398,14 @@ where
 {
     #[must_use]
     pub fn new(task_iterator: NotifyQueueStreamIterator<T::Ready, T::Pending>) -> Self {
-        Self(Some(task_iterator))
+        Self(
+            Some(task_iterator),
+            ConsumerWake {
+                slot: Arc::new(ConsumerSlot::default()),
+                #[cfg(not(target_family = "wasm"))]
+                timer: None,
+            },
+        )
     }
 
     /// True when no item is currently buffered (nothing ready to pull).
@@ -1256,7 +1448,29 @@ where
             // time): report `Wait` and let the caller drive again. Block only
             // when nothing here can run — then the item can only come from
             // another thread.
-            let next_value = match task_iterator.try_next() {
+            #[cfg_attr(target_family = "wasm", allow(unused_mut))]
+            let mut pulled = task_iterator.try_next();
+
+            // Only parked sleepers remain: the item can come from this very
+            // thread, when a sleeper matures. Sleep as long as the sleepers
+            // allow (their nearest deadline, a resume) instead of blocking on
+            // the queue, which a sleeper cannot fill, then drive the engine once
+            // more so a sleeper that matured (or was resumed) produces its item.
+            // The wait is bounded by the executor's `max_yield_duration`; then
+            // the caller gets `Wait` and decides whether to poll again.
+            #[cfg(not(target_family = "wasm"))]
+            if pulled.is_none() && !single::has_runnable_work() {
+                let until = foundation_compact::Instant::now() + single::sleeper_budget();
+                while pulled.is_none() && single::wait_for_sleepers(until) {
+                    run_until_next_state();
+                    pulled = task_iterator.try_next();
+                    if pulled.is_none() && foundation_compact::Instant::now() >= until {
+                        pulled = Some(Some(Stream::Wait));
+                    }
+                }
+            }
+
+            let next_value = match pulled {
                 Some(item) => item,
                 None if single::has_runnable_work() => Some(Stream::Wait),
                 None => task_iterator.next(),
@@ -1305,6 +1519,69 @@ where
                 WakeResult::NotSupported
             }
         }
+    }
+
+    /// Wake the consumer on the three events that can make a parked task
+    /// runnable: the output queue gets an item (as [`Self::wake`]); a foreign
+    /// thread wakes the waker of a task parked in this engine; the clock
+    /// reaches the nearest sleeper deadline, or the readiness poll quantum for a
+    /// sleeper that must be re-checked.
+    ///
+    /// The inner stream stays blocking (see [`Self::wake`]).
+    fn wake_send(&mut self, cb: crate::valtron::SendWakeCallback) -> WakeResult {
+        let Some(inner) = self.0.as_ref() else {
+            let _ = cb;
+            return WakeResult::NotSupported;
+        };
+        let slot = Arc::clone(&self.1.slot);
+        *slot
+            .wake
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cb);
+
+        // 1. The output queue.
+        if !slot
+            .queue_armed
+            .swap(true, std::sync::atomic::Ordering::SeqCst)
+        {
+            let queue_slot = Arc::clone(&slot);
+            inner.chan().register_wake(Box::new(move || {
+                queue_slot
+                    .queue_armed
+                    .store(false, std::sync::atomic::Ordering::SeqCst);
+                queue_slot.fire();
+            }));
+        }
+
+        #[cfg(not(target_family = "wasm"))]
+        {
+            // 2. A foreign thread wakes the waker of a task parked in this engine.
+            if !slot
+                .executor_armed
+                .swap(true, std::sync::atomic::Ordering::SeqCst)
+            {
+                let executor_slot = Arc::clone(&slot);
+                super::idle_wake::current().on_wake(Box::new(move || {
+                    executor_slot
+                        .executor_armed
+                        .store(false, std::sync::atomic::Ordering::SeqCst);
+                    executor_slot.fire();
+                }));
+            }
+
+            // 3. The clock: a sleeper's deadline, or a sleeper that is re-checked
+            // on the readiness quantum. Replacing the handle cancels the last one.
+            self.1.timer = single::parked_wake_after().map(|after| {
+                let timer_slot = Arc::clone(&slot);
+                crate::valtron::timer::call_at(
+                    foundation_compact::Instant::now() + after,
+                    move || {
+                        timer_slot.fire();
+                    },
+                )
+            });
+        }
+        WakeResult::Successful
     }
 }
 
@@ -1556,17 +1833,35 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let streams = vec![stream1, stream2, stream3];
-/// let combined = collect_all_streams(streams);
+/// ```
+/// use foundation_core::valtron::{collect_all_streams, Stream};
 ///
-/// for item in combined {
-///     match item {
-///         Stream::Pending(count) => println!("{count} still pending..."),
-///         Stream::Next(results) => process(results),
-///         Stream::Delayed(dur) => continue,
+/// struct Source(u32, u32);
+///
+/// impl Iterator for Source {
+///     type Item = Stream<u32, usize>;
+///
+///     fn next(&mut self) -> Option<Self::Item> {
+///         if self.0 == self.1 {
+///             return None;
+///         }
+///         self.0 += 1;
+///         Some(Stream::Next(self.0))
 ///     }
 /// }
+///
+/// let combined = collect_all_streams(vec![Source(0, 2), Source(10, 12)]);
+///
+/// let mut results = Vec::new();
+/// for item in combined {
+///     match item {
+///         Stream::Pending(_) => continue,
+///         Stream::Next(values) => results.extend(values),
+///         _ => continue,
+///     }
+/// }
+/// results.sort_unstable();
+/// assert_eq!(results, vec![1, 2, 11, 12]);
 /// ```
 pub fn collect_all_streams<S>(streams: Vec<S>) -> CollectAllStreams<S>
 where
@@ -1591,14 +1886,13 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let stream = one_shot(Ok::<_, MyError>(path_buf));
-/// for item in stream {
-///     match item {
-///         Stream::Next(v) => println!("Got value: {:?}", v),
-///         _ => {}
-///     }
-/// }
+/// ```
+/// use foundation_core::valtron::{one_shot, Stream};
+///
+/// let mut stream = one_shot::<Result<&str, &str>, ()>(Ok("file.txt"));
+///
+/// assert_eq!(stream.next(), Some(Stream::Next(Ok("file.txt"))));
+/// assert_eq!(stream.next(), None);
 /// ```
 pub fn one_shot<D, P>(value: D) -> OneShotStream<D, P>
 where

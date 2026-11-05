@@ -13,6 +13,8 @@ mod channel_backpressure_tests;
 mod cross_runtime;
 #[cfg(feature = "std")]
 mod ctx;
+#[cfg(not(target_family = "wasm"))]
+mod event_driven_queue_readiness;
 mod flatten_combinators;
 mod futures_in_valtron;
 mod local_executor;
@@ -20,6 +22,8 @@ mod map_circuit;
 #[cfg(not(target_family = "wasm"))]
 mod notification_based_waiting;
 mod park_busy_loop;
+mod readiness_deadline_tests;
+mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
 mod shutdown_mechanism_tests;
 mod sleep_tests;
@@ -37,6 +41,8 @@ mod state_task;
 #[cfg(not(target_family = "wasm"))]
 mod stream_future;
 mod stream_iterators;
+#[cfg(not(target_family = "wasm"))]
+mod targeted_wake;
 mod wake_registry;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
 #[cfg(not(all(
@@ -52,6 +58,13 @@ mod threaded_future;
 mod threaded_future_std;
 mod units;
 mod wasm_js_yield_integration;
+// Shared scenarios for the wasm runtime suites (also included by
+// `integration/wasm_tests`); a JS-hosted wasm build only.
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+mod wasm_wake_support;
 mod wasm_yielder_tests;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
 #[cfg(not(target_family = "wasm"))]
@@ -59,6 +72,8 @@ mod background_jobs;
 #[cfg(not(target_family = "wasm"))]
 mod delayed_iterators;
 mod drain;
+#[cfg(not(target_family = "wasm"))]
+mod driven_stream_async_wake;
 mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]

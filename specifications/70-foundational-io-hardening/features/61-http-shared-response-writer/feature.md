@@ -1,6 +1,6 @@
 ---
 feature: "foundation_http: every response is written with one shared, offset-tracking, writability-parking writer; idle (not total) send timeout"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"

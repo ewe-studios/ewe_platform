@@ -77,7 +77,7 @@ use std::os::unix::io::{AsRawFd, RawFd as StdRawFd};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::EventReadiness;
+use foundation_core::valtron::{EventReadiness, ReadinessWaker};
 
 // `Ready` now lives in `foundation_reactor` (see the reactor re-export above).
 pub use foundation_reactor::ready::Ready;
@@ -579,12 +579,24 @@ impl FdRegistration {
     }
 }
 
+// `register`: on the shared-reactor path the reactor's drain thread latches
+// every readiness bit and then wakes the tasks registered on the token
+// (`foundation_reactor::reactor::drain_loop`), so an executor that sleeps on the
+// registration is woken by the event: `true`. On the legacy path a private
+// `Poll` is queried with a zero-timeout syscall and nothing wakes the task, so
+// the executor must re-check on a timer: `false`.
 impl EventReadiness for FdRegistration {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         match self.query_readiness() {
             Ok(r) => !r.is_empty(),
             Err(_) => false,
         }
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.reactor
+            .as_ref()
+            .is_some_and(|reactor| reactor.register_task_waker(self.token, waker))
     }
 }
 
@@ -633,6 +645,12 @@ pub struct RegisteredFd<T: AsRawFd> {
 impl<T: AsRawFd + Send + Sync> EventReadiness for RegisteredFd<T> {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.registration.is_ready(dur)
+    }
+
+    /// See the note on [`FdRegistration`]'s `EventReadiness` impl: `true` on the
+    /// shared-reactor path, `false` on the legacy private-`Poll` path.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.registration.register(waker)
     }
 }
 

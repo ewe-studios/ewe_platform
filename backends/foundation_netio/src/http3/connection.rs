@@ -55,6 +55,9 @@ pub mod stream_type {
 pub mod error_code {
     /// No error.
     pub const H3_NO_ERROR: u64 = 0x0100;
+    /// An internal error: the endpoint cannot finish the message (RFC 9114
+    /// §8.1), for example a proxy whose upstream failed in the middle of a body.
+    pub const H3_INTERNAL_ERROR: u64 = 0x0102;
     /// A frame appeared where it is not allowed.
     pub const H3_FRAME_UNEXPECTED: u64 = 0x0105;
     /// A frame failed layout requirements or carried an invalid size.

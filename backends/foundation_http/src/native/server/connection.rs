@@ -12,12 +12,11 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
-use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroupGuard;
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, QueueReadiness,
-    TaskIterator, TaskStatus, WakeToken,
+    queue_waker, AnyReadiness, Ctx, EventQueue, EventReadiness, EventReadinessPtr, QueueReadiness,
+    ReadinessWaker, ResumeSignal, TaskIterator, TaskStatus, WakeToken,
 };
 use foundation_errstacks::ErrorTrace;
 use foundation_iogate::ShutdownSignal;
@@ -74,6 +73,15 @@ impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         Instant::now() >= self.0
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    /// Nothing signals it: the executor wakes at the deadline.
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -108,7 +116,7 @@ pub struct ConnectionHandler {
     /// The wake queue backing an `Awaiting` future's waker. One connection has at
     /// most one `Awaiting` at a time, so one unbounded queue is enough. It is
     /// drained before each poll (the `FutureTask` bridge pattern).
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: EventQueue<WakeToken>,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
@@ -147,7 +155,7 @@ impl ConnectionHandler {
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
             alt_svc_h3_port,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: EventQueue::unbounded(),
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
@@ -420,12 +428,12 @@ impl ConnectionHandler {
     /// Returns `Some(Depends(signal))` — re-entering `Idle` when unparked — if the
     /// transport supports readiness wakeups, or `None` for a blocking transport
     /// (whose caller falls back to the delay/timeout path). The `TunnelDriver`
-    /// flips the `BoolSignal` when the socket becomes readable.
+    /// sets the `ResumeSignal` when the socket becomes readable.
     fn park_on_read_waker(&mut self) -> Option<TaskStatus<(), ()>> {
-        let signal = BoolSignal::new(false);
-        let flag = signal.clone_inner();
+        let signal = ResumeSignal::new(false);
+        let flag = signal.clone();
         let waker: foundation_netio::native::connection::ConnWaker =
-            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+            Arc::new(move || flag.set(true));
         let registered = self
             .conn
             .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
@@ -640,11 +648,11 @@ impl ConnectionHandler {
     /// probes still wakes the parked task. Returns the signal to park on for a
     /// transport that can report readiness (the WireGuard overlay), or `None`
     /// for a blocking transport, whose caller falls back to fixed delays.
-    fn arm_body_waker(&self) -> Option<BoolSignal> {
-        let signal = BoolSignal::new(false);
-        let flag = signal.clone_inner();
+    fn arm_body_waker(&self) -> Option<ResumeSignal> {
+        let signal = ResumeSignal::new(false);
+        let flag = signal.clone();
         let waker: foundation_netio::native::connection::ConnWaker =
-            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+            Arc::new(move || flag.set(true));
         let registered = self
             .conn
             .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
@@ -666,7 +674,7 @@ impl ConnectionHandler {
         attempt: usize,
         next_attempt: usize,
         deadline: Option<Instant>,
-        armed: Option<BoolSignal>,
+        armed: Option<ResumeSignal>,
     ) -> Option<TaskStatus<(), ()>> {
         tracing::trace!(
             client_ip = %self.client_ip,
@@ -972,7 +980,7 @@ impl ConnectionHandler {
                 });
                 if self.wake_queue.is_empty() {
                     Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
-                        future: QueueReadiness::new(self.wake_queue.clone()),
+                        future: self.wake_queue.readiness(),
                         shutdown: self.shutdown.clone(),
                     })))
                 } else {
@@ -1054,6 +1062,15 @@ struct AsyncReadiness {
 impl EventReadiness for AsyncReadiness {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.shutdown.probe() || self.future.is_ready(dur)
+    }
+
+    /// The wake queue is an `EventQueue` (its push wakes the registered task) and
+    /// `ShutdownSignal::turn_on` wakes it too: no timer re-check when both take
+    /// the waker.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let shutdown = self.shutdown.register_readiness(waker);
+        let future = self.future.register(waker);
+        shutdown && future
     }
 }
 

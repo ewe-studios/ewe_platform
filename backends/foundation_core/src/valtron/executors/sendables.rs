@@ -193,9 +193,36 @@ pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let task = MyTask::new();
-/// let result = execute(task)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_as_task, initialize_pool, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let iter = execute_as_task(MyTask(3), None).expect("schedule the task");
+/// let mut values: Vec<u32> = iter
+///     .filter_map(|status| match status {
+///         TaskStatus::Ready(value) => Some(value),
+///         _ => None,
+///     })
+///     .collect();
+/// values.sort_unstable();
+/// assert_eq!(values, vec![1, 2, 3]);
 /// ```
 ///
 /// WHY: Provides single API that works across all platforms/configurations
@@ -372,15 +399,41 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// use crate::valtron::executors::{execute_with_config, StreamConfig};
+/// ```
+/// use foundation_core::valtron::{
+///     execute_with_config, initialize_pool, Ctx, Stream, StreamConfig, TaskIterator,
+///     TaskStatus,
+/// };
 /// use std::time::Duration;
 ///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
 /// let config = StreamConfig::default()
 ///     .with_max_turns(50)
 ///     .with_park_duration(Duration::from_nanos(50));
 ///
-/// let result = execute_with_config(my_task, config)?;
+/// let values: Vec<u32> = execute_with_config(MyTask(3), config)
+///     .expect("schedule the task")
+///     .filter_map(|item| match item {
+///         Stream::Next(value) => Some(value),
+///         _ => None,
+///     })
+///     .collect();
+/// assert_eq!(values, vec![3, 2, 1]);
 /// ```
 pub fn execute_with_config<T>(
     task: T,
@@ -736,8 +789,25 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let value: MyValue = sync_collect_one(my_task)?;
+/// ```
+/// use foundation_core::valtron::{
+///     initialize_pool, sync_collect_one, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(Option<u32>);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         self.0.take().map(TaskStatus::Ready)
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let value: u32 = sync_collect_one(MyTask(Some(42))).expect("run the task");
+/// assert_eq!(value, 42);
 /// ```
 pub fn sync_collect_one<T>(task: T) -> GenericResult<T::Ready>
 where
@@ -836,8 +906,30 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let results: Vec<MyValue> = sync_one(my_task)?;
+/// ```
+/// use foundation_core::valtron::{
+///     initialize_pool, sync_one, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let mut results: Vec<u32> = sync_one(MyTask(3)).expect("run the task");
+/// results.sort_unstable();
+/// assert_eq!(results, vec![1, 2, 3]);
 /// ```
 pub fn sync_one<T>(task: T) -> GenericResult<Vec<T::Ready>>
 where
@@ -869,9 +961,31 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let tasks = vec![task_a, task_b, task_c];
-/// let all_results: Vec<MyValue> = sync_all(tasks)?;
+/// ```
+/// use foundation_core::valtron::{
+///     initialize_pool, sync_all, Ctx, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(3), MyTask(2), MyTask(1)];
+/// let mut all_results: Vec<u32> = sync_all(tasks).expect("run every task");
+/// all_results.sort_unstable();
+/// assert_eq!(all_results, vec![1, 1, 1, 2, 2, 3]);
 /// ```
 pub fn sync_all<T>(tasks: Vec<T>) -> GenericResult<Vec<T::Ready>>
 where
@@ -925,17 +1039,40 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let tasks = vec![task1, task2, task3];
-/// let collected = execute_collect_all(tasks, None)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_collect_all, initialize_pool, Ctx, Stream, TaskIterator, TaskStatus,
+/// };
 ///
-/// for stream_item in collected {
-///     match stream_item {
-///         Stream::Pending(count) => println!("{count} still pending..."),
-///         Stream::Next(results) => process(results),
-///         Stream::Delayed(dur) => continue,
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
 ///     }
 /// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(3), MyTask(2)];
+/// let collected = execute_collect_all(tasks, None).expect("schedule the tasks");
+///
+/// let mut results = Vec::new();
+/// for stream_item in collected {
+///     match stream_item {
+///         Stream::Pending(_) => continue,
+///         Stream::Next(values) => results.extend(values),
+///         _ => continue,
+///     }
+/// }
+/// results.sort_unstable();
+/// assert_eq!(results, vec![1, 1, 2, 2, 3]);
 /// ```
 pub fn execute_collect_all<T>(
     tasks: Vec<T>,
@@ -1315,17 +1452,35 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let streams = vec![stream1, stream2, stream3];
-/// let combined = collect_all_streams(streams);
+/// ```
+/// use foundation_core::valtron::{collect_all_streams, Stream};
 ///
-/// for item in combined {
-///     match item {
-///         Stream::Pending(count) => println!("{count} still pending..."),
-///         Stream::Next(results) => process(results),
-///         Stream::Delayed(dur) => continue,
+/// struct Source(u32, u32);
+///
+/// impl Iterator for Source {
+///     type Item = Stream<u32, usize>;
+///
+///     fn next(&mut self) -> Option<Self::Item> {
+///         if self.0 == self.1 {
+///             return None;
+///         }
+///         self.0 += 1;
+///         Some(Stream::Next(self.0))
 ///     }
 /// }
+///
+/// let combined = collect_all_streams(vec![Source(0, 2), Source(10, 12)]);
+///
+/// let mut results = Vec::new();
+/// for item in combined {
+///     match item {
+///         Stream::Pending(_) => continue,
+///         Stream::Next(values) => results.extend(values),
+///         _ => continue,
+///     }
+/// }
+/// results.sort_unstable();
+/// assert_eq!(results, vec![1, 2, 11, 12]);
 /// ```
 pub fn collect_all_streams<S>(streams: Vec<S>) -> CollectAllStreams<S>
 where
@@ -1350,14 +1505,13 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let stream = one_shot(Ok::<_, MyError>(path_buf));
-/// for item in stream {
-///     match item {
-///         Stream::Next(v) => println!("Got value: {:?}", v),
-///         _ => {}
-///     }
-/// }
+/// ```
+/// use foundation_core::valtron::{one_shot, Stream};
+///
+/// let mut stream = one_shot::<Result<&str, &str>, ()>(Ok("file.txt"));
+///
+/// assert_eq!(stream.next(), Some(Stream::Next(Ok("file.txt"))));
+/// assert_eq!(stream.next(), None);
 /// ```
 pub fn one_shot<D, P>(value: D) -> OneShotStream<D, P>
 where
@@ -1540,19 +1694,36 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let tasks = vec![task1, task2, task3];
-/// let merged = execute_map_all(tasks, |results| {
-///     results.into_iter().flatten().collect::<Vec<_>>()
-/// }, None)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_map_all, initialize_pool, Ctx, Stream, TaskIterator, TaskStatus,
+/// };
 ///
-/// for stream_item in merged {
-///     match stream_item {
-///         Stream::Pending(count) => println!("{count} still pending..."),
-///         Stream::Next(merged) => process(merged),
-///         Stream::Delayed(dur) => continue,
+/// struct MyTask(Option<u32>);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         self.0.take().map(TaskStatus::Ready)
 ///     }
 /// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(Some(1)), MyTask(Some(2)), MyTask(Some(3))];
+/// let merged = execute_map_all(tasks, |results| results.into_iter().sum::<u32>(), None)
+///     .expect("schedule the tasks");
+///
+/// let mut totals = Vec::new();
+/// for stream_item in merged {
+///     match stream_item {
+///         Stream::Pending(_) => continue,
+///         Stream::Next(total) => totals.push(total),
+///         _ => continue,
+///     }
+/// }
+/// assert_eq!(totals, vec![6]);
 /// ```
 pub fn execute_map_all<T, F, O>(
     tasks: Vec<T>,
@@ -1733,12 +1904,49 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let tasks = vec![task1, task2, task3];
-/// let progress = execute_map_all_pending_and_done(tasks, |states| {
-///     let done_count = states.iter().filter(|s| matches!(s, Stream::Next(_))).count();
-///     format!("Progress: {}/{} complete", done_count, states.len())
-/// }, None)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_map_all_pending_and_done, initialize_pool, Ctx, Stream, TaskIterator, TaskStatus,
+/// };
+///
+/// struct MyTask(Option<u32>);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         self.0.take().map(TaskStatus::Ready)
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(Some(1)), MyTask(Some(2))];
+/// let mapped = execute_map_all_pending_and_done(
+///     tasks,
+///     |states| {
+///         states
+///             .into_iter()
+///             .filter(|state| matches!(state, Stream::Next(_)))
+///             .collect::<Vec<Stream<u32, ()>>>()
+///     },
+///     None,
+/// )
+/// .expect("schedule the tasks");
+///
+/// let mut seen = Vec::new();
+/// for item in mapped {
+///     if let Stream::Next(states) = item {
+///         for state in states {
+///             if let Stream::Next(value) = state {
+///                 seen.push(value);
+///             }
+///         }
+///     }
+/// }
+/// seen.sort_unstable();
+/// seen.dedup();
+/// assert_eq!(seen, vec![1, 2]);
 /// ```
 pub fn execute_map_all_pending_and_done<T, F, O, R>(
     tasks: Vec<T>,
@@ -1876,17 +2084,40 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
-/// let tasks = vec![task1, task2, task3];
-/// let stream = execute_collect_next_from_all(tasks, None)?;
+/// ```
+/// use foundation_core::valtron::{
+///     execute_collect_next_from_all, initialize_pool, Ctx, Stream, TaskIterator, TaskStatus,
+/// };
 ///
-/// for item in stream {
-///     match item {
-///         Stream::Next(value) => process_immediately(value),
-///         Stream::Pending(count) => println!("{count} tasks still running..."),
-///         Stream::Delayed(dur) => continue,
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
 ///     }
 /// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
+/// let tasks = vec![MyTask(3), MyTask(2)];
+/// let stream = execute_collect_next_from_all(tasks, None).expect("schedule the tasks");
+///
+/// let mut values = Vec::new();
+/// for item in stream {
+///     match item {
+///         Stream::Next(value) => values.push(value),
+///         Stream::Pending(_) => continue,
+///         _ => continue,
+///     }
+/// }
+/// values.sort_unstable();
+/// assert_eq!(values, vec![1, 1, 2, 2, 3]);
 /// ```
 #[cfg(feature = "multi")]
 pub fn execute_collect_next_from_all<T>(

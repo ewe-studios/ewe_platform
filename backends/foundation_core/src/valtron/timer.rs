@@ -16,13 +16,14 @@
 //! thread cannot be started the futures still complete, by checking the clock
 //! each time they are polled.
 
+use foundation_compact::Instant;
 use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
-use std::task::{Context, Poll, Waker};
-use std::time::{Duration, Instant};
+use std::task::{Context, Poll, Wake, Waker};
+use std::time::Duration;
 
 /// The deadlines waiting to fire, keyed by `(deadline, id)`.
 struct Timers {
@@ -172,5 +173,75 @@ impl Drop for Sleep {
         if self.registered {
             self.timers.pending().remove(&self.key);
         }
+    }
+}
+
+/// A waker that runs a one-shot callback instead of resuming a future.
+struct CallbackWake(Mutex<Option<Box<dyn FnOnce() + Send>>>);
+
+impl Wake for CallbackWake {
+    fn wake(self: std::sync::Arc<Self>) {
+        let cb = self.0.lock().unwrap_or_else(PoisonError::into_inner).take();
+        if let Some(cb) = cb {
+            cb();
+        }
+    }
+}
+
+/// A callback scheduled on the timer thread by [`call_at`]. Dropping it cancels
+/// the callback if it has not run yet.
+#[must_use = "dropping a TimerCall cancels the callback"]
+pub struct TimerCall {
+    scheduled: Option<(&'static Timers, (Instant, u64))>,
+}
+
+impl core::fmt::Debug for TimerCall {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("TimerCall")
+            .field("deadline", &self.scheduled.map(|(_, key)| key.0))
+            .finish()
+    }
+}
+
+impl Drop for TimerCall {
+    fn drop(&mut self) {
+        if let Some((timers, key)) = self.scheduled.take() {
+            timers.pending().remove(&key);
+        }
+    }
+}
+
+/// Run `callback` once on the timer thread at `deadline`, without any valtron
+/// task and without a thread of its own.
+///
+/// WHY: code that must be woken by the clock (a `DrivenStreamIterator` whose
+/// parked task has a deadline) needs a one-shot wake. The shared timer thread
+/// already sleeps until the earliest deadline, so one more entry costs a map
+/// insert, not a thread.
+///
+/// The callback runs on the timer thread: keep it short and never block. If the
+/// timer thread could not be started, `callback` runs at once on the caller's
+/// thread (the caller then sees a spurious wake and re-checks, as
+/// [`Sleep`] does by re-polling).
+pub fn call_at(deadline: Instant, callback: impl FnOnce() + Send + 'static) -> TimerCall {
+    let timers = timers();
+    if !timers.running {
+        callback();
+        return TimerCall { scheduled: None };
+    }
+    let key = (deadline, timers.next_id.fetch_add(1, Ordering::Relaxed));
+    let waker = Waker::from(std::sync::Arc::new(CallbackWake(Mutex::new(Some(
+        Box::new(callback),
+    )))));
+    let earliest = {
+        let mut pending = timers.pending();
+        pending.insert(key, waker);
+        pending.keys().next() == Some(&key)
+    };
+    if earliest {
+        timers.changed.notify_one();
+    }
+    TimerCall {
+        scheduled: Some((timers, key)),
     }
 }

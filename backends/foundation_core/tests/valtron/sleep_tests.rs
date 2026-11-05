@@ -1,6 +1,7 @@
 //! Integration tests for valtron's cooperative sleep (`sleep`, `sleep_async`).
 
-use std::time::{Duration, Instant};
+use foundation_compact::Instant;
+use std::time::Duration;
 
 use foundation_core::valtron::{sleep_async, valtron_test, Ctx, SleepingTask, TaskIterator};
 
@@ -112,7 +113,7 @@ fn sleep_async_fires_without_an_executor() {
     let outcome = std::thread::spawn(|| {
         let waker = thread_waker();
         let mut cx = Context::from_waker(&waker);
-        let started = std::time::Instant::now();
+        let started = foundation_compact::Instant::now();
         let mut sleep = std::pin::pin!(sleep_async(Duration::from_millis(30)));
         loop {
             if let Poll::Ready(()) = sleep.as_mut().poll(&mut cx) {
@@ -143,7 +144,7 @@ fn timer_wakes_its_waker_at_the_deadline() {
         Duration::from_millis(20)
     ));
     assert!(sleep.as_mut().poll(&mut cx).is_pending());
-    let started = std::time::Instant::now();
+    let started = foundation_compact::Instant::now();
     // One park: only the timer thread's wake (or the 5 s cap) ends it.
     std::thread::park_timeout(Duration::from_secs(5));
     assert!(

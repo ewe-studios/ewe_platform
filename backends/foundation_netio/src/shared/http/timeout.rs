@@ -144,6 +144,25 @@ pub struct TimeoutConfig {
 
     /// 100-continue expect delay configuration.
     pub expect_continue: ExpectContinueConfig,
+
+    /// How long a streaming response (SSE) may go without an event before the
+    /// client treats the connection as dead and reconnects.
+    ///
+    /// Default 60 s, matching nginx's `proxy_read_timeout`. LLM providers send a
+    /// keep-alive comment or ping every 10 to 30 s, and a model may pause for
+    /// seconds between tokens, so the size-based read timeout (100 ms for an
+    /// unsized body) is far too short for an open stream.
+    pub sse_idle_timeout: Duration,
+}
+
+impl TimeoutConfig {
+    /// Set [`Self::sse_idle_timeout`], how long an open streaming response may
+    /// stay silent before the client reconnects.
+    #[must_use]
+    pub fn with_sse_idle_timeout(mut self, timeout: Duration) -> Self {
+        self.sse_idle_timeout = timeout;
+        self
+    }
 }
 
 impl Default for TimeoutConfig {
@@ -169,6 +188,7 @@ impl Default for TimeoutConfig {
     /// | expect_continue.max_attempts | 5 | Retries before failing request |
     /// | expect_continue.penalty_reduction | 10ms | Per-attempt delay reduction |
     /// | expect_continue.body_timeout | 3s | Readiness-wait window for the body |
+    /// | sse_idle_timeout | 60s | Silence on an open SSE stream before a reconnect (nginx `proxy_read_timeout`) |
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
@@ -184,6 +204,7 @@ impl Default for TimeoutConfig {
             max_sleep_duration: Duration::from_millis(100),
             sleep_timeout_fraction: 100,
             expect_continue: ExpectContinueConfig::default(),
+            sse_idle_timeout: Duration::from_secs(60),
         }
     }
 }
@@ -419,6 +440,13 @@ impl TimeoutCalculator {
     pub fn with_latency_safety_factor(mut self, factor: f64) -> Self {
         self.latency_safety_factor = factor;
         self
+    }
+
+    /// How long an open streaming response (SSE) may stay silent before the
+    /// client reconnects ([`TimeoutConfig::sse_idle_timeout`]).
+    #[must_use]
+    pub fn streaming_idle_timeout(&self) -> Duration {
+        self.config.sse_idle_timeout
     }
 
     /// Get the latency tracker if enabled.

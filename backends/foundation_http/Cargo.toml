@@ -73,6 +73,8 @@ ntest = { version = "0.9" }
 async-trait = "0.1"
 # `getrusage` for the parking CPU regression tests (utime+stime).
 libc = "0.2"
+# SHA-256 of the received body in the static file byte-exact test.
+sha2 = "0.10"
 
 [features]
 default = []

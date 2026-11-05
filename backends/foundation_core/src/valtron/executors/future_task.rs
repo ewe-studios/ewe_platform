@@ -12,9 +12,8 @@ use core::marker::PhantomData;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::{Ctx, QueueReadiness, TaskIterator, TaskStatus};
+use crate::valtron::{Ctx, TaskIterator, TaskStatus};
 #[cfg(any(feature = "std", feature = "alloc"))]
-use concurrent_queue::ConcurrentQueue;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::pin::Pin;
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -114,7 +113,7 @@ pub struct WakeToken {
 /// only bumps the strong count and `wake()` can recover both the queue and id.
 #[cfg(any(feature = "std", feature = "alloc"))]
 struct WakerState {
-    queue: Arc<ConcurrentQueue<WakeToken>>,
+    queue: crate::valtron::EventQueue<WakeToken>,
     id: u64,
 }
 
@@ -148,8 +147,9 @@ unsafe fn queue_waker_wake(data: *const ()) {
     // Unbounded queue: push only fails if closed, in which case the woken task
     // has already gone away and dropping the token is the correct outcome.
     let _ = state.queue.push(WakeToken { id: state.id });
-    // Tell an idle executor the parked task is ready (else it oversleeps).
-    crate::valtron::request_executor_resume();
+    // The push wakes the task parked on the queue's readiness, and only that
+    // task (`EventQueue`). A future that wakes itself while it is polled has no
+    // parked task to wake.
 }
 
 /// Wake by reference: push this waker's token without consuming the strong ref.
@@ -162,7 +162,6 @@ unsafe fn queue_waker_wake(data: *const ()) {
 unsafe fn queue_waker_wake_by_ref(data: *const ()) {
     let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<WakerState>()));
     let _ = state.queue.push(WakeToken { id: state.id });
-    crate::valtron::request_executor_resume();
 }
 
 /// Drop: reclaim and release one `Arc<WakerState>` strong reference.
@@ -190,7 +189,7 @@ unsafe fn queue_waker_drop(data: *const ()) {
 /// Never panics.
 #[cfg(any(feature = "std", feature = "alloc"))]
 #[must_use]
-pub fn queue_waker(queue: Arc<ConcurrentQueue<WakeToken>>, id: u64) -> Waker {
+pub fn queue_waker(queue: crate::valtron::EventQueue<WakeToken>, id: u64) -> Waker {
     let state = Arc::new(WakerState { queue, id });
     let raw = RawWaker::new(Arc::into_raw(state).cast::<()>(), &QUEUE_WAKER_VTABLE);
     // SAFETY: `raw` is built from a fresh `Arc<WakerState>` and the vtable
@@ -217,7 +216,7 @@ where
     completed: bool,
     /// Wake queue watched via [`QueueReadiness`]; the future's `Waker` pushes a
     /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: crate::valtron::EventQueue<WakeToken>,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -229,7 +228,7 @@ where
         Self {
             future: Box::pin(future),
             completed: false,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
         }
     }
 
@@ -238,7 +237,7 @@ where
         Self {
             future,
             completed: false,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
         }
     }
 }
@@ -292,9 +291,7 @@ where
                 // the executor requeues, and we drain it on the next poll.
                 if self.wake_queue.is_empty() {
                     // No self-wake: genuine park.
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     // Self-wake: requeue without parking.
                     Some(TaskStatus::Ignore)
@@ -332,9 +329,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -362,7 +357,7 @@ where
     exhausted: bool,
     /// Wake queue watched via [`QueueReadiness`]; the stream's `Waker` pushes a
     /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: crate::valtron::EventQueue<WakeToken>,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -374,7 +369,7 @@ where
         Self {
             stream: Box::pin(stream),
             exhausted: false,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue: crate::valtron::EventQueue::unbounded(),
         }
     }
 }
@@ -408,9 +403,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -449,9 +442,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -495,6 +486,18 @@ struct CancelOrReadiness {
 impl crate::valtron::EventReadiness for CancelOrReadiness {
     fn is_ready(&self, dur: Option<core::time::Duration>) -> bool {
         self.cancel.load(core::sync::atomic::Ordering::Acquire) || self.inner.is_ready(dur)
+    }
+
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
+        self.inner.deadline()
+    }
+
+    // The cancel flag is a plain atomic that nothing wakes on, so this signal
+    // stays on the timed re-check (`false`) even though the inner one is
+    // registered: a flip of the flag is seen at the next re-check.
+    fn register(&self, waker: &crate::valtron::ReadinessWaker) -> bool {
+        self.inner.register(waker);
+        false
     }
 }
 

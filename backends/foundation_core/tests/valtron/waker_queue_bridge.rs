@@ -18,10 +18,11 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
 
-use concurrent_queue::ConcurrentQueue;
 #[cfg(feature = "multi")]
 use foundation_core::valtron::from_future;
-use foundation_core::valtron::{queue_waker, Ctx, FutureTask, TaskIterator, TaskStatus, WakeToken};
+use foundation_core::valtron::{
+    queue_waker, Ctx, EventQueue, FutureTask, TaskIterator, TaskStatus, WakeToken,
+};
 
 // ============================================================================
 // queue_waker mechanics
@@ -32,7 +33,7 @@ use foundation_core::valtron::{queue_waker, Ctx, FutureTask, TaskIterator, TaskS
 /// HOW: Build a waker over a fresh queue, fire it, and inspect the queue.
 #[test]
 fn queue_waker_wake_pushes_token_with_id() {
-    let queue = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let queue = EventQueue::<WakeToken>::unbounded();
     let waker = queue_waker(queue.clone(), 7);
 
     assert!(queue.is_empty(), "no wake yet -> queue empty");
@@ -61,7 +62,7 @@ fn queue_waker_wake_pushes_token_with_id() {
 /// HOW: Clone/drop in a loop, then confirm a final wake still works.
 #[test]
 fn queue_waker_clone_drop_is_sound() {
-    let queue = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let queue = EventQueue::<WakeToken>::unbounded();
     let waker = queue_waker(queue.clone(), 0);
 
     for _ in 0..10_000 {

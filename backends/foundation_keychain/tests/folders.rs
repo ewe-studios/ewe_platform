@@ -9,6 +9,10 @@
 //! `collect_one` inside `#[valtron_test]` (`KeychainContext` is `Clone`, so a
 //! clone moves into each future to satisfy the `'static` bound).
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
 use foundation_core::valtron::{

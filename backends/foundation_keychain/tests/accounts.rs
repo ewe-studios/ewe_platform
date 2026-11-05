@@ -4,6 +4,10 @@
 //! real Turso store, including the server-side PBKDF2 verifier (`foundation_auth`
 //! crypto per decision 01) and user-enumeration-safe prelogin defaults.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
 use foundation_core::valtron::{

@@ -33,7 +33,7 @@ use core::task::{Context, Poll, Waker};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use concurrent_queue::{ConcurrentQueue, PopError, PushError};
+use concurrent_queue::{PopError, PushError};
 
 use crate::compati::Mutex;
 use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
@@ -43,7 +43,7 @@ use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
 pub(crate) struct PipeInner<T> {
     /// Bounded queue. Held behind its own `Arc` so the readiness accessors can
     /// hand out `QueueReadiness`/`QueueVacancyReadiness` over the same queue.
-    pub(crate) queue: Arc<ConcurrentQueue<T>>,
+    pub(crate) queue: crate::valtron::EventQueue<T>,
     /// Number of live sender handles sharing this pipe. The send direction
     /// closes only when the last one drops, so a `PipeSender` clone handing a
     /// second producer the pipe can drop without EOF-ing the stream.
@@ -123,7 +123,7 @@ impl<T> Pipe<T> {
     #[must_use]
     pub fn with_depth(depth: usize) -> (PipeSender<T>, PipeReceiver<T>) {
         let inner = Arc::new(PipeInner {
-            queue: Arc::new(ConcurrentQueue::bounded(depth.max(1))),
+            queue: crate::valtron::EventQueue::bounded(depth.max(1)),
             sender_count: AtomicUsize::new(1),
             receiver_count: AtomicUsize::new(1),
             consumer_waker: Mutex::new(None),
@@ -209,7 +209,7 @@ impl<T> PipeSender<T> {
     where
         T: Send,
     {
-        QueueVacancyReadiness::new(self.inner.queue.clone())
+        self.inner.queue.vacancy()
     }
 
     /// Wake `waker` when an item is popped or the pipe closes. For a producer
@@ -429,7 +429,7 @@ impl<T> PipeReceiver<T> {
     where
         T: Send,
     {
-        QueueReadiness::new(self.inner.queue.clone())
+        self.inner.queue.readiness()
     }
 
     /// Wake `waker` on the next push or close. For a consumer that is not a

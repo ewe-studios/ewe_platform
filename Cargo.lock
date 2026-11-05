@@ -5797,6 +5797,7 @@ dependencies = [
  "serde_json",
  "serial_test",
  "sha1",
+ "sha2 0.10.9",
  "tracing",
  "tracing-test",
  "uuid",
@@ -5841,6 +5842,7 @@ name = "foundation_keychain"
 version = "0.1.4"
 dependencies = [
  "age",
+ "async-trait",
  "base32",
  "base64 0.22.1",
  "chrono",
@@ -6080,7 +6082,6 @@ dependencies = [
  "foundation_connectrpc",
  "foundation_core",
  "foundation_db",
- "foundation_deployment_cloudflare",
  "foundation_deployment_platform",
  "foundation_errstacks",
  "foundation_http",
@@ -6090,6 +6091,7 @@ dependencies = [
  "foundation_netio",
  "futures-lite",
  "futures-util",
+ "libc",
  "p256",
  "rand_core 0.6.4",
  "rcgen",
