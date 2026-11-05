@@ -9,7 +9,7 @@ pub mod generator;
 pub mod id;
 
 pub use generator::{Generator, RandSource, StdSystemTime, TimeSource};
-pub use id::{FieldError, Id, ParseError};
+pub use id::{FieldError, Id, ParseError, ParseErrorKind};
 pub use rand_adapter::Adapter;
 
 #[cfg(feature = "global_gen")]
