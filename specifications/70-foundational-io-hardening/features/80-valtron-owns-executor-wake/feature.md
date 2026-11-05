@@ -1,6 +1,6 @@
 ---
 feature: "valtron owns executor wake-up: the executor registers a per-task waker with each readiness (Waker pattern); sources wake that waker, never an executor function; the wake functions are private to valtron"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -118,4 +118,4 @@ Focused local checks (requirements.md §8.2 rule 4), 20 runs of each new timing 
 
 ## Done when
 
-- [ ] `EventReadiness::register` with a per-task targeted waker in both executors; `needs_polling` removed; valtron's readiness types and the event queue self-wake; the ~80 hand-placed wakes gone; reactor, nativeapis, netio and http implement `register`; the wake functions are `pub(crate)` (any exception listed and justified); CI guard; the 46+77 storm cannot recur (test); backlog entries deleted; CI green.
+- [x] `EventReadiness::register` with a per-task targeted waker in both executors; `needs_polling` removed; valtron's readiness types and the event queue self-wake; the ~80 hand-placed wakes gone; reactor, nativeapis, netio and http implement `register`; the wake functions are `pub(crate)` (any exception listed and justified); CI guard; the 46+77 storm cannot recur (test); backlog entries deleted; CI green.

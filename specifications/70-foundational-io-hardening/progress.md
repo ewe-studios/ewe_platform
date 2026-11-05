@@ -36,6 +36,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   set 70 doctests, `multi` set 73, both "0 ignored"; full suites green (745 + 70 default,
   786 + 73 `multi` on macOS); `cargo fmt --check` clean; clippy errors 0 with no warning on
   an edited file. The backlog entry for the ignored examples is deleted.
+  GitHub run 41953248793 (commit 7126b1616): **green**, every job passed, including
+  `foundation_core` in both feature sets on native amd64. Feature 80 is done and marked
+  `status: "done"`. Next: feature 81 (lane B), branched from this branch because it needs
+  feature 80's API and PR #173 is not merged yet.
 - 2026-11-04: feature 46 done on `wip/f46-driven-stream-wake` (from `fix/io-41-50-lane-a`). A
   single-thread `DrivenStreamIterator` now wakes its async consumer when a parked task becomes
   ready: through a new `WakeableStream::wake_send` (Send callback), a one-shot resume listener in
