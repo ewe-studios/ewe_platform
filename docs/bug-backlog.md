@@ -61,6 +61,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
+  The same run with `--all-targets` also reports warnings in the examples
+  (`examples/valtron_traffic_light.rs`, `valtron_state_task.rs`, `valtron_orchestration.rs`
+  and `valtron_streaming.rs`): `clippy::drop_non_drop` on the `PoolGuard` the
+  `#[valtron]` attribute expands to, and `clippy::needless_pass_by_value` on `Ctx`
+  parameters. Seen 2026-11-05 (feature 114). The package does not set
+  `clippy-deny-warnings`, so CI reports them and passes. Fix: the macro must not emit
+  `drop()` for its guard, and the examples take `Ctx` by reference.
 - **The bare `--no-default-features` build prints its `compile_error!` and then 24 more
   errors.** `foundation_core` now refuses the configuration with a clear message (feature 78
   E3), but `pub mod valtron` and its executors still compile and emit unresolved-import errors
@@ -268,14 +275,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
-- **`ci.py` hides the reason when `cargo metadata` fails.** `cargo_metadata` in
-  `scripts/ci/ci.py` captures both output streams and lets the `CalledProcessError`
-  escape, so CI shows only exit code 101. The job `foundation_deployment_cloudflare` in
-  run 42021286753 failed this way at 12:22:10 UTC, and the log cannot say why. The cause
-  is probably a manifest resolution error. The function now raises a `SystemExit` that
-  carries `cargo`'s standard error, so the next occurrence names the cause. Not
-  reproducible in the Linux CI image (the same step exits 0 there). Fix: read the next
-  failure from the job log, repair the reported cause, and delete this entry.
 - **`foundation_shell` is an empty placeholder crate.** `backends/foundation_shell/src/lib.rs`
   holds only `add(left, right)`, and nothing in the workspace depends on it. It still has a CI
   package entry, so every run builds it for no benefit. Spec 59 puts the shell work in a new

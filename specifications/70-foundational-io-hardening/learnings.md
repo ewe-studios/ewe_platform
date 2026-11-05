@@ -2,6 +2,46 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (PR #179 CI fix pass, third round):
+  - **A generator that writes manifests is a second source of versions.** The Cloudflare
+    build script regenerates group crates when its output is stale, and it compares the
+    whole output, manifests included. `write_group_crate` hard-coded
+    `foundation_netio = "0.0.4"`, so the committed manifests (0.0.6) were stale by
+    definition: every build rewrote 42 files and the next `cargo metadata` failed. Read
+    the version from the sibling crate's own `Cargo.toml`. Any version literal in a
+    generator is a bug waiting for the next version bump.
+  - **`Codegen::check` renders into a scratch tree, so the output tree holds no
+    siblings.** Reading the sibling versions from next to the output works in `write()`
+    and fails in `check()` with `No such file or directory`. A generator that reads
+    anything besides its own output must take that source as an explicit input; the
+    caller that stages a scratch tree passes the shipped path. A test that runs the real
+    `check()` (`the_full_cloudflare_check_is_current`, about 13 s) finds this without a
+    CI round trip.
+  - **A CI step boundary hides a build-time file rewrite.** `ci.py` calls
+    `cargo_metadata()` at the start of every step, so the `build` step passed (manifests
+    were current when it started) and the `clippy` step failed (the build script had
+    rewritten them). When two consecutive steps disagree, look for a build script that
+    writes into the source tree, and compare `git status` inside the mount after the
+    build.
+  - **`toml_edit`'s `Index` panics when the key is absent.** `doc["package"]["version"]`
+    panics with `index not found` on a manifest with no `[package]` table. Use
+    `get`/`and_then` so a missing key becomes the typed error the signature promises.
+  - **`docker compose` names a container `container_name`, not the service name.** The
+    macOS job ran `docker exec macos` against a container called `ewe_macos`, so every
+    step failed and the wait loop hid it for 20 minutes. A boot loop must check
+    `docker inspect -f '{{.State.Running}}'` and print `docker logs --tail 100` when the
+    container is not running.
+  - **A `tauri` Linux build needs the GTK and WebKit development packages.** Without
+    them `glib-sys`'s build script stops with `Package 'glib-2.0' not found` — the error
+    names `glib`, and the cause is a missing image dependency. The list verified on
+    Ubuntu 26.04 is in `.github/workflows/platform-docker-tests.yml`.
+  - **A wasm wall-clock ceiling must tolerate how late a JS timer fires.** A `Delayed`
+    park asks the host for one timer per tick, so a timeout over a 10 ms ticker waits on
+    six timers and every one's lateness adds up. The idle machine ends that case at about
+    63 ms against a 90 ms bound; the loaded CI container took 126 ms. Keep the lower
+    bound and the poll bound tight — they do not depend on load — and widen only the
+    ceiling, with the measured CI number in the doc comment.
+
 - 2026-11-05 (PR #179 CI fix pass, second round):
   - **A facade crate can link a second copy of a native library.** `deno_core` 0.404 names
     the engine itself (`v8` 149.4.0) and needs no `deno_v8`. `deno_v8` 0.4.0 is a facade

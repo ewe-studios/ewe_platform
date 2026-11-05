@@ -2,6 +2,46 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: PR #179 CI fix pass, third round. Run 42029393923 and the two jobs from
+  run 42029385105:
+  - **`foundation_deployment_cloudflare` (feature 114).** The `cargo metadata` failure now
+    names its cause, because `ci.py` prints cargo's standard error: the build script
+    rewrote all 42 Cloudflare group manifests. `UnifiedGenerator::write_group_crate`
+    hard-coded `foundation_netio = "0.0.4"`, and the crate is 0.0.6. The renderer now reads
+    every path dependency's version from that crate's `Cargo.toml`
+    (`unified::group_crate_manifest`), and a missing version is
+    `GenError::ManifestVersion`. The renderer takes the sibling root as a parameter,
+    because `Codegen::check` renders the group crates into a scratch tree that holds no
+    siblings; `Codegen` passes the shipped `backends/` root for the versions. Four new
+    tests in `backends/foundation_openapi/tests/group_crate_manifest.rs`, one of which
+    walks the committed group manifests, plus `the_full_cloudflare_check_is_current` in
+    `backends/foundation_codegentools/tests/cloudflare_types.rs`, which runs the build
+    script's own check. `foundation_openapi` is 0.0.5; `foundation_codegentools`
+    requires 0.0.5. Verified in the Linux CI image: the build of
+    `foundation_deployment_cloudflare` exits 0, prints no regeneration warning, and
+    leaves `backends/` clean.
+  - **`wasm-tests`: `timeout_task_ends_at_its_timeout` ended past its wall-clock bound.**
+    The case waits on one JS timer per 10 ms tick and ends about 60 ms after its 50 ms
+    timeout. The bound was `nominal + 30 ms + one tick` = 90 ms, and the loaded CI
+    container took 126 ms. The suite now adds `HOST_TIMER_LATE_ALLOWANCE` (120 ms) to
+    that ceiling. The load-independent guards stay tight: the lower bound (it must not
+    end early) and the poll bound (it must not spin or re-check on a timer). The deno
+    suite passes 18 of 18 locally.
+  - **`macos-tests` used the wrong container name.** `docker-compose.yaml` names the
+    container `ewe_macos` and the job ran `docker exec macos`, so every step failed after a
+    silent 20-minute wait. The job now uses `ewe_macos`, fails at once when the container is
+    not running, prints `docker logs --tail 100`, and waits up to 45 minutes. The job
+    timeout is 75 minutes. The Windows job gets the same fail-fast check.
+  - **`platform-unit` had no GTK or WebKit development packages.** `foundation_platform`
+    depends on `tauri`, and `glib-sys`'s build script stopped with `Package 'glib-2.0' not
+    found`. A new step installs the documented Tauri Linux prerequisites. Verified in the
+    CI image: `glib-2.0` 2.80.0 and `webkit2gtk-4.1` 2.52.6 are found and
+    `cargo check -p foundation_platform` exits 0.
+  - `foundation_platform` had one warning: `record_presentation` took a `target` parameter
+    that it never read (the target label is applied in `execute_decision`). The parameter
+    is removed.
+  - Backlog §16's `cargo metadata` entry is deleted.
+
 - 2026-11-05: PR #179 CI fix pass, second round. The four failing jobs of run
   42021286753 are handled:
   - **`wasm-tests`: `wasm-testbed` did not link.** The binary pulled in two copies of V8
