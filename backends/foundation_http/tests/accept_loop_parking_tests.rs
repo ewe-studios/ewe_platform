@@ -19,6 +19,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::writer::send_text;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -29,7 +30,7 @@ use foundation_http::{
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeFactory},
     },
 };
 
@@ -47,10 +48,9 @@ impl Serve for EchoHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "ok")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "ok")
     }
 }
 
@@ -95,12 +95,14 @@ fn read_available(stream: &mut TcpStream, timeout: Duration) -> String {
 fn process_cpu_ns() -> u128 {
     unsafe {
         let mut usage: libc::rusage = std::mem::zeroed();
-        let rc = libc::getrusage(libc::RUSAGE_SELF, &mut usage);
+        let rc = libc::getrusage(libc::RUSAGE_SELF, std::ptr::from_mut(&mut usage));
         assert_eq!(rc, 0, "getrusage failed");
-        let user =
-            usage.ru_utime.tv_sec as u128 * 1_000_000_000 + usage.ru_utime.tv_usec as u128 * 1_000;
-        let system =
-            usage.ru_stime.tv_sec as u128 * 1_000_000_000 + usage.ru_stime.tv_usec as u128 * 1_000;
+        let user = u128::try_from(usage.ru_utime.tv_sec).expect("CPU time is non-negative")
+            * 1_000_000_000
+            + u128::try_from(usage.ru_utime.tv_usec).expect("CPU time is non-negative") * 1_000;
+        let system = u128::try_from(usage.ru_stime.tv_sec).expect("CPU time is non-negative")
+            * 1_000_000_000
+            + u128::try_from(usage.ru_stime.tv_usec).expect("CPU time is non-negative") * 1_000;
         user + system
     }
 }

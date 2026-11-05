@@ -139,6 +139,10 @@ impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
     }
 
     /// Register an `H2Serve` handler for all methods on a path.
+    #[allow(
+        clippy::needless_pass_by_value,
+        reason = "callers pass a temporary Arc; the router clones what it stores"
+    )]
     pub fn route_any_h2(
         &mut self,
         path: &str,
@@ -178,6 +182,10 @@ impl HttpApp<Arc<dyn crate::native::serve::H3Serve>> {
     }
 
     /// Register an `H3Serve` handler for all methods on a path.
+    #[allow(
+        clippy::needless_pass_by_value,
+        reason = "callers pass a temporary Arc; the router clones what it stores"
+    )]
     pub fn route_any_h3(
         &mut self,
         path: &str,
@@ -192,7 +200,7 @@ impl HttpApp<Arc<dyn crate::native::serve::H3Serve>> {
 // ServeWriter handlers (available on all targets)
 
 impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
-    /// Create a new empty `HttpApp` for ServeWriter handlers.
+    /// Create a new empty `HttpApp` for `ServeWriter` handlers.
     #[must_use]
     pub fn new_writer() -> Self {
         Self {

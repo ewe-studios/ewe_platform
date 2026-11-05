@@ -1,4 +1,4 @@
-//! Tests for generic Router<S> — covers ServeWriter, RouteMethod<S>, and cross-type routing.
+//! Tests for generic `Router<S>` — covers `ServeWriter`, `RouteMethod<S>`, and cross-type routing.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;

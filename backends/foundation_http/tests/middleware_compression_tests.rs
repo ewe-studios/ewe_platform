@@ -35,7 +35,11 @@ fn test_compression_config_default() {
     assert_eq!(config.min_size, 1024);
     assert_eq!(config.max_size, 10_485_760);
     assert_eq!(config.level, 6);
-    assert!(!config.mime_types.is_empty());
+    assert_ne!(
+        config.mime_types.len(),
+        0,
+        "default MIME types must not be empty"
+    );
 }
 
 #[test]

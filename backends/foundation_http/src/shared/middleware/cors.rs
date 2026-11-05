@@ -110,6 +110,7 @@ impl CorsConfig {
     }
 
     /// Check if the origin is allowed.
+    #[must_use]
     pub fn is_origin_allowed(&self, origin: &str) -> bool {
         self.allowed_origins
             .iter()

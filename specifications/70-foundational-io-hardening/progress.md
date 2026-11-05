@@ -2,6 +2,46 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 63 done on `fix/io-63-respond-async`. Every native caller
+  of the synchronous `respond::*` now uses the async writer. The module is
+  renamed `respond_to_buffer` and kept only for in-memory writers (tests over a
+  `Vec<u8>`, wasm). `foundation_http`'s closing/rejection writes and its
+  `100 Continue` go through `send_text`/`send_not_found`/`send_continue_100`
+  (`ConnectionHandler` gained a `ContinueWrite` state and an `Awaiting`-driven
+  close path); protocol detection drives its refusal writes through a
+  `FutureTask`, and the accept loop's "executor unavailable" branch now logs and
+  closes (no executor exists to drive an async response). `accept_websocket` and
+  `SseStream::new` are now `async` and write with `ResponseWriter`. The proxy's
+  h2/h3/ACME test servers, the foundation_http server tests, both project
+  templates and `examples/web/wello` are migrated. `ResponseWriter` now starts
+  its idle timer at the start of every `write_all`/`flush`, and `flush` restarts
+  it whenever the stream's write buffer shrinks (new
+  `RawStream::write_buffer_len`). New tests:
+  `proxy_large_response_is_byte_exact` (received 327,128 of 4,194,304 bytes on
+  the synchronous test server, all bytes after the change),
+  `buffered_flush_restarts_idle_timer` and
+  `idle_stream_then_blocked_write_does_not_time_out` (both `TimedOut` on the
+  feature-61 timer, both pass after the fix), and the template build test now
+  asserts `send_html`/`send_not_found` and zero warnings. Version bumps:
+  `foundation_netio` 0.0.5, `foundation_http` 0.0.4, every workspace requirement
+  and both template pins. Backlog: deleted the §3 `respond::*` entry and the §9
+  creation-time timer entry; added the SSE `EventWriter` truncation entry and
+  fixed the BSD `sockaddr_in` initialiser in `completion_dial_tests.rs` (the
+  `sin_len` field) so the proxy's test targets build on macOS. The crate's `clippy -D warnings`
+  debt is cleared: default, `multi`, `multi quic` and `multi quic ssl` trees,
+  all targets, zero warnings. `ci/packages.toml` now denies clippy warnings for
+  the package in both feature runs, and the §3 clippy entry is deleted. `handle_awaiting` now polls
+  the future before applying the shutdown check, so a handler that is only
+  writing its answer completes during the drain; a future still `Pending` is
+  dropped at the shutdown checkpoint, as feature 08 requires. The two timer
+  tests drive the writer over a fake in-memory overlay stream, so they behave
+  the same on Linux and macOS. `foundation_http` tests pass in the `multi` tree
+  (28 targets) and on Linux CI (`ci.py run foundation_http`: fmt, build, clippy
+  `-D warnings` for default and `multi,quic`, tests for both trees, wasm). The
+  proxy suite passes except `websocket_upgrade_relays_and_tunnels_bytes`, which
+  times out on macOS with the pre-feature writer too; it is recorded in the
+  backlog.
+
 - 2026-11-05: features 47, 48, 49 (partial) and 50 on
   `spec70/f47-f50-lane-a-mechanical`. Feature 47: the ptrace tracer now forks and
   traces on one thread, uses `PTRACE_TRACEME` plus `SIGSTOP`, passes the program

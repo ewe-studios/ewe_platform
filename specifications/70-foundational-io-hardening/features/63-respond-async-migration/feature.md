@@ -1,6 +1,6 @@
 ---
 feature: "foundation_http: every native caller of the sync respond::* moves to the async send_* writer; the sync path cannot truncate"
-status: "pending"
+status: "done"
 lane: "after both lanes merge (touches lane A and lane B crates)"
 model: "sonnet"
 branch: "fix/io-63-respond-async"
@@ -71,4 +71,46 @@ rg -n 'respond::' --glob '*.rs' backends examples bin crates   # only buffer/was
 
 ## Done when
 
-- [ ] No native caller can truncate a response. §3 backlog entry deleted. CI green.
+- [x] No native caller can truncate a response. §3 backlog entry deleted. CI green.
+
+## Result
+
+Choice for design step 3: the synchronous helpers were **renamed**, not removed:
+`shared::serve::respond` is now `shared::serve::respond_to_buffer`. They remain
+for in-memory writers only (tests over a `Vec<u8>`, wasm). Every native caller
+moved to the async writer:
+
+| Caller | Was | Now |
+| --- | --- | --- |
+| `foundation_http` `native/server/connection.rs` (505, 400, 408, 404, 502, `100 Continue`) | `respond::*` | `send_text` / `send_not_found` / `send_continue_100`, driven by `HandlerState::Awaiting` and a new `ContinueWrite` state |
+| `native/server/protocol_detect.rs` (505, 503 refusals) | `respond::text` | `send_text` driven by a `FutureTask` (the drain guard rides in it) |
+| `native/server/mod.rs` (accept-loop 503) | `respond::text` | removed: the branch runs only when the executor is unavailable, so no task can drive an async response. It logs and closes instead of writing a half response. |
+| `native/upgrade/mod.rs` (WebSocket 101, SSE head) | `http_render_to_writer` | `accept_websocket` and `SseStream::new` are now `async` and use `ResponseWriter` |
+| `shared/handlers/health.rs` (`ServeWriter`, in-memory/wasm) | `respond::json` | `respond_to_buffer::json` |
+| `foundation_proxy` tests `h2_*`, `h3_*`, `acme_*` | `respond::*` | `send_text` / `send_json` / `send_not_found` / `ResponseWriter` (ACME handler is async) |
+| `foundation_http` server tests | `respond::*` on real sockets | `send_text` / `send_json` |
+| templates `web-app`, `static-html-app`, `examples/web/wello` | `respond::html` / `not_found` | `send_html` / `send_not_found` |
+
+New writer API: `send_continue_100` and `render_message`; `RawStream::write_buffer_len`
+in `foundation_netio` exposes how much the stream's write buffer still holds.
+
+Timer fixes:
+
+1. `ResponseWriter::write_all` and `flush` restart the idle timer at their start.
+   The timer now measures a stall inside one operation, not the writer's age.
+2. `flush` compares the stream's buffered length before and after each attempt
+   and restarts the timer whenever the buffer shrank, so a flush that keeps
+   draining a slow client is never cut off.
+
+Version bumps: `foundation_netio` 0.0.4 → 0.0.5 (new public method, every
+workspace requirement moved), `foundation_http` 0.0.3 → 0.0.4 (public writer and
+upgrade API changes, every requirement and both template pins moved).
+
+`ConnectionHandler::handle_awaiting` now polls the handler future before it
+applies the shutdown check. A handler that is only writing its answer completes
+during the drain (the graceful-drain test), while a future that is still
+`Pending` is dropped at the shutdown checkpoint (the feature-08 test). The
+crate's clippy debt is cleared for the default, `multi`, `multi quic` and
+`multi quic ssl` trees; `ci/packages.toml` now denies clippy warnings for
+`foundation_http`.
+

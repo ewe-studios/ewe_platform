@@ -31,7 +31,7 @@ bench = false
 
 # -- ewe platform dependencies
 foundation_toolings = { version = "0.0.4" }
-foundation_http = { version = "0.0.3", features = ["multi"] }
+foundation_http = { version = "0.0.4", features = ["multi"] }
 foundation_core = { version = "0.0.7", features = ["multi"] }
 foundation_config = { version = "0.1.2" }
 

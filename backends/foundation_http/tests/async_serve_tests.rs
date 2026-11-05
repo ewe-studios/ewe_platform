@@ -16,6 +16,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{initialize_pool, timer};
+use foundation_http::native::writer::send_text;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -26,7 +27,7 @@ use foundation_http::{
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeFactory},
     },
 };
 
@@ -42,20 +43,30 @@ impl ServeFactory for AsyncKeepHandler {
     }
 }
 
+/// Write a complete response and report a failed write as a close.
+async fn write_or_close(response: ConnectionResult) -> ConnectionResult {
+    match response {
+        ConnectionResult::Async(future) => future.await,
+        other => other,
+    }
+}
+
 impl Serve for AsyncKeepHandler {
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "first").map_or(ConnectionResult::Close(None), |()| {
-            let fut = async move {
-                timer::sleep_for(Duration::from_millis(50)).await;
-                ConnectionResult::Keep
-            };
-            ConnectionResult::Async(Box::pin(fut))
-        })
+        ConnectionResult::Async(Box::pin(async move {
+            if let ConnectionResult::Close(err) =
+                write_or_close(send_text(conn, 200, "first")).await
+            {
+                return ConnectionResult::Close(err);
+            }
+            timer::sleep_for(Duration::from_millis(50)).await;
+            ConnectionResult::Keep
+        }))
     }
 }
 
@@ -87,16 +98,18 @@ impl Serve for PendingDropHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "pending").map_or(ConnectionResult::Close(None), |()| {
-            let fut = async move {
-                let _guard = DropFlag;
-                std::future::pending::<()>().await;
-                ConnectionResult::Keep
-            };
-            ConnectionResult::Async(Box::pin(fut))
-        })
+        ConnectionResult::Async(Box::pin(async move {
+            if let ConnectionResult::Close(err) =
+                write_or_close(send_text(conn, 200, "pending")).await
+            {
+                return ConnectionResult::Close(err);
+            }
+            let _guard = DropFlag;
+            std::future::pending::<()>().await;
+            ConnectionResult::Keep
+        }))
     }
 }
 
@@ -114,13 +127,16 @@ impl Serve for NestedAsyncHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "nested").map_or(ConnectionResult::Close(None), |()| {
-            let fut =
-                async move { ConnectionResult::Async(Box::pin(async { ConnectionResult::Keep })) };
-            ConnectionResult::Async(Box::pin(fut))
-        })
+        ConnectionResult::Async(Box::pin(async move {
+            if let ConnectionResult::Close(err) =
+                write_or_close(send_text(conn, 200, "nested")).await
+            {
+                return ConnectionResult::Close(err);
+            }
+            ConnectionResult::Async(Box::pin(async { ConnectionResult::Keep }))
+        }))
     }
 }
 

@@ -49,7 +49,7 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.6", 
 # The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
 # compiled in. The native code is the only user.
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.5", default-features = false }
 # The project error standard. Feature 67 adopts it in this crate; keep the
 # dependency now so that change is a code-only edit.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }

@@ -51,6 +51,15 @@ impl Blackhole {
             let fd = libc::socket(libc::AF_INET, libc::SOCK_STREAM, 0);
             assert!(fd >= 0, "socket");
             let addr = libc::sockaddr_in {
+                // BSD sockets carry the struct length in the address itself.
+                #[cfg(any(
+                    target_os = "macos",
+                    target_os = "ios",
+                    target_os = "freebsd",
+                    target_os = "netbsd",
+                    target_os = "openbsd"
+                ))]
+                sin_len: std::mem::size_of::<libc::sockaddr_in>() as u8,
                 sin_family: libc::AF_INET as libc::sa_family_t,
                 sin_port: 0,
                 sin_addr: libc::in_addr {

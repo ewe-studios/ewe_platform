@@ -263,7 +263,6 @@ fn drive_connection(c: &mut ActiveConn, app: &H3App) -> Result<(), H3Error> {
     if c.setup_done && !c.settings_done {
         match c.h3.poll_peer_settings() {
             Stream::Next(Ok(true)) => c.settings_done = true,
-            Stream::Next(Ok(false)) => {}
             Stream::Next(Err(e)) => return Err(e),
             _ => {}
         }

@@ -1,4 +1,4 @@
-//! ContextBag tests — store/get/get_cloned/remove/contains/build.
+//! `ContextBag` tests — `store/get/get_cloned/remove/contains/build`.
 
 use foundation_http::shared::context::ContextBag;
 use std::sync::Arc;

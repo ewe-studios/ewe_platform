@@ -185,15 +185,15 @@ fn render_response(
     Ok(())
 }
 
-/// Quick-response helpers for common HTTP patterns.
+/// Quick-response helpers for in-memory writers.
 ///
-/// These write synchronously to any `impl Write` (memory buffers, blocking
-/// sockets, wasm). They are not safe for a body larger than the send buffer of
-/// a **non-blocking** connection socket: the write fails with `WouldBlock`
-/// after a partial write. For a native `Serve` handler, return
-/// `native::writer::send_text` / `send_json` / `send_bytes` instead;
-/// they write through `ResponseWriter`.
-pub mod respond {
+/// These write synchronously to any `impl Write` that cannot block: a `Vec<u8>`
+/// in a test, or a wasm response buffer. They are **not** safe for a body larger
+/// than the send buffer of a **non-blocking** connection socket: the write fails
+/// with `WouldBlock` after a partial write. For any native `Serve` handler, use
+/// `native::writer::send_text` / `send_json` / `send_bytes` instead; they write
+/// through `ResponseWriter`. The name says which writers these are for.
+pub mod respond_to_buffer {
     use serde::Serialize;
 
     use super::{
@@ -202,6 +202,10 @@ pub mod respond {
     };
 
     /// Write a JSON response with the given status code.
+    ///
+    /// # Errors
+    /// Returns an error when the body cannot be serialized, or the response
+    /// cannot be built or written.
     pub fn json<T: Serialize>(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -215,6 +219,9 @@ pub mod respond {
     }
 
     /// Write a plain text response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn text(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -224,6 +231,9 @@ pub mod respond {
     }
 
     /// Write an HTML response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn html(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -233,6 +243,9 @@ pub mod respond {
     }
 
     /// Write a redirect response (301 or 302).
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn redirect(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -259,11 +272,17 @@ pub mod respond {
     }
 
     /// Write a 404 Not Found response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn not_found(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
         text(conn, 404, "Not Found")
     }
 
     /// Write a 500 Internal Server Error response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn server_error(
         conn: &mut impl std::io::Write,
         reason: Option<&str>,
@@ -273,6 +292,9 @@ pub mod respond {
     }
 
     /// Write a 100 Continue interim response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built, written or flushed.
     #[tracing::instrument(skip(conn))]
     pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
         // A `100 Continue` interim response is header-less. The `Http11` renderer

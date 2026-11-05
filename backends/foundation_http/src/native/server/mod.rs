@@ -30,7 +30,7 @@ use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::Connection;
 
 use crate::shared::app::{HttpApp, ServerApp};
-use crate::shared::serve::{respond, Serve};
+use crate::shared::serve::Serve;
 
 // ---------------------------------------------------------------------------
 // KeepAliveConfig
@@ -187,7 +187,7 @@ pub struct ServerConfig {
     /// How accepted sockets acquire bytes (Feature 48). Default
     /// [`ServerIo::Std`] — plain `read(2)`, no reactor, so nothing changes for a
     /// caller who does not ask. [`ServerIo::Completion`] opts the read path into
-    /// the io_uring completion inbox and errors at startup if the kernel cannot.
+    /// the `io_uring` completion inbox and errors at startup if the kernel cannot.
     pub io_mode: ServerIo,
     /// TLS acceptor for encrypted connections.
     #[cfg(any(
@@ -347,7 +347,7 @@ impl ServerConfig {
 
     /// Choose how accepted sockets acquire bytes (Feature 48).
     ///
-    /// WHY: an operator who wants the io_uring completion read path must be able
+    /// WHY: an operator who wants the `io_uring` completion read path must be able
     /// to demand it — and be told at startup if the kernel cannot deliver —
     /// rather than getting a silent default.
     ///
@@ -511,9 +511,8 @@ impl HttpServer {
         self.init_io();
         let io_mode = self.config.io_mode;
         self.serve_loop(listener, shutdown, move |conn, addr| {
-            let tcp = match conn {
-                foundation_netio::netcap::Connection::Tcp(t) => t,
-                _ => return Err("expected TCP connection".to_string()),
+            let foundation_netio::netcap::Connection::Tcp(tcp) = conn else {
+                return Err("expected TCP connection".to_string());
             };
             let c = build_connection(tcp, addr, io_mode)?;
             RawStream::from_connection(c).map_err(|e| format!("Failed to create RawStream: {e}"))
@@ -523,7 +522,7 @@ impl HttpServer {
     /// Start serving from an [`Acceptor`] — any transport, not just TCP.
     ///
     /// The acceptor delivers connections as `Connection` enum values (e.g.
-    /// `Connection::Tcp`, `Connection::Overlay`). Use this with WireGuard
+    /// `Connection::Tcp`, `Connection::Overlay`). Use this with `WireGuard`
     /// overlay acceptors (`OverlayAcceptor` in `foundation_wireguard`).
     ///
     /// # Panics
@@ -537,8 +536,7 @@ impl HttpServer {
     ) {
         let addr = acceptor
             .local_addr()
-            .map(|a| a.to_string())
-            .unwrap_or_else(|_| self.bind_addr.clone());
+            .map_or_else(|_| self.bind_addr.clone(), |a| a.to_string());
         tracing::info!("Listening on {} (generic acceptor)", addr);
         acceptor
             .set_nonblocking(true)
@@ -555,6 +553,9 @@ impl HttpServer {
     ///
     /// Requires an `ssl` or `ssl-*` feature flag and a `tls_acceptor`
     /// configured in `ServerConfig`.
+    ///
+    /// # Panics
+    /// Panics if the listener cannot be switched to non-blocking mode.
     #[cfg(any(
         feature = "ssl",
         feature = "ssl-rustls",
@@ -564,14 +565,12 @@ impl HttpServer {
         feature = "ssl-native-tls",
     ))]
     #[tracing::instrument(skip(self, shutdown))]
-    pub fn serve_tls(self, shutdown: Arc<ShutdownSignal>) {
-        let acceptor = match &self.config.tls_acceptor {
-            Some(a) => a.clone(),
-            None => {
-                tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
-                return;
-            }
+    pub fn serve_tls(self, shutdown: &Arc<ShutdownSignal>) {
+        let Some(acceptor) = &self.config.tls_acceptor else {
+            tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
+            return;
         };
+        let acceptor = acceptor.clone();
 
         let listener = match std::net::TcpListener::bind(&self.bind_addr) {
             Ok(l) => l,
@@ -588,10 +587,9 @@ impl HttpServer {
 
         self.init_io();
         let io_mode = self.config.io_mode;
-        self.serve_loop(&listener, &shutdown, move |conn, addr| {
-            let tcp = match conn {
-                foundation_netio::netcap::Connection::Tcp(t) => t,
-                _ => return Err("expected TCP connection for TLS".to_string()),
+        self.serve_loop(&listener, shutdown, move |conn, addr| {
+            let foundation_netio::netcap::Connection::Tcp(tcp) = conn else {
+                return Err("expected TCP connection for TLS".to_string());
             };
             let c = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
@@ -608,6 +606,9 @@ impl HttpServer {
     /// Blocks until the shutdown signal is triggered.
     ///
     /// Requires an `ssl`/`ssl-*` feature and a `tls_acceptor` in `ServerConfig`.
+    ///
+    /// # Panics
+    /// Panics if the listener cannot be switched to non-blocking mode.
     #[cfg(any(
         feature = "ssl",
         feature = "ssl-rustls",
@@ -622,13 +623,11 @@ impl HttpServer {
         listener: &std::net::TcpListener,
         shutdown: &Arc<ShutdownSignal>,
     ) {
-        let acceptor = match &self.config.tls_acceptor {
-            Some(a) => a.clone(),
-            None => {
-                tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
-                return;
-            }
+        let Some(acceptor) = &self.config.tls_acceptor else {
+            tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
+            return;
         };
+        let acceptor = acceptor.clone();
         tracing::info!("Listening on {} (TLS)", self.bind_addr);
         listener
             .set_nonblocking(true)
@@ -636,9 +635,8 @@ impl HttpServer {
         self.init_io();
         let io_mode = self.config.io_mode;
         self.serve_loop(listener, shutdown, move |conn, addr| {
-            let tcp = match conn {
-                foundation_netio::netcap::Connection::Tcp(t) => t,
-                _ => return Err("expected TCP connection for TLS".to_string()),
+            let foundation_netio::netcap::Connection::Tcp(tcp) = conn else {
+                return Err("expected TCP connection for TLS".to_string());
             };
             let c = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
@@ -651,7 +649,7 @@ impl HttpServer {
 
     /// Initialise the shared reactor for the configured [`ServerIo`] mode.
     ///
-    /// WHY: an operator who asks for [`ServerIo::Completion`] must get io_uring
+    /// WHY: an operator who asks for [`ServerIo::Completion`] must get `io_uring`
     /// or a hard failure at startup — never a server that logs one line and then
     /// silently serves nothing (Feature 48, no-silent-defaults).
     ///
@@ -663,7 +661,7 @@ impl HttpServer {
     /// # Panics
     /// Panics, naming the requested mode, if the reactor cannot be initialised on
     /// the backend the mode demands (e.g. `Completion` on a kernel without
-    /// io_uring) — the same fail-fast contract as the `set_nonblocking` setup
+    /// `io_uring`) — the same fail-fast contract as the `set_nonblocking` setup
     /// above.
     #[cfg(unix)]
     fn init_io(&self) {
@@ -682,6 +680,10 @@ impl HttpServer {
     /// Generic accept loop — shared by `serve`, `serve_tls`, and `serve_with_acceptor`.
     /// The `wrap_stream` closure converts an accepted `Connection` into a `RawStream`
     /// (with optional TLS wrapping).
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the accept loop reads best as one ordered flow"
+    )]
     #[tracing::instrument(skip(self, acceptor, shutdown, wrap_stream))]
     fn serve_loop(
         self,
@@ -752,7 +754,7 @@ impl HttpServer {
             #[cfg(unix)]
             let gen = listener_readiness
                 .as_ref()
-                .map(|readiness| readiness.events_generation());
+                .map(foundation_iogate::FdReadiness::events_generation);
 
             match acceptor.accept_connection() {
                 Ok((conn, addr)) => {
@@ -817,13 +819,17 @@ impl HttpServer {
                                 err = ?e,
                                 "Failed to submit connection to valtron"
                             );
-                            if let Err(err) = respond::text(
-                                &mut shared_stream.clone(),
-                                503,
-                                "Service Unavailable",
-                            ) {
-                                tracing::debug!(%client_ip, err = ?err, "could not write the 503");
-                            }
+                            // The executor refused the task: the pool is not
+                            // initialised or has been torn down. No task can
+                            // drive an async response, and a synchronous write
+                            // would truncate on this non-blocking socket, so
+                            // close the connection. The client sees a closed
+                            // connection rather than a broken response.
+                            tracing::error!(
+                                %client_ip,
+                                err = ?e,
+                                "cannot serve the connection: the executor is unavailable"
+                            );
                         }
                     }
                 }
@@ -841,7 +847,6 @@ impl HttpServer {
                                     gen.expect("generation snapshotted before accept"),
                                     accept_shutdown_poll,
                                 );
-                                continue;
                             }
                             None => std::thread::sleep(would_block_sleep),
                         }
