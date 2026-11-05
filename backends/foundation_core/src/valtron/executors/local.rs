@@ -384,6 +384,9 @@ impl<T> NotifyQueue<T> {
     }
 
     /// Creates a new unbounded NotifyQueue with the given [`NotifyQueueConfig`].
+    // The single-threaded executor's wake types are `!Send` by design; `Arc`
+    // gives shared ownership to clones on the same thread.
+    #[allow(clippy::arc_with_non_send_sync)]
     pub fn unbounded_with_config(config: NotifyQueueConfig) -> Self {
         Self {
             queue: Arc::new(ConcurrentQueue::unbounded()),
@@ -402,6 +405,9 @@ impl<T> NotifyQueue<T> {
     }
 
     /// Creates a new bounded NotifyQueue with the given [`NotifyQueueConfig`].
+    // The single-threaded executor's wake types are `!Send` by design; `Arc`
+    // gives shared ownership to clones on the same thread.
+    #[allow(clippy::arc_with_non_send_sync)]
     pub fn bounded_with_config(capacity: usize, config: NotifyQueueConfig) -> Self {
         Self {
             queue: Arc::new(ConcurrentQueue::bounded(capacity)),

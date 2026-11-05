@@ -281,7 +281,6 @@ impl BackgroundJobRegistry {
     /// # Panics
     ///
     /// Panics if `num_threads` is 0.
-    #[must_use]
     pub fn new(num_threads: usize) -> Result<Arc<Self>, BackgroundJobError> {
         Self::with_config(BackgroundJobConfig::new(num_threads))
     }
@@ -296,7 +295,6 @@ impl BackgroundJobRegistry {
     /// # Panics
     ///
     /// Panics if `config.num_threads()` is 0.
-    #[must_use]
     pub fn with_config(config: BackgroundJobConfig) -> Result<Arc<Self>, BackgroundJobError> {
         let num_threads = config.num_threads;
         assert!(
