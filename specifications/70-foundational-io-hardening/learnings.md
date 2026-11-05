@@ -2,6 +2,22 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (planning 115, 117 and 118):
+  - **A crate-level `#![allow]` outranks `-D warnings`.** `Cargo.toml` sets
+    `pedantic = "warn"`, but `foundation_core/src/lib.rs` still starts with
+    `#![allow(clippy::pedantic)]` and three others from `f6916c465`. Both clippy
+    runs and the new CI deny setting are green while the pedantic group is
+    hidden inside that crate. Read the crate root before trusting a zero count;
+    feature 118 removes the allows.
+  - **`clippy::cognitive_complexity` is a `nursery` lint.** The workspace does
+    not enable `nursery`, so allowing it changes nothing today. It is dead
+    configuration, not debt.
+  - **The executor never reads `ctx.clock()`.** A grep of the engine finds the
+    accessor only at its definition and in tests. Injecting a clock into `Ctx`
+    therefore changes no scheduling behaviour: parking stays on the real
+    monotonic clock. Feature 115 states this limit so a DST run is not expected
+    to replay time.
+
 - 2026-11-06 (feature 116, `foundation_core` clippy reaches zero):
   - **`cargo clippy --fix` reverts the whole crate when one suggestion does
     not compile.** It printed `errors present after applying fixes to crate

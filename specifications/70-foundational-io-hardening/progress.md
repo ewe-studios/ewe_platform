@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: three priority plans written: 115, 117 and 118.
+  Branch `spec70/priority-followups`.
+  - Feature 115 (approved, next): `Ctx::with_clock(&self, Arc<dyn Clock>) -> Ctx`,
+    `initialize_pool_with_ctx` and `initialize_current_thread_with_ctx`, the
+    `ctx = expr` macro argument, and a `SimulatedClock` behind `test-clock`.
+    Bumps `foundation_core` and `foundation_macros` to 0.0.8.
+  - Feature 117 (plan, needs owner approval): every wall-clock read comes from
+    `Clock::wall_now`, with `foundation_compact::time` helpers and a CI gate
+    script. Depends on 115.
+  - Feature 118 (plan): remove the four crate-level clippy allows in
+    `foundation_core/src/lib.rs` and fix the hidden pedantic debt in slices.
+    Lane is after 115.
+
 - 2026-11-06: feature 116, `foundation_core` reaches zero clippy warnings.
   Branch `spec70/priority-followups`.
   - Default tree: 333 diagnostics in the test target plus 18 in five examples

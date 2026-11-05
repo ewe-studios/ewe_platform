@@ -138,6 +138,14 @@ python3 scripts/ci/ci.py run foundation_core --profile uat
 
 2026-11-06. Done except the CI proof.
 
+**Scope of the zero count.** Both clippy runs are green with `src/lib.rs` still
+starting with `#![allow(clippy::pedantic)]`, `#![allow(clippy::too_many_lines)]`,
+`#![allow(clippy::cognitive_complexity)]` and `#![allow(clippy::type_complexity)]`
+(commit `f6916c465`). The workspace sets `pedantic = "warn"`, so those four lines hide
+the pedantic group inside this crate. The zero count is therefore a zero for the
+workspace lint set minus those groups. Removing the allows is scheduled as feature 118
+and recorded in backlog §4.
+
 ### Measured before and after
 
 | Command | Before | After |

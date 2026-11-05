@@ -77,7 +77,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Feature 116's zero count is measured with these allows in place, so the
   library's pedantic debt is not visible. Fix: remove the blanket allows, fix or
   carry one `#[expect]` per remaining pedantic lint, then keep the two clippy
-  runs green. Found in feature 116.
+  runs green. Found in feature 116. Scheduled as feature 118.
 - **The idle CPU tests measure the threads of other tests.** File:
   `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
   tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which

@@ -110,7 +110,7 @@ partly done.
 | E7 | `foundation_proxy` | 0 warnings in the library and tests. |
 | E8 | `foundation_wireguard` | `cargo check` is clean for wasm32 and native. Removed `thiserror` and `web-sys`; kept `foundation_errstacks` and target-gated it. |
 | E9 | `foundation_iogate` | 0 warnings. |
-| E10 | `foundation_core`, `foundation_nostd` | Done in feature 116: both crates are at zero clippy warnings in both feature sets and all targets. `foundation_core` denies clippy warnings in CI (`clippy-runs = ["", "multi"]`); `foundation_nostd` keeps its deny setting. The bare `--no-default-features` build prints only its named `compile_error!`. |
+| E10 | `foundation_core`, `foundation_nostd` | Done in feature 116: both crates are at zero clippy warnings in both feature sets and all targets, with the crate-level `#![allow(clippy::pedantic)]` and three other blanket allows still in `foundation_core/src/lib.rs` (feature 118 removes them). `foundation_core` denies clippy warnings in CI (`clippy-runs = ["", "multi"]`); `foundation_nostd` keeps its deny setting. The bare `--no-default-features` build prints only its named `compile_error!`. |
 
 Documented `#[allow]`s are used only where the fix would change a public
 signature, split a deliberate state machine, or need a crate version bump. Each
