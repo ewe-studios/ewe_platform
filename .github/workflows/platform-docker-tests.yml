@@ -29,25 +29,46 @@ jobs:
   # ── macOS tests ─────────────────────────────────────────────────────────
   macos-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A cold runner has an empty `/storage`, so the image installs macOS from
+    # scratch. The Windows image does the same and takes 22 minutes; macOS is
+    # slower, so the job gets more room than the Windows job.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
 
       - name: Boot macOS container
         run: |
+          # `docker-compose.yaml` names the container `ewe_macos`, not `macos`.
+          # This job used the service name, so every `docker exec` failed and the
+          # wait loop below ran its full window without ever becoming ready.
+          container=ewe_macos
           docker compose -f docker-compose.yaml up macos -d
-          echo "Waiting for macOS to boot (up to 10 minutes)..."
-          for i in $(seq 1 120); do
-            if docker exec macos sh -c 'echo ready' 2>/dev/null; then
-              echo "macOS ready after ${i}0 seconds"
+          echo "Waiting for macOS to boot (up to 45 minutes)..."
+          ready=0
+          for i in $(seq 1 270); do
+            if docker exec "$container" sh -c 'echo ready' 2>/dev/null; then
+              echo "macOS ready after $((i * 10)) seconds"
+              ready=1
               break
+            fi
+            # Fail at once when the VM died, and say why. A silent wait hides
+            # the container's own error message until the job times out.
+            if [ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null)" != "true" ]; then
+              echo "::error::the $container container is not running"
+              docker logs --tail 100 "$container" || true
+              exit 1
             fi
             sleep 10
           done
+          if [ "$ready" != "1" ]; then
+            echo "::error::macOS did not become ready in 45 minutes"
+            docker logs --tail 100 "$container" || true
+            exit 1
+          fi
 
       - name: Install Rust on macOS
         run: |
-          docker exec macos bash -c '
+          docker exec ewe_macos bash -c '
             curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
             source ~/.cargo/env
             rustup target add aarch64-apple-ios aarch64-apple-ios-sim
@@ -59,7 +80,7 @@ jobs:
 
       - name: iOS target check
         run: |
-          docker exec macos bash -c '
+          docker exec ewe_macos bash -c '
             source ~/.cargo/env
             export RUSTUP_TOOLCHAIN=stable
             cd /shared/examples/platform_ios/src-tauri
@@ -69,8 +90,8 @@ jobs:
       - name: Collect screenshots
         if: always()
         run: |
-          docker exec macos screencapture -x /tmp/screenshot.png 2>/dev/null || true
-          docker cp macos:/tmp/screenshot.png ./macos-screenshot.png 2>/dev/null || true
+          docker exec ewe_macos screencapture -x /tmp/screenshot.png 2>/dev/null || true
+          docker cp ewe_macos:/tmp/screenshot.png ./macos-screenshot.png 2>/dev/null || true
 
       - name: Upload artifacts
         if: always()
@@ -90,15 +111,28 @@ jobs:
 
       - name: Boot Windows container
         run: |
+          container=ewe_windows
           docker compose -f docker-compose.yaml up windows -d
-          echo "Waiting for Windows to boot (up to 10 minutes)..."
+          echo "Waiting for Windows to boot (up to 20 minutes)..."
+          ready=0
           for i in $(seq 1 120); do
-            if docker exec ewe_windows cmd /c "echo ready" 2>/dev/null; then
-              echo "Windows ready after ${i}0 seconds"
+            if docker exec "$container" cmd /c "echo ready" 2>/dev/null; then
+              echo "Windows ready after $((i * 10)) seconds"
+              ready=1
               break
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null)" != "true" ]; then
+              echo "::error::the $container container is not running"
+              docker logs --tail 100 "$container" || true
+              exit 1
             fi
             sleep 10
           done
+          if [ "$ready" != "1" ]; then
+            echo "::error::Windows did not become ready in 20 minutes"
+            docker logs --tail 100 "$container" || true
+            exit 1
+          fi
 
       - name: Docker connectivity tests
         run: |
@@ -121,9 +155,22 @@ jobs:
   # ── Platform unit tests (in-memory, no Docker needed) ──────────────────
   platform-unit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
+      # `foundation_platform` depends on `tauri`, whose Linux build needs the
+      # GTK/WebKit development packages. Without them `cargo test` stops in
+      # `glib-sys`'s build script: "Package 'glib-2.0' not found".
+      - name: Install the Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential curl file pkg-config \
+            libglib2.0-dev libgtk-3-dev libsoup-3.0-dev \
+            libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev \
+            librsvg2-dev libxdo-dev libayatana-appindicator3-dev \
+            libssl-dev patchelf
 
       - name: Run foundation_platform tests
         run: cargo test -p foundation_platform -- --test-threads=1
