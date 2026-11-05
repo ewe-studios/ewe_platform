@@ -45,7 +45,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.5"
+version = "0.0.6"
 
 # Native: `types.rs` and `dns_ops.rs`. The wasm32 entries (optional, enabled by the
 # `workers` feature) are in the wasm table below.

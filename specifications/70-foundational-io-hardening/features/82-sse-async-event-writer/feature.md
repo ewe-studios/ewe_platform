@@ -1,10 +1,10 @@
 ---
 feature: "SSE event writes go through the async ResponseWriter; a partial write cannot truncate an event"
-status: "pending"
+status: "done"
 lane: "next (priority) — starts after feature 67 merges"
 model: "sonnet"
 branch: "spec70/f82-sse-async-event-writer"
-crates: ["foundation_netio", "foundation_http", "foundation_toolings"]
+crates: ["foundation_netio", "foundation_http", "foundation_browser", "foundation_toolings"]
 catalogue_rows: []  # from docs/bug-backlog.md §3; not a §8 catalogue row
 ---
 
@@ -110,8 +110,8 @@ python3 scripts/ci/ci.py run foundation_http --profile uat   # in the Linux CI i
 
 ## Done when
 
-- [ ] No native SSE write goes through a synchronous `Write`.
-- [ ] The regression test fails on the old code and passes on the new code.
-- [ ] The backlog entry "SSE event writes can truncate on a non-blocking socket" is deleted.
-- [ ] Versions and every consumer requirement are updated.
+- [x] No native SSE write goes through a synchronous `Write`.
+- [x] The regression test fails on the old code and passes on the new code.
+- [x] The backlog entry "SSE event writes can truncate on a non-blocking socket" is deleted.
+- [x] Versions and every consumer requirement are updated.
 - [ ] CI green.

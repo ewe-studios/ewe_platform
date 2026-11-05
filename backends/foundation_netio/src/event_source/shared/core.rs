@@ -163,6 +163,77 @@ impl SseEvent {
     pub fn retry_ms(&self) -> Option<u64> {
         self.retry
     }
+
+    /// Append this event's wire bytes to `out`.
+    ///
+    /// WHY: There is one wire format, and every writer must produce it. The
+    /// synchronous [`EventWriter`](crate::event_source::EventWriter) and the
+    /// native `foundation_http::native::upgrade::SseWriter` both call this, so
+    /// the two paths cannot drift apart.
+    ///
+    /// WHAT: Appends the optional `event:`, `id:` and `retry:` lines, one
+    /// `data:` line per data line, then the empty dispatch line. It writes
+    /// exactly the bytes the original `EventWriter::send` wrote.
+    ///
+    /// NOTE: In-memory writers and tests call this directly. A non-blocking
+    /// socket must not be written with this buffer through a synchronous
+    /// `Write`: use `foundation_http::native::upgrade::SseWriter`, which parks
+    /// on write readiness and resumes a partial write.
+    ///
+    /// Reference: W3C Server-Sent Events specification
+    /// (<https://html.spec.whatwg.org/multipage/server-sent-events.html>).
+    pub fn render(&self, out: &mut Vec<u8>) {
+        if let Some(event_type) = self.event_type() {
+            push_line(out, "event: ", event_type);
+        }
+        if let Some(id) = self.id() {
+            push_line(out, "id: ", id);
+        }
+        if let Some(retry) = self.retry_ms() {
+            // Render the number without allocating an intermediate String.
+            out.extend_from_slice(b"retry: ");
+            push_u64(out, retry);
+            out.push(b'\n');
+        }
+        for data_line in self.data_lines() {
+            push_line(out, "data: ", data_line);
+        }
+        // Empty line to dispatch the event.
+        out.push(b'\n');
+    }
+
+    /// Render this event's wire bytes.
+    ///
+    /// WHY: Convenience for in-memory writers and the async SSE writer, which
+    /// needs the whole event before it writes it.
+    /// WHAT: Returns the bytes [`Self::render`] appends.
+    #[must_use]
+    pub fn rendered(&self) -> Vec<u8> {
+        let mut out = Vec::new();
+        self.render(&mut out);
+        out
+    }
+}
+
+/// Append `prefix`, then `value`, then a newline to `out`.
+fn push_line(out: &mut Vec<u8>, prefix: &str, value: &str) {
+    out.extend_from_slice(prefix.as_bytes());
+    out.extend_from_slice(value.as_bytes());
+    out.push(b'\n');
+}
+
+/// Render a `u64` in decimal without an intermediate allocation.
+fn push_u64(out: &mut Vec<u8>, mut value: u64) {
+    if value == 0 {
+        out.push(b'0');
+        return;
+    }
+    let start = out.len();
+    while value > 0 {
+        out.push(b'0' + (value % 10) as u8);
+        value /= 10;
+    }
+    out[start..].reverse();
 }
 
 impl Default for SseEvent {

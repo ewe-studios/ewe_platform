@@ -4672,7 +4672,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -5769,7 +5769,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5951,7 +5951,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
@@ -6263,6 +6263,7 @@ dependencies = [
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
+ "foundation_macros",
  "foundation_nativeapis",
  "foundation_netio",
  "foundation_nostd",

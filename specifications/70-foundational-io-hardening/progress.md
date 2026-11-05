@@ -2,26 +2,58 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-05: feature 83 implemented on `spec70/f83-ptrace-native-amd64-ci` (CI proof
-  pending). `backends/foundation_nativeapis/tests/ptrace_probe.rs` forks a child that calls
+- 2026-11-05: feature 82 done on `spec70/f82-sse-async-event-writer`. No native SSE
+  write now goes through a synchronous `Write`. `foundation_netio` has
+  `SseEvent::render`/`rendered` (one wire-format renderer) and `render_comment`;
+  `EventWriter` keeps its `W: Write` API for in-memory writers and calls them. Its
+  docs say not to use it on a non-blocking socket. `foundation_http` has `SseWriter`,
+  which holds one `ResponseWriter`, renders to bytes, calls `write_all` and `flush`.
+  `SseStream` holds `SseWriter`; `send`, `message`, `binary` and `comment` are async,
+  and `SseStream::new` keeps the head writer for the events. `foundation_toolings`
+  `SseReloadHandler` now runs as a `ConnectionResult::Async` continuation and awaits
+  every write; the polling sleep is a valtron timer. `foundation_browser`
+  `SseTransport` pushes frames into a bounded valtron `Pipe` that a per-client driver
+  task drains with the async `SseStream`; `SseTransportConfig::queue_depth` is
+  configuration with a documented default of 256 frames, and a full queue drops that
+  client (the broadcaster reconnects it and replays the backlog). The regression test
+  `sse_writer_delivers_a_whole_event_to_a_slow_client` uses the deterministic overlay
+  fake: before the fix the synchronous path returned `WouldBlock` after 64 bytes (54
+  filler and a 10-byte event prefix) of a 16406-byte event; the new path delivers all
+  16406 bytes to a client that reads one byte per poll. New tests: `render` equals
+  `EventWriter::send` bytes, the SSE writer regression test, a proxy SSE test that
+  reads one byte per poll, and a browser transport test that receives one whole
+  binary frame over a slow SSE client. Each threaded test passed 20 of 20 flake
+  runs. Versions: `foundation_netio` 0.0.5 → 0.0.6,
+  `foundation_http` 0.0.4 → 0.0.5 and `foundation_browser` 0.0.3 → 0.0.4 (the queue
+  config is new public API), with every workspace requirement and template pin.
+  The backlog §3 SSE entry is deleted. New backlog entry §33 records 56 pre-existing
+  `foundation_browser` clippy errors in files this feature did not touch. Backlog §2
+  records `silent_server_gets_body_when_the_timer_fires`: it failed once in the full
+  `foundation_netio` run while two other suites ran on the same machine, and passed 10
+  of 10 solo reruns. Backlog §34 records the stale `foundation_toolings` pin in the
+  `web-app` and `api-app` templates.
+
+- 2026-11-05: feature 83 merged into #179 as `660c79432` (CI proof pending).
+  `backends/foundation_nativeapis/tests/ptrace_probe.rs` forks a child that calls
   `PTRACE_TRACEME` and stops with `SIGSTOP`, then reads its registers from the parent. It
   prints `ptrace probe: available` or
   `ptrace probe: unavailable (<errno name>: <number>, <cause>)`, maps `EIO` to the emulated
   kernel, `EPERM` to seccomp/`Yama` and `ESRCH` to a gone tracee, and asserts when
   `EWE_REQUIRE_PTRACE=1`. `ptrace_requirement` is pure and its tests run on any host. The
   probe itself is Linux-gated item by item, so a macOS host still tests the decision.
-  `tests/common/mod.rs` adds `ptrace_missing(what)` next to `io_uring_missing`.
-  `ci/packages.toml` gets a named `vfs-native,vfs-ptrace` run and
-  `EWE_REQUIRE_PTRACE = "1"`; `.github/workflows/check.yaml` gets a `ptrace probe` step in
-  both the `package` and `package-artifact` jobs before the test step. Three spawn tests now
-  prove interception: the traced child reads `/virtual` from a `MemoryFs`, writes into it
-  through a shell redirect, and copies 64 KiB+ to a real file with the length and an FNV-1a
-  checksum intact. The redirect test exposed a dispatch gap: `dup2` moves a virtual fd to a
-  low number, so dispatch now follows the `VirtualFdTable` entry, not the fd-number range.
-  This Mac cannot run the spawn tests (OrbStack amd64 returns `EIO` from `PTRACE_GETREGS`);
-  native amd64 proof must come from the `ubuntu-latest` job. Backlog: the ptrace entry is
-  rewritten to point at CI, and two dispatch bugs are recorded (`O_TRUNC` on an existing
-  virtual file, and `dup2` not closing a real destination fd).
+  `tests/common/mod.rs` adds `ptrace_available`; the spawn tests fail with its errno instead
+  of skipping, so an emulated kernel cannot hide them. `ci/packages.toml` gets a named
+  `vfs-native,vfs-ptrace` run and `EWE_REQUIRE_PTRACE = "1"`; `.github/workflows/check.yaml`
+  gets a `ptrace probe` step in both the `package` and `package-artifact` jobs before the
+  test step. Three spawn tests now prove interception: the traced child reads `/virtual`
+  from a `MemoryFs`, writes into it through a shell redirect, and copies 64 KiB+ to a real
+  file with the length and an FNV-1a checksum intact. The redirect test exposed a dispatch
+  gap: `dup2` moves a virtual fd to a low number, so dispatch now follows the
+  `VirtualFdTable` entry, not the fd-number range. This Mac cannot run the spawn tests
+  (OrbStack amd64 returns `EIO` from `PTRACE_GETREGS`); native amd64 proof must come from
+  the `ubuntu-latest` job. Backlog: the ptrace entry is rewritten to point at CI, and two
+  dispatch bugs are recorded (`O_TRUNC` on an existing virtual file, and `dup2` not closing
+  a real destination fd).
 
 - 2026-11-05: CI run 41999359118 failed `foundation_browser` at the build step. Feature 63
   made `SseStream::new` async, and `foundation_browser/src/test/stream.rs` still matched its

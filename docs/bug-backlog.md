@@ -19,6 +19,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
+- **`silent_server_gets_body_when_the_timer_fires` is timing-flaky under load.**
+  A full `foundation_netio` run on 2026-11-05 failed this test once while two other
+  cargo test suites built and ran on the same machine. It passed 10 of 10 solo
+  reruns. The test expects the server to wait about its 300 ms
+  `Expect: 100-continue` timer, and asserts the wait is under 2 s
+  (`tests/simple_http/nonblocking_client_tests.rs:459`). Load stretches the wait past
+  that bound. Unrelated to feature 82. Fix: drive the timer from a simulated clock, or
+  widen the bound only with a measured justification.
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
   variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
@@ -27,14 +35,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- **SSE event writes can truncate on a non-blocking socket.** `EventWriter::send`
-  (`backends/foundation_netio/src/event_source/shared/writer.rs:53`) writes each
-  event with `writeln!` (that is, `write_all`) and flushes. `SseStream::new` now
-  writes the response head through `ResponseWriter`, but every later event still
-  takes the synchronous path: a slow client can fill the socket and produce a
-  partial event or a `WouldBlock` error. Fix: give `EventWriter` an async send
-  that writes through `ResponseWriter` (or return the number written), and move
-  `SseStream::send`/`message`/`comment` to it. Note the public API change.
 - **`ConnectionHandler::idle_timeout` (`native/server/connection.rs:173`) is the size-based
   read timeout of a streaming context, 100 ms (`TimeoutConfig::min_read_timeout`) when the
   body is unsized** (the same mistake that made the SSE client reconnect a quiet stream, fixed
@@ -501,6 +501,29 @@ are clean. Each item needs the per-crate clippy workflow in
   `SystemTime::now()`, which project rule 11 forbids in core logic: clocks must come from
   the `Env` bundle in `Ctx`. Fix: read a clock trait from `Ctx`, and use a simulated clock
   in the tests.
+
+## 33. foundation_browser
+
+- **Clippy debt: 56 errors under `-D warnings` in untouched files.** Command:
+  `cargo clippy --profile uat -p foundation_browser --all-targets --no-deps -- -D warnings`.
+  Found while feature 82 changed `src/test/stream.rs`; that file is now clean. The
+  rest: `bidi/backend.rs` 11, `cdp/launch.rs` 6, `browser.rs` 6, `bidi/mod.rs` 6,
+  `lib.rs` 4, `jsonrpc/engine.rs` 4, `geometry.rs` 4, `test/server.rs` 3,
+  `supervisor.rs` 3, `backend.rs` 3, `locator.rs` 2, `jsonrpc/mod.rs` 2,
+  `test/mod.rs` 1, `test/harness.rs` 1. Kinds: missing doc backticks (36),
+  `cloned` where `copied` applies (4), `f64`-to-`i64` casts (4), needless
+  pass-by-value (3), identical match arms (2), and one each of single-pattern
+  `match`, missing `# Panics`, missing `# Errors`, doc list indentation, clamp
+  pattern, `map(...).unwrap_or(...)` on a `Result`. Fix: run the crate hygiene
+  plan/execute pass before the next feature that touches this crate.
+
+## 34. bin/platform templates
+
+- **The `foundation_toolings` template pin is stale.** Both `web-app` and
+  `api-app` pin `foundation_toolings = { version = "0.0.4" }`, but the workspace crate is
+  0.0.5. Feature 82 updated the `foundation_http` pins to 0.0.5 and left toolings alone
+  because this feature does not bump it. Fix: bump the pin with the next toolings
+  publish.
 
 ## Paused
 

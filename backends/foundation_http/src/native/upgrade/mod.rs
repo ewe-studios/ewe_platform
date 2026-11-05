@@ -4,7 +4,7 @@
 //! Server-side SSE streaming is provided by `SseStream`.
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::event_source::{EventWriter, SseEvent};
+use foundation_netio::event_source::{render_comment, SseEvent};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleOutgoingResponse,
@@ -116,16 +116,108 @@ fn get_header_value(headers: &SimpleHeaders, name: &str) -> String {
     String::new()
 }
 
+/// Server-side SSE event writer over the async [`ResponseWriter`].
+///
+/// WHY: An SSE event is formatted bytes. The connection socket is
+/// non-blocking, so a synchronous `Write` can stop in the middle of an event,
+/// return `WouldBlock`, and lose the rest of it ([`crate::native::upgrade::SseStream`]
+/// had that bug). `ResponseWriter` parks on write readiness and resumes at the
+/// byte offset the socket accepted.
+/// WHAT: Renders each event with [`SseEvent::render`] (the one wire format),
+/// writes the bytes with [`ResponseWriter::write_all`], then flushes.
+/// HOW: [`SseStream`] shares one `ResponseWriter` between the response head and
+/// every later event, so a parked head write and an event write use the same
+/// readiness state.
+pub struct SseWriter {
+    writer: ResponseWriter,
+}
+
+impl SseWriter {
+    /// A writer for `conn` with the given limits.
+    #[must_use]
+    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig) -> Self {
+        Self {
+            writer: ResponseWriter::new(conn, config),
+        }
+    }
+
+    /// A writer over an existing [`ResponseWriter`].
+    ///
+    /// WHY: [`SseStream::new`] writes the response head first; the event
+    /// writes must keep that writer so the idle timer and readiness state are
+    /// shared.
+    /// WHAT: Wraps `writer` without touching the connection.
+    #[must_use]
+    pub fn from_writer(writer: ResponseWriter) -> Self {
+        Self { writer }
+    }
+
+    /// Send an SSE event to the client.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpgradeError::WriteError`] when the connection fails or the
+    /// client takes no byte within the writer's `send_timeout`.
+    pub async fn send(&mut self, event: &SseEvent) -> Result<(), UpgradeError> {
+        self.write_bytes(&event.rendered()).await
+    }
+
+    /// Send a comment (keep-alive) to the client.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::send`].
+    pub async fn comment(&mut self, text: &str) -> Result<(), UpgradeError> {
+        let mut bytes = Vec::new();
+        render_comment(text, &mut bytes);
+        self.write_bytes(&bytes).await
+    }
+
+    /// Send a simple message event (no event type).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::send`].
+    pub async fn message(&mut self, data: impl Into<String>) -> Result<(), UpgradeError> {
+        self.send(&SseEvent::message(data)).await
+    }
+
+    /// Get a reference to the underlying [`ResponseWriter`].
+    #[must_use]
+    pub fn writer(&self) -> &ResponseWriter {
+        &self.writer
+    }
+
+    /// Get a mutable reference to the underlying [`ResponseWriter`].
+    #[must_use]
+    pub fn writer_mut(&mut self) -> &mut ResponseWriter {
+        &mut self.writer
+    }
+
+    /// Write `bytes` whole, then flush.
+    async fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), UpgradeError> {
+        self.writer
+            .write_all(bytes)
+            .await
+            .map_err(|e| UpgradeError::WriteError(e.to_string()))?;
+        self.writer
+            .flush()
+            .await
+            .map_err(|e| UpgradeError::WriteError(e.to_string()))
+    }
+}
+
 /// Server-side SSE stream for writing events to clients.
 ///
 /// WHY: SSE requires specific HTTP headers before streaming events.
-/// WHAT: Writes SSE headers (200 OK, text/event-stream), then wraps the stream
-/// in an `EventWriter` for sending events.
+/// WHAT: Writes SSE headers (200 OK, text/event-stream), then keeps the
+/// [`ResponseWriter`] in an [`SseWriter`] for the events.
 ///
-/// NOTE: The handler must return `ConnectionResult::Take` after creating
-/// the `SseStream` to take ownership of the connection.
+/// NOTE: The handler that creates the stream must keep ownership of the
+/// connection (`ConnectionResult::Take`) or drive an async continuation, as
+/// `foundation_browser`'s `StreamHandler` does.
 pub struct SseStream {
-    writer: EventWriter<SharedByteBufferStream<RawStream>>,
+    writer: SseWriter,
 }
 
 impl SseStream {
@@ -137,8 +229,8 @@ impl SseStream {
     /// - Cache-Control: no-cache
     /// - Connection: keep-alive
     ///
-    /// WHAT: Writes the head through the async [`ResponseWriter`], then creates
-    /// the `EventWriter` wrapper.
+    /// WHAT: Writes the head through the async [`ResponseWriter`], then keeps
+    /// that writer in an [`SseWriter`] for the events.
     ///
     /// # Errors
     ///
@@ -166,26 +258,23 @@ impl SseStream {
             .await
             .map_err(|e| UpgradeError::WriteError(e.to_string()))?;
 
-        // Clone the stream for the EventWriter
-        // EventWriter needs its own reference to write events
-        let stream_clone = conn.clone();
-        let writer = EventWriter::new(stream_clone);
-
-        Ok(Self { writer })
+        // Keep the same writer: the head and the events share its idle timer
+        // and its write-readiness registration.
+        Ok(Self {
+            writer: SseWriter::from_writer(writer),
+        })
     }
 
     /// Send an SSE event to the client.
     ///
     /// WHY: Primary method for transmitting events.
-    /// WHAT: Formats and writes event according to SSE spec.
+    /// WHAT: Renders and writes the event through [`SseWriter`].
     ///
     /// # Errors
     ///
     /// Returns `UpgradeError` if writing fails.
-    pub fn send(&mut self, event: &SseEvent) -> Result<(), UpgradeError> {
-        self.writer
-            .send(event)
-            .map_err(|e| UpgradeError::WriteError(e.to_string()))
+    pub async fn send(&mut self, event: &SseEvent) -> Result<(), UpgradeError> {
+        self.writer.send(event).await
     }
 
     /// Send a simple message event (no event type).
@@ -196,10 +285,8 @@ impl SseStream {
     /// # Errors
     ///
     /// Returns `UpgradeError` if writing fails.
-    pub fn message(&mut self, data: impl Into<String>) -> Result<(), UpgradeError> {
-        self.writer
-            .message(data)
-            .map_err(|e| UpgradeError::WriteError(e.to_string()))
+    pub async fn message(&mut self, data: impl Into<String>) -> Result<(), UpgradeError> {
+        self.writer.message(data).await
     }
 
     /// Send a BINARY frame as an SSE message — base64-encoded.
@@ -215,10 +302,10 @@ impl SseStream {
     /// # Errors
     ///
     /// Returns `UpgradeError` if writing fails.
-    pub fn binary(&mut self, frame: &[u8]) -> Result<(), UpgradeError> {
+    pub async fn binary(&mut self, frame: &[u8]) -> Result<(), UpgradeError> {
         use base64::Engine as _;
         let encoded = base64::engine::general_purpose::STANDARD.encode(frame);
-        self.message(encoded)
+        self.message(encoded).await
     }
 
     /// Send a comment (keep-alive).
@@ -229,27 +316,25 @@ impl SseStream {
     /// # Errors
     ///
     /// Returns `UpgradeError` if writing fails.
-    pub fn comment(&mut self, comment: &str) -> Result<(), UpgradeError> {
-        self.writer
-            .comment(comment)
-            .map_err(|e| UpgradeError::WriteError(e.to_string()))
+    pub async fn comment(&mut self, comment: &str) -> Result<(), UpgradeError> {
+        self.writer.comment(comment).await
     }
 
-    /// Get a reference to the underlying `EventWriter`.
+    /// Get a reference to the underlying [`SseWriter`].
     ///
-    /// WHY: May need direct access to `EventWriter` for advanced use.
+    /// WHY: May need direct access to the writer for advanced use.
     /// WHAT: Returns immutable reference to the writer.
     #[must_use]
-    pub fn writer(&self) -> &EventWriter<SharedByteBufferStream<RawStream>> {
+    pub fn writer(&self) -> &SseWriter {
         &self.writer
     }
 
-    /// Get a mutable reference to the underlying `EventWriter`.
+    /// Get a mutable reference to the underlying [`SseWriter`].
     ///
     /// WHY: May need mutable access for custom operations.
     /// WHAT: Returns mutable reference to the writer.
     #[must_use]
-    pub fn writer_mut(&mut self) -> &mut EventWriter<SharedByteBufferStream<RawStream>> {
+    pub fn writer_mut(&mut self) -> &mut SseWriter {
         &mut self.writer
     }
 }
