@@ -116,6 +116,18 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   pushes to queues (allocation, `EventQueue` wake). That is not async-signal-safe: a signal
   that interrupts a thread holding the subscriber lock deadlocks. Fix: the handler writes one
   byte to the eventfd (or a self-pipe) and a thread or task reads it and delivers.
+- **`foundation_nativeapis` clippy debt.** On Linux, `cargo clippy -p foundation_nativeapis
+  --all-targets --no-deps -- -D warnings` reports 191 warnings with default features and 643
+  with the full VFS feature set (the CI run includes `vfs-ptrace`). The lints are
+  `borrow_as_ptr`, `cast_sign_loss`, `doc_markdown` and related mechanical lints. Fix: a
+  clippy-cleanup pass per feature set, then set `clippy-deny-warnings = true` in
+  `ci/packages.toml`. Found in feature 47.
+- **The ptrace spawn tests cannot run under amd64 emulation.** On an Apple Silicon host that
+  runs the linux/amd64 CI image with OrbStack, `PTRACE_GETREGS` returns `EIO` for every
+  traced amd64 process. A minimal C program shows the same result, so the cause is the
+  emulation, not the tracer. Fix: run `ptrace_vfs` on a native amd64 kernel (GitHub CI). A
+  local `scripts/ci/linux.sh foundation_nativeapis` reports 8 spawn-test failures for this
+  reason. Found in feature 47.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

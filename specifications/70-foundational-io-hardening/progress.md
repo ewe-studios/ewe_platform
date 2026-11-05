@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 47 partial on `spec70/f47-f50-lane-a-mechanical`. Measured cause of
+  the seven ignored ptrace tests: (1) ptrace requests came from a thread that did not attach
+  to the tracee, so they failed `ESRCH` and the tracee stayed stopped; (2) `argv` lacked the
+  program name, so the `/bin/sh -c` tests ran a wrong command. The tracer thread now forks
+  and traces the child, the child uses `PTRACE_TRACEME` plus `SIGSTOP`, every `waitpid` uses
+  `__WALL | __WNOTHREAD`, the first child stop is consumed, and the spawn tests have a 60 s
+  timeout. All seven ignores are removed; `fork_child_first_stop_is_consumed` is added.
+  Local run in the Linux CI image: 17 of 25 `ptrace_vfs` tests pass; the 8 spawn tests fail
+  with `PTRACE_GETREGS ... EIO` because OrbStack amd64 emulation does not expose amd64
+  registers (a C probe fails the same way). Native amd64 GitHub CI must confirm 20 of 20.
+  Backlog: new entries for nativeapis clippy debt and the emulation limit.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers

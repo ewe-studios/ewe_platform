@@ -414,7 +414,7 @@ fn test_fork_cloexec_not_inherited_on_exec() {
 // ── NixInterceptor: spawn + wait ──
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
 fn test_spawn_true_exits_zero() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
@@ -426,7 +426,7 @@ fn test_spawn_true_exits_zero() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
 fn test_spawn_echo_with_args() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
@@ -437,7 +437,7 @@ fn test_spawn_echo_with_args() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
 fn test_spawn_false_exits_nonzero() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
@@ -447,7 +447,7 @@ fn test_spawn_false_exits_nonzero() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
 fn test_spawn_nonexistent_fails() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
@@ -460,7 +460,7 @@ fn test_spawn_nonexistent_fails() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
 fn test_spawn_pipe_chain() {
     // Verify non-fs syscalls (pipe, dup, etc.) pass through normally
     let i = NixInterceptor::new();
@@ -476,7 +476,7 @@ fn test_spawn_pipe_chain() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
 fn test_spawn_can_write_to_real_fs() {
     // Verify the child can write to the real filesystem (passthrough)
     let i = NixInterceptor::new();
@@ -493,7 +493,20 @@ fn test_spawn_can_write_to_real_fs() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on the orbstack CI kernel causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
+#[ntest::timeout(60_000)]
+fn fork_child_first_stop_is_consumed() {
+    // The shell forks a child for the background command. The tracer must
+    // consume that child's first SIGSTOP and let it run to exit.
+    let i = NixInterceptor::new();
+    let mt = MountTable::new();
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", "true & wait"])
+        .expect("spawn failed");
+    assert_eq!(h.wait().expect("wait failed"), 0);
+}
+
+#[test]
+#[ntest::timeout(60_000)]
 fn test_spawn_multiple_children() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();

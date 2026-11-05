@@ -2,6 +2,26 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 47, ptrace deadlock): two bugs made the seven spawn tests hang.
+  (1) The child was forked by the test thread, then the `ptrace_loop` ran in a new
+  thread. A ptrace request must come from the thread that attached to the tracee. From
+  another thread it fails with `ESRCH`: `PTRACE_GETREGS` returns nothing and the
+  `PTRACE_SYSCALL` resume fails, so the tracee stays stopped and `waitpid` blocks. The
+  tracer thread now forks the child and runs every ptrace request, and it sends the child
+  pid to `spawn` through a channel.
+  (2) `nix::unistd::execvp` does not add `argv[0]`. The code passed `args` only, so
+  `/bin/sh -c "..."` got `argv[0] = "-c"` and never ran the command. Build `argv` as
+  `[command, args...]`.
+  Use `PTRACE_TRACEME` plus `raise(SIGSTOP)` in the child, not `PTRACE_SEIZE`: with SEIZE
+  the child can exec before the attach, the tracer sees the `EXEC` event in the wrong
+  place, and a forked child starts in `PTRACE_EVENT_STOP`, which `PTRACE_SYSCALL` does not
+  resume. Build every `CString` and the null-terminated pointer array before `fork`; the
+  child may call only async-signal-safe functions.
+  Tests run in parallel in one binary. `waitpid(-1)` from one tracer reaps another test's
+  tracee and then `PTRACE_GETREGS` fails. Add `__WNOTHREAD` next to `__WALL`.
+  Local limit: OrbStack amd64 emulation returns `EIO` from `PTRACE_GETREGS` for every
+  traced amd64 process (a minimal C program shows it too), so the spawn tests fail here
+  before they reach the dispatch code. They must run on native amd64 in GitHub CI.
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run
