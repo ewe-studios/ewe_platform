@@ -33,7 +33,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   feature file each. 108 fixes the flaky `Expect: 100-continue` timer test (backlog §2), 109
   the 56 `foundation_browser` clippy errors (backlog §33), 110 the stale
   `foundation_toolings` template pin (backlog §34), and 111 the ptrace `O_TRUNC` and `dup2`
-  destination-close bugs (backlog §5). The requirements table lists them after 84.
+  destination-close bugs (backlog §5). The requirements table lists them after 84. Feature
+  112 is also scheduled: feature 84 found that the `foundation_connectrpc` arrow-codec test
+  and example targets do not compile after feature 67 changed `IpcResult` (backlog §1).
 
 - 2026-11-05: feature 82 done on `spec70/f82-sse-async-event-writer`. No native SSE
   write now goes through a synchronous `Write`. `foundation_netio` has

@@ -210,6 +210,7 @@ done
 | 109 | [`foundation_browser` clippy debt](./features/109-browser-clippy-debt/feature.md) | backlog §33, found in 82 (haiku) | — | S |
 | 110 | [Stale `foundation_toolings` template pin](./features/110-toolings-template-pin/feature.md) | backlog §34, found in 82 (haiku) | — | S |
 | 111 | [ptrace `O_TRUNC` and `dup2` destination close](./features/111-ptrace-truncate-and-dup2/feature.md) | backlog §5, found in 83 (sonnet) | 83 | M |
+| 112 | [`foundation_connectrpc` arrow-codec targets compile](./features/112-connectrpc-arrow-codec-result/feature.md) | backlog §1, found in 84 (haiku) | 67 | S |
 
 Priority for 82–84: **82 first** (a data-loss bug on every SSE event). 83 starts after 82, or
 with it when two agents are free. 84 follows 82 because both change `foundation_http`; it
