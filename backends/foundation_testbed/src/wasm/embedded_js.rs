@@ -57,12 +57,6 @@ use deno_core::{
     Extension, FsModuleLoader, JsRuntime, OpState, PollEventLoopOptions, RuntimeOptions, op2,
 };
 use deno_error::JsErrorBox;
-// `deno_v8` has no item to call here. The crate needs the dependency only to
-// select its V8 backend for `deno_core`, which names it with
-// `default-features = false` and would otherwise fail its own compile check.
-// This import keeps the dependency in `Cargo.toml` and tells the
-// unused-dependency lint that it is needed.
-use deno_v8 as _;
 
 /// Installs the Web globals `deno_web` provides but does not auto-expose.
 ///

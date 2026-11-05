@@ -2981,7 +2981,7 @@ dependencies = [
  "thiserror 2.0.19",
  "tokio",
  "url",
- "v8 149.4.0",
+ "v8",
  "wasm_dep_analyzer",
  "windows-sys 0.59.0",
 ]
@@ -3298,15 +3298,6 @@ dependencies = [
  "futures-util",
  "parking_lot",
  "tokio",
-]
-
-[[package]]
-name = "deno_v8"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85cdff08dedf79da6a40f97554f47d59d419ba3df8061b8b31789cd2cbe00433"
-dependencies = [
- "v8 150.4.0",
 ]
 
 [[package]]
@@ -6192,7 +6183,6 @@ dependencies = [
  "deno_fetch",
  "deno_net",
  "deno_permissions",
- "deno_v8",
  "deno_web",
  "deno_webidl",
  "deno_websocket",
@@ -12866,7 +12856,7 @@ dependencies = [
  "serde",
  "smallvec",
  "thiserror 2.0.19",
- "v8 149.4.0",
+ "v8",
 ]
 
 [[package]]
@@ -15583,23 +15573,6 @@ name = "v8"
 version = "149.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebfd8d6919bfb4b627ca778a67f85ca45e5fb442d352947ba093798bdf9b07e0"
-dependencies = [
- "bindgen 0.72.1",
- "bitflags 2.13.1",
- "fslock",
- "gzip-header",
- "home",
- "miniz_oxide 0.8.9",
- "paste",
- "temporal_capi",
- "which 6.0.3",
-]
-
-[[package]]
-name = "v8"
-version = "150.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42a978ff11f15b24e5c05a7123cf2b68f41e763546699781a924ef4e2cf43a49"
 dependencies = [
  "bindgen 0.72.1",
  "bitflags 2.13.1",
