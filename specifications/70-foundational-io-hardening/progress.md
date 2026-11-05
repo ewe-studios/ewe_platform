@@ -29,7 +29,15 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   attached context. Known pre-existing failures, recorded in
   `docs/bug-backlog.md`: `foundation_proxy`'s websocket upgrade test on macOS
   (§9) and `foundation_keychain`'s streamed-body timing test (§22). The
-  `foundation_wireguard` pedantic clippy debt is recorded in §31.
+  pedantic clippy debt of `foundation_wireguard`, `foundation_sshkit`,
+  `foundation_arrow` and `foundation_nativeapis` is recorded in §31. The
+  branch also fixes a missed feature-63 migration: `foundation_browser`'s
+  `StreamHandler` now returns `ConnectionResult::Async` and awaits the async
+  `SseStream::new`, so `cargo check --workspace --all-targets` gets past it.
+  That command stops later at `infrastructure_llama_bindings` because this
+  worktree has no `tools/llama.cpp` checkout (`llama.h` is missing); every
+  changed crate and each first-party dependent was therefore checked and
+  tested on its own.
 - 2026-11-05: feature 63 done on `fix/io-63-respond-async`. Every native caller
   of the synchronous `respond::*` now uses the async writer. The module is
   renamed `respond_to_buffer` and kept only for in-memory writers (tests over a
