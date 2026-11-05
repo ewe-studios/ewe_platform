@@ -47,7 +47,7 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 # non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
 foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.6", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.7", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
 # The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is

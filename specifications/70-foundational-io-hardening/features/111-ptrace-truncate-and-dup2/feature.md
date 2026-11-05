@@ -1,6 +1,6 @@
 ---
 feature: "The ptrace VFS follows `open(2)` truncation and `dup2` close rules"
-status: "pending"
+status: "pending (CI proof)"
 lane: "after 84"
 model: "sonnet"
 branch: "spec70/f111-ptrace-truncate-dup2"
@@ -80,6 +80,7 @@ python3 scripts/ci/ci.py run foundation_nativeapis --profile uat   # in the Linu
 - [x] The two backlog §5 entries are deleted.
 - [ ] The `vfs-native,vfs-ptrace` CI run passes on native amd64.
 - [ ] CI green.
+- [x] The new public API bumps the crate and every consumer requirement (see the Result).
 
 ## Result (2026-11-05)
 
@@ -157,4 +158,15 @@ The Linux CI image (`ewestudios/ewe-platform-ci:latest`, `--platform linux/amd64
   the two new ones, fail by design here. The proof of the two new spawn tests is left to
   the GitHub `ubuntu-latest` x86_64 job: the `foundation_nativeapis` package job runs
   `vfs-native,vfs-ptrace` with `EWE_REQUIRE_PTRACE=1`.
-- Status stays `pending` until that job runs the two spawn tests.
+- Status stays `pending (CI proof)` until that job runs the two spawn tests.
+
+### Public API and version bump
+
+`SyscallAction` gains the variant `CloseThenSkip` and the constructor
+`close_then_skip`. Both are public (the module is public under
+`target_os = "linux"` and `vfs-ptrace-nix`), and downstream code that matches the
+enum exhaustively would stop compiling. `foundation_nativeapis` moves from 0.0.6 to
+0.0.7, and every consumer requirement moves with it: `foundation_iogate` (2 entries),
+`foundation_toolings`, `foundation_ai` (2 entries), `foundation_proxy` and
+`foundation_wireguard`. No workspace consumer enables `vfs-ptrace-nix`, so the
+behaviour of those crates does not change.

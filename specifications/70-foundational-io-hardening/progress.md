@@ -24,6 +24,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   - New backlog entries in §35: the open mode is read from the flags register;
     `dup2`/`dup3` ignore `O_CLOEXEC`; `dup2`/`dup3` do not validate the new fd number; the
     loop ignores `PTRACE_SETREGS` failures; `O_APPEND` is ignored.
+  - `SyscallAction::CloseThenSkip` and its constructor are public API, so
+    `foundation_nativeapis` moves to 0.0.7 and all seven consumer requirements move with
+    it (iogate, toolings, ai, proxy, wireguard).
+  - Status is `pending (CI proof)`: the two spawn tests need the native amd64 job.
 
 - 2026-11-05: feature 108, the `Expect: 100-continue` timer test is deterministic.
   Branch `spec70/priority-followups`.
