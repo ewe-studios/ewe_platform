@@ -100,7 +100,7 @@ fn build_router() -> Router {
             let mut parts = Vec::new();
             let mut reqs = reqs;
             while let Some(msg) = reqs.next().await {
-                parts.push(msg.map(|m| m.text).unwrap_or_else(|_| "<err>".to_string()));
+                parts.push(msg.map_or_else(|_| "<err>".to_string(), |m| m.text));
             }
             Ok(Response::new(Msg::of(parts.join("+"))))
         },
@@ -480,7 +480,7 @@ async fn grpc_unary_via_proxy_carries_status() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
     assert_eq!(grpc_status, Some("0"), "grpc-status must be relayed as 0");
 }
 
@@ -510,7 +510,7 @@ async fn grpc_server_stream_via_proxy_carries_status() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
 
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
@@ -637,7 +637,7 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
 
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
@@ -700,7 +700,7 @@ async fn grpc_web_text_unary_via_grpc_backend() {
         resp_headers
             .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
-            .map(|s| s.as_str()),
+            .map(std::string::String::as_str),
         Some("application/grpc-web-text+json"),
         "text mode must be echoed back in the response content-type"
     );

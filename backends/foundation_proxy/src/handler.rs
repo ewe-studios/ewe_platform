@@ -74,6 +74,10 @@ fn closing(result: ConnectionResult) -> ConnectionResult {
 }
 
 impl Serve for ProxyHandler {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the HTTP/1.1 serve path reads best as one ordered flow"
+    )]
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
@@ -337,6 +341,5 @@ fn client_ip(req: &SimpleIncomingRequest) -> String {
     req.connection
         .peer_addr
         .as_ref()
-        .map(|a| a.ip().to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+        .map_or_else(|| "unknown".to_string(), |a| a.ip().to_string())
 }

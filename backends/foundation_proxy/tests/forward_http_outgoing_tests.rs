@@ -60,11 +60,8 @@ fn forward_http_sends_expected_headers_and_gets_200() {
     let headers = forward_request_headers(&original, "1.2.3.4", "http");
 
     let pool: Arc<HttpConnectionPool<SystemDnsResolver>> = Arc::new(HttpConnectionPool::default());
-    let client = NativeHttpClient::with_config_and_pool(
-        ClientConfig::default(),
-        pool,
-        SystemDnsResolver::default(),
-    );
+    let client =
+        NativeHttpClient::with_config_and_pool(ClientConfig::default(), pool, SystemDnsResolver);
     let url = format!("http://127.0.0.1:{}/headers", addr.port());
     let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::GET, &url)
         .expect("build request")

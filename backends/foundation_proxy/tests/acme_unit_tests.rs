@@ -28,7 +28,7 @@ fn dns01_different_inputs_yield_different_outputs() {
 #[test]
 fn base64_url_encodes_correctly() {
     let encoded = base64_url("test");
-    assert!(!encoded.is_empty());
+    assert_ne!(encoded, "");
     assert!(!encoded.contains('='));
 }
 

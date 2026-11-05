@@ -29,9 +29,7 @@ const SILENT_SETTINGS: [u8; 9] = [0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00
 /// Count open file descriptors from `/proc/self/fd` (Linux only).
 #[cfg(target_os = "linux")]
 fn fd_count() -> usize {
-    std::fs::read_dir("/proc/self/fd")
-        .map(|entries| entries.count())
-        .unwrap_or(0)
+    std::fs::read_dir("/proc/self/fd").map_or(0, std::iter::Iterator::count)
 }
 
 /// Read the `Threads:` line of `/proc/self/status` (Linux only).

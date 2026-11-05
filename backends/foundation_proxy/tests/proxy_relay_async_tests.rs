@@ -58,6 +58,8 @@ fn response() -> String {
 }
 
 impl GateUpstream {
+    // `hold`/`held`/`stop` name the three probe flags.
+    #[allow(clippy::similar_names)]
     fn start(hold_at_start: bool) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind upstream");
         listener.set_nonblocking(true).expect("nonblocking");
@@ -482,11 +484,8 @@ fn request_body_over_the_limit_is_413() {
         vec![ServiceConfig::new("up", "up.local").backend(&format!("http://127.0.0.1:{port}"))],
         0,
     );
-    let big = post_raw(
-        open.local_addr(),
-        "Content-Length: 300000\r\n",
-        &[b'q'; 300_000],
-    );
+    let body = vec![b'q'; 300_000];
+    let big = post_raw(open.local_addr(), "Content-Length: 300000\r\n", &body);
     assert!(big.starts_with("HTTP/1.1 200"), "no limit: {big}");
     open.shutdown();
 }

@@ -6,7 +6,7 @@ use foundation_proxy::{ProxyConfig, ServiceConfig};
 
 /// WHY: TOML ergonomics — a bare string backend must still yield a full target.
 /// WHAT: `["http://localhost:3000"]` deserializes with default weight 1 and
-/// default max_connections 1024.
+/// default `max_connections` 1024.
 #[test]
 fn test_bare_string_backend_gets_defaults() {
     let toml = r#"
@@ -32,7 +32,7 @@ backends = ["http://localhost:3000"]
 }
 
 /// WHY: Operators tune weight and connection caps per backend.
-/// WHAT: A backend table with explicit weight/max_connections is honoured, and a
+/// WHAT: A backend table with explicit `weight/max_connections` is honoured, and a
 /// table omitting them falls back to defaults.
 #[test]
 fn test_table_backend_honours_and_defaults_fields() {
@@ -148,7 +148,7 @@ fn test_authority_strips_scheme_and_path() {
 }
 
 /// WHY: The builder is the programmatic config path; it must reflect explicit
-/// weight/max_connections.
+/// `weight/max_connections`.
 /// WHAT: `ServiceConfig::backend_target` stores the full target.
 #[test]
 fn test_builder_backend_target() {

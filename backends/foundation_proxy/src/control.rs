@@ -13,7 +13,7 @@
 //! - `pause <service> <url>` — set backend to Paused
 //! - `activate <service> <url>` — set backend to Active
 //! - `status` — aggregate counts: total, healthy, draining, paused
-//! - `reload` — trigger ShutdownSignal for graceful reload
+//! - `reload` — trigger `ShutdownSignal` for graceful reload
 //! - `shutdown` — trigger the proxy shutdown signal
 //!
 //! HOW: Each connection reads one line of JSON, dispatches to the matching
@@ -208,7 +208,7 @@ async fn accept_loop(
 ) {
     while !shutdown.probe() {
         let accepted = match select(
-            Box::pin(listener.read_with(|l| l.accept())),
+            Box::pin(listener.read_with(std::os::unix::net::UnixListener::accept)),
             Box::pin(sleep_async(config.shutdown_poll)),
         )
         .await
@@ -295,6 +295,10 @@ async fn read_request_line(
 }
 
 /// Route a command to its handler.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the control command table reads best as one ordered match"
+)]
 async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>, Option<Value>) {
     match req.command.as_str() {
         "list" => {
@@ -339,7 +343,7 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                     match b.state() {
                         BackendState::Draining => draining += 1,
                         BackendState::Paused => paused += 1,
-                        _ => {}
+                        BackendState::Active => {}
                     }
                 }
             }

@@ -122,6 +122,8 @@ impl HealthMonitor {
 /// A service without a `health_check` config spawns nothing — its backends stay
 /// at their initial healthy state.
 #[must_use]
+// The shutdown handle is cloned into every probe handle.
+#[allow(clippy::needless_pass_by_value)]
 pub fn spawn_service_probes(
     service: &Arc<ServiceRuntime>,
     shutdown: Arc<ShutdownSignal>,
@@ -263,6 +265,8 @@ const SERVING: u64 = 0;
 /// `SERVING` (0) is the proto3 default, so an omitted field means the same as an
 /// empty message. Unknown trailing fields are skipped; a malformed message
 /// degrades to `SERVING` so the verdict comes from `grpc-status` instead.
+// A protobuf field length is bounded by the frame size.
+#[allow(clippy::cast_possible_truncation)]
 fn decode_health_status(msg: &[u8]) -> u64 {
     let mut i = 0;
     while i < msg.len() {
@@ -287,13 +291,12 @@ fn decode_health_status(msg: &[u8]) -> u64 {
 }
 
 /// Decode one base-128 varint from `buf` starting at `*i`, advancing `*i`.
+// A protobuf varint length is bounded by the frame size.
+#[allow(clippy::cast_possible_truncation)]
 fn varint(buf: &[u8], i: &mut usize) -> u64 {
     let mut result = 0u64;
     let mut shift = 0u32;
-    loop {
-        let Some(&byte) = buf.get(*i) else {
-            break;
-        };
+    while let Some(&byte) = buf.get(*i) {
         *i += 1;
         result |= u64::from(byte & 0x7f) << shift;
         if byte & 0x80 == 0 {
@@ -378,12 +381,12 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
             let trailers = out_recv
                 .response_trailers()
                 .await
-                .map(|t| t.clone())
+                .cloned()
                 .unwrap_or_default();
             let grpc_status = trailers
                 .get(&SimpleHeader::GRPC_STATUS)
                 .and_then(|v| v.first())
-                .map(|s| s.as_str());
+                .map(std::string::String::as_str);
             if grpc_status != Some("0") {
                 return Err(format!("health check grpc-status {grpc_status:?}"));
             }
@@ -421,6 +424,7 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
 /// runs inline on the probe thread with no throwaway thread and no
 /// `recv_timeout` backstop — an abandoned inner future and its H2 connection no
 /// longer leak per probe.
+#[must_use]
 pub fn probe_grpc_health(base_url: &str, timeout: Duration) -> bool {
     let url = join_url(base_url, "/grpc.health.v1.Health/Check");
     block_on_future(grpc_health_check(url, timeout)).unwrap_or(false)

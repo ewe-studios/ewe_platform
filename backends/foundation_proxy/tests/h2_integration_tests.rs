@@ -127,7 +127,7 @@ fn h2_request(proxy_port: u16, host: &str, path: &str, body: Option<&[u8]>) -> (
         (Bytes::from_static(b":authority"), host_b.clone()),
     ];
 
-    let body_bytes = body.map(|b| Bytes::copy_from_slice(b));
+    let body_bytes = body.map(Bytes::copy_from_slice);
     // The whole request (headers + full body) is sent in one shot, so the stream
     // is complete: END_STREAM must ride the last frame or the server waits forever
     // for a body continuation that never comes.
@@ -166,8 +166,7 @@ fn extract_status(headers: &[(Bytes, Bytes)]) -> u32 {
     headers
         .iter()
         .find(|(k, _)| k == &Bytes::from_static(b":status"))
-        .map(|(_, v)| String::from_utf8_lossy(v).parse().unwrap_or(0))
-        .unwrap_or(0)
+        .map_or(0, |(_, v)| String::from_utf8_lossy(v).parse().unwrap_or(0))
 }
 
 // ── HTTP/2 gRPC backend (real HttpServer, H2-only) ───────────────────────
@@ -208,9 +207,9 @@ impl H2Serve for H2EchoHandler {
             // Record the request head before it is consumed.
             {
                 let mut rec = observed.lock().unwrap();
-                rec.scheme = header.scheme.clone();
-                rec.authority = header.authority.clone();
-                rec.path = header.path.clone();
+                rec.scheme.clone_from(&header.scheme);
+                rec.authority.clone_from(&header.authority);
+                rec.path.clone_from(&header.path);
                 rec.method = header.method.to_string();
                 rec.content_type = header
                     .headers
@@ -315,7 +314,7 @@ impl H2Serve for StreamingHandler {
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
     ) -> BoxFuture<'static, io::Result<()>> {
-        let mut release = self.release.clone();
+        let release = self.release.clone();
         Box::pin(async move {
             // Drain the unary request body before responding.
             while let Some(frame) = body.receive().await {
@@ -573,7 +572,7 @@ async fn h2_grpc_trailers_relayed() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
     assert_eq!(
         grpc_status,
         Some("0"),
@@ -664,7 +663,7 @@ async fn h2_grpc_streams_without_buffering() {
     let grpc_status = trailers
         .get(&SimpleHeader::GRPC_STATUS)
         .and_then(|v| v.first())
-        .map(|s| s.as_str());
+        .map(std::string::String::as_str);
 
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();

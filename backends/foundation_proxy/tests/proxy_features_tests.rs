@@ -56,7 +56,7 @@ fn start_id_backend(id: &str) -> (u16, Backend) {
                         let mut buf = [0u8; 4096];
                         loop {
                             match sock.read(&mut buf) {
-                                Ok(0) => break, // peer closed
+                                Ok(0) | Err(_) => break, // peer closed
                                 Ok(_) => {
                                     let resp = format!(
                                         "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{body}",
@@ -68,7 +68,6 @@ fn start_id_backend(id: &str) -> (u16, Backend) {
                                         break;
                                     }
                                 }
-                                Err(_) => break,
                             }
                         }
                     });
@@ -91,6 +90,8 @@ struct RawResp {
     body: String,
 }
 
+// Each header line is a short format; `format!` reads clearer than `write!`.
+#[allow(clippy::format_push_string)]
 fn send(addr: std::net::SocketAddr, path: &str, host: &str, extra: &[(&str, &str)]) -> RawResp {
     let mut stream = TcpStream::connect(addr).expect("connect");
     stream.set_read_timeout(Some(Duration::from_secs(10))).ok();

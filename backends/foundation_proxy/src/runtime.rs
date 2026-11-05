@@ -65,11 +65,19 @@ impl BackendRuntime {
     }
 
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// Panics if the backend state mutex is poisoned.
     pub fn state(&self) -> BackendState {
         *self.state.lock().expect("backend state mutex poisoned")
     }
 
     /// Set the lifecycle state (used by drain/pause control and tests).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the backend state mutex is poisoned.
     pub fn set_state(&self, state: BackendState) {
         *self.state.lock().expect("backend state mutex poisoned") = state;
     }
@@ -201,6 +209,10 @@ impl ServiceRuntime {
     /// Returns `(lease, cookie_value)` — `cookie_value` is the backend
     /// index the caller should set in the `__proxy_sticky` cookie.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// Panics if the backend state mutex is poisoned.
     pub fn pick_sticky(&self, sticky_cookie: Option<usize>) -> Option<(BackendLease, usize)> {
         let _guard = self.select_lock.lock().expect("select mutex poisoned");
 

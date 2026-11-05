@@ -1,6 +1,6 @@
-//! io_uring proxy relay: two Completion sockets spliced via `aio::splice` (F70 E1).
+//! `io_uring` proxy relay: two Completion sockets spliced via `aio::splice` (F70 E1).
 //!
-//! WHY: The individual pieces (connect_completion, SEND_ZC, reactor wait) are each
+//! WHY: The individual pieces (`connect_completion`, `SEND_ZC`, reactor wait) are each
 //! tested in isolation. This proves the assembled relay — bytes flow both ways
 //! between two Completion-backed sockets through the production async splice path
 //! (the same `aio::splice` the tunnel, the upgrade relay and the raw TCP
@@ -32,10 +32,10 @@ fn completion_stream(tcp: TcpStream, token: usize) -> SharedByteBufferStream<Raw
     SharedByteBufferStream::rwrite(raw)
 }
 
-/// Whether io_uring is missing, so the caller skips its test.
+/// Whether `io_uring` is missing, so the caller skips its test.
 ///
-/// A local machine without io_uring skips with a message. An environment that
-/// sets `EWE_REQUIRE_IO_URING=1` expects io_uring, so a missing io_uring fails the
+/// A local machine without `io_uring` skips with a message. An environment that
+/// sets `EWE_REQUIRE_IO_URING=1` expects `io_uring`, so a missing `io_uring` fails the
 /// test there: CI cannot lose this coverage without anyone noticing.
 fn io_uring_missing(what: &str) -> bool {
     if init_reactor_for(ServerIo::Completion).is_ok() {
