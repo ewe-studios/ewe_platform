@@ -5,6 +5,7 @@ use ewe_channels::{
     mspc::{self, ChannelError},
 };
 
+use foundation_errstacks::ErrorTrace;
 use std::sync;
 
 use crate::{
@@ -17,8 +18,8 @@ const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10;
 #[must_use]
 pub fn create<
     App,
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 >() -> DServicer<App, E, R, P>
 where
@@ -52,8 +53,8 @@ where
 }
 
 pub struct DShell<
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 > {
     shell_platform: P,
@@ -65,7 +66,7 @@ pub struct DShell<
     response_registry: pending_chan::PendingChannelsRegistry<NamedEvent<E>>,
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static> Clone
+impl<E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static> Clone
     for DShell<E, R, P>
 {
     fn clone(&self) -> Self {
@@ -81,7 +82,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+impl<E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static>
     domains::MasterShell for DShell<E, R, P>
 {
     fn send_request(
@@ -118,7 +119,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     }
 }
 
-impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+impl<E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static>
     domains::DomainShell for DShell<E, R, P>
 {
     type Events = E;
@@ -143,12 +144,14 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     {
         match self.response_registry.resolve(id.clone()) {
             Ok(sender) => Ok(sender),
-            Err(pending_chan::PendingChannelError::NotFound(_)) => {
-                Err(domains::DomainOpsErrors::NotFound(id))
-            }
-            Err(pending_chan::PendingChannelError::ClosedSender(_)) => {
-                Err(domains::DomainOpsErrors::ClosedChannel(id))
-            }
+            Err(trace) => match trace.current_context() {
+                pending_chan::PendingChannelError::NotFound(_) => {
+                    Err(domains::DomainOpsErrors::NotFound(id).into())
+                }
+                pending_chan::PendingChannelError::ClosedSender(_) => {
+                    Err(domains::DomainOpsErrors::ClosedChannel(id).into())
+                }
+            },
         }
     }
 
@@ -166,7 +169,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
                 .1
                 .take()
                 .expect("should have receiving channel")),
-            Err(_) => Err(domains::DomainOpsErrors::UnableToSendRequest(req)),
+            Err(_) => Err(domains::DomainOpsErrors::UnableToSendRequest(req).into()),
         }
     }
 
@@ -181,7 +184,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     {
         match self.executor.schedule(receiver, receiver_fn) {
             Ok(()) => Ok(()),
-            Err(_) => Err(domains::DomainErrors::FailedScheduling),
+            Err(_) => Err(domains::DomainErrors::FailedScheduling.into()),
         }
     }
 
@@ -194,7 +197,7 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
     {
         match self.executor.spawn(fut) {
             Ok(()) => Ok(()),
-            Err(_) => Err(domains::DomainErrors::FailedScheduling),
+            Err(_) => Err(domains::DomainErrors::FailedScheduling.into()),
         }
     }
 
@@ -219,8 +222,8 @@ impl<E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 
 
 pub struct DServicer<
     App,
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 > where
     App: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -235,8 +238,8 @@ pub struct DServicer<
 
 pub fn create_shell<
     App,
-    E: Send + Clone + 'static,
-    R: Send + Clone + 'static,
+    E: Send + Sync + Clone + 'static,
+    R: Send + Sync + Clone + 'static,
     P: Default + Clone + 'static,
 >(
     servicer: &DServicer<App, E, R, P>,
@@ -255,7 +258,7 @@ where
     }
 }
 
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone + Default + 'static> Clone
+impl<A, E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Clone + Default + 'static> Clone
     for DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -272,7 +275,7 @@ where
     }
 }
 
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Clone + Default + 'static>
+impl<A, E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Clone + Default + 'static>
     DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
@@ -284,8 +287,10 @@ where
                     .handle_event(request, self.domain_shell.clone());
                 Ok(())
             }
-            Err(ChannelError::ReceiveFailed(_)) => Err(DomainErrors::ClosedRequestReceiver),
-            _ => Ok(()),
+            Err(trace) => match trace.current_context() {
+                ChannelError::ReceiveFailed(_) => Err(DomainErrors::ClosedRequestReceiver.into()),
+                _ => Ok(()),
+            },
         }
     }
 
@@ -297,13 +302,19 @@ where
                         .handle_request(request, sender, self.domain_shell.clone());
                     Ok(())
                 }
-                Err(PendingChannelError::ClosedSender(_)) => {
-                    Err(DomainErrors::UnexpectedSenderClosure)
-                }
-                Err(PendingChannelError::NotFound(_)) => Err(DomainErrors::RequestSenderNotFound),
+                Err(trace) => match trace.current_context() {
+                    PendingChannelError::ClosedSender(_) => {
+                        Err(DomainErrors::UnexpectedSenderClosure.into())
+                    }
+                    PendingChannelError::NotFound(_) => {
+                        Err(DomainErrors::RequestSenderNotFound.into())
+                    }
+                },
             },
-            Err(mspc::ChannelError::Closed) => Err(DomainErrors::ClosedRequestReceiver),
-            _ => Ok(()),
+            Err(trace) => match trace.current_context() {
+                mspc::ChannelError::Closed => Err(DomainErrors::ClosedRequestReceiver.into()),
+                _ => Ok(()),
+            },
         }
     }
 
@@ -330,15 +341,27 @@ where
 
     fn serve_events(&mut self) {
         (match self.process_incoming_event() {
-            Err(DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure) => {
-                Err(DomainErrors::ProblematicState)
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
             }
             _ => Ok(()),
         })
         .expect("event processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    executor::ExecutorError::Decommission
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
+            }
             _ => Ok(()),
         })
         .expect("execution service should have ended better");
@@ -346,22 +369,34 @@ where
 
     fn serve_requests(&mut self) {
         (match self.process_incoming_request() {
-            Err(DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure) => {
-                Err(DomainErrors::ProblematicState)
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    DomainErrors::RequestSenderNotFound | DomainErrors::UnexpectedSenderClosure
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
             }
             _ => Ok(()),
         })
         .expect("request processing should have finished with no issues");
 
         (match self.execution_service.schedule_serve() {
-            Err(executor::ExecutorError::Decommission) => Err(DomainErrors::ProblematicState),
+            Err(trace)
+                if matches!(
+                    trace.current_context(),
+                    executor::ExecutorError::Decommission
+                ) =>
+            {
+                Err(ErrorTrace::new(DomainErrors::ProblematicState))
+            }
             _ => Ok(()),
         })
         .expect("execution service should have ended better");
     }
 }
 
-impl<A, E: Send + Clone + 'static, R: Send + Clone + 'static, P: Default + Clone + 'static>
+impl<A, E: Send + Sync + Clone + 'static, R: Send + Sync + Clone + 'static, P: Default + Clone + 'static>
     domains::TaskExecutor for DServicer<A, E, R, P>
 where
     A: domains::Domain<Events = E, Requests = R, Platform = P>,
