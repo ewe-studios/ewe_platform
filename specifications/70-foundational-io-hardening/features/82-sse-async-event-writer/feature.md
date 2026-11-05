@@ -67,7 +67,14 @@ Split formatting from writing, then make the native writer async.
    drive the async writes through the executor the way the other `serve` implementations do
    (or make this handler's writes run in a `FutureTask`). Do not leave a synchronous socket
    write behind.
-5. Keep the synchronous `EventWriter` public for in-memory writers and tests. Document that it
+5. `foundation_browser` `src/test/stream.rs`: `SseTransport` implements the synchronous
+   `foundation_wasm_ui::server::FrameTransport` trait (`send_binary`/`send_text` return
+   `bool`). Once `SseStream::message`/`binary` become async, the trait cannot call them
+   directly. Make `FrameTransport` async, or give `SseTransport` an internal frame queue that
+   a driver task drains into the async writer. Choose the async trait when the broadcaster's
+   callers can await it; otherwise document the queue bound (the buffer size is
+   configuration, not a constant) and what happens when a slow client fills it.
+6. Keep the synchronous `EventWriter` public for in-memory writers and tests. Document that it
    is not for a non-blocking socket.
 
 Public API change: `SseStream::send`, `message` and `comment` become `async`. Bump

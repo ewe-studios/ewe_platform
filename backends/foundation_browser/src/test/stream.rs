@@ -63,22 +63,27 @@ impl Serve for StreamHandler {
         &self,
         bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let Some(bc) = bag.get::<Broadcaster>() else {
-            return ConnectionResult::Close(None);
-        };
-        match SseStream::new(&mut conn) {
-            Ok(sse) => {
-                // The connection is Arc-shared; the broadcaster's clone keeps it
-                // open after the worker drops its handle on Take.
-                bc.register(SseTransport(sse));
-                ConnectionResult::Take
+        // The SSE head write is asynchronous (spec 70 feature 63): the upgrade
+        // parks on socket readiness instead of blocking the worker, so the
+        // whole upgrade runs as the handler's async continuation.
+        ConnectionResult::Async(Box::pin(async move {
+            let Some(bc) = bag.get::<Broadcaster>() else {
+                return ConnectionResult::Close(None);
+            };
+            match SseStream::new(&conn).await {
+                Ok(sse) => {
+                    // The connection is Arc-shared; the broadcaster's clone keeps it
+                    // open after the worker drops its handle on Take.
+                    bc.register(SseTransport(sse));
+                    ConnectionResult::Take
+                }
+                Err(e) => {
+                    tracing::warn!("SSE upgrade failed: {e}");
+                    ConnectionResult::Close(None)
+                }
             }
-            Err(e) => {
-                tracing::warn!("SSE upgrade failed: {e}");
-                ConnectionResult::Close(None)
-            }
-        }
+        }))
     }
 }

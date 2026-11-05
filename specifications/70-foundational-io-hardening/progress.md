@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: CI run 41999359118 failed `foundation_browser` at the build step. Feature 63
+  made `SseStream::new` async, and `foundation_browser/src/test/stream.rs` still matched its
+  result directly. The upgrade now runs as `ConnectionResult::Async`, awaits
+  `SseStream::new(&conn)`, and returns `Take`. The local build did not catch it because this
+  crate was not in the feature-63 check set. Feature 82's design now records the next
+  coupling: `SseTransport` implements the synchronous `FrameTransport` trait, so the async
+  `message`/`binary` needs an async trait or a bounded frame queue.
+
 - 2026-11-05: features 82 and 83 recorded from two owner requests. 82 is the priority: SSE
   events still go through the synchronous `EventWriter`, so a slow client can truncate an
   event (backlog §3). 83 makes the ptrace spawn suite prove itself on native amd64 CI
