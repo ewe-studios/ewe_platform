@@ -2,6 +2,29 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 49, warning cleanup): `cargo clippy --all-targets` lints
+  every test and example. A `clippy-deny-warnings = true` entry in
+  `ci/packages.toml` therefore needs zero warnings in the test targets too, not
+  only in the library. `foundation_core` has 327 test/example warnings
+  (`drop_non_drop`, `arc_with_non_send_sync`, `items_after_statements`,
+  `doc_markdown`), so its deny entry is held back. Check the all-targets set
+  before you add deny, not just `--lib`.
+  `cargo clippy --fix` rewrites generated code. The generator is the real source:
+  if it still emits the old shape, a regeneration restores the warnings.
+  A manifest warning can mean a feature enables a dependency without the code
+  that uses it: `compression` enabled `flate2` but not `gzip`/`deflate`.
+  An `unused dependency` warning that appears only on one target is fixed by
+  target-gating the dependency, and a dependency that must stay unused needs
+  `use crate as _;` (or a target gate plus an underscore import) to say why.
+- 2026-11-05 (feature 50, test-only constructors): an inline `#[cfg(test)]` module
+  can use private items and test-only constructors that an integration test
+  cannot see. Move the test to the public API first; when no public path exists,
+  make the smallest item public and document it. The `ParseErrorKind` enum and
+  `ParseError::kind` field became public for one test, and a test-only
+  `Generator::for_testing` became a local helper over the public constructor.
+  A target-gated module can be absent from `lib.rs` and still be referred to by
+  a completeness gate: `foundation_wireguard`'s `ios` and `android` modules were
+  dead for that reason. Search for the module name before you assume it compiles.
 - 2026-11-05 (feature 48, ignored condvar tests): the two tests were marked
   `#[ignore = "Requires threading support"]` under `#[cfg(feature = "std")]`. With `std`
   the conditions are always true, so the reason was impossible. Both tests pass with no

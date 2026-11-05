@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: features 47, 48, 49 (partial) and 50 on
+  `spec70/f47-f50-lane-a-mechanical`. Feature 47: the ptrace tracer now forks and
+  traces on one thread, uses `PTRACE_TRACEME` plus `SIGSTOP`, passes the program
+  name in `argv`, waits with `__WALL | __WNOTHREAD`, and consumes a child's first
+  stop. All seven ignores are removed. Local amd64 emulation returns `EIO` from
+  `PTRACE_GETREGS`, so the eight spawn tests need native amd64 GitHub CI.
+  Feature 48: both condvar ignores removed; 20 of 20 runs pass. Feature 49: E2
+  to E9 are at zero warnings (testbed, iogate, deployment_docker, connectrpc,
+  netio, deployment, keychain, proxy, wireguard); `foundation_nostd` is clean and
+  denies clippy warnings in CI; `foundation_core` libraries are clean but its
+  test targets still report 327 warnings, so E10 is partial. CI config: the docker
+  crate gets an `--all-features` clippy run that denies warnings. Feature 50:
+  every inline test module left the lane A `src` trees, with the same test
+  counts, and the undeclared wireguard mobile modules are now declared. Backlog:
+  six fixed entries removed, new entries for the remaining core test debt, the
+  docker generator follow-up and the mobile toolchain check.
 - 2026-11-05: feature 48 done on `spec70/f47-f50-lane-a-mechanical`. Both
   `#[ignore = "Requires threading support"]` markers are removed from
   `tests/primitives_condvar_tests.rs`. The reason contradicted the `#[cfg(feature = "std")]`

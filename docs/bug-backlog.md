@@ -15,37 +15,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- Clippy warnings (pre-existing, `cargo clippy -p foundation_connectrpc --profile uat --all-targets --all-features`), grouped by lint:
-  - `clippy::doc_markdown` ("item in documentation is missing backticks") across `src/` (lib.rs, error/code.rs, auth.rs, …), `tests/`, and `examples/` — the largest set.
-  - `clippy::cast_possible_truncation` / `cast_possible_wrap` / `cast_sign_loss` in `tests/` (h1_pool_parking_tests.rs, router_dispatch_tests.rs, arrow_codec_tests.rs, codec_tests.rs, conformance_tests.rs, grpc_tests.rs, server_socket_tests.rs, …) and `src/shared/transport/conn.rs`, `src/shared/client.rs`.
-  - `clippy::needless_pass_by_value`, `clippy::must_use`, `clippy::struct_excessive_bools`, `clippy::similar_names`, `clippy::unused_async` (examples: code_first_service).
-  - Fix in a dedicated warning-cleanup pass for the crate.
+(no open entries)
 
 ## 2. foundation_netio
 
-- **Clippy `semicolon_if_nothing_returned` in `native/connection.rs`.** File:
-  `backends/foundation_netio/src/native/connection.rs:1440`. Problem: the last statement of a
-  block has no `;`, and clippy warns (`cargo clippy -p foundation_netio --no-deps --all-targets`).
-  Likely fix: apply the suggestion (add the `;`). Found in feature 69 (spec 70); not changed there.
-- **Clippy `needless_pass_by_value` in `expect_continue_timeout_tests.rs`.** File:
-  `backends/foundation_netio/tests/simple_http/expect_continue_timeout_tests.rs:89`. Problem: `check`
-  takes `status: Status` by value and does not use it by move. Likely fix: take `&Status`. Found in
-  feature 69; not changed there (feature 43 file).
-- **`foundation_netio` native build warnings** (seen in `cargo check -p foundation_wireguard --tests`):
-  `backends/foundation_netio/src/native/raw_stream.rs:4` has `use std::sync::Arc;` that is unused,
-  and `raw_stream.rs:414` has `if let Self::AsPlain(inner, _) = self`, an irrefutable pattern
-  (the `if let` always matches). Fix: delete the import; replace the `if let` with a `let`
-  binding (keep the behaviour the same and check it with the netio tests).
-- **Clippy `too_many_lines` in `SimpleHttpBody::extract`.** File:
-  `backends/foundation_netio/src/shared/http/impls.rs:6045`. Problem: the function has 109 lines and
-  the limit is 100. `cargo clippy --profile uat -p foundation_netio --all-targets` warns. Fix: move
-  each content-coding branch into its own helper function, then keep the function below the limit.
-  Do not add `#[allow(clippy::too_many_lines)]`. Seen in the Linux CI run of feature 80 (2026-11-05).
-- **Unused optional dependency `rustls-pemfile`.** File: `backends/foundation_netio/Cargo.toml:75`.
-  Problem: the `ssl-rustls` feature enables the dependency, but only the `quic` module calls it. The
-  default feature set enables `ssl`, so the default build warns (`unused dependency`,
-  `cargo::unused_dependencies` is `warn`). Fix: remove `dep:rustls-pemfile` from the `ssl-rustls`
-  feature list and keep it in `quic`. Seen in the Linux CI run of feature 80 (2026-11-05).
+- **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
+  `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
+  variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
+  pattern. Keep the `if let`: the TLS feature sets add the other variants. Found
+  in feature 49; the default and all-feature sets are warning-free.
 
 ## 3. foundation_http
 
@@ -107,10 +85,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
-- **`foundation_iogate` clippy doc-backtick warnings are open.** `cargo clippy -p
-  foundation_iogate --no-deps` reports about ten `doc_markdown` warnings (items
-  such as `io_uring` and `CompletionSocket` without backticks) in `lib.rs`,
-  `shared/mod.rs` and `native/`. Fix: add the backticks.
+- **`foundation_nostd` `test_wait_duration_zero_duration` has a too-tight
+  bound.** `tests/primitives_wait_duration_tests.rs:35` requires a zero-duration
+  wait to return in under 1 µs. On the amd64 OrbStack emulation it takes about
+  34 µs, so the test fails there; on native amd64 it may pass. Fix: measure the
+  real floor on native CI and set a bound that still catches a park (for
+  example a few hundred microseconds), or gate the strict bound to native
+  hardware. Found in feature 49.
+
 - **`foundation_nativeapis` `signal/linux.rs` delivers the signal from the signal handler
   itself.** `signal_handler` calls `deliver_signal`, which locks `SignalBus` mutexes and
   pushes to queues (allocation, `EventQueue` wake). That is not async-signal-safe: a signal
@@ -148,20 +130,21 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 8. foundation_openapi / foundation_codegentools
 
-- **`foundation_deployment_docker` clippy debt.** About 231 lints (`format!` inline
-  variables, trailing commas, `::default()` calls, missing `# Errors` sections).
-  `foundation_openapi` and `foundation_codegentools` are clean (spec 70 feature 55).
-  Fix: clear the docker lints in feature 49, then keep them at zero.
+- **The docker generator must emit clippy-clean results.** Feature 49 cleared
+  the `foundation_deployment_docker` warnings, including the generated endpoint
+  modules, but the generator still emits the old shapes. A regeneration brings
+  the warnings back. Fix: update the generator templates to match the fixed
+  generated code, then regenerate and diff.
+- **The `foundation_wireguard` mobile modules had no declaration.** `src/ios`
+  and `src/android` were not declared in `lib.rs`, so their code and tests never
+  compiled, while `completeness.rs` referred to them. Feature 50 declared them
+  for their target OS and for `spec55-complete`. Still open: no iOS/Android
+  toolchain run covers them; add one when the mobile build joins CI.
+
 
 ## 9. foundation_proxy
 
-- **`foundation_proxy` clippy and test warnings are open.** `cargo clippy -p
-  foundation_proxy --all-targets` reports about 50 warnings (for example
-  `acme.rs`, `h2_proxy.rs`, `server.rs`, `control.rs`; doc backticks, `must_use`,
-  redundant closures, `format!` appended to a `String` at `forward.rs`). The
-  tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
-  `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
-  feature 49 E7.
+
 - **Lane B crates still build `QueueReadiness::new` over a plain queue, which keeps the
   1 ms re-check.** Feature 80 made `EventQueue` (its push, pop and close wake the parked
   task) the way to park on a queue and deprecated `QueueReadiness::new`,
@@ -296,15 +279,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
-- **`foundation_wireguard` warnings in its tests and manifest.** `cargo check -p foundation_wireguard --tests`
-  reports: unused imports at `tests/relay_tests.rs:325` (`MemberState`) and `tests/tunnel_tests.rs:186`
-  (`Duration`, `Instant`); an unused variable `pk` at `tests/tunnel_tests.rs:190`; and unused `must_use`
-  return values at `relay_tests.rs:192` (`RelaySelector::failover`) and `relay_tests.rs:295`
-  (`HolePuncher::drain_syns`). The manifest (`backends/foundation_wireguard/Cargo.toml`)
-  has unused dependencies `foundation_errstacks` (line 20), `foundation_nativeapis` and `foundation_netio`
-  (the wasm check), and `web-sys` (line 74) for wasm32. Fix: remove the unused imports and variable, and
-  either use or drop the `must_use` results; drop the unused dependencies after checking that no
-  `cfg` path needs them. Do not `#[allow]` them.
+
 
 - **`foundation_boringtun` (fork of upstream boringtun) keeps upstream's inline tests and nine bare `#[ignore]`s.**
   `src/device/integration_tests/mod.rs` has nine `#[ignore]` tests (lines 466, 475,
@@ -315,11 +290,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   ones gated by a runtime check and not by `#[ignore]`) when we next change that
   source.
 
-- **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
-  nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is
-  listed only to enable its V8 backend for `deno_core` (feature unification);
-  no source `use`s it. Fix: silence the lint for that dependency (for example
-  a `[lints.cargo]` override or a `use` that marks it used).
+
 
 - **`foundation_reactor` wasm dead-code warning: `rearm_readable` is never used.**
   `Poll::rearm_readable` (`src/poll/mod.rs:322`) is `pub(crate)` and only called
@@ -354,10 +325,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 22. foundation_keychain
 
-- **`foundation_keychain` clippy debt.** `cargo clippy -p foundation_keychain
-  --profile dev --no-deps` reports 174 warnings in the lib (for example
-  `manual_let_else` in `provisioning_route`) and more in the tests. Fix: follow
-  the per-crate clippy workflow in `.agents/AGENTS.md`.
+
 - **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
   (`cargo check -p foundation_core --target wasm32-unknown-unknown --no-default-features`):
   `valtron::Ctx` is unresolved in `executors/collect_next.rs` and `dependent_lift.rs`. CI
