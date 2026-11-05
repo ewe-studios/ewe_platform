@@ -33,6 +33,6 @@ pub mod generated;
 
 pub use generated::{
     ApiEnvelope, D1BatchQuery, D1QueryDatabaseResponse, D1QueryMeta, D1QueryResultResponse,
-    D1RawResultResponse, D1SingleQuery,
-    R2ListObjectsResponse, R2ListObjectsResultInfo, R2ObjectInfo,
+    D1RawResultResponse, D1SingleQuery, R2ListObjectsResponse, R2ListObjectsResultInfo,
+    R2ObjectInfo,
 };
