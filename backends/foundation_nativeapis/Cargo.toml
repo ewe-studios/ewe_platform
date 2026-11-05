@@ -30,7 +30,6 @@ once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
-thiserror = { workspace = true }
 derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
 libsql = { version = "0.9", optional = true }
