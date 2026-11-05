@@ -55,9 +55,20 @@ impl From<ServeError> for ErrorTrace<ServeError> {
 // ---------------------------------------------------------------------------
 // ConnectionResult
 
+/// How a handler's async continuation ends. It has no `Async` variant: a
+/// future resolves once, to one of the three connection actions.
+pub enum ServeOutcome {
+    /// The handler wrote a response; the connection carries the next request.
+    Keep,
+    /// The handler owns the connection permanently (WebSocket, SSE, long poll).
+    Take,
+    /// Close the connection, optionally with an error for the log.
+    Close(Option<ErrorTrace<ServeError>>),
+}
+
 /// A handler's async continuation. It owns everything it needs (`'static`) and
-/// resolves to what the connection does next.
-pub type ServeFuture = Pin<Box<dyn Future<Output = ConnectionResult> + Send + 'static>>;
+/// resolves once to what the connection does next.
+pub type ServeFuture = Pin<Box<dyn Future<Output = ServeOutcome> + Send + 'static>>;
 
 /// Three outcomes telling the worker what to do after a handler runs.
 pub enum ConnectionResult {
@@ -71,6 +82,35 @@ pub enum ConnectionResult {
     /// The handler continues asynchronously. The connection task parks on the
     /// future and applies its result (Keep / Take / Close) when it completes.
     Async(ServeFuture),
+}
+
+impl From<ServeOutcome> for ConnectionResult {
+    fn from(outcome: ServeOutcome) -> Self {
+        match outcome {
+            ServeOutcome::Keep => ConnectionResult::Keep,
+            ServeOutcome::Take => ConnectionResult::Take,
+            ServeOutcome::Close(err) => ConnectionResult::Close(err),
+        }
+    }
+}
+
+impl ConnectionResult {
+    /// Split the result into the future to await, or the ready outcome.
+    ///
+    /// `Ok(future)` for `Async`, `Err(outcome)` for the three ready variants. A
+    /// wrapper uses it to observe both cases without a four-arm match.
+    ///
+    /// # Errors
+    /// Returns the ready outcome when the handler did not continue
+    /// asynchronously.
+    pub fn split(self) -> Result<ServeFuture, ServeOutcome> {
+        match self {
+            ConnectionResult::Async(future) => Ok(future),
+            ConnectionResult::Keep => Err(ServeOutcome::Keep),
+            ConnectionResult::Take => Err(ServeOutcome::Take),
+            ConnectionResult::Close(err) => Err(ServeOutcome::Close(err)),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

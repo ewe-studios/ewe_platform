@@ -42,7 +42,7 @@ use foundation_netio::shared::http::{
 };
 use serde::Serialize;
 
-use crate::shared::serve::{status_from_code, ConnectionResult};
+use crate::shared::serve::{status_from_code, ConnectionResult, ServeOutcome};
 
 /// Limits for [`ResponseWriter`].
 ///
@@ -348,7 +348,7 @@ pub async fn write_response<B: AsRef<[u8]>>(
     mut writer: ResponseWriter,
     head: Vec<u8>,
     body: B,
-) -> ConnectionResult {
+) -> ServeOutcome {
     let result = async {
         writer.write_all(&head).await?;
         writer.write_all(body.as_ref()).await?;
@@ -356,10 +356,10 @@ pub async fn write_response<B: AsRef<[u8]>>(
     }
     .await;
     match result {
-        Ok(()) => ConnectionResult::Keep,
+        Ok(()) => ServeOutcome::Keep,
         Err(e) => {
             log_write_failure(&e);
-            ConnectionResult::Close(None)
+            ServeOutcome::Close(None)
         }
     }
 }

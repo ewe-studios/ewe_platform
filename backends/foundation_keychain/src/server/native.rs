@@ -17,7 +17,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_http::{RawStream, SimpleIncomingRequest, SimpleMethod};
 use foundation_netio::shared::client::body_reader::{collect_bytes_bounded, AsyncSendSafeBody};
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
@@ -300,7 +300,7 @@ impl Serve for ServeAdapter {
                         }
                     });
                     let _ = write_json(conn, 413, &json, true).await;
-                    return ConnectionResult::Close(None);
+                    return ServeOutcome::Close(None);
                 }
                 Err(BodyError::NotUtf8) => {
                     let err = AppError::BadRequest("request body is not valid UTF-8".into());
@@ -378,12 +378,12 @@ async fn write_json(
     status: u16,
     body: &serde_json::Value,
     close: bool,
-) -> ConnectionResult {
+) -> ServeOutcome {
     let bytes = match serde_json::to_vec(body) {
         Ok(bytes) => bytes,
         Err(e) => {
             tracing::error!("keychain response JSON encode failed: {e}");
-            return ConnectionResult::Close(None);
+            return ServeOutcome::Close(None);
         }
     };
     let mut headers = vec![(SimpleHeader::CONTENT_TYPE, "application/json".to_string())];
@@ -397,7 +397,7 @@ async fn write_json(
         }
         Err(e) => {
             tracing::error!("keychain response build failed: {e}");
-            ConnectionResult::Close(None)
+            ServeOutcome::Close(None)
         }
     }
 }
