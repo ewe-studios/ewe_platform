@@ -22,29 +22,23 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::poll::probe;
 use foundation_nativeapis::native::poll::sys::unix::selector::uring_completion::{
     Completion, Selector,
 };
 use foundation_nativeapis::{Events, Interest, Token};
 
+mod common;
+
 /// Skip a test when the running kernel lacks the completion tier.
 ///
 /// Decision 14 makes this a documented fallback, not a failure: below the
 /// 5.19/6.0 matrix the ladder selects readiness mode. Version numbers are never
-/// consulted — the functional probe is the gate.
+/// consulted — the functional probe is the gate. With `EWE_REQUIRE_IO_URING=1`
+/// the missing tier fails the test instead (CI).
 macro_rules! require_completion_tier {
     () => {
-        match probe::probe() {
-            Ok(caps) if caps.supports_completion() => {}
-            Ok(caps) => {
-                eprintln!("skipping: kernel lacks the completion tier ({caps})");
-                return;
-            }
-            Err(e) => {
-                eprintln!("skipping: io_uring unavailable ({e})");
-                return;
-            }
+        if common::io_uring_missing("completion tier", common::Requires::Completion) {
+            return;
         }
     };
 }

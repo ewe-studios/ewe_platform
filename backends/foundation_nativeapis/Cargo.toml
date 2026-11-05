@@ -21,7 +21,6 @@ foundation_compact = { path = "../foundation_compact", version = "0.2.3", option
 foundation_db = { path = "../foundation_db", version = "0.0.5", optional = true, default-features = false }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.3", optional = true }
 
-io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
@@ -63,6 +62,10 @@ libc = "0.2"
 [target.'cfg(target_os = "linux")'.dependencies]
 fuser = { workspace = true, optional = true }
 nix = { version = "0.29", optional = true, features = ["ptrace", "process", "signal", "fs"] }
+# io_uring is Linux-only. The `uring` feature names this optional dependency, so
+# enabling the feature on another OS is a no-op instead of a build failure (the
+# code that uses it is `cfg(target_os = "linux")` too).
+io-uring = { version = "0.7", optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = [

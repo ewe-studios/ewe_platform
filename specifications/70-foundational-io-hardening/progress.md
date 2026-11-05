@@ -2,6 +2,41 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 78 done on `spec70/f77-f62-f78-readiness-ci`. E1: CI sets
+  `EWE_REQUIRE_IO_URING=1` for `foundation_iogate`, `foundation_proxy` and
+  `foundation_nativeapis`, and their jobs run with `seccomp=unconfined` because the default
+  Docker profile blocks `io_uring_setup`. A new `io_uring_probe` target prints the detection
+  result before the tests; the main session must run `workflow_dispatch` to read it. E2: the
+  four nativeapis uring suites share `tests/common/mod.rs` and follow the same rule; the
+  `fd,uring` run is now in CI, and `io-uring` moved to the Linux target table so the feature is
+  a no-op on other targets. E3: `std` is the minimum, not `alloc` (`Ctx` needs `std`; `alloc`
+  support is deferred). A crate-root `compile_error!` names it, and CI checks the exact message
+  through the new `wasm-expect-error` setting. E4: `rearm_readable` is `cfg(unix)`; the
+  `foundation_reactor` wasm check is in CI. E5: the vfs shim D1/R2 closures no longer move
+  `guard`; `vfs-preload`, `-d1` and `-r2` build, and `vfs-preload` is a CI run. Checks:
+  `foundation_core` native and wasm `std` clean; `foundation_reactor` wasm clean;
+  `foundation_nativeapis` (native, and Linux x86_64 `fd,uring` tests) clippy clean;
+  `foundation_reactor` and `foundation_iogate` clippy clean; `vfs_shim_vfs` compiles on macOS
+  (0 tests). Not run here: any io_uring test (macOS host), the real `vfs_shim_vfs` (Linux and
+  wrangler). The full `foundation_nativeapis` suite passes (2 ignored doctests remain).
+  Backlog: four entries deleted, two added.
+- 2026-11-05: feature 62 done on `spec70/f77-f62-f78-readiness-ci`.
+  `idle_h2_connection_uses_no_cpu` now measures only the server's threads: the threads that
+  appear after `initialize_pool` (pool and background workers), plus `reactor-drain` by name.
+  It reads per-thread CPU from `/proc/self/task/<tid>/schedstat` on Linux and from
+  `proc_pidinfo` on macOS. Measured over one idle second on macOS: both pool workers 0 us,
+  four background workers 0 us, `reactor-drain` 218 to 233 us. The drain thread wakes on its
+  100 ms `drain_poll_timeout`; there is no busy loop. Cap: 8 ms for the server threads, down
+  from 50 ms for the whole process. Checks: the test 20 of 20 with `--exact` and the full target
+  20 of 20. The §3 backlog entry is deleted; a new entry records the pre-existing
+  foundation_http clippy debt.
+- 2026-11-05: feature 77 done on `spec70/f77-f62-f78-readiness-ci`. T0: E1 to E4 were already
+  in master through PR #173, and the four backlog entries were already deleted. This branch
+  tightens the E1 check bound from 20 to 5 and verifies the work. Measured over a 300 ms park:
+  default 4 checks (forced polling 396 to 402), `multi` 3 checks (forced polling 201 to 204);
+  20 of 20 runs passed in each set. `event_driven_queue_readiness` (both sets) and
+  `fd_event_driven_tests` also passed 20 of 20. The E2 Linux-only CPU test did not run on this
+  macOS host; PR #173 recorded 0.6 ms and 9 wake-ups per second on the waiting thread.
 - 2026-11-05: feature 59 done on `spec70/f59-f60-f79-lane-b-mechanical`. Moved
   170 inline tests out of 11 lane B crates into `tests/`: foundation_shell 1,
   foundation_repl 4, foundation_logging 12, foundation_codegen 9, ewe_watchers

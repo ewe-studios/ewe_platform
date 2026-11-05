@@ -112,6 +112,7 @@ jobs:
         -v /opt/ghc:/runner-free/ghc
         -v /usr/local/.ghcup:/runner-free/ghcup
         -v /usr/local/share/boost:/runner-free/boost
+        ${{ matrix.container-options }}
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
@@ -161,6 +162,12 @@ jobs:
       - name: clippy
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
 
+      - name: io_uring probe
+        # Record whether the kernel and the container's seccomp profile allow
+        # `io_uring_setup` before the package tests fail with EWE_REQUIRE_IO_URING=1.
+        if: matrix.package == 'foundation_iogate'
+        run: cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
+
       - name: test
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
@@ -208,6 +215,7 @@ jobs:
           docker run --detach --name ci \
             --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
             --volume /var/run/docker.sock:/var/run/docker.sock \
+            ${{ matrix.container-options }} \
             --env GITHUB_ACTIONS --env CI --env CARGO_TERM_COLOR --env CARGO_INCREMENTAL \
             --env CARGO_PROFILE_UAT_DEBUG --env CI_PROFILE --env RUSTUP_TOOLCHAIN="$toolchain" \
             "$IMAGE" sleep infinity
@@ -223,6 +231,10 @@ jobs:
 
       - name: clippy
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+
+      - name: io_uring probe
+        if: matrix.package == 'foundation_iogate'
+        run: docker exec ci cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
 
       - name: test
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test

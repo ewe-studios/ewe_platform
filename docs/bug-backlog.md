@@ -60,11 +60,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `native/upgrade/mod.rs`, which write a few hundred bytes into an empty send buffer. Likely fix:
   move each handler caller to `native::writer::send_*` (or `ResponseWriter`), then deprecate the
   synchronous `respond::*` for sockets.
-- `backends/foundation_http/tests/h2_parking_tests.rs` (`idle_h2_connection_uses_no_cpu`): fails
-  about half the runs on the dev VM, on master as well (54 ms of process CPU in 1 s against a
-  50 ms cap). The cap measures the whole process, so any other thread's work counts. Likely
-  fix: measure only the connection task's CPU (or the reactor and worker threads by thread id),
-  or find what still wakes the process while idle; do not raise the cap blindly.
+- **`foundation_http` fails `cargo clippy --all-targets -- -D warnings`.** Seen on
+  `spec70/f77-f62-f78-readiness-ci` (2026-11-05, feature 62): 32 errors in the lib and the
+  tests. Examples: missing `# Errors` sections in `shared/serve/mod.rs` (7) and
+  `shared/router/method.rs`; `doc_markdown` in `native/server/mod.rs`, `native/server/connection.rs`
+  and eight test files; `must_use` on `shared/middleware/compression.rs`, `shared/web_conn.rs` and
+  `shared/middleware/cors.rs`; `too_many_lines` in `native/server/mod.rs` (`serve_loop`, 126/100)
+  and `native/server/connection.rs` (147/100); `needless_continue`,
+  `redundant_closure_for_method_calls` and `map_unwrap_or` in `native/server/mod.rs`. Fix: clear
+  each lint and set `clippy-deny-warnings` for the package. Another agent cleans the lane A
+  crates on a separate branch; check that branch before starting.
 - **`ConnectionHandler::idle_timeout` (`native/server/connection.rs:173`) is the size-based
   read timeout of a streaming context, 100 ms (`TimeoutConfig::min_read_timeout`) when the
   body is unsized** (the same mistake that made the SSE client reconnect a quiet stream, fixed
@@ -95,6 +100,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
+- **The bare `--no-default-features` build prints its `compile_error!` and then 24 more
+  errors.** `foundation_core` now refuses the configuration with a clear message (feature 78
+  E3), but `pub mod valtron` and its executors still compile and emit unresolved-import errors
+  for `Ctx`. The first error is the actionable one; the rest is noise. Fix: gate `pub mod
+  valtron` on `std`, or put the executors behind the same `cfg`, so only the named error
+  remains.
 - **The idle CPU tests measure the threads of other tests.** File:
   `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
   tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which
@@ -111,6 +122,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   foundation_iogate --no-deps` reports about ten `doc_markdown` warnings (items
   such as `io_uring` and `CompletionSocket` without backticks) in `lib.rs`,
   `shared/mod.rs` and `native/`. Fix: add the backticks.
+- **Two `foundation_nativeapis` doc examples are `ignore`d pseudo-code.**
+  `src/native/fd/completion.rs:20` uses an undefined `decoder` and
+  `src/valtron/file_watcher.rs:142` an undefined `collect_one` stream setup, so
+  `cargo test --doc` reports both as ignored and never compiles them. Fix: make each a
+  real example with a local task or type, as feature 80 did for `foundation_core`, or
+  delete the code block and keep the prose. Seen in feature 78.
 - **`foundation_nativeapis` `signal/linux.rs` delivers the signal from the signal handler
   itself.** `signal_handler` calls `deliver_signal`, which locks `SignalBus` mutexes and
   pushes to queues (allocation, `EventQueue` wake). That is not async-signal-safe: a signal
@@ -153,14 +170,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   executor loop is refactored.
 - **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
   Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
-- **CI does not set `EWE_REQUIRE_IO_URING=1`.** The `foundation_iogate` and
-  `foundation_proxy` io_uring tests now fail when that variable is `1` and io_uring
-  is missing, and skip with a message otherwise. CI runs every package in a Docker
-  `container:` job (`.github/workflows/check.yaml`); Docker's default seccomp
-  profile can block `io_uring_setup`, and the CI image kernel was not confirmed to
-  allow it, so the variable is not set. Fix: run one CI job with the variable and
-  keep it if the tests pass. The `foundation_nativeapis` `uring_completion_*` and
-  `completion_source_seam` tests still skip without the variable check.
 - **A response writer's send timeout counts from its creation, not from its last
   byte, for long streams.** `forward_http` and the translators use one
   `ResponseWriter` for the whole response, so a gRPC stream idle for longer than
@@ -251,9 +260,8 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   server tree, then extend the CI clippy run to `server-test` so the debt
   stays cleared.
 
-- **`foundation_nativeapis` `vfs-preload` does not compile.** `src/native/vfs/shim/mod.rs` (around
-  lines 163 to 190) uses `guard` after it moved (`E0382`), so `tests/vfs_shim_vfs` cannot run.
-  Found while moving the CF tests to the local explorer API (feature 76).
+- **R2 range read and conditional put have no test yet.** Wrangler's local explorer API does not
+  serve them; they need the wasm-testbed harness on the real R2 binding (feature 76 E0).
 
 ## 16. Workspace / process
 
@@ -292,12 +300,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   Fix: a clippy pass over the crate, then `clippy-deny-warnings = true` in
   `ci/packages.toml`.
 
-- **`foundation_reactor` wasm dead-code warning: `rearm_readable` is never used.**
-  `Poll::rearm_readable` (`src/poll/mod.rs:322`) is `pub(crate)` and only called
-  from `src/reactor.rs:565`, which is a native (kqueue/poll) path. On wasm32 the
-  call site is compiled out, so `cargo check --tests --target wasm32` on
-  foundation_wireguard/foundation_netio emits `method rearm_readable is never
-  used`. Fix: gate the method on the same `cfg` as its call site.
 - **`platform-docker-tests.yml` fails on every run, on master too.** All three
   jobs fail. `platform-unit` (ubuntu-latest, no CI container) runs
   `cargo test -p foundation_platform`, whose Linux dependency tree includes
@@ -309,6 +311,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   the other two jobs. Found while reading the spec 70 pull request checks
   (2026-11-05); it is not caused by them.
 
+- **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
+  `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
+  `foundation_core::valtron::{EventReadiness::register, ReadinessNotifier, ReadinessWaker}`
+  (`reactor.rs`, `shutdown_signal.rs`, `fd_readiness.rs`) and `EventReadiness::clear`
+  (`fd_readiness.rs`) that were added to the local tree after 0.0.6 was
+  published. `release-plz release` verifies the tarball against the published 0.0.6, so it fails with
+  E0425/E0407. The 0.0.7 bump has landed (`foundation_core` and `foundation_macros` are now
+  0.0.7 on `fix/io-35-turso-async-trait-overflow`); the crates.io publish still needs to
+  happen at release time so 0.0.7 publishes before `foundation_reactor`.
+
 ## 17. foundation_vectors
 
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
@@ -319,13 +331,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   --profile dev --no-deps` reports 174 warnings in the lib (for example
   `manual_let_else` in `provisioning_route`) and more in the tests. Fix: follow
   the per-crate clippy workflow in `.agents/AGENTS.md`.
-- **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
-  (`cargo check -p foundation_core --target wasm32-unknown-unknown --no-default-features`):
-  `valtron::Ctx` is unresolved in `executors/collect_next.rs` and `dependent_lift.rs`. CI
-  never runs that configuration (its wasm runs all add `std`). Fix: either gate the
-  executors that need `Ctx` on `alloc`, or declare in `Cargo.toml` docs that `alloc` is the
-  minimum and make a bare build fail with a `compile_error!` that says so.
-
 
 - **`poll_ready` single-polls a handler future with a noop waker.**
   `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the

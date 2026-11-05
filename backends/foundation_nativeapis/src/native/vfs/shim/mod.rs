@@ -161,10 +161,11 @@ mod shim_exports {
                 {
                     use foundation_core::valtron::initialize_pool;
                     let guard = initialize_pool(42, Some(4));
-                    let delta = build_d1_delta().unwrap_or_else(|e| {
-                        drop(guard);
-                        panic!("[vfs-shim] D1 delta init failed: {e}")
-                    });
+                    // Do not drop `guard` in the closure: the closure would move
+                    // it and the runtime below could not store it. A panic unwinds
+                    // this frame and drops the guard at once anyway.
+                    let delta = build_d1_delta()
+                        .unwrap_or_else(|e| panic!("[vfs-shim] D1 delta init failed: {e}"));
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
                         fs: DynFs::from_async(overlay),
@@ -179,10 +180,8 @@ mod shim_exports {
                 {
                     use foundation_core::valtron::initialize_pool;
                     let guard = initialize_pool(42, Some(4));
-                    let delta = build_r2_delta().unwrap_or_else(|e| {
-                        drop(guard);
-                        panic!("[vfs-shim] R2 delta init failed: {e}")
-                    });
+                    let delta = build_r2_delta()
+                        .unwrap_or_else(|e| panic!("[vfs-shim] R2 delta init failed: {e}"));
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
                         fs: DynFs::from_async(overlay),

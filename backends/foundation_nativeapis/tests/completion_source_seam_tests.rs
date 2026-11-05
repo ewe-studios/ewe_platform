@@ -27,10 +27,21 @@ use foundation_nativeapis::native::fd::{Completion, CompletionSource, Reactor, R
 use foundation_nativeapis::native::poll::Backend;
 use foundation_nativeapis::{Interest, Token};
 
-/// Skip unless the shared reactor actually landed on completion mode.
+mod common;
+
+/// Skip unless the shared reactor actually landed on completion mode, or fail
+/// when `EWE_REQUIRE_IO_URING=1` promises it (CI).
 macro_rules! require_completion_backend {
     ($reactor:expr) => {
+        if common::io_uring_missing("completion source seam", common::Requires::Completion) {
+            return;
+        }
         if $reactor.backend() != Backend::UringCompletion {
+            assert!(
+                std::env::var("EWE_REQUIRE_IO_URING").as_deref() != Ok("1"),
+                "EWE_REQUIRE_IO_URING=1 but the shared reactor is on {}",
+                $reactor.backend()
+            );
             eprintln!(
                 "skipping: reactor is on {} — completion mode unavailable on this kernel",
                 $reactor.backend()
