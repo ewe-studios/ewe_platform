@@ -68,17 +68,21 @@ impl Serve for StreamHandler {
         let Some(bc) = bag.get::<Broadcaster>() else {
             return ConnectionResult::Close(None);
         };
-        match SseStream::new(&mut conn) {
-            Ok(sse) => {
-                // The connection is Arc-shared; the broadcaster's clone keeps it
-                // open after the worker drops its handle on Take.
-                bc.register(SseTransport(sse));
-                ConnectionResult::Take
+        // Feature 63: the upgrade is async. Drive it as `ConnectionResult::Async`
+        // so the worker parks on the future and applies `Take` when it resolves.
+        ConnectionResult::Async(Box::pin(async move {
+            match SseStream::new(&mut conn).await {
+                Ok(sse) => {
+                    // The connection is Arc-shared; the broadcaster's clone keeps it
+                    // open after the worker drops its handle on Take.
+                    bc.register(SseTransport(sse));
+                    ConnectionResult::Take
+                }
+                Err(e) => {
+                    tracing::warn!("SSE upgrade failed: {e}");
+                    ConnectionResult::Close(None)
+                }
             }
-            Err(e) => {
-                tracing::warn!("SSE upgrade failed: {e}");
-                ConnectionResult::Close(None)
-            }
-        }
+        }))
     }
 }
