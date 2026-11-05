@@ -8310,7 +8310,7 @@ dependencies = [
 
 [[package]]
 name = "infrastructure_llama_cpp"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "encoding_rs",
  "enumflags2",

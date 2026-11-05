@@ -349,17 +349,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 28. infrastructure_llama_cpp
 
-- **The public API added in feature 59 is not version-bumped.** The log tests
-  moved out of `src/log.rs` need `log`, `State`, `Module`, `tracing_level_for`
-  and `logs_to_trace` to be public, so the crate gained public API. Its version
-  stays 0.0.4 because `foundation_ai`, the four `examples/llama-cpp/*`
-  crates and the rest of the workspace pin `0.0.4`, and `foundation_ai` is
-  owned by PR #176. Fix: bump `infrastructure_llama_cpp` to 0.0.5 and update
-  every requirement in the same change when PR #176 lands.
-- **The crate cannot build without the llama.cpp checkout.** This worktree has
-  no `tools/llama.cpp/llama.h`, so `infrastructure_llama_bindings`' build script
-  stops with `fatal error: 'llama.h' file not found`. This is an environment
-  limitation; the moved tests were not compiled here.
+- **A worktree without submodule content cannot build this crate.** A worktree
+  has no `tools/llama.cpp/llama.h`, so `infrastructure_llama_bindings`' build
+  script stops with `fatal error: 'llama.h' file not found`. The main checkout
+  has the submodule: the seven moved tests compile and pass there (2026-11-05).
+  Fix: run `git submodule update --init tools/llama.cpp` in a worktree before
+  building this crate.
 
 ## 29. foundation_jsonschema
 
