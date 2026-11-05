@@ -136,6 +136,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `foundation_openapi` and `foundation_codegentools` are clean (spec 70 feature 55).
   Fix: clear the docker lints in feature 49, then keep them at zero.
 
+- **`foundation_cloudflare_types` has one pedantic clippy warning in generated code.**
+  `cargo clippy -p foundation_cloudflare_types --profile uat --all-targets -- -D warnings`
+  reports "calling `D1SingleQuery::default()` is more clear than this expression" in
+  `src/generated.rs`. Fix the generator's default-value emission (or allow the lint in the
+  generated header), regenerate, and keep the crate at zero. Found while rustfmt-ing the
+  hand-written re-export list (feature 55 E1).
+
 ## 9. foundation_proxy
 
 - **`foundation_proxy` clippy and test warnings are open.** `cargo clippy -p
