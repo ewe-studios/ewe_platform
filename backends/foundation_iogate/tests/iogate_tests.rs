@@ -25,7 +25,7 @@ use tracing_test::traced_test;
 /// Read `want` bytes from `conn`, retrying on `WouldBlock` up to `deadline`.
 ///
 /// Both modes are nonblocking: `Std` is `read(2)` on a nonblocking socket,
-/// `Completion` pops the io_uring inbox — both return `WouldBlock` when empty.
+/// `Completion` pops the `io_uring` inbox — both return `WouldBlock` when empty.
 fn read_until(conn: &mut Connection, want: usize, deadline: Duration) -> Vec<u8> {
     let start = Instant::now();
     let mut got = Vec::with_capacity(want);
@@ -56,10 +56,10 @@ fn accept_one(listener: &TcpListener, mode: ServerIo) -> Connection {
     foundation_iogate::accept_connection(server_tcp, peer, mode).expect("accept_connection")
 }
 
-/// Whether io_uring is missing, so the caller skips its test.
+/// Whether `io_uring` is missing, so the caller skips its test.
 ///
-/// A local machine without io_uring skips with a warning. An environment that
-/// sets `EWE_REQUIRE_IO_URING=1` expects io_uring, so a missing io_uring fails the
+/// A local machine without `io_uring` skips with a warning. An environment that
+/// sets `EWE_REQUIRE_IO_URING=1` expects `io_uring`, so a missing `io_uring` fails the
 /// test there: CI cannot lose this coverage without anyone noticing.
 fn io_uring_missing(what: &str) -> bool {
     if foundation_iogate::init_reactor_for(ServerIo::Completion).is_ok() {

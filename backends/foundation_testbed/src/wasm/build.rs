@@ -44,11 +44,12 @@ fn read_package_name(cargo_toml: &Path) -> Result<String> {
             in_package = false;
             continue;
         }
-        if in_package && trimmed.starts_with("name") {
-            if let Some(value) = trimmed.split('=').nth(1) {
-                let value = value.trim().trim_matches('"').trim_matches('\'');
-                return Ok(value.to_string());
-            }
+        if in_package
+            && trimmed.starts_with("name")
+            && let Some(value) = trimmed.split('=').nth(1)
+        {
+            let value = value.trim().trim_matches('"').trim_matches('\'');
+            return Ok(value.to_string());
         }
     }
 
@@ -140,77 +141,18 @@ fn run_impl(
 
     let profile = if release { "release" } else { "debug" };
 
-    which::which("cargo").map_err(|_| WasmTestbedError::CargoNotFound.trace())?;
-
-    info!("Running cargo build --target {target_triple}...");
-
     // Determine target directory: workspace members use workspace root's target.
     let target_dir = find_workspace_root(crate_path)
         .map_or_else(|| crate_path.join("target"), |root| root.join("target"));
 
-    let mut cmd = Command::new("cargo");
-    cmd.arg("build")
-        .arg("--target")
-        .arg(target_triple)
-        .arg("--target-dir")
-        .arg(&target_dir);
-
-    if include_tests {
-        cmd.arg("--tests");
-    }
-
-    // wasm32 targets can't use native default features (ssl, multi, wire-native, etc.).
-    // The caller passes the features they need (e.g. --features wasm-fetch).
-    if target_triple.starts_with("wasm32") {
-        cmd.arg("--no-default-features");
-    }
-
-    // Cranelift doesn't support wasm32. Drop any `dev` backend override the
-    // caller's environment carries (mise's env puts `dev` on Cranelift), so the
-    // nested build uses the default, LLVM. Removing it (rather than setting
-    // `llvm`) needs no nightly `codegen-backend` opt-in, so it also works on
-    // stable and outside mise.
-    cmd.env_remove("CARGO_PROFILE_DEV_CODEGEN_BACKEND")
-        .current_dir(crate_path);
-
-    if release {
-        cmd.arg("--release");
-    }
-
-    if let Some(features) = features {
-        cmd.arg("--features").arg(features);
-    }
-
-    cmd.arg("--message-format=json-render-diagnostics")
-        .stdout(Stdio::piped());
-
-    debug!("Executing: {:?}", cmd);
-
-    let mut child = cmd.spawn().map_err(|e| {
-        if e.kind() == std::io::ErrorKind::NotFound {
-            WasmTestbedError::CargoNotFound.trace()
-        } else {
-            WasmTestbedError::CargoExecFailed(e).trace()
-        }
-    })?;
-
-    // Stream cargo's JSON messages line by line, keeping only the `.wasm`
-    // artifact paths (and whether each came from a test target).
-    let mut artifacts: Vec<(PathBuf, bool)> = Vec::new();
-    if let Some(stdout) = child.stdout.take() {
-        for line in BufReader::new(stdout).lines() {
-            let line = line.map_err(|e| WasmTestbedError::CargoExecFailed(e).trace())?;
-            artifacts.extend(wasm_artifacts(&line));
-        }
-    }
-
-    let status = child
-        .wait()
-        .map_err(|e| WasmTestbedError::CargoExecFailed(e).trace())?;
-
-    if !status.success() {
-        return Err(WasmTestbedError::CargoBuildFailed(status.code()).trace());
-    }
+    let artifacts = run_cargo(
+        crate_path,
+        release,
+        features,
+        include_tests,
+        target_triple,
+        &target_dir,
+    )?;
 
     // Prefer what cargo reported. Tests: the test binary carrying
     // `__wbgt_` exports. Library: the package's own cdylib.
@@ -304,6 +246,86 @@ fn run_impl(
     })
 }
 
+/// Run `cargo build` for one target and collect the `.wasm` artifacts.
+fn run_cargo(
+    crate_path: &Path,
+    release: bool,
+    features: Option<&str>,
+    include_tests: bool,
+    target_triple: &str,
+    target_dir: &Path,
+) -> Result<Vec<(PathBuf, bool)>> {
+    which::which("cargo").map_err(|_| WasmTestbedError::CargoNotFound.trace())?;
+
+    info!("Running cargo build --target {target_triple}...");
+
+    let mut cmd = Command::new("cargo");
+    cmd.arg("build")
+        .arg("--target")
+        .arg(target_triple)
+        .arg("--target-dir")
+        .arg(target_dir);
+
+    if include_tests {
+        cmd.arg("--tests");
+    }
+
+    // wasm32 targets can't use native default features (ssl, multi, wire-native, etc.).
+    // The caller passes the features they need (e.g. --features wasm-fetch).
+    if target_triple.starts_with("wasm32") {
+        cmd.arg("--no-default-features");
+    }
+
+    // Cranelift doesn't support wasm32. Drop any `dev` backend override the
+    // caller's environment carries (mise's env puts `dev` on Cranelift), so the
+    // nested build uses the default, LLVM. Removing it (rather than setting
+    // `llvm`) needs no nightly `codegen-backend` opt-in, so it also works on
+    // stable and outside mise.
+    cmd.env_remove("CARGO_PROFILE_DEV_CODEGEN_BACKEND")
+        .current_dir(crate_path);
+
+    if release {
+        cmd.arg("--release");
+    }
+
+    if let Some(features) = features {
+        cmd.arg("--features").arg(features);
+    }
+
+    cmd.arg("--message-format=json-render-diagnostics")
+        .stdout(Stdio::piped());
+
+    debug!("Executing: {:?}", cmd);
+
+    let mut child = cmd.spawn().map_err(|e| {
+        if e.kind() == std::io::ErrorKind::NotFound {
+            WasmTestbedError::CargoNotFound.trace()
+        } else {
+            WasmTestbedError::CargoExecFailed(e).trace()
+        }
+    })?;
+
+    // Stream cargo's JSON messages line by line, keeping only the `.wasm`
+    // artifact paths (and whether each came from a test target).
+    let mut artifacts: Vec<(PathBuf, bool)> = Vec::new();
+    if let Some(stdout) = child.stdout.take() {
+        for line in BufReader::new(stdout).lines() {
+            let line = line.map_err(|e| WasmTestbedError::CargoExecFailed(e).trace())?;
+            artifacts.extend(wasm_artifacts(&line));
+        }
+    }
+
+    let status = child
+        .wait()
+        .map_err(|e| WasmTestbedError::CargoExecFailed(e).trace())?;
+
+    if !status.success() {
+        return Err(WasmTestbedError::CargoBuildFailed(status.code()).trace());
+    }
+
+    Ok(artifacts)
+}
+
 /// The `.wasm` files a cargo `compiler-artifact` JSON message reports, each
 /// tagged with whether it came from a test target. Other messages yield nothing.
 fn wasm_artifacts(line: &str) -> Vec<(PathBuf, bool)> {
@@ -324,7 +346,11 @@ fn wasm_artifacts(line: &str) -> Vec<(PathBuf, bool)> {
         .into_iter()
         .flatten()
         .filter_map(serde_json::Value::as_str)
-        .filter(|name| name.ends_with(".wasm"))
+        .filter(|name| {
+            Path::new(name)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("wasm"))
+        })
         .map(|name| (PathBuf::from(name), is_test))
         .collect()
 }

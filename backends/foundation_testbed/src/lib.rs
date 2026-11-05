@@ -1,4 +1,4 @@
-//! foundation_testbed — a holistic test harness. Feature-gated capabilities:
+//! `foundation_testbed` — a holistic test harness. Feature-gated capabilities:
 //! `wasm` (a CLI-driven `wasm32-unknown-unknown` harness: browser via the
 //! pure-Rust CDP/BiDi driver, Deno, and Cloudflare Workers).
 //!
