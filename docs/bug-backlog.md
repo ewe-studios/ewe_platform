@@ -361,6 +361,45 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   stops with `fatal error: 'llama.h' file not found`. This is an environment
   limitation; the moved tests were not compiled here.
 
+## 29. foundation_jsonschema
+
+- **Accepted exception: the crate is a vendored copy of the upstream
+  `jsonschema` crate, so its inline tests stay.** About 40 source files carry
+  `#[cfg(test)] mod tests`. Feature 59 (rule 7) does not move them, because the
+  copy tracks upstream and moving them would grow the fork diff. The owner
+  must confirm this exception. If the crate is no longer a vendored copy, move
+  the tests and delete this entry.
+
+## 30. Proc-macro crates (foundation_macros, crates/html-macro, crates/template-macro)
+
+- **Their inline tests cannot move to `tests/` as they stand.** A
+  `proc-macro = true` crate can export only macros, so integration tests can
+  reach only the macros. The inline modules in `foundation_macros`
+  (`wasm_modes.rs`, `wasm_logs.rs`, `connectrpc_service.rs`,
+  `html_macro/{parser,scoped_css}.rs`, 33 tests) call private helpers
+  (`wasm_bin`, `wasm_service`, `wasm_logs`, `parse_template`,
+  `transform_scoped_css`). `crates/html-macro` and `crates/template-macro` have
+  a trybuild harness each. Fix: move the helpers into a normal library crate
+  that the proc-macro crate calls (the feature 59 guidance), then test them
+  from `tests/`.
+
+- **`crates/template-macro`'s trybuild harness is broken.** Its
+  `test/jinja/main.rs` fixture imports `foundation_packager::minijinja`, but
+  `foundation_packager` does not re-export `minijinja`, and
+  `foundation_packager` is not a dev-dependency of the macro crate. The
+  `jinja` pass case fails with `E0432: unresolved import`. The crate is excluded
+  from the root workspace (`crates/*`), so the harness never ran. Found in
+  feature 59 when the move was attempted; the move was reverted. Fix: re-export
+  `minijinja` from `foundation_packager`, make the macro crate a standalone
+  workspace root, then move the harness to `tests/`.
+
+- **`crates/html-macro`'s trybuild pass fixtures need `dioxus`.** The
+  `test/attribute/passes.rs` fixture uses `dioxus::prelude::*`, but `dioxus` is
+  not a dev-dependency. The crate is excluded from the workspace and cannot
+  build. Found in feature 59; its harness stays inline. Fix: add a `dioxus`
+  dev-dependency (choose a version that matches the `rsx!` output) and move the
+  harness, or record why the macro is no longer supported.
+
 ## Paused
 
 - Windows/macOS VM images (#69).
