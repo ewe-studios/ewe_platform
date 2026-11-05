@@ -96,10 +96,11 @@ pub trait StateStore: Send + Sync {
     /// `FileStateStore` (an exclusive file lock around read, compare and
     /// rename, so also across processes), `LibsqlStore` and `D1Store` (one
     /// `INSERT ... DO NOTHING` or `UPDATE ... WHERE updated_at = ?`
-    /// statement), and `NamespacedStore` over any of them. `R2Store` keeps this
-    /// default, which is a read, a compare and a write and is **not atomic**
-    /// (two writers can both pass). The R2 conditional put needs the object's
-    /// `ETag`, which the state API does not carry yet.
+    /// statement), `R2Store` (a conditional object PUT with `If-None-Match`
+    /// for an absent resource, or one GET that returns the object `ETag`
+    /// followed by `If-Match` on the PUT), and `NamespacedStore` over any of
+    /// them. Stores that do not override this method use a read, a compare and
+    /// a write, which is **not atomic** (two writers can both pass).
     ///
     /// # Errors
     ///

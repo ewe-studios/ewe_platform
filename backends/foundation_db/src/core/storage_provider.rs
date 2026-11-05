@@ -292,6 +292,12 @@ pub trait QueryStore: Send + Sync {
     /// For Turso/Libsql: yields rows one at a time as they're fetched.
     /// For D1 backends: buffered (API returns all rows at once).
     ///
+    /// On the D1 wasm binding an INTEGER column comes back as a JS number (a
+    /// double), so a value past 2^53 loses precision on read. Write
+    /// parameters keep the full `i64` range (the store binds an integer as
+    /// decimal text and casts it in SQL). When a column can exceed 2^53,
+    /// select it as `CAST(col AS TEXT)` and parse the text.
+    ///
     /// Use `.collect_all().await` to get all rows, or iterate row-by-row
     /// via `.next().await`.
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;

@@ -13,7 +13,7 @@ use crate::core::storage_provider::{
     AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
     RateLimiterStore, SqlRow,
 };
-use crate::wasm::bindgen::D1Database;
+use crate::wasm::bindgen::{D1Database, D1PreparedStatement};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_compact::SendWrapper;
 use js_sys::{Array, Uint8Array};
@@ -72,20 +72,11 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<(), StorageError> {
-        let stmt = self.db.prepare(sql);
-        if params.is_empty() {
-            let promise = stmt.run();
-            SendWrapper::new(JsFuture::from(promise))
-                .await
-                .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            let promise = bound.run();
-            SendWrapper::new(JsFuture::from(promise))
-                .await
-                .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-        }
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let promise = stmt.run();
+        SendWrapper::new(JsFuture::from(promise))
+            .await
+            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
         Ok(())
     }
 
@@ -96,14 +87,8 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<Option<js_sys::Object>, StorageError> {
-        let stmt = self.db.prepare(sql);
-        let first_result = if params.is_empty() {
-            stmt.first(None)
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            bound.first(None)
-        };
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let first_result = stmt.first(None);
         let result = SendWrapper::new(JsFuture::from(first_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
@@ -125,14 +110,8 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<Vec<js_sys::Object>, StorageError> {
-        let stmt = self.db.prepare(sql);
-        let all_result = if params.is_empty() {
-            stmt.all()
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            bound.all()
-        };
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let all_result = stmt.all();
         let result = SendWrapper::new(JsFuture::from(all_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
@@ -166,14 +145,8 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<u64, StorageError> {
-        let stmt = self.db.prepare(sql);
-        let run_result = if params.is_empty() {
-            stmt.run()
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            bound.run()
-        };
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let run_result = stmt.run();
         let result = SendWrapper::new(JsFuture::from(run_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
@@ -657,25 +630,193 @@ impl BlobStore for D1WasmStorage {
 // Helpers
 // ===========================================================================
 
+/// One [`DataValue`] as the JS value the D1 binding takes.
+fn data_value_to_js(value: &DataValue) -> wasm_bindgen::JsValue {
+    match value {
+        DataValue::Null => wasm_bindgen::JsValue::null(),
+        // Integers bind as decimal text; `typed_sql` wraps the placeholder
+        // in `CAST(? AS INTEGER)` so the value lands as an exact INTEGER.
+        // A JS Number is always a double and loses precision past 2^53.
+        DataValue::Integer(i) => wasm_bindgen::JsValue::from_str(&i.to_string()),
+        DataValue::Real(f) => wasm_bindgen::JsValue::from_f64(*f),
+        DataValue::Text(s) => wasm_bindgen::JsValue::from_str(s),
+        DataValue::Blob(b) => {
+            // Use Uint8Array for binary data
+            let buf = Uint8Array::new_with_length(b.len() as u32);
+            buf.copy_from(b);
+            buf.into()
+        }
+    }
+}
+
 /// Convert a slice of `DataValue` into a `js_sys::Array` for D1 bind().
 fn data_values_to_js_array(values: &[DataValue]) -> Array {
     let array = Array::new();
-    for v in values {
-        let js_val = match v {
-            DataValue::Null => wasm_bindgen::JsValue::null(),
-            DataValue::Integer(i) => wasm_bindgen::JsValue::from_f64(*i as f64),
-            DataValue::Real(f) => wasm_bindgen::JsValue::from_f64(*f),
-            DataValue::Text(s) => wasm_bindgen::JsValue::from_str(s),
-            DataValue::Blob(b) => {
-                // Use Uint8Array for binary data
-                let buf = Uint8Array::new_with_length(b.len() as u32);
-                buf.copy_from(b);
-                buf.into()
-            }
-        };
-        array.push(&js_val);
+    for value in values {
+        array.push(&data_value_to_js(value));
     }
     array
+}
+
+/// Rewrite the SQL placeholders for the D1 binding and return the values to
+/// bind, in order.
+///
+/// WHY: the D1 binding takes a JS Number for a numeric parameter, and a Number
+/// is always a double: `i64::MAX` and 2^53+1 lose precision, and in an untyped
+/// column the value is stored as REAL. D1 rejects BigInt with `D1_TYPE_ERROR`.
+/// WHAT:
+///
+/// - `DataValue::Integer(i)`: the value binds as decimal text and the
+///   placeholder becomes `CAST(? AS INTEGER)`, so the stored value is an exact
+///   INTEGER.
+/// - `DataValue::Null`: the `NULL` literal replaces the placeholder, so no
+///   parameter is bound (a JS `null` parameter reaches the binding as an
+///   object in workerd).
+/// - the other types bind as their JS value.
+///
+/// Only `?` and `?N` placeholders outside string literals, quoted names and
+/// comments are rewritten. A dropped `NULL` parameter renumbers later `?N`
+/// placeholders to their place among the values that stay.
+///
+/// # Errors
+///
+/// Returns [`StorageError::SqlConversion`] when the placeholders do not name
+/// exactly the given parameters.
+fn typed_sql(sql: &str, params: &[DataValue]) -> Result<(String, Array), StorageError> {
+    let rewrite = params
+        .iter()
+        .any(|value| matches!(value, DataValue::Null | DataValue::Integer(_)));
+    if !rewrite {
+        return Ok((sql.to_string(), data_values_to_js_array(params)));
+    }
+
+    // The 1-based place of each kept parameter among the bound values.
+    let mut slots = Vec::with_capacity(params.len());
+    let bound = Array::new();
+    let mut count = 0usize;
+    for value in params {
+        if !matches!(value, DataValue::Null) {
+            count += 1;
+            bound.push(&data_value_to_js(value));
+        }
+        slots.push(count);
+    }
+
+    let mismatch = || {
+        StorageError::SqlConversion(format!(
+            "the SQL has a different number of `?` placeholders than the {} parameters",
+            params.len()
+        ))
+    };
+    let mut out = String::with_capacity(sql.len() + params.len() * 16);
+    let mut next_anonymous = 0usize;
+    let mut used = 0usize;
+    let mut chars = sql.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            // Quoted text and names: copy to the closing quote (doubled quote = escaped).
+            '\'' | '"' | '`' => {
+                out.push(c);
+                while let Some(q) = chars.next() {
+                    out.push(q);
+                    if q == c {
+                        if chars.peek() == Some(&c) {
+                            out.extend(chars.next());
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            '[' => {
+                out.push(c);
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if q == ']' {
+                        break;
+                    }
+                }
+            }
+            '-' if chars.peek() == Some(&'-') => {
+                out.push(c);
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if q == '\n' {
+                        break;
+                    }
+                }
+            }
+            '/' if chars.peek() == Some(&'*') => {
+                out.push(c);
+                out.extend(chars.next());
+                let mut prev = '\0';
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if prev == '*' && q == '/' {
+                        break;
+                    }
+                    prev = q;
+                }
+            }
+            '?' => {
+                let mut digits = String::new();
+                while let Some(d) = chars.peek().copied().filter(char::is_ascii_digit) {
+                    digits.push(d);
+                    chars.next();
+                }
+                let index = if digits.is_empty() {
+                    let index = next_anonymous;
+                    next_anonymous += 1;
+                    index
+                } else {
+                    digits
+                        .parse::<usize>()
+                        .ok()
+                        .and_then(|n| n.checked_sub(1))
+                        .ok_or_else(mismatch)?
+                };
+                let Some(value) = params.get(index) else {
+                    return Err(mismatch());
+                };
+                used = used.max(index + 1);
+                match value {
+                    DataValue::Null => out.push_str("NULL"),
+                    DataValue::Integer(_) => {
+                        out.push_str("CAST(?");
+                        if !digits.is_empty() {
+                            out.push_str(&slots[index].to_string());
+                        }
+                        out.push_str(" AS INTEGER)");
+                    }
+                    _ => {
+                        out.push('?');
+                        if !digits.is_empty() {
+                            out.push_str(&slots[index].to_string());
+                        }
+                    }
+                }
+            }
+            other => out.push(other),
+        }
+    }
+    if used != params.len() {
+        return Err(mismatch());
+    }
+    Ok((out, bound))
+}
+
+fn prepared_statement(
+    db: &D1Database,
+    sql: &str,
+    params: &[DataValue],
+) -> Result<D1PreparedStatement, StorageError> {
+    let (sql, bound) = typed_sql(sql, params)?;
+    let statement = db.prepare(&sql);
+    if bound.length() == 0 {
+        Ok(statement)
+    } else {
+        Ok(statement.bind(bound))
+    }
 }
 
 /// Extract columns from a JS object (row from D1).
@@ -730,20 +871,11 @@ async fn do_execute_sql(
     sql: &str,
     params: &[DataValue],
 ) -> Result<(), StorageError> {
-    let stmt = db.prepare(sql);
-    if params.is_empty() {
-        let promise = stmt.run();
-        SendWrapper::new(JsFuture::from(promise))
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        let promise = bound.run();
-        SendWrapper::new(JsFuture::from(promise))
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-    }
+    let stmt = prepared_statement(db, sql, params)?;
+    let promise = stmt.run();
+    SendWrapper::new(JsFuture::from(promise))
+        .await
+        .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
     Ok(())
 }
 
@@ -752,14 +884,8 @@ async fn do_query_first(
     sql: &str,
     params: &[DataValue],
 ) -> Result<Option<js_sys::Object>, StorageError> {
-    let stmt = db.prepare(sql);
-    let first_result = if params.is_empty() {
-        stmt.first(None)
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        bound.first(None)
-    };
+    let stmt = prepared_statement(db, sql, params)?;
+    let first_result = stmt.first(None);
     let result = SendWrapper::new(JsFuture::from(first_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
@@ -779,14 +905,8 @@ async fn do_query_all(
     sql: &str,
     params: &[DataValue],
 ) -> Result<Vec<js_sys::Object>, StorageError> {
-    let stmt = db.prepare(sql);
-    let all_result = if params.is_empty() {
-        stmt.all()
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        bound.all()
-    };
+    let stmt = prepared_statement(db, sql, params)?;
+    let all_result = stmt.all();
     let result = SendWrapper::new(JsFuture::from(all_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
@@ -818,14 +938,8 @@ async fn do_execute_with_changes(
     sql: &str,
     params: &[DataValue],
 ) -> Result<u64, StorageError> {
-    let stmt = db.prepare(sql);
-    let run_result = if params.is_empty() {
-        stmt.run()
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        bound.run()
-    };
+    let stmt = prepared_statement(db, sql, params)?;
+    let run_result = stmt.run();
     let result = SendWrapper::new(JsFuture::from(run_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;

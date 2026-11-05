@@ -13,8 +13,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::BlockingFutureExt;
 use foundation_db::core::state::traits::StateStoreStream;
 use foundation_db::state::{ResourceState, StateStatus, StateStore};
 use foundation_db::R2Store;
@@ -45,13 +46,29 @@ fn percent_decode(s: &str) -> String {
 }
 
 fn respond(stream: &mut TcpStream, status: &str, body: &[u8]) {
+    respond_etag(stream, status, body, None);
+}
+
+/// Reply, optionally with an `ETag` header.
+fn respond_etag(stream: &mut TcpStream, status: &str, body: &[u8], etag: Option<&str>) {
+    let etag = etag.map_or_else(String::new, |value| format!("ETag: {value}\r\n"));
     let head = format!(
-        "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        "HTTP/1.1 {status}\r\nContent-Type: application/json\r\n{etag}Content-Length: {}\r\nConnection: close\r\n\r\n",
         body.len()
     );
     stream.write_all(head.as_bytes()).unwrap();
     stream.write_all(body).unwrap();
     stream.flush().unwrap();
+}
+
+/// A stable, quoted ETag for an object body, like R2 returns for the object PUT.
+fn etag_of(bytes: &[u8]) -> String {
+    let mut hash = 0xcbf2_9ce4_8422_2325_u64;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("\"{hash:016x}\"")
 }
 
 fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests) {
@@ -62,6 +79,8 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
     }
     let mut content_length = 0usize;
     let mut expects_continue = false;
+    let mut if_match: Option<String> = None;
+    let mut if_none_match: Option<String> = None;
     loop {
         let mut line = String::new();
         reader.read_line(&mut line).unwrap();
@@ -77,6 +96,12 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
                 && value.trim().eq_ignore_ascii_case("100-continue")
             {
                 expects_continue = true;
+            }
+            if name.eq_ignore_ascii_case("if-match") {
+                if_match = Some(value.trim().to_string());
+            }
+            if name.eq_ignore_ascii_case("if-none-match") {
+                if_none_match = Some(value.trim().to_string());
             }
         }
     }
@@ -126,12 +151,26 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
             respond(&mut stream, "200 OK", reply.to_string().as_bytes());
         }
         ("GET", key) => match objects.get(&percent_decode(&key[1..])) {
-            Some(data) => respond(&mut stream, "200 OK", &data.clone()),
+            Some(data) => {
+                let etag = etag_of(data);
+                respond_etag(&mut stream, "200 OK", &data.clone(), Some(&etag));
+            }
             None => respond(&mut stream, "404 Not Found", b"{}"),
         },
         ("PUT", key) => {
-            objects.insert(percent_decode(&key[1..]), body);
-            respond(&mut stream, "200 OK", b"{\"success\":true}");
+            let key = percent_decode(&key[1..]);
+            let current = objects.get(&key).map(|data| etag_of(data));
+            let precondition_failed = if_none_match.as_deref() == Some("*") && current.is_some()
+                || if_match
+                    .as_deref()
+                    .is_some_and(|expected| current.as_deref() != Some(expected));
+            if precondition_failed {
+                respond(&mut stream, "412 Precondition Failed", b"{}");
+            } else {
+                let etag = etag_of(&body);
+                objects.insert(key, body);
+                respond_etag(&mut stream, "200 OK", b"{\"success\":true}", Some(&etag));
+            }
         }
         ("DELETE", key) => {
             objects.remove(&percent_decode(&key[1..]));
@@ -311,4 +350,103 @@ async fn r2_state_listing_streams_pages() {
     let rest = collect(stream).await;
     assert_eq!(rest, vec!["b", "c", "d", "e"]);
     assert_eq!(list_requests.load(Ordering::SeqCst), 3);
+}
+
+// ===========================================================================
+// StateStore::set_if_version — R2 conditional object PUT
+// ===========================================================================
+
+/// The contract, one writer: absent-only, stale version and current version.
+async fn check_conditional_contract(store: &R2Store) {
+    let first = state("r1", "v1");
+
+    assert!(!store
+        .set_if_version("r1", &first, Some(first.updated_at))
+        .await
+        .unwrap());
+    assert!(store.set_if_version("r1", &first, None).await.unwrap());
+    assert!(!store.set_if_version("r1", &first, None).await.unwrap());
+
+    let stored = store.get("r1").await.unwrap().unwrap();
+    let mut second = state("r1", "v2");
+    second.updated_at = stored.updated_at + Duration::seconds(1);
+    assert!(!store
+        .set_if_version(
+            "r1",
+            &second,
+            Some(stored.updated_at - Duration::seconds(5)),
+        )
+        .await
+        .unwrap());
+    assert_eq!(store.get("r1").await.unwrap().unwrap().kind, "v1");
+    assert!(store
+        .set_if_version("r1", &second, Some(stored.updated_at))
+        .await
+        .unwrap());
+    assert_eq!(store.get("r1").await.unwrap().unwrap().kind, "v2");
+
+    // A stale writer (it still holds the first version) loses.
+    let mut stale = state("r1", "stale");
+    stale.updated_at = stored.updated_at + Duration::seconds(2);
+    assert!(!store
+        .set_if_version("r1", &stale, Some(stored.updated_at))
+        .await
+        .unwrap());
+    assert_eq!(store.get("r1").await.unwrap().unwrap().kind, "v2");
+}
+
+#[valtron_test(threads = 8, timeout = 60000)]
+fn set_if_version_uses_the_conditional_put() {
+    async move {
+        let (store, _objects) = mock_store();
+        store.init().await.unwrap();
+        check_conditional_contract(&store).await;
+    }
+    .block();
+}
+
+/// 20 writers read the same version and all try to write it: exactly one wins.
+/// The mock honours `If-None-Match: *` and `If-Match`, like the real R2 binding.
+#[valtron_test(threads = 8, timeout = 60000)]
+fn set_if_version_race_has_one_winner() {
+    const THREADS: usize = 20;
+
+    let (store, seed) = async move {
+        let (store, _objects) = mock_store();
+        store.init().await.unwrap();
+        let seed = state("race", "seed");
+        store.set("race", &seed).await.unwrap();
+        let seed = store.get("race").await.unwrap().unwrap();
+        (store, seed)
+    }
+    .block();
+    let store = std::sync::Arc::new(store);
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(THREADS));
+    let handles: Vec<_> = (0..THREADS)
+        .map(|n| {
+            let (store, barrier, seed) = (
+                std::sync::Arc::clone(&store),
+                std::sync::Arc::clone(&barrier),
+                seed.clone(),
+            );
+            thread::spawn(move || {
+                barrier.wait();
+                async move {
+                    let mut mine = state("race", &format!("writer-{n}"));
+                    mine.updated_at = seed.updated_at + Duration::seconds(1);
+                    store
+                        .set_if_version("race", &mine, Some(seed.updated_at))
+                        .await
+                        .unwrap()
+                }
+                .block()
+            })
+        })
+        .collect();
+    let winners = handles
+        .into_iter()
+        .map(|handle| handle.join().unwrap())
+        .filter(|won| *won)
+        .count();
+    assert_eq!(winners, 1, "exactly one writer wins, not {winners}");
 }
