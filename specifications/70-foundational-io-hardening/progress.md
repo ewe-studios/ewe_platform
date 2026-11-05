@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 119, the tracing capture test gets its own binary.
+  Branch `spec70/priority-followups`.
+  - GitHub run 42072422806 failed the `foundation_core` test step on a
+    documentation-only commit. The test
+    `io::readers_tests::batch_reader_would_block_is_not_an_error_log` missed the
+    ERROR record because other test threads change the process-wide `tracing`
+    callsite interest cache.
+  - The test, its layer and its two readers moved to
+    `tests/tracing_error_capture.rs`, a binary with one test. `readers_tests.rs`
+    lost 89 lines.
+  - Default tree 743 tests in `mod` (was 744), `multi` 784 (was 785). The new
+    binary passed 20 consecutive runs. Both clippy runs and both test runs pass.
+  - Status is `pending (CI proof)`.
+
 - 2026-11-06: three priority plans written: 115, 117 and 118.
   Branch `spec70/priority-followups`.
   - Feature 115 (approved, next): `Ctx::with_clock(&self, Arc<dyn Clock>) -> Ctx`,

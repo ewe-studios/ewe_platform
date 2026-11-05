@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 119, tracing capture test):
+  - **`tracing`'s interest cache is process-wide, and `rebuild_interest_cache`
+    does not close the race.** Another test thread in the same binary that
+    reaches a callsite with no subscriber caches it as `never` again, so a
+    scoped-subscriber test records nothing. Run such a test in its own
+    integration target: one test, no other thread touches the callsite.
+  - **A test failure on a docs-only commit is a flake, not a regression.**
+    Compare the failing SHA with the last green one before you look at the
+    code. Run 42072422806 failed on `680b96e45`, whose only difference from the
+    green run was Markdown.
+
 - 2026-11-06 (planning 115, 117 and 118):
   - **A crate-level `#![allow]` outranks `-D warnings`.** `Cargo.toml` sets
     `pedantic = "warn"`, but `foundation_core/src/lib.rs` still starts with
