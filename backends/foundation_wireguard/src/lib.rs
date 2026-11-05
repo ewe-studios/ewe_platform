@@ -12,6 +12,11 @@
 //! HOW: Sans-I/O cores (`Tunn`, smoltcp, SWIM) are *driven*, never self-running — a
 //! single valtron task couples `Tunn` timers with the data-plane poll loop. No tokio.
 
+// The project error standard. Feature 67 adopts it in this crate; this import
+// keeps the native-only dependency and tells the unused-dependency lint why.
+#[cfg(not(target_family = "wasm"))]
+use foundation_errstacks as _;
+
 /// Cross-platform building blocks (keys, tunnel, membership, mesh, config). No
 /// platform-specific re-exports live here (see `feedback_shared_module_purpose`).
 pub mod shared;
