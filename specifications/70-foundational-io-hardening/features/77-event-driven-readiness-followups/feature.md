@@ -1,9 +1,9 @@
 ---
 feature: "Event-driven readiness follow-ups from feature 75: find the 20 ms/s idle loop, move the remaining polling signals to ResumeSignal, nativeapis FdRegistration resumes the executor, and tests that fail on the old 1 ms polling"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
-branch: "fix/io-41-50-lane-a"
+branch: "spec70/f77-f62-f78-readiness-ci"
 crates: ["foundation_core", "foundation_netio", "foundation_http", "foundation_nativeapis"]
 catalogue_rows: [95, 96, 97, 98]
 ---
@@ -78,4 +78,41 @@ Run each new test 20 times. The full CI runs on GitHub (see requirements.md §8.
 
 ## Done when
 
-- [ ] E1 tests fail with polling forced on and pass without it; E2 idle worker under 2 ms/s; E3 and E4 types event-driven with tests; the four backlog entries deleted; GitHub CI green.
+- [x] E1 tests fail with polling forced on and pass without it; E2 idle worker under 2 ms/s; E3 and E4 types event-driven with tests; the four backlog entries deleted; GitHub CI green.
+
+## Result (2026-11-05)
+
+E1 to E4 landed in PR #173 (`fix/io-41-50-lane-a`). This branch verifies them and tightens the
+E1 bound from 20 checks to 5.
+
+- **E1.** The counting adapter is `Counting`, and `forced_polling_makes_many_checks_during_a_park`
+  makes `register` refuse the task's waker. That is the form of "needs_polling() forced to true"
+  after feature 80 removed `needs_polling`. Measured over a 300 ms park:
+  - default feature set: 4 checks; forced polling 396 to 402 checks; the task ran at 303 to
+    306 ms. 20 of 20 runs passed.
+  - `multi` feature set: 3 checks; forced polling 201 to 204 checks; the task ran at 304 to
+    310 ms. 20 of 20 runs passed.
+
+  The old 1 ms re-check makes about 200 checks, so the bound of 5 tells the two apart with a
+  wide margin.
+- **E2.** Cause: `NotifyQueue::wait_for_item` made 100 timed condition-variable waits of 1 ms
+  each. The waiting thread used 27 ms of CPU and made 896 wake-ups per second. It now makes one
+  wait for the whole total, and `close` notifies the condition variable. The remaining worker
+  wake-up is the existing `max_yield_duration` (100 ms). It is executor configuration with the
+  builder `with_max_yield_duration` and a documented default. The test
+  `idle_threads_parked_on_a_resume_signal_use_almost_no_cpu` asserts under 2 ms of CPU and under
+  30 wake-ups per thread in one second. The test is Linux-only, so this macOS host did not run it.
+- **E3.** No raw `clone_inner` store remains in the lane A crates. The queue readiness types
+  have the `event_driven()` constructors, and every push resumes the parked task.
+  `QueueReadiness::new` stays polling for raw queue users; the backlog §9 entry names them.
+- **E4.** `FdRegistration` and `RegisteredFd` use the reactor path's wake. Feature 80 replaced
+  `needs_polling()` with `EventReadiness::register`, so the reactor path registers the task's
+  waker and the legacy syscall path keeps its timed re-check.
+
+Tests: `readiness_deadline_tests` 20 of 20 in both feature sets; `event_driven_queue_readiness`
+5 of 5 (reactor path 4 checks against 288 on the polling constructor); `fd_event_driven_tests`
+3 of 3 (reactor path 4 checks against 138 on the legacy path).
+
+Backlog: the four entries were deleted in PR #173. A new §4 entry records that the idle CPU
+tests match every thread whose name starts with `valtron::readin`, so they can count another
+test's workers. It is not fixed here.

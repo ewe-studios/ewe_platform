@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 77, already landed): PR #173 already contained feature 77 E1 to E4, but
+  the feature file still said `pending`. Check the code and `git log -S` before you implement a
+  feature file. The code is the truth. E1 measured 4 readiness checks in the default set and 3
+  in `multi` over a 300 ms park, against about 200 with polling. A bound of 5 discriminates and
+  holds; the old bound of 20 also held but hid a large regression. The "force polling" arm is
+  `register` returning `false`, because feature 80 removed `needs_polling()`. E2's cause was
+  `NotifyQueue::wait_for_item`: it made `max_spins` condition-variable waits of `park_duration`
+  each, so an idle consumer woke about 1000 times per second. Wait once for the whole total and
+  notify the condition variable on close. The idle CPU test is Linux-only and does not run on
+  macOS.
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run

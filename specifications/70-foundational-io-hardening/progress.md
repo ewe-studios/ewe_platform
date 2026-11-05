@@ -2,6 +2,13 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 77 done on `spec70/f77-f62-f78-readiness-ci`. T0: E1 to E4 were already
+  in master through PR #173, and the four backlog entries were already deleted. This branch
+  tightens the E1 check bound from 20 to 5 and verifies the work. Measured over a 300 ms park:
+  default 4 checks (forced polling 396 to 402), `multi` 3 checks (forced polling 201 to 204);
+  20 of 20 runs passed in each set. `event_driven_queue_readiness` 5 of 5 and
+  `fd_event_driven_tests` 3 of 3 passed. The E2 Linux-only CPU test did not run on this macOS
+  host; PR #173 recorded 0.6 ms and 9 wake-ups per second on the waiting thread.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers
