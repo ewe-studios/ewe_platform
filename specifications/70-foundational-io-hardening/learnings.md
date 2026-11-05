@@ -2,6 +2,28 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 111, ptrace `O_TRUNC` and `dup2` destination close):
+  - **A virtual fd must own a number whose kernel fd is closed.** With that invariant the
+    `dup2` destination close is exact: a real fd at the new number is closed by an injected
+    `close(new_fd)`, and a number that already holds a virtual entry needs no kernel call.
+  - **To replace a syscall, rewrite `orig_rax` and the argument registers at the entry
+    stop, then set `rax` at the exit stop.** The kernel dispatches on `orig_rax` after the
+    ptrace entry stop, so the rewrite runs at once. The old `Skip` could not do this: it
+    left the destination open.
+  - **An open dispatch test does not need a traced child.** `process_vm_readv(pid, ...)`
+    on the test's own pid reads the test's memory, so `on_syscall_entry` runs the whole
+    open path (path read, flags, VFS calls) on any Linux kernel, including the emulated
+    one.
+  - **`std` opens files with `O_CLOEXEC`; `libc::pipe` does not.** A test that hands a real
+    fd to a traced child must use a pipe or clear `FD_CLOEXEC`: a `std::fs::File` fd is
+    gone after `exec`.
+  - **The shell `read` builtin waits for a newline.** One arbitrary byte does not release
+    it, so a test that blocks a child on `read` must write `\n`.
+  - **`-D warnings` is not a gate for this crate.** The crate carries about 615 clippy
+    warnings under `vfs-native,vfs-ptrace`, tracked in backlog §35, and
+    `ci/packages.toml` does not deny warnings for it. Read the crate's CI config before
+    you treat a `-D warnings` failure as a defect of your change.
+
 - 2026-11-05 (feature 108, deterministic `Expect: 100-continue` timer test):
   - **A timer test must assert on the clock it injects, not on `Instant::now()`.**
     The engine `Ctx` clock reaches the task through `next_status(ctx)`, but no code

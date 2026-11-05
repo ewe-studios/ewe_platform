@@ -115,20 +115,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `borrow_as_ptr`, `cast_sign_loss`, `doc_markdown` and related mechanical lints. Fix: a
   clippy-cleanup pass per feature set, then set `clippy-deny-warnings = true` in
   `ci/packages.toml`. Found in feature 47.
-- **The ptrace `open`/`openat` path ignores `O_TRUNC` on an existing virtual file.**
-  `handle_open` and `handle_openat` in
-  `backends/foundation_nativeapis/src/native/vfs/ptrace/syscall_dispatch.rs` call
-  `fs.create` whenever `O_CREAT` is set. `MemoryFs::create` returns `AlreadyExists` for an
-  existing path, while `open(2)` with `O_CREAT` (without `O_EXCL`) must open that file and
-  truncate it. A traced shell redirect such as `echo x > /virtual/existing` therefore fails.
-  Fix: when `O_CREAT` is set and the file exists, open it and call `truncate(0)`. Found in
-  feature 83.
-- **The ptrace `dup2` handler does not close a real fd at the destination.** `handle_dup`
-  inserts the virtual entry at the new number and skips the kernel call. If the new number
-  held a real fd (the common case is fd 1), that kernel fd stays open, while `dup2` must
-  close it. Fix: close the real destination fd once the virtual entry owns the number, or
-  keep the kernel call and intercept the writes by table lookup. Found in feature 83 while
-  fixing the shell-redirect dispatch.
 - **The ptrace spawn tests need a native amd64 kernel.** On an Apple Silicon host that runs
   the linux/amd64 CI image with OrbStack, `PTRACE_GETREGS` returns `EIO` for every traced
   amd64 process. A minimal C program shows the same result, so the cause is the emulation,
@@ -547,6 +533,33 @@ are clean. Each item needs the per-crate clippy workflow in
   `doc_markdown` and raw-pointer lints. CI does not deny warnings for this
   package, so the debt does not fail a run. Fix: a hygiene pass, then set
   `clippy-deny-warnings = true`.
+- **The ptrace dispatch reads the `open(2)` mode from the flags argument.**
+  `flags_to_perm` in `src/native/vfs/ptrace/syscall_dispatch.rs` takes
+  `(flags >> 16) & 0o777`, but the mode is a separate syscall argument: `arg2`
+  of `open` and `arg3` of `openat`. A created file can therefore get wrong
+  permission bits. Fix: pass the mode register to the open path and delete
+  `flags_to_perm`. Found in feature 111.
+- **The ptrace `dup2`/`dup3` dispatch ignores close-on-exec.** `handle_dup`
+  copies the source entry, including its `flags`, so `O_CLOEXEC` survives a
+  `dup2`, while `dup2(2)` must clear it. `dup3(2)` must set it from its `flags`
+  argument, and the dispatch ignores that argument. Fix: clear `O_CLOEXEC` on a
+  `dup`/`dup2` copy and set it from `arg2` for `dup3`. Found in feature 111.
+- **The ptrace `dup2`/`dup3` dispatch does not validate the new fd number.**
+  `handle_dup` accepts any 64-bit `arg1`, inserts an entry at that number and
+  returns it. `dup2(2)` must return `EBADF` when the number is negative or not
+  below `RLIMIT_NOFILE`. Fix: read the tracee's `RLIMIT_NOFILE` and reject an
+  out-of-range number. Found in feature 111.
+- **The ptrace dispatch ignores `O_APPEND`.** `open_virtual_path` in
+  `src/native/vfs/ptrace/syscall_dispatch.rs` stores the open flags, but
+  `handle_vfs_write` always writes at the tracked offset. A traced `>>`
+  redirect therefore overwrites from the start of the file. Fix: when the
+  entry has `O_APPEND`, move the offset to the file size before the write.
+  Found in feature 111.
+- **The ptrace loop ignores `PTRACE_SETREGS` failures.** `ptrace_loop` in
+  `src/native/vfs/ptrace/nix_backend.rs` calls `ptrace::setregs(pid, r).ok()`
+  for `Skip` and `SkipError`. If the call fails, the tracee sees the kernel's
+  own result instead of the emulated result, and the tracer does not report it.
+  Fix: return the error, as the `CloseThenSkip` arm does. Found in feature 111.
 
 ## Paused
 

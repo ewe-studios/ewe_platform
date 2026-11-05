@@ -2,6 +2,29 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 111, the ptrace VFS follows `open(2)` truncation and `dup2`
+  destination close. Branch `spec70/priority-followups`.
+  - `open_virtual_path` is the one open path for `open`, `openat` and `creat`. It opens an
+    existing file, creates only when `O_CREAT` is set and the path is missing, keeps
+    `EEXIST` for `O_CREAT|O_EXCL`, and calls `truncate(0)` when `O_TRUNC` is set.
+  - `dup2` over a real fd now closes it at once. A new
+    `SyscallAction::CloseThenSkip` makes `ptrace_loop` rewrite the call into
+    `close(new_fd)` at the entry stop (`orig_rax`, `rdi`) and report `new_fd` at the exit
+    stop. `dup3` with equal fds returns `EINVAL`.
+  - New tests: the two spawn tests the feature names, plus four dispatch tests that need no
+    traced child. The dispatch tests fail on the old code path (`EEXIST`, no truncate, no
+    close) and pass now.
+  - Measured in the Linux CI image (`linux/amd64`, `--profile uat`): 21 passed, 0 failed
+    for the non-ptrace subset of `ptrace_vfs` (13 ptrace tests filtered out).
+    `cargo fmt --all --check` is clean. `cargo clippy ... -D warnings` fails on the
+    crate-wide debt in backlog §35 (615 library warnings); the crate compiles.
+  - Left to CI: the two new spawn tests and the unchanged feature-83 spawn tests need a
+    native amd64 kernel. The GitHub `ubuntu-latest` job
+    (`vfs-native,vfs-ptrace`, `EWE_REQUIRE_PTRACE=1`) is the proof.
+  - New backlog entries in §35: the open mode is read from the flags register;
+    `dup2`/`dup3` ignore `O_CLOEXEC`; `dup2`/`dup3` do not validate the new fd number; the
+    loop ignores `PTRACE_SETREGS` failures; `O_APPEND` is ignored.
+
 - 2026-11-05: feature 108, the `Expect: 100-continue` timer test is deterministic.
   Branch `spec70/priority-followups`.
   - The `Expect: 100-continue` timer in `foundation_netio` now reads a `Clock` from the

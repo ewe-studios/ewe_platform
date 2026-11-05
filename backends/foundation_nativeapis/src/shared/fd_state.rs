@@ -1,6 +1,6 @@
-/// File descriptor readiness state.
-///
-/// Indicates which readiness states were observed on a file descriptor.
+//! File descriptor readiness state.
+//!
+//! Indicates which readiness states were observed on a file descriptor.
 
 /// Which readiness state was signaled on a file descriptor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
