@@ -15,7 +15,10 @@ fn should_be_able_to_close_a_send_channel() {
     sender.close().expect("should have closed");
 
     let err = receiver.try_receive();
-    assert!(matches!(err, Err(ChannelError::Closed)));
+    assert!(matches!(
+        err,
+        Err(trace) if matches!(trace.current_context(), ChannelError::Closed)
+    ));
 }
 
 #[test]
