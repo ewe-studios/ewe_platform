@@ -2,6 +2,22 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 78, CI containers and optional io_uring): Docker's default seccomp
+  profile blocks `io_uring_setup`, so a package that needs io_uring must run its own container
+  with `--security-opt seccomp=unconfined`. Keep that in `ci/packages.toml`, not in the
+  workflow: `ci.py` adds the `container-options` value to the package job's `container:` and to
+  the `docker run` of the artifact path. An optional dependency on a Linux-only crate
+  (`io-uring`) belongs in `[target.'cfg(target_os = "linux")'.dependencies]`; a feature that
+  names it (`uring = ["dep:io-uring", ...]`) then does nothing on other targets instead of
+  failing their build. A test file with `#![cfg(target_os = "linux", feature = "uring")]` is
+  compiled to an empty test binary unless a `runs` entry enables `uring`; the nativeapis uring
+  suites never ran in CI for that reason. `cargo check --target x86_64-unknown-linux-gnu`
+  compiles Linux-gated test code on a macOS host until a C dependency (`ring`) needs a cross
+  compiler. A `compile_error!` does not stop the other errors in the same crate: the bare
+  `foundation_core` build prints its message first and then 15 to 24 unresolved-`Ctx` errors.
+  `std`, not `alloc`, is that crate's minimum, because `Ctx` (a `HashMap` + `Arc` type map)
+  is `std`-gated and `valtron::ctx` documents that `alloc` support is deferred. State the
+  true minimum in the error, not the one the spec guessed.
 - 2026-11-05 (feature 62, measuring one crate's threads): a whole-process CPU cap cannot hold
   when the test binary runs other tests in parallel. Find the server's threads instead: snapshot
   the thread list before `initialize_pool`, and treat the threads that appear after it as the

@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 78 done on `spec70/f77-f62-f78-readiness-ci`. E1: CI sets
+  `EWE_REQUIRE_IO_URING=1` for `foundation_iogate`, `foundation_proxy` and
+  `foundation_nativeapis`, and their jobs run with `seccomp=unconfined` because the default
+  Docker profile blocks `io_uring_setup`. A new `io_uring_probe` target prints the detection
+  result before the tests; the main session must run `workflow_dispatch` to read it. E2: the
+  four nativeapis uring suites share `tests/common/mod.rs` and follow the same rule; the
+  `fd,uring` run is now in CI, and `io-uring` moved to the Linux target table so the feature is
+  a no-op on other targets. E3: `std` is the minimum, not `alloc` (`Ctx` needs `std`; `alloc`
+  support is deferred). A crate-root `compile_error!` names it, and CI checks the exact message
+  through the new `wasm-expect-error` setting. E4: `rearm_readable` is `cfg(unix)`; the
+  `foundation_reactor` wasm check is in CI. E5: the vfs shim D1/R2 closures no longer move
+  `guard`; `vfs-preload`, `-d1` and `-r2` build, and `vfs-preload` is a CI run. Checks:
+  `foundation_core` native and wasm `std` clean; `foundation_reactor` wasm clean;
+  `foundation_nativeapis` (native, and Linux x86_64 `fd,uring` tests) clippy clean;
+  `foundation_reactor` and `foundation_iogate` clippy clean; `vfs_shim_vfs` compiles on macOS
+  (0 tests). Not run here: any io_uring test (macOS host), the real `vfs_shim_vfs` (Linux and
+  wrangler). The full `foundation_nativeapis` suite passes (2 ignored doctests remain).
+  Backlog: four entries deleted, two added.
 - 2026-11-05: feature 62 done on `spec70/f77-f62-f78-readiness-ci`.
   `idle_h2_connection_uses_no_cpu` now measures only the server's threads: the threads that
   appear after `initialize_pool` (pool and background workers), plus `reactor-drain` by name.

@@ -100,6 +100,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
+- **The bare `--no-default-features` build prints its `compile_error!` and then 24 more
+  errors.** `foundation_core` now refuses the configuration with a clear message (feature 78
+  E3), but `pub mod valtron` and its executors still compile and emit unresolved-import errors
+  for `Ctx`. The first error is the actionable one; the rest is noise. Fix: gate `pub mod
+  valtron` on `std`, or put the executors behind the same `cfg`, so only the named error
+  remains.
 - **The idle CPU tests measure the threads of other tests.** File:
   `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
   tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which
@@ -116,6 +122,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   foundation_iogate --no-deps` reports about ten `doc_markdown` warnings (items
   such as `io_uring` and `CompletionSocket` without backticks) in `lib.rs`,
   `shared/mod.rs` and `native/`. Fix: add the backticks.
+- **Two `foundation_nativeapis` doc examples are `ignore`d pseudo-code.**
+  `src/native/fd/completion.rs:20` uses an undefined `decoder` and
+  `src/valtron/file_watcher.rs:142` an undefined `collect_one` stream setup, so
+  `cargo test --doc` reports both as ignored and never compiles them. Fix: make each a
+  real example with a local task or type, as feature 80 did for `foundation_core`, or
+  delete the code block and keep the prose. Seen in feature 78.
 - **`foundation_nativeapis` `signal/linux.rs` delivers the signal from the signal handler
   itself.** `signal_handler` calls `deliver_signal`, which locks `SignalBus` mutexes and
   pushes to queues (allocation, `EventQueue` wake). That is not async-signal-safe: a signal
@@ -164,14 +176,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   executor loop is refactored.
 - **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
   Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
-- **CI does not set `EWE_REQUIRE_IO_URING=1`.** The `foundation_iogate` and
-  `foundation_proxy` io_uring tests now fail when that variable is `1` and io_uring
-  is missing, and skip with a message otherwise. CI runs every package in a Docker
-  `container:` job (`.github/workflows/check.yaml`); Docker's default seccomp
-  profile can block `io_uring_setup`, and the CI image kernel was not confirmed to
-  allow it, so the variable is not set. Fix: run one CI job with the variable and
-  keep it if the tests pass. The `foundation_nativeapis` `uring_completion_*` and
-  `completion_source_seam` tests still skip without the variable check.
 - **A response writer's send timeout counts from its creation, not from its last
   byte, for long streams.** `forward_http` and the translators use one
   `ResponseWriter` for the whole response, so a gRPC stream idle for longer than
@@ -276,9 +280,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   where it uses a store with an atomic `set_if_version` (lane A owns the proxy). `D1Store`'s
   version is tested only on a hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
 
-- **`foundation_nativeapis` `vfs-preload` does not compile.** `src/native/vfs/shim/mod.rs` (around
-  lines 163 to 190) uses `guard` after it moved (`E0382`), so `tests/vfs_shim_vfs` cannot run.
-  Found while moving the CF tests to the local explorer API (feature 76).
 - **R2 range read and conditional put have no test yet.** Wrangler's local explorer API does not
   serve them; they need the wasm-testbed harness on the real R2 binding (feature 76 E0).
 
@@ -309,12 +310,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   no source `use`s it. Fix: silence the lint for that dependency (for example
   a `[lints.cargo]` override or a `use` that marks it used).
 
-- **`foundation_reactor` wasm dead-code warning: `rearm_readable` is never used.**
-  `Poll::rearm_readable` (`src/poll/mod.rs:322`) is `pub(crate)` and only called
-  from `src/reactor.rs:565`, which is a native (kqueue/poll) path. On wasm32 the
-  call site is compiled out, so `cargo check --tests --target wasm32` on
-  foundation_wireguard/foundation_netio emits `method rearm_readable is never
-  used`. Fix: gate the method on the same `cfg` as its call site.
 - **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
   `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
   `foundation_core::valtron::{EventReadiness::register, ReadinessNotifier, ReadinessWaker}`
@@ -346,13 +341,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   --profile dev --no-deps` reports 174 warnings in the lib (for example
   `manual_let_else` in `provisioning_route`) and more in the tests. Fix: follow
   the per-crate clippy workflow in `.agents/AGENTS.md`.
-- **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
-  (`cargo check -p foundation_core --target wasm32-unknown-unknown --no-default-features`):
-  `valtron::Ctx` is unresolved in `executors/collect_next.rs` and `dependent_lift.rs`. CI
-  never runs that configuration (its wasm runs all add `std`). Fix: either gate the
-  executors that need `Ctx` on `alloc`, or declare in `Cargo.toml` docs that `alloc` is the
-  minimum and make a bare build fail with a `compile_error!` that says so.
-
 
 - **`poll_ready` single-polls a handler future with a noop waker.**
   `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the

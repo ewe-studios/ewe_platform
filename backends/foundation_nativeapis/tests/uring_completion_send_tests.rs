@@ -20,25 +20,19 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::poll::probe;
 use foundation_nativeapis::native::poll::sys::unix::selector::uring_completion::{
     Selector, SendCompletion,
 };
 use foundation_nativeapis::{Events, Token};
 
-/// Skip when the running kernel lacks the completion tier (documented fallback).
+mod common;
+
+/// Skip when the running kernel lacks the completion tier (documented
+/// fallback), or fail when `EWE_REQUIRE_IO_URING=1` promises it (CI).
 macro_rules! require_completion_tier {
     () => {
-        match probe::probe() {
-            Ok(caps) if caps.supports_completion() => {}
-            Ok(caps) => {
-                eprintln!("skipping: kernel lacks the completion tier ({caps})");
-                return;
-            }
-            Err(e) => {
-                eprintln!("skipping: io_uring unavailable ({e})");
-                return;
-            }
+        if common::io_uring_missing("completion tier", common::Requires::Completion) {
+            return;
         }
     };
 }
