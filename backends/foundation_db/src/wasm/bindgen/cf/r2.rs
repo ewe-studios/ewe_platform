@@ -14,6 +14,14 @@ extern "C" {
     #[wasm_bindgen(method, js_name = get)]
     pub fn get(this: &R2Bucket, key: &str) -> js_sys::Promise;
 
+    /// GET with an options object (`range`, `onlyIf`, ...).
+    #[wasm_bindgen(method, js_name = get)]
+    pub(crate) fn get_with_options(
+        this: &R2Bucket,
+        key: &str,
+        options: &JsValue,
+    ) -> js_sys::Promise;
+
     #[wasm_bindgen(method, js_name = put)]
     pub fn put(this: &R2Bucket, key: &str, value: &JsValue) -> js_sys::Promise;
 
@@ -61,6 +69,14 @@ extern "C" {
 
     #[wasm_bindgen(method, getter)]
     pub fn size(this: &R2Object) -> f64;
+
+    /// The object's quoted HTTP `ETag` (the value a conditional PUT compares).
+    #[wasm_bindgen(method, getter, js_name = httpEtag)]
+    pub(crate) fn http_etag(this: &R2Object) -> String;
+
+    /// The object's key, as a listing returns it.
+    #[wasm_bindgen(method, getter)]
+    pub(crate) fn key(this: &R2Object) -> String;
 }
 
 /// R2 list output returned by `R2Bucket::list()`.

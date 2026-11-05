@@ -6207,6 +6207,7 @@ dependencies = [
  "foundation_nostd",
  "foundation_wasm_ui",
  "js-sys",
+ "libc",
  "portpicker",
  "rustls 0.23.40",
  "serde",

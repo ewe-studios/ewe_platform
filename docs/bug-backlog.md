@@ -132,6 +132,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `foundation_openapi` and `foundation_codegentools` are clean (spec 70 feature 55).
   Fix: clear the docker lints in feature 49, then keep them at zero.
 
+- **`foundation_cloudflare_types` has one pedantic clippy warning in generated code.**
+  `cargo clippy -p foundation_cloudflare_types --profile uat --all-targets -- -D warnings`
+  reports "calling `D1SingleQuery::default()` is more clear than this expression" in
+  `src/generated.rs`. Fix the generator's default-value emission (or allow the lint in the
+  generated header), regenerate, and keep the crate at zero. Found while rustfmt-ing the
+  hand-written re-export list (feature 55 E1).
+
 ## 9. foundation_proxy
 
 - **`foundation_proxy` clippy and test warnings are open.** `cargo clippy -p
@@ -220,6 +227,18 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `foundation_keychain/tests/streamed_body.rs` when two slow uploads finish
   together. Fix: a connection per call or a small pool, or serialise calls in
   the Turso backend (feature 51 owns the shared-connection work).
+- **`foundation_proxy` can drop its state file lock.** `set_if_version` (compare on
+  `updated_at`) is now atomic on the file, libsql, D1, R2 and namespaced stores (feature 76 E4
+  and E4b). The proxy keeps a `flock` around its read-modify-write; it can use
+  `set_if_version` instead (lane A owns the proxy). `D1Store`'s version is tested only on a
+  hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
+- **workerd's local R2 binding enforces `onlyIf` but does not report a failed precondition.**
+  In wrangler 4.156.2 the object PUT with `onlyIf: { etagMatches }` or
+  `etagDoesNotMatch` leaves an existing object unchanged and resolves the promise, instead of
+  rejecting. `R2WasmStorage::put_blob_conditionally` therefore keeps the trait's documented
+  non-atomic check-then-write, which reports `PreconditionFailed`. The E0 harness tests that
+  contract; an atomic wasm conditional put needs a workerd that rejects. Re-check on a newer
+  wrangler.
 
 ## 12. foundation_auth
 
@@ -231,18 +250,10 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   none of these are enforced. Fix: a dedicated clippy-cleanup pass over the
   server tree, then extend the CI clippy run to `server-test` so the debt
   stays cleared.
-- **`StateStore::set_if_version` is not atomic on `R2Store`, and the proxy still has its file lock.**
-  `set_if_version` (compare on `updated_at`) is atomic on the file, libsql, D1 and namespaced
-  stores. `R2Store` uses the read-compare-write default: the R2 conditional put needs the
-  object's `ETag`, which the state API does not carry. `foundation_proxy` can drop its flock
-  where it uses a store with an atomic `set_if_version` (lane A owns the proxy). `D1Store`'s
-  version is tested only on a hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
 
 - **`foundation_nativeapis` `vfs-preload` does not compile.** `src/native/vfs/shim/mod.rs` (around
   lines 163 to 190) uses `guard` after it moved (`E0382`), so `tests/vfs_shim_vfs` cannot run.
   Found while moving the CF tests to the local explorer API (feature 76).
-- **R2 range read and conditional put have no test yet.** Wrangler's local explorer API does not
-  serve them; they need the wasm-testbed harness on the real R2 binding (feature 76 E0).
 
 ## 16. Workspace / process
 
@@ -271,6 +282,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   no source `use`s it. Fix: silence the lint for that dependency (for example
   a `[lints.cargo]` override or a `use` that marks it used).
 
+- **`foundation_testbed` clippy debt outside the wasm runner.** `cargo clippy -p
+  foundation_testbed --profile uat --all-targets --no-deps -- -D warnings` still reports
+  31 warnings in the lib and 1 in `tests/fwt_discovery_tests.rs` after feature 76 fixed
+  the three in `wasm/wrangler.rs` and `wasm/wasm.rs`: `qemu_control.rs` (missing
+  `# Errors`/`# Panics`, casts, identical match arms, redundant closure), `browser.rs`,
+  `build.rs` (collapsible `if`, long function, case-sensitive extension check),
+  `fwt_runner.rs`, `init.rs`, `wasm/mod.rs` (module name) and the test's doc backticks.
+  Fix: a clippy pass over the crate, then `clippy-deny-warnings = true` in
+  `ci/packages.toml`.
+
 - **`foundation_reactor` wasm dead-code warning: `rearm_readable` is never used.**
   `Poll::rearm_readable` (`src/poll/mod.rs:322`) is `pub(crate)` and only called
   from `src/reactor.rs:565`, which is a native (kqueue/poll) path. On wasm32 the
@@ -290,19 +311,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-## 21. foundation_deployment_cloudflare on wasm32
-
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
-
-- **`foundation_deployment_cloudflare` has three `unused_dependencies` manifest
-  lints under wasm32** (cargo nightly 1.100.0): `foundation_errstacks` and two
-  `foundation_netio` entries. `foundation_errstacks` (types.rs) and
-  `foundation_netio` (client.rs, dns_ops.rs) are used only in
-  `#[cfg(not(target_family = "wasm"))]` modules, so the wasm build flags them.
-  The two truly-unused deps (`base85rs`, `sha2`) were removed when the generated
-  Cloudflare groups split into per-group crates (feature 22 E3). Fix: move the
-  native-only deps into the native target section and drop the wasm-only
-  `foundation_netio` entry (nothing uses it on wasm).
 
 ## 22. foundation_keychain
 

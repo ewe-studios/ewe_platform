@@ -272,6 +272,49 @@ impl R2Store {
         Ok(Some(bytes))
     }
 
+    /// Async GET — returns the object bytes and the response `ETag` header, or
+    /// `None` when the object is absent.
+    ///
+    /// The conditional state write compares the stored `updated_at` and then
+    /// sends the `ETag` with `If-Match`, so the write applies to the exact
+    /// object that was compared. The body is a small state JSON object.
+    async fn get_object_with_etag_async(
+        &self,
+        key: &str,
+    ) -> Result<Option<(Vec<u8>, Option<String>)>, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .send_async(
+                PreparedRequestBuilder::get(&url)
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .build(),
+            )
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
+
+        if response.get_status() == Status::NotFound {
+            return Ok(None);
+        }
+        if response.get_status() != Status::OK {
+            return Err(StorageError::Backend(format!(
+                "R2 GET failed with status {}",
+                response.get_status()
+            )));
+        }
+        let (_, headers, body) = response.into_async_parts();
+        let bytes = collect_bytes_async(body)
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
+        let etag = headers
+            .get(&SimpleHeader::ETAG)
+            .and_then(|values| values.first().cloned());
+        Ok(Some((bytes, etag)))
+    }
+
     /// Async PUT — stores data at the given key.
     async fn put_object_async(
         &self,
@@ -937,6 +980,65 @@ impl StateStore for R2Store {
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         self.put_object_async(&self.state_object_key(&state.id), &body, "application/json")
             .await
+    }
+
+    /// Conditional write through R2's object conditional PUT.
+    ///
+    /// `expected = None` writes only when the object is absent
+    /// (`If-None-Match: *`). `expected = Some(t)` reads the state and its
+    /// `ETag` in one GET, compares `updated_at`, then writes with
+    /// `If-Match: <etag>`. R2 returns `412 Precondition Failed` when the
+    /// condition does not hold, which becomes `Ok(false)`. The ETag pins the
+    /// exact object that was compared, so two writers cannot both win.
+    ///
+    /// Cloudflare documents both request headers on the R2 object PUT
+    /// (`If-Match`, `If-None-Match`):
+    /// <https://developers.cloudflare.com/api/resources/r2/subresources/buckets/subresources/objects/methods/put/>.
+    /// Wrangler's local explorer REST API ignores them; the wasm testbed runs
+    /// the conditional-write test on the real R2 binding.
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        let state = state.with_id(resource_id);
+        let key = self.state_object_key(&state.id);
+        let body = serde_json::to_vec_pretty(&state)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+
+        let Some(expected) = expected else {
+            return match self
+                .put_object_conditional_async(&key, &body, "application/json", Some("*"), None)
+                .await
+            {
+                Ok(()) => Ok(true),
+                Err(StorageError::PreconditionFailed(_)) => Ok(false),
+                Err(error) => Err(error),
+            };
+        };
+
+        let Some((stored, etag)) = self.get_object_with_etag_async(&key).await? else {
+            return Ok(false);
+        };
+        let stored: ResourceState = serde_json::from_slice(&stored)
+            .map_err(|e| StorageError::Serialization(format!("R2 GET parse failed: {e}")))?;
+        if stored.updated_at != expected {
+            return Ok(false);
+        }
+        let Some(etag) = etag else {
+            return Err(StorageError::Backend(
+                "R2 GET returned no ETag, so the conditional write cannot be atomic".to_string(),
+            ));
+        };
+        match self
+            .put_object_conditional_async(&key, &body, "application/json", None, Some(&etag))
+            .await
+        {
+            Ok(()) => Ok(true),
+            Err(StorageError::PreconditionFailed(_)) => Ok(false),
+            Err(error) => Err(error),
+        }
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {

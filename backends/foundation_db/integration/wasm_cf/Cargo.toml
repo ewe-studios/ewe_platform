@@ -1,0 +1,33 @@
+# Standalone wasm test crate for the Cloudflare D1/R2/KV stores. It is outside
+# the root workspace so the native `tests/` of foundation_db never build for
+# wasm32. Run it inside workerd on the real local bindings:
+#
+#   cargo run -p foundation_testbed --no-default-features --features wasm \
+#     --profile uat --bin wasm-testbed -- test bindgen-wrangler \
+#     backends/foundation_db/integration/wasm_cf
+#
+# The testbed's worker passes the real `env` (D1, R2 and KV bindings from its
+# `wrangler.toml`) as `globalThis.__CF_TEST_ENV__`.
+[package]
+name = "foundation_db_wasm_cf_tests"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+foundation_db = { path = "../..", default-features = false, features = ["wasm-bindgen-storage"] }
+# Pinned to the versions foundation_testbed pins and the testbed's CI installs:
+# the wasm-bindgen CLI must be >= the crate it processes (0.2.126 exactly here).
+wasm-bindgen = "=0.2.126"
+js-sys = "=0.3.103"
+serde_json = "1"
+chrono = { version = "0.4", features = ["wasmbind"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.76"
+futures-lite = "2"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]

@@ -24,12 +24,12 @@ pub enum BindgenTarget {
 }
 
 impl BindgenTarget {
-    /// Returns the CLI argument for this target, or None for the default.
-    fn cli_arg(self) -> Option<&'static str> {
+    /// The CLI argument for this target.
+    fn cli_arg(self) -> &'static str {
         match self {
-            BindgenTarget::Web => Some("web"),
-            BindgenTarget::Deno => Some("deno"),
-            BindgenTarget::EsModules => Some("esmodules"),
+            BindgenTarget::Web => "web",
+            BindgenTarget::Deno => "deno",
+            BindgenTarget::EsModules => "module",
         }
     }
 }
@@ -86,9 +86,7 @@ pub fn run_wasm_bindgen_with_name(
         cmd.arg("--out-name").arg(name);
     }
 
-    if let Some(arg) = target.cli_arg() {
-        cmd.arg("--target").arg(arg);
-    }
+    cmd.arg("--target").arg(target.cli_arg());
 
     debug!("Executing: {:?}", cmd);
 
