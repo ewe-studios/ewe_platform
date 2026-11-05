@@ -106,7 +106,7 @@ pub async fn enable_authenticator(
         .ok_or_else(|| AppError::BadRequest("call get-authenticator first".into()))?;
 
     if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE) {
-        return Err(AppError::BadRequest("invalid verification code".into()));
+        return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
 
     let recovery_code = crypto::new_uuid_v4()?.to_string().replace('-', "");
@@ -136,7 +136,7 @@ pub async fn disable_authenticator(
         .await?
         .ok_or_else(|| AppError::BadRequest("two-factor is not configured".into()))?;
     if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE) {
-        return Err(AppError::BadRequest("invalid verification code".into()));
+        return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
     store::delete(ctx.db(), user_uuid).await
 }

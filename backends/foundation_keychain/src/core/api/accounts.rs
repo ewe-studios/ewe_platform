@@ -106,15 +106,13 @@ pub async fn prelogin(ctx: &KeychainContext, email: &str) -> AppResult<PreloginR
 pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<UserAccount> {
     let email = normalize_email(&req.email);
     if email.is_empty() || !email.contains('@') {
-        return Err(AppError::BadRequest("a valid email is required".into()));
+        return Err(AppError::BadRequest("a valid email is required".into()).into());
     }
     if req.master_password_hash.is_empty() {
-        return Err(AppError::BadRequest(
-            "master password hash is required".into(),
-        ));
+        return Err(AppError::BadRequest("master password hash is required".into()).into());
     }
     if store::find_by_email(ctx.db(), &email).await?.is_some() {
-        return Err(AppError::Conflict("email already registered".into()));
+        return Err(AppError::Conflict("email already registered".into()).into());
     }
 
     let salt = crypto::random_salt()?;

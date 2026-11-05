@@ -122,7 +122,7 @@ fn wrong_password_is_rejected() {
         identity::connect_token(&c, password_grant("bob@example.com", "wrong", "dev-1")).await
     });
     assert!(
-        matches!(res, Err(AppError::BadRequest(_))),
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_))),
         "wrong password must be invalid_grant"
     );
 }
@@ -134,7 +134,9 @@ fn unknown_user_is_rejected() {
     let res = drive(async move {
         identity::connect_token(&c, password_grant("ghost@example.com", "x", "dev-1")).await
     });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }
 
 #[valtron_test]
@@ -179,7 +181,7 @@ fn refresh_grant_rotates_and_supersedes_old_token() {
     };
     let reuse = drive(async move { identity::connect_token(&c, reuse_req).await });
     assert!(
-        matches!(reuse, Err(AppError::BadRequest(_))),
+        matches!(reuse, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_))),
         "reused refresh token must fail"
     );
 }
@@ -194,7 +196,9 @@ fn refresh_with_garbage_token_is_rejected() {
         ..Default::default()
     };
     let res = drive(async move { identity::connect_token(&c, req).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }
 
 #[valtron_test]
@@ -206,5 +210,7 @@ fn unsupported_grant_type_is_rejected() {
         ..Default::default()
     };
     let res = drive(async move { identity::connect_token(&c, req).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }

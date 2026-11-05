@@ -81,7 +81,7 @@ fn app_register_and_authenticate() {
     let c = ctx.clone();
     let bad = format!("{app_id}.tampered");
     let res = drive(async move { apps::authenticate(&c, &bad).await });
-    assert!(matches!(res, Err(AppError::Unauthorized)));
+    assert!(matches!(res, Err(trace) if matches!(trace.current_context(), AppError::Unauthorized)));
 }
 
 #[valtron_test]
@@ -186,5 +186,5 @@ fn keys_are_isolated_per_app() {
     let c = ctx.clone();
     let kid = key.id.clone();
     let res = drive(async move { ssh_keys::get(&c, MASTER, &app_b, &kid).await });
-    assert!(matches!(res, Err(AppError::Forbidden)));
+    assert!(matches!(res, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)));
 }

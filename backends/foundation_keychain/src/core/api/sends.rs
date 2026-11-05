@@ -30,6 +30,7 @@ fn parse_date(s: &str) -> AppResult<DateTime<Utc>> {
     DateTime::parse_from_rfc3339(s)
         .map(|d| d.with_timezone(&Utc))
         .map_err(|e| AppError::BadRequest(format!("invalid date {s:?}: {e}")))
+        .map_err(Into::into)
 }
 
 fn send_type_from_i64(v: i64) -> SendType {
@@ -64,7 +65,7 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Se
         .await?
         .ok_or_else(|| AppError::NotFound("send not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }
@@ -93,7 +94,7 @@ pub async fn create(
     req: SendCreateRequest,
 ) -> AppResult<Send> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("send name is required".into()));
+        return Err(AppError::BadRequest("send name is required".into()).into());
     }
     let now = Utc::now();
     let deletion_date = match req.deletion_date.as_deref() {
@@ -147,7 +148,7 @@ pub async fn update(
     let mut row = owned(ctx, user_uuid, id).await?;
     if let Some(name) = req.name {
         if name.trim().is_empty() {
-            return Err(AppError::BadRequest("send name is required".into()));
+            return Err(AppError::BadRequest("send name is required".into()).into());
         }
         row.name = name;
     }
@@ -209,12 +210,12 @@ pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> 
             .max_access_count
             .is_some_and(|max| row.access_count >= max);
     if gone {
-        return Err(AppError::NotFound("send not found".into()));
+        return Err(AppError::NotFound("send not found".into()).into());
     }
 
     if let Some(required) = row.password.as_deref() {
         if password != Some(required) {
-            return Err(AppError::Unauthorized);
+            return Err(AppError::Unauthorized.into());
         }
     }
 

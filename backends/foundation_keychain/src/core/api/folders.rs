@@ -32,7 +32,7 @@ fn to_api(row: FolderRow) -> Folder {
 fn validated_name(name: &str) -> AppResult<String> {
     let trimmed = name.trim();
     if trimmed.is_empty() {
-        return Err(AppError::BadRequest("folder name is required".into()));
+        return Err(AppError::BadRequest("folder name is required".into()).into());
     }
     Ok(trimmed.to_string())
 }
@@ -43,7 +43,7 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Fo
         .await?
         .ok_or_else(|| AppError::NotFound("folder not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }

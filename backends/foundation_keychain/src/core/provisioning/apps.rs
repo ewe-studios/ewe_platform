@@ -68,7 +68,7 @@ pub async fn register(
     req: RegisterAppRequest,
 ) -> AppResult<RegisterAppResponse> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("app name is required".into()));
+        return Err(AppError::BadRequest("app name is required".into()).into());
     }
     let uuid = crypto::new_uuid_v4()?.to_string();
     // Secret embeds the uuid so it resolves the app on later calls.
@@ -102,7 +102,7 @@ pub async fn register(
 pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<String> {
     let app_id = secret.split('.').next().unwrap_or_default();
     if app_id.is_empty() {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Unauthorized.into());
     }
     let app = store::find_app(ctx.db(), app_id)
         .await?
@@ -125,7 +125,7 @@ pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<Stri
     if ok {
         Ok(app.uuid)
     } else {
-        Err(AppError::Unauthorized)
+        Err(AppError::Unauthorized.into())
     }
 }
 
@@ -140,7 +140,7 @@ pub async fn get(
     requested_id: &str,
 ) -> AppResult<AppResponse> {
     if app_id != requested_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     let app = store::find_app(ctx.db(), app_id)
         .await?
@@ -160,7 +160,7 @@ pub async fn get(
 /// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, app_id: &str, requested_id: &str) -> AppResult<()> {
     if app_id != requested_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     store::delete_app(ctx.db(), app_id).await
 }

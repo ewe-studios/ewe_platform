@@ -42,9 +42,7 @@ pub async fn connect_token(ctx: &KeychainContext, req: TokenRequest) -> AppResul
     match req.grant_type.as_str() {
         "password" => password_grant(ctx, req).await,
         "refresh_token" => refresh_grant(ctx, req).await,
-        other => Err(AppError::BadRequest(format!(
-            "unsupported grant_type: {other}"
-        ))),
+        other => Err(AppError::BadRequest(format!("unsupported grant_type: {other}")).into()),
     }
 }
 
@@ -100,7 +98,7 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
     };
 
     if !verified {
-        return Err(invalid_grant("username or password is incorrect"));
+        return Err(invalid_grant("username or password is incorrect").into());
     }
 
     let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier)?;
@@ -150,7 +148,7 @@ async fn refresh_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<Lo
 
     // The presented token must be the one we last handed this device (rotation).
     if device.refresh_token != presented {
-        return Err(invalid_grant("refresh token has been superseded"));
+        return Err(invalid_grant("refresh token has been superseded").into());
     }
 
     let user = users::find_by_uuid(ctx.db(), &user_uuid)

@@ -206,7 +206,7 @@ fn non_members_are_forbidden() {
     let oid = org_id.clone();
     assert!(matches!(
         drive(async move { orgs::get(&c, OUTSIDER, &oid).await }),
-        Err(AppError::Forbidden)
+        Err(trace) if matches!(trace.current_context(), AppError::Forbidden)
     ));
 
     let c = ctx.clone();
@@ -224,7 +224,7 @@ fn non_members_are_forbidden() {
             )
             .await
         }),
-        Err(AppError::Forbidden)
+        Err(trace) if matches!(trace.current_context(), AppError::Forbidden)
     ));
 
     // Owner deletes the org; afterwards even the owner is no longer a member.

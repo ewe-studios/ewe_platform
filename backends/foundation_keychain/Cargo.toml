@@ -1,6 +1,6 @@
 [package]
 name = "foundation_keychain"
-version = "0.1.4"
+version = "0.1.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -25,7 +25,8 @@ sha2 = "0.10"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 rmp-serde = "1"
 tracing = { workspace = true }
-thiserror = { workspace = true }
+derive_more.workspace = true
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 # (SSH key provisioning deps are native-only — see the native target section below.)
 
@@ -67,7 +68,6 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.4" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.5", default-features = false }
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).

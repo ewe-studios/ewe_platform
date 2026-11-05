@@ -54,7 +54,7 @@ async fn owned(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<S
         .await?
         .ok_or_else(|| AppError::NotFound("ssh key not found".into()))?;
     if key.app_uuid != app_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(key)
 }
@@ -71,7 +71,7 @@ pub async fn create(
     req: CreateSshKeyRequest,
 ) -> AppResult<SshKeyResponse> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("key name is required".into()));
+        return Err(AppError::BadRequest("key name is required".into()).into());
     }
     let comment = req.comment.clone().unwrap_or_default();
     let generated = keygen::generate(req.key_type.as_deref().unwrap_or("ed25519"), &comment)?;
