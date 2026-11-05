@@ -4529,7 +4529,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-trait",
  "candle-core",
@@ -6262,7 +6262,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "concurrent-queue",
  "derive_more",
@@ -6272,8 +6272,6 @@ dependencies = [
  "foundation_nativeapis",
  "foundation_netio",
  "foundation_nostd",
- "foundation_runtimes",
- "itertools 0.14.0",
  "libc",
  "serde",
  "serde_json",

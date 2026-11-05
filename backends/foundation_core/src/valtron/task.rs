@@ -426,9 +426,8 @@ impl<D, P> TaskStatus<D, P> {
 /// ```
 pub struct QueueReadiness<T> {
     queue: Arc<ConcurrentQueue<T>>,
-    /// Woken after a push and on close. `None` for a queue that valtron does not
-    /// own: nothing wakes on its push, so the executor re-checks it on a timer.
-    notifier: Option<Arc<ReadinessNotifier>>,
+    /// Woken after a push and on close, so the parked task runs again at once.
+    notifier: Arc<ReadinessNotifier>,
 }
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
@@ -442,61 +441,25 @@ impl<T> Clone for QueueReadiness<T> {
 }
 
 impl<T> QueueReadiness<T> {
-    /// Create a `QueueReadiness` that watches the given queue for messages.
-    ///
-    /// The queue is a plain `ConcurrentQueue`: a push does not wake the task, so
-    /// the executor re-checks this readiness on a timer (`register` returns
-    /// `false`). Prefer an [`EventQueue`] and [`EventQueue::readiness`], whose push
-    /// wakes the parked task.
-    #[deprecated(
-        since = "0.0.7",
-        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::readiness()` (spec 70 feature 80)"
-    )]
-    pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self {
-            queue,
-            notifier: None,
-        }
-    }
-
-    /// Same as [`Self::new`]: a plain queue cannot wake the task.
-    ///
-    /// Kept for code that built a readiness over a raw queue and resumed the
-    /// executor itself; it is re-checked on a timer like [`Self::new`]. Use
-    /// [`EventQueue`].
-    #[deprecated(
-        since = "0.0.7",
-        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::readiness()` (spec 70 feature 80)"
-    )]
-    #[allow(deprecated)]
-    pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self::new(queue)
-    }
-
     /// A readiness over a queue whose pushes and close call `notifier`.
     pub(crate) fn with_notifier(
         queue: Arc<ConcurrentQueue<T>>,
         notifier: Arc<ReadinessNotifier>,
     ) -> Self {
-        Self {
-            queue,
-            notifier: Some(notifier),
-        }
+        Self { queue, notifier }
     }
 
-    /// Get a clone of the underlying queue for external mutation (pushing messages).
+    /// Get a clone of the underlying queue.
     ///
-    /// Push with [`QueueReadiness::push`] (or through the [`EventQueue`]) so the
-    /// parked consumer is woken; a raw push is seen only by a timed re-check.
+    /// Push with [`QueueReadiness::push`] (or through the [`EventQueue`] that
+    /// made this readiness) so the parked consumer is woken. A raw push wakes
+    /// nobody.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
     }
 
     fn changed(&self) {
-        match &self.notifier {
-            Some(notifier) => notifier.notify(),
-            None => crate::valtron::request_executor_resume(),
-        }
+        self.notifier.notify();
     }
 
     /// Push `item` and wake the consumer parked on this readiness.
@@ -528,9 +491,7 @@ impl<T: Send> EventReadiness for QueueReadiness<T> {
     }
 
     fn register(&self, waker: &ReadinessWaker) -> bool {
-        self.notifier
-            .as_ref()
-            .is_some_and(|notifier| notifier.register(waker))
+        self.notifier.register(waker)
     }
 }
 
@@ -541,9 +502,7 @@ impl<T> EventReadiness for QueueReadiness<T> {
     }
 
     fn register(&self, waker: &ReadinessWaker) -> bool {
-        self.notifier
-            .as_ref()
-            .is_some_and(|notifier| notifier.register(waker))
+        self.notifier.register(waker)
     }
 }
 
@@ -583,9 +542,8 @@ impl<T> EventReadiness for QueueReadiness<T> {
 /// ```
 pub struct QueueVacancyReadiness<T> {
     queue: Arc<ConcurrentQueue<T>>,
-    /// Woken after a pop and on close. `None` for a queue that valtron does not
-    /// own: nothing wakes on its pop, so the executor re-checks it on a timer.
-    notifier: Option<Arc<ReadinessNotifier>>,
+    /// Woken after a pop and on close, so the parked producer runs again at once.
+    notifier: Arc<ReadinessNotifier>,
 }
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
@@ -599,58 +557,25 @@ impl<T> Clone for QueueVacancyReadiness<T> {
 }
 
 impl<T> QueueVacancyReadiness<T> {
-    /// Create a `QueueVacancyReadiness` that watches the given queue for capacity.
-    ///
-    /// The queue is a plain `ConcurrentQueue`: a pop does not wake the task, so
-    /// the executor re-checks this readiness on a timer (`register` returns
-    /// `false`). Prefer an [`EventQueue`] and [`EventQueue::vacancy`], whose pop
-    /// wakes the parked producer.
-    #[deprecated(
-        since = "0.0.7",
-        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::vacancy()` (spec 70 feature 80)"
-    )]
-    pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self {
-            queue,
-            notifier: None,
-        }
-    }
-
-    /// Same as [`Self::new`]: a plain queue cannot wake the task. Use
-    /// [`EventQueue`].
-    #[deprecated(
-        since = "0.0.7",
-        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::vacancy()` (spec 70 feature 80)"
-    )]
-    #[allow(deprecated)]
-    pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self::new(queue)
-    }
-
     /// A readiness over a queue whose pops and close call `notifier`.
     pub(crate) fn with_notifier(
         queue: Arc<ConcurrentQueue<T>>,
         notifier: Arc<ReadinessNotifier>,
     ) -> Self {
-        Self {
-            queue,
-            notifier: Some(notifier),
-        }
+        Self { queue, notifier }
     }
 
-    /// Get a clone of the underlying queue for external mutation (popping messages).
+    /// Get a clone of the underlying queue.
     ///
-    /// Pop with [`QueueVacancyReadiness::pop`] (or through the [`EventQueue`]) so the
-    /// parked producer is woken; a raw pop is seen only by a timed re-check.
+    /// Pop with [`QueueVacancyReadiness::pop`] (or through the [`EventQueue`] that
+    /// made this readiness) so the parked producer is woken. A raw pop wakes
+    /// nobody.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
     }
 
     fn changed(&self) {
-        match &self.notifier {
-            Some(notifier) => notifier.notify(),
-            None => crate::valtron::request_executor_resume(),
-        }
+        self.notifier.notify();
     }
 
     /// Pop an item and wake the producer parked on the full queue.
@@ -681,9 +606,7 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
     }
 
     fn register(&self, waker: &ReadinessWaker) -> bool {
-        self.notifier
-            .as_ref()
-            .is_some_and(|notifier| notifier.register(waker))
+        self.notifier.register(waker)
     }
 }
 
@@ -694,9 +617,7 @@ impl<T> EventReadiness for QueueVacancyReadiness<T> {
     }
 
     fn register(&self, waker: &ReadinessWaker) -> bool {
-        self.notifier
-            .as_ref()
-            .is_some_and(|notifier| notifier.register(waker))
+        self.notifier.register(waker)
     }
 }
 

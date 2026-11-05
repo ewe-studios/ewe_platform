@@ -13,7 +13,7 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
     UserModelContent,
 };
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, EventQueue, TaskIterator, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 // ---------------------------------------------------------------------------
@@ -24,8 +24,8 @@ type TestDocStore = MemoryDocumentStore;
 
 struct TestHarness {
     agent: AgentLoop<TestDocStore, TestMemStore>,
-    priority_queue: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
-    follow_up_queue: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
+    priority_queue: EventQueue<Messages>,
+    follow_up_queue: EventQueue<Messages>,
     cancel_signal: Arc<std::sync::atomic::AtomicU32>,
     ledger: TokenLedger,
 }
@@ -51,8 +51,8 @@ fn build_harness(config: AgentConfig) -> TestHarness {
 
     let tool_manager = ToolCallManager::new(session_id.clone());
     let queues = SteeringQueues::new();
-    let priority_handle = Arc::clone(&queues.priority);
-    let follow_up_handle = Arc::clone(&queues.follow_up);
+    let priority_handle = queues.priority.clone();
+    let follow_up_handle = queues.follow_up.clone();
     let cancel_handle = Arc::clone(&queues.cancel_signal);
 
     let coordinator = MemoryCoordinator::new(

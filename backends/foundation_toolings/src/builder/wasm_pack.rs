@@ -37,7 +37,7 @@ impl ProjectBuilder for WasmPackBuilder {
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|e| ToolingError::Io(e))?;
+            .map_err(ToolingError::Io)?;
 
         if output.status.success() {
             Ok(BuildOutput::BuildComplete {
