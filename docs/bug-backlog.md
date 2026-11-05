@@ -83,6 +83,18 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
+- **57 doc examples in `foundation_core` are marked `ignore` and never compile.** Seen on
+  `fix/io-41-50-lane-a` (2026-11-05), `cargo test -p foundation_core --doc`: "35 passed;
+  35 ignored" in the default feature set. Files and counts: `executors/sendables.rs` 11,
+  `extensions/tasks/sendable.rs` 8, `extensions/tasks/non_sendable.rs` 8,
+  `executors/non_sendables.rs` 8, `task.rs` 6, `extensions/streams/sendable.rs` 3,
+  `extensions/streams/non_sendable.rs` 3, `executors/sync.rs` 3, `pipe_mapped.rs` 2,
+  `streams.rs` 1, `mod.rs` 1, `executors/local.rs` 1, `executors/config.rs` 1,
+  `type_uuid.rs` 1. Most are pseudo-code (`MyTask::new()`, undefined
+  `RequestIntro`), so `ignore` hides that the documented API never compiles or runs.
+  Fix: rewrite each as a real doctest that builds a small local task type, runs it, and
+  asserts the shown behaviour; remove `ignore` so `cargo test --doc` executes it in both
+  feature sets (`""` and `multi`).
 - **`foundation_core` and `foundation_nostd` fail `clippy -D warnings`.** Seen on
   `fix/io-41-50-lane-a` (2026-11-04), `cargo clippy -p foundation_core --no-deps
   --profile dev --lib -- -D warnings`: 19 errors, none in feature 46 code. Files:

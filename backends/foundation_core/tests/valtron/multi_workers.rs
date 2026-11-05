@@ -12,7 +12,7 @@ use foundation_core::valtron::{
 };
 
 use foundation_core::synca::WaitGroup;
-use foundation_core::valtron::multi::{PoolGuard, ThreadRegistry};
+use foundation_core::valtron::multi::{is_pool_initialized, PoolGuard, ThreadRegistry};
 
 struct DCounter(usize, Arc<Mutex<Vec<usize>>>);
 
@@ -345,6 +345,34 @@ fn test_poolguard_drop_triggers_shutdown() {
     drop(guard);
 
     // If we get here, shutdown completed
+}
+
+/// A private `PoolGuard` (from [`PoolGuard::new`]) owns a registry that was
+/// never installed in the global slots, and it takes no lifecycle gate. Its
+/// shutdown must therefore leave the pool of another test alone: clearing the
+/// global registries unconditionally made a concurrent `block_on` panic with
+/// "Thread pool not initialized" between `initialize_pool` and `get_pool`.
+#[valtron_test(threads = 2)]
+fn private_pool_guard_drop_keeps_the_global_pool() {
+    assert!(
+        is_pool_initialized(),
+        "the test harness must have installed the global pool"
+    );
+
+    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
+    registry.spawn_worker().expect("should spawn worker");
+    drop(PoolGuard::new(registry));
+
+    assert!(
+        is_pool_initialized(),
+        "dropping a private `PoolGuard` must not clear the global pool"
+    );
+    // Still usable: the handle resolves the global registry.
+    get_pool()
+        .spawn()
+        .with_task(DCounter::new(3, Arc::new(Mutex::new(Vec::new()))))
+        .schedule()
+        .expect("the global pool must still accept tasks");
 }
 
 /// Test 8: WaitGroup across multiple threads

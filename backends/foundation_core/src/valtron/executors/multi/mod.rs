@@ -580,8 +580,10 @@ impl PoolGuard {
     }
 
     /// Explicit shutdown. Idempotent — safe to call multiple times.
-    /// Clears the global registries; the lifecycle lock (held until this guard
-    /// drops) guarantees no other pool can be running concurrently.
+    /// Removes this guard's own entries from the global registries; a private
+    /// guard (see [`PoolGuard::new`]) owns no global entry and leaves the live
+    /// pool alone. The lifecycle lock (held until this guard drops) guarantees
+    /// no other pool can be initialized concurrently.
     pub fn shutdown(&self) {
         tracing::debug!("PoolGuard::shutdown() called - pool shutting down");
         if self
@@ -611,7 +613,7 @@ impl PoolGuard {
 
             self.registry.shutdown();
             tracing::debug!("clearing the global pool registry");
-            clear_global_registries();
+            self.clear_owned_globals();
             tracing::debug!("cleared the global pool registry");
         } else {
             tracing::debug!("PoolGuard::shutdown() - already shut down, skipping");
@@ -628,9 +630,10 @@ impl PoolGuard {
     ///
     /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
     /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
-    /// Either way the global registries are cleared, and dropping the guard
-    /// afterwards releases the lifecycle gate without waiting again. Idempotent:
-    /// a second call, or a call after `shutdown`, returns `true`.
+    /// Either way this guard's own global registry entries are cleared, and
+    /// dropping the guard afterwards releases the lifecycle gate without waiting
+    /// again. Idempotent: a second call, or a call after `shutdown`, returns
+    /// `true`.
     #[must_use]
     pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
         if self
@@ -654,8 +657,44 @@ impl PoolGuard {
             }
         }
         let stopped = self.registry.shutdown_within(timeout);
-        clear_global_registries();
+        self.clear_owned_globals();
         stopped
+    }
+
+    /// Clear each global registry slot, but only when it still holds the
+    /// registry this guard owns.
+    ///
+    /// WHY: a guard from [`PoolGuard::new`] owns a private registry that was
+    /// never installed in the globals (tests build one to exercise shutdown
+    /// without a pool). Such a guard holds no lifecycle gate, so its shutdown can
+    /// run while another test uses the global pool; clearing the slots
+    /// unconditionally would wipe that other pool, and its next `get_pool()`
+    /// panics with "Thread pool not initialized". Comparing the `Arc` makes the
+    /// clear owner-only: a guard never touches a registry it does not own, which
+    /// is the "clear only if the generation still matches" rule in the
+    /// [`PoolGuard`] docs.
+    fn clear_owned_globals(&self) {
+        let mut reg = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+        let owns_task_slot = reg
+            .as_ref()
+            .is_some_and(|global| Arc::ptr_eq(global, &self.registry));
+        if owns_task_slot {
+            *reg = None;
+        }
+        drop(reg);
+
+        let Some(ref bg) = self.bg_registry else {
+            // A private guard owns no background registry: leave that slot to
+            // the pool that installed it.
+            return;
+        };
+        let mut bg_guard = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+        let owns_bg_slot = bg_guard
+            .as_ref()
+            .is_some_and(|global| Arc::ptr_eq(global, bg));
+        if owns_bg_slot {
+            *bg_guard = None;
+        }
     }
 
     /// Get the `WaitGroup` for this pool.

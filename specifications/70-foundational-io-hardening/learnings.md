@@ -2,6 +2,26 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
+  cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
+  `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run
+  in parallel with every other plain `#[test]` in the same binary (for example
+  `test_poolguard_drop_triggers_shutdown` next to `can_queue_and_complete_task`). Its
+  drop therefore wiped the live pool of another test. In `block_on` the window is
+  between `initialize_pool` (installs the registry) and `get_pool` (reads it), so the
+  panic was "Thread pool not initialized, ensure to call block_on or initialize_pool
+  first", and it looked like a random flake. The fix compares the `Arc` and clears a
+  slot only when it still holds the registry this guard owns; the `PoolGuard` docs
+  already promised this "generation still matches" rule. Test:
+  `private_pool_guard_drop_keeps_the_global_pool` in `tests/valtron/multi_workers.rs`.
+  Lesson: a process-wide singleton needs an owner check on every teardown path, and a
+  guard that did not install a slot must never clear it.
+- 2026-11-05 (feature 80, ignored doctests): `foundation_core` marks 57 doc examples
+  `ignore`, so `cargo test --doc` reports them as ignored instead of running them.
+  Many are pseudo-code (`MyTask::new()`, undefined types), and `ignore` hides that the
+  documented API was never compiled. Convert them to real, executing doctests, or the
+  documentation is unverified prose.
+
 - 2026-11-05 (feature 80, lost wake in the `Depends` park path): the executor checked a
   readiness with `is_ready(None)` before it called `register`, because a ready signal never
   wakes anybody. A source that became ready between the two calls found no waker: the notifier
