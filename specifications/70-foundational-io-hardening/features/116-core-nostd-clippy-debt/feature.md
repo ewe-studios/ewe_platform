@@ -181,9 +181,10 @@ smaller groups named in the log.
 - `ci/packages.toml`: `[packages.foundation_core]` sets
   `clippy-runs = ["", "multi"]` and `clippy-deny-warnings = true`.
 - `docs/bug-backlog.md`: deleted the §4 entries for the core clippy debt and the
-  bare-build noise. Added three limitation entries: the `#[task]` macro forces
-  `Ctx` by value, `dual!` needs an `async` body, and the upstream
-  `assert_is_empty` suggestion does not compile for a slice.
+  bare-build noise. Added four limitation entries: the crate-level pedantic
+  allow, the `#[task]` macro forces `Ctx` by value, `dual!` needs an `async`
+  body, and the upstream `assert_is_empty` suggestion does not compile for a
+  slice.
 - Feature 49 E10 is updated and the feature is `done`.
 
 ### Narrow, measured `#[expect]` attributes

@@ -18,7 +18,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     `clippy-runs = ["", "multi"]` and `clippy-deny-warnings = true`.
   - Tests: default 861 passed, 0 failed; `multi` 904 passed, 0 failed;
     `foundation_macros` 99 passed, 0 failed. `cargo fmt --all --check` clean.
-  - Deleted the two §4 clippy entries and added three limitation entries.
+  - Deleted the two §4 clippy entries and added four limitation entries.
     Feature 49 moves to `done` with E10 updated.
   - Status is `pending (CI proof)`: the GitHub run must show the two
     deny-warning clippy runs green.
