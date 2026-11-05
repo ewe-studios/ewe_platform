@@ -7,7 +7,7 @@
 use std::sync::{Arc, Mutex};
 
 use infrastructure_llama_cpp::log::{Module, State};
-use infrastructure_llama_cpp::{logs_to_trace, LogOptions};
+use infrastructure_llama_cpp::{logs_to_trace as unsafe_logs_to_trace, LogOptions};
 use tracing::subscriber::DefaultGuard;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -51,6 +51,20 @@ fn create_logger(max_level: tracing::Level) -> Logger {
             .set_default(),
         logs,
     }
+}
+
+/// Feed one log line to the callback.
+///
+/// Contract: `text` must point to a NUL-terminated C string, and `data` must
+/// point to a live [`State`]. Every call below passes a `c"..."` literal and a
+/// boxed state that outlives the call.
+fn logs_to_trace(
+    level: infrastructure_llama_bindings::ggml_log_level,
+    text: *const std::os::raw::c_char,
+    data: *mut std::os::raw::c_void,
+) {
+    // SAFETY: the caller upholds the pointer contract above.
+    unsafe { unsafe_logs_to_trace(level, text, data) }
 }
 
 #[test]

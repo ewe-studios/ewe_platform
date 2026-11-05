@@ -531,7 +531,16 @@ impl LogOptions {
 ///
 /// The bindings call this function for every log line. It is public so the
 /// buffering and level-mapping behaviour has a test from `tests/`.
-pub extern "C" fn logs_to_trace(
+///
+/// # Safety
+///
+/// `text` must point to a NUL-terminated C string, and `data` must point to a
+/// live [`log::State`] with a `'static` lifetime. The bindings guarantee both.
+///
+/// The function is `unsafe` because it dereferences both pointers. The
+/// `ggml_log_callback` binding type is already
+/// `Option<unsafe extern "C" fn(..)>`, so the two signatures match.
+pub unsafe extern "C" fn logs_to_trace(
     level: infrastructure_llama_bindings::ggml_log_level,
     text: *const ::std::os::raw::c_char,
     data: *mut ::std::os::raw::c_void,

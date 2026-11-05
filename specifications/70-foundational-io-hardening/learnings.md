@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 59, public FFI callback): moving an inline test out of
+  `infrastructure_llama_cpp` made `logs_to_trace` public. Clippy then failed with
+  `not_unsafe_ptr_arg_deref` (deny by default in `clippy::correctness`): a public
+  function takes a raw pointer and dereferences it. The lint only looks at
+  public items, so private code never saw it. The fix is to mark the callback
+  `pub unsafe extern "C" fn` and document the pointer contract, because the
+  `ggml_log_callback` binding type is already
+  `Option<unsafe extern "C" fn(..)>`; the two signatures match. The tests keep a
+  local safe wrapper. A clippy failure in a package job can come from a path
+  dependency, not the package itself: read the `-->` path before you search the
+  package.
 - 2026-11-05 (feature 49, warning cleanup): `cargo clippy --all-targets` lints
   every test and example. A `clippy-deny-warnings = true` entry in
   `ci/packages.toml` therefore needs zero warnings in the test targets too, not

@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 59 follow-up on `spec70/io-hardening-final`. The first CI
+  run of PR #179 failed `foundation_ai` at the clippy step. Cause: feature 59
+  made `logs_to_trace` public, and clippy's `not_unsafe_ptr_arg_deref` denies a
+  public function that dereferences a raw pointer. The callback is now
+  `pub unsafe extern "C" fn` with a `# Safety` section, which matches the
+  `ggml_log_callback` binding type. `cargo clippy -p foundation_ai --all-targets
+  --features testing` passes, and `infrastructure_llama_cpp` tests pass (71
+  doctests, 2 ignored; 7 log tests). The same reproduction in the Linux CI image
+  passes. The other two PR failures are the known `Platform Docker Tests` red on
+  master (`glib-2.0` missing, and the macOS VM container does not start).
 - 2026-11-05: features 47, 48, 49 (partial) and 50 on
   `spec70/f47-f50-lane-a-mechanical`. Feature 47: the ptrace tracer now forks and
   traces on one thread, uses `PTRACE_TRACEME` plus `SIGSTOP`, passes the program
