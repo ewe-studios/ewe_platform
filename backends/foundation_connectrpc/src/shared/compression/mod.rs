@@ -1,6 +1,6 @@
 //! Compression system + buffer pools (Decision 06).
 //!
-//! WHY: ConnectRPC compresses per message (each streaming envelope independently)
+//! WHY: `ConnectRPC` compresses per message (each streaming envelope independently)
 //! and negotiates the algorithm via `Accept-Encoding` / `Content-Encoding`.
 //! Decompression is size-bounded to stop compression bombs. The write path uses
 //! per-worker buffer pools to cut allocation pressure without a `Mutex`.
@@ -41,10 +41,18 @@ pub trait Compressor: Send + Sync + 'static {
     /// Algorithm name used in headers (`"gzip"`, `"zstd"`, `"br"`).
     fn name(&self) -> &str;
     /// Compress `input`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn compress(&self, input: &[u8]) -> Result<Vec<u8>, CompressionError>;
     /// Decompress `input`, rejecting output larger than `max_bytes`
     /// (`0` = unlimited — the connect-go-parity default). Guards against
     /// compression bombs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn decompress(&self, input: &[u8], max_bytes: usize) -> Result<Vec<u8>, CompressionError>;
 }
 

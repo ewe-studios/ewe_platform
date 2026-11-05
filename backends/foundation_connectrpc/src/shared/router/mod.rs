@@ -2,7 +2,7 @@
 //!
 //! WHY: The server spine. One [`Router`] holds every procedure keyed by its
 //! full leading-slash path (R1) and serves all three protocols (Connect, gRPC,
-//! gRPC-Web) from a **single** foundation_http prefix route — protocol is
+//! gRPC-Web) from a **single** `foundation_http` prefix route — protocol is
 //! detected per request from `Content-Type`, never per registration. Type
 //! erasure at the byte boundary (see [`erased`]) keeps the map generic-free.
 //!
@@ -51,7 +51,7 @@ pub use dispatch::{
 pub(crate) use erased::ProcedureMeta;
 pub use erased::RequestStream;
 
-/// Per-procedure (and global) handler configuration (Decision 08 §HandlerOptions).
+/// Per-procedure (and global) handler configuration (Decision 08 §`HandlerOptions`).
 /// Codecs are **not** here — they are installed only through the registration
 /// `ProcedureCodecs` parameter (Decision 02); the client picks per request.
 pub struct HandlerOptions {
@@ -238,7 +238,7 @@ impl Router {
         let codecs = Arc::new(codecs);
         let inner = unary_handler(codecs.clone(), handler);
         let func = self.compose_unary(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::Unary,
             HandlerKind::Unary(Arc::new(UnaryHandlerImpl::new(func))),
@@ -265,7 +265,7 @@ impl Router {
         let codecs = Arc::new(codecs);
         let inner = server_stream_handler(codecs.clone(), handler);
         let func = self.compose_streaming(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::ServerStream,
             HandlerKind::ServerStream(Arc::new(StreamHandlerImpl::new(func))),
@@ -291,7 +291,7 @@ impl Router {
         let codecs = Arc::new(codecs);
         let inner = client_stream_handler(codecs.clone(), handler);
         let func = self.compose_streaming(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::ClientStream,
             HandlerKind::ClientStream(Arc::new(StreamHandlerImpl::new(func))),
@@ -318,7 +318,7 @@ impl Router {
         let codecs = Arc::new(codecs);
         let inner = bidi_stream_handler(codecs.clone(), handler);
         let func = self.compose_streaming(&options, inner);
-        let entry = self.build_entry(
+        let entry = Self::build_entry(
             procedure,
             StreamType::BidiStream,
             HandlerKind::BidiStream(Arc::new(StreamHandlerImpl::new(func))),
@@ -328,7 +328,7 @@ impl Router {
         self.handlers.insert(procedure.to_string(), entry);
     }
 
-    /// Consume the router, producing the frozen foundation_http prefix handler
+    /// Consume the router, producing the frozen `foundation_http` prefix handler
     /// (Q10 — no post-build mutation).
     #[must_use]
     pub fn into_handler(self) -> ConnectRpcHandler {
@@ -378,7 +378,6 @@ impl Router {
     }
 
     fn build_entry(
-        &self,
         procedure: &str,
         stream_type: StreamType,
         handler: HandlerKind,

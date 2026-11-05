@@ -1,16 +1,16 @@
-//! HTTP/3 ConnectRPC conformance — unary over live QUIC (F35).
+//! HTTP/3 `ConnectRPC` conformance — unary over live QUIC (F35).
 //!
 //! WHY: F35 requires Connect+gRPC to pass over HTTP/3. This exercises the
 //! server half end-to-end: a Connect unary request on a live QUIC pair,
 //! dispatched through `dispatch_h3`, verified client-side.
 //!
-//! HOW: quic_pair() + H3Connection. dispatch_h3 is polled manually alongside
+//! HOW: `quic_pair()` + `H3Connection`. `dispatch_h3` is polled manually alongside
 //! QUIC driver pumps — no executor, no tokio, no thread spawning needed.
 
 #[cfg(feature = "h3")]
 mod h3_conformance {
     use std::future::Future;
-    use std::pin::Pin;
+
     use std::sync::Arc;
     use std::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
     use std::time::{Duration, Instant};
@@ -174,11 +174,8 @@ mod h3_conformance {
         assert_eq!(&st[..], b"200");
 
         let mut resp_body = Vec::new();
-        loop {
-            match until!(&mut sq, &mut cq, req.poll_body()) {
-                Some(c) => resp_body.extend_from_slice(&c),
-                None => break,
-            }
+        while let Some(c) = until!(&mut sq, &mut cq, req.poll_body()) {
+            resp_body.extend_from_slice(&c);
         }
         // Connect unary response: raw JSON in the body (no envelope prefix).
         let echoed: EchoMsg = serde_json::from_slice(&resp_body).expect("valid JSON");

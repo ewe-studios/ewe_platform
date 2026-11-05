@@ -185,7 +185,7 @@ fn code_of_downcasts_and_walks_chain() {
     assert_eq!(code_of(&err), Code::PermissionDenied);
 
     // A foreign error with no code → Unknown.
-    let io = std::io::Error::new(std::io::ErrorKind::Other, "plain");
+    let io = std::io::Error::other("plain");
     assert_eq!(code_of(&io), Code::Unknown);
 }
 
@@ -194,23 +194,20 @@ fn wrap_if_classifiers() {
     let deadline = std::io::Error::new(std::io::ErrorKind::TimedOut, "operation timed out");
     assert_eq!(wrap_if_context(&deadline), Some(Code::DeadlineExceeded));
 
-    let canceled = std::io::Error::new(std::io::ErrorKind::Other, "request was canceled");
+    let canceled = std::io::Error::other("request was canceled");
     assert_eq!(wrap_if_context(&canceled), Some(Code::Canceled));
 
-    let unrelated = std::io::Error::new(std::io::ErrorKind::Other, "disk full");
+    let unrelated = std::io::Error::other("disk full");
     assert_eq!(wrap_if_context(&unrelated), None);
 
-    let rst = std::io::Error::new(std::io::ErrorKind::Other, "http2: RST_STREAM received");
+    let rst = std::io::Error::other("http2: RST_STREAM received");
     assert_eq!(wrap_if_rst(&rst), Some(Code::Canceled));
 
-    let h2c = std::io::Error::new(
-        std::io::ErrorKind::Other,
-        "http2: unexpected server response",
-    );
+    let h2c = std::io::Error::other("http2: unexpected server response");
     assert_eq!(wrap_if_h2c(&h2c), Some(Code::Unavailable));
 
     // wrap_if_uncoded wraps a foreign error as Unknown, keeping it as source.
-    let wrapped = wrap_if_uncoded(std::io::Error::new(std::io::ErrorKind::Other, "x"));
+    let wrapped = wrap_if_uncoded(std::io::Error::other("x"));
     assert_eq!(wrapped.code(), Code::Unknown);
     assert!(std::error::Error::source(&wrapped).is_some());
 }
@@ -237,7 +234,7 @@ fn load_user(id: u64) -> Result<(), ErrorTrace<DomainError>> {
     Err(ErrorTrace::new(DomainError::UserNotFound(id)))
 }
 
-/// ...which maps to a ConnectError at the RPC boundary via `change_context`.
+/// ...which maps to a `ConnectError` at the RPC boundary via `change_context`.
 fn rpc_handler() -> ConnectResult<()> {
     load_user(42).map_err(|trace| trace.change_context(ConnectError::not_found("no such user")))?;
     Ok(())

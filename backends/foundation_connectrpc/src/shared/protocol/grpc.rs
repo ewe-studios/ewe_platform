@@ -137,14 +137,7 @@ async fn write_frames(
                     return Ok(());
                 }
             }
-            Some(Frame::EndStream {
-                error: _,
-                trailers: _,
-            }) => {
-                sink.close();
-                return Ok(());
-            }
-            None => {
+            Some(Frame::EndStream { .. }) | None => {
                 sink.close();
                 return Ok(());
             }
@@ -152,6 +145,8 @@ async fn write_frames(
     }
 }
 
+// The caller keeps the `Arc` and passes a borrowed option through the loop.
+#[allow(clippy::ref_option)]
 fn decompress_if(
     flags: u8,
     payload: Bytes,
@@ -444,6 +439,8 @@ impl ProtocolClient for GrpcClient {
         }
     }
 
+    // A unary request body is capped by `send_max_bytes`, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes {
         // gRPC unary: single envelope frame. flags bit 0x01 marks compression;
         // the payload is the (optionally compressed) marshaled message bytes.
@@ -522,7 +519,7 @@ impl ProtocolClient for GrpcClient {
 /// Client-side gRPC response reader: response head → envelopes → status trailers.
 ///
 /// gRPC delivers its outcome in trailing metadata, in one of two shapes:
-/// - **Trailers-Only**: a single HEADERS frame (END_STREAM) carrying
+/// - **Trailers-Only**: a single HEADERS frame (`END_STREAM`) carrying
 ///   `grpc-status` alongside the response headers — used for errors that occur
 ///   before any message is sent.
 /// - **Normal**: response HEADERS, DATA envelopes, then trailing HEADERS with
@@ -568,7 +565,9 @@ async fn read_grpc_response(
             return Ok(());
         }
     };
-    *response_headers.lock().unwrap_or_else(|e| e.into_inner()) = Some(resp_headers.clone());
+    *response_headers
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(resp_headers.clone());
 
     if status != Status::OK {
         let err: ErrorTrace<ConnectError> =

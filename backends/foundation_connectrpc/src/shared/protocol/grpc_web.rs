@@ -69,6 +69,10 @@ pub mod constants {
 
 /// Percent-encode a `grpc-message` (bytes outside printable ASCII, and `%`).
 #[must_use]
+#[allow(
+    clippy::format_push_string,
+    reason = "a grpc-message is short; `format!` reads clearer than `write!`"
+)]
 pub fn percent_encode_message(msg: &str) -> String {
     let mut out = String::with_capacity(msg.len());
     for &b in msg.as_bytes() {
@@ -105,6 +109,8 @@ pub fn percent_decode_message(msg: &str) -> String {
 
 /// Encode a minimal `google.rpc.Status` (`code` field 1, `message` field 2).
 #[must_use]
+// A status code is non-negative at this point.
+#[allow(clippy::cast_sign_loss)]
 pub fn encode_status_proto(code: i32, message: &str) -> Vec<u8> {
     let mut out = Vec::new();
     if code != 0 {
@@ -121,6 +127,8 @@ pub fn encode_status_proto(code: i32, message: &str) -> Vec<u8> {
 
 /// Decode the `code`/`message` from a minimal `google.rpc.Status`.
 #[must_use]
+// The `code` field is a varint that fits a gRPC status code.
+#[allow(clippy::cast_possible_truncation)]
 pub fn decode_status_proto(bytes: &[u8]) -> (i32, String) {
     let mut code = 0i32;
     let mut message = String::new();
@@ -212,7 +220,7 @@ pub fn build_status_trailers(
             vec![percent_encode_message(&message)],
         );
         // Also emit the binary details (google.rpc.Status) for P9 clients.
-        let details = encode_status_proto(status as i32, &message);
+        let details = encode_status_proto(status.cast_signed(), &message);
         trailers.insert(
             SimpleHeader::from(constants::TRAILER_STATUS_DETAILS.to_string()),
             vec![STANDARD.encode(details)],
@@ -225,6 +233,8 @@ pub fn build_status_trailers(
 /// `grpc-status-details-bin` over `grpc-status`/`grpc-message` when both are
 /// present (Decision 05 P9).
 #[must_use]
+// The decoded status code is non-negative and fits in u32.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn parse_status_trailers(trailers: &SimpleHeaders) -> Option<ErrorTrace<ConnectError>> {
     let get = |name: &str| {
         trailers
@@ -258,6 +268,8 @@ pub fn parse_status_trailers(trailers: &SimpleHeaders) -> Option<ErrorTrace<Conn
 
 /// Render trailers as the `0x80` trailer-frame body (HTTP header block).
 #[must_use]
+// A trailer frame body is capped by the envelope limits, which fit in u32.
+#[allow(clippy::cast_possible_truncation)]
 pub fn render_trailer_frame_body(trailers: &SimpleHeaders) -> Vec<u8> {
     let mut body = Vec::new();
     for (name, values) in trailers {
@@ -313,6 +325,7 @@ impl Base64StreamEncoder {
     }
 
     /// Flush the trailing partial group (with padding).
+    #[must_use]
     pub fn finish(self) -> Vec<u8> {
         if self.pending.is_empty() {
             Vec::new()
@@ -451,6 +464,8 @@ async fn read_frames(
     }
 }
 
+// A trailer frame body is capped by the envelope limits, which fit in u32.
+#[allow(clippy::cast_possible_truncation)]
 async fn write_frames(
     resp_rx: PipeReceiver<Frame>,
     sink: Arc<dyn SendBody>,
@@ -532,10 +547,7 @@ async fn read_grpc_web_response(
     else {
         return Ok(());
     };
-    if headers
-        .get(&SimpleHeader::from(constants::TRAILER_STATUS.to_string()))
-        .is_some()
-    {
+    if headers.contains_key(&SimpleHeader::from(constants::TRAILER_STATUS.to_string())) {
         let error = parse_status_trailers(&headers);
         let _ = race(
             tx.send(Frame::EndStream {
@@ -560,8 +572,8 @@ async fn read_grpc_web_response(
     {
         Ok(true) => Ok(()),
         Ok(false) if tx.is_closed() => Ok(()), // consumer gone
-        Ok(false) => match stream.trailers.receive().await {
-            Some(trailers) => {
+        Ok(false) => {
+            if let Some(trailers) = stream.trailers.receive().await {
                 let error = parse_status_trailers(&trailers);
                 let _ = race(
                     tx.send(Frame::EndStream { error, trailers }),
@@ -570,15 +582,14 @@ async fn read_grpc_web_response(
                 .await;
                 tx.close();
                 Ok(())
-            }
-            None => {
+            } else {
                 let e =
                     ConnectError::internal("the gRPC-Web response ended without a status trailer")
                         .into();
                 fail_stream(&tx, &e, &cancel).await;
                 Err(e)
             }
-        },
+        }
         Err(e) => {
             fail_stream(&tx, &e, &cancel).await;
             Err(e)
@@ -586,6 +597,8 @@ async fn read_grpc_web_response(
     }
 }
 
+// The caller keeps the `Arc` and passes a borrowed option through the loop.
+#[allow(clippy::ref_option)]
 fn decompress_if(
     flags: u8,
     payload: Bytes,
@@ -803,6 +816,8 @@ impl ProtocolHandler for GrpcWebHandler {
         }
     }
 
+    // A trailer frame body is capped by the envelope limits, which fit in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn encode_unary_response(
         &self,
         response: &mut SimpleOutgoingResponse,
@@ -874,8 +889,7 @@ fn is_text(request: &SimpleIncomingRequest) -> bool {
         .get(&SimpleHeader::CONTENT_TYPE)
         .and_then(|v| v.first())
         .and_then(|ct| parse_content_type(ct))
-        .map(|(_, t)| t)
-        .unwrap_or(false)
+        .is_some_and(|(_, t)| t)
 }
 
 /// Trim ASCII whitespace from both ends of a byte slice (base64 bodies may carry
@@ -923,6 +937,8 @@ impl ProtocolClient for GrpcWebClient {
         }
     }
 
+    // A unary request body is capped by `send_max_bytes`, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes {
         // gRPC-Web unary: single envelope frame, same as gRPC.
         let flags: u8 = if is_compressed {

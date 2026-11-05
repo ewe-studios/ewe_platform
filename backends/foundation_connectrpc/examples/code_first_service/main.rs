@@ -70,6 +70,8 @@ pub trait GreetService {
 struct Greeter;
 
 impl GreetService for Greeter {
+    // The generated trait declares an async method; this example does not await.
+    #[allow(clippy::unused_async_trait_impl)]
     async fn greet(
         &self,
         _ctx: Ctx,

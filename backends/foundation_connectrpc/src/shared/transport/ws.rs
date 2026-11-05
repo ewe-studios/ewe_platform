@@ -42,7 +42,7 @@ pub struct WsTransport {
 }
 
 impl WsTransport {
-    /// Create a WsTransport backed by any `WebSocketConnector`.
+    /// Create a `WsTransport` backed by any `WebSocketConnector`.
     ///
     /// The transport is platform-agnostic — it holds a `DynNetClient`
     /// so the same code works with a native client or a wasm client. Typically
@@ -113,10 +113,9 @@ impl Transport for WsTransport {
                 ),
                 Err(e) => (
                     CollectionState::Close(true),
-                    Some(Err(TransportError::Connect(Arc::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        format!("ws handshake failed: {e}"),
-                    ))))),
+                    Some(Err(TransportError::Connect(Arc::new(
+                        std::io::Error::other(format!("ws handshake failed: {e}")),
+                    )))),
                 ),
                 _ => (CollectionState::Skip, None),
             },
@@ -130,10 +129,9 @@ impl Transport for WsTransport {
                 Ok(WebSocketMessage::Close(..)) => (true, None),
                 Err(e) => (
                     true,
-                    Some(Err(TransportError::Connect(Arc::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        format!("ws stream error: {e}"),
-                    ))))),
+                    Some(Err(TransportError::Connect(Arc::new(
+                        std::io::Error::other(format!("ws stream error: {e}")),
+                    )))),
                 ),
                 _ => (false, None),
             },
@@ -143,12 +141,8 @@ impl Transport for WsTransport {
         //    Drive: the final continuation must still be consumed. map_ready(|_| ())
         //    terminates it — no buffered delivery queue leaking.
         let drive = body_tail.map_ready(|_| ());
-        valtron::send(drive).map_err(|e| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            )))
-        })?;
+        valtron::send(drive)
+            .map_err(|e| TransportError::Connect(Arc::new(std::io::Error::other(e.to_string()))))?;
 
         // 4. TransportStream — head/body as erased streams, send_body as Arc<dyn SendBody>.
         let head = Box::pin(head_obs.into_next_stream());

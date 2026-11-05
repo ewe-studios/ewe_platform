@@ -1,4 +1,4 @@
-//! The protocol-agnostic ConnectRPC error model (Decision 03).
+//! The protocol-agnostic `ConnectRPC` error model (Decision 03).
 //!
 //! WHY: One error vocabulary serves all three wire protocols. The canonical RPC
 //! error is [`ConnectResult`] = `Result<T, ErrorTrace<ConnectError>>`: an

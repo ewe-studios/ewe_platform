@@ -1,4 +1,4 @@
-//! Cross-platform ConnectRPC modules — compiled on every target (native + wasm).
+//! Cross-platform `ConnectRPC` modules — compiled on every target (native + wasm).
 //!
 //! Everything here is free of native-only substrate (no TCP `RawStream`, no
 //! `foundation_netio::http2`/`quic`). The native server + h2/h3 transports live

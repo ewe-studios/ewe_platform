@@ -73,6 +73,8 @@ impl Envelope {
     }
 
     /// Encode `flags | len | data` into a pooled/owned buffer (write path, RS8).
+    // An envelope payload is capped by `send_max_bytes`, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn encode_into(&self, buf: &mut Vec<u8>) {
         buf.reserve(ENVELOPE_HEADER_LEN + self.data.len());
         buf.push(self.flags);
@@ -322,6 +324,8 @@ impl EnvelopeWriter {
     /// # Errors
     /// A [`ConnectError`]-carrying trace on compression failure or a payload over
     /// `send_max_bytes`.
+    // `Bytes` is a cheap refcounted handle; taking it by value is idiomatic.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn write(&self, frame: Bytes) -> ConnectResult<Vec<u8>> {
         self.frame_with_flags(&frame, 0)
     }
@@ -363,6 +367,8 @@ impl EnvelopeWriter {
         self.frame_with_flags(&payload, Envelope::FLAG_TRAILER)
     }
 
+    // An envelope payload is capped by `send_max_bytes`, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn frame_with_flags(&self, payload: &[u8], extra_flags: u8) -> ConnectResult<Vec<u8>> {
         let mut flags = extra_flags;
         let body = match &self.compressor {

@@ -1,17 +1,17 @@
-//! WireGuard mesh + HTTP over the overlay — proof that `Connection::Overlay`
+//! `WireGuard` mesh + HTTP over the overlay — proof that `Connection::Overlay`
 //! carries real HTTP traffic through the encrypted tunnel (spec-55, F11).
 //!
 //! ```bash
 //! cargo run -p foundation_connectrpc --example wireguard_echo
 //! ```
 //!
-//! This example proves the bridge: two WgNodes form a mesh, B listens on its
+//! This example proves the bridge: two `WgNodes` form a mesh, B listens on its
 //! overlay IP, A opens a `Connection::Overlay` via `WgHandle::overlay_connect()`,
 //! and raw HTTP flows through the tunnel. The `Connection::Overlay` type IS the
-//! integration point — the same `Read + Write` stream that H1Transport wraps.
+//! integration point — the same `Read + Write` stream that `H1Transport` wraps.
 //!
-//! To use ConnectRPC over the mesh: call `WgHandle::overlay_connect(peer_ip, port)`
-//! when constructing the H1Transport's HttpClient. The transport sees a
+//! To use `ConnectRPC` over the mesh: call `WgHandle::overlay_connect(peer_ip, port)`
+//! when constructing the `H1Transport`'s `HttpClient`. The transport sees a
 //! `Connection::Overlay` — identical to `Connection::Tcp` from its perspective.
 
 use std::io::{Read, Write};
@@ -54,7 +54,7 @@ fn main() {
 
     let t_b = std::thread::spawn(move || {
         let mut buf = [0u8; 4096];
-        if let Ok(mut c) = listener.accept() {
+        if let Ok(c) = listener.accept() {
             let n = c.read(&mut buf).expect("B read");
             let req = String::from_utf8_lossy(&buf[..n]);
             println!("📨 B received:\n{req}");

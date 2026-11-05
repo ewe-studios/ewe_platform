@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Every codec combination, over one server (requires the `arrow` feature — on
 //! by default via `rpc`).
 //!
@@ -15,7 +23,7 @@
 //! |---------------|----------------------------------------------|--------------------|
 //! | proto + json  | `ProcedureCodecs::defaults()`                | Message + serde    |
 //! | json          | `of((JsonCodec,))`                           | serde only         |
-//! | arrow         | `only(ArrowCodec)`                           | ToArrow + FromArrow|
+//! | arrow         | `only(ArrowCodec)`                           | `ToArrow` + `FromArrow`|
 //! | arrow + json  | `of((JsonCodec, ArrowCodec))`                | serde + Arrow      |
 //! | proto+json+arrow | `of((ProtoCodec, JsonCodec, ArrowCodec))` | all three          |
 //!

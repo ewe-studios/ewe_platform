@@ -24,7 +24,7 @@ use super::code::Code;
 use super::detail::ErrorDetail;
 use super::wire::{WireError, WireErrorDetail};
 
-/// A ConnectRPC error: code + message (+ optional details, metadata, source).
+/// A `ConnectRPC` error: code + message (+ optional details, metadata, source).
 #[derive(Debug)]
 pub struct ConnectError {
     code: Code,

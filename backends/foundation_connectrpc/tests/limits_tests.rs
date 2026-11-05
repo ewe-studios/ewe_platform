@@ -207,7 +207,7 @@ fn compressed_streaming_envelope_over_the_limit_is_resource_exhausted() {
 /// declared length against `read_max_bytes` on the header, then rejects with
 /// `resource_exhausted`. A regression that buffered or waited for the full 4 GiB
 /// payload would instead see the body end after 5 bytes and answer with a
-/// truncation error, never "exceeds read_max_bytes".
+/// truncation error, never "exceeds `read_max_bytes`".
 #[test]
 fn oversized_envelope_prefix_is_rejected_from_its_header() {
     let handler = handler(limited);

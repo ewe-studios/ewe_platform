@@ -174,13 +174,13 @@ where
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
-            let msg = req_codec.unmarshal(call.frame)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
+            let msg = request_codec.unmarshal(call.frame)?;
             let request =
                 Request::with_parts(msg, ctx.spec().clone(), ctx.peer().clone(), call.headers);
             let (out, headers, trailers) = handler(ctx.clone(), request).await?.into_parts();
-            let frame = res_codec.marshal(&out)?;
+            let frame = response_codec.marshal(&out)?;
             Ok(UnaryReply {
                 headers,
                 trailers,
@@ -208,19 +208,19 @@ where
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
             let headers = call.conn.request_headers().clone();
             let (receiver, sender) = call.conn.split();
 
-            let mut source = MessageSource::new(receiver, req_codec, headers.clone());
+            let mut source = MessageSource::new(receiver, request_codec, headers.clone());
             let req = source.receive().await?.ok_or_else(|| {
                 ConnectError::invalid_argument("server-stream requires exactly one request message")
             })?;
             let request = Request::with_parts(req, ctx.spec().clone(), ctx.peer().clone(), headers);
 
             let stream = handler(ctx.clone(), request).await?;
-            let mut sink = MessageSink::new(sender, res_codec);
+            let mut sink = MessageSink::new(sender, response_codec);
             let mut stream = Box::pin(stream);
             while let Some(item) = stream.next().await {
                 match item {
@@ -250,17 +250,17 @@ where
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
             let headers = call.conn.request_headers().clone();
             let (receiver, sender) = call.conn.split();
 
-            let source = MessageSource::new(receiver, req_codec, headers);
+            let source = MessageSource::new(receiver, request_codec, headers);
             let req_stream = source_into_stream(source);
             let (out, resp_headers, trailers) =
                 handler(ctx.clone(), req_stream).await?.into_parts();
 
-            let mut sink = MessageSink::new(sender, res_codec);
+            let mut sink = MessageSink::new(sender, response_codec);
             sink.set_headers(resp_headers).await?;
             sink.send(out).await?;
             sink.close(trailers).await
@@ -286,16 +286,16 @@ where
         let codecs = codecs.clone();
         let handler = handler.clone();
         Box::pin(async move {
-            let req_codec = codecs.for_request(&call.codec_name)?;
-            let res_codec = codecs.for_response(&call.codec_name)?;
+            let request_codec = codecs.for_request(&call.codec_name)?;
+            let response_codec = codecs.for_response(&call.codec_name)?;
             let headers = call.conn.request_headers().clone();
             let (receiver, sender) = call.conn.split();
 
-            let source = MessageSource::new(receiver, req_codec, headers);
+            let source = MessageSource::new(receiver, request_codec, headers);
             let req_stream = source_into_stream(source);
             let out_stream = handler(ctx.clone(), req_stream).await?;
 
-            let mut sink = MessageSink::new(sender, res_codec);
+            let mut sink = MessageSink::new(sender, response_codec);
             let mut out_stream = Box::pin(out_stream);
             while let Some(item) = out_stream.next().await {
                 match item {

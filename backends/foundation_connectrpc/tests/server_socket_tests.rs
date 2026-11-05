@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Walking-skeleton tests (spec-41 F44 / Decision 11 §Connection ownership) —
 //! prove the end-to-end spine over a **real loopback TCP socket**.
 //!
@@ -8,7 +16,7 @@
 //! | Half | Owner | What it proves |
 //! |---|---|---|
 //! | **Server** | Per-connection task spawned by the listener on `accept` | The fd owner
-//!   (foundation_http `HttpServer`) reads the request off the wire, hands it to
+//!   (`foundation_http` `HttpServer`) reads the request off the wire, hands it to
 //!   `ConnectRpcServe::serve()`, which dispatches through the router and writes the
 //!   response back. |
 //! | **Client** | `Transport::open()` (Decision 11 §Transport) | The connection owner
@@ -25,7 +33,7 @@
 //! end-to-end **without depending on the client transport working correctly**. If
 //! these fail, the server spine is broken.
 //!
-//! ## Style B — H1Transport (client-spine proof)
+//! ## Style B — `H1Transport` (client-spine proof)
 //!
 //! `h1_transport_over_real_socket` uses `H1Transport::open()` to push request bytes
 //! into `send_body` (a `PipeSender<Bytes>`), await the response head from `response`
@@ -332,7 +340,7 @@ fn list_serve() -> Arc<dyn Serve> {
 ///
 /// The client parses the Connect envelope framing (5-byte header: 1 flag + 4 byte
 /// length, per the Connect streaming protocol) and asserts all 3 items arrived
-/// followed by a terminating EndStream frame.
+/// followed by a terminating `EndStream` frame.
 #[test]
 fn server_stream_over_real_socket() {
     let _guard = initialize_pool(42, Some(4));
@@ -574,7 +582,7 @@ async fn h1_client_transport_over_real_socket() {
 ///    (`application/connect+json`, one enveloped seed message) and returns
 ///    `TransportStream` synchronously.
 /// 3. The caller drains `recv_body` to end of stream, reassembles the Connect
-///    envelope frames, and asserts all 3 items plus the terminating EndStream
+///    envelope frames, and asserts all 3 items plus the terminating `EndStream`
 ///    frame arrived — proving the H1 client consumes a multi-frame server stream,
 ///    not just a single unary body.
 #[valtron_test(seed = 45, threads = 8)]
@@ -700,9 +708,12 @@ use foundation_netio::HttpClientBuilder;
 
 /// Start an `HttpServer` serving `serve` at `route`; returns its address and the
 /// shutdown switch.
-fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+fn start_server(
+    route: &str,
+    serve: &Arc<dyn Serve>,
+) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
-    app.router.add_route_any(route, &serve);
+    app.router.add_route_any(route, serve);
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
@@ -856,10 +867,8 @@ fn first_frame_arrives_before_the_handler_finishes() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        GATED_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(GATED_PROCEDURE, &serve);
 
     let (mut stream, mut rest) = open_stream_request(addr, GATED_PROCEDURE);
     let mut carry = Vec::new();
@@ -932,10 +941,8 @@ fn endless_stream_follows_the_client_and_stops_when_it_leaves() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        ENDLESS_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(ENDLESS_PROCEDURE, &serve);
 
     let (mut stream, mut rest) = open_stream_request(addr, ENDLESS_PROCEDURE);
     let mut carry = Vec::new();
@@ -1010,10 +1017,8 @@ fn error_after_frames_is_sent_in_band() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        FAILING_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(FAILING_PROCEDURE, &serve);
 
     let (mut stream, mut rest) = open_stream_request(addr, FAILING_PROCEDURE);
     let mut carry = Vec::new();
@@ -1052,10 +1057,8 @@ fn error_before_any_frame_is_reported() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        REFUSING_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(REFUSING_PROCEDURE, &serve);
 
     let mut stream = connect_with_retry(addr);
     stream
@@ -1083,7 +1086,7 @@ fn error_before_any_frame_is_reported() {
 #[test]
 fn unary_request_body_in_many_chunks_arrives_whole() {
     let _guard = initialize_pool(50, Some(4));
-    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+    let (addr, shutdown) = start_server(PROCEDURE, &echo_serve());
 
     let msg = TestMsg {
         id: 7,
@@ -1129,10 +1132,8 @@ fn client_stream_in_many_chunks_delivers_every_message() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        COUNT_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(COUNT_PROCEDURE, &serve);
 
     let pieces: Vec<Vec<u8>> = (0..12)
         .map(|i| {
@@ -1201,10 +1202,8 @@ fn client_stream_body_arriving_slowly_is_waited_for() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        COUNT_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(COUNT_PROCEDURE, &serve);
 
     let mut pieces: Vec<Vec<u8>> = (0..5)
         .map(|i| {
@@ -1246,7 +1245,7 @@ fn client_stream_body_arriving_slowly_is_waited_for() {
 #[test]
 fn unary_body_arriving_slowly_is_waited_for() {
     let _guard = initialize_pool(53, Some(4));
-    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+    let (addr, shutdown) = start_server(PROCEDURE, &echo_serve());
 
     let msg = TestMsg {
         id: 9,
@@ -1347,7 +1346,7 @@ fn keep_alive_connection_serves_unary_and_streams_in_turn() {
 #[test]
 fn rejected_request_with_unread_body_closes_the_connection() {
     let _guard = initialize_pool(55, Some(4));
-    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+    let (addr, shutdown) = start_server(PROCEDURE, &echo_serve());
 
     let mut stream = connect_with_retry(addr);
     stream

@@ -57,7 +57,7 @@ fn run_all(mut futs: Vec<BoxFut>) {
         while i < futs.len() {
             match futs[i].as_mut().poll(&mut cx) {
                 Poll::Ready(()) => {
-                    let _ = futs.swap_remove(i);
+                    drop(futs.swap_remove(i));
                 }
                 Poll::Pending => i += 1,
             }
