@@ -213,38 +213,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
   server writes milliseconds for its own rows. Fix: pick one unit per column,
   document it in the migrations, and make cleanup follow it.
-- **`KVWasmStorage`'s rate limiter isn't atomic**
-  (`src/wasm/wasm_storage/kv_wasm.rs`): a record reads the entry, then
-  writes it back, so two concurrent hits can count once (and KV is
-  eventually consistent across locations). Fix: use a Durable Object or D1
-  for rate limits on Workers, and document KV as best-effort.
-- **Databases created by the old rate-limit code have the wrong table.**
-  Before F04 T11 a store that wasn't migrated created
-  `rate_limits (key PRIMARY KEY, count, window_start)`; the store now uses the
-  migration 014 shape (`id`, `key UNIQUE`, `count`, `window_start`,
-  `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
-  old-shape table. Fix: a migration that rebuilds an old-shape table (rate
-  limit rows are disposable), or drop it on detection.
-- **The wasm stores keep a second, inherent `*_async` API.** `D1WasmStorage`,
-  `KVWasmStorage` and `R2WasmStorage` (`src/wasm/wasm_storage/*.rs`) have
-  public inherent methods with the old trait names (`get_async`,
-  `query_async`, `put_blob_async`, ...). They return `!Send` futures, and
-  `D1WasmStorage::list_keys_async` / `KVWasmStorage::list_keys_async` return
-  a `Vec` instead of a stream. The trait impls, `StorageProvider`,
-  `WasmCredentialStore`, `foundation_auth`'s `CredentialStore for
-  D1WasmStorage` and `examples/cf-login-app` call these. Spec 50 F05 T3
-  dropped the suffix from the trait methods, so the two APIs no longer share
-  a name, but a caller can still pick either by accident. Fix: make the
-  inherent methods private helpers (as the native stores' `*_internal` ones
-  are) and route every caller through the traits (`list_keys` +
-  `collect_all` where a `Vec` is needed).
-- **No CI job builds the example workspaces** (`examples/cf-*`,
-  `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
-  loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
-  runs that had rotted (foundation_db `libsql`, foundation_nativeapis
-  `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
-  `server-test`) are in `ci/packages.toml` since F04 T12.
-
 - **Turso store rejects overlapping calls: "Backend error: concurrent use forbidden".**
   `turso_sdk_kit` allows one use of a connection at a time, and the Turso
   `StorageProvider` shares one connection. Now that the keychain server runs
@@ -310,15 +278,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   call site is compiled out, so `cargo check --tests --target wasm32` on
   foundation_wireguard/foundation_netio emits `method rearm_readable is never
   used`. Fix: gate the method on the same `cfg` as its call site.
-- **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
-  `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
-  `foundation_core::valtron::{EventReadiness::register, ReadinessNotifier, ReadinessWaker}`
-  (`reactor.rs`, `shutdown_signal.rs`, `fd_readiness.rs`) and `EventReadiness::clear`
-  (`fd_readiness.rs`) that were added to the local tree after 0.0.6 was
-  published. `release-plz release` verifies the tarball against the published 0.0.6, so it fails with
-  E0425/E0407. The 0.0.7 bump has landed (`foundation_core` and `foundation_macros` are now
-  0.0.7 on `fix/io-35-turso-async-trait-overflow`); the crates.io publish still needs to
-  happen at release time so 0.0.7 publishes before `foundation_reactor`.
 ## 17. foundation_vectors
 
 ## 21. foundation_deployment_cloudflare on wasm32
