@@ -112,12 +112,30 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `borrow_as_ptr`, `cast_sign_loss`, `doc_markdown` and related mechanical lints. Fix: a
   clippy-cleanup pass per feature set, then set `clippy-deny-warnings = true` in
   `ci/packages.toml`. Found in feature 47.
-- **The ptrace spawn tests cannot run under amd64 emulation.** On an Apple Silicon host that
-  runs the linux/amd64 CI image with OrbStack, `PTRACE_GETREGS` returns `EIO` for every
-  traced amd64 process. A minimal C program shows the same result, so the cause is the
-  emulation, not the tracer. Fix: run `ptrace_vfs` on a native amd64 kernel (GitHub CI). A
-  local `scripts/ci/linux.sh foundation_nativeapis` reports 8 spawn-test failures for this
-  reason. Found in feature 47.
+- **The ptrace `open`/`openat` path ignores `O_TRUNC` on an existing virtual file.**
+  `handle_open` and `handle_openat` in
+  `backends/foundation_nativeapis/src/native/vfs/ptrace/syscall_dispatch.rs` call
+  `fs.create` whenever `O_CREAT` is set. `MemoryFs::create` returns `AlreadyExists` for an
+  existing path, while `open(2)` with `O_CREAT` (without `O_EXCL`) must open that file and
+  truncate it. A traced shell redirect such as `echo x > /virtual/existing` therefore fails.
+  Fix: when `O_CREAT` is set and the file exists, open it and call `truncate(0)`. Found in
+  feature 83.
+- **The ptrace `dup2` handler does not close a real fd at the destination.** `handle_dup`
+  inserts the virtual entry at the new number and skips the kernel call. If the new number
+  held a real fd (the common case is fd 1), that kernel fd stays open, while `dup2` must
+  close it. Fix: close the real destination fd once the virtual entry owns the number, or
+  keep the kernel call and intercept the writes by table lookup. Found in feature 83 while
+  fixing the shell-redirect dispatch.
+- **The ptrace spawn tests need a native amd64 kernel.** On an Apple Silicon host that runs
+  the linux/amd64 CI image with OrbStack, `PTRACE_GETREGS` returns `EIO` for every traced
+  amd64 process. A minimal C program shows the same result, so the cause is the emulation,
+  not the tracer. Native coverage comes from GitHub CI: the `foundation_nativeapis` `package`
+  job runs on the `ubuntu-latest` x86_64 runner, inside the linux/amd64 image, which shares
+  the runner kernel. Its `ptrace probe` step prints `ptrace probe: available`, and the named
+  `vfs-native,vfs-ptrace` run executes the suite (feature 83). A local
+  `scripts/ci/linux.sh foundation_nativeapis` still reports the spawn-test failures for this
+  reason; that is the recorded emulation limit, not a code defect. Found in feature 47,
+  updated in feature 83.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

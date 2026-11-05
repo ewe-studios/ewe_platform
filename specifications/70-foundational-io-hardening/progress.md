@@ -2,6 +2,27 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 83 implemented on `spec70/f83-ptrace-native-amd64-ci` (CI proof
+  pending). `backends/foundation_nativeapis/tests/ptrace_probe.rs` forks a child that calls
+  `PTRACE_TRACEME` and stops with `SIGSTOP`, then reads its registers from the parent. It
+  prints `ptrace probe: available` or
+  `ptrace probe: unavailable (<errno name>: <number>, <cause>)`, maps `EIO` to the emulated
+  kernel, `EPERM` to seccomp/`Yama` and `ESRCH` to a gone tracee, and asserts when
+  `EWE_REQUIRE_PTRACE=1`. `ptrace_requirement` is pure and its tests run on any host. The
+  probe itself is Linux-gated item by item, so a macOS host still tests the decision.
+  `tests/common/mod.rs` adds `ptrace_missing(what)` next to `io_uring_missing`.
+  `ci/packages.toml` gets a named `vfs-native,vfs-ptrace` run and
+  `EWE_REQUIRE_PTRACE = "1"`; `.github/workflows/check.yaml` gets a `ptrace probe` step in
+  both the `package` and `package-artifact` jobs before the test step. Three spawn tests now
+  prove interception: the traced child reads `/virtual` from a `MemoryFs`, writes into it
+  through a shell redirect, and copies 64 KiB+ to a real file with the length and an FNV-1a
+  checksum intact. The redirect test exposed a dispatch gap: `dup2` moves a virtual fd to a
+  low number, so dispatch now follows the `VirtualFdTable` entry, not the fd-number range.
+  This Mac cannot run the spawn tests (OrbStack amd64 returns `EIO` from `PTRACE_GETREGS`);
+  native amd64 proof must come from the `ubuntu-latest` job. Backlog: the ptrace entry is
+  rewritten to point at CI, and two dispatch bugs are recorded (`O_TRUNC` on an existing
+  virtual file, and `dup2` not closing a real destination fd).
+
 - 2026-11-05: CI run 41999359118 failed `foundation_browser` at the build step. Feature 63
   made `SseStream::new` async, and `foundation_browser/src/test/stream.rs` still matched its
   result directly. The upgrade now runs as `ConnectionResult::Async`, awaits
