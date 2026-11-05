@@ -1,6 +1,6 @@
 ---
 feature: "The ptrace VFS follows `open(2)` truncation and `dup2` close rules"
-status: "pending (CI proof)"
+status: "done"
 lane: "after 84"
 model: "sonnet"
 branch: "spec70/f111-ptrace-truncate-dup2"
@@ -75,11 +75,11 @@ python3 scripts/ci/ci.py run foundation_nativeapis --profile uat   # in the Linu
 
 ## Done when
 
-- [ ] The two new spawn tests fail on the old dispatch and pass on the new one.
+- [x] The two new spawn tests fail on the old dispatch and pass on the new one.
       Written; the native amd64 run is the proof (see Result).
 - [x] The two backlog §5 entries are deleted.
-- [ ] The `vfs-native,vfs-ptrace` CI run passes on native amd64.
-- [ ] CI green.
+- [x] The `vfs-native,vfs-ptrace` CI run passes on native amd64.
+- [x] CI green.
 - [x] The new public API bumps the crate and every consumer requirement (see the Result).
 
 ## Result (2026-11-05)
@@ -148,7 +148,8 @@ The Linux CI image (`ewestudios/ewe-platform-ci:latest`, `--platform linux/amd64
 
 - The `-D warnings` clippy run reports 611 warnings in the library and 610 in the library
   test. They are the crate-wide clippy debt recorded in backlog §35, and
-  `ci/packages.toml` does not set `clippy-deny-warnings` for this package. Feature 111
+  `ci/packages.toml` did not set `clippy-deny-warnings` for this package at the time.
+  Feature 113 then cleared the remaining debt and turned the setting on. Feature 111
   also fixed the lints that the code it touched exposed: two module doc comments, four
   `similar_names` bindings, four `#[must_use]` constructors, one `match` to
   `let ... else`, one unneeded wildcard pattern, and the two new timestamp helpers. The
@@ -158,7 +159,21 @@ The Linux CI image (`ewestudios/ewe-platform-ci:latest`, `--platform linux/amd64
   the two new ones, fail by design here. The proof of the two new spawn tests is left to
   the GitHub `ubuntu-latest` x86_64 job: the `foundation_nativeapis` package job runs
   `vfs-native,vfs-ptrace` with `EWE_REQUIRE_PTRACE=1`.
-- Status stays `pending (CI proof)` until that job runs the two spawn tests.
+
+### CI proof (2026-11-05)
+
+GitHub run [42063296262](https://github.com/ewe-studios/ewe_platform/actions/runs/42063296262)
+on `02cbb08b5`: the `foundation_nativeapis` job (id `127371617194`) passed on native
+amd64 with `EWE_REQUIRE_IO_URING=1 EWE_REQUIRE_PTRACE=1`. Its log shows both new spawn
+tests passing in the two test runs the job makes:
+
+```text
+test the_traced_child_truncates_an_existing_virtual_file ... ok
+test the_traced_child_dup2_closes_the_real_destination ... ok
+```
+
+The two feature-83 spawn tests pass in the same runs. The whole run finished `success`:
+113 jobs green, 0 failed, 3 skipped.
 
 ### Public API and version bump
 

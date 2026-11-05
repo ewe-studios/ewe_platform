@@ -2,6 +2,23 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (CI proof for features 108 to 113):
+  - **A push can leave `refs/pull/<n>/head` stale.** Push `02cbb08b5` moved
+    `refs/heads/spec70/priority-followups` at once, but `refs/pull/180/head`
+    stayed on the previous commit for more than 10 minutes. `git ls-remote`
+    shows the mismatch. No workflow runs, because the `pull_request` event
+    never fires. Fix: close and reopen the pull request. Reopening makes
+    GitHub read the branch head again and starts a run for the true commit.
+  - **A job log is unavailable until its run finishes.** `gh run view --job
+    <id> --log` answers "still in progress" and `gh api .../jobs/<id>/logs`
+    stops on terminal escape sequences. Use
+    `gh api --allow-escape-sequences .../jobs/<id>/logs` to read a finished
+    job's log while the rest of the run continues.
+  - **Read the job that owns the feature.** `foundation_nativeapis` runs the
+    ptrace spawn tests only with `EWE_REQUIRE_PTRACE=1` on a native kernel; a
+    green `foundation_netio` or `foundation_browser` job proves nothing about
+    them.
+
 - 2026-11-05 (feature 109, `foundation_browser` clippy debt):
   - **`i64::try_from(f64)` does not exist.** Rust has no safe fallible
     float-to-integer conversion. The checked-conversion route cannot remove

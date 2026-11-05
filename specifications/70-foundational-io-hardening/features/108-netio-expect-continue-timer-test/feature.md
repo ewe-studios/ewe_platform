@@ -65,7 +65,7 @@ python3 scripts/ci/ci.py run foundation_netio --profile uat   # in the Linux CI 
 - [x] The test reads no system clock and does not sleep.
 - [x] The test passes 20 of 20 under concurrent load.
 - [x] The backlog §2 entry is deleted.
-- [ ] CI green.
+- [x] CI green.
 
 ## Result (2026-11-05)
 
@@ -127,6 +127,15 @@ scheduled for 2 s does.
   remove it. The executor sleeps to the mapped deadline. The assertion no longer reads
   real time.
 
-### Remaining
+### CI proof (2026-11-05)
 
-- CI green is for the PR's GitHub run.
+GitHub run [42063296262](https://github.com/ewe-studios/ewe_platform/actions/runs/42063296262)
+on `02cbb08b5`: the `foundation_netio` job (id `127371615978`) passed. Its log shows both
+tests passing in the two test runs the job makes:
+
+```text
+test simple_http::nonblocking_client_tests::expect_continue_timer_fires_at_the_configured_deadline_and_not_before ... ok
+test simple_http::nonblocking_client_tests::silent_server_gets_body_when_the_timer_fires ... ok
+```
+
+The whole run finished `success`: 113 jobs green, 0 failed, 3 skipped.

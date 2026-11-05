@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_nativeapis` clippy debt reaches zero"
-status: "pending (CI proof)"
+status: "done"
 lane: "after 112"
 model: "haiku"
 branch: "spec70/f113-nativeapis-clippy-debt"
@@ -117,4 +117,19 @@ Verification in the Linux CI image (`linux/amd64`, `--profile uat`):
   The ptrace spawn tests fail under OrbStack amd64 emulation, where
   `PTRACE_GETREGS` returns `EIO`. GitHub CI on a native amd64 kernel is the
   proof for them.
+
+### CI proof (2026-11-05)
+
+GitHub run [42063296262](https://github.com/ewe-studios/ewe_platform/actions/runs/42063296262)
+on `02cbb08b5`: the `foundation_nativeapis` job (id `127371617194`) passed. Its log shows
+both deny-warning runs:
+
+```text
+clippy: cargo clippy --profile uat -p foundation_nativeapis --all-targets --no-deps -- -D warnings
+clippy: cargo clippy --profile uat -p foundation_nativeapis --all-targets --features vfs-preload --no-deps -- -D warnings
+```
+
+Neither prints a warning. The same job runs the ptrace spawn tests on the native kernel
+with `EWE_REQUIRE_IO_URING=1 EWE_REQUIRE_PTRACE=1`; they pass. The whole run finished
+`success`: 113 jobs green, 0 failed, 3 skipped.
 

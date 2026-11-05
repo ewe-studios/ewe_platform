@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_browser` is clean under `clippy -D warnings`"
-status: "pending (CI proof)"
+status: "done"
 lane: "after 84"
 model: "haiku"
 branch: "spec70/f109-browser-clippy-debt"
@@ -71,7 +71,7 @@ python3 scripts/ci/ci.py run foundation_browser --profile uat   # in the Linux C
 - [x] The clippy command above exits 0 with no warning.
 - [x] `foundation_browser` denies clippy warnings in `ci/packages.toml`.
 - [x] The backlog §33 entry is deleted.
-- [ ] CI green.
+- [x] CI green.
 
 ## Result (2026-11-05)
 
@@ -118,3 +118,11 @@ The tests run 1 test (`browser_sse_transport_delivers_the_whole_frame_to_a_slow_
 and it passes. `tests/smoke.rs` is gated on the `browser-tests` feature and
 needs a real Chromium; the default run compiles it to 0 tests. The CI package
 uses the default run, so those browser tests are skipped there too.
+
+### CI proof (2026-11-05)
+
+GitHub run [42063296262](https://github.com/ewe-studios/ewe_platform/actions/runs/42063296262)
+on `02cbb08b5`: the `foundation_browser` job (id `127371604725`) passed. Its log shows
+`cargo clippy --profile uat -p foundation_browser --all-targets --no-deps -- -D warnings`
+with no warning line and the package tests green (1 passed, 0 failed). The whole run
+finished `success`: 113 jobs green, 0 failed, 3 skipped.

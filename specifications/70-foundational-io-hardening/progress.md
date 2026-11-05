@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: CI proof for features 108, 109, 111 and 113.
+  Branch `spec70/priority-followups`, commit `02cbb08b5`.
+  - GitHub run
+    [42063296262](https://github.com/ewe-studios/ewe_platform/actions/runs/42063296262)
+    finished `success`: 113 jobs green, 0 failed, 3 skipped.
+  - `foundation_nativeapis` (id `127371617194`): both deny-warning clippy runs are
+    clean, and the two new ptrace spawn tests pass on the native amd64 kernel with
+    `EWE_REQUIRE_PTRACE=1`. Proves 111 and 113.
+  - `foundation_browser` (id `127371604725`): the deny-warning clippy run is clean and
+    the package test passes. Proves 109.
+  - `foundation_netio` (id `127371615978`): both `Expect: 100-continue` timer tests
+    pass. Proves 108.
+  - All four features move to `status: "done"`.
+  - The first push did not move the PR head; see `learnings.md`. Closing and
+    reopening the PR re-read the branch head.
+
 - 2026-11-05: feature 109, `foundation_browser` clippy debt reaches zero.
   Branch `spec70/priority-followups`.
   - `cargo clippy --profile uat -p foundation_browser --all-targets --no-deps
