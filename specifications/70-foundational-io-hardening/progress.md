@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: CI proof pass for features 115, 116 and 119, and the proxy e2e
+  flake. Branch `spec70/priority-followups`, commit `9b1138a63`.
+  - GitHub run 42087629722 finished `failure` with two failed jobs out of 115.
+    `foundation_macros` and `foundation_netio` are green.
+  - `foundation_core`: the `--features multi` clippy run reported two
+    `clippy::used_underscore_binding` errors in a Linux-only test module. Fixed
+    by naming `stream` instead of `_stream` in
+    `tests/valtron/readiness_deadline_tests.rs`. Both clippy runs pass in the
+    Linux CI image. The fix is commit `9b1138a63`.
+  - `foundation_proxy`: `connect_streams_spread_across_grpc_backends` hit its
+    30 s cap (suite 53.23 s). No request reaches the load balancer. Six local
+    full-suite runs pass. Recorded in `docs/bug-backlog.md` §9 and scheduled as
+    feature 121.
+  - The fix is pushed and run 42099300473 awaits a runner. Features 115, 116
+    and 119 stay `pending (CI proof)`.
+
 - 2026-11-06: feature 115, the engine clock is replaceable at startup and by
   `Ctx::with_clock`. Branch `spec70/priority-followups`.
   - New: `Ctx::with_clock`, `initialize_pool_with_ctx`,

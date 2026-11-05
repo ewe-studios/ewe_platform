@@ -179,6 +179,20 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `cargo test -p foundation_proxy --test proxy_features_tests websocket_upgrade_relays_and_tunnels_bytes`.
   Fix: trace the splice pumps on macOS, or gate the test to Linux until the pump
   is fixed.
+- **`tests/rpc_proxy_e2e_tests.rs::connect_streams_spread_across_grpc_backends`
+  can exceed its 30 s cap on Linux CI.** GitHub run 42087629722 (commit
+  `b7bff1de1`) failed the `foundation_proxy` test step with `timeout: the test
+  took 30001 ms. Max 30000 ms.` The suite finishes in 17.5 s on a green run, and
+  the test alone takes 0.11 s on macOS. In the failing log the proxy and both
+  tagged backends start, then no relay activity appears for 30 s. The pool
+  lifecycle gate serialises the tests of one binary, so a stalled pool also
+  holds every later test: when the harness killed this test, six queued tests
+  finished within 0.7 s. A missed wake or a stalled accept on the HTTP/2 front
+  under load is the likely cause, not the load balancer. Fix: reproduce with the
+  full suite in a loop on Linux, instrument the front's accept path and the
+  pool's wake path, and make a hung client call fail on its own 15 s deadline
+  with a useful message. Do not raise the cap as the fix. Scheduled as feature
+  121.
 
 ## 10. foundation_ai
 

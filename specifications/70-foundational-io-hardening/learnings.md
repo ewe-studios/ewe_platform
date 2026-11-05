@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (CI proof of features 115, 116 and 119):
+  - **One stalled test holds every later test of its binary.** `#[valtron_test]`
+    takes the process-wide pool on the harness thread, and the pool gate
+    serialises the tests. When `connect_streams_spread_across_grpc_backends` hit
+    its 30 s cap, six queued tests finished within 0.7 s of the kill. A hang in
+    one test looks like a slow suite, and the visible symptom is the timeout.
+  - **A single test run does not prove a suite.** That test passes alone in
+    0.11 s and in six local full-suite runs (16 s to 22 s), yet it timed out on
+    Linux CI. Recorded as `docs/bug-backlog.md` §9 and scheduled as feature 121.
+  - **Two failed jobs can have unrelated causes.** The same run failed
+    `foundation_core` on a Linux-only lint and `foundation_proxy` on a timeout.
+    After a fix, re-read every failed job; do not stop at the first.
+
 - 2026-11-06 (feature 116's Linux proof):
   - **A platform-gated test module hides its lints from the host.** The module
     behind `#[cfg(all(target_os = "linux", feature = "multi"))]` in
