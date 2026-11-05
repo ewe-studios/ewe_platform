@@ -2,6 +2,39 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 113, `foundation_nativeapis` clippy debt):
+  - **Run `cargo clippy --fix` in the Linux image first.** One pass with
+    `--features vfs-preload --no-deps --fix --allow-dirty` applied 29 file
+    fixes and removed over half of the 384 unique diagnostics (backticks,
+    inline `format!` args, pointer casts, `map_unwrap_or`, `LazyLock`,
+    `implied_bounds_in_impls`). It needs `--allow-dirty` when the tree already
+    has edits. The bind mount means it edits the host checkout.
+  - **Only prose lints remain after `--fix`.** `missing_errors_doc`,
+    `missing_panics_doc` and `missing_safety_doc` are not machine-applicable.
+    Their JSON span points at the `fn` line, so a script can insert the
+    sections before each signature; group by `(file, line)` because one
+    function can miss two sections.
+  - **A doc comment inserted before an `extern` block function lands after
+    `#[unsafe(no_mangle)]`.** It is valid Rust but reads badly. Move the block
+    above the attribute; the lint only needs the section to exist.
+  - **`u32` has no `From<u32> for usize`.** `usize::from(signum.cast_unsigned())`
+    does not compile on macOS. Use `usize::try_from(signum).unwrap_or_default()`
+    when the value is a positive signal number.
+  - **`Path` and `PathBuf` do not implement `Display`.**
+    `unnecessary_debug_formatting` asks for `.display()`, not `{}`; writing
+    `{disk_path}` fails to compile.
+  - **Keep the cast semantics of the 64-bit shim.** `cast_signed`,
+    `cast_unsigned` and `try_from(...).unwrap_or(MAX)` keep the value for every
+    reachable input. A negative `ftruncate` length still becomes a huge
+    allocation; that is a separate bug, now in backlog §35.
+  - **`once_cell` stays for `ipc`.** The shim's `Lazy` statics moved to
+    `std::sync::LazyLock`; `src/shared/ipc/version.rs` still uses `Lazy`, so the
+    dependency and the `ipc` feature entry stay. Only `vfs-preload` drops
+    `dep:once_cell`.
+  - **`clippy-runs` lists only the trees that are at zero.** The package keeps
+    its other `runs` feature sets; adding them to `clippy-runs` without
+    measuring them would make CI fail on debt this feature did not cover.
+
 - 2026-11-05 (feature 111, ptrace `O_TRUNC` and `dup2` destination close):
   - **A virtual fd must own a number whose kernel fd is closed.** With that invariant the
     `dup2` destination close is exact: a real fd at the new number is closed by an injected

@@ -50,14 +50,17 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> OverlayFileS
         }
     }
 
+    #[must_use]
     pub fn base(&self) -> &B {
         &self.core.base
     }
 
+    #[must_use]
     pub fn delta(&self) -> &D {
         &self.core.delta
     }
 
+    #[must_use]
     pub fn version(&self) -> u64 {
         self.core.version.load(Ordering::SeqCst)
     }

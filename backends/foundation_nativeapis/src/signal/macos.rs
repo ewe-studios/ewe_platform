@@ -18,15 +18,24 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
 
     for &signum in &signals {
         let mut event: libc::kevent = unsafe { std::mem::zeroed() };
-        event.ident = signum as _;
+        // Signal numbers are positive, so this conversion cannot fail.
+        event.ident = usize::try_from(signum).unwrap_or_default();
         event.filter = libc::EVFILT_SIGNAL;
         event.flags = libc::EV_ADD;
         event.fflags = 0;
         event.data = 0;
         event.udata = std::ptr::null_mut();
 
-        let ret =
-            unsafe { libc::kevent(kq_fd, &event, 1, std::ptr::null_mut(), 0, std::ptr::null()) };
+        let ret = unsafe {
+            libc::kevent(
+                kq_fd,
+                &raw const event,
+                1,
+                std::ptr::null_mut(),
+                0,
+                std::ptr::null(),
+            )
+        };
         if ret < 0 {
             return Err(SignalError::Io(std::io::Error::last_os_error()));
         }

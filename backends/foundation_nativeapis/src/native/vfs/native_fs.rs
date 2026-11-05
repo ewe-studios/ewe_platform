@@ -36,17 +36,17 @@ use std::os::unix::fs::{FileExt, MetadataExt, PermissionsExt};
 /// not constants).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NativeFsConfig {
-    offload_threads: usize,
-    offload_queue_size: usize,
-    offload_threshold_bytes: usize,
+    threads: usize,
+    queue_size: usize,
+    threshold_bytes: usize,
 }
 
 impl Default for NativeFsConfig {
     fn default() -> Self {
         Self {
-            offload_threads: Self::DEFAULT_OFFLOAD_THREADS,
-            offload_queue_size: Self::DEFAULT_OFFLOAD_QUEUE_SIZE,
-            offload_threshold_bytes: Self::DEFAULT_OFFLOAD_THRESHOLD_BYTES,
+            threads: Self::DEFAULT_OFFLOAD_THREADS,
+            queue_size: Self::DEFAULT_OFFLOAD_QUEUE_SIZE,
+            threshold_bytes: Self::DEFAULT_OFFLOAD_THRESHOLD_BYTES,
         }
     }
 }
@@ -79,40 +79,40 @@ impl NativeFsConfig {
     /// Number of offload worker threads.
     #[must_use]
     pub fn with_offload_threads(mut self, threads: usize) -> Self {
-        self.offload_threads = threads;
+        self.threads = threads;
         self
     }
 
     /// Bounded offload queue capacity. A submit past it returns an error.
     #[must_use]
     pub fn with_offload_queue_size(mut self, queue_size: usize) -> Self {
-        self.offload_queue_size = queue_size;
+        self.queue_size = queue_size;
         self
     }
 
     /// Largest read or write, in bytes, that stays inline. Larger ones offload.
     #[must_use]
     pub fn with_offload_threshold_bytes(mut self, threshold: usize) -> Self {
-        self.offload_threshold_bytes = threshold;
+        self.threshold_bytes = threshold;
         self
     }
 
     /// Number of offload worker threads.
     #[must_use]
     pub fn offload_threads(&self) -> usize {
-        self.offload_threads
+        self.threads
     }
 
     /// Bounded offload queue capacity.
     #[must_use]
     pub fn offload_queue_size(&self) -> usize {
-        self.offload_queue_size
+        self.queue_size
     }
 
     /// Largest read or write, in bytes, that stays inline.
     #[must_use]
     pub fn offload_threshold_bytes(&self) -> usize {
-        self.offload_threshold_bytes
+        self.threshold_bytes
     }
 }
 
@@ -187,10 +187,16 @@ pub struct NativeFs {
 }
 
 impl NativeFs {
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn new(root: impl Into<PathBuf>) -> VfsResult<Self> {
         Self::with_config(root, NativeFsConfig::default())
     }
 
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn with_config(root: impl Into<PathBuf>, config: NativeFsConfig) -> VfsResult<Self> {
         let root: PathBuf = root.into();
         let root = root
@@ -207,6 +213,7 @@ impl NativeFs {
         })
     }
 
+    #[must_use]
     pub fn root(&self) -> &Path {
         &self.root
     }
@@ -394,8 +401,7 @@ fn fs_metadata_to_vfs(meta: &std::fs::Metadata) -> VfsMetadata {
             .modified()
             .ok()
             .and_then(|t| t.duration_since(SystemTime::UNIX_EPOCH).ok())
-            .map(|d| d.as_secs())
-            .unwrap_or(0),
+            .map_or(0, |d| d.as_secs()),
         state: VfsEntryState::Ready,
     }
 }
@@ -412,8 +418,10 @@ pub struct NativeFile {
 impl std::fmt::Debug for NativeFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NativeFile")
+            .field("file", &self.file)
             .field("path", &self.path)
             .field("mode", &self.mode)
+            .field("pool", &format_args!("threshold={}", self.pool.threshold))
             .finish()
     }
 }
@@ -504,9 +512,11 @@ pub struct SeekableNativeFile {
 impl std::fmt::Debug for SeekableNativeFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SeekableNativeFile")
+            .field("file", &self.file)
             .field("path", &self.path)
             .field("mode", &self.mode)
             .field("position", &self.position.load(Ordering::Acquire))
+            .field("pool", &format_args!("threshold={}", self.pool.threshold))
             .finish()
     }
 }
@@ -934,7 +944,11 @@ impl AsyncVfsFileSystem for NativeFs {
 
     async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
         let fs_path = self.resolve_path(&path)?;
-        let size = std::fs::metadata(&fs_path).map_err(io_err)?.len() as usize;
+        let size = std::fs::metadata(&fs_path)
+            .map_err(io_err)?
+            .len()
+            .try_into()
+            .unwrap_or(usize::MAX);
         if !self.pool.should_offload(size) {
             return std::fs::read(&fs_path).map_err(io_err);
         }

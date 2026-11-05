@@ -96,7 +96,7 @@ impl TaskIterator for ReadOnReady {
         let n = unsafe { libc::read(raw, buf.as_mut_ptr().cast(), buf.len()) };
         if n > 0 {
             self.done = true;
-            Some(TaskStatus::Ready(buf[..n as usize].to_vec()))
+            Some(TaskStatus::Ready(buf[..n.cast_unsigned()].to_vec()))
         } else {
             // Nothing buffered yet (EAGAIN) — park until the reactor signals the
             // fd readable, then this task is re-run and the read above succeeds.

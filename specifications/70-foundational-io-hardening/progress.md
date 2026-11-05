@@ -2,6 +2,32 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 113, `foundation_nativeapis` clippy debt reaches zero.
+  Branch `spec70/priority-followups`.
+  - Both `-D warnings` clippy commands exit 0: the default run (245 unique
+    diagnostics before, 431 with the library test duplicate) and the
+    `vfs-preload` run (384 before, 723 with duplicates).
+  - The pass fixed `doc_markdown`, `missing_errors_doc`, `missing_panics_doc`,
+    `missing_safety_doc`, the raw-pointer lints, the cast lints,
+    `non_std_lazy_statics`, `single_match_else`, the match and map lints, and
+    the remaining one-off lints named in the feature file.
+  - `std::sync::LazyLock` replaces `once_cell::sync::Lazy` in the shim.
+    `once_cell` stays for the `ipc` feature only; `vfs-preload` no longer names
+    it.
+  - `ci/packages.toml`: `[packages.foundation_nativeapis]` now has
+    `clippy-runs = ["", "vfs-preload"]` and `clippy-deny-warnings = true`.
+  - Three narrow `#[allow]` attributes: serde `with` takes `&Option<T>`;
+    `VfsCapabilities` is a flag set; the shim example is one narrative.
+  - Measured in the Linux CI image: default tests 48 passed, 0 failed;
+    `vfs-preload` tests 224 passed, 0 failed (the shim built and
+    `vfs_shim_vfs` ran 2 tests); feature 111 dispatch tests 4 passed, 0 failed.
+    The ptrace spawn tests are skipped under amd64 emulation and left to
+    GitHub CI on a native kernel.
+  - Deleted the §35 clippy-debt entry. Added one §35 entry: a negative
+    `ftruncate` length in the shim still becomes a huge allocation.
+  - Status is `pending (CI proof)`: the GitHub `foundation_nativeapis` job must
+    show the new deny setting green.
+
 - 2026-11-05: feature 111, the ptrace VFS follows `open(2)` truncation and `dup2`
   destination close. Branch `spec70/priority-followups`.
   - `open_virtual_path` is the one open path for `open`, `openat` and `creat`. It opens an

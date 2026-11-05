@@ -196,8 +196,8 @@ fn test_delete_cow_file() {
     let overlay = setup_with_base_files();
 
     // CoW the file first
-    let _file = overlay.open("/src/main.rs", OpenMode::Write).unwrap();
-    drop(_file);
+    let file = overlay.open("/src/main.rs", OpenMode::Write).unwrap();
+    drop(file);
 
     // Now delete
     overlay.remove("/src/main.rs").unwrap();

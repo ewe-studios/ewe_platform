@@ -67,7 +67,7 @@ pub unsafe fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, mode: 
 }
 
 unsafe fn resolve<T: Copy>(name: &[u8]) -> T {
-    let ptr = unsafe { libc::dlsym(libc::RTLD_NEXT, name.as_ptr() as *const c_char) };
+    let ptr = unsafe { libc::dlsym(libc::RTLD_NEXT, name.as_ptr().cast::<c_char>()) };
     assert!(
         !ptr.is_null(),
         "dlsym failed to resolve {:?}",

@@ -289,6 +289,10 @@ wasm-runs = [""]
 # backend together so a backend that only breaks under a specific feature set is
 # caught in CI.
 runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
+# At zero clippy warnings in the default build and the `vfs-preload` shim tree
+# (spec 70 feature 113): a new one fails CI.
+clippy-runs = ["", "vfs-preload"]
+clippy-deny-warnings = true
 # `uring_completion_*` and `completion_source_seam` skip on a kernel without
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a

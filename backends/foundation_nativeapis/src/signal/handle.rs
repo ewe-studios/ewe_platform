@@ -8,19 +8,19 @@ use crate::signal::event::SignalKind;
 
 /// Platform-specific signal handle.
 ///
-/// On Linux: wraps eventfd + epoll_fd.
+/// On Linux: wraps eventfd + `epoll_fd`.
 /// On macOS: wraps kqueue fd.
 /// On Windows: wraps HANDLE (event object).
 pub enum SignalHandle {
     /// Not yet initialized (stub for unsupported platforms).
     None,
-    /// Linux: eventfd for signal notification, epoll_fd for waiting.
+    /// Linux: eventfd for signal notification, `epoll_fd` for waiting.
     #[cfg(target_os = "linux")]
     Linux {
         event_fd: std::os::fd::RawFd,
         epoll_fd: std::os::fd::RawFd,
     },
-    /// macOS: kqueue fd with EVFILT_SIGNAL registrations.
+    /// macOS: kqueue fd with `EVFILT_SIGNAL` registrations.
     #[cfg(target_os = "macos")]
     Macos { kq_fd: std::os::fd::RawFd },
     /// Windows: event HANDLE.
@@ -55,6 +55,7 @@ impl Clone for SignalHandle {
 
 impl SignalHandle {
     /// Create a no-op handle (for unsupported platforms).
+    #[must_use]
     pub fn none() -> Self {
         Self::None
     }
@@ -67,7 +68,7 @@ impl EventReadiness for SignalHandle {
             #[cfg(target_os = "linux")]
             Self::Linux { epoll_fd, .. } => {
                 let mut events = [libc::epoll_event { events: 0, u64: 0 }];
-                let timeout = dur.map(|d| d.as_millis() as i32).unwrap_or(-1);
+                let timeout = dur.map_or(-1, |d| i32::try_from(d.as_millis()).unwrap_or(i32::MAX));
                 let count = unsafe { libc::epoll_wait(*epoll_fd, events.as_mut_ptr(), 1, timeout) };
                 count > 0
             }
@@ -76,10 +77,12 @@ impl EventReadiness for SignalHandle {
                 use std::mem::MaybeUninit;
                 let mut event = MaybeUninit::<libc::kevent>::uninit();
                 let timeout = dur.map(|d| libc::timespec {
-                    tv_sec: d.as_secs() as _,
-                    tv_nsec: d.subsec_nanos() as _,
+                    tv_sec: d.as_secs().cast_signed(),
+                    tv_nsec: d.subsec_nanos().into(),
                 });
-                let timeout_ptr = timeout.as_ref().map_or(std::ptr::null(), |t| t as *const _);
+                let timeout_ptr = timeout
+                    .as_ref()
+                    .map_or(std::ptr::null(), std::ptr::from_ref);
                 let count = unsafe {
                     libc::kevent(
                         *kq_fd,
@@ -118,10 +121,10 @@ impl EventReadiness for SignalHandle {
 /// Map a kqueue `EVFILT_SIGNAL` event back to a [`SignalKind`].
 #[cfg(target_os = "macos")]
 fn signal_kind_from_kevent(ev: libc::kevent) -> Option<SignalKind> {
-    if ev.filter != libc::EVFILT_SIGNAL as i16 {
+    if ev.filter != libc::EVFILT_SIGNAL {
         return None;
     }
-    match ev.ident as libc::c_int {
+    match libc::c_int::try_from(ev.ident).ok()? {
         libc::SIGINT => Some(SignalKind::Interrupt),
         libc::SIGTERM => Some(SignalKind::Terminate),
         libc::SIGHUP => Some(SignalKind::Hangup),

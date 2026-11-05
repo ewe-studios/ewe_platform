@@ -1,15 +1,15 @@
-/// LD_PRELOAD VFS shim — libc interposition.
-///
-/// Compiled as a `cdylib` when `vfs-preload` feature is enabled.
-/// Intercepts libc filesystem calls and routes virtual paths through
-/// the real VFS infrastructure (`OverlayFileSystem<NativeFs, MemoryDelta>`).
-///
-/// Usage:
-/// ```bash
-/// LD_PRELOAD=libfoundation_nativeapis.so \
-///   FOUNDATION_VFS_PREFIX=/virtual \
-///   your_command
-/// ```
+//! `LD_PRELOAD` VFS shim — libc interposition.
+//!
+//! Compiled as a `cdylib` when `vfs-preload` feature is enabled.
+//! Intercepts libc filesystem calls and routes virtual paths through
+//! the real VFS infrastructure (`OverlayFileSystem<NativeFs, MemoryDelta>`).
+//!
+//! Usage:
+//! ```bash
+//! LD_PRELOAD=libfoundation_nativeapis.so \
+//!   FOUNDATION_VFS_PREFIX=/virtual \
+//!   your_command
+//! ```
 
 #[cfg(feature = "vfs-preload")]
 mod config;
@@ -26,7 +26,6 @@ mod shim_exports {
     use std::ffi::CStr;
     use std::os::raw::{c_char, c_int, c_void};
 
-    use once_cell::sync::Lazy;
     use tracing;
 
     #[cfg(any(feature = "vfs-sqlite", feature = "vfs-turso"))]
@@ -48,11 +47,11 @@ mod shim_exports {
     use super::config::ShimConfig;
     use super::fd_table::VirtualFdTable;
 
-    static CONFIG: Lazy<ShimConfig> = Lazy::new(ShimConfig::from_env);
+    static CONFIG: std::sync::LazyLock<ShimConfig> = std::sync::LazyLock::new(ShimConfig::from_env);
 
     /// VFS runtime — holds the type-erased VFS stack and the valtron pool guard.
     /// The pool guard must be kept alive so worker threads stay running for
-    /// LibsqlDelta async-through-sync execution.
+    /// `LibsqlDelta` async-through-sync execution.
     struct VfsRuntime {
         fs: DynFs,
         #[allow(dead_code)]
@@ -65,7 +64,7 @@ mod shim_exports {
     /// Supported: `memory` (default), `sqlite`, `turso`, `dir`, `d1`, `r2`.
     /// `sqlite`, `turso` and `dir` fall back to `memory` if init fails. `d1`
     /// and `r2` never fall back; they panic if the feature is missing or init fails.
-    static VFS: Lazy<VfsRuntime> = Lazy::new(|| {
+    static VFS: std::sync::LazyLock<VfsRuntime> = std::sync::LazyLock::new(|| {
         let root = CONFIG.root_dir.clone().unwrap_or_else(|| ".".to_string());
         let base = NativeFs::new(root.clone()).unwrap_or_else(|_| NativeFs::new(".").unwrap());
 
@@ -230,7 +229,8 @@ mod shim_exports {
         R2Delta::new_with_base_url(&token, &account, &bucket, Some(&base))
     }
 
-    static FD_TABLE: Lazy<VirtualFdTable> = Lazy::new(VirtualFdTable::new);
+    static FD_TABLE: std::sync::LazyLock<VirtualFdTable> =
+        std::sync::LazyLock::new(VirtualFdTable::new);
 
     const VIRTUAL_FD_BASE: c_int = 10_000;
 
@@ -286,6 +286,10 @@ mod shim_exports {
         unsafe { real(pathname, flags, mode) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn foundation_vfs_open(
         pathname: *const c_char,
@@ -295,6 +299,10 @@ mod shim_exports {
         open_common(pathname, flags, mode, super::real::open)
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn foundation_vfs_open64(
         pathname: *const c_char,
@@ -304,6 +312,10 @@ mod shim_exports {
         open_common(pathname, flags, mode, super::real::open64)
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn foundation_vfs_openat(
         dirfd: c_int,
@@ -312,10 +324,8 @@ mod shim_exports {
         mode: libc::mode_t,
     ) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
-            if dirfd == libc::AT_FDCWD || path.starts_with('/') {
-                if path_matches_prefix(path) {
-                    return handle_virtual_open(path, flags, mode);
-                }
+            if (dirfd == libc::AT_FDCWD || path.starts_with('/')) && path_matches_prefix(path) {
+                return handle_virtual_open(path, flags, mode);
             }
         }
         unsafe { super::real::openat(dirfd, pathname, flags, mode) }
@@ -399,6 +409,10 @@ mod shim_exports {
 
     // ── close ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn close(fd: c_int) -> c_int {
         if is_virtual_fd(fd) {
@@ -410,6 +424,10 @@ mod shim_exports {
 
     // ── read / write ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn read(
         fd: c_int,
@@ -422,6 +440,10 @@ mod shim_exports {
         unsafe { super::real::read(fd, buf, count) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn write(
         fd: c_int,
@@ -436,6 +458,10 @@ mod shim_exports {
 
     // ── stat ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn stat(pathname: *const c_char, statbuf: *mut libc::stat) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -448,6 +474,10 @@ mod shim_exports {
 
     /// `lstat` must *not* follow symlinks. Delegating to our `stat` sent
     /// non-virtual paths through `real::stat`, which does follow them.
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn lstat(pathname: *const c_char, statbuf: *mut libc::stat) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -458,6 +488,10 @@ mod shim_exports {
         unsafe { super::real::lstat(pathname, statbuf) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn fstat(fd: c_int, statbuf: *mut libc::stat) -> c_int {
         if is_virtual_fd(fd) {
@@ -472,6 +506,10 @@ mod shim_exports {
 
     // ── access ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn access(pathname: *const c_char, mode: c_int) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -484,6 +522,10 @@ mod shim_exports {
 
     // ── lseek ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn lseek(fd: c_int, offset: libc::off_t, whence: c_int) -> libc::off_t {
         if is_virtual_fd(fd) {
@@ -494,6 +536,10 @@ mod shim_exports {
 
     // ── mkdir / unlink / rename / rmdir ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn mkdir(pathname: *const c_char, mode: libc::mode_t) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -504,6 +550,10 @@ mod shim_exports {
         unsafe { super::real::mkdir(pathname, mode) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn unlink(pathname: *const c_char) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -514,6 +564,10 @@ mod shim_exports {
         unsafe { super::real::unlink(pathname) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn rename(oldpath: *const c_char, newpath: *const c_char) -> c_int {
         let old = unsafe { c_path_to_str(oldpath) };
@@ -526,6 +580,10 @@ mod shim_exports {
         unsafe { super::real::rename(oldpath, newpath) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn rmdir(pathname: *const c_char) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -538,6 +596,10 @@ mod shim_exports {
 
     // ── pread / pwrite ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn pread(
         fd: c_int,
@@ -546,18 +608,21 @@ mod shim_exports {
         offset: libc::off_t,
     ) -> libc::ssize_t {
         if is_virtual_fd(fd) {
-            let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf as *mut u8, count) };
-            return match FD_TABLE.read_at(fd, buf_slice, offset as u64) {
-                Some(n) => n as libc::ssize_t,
-                None => {
-                    set_errno(libc::EBADF);
-                    -1
-                }
+            let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf.cast::<u8>(), count) };
+            return if let Some(n) = FD_TABLE.read_at(fd, buf_slice, offset.cast_unsigned()) {
+                n.cast_signed()
+            } else {
+                set_errno(libc::EBADF);
+                -1
             };
         }
         unsafe { super::real::pread(fd, buf, count, offset) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn pwrite(
         fd: c_int,
@@ -566,13 +631,12 @@ mod shim_exports {
         offset: libc::off_t,
     ) -> libc::ssize_t {
         if is_virtual_fd(fd) {
-            let data = unsafe { std::slice::from_raw_parts(buf as *const u8, count) };
-            return match FD_TABLE.write_at(fd, data, offset as u64) {
-                Some(n) => n as libc::ssize_t,
-                None => {
-                    set_errno(libc::EBADF);
-                    -1
-                }
+            let data = unsafe { std::slice::from_raw_parts(buf.cast::<u8>(), count) };
+            return if let Some(n) = FD_TABLE.write_at(fd, data, offset.cast_unsigned()) {
+                n.cast_signed()
+            } else {
+                set_errno(libc::EBADF);
+                -1
             };
         }
         unsafe { super::real::pwrite(fd, buf, count, offset) }
@@ -580,6 +644,10 @@ mod shim_exports {
 
     // ── readlink / symlink ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn readlink(
         pathname: *const c_char,
@@ -596,6 +664,10 @@ mod shim_exports {
         unsafe { super::real::readlink(pathname, buf, bufsiz) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn symlink(target: *const c_char, linkpath: *const c_char) -> c_int {
         // Virtual symlinks not implemented yet
@@ -610,6 +682,10 @@ mod shim_exports {
 
     // ── chmod / fchmod ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn chmod(pathname: *const c_char, mode: libc::mode_t) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -621,6 +697,10 @@ mod shim_exports {
         unsafe { super::real::chmod(pathname, mode) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn fchmod(fd: c_int, mode: libc::mode_t) -> c_int {
         if is_virtual_fd(fd) {
@@ -632,6 +712,10 @@ mod shim_exports {
 
     // ── truncate / ftruncate ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn truncate(pathname: *const c_char, length: libc::off_t) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -639,7 +723,10 @@ mod shim_exports {
                 let key = strip_prefix(path);
                 // Read existing content, truncate/pad to length
                 let mut data = VFS.fs.read_file(&key).unwrap_or_default();
-                data.resize(length as usize, 0u8);
+                data.resize(
+                    usize::try_from(length.cast_unsigned()).unwrap_or(usize::MAX),
+                    0u8,
+                );
                 let _ = VFS.fs.write_file(&key, &data);
                 return 0;
             }
@@ -647,13 +734,20 @@ mod shim_exports {
         unsafe { super::real::truncate(pathname, length) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn ftruncate(fd: c_int, length: libc::off_t) -> c_int {
         if is_virtual_fd(fd) {
             if let Some(path) = FD_TABLE.path(fd) {
                 let key = strip_prefix(&path);
                 let mut data = VFS.fs.read_file(&key).unwrap_or_default();
-                data.resize(length as usize, 0u8);
+                data.resize(
+                    usize::try_from(length.cast_unsigned()).unwrap_or(usize::MAX),
+                    0u8,
+                );
                 let _ = VFS.fs.write_file(&key, &data);
                 return 0;
             }
@@ -665,6 +759,10 @@ mod shim_exports {
 
     // ── fsync ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn fsync(fd: c_int) -> c_int {
         if is_virtual_fd(fd) {
@@ -676,6 +774,10 @@ mod shim_exports {
 
     // ── opendir / readdir / closedir ──
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn opendir(pathname: *const c_char) -> *mut libc::DIR {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
@@ -686,11 +788,19 @@ mod shim_exports {
         unsafe { super::real::opendir(pathname) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn readdir(dirp: *mut libc::DIR) -> *mut libc::dirent {
         unsafe { super::real::readdir(dirp) }
     }
 
+    ///
+    /// # Safety
+    /// The caller must pass valid pointers and open file descriptors that
+    /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn closedir(dirp: *mut libc::DIR) -> c_int {
         unsafe { super::real::closedir(dirp) }
@@ -733,76 +843,65 @@ mod shim_exports {
         }
 
         // Open the file — DynFs.open_file returns ErasedFile directly
-        match VFS.fs.open_file(&key, mode) {
-            Ok(file) => {
-                let vfd = FD_TABLE.alloc_fd();
-                FD_TABLE.insert(vfd, key, file, flags);
-                vfd
-            }
-            Err(_) => {
-                set_errno(libc::EIO);
-                -1
-            }
+        if let Ok(file) = VFS.fs.open_file(&key, mode) {
+            let vfd = FD_TABLE.alloc_fd();
+            FD_TABLE.insert(vfd, key, file, flags);
+            vfd
+        } else {
+            set_errno(libc::EIO);
+            -1
         }
     }
 
     fn handle_virtual_read(fd: c_int, buf: *mut c_void, count: libc::size_t) -> libc::ssize_t {
-        let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf as *mut u8, count) };
-        match FD_TABLE.read(fd, buf_slice) {
-            Some(n) => n as libc::ssize_t,
-            None => {
-                set_errno(libc::EBADF);
-                -1
-            }
+        let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf.cast::<u8>(), count) };
+        if let Some(n) = FD_TABLE.read(fd, buf_slice) {
+            n.cast_signed()
+        } else {
+            set_errno(libc::EBADF);
+            -1
         }
     }
 
     fn handle_virtual_write(fd: c_int, buf: *const c_void, count: libc::size_t) -> libc::ssize_t {
-        let data = unsafe { std::slice::from_raw_parts(buf as *const u8, count) };
-        match FD_TABLE.write(fd, data) {
-            Some(n) => n as libc::ssize_t,
-            None => {
-                set_errno(libc::EBADF);
-                -1
-            }
+        let data = unsafe { std::slice::from_raw_parts(buf.cast::<u8>(), count) };
+        if let Some(n) = FD_TABLE.write(fd, data) {
+            n.cast_signed()
+        } else {
+            set_errno(libc::EBADF);
+            -1
         }
     }
 
     fn handle_virtual_stat(path: &str, statbuf: *mut libc::stat) -> c_int {
         let key = strip_prefix(path);
-        match VFS.fs.stat(&key) {
-            Ok(meta) => {
-                unsafe {
-                    std::ptr::write_bytes(statbuf, 0, 1);
-                    (*statbuf).st_size = meta.size as libc::off_t;
-                    (*statbuf).st_mode = meta.permissions as libc::mode_t;
-                    (*statbuf).st_uid = meta.owner.0;
-                    (*statbuf).st_gid = meta.owner.1;
-                    if let Some(t) = meta.modified {
-                        (*statbuf).st_mtime = t
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_secs() as libc::time_t)
-                            .unwrap_or(0);
-                    }
-                    if let Some(t) = meta.created {
-                        (*statbuf).st_ctime = t
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_secs() as libc::time_t)
-                            .unwrap_or(0);
-                    }
-                    if let Some(t) = meta.accessed {
-                        (*statbuf).st_atime = t
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_secs() as libc::time_t)
-                            .unwrap_or(0);
-                    }
+        if let Ok(meta) = VFS.fs.stat(&key) {
+            unsafe {
+                std::ptr::write_bytes(statbuf, 0, 1);
+                (*statbuf).st_size = libc::off_t::try_from(meta.size).unwrap_or(libc::off_t::MAX);
+                (*statbuf).st_mode = meta.permissions as libc::mode_t;
+                (*statbuf).st_uid = meta.owner.0;
+                (*statbuf).st_gid = meta.owner.1;
+                if let Some(t) = meta.modified {
+                    (*statbuf).st_mtime = t
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map_or(0, |d| d.as_secs() as libc::time_t);
                 }
-                0
+                if let Some(t) = meta.created {
+                    (*statbuf).st_ctime = t
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map_or(0, |d| d.as_secs() as libc::time_t);
+                }
+                if let Some(t) = meta.accessed {
+                    (*statbuf).st_atime = t
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map_or(0, |d| d.as_secs() as libc::time_t);
+                }
             }
-            Err(_) => {
-                set_errno(libc::ENOENT);
-                -1
-            }
+            0
+        } else {
+            set_errno(libc::ENOENT);
+            -1
         }
     }
 
@@ -817,12 +916,14 @@ mod shim_exports {
     }
 
     fn handle_virtual_lseek(fd: c_int, offset: libc::off_t, whence: c_int) -> libc::off_t {
-        let cur = FD_TABLE.get_offset(fd).unwrap_or(0) as libc::off_t;
+        let cur =
+            libc::off_t::try_from(FD_TABLE.get_offset(fd).unwrap_or(0)).unwrap_or(libc::off_t::MAX);
         let file_len = FD_TABLE
             .path(fd)
             .and_then(|p| VFS.fs.stat(&p).ok())
-            .map(|m| m.size as libc::off_t)
-            .unwrap_or(0);
+            .map_or(0, |m| {
+                libc::off_t::try_from(m.size).unwrap_or(libc::off_t::MAX)
+            });
 
         let new_offset = match whence {
             libc::SEEK_SET => offset,
@@ -838,70 +939,63 @@ mod shim_exports {
             set_errno(libc::EINVAL);
             return -1;
         }
-        FD_TABLE.set_offset(fd, new_offset as u64);
+        FD_TABLE.set_offset(fd, new_offset.cast_unsigned());
         new_offset
     }
 
     fn handle_virtual_mkdir(path: &str, _mode: libc::mode_t) -> c_int {
         let key = strip_prefix(path);
-        match VFS.fs.mkdir(&key) {
-            Ok(_) => 0,
-            Err(_) => {
-                set_errno(libc::EIO);
-                -1
-            }
+        if let Ok(()) = VFS.fs.mkdir(&key) {
+            0
+        } else {
+            set_errno(libc::EIO);
+            -1
         }
     }
 
     fn handle_virtual_unlink(path: &str) -> c_int {
         let key = strip_prefix(path);
-        match VFS.fs.remove(&key) {
-            Ok(_) => 0,
-            Err(_) => {
-                set_errno(libc::ENOENT);
-                -1
-            }
+        if let Ok(()) = VFS.fs.remove(&key) {
+            0
+        } else {
+            set_errno(libc::ENOENT);
+            -1
         }
     }
 
     fn handle_virtual_rename(old: &str, new: &str) -> c_int {
         let old_key = strip_prefix(old);
         let new_key = strip_prefix(new);
-        match VFS.fs.rename(&old_key, &new_key) {
-            Ok(_) => 0,
-            Err(_) => {
-                set_errno(libc::ENOENT);
-                -1
-            }
+        if let Ok(()) = VFS.fs.rename(&old_key, &new_key) {
+            0
+        } else {
+            set_errno(libc::ENOENT);
+            -1
         }
     }
 
     fn handle_virtual_rmdir(path: &str) -> c_int {
         let key = strip_prefix(path);
-        match VFS.fs.remove(&key) {
-            Ok(_) => 0,
-            Err(_) => {
-                set_errno(libc::ENOENT);
-                -1
-            }
+        if let Ok(()) = VFS.fs.remove(&key) {
+            0
+        } else {
+            set_errno(libc::ENOENT);
+            -1
         }
     }
 
     fn handle_virtual_opendir(path: &str) -> *mut libc::DIR {
         let key = strip_prefix(path);
-        match VFS.fs.open_dir(&key) {
-            Ok(dir) => {
-                // Store the directory handle in a global table keyed by a virtual fd
-                // For now, return null — full opendir support needs a DIR* wrapper
-                // that bridges VfsDirectory → libc::dirent
-                drop(dir);
-                set_errno(libc::ENOSYS);
-                std::ptr::null_mut()
-            }
-            Err(_) => {
-                set_errno(libc::ENOENT);
-                std::ptr::null_mut()
-            }
+        if let Ok(dir) = VFS.fs.open_dir(&key) {
+            // Store the directory handle in a global table keyed by a virtual fd
+            // For now, return null — full opendir support needs a DIR* wrapper
+            // that bridges VfsDirectory → libc::dirent
+            drop(dir);
+            set_errno(libc::ENOSYS);
+            std::ptr::null_mut()
+        } else {
+            set_errno(libc::ENOENT);
+            std::ptr::null_mut()
         }
     }
 }

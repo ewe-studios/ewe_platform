@@ -1,4 +1,4 @@
-//! io_uring completion-mode read path (F43 — Decision 14 F4).
+//! `io_uring` completion-mode read path (F43 — Decision 14 F4).
 //!
 //! WHY: completion mode changes who reads the socket. The kernel fills a buffer
 //! from a registered pool and hands us the buffer id; the transport pops bytes

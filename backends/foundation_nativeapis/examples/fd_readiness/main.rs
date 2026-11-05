@@ -1,8 +1,8 @@
 /// Example: File descriptor readiness tracking.
 ///
-/// Demonstrates how to use RegisteredFd with the poll selector to monitor
+/// Demonstrates how to use `RegisteredFd` with the poll selector to monitor
 /// an arbitrary file descriptor for readability. This is the building block
-/// that FdMonitorTask uses under the hood.
+/// that `FdMonitorTask` uses under the hood.
 use std::io;
 use std::os::fd::AsRawFd;
 use std::time::Duration;
@@ -29,29 +29,28 @@ fn main() -> io::Result<()> {
     write_to_fd(writer.as_raw_fd(), b"hello from pipe!")?;
 
     let fd_state = poll_for_readiness(&poll)?;
-    println!("Fd became ready: {:?}", fd_state);
+    println!("Fd became ready: {fd_state:?}");
 
     match registered.poll_readable() {
         PollResult::Ready(mut guard) => {
             let mut buf = [0u8; 64];
             let result = guard.try_io_read(|fd| {
-                let n =
-                    unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
+                let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len()) };
                 if n < 0 {
                     Err(io::Error::last_os_error())
                 } else {
-                    Ok((&buf[..n as usize], n as usize))
+                    Ok((&buf[..n.cast_unsigned()], n.cast_unsigned()))
                 }
             });
             match result {
                 Ok(Ok((data, n))) => {
                     println!("Read {} bytes: {:?}", n, String::from_utf8_lossy(data));
                 }
-                Ok(Err(e)) => println!("I/O error: {}", e),
-                Err(e) => println!("try_io error: {}", e),
+                Ok(Err(e)) => println!("I/O error: {e}"),
+                Err(e) => println!("try_io error: {e}"),
             }
         }
-        PollResult::Error(e) => println!("Fd error: {}", e),
+        PollResult::Error(e) => println!("Fd error: {e}"),
         PollResult::NotReady => println!("Fd not ready (unexpected)"),
     }
 
@@ -59,8 +58,8 @@ fn main() -> io::Result<()> {
     std::thread::sleep(Duration::from_millis(10));
 
     match registered.poll_readable() {
-        PollResult::Error(e) => println!("After writer closed: {} (correctly detected EOF)", e),
-        other => println!("After writer closed: {:?} (unexpected)", other),
+        PollResult::Error(e) => println!("After writer closed: {e} (correctly detected EOF)"),
+        other => println!("After writer closed: {other:?} (unexpected)"),
     }
 
     println!("\nDone — the fd was properly deregistered on drop");
@@ -78,7 +77,7 @@ fn make_pipe() -> io::Result<(std::os::unix::io::OwnedFd, std::os::unix::io::Own
 }
 
 fn write_to_fd(fd: std::os::unix::io::RawFd, data: &[u8]) -> io::Result<()> {
-    let n = unsafe { libc::write(fd, data.as_ptr() as *const libc::c_void, data.len()) };
+    let n = unsafe { libc::write(fd, data.as_ptr().cast::<libc::c_void>(), data.len()) };
     if n < 0 {
         Err(io::Error::last_os_error())
     } else {

@@ -1,4 +1,4 @@
-//! Integration tests: SyncFs<MemoryFs> and SyncFs<MemoryDelta> through valtron.
+//! Integration tests: `SyncFs`<MemoryFs> and `SyncFs`<MemoryDelta> through valtron.
 //!
 //! These tests verify the sync-bridge code path — all `SyncFs<A>` methods
 //! call `exec_async` which routes through valtron's executor. Direct sync
@@ -31,7 +31,7 @@ fn syncfs_memory_mkdir_and_stat() {
     sync.mkdir("/src/lib").unwrap();
 
     let meta = sync.stat("/src").unwrap();
-    assert!(meta.size == 0);
+    assert_eq!(meta.size, 0);
 
     assert!(sync.exists("/src").unwrap());
     assert!(sync.exists("/src/lib").unwrap());
@@ -318,7 +318,7 @@ fn syncfs_memory_concurrent_mkdir() {
         handles.push(std::thread::spawn(move || {
             let path = format!("/dir_{i}");
             let result = s.mkdir(&path);
-            result.map(|_| path)
+            result.map(|()| path)
         }));
     }
 

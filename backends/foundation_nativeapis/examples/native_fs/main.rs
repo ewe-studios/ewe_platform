@@ -13,7 +13,7 @@ fn main() {
     // NativeFs implements the async VFS traits. `main` is a sync boundary, so
     // the example uses it through `SyncFs`.
     let fs = SyncFs::new(NativeFs::new(&tmp).unwrap());
-    println!("NativeFs root: {:?}", fs.root());
+    println!("NativeFs root: {}", fs.root().display());
 
     // Create directories and files through the VFS API
     fs.mkdir("/src").unwrap();
@@ -57,7 +57,7 @@ fn main() {
         .iter()
         .collect();
     let on_disk = std::fs::read_to_string(&disk_path).unwrap();
-    println!("\nVerify on disk at {:?}: {:?}", disk_path, on_disk);
+    println!("\nVerify on disk at {}: {on_disk}", disk_path.display());
 
     // Rename
     fs.rename("/src/models/user.rs", "/src/models/account.rs")

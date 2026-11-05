@@ -385,7 +385,7 @@ vfs-nfs = ["vfs", "dep:nfsserve"]
 # Fjall LSM-tree + cacache CAS VFS backend
 
 # LD_PRELOAD VFS shim — produces a .so that intercepts libc calls
-vfs-preload = ["vfs-native", "dep:once_cell"]
+vfs-preload = ["vfs-native"]
 
 # WireGuard overlay data plane (spec-55, feature 00).
 # `netstack` = smoltcp userspace TCP/IP stack (cross-target, default data plane).

@@ -17,6 +17,7 @@ impl FdState {
     /// Returns `None` if the readiness contains neither readable nor writable
     /// (e.g. only closed/error flags).
     #[inline]
+    #[must_use]
     pub fn from_ready(readable: bool, writable: bool) -> Option<Self> {
         match (readable, writable) {
             (true, true) => Some(FdState::Both),

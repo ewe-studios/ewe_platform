@@ -526,13 +526,6 @@ are clean. Each item needs the per-crate clippy workflow in
   arguments on the stack, so `O_CREAT` would read a wrong mode there. Fix:
   build the shim only for the targets above, or define the entry points with
   `c_variadic` once it is stable.
-- **Clippy debt under `-D warnings`.** `cargo clippy --profile uat
-  -p foundation_nativeapis --all-targets --no-deps -- -D warnings` reports 191
-  warnings, and the same command with `--features vfs-preload` reports 465. The
-  `vfs-preload` code accounts for the difference, mostly `non_std_lazy_statics`,
-  `doc_markdown` and raw-pointer lints. CI does not deny warnings for this
-  package, so the debt does not fail a run. Fix: a hygiene pass, then set
-  `clippy-deny-warnings = true`.
 - **The ptrace dispatch reads the `open(2)` mode from the flags argument.**
   `flags_to_perm` in `src/native/vfs/ptrace/syscall_dispatch.rs` takes
   `(flags >> 16) & 0o777`, but the mode is a separate syscall argument: `arg2`
@@ -560,6 +553,12 @@ are clean. Each item needs the per-crate clippy workflow in
   for `Skip` and `SkipError`. If the call fails, the tracee sees the kernel's
   own result instead of the emulated result, and the tracer does not report it.
   Fix: return the error, as the `CloseThenSkip` arm does. Found in feature 111.
+- **The `vfs-preload` shim `ftruncate` accepts a negative length.** In
+  `src/native/vfs/shim/mod.rs`, `ftruncate` converts `length` to `usize` with
+  `try_from(length.cast_unsigned()).unwrap_or(usize::MAX)`. A negative length
+  therefore becomes a huge size, so the shim tries a huge allocation instead of
+  returning `EINVAL`. Fix: reject `length < 0` with `EINVAL` before the resize.
+  Found in feature 113.
 
 ## Paused
 

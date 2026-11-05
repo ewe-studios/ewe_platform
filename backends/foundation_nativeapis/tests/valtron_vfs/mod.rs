@@ -4,10 +4,10 @@
 //! Direct sync calls bypass the bridge and do NOT test the production code path.
 //!
 //! Sub-modules:
-//! - `memory` — SyncFs<MemoryFs> and SyncFs<MemoryDelta> through valtron
-//! - `sqlite` — SyncFs<LibsqlDelta> through valtron
-//! - `async` — AsyncVfsFileSystem traits called through valtron futures
-//! - `overlay` — OverlayFileSystem through valtron
+//! - `memory` — `SyncFs`<MemoryFs> and `SyncFs`<MemoryDelta> through valtron
+//! - `sqlite` — `SyncFs`<LibsqlDelta> through valtron
+//! - `async` — `AsyncVfsFileSystem` traits called through valtron futures
+//! - `overlay` — `OverlayFileSystem` through valtron
 //! - `seekable` — Seekable file concurrency + cursor sharing via valtron
 //! - `errors` — Error propagation through valtron bridge
 

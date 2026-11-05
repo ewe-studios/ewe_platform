@@ -1,4 +1,4 @@
-//! io_uring completion-mode write path — `IORING_OP_SEND` (F49 — Decision 14 F4).
+//! `io_uring` completion-mode write path — `IORING_OP_SEND` (F49 — Decision 14 F4).
 //!
 //! WHY: the SEND half of completion mode. A transport hands the kernel an owned
 //! buffer and the bytes go on the wire with no `write(2)`; the completion returns

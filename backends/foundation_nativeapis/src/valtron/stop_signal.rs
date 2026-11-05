@@ -23,6 +23,7 @@ struct StopSignalInner {
 
 impl StopSignal {
     /// Create a new stop signal (initially not stopped).
+    #[must_use]
     pub fn new() -> Self {
         Self(Arc::new(StopSignalInner {
             flag: AtomicBool::new(false),
@@ -40,6 +41,7 @@ impl StopSignal {
     }
 
     /// Check if the stop signal has been set.
+    #[must_use]
     pub fn is_stopped(&self) -> bool {
         self.0.flag.load(Ordering::SeqCst)
     }

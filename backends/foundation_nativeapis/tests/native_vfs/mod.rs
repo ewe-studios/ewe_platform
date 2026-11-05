@@ -334,7 +334,7 @@ async fn native_fs_large_read_does_not_hold_worker() {
         }
     };
 
-    let (read_out, _) = zip(read, ticker).await;
+    let (read_out, ()) = zip(read, ticker).await;
 
     assert_eq!(read_out.unwrap(), data);
     assert!(

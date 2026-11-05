@@ -26,7 +26,7 @@ extern "C" fn signal_handler(signum: libc::c_int) {
     if fd >= 0 {
         let buf: u64 = 1;
         unsafe {
-            libc::write(fd, &buf as *const _ as *const _, 8);
+            libc::write(fd, (&raw const buf).cast(), 8);
         }
     }
 
@@ -38,10 +38,10 @@ extern "C" fn signal_handler(signum: libc::c_int) {
 fn install_handler(signum: libc::c_int) -> Result<(), SignalError> {
     let mut sa: libc::sigaction = unsafe { std::mem::zeroed() };
     sa.sa_sigaction = signal_handler as *const () as libc::sighandler_t;
-    unsafe { libc::sigfillset(&mut sa.sa_mask) };
+    unsafe { libc::sigfillset(&raw mut sa.sa_mask) };
     sa.sa_flags = 0; // SA_RESTART not set — we want interruptible waits
 
-    let ret = unsafe { libc::sigaction(signum, &sa, std::ptr::null_mut()) };
+    let ret = unsafe { libc::sigaction(signum, &raw const sa, std::ptr::null_mut()) };
     if ret != 0 {
         return Err(SignalError::RegistrationFailed(format!(
             "sigaction({}) failed: {}",
@@ -63,7 +63,7 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
         return Err(SignalError::Io(std::io::Error::last_os_error()));
     }
 
-    EVENT_FD.store(event_fd as u64, Ordering::Relaxed);
+    EVENT_FD.store(u64::try_from(event_fd).unwrap_or(0), Ordering::Relaxed);
 
     // Create epoll fd
     let epoll_fd = unsafe { libc::epoll_create1(libc::EPOLL_CLOEXEC) };
@@ -76,7 +76,7 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
         events: (libc::EPOLLIN) as u32,
         u64: 0,
     };
-    let ret = unsafe { libc::epoll_ctl(epoll_fd, libc::EPOLL_CTL_ADD, event_fd, &mut event) };
+    let ret = unsafe { libc::epoll_ctl(epoll_fd, libc::EPOLL_CTL_ADD, event_fd, &raw mut event) };
     if ret != 0 {
         return Err(SignalError::Io(std::io::Error::last_os_error()));
     }
