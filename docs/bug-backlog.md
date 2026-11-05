@@ -123,11 +123,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 7. foundation_deployment_platform
 
-- **CI does not lint the `vms` feature tree.** The CI clippy and build steps run
-  default features only (`runs[0] = ""`); `vms` compiles only under
-  `cargo test --features vms`, which does not lint. The `vms` tree is now at
-  zero clippy warnings (cleaned 2026-11-02), but nothing keeps it there.
-  Fix: extend the CI clippy run to the `vms` feature so this debt stays zero.
+(no open entries)
 
 ## 8. foundation_openapi / foundation_codegentools
 
