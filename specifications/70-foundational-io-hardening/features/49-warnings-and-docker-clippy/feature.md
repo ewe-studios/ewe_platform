@@ -119,7 +119,7 @@ carries a one-line reason. The backlog records the follow-ups.
 Test commands and results:
 
 - `foundation_testbed` tests: green.
-- `foundation_deployment_docker --features docker`: 107 tests, all green.
+- `foundation_deployment_docker --features docker`: every test suite green.
 - `foundation_connectrpc`: default and h3 test runs green.
 - `foundation_netio`: test run green.
 - `foundation_keychain`: test run green.
