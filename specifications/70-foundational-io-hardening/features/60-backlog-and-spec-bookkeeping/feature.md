@@ -1,9 +1,9 @@
 ---
 feature: "Delete stale backlog entries; fix spec 70 frontmatter; record review findings"
-status: "pending"
+status: "done"
 lane: "B"
 model: "haiku"
-branch: "fix/io-51-60-lane-b"
+branch: "spec70/f59-f60-f79-lane-b-mechanical"
 crates: ["docs", "specifications"]
 catalogue_rows: [30]
 ---
@@ -29,7 +29,34 @@ Do this first (it is small) and again at the end.
 
 ## Done when
 
-- [ ] No backlog entry describes a fixed bug. Spec 70 frontmatter correct.
+- [x] No backlog entry describes a fixed bug. Spec 70 frontmatter correct.
+
+## Result
+
+E1, stale entries deleted after checking each against the code:
+- §11 `KVWasmStorage` rate limiter: the store docs say best effort and point
+  to the D1-backed `RateLimiterStore` (or a Durable Object). `D1WasmStorage`
+  implements it with one atomic `RECORD_SQL` statement (`RETURNING count`).
+- §11 old-shape `rate_limits` table:
+  `src/core/schema/sql/027_rebuild_rate_limits.sql` drops and recreates it.
+- §11 wasm stores' inherent `*_async` API:
+  `rg -n 'pub (async )?fn \w+_async' backends/foundation_db/src/wasm` is empty.
+- §11 no CI job for examples: `[packages.examples]` exists in
+  `ci/packages.toml` and `scripts/ci/ci.py` builds them.
+- §16 `foundation_reactor` publish note: `foundation_core` 0.0.7 is published
+  on crates.io, so the ordering note is no longer needed.
+
+E-drop: `docs/bug-backlog.md` has no §18, §19, §23 or §24 entries; they were
+already removed.
+
+E2: the spec 70 frontmatter `tasks` counts now match the feature files:
+completed 67, uncompleted 12, total 81, dropped 2, 83%.
+
+E3: the lane B catalogue rows 29, 30 and 102 are fixed by features 59, 60 and
+79 in this branch. The other lane B rows belong to features that have not
+landed on master (51–56, 66, 68, 71, 73, 74, 76, 81) and keep their feature or
+backlog entry. Rows 27, 28 and the §18, §19, §23 and §24 entries were dropped
+by the owner (features 57 and 58) and are gone.
 
 ## E-drop. Features 57 and 58 are dropped (owner decision 2026-11-04)
 

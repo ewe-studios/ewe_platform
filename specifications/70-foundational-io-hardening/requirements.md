@@ -3,7 +3,7 @@ description: "Fix every open entry in docs/bug-backlog.md (sections 1–21), fou
 status: "in-progress"
 priority: "critical"
 created: 2026-10-28
-updated: 2026-11-04
+updated: 2026-11-05
 author: "Main Agent"
 metadata:
   version: "2.0"
@@ -17,11 +17,11 @@ related_specs:
   - "specifications/50-valtron-async-readiness"
   - "specifications/65-agent-rpc-serving-system"
 tasks:
-  completed: 42
-  uncompleted: 37
+  completed: 67
+  uncompleted: 12
   total: 81
   dropped: 2
-  completion_percentage: 66%
+  completion_percentage: 83%
 ---
 
 # Spec 70: Foundational I/O hardening
