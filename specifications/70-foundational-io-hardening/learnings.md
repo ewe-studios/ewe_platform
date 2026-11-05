@@ -2,6 +2,11 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 48, ignored condvar tests): the two tests were marked
+  `#[ignore = "Requires threading support"]` under `#[cfg(feature = "std")]`. With `std`
+  the conditions are always true, so the reason was impossible. Both tests pass with no
+  change to the condvar. Lesson: an ignore whose reason contradicts its `cfg` is a stale
+  marker; run it before you look for a bug.
 - 2026-11-05 (feature 47, ptrace deadlock): two bugs made the seven spawn tests hang.
   (1) The child was forked by the test thread, then the `ptrace_loop` ran in a new
   thread. A ptrace request must come from the thread that attached to the tracee. From

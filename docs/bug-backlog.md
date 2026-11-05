@@ -116,6 +116,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   pushes to queues (allocation, `EventQueue` wake). That is not async-signal-safe: a signal
   that interrupts a thread holding the subscriber lock deadlocks. Fix: the handler writes one
   byte to the eventfd (or a self-pipe) and a thread or task reads it and delivers.
+- **`foundation_nostd` has 19 ignored doc examples.** `cargo test -p foundation_nostd
+  --features std --doc` reports 19 ignored examples in `src/primitives/noop.rs` and
+  `src/macros.rs`. They are pseudo-code (`let x = Nop::new()` style), so they never
+  compile. Fix: turn each into a real doctest with a local value and an assertion, as
+  feature 80 did for `foundation_core`. Found in feature 48.
 - **`foundation_nativeapis` clippy debt.** On Linux, `cargo clippy -p foundation_nativeapis
   --all-targets --no-deps -- -D warnings` reports 191 warnings with default features and 643
   with the full VFS feature set (the CI run includes `vfs-ptrace`). The lints are

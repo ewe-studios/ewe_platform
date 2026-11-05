@@ -2,6 +2,12 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 48 done on `spec70/f47-f50-lane-a-mechanical`. Both
+  `#[ignore = "Requires threading support"]` markers are removed from
+  `tests/primitives_condvar_tests.rs`. The reason contradicted the `#[cfg(feature = "std")]`
+  guard. Both tests pass 20 of 20 with the `std` feature, and the full `foundation_nostd`
+  test run with `std` is green. No condvar bug. Backlog: new entry for the 19 ignored doc
+  examples in `foundation_nostd`.
 - 2026-11-05: feature 47 partial on `spec70/f47-f50-lane-a-mechanical`. Measured cause of
   the seven ignored ptrace tests: (1) ptrace requests came from a thread that did not attach
   to the tracee, so they failed `ESRCH` and the tracee stayed stopped; (2) `argv` lacked the
