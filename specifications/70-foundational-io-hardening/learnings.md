@@ -2,6 +2,25 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (PR #179 CI fix pass, two root causes worth remembering):
+  - **A signal is not a timeout.** `epoll_wait`, `kevent` and the io_uring submit calls
+    return `EINTR` when a handler catches a signal. Returning `Ok` with no events turns
+    that into "the timeout expired". Every readiness wait must keep the deadline and
+    resume for the time that is left. A test with a real `SIGUSR1`, a handler without
+    `SA_RESTART`, and a 150 ms budget proves it in one second.
+  - **rustc's cdylib version script decides what `LD_PRELOAD` can see.** For a `cdylib`
+    rustc passes a generated linker script of the form `{ global: <crate symbols>;
+    local: *; };`. A symbol that comes from a linked C object, or from `global_asm!`,
+    is not in that list and is localized. `--dynamic-list` and
+    `--export-dynamic-symbol` do not override it. To export a name from a Rust cdylib,
+    the crate must define it: write the function in Rust with `#[unsafe(no_mangle)]`.
+    Rust also refuses a `no_mangle` definition whose signature differs from the known
+    libc one (`invalid_runtime_symbol_definitions`); a fixed-arity replacement for a
+    variadic libc function needs an `#[allow]` and a written ABI argument.
+  - Cargo's new build layout breaks "exe parent is the profile directory" arithmetic.
+    Find the profile directory by walking the executable's ancestors to the one that
+    holds `.cargo-lock`.
+
 - 2026-11-05 (feature 84, a closed `ServeOutcome`): a type that can express a nested
   future forces every caller to handle a case that no caller uses. The server logged
   and closed on that case, and one test pinned the accident. Replace the future's

@@ -1,6 +1,6 @@
 ---
 feature: "The ptrace VFS suite runs and proves itself on a native amd64 kernel in GitHub CI"
-status: "pending"
+status: "done"
 lane: "after feature 67 merges; runs with feature 82"
 model: "sonnet"
 branch: "spec70/f83-ptrace-native-amd64-ci"
@@ -128,11 +128,12 @@ prove this feature.
 
 ## Done when
 
-- [ ] CI has a named ptrace run, a probe step that fails when ptrace is missing, and
+- [x] CI has a named ptrace run, a probe step that fails when ptrace is missing, and
       `EWE_REQUIRE_PTRACE=1`.
-- [ ] The 3 new interception tests pass on the native amd64 CI job.
-- [ ] The CI log shows `ptrace probe: available` and 28 `ptrace_vfs` tests `ok`.
-- [ ] The backlog entry "The ptrace spawn tests cannot run under amd64 emulation" is
+- [x] The 3 new interception tests pass on the native amd64 CI job.
+- [x] The CI log shows `ptrace probe: available` and 28 `ptrace_vfs` tests `ok`
+      (job 127187028997, `vfs-native,vfs-ptrace` run: 28 passed, 0 failed, 0 ignored).
+- [x] The backlog entry "The ptrace spawn tests cannot run under amd64 emulation" is
       rewritten to say where the tests now run, or deleted when the entry no longer applies.
-- [ ] `learnings.md` and `progress.md` record the platform fact (Linux-only suite; native
+- [x] `learnings.md` and `progress.md` record the platform fact (Linux-only suite; native
       amd64 comes from `ubuntu-latest`, not macOS).

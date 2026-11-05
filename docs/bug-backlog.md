@@ -536,6 +536,25 @@ are clean. Each item needs the per-crate clippy workflow in
   because this feature does not bump it. Fix: bump the pin with the next toolings
   publish.
 
+## 35. foundation_nativeapis
+
+- **The `vfs-preload` interposers take the mode as a fixed argument.** `open`,
+  `open64`, `openat` and `__openat64_time64` are libc variadic functions. Rust
+  defines them in `src/native/vfs/shim/mod.rs` with a fixed third argument,
+  because stable Rust cannot define a variadic `extern "C"` function. The
+  caller writes that value where a fixed third argument lives on x86-64, x86,
+  AArch64 and RISC-V, so those targets are correct. 32-bit ARM passes variadic
+  arguments on the stack, so `O_CREAT` would read a wrong mode there. Fix:
+  build the shim only for the targets above, or define the entry points with
+  `c_variadic` once it is stable.
+- **Clippy debt under `-D warnings`.** `cargo clippy --profile uat
+  -p foundation_nativeapis --all-targets --no-deps -- -D warnings` reports 191
+  warnings, and the same command with `--features vfs-preload` reports 465. The
+  `vfs-preload` code accounts for the difference, mostly `non_std_lazy_statics`,
+  `doc_markdown` and raw-pointer lints. CI does not deny warnings for this
+  package, so the debt does not fail a run. Fix: a hygiene pass, then set
+  `clippy-deny-warnings = true`.
+
 ## Paused
 
 - Windows/macOS VM images (#69).

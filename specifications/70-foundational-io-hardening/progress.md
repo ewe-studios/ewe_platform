@@ -2,6 +2,53 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: PR #179 CI fix pass on `spec70/io-hardening-final`. The run after feature 84
+  had these failures, and each one is fixed:
+  - **`foundation_nativeapis` (`fd,uring` run): `parity_timeout_expires_and_returns` failed
+    at 51 ms of a 150 ms wait.** A caught signal interrupts `epoll_wait` with `EINTR`, and the
+    epoll, kqueue and io_uring selectors treated that as an expired timeout. Each selector now
+    keeps a deadline and resumes the wait for the time that is left. The io_uring selector
+    returns a `WaitOutcome` (`Expired`, `Interrupted`) from its bounded wait. New test
+    `foundation_reactor/tests/selector_wait.rs` sends `SIGUSR1` to the waiting thread three
+    times and asserts the full timeout. It fails on the old kqueue code and passes on the new.
+  - **`foundation_nativeapis` (`vfs-preload` run): the shim exported no `open` entry point.**
+    rustc links a cdylib against a generated version script that exports only crate-defined
+    symbols and ends with `local: *;`, so a C object's `open` was localized and `LD_PRELOAD`
+    never saw it. `--dynamic-list` and `--export-dynamic-symbol` do not override the script.
+    The four entry points are now Rust functions in `src/native/vfs/shim/mod.rs`, and the C
+    file, `build.rs` and the `cc` build dependency are gone. The fixed third argument is
+    ABI-correct on x86-64, x86, AArch64 and RISC-V; 32-bit ARM is a recorded limitation
+    (backlog §35). `tests/vfs_shim_vfs` also finds the profile directory through
+    `.cargo-lock`, because cargo's new build layout puts the hash below the profile. Verified
+    in the Linux CI image: all four symbols are in the dynamic table and both shim tests pass.
+  - **`foundation_browser`, `foundation_toolings`, `foundation_testbed`, `ewe_platform` and
+    the smoke test did not compile.** Feature 84 changed `ServeFuture` to resolve to
+    `ServeOutcome`, and two async handlers still returned `ConnectionResult` (E0271). The SSE
+    handlers and their tests now use `ServeOutcome`.
+  - **`foundation_db` clippy (`-D warnings`) failed on two warnings in
+    `tests/r2_state_store_tests.rs`.** `ETag` in a doc comment now has backticks, and the
+    102-line `handle` function is split into `read_request`, `handle`, `handle_list`,
+    `handle_get`, `handle_put` and `handle_delete`. `src/native/r2_blobstore.rs` gets the
+    same backtick fix in its `StateStore::set_if_version` docs. Clippy is clean for the
+    default and `libsql` runs, and the 10 `r2_state_store_tests` pass.
+  - **CodeQL flagged one new alert (94, `rust/hard-coded-cryptographic-value`).** The
+    feature-67 change to `foundation_keychain/tests/identity.rs` rewrote the assertion in
+    `unknown_user_is_rejected`, so GitHub gave the fake password a new alert instance
+    (master carries the same construct as alert 29). It is dismissed with the repository's
+    existing reason, "used in tests".
+  - **`foundation_deployment_platform` (`--features vms`) did not compile its ssh tests.**
+    Feature 67 changed `foundation_sshkit` results to `ErrorTrace<SshKitError>` and
+    `ErrorTrace::contains` takes no argument. `tests/ssh_backend_tests.rs` maps the errors to
+    the test's `String` and checks the message for "auth". `cargo check --all-targets
+    --features vms` and `cargo clippy ... -- -D warnings` pass locally and in the Linux CI
+    image.
+  - **`wasm-tests`: `foundation_wireguard` failed on wasm32 with two missing crates.**
+    `foundation_errstacks` sat in the non-wasm dependency section but `shared/error.rs`
+    imports it for every target. `foundation_core` was native-only but the wasm tests and
+    `#[valtron_bindgen]` need it. Both are now available to the wasm build; `multi` stays off.
+  New backlog section 35 (`foundation_nativeapis`) records the ARM32 limitation and the
+  crate's 465-warning clippy debt, and feature 113 is scheduled for the debt.
+
 - 2026-11-05: feature 84 done on `spec70/f84-serve-outcome-enum`. `ServeFuture` now
   resolves to the new `ServeOutcome` enum (`Keep`, `Take`, `Close(Option<ErrorTrace<ServeError>>)`),
   which has no `Async` variant, so a future cannot return another future. `ConnectionResult`
@@ -68,7 +115,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   of 10 solo reruns. Backlog §34 records the stale `foundation_toolings` pin in the
   `web-app` and `api-app` templates.
 
-- 2026-11-05: feature 83 merged into #179 as `660c79432` (CI proof pending).
+- 2026-11-05: feature 83 merged into #179 as `660c79432`, and CI proved it (job
+  127187028997: `ptrace probe: available`; the named `vfs-native,vfs-ptrace` run passed 28
+  `ptrace_vfs` tests, 0 failed, 0 ignored).
   `backends/foundation_nativeapis/tests/ptrace_probe.rs` forks a child that calls
   `PTRACE_TRACEME` and stops with `SIGSTOP`, then reads its registers from the parent. It
   prints `ptrace probe: available` or
