@@ -83,18 +83,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
-- **57 doc examples in `foundation_core` are marked `ignore` and never compile.** Seen on
-  `fix/io-41-50-lane-a` (2026-11-05), `cargo test -p foundation_core --doc`: "35 passed;
-  35 ignored" in the default feature set. Files and counts: `executors/sendables.rs` 11,
-  `extensions/tasks/sendable.rs` 8, `extensions/tasks/non_sendable.rs` 8,
-  `executors/non_sendables.rs` 8, `task.rs` 6, `extensions/streams/sendable.rs` 3,
-  `extensions/streams/non_sendable.rs` 3, `executors/sync.rs` 3, `pipe_mapped.rs` 2,
-  `streams.rs` 1, `mod.rs` 1, `executors/local.rs` 1, `executors/config.rs` 1,
-  `type_uuid.rs` 1. Most are pseudo-code (`MyTask::new()`, undefined
-  `RequestIntro`), so `ignore` hides that the documented API never compiles or runs.
-  Fix: rewrite each as a real doctest that builds a small local task type, runs it, and
-  asserts the shown behaviour; remove `ignore` so `cargo test --doc` executes it in both
-  feature sets (`""` and `multi`).
 - **`foundation_core` and `foundation_nostd` fail `clippy -D warnings`.** Seen on
   `fix/io-41-50-lane-a` (2026-11-04), `cargo clippy -p foundation_core --no-deps
   --profile dev --lib -- -D warnings`: 19 errors, none in feature 46 code. Files:
@@ -107,12 +95,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   stops earlier on 5 `redundant_closure_for_method_calls` errors in
   `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
   the crate at zero.
-- **Intermittent `.expect("execute")` panic in `tests/valtron/event_driven_queue_readiness.rs`.**
-  File: `backends/foundation_core/tests/valtron/event_driven_queue_readiness.rs:99`. Problem: one
-  full-suite run (2026-11-05) panicked there; four reruns were green. The run was under heavy load.
-  Likely cause: the test pool for one test stops while a body thread of another test still calls
-  `execute`, or the `valtron_test` timeout drops the pool too early. Fix: give each test its own
-  pool and make the body thread end before the test ends; then stress the suite under load.
 - **The idle CPU tests measure the threads of other tests.** File:
   `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
   tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which

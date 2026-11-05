@@ -10,15 +10,45 @@
 ///
 /// # Example
 ///
-/// ```ignore
-/// use crate::valtron::executors::{StreamConfig, DEFAULT_MAX_TURNS};
+/// ```
+/// use foundation_core::valtron::{
+///     execute_with_config, initialize_pool, Ctx, Stream, StreamConfig, TaskIterator,
+///     TaskStatus, DEFAULT_MAX_TURNS,
+/// };
 /// use std::time::Duration;
 ///
+/// struct MyTask(u32);
+///
+/// impl TaskIterator for MyTask {
+///     type Ready = u32;
+///     type Pending = ();
+///
+///     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+///         if self.0 == 0 {
+///             return None;
+///         }
+///         self.0 -= 1;
+///         Some(TaskStatus::Ready(self.0 + 1))
+///     }
+/// }
+///
+/// # let _pool = initialize_pool(7, Some(3));
 /// let config = StreamConfig::default()
-///     .with_max_turns(50)  // Higher throughput
+///     .with_max_turns(50) // Higher throughput
 ///     .with_park_duration(Duration::from_nanos(50));
 ///
-/// let result = execute_with_config(task, config)?;
+/// assert_eq!(config.max_turns, 50);
+/// assert_eq!(config.park_duration, Duration::from_nanos(50));
+/// assert!(DEFAULT_MAX_TURNS > 0);
+///
+/// let values: Vec<u32> = execute_with_config(MyTask(3), config)
+///     .expect("schedule the task")
+///     .filter_map(|item| match item {
+///         Stream::Next(value) => Some(value),
+///         _ => None,
+///     })
+///     .collect();
+/// assert_eq!(values, vec![3, 2, 1]);
 /// ```
 #[derive(Debug, Clone)]
 pub struct StreamConfig {

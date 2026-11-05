@@ -21,6 +21,21 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   "submodule tools/whisper.cpp is not in HEAD". The branch now merges master and re-adds the
   `tools/whisper.cpp` gitlink at 35cb684, so the merge keeps the submodule and the image bakes
   it again. The config keeps its three submodule entries.
+  Then the `foundation_core` job failed on one test: `valtron::multi_workers::can_queue_and_complete_task`
+  panicked with "Thread pool not initialized". Cause: `PoolGuard::shutdown` cleared the global
+  pool slots even for a private guard from `PoolGuard::new`, so the test's own private-guard
+  tests (running in parallel in the same binary) wiped the live pool between `initialize_pool`
+  and `get_pool`. Each slot now clears only when it holds the guard's own registry. The new test
+  `private_pool_guard_drop_keeps_the_global_pool` fails on the old code and passes now. Checks:
+  macOS `foundation_core` green (787 `multi`, 745 default); Linux CI image green in both sets
+  except the emulated-amd64 CPU-time test that also fails on the old code there. This also
+  explains the open `.expect("execute")` flake, so its backlog entry is deleted.
+  Still open: 57 `ignore` doc examples in `foundation_core` never compile or run; a conversion
+  to executing doctests is in progress.
+  Doctests converted (same day): all 57 now execute and assert real behaviour. Checks: default
+  set 70 doctests, `multi` set 73, both "0 ignored"; full suites green (745 + 70 default,
+  786 + 73 `multi` on macOS); `cargo fmt --check` clean; clippy errors 0 with no warning on
+  an edited file. The backlog entry for the ignored examples is deleted.
 - 2026-11-04: feature 46 done on `wip/f46-driven-stream-wake` (from `fix/io-41-50-lane-a`). A
   single-thread `DrivenStreamIterator` now wakes its async consumer when a parked task becomes
   ready: through a new `WakeableStream::wake_send` (Send callback), a one-shot resume listener in

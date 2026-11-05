@@ -83,15 +83,18 @@ pub const BLOCKING_BOUNDARY: bool = !cfg!(all(
 /// imports its blocking helpers inside this macro so they exist exactly
 /// where valtron can block.
 ///
-/// ```ignore
+/// ```
 /// foundation_core::blocking_boundary! {
+///     #[allow(unused_imports)]
 ///     use foundation_core::valtron::block_on_future;
 /// }
+///
 /// // Or with an `else` arm for the JS-hosted wasm build:
 /// foundation_core::blocking_boundary! {
-///     if { pub const CAN_BLOCK: bool = true; }
-///     else { pub const CAN_BLOCK: bool = false; }
+///     if { const CAN_BLOCK: bool = true; }
+///     else { const CAN_BLOCK: bool = false; }
 /// }
+/// assert_eq!(CAN_BLOCK, foundation_core::valtron::BLOCKING_BOUNDARY);
 /// ```
 #[cfg(not(all(
     target_family = "wasm",

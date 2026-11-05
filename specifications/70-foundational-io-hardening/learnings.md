@@ -16,11 +16,15 @@ _What an agent learned that the next agent needs. Newest first._
   `private_pool_guard_drop_keeps_the_global_pool` in `tests/valtron/multi_workers.rs`.
   Lesson: a process-wide singleton needs an owner check on every teardown path, and a
   guard that did not install a slot must never clear it.
-- 2026-11-05 (feature 80, ignored doctests): `foundation_core` marks 57 doc examples
-  `ignore`, so `cargo test --doc` reports them as ignored instead of running them.
-  Many are pseudo-code (`MyTask::new()`, undefined types), and `ignore` hides that the
-  documented API was never compiled. Convert them to real, executing doctests, or the
-  documentation is unverified prose.
+- 2026-11-05 (feature 80, ignored doctests): `foundation_core` marked 57 doc examples
+  `ignore`, so `cargo test --doc` reported them as ignored instead of running them.
+  They were pseudo-code (`MyTask::new()`, undefined types), and `ignore` hid that the
+  documented API was never compiled. All 57 are now real doctests: each builds a small
+  local task or a plain `Vec<Stream<..>>` iterator, runs the documented call and asserts
+  the result. The default set runs 70 doctests and the `multi` set runs 73; both report
+  zero ignored. Write a doctest as an external crate: use only `foundation_core::...`
+  paths. A hidden `# let _pool = initialize_pool(7, Some(3));` line brings up a pool for
+  the `execute` family and has the same signature in both executors.
 
 - 2026-11-05 (feature 80, lost wake in the `Depends` park path): the executor checked a
   readiness with `is_ready(None)` before it called `register`, because a ready signal never

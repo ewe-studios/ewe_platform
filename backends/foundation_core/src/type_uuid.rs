@@ -57,8 +57,18 @@ mod private {
 ///
 /// # Example
 ///
-/// ```ignore
-/// external_type_uuid!(String, "7edbc10a-2147-499c-af9a-498723c7b35f");
+/// ```
+/// use foundation_core::external_type_uuid;
+/// use foundation_core::type_uuid::TypeUuid;
+///
+/// // A local type stands in for the external type. An external crate cannot
+/// // implement a foreign trait for a foreign type.
+/// struct LocalType;
+///
+/// external_type_uuid!(LocalType, "7edbc10a-2147-499c-af9a-498723c7b35f");
+///
+/// assert_eq!(<LocalType as TypeUuid>::UUID.len(), 16);
+/// assert_eq!(<LocalType as TypeUuid>::UUID[0], 0x7e);
 /// ```
 #[macro_export]
 macro_rules! external_type_uuid {

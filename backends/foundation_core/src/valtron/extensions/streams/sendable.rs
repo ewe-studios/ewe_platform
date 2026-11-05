@@ -25,11 +25,30 @@ use crate::valtron::{QueueReadiness, ShortCircuit, Stream, StreamIterator, Strea
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let stream = execute(my_task)?
-///     .map_done(|v| v * 2)
-///     .map_pending(|p| format!("Pending: {:?}", p))
-///     .filter_done(|v| v > 10);
+/// ```
+/// use foundation_core::valtron::{Stream, StreamIteratorExt};
+///
+/// // Any iterator of `Stream` items implements `StreamIterator`.
+/// let mut stream = vec![
+///     Stream::Next(5),
+///     Stream::Pending("working"),
+///     Stream::Next(12),
+/// ]
+/// .into_iter()
+/// .map_done(|v| v * 2)
+/// .map_pending(|p| format!("Pending: {p}"))
+/// .filter_done(|v| *v > 10);
+///
+/// // 5 becomes 10 and fails the filter, so it yields Ignore.
+/// assert_eq!(stream.next(), Some(Stream::Ignore));
+/// // Pending values are transformed, never filtered.
+/// assert_eq!(
+///     stream.next(),
+///     Some(Stream::Pending("Pending: working".to_string()))
+/// );
+/// // 12 becomes 24 and passes the filter.
+/// assert_eq!(stream.next(), Some(Stream::Next(24)));
+/// assert_eq!(stream.next(), None);
 /// ```
 pub trait StreamIteratorExt: StreamIterator + Sized {
     /// Transform Next (Done) values using the provided function.
@@ -112,12 +131,35 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
-    /// let (observer, continuation) = stream
+    /// ```
+    /// use foundation_core::valtron::{Stream, StreamIteratorExt};
+    ///
+    /// let stream =
+    ///     vec![Stream::<i32, ()>::Next(5), Stream::Next(20), Stream::Next(15)].into_iter();
+    /// let (mut observer, mut continuation) = stream
     ///     .split_collector(
-    ///         |item| matches!(item, Stream::Next(v) if v > 10),
+    ///         |item| matches!(item, Stream::Next(v) if *v > 10),
     ///         1  // Queue size 1 for immediate delivery
     ///     );
+    ///
+    /// let mut forwarded = Vec::new();
+    /// let mut observed = Vec::new();
+    /// while let Some(item) = continuation.next() {
+    ///     if let Stream::Next(value) = item {
+    ///         forwarded.push(value);
+    ///     }
+    ///     // Drain the observer so a full queue never stalls the continuation.
+    ///     loop {
+    ///         match observer.next() {
+    ///             Some(Stream::Next(value)) => observed.push(value),
+    ///             Some(Stream::Wait) | None => break,
+    ///             Some(_) => {}
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(forwarded, vec![5, 20, 15]);
+    /// assert_eq!(observed, vec![20, 15]);
     /// ```
     fn split_collector<Pred>(
         self,
@@ -246,19 +288,33 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
-    /// let stream = execute(my_task)?
-    ///     .map_circuit(|item| {
-    ///         match item {
-    ///             Stream::Next(err_result) if err_result.is_error() => {
-    ///                 ShortCircuit::ReturnAndStop(Stream::Next(err_result))
-    ///             }
-    ///             Stream::Pending(_) | Stream::Next(_) => {
-    ///                 ShortCircuit::Continue(item)
-    ///             }
-    ///             _ => ShortCircuit::Stop,
+    /// ```
+    /// use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
+    ///
+    /// // An error response short-circuits the stream after it is returned.
+    /// let mut stream = vec![
+    ///     Stream::Next(200_u16),
+    ///     Stream::Pending("retrying"),
+    ///     Stream::Next(500),
+    ///     Stream::Next(200),
+    /// ]
+    /// .into_iter()
+    /// .map_circuit(|item| {
+    ///     match item {
+    ///         Stream::Next(err_result) if err_result >= 400 => {
+    ///             ShortCircuit::ReturnAndStop(Stream::Next(err_result))
     ///         }
-    ///     });
+    ///         Stream::Pending(_) | Stream::Next(_) => {
+    ///             ShortCircuit::Continue(item)
+    ///         }
+    ///         _ => ShortCircuit::Stop,
+    ///     }
+    /// });
+    ///
+    /// assert_eq!(stream.next(), Some(Stream::Next(200)));
+    /// assert_eq!(stream.next(), Some(Stream::Pending("retrying")));
+    /// assert_eq!(stream.next(), Some(Stream::Next(500)));
+    /// assert_eq!(stream.next(), None);
     /// ```
     fn map_circuit<F>(self, f: F) -> MapCircuit<Self>
     where

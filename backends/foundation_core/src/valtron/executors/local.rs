@@ -2864,9 +2864,69 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// Default is 16. Lower values check more frequently but add overhead.
     ///
     /// # Example
-    /// ```ignore
-    /// let executor = LocalThreadExecutor::from_seed(...)
-    ///     .with_kill_signal_check_interval(32);
+    /// ```
+    /// use std::sync::Arc;
+    /// use std::time::Duration;
+    ///
+    /// use concurrent_queue::ConcurrentQueue;
+    /// use foundation_core::retries::ExponentialBackoffDecider;
+    /// use foundation_core::synca::{IdleMan, SleepyMan};
+    /// use foundation_core::valtron::{
+    ///     ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor,
+    ///     NotificationItem, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
+    ///     TaskStatus, WrapTask,
+    /// };
+    ///
+    /// # #[derive(Default, Clone)]
+    /// # struct NoYielder;
+    /// #
+    /// # impl ProcessController for NoYielder {
+    /// #     type YieldSignal = ();
+    /// #
+    /// #     fn yield_for(&self, _duration: Duration) {}
+    /// # }
+    /// #
+    /// let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(4));
+    /// let executor = LocalThreadExecutor::from_seed(
+    ///     0,
+    ///     "doctest".into(),
+    ///     global,
+    ///     IdleMan::new(
+    ///         3,
+    ///         None,
+    ///         SleepyMan::new(3, ExponentialBackoffDecider::default()),
+    ///     ),
+    ///     PriorityOrder::Bottom,
+    ///     NoYielder,
+    ///     Duration::from_millis(50),
+    ///     None,
+    ///     None,
+    /// )
+    /// .with_kill_signal_check_interval(32);
+    ///
+    /// // The configured executor still schedules and runs a task to completion.
+    /// let task = WrapTask::new(vec![1u8, 2, 3].into_iter());
+    /// let (mut action, receiver) =
+    ///     InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_millis(10));
+    /// action
+    ///     .apply(None, executor.boxed_engine())
+    ///     .expect("schedule the task");
+    /// executor.run_until(|state| ProgressIndicator::NoWork == state);
+    ///
+    /// let got: Vec<_> = receiver
+    ///     .filter_map(|item| match item {
+    ///         NotificationItem::Ready(status) => Some(status),
+    ///         NotificationItem::None => None,
+    ///     })
+    ///     .collect();
+    /// assert_eq!(
+    ///     got,
+    ///     vec![
+    ///         TaskStatus::Ready(1u8),
+    ///         TaskStatus::Ready(2u8),
+    ///         TaskStatus::Ready(3u8),
+    ///     ]
+    /// );
     /// ```
     pub fn with_kill_signal_check_interval(mut self, interval: usize) -> Self {
         self.kill_signal_check_interval = interval;

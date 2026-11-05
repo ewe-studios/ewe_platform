@@ -289,11 +289,27 @@ impl EventReadiness for WakeSignal {
 /// cannot signal readiness ([`WakeResult::NotSupported`]) gets
 /// [`TaskStatus::Wait`], the plain re-poll.
 ///
-/// ```ignore
-/// match stream.next() {
-///     Some(Stream::Wait) => park_on(&mut stream),
-///     // ...
-/// }
+/// ```
+/// use std::sync::Arc;
+/// use std::time::Duration;
+///
+/// use foundation_core::valtron::{
+///     park_on, EventReadiness, NotifyQueue, NotifyQueueStreamIterator, Stream, TaskStatus,
+/// };
+///
+/// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
+/// let mut stream = NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1));
+///
+/// // An empty stream parks the task on a signal instead of re-polling it.
+/// let status: TaskStatus<u32, ()> = park_on(&mut stream);
+/// let TaskStatus::Depends(signal) = status else {
+///     panic!("a waking stream parks on Depends");
+/// };
+/// assert!(!signal.is_ready(None));
+///
+/// // A push flips the signal, so the executor resumes the task.
+/// queue.push(Stream::Next(7)).expect("push");
+/// assert!(signal.is_ready(None));
 /// ```
 ///
 /// [`WakeResult::NotSupported`]: crate::valtron::WakeResult::NotSupported
@@ -325,11 +341,32 @@ impl<D, P> TaskStatus<D, P> {
     /// A task that needs the value handles `Ready` and returns everything
     /// else as-is:
     ///
-    /// ```ignore
-    /// match TaskStatus::from_stream(&mut self.stream)? {
-    ///     TaskStatus::Ready(chunk) => { self.collected.push(chunk); Some(TaskStatus::Ignore) }
-    ///     other => Some(other),
-    /// }
+    /// ```
+    /// use std::sync::Arc;
+    /// use std::time::Duration;
+    ///
+    /// use foundation_core::valtron::{
+    ///     EventReadiness, NotifyQueue, NotifyQueueStreamIterator, Stream, TaskStatus,
+    /// };
+    ///
+    /// let queue: Arc<NotifyQueue<Stream<u32, ()>>> = Arc::new(NotifyQueue::unbounded());
+    /// let mut stream = NotifyQueueStreamIterator::new(queue.clone(), 1, Duration::from_millis(1));
+    ///
+    /// // With no item yet, the task parks on the stream's wake signal.
+    /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
+    /// let Some(TaskStatus::Depends(signal)) = status else {
+    ///     panic!("an empty, open stream parks on Depends");
+    /// };
+    /// assert!(!signal.is_ready(None));
+    ///
+    /// // An item turns the next pull into Ready.
+    /// queue.push(Stream::Next(7)).expect("push");
+    /// let status: Option<TaskStatus<u32, ()>> = TaskStatus::from_stream(&mut stream);
+    /// assert!(matches!(status, Some(TaskStatus::Ready(7))));
+    ///
+    /// // A closed, drained stream ends with None.
+    /// queue.close();
+    /// assert!(TaskStatus::<u32, ()>::from_stream(&mut stream).is_none());
     /// ```
     pub fn from_stream<S>(stream: &mut S) -> Option<Self>
     where
@@ -372,15 +409,20 @@ impl<D, P> TaskStatus<D, P> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// let queue = Arc::new(ConcurrentQueue::unbounded());
-/// let readiness = QueueReadiness::new(queue.clone());
+/// ```
+/// use foundation_core::valtron::{EventQueue, EventReadiness};
 ///
-/// // In TaskIterator::next_status():
-/// if let Ok(msg) = queue.pop() {
-///     return Some(TaskStatus::Ready(msg));
-/// }
-/// Some(TaskStatus::Depends(Arc::new(readiness)))
+/// let queue = EventQueue::<u32>::unbounded();
+/// let readiness = queue.readiness();
+///
+/// // Empty: the task parks on the readiness instead of taking a message.
+/// assert!(!readiness.is_ready(None));
+///
+/// // Non-empty: the task can take the message now.
+/// queue.push(7).expect("push");
+/// assert!(readiness.is_ready(None));
+/// assert_eq!(queue.pop().expect("item"), 7);
+/// assert!(!readiness.is_ready(None));
 /// ```
 pub struct QueueReadiness<T> {
     queue: Arc<ConcurrentQueue<T>>,
@@ -523,14 +565,21 @@ impl<T> EventReadiness for QueueReadiness<T> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// // In a producer TaskIterator::next_status():
-/// match queue.push(item) {
-///     Ok(()) => Some(TaskStatus::Ready(())),
-///     Err(PushError::Full(_)) =>
-///         Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(queue.clone())))),
-///     Err(PushError::Closed(_)) => None,
-/// }
+/// ```
+/// use foundation_core::valtron::{EventReadiness, Pipe};
+///
+/// let (tx, rx) = Pipe::<u32>::with_depth(1);
+/// let vacancy = tx.vacancy();
+///
+/// // An empty pipe has room for the producer.
+/// assert!(vacancy.is_ready(None));
+///
+/// // A full pipe has none: the producer parks until a pop frees a slot.
+/// tx.try_send(1).expect("fill the pipe");
+/// assert!(!vacancy.is_ready(None));
+///
+/// assert_eq!(rx.try_recv().expect("item"), 1);
+/// assert!(vacancy.is_ready(None));
 /// ```
 pub struct QueueVacancyReadiness<T> {
     queue: Arc<ConcurrentQueue<T>>,
@@ -669,13 +718,29 @@ impl<T> EventReadiness for QueueVacancyReadiness<T> {
 ///
 /// # Example
 ///
-/// ```ignore
-/// // Park on "pipe has vacancy OR the call was cancelled":
+/// ```
+/// use std::sync::Arc;
+///
+/// use foundation_core::valtron::{
+///     AnyReadiness, EventReadiness, EventReadinessPtr, Pipe, ResumeSignal,
+/// };
+///
+/// // Park on "the pipe has vacancy OR the call was cancelled".
+/// let (tx, _rx) = Pipe::<u32>::with_depth(1);
+/// tx.try_send(1).expect("fill the pipe");
+/// let vacancy: EventReadinessPtr = Arc::new(tx.vacancy());
+/// let cancelled = ResumeSignal::new(false);
 /// let signal = AnyReadiness::new(vec![
-///     Arc::new(pipe.vacancy()) as Arc<dyn EventReadiness>,
-///     cancel_signal,
+///     vacancy,
+///     Arc::new(cancelled.clone()) as EventReadinessPtr,
 /// ]);
-/// Some(TaskStatus::Depends(Arc::new(signal)))
+///
+/// // The pipe is full and the call is not cancelled: neither child is ready.
+/// assert!(!signal.is_ready(None));
+///
+/// // One ready child is enough.
+/// cancelled.set(true);
+/// assert!(signal.is_ready(None));
 /// ```
 pub struct AnyReadiness(Vec<EventReadinessPtr>);
 
@@ -2015,19 +2080,61 @@ where
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let task = my_task
-///     .map_circuit(|status| {
-///         match status {
-///             TaskStatus::Ready(err) if err.is_error() => {
-///                 TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(err))
-///             }
-///             TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
-///                 TaskShortCircuit::Continue(status)
-///             }
-///             _ => TaskShortCircuit::Stop,
-///         }
-///     });
+/// ```
+/// use foundation_core::valtron::{
+///     Ctx, TaskIterator, TaskIteratorExt, TaskShortCircuit, TaskStatus,
+/// };
+///
+/// # #[derive(Clone, Copy, PartialEq, Debug)]
+/// # enum Outcome {
+/// #     Ok(u32),
+/// #     Err(&'static str),
+/// # }
+/// #
+/// # struct Steps {
+/// #     items: Vec<Outcome>,
+/// #     index: usize,
+/// # }
+/// #
+/// # impl TaskIterator for Steps {
+/// #     type Ready = Outcome;
+/// #     type Pending = ();
+/// #
+/// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Outcome, ()>> {
+/// #         let item = self.items.get(self.index).copied();
+/// #         self.index += 1;
+/// #         item.map(TaskStatus::Ready)
+/// #     }
+/// # }
+/// #
+/// # let ctx = Ctx::new();
+/// # let task = Steps {
+/// #     items: vec![
+/// #         Outcome::Ok(1),
+/// #         Outcome::Ok(2),
+/// #         Outcome::Err("boom"),
+/// #         Outcome::Ok(3),
+/// #     ],
+/// #     index: 0,
+/// # };
+/// let mut task = task.map_circuit(|status| match status {
+///     TaskStatus::Ready(Outcome::Err(err)) => {
+///         TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(Outcome::Err(err)))
+///     }
+///     TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
+///         TaskShortCircuit::Continue(status)
+///     }
+///     _ => TaskShortCircuit::Stop,
+/// });
+///
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(Outcome::Ok(1))));
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(Outcome::Ok(2))));
+/// // The error is returned, then iteration stops; Ok(3) is never reached.
+/// assert_eq!(
+///     task.next_status(ctx.clone()),
+///     Some(TaskStatus::Ready(Outcome::Err("boom")))
+/// );
+/// assert_eq!(task.next_status(ctx), None);
 /// ```
 pub enum TaskShortCircuit<D, P> {
     /// Continue iteration with the wrapped item

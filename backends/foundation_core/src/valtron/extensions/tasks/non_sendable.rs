@@ -27,11 +27,42 @@ use crate::valtron::{
 ///
 /// ## Example
 ///
-/// ```ignore
-/// let task = MyTask::new()
-///     .map_ready(|v| v * 2)
-///     .map_pending(|p| format!("Still waiting: {:?}", p))
-///     .filter_ready(|v| v > 10);
+/// ```
+/// use foundation_core::valtron::{Ctx, TaskIterator, TaskIteratorExt, TaskStatus};
+///
+/// # struct MyTask(std::vec::IntoIter<TaskStatus<u32, &'static str>>);
+/// # impl MyTask {
+/// #     fn new(items: Vec<TaskStatus<u32, &'static str>>) -> Self {
+/// #         Self(items.into_iter())
+/// #     }
+/// # }
+/// # impl TaskIterator for MyTask {
+/// #     type Ready = u32;
+/// #     type Pending = &'static str;
+/// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+/// #         self.0.next()
+/// #     }
+/// # }
+/// let ctx = Ctx::new();
+/// let mut task = MyTask::new(vec![
+///     TaskStatus::Ready(5),
+///     TaskStatus::Pending("waiting"),
+///     TaskStatus::Ready(12),
+/// ])
+/// .map_ready(|v| v * 2)
+/// .map_pending(|p| format!("Still waiting: {p}"))
+/// .filter_ready(|v| *v > 10);
+///
+/// // 5 becomes 10 and fails the filter, so it yields Ignore.
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ignore));
+/// // Pending values are transformed, never filtered.
+/// assert_eq!(
+///     task.next_status(ctx.clone()),
+///     Some(TaskStatus::Pending("Still waiting: waiting".to_string()))
+/// );
+/// // 12 becomes 24 and passes the filter.
+/// assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(24)));
+/// assert_eq!(task.next_status(ctx.clone()), None);
 /// ```
 pub trait TaskIteratorExt: TaskIterator + Sized {
     /// Transform Ready values using the provided function.
@@ -91,12 +122,59 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
-    /// let (observer, continuation) = send_request_task
+    /// ```
+    /// use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+    ///
+    /// # #[derive(Clone, Debug, PartialEq)]
+    /// # enum RequestIntro {
+    /// #     Success { status: u16 },
+    /// #     Pending,
+    /// # }
+    /// # struct SendRequestTask(std::vec::IntoIter<TaskStatus<RequestIntro, String>>);
+    /// # impl SendRequestTask {
+    /// #     fn new(items: Vec<TaskStatus<RequestIntro, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for SendRequestTask {
+    /// #     type Ready = RequestIntro;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let send_request_task = SendRequestTask::new(vec![
+    ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
+    ///     TaskStatus::Ready(RequestIntro::Pending),
+    /// ]);
+    /// let (mut observer, mut continuation) = send_request_task
     ///     .split_collector(
     ///         |item| matches!(item, RequestIntro::Success { .. }),
     ///         1  // Queue size 1 for immediate delivery
     ///     );
+    ///
+    /// // Drive the continuation; it still forwards every item downstream.
+    /// let mut forwarded = Vec::new();
+    /// while let Some(status) = continuation.next_status(ctx.clone()) {
+    ///     if let TaskStatus::Ready(item) = status {
+    ///         forwarded.push(item);
+    ///     }
+    /// }
+    ///
+    /// // The observer receives a copy of the matched item only.
+    /// let observed: Vec<_> = observer
+    ///     .filter_map(|item| match item {
+    ///         Stream::Next(item) => Some(item),
+    ///         _ => None,
+    ///     })
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     forwarded,
+    ///     vec![RequestIntro::Success { status: 200 }, RequestIntro::Pending]
+    /// );
+    /// assert_eq!(observed, vec![RequestIntro::Success { status: 200 }]);
     /// ```
     fn split_collector<P>(
         self,
@@ -119,9 +197,54 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
-    /// let (observer, continuation) = send_request_task
+    /// ```
+    /// use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+    ///
+    /// # #[derive(Clone, Debug, PartialEq)]
+    /// # enum RequestIntro {
+    /// #     Success { status: u16 },
+    /// #     Pending,
+    /// # }
+    /// # struct SendRequestTask(std::vec::IntoIter<TaskStatus<RequestIntro, String>>);
+    /// # impl SendRequestTask {
+    /// #     fn new(items: Vec<TaskStatus<RequestIntro, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for SendRequestTask {
+    /// #     type Ready = RequestIntro;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let send_request_task = SendRequestTask::new(vec![
+    ///     TaskStatus::Ready(RequestIntro::Pending),
+    ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
+    /// ]);
+    /// let (mut observer, mut continuation) = send_request_task
     ///     .split_collect_one(|item| matches!(item, RequestIntro::Success { .. }));
+    ///
+    /// let mut forwarded = Vec::new();
+    /// while let Some(status) = continuation.next_status(ctx.clone()) {
+    ///     if let TaskStatus::Ready(item) = status {
+    ///         forwarded.push(item);
+    ///     }
+    /// }
+    ///
+    /// let observed: Vec<_> = observer
+    ///     .filter_map(|item| match item {
+    ///         Stream::Next(item) => Some(item),
+    ///         _ => None,
+    ///     })
+    ///     .collect();
+    ///
+    /// assert_eq!(
+    ///     forwarded,
+    ///     vec![RequestIntro::Pending, RequestIntro::Success { status: 200 }]
+    /// );
+    /// assert_eq!(observed, vec![RequestIntro::Success { status: 200 }]);
     /// ```
     fn split_collect_one<P>(
         self,
@@ -250,9 +373,35 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
+    /// ```
+    /// use foundation_core::valtron::CollectionState;
+    /// use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+    ///
+    /// # #[derive(Clone, Debug, PartialEq)]
+    /// # enum RequestIntro {
+    /// #     Success { status: u16 },
+    /// #     Pending,
+    /// # }
+    /// # struct SendRequestTask(std::vec::IntoIter<TaskStatus<RequestIntro, String>>);
+    /// # impl SendRequestTask {
+    /// #     fn new(items: Vec<TaskStatus<RequestIntro, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for SendRequestTask {
+    /// #     type Ready = RequestIntro;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let send_request_task = SendRequestTask::new(vec![
+    ///     TaskStatus::Ready(RequestIntro::Pending),
+    ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
+    /// ]);
     /// // Observer gets items until first Success, then closes
-    /// let (observer, continuation) = send_request_task
+    /// let (mut observer, mut continuation) = send_request_task
     ///     .split_collect_until(
     ///         |item| match item {
     ///             RequestIntro::Success { .. } => CollectionState::Close(true),
@@ -260,6 +409,33 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///         },
     ///         1  // Queue size 1 for immediate delivery
     ///     );
+    ///
+    /// let mut forwarded = Vec::new();
+    /// let mut observed = Vec::new();
+    /// while let Some(status) = continuation.next_status(ctx.clone()) {
+    ///     if let TaskStatus::Ready(item) = status {
+    ///         forwarded.push(item);
+    ///     }
+    ///     // Drain the observer so a full queue never parks the continuation.
+    ///     loop {
+    ///         match observer.next() {
+    ///             Some(Stream::Next(item)) => observed.push(item),
+    ///             Some(Stream::Wait) | None => break,
+    ///             Some(_) => {}
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(
+    ///     forwarded,
+    ///     vec![RequestIntro::Pending, RequestIntro::Success { status: 200 }]
+    /// );
+    /// assert_eq!(
+    ///     observed,
+    ///     vec![RequestIntro::Pending, RequestIntro::Success { status: 200 }]
+    /// );
+    /// // The observer queue closed when the first Success arrived.
+    /// assert_eq!(observer.next(), None);
     /// ```
     fn split_collect_until<P>(
         self,
@@ -303,16 +479,75 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
+    /// ```
+    /// use foundation_core::valtron::CollectionState;
+    /// use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+    ///
+    /// # #[derive(Clone, Debug, PartialEq)]
+    /// # enum RequestIntro {
+    /// #     Success { status: u16 },
+    /// #     Pending,
+    /// # }
+    /// # impl RequestIntro {
+    /// #     fn to_cloneable_data(&self) -> u16 {
+    /// #         match self {
+    /// #             RequestIntro::Success { status } => *status,
+    /// #             RequestIntro::Pending => 0,
+    /// #         }
+    /// #     }
+    /// # }
+    /// # struct SendRequestTask(std::vec::IntoIter<TaskStatus<RequestIntro, String>>);
+    /// # impl SendRequestTask {
+    /// #     fn new(items: Vec<TaskStatus<RequestIntro, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for SendRequestTask {
+    /// #     type Ready = RequestIntro;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let send_request_task = SendRequestTask::new(vec![
+    ///     TaskStatus::Ready(RequestIntro::Pending),
+    ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
+    /// ]);
     /// // Observer gets RequestIntroData (cloneable), continuation gets full RequestIntro
-    /// let (observer, continuation) = send_request_task
+    /// let (mut observer, mut continuation) = send_request_task
     ///     .split_collect_until_map(
     ///         |item| match item {
-    ///             RequestIntro::Success { .. } => (CollectionState::Close(true), item.to_cloneable_data()),
-    ///             _ => (CollectionState::Collect, item.to_cloneable_data()),
+    ///             RequestIntro::Success { .. } => {
+    ///                 (CollectionState::Close(true), Some(item.to_cloneable_data()))
+    ///             }
+    ///             _ => (CollectionState::Collect, Some(item.to_cloneable_data())),
     ///         },
     ///         1
     ///     );
+    ///
+    /// let mut forwarded = Vec::new();
+    /// let mut observed = Vec::new();
+    /// while let Some(status) = continuation.next_status(ctx.clone()) {
+    ///     if let TaskStatus::Ready(item) = status {
+    ///         forwarded.push(item);
+    ///     }
+    ///     // Drain the observer so a full queue never parks the continuation.
+    ///     loop {
+    ///         match observer.next() {
+    ///             Some(Stream::Next(item)) => observed.push(item),
+    ///             Some(Stream::Wait) | None => break,
+    ///             Some(_) => {}
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// // The continuation keeps the full values; the observer gets only the data.
+    /// assert_eq!(
+    ///     forwarded,
+    ///     vec![RequestIntro::Pending, RequestIntro::Success { status: 200 }]
+    /// );
+    /// assert_eq!(observed, vec![0, 200]);
     /// ```
     fn split_collect_until_map<F, D>(
         self,
@@ -357,13 +592,73 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
+    /// ```
+    /// use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+    ///
+    /// # #[derive(Debug, PartialEq)]
+    /// # struct Item {
+    /// #     id: u64,
+    /// #     important: bool,
+    /// # }
+    /// # impl Item {
+    /// #     fn is_important(&self) -> bool {
+    /// #         self.important
+    /// #     }
+    /// #     fn id(&self) -> u64 {
+    /// #         self.id
+    /// #     }
+    /// # }
+    /// # struct ItemTask(std::vec::IntoIter<TaskStatus<Item, String>>);
+    /// # impl ItemTask {
+    /// #     fn new(items: Vec<TaskStatus<Item, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for ItemTask {
+    /// #     type Ready = Item;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let task = ItemTask::new(vec![
+    ///     TaskStatus::Ready(Item { id: 1, important: false }),
+    ///     TaskStatus::Ready(Item { id: 2, important: true }),
+    ///     TaskStatus::Ready(Item { id: 3, important: true }),
+    /// ]);
     /// // Observer gets u64 ids, continuation gets full Item
-    /// let (observer, continuation) = task
+    /// let (mut observer, mut continuation) = task
     ///     .split_collector_map(
     ///         |item| (item.is_important(), Some(item.id())),
     ///         10
     ///     );
+    ///
+    /// let mut forwarded = Vec::new();
+    /// let mut observed = Vec::new();
+    /// while let Some(status) = continuation.next_status(ctx.clone()) {
+    ///     if let TaskStatus::Ready(item) = status {
+    ///         forwarded.push(item);
+    ///     }
+    ///     // Drain the observer so a full queue never parks the continuation.
+    ///     loop {
+    ///         match observer.next() {
+    ///             Some(Stream::Next(item)) => observed.push(item),
+    ///             Some(Stream::Wait) | None => break,
+    ///             Some(_) => {}
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(
+    ///     forwarded,
+    ///     vec![
+    ///         Item { id: 1, important: false },
+    ///         Item { id: 2, important: true },
+    ///         Item { id: 3, important: true },
+    ///     ]
+    /// );
+    /// assert_eq!(observed, vec![2, 3]);
     /// ```
     fn split_collector_map<F, M>(
         self,
@@ -411,8 +706,41 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
-    /// let task = my_task
+    /// ```
+    /// use foundation_core::valtron::{
+    ///     Ctx, TaskIterator, TaskIteratorExt, TaskShortCircuit, TaskStatus,
+    /// };
+    ///
+    /// # #[derive(Debug, PartialEq)]
+    /// # struct Response {
+    /// #     status: u16,
+    /// # }
+    /// # impl Response {
+    /// #     fn is_error(&self) -> bool {
+    /// #         self.status >= 400
+    /// #     }
+    /// # }
+    /// # struct ResponseTask(std::vec::IntoIter<TaskStatus<Response, String>>);
+    /// # impl ResponseTask {
+    /// #     fn new(items: Vec<TaskStatus<Response, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for ResponseTask {
+    /// #     type Ready = Response;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let my_task = ResponseTask::new(vec![
+    ///     TaskStatus::Ready(Response { status: 200 }),
+    ///     TaskStatus::Pending("retrying".to_string()),
+    ///     TaskStatus::Ready(Response { status: 500 }),
+    ///     TaskStatus::Ready(Response { status: 200 }),
+    /// ]);
+    /// let mut task = my_task
     ///     .map_circuit(|status| {
     ///         match status {
     ///             TaskStatus::Ready(err) if err.is_error() => {
@@ -424,6 +752,21 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///             _ => TaskShortCircuit::Stop,
     ///         }
     ///     });
+    ///
+    /// assert_eq!(
+    ///     task.next_status(ctx.clone()),
+    ///     Some(TaskStatus::Ready(Response { status: 200 }))
+    /// );
+    /// assert_eq!(
+    ///     task.next_status(ctx.clone()),
+    ///     Some(TaskStatus::Pending("retrying".to_string()))
+    /// );
+    /// // The first error is returned, and the task stops after it.
+    /// assert_eq!(
+    ///     task.next_status(ctx.clone()),
+    ///     Some(TaskStatus::Ready(Response { status: 500 }))
+    /// );
+    /// assert_eq!(task.next_status(ctx.clone()), None);
     /// ```
     fn map_circuit<F>(self, f: F) -> TMapCircuit<Self>
     where
@@ -444,9 +787,44 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Example
     ///
-    /// ```ignore
-    /// // Outer yields Ready(Vec<u8>), mapper returns vec.into_iter()
-    /// let flattened = task.map_iter(|vec| vec.into_iter());
+    /// ```
+    /// use foundation_core::valtron::{Ctx, TaskIterator, TaskIteratorExt, TaskStatus};
+    ///
+    /// # struct ChunkTask(std::vec::IntoIter<TaskStatus<Vec<u8>, String>>);
+    /// # impl ChunkTask {
+    /// #     fn new(items: Vec<TaskStatus<Vec<u8>, String>>) -> Self {
+    /// #         Self(items.into_iter())
+    /// #     }
+    /// # }
+    /// # impl TaskIterator for ChunkTask {
+    /// #     type Ready = Vec<u8>;
+    /// #     type Pending = String;
+    /// #     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    /// #         self.0.next()
+    /// #     }
+    /// # }
+    /// let ctx = Ctx::new();
+    /// let task = ChunkTask::new(vec![
+    ///     TaskStatus::Ready(vec![1, 2]),
+    ///     TaskStatus::Ready(vec![3]),
+    ///     TaskStatus::Ready(Vec::new()),
+    ///     TaskStatus::Ready(vec![4]),
+    /// ]);
+    /// // Outer yields Ready(Vec<u8>); the mapper returns an inner iterator
+    /// // that yields each byte as a Ready status.
+    /// let mut flattened = task.map_iter(|values: Vec<u8>| {
+    ///     values
+    ///         .into_iter()
+    ///         .map(|value| TaskStatus::<u8, String>::Ready(value))
+    /// });
+    ///
+    /// let mut ready = Vec::new();
+    /// while let Some(status) = flattened.next_status(ctx.clone()) {
+    ///     if let TaskStatus::Ready(value) = status {
+    ///         ready.push(value);
+    ///     }
+    /// }
+    /// assert_eq!(ready, vec![1, 2, 3, 4]);
     /// ```
     fn map_iter<F, InnerIter, InnerR, InnerP>(
         self,

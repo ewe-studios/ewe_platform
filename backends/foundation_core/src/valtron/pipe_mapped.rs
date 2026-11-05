@@ -107,11 +107,30 @@ impl<Inner, Outer, F: Clone> Clone for MappedSender<Inner, Outer, F> {
 impl<T> PipeSender<T> {
     /// Wrap with a borrow-based transform: caller sends `&Outer`, pipe sees `Inner`.
     ///
-    /// ```ignore
-    /// let ws_tx: PipeSender<WebSocketMessage> = ...;
-    /// let byte_tx = ws_tx.map_to(|bytes: &Bytes| WebSocketMessage::Binary(bytes.to_vec()));
-    /// byte_tx.try_send(&bytes)?;
-    /// byte_tx.send(bytes).await?;
+    /// ```
+    /// use foundation_core::valtron::Pipe;
+    ///
+    /// enum Message {
+    ///     Binary(Vec<u8>),
+    ///     Text(String),
+    /// }
+    ///
+    /// let (ws_tx, ws_rx) = Pipe::<Message>::with_depth(4);
+    /// // The caller sends `&Vec<u8>`; the pipe holds a `Message`.
+    /// let byte_tx = ws_tx.map_to(|bytes: &Vec<u8>| Message::Binary(bytes.clone()));
+    ///
+    /// byte_tx.try_send(&b"hello".to_vec()).expect("send");
+    /// match ws_rx.try_recv().expect("receive") {
+    ///     Message::Binary(bytes) => assert_eq!(bytes, b"hello".to_vec()),
+    ///     Message::Text(_) => panic!("the transform wraps bytes"),
+    /// }
+    ///
+    /// // The same transform on the async path.
+    /// futures_lite::future::block_on(byte_tx.send(b"world".to_vec())).expect("send");
+    /// match ws_rx.try_recv().expect("receive") {
+    ///     Message::Binary(bytes) => assert_eq!(bytes, b"world".to_vec()),
+    ///     Message::Text(_) => panic!("the transform wraps bytes"),
+    /// }
     /// ```
     pub fn map_to<Outer, F: Fn(&Outer) -> T>(self, f: F) -> MappedSender<T, Outer, F> {
         MappedSender {
@@ -239,14 +258,33 @@ impl<Inner, Outer, F: Clone> Clone for FilterMapReceiver<Inner, Outer, F> {
 impl<T> PipeReceiver<T> {
     /// Wrap with a borrow-based filter: pipe yields `&Inner`, caller sees `Outer`.
     ///
-    /// ```ignore
-    /// let ws_rx: PipeReceiver<WebSocketMessage> = ...;
-    /// let body_rx = ws_rx.filter_map_to(|msg: &WebSocketMessage| match msg {
-    ///     WebSocketMessage::Binary(data) => Some(Bytes::from(data.clone())),
+    /// ```
+    /// use foundation_core::valtron::{Pipe, TryRecvError};
+    ///
+    /// enum Message {
+    ///     Binary(Vec<u8>),
+    ///     Text(String),
+    /// }
+    ///
+    /// let (ws_tx, ws_rx) = Pipe::<Message>::with_depth(4);
+    /// // The pipe holds `Message`; the caller sees only binary bodies.
+    /// let body_rx = ws_rx.filter_map_to(|msg: &Message| match msg {
+    ///     Message::Binary(data) => Some(data.clone()),
     ///     _ => None,
     /// });
-    /// body_rx.try_recv()?;    // Bytes
-    /// body_rx.receive().await; // Option<Bytes>
+    ///
+    /// // A filtered item is consumed and reported as empty.
+    /// ws_tx.try_send(Message::Text("ignored".into())).expect("send");
+    /// assert_eq!(body_rx.try_recv(), Err(TryRecvError::Empty));
+    ///
+    /// ws_tx.try_send(Message::Binary(b"data".to_vec())).expect("send");
+    /// assert_eq!(body_rx.try_recv().expect("body"), b"data".to_vec());
+    ///
+    /// // The same filter on the async path: a non-matching item is skipped.
+    /// ws_tx.try_send(Message::Text("ignored".into())).expect("send");
+    /// ws_tx.try_send(Message::Binary(b"body".to_vec())).expect("send");
+    /// let body = futures_lite::future::block_on(body_rx.receive());
+    /// assert_eq!(body, Some(b"body".to_vec()));
     /// ```
     pub fn filter_map_to<Outer, F>(self, f: F) -> FilterMapReceiver<T, Outer, F> {
         FilterMapReceiver {
