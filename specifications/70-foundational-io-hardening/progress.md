@@ -11,8 +11,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   where a test needed them, and the crates were version-bumped where the API
   grew. `ewe_watchers` was excluded from the root workspace but inherited
   `workspace = true`, so it never built; it is now a standalone workspace root.
-  `infrastructure_llama_cpp` moved 7 tests but could not compile here because
-  `tools/llama.cpp` is empty; its version bump waits for PR #176. Remaining
+  `infrastructure_llama_cpp` moved 7 tests; the main checkout has the
+  `tools/llama.cpp` submodule, so all seven compile and pass, and the crate
+  bumps to 0.0.5 with its consumers (`foundation_ai`, the four examples).
+  Remaining
   inline tests: jsonschema (accepted vendored copy), boringtun (upstream fork,
   out of this feature's list), and the proc-macro crates (need a companion
   library crate). Checks: each touched crate's fmt, clippy (`--all-targets

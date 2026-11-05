@@ -74,7 +74,8 @@ now lists only these:
 - Lane A crates (feature 50 owns them) and
   `foundation_deployment_cloudflare` (another agent owns it).
 
-`infrastructure_llama_cpp` moved 7 tests but could not compile here:
-`tools/llama.cpp` is empty, so the bindings build script stops on a missing
-`llama.h`. Its version stays 0.0.4 because `foundation_ai` pins it and is
-owned by PR #176 (backlog §28).
+`infrastructure_llama_cpp` moved 7 tests. The agent's worktree had no
+`tools/llama.cpp`, so it could not build there. The main checkout has the
+submodule: the seven tests compile and pass (2026-11-05). The crate gained
+public API, so it bumps to 0.0.5 with every consumer (`foundation_ai` and the
+four `examples/llama-cpp/*` crates).
