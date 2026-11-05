@@ -238,10 +238,13 @@ mod html_parser_test {
         let data = wrap_in_document_fragment_container(String::from("<div>hello<</div>"));
         let result = parser.parse(data.as_str());
 
-        assert!(matches!(
-            result,
-            ParsingResult::Err(ParsingTagError::FailedContentParsing(_))
-        ));
+        match result {
+            ParsingResult::Err(trace) => assert!(matches!(
+                trace.current_context(),
+                ParsingTagError::FailedContentParsing(_)
+            )),
+            ParsingResult::Ok(_) => panic!("expected a parse error"),
+        }
     }
 
     #[traced_test]

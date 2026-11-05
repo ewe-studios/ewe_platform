@@ -3,6 +3,7 @@
 
 use derive_more::{Display, Error};
 use foundation_core::io::mem::stringpointer::StringPointer;
+use foundation_errstacks::ErrorTrace;
 use lazy_static::lazy_static;
 use std::{collections::HashMap, str::FromStr};
 use tracing;
@@ -81,12 +82,25 @@ pub enum ParsingTagError {
     ExpectedUnemptyStack,
 }
 
-pub type ParsingResult<T> = std::result::Result<T, ParsingTagError>;
+/// Result type of the markup parser API.
+pub type ParsingResult<T> = std::result::Result<T, ErrorTrace<ParsingTagError>>;
+
+impl From<ParsingTagError> for ErrorTrace<ParsingTagError> {
+    fn from(err: ParsingTagError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
 
 #[derive(Debug, Display, Error)]
 #[display("can't get &str representation of {tag:?}")]
 pub struct MarkupStrError {
     tag: MarkupTags,
+}
+
+impl From<MarkupStrError> for ErrorTrace<MarkupStrError> {
+    fn from(err: MarkupStrError) -> Self {
+        ErrorTrace::new(err)
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -1069,12 +1083,12 @@ impl MarkupTags {
         }
     }
 
-    pub fn to_str(self) -> Result<&'static str, MarkupStrError> {
+    pub fn to_str(self) -> Result<&'static str, ErrorTrace<MarkupStrError>> {
         match self {
             MarkupTags::DocType => Ok("!doctype"),
             MarkupTags::SVG(sg) => Ok(sg.into()),
             MarkupTags::HTML(ht) => Ok(ht.into()),
-            _ => Err(MarkupStrError { tag: self }),
+            _ => Err(MarkupStrError { tag: self }.into()),
         }
     }
 
@@ -1304,7 +1318,8 @@ impl HTMLParser {
                 "Error({:?}): {:?}",
                 err,
                 accumulator.ppeek_at(0, 20).unwrap()
-            ))),
+            ))
+            .into()),
         }
     }
 
@@ -1345,7 +1360,8 @@ impl HTMLParser {
                         ParserDirective::Closed((tag, _)) => {
                             return Err(ParsingTagError::TagWithUnexpectedEnding(
                                 tag.markup_to_string(),
-                            ));
+                            )
+                            .into());
                         }
                     }
                 }
@@ -1403,7 +1419,9 @@ impl HTMLParser {
                                     break;
                                 }
                                 None => {
-                                    return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag)
+                                    return Err(
+                                        ParsingTagError::UnexpectedParsingWithUnfinishedTag.into()
+                                    )
                                 }
                             }
                         }
@@ -1426,7 +1444,8 @@ impl HTMLParser {
                                             return Err(
                                                 ParsingTagError::ClosingTagDoesNotMatchTopMarkup(
                                                     format!("last: {ptag:?} - tag: {ctag:?}"),
-                                                ),
+                                                )
+                                                .into(),
                                             );
                                         }
 
@@ -1434,10 +1453,14 @@ impl HTMLParser {
                                         parent.end_range = Some(tag_end_end);
                                         pop_top_stack = true;
                                     }
-                                    None => return Err(ParsingTagError::StackedMarkupHasNoTag),
+                                    None => {
+                                        return Err(ParsingTagError::StackedMarkupHasNoTag.into())
+                                    }
                                 }
                             }
-                            None => return Err(ParsingTagError::ClosingTagHasZeroElementInStack),
+                            None => {
+                                return Err(ParsingTagError::ClosingTagHasZeroElementInStack.into())
+                            }
                         }
                     }
                     ParserDirective::Void(elem) => {
@@ -1461,18 +1484,20 @@ impl HTMLParser {
             match stacks.pop() {
                 Some(previous_elem) => match stacks.last_mut() {
                     Some(parent) => parent.children.push(previous_elem),
-                    None => return Err(ParsingTagError::FailedToMoveTopMarkupIntoParentInStack),
+                    None => {
+                        return Err(ParsingTagError::FailedToMoveTopMarkupIntoParentInStack.into())
+                    }
                 },
-                None => return Err(ParsingTagError::FailedToMoveTopMarkupIntoParentInStack),
+                None => return Err(ParsingTagError::FailedToMoveTopMarkupIntoParentInStack.into()),
             }
         }
 
         if stacks.is_empty() {
-            return Err(ParsingTagError::FailedParsing);
+            return Err(ParsingTagError::FailedParsing.into());
         }
 
         if stacks.len() > 1 {
-            return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag);
+            return Err(ParsingTagError::UnexpectedParsingWithUnfinishedTag.into());
         }
 
         Ok(stacks.pop().unwrap())
@@ -1492,7 +1517,7 @@ impl HTMLParser {
                 parent.children.push(child);
                 Ok(())
             }
-            None => Err(ParsingTagError::LastChildWasEmptyShell),
+            None => Err(ParsingTagError::LastChildWasEmptyShell.into()),
         }
     }
 
@@ -1507,9 +1532,9 @@ impl HTMLParser {
                     parent.children.push(last_child);
                     Ok(())
                 }
-                None => Err(ParsingTagError::ExpectedUnemptyStack),
+                None => Err(ParsingTagError::ExpectedUnemptyStack.into()),
             },
-            None => Err(ParsingTagError::LastChildWasEmptyShell),
+            None => Err(ParsingTagError::LastChildWasEmptyShell.into()),
         }
     }
 
@@ -1532,7 +1557,7 @@ impl HTMLParser {
         'c: 'd,
     {
         let Some(next) = acc.peek(1) else {
-            return Err(ParsingTagError::FailedParsing);
+            return Err(ParsingTagError::FailedParsing.into());
         };
 
         tracing::debug!(
@@ -1636,9 +1661,10 @@ impl HTMLParser {
 
                     return Err(ParsingTagError::InvalidHTMLContent(String::from(
                         acc.vpeek_at(0, acc.len()).unwrap(),
-                    )));
+                    ))
+                    .into());
                 }
-                None => return Err(ParsingTagError::FailedParsing),
+                None => return Err(ParsingTagError::FailedParsing.into()),
             }
         }
 
@@ -1717,7 +1743,7 @@ impl HTMLParser {
             }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[allow(clippy::used_underscore_binding)]
@@ -1808,7 +1834,7 @@ impl HTMLParser {
             return Ok(ParserDirective::Void(elem));
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -1852,11 +1878,13 @@ impl HTMLParser {
 
                     return Ok(ParserDirective::Void(elem));
                 }
-                None => return Err(ParsingTagError::InvalidHTMLEnd(String::from(acc.content()))),
+                None => {
+                    return Err(ParsingTagError::InvalidHTMLEnd(String::from(acc.content())).into())
+                }
             }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -1927,7 +1955,7 @@ impl HTMLParser {
             }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -1959,7 +1987,8 @@ impl HTMLParser {
                 if next != TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
                     return Err(ParsingTagError::TagWithUnexpectedEnding(String::from(
                         acc.take().unwrap(),
-                    )));
+                    ))
+                    .into());
                 }
 
                 if next == TAG_CLOSED_BRACKET && collected_attrs && collected_tag {
@@ -2011,7 +2040,7 @@ impl HTMLParser {
             }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -2085,7 +2114,7 @@ impl HTMLParser {
             }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -2158,7 +2187,7 @@ impl HTMLParser {
                     return Ok(ParserDirective::Void(elem));
                 }
 
-                return Err(ParsingTagError::ExpectingSpaceAfterTagName);
+                return Err(ParsingTagError::ExpectingSpaceAfterTagName.into());
             }
 
             if !collected_tag_name {
@@ -2199,7 +2228,7 @@ impl HTMLParser {
             }
         }
 
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -2230,7 +2259,7 @@ impl HTMLParser {
 
             return Ok(());
         }
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -2354,7 +2383,7 @@ impl HTMLParser {
                 return Ok(());
             }
         }
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[allow(unused)]
@@ -2373,7 +2402,7 @@ impl HTMLParser {
 
             return Ok(());
         }
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[allow(unused)]
@@ -2392,7 +2421,7 @@ impl HTMLParser {
 
             return Ok(());
         }
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     #[cfg_attr(
@@ -2471,9 +2500,10 @@ impl HTMLParser {
                     }
 
                     if !self.is_valid_attribute_value_token(acc.peek(1).unwrap()) {
-                        return Err(ParsingTagError::AttributeValueNotValidStarter(
-                            String::from(acc.peek(1).unwrap()),
-                        ));
+                        return Err(ParsingTagError::AttributeValueNotValidStarter(String::from(
+                            acc.peek(1).unwrap(),
+                        ))
+                        .into());
                     }
 
                     tracing::debug!(
@@ -2518,13 +2548,15 @@ impl HTMLParser {
                             {
                                 return Err(ParsingTagError::AttributeValueNotValidEnding(
                                     String::from(token),
-                                ));
+                                )
+                                .into());
                             }
                         }
                         None => {
                             return Err(ParsingTagError::AttributeValueNotValidEnding(
                                 String::from(acc.vpeek_at(0, 5).unwrap()),
-                            ));
+                            )
+                            .into());
                         }
                     }
 
@@ -2544,7 +2576,7 @@ impl HTMLParser {
 
             return Ok(());
         }
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 
     fn parse_closing_tag<'c, 'd>(
@@ -2584,7 +2616,8 @@ impl HTMLParser {
 
                 return Err(ParsingTagError::TagWithUnexpectedEnding(String::from(
                     acc.take().unwrap(),
-                )));
+                ))
+                .into());
             }
 
             acc.unpeek_next();
@@ -2629,6 +2662,6 @@ impl HTMLParser {
 
             return Ok(ParserDirective::Closed((closing_tag, tag_positioning)));
         }
-        Err(ParsingTagError::FailedParsing)
+        Err(ParsingTagError::FailedParsing.into())
     }
 }
