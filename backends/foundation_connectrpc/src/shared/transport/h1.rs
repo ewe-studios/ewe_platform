@@ -79,15 +79,14 @@ impl Transport for H1Transport {
         // transport. Synthesise it from the request URI when absent — mirroring
         // `ClientRequestBuilder::new` — so a caller behind a host-routing
         // intermediary (e.g. the proxy) is not misrouted.
-        if let std::collections::btree_map::Entry::Vacant(e) = headers.entry(SimpleHeader::HOST) {
-            let host_str = request.request_uri.host_str().unwrap_or_default();
-            let host = if request.request_uri.port().is_some() {
-                format!("{host_str}:{}", request.request_uri.port_or_default())
-            } else {
-                host_str
-            };
-            e.insert(vec![host]);
-        }
+        let uri = &request.request_uri;
+        headers.entry(SimpleHeader::HOST).or_insert_with(|| {
+            let host = uri.host_str().unwrap_or_default();
+            vec![match uri.port() {
+                Some(_) => format!("{host}:{}", uri.port_or_default()),
+                None => host,
+            }]
+        });
 
         let (pushable, body_stream, readiness) =
             pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
