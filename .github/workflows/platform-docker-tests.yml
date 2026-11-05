@@ -45,6 +45,7 @@ jobs:
           docker compose -f docker-compose.yaml up macos -d
           echo "Waiting for macOS to boot (up to 45 minutes)..."
           ready=0
+          missing=0
           for i in $(seq 1 270); do
             if docker exec "$container" sh -c 'echo ready' 2>/dev/null; then
               echo "macOS ready after $((i * 10)) seconds"
@@ -52,12 +53,26 @@ jobs:
               break
             fi
             # Fail at once when the VM died, and say why. A silent wait hides
-            # the container's own error message until the job times out.
-            if [ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null)" != "true" ]; then
-              echo "::error::the $container container is not running"
-              docker logs --tail 100 "$container" || true
-              exit 1
-            fi
+            # the container's own error message until the job times out. A
+            # container that `inspect` cannot see yet is not a failure: give it
+            # a minute after `up -d` before calling it gone.
+            state=$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null) || state=missing
+            case "$state" in
+              true) missing=0 ;;
+              missing)
+                missing=$((missing + 1))
+                if [ "$missing" -ge 6 ]; then
+                  echo "::error::the $container container does not exist"
+                  docker compose -f docker-compose.yaml ps || true
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "::error::the $container container is not running"
+                docker logs --tail 100 "$container" || true
+                exit 1
+                ;;
+            esac
             sleep 10
           done
           if [ "$ready" != "1" ]; then
@@ -115,17 +130,32 @@ jobs:
           docker compose -f docker-compose.yaml up windows -d
           echo "Waiting for Windows to boot (up to 20 minutes)..."
           ready=0
+          missing=0
           for i in $(seq 1 120); do
             if docker exec "$container" cmd /c "echo ready" 2>/dev/null; then
               echo "Windows ready after $((i * 10)) seconds"
               ready=1
               break
             fi
-            if [ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null)" != "true" ]; then
-              echo "::error::the $container container is not running"
-              docker logs --tail 100 "$container" || true
-              exit 1
-            fi
+            # Same fail-fast rule as the macOS job: a dead VM, or one that never
+            # appeared, stops the wait instead of running out the clock.
+            state=$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null) || state=missing
+            case "$state" in
+              true) missing=0 ;;
+              missing)
+                missing=$((missing + 1))
+                if [ "$missing" -ge 6 ]; then
+                  echo "::error::the $container container does not exist"
+                  docker compose -f docker-compose.yaml ps || true
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "::error::the $container container is not running"
+                docker logs --tail 100 "$container" || true
+                exit 1
+                ;;
+            esac
             sleep 10
           done
           if [ "$ready" != "1" ]; then
