@@ -29,7 +29,7 @@ impl DevService {
     ///
     /// # Errors
     /// Returns an error if any component fails to spawn.
-    pub fn start(&self) -> Result<(), ToolingError> {
+    pub fn start(&self) -> crate::error::ToolingResult<()> {
         // -- Shared queues
         let build_complete_queue: EventQueue<()> = EventQueue::unbounded();
         let running_queue: Arc<ConcurrentQueue<()>> = Arc::new(ConcurrentQueue::unbounded());
@@ -108,7 +108,7 @@ impl DevService {
 ///
 /// # Errors
 /// Returns an error if any component fails to start.
-pub fn run_dev_server(project: ProjectDefinition) -> Result<(), ToolingError> {
+pub fn run_dev_server(project: ProjectDefinition) -> crate::error::ToolingResult<()> {
     let dev_service = DevService::new(project);
     let _guard = valtron::initialize_pool(42, None);
     dev_service.start()

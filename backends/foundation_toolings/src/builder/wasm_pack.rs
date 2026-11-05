@@ -44,7 +44,7 @@ impl ProjectBuilder for WasmPackBuilder {
                 binary: format!("{}/pkg", self.crate_path),
             })
         } else {
-            Err(ToolingError::Build("wasm-pack build failed".into()))
+            Err(ToolingError::Build("wasm-pack build failed".into()).into())
         }
     }
 }
