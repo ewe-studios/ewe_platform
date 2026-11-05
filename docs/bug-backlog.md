@@ -321,6 +321,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 (no open entries; features 68, 73 and 74 fixed the ones found in the ToS gate work)
 
+## 26. foundation_platform
+
+- **The crate is not clippy-clean.** `cargo clippy --profile uat -p
+  foundation_platform --all-targets --no-deps` reports 146 warnings in the
+  library (61 after duplicate removal) and more in the existing test targets.
+  The main lints are `doc_markdown`, `must_use_candidate`, `missing_errors_doc`
+  and `redundant_closure_for_method_calls`, in `src/session.rs`,
+  `src/backend/`, `src/capability.rs`, `src/codegen.rs`, `src/multi_app.rs` and
+  others. Found in feature 59 when its inline tests moved out; the moved tests
+  themselves are clean. Fix: run the per-crate clippy workflow in
+  `.agents/AGENTS.md`, then set `clippy-deny-warnings` for the package in
+  `ci/packages.toml`.
+
 ## Paused
 
 - Windows/macOS VM images (#69).
