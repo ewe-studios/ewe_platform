@@ -121,13 +121,21 @@ class Settings:
 
 
 def cargo_metadata() -> dict:
-    out = subprocess.run(
-        ["cargo", "metadata", "--format-version", "1"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
+    try:
+        out = subprocess.run(
+            ["cargo", "metadata", "--format-version", "1"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    except subprocess.CalledProcessError as err:
+        # Without this the traceback names only the exit code. The reason
+        # (missing submodule, unparsable manifest, offline registry) is in
+        # stderr, and CI captured it away.
+        raise SystemExit(
+            f"cargo metadata failed with exit {err.returncode}:\n{err.stderr}"
+        ) from err
     return json.loads(out)
 
 
