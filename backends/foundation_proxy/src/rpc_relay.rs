@@ -351,6 +351,9 @@ pub(crate) async fn relay_connect_to_grpc(
 /// as a single gRPC message, send it over H2, and return the decoded gRPC
 /// response message plus its trailing headers (carrying `grpc-status`). All
 /// bodies are single small messages.
+// The trait object tuple is the exchange's public shape; a struct would be
+// overkill for one call site.
+#[allow(clippy::type_complexity)]
 async fn connect_unary_to_grpc(
     message: Bytes,
     url: String,
@@ -413,7 +416,7 @@ async fn connect_unary_to_grpc(
             let trailers = out_recv
                 .response_trailers()
                 .await
-                .map(|t| t.clone())
+                .cloned()
                 .unwrap_or_default();
             Ok((msg, trailers))
         }
@@ -496,6 +499,14 @@ pub(crate) async fn connect_unary_roundtrip(
 /// Returns the driver **and** the shared [`CancelSignal`] wired into both
 /// exchanges: firing it tears the inbound and outbound sides down together
 /// (spec 63 T13). The caller fires it when the client resets the stream.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the relay setup reads best as one ordered function"
+)]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the handler takes ownership of the request and response pipes"
+)]
 pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     handler: H,
     request: SimpleIncomingRequest,
@@ -567,14 +578,9 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
 
     // Request direction: de-framed inbound messages → gRPC request frames.
     let request_pump = async move {
-        loop {
-            match in_recv.receive().await {
-                Ok(Some(bytes)) => {
-                    if out_send.send(bytes).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(None) | Err(_) => break,
+        while let Ok(Some(bytes)) = in_recv.receive().await {
+            if out_send.send(bytes).await.is_err() {
+                break;
             }
         }
         let _ = out_send.close_send().await;
@@ -595,7 +601,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
                     let trailers = out_recv
                         .response_trailers()
                         .await
-                        .map(|t| t.clone())
+                        .cloned()
                         .unwrap_or_default();
                     let _ = in_send.close(None, trailers).await;
                     return;
@@ -604,7 +610,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
                     let trailers = out_recv
                         .response_trailers()
                         .await
-                        .map(|t| t.clone())
+                        .cloned()
                         .unwrap_or_default();
                     let _ = in_send.close(Some(e), trailers).await;
                     return;
@@ -634,8 +640,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     let driver: futures_util::future::BoxFuture<'static, ()> = async move {
         let cancelled = Box::pin(cancel_for_driver.cancelled());
         match futures_util::future::select(work, cancelled).await {
-            futures_util::future::Either::Left(_) => {}
-            futures_util::future::Either::Right(_) => {}
+            futures_util::future::Either::Left(_) | futures_util::future::Either::Right(_) => {}
         }
     }
     .boxed();

@@ -6,6 +6,7 @@
 //!     Commands: `sendkey a`, `screendump /tmp/x.ppm`, `mouse_move 500 500`.
 //!   - **QMP** (QEMU Monitor Protocol): JSON-RPC, needs `-qmp` QEMU flag.
 //!     Commands: `{"execute":"input-send-event","arguments":{...}}`.
+//!
 //! `QemuConsole` auto-detects from the greeting and provides one unified API.
 
 use std::fmt;
@@ -311,13 +312,17 @@ pub struct QemuConsole {
 impl fmt::Debug for QemuConsole {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("QemuConsole")
+            .field("stream", &self.stream)
             .field("protocol", &self.protocol)
             .finish()
     }
 }
 
 /// Strip ANSI CSI escape sequences (HMP uses them for terminal control).
-fn strip_ansi(s: &str) -> String {
+///
+/// Public so an integration test can pin the terminal-output cleanup.
+#[must_use]
+pub fn strip_ansi(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();
     while let Some(c) = chars.next() {
@@ -352,11 +357,8 @@ impl QemuConsole {
 
         let mut result = String::new();
         let mut attempts = 0;
-        loop {
-            let l = match self.read_line_clean() {
-                Ok(l) => l,
-                Err(_) => break, // timeout or EOF
-            };
+        // A read error is a timeout or EOF; stop and return what was read.
+        while let Ok(l) = self.read_line_clean() {
             if l.contains("(qemu)") || l.contains("\"return\"") {
                 break;
             }
@@ -403,6 +405,11 @@ impl QemuController {
     }
 
     /// Connect, auto-detecting HMP vs QMP from the greeting.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the socket is missing, the connection fails, or the
+    /// QMP capability handshake fails.
     pub fn connect(&self) -> Result<QemuConsole, QemuControlError> {
         let path = &self.socket_path;
         if !path.exists() {
@@ -435,6 +442,11 @@ impl QemuController {
 
     // ── Keyboard ──────────────────────────────────────────────────────
 
+    /// Send one key.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the monitor command fails.
     pub fn send_key(&self, conn: &mut QemuConsole, key: Key) -> Result<(), QemuControlError> {
         match conn.protocol {
             QemuProtocol::Hmp => {
@@ -446,6 +458,11 @@ impl QemuController {
     }
 
     /// Key combo — all held together, then released. HMP: `sendkey ctrl-alt-del`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the JSON payload cannot be encoded or the monitor
+    /// command fails.
     pub fn send_keys(&self, conn: &mut QemuConsole, keys: &[Key]) -> Result<(), QemuControlError> {
         match conn.protocol {
             QemuProtocol::Hmp => {
@@ -461,9 +478,14 @@ impl QemuController {
                     .collect();
                 events.extend(release);
                 let payload = serde_json::json!({"events": events});
+                let payload_json = serde_json::to_string(&payload).map_err(|e| {
+                    QemuControlError::CommandFailed {
+                        command: "input-send-event".into(),
+                        error: e.to_string(),
+                    }
+                })?;
                 conn.send_cmd(&format!(
-                    r#"{{"execute":"input-send-event","arguments":{}}}}}"#,
-                    serde_json::to_string(&payload).unwrap()
+                    r#"{{"execute":"input-send-event","arguments":{payload_json}}}}}"#
                 ))?;
             }
         }
@@ -473,6 +495,15 @@ impl QemuController {
     // ── Mouse ──────────────────────────────────────────────────────
 
     /// Mouse move to absolute coords (0.0-1.0 → 0-32767 QEMU tablet range).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the monitor command fails.
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "the value is clamped to 0.0..=1.0 and scaled to 0..=32767"
+    )]
     pub fn mouse_move_abs(
         &self,
         conn: &mut QemuConsole,
@@ -497,6 +528,10 @@ impl QemuController {
     }
 
     /// Mouse click.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the monitor command fails.
     pub fn mouse_click(
         &self,
         conn: &mut QemuConsole,
@@ -537,12 +572,18 @@ impl QemuController {
 
     /// Type a string by sending individual key events.
     /// Maps ASCII chars to QEMU keys. Space → spc, Enter → ret, etc.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a mapped key name is unknown or a monitor command
+    /// fails.
     pub fn type_text(&self, conn: &mut QemuConsole, text: &str) -> Result<(), QemuControlError> {
         for ch in text.chars() {
             let key = match ch {
-                'a'..='z' => Key::from_name(&ch.to_string()).unwrap(),
-                'A'..='Z' => Key::from_name(&ch.to_lowercase().to_string()).unwrap(),
-                '0'..='9' => Key::from_name(&ch.to_string()).unwrap(),
+                'a'..='z' | '0'..='9' => Key::from_name(&ch.to_string())
+                    .ok_or_else(|| QemuControlError::UnknownKey(ch.to_string()))?,
+                'A'..='Z' => Key::from_name(&ch.to_lowercase().to_string())
+                    .ok_or_else(|| QemuControlError::UnknownKey(ch.to_string()))?,
                 ' ' => Key::Space,
                 '\n' | '\r' => Key::Enter,
                 '\t' => Key::Tab,
@@ -561,7 +602,11 @@ impl QemuController {
     }
 
     /// Convenience: send a key combination by name.
-    /// `ctrl("ctrl", &["alt", "delete"])` → send_keys with ctrl held.
+    /// `ctrl("ctrl", &["alt", "delete"])` → `send_keys` with ctrl held.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a key name is unknown or a monitor command fails.
     pub fn key_combo(
         &self,
         conn: &mut QemuConsole,
@@ -580,6 +625,11 @@ impl QemuController {
     // ── Screenshot ─────────────────────────────────────────────────────
 
     /// Capture screenshot as PPM bytes (host-side file).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the monitor command fails or the file cannot be
+    /// read.
     pub fn screendump(&self, conn: &mut QemuConsole) -> Result<Vec<u8>, QemuControlError> {
         let tmp = "/tmp/qemu_screendump.ppm";
         match conn.protocol {
@@ -600,6 +650,10 @@ impl QemuController {
     }
 
     /// Capture screenshot as PNG bytes (converts PPM via imagemagick).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the screendump or the conversion fails.
     pub fn screendump_png(&self, conn: &mut QemuConsole) -> Result<Vec<u8>, QemuControlError> {
         let ppm = self.screendump(conn)?;
         // Convert PPM → PNG via imagemagick's `convert` command
@@ -619,9 +673,7 @@ impl QemuController {
             let _ = stdin.write_all(&ppm);
         }
 
-        let output = child
-            .wait_with_output()
-            .map_err(|e| QemuControlError::Io(e))?;
+        let output = child.wait_with_output().map_err(QemuControlError::Io)?;
         Ok(output.stdout)
     }
 }
@@ -638,76 +690,15 @@ fn send_qmp_events(
     events: &[serde_json::Value],
 ) -> Result<(), QemuControlError> {
     let payload = serde_json::json!({"events": events});
+    let payload_json =
+        serde_json::to_string(&payload).map_err(|e| QemuControlError::CommandFailed {
+            command: "input-send-event".into(),
+            error: e.to_string(),
+        })?;
     conn.send_cmd(&format!(
-        r#"{{"execute":"input-send-event","arguments":{}}}}}"#,
-        serde_json::to_string(&payload).unwrap()
+        r#"{{"execute":"input-send-event","arguments":{payload_json}}}}}"#
     ))?;
     Ok(())
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn strip_ansi_works() {
-        assert_eq!(strip_ansi("\x1b[32mhello\x1b[0m"), "hello");
-        assert_eq!(strip_ansi("plain"), "plain");
-        assert_eq!(strip_ansi("\x1b[K\x1b[Dtext"), "text");
-        assert_eq!(strip_ansi("hello\r\n"), "hello");
-    }
-
-    #[test]
-    fn key_roundtrip() {
-        for (key, name) in &[
-            (Key::A, "a"),
-            (Key::Enter, "enter"),
-            (Key::Space, "space"),
-            (Key::Meta, "meta"),
-            (Key::F1, "f1"),
-            (Key::Up, "up"),
-            (Key::N0, "0"),
-            (Key::Escape, "escape"),
-            (Key::Tab, "tab"),
-            (Key::Minus, "-"),
-            (Key::Period, "."),
-        ] {
-            assert_eq!(Key::from_name(name), Some(*key), "{name}");
-        }
-    }
-
-    #[test]
-    fn key_from_name_unknown_is_none() {
-        assert!(Key::from_name("nope").is_none());
-    }
-
-    #[test]
-    fn connect_nonexistent_socket() {
-        let ctrl = QemuController::new("/tmp/nope");
-        assert!(ctrl.connect().is_err());
-    }
-
-    #[test]
-    fn connect_windows_container_e2e() {
-        let ctrl = QemuController::new(QemuController::DEFAULT_MONITOR);
-        if !Path::new(QemuController::DEFAULT_MONITOR).exists() {
-            return;
-        }
-        let mut conn = ctrl.connect().unwrap();
-        assert_eq!(conn.protocol, QemuProtocol::Hmp);
-
-        // Send a key
-        ctrl.send_key(&mut conn, Key::A).unwrap();
-
-        // Take screenshot
-        let ppm = ctrl.screendump(&mut conn).unwrap();
-        assert!(
-            ppm.len() > 1000,
-            "screenshot too small: {} bytes",
-            ppm.len()
-        );
-        assert!(&ppm[..2] == b"P6", "not PPM: {:02x?}", &ppm[..4]);
-    }
-}

@@ -29,14 +29,14 @@ async fn image_inspect_alpine() {
         .expect("image_inspect");
     // Id must be a non-empty string (SHA256 hash).
     assert!(
-        info.id.as_ref().map_or(false, |id| !id.is_empty()),
+        info.id.as_ref().is_some_and(|id| !id.is_empty()),
         "Id must be non-empty"
     );
     // RepoTags must contain "alpine:latest".
     assert!(
         info.repo_tags
             .as_ref()
-            .map_or(false, |tags| tags.iter().any(|t| t == "alpine:latest")),
+            .is_some_and(|tags| tags.iter().any(|t| t == "alpine:latest")),
         "RepoTags must contain alpine:latest"
     );
 }

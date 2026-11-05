@@ -61,7 +61,7 @@ fn build_deadline_router() -> Router {
         UNARY,
         codecs(),
         |ctx: Ctx, _req: Request<Msg>| async move {
-            let ms = ctx.remaining_timeout().map(|d| d.as_millis()).unwrap_or(0);
+            let ms = ctx.remaining_timeout().map_or(0, |d| d.as_millis());
             Ok(Response::new(Msg::of(ms.to_string())))
         },
         HandlerOptions::new(),
@@ -120,17 +120,15 @@ fn build_cancel_router(slot: Slot) -> Router {
             async move {
                 slot.put(&ctx);
                 let stream = futures_util::stream::unfold(0u8, move |state| async move {
-                    match state {
-                        // The first item flushes the response head so the
-                        // client gets the stream before it cancels.
-                        0 => Some((Ok(Msg::of("first")), 1u8)),
-                        // Then park forever; the test watches the parked `Ctx`
-                        // (not the stream) for cancellation.
-                        _ => {
-                            futures_util::future::pending::<()>().await;
-                            None
-                        }
+                    // The first item flushes the response head so the client
+                    // gets the stream before it cancels.
+                    if state == 0 {
+                        return Some((Ok(Msg::of("first")), 1u8));
                     }
+                    // Then park forever; the test watches the parked `Ctx`
+                    // (not the stream) for cancellation.
+                    futures_util::future::pending::<()>().await;
+                    None
                 });
                 Ok(stream)
             }
@@ -219,6 +217,8 @@ async fn connect_deadline_is_observed_at_grpc_backend() {
 
 /// A single Connect envelope around a JSON `Msg` (flag byte + 4-byte big-endian
 /// length + payload), the request shape `ConnectHandler` de-frames.
+// An envelope length is capped by the message size, which fits in u32.
+#[allow(clippy::cast_possible_truncation)]
 fn connect_envelope(text: &str) -> Vec<u8> {
     let payload = serde_json::to_vec(&Msg::of(text)).expect("marshal Msg");
     let mut buf = vec![0u8];
@@ -237,6 +237,9 @@ fn connect_envelope(text: &str) -> Vec<u8> {
 /// represent "the client cancelled" here. An explicit `RST_STREAM` is exactly
 /// what an HTTP/2 client does when it aborts a call, so it is the faithful
 /// signal the proxy's `feed_request_body` turns into the shared cancel.
+// The channel ends are used by reference; passing them by value keeps the
+// call sites short.
+#[allow(clippy::needless_pass_by_value)]
 fn drive_raw_h2_cancel(
     addr: &str,
     flowing: std::sync::mpsc::Sender<bool>,

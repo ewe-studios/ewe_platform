@@ -77,7 +77,7 @@ impl ProtocolSelection {
     }
 
     /// The protocol name string for [`Peer.protocol`].
-    fn peer_protocol_name(&self) -> &'static str {
+    fn peer_protocol_name(self) -> &'static str {
         match self {
             ProtocolSelection::Connect => "connect",
             ProtocolSelection::Grpc => "grpc",
@@ -240,7 +240,7 @@ impl ClientOptions {
     /// Add an extra request header applied to **every** call (including
     /// streaming calls that take a request stream, where there is no `Request`
     /// to hang headers on). Repeated calls with the same name append additional
-    /// values — used e.g. for BuildKit's repeated
+    /// values — used e.g. for `BuildKit`'s repeated
     /// `x-docker-expose-session-grpc-method` session headers.
     #[must_use]
     pub fn with_header(mut self, key: impl Into<SimpleHeader>, value: impl Into<String>) -> Self {
@@ -547,11 +547,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         check_compatible(&reqs, &self.transport.capabilities())?;
 
         // Marshal the request.
-        let req_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let encoded = req_codec.marshal(&request.msg)?;
+        let request_codec = self.codecs.for_request(&self.config.codec_name)?;
+        let encoded = request_codec.marshal(&request.msg)?;
         let (body, content_encoding) = compress_if(
             &self.config.compression,
-            &self.config.send_compression,
+            self.config.send_compression.as_deref(),
             &encoded,
         )?;
 
@@ -564,13 +564,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             content_encoding.as_deref(),
         );
         add_timeout_header(
-            &self.config.protocol,
+            self.config.protocol,
             &mut headers,
             call_ctx.remaining_timeout(),
         );
         // Merge client-wide extra headers (applies to streaming calls that take a
         // request stream rather than a `Request`, e.g. BuildKit session headers).
-        for (key, values) in self.config.extra_headers.iter() {
+        for (key, values) in &self.config.extra_headers {
             for value in values {
                 headers.entry(key.clone()).or_default().push(value.clone());
             }
@@ -599,11 +599,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         // Await the response head so the caller's `response_headers()` is sync-OK.
         let response_headers = receiver.response_headers().await?.clone();
-        let res_codec = self.codecs.for_response(&self.config.codec_name)?;
+        let response_codec = self.codecs.for_response(&self.config.codec_name)?;
 
         Ok(ServerStream {
             recv: receiver,
-            codec: res_codec,
+            codec: response_codec,
             spec,
             peer,
             response_headers,
@@ -644,13 +644,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             self.config.send_compression.as_deref(),
         );
         add_timeout_header(
-            &self.config.protocol,
+            self.config.protocol,
             &mut headers,
             call_ctx.remaining_timeout(),
         );
         // Merge client-wide extra headers (applies to streaming calls that take a
         // request stream rather than a `Request`, e.g. BuildKit session headers).
-        for (key, values) in self.config.extra_headers.iter() {
+        for (key, values) in &self.config.extra_headers {
             for value in values {
                 headers.entry(key.clone()).or_default().push(value.clone());
             }
@@ -668,13 +668,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         )?;
 
         let (mut sender, mut receiver) = exchange.conn.split();
-        let req_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let res_codec = self.codecs.for_response(&self.config.codec_name)?;
+        let request_codec = self.codecs.for_request(&self.config.codec_name)?;
+        let response_codec = self.codecs.for_response(&self.config.codec_name)?;
 
         // Send all request messages.
         let mut pinned_reqs = Box::pin(reqs);
         while let Some(msg) = pinned_reqs.next().await {
-            let frame = req_codec.marshal(&msg)?;
+            let frame = request_codec.marshal(&msg)?;
             sender.send(frame).await?;
         }
         sender.close_send().await?;
@@ -684,7 +684,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             .receive()
             .await?
             .ok_or_else(|| ConnectError::internal("client stream: expected a response frame"))?;
-        let decoded = res_codec.unmarshal(frame)?;
+        let decoded = response_codec.unmarshal(frame)?;
 
         let trailers = receiver.response_trailers().await?.clone();
         let resp_headers = receiver.response_headers().await?.clone();
@@ -704,6 +704,8 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     ///
     /// # Errors
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
+    // The public API keeps `async` uniform across the stream kinds.
+    #[allow(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn bidi_stream(
         &self,
         ctx: Ctx,
@@ -733,13 +735,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             self.config.send_compression.as_deref(),
         );
         add_timeout_header(
-            &self.config.protocol,
+            self.config.protocol,
             &mut headers,
             call_ctx.remaining_timeout(),
         );
         // Merge client-wide extra headers (applies to streaming calls that take a
         // request stream rather than a `Request`, e.g. BuildKit session headers).
-        for (key, values) in self.config.extra_headers.iter() {
+        for (key, values) in &self.config.extra_headers {
             for value in values {
                 headers.entry(key.clone()).or_default().push(value.clone());
             }
@@ -757,14 +759,14 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         )?;
 
         let (sender, receiver) = exchange.conn.split();
-        let req_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let res_codec = self.codecs.for_response(&self.config.codec_name)?;
+        let request_codec = self.codecs.for_request(&self.config.codec_name)?;
+        let response_codec = self.codecs.for_response(&self.config.codec_name)?;
 
         Ok(BidiStream {
             send: sender,
             recv: receiver,
-            req_codec,
-            res_codec,
+            request_codec,
+            response_codec,
             spec,
             peer,
         })
@@ -835,11 +837,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         url: String,
     ) -> ConnectResult<Response<Res>> {
         // Marshal the request.
-        let req_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let encoded = req_codec.marshal(&request.msg)?;
+        let request_codec = self.codecs.for_request(&self.config.codec_name)?;
+        let encoded = request_codec.marshal(&request.msg)?;
         let (body, content_encoding) = compress_if(
             &self.config.compression,
-            &self.config.send_compression,
+            self.config.send_compression.as_deref(),
             &encoded,
         )?;
 
@@ -851,11 +853,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             &self.config.codec_name,
             content_encoding.as_deref(),
         );
-        add_timeout_header(&self.config.protocol, &mut headers, ctx.remaining_timeout());
+        add_timeout_header(self.config.protocol, &mut headers, ctx.remaining_timeout());
         // Merge client-wide extra headers — same contract as the streaming
         // paths (e.g. BuildKit's `buildkit-controlapi-buildid` gateway routing
         // header rides every unary call of a gateway client).
-        for (key, values) in self.config.extra_headers.iter() {
+        for (key, values) in &self.config.extra_headers {
             for value in values {
                 headers.entry(key.clone()).or_default().push(value.clone());
             }
@@ -939,8 +941,8 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Decode response: protocol-level unwrap first, then codec unmarshal.
         // gRPC/gRPC-Web envelop their unary response; Connect returns bare bytes.
         let wire = self.protocol.decode_unary_response(reply.frame)?;
-        let res_codec = self.codecs.for_response(&self.config.codec_name)?;
-        let msg = res_codec.unmarshal(wire)?;
+        let response_codec = self.codecs.for_response(&self.config.codec_name)?;
+        let msg = response_codec.unmarshal(wire)?;
 
         let mut response = Response::new(msg);
         for (h, vals) in &reply.headers {
@@ -999,8 +1001,8 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         match result {
             Ok(reply) => {
-                let res_codec = self.codecs.for_response(&self.config.codec_name)?;
-                let msg = res_codec.unmarshal(reply.frame)?;
+                let response_codec = self.codecs.for_response(&self.config.codec_name)?;
+                let msg = response_codec.unmarshal(reply.frame)?;
                 let mut response = Response::new(msg);
                 for (h, vals) in &reply.headers {
                     response.headers_mut().insert(h.clone(), vals.clone());
@@ -1031,8 +1033,8 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             &request.spec().procedure
         };
 
-        let req_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let stable = req_codec.marshal_stable(&request.msg)?;
+        let request_codec = self.codecs.for_request(&self.config.codec_name)?;
+        let stable = request_codec.marshal_stable(&request.msg)?;
 
         let compressor = self
             .config
@@ -1043,7 +1045,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let query = encode_get_query(
             &self.config.codec_name,
             &stable,
-            req_codec.is_binary(),
+            request_codec.is_binary(),
             compressor.as_ref(),
         )?;
 
@@ -1071,6 +1073,10 @@ pub struct ServerStream<Res> {
 impl<Res: Send + 'static> ServerStream<Res> {
     /// Receive the next decoded response message. Returns `Ok(None)` at end of
     /// stream (clean EOF). A terminal error returns `Err`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>> {
         match self.recv.receive().await? {
             Some(frame) => Ok(Some(self.codec.unmarshal(frame)?)),
@@ -1085,6 +1091,10 @@ impl<Res: Send + 'static> ServerStream<Res> {
     }
 
     /// Response trailers (available after end of stream).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders> {
         if !self.got_trailers {
             self.trailers = self.recv.response_trailers().await?.clone();
@@ -1119,8 +1129,8 @@ impl<Res: Send + 'static> ServerStream<Res> {
 pub struct ClientStream<Req, Res> {
     send: Box<dyn ClientSender>,
     recv: Box<dyn ClientReceiver>,
-    req_codec: Arc<dyn CodecFor<Req>>,
-    res_codec: Arc<dyn CodecFor<Res>>,
+    request_codec: Arc<dyn CodecFor<Req>>,
+    response_codec: Arc<dyn CodecFor<Res>>,
 }
 
 impl<Req: Send + 'static, Res: Send + 'static> ClientStream<Req, Res> {
@@ -1130,12 +1140,20 @@ impl<Req: Send + 'static, Res: Send + 'static> ClientStream<Req, Res> {
     }
 
     /// Encode and send one request message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()> {
-        let frame = self.req_codec.marshal(msg)?;
+        let frame = self.request_codec.marshal(msg)?;
         self.send.send(frame).await
     }
 
     /// Half-close the request and await the single response.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn close_and_receive(self) -> ConnectResult<Response<Res>> {
         // Close send half.
         let send = Box::new(self.send);
@@ -1145,7 +1163,7 @@ impl<Req: Send + 'static, Res: Send + 'static> ClientStream<Req, Res> {
         let mut recv = self.recv;
         match recv.receive().await? {
             Some(frame) => {
-                let msg = self.res_codec.unmarshal(frame)?;
+                let msg = self.response_codec.unmarshal(frame)?;
                 let mut response = Response::new(msg);
                 let hdrs = recv.response_headers().await?.clone();
                 for (h, vals) in hdrs {
@@ -1170,8 +1188,8 @@ impl<Req: Send + 'static, Res: Send + 'static> ClientStream<Req, Res> {
 pub struct BidiStream<Req, Res> {
     send: Box<dyn ClientSender>,
     recv: Box<dyn ClientReceiver>,
-    req_codec: Arc<dyn CodecFor<Req>>,
-    res_codec: Arc<dyn CodecFor<Res>>,
+    request_codec: Arc<dyn CodecFor<Req>>,
+    response_codec: Arc<dyn CodecFor<Res>>,
     spec: Spec,
     peer: Peer,
 }
@@ -1183,49 +1201,74 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     }
 
     /// Encode and send one request message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()> {
-        let frame = self.req_codec.marshal(msg)?;
+        let frame = self.request_codec.marshal(msg)?;
         self.send.send(frame).await
     }
 
     /// Header-only send (no body) — flush request headers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn send_headers(&mut self) -> ConnectResult<()> {
         self.send.flush_headers().await
     }
 
     /// Half-close the request direction (receiver stays live).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn close_request(&mut self) -> ConnectResult<()> {
         let old = std::mem::replace(&mut self.send, Box::new(NoopClientSender));
         old.close_send().await
     }
 
     /// Receive the next decoded response message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>> {
         match self.recv.receive().await? {
-            Some(frame) => Ok(Some(self.res_codec.unmarshal(frame)?)),
+            Some(frame) => Ok(Some(self.response_codec.unmarshal(frame)?)),
             None => Ok(None),
         }
     }
 
     /// Response headers (valid once the server starts sending).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn response_headers(&mut self) -> ConnectResult<&SimpleHeaders> {
         self.recv.response_headers().await
     }
 
     /// Response trailers (available after end of stream).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders> {
         self.recv.response_trailers().await
     }
 
     /// Split into independently-owned typed halves for concurrent send/receive.
+    #[must_use]
     pub fn split(self) -> (BidiSender<Req>, BidiReceiver<Res>) {
         let sender = BidiSender {
             send: self.send,
-            codec: self.req_codec,
+            codec: self.request_codec,
         };
         let receiver = BidiReceiver {
             recv: self.recv,
-            codec: self.res_codec,
+            codec: self.response_codec,
             spec: self.spec,
             peer: self.peer,
         };
@@ -1257,17 +1300,29 @@ pub struct BidiSender<Req> {
 
 impl<Req: Send + 'static> BidiSender<Req> {
     /// Encode and send one request message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()> {
         let frame = self.codec.marshal(msg)?;
         self.send.send(frame).await
     }
 
     /// Header-only send (flush headers).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn send_headers(&mut self) -> ConnectResult<()> {
         self.send.flush_headers().await
     }
 
     /// Half-close the request direction.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn close_request(self) -> ConnectResult<()> {
         Box::new(self.send).close_send().await
     }
@@ -1283,6 +1338,10 @@ pub struct BidiReceiver<Res> {
 
 impl<Res: Send + 'static> BidiReceiver<Res> {
     /// Receive the next decoded response message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>> {
         match self.recv.receive().await? {
             Some(frame) => Ok(Some(self.codec.unmarshal(frame)?)),
@@ -1291,11 +1350,19 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
     }
 
     /// Response headers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn response_headers(&mut self) -> ConnectResult<&SimpleHeaders> {
         self.recv.response_headers().await
     }
 
     /// Response trailers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders> {
         self.recv.response_trailers().await
     }
@@ -1385,7 +1452,7 @@ async fn do_unary_round_trip(
 
     // Push request body.
     if !body.is_empty() {
-        stream.send_body.try_send(body).map_err(|_| {
+        stream.send_body.try_send(body).map_err(|()| {
             ConnectError::internal("failed to push request body into transport pipe")
         })?;
     }
@@ -1472,7 +1539,7 @@ async fn until_cancelled(
 /// Optionally compress an already-marshaled frame.
 fn compress_if(
     registry: &CompressionRegistry,
-    algo: &Option<String>,
+    algo: Option<&str>,
     data: &[u8],
 ) -> ConnectResult<(Vec<u8>, Option<String>)> {
     match algo {
@@ -1481,7 +1548,7 @@ fn compress_if(
                 ConnectError::internal(format!("unknown compression algorithm: {name}"))
             })?;
             let compressed = compressor.compress(data)?;
-            Ok((compressed, Some(name.clone())))
+            Ok((compressed, Some(name.to_string())))
         }
         _ => Ok((data.to_vec(), None)),
     }
@@ -1489,7 +1556,7 @@ fn compress_if(
 
 /// Add a protocol-appropriate timeout header to the outgoing request headers.
 fn add_timeout_header(
-    protocol: &ProtocolSelection,
+    protocol: ProtocolSelection,
     headers: &mut SimpleHeaders,
     timeout: Option<Duration>,
 ) {
@@ -1529,13 +1596,12 @@ pub(crate) fn code_from_http_status(status: &Status) -> Code {
         400 => Code::InvalidArgument,
         401 | 403 => Code::Unauthenticated,
         404 => Code::NotFound,
-        408 => Code::DeadlineExceeded,
+        408 | 504 => Code::DeadlineExceeded,
         429 => Code::ResourceExhausted,
         499 => Code::Canceled,
         500 => Code::Internal,
         501 => Code::Unimplemented,
         503 => Code::Unavailable,
-        504 => Code::DeadlineExceeded,
         _ => Code::Unknown,
     }
 }

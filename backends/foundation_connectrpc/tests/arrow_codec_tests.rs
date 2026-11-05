@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Arrow-codec tests (spec-41 F13 / Decision 02), gated on the `arrow` feature.
 //!
 //! Verifies the tri-family acceptance: a single type that is a buffa `Message`

@@ -1,7 +1,7 @@
 //! Call cancellation and deadlines on the server side.
 //!
 //! WHY: a handler waiting on `ctx.cancelled()` must stop when the call is over
-//! for its peer: an h2 RST_STREAM, a stream the connection drops, an HTTP/1.1
+//! for its peer: an h2 `RST_STREAM`, a stream the connection drops, an HTTP/1.1
 //! client that closes its connection, or the call's deadline passing. Nothing
 //! fired the `Ctx` cancel signal before, and an h2 reset read like a clean end
 //! of the request body.
@@ -181,7 +181,7 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
 
 const STREAMING_JSON: (&str, &str) = ("content-type", "application/connect+json");
 
-/// A peer RST_STREAM mid-request cancels the handler's `Ctx` instead of reading
+/// A peer `RST_STREAM` mid-request cancels the handler's `Ctx` instead of reading
 /// as a clean end of the request stream.
 #[test]
 fn h2_reset_cancels_the_handlers_ctx() {

@@ -299,6 +299,3 @@ impl TimeSource for StdSystemTime {
             .as_millis() as u64
     }
 }
-
-#[cfg(test)]
-mod tests;

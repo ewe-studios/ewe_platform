@@ -122,9 +122,7 @@ where
         ctx: Ctx,
         on_full: impl FnOnce() -> State,
     ) -> Option<State> {
-        if self.alive.is_none() {
-            return None;
-        }
+        self.alive?;
 
         // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
@@ -442,9 +440,7 @@ where
         ctx: Ctx,
         on_full: impl FnOnce() -> State,
     ) -> Option<State> {
-        if self.alive.is_none() {
-            return None;
-        }
+        self.alive?;
 
         // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {

@@ -13,7 +13,7 @@
 //! - `pause <service> <url>` — set backend to Paused
 //! - `activate <service> <url>` — set backend to Active
 //! - `status` — aggregate counts: total, healthy, draining, paused
-//! - `reload` — trigger ShutdownSignal for graceful reload
+//! - `reload` — trigger `ShutdownSignal` for graceful reload
 //! - `shutdown` — trigger the proxy shutdown signal
 //!
 //! HOW: Each connection reads one line of JSON, dispatches to the matching
@@ -91,21 +91,30 @@ impl ControlConfig {
 }
 
 /// RPC request from the CLI.
+///
+/// Public so an integration test can pin the control-socket wire format.
 #[derive(Debug, Deserialize)]
-struct Request {
-    command: String,
+pub struct Request {
+    /// The command name.
+    pub command: String,
+    /// Command parameters; empty when the CLI sends none.
     #[serde(default)]
-    params: Value,
+    pub params: Value,
 }
 
 /// RPC response to the CLI.
+///
+/// Public so an integration test can pin the control-socket wire format.
 #[derive(Debug, Serialize)]
-struct Response {
-    ok: bool,
+pub struct Response {
+    /// Whether the command succeeded.
+    pub ok: bool,
+    /// The error message when `ok` is false.
     #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
+    pub error: Option<String>,
+    /// The command result on success.
     #[serde(skip_serializing_if = "Option::is_none")]
-    data: Option<Value>,
+    pub data: Option<Value>,
 }
 
 /// A running control socket.
@@ -208,7 +217,7 @@ async fn accept_loop(
 ) {
     while !shutdown.probe() {
         let accepted = match select(
-            Box::pin(listener.read_with(|l| l.accept())),
+            Box::pin(listener.read_with(std::os::unix::net::UnixListener::accept)),
             Box::pin(sleep_async(config.shutdown_poll)),
         )
         .await
@@ -295,6 +304,10 @@ async fn read_request_line(
 }
 
 /// Route a command to its handler.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the control command table reads best as one ordered match"
+)]
 async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>, Option<Value>) {
     match req.command.as_str() {
         "list" => {
@@ -339,7 +352,7 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                     match b.state() {
                         BackendState::Draining => draining += 1,
                         BackendState::Paused => paused += 1,
-                        _ => {}
+                        BackendState::Active => {}
                     }
                 }
             }
@@ -428,47 +441,4 @@ async fn respond(
         offset += n;
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn request_parse_valid() {
-        let req: Request =
-            serde_json::from_str(r#"{"command":"status","params":{}}"#).expect("valid request");
-        assert_eq!(req.command, "status");
-    }
-
-    #[test]
-    fn request_parse_invalid_returns_err() {
-        let err = serde_json::from_str::<Request>("not json").unwrap_err();
-        assert!(!err.to_string().is_empty(), "should produce error message");
-    }
-
-    #[test]
-    fn response_ok_format() {
-        let resp = Response {
-            ok: true,
-            error: None,
-            data: Some(serde_json::json!({"count": 3})),
-        };
-        let json = serde_json::to_string(&resp).expect("serialize");
-        assert!(json.contains("\"ok\":true"));
-        assert!(json.contains("\"data\""));
-    }
-
-    #[test]
-    fn response_error_format() {
-        let resp = Response {
-            ok: false,
-            error: Some("bad command".into()),
-            data: None,
-        };
-        let json = serde_json::to_string(&resp).expect("serialize");
-        assert!(json.contains("\"ok\":false"));
-        assert!(json.contains("bad command"));
-        assert!(!json.contains("\"data\""));
-    }
 }

@@ -1,4 +1,4 @@
-//! Ctx / RequestContext / CancelSignal tests (spec-41 F16 / Decision 04):
+//! Ctx / `RequestContext` / `CancelSignal` tests (spec-41 F16 / Decision 04):
 //! downstream-only extension visibility, cancel shared across clones, opt-in
 //! one-way linking, and the awaitable cancel path.
 

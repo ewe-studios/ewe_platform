@@ -79,14 +79,14 @@ impl Transport for H1Transport {
         // transport. Synthesise it from the request URI when absent — mirroring
         // `ClientRequestBuilder::new` — so a caller behind a host-routing
         // intermediary (e.g. the proxy) is not misrouted.
-        if !headers.contains_key(&SimpleHeader::HOST) {
+        if let std::collections::btree_map::Entry::Vacant(e) = headers.entry(SimpleHeader::HOST) {
             let host_str = request.request_uri.host_str().unwrap_or_default();
             let host = if request.request_uri.port().is_some() {
                 format!("{host_str}:{}", request.request_uri.port_or_default())
             } else {
                 host_str
             };
-            headers.insert(SimpleHeader::HOST, vec![host]);
+            e.insert(vec![host]);
         }
 
         let (pushable, body_stream, readiness) =
@@ -144,12 +144,8 @@ impl Transport for H1Transport {
         // (F45 Resolution 8). This is the only task spawned; the two observers are
         // drained by the caller through the erased `HeadStream`/`BodyStream`.
         let drive = body_cont.map_ready(|_| ());
-        valtron::send(drive).map_err(|e| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            )))
-        })?;
+        valtron::send(drive)
+            .map_err(|e| TransportError::Connect(Arc::new(std::io::Error::other(e.to_string()))))?;
 
         // Bridge the split observers into the erased FutureStream handles. Any
         // `StreamIterator` (a split observer here) becomes a `Stream` via the

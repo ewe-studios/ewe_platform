@@ -111,11 +111,7 @@ pub extern "C" fn wg_node_destroy(handle: WgNodeHandle) {
 /// int wg_node_set_tun_fd(WgNodeHandle handle, int tun_fd, int mtu);
 /// ```
 #[no_mangle]
-pub extern "C" fn wg_node_set_tun_fd(
-    handle: WgNodeHandle,
-    tun_fd: c_int,
-    mtu: c_int,
-) -> c_int {
+pub extern "C" fn wg_node_set_tun_fd(handle: WgNodeHandle, tun_fd: c_int, mtu: c_int) -> c_int {
     let _ = (handle, tun_fd, mtu);
     tracing::warn!("wg_node_set_tun_fd: stub on non-iOS target");
     -1
@@ -228,38 +224,3 @@ pub extern "C" fn wg_node_generate_seed() -> *mut c_char {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn smoke_create_null_config() {
-        let h = wg_node_create_from_toml(std::ptr::null());
-        assert!(h.is_null(), "null config should return null handle");
-    }
-
-    #[test]
-    fn smoke_generate_seed() {
-        let s = wg_node_generate_seed();
-        assert!(!s.is_null(), "seed generation should return a string");
-        wg_node_free_string(s);
-    }
-
-    #[test]
-    fn smoke_tick_null() {
-        let ms = wg_node_tick(std::ptr::null_mut());
-        assert!(ms > 0, "tick should return a positive poll interval");
-    }
-
-    #[test]
-    fn smoke_destroy_null() {
-        wg_node_destroy(std::ptr::null_mut());
-        // Must not crash on null.
-    }
-
-    #[test]
-    fn smoke_stop_null() {
-        assert_eq!(wg_node_stop(std::ptr::null_mut()), 0);
-    }
-}

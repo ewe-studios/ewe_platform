@@ -2,136 +2,39 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-05: feature 78 done on `spec70/f77-f62-f78-readiness-ci`. E1: CI sets
-  `EWE_REQUIRE_IO_URING=1` for `foundation_iogate`, `foundation_proxy` and
-  `foundation_nativeapis`, and their jobs run with `seccomp=unconfined` because the default
-  Docker profile blocks `io_uring_setup`. A new `io_uring_probe` target prints the detection
-  result before the tests; the main session must run `workflow_dispatch` to read it. E2: the
-  four nativeapis uring suites share `tests/common/mod.rs` and follow the same rule; the
-  `fd,uring` run is now in CI, and `io-uring` moved to the Linux target table so the feature is
-  a no-op on other targets. E3: `std` is the minimum, not `alloc` (`Ctx` needs `std`; `alloc`
-  support is deferred). A crate-root `compile_error!` names it, and CI checks the exact message
-  through the new `wasm-expect-error` setting. E4: `rearm_readable` is `cfg(unix)`; the
-  `foundation_reactor` wasm check is in CI. E5: the vfs shim D1/R2 closures no longer move
-  `guard`; `vfs-preload`, `-d1` and `-r2` build, and `vfs-preload` is a CI run. Checks:
-  `foundation_core` native and wasm `std` clean; `foundation_reactor` wasm clean;
-  `foundation_nativeapis` (native, and Linux x86_64 `fd,uring` tests) clippy clean;
-  `foundation_reactor` and `foundation_iogate` clippy clean; `vfs_shim_vfs` compiles on macOS
-  (0 tests). The full `foundation_nativeapis` suite passes (2 ignored doctests remain).
-  The main session then ran the io_uring suites on this host in the Linux CI container
-  (OrbStack, x86_64, `seccomp=unconfined`): `io_uring_setup` returns `ENOSYS`, so this kernel
-  cannot exercise io_uring and the probe prints that reason. With `EWE_REQUIRE_IO_URING=1` the
-  three `foundation_iogate` completion tests and the 9 parity tests fail with the reason; with
-  the variable unset every suite passes and the uring tests skip with one line. That run found
-  one gap: `uring_epoll_parity_tests` did not use the shared helper and failed hard without
-  io_uring; it now returns early. Still unrun: the real `vfs_shim_vfs` (Linux and wrangler).
-  Backlog: four entries deleted, two added.
-- 2026-11-05: feature 62 done on `spec70/f77-f62-f78-readiness-ci`.
-  `idle_h2_connection_uses_no_cpu` now measures only the server's threads: the threads that
-  appear after `initialize_pool` (pool and background workers), plus `reactor-drain` by name.
-  It reads per-thread CPU from `/proc/self/task/<tid>/schedstat` on Linux and from
-  `proc_pidinfo` on macOS. Measured over one idle second on macOS: both pool workers 0 us,
-  four background workers 0 us, `reactor-drain` 218 to 233 us. The drain thread wakes on its
-  100 ms `drain_poll_timeout`; there is no busy loop. Cap: 8 ms for the server threads, down
-  from 50 ms for the whole process. Checks: the test 20 of 20 with `--exact` and the full target
-  20 of 20. The §3 backlog entry is deleted; a new entry records the pre-existing
-  foundation_http clippy debt.
-- 2026-11-05: feature 77 done on `spec70/f77-f62-f78-readiness-ci`. T0: E1 to E4 were already
-  in master through PR #173, and the four backlog entries were already deleted. This branch
-  tightens the E1 check bound from 20 to 5 and verifies the work. Measured over a 300 ms park:
-  default 4 checks (forced polling 396 to 402), `multi` 3 checks (forced polling 201 to 204);
-  20 of 20 runs passed in each set. `event_driven_queue_readiness` (both sets) and
-  `fd_event_driven_tests` also passed 20 of 20. The E2 Linux-only CPU test did not run on this
-  macOS host; PR #173 recorded 0.6 ms and 9 wake-ups per second on the waiting thread.
-- 2026-11-05: feature 59 done on `spec70/f59-f60-f79-lane-b-mechanical`. Moved
-  170 inline tests out of 11 lane B crates into `tests/`: foundation_shell 1,
-  foundation_repl 4, foundation_logging 12, foundation_codegen 9, ewe_watchers
-  5, foundation_html 47, foundation_testing 35, foundation_platform 36,
-  foundation_packager 10, foundation_wasmtime 3, foundation_connectrpc_codegen
-  8. Test counts and assertions are unchanged. Private items became public
-  where a test needed them, and the crates were version-bumped where the API
-  grew. `ewe_watchers` was excluded from the root workspace but inherited
-  `workspace = true`, so it never built; it is now a standalone workspace root.
-  `infrastructure_llama_cpp` moved 7 tests; the main checkout has the
-  `tools/llama.cpp` submodule, so all seven compile and pass, and the crate
-  bumps to 0.0.5 with its consumers (`foundation_ai`, the four examples).
-  Remaining
-  inline tests: jsonschema (accepted vendored copy), boringtun (upstream fork,
-  out of this feature's list), and the proc-macro crates (need a companion
-  library crate). Checks: each touched crate's fmt, clippy (`--all-targets
-  --no-deps`) and `cargo test --profile uat`, all green except llama-cpp.
-- 2026-11-05: feature 60 done on `spec70/f59-f60-f79-lane-b-mechanical`. Deleted
-  five stale backlog entries after checking each against the code: KVWasmStorage
-  best-effort rate limiting, migration 027, the wasm inherent `*_async` API, the
-  missing examples CI job, and the foundation_reactor publish note. The E-drop
-  entries (§18, §19, §23, §24) were already gone. E3: lane B catalogue rows 29,
-  30 and 102 are fixed; the other lane B rows stay with their unlanded features.
-  The spec 70 `tasks` counts now match the feature files (67 done, 12 open,
-  2 dropped, 83%).
-- 2026-11-05: feature 79 done on `spec70/f59-f60-f79-lane-b-mechanical`.
-  `ci/packages.toml` now lints `foundation_deployment_platform` with
-  `clippy-runs = ["", "vms"]` and `clippy-deny-warnings = true`.
-  `python3 scripts/ci/ci.py list` shows `clippy=enforce+deny`, and
-  `ci.py run foundation_deployment_platform --step clippy` ran both planned
-  `cargo clippy --no-deps -- -D warnings` commands clean. The bare command
-  without `--no-deps` still reports the lane A `foundation_nostd` fair_gate
-  debt (backlog §4), which CI does not lint because it passes `--no-deps`.
-- 2026-11-05: feature 81 on `spec70/f81-lane-b-wake`, branched from `master` after
-  #173 merged. The six live polling sites now use
-  `EventQueue`: the watcher pump, the builder change and result queues, the runner build
-  queue, and the agent steering priority and follow-up queues. `SteeringQueues.priority` and
-  `follow_up` are `EventQueue<Messages>`, and both readiness methods return
-  `EventReadinessPtr`; the old `Arc<dyn EventReadiness>` cannot go into
-  `TaskStatus::Depends` under `multi`, so the method was unusable there. The four deprecated
-  constructors and the test that re-polled on a raw push are deleted, so `EventQueue` is now
-  the only way to make a `QueueReadiness` or a `QueueVacancyReadiness`.
-  Published crates bump in the same change: `foundation_ai` 0.0.6 (`answerme-agent`,
-  `bin/platform`) and `foundation_toolings` 0.0.4 (`bin/platform`, `examples/devbinary`); the
-  toolings public constructors and the pump's `queue` field changed type even though the
-  struct fields are private.
-  Tests: four toolings tests and two `foundation_ai` tests. Each parks a task on a converted
-  producer's readiness, pushes from another thread after 200 ms, and asserts at most 4
-  readiness checks; a 1 ms re-check over that park makes about 200.
-  The first Linux container run failed one test: the wake took 19.4 ms against a < 1 ms
-  latency assertion, while the check count stayed at 4. The delay measures thread scheduling
-  and is inert under emulated amd64, so the tests now log it and hold it under 100 ms; the
-  check count is the proof that the wake is event-driven (see learnings). The re-run is
-  green, with wakes from 1.9 ms to 12.2 ms.
-  Warnings cleared in `foundation_toolings` while the crate was open: 8 clippy lints (four
-  redundant closures, one derivable `Default`, two `new_without_default`, one `while let`
-  loop), one unused test import and two unused dependencies. Local `cargo fmt --check` and
-  clippy report no warning for the three crates.
-  Checks: macOS toolings tests 4 wake + 11 integration, `foundation_ai` steering wake 2 of 2
-  and the full `agentic_tests` 331, `foundation_core --features multi --test mod` 785, the
-  doctests 70 (default) and 73 (`multi`). Linux CI green for `foundation_toolings` and
-  `foundation_ai`. Backlog: three new toolings entries (the builder never sees a second file
-  change; the unused pump; `DurationSleeper` reads the wall clock) and two `foundation_ai`
-  entries (`BashTool` never reads its `timeout`; clippy debt per test target). The lane B
-  entry is deleted. Its `ewe_platform` CI job then failed: both project templates still
-  pinned `foundation_toolings` 0.0.3, so `[patch.crates-io]` did not apply and cargo
-  fetched the broken registry copy. Both templates now require 0.0.4.
-- 2026-11-05: features 76 and 55 E3 on `spec70/f76-f55-db-generators`. **76:** E3 and E4
-  were already on master (re-verified); E4b adds `R2Store::set_if_version` on the R2
-  conditional PUT (`If-None-Match: *`, then one GET with the `ETag` and `If-Match`), so
-  `R2Store` is now atomic; the R2 mock honours both headers and the 20-writer race has one
-  winner (10/10 tests). E1 makes `D1WasmStorage` bind an integer as decimal text with
-  `CAST(? AS INTEGER)` and inline `NULL` (workerd rejects a JS `null` parameter and names
-  the global scope), and documents the exact-read rule; a new real-binding test round-trips
-  `i64::MAX`, `i64::MIN` and 2^53+1. E0 adds a standalone wasm crate
-  `backends/foundation_db/integration/wasm_cf` with 7 tests (D1 KV/blob/integers, R2
-  blob/ETag/list/range/conditional put, KV, `CfD1R2DocumentStore` with the >4 KB R2
-  offload) that runs in workerd on the real local D1/R2/KV bindings through
-  `wasm-testbed test bindgen-wrangler`; result `{"passed":true}`, 7/7. The testbed runner
-  gained a `/health` readiness probe, `Content-Length` body reads, 200/`{"passed"}` test
-  results, process-group shutdown, the 120 s startup limit, the wasm-bindgen `module`
-  target patch (export the instance, initialise the externref table), and the
-  `__wbg_test_*` host functions; a mise task and the `wasm-tests` CI job run it. E1b/E2
-  re-verified against the local explorer: `d1r2` 4/4 and 20/20, eight REST suites 26 tests
-  green. Limitation: workerd's local R2 `onlyIf` does not reject on a failed
-  precondition, so the wasm store keeps the non-atomic default (backlog entry). **55 E3:**
-  the wasm32 build is clean, including `-W unused-crate-dependencies` under the pinned
-  nightly; E1/E2/E4 re-verified (fmt clean, clippy 0 with `-D warnings`, the codegen test
-  20/20 at ~3.9 s). Local `ci.py` runs are green; the PR's CI run is the only remainder.
+- 2026-11-05: features 47, 48, 49 (partial) and 50 on
+  `spec70/f47-f50-lane-a-mechanical`. Feature 47: the ptrace tracer now forks and
+  traces on one thread, uses `PTRACE_TRACEME` plus `SIGSTOP`, passes the program
+  name in `argv`, waits with `__WALL | __WNOTHREAD`, and consumes a child's first
+  stop. All seven ignores are removed. Local amd64 emulation returns `EIO` from
+  `PTRACE_GETREGS`, so the eight spawn tests need native amd64 GitHub CI.
+  Feature 48: both condvar ignores removed; 20 of 20 runs pass. Feature 49: E2
+  to E9 are at zero warnings (testbed, iogate, deployment_docker, connectrpc,
+  netio, deployment, keychain, proxy, wireguard); `foundation_nostd` is clean and
+  denies clippy warnings in CI; `foundation_core` libraries are clean but its
+  test targets still report 327 warnings, so E10 is partial. CI config: the docker
+  crate gets an `--all-features` clippy run that denies warnings. Feature 50:
+  every inline test module left the lane A `src` trees, with the same test
+  counts, and the undeclared wireguard mobile modules are now declared. Backlog:
+  six fixed entries removed, new entries for the remaining core test debt, the
+  docker generator follow-up and the mobile toolchain check.
+- 2026-11-05: feature 48 done on `spec70/f47-f50-lane-a-mechanical`. Both
+  `#[ignore = "Requires threading support"]` markers are removed from
+  `tests/primitives_condvar_tests.rs`. The reason contradicted the `#[cfg(feature = "std")]`
+  guard. Both tests pass 20 of 20 with the `std` feature, and the full `foundation_nostd`
+  test run with `std` is green. No condvar bug. Backlog: new entry for the 19 ignored doc
+  examples in `foundation_nostd`.
+- 2026-11-05: feature 47 partial on `spec70/f47-f50-lane-a-mechanical`. Measured cause of
+  the seven ignored ptrace tests: (1) ptrace requests came from a thread that did not attach
+  to the tracee, so they failed `ESRCH` and the tracee stayed stopped; (2) `argv` lacked the
+  program name, so the `/bin/sh -c` tests ran a wrong command. The tracer thread now forks
+  and traces the child, the child uses `PTRACE_TRACEME` plus `SIGSTOP`, every `waitpid` uses
+  `__WALL | __WNOTHREAD`, the first child stop is consumed, and the spawn tests have a 60 s
+  timeout. All seven ignores are removed; `fork_child_first_stop_is_consumed` is added.
+  Local run in the Linux CI image: 17 of 25 `ptrace_vfs` tests pass; the 8 spawn tests fail
+  with `PTRACE_GETREGS ... EIO` because OrbStack amd64 emulation does not expose amd64
+  registers (a C probe fails the same way). Native amd64 GitHub CI must confirm 20 of 20.
+  Backlog: new entries for nativeapis clippy debt and the emulation limit.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers

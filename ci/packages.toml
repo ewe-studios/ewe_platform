@@ -126,6 +126,12 @@ wasm-runs = [
 # and the documented minimum cannot drift.
 wasm-expect-error = { run = "--no-default-features", contains = "foundation_core needs the `std` feature" }
 
+[packages.foundation_nostd]
+# The crate had no clippy runs of its own; its lints were only seen through the
+# crates that depend on it. Lint it directly and fail on a warning (spec 70
+# feature 49 E10).
+clippy-deny-warnings = true
+
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
@@ -163,6 +169,10 @@ runs = ["", "vms"]
 # behind `integration-tests`; that target is built (`--no-run`) so it cannot
 # silently rot, but never run — daemon-backed runs stay manual.
 runs = ["", "docker", "--no-run --features docker,integration-tests"]
+# Lint every feature set and fail on a warning, so the docker clippy debt
+# cannot return (spec 70 feature 49 E3).
+clippy-runs = ["", "--all-features"]
+clippy-deny-warnings = true
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 

@@ -1,4 +1,12 @@
-//! All four ConnectRPC modes over HTTP/2 cleartext, end-to-end (F47).
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
+//! All four `ConnectRPC` modes over HTTP/2 cleartext, end-to-end (F47).
 //!
 //! WHY: `h2_echo` proves unary over h2c. F47's acceptance criteria also require
 //! server-stream, client-stream and bidi, plus evidence that the h2 connection
@@ -229,7 +237,7 @@ async fn server_stream_client_sees_the_http_status() {
 
 /// The client sends three messages as separate h2 DATA frames before closing the
 /// request direction; the handler folds them into one response. This is the mode
-/// that the old pump could not express — it committed END_STREAM on HEADERS.
+/// that the old pump could not express — it committed `END_STREAM` on HEADERS.
 #[valtron_test]
 async fn client_stream_over_h2c() {
     let (addr, shutdown) = start_h2_server();

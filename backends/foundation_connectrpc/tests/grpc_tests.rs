@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! gRPC protocol tests over HTTP/2 cleartext (spec-41 F31).
 //!
 //! WHY: Feature 31 gRPC is implemented (handler, client, wire tasks) but has zero
@@ -616,7 +624,7 @@ async fn grpc_timeout_header_is_accepted() {
 }
 
 /// WHY: h2 trailing HEADERS carry `grpc-status` after the response body.
-/// F31 plumbs them through `TransportStream::trailers` — the H2Pump decodes
+/// F31 plumbs them through `TransportStream::trailers` — the `H2Pump` decodes
 /// trailing headers and pushes them into a dedicated pipe.
 ///
 /// WHAT: Open a gRPC unary call, drain the body, then read `stream.trailers`.

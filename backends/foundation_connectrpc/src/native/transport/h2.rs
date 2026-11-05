@@ -217,7 +217,6 @@ impl Transport for H2Transport {
         let host = request
             .request_uri
             .host_str()
-            .map(|s| s.to_string())
             .unwrap_or_else(|| "localhost".into());
         let port = request.request_uri.port_or_default();
         let path = request.request_uri.path().to_string();
@@ -229,23 +228,22 @@ impl Transport for H2Transport {
         // completes it without the peer's application, so it never waits on a
         // task of this pool. A non-blocking dial is tracked in the bug backlog.
         #[cfg(unix)]
-        let stream = match &self.unix_path {
-            Some(path) => H2Socket::Unix(
+        let stream = if let Some(path) = &self.unix_path {
+            H2Socket::Unix(
                 std::os::unix::net::UnixStream::connect(path)
                     .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-            ),
-            None => {
-                let addr = format!("{host}:{port}");
-                H2Socket::Tcp(
-                    TcpStream::connect_timeout(
-                        &addr
-                            .parse()
-                            .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-                        self.connect_timeout,
-                    )
-                    .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+            )
+        } else {
+            let addr = format!("{host}:{port}");
+            H2Socket::Tcp(
+                TcpStream::connect_timeout(
+                    &addr
+                        .parse()
+                        .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                    self.connect_timeout,
                 )
-            }
+                .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+            )
         };
         #[cfg(not(unix))]
         let stream = {
@@ -334,6 +332,10 @@ enum PumpPhase {
     Done,
 }
 
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "the flags are independent protocol state"
+)]
 struct H2Pump {
     stream: H2Socket,
     channel: H2Channel,
@@ -370,7 +372,7 @@ struct H2Pump {
     /// delivered, in order, ahead of any later chunk — `try_send` dropping a
     /// `Full` chunk on the floor silently truncates the response body.
     pending_body: VecDeque<Bytes>,
-    /// The peer signalled END_STREAM; close `body_tx` once `pending_body` drains.
+    /// The peer signalled `END_STREAM`; close `body_tx` once `pending_body` drains.
     response_ended: bool,
 }
 
@@ -506,6 +508,10 @@ impl TaskIterator for H2Pump {
     type Ready = ();
     type Pending = ();
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one poll step covers every protocol phase in order"
+    )]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         // Set non-blocking
         self.stream.set_nonblocking(true).ok();
@@ -570,8 +576,8 @@ impl TaskIterator for H2Pump {
                     self.fail_before_head(TransportError::Connect(Arc::new(e)));
                     return None;
                 }
-                Err(_e) => {
-                    tracing::warn!(err = %_e, "h2 pump: socket read error — exiting");
+                Err(e) => {
+                    tracing::warn!(err = %e, "h2 pump: socket read error — exiting");
                     self.head_tx.close();
                     self.body_tx.close();
                     return None;
@@ -983,7 +989,6 @@ fn status_from_u16(code: u16) -> Status {
         401 => Status::Unauthorized,
         403 => Status::Forbidden,
         404 => Status::NotFound,
-        500 => Status::InternalServerError,
         502 => Status::BadGateway,
         503 => Status::ServiceUnavailable,
         _ => Status::InternalServerError,

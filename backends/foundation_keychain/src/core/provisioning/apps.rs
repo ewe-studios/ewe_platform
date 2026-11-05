@@ -59,6 +59,10 @@ fn hash_secret(secret: &str, salt: &[u8]) -> String {
 }
 
 /// `POST /api/apps/register` — create an app, returning the one-time secret.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn register(
     ctx: &KeychainContext,
     req: RegisterAppRequest,
@@ -91,6 +95,10 @@ pub async fn register(
 }
 
 /// Resolve + verify an app secret, returning the app uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<String> {
     let app_id = secret.split('.').next().unwrap_or_default();
     if app_id.is_empty() {
@@ -122,6 +130,10 @@ pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<Stri
 }
 
 /// `GET /api/apps/:id` — app details (the caller must own it).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(
     ctx: &KeychainContext,
     app_id: &str,
@@ -142,6 +154,10 @@ pub async fn get(
 }
 
 /// `DELETE /api/apps/:id` — delete the app + its keys.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, app_id: &str, requested_id: &str) -> AppResult<()> {
     if app_id != requested_id {
         return Err(AppError::Forbidden);

@@ -4,7 +4,7 @@
 //! to persist backend drain/pause state, TLS data, and config hashes.
 //!
 //! WHAT: [`ProxyStateStore`] — load/save proxy state as JSON-serialized
-//! `ResourceState` entries, one per domain keyed by "proxy_state".
+//! `ResourceState` entries, one per domain keyed by "`proxy_state`".
 
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
@@ -245,6 +245,7 @@ impl ProxyStateStore {
     }
 
     /// Deterministic hash of proxy config for change detection.
+    #[must_use]
     pub fn compute_config_hash(config: &ProxyConfig) -> String {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};

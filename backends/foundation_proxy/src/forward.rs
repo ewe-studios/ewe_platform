@@ -166,6 +166,7 @@ pub fn is_streaming_request(headers: &SimpleHeaders) -> bool {
 ///
 /// Shared with the HTTP/2 forward path ([`crate::h2_proxy`]) so both front-end
 /// protocols apply an identical hop-by-hop and forwarding-header policy.
+#[must_use]
 pub fn forward_request_headers(
     original: &SimpleHeaders,
     client_ip: &str,
@@ -613,6 +614,7 @@ fn render_stream(part: Http11) -> Result<Vec<u8>, String> {
 /// Returns `Err(String)` if the upstream cannot be dialed or the request head
 /// cannot be written. The client connection is untouched then, so the caller can
 /// still answer `502`.
+#[allow(clippy::too_many_arguments)]
 pub async fn forward_upgrade(
     conn: &SharedByteBufferStream<RawStream>,
     backend: &Arc<BackendRuntime>,
@@ -658,6 +660,8 @@ pub async fn forward_upgrade(
 }
 
 /// Serialize an HTTP/1.1 request head (request line + headers + blank line).
+// Each header line is a short format; `format!` reads clearer than `write!`.
+#[allow(clippy::format_push_string)]
 fn serialize_request_head(method: &str, path: &str, headers: &SimpleHeaders) -> String {
     let mut out = format!("{method} {path} HTTP/1.1\r\n");
     for (name, values) in headers {

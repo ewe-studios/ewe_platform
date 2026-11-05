@@ -5,6 +5,8 @@
 /// Bitwarden clients fetch icons through the server as a proxy; the server
 /// must reject URLs that point at private/internal IPs.
 #[must_use]
+// The suffixes are hostname labels, not file extensions.
+#[allow(clippy::case_sensitive_file_extension_comparisons)]
 pub fn validate_icon_domain(url: &str) -> bool {
     // Parse the hostname and reject private/reserved patterns.
     let host = match url.split("://").nth(1).and_then(|s| s.split('/').next()) {
@@ -21,32 +23,8 @@ pub fn validate_icon_domain(url: &str) -> bool {
 
     // Reject known internal hostnames.
     let lower = host.to_lowercase();
-    if lower == "localhost"
+    !(lower == "localhost"
         || lower.ends_with(".localhost")
         || lower.ends_with(".local")
-        || lower == "0.0.0.0"
-    {
-        return false;
-    }
-
-    true
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn rejects_localhost() {
-        assert!(!validate_icon_domain("https://localhost/icon.png"));
-        assert!(!validate_icon_domain("http://127.0.0.1:8080/favicon.ico"));
-        assert!(!validate_icon_domain("https://10.0.0.1/icon"));
-        assert!(!validate_icon_domain("https://192.168.1.1/icon"));
-    }
-
-    #[test]
-    fn allows_public_urls() {
-        assert!(validate_icon_domain("https://example.com/icon.png"));
-        assert!(validate_icon_domain("https://github.com/favicon.ico"));
-    }
+        || lower == "0.0.0.0")
 }

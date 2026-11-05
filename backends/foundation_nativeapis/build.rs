@@ -8,9 +8,7 @@
 
 fn main() {
     let preload = std::env::var("CARGO_FEATURE_VFS_PRELOAD").is_ok();
-    let linux = std::env::var("CARGO_CFG_TARGET_OS")
-        .map(|os| os == "linux")
-        .unwrap_or(false);
+    let linux = std::env::var("CARGO_CFG_TARGET_OS").is_ok_and(|os| os == "linux");
 
     if preload && linux {
         cc::Build::new()

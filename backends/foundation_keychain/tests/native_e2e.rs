@@ -141,7 +141,7 @@ fn register_login_sync_and_create_over_http() {
         .as_str()
         .expect("access_token")
         .to_string();
-    assert!(!access_token.is_empty());
+    assert_ne!(access_token, "");
 
     let bearer = format!("Bearer {access_token}");
 

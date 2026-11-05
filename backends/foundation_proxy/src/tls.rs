@@ -6,7 +6,7 @@
 //! builds that acceptor from the proxy's `SslConfig`.
 //!
 //! WHAT: [`CertManager`] trait (pluggable cert provisioning), [`StaticCertManager`]
-//! (reads PEM cert+key from disk, stage 2), [`build_acceptor`] (SslConfig →
+//! (reads PEM cert+key from disk, stage 2), [`build_acceptor`] (`SslConfig` →
 //! Arc<SSLAcceptor>).
 //!
 //! HOW: `RustlsAcceptor::from_pem` handles PEM parsing and rustls config.
@@ -33,8 +33,16 @@ pub struct CertPair {
 /// Pluggable certificate provisioning interface.
 pub trait CertManager: Send + Sync {
     /// Return the current cert pair, provisioning if needed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     fn get_cert(&self) -> Result<CertPair, ProxyError>;
     /// Force renewal. For `StaticCertManager`, re-reads from disk.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     fn renew_cert(&self) -> Result<CertPair, ProxyError>;
 }
 
@@ -202,8 +210,8 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
     serde_json::json!({
         "kty": "EC",
         "crv": "P-256",
-        "x": b64(point.x().map(|x| x.as_slice()).unwrap_or_default()),
-        "y": b64(point.y().map(|y| y.as_slice()).unwrap_or_default()),
+        "x": b64(point.x().map(sha2::digest::generic_array::GenericArray::as_slice).unwrap_or_default()),
+        "y": b64(point.y().map(sha2::digest::generic_array::GenericArray::as_slice).unwrap_or_default()),
     })
 }
 
@@ -213,6 +221,10 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
 ///
 /// `Static` reads PEM from disk; `LetsEncrypt` provisions over ACME (needs the
 /// ACME runtime hooks on the config — a DNS-01 setter, optional directory URL).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn build_cert_manager(
     config: &ProxyConfig,
     client: DynNetClient,
@@ -252,12 +264,20 @@ pub fn build_cert_manager(
 }
 
 /// Build an `Arc<SSLAcceptor>` from a cert manager's current cert pair.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn acceptor_from_cert_manager(mgr: &dyn CertManager) -> Result<Arc<SSLAcceptor>, ProxyError> {
     acceptor_from_pair(&mgr.get_cert()?)
 }
 
 /// Build an `Arc<SSLAcceptor>` from an already-obtained cert pair. Useful when
 /// the same cert also feeds the HTTP/3 (QUIC) server.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn acceptor_from_pair(pair: &CertPair) -> Result<Arc<SSLAcceptor>, ProxyError> {
     let acceptor = SSLAcceptor::from_pem(pair.cert_chain.clone(), pair.private_key.clone().into())
         .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
@@ -279,6 +299,10 @@ fn acme_domains(config: &ProxyConfig) -> Vec<String> {
 // ── Acceptor builder ──
 
 /// Build an `Arc<SSLAcceptor>` from the proxy's `SslConfig`.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError> {
     match &config.provider {
         SslProvider::Static { cert, key } => {

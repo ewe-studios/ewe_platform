@@ -7,7 +7,7 @@
 //!
 //! SETUP: point `EWE_BUILDKITD_ADDR` at a buildkitd TCP listener, e.g.
 //!   docker run -d --privileged -p 127.0.0.1:13434:1234 \
-//!     moby/buildkit:latest --addr tcp://0.0.0.0:1234
+//!     moby/buildkit:latest --addr <tcp://0.0.0.0:1234>
 //! then `EWE_BUILDKITD_ADDR=127.0.0.1:13434`. Tests skip (pass) if unset or
 //! unreachable, so CI without a buildkitd stays green.
 //!
@@ -29,12 +29,11 @@ fn buildkitd_addr() -> Option<String> {
     let addr =
         std::env::var("EWE_BUILDKITD_ADDR").unwrap_or_else(|_| "127.0.0.1:13434".to_string());
     // Skip unless the TCP port actually accepts a connection.
-    match std::net::TcpStream::connect(&addr) {
-        Ok(_) => Some(addr),
-        Err(_) => {
-            eprintln!("skipping: no buildkitd reachable at {addr} (set EWE_BUILDKITD_ADDR)");
-            None
-        }
+    if std::net::TcpStream::connect(&addr).is_ok() {
+        Some(addr)
+    } else {
+        eprintln!("skipping: no buildkitd reachable at {addr} (set EWE_BUILDKITD_ADDR)");
+        None
     }
 }
 
@@ -84,14 +83,17 @@ async fn disk_usage_ok() {
 
 #[valtron_test]
 async fn solve_probe_reports_what_buildkit_needs() {
+    use foundation_deployment_docker::buildkit::types::SolveRequest;
+
     let Some(addr) = buildkitd_addr() else { return };
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
     // Fire a dockerfile.v0 solve with NO session — we want to see exactly what
     // buildkitd complains about (empirical: drives the session design).
-    use foundation_deployment_docker::buildkit::types::SolveRequest;
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
 
@@ -132,7 +134,7 @@ async fn session_bidi_manual_response() {
     )
     .unwrap();
 
-    let mut bidi = session_client
+    let bidi = session_client
         .bidi_stream(
             Ctx::background(),
             futures::stream::pending::<BytesMessage>(),
@@ -203,7 +205,7 @@ async fn session_bidi_manual_response() {
     // buildkitd should now send SETTINGS ACK
     match receiver.receive().await {
         Ok(Some(msg)) => {
-            let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+            let hex = hex_encode(&msg.data);
             eprintln!("[manual] got frame from bk: {} bytes {hex}", msg.data.len());
         }
         Ok(None) => eprintln!("[manual] stream ended after our SETTINGS"),
@@ -221,7 +223,7 @@ async fn session_bidi_manual_response() {
         }
         match receiver.receive().await {
             Ok(Some(msg)) => {
-                let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+                let hex = hex_encode(&msg.data);
                 eprintln!("[manual] bk→us {} bytes: {hex}", msg.data.len());
             }
             Ok(None) => {
@@ -271,7 +273,7 @@ async fn session_bidi_raw_no_pump() {
     .unwrap();
 
     eprintln!("[raw] opening Session bidi (no pump)...");
-    let mut bidi = session_client
+    let bidi = session_client
         .bidi_stream(
             Ctx::background(),
             futures::stream::pending::<BytesMessage>(),
@@ -291,7 +293,7 @@ async fn session_bidi_raw_no_pump() {
     for i in 0..2 {
         match receiver.receive().await {
             Ok(Some(msg)) => {
-                let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+                let hex = hex_encode(&msg.data);
                 eprintln!("[raw] bk→us #{i} {} bytes: {hex}", msg.data.len());
                 assert!(!msg.data.is_empty(), "handshake frame should be non-empty");
             }
@@ -353,11 +355,13 @@ async fn build_dockerfile_end_to_end() {
 
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
 
     let resp = client
         .solve(req)
@@ -395,12 +399,14 @@ async fn build_with_status_stream() {
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
     let build_ref = new_build_ref();
-    let mut req = SolveRequest::default();
-    req.Ref = build_ref.clone();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Ref: build_ref.clone(),
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
 
     // Solve and Status run concurrently, like buildx: Status(Ref) attaches to
     // the running build's progress feed and ends when the build completes.
@@ -467,11 +473,13 @@ async fn build_with_oci_export() {
 
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
     req.Exporters.push(Exporter {
         Type: "oci".into(),
         ..Default::default()
@@ -525,11 +533,13 @@ async fn build_inline_dockerfile_no_context_file() {
     .expect("start session");
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
 
     let resp = client.solve(req).await.expect("inline dockerfile solve");
     eprintln!("INLINE BUILD OK — {resp:?}");
@@ -553,11 +563,13 @@ async fn build_with_registry_auth_provider() {
         .expect("start session");
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
 
     let resp = client.solve(req).await.expect("solve with auth provider");
     // A warm buildkitd cache may skip the registry entirely, so the request
@@ -589,11 +601,13 @@ async fn build_with_secret_mount() {
     .expect("start session");
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
 
     let resp = client.solve(req).await.expect("solve with secret mount");
     eprintln!("SECRET BUILD OK — {resp:?}");
@@ -628,7 +642,6 @@ async fn gateway_build_ping_resolve_and_return() {
         PingRequest, ResolveImageConfigRequest, ReturnRequest,
     };
     use foundation_deployment_docker::buildkit::new_build_ref;
-    use foundation_deployment_docker::buildkit::services::gateway::LLBBridgeClientExt;
     use foundation_deployment_docker::buildkit::session::SessionServer;
     use foundation_deployment_docker::buildkit::types::SolveRequest;
 
@@ -645,10 +658,12 @@ async fn gateway_build_ping_resolve_and_return() {
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
     let build_ref = new_build_ref();
-    let mut req = SolveRequest::default();
-    req.Ref = build_ref.clone();
-    req.Session = session.id.clone();
-    // Frontend stays empty — the client IS the frontend.
+    let req = SolveRequest {
+        Ref: build_ref.clone(),
+        Session: session.id.clone(),
+        // Frontend stays empty — the client IS the frontend.
+        ..Default::default()
+    };
 
     let gateway = client
         .gateway_for_build(&build_ref)
@@ -661,8 +676,10 @@ async fn gateway_build_ping_resolve_and_return() {
             .await
             .expect("gateway Ping");
         // Resolve a public image ref through the running build.
-        let mut resolve = ResolveImageConfigRequest::default();
-        resolve.Ref = "docker.io/library/alpine:latest".into();
+        let resolve = ResolveImageConfigRequest {
+            Ref: "docker.io/library/alpine:latest".into(),
+            ..Default::default()
+        };
         let resolved = gateway
             .resolve_image_config(Ctx::background(), Request::new(resolve))
             .await
@@ -670,12 +687,14 @@ async fn gateway_build_ping_resolve_and_return() {
         // Return an ERROR result to cleanly abort the build. (Buildkitd
         // v0.31.1 nil-derefs on a Return with neither Result nor Error set —
         // gateway.go:1040 — so a real frontend always sets one; we set Error.)
-        let mut ret = ReturnRequest::default();
-        ret.error = buffa::MessageField::some(GoogleStatus {
-            code: 1, // CANCELLED
-            message: "ewe gateway test complete".into(),
+        let ret = ReturnRequest {
+            error: buffa::MessageField::some(GoogleStatus {
+                code: 1, // CANCELLED
+                message: "ewe gateway test complete".into(),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         gateway
             .r#return(Ctx::background(), Request::new(ret))
             .await
@@ -703,18 +722,17 @@ async fn gateway_build_ping_resolve_and_return() {
 ///   mkdir -p /tmp/ewe-bk-sock
 ///   docker run -d --name ewe-buildkitd-unix --privileged \
 ///     -v /tmp/ewe-bk-sock:/run/buildkit \
-///     moby/buildkit:latest --addr unix:///run/buildkit/buildkitd.sock
+///     moby/buildkit:latest --addr <unix:///run/buildkit/buildkitd.sock>
 ///   docker exec ewe-buildkitd-unix chmod 666 /run/buildkit/buildkitd.sock
 /// then `EWE_BUILDKITD_UNIX=/tmp/ewe-bk-sock/buildkitd.sock` (the default).
 fn buildkitd_unix() -> Option<String> {
     let path = std::env::var("EWE_BUILDKITD_UNIX")
         .unwrap_or_else(|_| "/tmp/ewe-bk-sock/buildkitd.sock".to_string());
-    match std::os::unix::net::UnixStream::connect(&path) {
-        Ok(_) => Some(path),
-        Err(_) => {
-            eprintln!("skipping: no buildkitd unix socket at {path} (set EWE_BUILDKITD_UNIX)");
-            None
-        }
+    if std::os::unix::net::UnixStream::connect(&path).is_ok() {
+        Some(path)
+    } else {
+        eprintln!("skipping: no buildkitd unix socket at {path} (set EWE_BUILDKITD_UNIX)");
+        None
     }
 }
 
@@ -759,11 +777,13 @@ async fn build_dockerfile_end_to_end_unix() {
         .await
         .expect("start session over unix transport");
 
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let mut req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        Session: session.id.clone(),
+        ..Default::default()
+    };
     req.FrontendAttrs
         .insert("filename".into(), "Dockerfile".into());
-    req.Session = session.id.clone();
 
     let resp = client
         .solve(req)
@@ -772,4 +792,15 @@ async fn build_dockerfile_end_to_end_unix() {
     eprintln!("UNIX BUILD OK — session {} → {resp:?}", session.id);
 
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// Lower-case hex of a byte slice, for debug output.
+fn hex_encode(data: &[u8]) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::with_capacity(data.len() * 2);
+    for byte in data {
+        // Writing to a String cannot fail.
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
 }

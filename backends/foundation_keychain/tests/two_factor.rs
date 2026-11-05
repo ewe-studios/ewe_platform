@@ -62,7 +62,7 @@ fn full_totp_lifecycle() {
     let c = ctx.clone();
     let auth = drive(async move { two_factor::get_authenticator(&c, USER).await }).expect("get");
     assert!(!auth.enabled);
-    assert!(!auth.key.is_empty());
+    assert_ne!(auth.key, "");
     let key = auth.key.clone();
 
     // Fetching again returns the SAME secret (idempotent).
@@ -81,7 +81,7 @@ fn full_totp_lifecycle() {
     let enabled = drive(async move { two_factor::enable_authenticator(&c, USER, &code).await })
         .expect("enable");
     assert!(enabled.enabled);
-    assert!(!enabled.recovery_code.is_empty());
+    assert_ne!(enabled.recovery_code, "");
     let recovery = enabled.recovery_code.clone();
 
     // Now it is enabled and a fresh code verifies at login.

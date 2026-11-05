@@ -2,145 +2,54 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
-- 2026-11-05 (feature 78, io_uring on this Mac): the local Linux container cannot test
-  io_uring. OrbStack's kernel (`7.2.9-orbstack`, reported as x86_64) returns `ENOSYS` from
-  `io_uring_setup` even with `--security-opt seccomp=unconfined`, so only GitHub's runner can
-  exercise the tier. Do run the suites anyway: with `EWE_REQUIRE_IO_URING=1` they must fail
-  with the named reason, and without it they must pass and skip. That run found a suite that
-  bypassed the shared helper: `uring_epoll_parity_tests` called `uring::Selector::new()` and
-  panicked on every one of its 9 tests. Any test file gated on `feature = "uring"` must call
-  `tests/common/mod.rs::io_uring_missing` first; grep the gate, not the file names, because the
-  parity suite does not have `completion` in its name.
-- 2026-11-05 (feature 78, seccomp only hides the kernel): a package that needs io_uring needs
-  both `seccomp=unconfined` and a kernel that implements `CONFIG_IO_URING`. `EPERM` from
-  `io_uring_setup` means the seccomp profile; `ENOSYS` means the kernel. Check
-  `cat /proc/sys/kernel/io_uring_disabled` and the syscall result before blaming the code.
-
-- 2026-11-05 (feature 78, CI containers and optional io_uring): Docker's default seccomp
-  profile blocks `io_uring_setup`, so a package that needs io_uring must run its own container
-  with `--security-opt seccomp=unconfined`. Keep that in `ci/packages.toml`, not in the
-  workflow: `ci.py` adds the `container-options` value to the package job's `container:` and to
-  the `docker run` of the artifact path. An optional dependency on a Linux-only crate
-  (`io-uring`) belongs in `[target.'cfg(target_os = "linux")'.dependencies]`; a feature that
-  names it (`uring = ["dep:io-uring", ...]`) then does nothing on other targets instead of
-  failing their build. A test file with `#![cfg(target_os = "linux", feature = "uring")]` is
-  compiled to an empty test binary unless a `runs` entry enables `uring`; the nativeapis uring
-  suites never ran in CI for that reason. `cargo check --target x86_64-unknown-linux-gnu`
-  compiles Linux-gated test code on a macOS host until a C dependency (`ring`) needs a cross
-  compiler. A `compile_error!` does not stop the other errors in the same crate: the bare
-  `foundation_core` build prints its message first and then 15 to 24 unresolved-`Ctx` errors.
-  `std`, not `alloc`, is that crate's minimum, because `Ctx` (a `HashMap` + `Arc` type map)
-  is `std`-gated and `valtron::ctx` documents that `alloc` support is deferred. State the
-  true minimum in the error, not the one the spec guessed.
-- 2026-11-05 (feature 62, measuring one crate's threads): a whole-process CPU cap cannot hold
-  when the test binary runs other tests in parallel. Find the server's threads instead: snapshot
-  the thread list before `initialize_pool`, and treat the threads that appear after it as the
-  server's. Add any process-wide thread by name (the shared `reactor-drain`). On Linux read
-  `/proc/self/task/<tid>/schedstat` (CPU in nanoseconds). On macOS use `proc_pidinfo` with
-  `PROC_PIDLISTTHREADS` (6, not exported by libc) and `PROC_PIDTHREADINFO` (5); `pth_user_time`
-  and `pth_system_time` are nanoseconds and `pth_name` holds the thread name. Do not use
-  `libc::mach_task_self`: libc deprecates it. An idle HTTP/2 connection on macOS costs about
-  0.2 ms per second, all on the reactor drain thread (100 ms poll); the workers are at 0 us.
-  Gate helper functions and imports on the same `feature = "multi"` as their tests, or a
-  default-feature `cargo clippy --all-targets` reports them as dead code.
-- 2026-11-05 (feature 77, already landed): PR #173 already contained feature 77 E1 to E4, but
-  the feature file still said `pending`. Check the code and `git log -S` before you implement a
-  feature file. The code is the truth. E1 measured 4 readiness checks in the default set and 3
-  in `multi` over a 300 ms park, against about 200 with polling. A bound of 5 discriminates and
-  holds; the old bound of 20 also held but hid a large regression. The "force polling" arm is
-  `register` returning `false`, because feature 80 removed `needs_polling()`. E2's cause was
-  `NotifyQueue::wait_for_item`: it made `max_spins` condition-variable waits of `park_duration`
-  each, so an idle consumer woke about 1000 times per second. Wait once for the whole total and
-  notify the condition variable on close. The idle CPU test is Linux-only and does not run on
-  macOS.
-- 2026-11-05 (feature 59, moving tests out of lane B): three surprises.
-  First, `crates/*` is in the root workspace's `exclude` list but its packages
-  still use `workspace = true` fields, so cargo rejects them with "current
-  package believes it's in a workspace when it's not". Add an empty
-  `[workspace]` table, copy the inherited values, and add
-  `[profile.uat] inherits = "dev"`; `ewe_watchers` then builds and its tests
-  run. Second, a test module is not always at the end of a file. In
-  `foundation_platform/src/ewe.rs` it sits in the middle, and truncating at
-  its `#[cfg(test)]` line deleted `select_protocol` and friends. Check for
-  code after the module before truncating; delete the block with an exact
-  edit instead. Third, making an item public for a test is new public API, so
-  the crate needs a version bump and every consumer's requirement must change
-  in the same commit. When the consumer is owned by another agent (here
-  `foundation_ai` pinned `infrastructure_llama_cpp` 0.0.4), do not defer it to
-  that agent: the main session did the bump and every consumer in one change.
-- 2026-11-05 (feature 59, proc-macro crates): a `proc-macro = true` crate
-  exports only macros, so `tests/` cannot call its helper functions even when
-  they are `pub`. The inline tests in `foundation_macros` test helpers such as
-  `parse_template` and `transform_scoped_css`; they stay inline until those
-  helpers move to a normal library crate that the macro crate calls.
-- 2026-11-05 (feature 79, clippy without `--no-deps`): `cargo clippy -p
-  <crate> --all-targets -- -D warnings` also lints every workspace path
-  dependency. For `foundation_deployment_platform` it fails on lane A's
-  `foundation_nostd/src/comp/fair_gate.rs`, not on the target crate. CI's
-  `clippy-deny-warnings` adds `--no-deps`, which keeps the gate on the
-  package's own code. Use both commands when a feature says "run clippy and
-  fix what it reports": the `--no-deps` run is the CI verdict.
-- 2026-11-05 (feature 81, wake tests): do not assert how fast a parked task wakes. The
-  delay between the push and the task running again measures thread scheduling, not the
-  wake path. On the emulated amd64 container the delay was 19 ms one run while the
-  readiness check count stayed at 4, so a 1 ms bound failed about one test in four runs.
-  The readiness check count is the discriminator: an event-driven park costs 4 checks (two
-  before the park, two when the wake releases it), and a 1 ms re-check costs about 200
-  over a 200 ms park. Keep the delay in the log and hold it under a loose limit only.
-- 2026-11-05 (feature 81, `TaskStatus::Depends` needs `EventReadinessPtr`): a readiness
-  typed `Arc<dyn EventReadiness>` does not compile into `TaskStatus::Depends` under the
-  `multi` executor. `SteeringQueues::priority_readiness` returned that type and was
-  therefore unusable with the executor. Return `EventReadinessPtr` (the alias that the
-  `Depends` arm takes) from every readiness-producing method.
-- 2026-11-05 (feature 76, wasm-bindgen `module` target under workerd): `--target module`
-  emits no `init` and no default export. The module instantiates the wasm at import time
-  (`let wasm = wasmInstance.exports; wasm.__wbindgen_start();`) and keeps the instance
-  private. The `__wbgt_` test shims are raw wasm exports, so the runner must patch the
-  generated JS: add `export { wasm };` and replace the `wasm.__wbindgen_start();` call.
-  Do **not** just delete that call: it also calls the `__wbindgen_init_externref_table`
-  import. Without it, the `JsValue` constants TRUE/FALSE (sentinel indices 1026/1027) map
-  to the wrong table slot, and `WasmBindgenTestContext.run`'s Promise resolved to
-  `[object ServiceWorkerGlobalScope]` instead of `true`. Replace the call with
-  `Object.values(__wbg_get_imports()).map((m) => m && m.__wbindgen_init_externref_table).find((f) => f)()`
-  (the function lives inside the import-object value, not on the object itself). The
-  wasm-bindgen CLI value is `module`; `esmodules` is rejected by 0.2.126.
-- 2026-11-05 (feature 76, wasm-bindgen-test in a worker): the `Worker` formatter and the
-  `TestFuture` poll loop call two host functions the official runner injects. A worker must
-  define `globalThis.__wbg_test_output_writeln = (line) => console.log(line)` and
-  `globalThis.__wbg_test_invoke = (callback) => callback()`. Without them the run aborts
-  with `ReferenceError: __wbg_test_output_writeln is not defined`.
-- 2026-11-05 (feature 76, Cloudflare bindings are host objects): `js_sys`/wasm-bindgen
-  `dyn_into::<D1Database>()` (and `R2Bucket`, `KVNamespace`, `R2Object`, `R2Objects`) checks
-  `value instanceof D1Database`, and workerd defines no such globals, so every binding
-  failed with "binding 'DB' is not the expected type". Use `JsCast::unchecked_into` after a
-  null/undefined check; the binding name is the contract, and a wrong binding fails at its
-  first method call.
-- 2026-11-05 (feature 76, D1 null and integer parameters): workerd's D1 binding rejects a
-  JS `null` parameter with `D1_TYPE_ERROR: Type 'object' not supported for value
-  '[object ServiceWorkerGlobalScope]'` (the null sentinel reaches the binding as the global
-  scope). Inline the `NULL` literal and drop the parameter, as the native REST client does,
-  and renumber later `?N` placeholders. Integers bind as decimal text with
-  `CAST(? AS INTEGER)`; a JS Number is a double and loses precision past 2^53.
-- 2026-11-05 (feature 76, workerd local R2 conditional put): the local binding enforces
-  `onlyIf: { etagMatches }` / `etagDoesNotMatch` (the object is left unchanged when the
-  condition fails) but it **resolves the promise instead of rejecting**. It also wants the
-  ETag without quotes, while `R2Object.httpEtag` returns it quoted. `etagDoesNotMatch: "*"`
-  is not honoured. `R2WasmStorage::put_blob_conditionally` therefore keeps the trait's
-  documented non-atomic check-then-write so it can report `PreconditionFailed`. The E0
-  harness tests that contract; a truly atomic wasm conditional put needs a workerd that
-  rejects. New backlog entry under `foundation_db`.
-- 2026-11-05 (feature 76, wasm testbed readiness): a raw `TcpStream::connect` success is not
-  readiness. workerd accepts connections before the worker module finishes loading, so the
-  test request waited forever on a module that had not started. Probe a `/health` route that
-  the worker answers before it runs any tests, and read the response body by
-  `Content-Length` (workerd keeps the HTTP/1.1 connection open past the body). Answer 200
-  with `{"passed": true|false}` for the test run: a 500 goes through wrangler's error
-  middleware, which re-encodes the result (and threw "Converting circular structure to
-  JSON" over the global scope).
-- 2026-11-05 (feature 76, valtron test pools): an async `#[valtron_test]` in the same test
-  binary as `#[valtron_test(threads = 8)]` panicked with `sync_collect_one: stream produced
-  no result` because the two tests set up different global pools at the same time. Give the
-  tests in one binary the same `threads` option (or run them serially).
+- 2026-11-05 (feature 49, warning cleanup): `cargo clippy --all-targets` lints
+  every test and example. A `clippy-deny-warnings = true` entry in
+  `ci/packages.toml` therefore needs zero warnings in the test targets too, not
+  only in the library. `foundation_core` has 327 test/example warnings
+  (`drop_non_drop`, `arc_with_non_send_sync`, `items_after_statements`,
+  `doc_markdown`), so its deny entry is held back. Check the all-targets set
+  before you add deny, not just `--lib`.
+  `cargo clippy --fix` rewrites generated code. The generator is the real source:
+  if it still emits the old shape, a regeneration restores the warnings.
+  A manifest warning can mean a feature enables a dependency without the code
+  that uses it: `compression` enabled `flate2` but not `gzip`/`deflate`.
+  An `unused dependency` warning that appears only on one target is fixed by
+  target-gating the dependency, and a dependency that must stay unused needs
+  `use crate as _;` (or a target gate plus an underscore import) to say why.
+- 2026-11-05 (feature 50, test-only constructors): an inline `#[cfg(test)]` module
+  can use private items and test-only constructors that an integration test
+  cannot see. Move the test to the public API first; when no public path exists,
+  make the smallest item public and document it. The `ParseErrorKind` enum and
+  `ParseError::kind` field became public for one test, and a test-only
+  `Generator::for_testing` became a local helper over the public constructor.
+  A target-gated module can be absent from `lib.rs` and still be referred to by
+  a completeness gate: `foundation_wireguard`'s `ios` and `android` modules were
+  dead for that reason. Search for the module name before you assume it compiles.
+- 2026-11-05 (feature 48, ignored condvar tests): the two tests were marked
+  `#[ignore = "Requires threading support"]` under `#[cfg(feature = "std")]`. With `std`
+  the conditions are always true, so the reason was impossible. Both tests pass with no
+  change to the condvar. Lesson: an ignore whose reason contradicts its `cfg` is a stale
+  marker; run it before you look for a bug.
+- 2026-11-05 (feature 47, ptrace deadlock): two bugs made the seven spawn tests hang.
+  (1) The child was forked by the test thread, then the `ptrace_loop` ran in a new
+  thread. A ptrace request must come from the thread that attached to the tracee. From
+  another thread it fails with `ESRCH`: `PTRACE_GETREGS` returns nothing and the
+  `PTRACE_SYSCALL` resume fails, so the tracee stays stopped and `waitpid` blocks. The
+  tracer thread now forks the child and runs every ptrace request, and it sends the child
+  pid to `spawn` through a channel.
+  (2) `nix::unistd::execvp` does not add `argv[0]`. The code passed `args` only, so
+  `/bin/sh -c "..."` got `argv[0] = "-c"` and never ran the command. Build `argv` as
+  `[command, args...]`.
+  Use `PTRACE_TRACEME` plus `raise(SIGSTOP)` in the child, not `PTRACE_SEIZE`: with SEIZE
+  the child can exec before the attach, the tracer sees the `EXEC` event in the wrong
+  place, and a forked child starts in `PTRACE_EVENT_STOP`, which `PTRACE_SYSCALL` does not
+  resume. Build every `CString` and the null-terminated pointer array before `fork`; the
+  child may call only async-signal-safe functions.
+  Tests run in parallel in one binary. `waitpid(-1)` from one tracer reaps another test's
+  tracee and then `PTRACE_GETREGS` fails. Add `__WNOTHREAD` next to `__WALL`.
+  Local limit: OrbStack amd64 emulation returns `EIO` from `PTRACE_GETREGS` for every
+  traced amd64 process (a minimal C program shows it too), so the spawn tests fail here
+  before they reach the dispatch code. They must run on native amd64 in GitHub CI.
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run

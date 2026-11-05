@@ -110,6 +110,9 @@ impl<T> Pipe<T> {
     ///
     /// # Panics
     /// Never panics.
+    // Renaming this to a split-style constructor changes the public API; that
+    // change also bumps the crate version and is not part of a lint-only fix.
+    #[allow(clippy::new_ret_no_self)]
     #[must_use]
     pub fn new() -> (PipeSender<T>, PipeReceiver<T>) {
         Self::with_depth(Self::DEFAULT_DEPTH)

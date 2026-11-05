@@ -6037,6 +6037,72 @@ impl SimpleHttpBody {
     }
 }
 
+impl SimpleHttpBody {
+    fn extract_full<T: std::io::Read + Send + Sync + 'static>(
+        &self,
+        headers: &SimpleHeaders,
+        optional_max_body_size: Option<BodySizeLimit>,
+        stream: SharedByteBufferStream<T>,
+    ) -> SendSafeBody {
+        tracing::trace!(
+            "FullBody: streaming body with potential max body size: {:?}, headers={:?}",
+            &optional_max_body_size,
+            headers
+        );
+
+        #[allow(clippy::cast_possible_truncation)]
+        let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
+
+        let batch = BatchReader::new(stream)
+            .batch_size(self.2)
+            .eof_on_zero_read(true)
+            .max_consecutive_retries(self.3);
+
+        let stream: BoxedSendableDataIterator<BoxedError> = if let Some(max) = effective_max_size {
+            Box::new(LimitedEOFStreamReader::new(batch, max))
+        } else {
+            Box::new(EOFStreamReader::new(batch))
+        };
+
+        SendSafeBody::Stream(Some(stream))
+    }
+
+    fn extract_sse<T: std::io::Read + Send + Sync + 'static>(
+        &self,
+        headers: SimpleHeaders,
+        stream: SharedByteBufferStream<T>,
+    ) -> SendSafeBody {
+        tracing::trace!(
+            "SseBody: returning SSE body iterator with headers={:?}",
+            headers
+        );
+        // A response with a Content-Length ends after that many bytes, even
+        // when the server keeps the connection open for the next request.
+        // Reading to EOF would wait for the read timeout on every such
+        // response, and block the worker thread that does it.
+        let framed_len = if headers.contains_key(&SimpleHeader::TRANSFER_ENCODING) {
+            None
+        } else {
+            headers
+                .get(&SimpleHeader::CONTENT_LENGTH)
+                .and_then(|values| values.first())
+                .and_then(|value| value.trim().parse::<u64>().ok())
+        };
+        let sse_iterator: BoxedSendableIterator<
+            crate::event_source::ParseResult,
+            SendableBoxedError,
+        > = match framed_len {
+            Some(len) => {
+                let bounded =
+                    SharedByteBufferStream::rwrite(std::io::Read::take(stream.clone(), len));
+                Box::new(SimpleSseIterator::new(headers, bounded).with_limits(self.4))
+            }
+            None => Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4)),
+        };
+        SendSafeBody::SseStream(Some(sse_iterator))
+    }
+}
+
 impl BodyExtractor for SimpleHttpBody {
     fn frame_limits(&self) -> super::framing::FrameLimits {
         self.4
@@ -6062,28 +6128,7 @@ impl BodyExtractor for SimpleHttpBody {
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(headers, optional_max_body_size) => {
-                tracing::trace!(
-                    "FullBody: streaming body with potential max body size: {:?}, headers={:?}",
-                    &optional_max_body_size,
-                    headers
-                );
-
-                #[allow(clippy::cast_possible_truncation)]
-                let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
-
-                let batch = BatchReader::new(stream)
-                    .batch_size(self.2)
-                    .eof_on_zero_read(true)
-                    .max_consecutive_retries(self.3);
-
-                let stream: BoxedSendableDataIterator<BoxedError> =
-                    if let Some(max) = effective_max_size {
-                        Box::new(LimitedEOFStreamReader::new(batch, max))
-                    } else {
-                        Box::new(EOFStreamReader::new(batch))
-                    };
-
-                Ok(SendSafeBody::Stream(Some(stream)))
+                Ok(self.extract_full(&headers, optional_max_body_size, stream))
             }
             Body::LimitedBody(content_length, headers) => {
                 tracing::trace!("LimitedBody: streaming limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
@@ -6144,38 +6189,7 @@ impl BodyExtractor for SimpleHttpBody {
                 );
                 Ok(SendSafeBody::ChunkedStream(Some(chunked_iterator)))
             }
-            Body::SseBody(headers) => {
-                tracing::trace!(
-                    "SseBody: returning SSE body iterator with headers={:?}",
-                    headers
-                );
-                // A response with a Content-Length ends after that many bytes, even
-                // when the server keeps the connection open for the next request.
-                // Reading to EOF would wait for the read timeout on every such
-                // response, and block the worker thread that does it.
-                let framed_len = if headers.contains_key(&SimpleHeader::TRANSFER_ENCODING) {
-                    None
-                } else {
-                    headers
-                        .get(&SimpleHeader::CONTENT_LENGTH)
-                        .and_then(|values| values.first())
-                        .and_then(|value| value.trim().parse::<u64>().ok())
-                };
-                let sse_iterator: BoxedSendableIterator<
-                    crate::event_source::ParseResult,
-                    SendableBoxedError,
-                > = match framed_len {
-                    Some(len) => {
-                        let bounded = SharedByteBufferStream::rwrite(std::io::Read::take(
-                            stream.clone(),
-                            len,
-                        ));
-                        Box::new(SimpleSseIterator::new(headers, bounded).with_limits(self.4))
-                    }
-                    None => Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4)),
-                };
-                Ok(SendSafeBody::SseStream(Some(sse_iterator)))
-            }
+            Body::SseBody(headers) => Ok(self.extract_sse(headers, stream)),
         }
     }
 }

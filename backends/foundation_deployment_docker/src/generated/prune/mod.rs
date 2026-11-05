@@ -162,8 +162,8 @@ pub async fn build_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/build/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/build/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -212,8 +212,8 @@ pub async fn container_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -258,8 +258,8 @@ pub async fn image_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/images/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -304,8 +304,8 @@ pub async fn network_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/networks/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -350,8 +350,8 @@ pub async fn volume_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/volumes/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

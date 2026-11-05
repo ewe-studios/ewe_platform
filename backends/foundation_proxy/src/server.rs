@@ -66,7 +66,8 @@ impl std::fmt::Debug for ProxyServer {
         f.debug_struct("ProxyServer")
             .field("local_addr", &self.local_addr)
             .field("services", &self.config.services.len())
-            .finish()
+            .field("redirect_local_addr", &self.redirect_local_addr)
+            .finish_non_exhaustive()
     }
 }
 
@@ -85,6 +86,8 @@ impl ProxyServer {
     /// # Panics
     /// Never panics. (The valtron pool must already be initialised by the
     /// caller; without it the front end cannot submit connections.)
+    // `services`, `svc` and `server` are distinct names in one startup flow.
+    #[allow(clippy::similar_names)]
     pub async fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
         tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
@@ -120,7 +123,7 @@ impl ProxyServer {
         let client = NativeHttpClient::with_config_and_pool(
             ClientConfig::default(),
             pool,
-            SystemDnsResolver::default(),
+            SystemDnsResolver,
         );
 
         // Bind the front-end listener (ephemeral port support for tests).
@@ -447,13 +450,14 @@ fn read_head(stream: &mut std::net::TcpStream, head: &mut Vec<u8>, limit: usize)
         }
         let want = (limit - head.len()).min(chunk.len());
         match stream.read(&mut chunk[..want]) {
-            Ok(0) => return HeadRead::Failed,
+            Ok(0) | Err(_) => return HeadRead::Failed,
             Ok(n) => head.extend_from_slice(&chunk[..n]),
-            Err(_) => return HeadRead::Failed,
         }
     }
 }
 
+// The listener is only borrowed; taking it by value keeps call sites simple.
+#[allow(clippy::needless_pass_by_value)]
 fn ssl_redirect_loop(
     listener: TcpListener,
     shutdown: &Arc<ShutdownSignal>,
@@ -500,7 +504,9 @@ fn ssl_redirect_loop(
             return;
         }
         #[cfg(unix)]
-        let gen = listener_readiness.as_ref().map(|r| r.events_generation());
+        let gen = listener_readiness
+            .as_ref()
+            .map(foundation_iogate::FdReadiness::events_generation);
 
         match listener.accept() {
             Ok((mut stream, _addr)) => {
@@ -573,7 +579,7 @@ pub fn extract_header<'a>(head: &'a str, prefix: &str) -> Option<&'a str> {
     head.lines()
         .find(|line| line.to_lowercase().starts_with(&prefix_lower))
         .and_then(|line| line[prefix.len()..].trim().split(',').next())
-        .map(|v| v.trim())
+        .map(str::trim)
 }
 
 /// Extract the path from an HTTP request line (e.g. "GET /path HTTP/1.1" → "/path").

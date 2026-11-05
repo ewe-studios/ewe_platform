@@ -1,4 +1,4 @@
-//! `CompletionSocket` — transport-facing byte source for the io_uring completion
+//! `CompletionSocket` — transport-facing byte source for the `io_uring` completion
 //! read path (Decision 14 F4 / Feature 48).
 //!
 //! WHY: the transport-facing end of Decision 14 F4. A transport that reads
@@ -12,14 +12,14 @@
 //! correct on every backend, plus a `CompletionReadWrite` impl so a boxed
 //! `Connection::Completion` can delegate through it. **Explicit read/write mode
 //! flags** (F50 config gate) replace the previous auto-detection so both paths
-//! — io_uring completion and standard syscalls — are visible, independently
+//! — `io_uring` completion and standard syscalls — are visible, independently
 //! selectable, and trivially testable.
 //!
 //! HOW: on Linux the inner fd is registered with the shared reactor — armed for
 //! multishot `RECV` in [`CompletionSocket::completion`], or plain-registered for
 //! readiness only in [`CompletionSocket::readiness`] — and `read` goes through
 //! the unified `read_bytes` path (which itself falls back to `read(2)` when the
-//! fd is not a completion source). Off Linux there is no io_uring, so both
+//! fd is not a completion source). Off Linux there is no `io_uring`, so both
 //! constructors register plainly and `read` is `read(2)`.
 
 use std::fmt;
@@ -45,17 +45,17 @@ use foundation_netio::netcap::{CompletionReadWrite, SocketAddr as NetcapSocketAd
 /// WHAT: `Std` issues `read(2)`; `Completion` pops the kernel-filled RECV inbox.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReadMode {
-    /// Standard `read(2)` — no io_uring, no reactor inbox.
+    /// Standard `read(2)` — no `io_uring`, no reactor inbox.
     Std,
-    /// io_uring completion: pop from the kernel's multishot-RECV inbox.
+    /// `io_uring` completion: pop from the kernel's multishot-RECV inbox.
     Completion,
 }
 
 /// How writes are performed on this socket.
 ///
-/// WHY: io_uring SEND (F49) and SEND_ZC (F50) are independent of the RECV mode.
+/// WHY: `io_uring` SEND (F49) and `SEND_ZC` (F50) are independent of the RECV mode.
 /// A relay may want completion reads on both legs but std writes (e.g. small
-/// responses that don't benefit from SEND_ZC), or completion reads + SEND_ZC
+/// responses that don't benefit from `SEND_ZC`), or completion reads + `SEND_ZC`
 /// writes for maximum throughput. Explicit modes make every combination
 /// constructable and testable.
 ///
@@ -65,21 +65,21 @@ pub enum ReadMode {
 /// no user-memory copy either).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WriteMode {
-    /// Standard `write(2)` — no io_uring, no send pool.
+    /// Standard `write(2)` — no `io_uring`, no send pool.
     Std,
-    /// io_uring `IORING_OP_SEND`: copy into a pool buffer, submit SQE.
+    /// `io_uring` `IORING_OP_SEND`: copy into a pool buffer, submit SQE.
     /// One `memcpy` per write; zero `write(2)` syscalls.
     Send,
-    /// io_uring `IORING_OP_SEND_ZC`: zero-copy send with two-phase
-    /// completion (F_MORE → F_NOTIF). The buffer stays pinned until the notif.
+    /// `io_uring` `IORING_OP_SEND_ZC`: zero-copy send with two-phase
+    /// completion (`F_MORE` → `F_NOTIF`). The buffer stays pinned until the notif.
     SendZc,
 }
 
 // ── CompletionSocket ─────────────────────────────────────────────────────
 
-/// A socket whose reads come from the io_uring completion inbox when available.
+/// A socket whose reads come from the `io_uring` completion inbox when available.
 ///
-/// Constructed once per accepted connection. On an io_uring completion backend,
+/// Constructed once per accepted connection. On an `io_uring` completion backend,
 /// `read` pops the per-token inbox with no syscall. Everywhere else it falls
 /// back to `read(2)` — this type is always correct, just not always free.
 ///
@@ -119,7 +119,7 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
     /// `Completion` + `Send` (the F48+F49 combined path).
     ///
     /// WHAT: the [`crate::ServerIo::Completion`] / [`crate::ServerIo::Auto`]
-    /// construction. On io_uring the kernel starts reading the socket into the
+    /// construction. On `io_uring` the kernel starts reading the socket into the
     /// buffer ring; `read` then pops the inbox.
     ///
     /// # Errors
@@ -175,7 +175,7 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
     ///
     /// WHY: the caller — not the auto-detection — decides which paths to use.
     /// A relay can have completion reads on both legs but std writes, or vice
-    /// versa. Tests can force `Std` on an io_uring kernel and verify the
+    /// versa. Tests can force `Std` on an `io_uring` kernel and verify the
     /// fallback.
     ///
     /// WHAT: `arm_completion` arms a multishot `RECV` (needed when `read_mode`

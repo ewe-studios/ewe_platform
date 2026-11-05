@@ -1,9 +1,9 @@
 ---
 feature: "Lane A warnings: reactor wasm dead code, testbed deno_v8 lint, foundation_deployment_docker clippy debt"
-status: "pending"
+status: "partial"
 lane: "A"
 model: "haiku"
-branch: "fix/io-41-50-lane-a"
+branch: "spec70/f47-f50-lane-a-mechanical"
 crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain", "foundation_proxy", "foundation_wireguard", "foundation_iogate"]
 catalogue_rows: [13, 14, 15, 31]
 ---
@@ -94,3 +94,39 @@ python3 scripts/ci/ci.py run foundation_connectrpc --profile dev
 ## Done when
 
 - [ ] The three warnings sources are at zero; backlog entries (or their docker part) deleted.
+
+## Result
+
+2026-11-05. E1 is skipped (moved to feature 78). E2 to E9 are done. E10 is
+partly done.
+
+| Task | Crate | Result |
+|---|---|---|
+| E2 | `foundation_testbed` | `deno_v8` is marked used with `use deno_v8 as _;` and a comment. Clippy is clean with default features and with `wasm-embedded-js`. |
+| E3 | `foundation_deployment_docker` | 0 warnings with default features and with `--all-features`. The crate now has a CI clippy run with `--all-features` and denys warnings. |
+| E4 | `foundation_connectrpc` | 0 warnings with `--all-features`. |
+| E5 | `foundation_netio`, `foundation_deployment` | 0 clippy warnings. Removed `rustls-pemfile` from `ssl-rustls`; the `compression` feature now enables its gzip and deflate users. |
+| E6 | `foundation_keychain` | 0 warnings in the library and tests. |
+| E7 | `foundation_proxy` | 0 warnings in the library and tests. |
+| E8 | `foundation_wireguard` | `cargo check` is clean for wasm32 and native. Removed `thiserror` and `web-sys`; kept `foundation_errstacks` and target-gated it. |
+| E9 | `foundation_iogate` | 0 warnings. |
+| E10 | `foundation_core`, `foundation_nostd` | The libraries are clean in both feature sets. `foundation_nostd` denies clippy warnings in CI. `foundation_core` test targets and examples still report 327 warnings, so core does not deny warnings yet (backlog §4). |
+
+Documented `#[allow]`s are used only where the fix would change a public
+signature, split a deliberate state machine, or need a crate version bump. Each
+carries a one-line reason. The backlog records the follow-ups.
+
+Test commands and results:
+
+- `foundation_testbed` tests: green.
+- `foundation_deployment_docker --features docker`: every test suite green.
+- `foundation_connectrpc`: default and h3 test runs green.
+- `foundation_netio`: test run green.
+- `foundation_keychain`: test run green.
+- `foundation_proxy`: test run green (the default CI set).
+- `foundation_wireguard --features spec55-complete`: check passes.
+- `foundation_nostd --features std`: one pre-existing timing test fails on the
+  amd64 emulation (`test_wait_duration_zero_duration`); backlog §5.
+
+The docker generated files were rewritten by `cargo clippy --fix`. The generator
+must emit the same shape or a regeneration restores the warnings (backlog §8).

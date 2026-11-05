@@ -1,4 +1,4 @@
-//! Native-only ConnectRPC modules (non-wasm).
+//! Native-only `ConnectRPC` modules (non-wasm).
 //!
 //! The server connection-owner adapters and the HTTP/2 + HTTP/3 client
 //! transports live here because they drive native-only substrate: TCP

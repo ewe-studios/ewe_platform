@@ -260,7 +260,6 @@ impl WakeSignal {
 
     /// The wake callback to register on the stream: marks the signal ready and
     /// wakes the task parked on it.
-    #[must_use]
     pub fn callback(&self) -> crate::valtron::WakeCallback {
         let inner = Arc::clone(&self.0);
         Box::new(move || {

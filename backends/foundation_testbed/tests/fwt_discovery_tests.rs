@@ -1,6 +1,6 @@
 #![cfg(feature = "wasm")]
 //! WHY: Feature 13 — the testbed must enumerate `#[wasm_test]` cases (names +
-//! async/should_panic/ignore flags) from a compiled module WITHOUT running it,
+//! `async/should_panic/ignore` flags) from a compiled module WITHOUT running it,
 //! using the owned wasm reader (the F15 wasmbin port), not walrus and not
 //! wasm-bindgen.
 //!

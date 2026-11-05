@@ -61,7 +61,9 @@ fn control_socket_status_and_drain() {
     assert_eq!(resp["ok"], true, "list ok: {resp}");
     assert_eq!(resp["data"][0]["name"], "echo", "service name: {resp}");
     assert_eq!(
-        resp["data"][0]["backends"].as_array().map(|a| a.len()),
+        resp["data"][0]["backends"]
+            .as_array()
+            .map(std::vec::Vec::len),
         Some(2)
     );
 

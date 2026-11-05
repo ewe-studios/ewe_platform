@@ -105,9 +105,7 @@ fn client_headers_unary_vs_streaming() {
         &vec!["1".to_string()]
     );
     // Unary uses standard Content-Encoding.
-    assert!(unary
-        .get(&SimpleHeader::from("content-encoding".to_string()))
-        .is_some());
+    assert!(unary.contains_key(&SimpleHeader::from("content-encoding".to_string())));
 
     let mut streaming = SimpleHeaders::new();
     client.write_request_headers(
@@ -121,11 +119,9 @@ fn client_headers_unary_vs_streaming() {
         &vec!["application/connect+json".to_string()]
     );
     // Streaming uses Connect-Content-Encoding.
-    assert!(streaming
-        .get(&SimpleHeader::from(
-            constants::HEADER_STREAMING_CONTENT_ENCODING.to_string()
-        ))
-        .is_some());
+    assert!(streaming.contains_key(&SimpleHeader::from(
+        constants::HEADER_STREAMING_CONTENT_ENCODING.to_string()
+    )));
 }
 
 // ── streaming round-trip (both reader/writer stacks) ──────────────────────────
@@ -150,7 +146,7 @@ fn run_all(mut futs: Vec<BoxFut>) {
         while i < futs.len() {
             match futs[i].as_mut().poll(&mut cx) {
                 Poll::Ready(()) => {
-                    let _ = futs.swap_remove(i);
+                    drop(futs.swap_remove(i));
                 }
                 Poll::Pending => i += 1,
             }
@@ -173,6 +169,10 @@ fn streaming_request() -> SimpleIncomingRequest {
 }
 
 #[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one end-to-end round-trip reads best as a single scenario"
+)]
 fn streaming_roundtrip_normalizes_endstream() {
     let registry = CompressionRegistry::new();
 
@@ -275,12 +275,11 @@ fn streaming_roundtrip_normalizes_endstream() {
     let eos = Arc::clone(&got_clean_eos);
     let cr: BoxFut = Box::pin(async move {
         loop {
-            match client_rx.receive().await.unwrap() {
-                Some(b) => recv.lock().unwrap().push(b),
-                None => {
-                    *eos.lock().unwrap() = true;
-                    break;
-                }
+            if let Some(b) = client_rx.receive().await.unwrap() {
+                recv.lock().unwrap().push(b);
+            } else {
+                *eos.lock().unwrap() = true;
+                break;
             }
         }
     });

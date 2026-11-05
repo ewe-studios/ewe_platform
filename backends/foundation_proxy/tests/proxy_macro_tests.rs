@@ -62,7 +62,7 @@ fn assert_service_eq(a: &ServiceConfig, b: &ServiceConfig) {
         "service backends count mismatch for {}",
         a.name
     );
-    for (_i, (ab, bb)) in a.backends.iter().zip(b.backends.iter()).enumerate() {
+    for (ab, bb) in a.backends.iter().zip(b.backends.iter()) {
         assert_backend_eq(ab, bb);
     }
     match (&a.health_check, &b.health_check) {
@@ -91,11 +91,10 @@ fn assert_configs_eq(macro_config: &ProxyConfig, builder_config: &ProxyConfig) {
         builder_config.services.len(),
         "services count mismatch"
     );
-    for (_i, (ms, bs)) in macro_config
+    for (ms, bs) in macro_config
         .services
         .iter()
         .zip(builder_config.services.iter())
-        .enumerate()
     {
         assert_service_eq(ms, bs);
     }
@@ -225,7 +224,10 @@ fn test_proxy_macro_service_no_backends() {
     assert_eq!(config.services.len(), 1);
     assert_eq!(config.services[0].name, "empty_svc");
     assert_eq!(config.services[0].host, "empty.example.com");
-    assert!(config.services[0].backends.is_empty());
+    assert_eq!(
+        config.services[0].backends,
+        [] as [foundation_proxy::BackendTarget; 0]
+    );
 }
 
 #[test]

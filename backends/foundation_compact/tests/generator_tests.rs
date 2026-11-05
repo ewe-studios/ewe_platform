@@ -1,18 +1,16 @@
-use super::*;
+//! `ids::generator` tests (moved from `src/ids/generator/tests.rs`).
+
 use std::cell;
 
-impl Generator<()> {
-    pub(crate) fn for_testing() -> Generator<impl RandSource, impl TimeSource> {
-        Generator::with_rand_and_time_sources(new_rand_source(), new_time_source())
-    }
-}
+use foundation_compact::ids::{Generator, Id, RandSource, StdSystemTime, TimeSource};
+use foundation_compact::rng::Rng;
 
 fn new_rand_source() -> impl RandSource {
     struct MockRandSource;
     impl RandSource for MockRandSource {
         fn next_u32(&mut self) -> u32 {
-            use crate::rng::Rng;
-            crate::rng::rng().next_u32()
+            use Rng;
+            foundation_compact::rng::rng().next_u32()
         }
     }
     MockRandSource

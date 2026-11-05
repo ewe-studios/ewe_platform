@@ -1,6 +1,6 @@
-//! Isolate the session FileSync server: serve it on a loopback h2 socket and
-//! call DiffCopy with our own gRPC client (no buildkitd). Proves the FileSync
-//! DiffCopy sender + serve path work end-to-end independent of the session
+//! Isolate the session `FileSync` server: serve it on a loopback h2 socket and
+//! call `DiffCopy` with our own gRPC client (no buildkitd). Proves the `FileSync`
+//! `DiffCopy` sender + serve path work end-to-end independent of the session
 //! tunnel.
 #![cfg(all(unix, feature = "buildkit"))]
 
@@ -63,9 +63,11 @@ async fn filesync_diffcopy_serves_context_dir() {
     let mut got_dockerfile = false;
     let mut stats = 0;
     // Request file 0 up-front (buildkit would after seeing stats).
-    let mut req = Packet::default();
-    req.r#type = PacketType::PACKET_REQ.into();
-    req.ID = 0;
+    let req = Packet {
+        r#type: PacketType::PACKET_REQ.into(),
+        ID: 0,
+        ..Default::default()
+    };
     bidi.send(&req).await.expect("send REQ");
 
     let mut data = Vec::new();
@@ -80,10 +82,9 @@ async fn filesync_diffcopy_serves_context_dir() {
                 } else if t == PacketType::PACKET_DATA as i32 {
                     if pkt.data.is_empty() {
                         break;
-                    } else {
-                        data.extend_from_slice(&pkt.data);
-                        got_dockerfile = true;
                     }
+                    data.extend_from_slice(&pkt.data);
+                    got_dockerfile = true;
                 }
             }
             None => break,
@@ -104,7 +105,7 @@ async fn filesync_diffcopy_serves_context_dir() {
 #[valtron_test]
 async fn health_check_returns_serving() {
     use foundation_connectrpc::{ConnectRpcServeH2, Router};
-    use foundation_deployment_docker::buildkit::services::health::{self, register_health, Health};
+    use foundation_deployment_docker::buildkit::services::health::{self, register_health};
     use foundation_deployment_docker::buildkit::session::HealthService;
     use foundation_deployment_docker::buildkit::generated::grpc::health::v1::health_check_response::ServingStatus;
     use foundation_deployment_docker::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};

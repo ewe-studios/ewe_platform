@@ -1,8 +1,8 @@
 //! Tests for `DockerClient` Exec and System operations over a mock Docker daemon.
 //!
 //! WHY: Proves the hand-written `exec_*` and `system_*` wrappers round-trip
-//! over the Unix-socket transport, including JSON body injection for exec_create
-//! and plain-text response handling for system_ping.
+//! over the Unix-socket transport, including JSON body injection for `exec_create`
+//! and plain-text response handling for `system_ping`.
 //!
 //! WHAT: A mock Unix-socket HTTP server that routes by request path and returns
 //! canned responses, plus `#[valtron_test]` async fns that drive each method.
@@ -26,15 +26,14 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path = std::path::PathBuf::from("/tmp")
         .join(format!("ewe_docker_execsys_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
 
-/// Route a request path to a canned response. Returns (status, content_type, body).
+/// Route a request path to a canned response. Returns (status, `content_type`, body).
 /// Strips the `/v1.XX/` prefix before matching.
 fn route(method: &str, path: &str) -> (u16, String, String) {
     let path_no_query = path.split('?').next().unwrap_or(path);
@@ -79,7 +78,7 @@ fn route(method: &str, path: &str) -> (u16, String, String) {
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         let Some(req) = mock_socket::read_request(&mut stream) else {
             return;
         };

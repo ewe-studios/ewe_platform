@@ -26,6 +26,7 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
 use foundation_http::ShutdownSignal;
+use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::{
@@ -189,6 +190,8 @@ fn render_acme(
 }
 
 /// Render a validated 2xx ACME answer with a fresh `Replay-Nonce`.
+// The JSON value is serialized by reference, so the caller can reuse it.
+#[allow(clippy::needless_pass_by_value)]
 fn render_acme_ok(
     state: &MockAcme,
     conn: &mut SharedByteBufferStream<RawStream>,
@@ -252,6 +255,10 @@ impl ServeFactory for MockAcmeHandler {
 }
 
 impl Serve for MockAcmeHandler {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the mock ACME server reads best as one ordered match"
+    )]
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
@@ -503,7 +510,7 @@ fn make_csr(domains: &[&str]) -> (rcgen::KeyPair, Vec<u8>) {
     let params = rcgen::CertificateParams::new(
         domains
             .iter()
-            .map(|d| d.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<Vec<String>>(),
     )
     .expect("csr params");
@@ -544,7 +551,6 @@ fn acme_cert_manager_provisions_a_usable_cert() {
     assert!(key.contains("PRIVATE KEY"), "key PEM present");
 
     // The provisioned cert + key must build a real TLS acceptor (they match).
-    use foundation_netio::netcap::ssl::SSLAcceptor;
     SSLAcceptor::from_pem(pair.cert_chain.clone(), pair.private_key.clone().into())
         .expect("provisioned cert+key must build a TLS acceptor");
 

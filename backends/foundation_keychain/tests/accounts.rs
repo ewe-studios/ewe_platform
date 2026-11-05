@@ -69,8 +69,8 @@ fn register_creates_user_and_prelogin_echoes_kdf() {
     })
     .expect("register");
     assert_eq!(account.email, "alice@example.com"); // normalized
-    assert!(!account.id.is_empty());
-    assert!(!account.security_stamp.is_empty());
+    assert_ne!(account.id, "");
+    assert_ne!(account.security_stamp, "");
 
     // Prelogin for a known user echoes their KDF params.
     let c = ctx.clone();

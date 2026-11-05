@@ -1,8 +1,16 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Conformance tests (spec-41 F28): Phase 1 Connect + gRPC-Web over HTTP/1.1.
 //!
-//! Tests start real servers on loopback sockets and drive them with H1Transport.
-//! Follows the pattern from server_socket_tests.rs (server setup) and
-//! router_dispatch_tests.rs (router patterns).
+//! Tests start real servers on loopback sockets and drive them with `H1Transport`.
+//! Follows the pattern from `server_socket_tests.rs` (server setup) and
+//! `router_dispatch_tests.rs` (router patterns).
 //!
 //! Thread budget: the in-process `HttpServer` submits its connection handlers to
 //! the SAME global valtron pool the client uses. The HTTP/1.1 client used to
@@ -144,7 +152,7 @@ fn echo_serve() -> Arc<dyn Serve> {
     Arc::new(ConnectRpcServe::new(router.into_handler()))
 }
 
-/// Build an echo unary handler that is POST-only (NoSideEffects NOT set, so GET
+/// Build an echo unary handler that is POST-only (`NoSideEffects` NOT set, so GET
 /// is not automatically enabled).
 fn echo_post_only_serve() -> Arc<dyn Serve> {
     let mut router = Router::new();
@@ -217,6 +225,8 @@ fn error_stream_serve() -> Arc<dyn Serve> {
 
 /// Build a client-streaming echo handler (collects all messages, returns count).
 fn client_stream_echo_serve() -> Arc<dyn Serve> {
+    use futures::StreamExt;
+
     let mut router = Router::new();
     router.client_stream(
         ECHO_PROCEDURE,
@@ -224,7 +234,6 @@ fn client_stream_echo_serve() -> Arc<dyn Serve> {
         |_ctx, reqs: foundation_connectrpc::RequestStream<TestMsg>| async move {
             let mut count = 0u32;
             let mut last = TestMsg::default();
-            use futures::StreamExt;
             let mut s = reqs;
             while let Some(msg) = s.next().await {
                 match msg {
@@ -290,11 +299,11 @@ fn echo_with_trailer_serve() -> Arc<dyn Serve> {
     Arc::new(ConnectRpcServe::new(router.into_handler()))
 }
 
-fn start_server(serve: Arc<dyn Serve>) -> TestServer {
+fn start_server(serve: &Arc<dyn Serve>) -> TestServer {
     let mut app = HttpApp::new_serve();
-    app.router.add_route_any(ECHO_PROCEDURE, &serve);
-    app.router.add_route_any(LIST_PROCEDURE, &serve);
-    app.router.add_route_any("/test.EchoService/Echo", &serve);
+    app.router.add_route_any(ECHO_PROCEDURE, serve);
+    app.router.add_route_any(LIST_PROCEDURE, serve);
+    app.router.add_route_any("/test.EchoService/Echo", serve);
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -391,7 +400,7 @@ fn proto_bytes(msg: &TestMsg) -> Vec<u8> {
 
 fn connect_transport() -> (H1Transport, TestServer) {
     let serve = echo_serve();
-    let server = start_server(serve);
+    let server = start_server(&serve);
     let transport = H1Transport::new(HttpClientBuilder::new().build());
     (transport, server)
 }
@@ -561,7 +570,7 @@ conformance_test!(
 // WHAT: Handler returns permission_denied, verify HTTP 403 + JSON error body.
 conformance_test!(connect_unary_error, connect_unary_error_8_threads, 28103, {
     let serve = error_serve();
-    let server = start_server(serve);
+    let server = start_server(&serve);
     let transport = H1Transport::new(HttpClientBuilder::new().build());
 
     let msg = TestMsg {
@@ -630,7 +639,7 @@ conformance_test!(
         use base64::Engine as _;
 
         let serve = echo_serve(); // NoSideEffects
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -640,7 +649,7 @@ conformance_test!(
         let json_body = json_bytes(&msg);
         let encoded_msg = URL_SAFE_NO_PAD.encode(&json_body);
 
-        let query = format!("connect=v1&encoding=json&base64=1&message={}", encoded_msg);
+        let query = format!("connect=v1&encoding=json&base64=1&message={encoded_msg}");
         let url = format!(
             "http://127.0.0.1:{}{}?{}",
             server.addr.port(),
@@ -708,7 +717,7 @@ conformance_test!(
 
         let msg = TestMsg {
             id: 0,
-            name: "".into(),
+            name: String::new(),
         };
         let body = json_bytes(&msg);
 
@@ -755,7 +764,7 @@ conformance_test!(
     28106,
     {
         let serve = echo_post_only_serve(); // NoSideEffects NOT set
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let desc = build_request_descriptor(
@@ -812,7 +821,7 @@ conformance_test!(
     28107,
     {
         let serve = list_serve();
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -885,7 +894,7 @@ conformance_test!(
     28108,
     {
         let serve = client_stream_echo_serve();
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let desc = build_request_descriptor(
@@ -961,7 +970,7 @@ conformance_test!(
     28109,
     {
         let serve = error_stream_serve();
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -1097,7 +1106,7 @@ conformance_test!(
     28111,
     {
         let serve = error_serve(); // returns permission_denied
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -1177,7 +1186,7 @@ conformance_test!(
     28112,
     {
         let serve = list_serve(); // 3 items
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -1252,7 +1261,7 @@ conformance_test!(
     28113,
     {
         let serve = echo_with_header_serve();
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -1335,7 +1344,7 @@ conformance_test!(
     28114,
     {
         let serve = echo_with_trailer_serve();
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -1400,7 +1409,7 @@ conformance_test!(
     28115,
     {
         let serve = echo_with_trailer_serve();
-        let server = start_server(serve);
+        let server = start_server(&serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
         let msg = TestMsg {
@@ -1487,8 +1496,7 @@ conformance_test!(
             let http = code.http_status();
             assert_eq!(
                 http, *expected_http,
-                "Code::{} maps to HTTP {expected_http}, got {http}",
-                name,
+                "Code::{name} maps to HTTP {expected_http}, got {http}",
             );
         }
 
@@ -1512,7 +1520,7 @@ conformance_test!(
 // WHAT: Handler returns error, verify EndStream frame with error details.
 conformance_test!(error_end_stream, error_end_stream_8_threads, 28117, {
     let serve = error_stream_serve();
-    let server = start_server(serve);
+    let server = start_server(&serve);
     let transport = H1Transport::new(HttpClientBuilder::new().build());
 
     let msg = TestMsg {
@@ -1608,7 +1616,7 @@ conformance_test!(
 
         let msg = TestMsg {
             id: 0,
-            name: "".into(),
+            name: String::new(),
         };
         let body = json_bytes(&msg);
 

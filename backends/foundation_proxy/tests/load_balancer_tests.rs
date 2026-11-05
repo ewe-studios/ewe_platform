@@ -1,10 +1,7 @@
-//! Integration tests for ServiceRuntime load balancing — pick() and pick_sticky().
-
-use std::sync::Arc;
-use std::time::Duration;
+//! Integration tests for `ServiceRuntime` load balancing — `pick()` and `pick_sticky()`.
 
 use foundation_proxy::config::{BackendTarget, ServiceConfig};
-use foundation_proxy::runtime::{ServiceRuntime, STICKY_COOKIE};
+use foundation_proxy::runtime::ServiceRuntime;
 
 fn backend(url: &str, weight: u32) -> BackendTarget {
     BackendTarget {
@@ -67,7 +64,7 @@ fn pick_round_robins_across_backends() {
             backend("http://c:8082", 1),
         ],
     );
-    let mut counts = vec![0usize; 3];
+    let mut counts = [0usize; 3];
     for _ in 0..30 {
         let lease = svc.pick().expect("lease");
         let url = lease.backend().url().to_string();

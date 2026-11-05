@@ -26,6 +26,8 @@ pub enum ProtocolKind {
 
 /// What a transport can do (Decision 11 — the *actual* transport abilities).
 #[derive(Debug, Clone)]
+// The bools are independent capability flags, not one enum's states.
+#[allow(clippy::struct_excessive_bools)]
 pub struct TransportCapabilities {
     /// Can it keep pushing request-body frames after sending has begun?
     /// (HTTP/1.1 chunked / HTTP/2/3 / WebSocket = yes; WASM Fetch = no.)

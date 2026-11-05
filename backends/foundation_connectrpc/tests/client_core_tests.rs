@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Client-core tests (F24): `Client<Req,Res>`, `ClientOptions`, per-call `Ctx`
 //! derivation, and the four stream facades (Decision 07).
 //!
@@ -31,7 +39,7 @@ use foundation_connectrpc::shared::transport::{
 struct IdentityCodec;
 
 impl Codec for IdentityCodec {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "proto"
     }
     fn is_binary(&self) -> bool {
@@ -148,7 +156,7 @@ impl Transport for MockTransport {
     }
 }
 
-/// The "server" (test) side of a MockTransport exchange.
+/// The "server" (test) side of a `MockTransport` exchange.
 struct ServerPipes {
     /// Request body bytes sent by the client.
     req_rx: PipeReceiver<Bytes>,
@@ -392,7 +400,7 @@ fn client_config_debug() {
     let opts = ClientOptions::new()
         .with_timeout(std::time::Duration::from_secs(5))
         .with_codec("json");
-    let debug_str = format!("{:?}", opts);
+    let debug_str = format!("{opts:?}");
     assert!(debug_str.contains("ClientOptions"));
     assert!(debug_str.contains("timeout"));
 }

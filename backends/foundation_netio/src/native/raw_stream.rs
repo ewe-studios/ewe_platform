@@ -408,8 +408,6 @@ impl RawStream {
     /// driven non-blocking.
     #[must_use]
     pub fn read_wake_source(&self) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
-        use std::sync::Arc;
-
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.
         if let Self::AsPlain(inner, _) = self {
             if let Connection::Overlay(o) = inner.get_core_ref() {

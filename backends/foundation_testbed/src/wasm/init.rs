@@ -107,11 +107,12 @@ fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
             in_package = false;
             continue;
         }
-        if in_package && trimmed.starts_with("name") {
-            if let Some(value) = trimmed.split('=').nth(1) {
-                let value = value.trim().trim_matches('"').trim_matches('\'');
-                return Ok(value.to_string());
-            }
+        if in_package
+            && trimmed.starts_with("name")
+            && let Some(value) = trimmed.split('=').nth(1)
+        {
+            let value = value.trim().trim_matches('"').trim_matches('\'');
+            return Ok(value.to_string());
         }
     }
 

@@ -94,7 +94,7 @@ pub struct ProxyConfig {
     pub redirect_accept_poll: Duration,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
-    /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
+    /// the `io_uring` inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
     /// (today's `read(2)`/`write(2)`), so nothing changes unless asked. Not
     /// serialised — set it via the programmatic builder.
     #[serde(skip)]
@@ -628,19 +628,15 @@ impl<'de> Deserialize<'de> for BackendTarget {
 /// `Paused` are excluded from new traffic while in-flight requests finish.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum BackendState {
     #[display("active")]
+    #[default]
     Active,
     #[display("draining")]
     Draining,
     #[display("paused")]
     Paused,
-}
-
-impl Default for BackendState {
-    fn default() -> Self {
-        Self::Active
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -217,7 +217,11 @@ async fn accept_loop(
     config: PassthroughConfig,
 ) {
     while !shutdown.probe() {
-        let accepted = or_tick(listener.read_with(|l| l.accept()), config.shutdown_poll).await;
+        let accepted = or_tick(
+            listener.read_with(std::net::TcpListener::accept),
+            config.shutdown_poll,
+        )
+        .await;
         match accepted {
             None => {}
             Some(Ok((client, _addr))) => {
@@ -340,12 +344,9 @@ async fn relay_udp(
     shutdown: Arc<OnSignal>,
     config: PassthroughConfig,
 ) {
-    let backend = match resolve_first(&backend_authority).await {
-        Some(addr) => addr,
-        None => {
-            tracing::error!(backend_addr = %backend_authority, "UDP relay: cannot resolve backend address");
-            return;
-        }
+    let Some(backend) = resolve_first(&backend_authority).await else {
+        tracing::error!(backend_addr = %backend_authority, "UDP relay: cannot resolve backend address");
+        return;
     };
     let mut buf = vec![0u8; 65535];
 
@@ -405,7 +406,7 @@ async fn relay_udp(
 async fn resolve_first(authority: &str) -> Option<SocketAddr> {
     let (host, port) = authority.rsplit_once(':')?;
     let port = port.parse::<u16>().ok()?;
-    SystemDnsResolver::default()
+    SystemDnsResolver
         .resolve(host.trim_matches(['[', ']']), port)
         .await
         .ok()?

@@ -1,4 +1,4 @@
-//! Load balancer: weighted round-robin, eligibility gating, max_connections,
+//! Load balancer: weighted round-robin, eligibility gating, `max_connections`,
 //! and the in-flight refcount.
 
 use foundation_proxy::config::{BackendState, BackendTarget, ServiceConfig};

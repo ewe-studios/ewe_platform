@@ -166,8 +166,10 @@ impl ContainerCreateBody {
     /// Create a minimal body with just the image set.
     #[must_use]
     pub fn new(image: impl Into<String>) -> Self {
-        let mut config = crate::generated::json::ContainerConfig::default();
-        config.image = Some(image.into());
+        let config = crate::generated::json::ContainerConfig {
+            image: Some(image.into()),
+            ..Default::default()
+        };
         Self {
             config,
             host_config: None,
@@ -434,13 +436,16 @@ impl DockerClient {
     pub fn connect_tls(host: &str, tls: DockerTls) -> Result<Self, DockerError> {
         use foundation_netio::netcap::ssl::SSLConnector;
 
-        let connector = SSLConnector::from_client_mutual_pem(
-            tls.ca_pem.as_deref(),
-            &tls.cert_pem,
-            &tls.key_pem,
-            tls.verify,
-        )
-        .map_err(|e| DockerError::Unavailable(format!("build TLS connector: {e}")))?;
+        // Move the fields out, so the caller can pass the struct by value.
+        let DockerTls {
+            ca_pem,
+            cert_pem,
+            key_pem,
+            verify,
+        } = tls;
+        let connector =
+            SSLConnector::from_client_mutual_pem(ca_pem.as_deref(), &cert_pem, &key_pem, verify)
+                .map_err(|e| DockerError::Unavailable(format!("build TLS connector: {e}")))?;
 
         let http = HttpClientBuilder::new()
             .with_tls_connector(connector)
@@ -465,7 +470,7 @@ impl DockerClient {
     /// WHY: SSH is Docker's port-less remote transport — it reuses an existing
     /// SSH login instead of exposing a TCP port or managing TLS certs.
     ///
-    /// WHAT: SSHes in and runs `docker system dial-stdio`, whose stdio bridges to
+    /// WHAT: `SSHes` in and runs `docker system dial-stdio`, whose stdio bridges to
     /// the remote `/var/run/docker.sock`. The client then speaks the ordinary
     /// Docker HTTP API over that channel (base URL `http://localhost`).
     ///
@@ -473,7 +478,7 @@ impl DockerClient {
     /// [`HttpClientBuilder::with_connector`]; each request opens a fresh
     /// `dial-stdio` channel (session reused across requests, channel not pooled).
     /// The target is resolved through `~/.ssh/config` (HostName/User/Port/
-    /// IdentityFile), the server's key is checked against `~/.ssh/known_hosts`
+    /// `IdentityFile`), the server's key is checked against `~/.ssh/known_hosts`
     /// (trust-on-first-use), and auth follows OpenSSH order: agent, then the
     /// resolved/default `~/.ssh/id_*` keys — see [`foundation_sshkit::Host`].
     ///
@@ -818,9 +823,8 @@ impl DockerClient {
         };
         match container_stop_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await
         {
-            Ok(_) => Ok(()),
             // Docker returns 304 when the container is already exited — not an error.
-            Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
+            Ok(_) | Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
             Err(e) => Err(e.into()),
         }
     }
@@ -891,6 +895,10 @@ impl DockerClient {
     /// Create an exec instance in a running container (`POST /containers/{id}/exec`).
     ///
     /// Delegates to [`exec::exec_create`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_create(&self, id: &str, cmd: &[&str]) -> Result<IDResponse, DockerError> {
         exec::exec_create(self, id, cmd).await
     }
@@ -898,6 +906,10 @@ impl DockerClient {
     /// Start a previously-created exec instance (`POST /exec/{id}/start`).
     ///
     /// Delegates to [`exec::exec_start`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_start(&self, id: &str, detach: bool) -> Result<body::LogStream, DockerError> {
         exec::exec_start(self, id, detach).await
     }
@@ -905,6 +917,10 @@ impl DockerClient {
     /// Inspect an exec instance (`GET /exec/{id}/json`).
     ///
     /// Delegates to [`exec::exec_inspect`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_inspect(&self, id: &str) -> Result<ExecInspectResponse, DockerError> {
         exec::exec_inspect(self, id).await
     }
@@ -912,6 +928,10 @@ impl DockerClient {
     /// Resize the TTY of an exec instance (`POST /exec/{id}/resize`).
     ///
     /// Delegates to [`exec::exec_resize`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn exec_resize(&self, id: &str, h: u32, w: u32) -> Result<(), DockerError> {
         exec::exec_resize(self, id, h, w).await
     }
@@ -921,6 +941,10 @@ impl DockerClient {
     /// Get system information (`GET /info`).
     ///
     /// Delegates to [`system::system_info`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_info(&self) -> Result<SystemInfo, DockerError> {
         system::system_info(self).await
     }
@@ -928,6 +952,10 @@ impl DockerClient {
     /// Ping the daemon (`GET /_ping`).
     ///
     /// Delegates to [`system::system_ping`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_ping(&self) -> Result<(), DockerError> {
         system::system_ping(self).await
     }
@@ -935,6 +963,10 @@ impl DockerClient {
     /// Stream daemon events (`GET /events`).
     ///
     /// Delegates to [`system::system_events`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_events(
         &self,
         since: Option<&str>,
@@ -947,6 +979,10 @@ impl DockerClient {
     /// Get data usage information (`GET /system/df`).
     ///
     /// Delegates to [`system::system_data_usage`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_data_usage(
         &self,
         types: Option<&str>,
@@ -957,6 +993,10 @@ impl DockerClient {
     /// Check auth configuration (`POST /auth`).
     ///
     /// Delegates to [`system::system_auth`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the daemon request fails.
     pub async fn system_auth(
         &self,
         username: &str,

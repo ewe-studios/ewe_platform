@@ -170,7 +170,7 @@ fn upgrade_open(addr: SocketAddr) -> TcpStream {
     s
 }
 
-#[valtron_test(seed = 65, threads = 1, timeout = 120000)]
+#[valtron_test(seed = 65, threads = 1, timeout = 120_000)]
 fn proxy_upgrade_does_not_spawn_threads() {
     let _serial = one_at_a_time();
     let echo = EchoServer::start(true);
@@ -183,7 +183,7 @@ fn proxy_upgrade_does_not_spawn_threads() {
     );
 }
 
-#[valtron_test(seed = 66, threads = 1, timeout = 120000)]
+#[valtron_test(seed = 66, threads = 1, timeout = 120_000)]
 fn proxy_tcp_tunnel_does_not_spawn_threads() {
     let _serial = one_at_a_time();
     let echo = EchoServer::start(false);
@@ -204,7 +204,7 @@ fn proxy_tcp_tunnel_does_not_spawn_threads() {
     );
 }
 
-#[valtron_test(seed = 67, threads = 1, timeout = 120000)]
+#[valtron_test(seed = 67, threads = 1, timeout = 120_000)]
 fn tcp_passthrough_does_not_spawn_threads() {
     let _serial = one_at_a_time();
     let echo = EchoServer::start(false);

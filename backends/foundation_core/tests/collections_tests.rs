@@ -16,7 +16,7 @@ fn can_make_btree_map() {
     expected.insert(1, 2);
     expected.insert(3, 4);
 
-    assert_eq!(expected, generated)
+    assert_eq!(expected, generated);
 }
 
 #[test]
@@ -27,7 +27,7 @@ fn can_make_hash_map() {
     expected.insert(1, 2);
     expected.insert(3, 4);
 
-    assert_eq!(expected, generated)
+    assert_eq!(expected, generated);
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn can_make_btree_set() {
     expected.insert(2);
     expected.insert(3);
 
-    assert_eq!(expected, generated)
+    assert_eq!(expected, generated);
 }
 
 #[test]
@@ -51,5 +51,5 @@ fn can_make_hash_set() {
     expected.insert(2);
     expected.insert(3);
 
-    assert_eq!(expected, generated)
+    assert_eq!(expected, generated);
 }

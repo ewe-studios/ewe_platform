@@ -40,6 +40,9 @@ where
     ///
     /// Returns `Err(())` on `Full` (caller retries next poll — `outer` was not
     /// consumed). Returns `Ok(())` on success. The stash absorbs transient Fulls.
+    // A named error type would change this public signature; the feature that
+    // does that also bumps the crate version. Until then, `()` has one meaning.
+    #[allow(clippy::result_unit_err)]
     pub fn try_send(&self, outer: &Outer) -> Result<(), ()> {
         // Drain stash first.
         if let Some(inner) = self.stashed.lock().unwrap().take() {
@@ -78,6 +81,9 @@ where
     pub fn is_closed(&self) -> bool {
         self.inner.is_closed()
     }
+    // `is_empty` is a new public method; it needs a crate version bump, which a
+    // lint-only feature must not make. Add both together in that change.
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.inner.len()
     }

@@ -59,6 +59,10 @@ fn totp_from_base32(secret: &str) -> AppResult<TOTPSecret> {
 
 /// Fetch the user's authenticator secret, generating (and persisting, disabled) a
 /// fresh one if none exists yet.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get_authenticator(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -88,6 +92,10 @@ pub async fn get_authenticator(
 }
 
 /// Enable 2FA after verifying a current code. Issues a recovery code.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn enable_authenticator(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -115,6 +123,10 @@ pub async fn enable_authenticator(
 }
 
 /// Disable 2FA after verifying a current code.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn disable_authenticator(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -130,6 +142,10 @@ pub async fn disable_authenticator(
 }
 
 /// Whether the user has 2FA enabled (login must issue a challenge).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn is_enabled(ctx: &KeychainContext, user_uuid: &str) -> AppResult<bool> {
     Ok(store::get(ctx.db(), user_uuid)
         .await?
@@ -137,6 +153,10 @@ pub async fn is_enabled(ctx: &KeychainContext, user_uuid: &str) -> AppResult<boo
 }
 
 /// Verify a login 2FA response — accepts a TOTP code or the recovery code.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn verify(ctx: &KeychainContext, user_uuid: &str, code: &str) -> AppResult<bool> {
     let Some(row) = store::get(ctx.db(), user_uuid).await? else {
         return Ok(false);

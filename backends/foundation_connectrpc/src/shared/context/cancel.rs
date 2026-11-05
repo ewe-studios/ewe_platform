@@ -59,7 +59,11 @@ impl CancelSignal {
     pub fn cancel(&self) {
         if !self.0.canceled.swap(true, Ordering::AcqRel) {
             let wakers = {
-                let mut guard = self.0.wakers.lock().unwrap_or_else(|e| e.into_inner());
+                let mut guard = self
+                    .0
+                    .wakers
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
                 std::mem::take(&mut *guard)
             };
             for waker in wakers {
@@ -90,7 +94,7 @@ impl CancelSignal {
         self.0
             .wakers
             .lock()
-            .unwrap_or_else(|e| e.into_inner())
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
             .push(waker.clone());
         if let Some(parent) = &self.0.parent {
             parent.register(waker);

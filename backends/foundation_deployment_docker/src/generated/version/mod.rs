@@ -110,8 +110,8 @@ pub async fn system_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/version",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/version");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

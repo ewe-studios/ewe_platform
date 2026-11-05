@@ -17,6 +17,10 @@ pub struct GeneratedKey {
 }
 
 /// Generate an Ed25519 (default) or RSA key pair with an OpenSSH comment.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn generate(key_type: &str, comment: &str) -> AppResult<GeneratedKey> {
     let (algo, canonical) = match key_type {
         "rsa" | "rsa4096" => (Algorithm::Rsa { hash: None }, "rsa4096"),
@@ -48,6 +52,10 @@ pub fn generate(key_type: &str, comment: &str) -> AppResult<GeneratedKey> {
 }
 
 /// Encrypt `plaintext` with the master passphrase → base64(age ciphertext).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn encrypt(master_key: &str, plaintext: &[u8]) -> AppResult<String> {
     let encryptor = age::Encryptor::with_user_passphrase(SecretString::new(master_key.to_string()));
     let mut encrypted = Vec::new();
@@ -64,6 +72,10 @@ pub fn encrypt(master_key: &str, plaintext: &[u8]) -> AppResult<String> {
 }
 
 /// Decrypt base64(age ciphertext) with the master passphrase.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn decrypt(master_key: &str, ciphertext_b64: &str) -> AppResult<Vec<u8>> {
     let ciphertext = STANDARD
         .decode(ciphertext_b64)

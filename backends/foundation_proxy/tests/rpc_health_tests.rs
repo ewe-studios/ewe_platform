@@ -83,6 +83,8 @@ struct HealthGatedBackend {
 }
 
 impl H2Serve for HealthGatedBackend {
+    // A gRPC message length is capped by the frame size, which fits in u32.
+    #[allow(clippy::cast_possible_truncation)]
     fn serve_h2(
         &self,
         bag: Arc<ContextBag>,
@@ -234,8 +236,7 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
             client
                 .unary(ctx(), Request::new(Msg::of("healthy")))
                 .await
-                .map(|r| r.msg == Msg::of("echo:healthy"))
-                .unwrap_or(false)
+                .is_ok_and(|r| r.msg == Msg::of("echo:healthy"))
         }
     })
     .await;
@@ -263,8 +264,7 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
             client
                 .unary(ctx(), Request::new(Msg::of("recovered")))
                 .await
-                .map(|r| r.msg == Msg::of("echo:recovered"))
-                .unwrap_or(false)
+                .is_ok_and(|r| r.msg == Msg::of("echo:recovered"))
         }
     })
     .await;

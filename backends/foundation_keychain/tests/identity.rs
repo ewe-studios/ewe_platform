@@ -95,8 +95,8 @@ fn password_grant_issues_verifiable_tokens() {
     .expect("login");
 
     assert_eq!(login.token_type, "Bearer");
-    assert!(!login.access_token.is_empty());
-    assert!(!login.refresh_token.is_empty());
+    assert_ne!(login.access_token, "");
+    assert_ne!(login.refresh_token, "");
     assert_eq!(login.kdf_iterations, 600_000);
     // The user's protected key round-trips into the unlock metadata.
     assert_eq!(login.key.as_deref(), Some("2.userkey|wrapped"));
@@ -107,7 +107,7 @@ fn password_grant_issues_verifiable_tokens() {
 
     // The minted access token verifies and carries the right principal + sstamp.
     let authed = verify_access_token(ctx.verifier(), &login.access_token).expect("verify access");
-    assert!(!authed.user_uuid.is_empty());
+    assert_ne!(authed.user_uuid, "");
     assert!(authed.security_stamp.is_some());
     assert_eq!(authed.device.as_deref(), Some("dev-1"));
 }
@@ -159,7 +159,7 @@ fn refresh_grant_rotates_and_supersedes_old_token() {
     };
     let rotated =
         drive(async move { identity::connect_token(&c, refresh_req).await }).expect("refresh");
-    assert!(!rotated.access_token.is_empty());
+    assert_ne!(rotated.access_token, "");
     assert_ne!(
         rotated.refresh_token, first_refresh,
         "refresh token must rotate"

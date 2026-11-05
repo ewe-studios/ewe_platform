@@ -158,7 +158,7 @@ pub async fn dial_tcp(
                 format!("bad authority {authority}"),
             )
         })?;
-    let addrs = SystemDnsResolver::default()
+    let addrs = SystemDnsResolver
         .resolve(host, port)
         .await
         .map_err(|e| io::Error::other(format!("resolve {authority}: {e}")))?;
@@ -185,7 +185,7 @@ pub async fn dial_tcp(
             revents: 0,
         };
         // SAFETY: `pfd` is one valid `pollfd`; a zero timeout never blocks.
-        let n = unsafe { libc::poll(&mut pfd, 1, 0) };
+        let n = unsafe { libc::poll(&raw mut pfd, 1, 0) };
         if n != 0 {
             Poll::Ready(())
         } else {

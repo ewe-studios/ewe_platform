@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Feature 08 — long-lived HTTP/1.1 RPCs do not hold a valtron worker.
 //!
 //! WHY: before Feature 08, `ConnectRpcServe::serve` ran the whole call with
@@ -141,10 +149,10 @@ fn pool_router() -> Router {
     router
 }
 
-fn start_server(serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+fn start_server(serve: &Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
-    app.router.add_route_any(STREAM_PROCEDURE, &serve);
-    app.router.add_route_any(PING_PROCEDURE, &serve);
+    app.router.add_route_any(STREAM_PROCEDURE, serve);
+    app.router.add_route_any(PING_PROCEDURE, serve);
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -302,8 +310,8 @@ fn h1_streaming_calls_do_not_exhaust_the_pool() {
     // ninth call on the old blocking code.
     let _guard = initialize_pool(71, Some(2));
 
-    let serve = Arc::new(ConnectRpcServe::new(pool_router().into_handler()));
-    let (addr, shutdown) = start_server(serve);
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(pool_router().into_handler()));
+    let (addr, shutdown) = start_server(&serve);
 
     // Open all eight streams; each read of the 200 head proves its handler is
     // running (and now paused between frames) before the unary call starts.

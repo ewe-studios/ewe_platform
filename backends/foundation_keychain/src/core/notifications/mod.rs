@@ -1,6 +1,6 @@
-//! SignalR MessagePack notification framing (spec-57, F008).
+//! `SignalR` `MessagePack` notification framing (spec-57, F008).
 //!
-//! Bitwarden uses SignalR with MessagePack encoding for real-time sync.
+//! Bitwarden uses `SignalR` with `MessagePack` encoding for real-time sync.
 //! This module handles the framing: update types, serialization, and
 //! notification creation. Transport (WebSocket/Durable Object) is a
 //! separate platform concern (see `server/`).
@@ -48,7 +48,7 @@ impl Notification {
         }
     }
 
-    /// Serialize to MessagePack bytes (Bitwarden SignalR envelope).
+    /// Serialize to `MessagePack` bytes (Bitwarden `SignalR` envelope).
     ///
     /// Uses `[messageType, payloadJsonString]` framing.
     ///
@@ -65,7 +65,7 @@ impl Notification {
     }
 }
 
-/// Serialize a value as MessagePack bytes.
+/// Serialize a value as `MessagePack` bytes.
 ///
 /// # Errors
 ///

@@ -1,7 +1,7 @@
 //! The frozen prefix route + request dispatch flow (Decision 08 §Request Dispatch
-//! Flow / §Integration with foundation_http).
+//! Flow / §Integration with `foundation_http`).
 //!
-//! WHY: One [`ConnectRpcHandler`] is registered as a **single** foundation_http
+//! WHY: One [`ConnectRpcHandler`] is registered as a **single** `foundation_http`
 //! prefix route; it sub-routes internally by path. Dispatch is a fixed sequence
 //! of decisions — 404 → 405(+Allow) → protocol match → codec membership(+415) →
 //! capability check(+505) — then it runs the erased handler and frames the
@@ -71,9 +71,9 @@ use crate::shared::transport::{
 
 use super::{HandlerEntry, HandlerKind, Router};
 
-/// The frozen foundation_http prefix handler produced by
+/// The frozen `foundation_http` prefix handler produced by
 /// [`Router::into_handler`](super::Router::into_handler) (Q10 — no post-build
-/// mutation). Register it as one prefix route; it dispatches every ConnectRPC
+/// mutation). Register it as one prefix route; it dispatches every `ConnectRPC`
 /// request by path.
 pub struct ConnectRpcHandler {
     router: Arc<Router>,
@@ -105,7 +105,6 @@ impl ConnectRpcHandler {
     ///
     /// No timer is attached, so a call deadline is not enforced here; use
     /// [`Self::dispatch_to`] with [`CallHooks::with_timer`] for that.
-    #[must_use]
     pub fn dispatch(
         &self,
         bag: Arc<ContextBag>,
@@ -736,6 +735,10 @@ async fn run_unary_body(
 ///   sees that the body was not read to its end and must not reuse the
 ///   connection.
 #[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the call lifecycle reads best as one ordered function"
+)]
 async fn run_streaming(
     handler: Arc<dyn super::erased::ErasedStreamHandler>,
     protocol: &dyn ProtocolHandler,
@@ -1069,7 +1072,7 @@ pub(crate) fn extract_path(url: &str) -> String {
 /// The union of HTTP methods any protocol on this entry accepts (for `Allow`).
 ///
 /// Connect GET is only valid for idempotent/NoSideEffects procedures. When the
-/// procedure is not NoSideEffects, GET is excluded from the allowed list so that
+/// procedure is not `NoSideEffects`, GET is excluded from the allowed list so that
 /// a GET to a POST-only endpoint correctly returns 405 (Decision 05 §Unary GET).
 pub(crate) fn allowed_methods(entry: &HandlerEntry) -> Vec<SimpleMethod> {
     let mut methods: Vec<SimpleMethod> = Vec::new();
@@ -1100,10 +1103,9 @@ pub(crate) fn capabilities_for(proto: &Proto) -> TransportCapabilities {
         h2_trailers: h2,
         http_versions: match proto {
             Proto::HTTP10 => &[Proto::HTTP10],
-            Proto::HTTP11 => &[Proto::HTTP11],
+            Proto::HTTP11 | Proto::Custom(_) => &[Proto::HTTP11],
             Proto::HTTP20 => &[Proto::HTTP20],
             Proto::HTTP30 => &[Proto::HTTP30],
-            Proto::Custom(_) => &[Proto::HTTP11],
         },
         multiplexed: h2,
     }
@@ -1321,7 +1323,7 @@ const H2_FORBIDDEN_HEADERS: [&str; 5] = [
 #[cfg(not(target_family = "wasm"))]
 pub(crate) fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
     let mut out = Vec::new();
-    for (key, values) in headers.iter() {
+    for (key, values) in headers {
         let name = key.to_string().to_lowercase();
         if H2_FORBIDDEN_HEADERS.contains(&name.as_str()) {
             continue;
@@ -1342,6 +1344,12 @@ fn stream_gone<T>(_: T) -> io::Error {
 /// Serialize a complete (non-streaming) response: HEADERS, then one DATA frame
 /// per body chunk, then optional trailing HEADERS.
 #[cfg(not(target_family = "wasm"))]
+// The HTTP status value fits in u16; the enum defines only such values.
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::items_after_statements,
+    reason = "the local helper keeps the write order in one place"
+)]
 async fn send_whole_response(
     tx: &PipeSender<H2Frame>,
     mut response: SimpleOutgoingResponse,
@@ -1453,7 +1461,7 @@ async fn next_h2_chunk(
 /// stopping as soon as it passes `max_bytes` (`0` means unlimited) so an
 /// oversized body is never held whole.
 ///
-/// A peer RST_STREAM (or a dropped stream) ends collection early; the caller
+/// A peer `RST_STREAM` (or a dropped stream) ends collection early; the caller
 /// abandons the stream.
 #[cfg(not(target_family = "wasm"))]
 async fn collect_h2_body(
@@ -1503,6 +1511,10 @@ impl ConnectRpcHandler {
     }
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the h2 stream lifecycle reads best as one ordered function"
+)]
 #[cfg(not(target_family = "wasm"))]
 async fn dispatch_h2_stream(
     router: Arc<Router>,
@@ -1661,6 +1673,14 @@ async fn dispatch_h2_stream(
 /// passing does the same, but the call is still answered with
 /// `deadline_exceeded`.
 #[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the h2 stream lifecycle and its trailer encoding share one state machine"
+)]
+#[allow(
+    clippy::format_push_string,
+    reason = "the percent-encoded trailer string is short; `format!` reads clearer"
+)]
 #[cfg(not(target_family = "wasm"))]
 async fn run_streaming_h2(
     handler: Arc<dyn super::erased::ErasedStreamHandler>,
@@ -1866,6 +1886,10 @@ async fn run_streaming_h2(
 
 /// gRPC trailing headers for a streaming outcome: `grpc-status: 0` on success,
 /// the error's code and percent-encoded message otherwise (gRPC spec §Responses).
+#[allow(
+    clippy::format_push_string,
+    reason = "the percent-encoded trailer string is short; `format!` reads clearer"
+)]
 pub(crate) fn grpc_status_trailers(
     error: Option<&foundation_errstacks::ErrorTrace<crate::ConnectError>>,
 ) -> Vec<(Bytes, Bytes)> {

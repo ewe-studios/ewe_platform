@@ -1,9 +1,9 @@
 ---
 feature: "foundation_nostd: the two ignored condvar tests run"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
-branch: "fix/io-41-50-lane-a"
+branch: "spec70/f47-f50-lane-a-mechanical"
 crates: ["foundation_nostd"]
 catalogue_rows: [12]
 ---
@@ -39,3 +39,16 @@ rg -n '#\[ignore' backends/foundation_nostd/tests   # no output, or each with a 
 ## Done when
 
 - [ ] Both tests run in CI and pass 20/20. Any bug found is fixed with its own test.
+
+## Result
+
+2026-11-05. Both `#[ignore]`s are removed. The tests pass with the `std` feature, so the
+ignore reason ("Requires threading support") was wrong. There was no condvar bug.
+
+- `test_condvar_wait_timeout_long_with_notification`: 20 of 20 runs pass.
+- `test_condvar_concurrent_notify_one`: 20 of 20 runs pass.
+- `cargo test -p foundation_nostd --profile uat --features std`: all suites pass.
+- `rg -n '#\[ignore' backends/foundation_nostd/tests`: no output.
+
+The crate has 19 ignored doc examples in `src/primitives/noop.rs` and `src/macros.rs`.
+They are a separate limitation and are backlog entry §5.

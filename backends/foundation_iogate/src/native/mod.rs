@@ -11,7 +11,7 @@
 //! turns an accepted `TcpStream` into the netio `Connection` a given
 //! [`crate::ServerIo`] mode asks for.
 //!
-//! HOW: `CompletionSocket` wraps a `RegisteredFd`. On Linux with io_uring it
+//! HOW: `CompletionSocket` wraps a `RegisteredFd`. On Linux with `io_uring` it
 //! registers for multishot `RECV` and reads by popping the inbox; elsewhere it
 //! registers plainly and reads with `read(2)`.
 

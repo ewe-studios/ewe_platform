@@ -43,6 +43,12 @@ pub type ByteSink = PipeSender<Bytes>;
 /// so outbound bytes flow through a transform without a bridge task (F39).
 pub trait SendBody: Send + Sync + 'static {
     /// Non-blocking push. `Err(())` when full — caller retries.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
+    // The unit error has one meaning: the body is full and the caller retries.
+    #[allow(clippy::result_unit_err)]
     fn try_send(&self, item: Bytes) -> Result<(), ()>;
     /// Async send — parks on backpressure. Protocol writers use this path.
     fn send_async(&self, item: Bytes) -> SendBodyFuture<'_>;
@@ -130,13 +136,9 @@ pub type BodyStream = Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> +
 ///
 /// # Panics
 /// Never panics.
-#[must_use]
 pub fn body_stream_from_pipe(rx: ByteSource) -> BodyStream {
     Box::pin(futures::stream::unfold(rx, |rx| async move {
-        match rx.receive().await {
-            Some(bytes) => Some((Ok(bytes), rx)),
-            None => None,
-        }
+        rx.receive().await.map(|bytes| (Ok(bytes), rx))
     }))
 }
 
@@ -149,13 +151,9 @@ pub fn body_stream_from_pipe(rx: ByteSource) -> BodyStream {
 ///
 /// # Panics
 /// Never panics.
-#[must_use]
 pub fn head_stream_from_pipe(rx: HeadSource) -> HeadStream {
     Box::pin(futures::stream::unfold(rx, |rx| async move {
-        match rx.receive().await {
-            Some(head) => Some((Ok(head), rx)),
-            None => None,
-        }
+        rx.receive().await.map(|head| (Ok(head), rx))
     }))
 }
 
@@ -177,7 +175,7 @@ pub trait Transport: Send + Sync + 'static {
 
 /// A live transport exchange (F45 Part D, design D1). Four caller-facing halves.
 pub struct TransportStream {
-    /// Wire request-body bytes out (trait object — Pipe, MappedSender, etc.).
+    /// Wire request-body bytes out (trait object — Pipe, `MappedSender`, etc.).
     pub send_body: Arc<dyn SendBody>,
     /// The response head(s). RPC protocols emit exactly one, so consumers take the
     /// first item (`head.next().await`); an h2/h3 transport may emit interim heads

@@ -39,14 +39,11 @@ fn read_response(s: &mut TcpStream) -> (u16, String) {
     let mut c = [0u8; 4096];
     loop {
         match s.read(&mut c) {
-            Ok(0) => {
+            Ok(0) | Err(_) => {
                 break;
             }
             Ok(n) => {
                 buf.extend_from_slice(&c[..n]);
-            }
-            Err(_) => {
-                break;
             }
         }
     }
@@ -242,7 +239,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         .as_str()
         .expect("access_token")
         .to_string();
-    assert!(!at.is_empty());
+    assert_ne!(at, "");
     assert!(
         tok.get("AccountKeys").is_some(),
         "AccountKeys required by bw v2026"
@@ -270,7 +267,11 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     let (s, b) = auth_req("GET", addr, "/api/folders", "", "application/json", &at);
     assert_eq!(s, 200, "list folders: {b}");
     let folders: serde_json::Value = serde_json::from_str(&b).unwrap();
-    assert_eq!(folders.as_array().map(|a| a.len()), Some(1), "1 folder");
+    assert_eq!(
+        folders.as_array().map(std::vec::Vec::len),
+        Some(1),
+        "1 folder"
+    );
 
     // Ciphers CRUD
     let (s, b) = auth_req("POST", addr, "/api/ciphers",
@@ -283,7 +284,11 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     let (s, b) = auth_req("GET", addr, "/api/ciphers", "", "application/json", &at);
     assert_eq!(s, 200, "list ciphers: {b}");
     let ciphers: serde_json::Value = serde_json::from_str(&b).unwrap();
-    assert_eq!(ciphers.as_array().map(|a| a.len()), Some(1), "1 cipher");
+    assert_eq!(
+        ciphers.as_array().map(std::vec::Vec::len),
+        Some(1),
+        "1 cipher"
+    );
 
     // Auth edge cases
     let (s, _) = http_req("GET", addr, "/api/sync", "", "application/json");

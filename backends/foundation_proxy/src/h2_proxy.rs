@@ -84,8 +84,7 @@ impl H2Serve for H2ProxyHandler {
             .connection
             .peer_addr
             .as_ref()
-            .map(|a| a.ip().to_string())
-            .unwrap_or_else(|| "unknown".to_string());
+            .map_or_else(|| "unknown".to_string(), |a| a.ip().to_string());
         let scheme = self.state.scheme().to_string();
         let client = self.state.client().clone();
         let state = self.state.clone();
@@ -177,6 +176,10 @@ impl H2Serve for H2ProxyHandler {
 /// upstream socket; each frame is sent with `PipeSender::send`, which parks on a
 /// full pipe. No thread is started and nothing sleeps.
 #[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the upstream forward reads best as one ordered function"
+)]
 async fn forward_upstream(
     lease: BackendLease,
     method: SimpleMethod,
@@ -665,8 +668,7 @@ async fn relay_connect_streaming_h2(
     let relay = Box::pin(relay);
     let client_gone = Box::pin(client_gone);
     match futures_util::future::select(relay, client_gone).await {
-        futures_util::future::Either::Left(_) => {}
-        futures_util::future::Either::Right(_) => {}
+        futures_util::future::Either::Left(_) | futures_util::future::Either::Right(_) => {}
     }
 
     drop(lease);
@@ -775,7 +777,7 @@ async fn relay_connect_unary_h2(
 
 /// Stream H2 DATA frames into the relay's request body pipe, then half-close the
 /// request direction so the inbound reader sees end-of-stream. A client reset
-/// (RST_STREAM) is not a clean half-close — it cancels the call — so it fires the
+/// (`RST_STREAM`) is not a clean half-close — it cancels the call — so it fires the
 /// relay's shared cancel signal, tearing the outbound gRPC side down too
 /// (spec 63 T13).
 async fn feed_request_body(
@@ -831,7 +833,7 @@ async fn drain_response_body(responder_rx: PipeReceiver<Bytes>, tx: &PipeSender<
 /// Render `headers` as HPACK-ready `(name, value)` byte pairs for an `H2Frame`.
 fn simple_headers_to_h2(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
     let mut out: Vec<(Bytes, Bytes)> = Vec::new();
-    for (name, values) in headers.iter() {
+    for (name, values) in headers {
         let nb = Bytes::from(name.to_string().into_bytes());
         for value in values {
             out.push((nb.clone(), Bytes::from(value.clone().into_bytes())));
@@ -841,6 +843,7 @@ fn simple_headers_to_h2(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
 }
 
 /// A status-only response frame (no headers, optionally ending the stream).
+#[must_use]
 pub fn h2_status(code: u16, end_stream: bool) -> H2Frame {
     H2Frame::Headers {
         status: code,

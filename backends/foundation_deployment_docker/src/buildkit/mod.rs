@@ -1,7 +1,7 @@
-//! BuildKit gRPC client — communicates with `buildkitd` over a Unix socket.
+//! `BuildKit` gRPC client — communicates with `buildkitd` over a Unix socket.
 //!
-//! WHY: BuildKit is Docker's next-gen build engine. Unlike the classic Docker
-//! API, BuildKit uses gRPC (`moby.buildkit.v1.Control`) on a Unix socket
+//! WHY: `BuildKit` is Docker's next-gen build engine. Unlike the classic Docker
+//! API, `BuildKit` uses gRPC (`moby.buildkit.v1.Control`) on a Unix socket
 //! (`/run/buildkit/buildkitd.sock`). This module wraps our own
 //! `foundation_connectrpc::Client<Req, Res>` per service method — no tokio, no
 //! bollard.
@@ -16,7 +16,7 @@
 //! buildkitd Unix socket (h2c prior-knowledge — gRPC requires HTTP/2), then
 //! constructs each `Client<Req, Res>` with `ProcedureCodecs::defaults()`
 //! (proto + json) — the request/response types are real `buffa::Message`
-//! types generated from the vendored BuildKit protos (see [`generated`] and
+//! types generated from the vendored `BuildKit` protos (see [`generated`] and
 //! `build.rs`). [`connect_tcp`](BuildKitClient::connect_tcp) does the same
 //! over TCP (`--addr tcp://…`).
 //!
@@ -46,7 +46,7 @@ use crate::buildkit::types::{
     UpdateBuildHistoryResponse, UsageRecord,
 };
 
-/// BuildKit daemon client — gRPC over a Unix socket or TCP.
+/// `BuildKit` daemon client — gRPC over a Unix socket or TCP.
 ///
 /// Holds one [`Client<Req, Res>`] per gRPC method — all sharing the same
 /// h2c [`Transport`] (Unix socket via [`connect`](Self::connect), TCP via
@@ -305,7 +305,7 @@ impl BuildKitClient {
 
     /// Report build-cache disk usage (unary `DiskUsage`).
     ///
-    /// `filters` are BuildKit cache filters (e.g. `type==regular`); empty for
+    /// `filters` are `BuildKit` cache filters (e.g. `type==regular`); empty for
     /// everything. Matches bollard's buildkit `DiskUsage`.
     ///
     /// # Errors

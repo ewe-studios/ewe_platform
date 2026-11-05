@@ -20,7 +20,7 @@ use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingReq
 
 use crate::shared::router::ConnectRpcHandler;
 
-/// `H2Serve` impl that dispatches through a ConnectRPC router.
+/// `H2Serve` impl that dispatches through a `ConnectRPC` router.
 pub struct ConnectRpcServeH2 {
     handler: Arc<ConnectRpcHandler>,
 }

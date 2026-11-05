@@ -1,4 +1,4 @@
-//! Feature 06 regression: an RPC over the WireGuard overlay parks on the
+//! Feature 06 regression: an RPC over the `WireGuard` overlay parks on the
 //! overlay's own readiness signal (no pollable fd) and completes.
 //!
 //! WHY: `ConnIo` used to return `Unsupported` for the overlay transport, so a

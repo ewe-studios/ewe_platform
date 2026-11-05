@@ -127,6 +127,8 @@ pub fn unary_trailer_headers(trailers: &SimpleHeaders) -> SimpleHeaders {
 ///
 /// # Errors
 /// A compression failure as a trace.
+// A GET query is a few short parts; `format!` reads clearer than `write!`.
+#[allow(clippy::format_push_string)]
 pub fn encode_get_query(
     codec: &str,
     message: &[u8],
@@ -172,6 +174,10 @@ pub fn get_url_exceeds(url_len: usize, get_url_max_bytes: usize) -> bool {
 
 /// Minimal percent-encoding for the GET `message` param (text codecs). Encodes
 /// everything outside the unreserved set (RFC 3986).
+#[allow(
+    clippy::format_push_string,
+    reason = "a GET message is short; `format!` reads clearer than `write!`"
+)]
 fn percent_encode(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len());
     for &b in bytes {
@@ -231,12 +237,11 @@ async fn read_request_envelopes(
                 return Ok(()); // consumer gone
             }
         }
-        match body.receive().await {
-            Some(chunk) => buf.extend_from_slice(&chunk),
-            None => {
-                req_tx.close();
-                return Ok(());
-            }
+        if let Some(chunk) = body.receive().await {
+            buf.extend_from_slice(&chunk);
+        } else {
+            req_tx.close();
+            return Ok(());
         }
     }
 }
@@ -383,6 +388,8 @@ async fn write_request_frames(
     }
 }
 
+// The caller keeps the `Arc` and passes a borrowed option through the loop.
+#[allow(clippy::ref_option)]
 fn decompress_if(
     flags: u8,
     payload: Bytes,
@@ -685,6 +692,8 @@ fn decode_get_message(
 }
 
 /// Decode a percent-encoded byte string (inverse of [`percent_encode`]).
+// Two hex digits form a value in 0..=255.
+#[allow(clippy::cast_possible_truncation)]
 fn percent_decode(bytes: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;

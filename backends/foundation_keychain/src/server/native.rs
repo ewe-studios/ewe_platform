@@ -201,9 +201,8 @@ async fn provisioning_route(
     }
 
     // Everything else needs a valid app secret.
-    let secret = match app_secret {
-        Some(s) => s,
-        None => return Some(Err(AppError::Unauthorized)),
+    let Some(secret) = app_secret else {
+        return Some(Err(AppError::Unauthorized));
     };
     let app_id = match apps::authenticate(ctx, secret).await {
         Ok(id) => id,

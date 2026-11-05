@@ -57,7 +57,7 @@ use crate::shared::transport::check_compatible;
 
 type Req = H3Request<QuinnBidiStream>;
 
-/// `H3Serve` impl that dispatches through a ConnectRPC router.
+/// `H3Serve` impl that dispatches through a `ConnectRPC` router.
 pub struct ConnectRpcServeH3 {
     handler: Arc<ConnectRpcHandler>,
 }
@@ -83,7 +83,7 @@ impl H3Serve for ConnectRpcServeH3 {
     }
 }
 
-/// Drive one HTTP/3 request through the ConnectRPC router (F35 server half).
+/// Drive one HTTP/3 request through the `ConnectRPC` router (F35 server half).
 ///
 /// `connection` is the connection-scoped context populated from the QUIC
 /// handshake — peer address, ALPN, TLS details — built once per connection
@@ -94,6 +94,10 @@ impl H3Serve for ConnectRpcServeH3 {
 /// The stream failed: the peer reset it, the connection went away, or the
 /// HTTP/3 framing was invalid. A request body that fails mid-read cancels the
 /// call's [`Ctx`] and resets our response half with `H3_REQUEST_CANCELLED`.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the request lifecycle reads best as one ordered function"
+)]
 pub async fn dispatch_h3(
     handler: Arc<ConnectRpcHandler>,
     bag: Arc<ContextBag>,
@@ -250,6 +254,10 @@ pub async fn dispatch_h3(
 /// they share it through a `Mutex` held only for one synchronous poll — never
 /// across an `.await` — which keeps it uncontended.
 #[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the send and receive halves share one stream and one state machine"
+)]
 async fn run_streaming_h3(
     handler: Arc<dyn ErasedStreamHandler>,
     protocol: &dyn ProtocolHandler,
