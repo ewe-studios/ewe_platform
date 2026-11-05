@@ -11,8 +11,8 @@
 
 #![cfg(target_arch = "wasm32")]
 
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use foundation_db::traits::{BlobPutCondition, BlobRange};
 use foundation_db::{
@@ -141,7 +141,9 @@ async fn d1_integer_types_and_i64_precision() {
 
     let mut rows = store
         .query(
-            &format!("SELECT typeof(v) AS kind, CAST(v AS TEXT) AS text FROM {table} ORDER BY rowid"),
+            &format!(
+                "SELECT typeof(v) AS kind, CAST(v AS TEXT) AS text FROM {table} ORDER BY rowid"
+            ),
             &[],
         )
         .await
@@ -220,11 +222,7 @@ async fn r2_conditional_put_and_etag() {
 
     let etag = store.blob_etag("object").await.unwrap().expect("ETag");
     store
-        .put_blob_conditionally(
-            "object",
-            b"second",
-            BlobPutCondition::IfMatch(etag.clone()),
-        )
+        .put_blob_conditionally("object", b"second", BlobPutCondition::IfMatch(etag.clone()))
         .await
         .unwrap();
     assert_eq!(
@@ -294,8 +292,14 @@ async fn d1r2_document_store_round_trip() {
     let store = CfD1R2DocumentStore::new(d1, r2).with_table(&table);
 
     let key = unique("collection");
-    store.append(&key, serde_json::json!({ "n": 0 })).await.unwrap();
-    store.append(&key, serde_json::json!({ "n": 1 })).await.unwrap();
+    store
+        .append(&key, serde_json::json!({ "n": 0 }))
+        .await
+        .unwrap();
+    store
+        .append(&key, serde_json::json!({ "n": 1 }))
+        .await
+        .unwrap();
 
     let docs = store.scan_documents(&key, 10).await.unwrap();
     assert_eq!(docs.len(), 2);
