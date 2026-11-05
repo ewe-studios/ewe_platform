@@ -2,6 +2,7 @@
 
 use crate::backends::Backend;
 use crate::command::{Command, CommandResult};
+use crate::error::SshKitResult;
 use crate::host::Host;
 use std::time::Duration;
 
@@ -40,7 +41,7 @@ impl Runner {
         hosts: &[Host],
         backend: &dyn Backend,
         command_builder: F,
-    ) -> Vec<Result<CommandResult, String>>
+    ) -> Vec<SshKitResult<CommandResult>>
     where
         F: Fn(&Host) -> Command,
     {

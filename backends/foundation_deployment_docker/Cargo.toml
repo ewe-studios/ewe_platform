@@ -91,7 +91,7 @@ version = "0.0.5"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"
-version = "0.1.2"
+version = "0.1.3"
 optional = true
 
 [dependencies.serde]
