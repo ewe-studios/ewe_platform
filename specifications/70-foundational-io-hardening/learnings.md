@@ -2,6 +2,20 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 78, io_uring on this Mac): the local Linux container cannot test
+  io_uring. OrbStack's kernel (`7.2.9-orbstack`, reported as x86_64) returns `ENOSYS` from
+  `io_uring_setup` even with `--security-opt seccomp=unconfined`, so only GitHub's runner can
+  exercise the tier. Do run the suites anyway: with `EWE_REQUIRE_IO_URING=1` they must fail
+  with the named reason, and without it they must pass and skip. That run found a suite that
+  bypassed the shared helper: `uring_epoll_parity_tests` called `uring::Selector::new()` and
+  panicked on every one of its 9 tests. Any test file gated on `feature = "uring"` must call
+  `tests/common/mod.rs::io_uring_missing` first; grep the gate, not the file names, because the
+  parity suite does not have `completion` in its name.
+- 2026-11-05 (feature 78, seccomp only hides the kernel): a package that needs io_uring needs
+  both `seccomp=unconfined` and a kernel that implements `CONFIG_IO_URING`. `EPERM` from
+  `io_uring_setup` means the seccomp profile; `ENOSYS` means the kernel. Check
+  `cat /proc/sys/kernel/io_uring_disabled` and the syscall result before blaming the code.
+
 - 2026-11-05 (feature 78, CI containers and optional io_uring): Docker's default seccomp
   profile blocks `io_uring_setup`, so a package that needs io_uring must run its own container
   with `--security-opt seccomp=unconfined`. Keep that in `ci/packages.toml`, not in the

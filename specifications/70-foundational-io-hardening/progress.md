@@ -17,8 +17,14 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `foundation_core` native and wasm `std` clean; `foundation_reactor` wasm clean;
   `foundation_nativeapis` (native, and Linux x86_64 `fd,uring` tests) clippy clean;
   `foundation_reactor` and `foundation_iogate` clippy clean; `vfs_shim_vfs` compiles on macOS
-  (0 tests). Not run here: any io_uring test (macOS host), the real `vfs_shim_vfs` (Linux and
-  wrangler). The full `foundation_nativeapis` suite passes (2 ignored doctests remain).
+  (0 tests). The full `foundation_nativeapis` suite passes (2 ignored doctests remain).
+  The main session then ran the io_uring suites on this host in the Linux CI container
+  (OrbStack, x86_64, `seccomp=unconfined`): `io_uring_setup` returns `ENOSYS`, so this kernel
+  cannot exercise io_uring and the probe prints that reason. With `EWE_REQUIRE_IO_URING=1` the
+  three `foundation_iogate` completion tests and the 9 parity tests fail with the reason; with
+  the variable unset every suite passes and the uring tests skip with one line. That run found
+  one gap: `uring_epoll_parity_tests` did not use the shared helper and failed hard without
+  io_uring; it now returns early. Still unrun: the real `vfs_shim_vfs` (Linux and wrangler).
   Backlog: four entries deleted, two added.
 - 2026-11-05: feature 62 done on `spec70/f77-f62-f78-readiness-ci`.
   `idle_h2_connection_uses_no_cpu` now measures only the server's threads: the threads that
