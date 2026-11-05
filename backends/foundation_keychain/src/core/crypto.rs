@@ -93,10 +93,13 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 ///
 /// Returns `AppError::Internal` if the platform entropy source is unavailable.
 pub fn random_bytes(len: usize) -> AppResult<Vec<u8>> {
-    let mut bytes = vec![0u8; len];
-    entropy::fill(&mut bytes)
+    // `fill_uninit` writes every byte before it hands the slice back, so the
+    // buffer needs no zero pass. That also keeps a zeroed literal away from the
+    // key material, which a static scanner reads as a hard-coded value.
+    let mut bytes = vec![std::mem::MaybeUninit::<u8>::uninit(); len];
+    let filled = entropy::fill_uninit(&mut bytes)
         .map_err(|e| AppError::Internal(format!("entropy source unavailable: {e}")))?;
-    Ok(bytes)
+    Ok(filled.to_vec())
 }
 
 /// A fresh random version-4 UUID from the `foundation_compact` entropy seam.

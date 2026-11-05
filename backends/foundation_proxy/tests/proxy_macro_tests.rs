@@ -44,7 +44,20 @@ fn assert_ssl_provider_eq(a: &SslProvider, b: &SslProvider) {
             assert_eq!(k1, k2);
         }
         (SslProvider::None, SslProvider::None) => {}
-        _ => panic!("SslProvider mismatch: {a:?} vs {b:?}"),
+        // Name the variants, not their contents: the `Static` arm carries a
+        // certificate and its private key, and a panic message is written to the
+        // test log.
+        (a, b) => panic!("SslProvider mismatch: {} vs {}", kind(a), kind(b)),
+    }
+}
+
+/// The variant name of an [`SslProvider`], with none of its data.
+fn kind(provider: &SslProvider) -> &'static str {
+    match provider {
+        SslProvider::LetsEncrypt { .. } => "LetsEncrypt",
+        SslProvider::Cloudflare { .. } => "Cloudflare",
+        SslProvider::Static { .. } => "Static",
+        SslProvider::None => "None",
     }
 }
 

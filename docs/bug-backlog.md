@@ -345,8 +345,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   The slow clients' `read_response` helper panics with `WouldBlock` at
   `tests/streamed_body.rs:123` (`read response: Os { code: 35, kind: WouldBlock }`).
   The fast request before it returns `200`, so the server keeps both uploads open.
-  Fix: give the test socket a read timeout, or retry `read` on `WouldBlock` in
-  `read_response`. Reproduce with
+  The helper already sets a 10 s read timeout, and on macOS an expired
+  `SO_RCVTIMEO` reports `WouldBlock`, so the read waited the full 10 s for a 2 s
+  upload. Measured 2026-11-05: every run fails while the machine's load average is
+  44 on 10 cores, and the `foundation_keychain` job is green on the Linux CI
+  container. Most likely the machine, not the server.
+  Fix: make the helper report a timeout as a timeout (distinguish it from a
+  non-blocking socket), and make the assertion measure progress — the third
+  request answers while the uploads are open — rather than an absolute 2 s.
+  Reproduce with
   `cargo test -p foundation_keychain --test streamed_body slow_request_body_does_not_hold_worker`.
   Confirmed on `spec70/io-hardening-final` with this feature's changes reverted, so
   it predates feature 67.
