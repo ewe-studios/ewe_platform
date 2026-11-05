@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "async-trait",
  "base64",
@@ -414,7 +414,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.3"
+version = "0.0.6"
 dependencies = [
  "cc",
  "cfg-if",
@@ -425,14 +425,13 @@ dependencies = [
  "io-uring",
  "libc",
  "serde",
- "thiserror",
  "tracing",
  "windows-sys 0.59.0",
 ]
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "base64",
@@ -455,12 +454,10 @@ dependencies = [
  "regex",
  "ring",
  "rustls",
- "rustls-pemfile",
  "serde",
  "serde_json",
  "sha1",
  "socket2",
- "thiserror",
  "toml",
  "toml_datetime 0.7.5+spec-1.1.0",
  "tracing",
@@ -487,22 +484,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_runtimes"
-version = "0.0.5"
-dependencies = [
- "brotli 8.0.4",
- "flate2",
- "foundation_macros",
- "foundation_nostd",
-]
-
-[[package]]
 name = "foundation_theme"
 version = "0.0.3"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.3"
+version = "0.0.5"
 dependencies = [
  "concurrent-queue",
  "derive_more",
@@ -512,8 +499,6 @@ dependencies = [
  "foundation_nativeapis",
  "foundation_netio",
  "foundation_nostd",
- "foundation_runtimes",
- "itertools",
  "libc",
  "serde",
  "serde_json",
@@ -627,15 +612,6 @@ dependencies = [
  "bitflags",
  "cfg-if",
  "libc",
-]
-
-[[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
-dependencies = [
- "either",
 ]
 
 [[package]]
@@ -895,15 +871,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustls-pemfile"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dce314e5fee3f39953d46bb63bb8a46d40c2f8fb7cc5a3b6cab2bde9721d6e50"
-dependencies = [
- "rustls-pki-types",
-]
-
-[[package]]
 name = "rustls-pki-types"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1089,26 +1056,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "thiserror"
-version = "2.0.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
-dependencies = [
- "thiserror-impl",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "2.0.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.9",
 ]
 
 [[package]]
