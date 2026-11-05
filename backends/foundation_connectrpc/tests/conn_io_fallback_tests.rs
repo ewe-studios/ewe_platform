@@ -26,7 +26,7 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve};
+use foundation_http::shared::serve::{Serve, ServeOutcome};
 use foundation_netio::netcap::{CompletionReadWrite, Connection, RawStream, SocketAddr};
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
@@ -203,17 +203,16 @@ fn conn_io_fallback_polls_instead_of_unsupported() {
 
     let serve = echo_serve();
     let result = serve.serve(Arc::new(ContextBag::new()), request, conn);
-    let result = match result {
-        ConnectionResult::Async(fut) => futures::executor::block_on(fut),
-        other => other,
+    let result = match result.split() {
+        Ok(fut) => futures::executor::block_on(fut),
+        Err(outcome) => outcome,
     };
     match result {
-        ConnectionResult::Keep => {}
-        ConnectionResult::Close(_) => {
+        ServeOutcome::Keep => {}
+        ServeOutcome::Close(_) => {
             panic!("the RPC failed to write its response; the fallback must not answer Unsupported")
         }
-        ConnectionResult::Take => panic!("unexpected Take"),
-        ConnectionResult::Async(_) => panic!("the async future did not resolve"),
+        ServeOutcome::Take => panic!("unexpected Take"),
     }
 
     let (status, body) = read_response(&mut peer);

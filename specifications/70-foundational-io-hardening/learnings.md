@@ -2,6 +2,23 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 84, a closed `ServeOutcome`): a type that can express a nested
+  future forces every caller to handle a case that no caller uses. The server logged
+  and closed on that case, and one test pinned the accident. Replace the future's
+  result with an enum that has no `Async` variant: the rule moves to the compiler and
+  the unreachable arm disappears. Keep `ConnectionResult` for the synchronous
+  `Serve`/`ServeWriter` path, and add `ConnectionResult::split` so a test wrapper
+  handles both cases with two arms, not four. `ServeFuture` is a type alias, so a
+  changed output type does not rename any identifier. Do not bump `foundation_http`
+  again when feature 82 already set 0.0.5 in the same unreleased PR. Two pre-existing
+  problems blocked the local runs: `foundation_connectrpc`'s `arrow_codec_tests` and
+  `examples/codecs` do not compile after feature 67 changed `IpcResult` (backlog §1),
+  so run that crate with `--lib --test <name>` and record the rest; and the proxy
+  verify command in the feature doc named a `multi` feature that `foundation_proxy`
+  does not have. Confirm a feature name with `cargo metadata` before you put it in a
+  verify command. The macOS failures in `foundation_proxy` and `foundation_keychain`
+  are already in the backlog (§9 and §22) and are not caused by this change.
+
 - 2026-11-05 (feature 82, async SSE event writes): an SSE event is a complete unit.
   A synchronous `writeln!` on a non-blocking socket can write a prefix and return
   `WouldBlock`, so the client never sees the dispatch blank line. Render the event to

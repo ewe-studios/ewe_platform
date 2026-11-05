@@ -2,6 +2,33 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 84 done on `spec70/f84-serve-outcome-enum`. `ServeFuture` now
+  resolves to the new `ServeOutcome` enum (`Keep`, `Take`, `Close(Option<ErrorTrace<ServeError>>)`),
+  which has no `Async` variant, so a future cannot return another future. `ConnectionResult`
+  keeps its four variants for the synchronous `Serve`/`ServeWriter` path. New conversions:
+  `From<ServeOutcome> for ConnectionResult` and `ConnectionResult::split`. These futures now
+  return `ServeOutcome`: `write_response`, `send_continue_100`, `SendFile::run`, the
+  `foundation_keychain` `write_json` and serve block, the `foundation_connectrpc` serve
+  block, the `foundation_proxy` serve block and `closing`. `apply_async_result` and
+  `apply_continue_result` take `ServeOutcome`; the unreachable nested-`Async` error arm is
+  deleted. `NestedAsyncHandler` and `nested_async_closes_with_error` are deleted from
+  `foundation_http/tests/async_serve_tests.rs`, with a comment that names feature 84. New
+  test `async_result_take_and_close` proves that a future can resolve to `Take` and to
+  `Close(Some(_))`, and that both close the connection. Version: `foundation_http` stays
+  0.0.5, the number feature 82 set in this same unreleased PR, so no requirement changed.
+  Local results: `foundation_http` (multi) 144 passed, 1 ignored doctest; `foundation_keychain`
+  74 passed and 1 pre-existing macOS failure (`slow_request_body_does_not_hold_worker`,
+  backlog §22); `foundation_proxy` 72 passed and 1 pre-existing macOS failure
+  (`websocket_upgrade_relays_and_tunnels_bytes`, backlog §9); `foundation_connectrpc` cannot
+  build all targets because of a pre-existing `arrow_codec_tests`/`examples/codecs` type error
+  (new backlog §1), and its `conn_io_fallback_tests` pass (2). Clippy with `-D warnings` is
+  clean for `foundation_http`, `foundation_proxy`, `foundation_keychain` and the
+  `foundation_connectrpc` lib and touched test; the only failure is the recorded §1 target.
+  `cargo check --workspace --all-targets --profile uat` fails only at the known
+  `infrastructure_llama_bindings` build script (`llama.h` missing in a worktree). The
+  feature doc's proxy verify command named a non-existent `multi` feature; it now runs
+  without that feature.
+
 - 2026-11-05: feature 82 done on `spec70/f82-sse-async-event-writer`. No native SSE
   write now goes through a synchronous `Write`. `foundation_netio` has
   `SseEvent::render`/`rendered` (one wire-format renderer) and `render_comment`;

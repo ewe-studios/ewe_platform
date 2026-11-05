@@ -30,7 +30,7 @@ use crate::native::writer::{
     WriterConfig,
 };
 use crate::shared::context::ContextBag;
-use crate::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use crate::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 
 /// MIME type detection based on file extension.
 fn mime_type(path: &Path) -> &str {
@@ -270,12 +270,12 @@ struct SendFile {
 }
 
 impl SendFile {
-    async fn run(mut self) -> ConnectionResult {
+    async fn run(mut self) -> ServeOutcome {
         match self.send().await {
-            Ok(()) => ConnectionResult::Keep,
+            Ok(()) => ServeOutcome::Keep,
             Err(e) => {
                 log_write_failure(&e);
-                ConnectionResult::Close(None)
+                ServeOutcome::Close(None)
             }
         }
     }

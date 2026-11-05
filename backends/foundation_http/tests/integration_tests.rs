@@ -36,7 +36,7 @@ use foundation_http::{
         app::HttpApp,
         context::ContextBag,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{ConnectionResult, Serve, ServeError, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeError, ServeFactory, ServeOutcome},
     },
 };
 
@@ -1161,11 +1161,11 @@ impl Serve for WsEchoHandler {
                 {
                     let _ = write.await;
                 }
-                return ConnectionResult::Close(None);
+                return ServeOutcome::Close(None);
             }
 
             // Upgrade successful - return Take to own the connection
-            ConnectionResult::Take
+            ServeOutcome::Take
         }))
     }
 }
@@ -1252,7 +1252,7 @@ impl Serve for SseCounterHandler {
                 Ok(s) => s,
                 Err(e) => {
                     tracing::error!("Failed to create SSE stream: {:?}", e);
-                    return ConnectionResult::Close(None);
+                    return ServeOutcome::Close(None);
                 }
             };
 
@@ -1276,7 +1276,7 @@ impl Serve for SseCounterHandler {
                 foundation_core::valtron::timer::sleep_for(Duration::from_millis(10)).await;
             }
 
-            ConnectionResult::Take
+            ServeOutcome::Take
         }))
     }
 }

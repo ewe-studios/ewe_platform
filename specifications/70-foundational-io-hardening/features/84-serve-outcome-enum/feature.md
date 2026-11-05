@@ -1,6 +1,6 @@
 ---
 feature: "A ServeFuture resolves to a closed outcome enum, so a future cannot return another future"
-status: "pending"
+status: "done"
 lane: "after 82 (both touch foundation_http); no dependency on 83"
 model: "sonnet"
 branch: "spec70/f84-serve-outcome-enum"
@@ -115,7 +115,7 @@ cargo fmt --all --check
 cargo clippy --profile uat -p foundation_http -p foundation_proxy -p foundation_keychain \
   -p foundation_connectrpc --all-targets --no-deps -- -D warnings
 cargo test --profile uat -p foundation_http --features multi
-cargo test --profile uat -p foundation_proxy --features multi
+cargo test --profile uat -p foundation_proxy
 cargo test --profile uat -p foundation_keychain
 cargo test --profile uat -p foundation_connectrpc
 cargo check --workspace --all-targets --profile uat
@@ -124,9 +124,9 @@ python3 scripts/ci/ci.py run foundation_http --profile uat   # in the Linux CI i
 
 ## Done when
 
-- [ ] `ServeFuture` resolves to `ServeOutcome`; `ServeOutcome` has no `Async` variant.
-- [ ] The nested-result error arm is gone, and its test is deleted with a comment that names
+- [x] `ServeFuture` resolves to `ServeOutcome`; `ServeOutcome` has no `Async` variant.
+- [x] The nested-result error arm is gone, and its test is deleted with a comment that names
       this feature.
-- [ ] Every async test passes, including a `Take` and a `Close(Some(_))` result from a future.
-- [ ] Versions and consumer requirements are updated.
+- [x] Every async test passes, including a `Take` and a `Close(Some(_))` result from a future.
+- [x] Versions and consumer requirements are updated.
 - [ ] CI green.

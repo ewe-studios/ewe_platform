@@ -21,7 +21,7 @@ use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig}
 use foundation_http::native::writer::{send_bytes, send_text};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeOutcome};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
@@ -97,20 +97,20 @@ impl Serve for Observing {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let seen = self.seen.clone();
-        let record = move |result: &ConnectionResult| {
+        let record = move |outcome: &ServeOutcome| {
             let mut s = seen.lock().expect("lock");
             s.finished_at = Some(Instant::now());
-            s.closed = matches!(result, ConnectionResult::Close(_));
+            s.closed = matches!(outcome, ServeOutcome::Close(_));
         };
-        match self.inner.serve(bag, req, conn) {
-            ConnectionResult::Async(fut) => ConnectionResult::Async(Box::pin(async move {
-                let result = fut.await;
-                record(&result);
-                result
+        match self.inner.serve(bag, req, conn).split() {
+            Ok(fut) => ConnectionResult::Async(Box::pin(async move {
+                let outcome = fut.await;
+                record(&outcome);
+                outcome
             })),
-            other => {
-                record(&other);
-                other
+            Err(outcome) => {
+                record(&outcome);
+                outcome.into()
             }
         }
     }

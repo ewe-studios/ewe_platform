@@ -41,7 +41,7 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeOutcome};
 use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
@@ -200,22 +200,22 @@ impl Serve for ConnectRpcServe {
                     // The next request starts where this body ends, so the
                     // connection can only be reused once the body was read to
                     // its end.
-                    Ok(()) if drained.load(Ordering::Acquire) => ConnectionResult::Keep,
+                    Ok(()) if drained.load(Ordering::Acquire) => ServeOutcome::Keep,
                     Ok(()) => {
                         tracing::debug!(
                             "the request body was not read to its end; closing the connection"
                         );
-                        ConnectionResult::Close(None)
+                        ServeOutcome::Close(None)
                     }
                     Err(e) => {
                         tracing::debug!(error = %e, "writing the response failed; closing the connection");
-                        ConnectionResult::Close(None)
+                        ServeOutcome::Close(None)
                     }
                 },
                 Either::Right(((), _dispatch)) => {
                     tracing::debug!("the client closed the connection; cancelling the call");
                     cancel.cancel();
-                    ConnectionResult::Close(None)
+                    ServeOutcome::Close(None)
                 }
             }
         };

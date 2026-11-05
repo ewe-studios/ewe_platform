@@ -28,7 +28,7 @@ use foundation_netio::shared::http::{
 
 use crate::native::reader::read_next_request;
 use crate::native::writer::{send_continue_100, send_not_found, send_text};
-use crate::shared::serve::{ConnectionResult, Serve, ServeFuture};
+use crate::shared::serve::{ConnectionResult, Serve, ServeFuture, ServeOutcome};
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -66,7 +66,8 @@ enum HandlerState {
         should_close: bool,
     },
     /// A handler returned `ConnectionResult::Async`. The future is polled once per
-    /// `next_status` and parked on the bridge until it resolves or the server drains.
+    /// `next_status` and parked on the bridge until it resolves to a
+    /// [`ServeOutcome`] or the server drains.
     Awaiting {
         future: ServeFuture,
         should_close: bool,
@@ -505,8 +506,8 @@ impl ConnectionHandler {
             // Send 100 Continue through the async writer, then wait for body
             // data. The write may park on socket readiness; `ContinueWrite`
             // drives it without holding a worker.
-            return match send_continue_100(self.conn.clone()) {
-                ConnectionResult::Async(future) => {
+            return match send_continue_100(self.conn.clone()).split() {
+                Ok(future) => {
                     self.state = Some(HandlerState::ContinueWrite {
                         future,
                         req,
@@ -515,7 +516,9 @@ impl ConnectionHandler {
                     });
                     Some(TaskStatus::Pending(()))
                 }
-                other => self.apply_continue_result(other, req, should_close, continue_retries),
+                Err(outcome) => {
+                    self.apply_continue_result(outcome, req, should_close, continue_retries)
+                }
             };
         }
         // No expect header — go straight to processing.
@@ -940,14 +943,14 @@ impl ConnectionHandler {
         }
     }
 
-    /// Apply the resolved `ConnectionResult` of an `Async` future.
+    /// Apply the resolved [`ServeOutcome`] of an `Async` future.
     fn apply_async_result(
         &mut self,
-        result: ConnectionResult,
+        result: ServeOutcome,
         should_close: bool,
     ) -> Option<TaskStatus<(), ()>> {
         match result {
-            ConnectionResult::Keep => {
+            ServeOutcome::Keep => {
                 if should_close {
                     tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler kept connection but Connection: close; closing");
                     return None;
@@ -956,19 +959,14 @@ impl ConnectionHandler {
                 self.state = Some(HandlerState::Idle);
                 Some(TaskStatus::Pending(()))
             }
-            ConnectionResult::Take => {
+            ServeOutcome::Take => {
                 tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler took connection");
                 None
             }
-            ConnectionResult::Close(err) => {
+            ServeOutcome::Close(err) => {
                 if let Some(e) = &err {
                     tracing::error!(client_ip = %self.client_ip, err = ?e, "Connection closed with error");
                 }
-                None
-            }
-            ConnectionResult::Async(_) => {
-                // An Async whose future resolves to Async again is a programming error.
-                tracing::error!(client_ip = %self.client_ip, "Awaiting: a handler returned Async from an Async future; closing");
                 None
             }
         }
@@ -1062,16 +1060,16 @@ impl ConnectionHandler {
         }
     }
 
-    /// Act on the result of the `100 Continue` write.
+    /// Act on the [`ServeOutcome`] of the `100 Continue` write.
     fn apply_continue_result(
         &mut self,
-        result: ConnectionResult,
+        result: ServeOutcome,
         req: SimpleIncomingRequest,
         should_close: bool,
         continue_retries: usize,
     ) -> Option<TaskStatus<(), ()>> {
         match result {
-            ConnectionResult::Keep => {
+            ServeOutcome::Keep => {
                 tracing::trace!(
                     client_ip = %self.client_ip,
                     "Sent 100 Continue, entering WaitingForBody state"
@@ -1092,7 +1090,7 @@ impl ConnectionHandler {
                     .expect("first attempt must yield a delay");
                 Some(TaskStatus::Delayed(delay))
             }
-            ConnectionResult::Close(err) => {
+            ServeOutcome::Close(err) => {
                 let next = continue_retries + 1;
                 if next <= self.max_continue_retries {
                     tracing::trace!(
@@ -1132,7 +1130,7 @@ impl ConnectionHandler {
                     ))
                 }
             }
-            ConnectionResult::Take | ConnectionResult::Async(_) => {
+            ServeOutcome::Take => {
                 tracing::error!(
                     client_ip = %self.client_ip,
                     "ContinueWrite: unexpected result; closing"

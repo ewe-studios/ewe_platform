@@ -15,7 +15,18 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-(no open entries)
+- **`tests/arrow_codec_tests.rs` and `examples/codecs/main.rs` do not compile with
+  `--all-targets`.** `ToArrow::to_arrow` and `to_arrow_batch` return
+  `IpcResult<RecordBatch>`, which feature 67 changed to
+  `ErrorTrace<ArrowIpcError>`, but they return `RecordBatch::try_new(..)` directly,
+  whose error is `ArrowError` (E0308 at `arrow_codec_tests.rs:79` and `:86`, and
+  `examples/codecs/main.rs:123` and `:130`). The error predates feature 84: it is
+  the same at base `a94fe307b`. Because the test target fails to compile,
+  `cargo test -p foundation_connectrpc` and
+  `cargo clippy -p foundation_connectrpc --all-targets` cannot run. Fix: map the
+  result with `.map_err(Into::into)` (or `.map_err(ErrorTrace::new)`) in both
+  `ToArrow` implementations. Reproduce with
+  `cargo check --profile uat -p foundation_connectrpc --all-targets`.
 
 ## 2. foundation_netio
 

@@ -26,7 +26,7 @@ use foundation_http::native::writer::{
 };
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
@@ -205,7 +205,7 @@ async fn render_acme(
 
 /// Write an already-built async response to completion.
 async fn write_response(response: ConnectionResult) {
-    if let ConnectionResult::Async(write) = response {
+    if let Ok(write) = response.split() {
         let _ = write.await;
     }
 }
@@ -299,7 +299,7 @@ async fn handle_acme(
     state: Arc<MockAcme>,
     req: SimpleIncomingRequest,
     conn: SharedByteBufferStream<RawStream>,
-) -> ConnectionResult {
+) -> ServeOutcome {
     let path = req.request_url.url.clone();
     let base = &state.base;
     let body = req.body.and_then(|b| try_collect_bytes(b).ok());
@@ -331,7 +331,7 @@ async fn handle_acme(
                 None,
             )
             .await;
-            return ConnectionResult::Close(None);
+            return ServeOutcome::Close(None);
         }
         "/new-account" => match state.validate_jws(raw, false) {
             Ok(()) => {
@@ -502,7 +502,7 @@ async fn handle_acme(
             write_response(send_not_found(conn.clone())).await;
         }
     }
-    ConnectionResult::Close(None)
+    ServeOutcome::Close(None)
 }
 
 /// Start the mock ACME CA on an ephemeral port. Returns
