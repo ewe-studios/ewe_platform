@@ -1,6 +1,6 @@
 ---
 feature: "Every crate reports errors through foundation_errstacks (ErrorTrace over a derive_more enum); no thiserror"
-status: "pending"
+status: "done"
 lane: "after both lanes merge (touches crates of both lanes)"
 model: "sonnet"
 branch: "fix/io-67-errstacks"
@@ -85,4 +85,4 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] Every listed crate returns `ErrorTrace<…>`; no `thiserror` left; the CI guard exists.
+- [x] Every listed crate returns `ErrorTrace<…>`; no `thiserror` left; the CI guard exists.

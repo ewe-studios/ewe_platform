@@ -320,6 +320,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 22. foundation_keychain
 
+- **`tests/streamed_body.rs::slow_request_body_does_not_hold_worker` fails on macOS.**
+  The slow clients' `read_response` helper panics with `WouldBlock` at
+  `tests/streamed_body.rs:123` (`read response: Os { code: 35, kind: WouldBlock }`).
+  The fast request before it returns `200`, so the server keeps both uploads open.
+  Fix: give the test socket a read timeout, or retry `read` on `WouldBlock` in
+  `read_response`. Reproduce with
+  `cargo test -p foundation_keychain --test streamed_body slow_request_body_does_not_hold_worker`.
+  Confirmed on `spec70/io-hardening-final` with this feature's changes reverted, so
+  it predates feature 67.
 
 - **`poll_ready` single-polls a handler future with a noop waker.**
   `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the
@@ -431,6 +440,13 @@ are clean. Each item needs the per-crate clippy workflow in
   (1 each) have style warnings; the manifest reports one unused dependency.
 - **`foundation_repl`**: `tests/wrapping.rs` and `tests/layout.rs` have one
   warning each.
+- **`foundation_wireguard`**: `cargo clippy -p foundation_wireguard --profile uat
+  --all-targets --no-deps -- -D warnings` reports pedantic debt (about 134
+  warnings, mostly `must_use_candidate` and `missing_errors_doc` in
+  `src/wasm/mod.rs` and the tests/examples). The crate has no
+  `cli-allow`-style exception and no `clippy-deny-warnings` entry in
+  `ci/packages.toml`. Fix: apply the per-crate clippy workflow, then add
+  `clippy-deny-warnings = true`. Feature 67 did not introduce these warnings.
 
 ## 32. foundation_toolings
 

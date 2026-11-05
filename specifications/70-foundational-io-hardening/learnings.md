@@ -2,6 +2,28 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 67, one error standard): `ErrorTrace<C>` needs
+  `C: Error + Send + Sync + 'static`. A crate gets `?` for free only after it
+  adds `impl From<CrateError> for ErrorTrace<CrateError>`; foreign source
+  errors (`std::io::Error`, `ArrowError`, `notify::Error`) cannot convert this
+  way because both types are foreign (orphan rule), so each call site maps
+  them through the crate error first (`.map_err(CrateError::from)?`). An
+  explicit `Err(CrateError::Variant)` needs `.into()`; a tail expression that
+  already returns `Result<_, CrateError>` needs `.map_err(Into::into)`.
+  `derive_more`'s `Error` derive treats a single tuple or named `source` field
+  as the source; a `String`, `PathBuf` or `Version` must be marked
+  `#[error(not(source))]` or the derive fails. For an error enum that carries
+  generic event or request values, the derived `Debug`, `Display` and `Error`
+  impls add `E: Debug`/`E: Display`/`E: Error` bounds that the domain types do
+  not satisfy. Write `Display`, `Debug` and `Error` by hand with only the
+  bounds the payload's `Display` needs (`E: Clone`), as `DomainOpsErrors<E>`
+  does. `ErrorTrace` is also `Sync`-bound, so the `ewe_domain` traits had to
+  add `Sync` to their `Events` and `Requests` associated types. Match on
+  `trace.current_context()` when a caller used to match the plain enum; the
+  keychain servers call `current_context().status()`/`.to_json()` for the same
+  reason. Two tests fail on `spec70/io-hardening-final` with these changes
+  reverted: the proxy websocket upgrade test and the keychain streamed-body
+  timing test (both macOS `WouldBlock`). Do not report them as regressions.
 - 2026-11-05 (feature 63, retiring the sync response path): a test that must
   prove a writer parks needs a transport whose readiness the test controls.
   Loopback TCP did not work: with `SO_SNDBUF` and `SO_RCVBUF` set to 4 KiB,
