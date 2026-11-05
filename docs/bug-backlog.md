@@ -400,6 +400,26 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   dev-dependency (choose a version that matches the `rsx!` output) and move the
   harness, or record why the macro is no longer supported.
 
+## 31. Lane B clippy debt found while moving tests (feature 59)
+
+These warnings are in code the feature did not change. The moved test files
+are clean. Each item needs the per-crate clippy workflow in
+`.agents/AGENTS.md`, then `clippy-deny-warnings` in `ci/packages.toml`.
+
+- **`foundation_connectrpc_codegen`**: `src/generator.rs` has 76
+  `clippy::format_push_string` warnings (use `write!` into the output
+  `String`), one `too_many_lines`, one `missing_panics_doc` and one
+  doc-backtick warning. The generator tests assert the generated output, so
+  they guard the rewrite.
+- **`foundation_testing`**: the existing `tests/scenarios/barrier_debug.rs`
+  (4), `tests/scenarios/integration_tests.rs` (5) and
+  `tests/integration_tests.rs` (1) have style warnings.
+- **`foundation_codegen`**: `tests/wasm_roundtrip_tests.rs` (1) and
+  `tests/units/{foundation_codegen_visitor_tests,foundation_codegen_file_walker_tests}.rs`
+  (1 each) have style warnings; the manifest reports one unused dependency.
+- **`foundation_repl`**: `tests/wrapping.rs` and `tests/layout.rs` have one
+  warning each.
+
 ## Paused
 
 - Windows/macOS VM images (#69).

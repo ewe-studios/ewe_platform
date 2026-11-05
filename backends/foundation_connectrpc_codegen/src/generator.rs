@@ -1,6 +1,6 @@
-//! Proto-to-Rust code generation for ConnectRPC services (Decision 10).
+//! Proto-to-Rust code generation for `ConnectRPC` services (Decision 10).
 //!
-//! WHY: Every ConnectRPC service needs a server trait, handler registration, and
+//! WHY: Every `ConnectRPC` service needs a server trait, handler registration, and
 //! typed client. Rather than hand-writing these per service, a code generator
 //! reads [`FileDescriptorProto`] values (from protobuf file descriptors) and emits
 //! compilable Rust source.
@@ -18,10 +18,10 @@
 //! - A typed `<Service>Client` struct and trait (R4).
 //!
 //! HOW: Iterates file descriptors → service descriptors → methods. Method
-//! streaming attributes determine the four RPC shapes (unary, client_stream,
-//! server_stream, bidi_stream). PascalCase method names are lowered to snake_case.
+//! streaming attributes determine the four RPC shapes (unary, `client_stream`,
+//! `server_stream`, `bidi_stream`). `PascalCase` method names are lowered to `snake_case`.
 //! Idempotency levels are extracted from proto method options (field 34 on
-//! MethodOptions).
+//! `MethodOptions`).
 
 use prost_types::{
     method_options, FileDescriptorProto, MethodDescriptorProto, MethodOptions,
@@ -30,11 +30,12 @@ use prost_types::{
 
 // ── Public entry point ───────────────────────────────────────────────────
 
-/// Generate ConnectRPC service code from proto file descriptors.
+/// Generate `ConnectRPC` service code from proto file descriptors.
 /// Returns Rust source code as a `String`.
 ///
 /// Each file descriptor contributes its services. The output is ready to be
 /// written to a `.rs` file included via `include!` or a protoc plugin response.
+#[must_use]
 pub fn generate_services(files: &[FileDescriptorProto]) -> String {
     let mut out = String::with_capacity(4096);
     for file in files {
@@ -129,7 +130,7 @@ impl MethodInfo {
 /// Escape a generated identifier that collides with a Rust keyword by turning
 /// it into a raw identifier (`Return` → `r#return`). Raw identifiers are valid
 /// everywhere the generator uses method names: `fn` names, struct fields,
-/// and call sites (BuildKit's `LLBBridge.Return` is what first hit this).
+/// and call sites (`BuildKit`'s `LLBBridge.Return` is what first hit this).
 fn escape_keyword(name: String) -> String {
     // Keywords that can appear from snake_casing a proto RPC name and that
     // Rust permits as raw identifiers.
@@ -147,7 +148,7 @@ fn escape_keyword(name: String) -> String {
     }
 }
 
-/// Convert PascalCase to snake_case.
+/// Convert `PascalCase` to `snake_case`.
 ///
 /// `GreetGroup` → `greet_group`, `GetURL` → `get_url`, `Greet` → `greet`.
 #[must_use]
@@ -163,7 +164,7 @@ pub fn to_snake_case(name: &str) -> String {
                 let prev = chars[i - 1];
                 let next = chars.get(i + 1).copied();
                 let prev_lower = prev.is_lowercase() || prev.is_ascii_digit();
-                let next_lower = next.is_some_and(|n| n.is_lowercase());
+                let next_lower = next.is_some_and(char::is_lowercase);
                 if (prev_lower || (next_lower && i + 1 < len))
                     && result.as_bytes().last() != Some(&b'_')
                 {
@@ -442,7 +443,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         let idem_suffix = idempotency_suffix(&m.idempotency_expr);
         let is_last = i == methods.len() - 1;
 
-        if !is_last {
+        if is_last {
             out.push_str(&format!(
                 "            {field_name}: foundation_connectrpc::Client::new(\n"
             ));
@@ -453,7 +454,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             out.push_str(&format!(
                 "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
             ));
-            out.push_str(&format!("                options.clone(){idem_suffix},\n"));
+            out.push_str(&format!("                options{idem_suffix},\n"));
             out.push_str("            )?,\n");
         } else {
             out.push_str(&format!(
@@ -466,7 +467,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             out.push_str(&format!(
                 "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
             ));
-            out.push_str(&format!("                options{idem_suffix},\n"));
+            out.push_str(&format!("                options.clone(){idem_suffix},\n"));
             out.push_str("            )?,\n");
         }
     }

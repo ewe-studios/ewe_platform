@@ -153,8 +153,6 @@ fn test_into_buffered_stream_read() {
 
 #[test]
 fn test_into_buffered_stream_read_line() {
-    use std::io::BufRead;
-
     let (mut writer, reader) = SharedBuffer::split();
     writer.write_all(b"line 1\nline 2\nline 3\n").unwrap();
 
@@ -193,8 +191,6 @@ fn test_into_buffered_stream_sse_format() {
 
 #[test]
 fn test_into_buffered_stream_multiple_lines() {
-    use std::io::BufRead;
-
     let (mut writer, reader) = SharedBuffer::split();
     writer.write_all(b"event: test\ndata: payload\n\n").unwrap();
 

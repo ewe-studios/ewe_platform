@@ -92,8 +92,8 @@ Hello world!";
 
     match handler.join() {
         Ok(result) => match result {
-            Ok(_) => {
-                for worker_handler in workers.into_iter() {
+            Ok(()) => {
+                for worker_handler in workers {
                     worker_handler.join().expect("should have closed");
                 }
                 tracing::info!("Cleaned up workers");
@@ -107,7 +107,7 @@ Hello world!";
             tracing::error!("Failed in serving requests: {:?}", err);
             panic!("Server failed");
         }
-    };
+    }
 
     let sent_requests: Vec<RequestDescriptor> = requests.iter().collect();
     assert_eq!(sent_requests.len(), 1);
@@ -154,8 +154,8 @@ Hello buster!";
 
     match handler.join() {
         Ok(result) => match result {
-            Ok(_) => {
-                for worker_handler in workers.into_iter() {
+            Ok(()) => {
+                for worker_handler in workers {
                     worker_handler.join().expect("should have closed");
                 }
                 tracing::info!("Cleaned up workers");
@@ -169,7 +169,7 @@ Hello buster!";
             tracing::error!("Failed in serving requests: {:?}", err);
             panic!("Server failed");
         }
-    };
+    }
 
     let sent_requests: Vec<RequestDescriptor> = requests.iter().collect();
     assert_eq!(sent_requests.len(), 0);

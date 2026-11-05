@@ -10,7 +10,7 @@ use prost_types::{
     ServiceDescriptorProto,
 };
 
-/// WHY: TDD first test — verify PascalCase to snake_case conversion.
+/// WHY: TDD first test — verify `PascalCase` to `snake_case` conversion.
 /// WHAT: Edge cases: single word, compound, acronyms.
 #[test]
 fn test_to_snake_case() {
@@ -24,7 +24,7 @@ fn test_to_snake_case() {
 }
 
 /// WHY: Verify the generator handles a full service with all four RPC kinds.
-/// WHAT: Generate code for the D10 example GreetService and check key
+/// WHAT: Generate code for the D10 example `GreetService` and check key
 /// markers in the output.
 #[test]
 fn test_generate_full_service() {
@@ -73,7 +73,7 @@ fn test_generate_full_service() {
 }
 
 /// WHY: Verify that idempotency level is extracted from method options.
-/// WHAT: A method with NO_SIDE_EFFECTS should produce
+/// WHAT: A method with `NO_SIDE_EFFECTS` should produce
 /// `.with_idempotency(foundation_connectrpc::IdempotencyLevel::NoSideEffects)`.
 #[test]
 fn test_idempotency_extraction() {
@@ -89,7 +89,7 @@ fn test_idempotency_extraction() {
 }
 
 /// WHY: Verify idempotent level extraction.
-/// WHAT: IDEMPOTENT maps to IdempotencyLevel::Idempotent.
+/// WHAT: IDEMPOTENT maps to `IdempotencyLevel::Idempotent`.
 #[test]
 fn test_idempotent_extraction() {
     let options = MethodOptions {
@@ -125,8 +125,8 @@ fn test_client_struct_fields() {
 }
 
 /// WHY: Verify the registration function calls the right router methods.
-/// WHAT: Check router.unary, router.server_stream, router.client_stream,
-/// router.bidi_stream are all emitted.
+/// WHAT: Check router.unary, `router.server_stream`, `router.client_stream`,
+/// `router.bidi_stream` are all emitted.
 #[test]
 fn test_registration_router_calls() {
     let file = make_greet_file();
@@ -171,7 +171,6 @@ fn make_greet_file() -> FileDescriptorProto {
                         ),
                         ..Default::default()
                     }),
-                    ..Default::default()
                 },
                 MethodDescriptorProto {
                     name: Some("GreetGroup".to_string()),

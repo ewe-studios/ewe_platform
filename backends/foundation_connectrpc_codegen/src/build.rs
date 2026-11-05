@@ -1,7 +1,7 @@
-//! Build.rs helper for ConnectRPC code generation (Decision 10 Mode 1).
+//! Build.rs helper for `ConnectRPC` code generation (Decision 10 Mode 1).
 //!
 //! WHY: Users need a simple `build.rs` API that compiles `.proto` files and
-//! generates both message types (via prost-build) and ConnectRPC service stubs
+//! generates both message types (via prost-build) and `ConnectRPC` service stubs
 //! (via [`generate_services`]).
 //!
 //! WHAT: [`Config`] builder with `files`, `includes`, and `out_dir` settings.
@@ -19,7 +19,7 @@ use std::str::FromStr;
 
 use prost::Message;
 
-/// Builder for protobuf compilation and ConnectRPC code generation.
+/// Builder for protobuf compilation and `ConnectRPC` code generation.
 pub struct Config {
     files: Vec<String>,
     includes: Vec<String>,
@@ -46,14 +46,14 @@ impl Config {
     /// Set the `.proto` source files to compile.
     #[must_use]
     pub fn files(mut self, files: &[&str]) -> Self {
-        self.files = files.iter().map(|s| s.to_string()).collect();
+        self.files = files.iter().map(std::string::ToString::to_string).collect();
         self
     }
 
     /// Set the include directories for proto imports.
     #[must_use]
     pub fn includes(mut self, dirs: &[&str]) -> Self {
-        self.includes = dirs.iter().map(|s| s.to_string()).collect();
+        self.includes = dirs.iter().map(std::string::ToString::to_string).collect();
         self
     }
 
@@ -64,7 +64,7 @@ impl Config {
         self
     }
 
-    /// Compile `.proto` files and generate ConnectRPC service code.
+    /// Compile `.proto` files and generate `ConnectRPC` service code.
     ///
     /// 1. Uses prost-build to compile `.proto` → message types and a file
     ///    descriptor set.

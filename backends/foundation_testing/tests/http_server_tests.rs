@@ -10,7 +10,7 @@ use std::time::Duration;
 use foundation_netio::shared::http::SendSafeBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
-/// WHY: Verify TestHttpServer can start and provides valid URL
+/// WHY: Verify `TestHttpServer` can start and provides valid URL
 /// WHAT: Tests basic construction and URL generation
 #[test]
 fn test_server_start() {
@@ -35,7 +35,7 @@ fn test_custom_response() {
     assert!(server.base_url().starts_with("http://"));
 }
 
-/// WHY: Verify HttpResponse::ok creates proper response
+/// WHY: Verify `HttpResponse::ok` creates proper response
 /// WHAT: Tests response construction
 #[test]
 fn test_http_response_ok() {
@@ -44,7 +44,7 @@ fn test_http_response_ok() {
     assert_eq!(response.body, b"test");
 }
 
-/// WHY: Verify HttpResponse::redirect creates proper response
+/// WHY: Verify `HttpResponse::redirect` creates proper response
 /// WHAT: Tests redirect response construction
 #[test]
 fn test_http_response_redirect() {
@@ -141,7 +141,7 @@ fn ok_responses(raw: &str) -> usize {
 /// WHY: the server read bodies from a non-blocking socket with a bounded
 /// number of immediate retries, so a body that arrived a moment after the
 /// headers reached the handler empty (the flaky body capture in
-/// foundation_ai's provider_fault_injection_tests).
+/// `foundation_ai`'s `provider_fault_injection_tests`).
 /// WHAT: a `Content-Length` body sent 200ms after the headers is captured
 /// in full.
 #[test]

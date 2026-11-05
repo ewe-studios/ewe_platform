@@ -15,10 +15,9 @@ fn setup_test_crate(tmp_dir: &Path, crate_name: &str) -> CrateMetadata {
         &cargo_toml,
         format!(
             r#"[package]
-name = "{}"
+name = "{crate_name}"
 version = "0.1.0"
-"#,
-            crate_name
+"#
         ),
     )
     .unwrap();
