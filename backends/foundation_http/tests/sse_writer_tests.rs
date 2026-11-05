@@ -51,11 +51,14 @@ fn drain_on_thread(
 /// Characterises the bug the feature fixes: the synchronous `EventWriter` stops
 /// in the middle of the event when the send buffer has no room.
 ///
-/// Measured on `c8c8e5080` (before feature 82): the send buffer held 64 bytes
-/// with 10 free; `EventWriter::send` of one 16 KiB `data:` line returned
-/// `WouldBlock` after writing 10 bytes (`"data: "` plus the first 4 data bytes).
-/// The client received 54 filler bytes and a 10-byte prefix of the event — no
-/// complete event.
+/// Measured on this branch against the retained synchronous `EventWriter` path
+/// (the feature keeps it for in-memory writers): the send buffer held 64 bytes
+/// with 10 free; `EventWriter::send` of one 16 KiB event returned `WouldBlock`
+/// after writing 10 bytes (`"data: "` plus the first 4 data bytes). The client
+/// received 54 filler bytes and a 10-byte prefix of the event — no complete
+/// event. On `c8c8e5080` the same event also stops after 10 bytes, but the
+/// prefix starts with `event: relo` because the old writer emitted each field
+/// with its own `writeln!`.
 #[test]
 fn synchronous_event_writer_truncates_an_event_on_a_full_socket() {
     let (conn, client) = overlay_pair(64);
