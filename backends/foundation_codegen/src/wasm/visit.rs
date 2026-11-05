@@ -20,19 +20,19 @@
 #![warn(missing_docs)]
 
 use crate::wasm::io::{DecodeError, PathItem};
+use derive_more::{Display, Error};
 pub(crate) use foundation_macros::Visit;
 use std::convert::Infallible;
-use thiserror::Error;
 
 /// Error type for [Visit] traversals.
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum VisitError<E> {
     /// Decoding error occured while visiting a [`Lazy`](crate::wasm::builtins::Lazy) value.
-    #[error(transparent)]
+    #[display("{_0}")]
     LazyDecode(DecodeError),
 
     /// A custom error returned from a visitor callback.
-    #[error(transparent)]
+    #[display("{_0}")]
     Custom(E),
 }
 

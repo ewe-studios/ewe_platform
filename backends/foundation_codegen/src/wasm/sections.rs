@@ -28,10 +28,10 @@ use crate::wasm::types::{
 };
 use crate::wasm::visit::{Visit, VisitError};
 use custom_debug::Debug as CustomDebug;
+use derive_more::{Display, Error};
 #[cfg(feature = "wasm-serde")]
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
-use thiserror::Error;
 
 /// A [name association](https://webassembly.github.io/spec/core/appendix/custom.html#binary-namemap) key-value pair.
 ///
@@ -611,8 +611,8 @@ define_sections! {
 }
 
 /// Error returned when a section is out of order.
-#[derive(Debug, Error)]
-#[error("Section out of order: {current:?} after {prev:?}")]
+#[derive(Debug, Display, Error)]
+#[display("Section out of order: {current:?} after {prev:?}")]
 pub struct SectionOrderError {
     pub current: Kind,
     pub prev: Kind,

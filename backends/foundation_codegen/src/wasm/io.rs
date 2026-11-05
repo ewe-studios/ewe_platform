@@ -20,26 +20,26 @@
 #![warn(missing_docs)]
 
 use crate::wasm::sections::SectionOrderError;
+use derive_more::{Display, Error, From};
 pub use foundation_macros::Wasmbin;
-use thiserror::Error;
 
 /// [Decode] error kind.
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error, From)]
 pub enum DecodeErrorKind {
     /// Reading error.
-    #[error(transparent)]
+    #[display("{_0}")]
     Io(#[from] std::io::Error),
 
     /// LEB128 decoding error.
-    #[error(transparent)]
+    #[display("{_0}")]
     Leb128(#[from] leb128::read::Error),
 
     /// UTF-8 decoding error.
-    #[error(transparent)]
+    #[display("{_0}")]
     Utf8(#[from] std::string::FromUtf8Error),
 
     /// Unsupported (unknown) enum or struct discriminant.
-    #[error("Could not recognise discriminant 0x{discriminant:X} for type {ty}")]
+    #[display("Could not recognise discriminant 0x{discriminant:X} for type {ty}")]
     UnsupportedDiscriminant {
         /// The fully-qualified type name.
         ty: &'static str,
@@ -48,18 +48,18 @@ pub enum DecodeErrorKind {
     },
 
     /// Invalid module magic signature.
-    #[error("Invalid module magic signature [{actual:02X?}]")]
+    #[display("Invalid module magic signature [{actual:02X?}]")]
     InvalidMagic {
         /// The actual byte sequence encountered instead of the expected magic signature.
         actual: [u8; 8],
     },
 
     /// Unrecognized data at the end of a stream or a [`Blob`](crate::wasm::builtins::Blob).
-    #[error("Unrecognized data")]
+    #[display("Unrecognized data")]
     UnrecognizedData,
 
     /// Encountered section in the wrong position among others.
-    #[error(transparent)]
+    #[display("{_0}")]
     SectionOutOfOrder(#[from] SectionOrderError),
 }
 
@@ -72,12 +72,11 @@ pub(crate) enum PathItem {
 
 /// Decoding error with attached property path.
 #[expect(clippy::partial_pub_fields)]
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub struct DecodeError {
     path: Vec<PathItem>,
 
     /// The kind of error that occurred.
-    #[source]
     pub kind: DecodeErrorKind,
 }
 
@@ -118,6 +117,12 @@ impl std::fmt::Display for DecodeError {
             }?;
         }
         write!(f, ": {}", self.kind)
+    }
+}
+
+impl std::error::Error for DecodeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.kind)
     }
 }
 
