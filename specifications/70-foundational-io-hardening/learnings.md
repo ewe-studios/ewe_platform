@@ -2,6 +2,56 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 76, wasm-bindgen `module` target under workerd): `--target module`
+  emits no `init` and no default export. The module instantiates the wasm at import time
+  (`let wasm = wasmInstance.exports; wasm.__wbindgen_start();`) and keeps the instance
+  private. The `__wbgt_` test shims are raw wasm exports, so the runner must patch the
+  generated JS: add `export { wasm };` and replace the `wasm.__wbindgen_start();` call.
+  Do **not** just delete that call: it also calls the `__wbindgen_init_externref_table`
+  import. Without it, the `JsValue` constants TRUE/FALSE (sentinel indices 1026/1027) map
+  to the wrong table slot, and `WasmBindgenTestContext.run`'s Promise resolved to
+  `[object ServiceWorkerGlobalScope]` instead of `true`. Replace the call with
+  `Object.values(__wbg_get_imports()).map((m) => m && m.__wbindgen_init_externref_table).find((f) => f)()`
+  (the function lives inside the import-object value, not on the object itself). The
+  wasm-bindgen CLI value is `module`; `esmodules` is rejected by 0.2.126.
+- 2026-11-05 (feature 76, wasm-bindgen-test in a worker): the `Worker` formatter and the
+  `TestFuture` poll loop call two host functions the official runner injects. A worker must
+  define `globalThis.__wbg_test_output_writeln = (line) => console.log(line)` and
+  `globalThis.__wbg_test_invoke = (callback) => callback()`. Without them the run aborts
+  with `ReferenceError: __wbg_test_output_writeln is not defined`.
+- 2026-11-05 (feature 76, Cloudflare bindings are host objects): `js_sys`/wasm-bindgen
+  `dyn_into::<D1Database>()` (and `R2Bucket`, `KVNamespace`, `R2Object`, `R2Objects`) checks
+  `value instanceof D1Database`, and workerd defines no such globals, so every binding
+  failed with "binding 'DB' is not the expected type". Use `JsCast::unchecked_into` after a
+  null/undefined check; the binding name is the contract, and a wrong binding fails at its
+  first method call.
+- 2026-11-05 (feature 76, D1 null and integer parameters): workerd's D1 binding rejects a
+  JS `null` parameter with `D1_TYPE_ERROR: Type 'object' not supported for value
+  '[object ServiceWorkerGlobalScope]'` (the null sentinel reaches the binding as the global
+  scope). Inline the `NULL` literal and drop the parameter, as the native REST client does,
+  and renumber later `?N` placeholders. Integers bind as decimal text with
+  `CAST(? AS INTEGER)`; a JS Number is a double and loses precision past 2^53.
+- 2026-11-05 (feature 76, workerd local R2 conditional put): the local binding enforces
+  `onlyIf: { etagMatches }` / `etagDoesNotMatch` (the object is left unchanged when the
+  condition fails) but it **resolves the promise instead of rejecting**. It also wants the
+  ETag without quotes, while `R2Object.httpEtag` returns it quoted. `etagDoesNotMatch: "*"`
+  is not honoured. `R2WasmStorage::put_blob_conditionally` therefore keeps the trait's
+  documented non-atomic check-then-write so it can report `PreconditionFailed`. The E0
+  harness tests that contract; a truly atomic wasm conditional put needs a workerd that
+  rejects. New backlog entry under `foundation_db`.
+- 2026-11-05 (feature 76, wasm testbed readiness): a raw `TcpStream::connect` success is not
+  readiness. workerd accepts connections before the worker module finishes loading, so the
+  test request waited forever on a module that had not started. Probe a `/health` route that
+  the worker answers before it runs any tests, and read the response body by
+  `Content-Length` (workerd keeps the HTTP/1.1 connection open past the body). Answer 200
+  with `{"passed": true|false}` for the test run: a 500 goes through wrangler's error
+  middleware, which re-encodes the result (and threw "Converting circular structure to
+  JSON" over the global scope).
+- 2026-11-05 (feature 76, valtron test pools): an async `#[valtron_test]` in the same test
+  binary as `#[valtron_test(threads = 8)]` panicked with `sync_collect_one: stream produced
+  no result` because the two tests set up different global pools at the same time. Give the
+  tests in one binary the same `threads` option (or run them serially).
+
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run

@@ -2,6 +2,28 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: features 76 and 55 E3 on `spec70/f76-f55-db-generators`. **76:** E3 and E4
+  were already on master (re-verified); E4b adds `R2Store::set_if_version` on the R2
+  conditional PUT (`If-None-Match: *`, then one GET with the `ETag` and `If-Match`), so
+  `R2Store` is now atomic; the R2 mock honours both headers and the 20-writer race has one
+  winner (10/10 tests). E1 makes `D1WasmStorage` bind an integer as decimal text with
+  `CAST(? AS INTEGER)` and inline `NULL` (workerd rejects a JS `null` parameter and names
+  the global scope), and documents the exact-read rule; a new real-binding test round-trips
+  `i64::MAX`, `i64::MIN` and 2^53+1. E0 adds a standalone wasm crate
+  `backends/foundation_db/integration/wasm_cf` with 7 tests (D1 KV/blob/integers, R2
+  blob/ETag/list/range/conditional put, KV, `CfD1R2DocumentStore` with the >4 KB R2
+  offload) that runs in workerd on the real local D1/R2/KV bindings through
+  `wasm-testbed test bindgen-wrangler`; result `{"passed":true}`, 7/7. The testbed runner
+  gained a `/health` readiness probe, `Content-Length` body reads, 200/`{"passed"}` test
+  results, process-group shutdown, the 120 s startup limit, the wasm-bindgen `module`
+  target patch (export the instance, initialise the externref table), and the
+  `__wbg_test_*` host functions; a mise task and the `wasm-tests` CI job run it. E1b/E2
+  re-verified against the local explorer: `d1r2` 4/4 and 20/20, eight REST suites 26 tests
+  green. Limitation: workerd's local R2 `onlyIf` does not reject on a failed
+  precondition, so the wasm store keeps the non-atomic default (backlog entry). **55 E3:**
+  the wasm32 build is clean, including `-W unused-crate-dependencies` under the pinned
+  nightly; E1/E2/E4 re-verified (fmt clean, clippy 0 with `-D warnings`, the codegen test
+  20/20 at ~3.9 s). Local `ci.py` runs are green; the PR's CI run is the only remainder.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers
