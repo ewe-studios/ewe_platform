@@ -7,9 +7,9 @@
 //! `EWE_REQUIRE_IO_URING=1` or `EWE_REQUIRE_PTRACE=1`, a missing kernel
 //! feature fails the test with the reason.
 //!
-//! WHAT: [`io_uring_missing`] and [`ptrace_missing`] probe the kernel and
-//! return whether the caller must skip. [`ptrace_available`] is the raw
-//! probe, shared with `tests/ptrace_probe.rs`.
+//! WHAT: [`io_uring_missing`] and [`ptrace_available`] probe the kernel.
+//! Only the io_uring suites skip; the ptrace spawn tests call `ptrace_available`
+//! and fail with its errno, because an emulated kernel must not hide them.
 //!
 //! HOW: each test binary declares `mod common;`. Cargo does not build
 //! `tests/common/mod.rs` as a test target of its own.
@@ -170,27 +170,4 @@ pub fn ptrace_available() -> Result<(), i32> {
     }
     unsafe { libc::waitpid(child, &mut status, 0) };
     result
-}
-
-/// Whether this kernel cannot trace a child, so the caller must skip its test.
-///
-/// A local machine without a usable ptrace skips with one line. An environment
-/// that sets `EWE_REQUIRE_PTRACE=1` expects ptrace, so the test fails with the
-/// errno instead.
-#[cfg(target_os = "linux")]
-#[allow(dead_code)] // no suite calls it yet; the ptrace spawn suite must fail in CI, not skip
-#[must_use]
-pub fn ptrace_missing(what: &str) -> bool {
-    let promised = std::env::var("EWE_REQUIRE_PTRACE").as_deref() == Ok("1");
-    match ptrace_available() {
-        Ok(()) => false,
-        Err(errno) => {
-            assert!(
-                !promised,
-                "EWE_REQUIRE_PTRACE=1 but ptrace is unavailable ({what}: errno {errno})"
-            );
-            eprintln!("skipping {what}: ptrace is unavailable (errno {errno})");
-            true
-        }
-    }
 }
