@@ -25,9 +25,10 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::poll::probe;
 use foundation_nativeapis::native::poll::sys::unix::selector::{uring, uring_completion};
 use foundation_nativeapis::{Events, Interest, Token};
+
+mod common;
 
 /// x86_64 syscall numbers for every way a process can read from an fd.
 const SYS_READ: u64 = 0;
@@ -256,16 +257,11 @@ fn spin_until(budget: Duration, mut done: impl FnMut() -> bool) -> bool {
 
 #[test]
 fn completion_mode_reads_the_socket_without_a_read_syscall() {
-    match probe::probe() {
-        Ok(caps) if caps.supports_completion() => {}
-        Ok(caps) => {
-            eprintln!("skipping: kernel lacks the completion tier ({caps})");
-            return;
-        }
-        Err(e) => {
-            eprintln!("skipping: io_uring unavailable ({e})");
-            return;
-        }
+    if common::io_uring_missing(
+        "completion read syscall count",
+        common::Requires::Completion,
+    ) {
+        return;
     }
 
     let (a, b) = socketpair();
@@ -399,16 +395,11 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
 /// buffer and puts the bytes on the wire via `io_uring_enter`, not `write(2)`.
 #[test]
 fn completion_mode_writes_the_socket_without_a_write_syscall() {
-    match probe::probe() {
-        Ok(caps) if caps.supports_completion() => {}
-        Ok(caps) => {
-            eprintln!("skipping: kernel lacks the completion tier ({caps})");
-            return;
-        }
-        Err(e) => {
-            eprintln!("skipping: io_uring unavailable ({e})");
-            return;
-        }
+    if common::io_uring_missing(
+        "completion write syscall count",
+        common::Requires::Completion,
+    ) {
+        return;
     }
 
     let (a, b) = socketpair();
@@ -471,8 +462,7 @@ fn completion_mode_writes_the_socket_without_a_write_syscall() {
 /// that silently counts nothing would make the test above pass vacuously.
 #[test]
 fn readiness_mode_does_issue_a_read_syscall() {
-    if probe::probe().is_err() {
-        eprintln!("skipping: io_uring unavailable");
+    if common::io_uring_missing("readiness read syscall count", common::Requires::IoUring) {
         return;
     }
 

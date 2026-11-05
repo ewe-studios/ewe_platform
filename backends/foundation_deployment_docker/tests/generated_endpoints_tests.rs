@@ -40,8 +40,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path =
         std::path::PathBuf::from("/tmp").join(format!("ewe_docker_gen_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
@@ -112,7 +111,7 @@ fn write_response(stream: &mut UnixStream, status: u16, extra: &str, body: &str)
 
 /// A mock daemon for the plain (Content-Length / no-body) endpoints.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         let Some(req) = mock_socket::read_request(&mut stream) else {
             return;
         };
@@ -127,7 +126,7 @@ fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
 /// The chunked read is what keeps the upload honest: the client must stream
 /// the body over the wire, and `consumed` records how much the daemon read.
 fn upload_mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>, consumed: Arc<AtomicUsize>) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         // Read the request head (through the blank line).
         let mut buf = Vec::new();
         let mut chunk = [0u8; 8192];

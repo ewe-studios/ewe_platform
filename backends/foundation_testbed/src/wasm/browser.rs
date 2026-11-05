@@ -1,7 +1,7 @@
 //! Browser test runner — pure-Rust, no node/Playwright (spec-43).
 //!
 //! WHY: Browser tests need a real browser with DOM + WebAssembly. We drive a
-//! system Chromium directly over the Chrome DevTools Protocol via the
+//! system Chromium directly over the Chrome `DevTools` Protocol via the
 //! `foundation_browser` driver — no Node.js, no `npm install`, no Playwright.
 //! WHAT: [`run`] launches Chromium, navigates to the test page, and polls the
 //! `#output` element for the test-result sentinel.
@@ -25,6 +25,12 @@ pub struct BrowserOutput {
 
 const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// Run a browser test and collect its output.
+///
+/// # Errors
+///
+/// Returns an error if the browser is not supported, the page cannot be
+/// opened, or the result does not arrive before the timeout.
 pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput> {
     if !matches!(browser, Browser::Chrome) {
         return Err(WasmTestbedError::BrowserDriver(format!(

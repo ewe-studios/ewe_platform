@@ -19,6 +19,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::writer::send_text;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -29,7 +30,7 @@ use foundation_http::{
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeFactory},
     },
 };
 
@@ -47,10 +48,9 @@ impl Serve for EchoHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "ok")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "ok")
     }
 }
 
@@ -70,11 +70,10 @@ impl Serve for SlowHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         std::thread::sleep(Duration::from_millis(SLOW_SLEEP_MS.load(Ordering::SeqCst)));
-        respond::text(&mut conn, 200, "slow-ok")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "slow-ok")
     }
 }
 

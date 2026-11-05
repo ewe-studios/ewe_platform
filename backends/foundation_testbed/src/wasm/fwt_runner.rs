@@ -15,6 +15,7 @@
 //! `test result:` summary). The runtime assets come from `foundation_wasm_ui`'s
 //! `embedded-js` feature, so the staged harness needs no repo paths.
 
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use tracing::info;
@@ -121,14 +122,16 @@ fn cases_json(cases: &[FwtCase]) -> String {
         if index > 0 {
             out.push(',');
         }
-        out.push_str(&format!(
+        // Writing to a `String` cannot fail, so the `fmt::Result` is safe to drop.
+        let _ = write!(
+            out,
             "{{\"name\":{name:?},\"export\":{export:?},\"is_async\":{is_async},\"should_panic\":{should_panic},\"ignore\":{ignore}}}",
             name = case.name,
             export = case.export,
             is_async = case.is_async,
             should_panic = case.should_panic,
             ignore = case.ignore,
-        ));
+        );
     }
     out.push(']');
     out
@@ -144,8 +147,8 @@ fn staged_temp(
 }
 
 /// `wasm-testbed deno <crate>` — build → discover → stage → run the owned
-/// `#[wasm_test]` harness **in-process** on the embedded Deno runtime (deno_core +
-/// deno_web). No external `node`/`deno` binary; requires the `wasm-embedded-js`
+/// `#[wasm_test]` harness **in-process** on the embedded Deno runtime (`deno_core` +
+/// `deno_web`). No external `node`/`deno` binary; requires the `wasm-embedded-js`
 /// feature (which links V8).
 ///
 /// # Errors

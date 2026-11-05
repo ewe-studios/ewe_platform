@@ -5,7 +5,7 @@
 //! auto-generates a CA + server + client certs:
 //!
 //!   docker run -d --privileged --name ewe-dind-tls \
-//!     -e DOCKER_TLS_CERTDIR=/certs -v /tmp/ewe-dind-certs:/certs \
+//!     -e `DOCKER_TLS_CERTDIR=/certs` -v /tmp/ewe-dind-certs:/certs \
 //!     -p 12376:2376 docker:dind
 //!
 //! then `EWE_DOCKER_TLS_CERTS=/tmp/ewe-dind-certs/client` and

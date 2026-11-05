@@ -1,3 +1,10 @@
+#[cfg(feature = "ipc")]
+mod memory_registry;
+#[cfg(feature = "ipc")]
+mod shared_message;
+#[cfg(feature = "ipc")]
+mod shared_version;
+
 /// Integration tests for the IPC message bus (Linux).
 ///
 /// Tests the ipmb-adapted bus: join, send/recv, multicast routing,

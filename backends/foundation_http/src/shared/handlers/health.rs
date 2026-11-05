@@ -6,7 +6,7 @@ use serde_json::json;
 use std::sync::Arc;
 
 use crate::shared::context::ContextBag;
-use crate::shared::serve::{respond, ConnectionResult, ServeWriter, ServeWriterFactory};
+use crate::shared::serve::{respond_to_buffer, ConnectionResult, ServeWriter, ServeWriterFactory};
 
 /// The JSON body for a health `path`.
 fn health_body(path: &str) -> serde_json::Value {
@@ -36,7 +36,7 @@ impl ServeWriter for HealthHandler {
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or("/");
 
-        respond::json(&mut conn, 200, &health_body(path))
+        respond_to_buffer::json(&mut conn, 200, &health_body(path))
             .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
     }
 }

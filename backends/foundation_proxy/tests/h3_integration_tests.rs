@@ -14,9 +14,10 @@ use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{initialize_pool, BlockingFutureExt, Stream};
 use foundation_http::native::server::{HttpServer, ServerConfig};
+use foundation_http::native::writer::send_text;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::ShutdownSignal;
 use foundation_netio::http3::{H3Connection, H3Request};
 use foundation_netio::netcap::RawStream;
@@ -49,15 +50,14 @@ impl Serve for BodyEchoHandler {
         &self,
         _bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let body = req
             .body
             .and_then(|b| try_collect_bytes(b).ok())
             .unwrap_or_default();
         let text = String::from_utf8_lossy(&body);
-        respond::text(&mut conn, 200, &text)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, &text)
     }
 }
 

@@ -29,7 +29,7 @@ use crate::ServerIo;
 
 /// Initialise the shared reactor on the backend `mode` requires.
 ///
-/// WHY: an operator asking for [`ServerIo::Completion`] must get io_uring or a
+/// WHY: an operator asking for [`ServerIo::Completion`] must get `io_uring` or a
 /// hard error at startup — never a silent demotion to epoll discovered later
 /// from latency graphs (Feature 48, no-silent-defaults). Call this once before
 /// the accept loop begins.
@@ -43,7 +43,7 @@ use crate::ServerIo;
 /// `AlreadyInitialised`.
 ///
 /// # Errors
-/// The probe's failure if `Completion` is asked for on a host without io_uring,
+/// The probe's failure if `Completion` is asked for on a host without `io_uring`,
 /// or `AlreadyInitialised` if the reactor is already up on a different backend.
 ///
 /// # Panics
@@ -120,7 +120,7 @@ pub fn accept_connection(
 /// WHY: a proxy's *upstream* leg is an outbound `TcpStream::connect`, never
 /// registered with the reactor, so its reads are `read(2)` and there is no inbox
 /// to park on. Dialing through here registers the connected socket exactly as the
-/// accept path does, so both legs of a relay read from the io_uring inbox. RECV
+/// accept path does, so both legs of a relay read from the `io_uring` inbox. RECV
 /// on a freshly connected client socket is as valid as on an accepted one.
 ///
 /// WHAT: `Std` yields a plain `Connection::Tcp`; every other mode registers the

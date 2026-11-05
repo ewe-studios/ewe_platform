@@ -39,6 +39,10 @@ fn map_row(row: &SqlRow) -> AppResult<TwoFactorRow> {
 }
 
 /// The user's 2FA row, if any.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Option<TwoFactorRow>> {
     let rows = db
         .query(
@@ -54,6 +58,10 @@ pub async fn get(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Option<TwoFa
 }
 
 /// Insert or replace the user's 2FA row.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn upsert(db: &dyn QueryStore, row: &TwoFactorRow) -> AppResult<()> {
     db.execute(
         "INSERT OR REPLACE INTO vault_two_factor \
@@ -77,6 +85,10 @@ pub async fn upsert(db: &dyn QueryStore, row: &TwoFactorRow) -> AppResult<()> {
 }
 
 /// Remove the user's 2FA (disable).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(db: &dyn QueryStore, user_uuid: &str) -> AppResult<()> {
     db.execute(
         "DELETE FROM vault_two_factor WHERE user_uuid = ?",

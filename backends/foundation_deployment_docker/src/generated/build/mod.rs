@@ -132,8 +132,8 @@ pub async fn image_build_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/build",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/build");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

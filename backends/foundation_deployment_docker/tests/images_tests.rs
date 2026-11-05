@@ -30,8 +30,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path = std::path::PathBuf::from("/tmp")
         .join(format!("ewe_docker_images_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
@@ -41,10 +40,9 @@ fn temp_socket_path(tag: &str) -> PathBuf {
 /// Route a request to a canned JSON response body for image endpoints.
 fn images_route(method: &str, path: &str) -> (u16, String) {
     // Strip API version prefix: /v1.53/images/json -> images/json
-    let p = path
-        .split_once("/v1.")
-        .map(|(_, rest)| rest.split_once('/').map_or(rest, |(_, r)| r))
-        .unwrap_or(path);
+    let p = path.split_once("/v1.").map_or(path, |(_, rest)| {
+        rest.split_once('/').map_or(rest, |(_, r)| r)
+    });
 
     match (method, p) {
         // Version negotiation: the client asks once, unversioned, before its
@@ -103,7 +101,7 @@ fn mock_images_daemon_gated(
     gate: Option<mpsc::Receiver<()>>,
 ) {
     let gate = Arc::new(Mutex::new(gate));
-    mock_socket::serve(&socket_path, stop, move |stream| {
+    mock_socket::serve(socket_path, stop, move |stream| {
         let gate = Arc::clone(&gate);
         // One thread per connection: a streaming answer must not
         // hold up the next request.
@@ -153,12 +151,11 @@ fn serve(mut stream: UnixStream, gate: &Mutex<Option<mpsc::Receiver<()>>>) {
         if stream.write_all(head.as_bytes()).is_err() {
             return;
         }
-        let block = [b'e'; 64 * 1024];
         let mut written = 0;
         while written < total {
-            let n = block.len().min(total - written);
+            let n = BLOCK.len().min(total - written);
             // Fails once the client has read what it wants and hung up.
-            if stream.write_all(&block[..n]).is_err() {
+            if stream.write_all(&BLOCK[..n]).is_err() {
                 return;
             }
             written += n;
@@ -184,6 +181,8 @@ fn serve(mut stream: UnixStream, gate: &Mutex<Option<mpsc::Receiver<()>>>) {
 /// The size of the `fromImage=huge-error` error body: far more than any
 /// error message, and more than a client should ever hold.
 const HUGE_ERROR_BODY: usize = 256 * 1024 * 1024;
+/// One write-sized block for the never-ending error body.
+static BLOCK: [u8; 64 * 1024] = [b'e'; 64 * 1024];
 
 fn write_chunk(stream: &mut UnixStream, data: &[u8]) {
     let _ = stream.write_all(format!("{:x}\r\n", data.len()).as_bytes());
@@ -356,7 +355,7 @@ async fn image_inspect_returns_image_details() {
         .expect("image_inspect should succeed");
 
     assert_eq!(result.id.as_deref(), Some("sha256:abc"));
-    assert_eq!(result.size, Some(7000000));
+    assert_eq!(result.size, Some(7_000_000));
 
     mock_socket::stop(&socket, &stop);
 }

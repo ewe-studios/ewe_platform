@@ -94,14 +94,14 @@ fn notification_msgpack_encodes() {
         Some(serde_json::json!({"id": "abc123", "revisionDate": "2024-01-01T00:00:00Z"})),
     );
     let bytes = n.to_msgpack().expect("serialize");
-    assert!(!bytes.is_empty());
+    assert_ne!(bytes, [] as [u8; 0]);
 }
 
 #[test]
 fn notification_without_payload_encodes() {
     let n = Notification::new(UpdateType::SyncLogOut, None);
     let bytes = n.to_msgpack().expect("serialize");
-    assert!(!bytes.is_empty());
+    assert_ne!(bytes, [] as [u8; 0]);
 }
 
 #[test]
@@ -128,7 +128,7 @@ fn all_update_types_are_distinct() {
     // All values are unique
     let values: Vec<u8> = types.iter().map(|t| *t as u8).collect();
     let mut deduped = values.clone();
-    deduped.sort();
+    deduped.sort_unstable();
     deduped.dedup();
     assert_eq!(
         values.len(),

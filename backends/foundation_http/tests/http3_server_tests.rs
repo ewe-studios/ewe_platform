@@ -57,16 +57,13 @@ fn send_frame(request: &mut H3Request<QuinnBidiStream>, mut pending: Bytes, head
         } else {
             request.poll_send_data(&mut pending)
         };
-        match step {
-            Stream::Next(Ok(())) => return,
-            Stream::Next(Err(_)) => return,
-            _ => {
-                if Instant::now() >= deadline {
-                    return;
-                }
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(Ok(()) | Err(_)) = step {
+            return;
         }
+        if Instant::now() >= deadline {
+            return;
+        }
+        std::thread::sleep(ms(1));
     }
 }
 
@@ -76,8 +73,7 @@ fn read_body(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) -> Vec
     loop {
         match request.poll_body() {
             Stream::Next(Ok(Some(chunk))) => body.extend_from_slice(&chunk),
-            Stream::Next(Ok(None)) => return body,
-            Stream::Next(Err(_)) => return body,
+            Stream::Next(Ok(None) | Err(_)) => return body,
             _ => {
                 if Instant::now() >= deadline {
                     return body;
@@ -117,15 +113,13 @@ impl H3Serve for EchoH3 {
             // Finish the send half.
             let fin_deadline = Instant::now() + Duration::from_secs(5);
             loop {
-                match request.poll_finish() {
-                    Stream::Next(Ok(())) | Stream::Next(Err(_)) => break,
-                    _ => {
-                        if Instant::now() >= fin_deadline {
-                            break;
-                        }
-                        std::thread::sleep(ms(1));
-                    }
+                if let Stream::Next(Ok(()) | Err(_)) = request.poll_finish() {
+                    break;
                 }
+                if Instant::now() >= fin_deadline {
+                    break;
+                }
+                std::thread::sleep(ms(1));
             }
             Ok(())
         })
@@ -194,15 +188,13 @@ fn http3_server_echoes_a_request_over_quic() {
     // Finish the request send half so the server sees end-of-body.
     let fin_deadline = Instant::now() + Duration::from_secs(5);
     loop {
-        match request.poll_finish() {
-            Stream::Next(Ok(())) | Stream::Next(Err(_)) => break,
-            _ => {
-                if Instant::now() >= fin_deadline {
-                    break;
-                }
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(Ok(()) | Err(_)) = request.poll_finish() {
+            break;
         }
+        if Instant::now() >= fin_deadline {
+            break;
+        }
+        std::thread::sleep(ms(1));
     }
 
     // Read the response.

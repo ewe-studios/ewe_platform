@@ -2,7 +2,7 @@
 //!
 //! WHY: Proves the generated async `*_request` functions + hand-written
 //! `DockerClient` actually round-trip over the Unix-socket transport (Feature 02)
-//! — version negotiation and serde (de)serialization of PascalCase Docker JSON
+//! — version negotiation and serde (de)serialization of `PascalCase` Docker JSON
 //! via per-field `#[serde(rename)]` — without a real dockerd.
 //!
 //! WHAT: A tiny `UnixListener` HTTP server that routes by request path and
@@ -29,8 +29,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path =
         std::path::PathBuf::from("/tmp").join(format!("ewe_docker_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
@@ -105,7 +104,7 @@ fn mock_daemon_recording(
     api_version: Option<&'static str>,
     seen: Arc<Mutex<Vec<String>>>,
 ) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         let Some(req) = mock_socket::read_request(&mut stream) else {
             return;
         };

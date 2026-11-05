@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Every codec combination, over one server (requires the `arrow` feature — on
 //! by default via `rpc`).
 //!
@@ -15,7 +23,7 @@
 //! |---------------|----------------------------------------------|--------------------|
 //! | proto + json  | `ProcedureCodecs::defaults()`                | Message + serde    |
 //! | json          | `of((JsonCodec,))`                           | serde only         |
-//! | arrow         | `only(ArrowCodec)`                           | ToArrow + FromArrow|
+//! | arrow         | `only(ArrowCodec)`                           | `ToArrow` + `FromArrow`|
 //! | arrow + json  | `of((JsonCodec, ArrowCodec))`                | serde + Arrow      |
 //! | proto+json+arrow | `of((ProtoCodec, JsonCodec, ArrowCodec))` | all three          |
 //!
@@ -36,7 +44,7 @@ use foundation_connectrpc::buffa::{
 
 use foundation_arrow::arrow_array::{Array, Int32Array, RecordBatch};
 use foundation_arrow::arrow_schema::{DataType, Field, Schema};
-use foundation_arrow::{ArrowSchema, FromArrow, IpcResult, ToArrow};
+use foundation_arrow::{arrow_err, ArrowSchema, FromArrow, IpcResult, ToArrow};
 
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -116,10 +124,11 @@ impl ToArrow for Sample {
             Self::schema_ref(),
             vec![Arc::new(Int32Array::from(vec![self.value]))],
         )
+        .map_err(arrow_err)
     }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let col = Int32Array::from(values.iter().map(|s| s.value).collect::<Vec<_>>());
-        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(col)])
+        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(col)]).map_err(arrow_err)
     }
 }
 impl FromArrow for Sample {

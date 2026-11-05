@@ -1,5 +1,5 @@
 //! Compression + buffer-pool tests (spec-41 F14 / Decision 06): gzip round-trip,
-//! size limits (compress_min / send_max / read_max bomb guard), negotiation, the
+//! size limits (`compress_min` / `send_max` / `read_max` bomb guard), negotiation, the
 //! reset-able streaming form, and the origin-return buffer pool.
 
 use std::sync::Arc;
@@ -68,7 +68,7 @@ fn size_limits_compress_min_and_send_max() {
     assert!(limits.should_compress(50), "at compress_min: compress");
 
     assert!(limits.check_send(100).is_ok());
-    let err = limits.check_send(101).err().expect("over send_max");
+    let err = limits.check_send(101).expect_err("over send_max");
     assert_eq!(
         err.current_context().code(),
         foundation_connectrpc::Code::ResourceExhausted
@@ -141,7 +141,7 @@ fn buffer_pool_recycles_locally() {
     assert_eq!(pool.free_list_len(), 1);
     // Next get reuses it, cleared.
     let reused = pool.get();
-    assert!(reused.is_empty());
+    assert_eq!(reused, [] as [u8; 0]);
     assert_eq!(pool.free_list_len(), 0);
 }
 

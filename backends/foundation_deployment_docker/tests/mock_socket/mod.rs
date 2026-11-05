@@ -50,11 +50,11 @@ pub struct Request {
 /// # Panics
 ///
 /// If the socket cannot be bound.
-pub fn serve<H>(socket: &Path, stop: Arc<AtomicBool>, handle: H)
+pub fn serve<H>(socket: impl AsRef<Path>, stop: Arc<AtomicBool>, handle: H)
 where
     H: Fn(UnixStream) + Send + 'static,
 {
-    let listener = UnixListener::bind(socket).expect("bind mock docker socket");
+    let listener = UnixListener::bind(socket.as_ref()).expect("bind mock docker socket");
     std::thread::spawn(move || {
         for conn in listener.incoming() {
             if stop.load(Ordering::Relaxed) {

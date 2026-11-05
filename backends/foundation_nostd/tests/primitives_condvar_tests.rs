@@ -214,7 +214,6 @@ fn test_condvar_wait_timeout_medium_duration() {
 /// WHAT: Should NOT timeout when notified before duration expires
 #[cfg(feature = "std")]
 #[test]
-#[ignore = "Requires threading support - run with cargo test -- --ignored"]
 fn test_condvar_wait_timeout_long_with_notification() {
     use core::time::Duration;
     use std::sync::Arc;
@@ -617,7 +616,6 @@ fn test_condvar_multiple_notify_all() {
 /// WHAT: Should safely handle concurrent notifications
 #[cfg(feature = "std")]
 #[test]
-#[ignore = "Requires threading support"]
 fn test_condvar_concurrent_notify_one() {
     use std::sync::Arc;
     use std::thread;

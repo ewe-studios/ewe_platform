@@ -34,7 +34,7 @@ pub trait WebServeFactory: WebServe + Sized {
 // HttpApp<Arc<dyn WebServe>> convenience methods
 
 impl HttpApp<Arc<dyn WebServe>> {
-    /// Create a new empty `HttpApp` for WebServe handlers.
+    /// Create a new empty `HttpApp` for `WebServe` handlers.
     #[must_use]
     pub fn new_web() -> Self {
         use crate::shared::router::Router;

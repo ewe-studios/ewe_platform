@@ -31,6 +31,8 @@ fn ok<T: serde::Serialize>(value: T) -> AppResult<(u16, serde_json::Value)> {
     Ok((200, json))
 }
 
+// All handlers share the `AppResult` return shape, even when they cannot fail.
+#[allow(clippy::unnecessary_wraps)]
 fn empty() -> AppResult<(u16, serde_json::Value)> {
     Ok((200, serde_json::Value::Null))
 }
@@ -38,6 +40,7 @@ fn empty() -> AppResult<(u16, serde_json::Value)> {
 fn from_json<T: serde::de::DeserializeOwned>(body: &str) -> AppResult<T> {
     serde_json::from_str(body)
         .map_err(|e| AppError::BadRequest(format!("invalid request body: {e}")))
+        .map_err(Into::into)
 }
 
 fn json_value(body: &str) -> serde_json::Value {
@@ -45,6 +48,7 @@ fn json_value(body: &str) -> serde_json::Value {
 }
 
 /// Parse `connect/token`'s `application/x-www-form-urlencoded` body.
+#[must_use]
 pub fn parse_token_request(body: &str) -> TokenRequest {
     use std::collections::HashMap;
     let map: HashMap<String, String> = body
@@ -88,6 +92,14 @@ fn form_decode(s: &str) -> String {
 /// Route a request to a handler. `method` is upper-case (`"GET"`, `"POST"`, …);
 /// `path` excludes the query string; `bearer` is the token from
 /// `Authorization: Bearer …` if present.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the route table reads best as one ordered match"
+)]
 pub async fn route(
     ctx: &KeychainContext,
     method: &str,
@@ -111,8 +123,10 @@ pub async fn route(
 
     // ── Unauthenticated ─────────────────────────────────────────────────────
     match (m, s) {
-        ("POST", ["identity", "accounts", "prelogin"])
-        | ("POST", ["identity", "accounts", "prelogin", "password"]) => {
+        (
+            "POST",
+            ["identity", "accounts", "prelogin"] | ["identity", "accounts", "prelogin", "password"],
+        ) => {
             let email = json_value(body)
                 .get("email")
                 .and_then(|v| v.as_str())
@@ -283,6 +297,6 @@ pub async fn route(
             empty()
         }
 
-        _ => Err(AppError::NotFound(format!("no route for {method} {path}"))),
+        _ => Err(AppError::NotFound(format!("no route for {method} {path}")).into()),
     }
 }

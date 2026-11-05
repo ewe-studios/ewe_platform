@@ -1,4 +1,4 @@
-//! `foundation_connectrpc` — ConnectRPC for the EWE platform.
+//! `foundation_connectrpc` — `ConnectRPC` for the EWE platform.
 //!
 //! An independent Rust port of the Connect protocol (connect-go is the design
 //! reference), built on the platform's foundation crates: `foundation_errstacks`
@@ -29,7 +29,7 @@ pub use shared::router::{
     RequestBody, RequestStream, ResponseSink, Router,
 };
 
-/// Proc-macro for code-first ConnectRPC service generation (Feature 27,
+/// Proc-macro for code-first `ConnectRPC` service generation (Feature 27,
 /// Decision 10 Mode 3). See `foundation_macros::service` for docs.
 pub use foundation_macros::{generate, service};
 

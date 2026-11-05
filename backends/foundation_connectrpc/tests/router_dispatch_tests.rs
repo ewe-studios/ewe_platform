@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Router & dispatch tests (spec-41 F22 / Decision 08): the 404 → 405 → 415 →
 //! 505 decision flow with correct `Allow`/`Accept-Post`, unary POST + GET
 //! execution, server-streaming execution through the seam, multi-service

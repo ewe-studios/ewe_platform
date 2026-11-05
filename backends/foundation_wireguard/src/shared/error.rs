@@ -1,9 +1,13 @@
 //! Error types for `foundation_wireguard`.
 
 use derive_more::{Display, Error, From};
+use foundation_errstacks::ErrorTrace;
 
 /// Convenience alias for results in this crate.
-pub type WgResult<T> = Result<T, WgError>;
+///
+/// The error is an errstacks trace that carries [`WgError`] as its
+/// current context and keeps the history of the layers it crossed.
+pub type WgResult<T> = Result<T, ErrorTrace<WgError>>;
 
 /// WHY: One error type spanning key parsing, tunnel crypto, and transport so callers
 /// handle a single `Result`.
@@ -53,4 +57,10 @@ pub enum WgError {
     #[display("config error: {_0}")]
     #[from(ignore)]
     Config(#[error(not(source))] String),
+}
+
+impl From<WgError> for ErrorTrace<WgError> {
+    fn from(err: WgError) -> Self {
+        ErrorTrace::new(err)
+    }
 }

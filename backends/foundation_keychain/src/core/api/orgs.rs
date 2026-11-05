@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Organizations API — portable handlers (spec-57, F008 Stage 1, core subset).
 //!
 //! WHY: shared vaults — orgs own collections and have members. Ported from
@@ -82,6 +86,7 @@ async fn membership(
     store::find_membership_for_user(ctx.db(), org_id, user_uuid)
         .await?
         .ok_or(AppError::Forbidden)
+        .map_err(Into::into)
 }
 
 /// Require the caller to be an Owner or Admin of `org_id`.
@@ -96,12 +101,16 @@ async fn require_admin(
         OrganizationUserType::Owner | OrganizationUserType::Admin
     );
     if !is_admin || m.status != STATUS_CONFIRMED {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(m)
 }
 
 /// `POST /api/organizations` — create an org with the caller as owner + a default collection.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -109,7 +118,7 @@ pub async fn create(
     req: OrganizationCreateRequest,
 ) -> AppResult<Organization> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("organization name is required".into()));
+        return Err(AppError::BadRequest("organization name is required".into()).into());
     }
     let now = Utc::now();
     let org = OrgRow {
@@ -157,6 +166,10 @@ pub async fn create(
 }
 
 /// `GET /api/organizations/:id` — any member may read.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(ctx: &KeychainContext, user_uuid: &str, org_id: &str) -> AppResult<Organization> {
     membership(ctx, user_uuid, org_id).await?;
     let org = store::find_org(ctx.db(), org_id)
@@ -166,6 +179,10 @@ pub async fn get(ctx: &KeychainContext, user_uuid: &str, org_id: &str) -> AppRes
 }
 
 /// The caller's organization memberships (the `profile.organizations` block).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list_for_user(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -188,15 +205,23 @@ pub async fn list_for_user(
 }
 
 /// `DELETE /api/organizations/:id` — owner only.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, user_uuid: &str, org_id: &str) -> AppResult<()> {
     let m = membership(ctx, user_uuid, org_id).await?;
     if member_type_from_i64(m.atype) != OrganizationUserType::Owner {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     store::delete_org(ctx.db(), org_id).await
 }
 
 /// `POST /api/organizations/:id/collections` — owner/admin.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create_collection(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -205,7 +230,7 @@ pub async fn create_collection(
 ) -> AppResult<Collection> {
     require_admin(ctx, user_uuid, org_id).await?;
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("collection name is required".into()));
+        return Err(AppError::BadRequest("collection name is required".into()).into());
     }
     let now = Utc::now();
     let row = CollectionRow {
@@ -220,6 +245,10 @@ pub async fn create_collection(
 }
 
 /// `GET /api/organizations/:id/collections` — any member.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list_collections(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -234,6 +263,10 @@ pub async fn list_collections(
 }
 
 /// `DELETE /api/organizations/:id/collections/:col_id` — owner/admin.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete_collection(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -245,12 +278,16 @@ pub async fn delete_collection(
         .await?
         .ok_or_else(|| AppError::NotFound("collection not found".into()))?;
     if col.org_uuid != org_id {
-        return Err(AppError::NotFound("collection not found".into()));
+        return Err(AppError::NotFound("collection not found".into()).into());
     }
     store::delete_collection(ctx.db(), col_id).await
 }
 
 /// `POST /api/organizations/:id/users/invite` — owner/admin invites by email.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn invite_member(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -260,7 +297,7 @@ pub async fn invite_member(
     require_admin(ctx, user_uuid, org_id).await?;
     let email = req.email.trim().to_lowercase();
     if email.is_empty() || !email.contains('@') {
-        return Err(AppError::BadRequest("a valid email is required".into()));
+        return Err(AppError::BadRequest("a valid email is required".into()).into());
     }
     let now = Utc::now();
     let row = MembershipRow {
@@ -279,6 +316,10 @@ pub async fn invite_member(
 }
 
 /// `POST /api/organizations/:id/users/:member_id/confirm` — owner/admin confirms.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn confirm_member(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -291,7 +332,7 @@ pub async fn confirm_member(
         .await?
         .ok_or_else(|| AppError::NotFound("member not found".into()))?;
     if m.org_uuid != org_id {
-        return Err(AppError::NotFound("member not found".into()));
+        return Err(AppError::NotFound("member not found".into()).into());
     }
     m.status = STATUS_CONFIRMED;
     if req.key.is_some() {
@@ -302,6 +343,10 @@ pub async fn confirm_member(
 }
 
 /// `GET /api/organizations/:id/users` — owner/admin lists members.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list_members(
     ctx: &KeychainContext,
     user_uuid: &str,

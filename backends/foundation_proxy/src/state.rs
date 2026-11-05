@@ -256,7 +256,7 @@ impl ProxyState {
     }
 
     /// The I/O mode for dialing upstream legs (F50). `Completion` dials through
-    /// `iogate::connect_completion` so the upstream reads from the io_uring inbox
+    /// `iogate::connect_completion` so the upstream reads from the `io_uring` inbox
     /// and writes via `IORING_OP_SEND`.
     #[must_use]
     pub fn io_mode(&self) -> ServerIo {

@@ -1,9 +1,9 @@
 ---
 feature: "io_uring is really tested in CI (EWE_REQUIRE_IO_URING=1), nativeapis uring tests fail loudly instead of skipping, foundation_core bare wasm32 build, reactor wasm dead code"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
-branch: "fix/io-41-50-lane-a"
+branch: "spec70/f77-f62-f78-readiness-ci"
 crates: ["foundation_iogate", "foundation_nativeapis", "foundation_proxy", "foundation_core", "foundation_reactor", ".github/workflows/check.yaml", "ci/packages.toml"]
 catalogue_rows: [99, 100, 101, 103]
 ---
@@ -76,4 +76,49 @@ Full CI on GitHub (requirements.md §8.2 rule 4).
 
 ## Done when
 
-- [ ] CI runs the io_uring tests with `EWE_REQUIRE_IO_URING=1` and they pass (or the job fails with a clear reason that the main session reports); nativeapis uring tests follow the same rule; the bare wasm32 core build is supported or refused with a clear error, checked in CI; reactor wasm dead code gone; `vfs-preload` builds and `vfs_shim_vfs` passes, and CI builds it; backlog entries deleted.
+- [x] CI runs the io_uring tests with `EWE_REQUIRE_IO_URING=1` and they pass (or the job fails with a clear reason that the main session reports); nativeapis uring tests follow the same rule; the bare wasm32 core build is supported or refused with a clear error, checked in CI; reactor wasm dead code gone; `vfs-preload` builds and `vfs_shim_vfs` passes, and CI builds it; backlog entries deleted.
+
+## Result (2026-11-05)
+
+**E1.** `ci/packages.toml` now sets `EWE_REQUIRE_IO_URING=1` for `foundation_iogate`,
+`foundation_proxy` and `foundation_nativeapis`. The three packages get
+`container-options = "--security-opt seccomp=unconfined"`: Docker's default seccomp profile
+blocks `io_uring_setup`, so only the io_uring jobs leave the default profile. `ci.py` adds that
+string to the package job's `container:` job, its `docker run` in the artifact path, and the
+matrix carries it. A new Linux-only target, `foundation_iogate/tests/io_uring_probe.rs`, starts
+the completion reactor through the crate's own detection and prints
+`io_uring probe: available` or `io_uring probe: unavailable: <reason>`. The workflow runs it
+before the package tests in both job paths. The main session must start `workflow_dispatch` and
+read the probe line; this host cannot run io_uring.
+
+**E2.** `foundation_nativeapis/tests/common/mod.rs` holds one helper, `io_uring_missing`, with
+the `Requires::{IoUring, Completion}` choice. The four suites (`uring_completion_tests`,
+`uring_completion_send_tests`, `uring_completion_syscall_tests`, `completion_source_seam_tests`)
+call it. With `EWE_REQUIRE_IO_URING=1` a missing io_uring or completion tier fails the test with
+the reason; without it, one line says the test skipped. The suites were not compiled in CI
+before: they need `feature = "uring"`, and no run enabled it. `fd,uring` is now a CI run. The
+`io-uring` dependency moved to the Linux target table in `foundation_nativeapis/Cargo.toml`, so
+the feature compiles (to the empty Linux-gated tests) on other targets.
+
+**E3.** Decision: `std` is the minimum, not `alloc`. `valtron::Ctx` and its executors need
+`std`, and `valtron::ctx` documents that `alloc`-only support is deferred; a bare
+`--no-default-features` build emits 15 unresolved-`Ctx` errors. The crate root now has a
+`compile_error!` that names `std`, plus a "Feature sets" section in the crate docs. `ci.py`
+gained a `wasm-expect-error` setting: `scripts/ci/expect_compile_error.py` runs the build and
+requires that exact message. `ci/packages.toml` uses it for `foundation_core`. The supported
+minimum (`--no-default-features --features std`) was already a wasm run and still passes.
+
+**E4.** `Poll::rearm_readable` is now `#[cfg(unix)]`, the same condition as its one caller,
+`Reactor::clear` in the Unix-only reactor module. `foundation_reactor` gets a wasm32 check in
+`ci/packages.toml` (`wasm = "enforce"`, `wasm-runs = [""]`), and that check passes.
+
+**E5.** The E0382 was the `drop(guard)` in the D1 and R2 error closures of
+`src/native/vfs/shim/mod.rs`: it moved the guard before `VfsRuntime { guard: Some(guard) }`.
+The closures now only panic, and a panic unwinds the frame and drops the guard. `vfs-preload`,
+`vfs-preload,vfs-d1` and `vfs-preload,vfs-r2` all build. `vfs-preload` is its own CI run. The
+`vfs_shim_vfs` target compiles on macOS (0 tests, Linux-gated); the real run needs Linux and
+wrangler's local explorer API, so this host did not run it.
+
+Backlog entries deleted: the §9 io_uring CI entry, the §16 `rearm_readable` entry, the §22
+bare-core entry, and the `vfs-preload` entry. Added: the bare build's extra error noise (§4) and
+the two `ignore`d `foundation_nativeapis` doc examples (§5).

@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Wake, Waker};
 use std::time::{Duration, Instant};
 
+use base64::Engine as _;
 use bytes::Bytes;
 use foundation_core::valtron::Pipe;
 use foundation_netio::shared::http::{
@@ -65,7 +66,6 @@ fn status_details_bin_preferred_over_status_message() {
     // details-bin still encodes NotFound(5) "detailed".
     let details =
         foundation_connectrpc::shared::protocol::grpc_web::encode_status_proto(5, "detailed");
-    use base64::Engine as _;
     trailers.insert(
         SimpleHeader::from(constants::TRAILER_STATUS_DETAILS.to_string()),
         vec![base64::engine::general_purpose::STANDARD.encode(details)],
@@ -103,7 +103,6 @@ fn streaming_base64_handles_fragmented_boundaries() {
     encoded.extend(enc.finish());
 
     // The stream equals a one-shot standard base64 encode.
-    use base64::Engine as _;
     assert_eq!(
         String::from_utf8(encoded.clone()).unwrap(),
         base64::engine::general_purpose::STANDARD.encode(&data)
@@ -140,7 +139,7 @@ fn run_all(mut futs: Vec<BoxFut>) {
         while i < futs.len() {
             match futs[i].as_mut().poll(&mut cx) {
                 Poll::Ready(()) => {
-                    let _ = futs.swap_remove(i);
+                    drop(futs.swap_remove(i));
                 }
                 Poll::Pending => i += 1,
             }
@@ -162,6 +161,10 @@ fn request(text: bool) -> SimpleIncomingRequest {
         .expect("request")
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "one end-to-end round-trip reads best as a single scenario"
+)]
 fn roundtrip(text: bool) {
     let registry = CompressionRegistry::new();
     let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(8);

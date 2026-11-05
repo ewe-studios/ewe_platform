@@ -94,7 +94,7 @@ pub struct ProxyConfig {
     pub redirect_accept_poll: Duration,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
-    /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
+    /// the `io_uring` inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
     /// (today's `read(2)`/`write(2)`), so nothing changes unless asked. Not
     /// serialised — set it via the programmatic builder.
     #[serde(skip)]
@@ -298,17 +298,19 @@ impl ProxyConfig {
     ///
     /// # Errors
     /// Returns `ProxyError::Config` if the file cannot be read or parsed.
-    pub fn load_file(path: &str) -> Result<Self, ProxyError> {
+    pub fn load_file(path: &str) -> ProxyResult<Self> {
         let contents = std::fs::read_to_string(path)
-            .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))?;
-        toml::from_str(&contents).map_err(|e| ProxyError::Config(format!("parse {path}: {e}")))
+            .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))
+            .map_err(foundation_errstacks::ErrorTrace::new)?;
+        toml::from_str(&contents)
+            .map_err(|e| ProxyError::Config(format!("parse {path}: {e}")).into())
     }
 
     /// Start the proxy from this configuration.
     ///
     /// # Errors
     /// Returns `ProxyError` if validation fails or the listener cannot bind.
-    pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
+    pub async fn start(self) -> ProxyResult<crate::server::ProxyServer> {
         crate::server::ProxyServer::start(self).await
     }
 }
@@ -628,19 +630,15 @@ impl<'de> Deserialize<'de> for BackendTarget {
 /// `Paused` are excluded from new traffic while in-flight requests finish.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum BackendState {
     #[display("active")]
+    #[default]
     Active,
     #[display("draining")]
     Draining,
     #[display("paused")]
     Paused,
-}
-
-impl Default for BackendState {
-    fn default() -> Self {
-        Self::Active
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -727,3 +725,12 @@ pub enum ProxyError {
 }
 
 impl std::error::Error for ProxyError {}
+
+impl From<ProxyError> for foundation_errstacks::ErrorTrace<ProxyError> {
+    fn from(err: ProxyError) -> Self {
+        foundation_errstacks::ErrorTrace::new(err)
+    }
+}
+
+/// Result type of the crate's public fallible API.
+pub type ProxyResult<T> = Result<T, foundation_errstacks::ErrorTrace<ProxyError>>;

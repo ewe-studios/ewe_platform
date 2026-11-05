@@ -64,7 +64,10 @@ pub async fn fetch(mut req: Request, env: Env, _ctx: Context) -> WorkerResult<Re
 
     let (status, json) = match route(&ctx, &method, &path, &body, bearer.as_deref()).await {
         Ok((status, json)) => (status, json),
-        Err(err) => (err.status(), err.to_json()),
+        Err(err) => (
+            err.current_context().status(),
+            err.current_context().to_json(),
+        ),
     };
 
     Ok(Response::from_json(&json)?.with_status(status))

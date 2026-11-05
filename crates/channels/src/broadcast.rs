@@ -94,8 +94,10 @@ impl<E: Send + 'static> Broadcast<E> {
             for sub_slot in subs.iter_mut() {
                 if let Some(sub) = sub_slot {
                     // if its closed, then remove sender.
-                    if let Err(ChannelError::Closed) = sub.try_send(message_reference.clone()) {
-                        sub_slot.take();
+                    if let Err(trace) = sub.try_send(message_reference.clone()) {
+                        if matches!(trace.current_context(), ChannelError::Closed) {
+                            sub_slot.take();
+                        }
                     }
                 }
             }

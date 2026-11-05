@@ -2,6 +2,380 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: PR #179 CI fix pass, fourth round. The Platform Docker Tests jobs ran Linux
+  commands with `docker exec` and called the result macOS and Windows testing. Run
+  42037634257 shows both jobs red.
+  - **The guest is not reachable with `docker exec`.** The images run the guest operating
+    system in QEMU inside a Linux container, so `docker exec` reaches the container's
+    Linux side. The macOS job installed `stable-x86_64-unknown-linux-gnu` and then failed
+    at `cd /shared/examples/platform_ios/src-tauri`: `/shared` was empty.
+  - **The compose file mounted host paths that exist only on the owner's machine.**
+    Docker creates an empty directory for a missing bind source, so `/shared` and
+    `/storage` were empty on the runner. Both mounts now take `EWE_SHARED_DIR` and
+    `EWE_{MACOS,WINDOWS}_STORAGE`, and the jobs point them at the checkout and a runner
+    directory.
+  - **The readiness probe proved nothing.** `docker exec ewe_macos sh -c 'echo ready'`
+    and `docker exec ewe_windows cmd /c "echo ready"` ran on the Linux side; the second
+    one cannot succeed at all. `scripts/ci/vm-host-smoke.sh` now waits for the container
+    state, for the web console port (`8006` for macOS, `8008` for Windows), and checks
+    `/shared/Cargo.toml` inside the container.
+  - **The `docker` tests never ran.** `--lib` selects library unit tests; `docker_tests`
+    is an integration test. Each job now runs `--test docker_tests` with only its own
+    container's case.
+  - **The iOS check moved out.** No job builds `examples/platform_ios` for
+    `aarch64-apple-ios` now. The backlog holds the fix: run it in the `macos-ssh` job of
+    `platform-vms.yaml`, which reaches the guest over SSH.
+  - A change to `docker-compose.yaml`, the smoke script or the workflow now triggers the
+    workflow.
+  - `specifications/52-tauri-foundation-platform/features/F30-docker-test-infra/feature.md`
+    records the correction.
+
+- 2026-11-05: PR #179 CI fix pass, third round. Run 42029393923 and the two jobs from
+  run 42029385105:
+  - **`foundation_deployment_cloudflare` (feature 114).** The `cargo metadata` failure now
+    names its cause, because `ci.py` prints cargo's standard error: the build script
+    rewrote all 42 Cloudflare group manifests. `UnifiedGenerator::write_group_crate`
+    hard-coded `foundation_netio = "0.0.4"`, and the crate is 0.0.6. The renderer now reads
+    every path dependency's version from that crate's `Cargo.toml`
+    (`unified::group_crate_manifest`), and a missing version is
+    `GenError::ManifestVersion`. The renderer takes the sibling root as a parameter,
+    because `Codegen::check` renders the group crates into a scratch tree that holds no
+    siblings; `Codegen` passes the shipped `backends/` root for the versions. Four new
+    tests in `backends/foundation_openapi/tests/group_crate_manifest.rs`, one of which
+    walks the committed group manifests, plus `the_full_cloudflare_check_is_current` in
+    `backends/foundation_codegentools/tests/cloudflare_types.rs`, which runs the build
+    script's own check. `foundation_openapi` is 0.0.5; `foundation_codegentools`
+    requires 0.0.5. Verified in the Linux CI image: the build of
+    `foundation_deployment_cloudflare` exits 0, prints no regeneration warning, and
+    leaves `backends/` clean.
+  - **`wasm-tests`: `timeout_task_ends_at_its_timeout` ended past its wall-clock bound.**
+    The case waits on one JS timer per 10 ms tick and ends about 60 ms after its 50 ms
+    timeout. The bound was `nominal + 30 ms + one tick` = 90 ms, and the loaded CI
+    container took 126 ms. The suite now adds `HOST_TIMER_LATE_ALLOWANCE` (120 ms) to
+    that ceiling. The load-independent guards stay tight: the lower bound (it must not
+    end early) and the poll bound (it must not spin or re-check on a timer). The deno
+    suite passes 18 of 18 locally.
+  - **`macos-tests` used the wrong container name.** `docker-compose.yaml` names the
+    container `ewe_macos` and the job ran `docker exec macos`, so every step failed after a
+    silent 20-minute wait. The job now uses `ewe_macos`, fails at once when the container is
+    not running, prints `docker logs --tail 100`, and waits up to 45 minutes. The job
+    timeout is 75 minutes. The Windows job gets the same fail-fast check.
+  - **`platform-unit` had no GTK or WebKit development packages.** `foundation_platform`
+    depends on `tauri`, and `glib-sys`'s build script stopped with `Package 'glib-2.0' not
+    found`. A new step installs the documented Tauri Linux prerequisites. Verified in the
+    CI image: `glib-2.0` 2.80.0 and `webkit2gtk-4.1` 2.52.6 are found and
+    `cargo check -p foundation_platform` exits 0.
+  - `foundation_platform` had one warning: `record_presentation` took a `target` parameter
+    that it never read (the target label is applied in `execute_decision`). The parameter
+    is removed.
+  - Backlog §16's `cargo metadata` entry is deleted.
+
+- 2026-11-05: PR #179 CI fix pass, second round. The four failing jobs of run
+  42021286753 are handled:
+  - **`wasm-tests`: `wasm-testbed` did not link.** The binary pulled in two copies of V8
+    (`v8` 149.4.0 from `deno_core` and `v8` 150.4.0 from `deno_v8`), so `ld.lld` reported
+    `duplicate symbol: v8::internal::...`. `deno_core` 0.404 needs no `deno_v8`; the
+    dependency and its `use deno_v8 as _;` are gone, and `Cargo.lock` no longer holds
+    `deno_v8`. `cargo build -p foundation_testbed --no-default-features --features
+    wasm-embedded-js --profile uat --bin wasm-testbed` exits 0.
+  - **`foundation_nativeapis` (`vfs-preload`): `test_shim_writes_to_virtual_path`
+    failed with `ExitStatus(256)`.** `tests/vfs_shim_vfs` returned an existing
+    `libfoundation_nativeapis.so` without asking cargo to build it, and the file in the
+    profile directory came from a build without `vfs-preload`. `find_shim_so` now always
+    runs `cargo build --lib` with the features the test binary needs (`vfs-preload`, plus
+    `vfs-d1` when enabled), once per run behind a `OnceLock`. `build_shim_d1` is deleted;
+    its two-parent directory arithmetic was wrong under cargo's new layout. Verified in
+    the Linux CI image: both shim tests pass.
+  - **`ewe_platform`: the `web-app` and `api-app` templates pinned
+    `foundation_toolings = "0.0.4"` while the crate is 0.0.5** (feature 110). Both pins
+    are 0.0.5. `cargo test --profile uat -p ewe_platform --test templates_build` passes
+    (84 s). Backlog §34 is deleted.
+  - **`foundation_connectrpc`: the `arrow_codec_tests` and the `codecs` example did not
+    compile** (feature 112). Both `ToArrow` implementations map `RecordBatch::try_new`
+    with `.map_err(arrow_err)`. All-targets check, `-D warnings` clippy and the crate's
+    tests pass (15 binaries). Backlog §1 is deleted.
+  - **`foundation_deployment_cloudflare`: `ci.py` failed on `cargo metadata` with exit
+    101 and no reason.** `cargo_metadata` now raises a `SystemExit` that carries cargo's
+    standard error. The failure does not reproduce in the Linux CI image, so the cause
+    stays open in backlog §16 until the next run names it.
+  - Features 110 and 112 stay `pending (CI proof)` until the pushed commit has a green
+    run.
+
+- 2026-11-05: PR #179 CI fix pass on `spec70/io-hardening-final`. The run after feature 84
+  had these failures, and each one is fixed:
+  - **`foundation_nativeapis` (`fd,uring` run): `parity_timeout_expires_and_returns` failed
+    at 51 ms of a 150 ms wait.** A caught signal interrupts `epoll_wait` with `EINTR`, and the
+    epoll, kqueue and io_uring selectors treated that as an expired timeout. Each selector now
+    keeps a deadline and resumes the wait for the time that is left. The io_uring selector
+    returns a `WaitOutcome` (`Expired`, `Interrupted`) from its bounded wait. New test
+    `foundation_reactor/tests/selector_wait.rs` sends `SIGUSR1` to the waiting thread three
+    times and asserts the full timeout. It fails on the old kqueue code and passes on the new.
+  - **`foundation_nativeapis` (`vfs-preload` run): the shim exported no `open` entry point.**
+    rustc links a cdylib against a generated version script that exports only crate-defined
+    symbols and ends with `local: *;`, so a C object's `open` was localized and `LD_PRELOAD`
+    never saw it. `--dynamic-list` and `--export-dynamic-symbol` do not override the script.
+    The four entry points are now Rust functions in `src/native/vfs/shim/mod.rs`, and the C
+    file, `build.rs` and the `cc` build dependency are gone. The fixed third argument is
+    ABI-correct on x86-64, x86, AArch64 and RISC-V; 32-bit ARM is a recorded limitation
+    (backlog §35). `tests/vfs_shim_vfs` also finds the profile directory through
+    `.cargo-lock`, because cargo's new build layout puts the hash below the profile. Verified
+    in the Linux CI image: all four symbols are in the dynamic table and both shim tests pass.
+  - **`foundation_browser`, `foundation_toolings`, `foundation_testbed`, `ewe_platform` and
+    the smoke test did not compile.** Feature 84 changed `ServeFuture` to resolve to
+    `ServeOutcome`, and two async handlers still returned `ConnectionResult` (E0271). The SSE
+    handlers and their tests now use `ServeOutcome`.
+  - **`foundation_db` clippy (`-D warnings`) failed on two warnings in
+    `tests/r2_state_store_tests.rs`.** `ETag` in a doc comment now has backticks, and the
+    102-line `handle` function is split into `read_request`, `handle`, `handle_list`,
+    `handle_get`, `handle_put` and `handle_delete`. `src/native/r2_blobstore.rs` gets the
+    same backtick fix in its `StateStore::set_if_version` docs. Clippy is clean for the
+    default and `libsql` runs, and the 10 `r2_state_store_tests` pass.
+  - **CodeQL flagged one new alert (94, `rust/hard-coded-cryptographic-value`).** The
+    feature-67 change to `foundation_keychain/tests/identity.rs` rewrote the assertion in
+    `unknown_user_is_rejected`, so GitHub gave the fake password a new alert instance
+    (master carries the same construct as alert 29). It is dismissed with the repository's
+    existing reason, "used in tests".
+  - **`foundation_deployment_platform` (`--features vms`) did not compile its ssh tests.**
+    Feature 67 changed `foundation_sshkit` results to `ErrorTrace<SshKitError>` and
+    `ErrorTrace::contains` takes no argument. `tests/ssh_backend_tests.rs` maps the errors to
+    the test's `String` and checks the message for "auth". `cargo check --all-targets
+    --features vms` and `cargo clippy ... -- -D warnings` pass locally and in the Linux CI
+    image.
+  - **`wasm-tests`: `foundation_wireguard` failed on wasm32 with two missing crates.**
+    `foundation_errstacks` sat in the non-wasm dependency section but `shared/error.rs`
+    imports it for every target. `foundation_core` was native-only but the wasm tests and
+    `#[valtron_bindgen]` need it. Both are now available to the wasm build; `multi` stays off.
+  New backlog section 35 (`foundation_nativeapis`) records the ARM32 limitation and the
+  crate's 465-warning clippy debt, and feature 113 is scheduled for the debt.
+
+- 2026-11-05: feature 84 done on `spec70/f84-serve-outcome-enum`. `ServeFuture` now
+  resolves to the new `ServeOutcome` enum (`Keep`, `Take`, `Close(Option<ErrorTrace<ServeError>>)`),
+  which has no `Async` variant, so a future cannot return another future. `ConnectionResult`
+  keeps its four variants for the synchronous `Serve`/`ServeWriter` path. New conversions:
+  `From<ServeOutcome> for ConnectionResult` and `ConnectionResult::split`. These futures now
+  return `ServeOutcome`: `write_response`, `send_continue_100`, `SendFile::run`, the
+  `foundation_keychain` `write_json` and serve block, the `foundation_connectrpc` serve
+  block, the `foundation_proxy` serve block and `closing`. `apply_async_result` and
+  `apply_continue_result` take `ServeOutcome`; the unreachable nested-`Async` error arm is
+  deleted. `NestedAsyncHandler` and `nested_async_closes_with_error` are deleted from
+  `foundation_http/tests/async_serve_tests.rs`, with a comment that names feature 84. New
+  test `async_result_take_and_close` proves that a future can resolve to `Take` and to
+  `Close(Some(_))`, and that both close the connection. Version: `foundation_http` stays
+  0.0.5, the number feature 82 set in this same unreleased PR, so no requirement changed.
+  Local results: `foundation_http` (multi) 144 passed, 1 ignored doctest; `foundation_keychain`
+  74 passed and 1 pre-existing macOS failure (`slow_request_body_does_not_hold_worker`,
+  backlog §22); `foundation_proxy` 72 passed and 1 pre-existing macOS failure
+  (`websocket_upgrade_relays_and_tunnels_bytes`, backlog §9); `foundation_connectrpc` cannot
+  build all targets because of a pre-existing `arrow_codec_tests`/`examples/codecs` type error
+  (new backlog §1), and its `conn_io_fallback_tests` pass (2). Clippy with `-D warnings` is
+  clean for `foundation_http`, `foundation_proxy`, `foundation_keychain` and the
+  `foundation_connectrpc` lib and touched test; the only failure is the recorded §1 target.
+  `cargo check --workspace --all-targets --profile uat` fails only at the known
+  `infrastructure_llama_bindings` build script (`llama.h` missing in a worktree). The
+  feature doc's proxy verify command named a non-existent `multi` feature; it now runs
+  without that feature.
+
+- 2026-11-05: features 108–111 scheduled from the findings of features 82 and 83, with a
+  feature file each. 108 fixes the flaky `Expect: 100-continue` timer test (backlog §2), 109
+  the 56 `foundation_browser` clippy errors (backlog §33), 110 the stale
+  `foundation_toolings` template pin (backlog §34), and 111 the ptrace `O_TRUNC` and `dup2`
+  destination-close bugs (backlog §5). The requirements table lists them after 84. Feature
+  112 is also scheduled: feature 84 found that the `foundation_connectrpc` arrow-codec test
+  and example targets do not compile after feature 67 changed `IpcResult` (backlog §1).
+
+- 2026-11-05: feature 82 done on `spec70/f82-sse-async-event-writer`. No native SSE
+  write now goes through a synchronous `Write`. `foundation_netio` has
+  `SseEvent::render`/`rendered` (one wire-format renderer) and `render_comment`;
+  `EventWriter` keeps its `W: Write` API for in-memory writers and calls them. Its
+  docs say not to use it on a non-blocking socket. `foundation_http` has `SseWriter`,
+  which holds one `ResponseWriter`, renders to bytes, calls `write_all` and `flush`.
+  `SseStream` holds `SseWriter`; `send`, `message`, `binary` and `comment` are async,
+  and `SseStream::new` keeps the head writer for the events. `foundation_toolings`
+  `SseReloadHandler` now runs as a `ConnectionResult::Async` continuation and awaits
+  every write; the polling sleep is a valtron timer. `foundation_browser`
+  `SseTransport` pushes frames into a bounded valtron `Pipe` that a per-client driver
+  task drains with the async `SseStream`; `SseTransportConfig::queue_depth` is
+  configuration with a documented default of 256 frames, and a full queue drops that
+  client (the broadcaster reconnects it and replays the backlog). The regression test
+  `sse_writer_delivers_a_whole_event_to_a_slow_client` uses the deterministic overlay
+  fake: before the fix the synchronous path returned `WouldBlock` after 64 bytes (54
+  filler and a 10-byte event prefix) of a 16406-byte event; the new path delivers all
+  16406 bytes to a client that reads one byte per poll. New tests: `render` equals
+  `EventWriter::send` bytes, the SSE writer regression test, a proxy SSE test that
+  reads one byte per poll, and a browser transport test that receives one whole
+  binary frame over a slow SSE client. Each threaded test passed 20 of 20 flake
+  runs. Versions: `foundation_netio` 0.0.5 → 0.0.6,
+  `foundation_http` 0.0.4 → 0.0.5 and `foundation_browser` 0.0.3 → 0.0.4 (the queue
+  config is new public API), with every workspace requirement and template pin.
+  The backlog §3 SSE entry is deleted. New backlog entry §33 records 56 pre-existing
+  `foundation_browser` clippy errors in files this feature did not touch. Backlog §2
+  records `silent_server_gets_body_when_the_timer_fires`: it failed once in the full
+  `foundation_netio` run while two other suites ran on the same machine, and passed 10
+  of 10 solo reruns. Backlog §34 records the stale `foundation_toolings` pin in the
+  `web-app` and `api-app` templates.
+
+- 2026-11-05: feature 83 merged into #179 as `660c79432`, and CI proved it (job
+  127187028997: `ptrace probe: available`; the named `vfs-native,vfs-ptrace` run passed 28
+  `ptrace_vfs` tests, 0 failed, 0 ignored).
+  `backends/foundation_nativeapis/tests/ptrace_probe.rs` forks a child that calls
+  `PTRACE_TRACEME` and stops with `SIGSTOP`, then reads its registers from the parent. It
+  prints `ptrace probe: available` or
+  `ptrace probe: unavailable (<errno name>: <number>, <cause>)`, maps `EIO` to the emulated
+  kernel, `EPERM` to seccomp/`Yama` and `ESRCH` to a gone tracee, and asserts when
+  `EWE_REQUIRE_PTRACE=1`. `ptrace_requirement` is pure and its tests run on any host. The
+  probe itself is Linux-gated item by item, so a macOS host still tests the decision.
+  `tests/common/mod.rs` adds `ptrace_available`; the spawn tests fail with its errno instead
+  of skipping, so an emulated kernel cannot hide them. `ci/packages.toml` gets a named
+  `vfs-native,vfs-ptrace` run and `EWE_REQUIRE_PTRACE = "1"`; `.github/workflows/check.yaml`
+  gets a `ptrace probe` step in both the `package` and `package-artifact` jobs before the
+  test step. Three spawn tests now prove interception: the traced child reads `/virtual`
+  from a `MemoryFs`, writes into it through a shell redirect, and copies 64 KiB+ to a real
+  file with the length and an FNV-1a checksum intact. The redirect test exposed a dispatch
+  gap: `dup2` moves a virtual fd to a low number, so dispatch now follows the
+  `VirtualFdTable` entry, not the fd-number range. This Mac cannot run the spawn tests
+  (OrbStack amd64 returns `EIO` from `PTRACE_GETREGS`); native amd64 proof must come from
+  the `ubuntu-latest` job. Backlog: the ptrace entry is rewritten to point at CI, and two
+  dispatch bugs are recorded (`O_TRUNC` on an existing virtual file, and `dup2` not closing
+  a real destination fd).
+
+- 2026-11-05: CI run 41999359118 failed `foundation_browser` at the build step. Feature 63
+  made `SseStream::new` async, and `foundation_browser/src/test/stream.rs` still matched its
+  result directly. The upgrade now runs as `ConnectionResult::Async`, awaits
+  `SseStream::new(&conn)`, and returns `Take`. The local build did not catch it because this
+  crate was not in the feature-63 check set. Feature 82's design now records the next
+  coupling: `SseTransport` implements the synchronous `FrameTransport` trait, so the async
+  `message`/`binary` needs an async trait or a bounded frame queue.
+
+- 2026-11-05: features 82 and 83 recorded from two owner requests. 82 is the priority: SSE
+  events still go through the synchronous `EventWriter`, so a slow client can truncate an
+  event (backlog §3). 83 makes the ptrace spawn suite prove itself on native amd64 CI
+  (backlog §16). 83 records the platform fact: the suite is Linux-only, so a macOS runner
+  cannot run it; native amd64 coverage comes from `ubuntu-latest` (x86_64 kernel) running the
+  linux/amd64 CI image. Both are added to the feature table. No code change yet.
+- 2026-11-05: the `ewe_platform` CI job failed `templates_build` on `14deb2c55`:
+  the `web-app` template's private `mod app; mod config;` scaffold built with `unused import`
+  warnings once feature 63 made the template warnings an assertion. The library now exposes
+  `pub mod app; pub mod config;`. The template test run is recorded below.
+
+- 2026-11-05: feature 67 done on `fix/io-67-errstacks`. Thirteen crates now
+  report through `foundation_errstacks` and no first-party manifest names
+  `thiserror`. Each crate keeps or gets a `derive_more` error enum and returns
+  `Result<T, ErrorTrace<CrateError>>` from its public fallible API:
+  `foundation_wireguard` (`WgResult`), `foundation_proxy` (`ProxyResult`),
+  `foundation_html` (`ElementResult`, `ParsingResult`, `IslandResult`),
+  `foundation_arrow` (`IpcResult` over the new `ArrowIpcError`),
+  `foundation_sshkit` (`SshKitResult`), `foundation_toolings`
+  (`ToolingResult`/`BuildResult`), `foundation_codegen` (`Result` over
+  `CodegenError`), `foundation_nativeapis` (thiserror removed; `VfsResult`
+  already used ErrorTrace), `foundation_keychain` (`AppResult`),
+  `ewe_channels` (`ChannelResult`, `ExecutorResult`), `ewe_domain`
+  (`DomainResult`, `DomainOpsResult`, `PendingChannelResult`), `ewe_watchers`
+  (config `Result`) and `ewe_watch_utils` (`WatchUtilsResult`). Callers in
+  `foundation_macros`, `foundation_codegentools`, `foundation_wasm`, the
+  keychain servers and the handler tests were updated; matches on the old enum
+  now read `current_context()`. Versions bumped: wireguard 0.0.4, proxy 0.1.7,
+  html 0.0.6, arrow 0.0.4, sshkit 0.1.3, toolings 0.0.5, codegen 0.1.3,
+  keychain 0.1.5, and every `crates/*` crate to 0.0.2, with every consumer
+  requirement. New CI guard `scripts/ci/check_errstacks.py` (run by the
+  `foundation_core` build step through `python3 -m unittest discover -s
+  scripts/ci/tests`) fails on a `thiserror` manifest line or an unused
+  `foundation_errstacks` dependency, and skips `foundation_boringtun` by name.
+  Each crate has an error-trace test that checks the current context and the
+  attached context. Known pre-existing failures, recorded in
+  `docs/bug-backlog.md`: `foundation_proxy`'s websocket upgrade test on macOS
+  (§9) and `foundation_keychain`'s streamed-body timing test (§22). The
+  pedantic clippy debt of `foundation_wireguard`, `foundation_sshkit`,
+  `foundation_arrow` and `foundation_nativeapis` is recorded in §31. The
+  branch also fixes a missed feature-63 migration: `foundation_browser`'s
+  `StreamHandler` now returns `ConnectionResult::Async` and awaits the async
+  `SseStream::new`, so `cargo check --workspace --all-targets` gets past it.
+  That command stops later at `infrastructure_llama_bindings` because this
+  worktree has no `tools/llama.cpp` checkout (`llama.h` is missing); every
+  changed crate and each first-party dependent was therefore checked and
+  tested on its own.
+- 2026-11-05: feature 63 done on `fix/io-63-respond-async`. Every native caller
+  of the synchronous `respond::*` now uses the async writer. The module is
+  renamed `respond_to_buffer` and kept only for in-memory writers (tests over a
+  `Vec<u8>`, wasm). `foundation_http`'s closing/rejection writes and its
+  `100 Continue` go through `send_text`/`send_not_found`/`send_continue_100`
+  (`ConnectionHandler` gained a `ContinueWrite` state and an `Awaiting`-driven
+  close path); protocol detection drives its refusal writes through a
+  `FutureTask`, and the accept loop's "executor unavailable" branch now logs and
+  closes (no executor exists to drive an async response). `accept_websocket` and
+  `SseStream::new` are now `async` and write with `ResponseWriter`. The proxy's
+  h2/h3/ACME test servers, the foundation_http server tests, both project
+  templates and `examples/web/wello` are migrated. `ResponseWriter` now starts
+  its idle timer at the start of every `write_all`/`flush`, and `flush` restarts
+  it whenever the stream's write buffer shrinks (new
+  `RawStream::write_buffer_len`). New tests:
+  `proxy_large_response_is_byte_exact` (received 327,128 of 4,194,304 bytes on
+  the synchronous test server, all bytes after the change),
+  `buffered_flush_restarts_idle_timer` and
+  `idle_stream_then_blocked_write_does_not_time_out` (both `TimedOut` on the
+  feature-61 timer, both pass after the fix), and the template build test now
+  asserts `send_html`/`send_not_found` and zero warnings. Version bumps:
+  `foundation_netio` 0.0.5, `foundation_http` 0.0.4, every workspace requirement
+  and both template pins. Backlog: deleted the §3 `respond::*` entry and the §9
+  creation-time timer entry; added the SSE `EventWriter` truncation entry and
+  fixed the BSD `sockaddr_in` initialiser in `completion_dial_tests.rs` (the
+  `sin_len` field) so the proxy's test targets build on macOS. The crate's `clippy -D warnings`
+  debt is cleared: default, `multi`, `multi quic` and `multi quic ssl` trees,
+  all targets, zero warnings. `ci/packages.toml` now denies clippy warnings for
+  the package in both feature runs, and the §3 clippy entry is deleted. `handle_awaiting` now polls
+  the future before applying the shutdown check, so a handler that is only
+  writing its answer completes during the drain; a future still `Pending` is
+  dropped at the shutdown checkpoint, as feature 08 requires. The two timer
+  tests drive the writer over a fake in-memory overlay stream, so they behave
+  the same on Linux and macOS. `foundation_http` tests pass in the `multi` tree
+  (28 targets) and on Linux CI (`ci.py run foundation_http`: fmt, build, clippy
+  `-D warnings` for default and `multi,quic`, tests for both trees, wasm). The
+  proxy suite passes except `websocket_upgrade_relays_and_tunnels_bytes`, which
+  times out on macOS with the pre-feature writer too; it is recorded in the
+  backlog.
+
+- 2026-11-05: feature 59 follow-up on `spec70/io-hardening-final`. The first CI
+  run of PR #179 failed `foundation_ai` at the clippy step. Cause: feature 59
+  made `logs_to_trace` public, and clippy's `not_unsafe_ptr_arg_deref` denies a
+  public function that dereferences a raw pointer. The callback is now
+  `pub unsafe extern "C" fn` with a `# Safety` section, which matches the
+  `ggml_log_callback` binding type. `cargo clippy -p foundation_ai --all-targets
+  --features testing` passes, and `infrastructure_llama_cpp` tests pass (71
+  doctests, 2 ignored; 7 log tests). The same reproduction in the Linux CI image
+  passes. The other two PR failures are the known `Platform Docker Tests` red on
+  master (`glib-2.0` missing, and the macOS VM container does not start).
+- 2026-11-05: features 47, 48, 49 (partial) and 50 on
+  `spec70/f47-f50-lane-a-mechanical`. Feature 47: the ptrace tracer now forks and
+  traces on one thread, uses `PTRACE_TRACEME` plus `SIGSTOP`, passes the program
+  name in `argv`, waits with `__WALL | __WNOTHREAD`, and consumes a child's first
+  stop. All seven ignores are removed. Local amd64 emulation returns `EIO` from
+  `PTRACE_GETREGS`, so the eight spawn tests need native amd64 GitHub CI.
+  Feature 48: both condvar ignores removed; 20 of 20 runs pass. Feature 49: E2
+  to E9 are at zero warnings (testbed, iogate, deployment_docker, connectrpc,
+  netio, deployment, keychain, proxy, wireguard); `foundation_nostd` is clean and
+  denies clippy warnings in CI; `foundation_core` libraries are clean but its
+  test targets still report 327 warnings, so E10 is partial. CI config: the docker
+  crate gets an `--all-features` clippy run that denies warnings. Feature 50:
+  every inline test module left the lane A `src` trees, with the same test
+  counts, and the undeclared wireguard mobile modules are now declared. Backlog:
+  six fixed entries removed, new entries for the remaining core test debt, the
+  docker generator follow-up and the mobile toolchain check.
+- 2026-11-05: feature 48 done on `spec70/f47-f50-lane-a-mechanical`. Both
+  `#[ignore = "Requires threading support"]` markers are removed from
+  `tests/primitives_condvar_tests.rs`. The reason contradicted the `#[cfg(feature = "std")]`
+  guard. Both tests pass 20 of 20 with the `std` feature, and the full `foundation_nostd`
+  test run with `std` is green. No condvar bug. Backlog: new entry for the 19 ignored doc
+  examples in `foundation_nostd`.
+- 2026-11-05: feature 47 partial on `spec70/f47-f50-lane-a-mechanical`. Measured cause of
+  the seven ignored ptrace tests: (1) ptrace requests came from a thread that did not attach
+  to the tracee, so they failed `ESRCH` and the tracee stayed stopped; (2) `argv` lacked the
+  program name, so the `/bin/sh -c` tests ran a wrong command. The tracer thread now forks
+  and traces the child, the child uses `PTRACE_TRACEME` plus `SIGSTOP`, every `waitpid` uses
+  `__WALL | __WNOTHREAD`, the first child stop is consumed, and the spawn tests have a 60 s
+  timeout. All seven ignores are removed; `fork_child_first_stop_is_consumed` is added.
+  Local run in the Linux CI image: 17 of 25 `ptrace_vfs` tests pass; the 8 spawn tests fail
+  with `PTRACE_GETREGS ... EIO` because OrbStack amd64 emulation does not expose amd64
+  registers (a C probe fails the same way). Native amd64 GitHub CI must confirm 20 of 20.
+  Backlog: new entries for nativeapis clippy debt and the emulation limit.
 - 2026-11-05: feature 80 done on `fix/io-41-50-lane-a` (PR #173). CI repairs: (1) the executor
   lost a wake between the readiness check and `register`, so a finished DNS lookup waited for
   the 30 s timeout and the netio and proxy jobs stalled (see learnings); the fix registers

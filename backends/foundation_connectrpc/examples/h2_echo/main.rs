@@ -1,4 +1,4 @@
-//! ConnectRPC over HTTP/2 cleartext (h2c) — all four RPC modes.
+//! `ConnectRPC` over HTTP/2 cleartext (h2c) — all four RPC modes.
 //!
 //! Run with: `cargo run -p foundation_connectrpc --example h2_echo`
 //!

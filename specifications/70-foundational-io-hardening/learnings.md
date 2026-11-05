@@ -2,6 +2,300 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (PR #179 CI fix pass, fourth round):
+  - **`docker exec` into a virtual machine image reaches the Linux host, not the guest.**
+    Commands such as `sw_vers`, `cargo` and `cmd` run on Ubuntu. A green step proves only
+    that the Linux side answered. The log line `default host tuple is
+    x86_64-unknown-linux-gnu` is the tell that a "macOS" step ran on Linux.
+  - **Docker answers a missing bind source with an empty directory.** A wrong absolute
+    path in `docker-compose.yaml` is silent, and the container starts with an empty
+    `/shared`. Take mount sources from environment variables with developer defaults,
+    then assert a file from the mount inside the container.
+  - **`--lib` with a name filter can select zero tests and still pass.** `cargo test -p
+    foundation_testbed --features docker-tests --lib -- docker` matched no library test,
+    because `docker_tests` is an integration test. Use `--test <file>` and read the test
+    count in the log.
+  - **A cold runner needs a host-side check, not a guest boot.** A guest install takes
+    30 minutes or more and cannot fit a pull request. Check what the host can prove in
+    two minutes, and leave in-guest builds to the provisioned images that accept SSH.
+
+- 2026-11-05 (PR #179 CI fix pass, third round):
+  - **A generator that writes manifests is a second source of versions.** The Cloudflare
+    build script regenerates group crates when its output is stale, and it compares the
+    whole output, manifests included. `write_group_crate` hard-coded
+    `foundation_netio = "0.0.4"`, so the committed manifests (0.0.6) were stale by
+    definition: every build rewrote 42 files and the next `cargo metadata` failed. Read
+    the version from the sibling crate's own `Cargo.toml`. Any version literal in a
+    generator is a bug waiting for the next version bump.
+  - **`Codegen::check` renders into a scratch tree, so the output tree holds no
+    siblings.** Reading the sibling versions from next to the output works in `write()`
+    and fails in `check()` with `No such file or directory`. A generator that reads
+    anything besides its own output must take that source as an explicit input; the
+    caller that stages a scratch tree passes the shipped path. A test that runs the real
+    `check()` (`the_full_cloudflare_check_is_current`, about 13 s) finds this without a
+    CI round trip.
+  - **A CI step boundary hides a build-time file rewrite.** `ci.py` calls
+    `cargo_metadata()` at the start of every step, so the `build` step passed (manifests
+    were current when it started) and the `clippy` step failed (the build script had
+    rewritten them). When two consecutive steps disagree, look for a build script that
+    writes into the source tree, and compare `git status` inside the mount after the
+    build.
+  - **`toml_edit`'s `Index` panics when the key is absent.** `doc["package"]["version"]`
+    panics with `index not found` on a manifest with no `[package]` table. Use
+    `get`/`and_then` so a missing key becomes the typed error the signature promises.
+  - **`docker compose` names a container `container_name`, not the service name.** The
+    macOS job ran `docker exec macos` against a container called `ewe_macos`, so every
+    step failed and the wait loop hid it for 20 minutes. A boot loop must check
+    `docker inspect -f '{{.State.Running}}'` and print `docker logs --tail 100` when the
+    container is not running.
+  - **A `tauri` Linux build needs the GTK and WebKit development packages.** Without
+    them `glib-sys`'s build script stops with `Package 'glib-2.0' not found` — the error
+    names `glib`, and the cause is a missing image dependency. The list verified on
+    Ubuntu 26.04 is in `.github/workflows/platform-docker-tests.yml`.
+  - **A wasm wall-clock ceiling must tolerate how late a JS timer fires.** A `Delayed`
+    park asks the host for one timer per tick, so a timeout over a 10 ms ticker waits on
+    six timers and every one's lateness adds up. The idle machine ends that case at about
+    63 ms against a 90 ms bound; the loaded CI container took 126 ms. Keep the lower
+    bound and the poll bound tight — they do not depend on load — and widen only the
+    ceiling, with the measured CI number in the doc comment.
+
+- 2026-11-05 (PR #179 CI fix pass, second round):
+  - **A facade crate can link a second copy of a native library.** `deno_core` 0.404 names
+    the engine itself (`v8` 149.4.0) and needs no `deno_v8`. `deno_v8` 0.4.0 is a facade
+    whose `v8` feature pulls `v8` 150.4.0. With both in the tree the linker reports
+    `duplicate symbol: v8::internal::...`. Remove the unused dependency; do not try to
+    unify the versions. `cargo tree -i v8@150.4.0` names the only parent in one command.
+  - **A test helper that returns a cached artifact can return the wrong build.** The
+    `LD_PRELOAD` shim is a `cdylib`, and `cargo test` does not build it. `find_shim_so`
+    looked for the `.so` and returned the first match, so a file built earlier with a
+    smaller feature set was used unchanged, and the child process failed with a bare
+    `ExitStatus(256)`. Always run `cargo build --lib` with the features the test needs
+    before the lookup: cargo does nothing when the artifact is current, so the cost is
+    one second, and the artifact is correct when it is stale. Build once per test binary
+    (`OnceLock`) so two tests cannot overwrite each other's cdylib.
+  - **A version requirement behind the crate version breaks every patched resolution.**
+    Feature 82 moved `foundation_netio` to 0.0.6; 42 `foundation_cloudflare_*` crates
+    still required `0.0.4`. The workspace build tolerates it where the dependency is a
+    path dependency of a workspace member, but `bin/platform/tests/templates_build`
+    patches crates.io with local paths and then cannot select a version. `cargo metadata`
+    fails the same way. Scan with `cargo metadata --format-version 1` and compare each
+    path dependency's `req` with the target crate's version. Do not trust a text scan of
+    the manifests: a `version = "..."` line at column 0 can belong to a dependency table.
+  - **A captured subprocess hides its own failure.** `ci.py` ran
+    `cargo metadata` with `capture_output=True` and let the `CalledProcessError`
+    escape, so CI printed a traceback with exit 101 and no cause. Raise a `SystemExit`
+    that carries `stderr`.
+
+- 2026-11-05 (PR #179 CI fix pass, two root causes worth remembering):
+  - **A signal is not a timeout.** `epoll_wait`, `kevent` and the io_uring submit calls
+    return `EINTR` when a handler catches a signal. Returning `Ok` with no events turns
+    that into "the timeout expired". Every readiness wait must keep the deadline and
+    resume for the time that is left. A test with a real `SIGUSR1`, a handler without
+    `SA_RESTART`, and a 150 ms budget proves it in one second.
+  - **rustc's cdylib version script decides what `LD_PRELOAD` can see.** For a `cdylib`
+    rustc passes a generated linker script of the form `{ global: <crate symbols>;
+    local: *; };`. A symbol that comes from a linked C object, or from `global_asm!`,
+    is not in that list and is localized. `--dynamic-list` and
+    `--export-dynamic-symbol` do not override it. To export a name from a Rust cdylib,
+    the crate must define it: write the function in Rust with `#[unsafe(no_mangle)]`.
+    Rust also refuses a `no_mangle` definition whose signature differs from the known
+    libc one (`invalid_runtime_symbol_definitions`); a fixed-arity replacement for a
+    variadic libc function needs an `#[allow]` and a written ABI argument.
+  - Cargo's new build layout breaks "exe parent is the profile directory" arithmetic.
+    Find the profile directory by walking the executable's ancestors to the one that
+    holds `.cargo-lock`.
+  - **A code-scanning alert lives in a code region, not only on a line.** Feature 67
+    rewrote the assertion around a fake password in `foundation_keychain/tests/identity.rs`.
+    The sink did not change, but GitHub closed the old alert and opened a new one, so the
+    `CodeQL` check failed on a construct that `master` already carries. The repository's
+    convention is to dismiss a test fixture with the built-in reason "used in tests"
+    (seven alerts already use it). Dismiss it, and say why in the comment.
+
+- 2026-11-05 (feature 84, a closed `ServeOutcome`): a type that can express a nested
+  future forces every caller to handle a case that no caller uses. The server logged
+  and closed on that case, and one test pinned the accident. Replace the future's
+  result with an enum that has no `Async` variant: the rule moves to the compiler and
+  the unreachable arm disappears. Keep `ConnectionResult` for the synchronous
+  `Serve`/`ServeWriter` path, and add `ConnectionResult::split` so a test wrapper
+  handles both cases with two arms, not four. `ServeFuture` is a type alias, so a
+  changed output type does not rename any identifier. Do not bump `foundation_http`
+  again when feature 82 already set 0.0.5 in the same unreleased PR. Two pre-existing
+  problems blocked the local runs: `foundation_connectrpc`'s `arrow_codec_tests` and
+  `examples/codecs` do not compile after feature 67 changed `IpcResult` (backlog §1),
+  so run that crate with `--lib --test <name>` and record the rest; and the proxy
+  verify command in the feature doc named a `multi` feature that `foundation_proxy`
+  does not have. Confirm a feature name with `cargo metadata` before you put it in a
+  verify command. The macOS failures in `foundation_proxy` and `foundation_keychain`
+  are already in the backlog (§9 and §22) and are not caused by this change.
+
+- 2026-11-05 (feature 82, async SSE event writes): an SSE event is a complete unit.
+  A synchronous `writeln!` on a non-blocking socket can write a prefix and return
+  `WouldBlock`, so the client never sees the dispatch blank line. Render the event to
+  bytes first, then write the whole buffer through `ResponseWriter`; it parks on
+  readiness and resumes at the accepted offset. Keep one renderer: `EventWriter` and
+  the async `SseWriter` must call `SseEvent::render`, or the two paths drift.
+  `SseStream::new` must keep the head `ResponseWriter` for the events. A second writer
+  on the same stream loses the idle-timer and readiness state that the head write
+  started. The browser broadcaster is synchronous (`BroadcastTx::push` runs on the
+  App's thread), so an async `FrameTransport` is not possible without changing that
+  call chain. Use a bounded valtron `Pipe` and one driver task per client. The queue
+  depth is configuration; a full queue makes `send_*` return `false` and the
+  broadcaster drops the client, which then reconnects and replays the backlog. Do not
+  silently drop a frame. `foundation_browser` has 56 pre-existing clippy errors in
+  files feature 82 did not touch (backlog §33); its `test/stream.rs` is clean.
+  Measured before/after: the synchronous path returned `WouldBlock` after 10 event
+  bytes on a 64-byte fake socket; the async path delivered all 16406 bytes to a client
+  reading one byte per poll.
+
+- 2026-11-05 (feature 83, ptrace on native amd64 CI): a shell redirect does not keep the
+  virtual fd number. `echo x > /virtual/y` makes dash `dup2` the virtual fd to fd 1, so a
+  dispatch guard such as `VirtualFdTable::is_virtual_fd(fd)` (fd >= 10,000) no longer finds
+  it. The write then passes through to a kernel fd that does not exist and fails with
+  `EBADF`. Dispatch must use the `VirtualFdTable` entry as the source of truth, and `dup2`
+  must copy the entry for the new number. The probe's pure decision function must sit outside
+  the `target_os = "linux"` gate, or a macOS host cannot test it: gate the probe test and its
+  `mod common;`, not the whole file. In the forked child, exit at once if `PTRACE_TRACEME`
+  fails: an untraced `SIGSTOP` hangs the parent. Always `PTRACE_DETACH` and `waitpid`, so a
+  failed probe leaves no stopped process or zombie. Do not add a skip helper for the ptrace
+  suite: nothing calls it, and the spawn tests must fail with the errno, never skip. Two
+  dispatch bugs remain and are in the backlog: `O_CREAT` on an existing virtual file returns
+  `EEXIST` instead of truncating, and a virtual `dup2` over a real fd leaves that real fd
+  open.
+- 2026-11-05 (features 82 and 83, recorded from owner reports): an empty test binary passes.
+  `ptrace_vfs/mod.rs` is gated on `target_os = "linux"` plus two features, so a wrong feature
+  set in `ci/packages.toml` builds nothing and CI stays green. Give such a suite a named run
+  and a probe target that asserts when `EWE_REQUIRE_*` is set (the `io_uring_probe` pattern).
+  The ptrace suite is Linux-only: macOS has no Linux `ptrace` and this workspace has no macOS
+  backend, so a macOS runner cannot cover it, amd64 or not. The native amd64 kernel that the
+  OrbStack `PTRACE_GETREGS` `EIO` failure needs is the GitHub `ubuntu-latest` x86_64 runner,
+  which runs the linux/amd64 image as a container on its own kernel.
+  SSE has the same truncation hazard as `respond::*` had: an `EventWriter` over a non-blocking
+  socket uses `writeln!` and drops the rest of an event on `WouldBlock`. Rendering to bytes and
+  writing through `ResponseWriter` is the fix; keep one renderer so the wire format does not
+  fork.
+- 2026-11-05 (feature 67, one error standard): `ErrorTrace<C>` needs
+  `C: Error + Send + Sync + 'static`. A crate gets `?` for free only after it
+  adds `impl From<CrateError> for ErrorTrace<CrateError>`; foreign source
+  errors (`std::io::Error`, `ArrowError`, `notify::Error`) cannot convert this
+  way because both types are foreign (orphan rule), so each call site maps
+  them through the crate error first (`.map_err(CrateError::from)?`). An
+  explicit `Err(CrateError::Variant)` needs `.into()`; a tail expression that
+  already returns `Result<_, CrateError>` needs `.map_err(Into::into)`.
+  `derive_more`'s `Error` derive treats a single tuple or named `source` field
+  as the source; a `String`, `PathBuf` or `Version` must be marked
+  `#[error(not(source))]` or the derive fails. For an error enum that carries
+  generic event or request values, the derived `Debug`, `Display` and `Error`
+  impls add `E: Debug`/`E: Display`/`E: Error` bounds that the domain types do
+  not satisfy. Write `Display`, `Debug` and `Error` by hand with only the
+  bounds the payload's `Display` needs (`E: Clone`), as `DomainOpsErrors<E>`
+  does. `ErrorTrace` is also `Sync`-bound, so the `ewe_domain` traits had to
+  add `Sync` to their `Events` and `Requests` associated types. Match on
+  `trace.current_context()` when a caller used to match the plain enum; the
+  keychain servers call `current_context().status()`/`.to_json()` for the same
+  reason. Two tests fail on `spec70/io-hardening-final` with these changes
+  reverted: the proxy websocket upgrade test and the keychain streamed-body
+  timing test (both macOS `WouldBlock`). Do not report them as regressions.
+- 2026-11-05 (feature 63, retiring the sync response path): a test that must
+  prove a writer parks needs a transport whose readiness the test controls.
+  Loopback TCP did not work: with `SO_SNDBUF` and `SO_RCVBUF` set to 4 KiB,
+  macOS still queued 327,680 bytes before the first `WouldBlock` (the kernel
+  auto-tunes), so the write finished instantly and the old writer passed.
+  A `UnixStream::pair()` queued 4,096-8,064 bytes and blocked, but it failed on
+  Linux: `unix_writable()` only reports writable when the queue is at most 25%
+  full, so a client reading 512 B does not make the fd writable (and epoll
+  therefore never fires `EPOLLOUT`) for seconds. The test then timed out while
+  draining. The final design is a fake in-memory `OverlayReadWrite` transport:
+  a `VecDeque` with a fixed capacity, a `WouldBlock` write when it is full, and
+  a `ConnWaker` the test client fires after every read. It behaves the same on
+  macOS and Linux and exercises the overlay readiness path.
+  A send timeout that starts at writer creation is only observable when the
+  *first* write of the operation blocks: `write_all` already restarted the time
+  on every successful partial write, so an idle writer whose first write
+  succeeds never showed the bug. Pre-fill the transport before creating the
+  writer and start the client reader only after the writer blocks.
+  `BufWriter::flush` on a non-blocking socket can drain part of its buffer and
+  then return `WouldBlock`, so a `flush` that only waits on readiness silently
+  makes progress. Measure the buffered length before and after (`RawStream` now
+  exposes it) and restart the idle timer when it shrinks.
+  Moving a task-driven response to an async writer inside a `TaskIterator`
+  needs a state that owns the `ServeFuture`. The existing `Awaiting` state can
+  serve closing writes by setting `should_close: true`; a `100 Continue` needs
+  its own state because success continues to `WaitingForBody` instead of closing.
+  `block_on_future` is the right tool at a blocking boundary only when the pool
+  exists; a branch that runs *because* `valtron::send` failed has no executor,
+  so it cannot drive an async write (`block_on_future` panics without a pool).
+  Log and close there. Inside a task, spawn a `FutureTask` (protocol detection)
+  so the guard and the connection clone outlive the detector.
+  Poll an `Awaiting` future **before** checking the shutdown flag. The old order
+  dropped the future first, which truncated any handler whose remaining work was
+  the response write; polling first lets it finish, while a future that is still
+  `Pending` is still dropped at the drain checkpoint (the feature-08 test needs
+  that). This is why `completes_inflight_request_within_grace` failed until the
+  order changed.
+  Clearing `clippy -D warnings` on `foundation_http` needed the multi-gated test
+  targets too: CI's clippy run only uses default features, so ~34 warnings in
+  the `multi`-only server tests were never seen. Run clippy with `--features
+  multi` before claiming the crate is clean. `assert!(x.is_empty())` now fails
+  `assert_is_empty`; `assert_ne!(x.len(), 0)` avoids it.
+- 2026-11-05 (feature 59, public FFI callback): moving an inline test out of
+  `infrastructure_llama_cpp` made `logs_to_trace` public. Clippy then failed with
+  `not_unsafe_ptr_arg_deref` (deny by default in `clippy::correctness`): a public
+  function takes a raw pointer and dereferences it. The lint only looks at
+  public items, so private code never saw it. The fix is to mark the callback
+  `pub unsafe extern "C" fn` and document the pointer contract, because the
+  `ggml_log_callback` binding type is already
+  `Option<unsafe extern "C" fn(..)>`; the two signatures match. The tests keep a
+  local safe wrapper. A clippy failure in a package job can come from a path
+  dependency, not the package itself: read the `-->` path before you search the
+  package.
+- 2026-11-05 (feature 49, warning cleanup): `cargo clippy --all-targets` lints
+  every test and example. A `clippy-deny-warnings = true` entry in
+  `ci/packages.toml` therefore needs zero warnings in the test targets too, not
+  only in the library. `foundation_core` has 327 test/example warnings
+  (`drop_non_drop`, `arc_with_non_send_sync`, `items_after_statements`,
+  `doc_markdown`), so its deny entry is held back. Check the all-targets set
+  before you add deny, not just `--lib`.
+  `cargo clippy --fix` rewrites generated code. The generator is the real source:
+  if it still emits the old shape, a regeneration restores the warnings.
+  A manifest warning can mean a feature enables a dependency without the code
+  that uses it: `compression` enabled `flate2` but not `gzip`/`deflate`.
+  An `unused dependency` warning that appears only on one target is fixed by
+  target-gating the dependency, and a dependency that must stay unused needs
+  `use crate as _;` (or a target gate plus an underscore import) to say why.
+- 2026-11-05 (feature 50, test-only constructors): an inline `#[cfg(test)]` module
+  can use private items and test-only constructors that an integration test
+  cannot see. Move the test to the public API first; when no public path exists,
+  make the smallest item public and document it. The `ParseErrorKind` enum and
+  `ParseError::kind` field became public for one test, and a test-only
+  `Generator::for_testing` became a local helper over the public constructor.
+  A target-gated module can be absent from `lib.rs` and still be referred to by
+  a completeness gate: `foundation_wireguard`'s `ios` and `android` modules were
+  dead for that reason. Search for the module name before you assume it compiles.
+- 2026-11-05 (feature 48, ignored condvar tests): the two tests were marked
+  `#[ignore = "Requires threading support"]` under `#[cfg(feature = "std")]`. With `std`
+  the conditions are always true, so the reason was impossible. Both tests pass with no
+  change to the condvar. Lesson: an ignore whose reason contradicts its `cfg` is a stale
+  marker; run it before you look for a bug.
+- 2026-11-05 (feature 47, ptrace deadlock): two bugs made the seven spawn tests hang.
+  (1) The child was forked by the test thread, then the `ptrace_loop` ran in a new
+  thread. A ptrace request must come from the thread that attached to the tracee. From
+  another thread it fails with `ESRCH`: `PTRACE_GETREGS` returns nothing and the
+  `PTRACE_SYSCALL` resume fails, so the tracee stays stopped and `waitpid` blocks. The
+  tracer thread now forks the child and runs every ptrace request, and it sends the child
+  pid to `spawn` through a channel.
+  (2) `nix::unistd::execvp` does not add `argv[0]`. The code passed `args` only, so
+  `/bin/sh -c "..."` got `argv[0] = "-c"` and never ran the command. Build `argv` as
+  `[command, args...]`.
+  Use `PTRACE_TRACEME` plus `raise(SIGSTOP)` in the child, not `PTRACE_SEIZE`: with SEIZE
+  the child can exec before the attach, the tracer sees the `EXEC` event in the wrong
+  place, and a forked child starts in `PTRACE_EVENT_STOP`, which `PTRACE_SYSCALL` does not
+  resume. Build every `CString` and the null-terminated pointer array before `fork`; the
+  child may call only async-signal-safe functions.
+  Tests run in parallel in one binary. `waitpid(-1)` from one tracer reaps another test's
+  tracee and then `PTRACE_GETREGS` fails. Add `__WNOTHREAD` next to `__WALL`.
+  Local limit: OrbStack amd64 emulation returns `EIO` from `PTRACE_GETREGS` for every
+  traced amd64 process (a minimal C program shows it too), so the spawn tests fail here
+  before they reach the dispatch code. They must run on native amd64 in GitHub CI.
 - 2026-11-05 (feature 80, "Thread pool not initialized" in CI): `PoolGuard::shutdown`
   cleared the global `REGISTRY` and `BG_REGISTRY` slots unconditionally. A guard from
   `PoolGuard::new` owns a private registry, takes no lifecycle gate, and its tests run

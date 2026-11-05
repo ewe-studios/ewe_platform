@@ -1168,6 +1168,10 @@ pub struct UnifiedGenerator {
     /// crates import their cross-group types from. In split mode the shared
     /// module is written here instead of `generated/shared/mod.rs`.
     shared_crate_dir: Option<PathBuf>,
+    /// Where the group crates' sibling crates are, for reading their versions
+    /// into the group manifests. Defaults to [`Self::groups_dir`]. Set it when
+    /// `groups_dir` is a scratch tree (see [`UnifiedGenerator::with_sibling_crates`]).
+    sibling_crates_dir: Option<PathBuf>,
     /// Schemas (`PascalCase` type names) whose `oneOf` is emitted as an untagged
     /// enum instead of `serde_json::Value`. Opt-in per schema: a `oneOf` has no
     /// single right Rust shape, and turning every one into an enum would change
@@ -1175,6 +1179,115 @@ pub struct UnifiedGenerator {
     typed_unions: std::collections::BTreeSet<String>,
     /// Shared-types-only mode (see [`UnifiedGenerator::shared_types_only`]).
     shared_types_only: bool,
+}
+
+/// The `Cargo.toml` of one generated group crate.
+///
+/// **WHY:** the manifest names a version for every path dependency so the crate
+/// stays publishable. A version written into the generator goes stale as soon
+/// as the sibling crate's version moves. The build script then finds the
+/// committed manifests stale, rewrites them, and the next `cargo metadata`
+/// fails: the requirement names a version the sibling no longer has.
+///
+/// **WHAT:** renders the manifest, reading each sibling's version from that
+/// crate's own manifest.
+///
+/// **HOW:** the group crates live under `backends/`, next to the crates they
+/// depend on, so `siblings` is the workspace root that holds those crates and
+/// each dependency's manifest is `<siblings>/<dependency>/Cargo.toml`. Pass the
+/// shipped workspace root, not the directory being written: a scratch render
+/// has no siblings in it.
+///
+/// # Errors
+/// [`GenError::ReadFile`] when a sibling manifest cannot be read, and
+/// [`GenError::ManifestVersion`] when it carries no `[package] version`.
+pub fn group_crate_manifest(
+    siblings: &Path,
+    crate_name: &str,
+    safe: &str,
+) -> Result<String, GenError> {
+    use std::fmt::Write as _;
+
+    let types = sibling_version(siblings, "foundation_cloudflare_types")?;
+    let deployment = sibling_version(siblings, "foundation_deployment")?;
+    let macros_crate = sibling_version(siblings, "foundation_macros")?;
+    let netio = sibling_version(siblings, "foundation_netio")?;
+
+    let mut manifest = String::new();
+    writeln!(manifest, "[package]").unwrap();
+    writeln!(manifest, "name = \"{crate_name}\"").unwrap();
+    writeln!(manifest, "version = \"0.1.0\"").unwrap();
+    writeln!(manifest, "edition.workspace = true").unwrap();
+    writeln!(manifest, "rust-version.workspace = true").unwrap();
+    writeln!(manifest, "license.workspace = true").unwrap();
+    writeln!(manifest, "authors.workspace = true").unwrap();
+    writeln!(manifest, "repository.workspace = true").unwrap();
+    writeln!(
+        manifest,
+        "description = \"Generated Cloudflare API client: {safe} group\""
+    )
+    .unwrap();
+    writeln!(manifest).unwrap();
+    writeln!(manifest, "[dependencies]").unwrap();
+    writeln!(
+        manifest,
+        "foundation_cloudflare_types = {{ path = \"../foundation_cloudflare_types\", version = \"{types}\" }}"
+    )
+    .unwrap();
+    writeln!(
+        manifest,
+        "foundation_deployment = {{ path = \"../foundation_deployment\", version = \"{deployment}\" }}"
+    )
+    .unwrap();
+    writeln!(
+        manifest,
+        "foundation_macros = {{ path = \"../foundation_macros\", version = \"{macros_crate}\" }}"
+    )
+    .unwrap();
+    writeln!(
+        manifest,
+        "foundation_netio = {{ path = \"../foundation_netio\", version = \"{netio}\", default-features = false, features = [\"ssl\", \"multi\"] }}"
+    )
+    .unwrap();
+    writeln!(manifest, "serde = {{ workspace = true }}").unwrap();
+    writeln!(manifest, "serde_json = {{ workspace = true }}").unwrap();
+    // The generated module derives `foundation_macros::JsonHash`, whose
+    // expansion uses `sha2` for the digest and `base85rs` for the encoding.
+    writeln!(manifest, "base85rs = \"0.1\"").unwrap();
+    writeln!(manifest, "sha2 = \"0.10\"").unwrap();
+    writeln!(manifest).unwrap();
+    writeln!(manifest, "[lints]").unwrap();
+    writeln!(manifest, "workspace = true").unwrap();
+    Ok(manifest)
+}
+
+/// The version that a group crate in `siblings` must require of the sibling
+/// crate `dependency`.
+///
+/// A path dependency needs a version too, or `cargo publish` rejects the crate.
+/// Reading it from the sibling's own `[package] version` keeps the requirement
+/// and the crate it points at from drifting apart.
+fn sibling_version(siblings: &Path, dependency: &str) -> Result<String, GenError> {
+    let path = siblings.join(dependency).join("Cargo.toml");
+    let display = path.display().to_string();
+    let raw = fs::read_to_string(&path).map_err(|source| GenError::ReadFile {
+        path: display.clone(),
+        source,
+    })?;
+    let doc: toml_edit::DocumentMut = raw.parse().map_err(|_| GenError::ManifestVersion {
+        path: display.clone(),
+        dependency: dependency.to_string(),
+    })?;
+    // `get`, not indexing: a manifest with no `[package]` table must return
+    // this error, not panic.
+    doc.get("package")
+        .and_then(|package| package.get("version"))
+        .and_then(toml_edit::Item::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| GenError::ManifestVersion {
+            path: display,
+            dependency: dependency.to_string(),
+        })
 }
 
 /// Error type for generation failures.
@@ -1196,6 +1309,8 @@ pub enum GenError {
     FmtError(std::fmt::Error),
     #[display("rustfmt failed on the generated code: {_0}")]
     Rustfmt(String),
+    #[display("{path} names no [package] version to require {dependency} by")]
+    ManifestVersion { path: String, dependency: String },
 }
 
 impl std::error::Error for GenError {}
@@ -1223,6 +1338,7 @@ impl UnifiedGenerator {
             provider_dir_override: None,
             groups_dir: None,
             shared_crate_dir: None,
+            sibling_crates_dir: None,
             typed_unions: std::collections::BTreeSet::new(),
             shared_types_only: false,
         }
@@ -1270,6 +1386,23 @@ impl UnifiedGenerator {
     pub fn split_group_crates(mut self, groups_dir: PathBuf, shared_crate_dir: PathBuf) -> Self {
         self.groups_dir = Some(groups_dir);
         self.shared_crate_dir = Some(shared_crate_dir);
+        self
+    }
+
+    /// Name the workspace root that holds the group crates' sibling crates.
+    ///
+    /// WHY: a group crate's manifest requires a version of each path dependency,
+    /// and that version is read from the sibling's own `Cargo.toml`. When the
+    /// group crates themselves are rendered into a scratch tree (`Codegen::check`
+    /// does that), the scratch tree holds no siblings, so the versions must come
+    /// from the shipped workspace instead.
+    ///
+    /// WHAT: `dir` is read for `[package] version` only; nothing is written to
+    /// it. It defaults to the `groups_dir` given to
+    /// [`UnifiedGenerator::split_group_crates`].
+    #[must_use]
+    pub fn with_sibling_crates(mut self, dir: PathBuf) -> Self {
+        self.sibling_crates_dir = Some(dir);
         self
     }
 
@@ -1445,6 +1578,13 @@ impl UnifiedGenerator {
         let group_modules = &modules[1..];
         let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
         let mut written = vec![shared_src.clone()];
+        // Each group manifest requires the versions the sibling crates have. A
+        // caller that renders into a scratch tree names the shipped root instead
+        // (see `with_sibling_crates`), because a scratch tree holds no siblings.
+        let siblings = self
+            .sibling_crates_dir
+            .clone()
+            .unwrap_or_else(|| groups_dir.to_path_buf());
         for (group, module) in groups.iter().zip(group_modules) {
             let safe = sanitize_module_name(&sanitize_group_name(&group.name));
             if !seen.insert(safe.clone()) {
@@ -1452,7 +1592,7 @@ impl UnifiedGenerator {
             }
             let crate_name = format!("foundation_{provider_safe}_{safe}");
             let crate_dir = groups_dir.join(&crate_name);
-            self.write_group_crate(&crate_name, &safe, module, &crate_dir)?;
+            self.write_group_crate(&crate_name, &safe, module, &crate_dir, &siblings)?;
             // The shim `lib.rs` is formatted too: it carries the `#![allow]`
             // attributes and the `pub use` lists that rustfmt wraps and sorts.
             written.push(crate_dir.join("src/lib.rs"));
@@ -1490,6 +1630,8 @@ impl UnifiedGenerator {
 
     /// Emit one group crate: manifest, `lib.rs` (a `shared` re-export module +
     /// the group module), and the group module file itself.
+    ///
+    /// The manifest comes from [`group_crate_manifest`].
     #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
     #[allow(clippy::unused_self)] // Kept on `self` so it sits with the other generator methods.
     fn write_group_crate(
@@ -1498,6 +1640,7 @@ impl UnifiedGenerator {
         safe: &str,
         module: &ModuleFile,
         crate_dir: &Path,
+        siblings: &Path,
     ) -> Result<(), GenError> {
         use std::fmt::Write as _;
 
@@ -1505,51 +1648,7 @@ impl UnifiedGenerator {
 
         // The generated manifest is deterministic and self-contained. Its deps
         // mirror what the group module imports directly.
-        let mut manifest = String::new();
-        writeln!(manifest, "[package]").unwrap();
-        writeln!(manifest, "name = \"{crate_name}\"").unwrap();
-        writeln!(manifest, "version = \"0.1.0\"").unwrap();
-        writeln!(manifest, "edition.workspace = true").unwrap();
-        writeln!(manifest, "rust-version.workspace = true").unwrap();
-        writeln!(manifest, "license.workspace = true").unwrap();
-        writeln!(manifest, "authors.workspace = true").unwrap();
-        writeln!(manifest, "repository.workspace = true").unwrap();
-        writeln!(
-            manifest,
-            "description = \"Generated Cloudflare API client: {safe} group\""
-        )
-        .unwrap();
-        writeln!(manifest).unwrap();
-        writeln!(manifest, "[dependencies]").unwrap();
-        writeln!(
-            manifest,
-            "foundation_cloudflare_types = {{ path = \"../foundation_cloudflare_types\", version = \"0.1.0\" }}"
-        )
-        .unwrap();
-        writeln!(
-            manifest,
-            "foundation_deployment = {{ path = \"../foundation_deployment\", version = \"0.0.3\" }}"
-        )
-        .unwrap();
-        writeln!(
-            manifest,
-            "foundation_macros = {{ path = \"../foundation_macros\", version = \"0.0.7\" }}"
-        )
-        .unwrap();
-        writeln!(
-            manifest,
-            "foundation_netio = {{ path = \"../foundation_netio\", version = \"0.0.4\", default-features = false, features = [\"ssl\", \"multi\"] }}"
-        )
-        .unwrap();
-        writeln!(manifest, "serde = {{ workspace = true }}").unwrap();
-        writeln!(manifest, "serde_json = {{ workspace = true }}").unwrap();
-        // The generated module derives `foundation_macros::JsonHash`, whose
-        // expansion uses `sha2` for the digest and `base85rs` for the encoding.
-        writeln!(manifest, "base85rs = \"0.1\"").unwrap();
-        writeln!(manifest, "sha2 = \"0.10\"").unwrap();
-        writeln!(manifest).unwrap();
-        writeln!(manifest, "[lints]").unwrap();
-        writeln!(manifest, "workspace = true").unwrap();
+        let manifest = group_crate_manifest(siblings, crate_name, safe)?;
         fs::write(crate_dir.join("Cargo.toml"), manifest)?;
 
         // lib.rs: the `shared` module the group module imports via `super::shared`,

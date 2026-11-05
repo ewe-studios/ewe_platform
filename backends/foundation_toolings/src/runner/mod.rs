@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, EventReadiness, QueueReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, EventQueue, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::types::ProjectDefinition;
 
@@ -16,6 +16,12 @@ use crate::types::ProjectDefinition;
 #[derive(Clone)]
 pub struct DurationSleeper {
     deadline: Arc<AtomicU64>, // epoch millis, 0 = not started
+}
+
+impl Default for DurationSleeper {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DurationSleeper {
@@ -58,8 +64,8 @@ impl EventReadiness for DurationSleeper {
 
 pub struct BinaryRunnerTask {
     project: ProjectDefinition,
-    build_queue: Arc<ConcurrentQueue<()>>,
-    build_ready: QueueReadiness<()>,
+    /// Build-complete signals. A push wakes the task parked on it.
+    build_queue: EventQueue<()>,
     running_tx: Arc<ConcurrentQueue<()>>,
     child: Option<std::process::Child>,
     wait_before_reload: Duration,
@@ -77,14 +83,12 @@ enum RunnerState {
 impl BinaryRunnerTask {
     pub fn new(
         project: ProjectDefinition,
-        build_queue: Arc<ConcurrentQueue<()>>,
+        build_queue: EventQueue<()>,
         running_tx: Arc<ConcurrentQueue<()>>,
     ) -> Self {
-        let build_ready = QueueReadiness::new(build_queue.clone());
         Self {
             project: project.clone(),
             build_queue,
-            build_ready,
             running_tx,
             child: None,
             wait_before_reload: project.wait_before_reload,
@@ -112,9 +116,8 @@ impl BinaryRunnerTask {
 
     pub fn readiness(&self) -> Arc<dyn EventReadiness + Send + Sync> {
         match self.state {
-            RunnerState::Idle => Arc::new(self.build_ready.clone()),
+            RunnerState::Idle | RunnerState::Running => Arc::new(self.build_queue.readiness()),
             RunnerState::ReloadDelay => Arc::new(self.reload_sleeper.clone()),
-            RunnerState::Running => Arc::new(self.build_ready.clone()),
         }
     }
 }
@@ -146,7 +149,7 @@ impl TaskIterator for BinaryRunnerTask {
                         }
                     }
                 }
-                Some(TaskStatus::Depends(Arc::new(self.build_ready.clone())))
+                Some(TaskStatus::Depends(self.readiness()))
             }
             RunnerState::ReloadDelay => {
                 if self.reload_sleeper.is_done() {
@@ -166,7 +169,7 @@ impl TaskIterator for BinaryRunnerTask {
                 }
                 // Back to waiting for next build
                 self.state = RunnerState::Idle;
-                Some(TaskStatus::Depends(Arc::new(self.build_ready.clone())))
+                Some(TaskStatus::Depends(self.readiness()))
             }
         }
     }

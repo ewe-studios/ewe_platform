@@ -3,9 +3,9 @@
 //! WHY: Authentication and authorization need thorough coverage for the
 //! middlewares, authenticators, and helpers.
 //!
-//! WHAT: Tests for AuthInfo construction, bearer_token extraction,
-//! protocol/procedure inference, JwtAuthenticator, CompositeAuthenticator,
-//! PerProcedureAuth, AuthzInterceptor, and authenticate_request.
+//! WHAT: Tests for `AuthInfo` construction, `bearer_token` extraction,
+//! protocol/procedure inference, `JwtAuthenticator`, `CompositeAuthenticator`,
+//! `PerProcedureAuth`, `AuthzInterceptor`, and `authenticate_request`.
 //!
 //! HOW: Feature-gated on `auth + rpc_multi`.
 
@@ -23,9 +23,9 @@ use foundation_netio::shared::http::{
 // Test 1: AuthInfo construction
 // ---------------------------------------------------------------------------
 
-/// WHY: AuthInfo is the fundamental auth result type. It must carry the auth
+/// WHY: `AuthInfo` is the fundamental auth result type. It must carry the auth
 /// context and support artifact attachments.
-/// WHAT: Creating AuthInfo from an AuthContext and adding a typed artifact.
+/// WHAT: Creating `AuthInfo` from an `AuthContext` and adding a typed artifact.
 #[test]
 fn test_auth_info_construction() {
     let ctx = AuthContext::new("/test/path".to_string(), None, None);
@@ -34,7 +34,7 @@ fn test_auth_info_construction() {
     assert_eq!(info.context.path, "/test/path");
     assert!(info.context.token.is_none());
     assert!(info.context.sub.is_none());
-    assert!(info.context.roles.is_empty());
+    assert_eq!(info.context.roles, [] as [std::string::String; 0]);
 
     // Verify artifact is stored
     let artifact: Option<&u32> = info.artifacts.get::<u32>();
@@ -45,7 +45,7 @@ fn test_auth_info_construction() {
 // Test 2: bearer_token extraction (RFC 9110 case-insensitive)
 // ---------------------------------------------------------------------------
 
-/// WHY: bearer_token must handle all ASCII case variants per RFC 9110.
+/// WHY: `bearer_token` must handle all ASCII case variants per RFC 9110.
 /// WHAT: Extracting tokens with "Bearer ", "bearer ", "BEARER " prefixes.
 #[test]
 fn test_bearer_token_rfc9110_case_insensitive() {
@@ -208,8 +208,8 @@ fn test_infer_procedure_single_segment() {
 // Test 5: AuthFunc blanket impl (closures)
 // ---------------------------------------------------------------------------
 
-/// WHY: The blanket impl for async closures is the primary way AuthFunc is used.
-/// WHAT: A closure returning Ok(Some(info)) works as AuthFunc.
+/// WHY: The blanket impl for async closures is the primary way `AuthFunc` is used.
+/// WHAT: A closure returning Ok(Some(info)) works as `AuthFunc`.
 #[test]
 fn test_auth_func_closure_success() {
     let auth = |_headers: &SimpleHeaders, _url: &SimpleUrl| {
@@ -247,7 +247,7 @@ fn test_auth_func_closure_none() {
 // Test 6: CompositeAuthenticator
 // ---------------------------------------------------------------------------
 
-/// WHY: CompositeAuthenticator chains authenticators and returns the first
+/// WHY: `CompositeAuthenticator` chains authenticators and returns the first
 /// successful result.
 /// WHAT: First authenticator succeeds, second is never reached.
 #[test]
@@ -292,7 +292,7 @@ fn test_composite_authenticator_fallthrough() {
 // Test 7: PerProcedureAuth
 // ---------------------------------------------------------------------------
 
-/// WHY: PerProcedureAuth dispatches based on the procedure path.
+/// WHY: `PerProcedureAuth` dispatches based on the procedure path.
 /// WHAT: A configured procedure uses its own authenticator.
 #[test]
 fn test_per_procedure_auth_matched_procedure() {
@@ -315,10 +315,6 @@ fn test_per_procedure_auth_matched_procedure() {
 #[test]
 fn test_per_procedure_auth_unauthenticated() {
     // auth is defined but not used because the procedure is unauthenticated
-    let _auth = |_: &SimpleHeaders, _: &SimpleUrl| async move {
-        panic!("should not be called");
-    };
-
     let per_proc = PerProcedureAuth::new().without_auth("/pub.Public/Info");
 
     let headers = SimpleHeaders::new();
@@ -345,8 +341,8 @@ fn test_per_procedure_auth_unknown_procedure() {
 // Test 8: JwtAuthenticator
 // ---------------------------------------------------------------------------
 
-/// WHY: JwtAuthenticator must validate bearer tokens against a JWT verifier.
-/// WHAT: A valid signed JWT returns AuthInfo with the correct sub claim.
+/// WHY: `JwtAuthenticator` must validate bearer tokens against a JWT verifier.
+/// WHAT: A valid signed JWT returns `AuthInfo` with the correct sub claim.
 #[test]
 fn test_jwt_authenticator_valid_token() {
     use foundation_auth::{JwtAlgorithm, JwtSigningKey, JwtVerifierConfig, PublicKeySource};
@@ -435,7 +431,7 @@ fn test_jwt_authenticator_invalid_token() {
 // Test 9: AuthzInterceptor
 // ---------------------------------------------------------------------------
 
-/// WHY: AuthzInterceptor must check scopes in AuthInfo from the Ctx.
+/// WHY: `AuthzInterceptor` must check scopes in `AuthInfo` from the Ctx.
 /// WHAT: The interceptor checks scopes before allowing the RPC through.
 #[test]
 fn test_authz_interceptor_grants_access() {
@@ -483,7 +479,7 @@ fn test_authz_interceptor_grants_access() {
 }
 
 /// WHY: Missing required scopes should deny access.
-/// WHAT: The interceptor returns PermissionDenied when scopes are missing.
+/// WHAT: The interceptor returns `PermissionDenied` when scopes are missing.
 #[test]
 fn test_authz_interceptor_denies_insufficient_scope() {
     use foundation_connectrpc::shared::context::Ctx;
@@ -521,9 +517,8 @@ fn test_authz_interceptor_denies_insufficient_scope() {
     };
 
     let result = futures::executor::block_on(wrapped(ctx, call));
-    let err = match result {
-        Err(err) => err,
-        Ok(_) => panic!("expected Err"),
+    let Err(err) = result else {
+        panic!("expected Err");
     };
     assert_eq!(
         err.current_context().code(),
@@ -535,9 +530,9 @@ fn test_authz_interceptor_denies_insufficient_scope() {
 // Test 10: authenticate_request
 // ---------------------------------------------------------------------------
 
-/// WHY: authenticate_request must call AuthFunc, insert AuthInfo on success,
-/// and render errors via ErrorWriter on failure.
-/// WHAT: Successful authentication inserts AuthInfo into request extensions.
+/// WHY: `authenticate_request` must call `AuthFunc`, insert `AuthInfo` on success,
+/// and render errors via `ErrorWriter` on failure.
+/// WHAT: Successful authentication inserts `AuthInfo` into request extensions.
 #[test]
 fn test_authenticate_request_success() {
     let auth = |_: &SimpleHeaders, _url: &SimpleUrl| {
@@ -561,9 +556,8 @@ fn test_authenticate_request_success() {
         &mut request,
         &error_writer,
     ));
-    let info = match result {
-        Ok(info) => info,
-        Err(_) => panic!("expected Ok"),
+    let Ok(info) = result else {
+        panic!("expected Ok");
     };
     assert!(info.is_some());
 
@@ -606,9 +600,8 @@ fn test_authenticate_request_failure() {
         &mut request,
         &error_writer,
     ));
-    let resp = match result {
-        Err(resp) => resp,
-        Ok(_) => panic!("expected Err"),
+    let Err(resp) = result else {
+        panic!("expected Err");
     };
     assert_eq!(
         resp.status,

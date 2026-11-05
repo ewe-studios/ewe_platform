@@ -28,11 +28,15 @@ pub const ACME_STAGING: &str = "https://acme-staging-v02.api.letsencrypt.org/dir
 /// Let's Encrypt production directory URL.
 pub const ACME_PRODUCTION: &str = "https://acme-v02.api.letsencrypt.org/directory";
 
-/// DNS-01 challenge callback: (domain, token_value) → Result
+/// DNS-01 challenge callback: (domain, `token_value`) → Result
+// The callback shape is the public alias; a named struct would not add clarity.
+#[allow(clippy::type_complexity)]
 pub type Dns01Setter = Arc<dyn Fn(&str, &str) -> Result<(), String> + Send + Sync>;
 
 // ── ACME API types ─────────────────────────────────────────────────────
 
+// The field names mirror the ACME directory JSON keys.
+#[allow(clippy::struct_field_names)]
 #[derive(Debug, Deserialize)]
 struct Directory {
     #[serde(rename = "newAccount")]
@@ -124,7 +128,7 @@ pub fn build_jws(
 
     let protected_b64 = base64_url(&serde_json::to_string(&protected).unwrap_or_default());
     let payload_b64 = if payload.is_empty() {
-        "".to_string()
+        String::new()
     } else {
         base64_url(payload)
     };
@@ -166,6 +170,8 @@ struct Session {
 }
 
 /// ACME certificate provisioning client using the proxy's shared HTTP client.
+// The signer callback type is part of the public builder surface.
+#[allow(clippy::type_complexity)]
 pub struct AcmeClient {
     client: DynNetClient,
     /// Most bytes of an error answer read for its message (see
@@ -247,6 +253,10 @@ impl AcmeClient {
     /// ACME normally learns this from the newAccount `Location` answer; use
     /// this when the caller already has an account URL.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// Panics if the session lock is poisoned.
     pub fn with_key_id(mut self, kid: String) -> Self {
         self.session.get_mut().expect("session lock").key_id = Some(kid);
         self
@@ -292,6 +302,10 @@ impl AcmeClient {
     /// Fetch the ACME directory and create an account. Returns the account URL
     /// from the answer's `Location` header (RFC 8555 §7.3) and stores it as
     /// the key ID (kid) for later requests.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn create_account(&self, email: &str) -> Result<String, String> {
         let dir = self.fetch_directory().await?;
         let nonce = match self.take_nonce() {
@@ -338,6 +352,10 @@ impl AcmeClient {
 
     /// Place an order for the given domains.
     /// Returns `(finalize_url, authorization_urls)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn place_order(&self, domains: &[String]) -> Result<(String, Vec<String>), String> {
         let dir = self.fetch_directory().await?;
 
@@ -387,12 +405,20 @@ impl AcmeClient {
     }
 
     /// Respond to a challenge (signal ready for validation).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn respond_to_challenge(&self, challenge_url: &str) -> Result<(), String> {
         self.post_signed(challenge_url, "{}").await?;
         Ok(())
     }
 
     /// Finalize an order with a CSR (DER-encoded PKCS#10, base64url).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn finalize_order(
         &self,
         finalize_url: &str,
@@ -413,6 +439,10 @@ impl AcmeClient {
     }
 
     /// Download the certificate chain from the certificate URL (PEM text).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn download_certificate(&self, cert_url: &str) -> Result<String, String> {
         let (_headers, bytes) = self.post_signed(cert_url, "").await?;
         Ok(String::from_utf8_lossy(&bytes).into_owned())
@@ -422,6 +452,10 @@ impl AcmeClient {
     ///
     /// `csr_der` is a DER-encoded PKCS#10 certificate signing request.
     /// Returns `(certificate_pem, raw_cert_bytes)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn provision(
         &self,
         domains: &[String],
@@ -435,8 +469,13 @@ impl AcmeClient {
         let (finalize_url, authorizations) = self.place_order(domains).await?;
 
         // 3. Solve DNS-01 challenges.
-        let thumbprint =
-            Self::account_thumbprint(&self.jwk.as_ref().map(|j| j.to_string()).unwrap_or_default());
+        let thumbprint = Self::account_thumbprint(
+            &self
+                .jwk
+                .as_ref()
+                .map(std::string::ToString::to_string)
+                .unwrap_or_default(),
+        );
         let dns = self.dns_setter.as_ref().ok_or("no DNS setter configured")?;
 
         for auth_url in &authorizations {
@@ -485,18 +524,20 @@ impl AcmeClient {
     }
 
     /// Compute the DNS-01 TXT record value.
+    #[must_use]
     pub fn dns01_value(token: &str, account_thumbprint: &str) -> String {
         use sha2::{Digest, Sha256};
         let key_auth = format!("{token}.{account_thumbprint}");
         let hash = Sha256::digest(key_auth.as_bytes());
-        base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &hash)
+        base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, hash)
     }
 
     /// Compute the account key thumbprint (JWS `jwk` → SHA-256 → base64url).
+    #[must_use]
     pub fn account_thumbprint(jwk_json: &str) -> String {
         use sha2::{Digest, Sha256};
         let hash = Sha256::digest(jwk_json.as_bytes());
-        base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, &hash)
+        base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, hash)
     }
 
     // ── Internal helpers ────────────────────────────────────────────────
@@ -639,6 +680,7 @@ impl AcmeClient {
         Ok(resp.identifier.value)
     }
 
+    #[allow(clippy::similar_names)]
     fn sign_jws(&self, jws: &Value) -> Result<Value, String> {
         let signer = self.signer.as_ref().ok_or("no signer configured")?;
         let protected = jws["protected"].as_str().unwrap_or("");

@@ -82,6 +82,8 @@ impl From<TimeoutError> for ConnectError {
 /// # Errors
 /// [`TimeoutError`] (→ [`Code::InvalidArgument`]) on an empty header, an
 /// over-long value, a non-integer value, or an unknown unit.
+// The unit table holds only small constants that fit u64.
+#[allow(clippy::cast_possible_truncation)]
 pub fn decode_grpc_timeout(header: &str) -> Result<Duration, TimeoutError> {
     let unit = header.chars().last().ok_or(TimeoutError::Empty)?;
     let digits = &header[..header.len() - unit.len_utf8()];

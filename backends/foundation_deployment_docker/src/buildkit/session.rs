@@ -1,11 +1,11 @@
-//! BuildKit build-context session — serves FileSync back to buildkitd.
+//! `BuildKit` build-context session — serves `FileSync` back to buildkitd.
 //!
 //! WHY: A `dockerfile.v0` Solve needs the Dockerfile + build context, which
 //! buildkitd pulls from the *client* over a callback gRPC channel (the
 //! `Control/Session` bidi stream). buildkitd multiplexes an HTTP/2 connection
 //! over that stream and calls the client's `FileSync/DiffCopy`.
 //!
-//! WHAT: [`SessionServer`] serves the generated FileSync service (backed by a
+//! WHAT: [`SessionServer`] serves the generated `FileSync` service (backed by a
 //! local directory) on a loopback HTTP/2 socket, then bridges that socket to the
 //! `Control/Session` bidi stream — so buildkitd's session traffic reaches our
 //! own `foundation_connectrpc` server. No bespoke transport: the server is the
@@ -18,6 +18,7 @@
 //! bytes both ways between that socket and the session bidi. Callers then run a
 //! Solve carrying the returned session id.
 
+use std::fmt::Write as _;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
@@ -123,7 +124,8 @@ fn walk_dir(root: &Path, dir: &Path, out: &mut Vec<Entry>) {
                 stat: Stat {
                     path: rel,
                     mode: 0o644,
-                    size: content.len() as i64,
+                    // A file size fits in i64 on every supported platform.
+                    size: i64::try_from(content.len()).unwrap_or(i64::MAX),
                     ..Default::default()
                 },
                 content: Some(content),
@@ -303,6 +305,8 @@ impl FileSync for DirFileSync {
 pub struct HealthService;
 
 impl Health for HealthService {
+    // The generated trait declares an async method; there is nothing to await.
+    #[allow(clippy::unused_async_trait_impl)]
     async fn check(
         &self,
         _ctx: Ctx,
@@ -327,7 +331,7 @@ impl Health for HealthService {
 /// need. `FetchToken`/`GetTokenAuthority`/`VerifyTokenAuthority` keep their
 /// generated `unimplemented` defaults: buildkitd's resolver falls back to
 /// `Credentials` + its own token flow when the client doesn't do OAuth
-/// token exchange itself (the docker-CLI behavior predating FetchToken).
+/// token exchange itself (the docker-CLI behavior predating `FetchToken`).
 #[derive(Default)]
 pub struct StaticRegistryAuth {
     creds: std::collections::HashMap<String, (String, String)>,
@@ -651,7 +655,7 @@ impl FileSend for FileExportSink {
 /// `SolveRequest.Session`) and the resources kept alive for the build's
 /// duration; dropping it tears the session down.
 pub struct SessionServer {
-    /// The BuildKit session id — set `SolveRequest.Session` to this.
+    /// The `BuildKit` session id — set `SolveRequest.Session` to this.
     pub id: String,
     shutdown: Arc<ShutdownSignal>,
     _server: Option<JoinHandle<()>>,
@@ -664,7 +668,7 @@ pub struct SessionServer {
 
 /// Configures the sidecar services a [`SessionServer`] exposes to buildkitd.
 ///
-/// The context directory (FileSync) and Health are always served; everything
+/// The context directory (`FileSync`) and Health are always served; everything
 /// else is opt-in. Finish with [`start`](Self::start) (fresh `H2Transport`
 /// per the control authority) or [`start_with`](Self::start_with) (caller-
 /// supplied transport — e.g. to share `BuildKitClient`'s Unix-socket or
@@ -735,6 +739,10 @@ impl SessionBuilder {
     ///
     /// Returns an error if the loopback server cannot bind, the Session
     /// stream cannot be opened, or the loopback dial fails.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the setup steps are one state machine and read best in order"
+    )]
     pub async fn start_with(
         self,
         control_transport: Arc<dyn Transport>,
@@ -815,8 +823,9 @@ impl SessionBuilder {
         match bidi.response_headers().await {
             Ok(h) => {
                 let mut s = String::new();
-                for (k, vs) in h.iter() {
-                    s.push_str(&format!("{k}={vs:?} "));
+                for (k, vs) in h {
+                    // Writing to a String cannot fail.
+                    let _ = write!(s, "{k}={vs:?} ");
                 }
                 tracing::debug!(headers = %s, "session bidi response headers");
             }
@@ -839,7 +848,11 @@ impl SessionBuilder {
                 match receiver.receive().await {
                     Ok(Some(msg)) => {
                         let tag = h2_frame_tag(&msg.data);
-                        let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
+                        let mut hex = String::with_capacity(msg.data.len() * 2);
+                        for byte in &msg.data {
+                            // Writing to a String cannot fail.
+                            let _ = write!(hex, "{byte:02x}");
+                        }
                         tracing::trace!(bytes = msg.data.len(), frame = tag, hex = %hex, "session: buildkitd -> loopback");
                         if let Err(e) = down_tx.send(msg.data) {
                             error!(err = %e, "[sess] down_tx send failed");
@@ -962,7 +975,7 @@ impl SessionServer {
     /// context directory needed from the caller. The content is materialized
     /// as `Dockerfile` in a session-owned temp directory (buildkitd's
     /// `dockerfile.v0` frontend always pulls the Dockerfile through the
-    /// session's FileSync `dockerfile` local; there is no request-attr path
+    /// session's `FileSync` `dockerfile` local; there is no request-attr path
     /// for it in plain buildkitd), and the directory is removed when the
     /// session drops.
     ///
@@ -987,7 +1000,7 @@ impl SessionServer {
         })
     }
 
-    /// Serve a FileSync session for `context_dir` and attach it to the
+    /// Serve a `FileSync` session for `context_dir` and attach it to the
     /// Control/Session stream at `control_authority` on a fresh
     /// [`H2Transport`]. Shorthand for `builder(context_dir).start(..)`.
     ///
@@ -1030,8 +1043,12 @@ impl Drop for SessionServer {
     }
 }
 
-/// A random BuildKit identifier (32 lowercase-hex chars, like buildx's
+/// A random `BuildKit` identifier (32 lowercase-hex chars, like buildx's
 /// `identity.NewID()`). Used for session ids and build refs alike.
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "the low 64 bits of the timestamp seed the xorshift state"
+)]
 pub(crate) fn new_session_id() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let seed = SystemTime::now()
@@ -1044,7 +1061,8 @@ pub(crate) fn new_session_id() -> String {
         x ^= x << 13;
         x ^= x >> 7;
         x ^= x << 17;
-        s.push_str(&format!("{x:016x}"));
+        // Writing to a String cannot fail.
+        let _ = write!(s, "{x:016x}");
     }
     s.truncate(32);
     s

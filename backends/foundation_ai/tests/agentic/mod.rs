@@ -18,3 +18,4 @@ mod session_mock_tests;
 mod session_tests;
 mod session_wiring_tests;
 mod steering_tests;
+mod steering_wake_tests;

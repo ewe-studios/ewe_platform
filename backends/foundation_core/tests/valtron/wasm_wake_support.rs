@@ -63,6 +63,22 @@ pub const WAKE_LATENCY_WINDOW: Duration = Duration::from_millis(25);
 /// a little early and ask again), and a host timer is only exact to a few ms.
 pub const DEADLINE_LATE_WINDOW: Duration = Duration::from_millis(30);
 
+/// How late a task driven by host timers may end, past its nominal time.
+///
+/// WHY: a `Delayed` park asks the host for a timer of that delay, and a JS timer
+/// is only exact to a few milliseconds — it never fires early, and it fires late
+/// when the event loop is busy. A timeout over a ticking task waits on one host
+/// timer per tick, so every tick's lateness adds up. On a loaded CI container the
+/// 50 ms timeout below ended at about 126 ms, against the 90 ms bound that
+/// [`DEADLINE_LATE_WINDOW`] and one tick allow; it takes about 63 ms on an idle
+/// machine.
+///
+/// This widens only the wall-clock ceiling. The tight guard stays the poll bound
+/// in [`timed_end`]: a task that ignores its timer ends early (the lower bound
+/// catches it) and a task that spins or re-checks on a timer polls far too often
+/// (the poll bound catches it). Neither depends on how loaded the host is.
+pub const HOST_TIMER_LATE_ALLOWANCE: Duration = Duration::from_millis(120);
+
 /// How many times the executor may call `is_ready` on a parked readiness.
 ///
 /// A park costs about three calls: one when the executor checks that the signal
@@ -699,8 +715,9 @@ impl<T: TaskIterator> TaskIterator for Observed<T> {
     }
 }
 
-/// Run `task` and check that it ends `nominal` after the start, within
-/// [`DEADLINE_LATE_WINDOW`] plus `slack`, after at most `max_polls` polls.
+/// Run `task` and check that it ends `nominal` after the start, not before it
+/// and not later than [`DEADLINE_LATE_WINDOW`] plus `slack` plus
+/// [`HOST_TIMER_LATE_ALLOWANCE`], after at most `max_polls` polls.
 fn timed_end<T>(
     name: &'static str,
     seed: u64,
@@ -736,8 +753,9 @@ where
                 "{name}: ended after {took:?}, before {nominal:?}"
             );
             assert!(
-                took < nominal + DEADLINE_LATE_WINDOW + slack,
-                "{name}: ended after {took:?} (nominal {nominal:?}, window {DEADLINE_LATE_WINDOW:?})"
+                took < nominal + DEADLINE_LATE_WINDOW + slack + HOST_TIMER_LATE_ALLOWANCE,
+                "{name}: ended after {took:?} (nominal {nominal:?}, window \
+                 {DEADLINE_LATE_WINDOW:?}, host timer allowance {HOST_TIMER_LATE_ALLOWANCE:?})"
             );
             let calls = polls.load(Ordering::SeqCst);
             assert!(

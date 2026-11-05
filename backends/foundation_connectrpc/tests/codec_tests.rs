@@ -1,6 +1,14 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Codec-system tests (spec-41 F13 / Decision 02): proto/json round-trips,
 //! zero-length rejection, `marshal_append`, `CodecError` mapping, and the
-//! `ProcedureCodecs` table (of/defaults/only/with_codec/for_request/names + miss).
+//! `ProcedureCodecs` table (`of/defaults/only/with_codec/for_request/names` + miss).
 //!
 //! Uses a hand-written but real buffa `Message` (`TestMsg`) so proto encoding
 //! carries actual data, plus serde derives so `JsonCodec` exercises the same

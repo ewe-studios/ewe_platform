@@ -120,6 +120,17 @@ wasm-runs = [
   "--no-default-features --features std,js-foundation-wasm",
   "--no-default-features --features std,js-wasmbindgen",
 ]
+# The bare build (neither `std` nor `alloc`) is unsupported: `valtron::Ctx` and
+# its executors need `std`, and `alloc`-only support is deferred. The crate
+# refuses it with a `compile_error!`; keep that refusal checked so the message
+# and the documented minimum cannot drift.
+wasm-expect-error = { run = "--no-default-features", contains = "foundation_core needs the `std` feature" }
+
+[packages.foundation_nostd]
+# The crate had no clippy runs of its own; its lints were only seen through the
+# crates that depend on it. Lint it directly and fail on a warning (spec 70
+# feature 49 E10).
+clippy-deny-warnings = true
 
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
@@ -137,6 +148,11 @@ runs = ["", "--no-default-features --features single_threaded"]
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
 runs = ["", "vms"]
+# Lint both feature trees: a warning in `vms` code must fail CI too
+# (spec 70 feature 79).
+clippy-runs = ["", "vms"]
+# At zero clippy warnings in both feature trees: a new one fails CI.
+clippy-deny-warnings = true
 
 [packages.foundation_testbed]
 # `vms` re-exports foundation_deployment_platform (with its `vms` feature) as
@@ -153,6 +169,10 @@ runs = ["", "vms"]
 # behind `integration-tests`; that target is built (`--no-run`) so it cannot
 # silently rot, but never run — daemon-backed runs stay manual.
 runs = ["", "docker", "--no-run --features docker,integration-tests"]
+# Lint every feature set and fail on a warning, so the docker clippy debt
+# cannot return (spec 70 feature 49 E3).
+clippy-runs = ["", "--all-features"]
+clippy-deny-warnings = true
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 
@@ -203,6 +223,11 @@ wasm-runs = ["--no-default-features --features wasm"]
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
 runs = ["", "multi quic"]
+# Clippy covers the default tree, the multi/quic server tests and the TLS
+# server feature consumers enable; all are at zero warnings (spec 70 feature
+# 63), so a new one fails CI.
+clippy-runs = ["", "multi quic ssl"]
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
@@ -253,9 +278,46 @@ wasm-runs = [""]
 # `feature = "fd"` and so runs in no other run. `netstack` adds the WireGuard
 # overlay data-plane suite (tests/dataplane), which no run compiled before.
 # `vfs-fuse` builds and runs the FUSE adapter tests (mount tests skip without
-# /dev/fuse). The last run compiles every remaining VFS backend together so a
-# backend that only breaks under a specific feature set is caught in CI.
-runs = ["", "fd", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
+# /dev/fuse). `vfs-preload` builds the `LD_PRELOAD` shim and its `vfs_shim_vfs`
+# suite (Linux); it did not compile for a while, so it gets its own run.
+# `fd,uring` compiles and runs the io_uring suites (`uring_completion_*` and
+# `completion_source_seam`); their code is Linux-only, and the run compiles to
+# empty test binaries elsewhere. `vfs-native,vfs-ptrace` is the ptrace spawn
+# suite (`tests/ptrace_vfs`), named on its own so a failure says "ptrace",
+# not "the full VFS set". It needs a native amd64 kernel: under emulation
+# `PTRACE_GETREGS` returns `EIO`. The last run compiles every remaining VFS
+# backend together so a backend that only breaks under a specific feature set is
+# caught in CI.
+runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
+# `uring_completion_*` and `completion_source_seam` skip on a kernel without
+# io_uring. Set the variable so CI fails instead of silently losing the suite.
+# The ptrace spawn tests must likewise fail on a kernel that cannot trace a
+# child, not pass as an empty or skipping binary.
+# `container-options` is read by `scripts/ci/ci.py` and added to this job's
+# container, because Docker's default seccomp profile blocks `io_uring_setup`
+# and `ptrace`.
+env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
+container-options = "--security-opt seccomp=unconfined"
+
+[packages.foundation_iogate]
+# Its io_uring tests fail when `EWE_REQUIRE_IO_URING=1` and io_uring is missing.
+# Docker's default seccomp profile blocks `io_uring_setup`, so this job's
+# container runs with `seccomp=unconfined`. This is the io_uring exception only;
+# every other package keeps the default profile. The `io_uring_probe` target
+# prints whether the kernel allows it before the package tests run.
+env = { EWE_REQUIRE_IO_URING = "1" }
+container-options = "--security-opt seccomp=unconfined"
+
+[packages.foundation_proxy]
+# The completion dial and splice tests need io_uring; fail instead of skipping.
+env = { EWE_REQUIRE_IO_URING = "1" }
+container-options = "--security-opt seccomp=unconfined"
+
+[packages.foundation_reactor]
+# The poll module compiles on wasm32 (the reactor module is Unix-only), so keep
+# it warning-free there. This is the check that caught the dead `rearm_readable`.
+wasm = "enforce"
+wasm-runs = [""]
 
 [packages.foundation_compact]
 wasm = "enforce"

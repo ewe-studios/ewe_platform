@@ -245,7 +245,7 @@ impl ConnSender for PipeConnSender {
                 *self
                     .response_headers
                     .lock()
-                    .unwrap_or_else(|e| e.into_inner()) = Some(headers);
+                    .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers);
                 self.headers_sent = true;
             }
             Ok(())
@@ -420,6 +420,8 @@ impl ClientSender for PipeClientSender {
     }
 }
 
+// `peeked` needs three states: nothing taken, end of stream, or one frame.
+#[allow(clippy::option_option)]
 struct PipeClientReceiver {
     rx: PipeReceiver<Frame>,
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
@@ -461,20 +463,19 @@ impl ClientReceiver for PipeClientReceiver {
                 let published = self
                     .response_headers
                     .lock()
-                    .unwrap_or_else(|e| e.into_inner())
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
                     .clone();
-                let headers = match published {
-                    Some(headers) => headers,
-                    None => {
-                        if self.peeked.is_none() {
-                            self.peeked = Some(next_frame(&self.rx, &self.cancel).await?);
-                        }
-                        self.response_headers
-                            .lock()
-                            .unwrap_or_else(|e| e.into_inner())
-                            .clone()
-                            .unwrap_or_default()
+                let headers = if let Some(headers) = published {
+                    headers
+                } else {
+                    if self.peeked.is_none() {
+                        self.peeked = Some(next_frame(&self.rx, &self.cancel).await?);
                     }
+                    self.response_headers
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .clone()
+                        .unwrap_or_default()
                 };
                 self.headers_cache = Some(headers);
             }

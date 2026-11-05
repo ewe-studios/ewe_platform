@@ -9,7 +9,7 @@
 //! One request in, a *stream* of responses out. The handler returns any
 //! `futures::Stream<Item = ConnectResult<Res>>`; the client drains it with
 //! `stream.receive().await` until it yields `None`. On the wire this is the
-//! Connect streaming framing (5-byte enveloped frames + a terminating EndStream
+//! Connect streaming framing (5-byte enveloped frames + a terminating `EndStream`
 //! frame); the library handles all of that for you.
 //!
 //! Because the route registers `ProcedureCodecs::of((JsonCodec,))` — a JSON-only

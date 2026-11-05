@@ -103,7 +103,7 @@ fn anonymous_access_enforces_password_and_counts() {
     let c = ctx.clone();
     let id2 = id.clone();
     let bad = drive(async move { sends::access(&c, &id2, Some("nope")).await });
-    assert!(matches!(bad, Err(AppError::Unauthorized)));
+    assert!(matches!(bad, Err(trace) if matches!(trace.current_context(), AppError::Unauthorized)));
 
     // Correct password: first two accesses succeed, counter climbs.
     let c = ctx.clone();
@@ -119,7 +119,7 @@ fn anonymous_access_enforces_password_and_counts() {
     let c = ctx.clone();
     let id2 = id.clone();
     let a3 = drive(async move { sends::access(&c, &id2, Some("secret")).await });
-    assert!(matches!(a3, Err(AppError::NotFound(_))));
+    assert!(matches!(a3, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))));
 }
 
 #[valtron_test]
@@ -135,7 +135,7 @@ fn disabled_and_expired_sends_are_gone() {
     let id = off.id.clone();
     assert!(matches!(
         drive(async move { sends::access(&c, &id, None).await }),
-        Err(AppError::NotFound(_))
+        Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))
     ));
 
     // Already past deletion date.
@@ -148,7 +148,7 @@ fn disabled_and_expired_sends_are_gone() {
     let id = expired.id.clone();
     assert!(matches!(
         drive(async move { sends::access(&c, &id, None).await }),
-        Err(AppError::NotFound(_))
+        Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))
     ));
 }
 
@@ -191,7 +191,7 @@ fn update_delete_and_ownership() {
     let id2 = id.clone();
     assert!(matches!(
         drive(async move { sends::get(&c, USER_B, &id2).await }),
-        Err(AppError::Forbidden)
+        Err(trace) if matches!(trace.current_context(), AppError::Forbidden)
     ));
 
     // Delete.
@@ -201,6 +201,6 @@ fn update_delete_and_ownership() {
     let c = ctx.clone();
     assert!(matches!(
         drive(async move { sends::get(&c, USER_A, &id).await }),
-        Err(AppError::NotFound(_))
+        Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))
     ));
 }

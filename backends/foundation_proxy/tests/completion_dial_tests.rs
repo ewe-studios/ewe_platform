@@ -1,7 +1,10 @@
-//! The io_uring upstream dial does not hold a worker (spec 70 feature 70, E2).
+// Socket and address constants are small and fit the libc types.
+#![allow(clippy::cast_possible_truncation)]
+
+//! The `io_uring` upstream dial does not hold a worker (spec 70 feature 70, E2).
 //!
 //! WHY: `aio::dial_tcp` used `foundation_iogate::connect_completion` for the
-//! io_uring modes, which called `TcpStream::connect`. A dial to an address that
+//! `io_uring` modes, which called `TcpStream::connect`. A dial to an address that
 //! never answers then blocked the worker thread for the whole kernel connect
 //! timeout (minutes), and on a one-worker pool no other connection was served.
 //!
@@ -48,6 +51,15 @@ impl Blackhole {
             let fd = libc::socket(libc::AF_INET, libc::SOCK_STREAM, 0);
             assert!(fd >= 0, "socket");
             let addr = libc::sockaddr_in {
+                // BSD sockets carry the struct length in the address itself.
+                #[cfg(any(
+                    target_os = "macos",
+                    target_os = "ios",
+                    target_os = "freebsd",
+                    target_os = "netbsd",
+                    target_os = "openbsd"
+                ))]
+                sin_len: std::mem::size_of::<libc::sockaddr_in>() as u8,
                 sin_family: libc::AF_INET as libc::sa_family_t,
                 sin_port: 0,
                 sin_addr: libc::in_addr {
@@ -105,10 +117,10 @@ fn start_echo() -> (u16, Arc<AtomicBool>) {
     (port, stop)
 }
 
-/// Whether io_uring is missing, so the caller skips its test.
+/// Whether `io_uring` is missing, so the caller skips its test.
 ///
-/// A local machine without io_uring skips with a message. An environment that
-/// sets `EWE_REQUIRE_IO_URING=1` expects io_uring, so a missing io_uring fails the
+/// A local machine without `io_uring` skips with a message. An environment that
+/// sets `EWE_REQUIRE_IO_URING=1` expects `io_uring`, so a missing `io_uring` fails the
 /// test there: CI cannot lose this coverage without anyone noticing.
 fn io_uring_missing(what: &str) -> bool {
     if init_reactor_for(ServerIo::Completion).is_ok() {
@@ -185,7 +197,7 @@ async fn completion_dial_does_not_hold_worker() {
                     if e.kind() != std::io::ErrorKind::WouldBlock
                         && e.kind() != std::io::ErrorKind::TimedOut =>
                 {
-                    closed += 1
+                    closed += 1;
                 }
                 _ => {}
             }

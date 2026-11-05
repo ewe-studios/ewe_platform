@@ -161,10 +161,11 @@ mod shim_exports {
                 {
                     use foundation_core::valtron::initialize_pool;
                     let guard = initialize_pool(42, Some(4));
-                    let delta = build_d1_delta().unwrap_or_else(|e| {
-                        drop(guard);
-                        panic!("[vfs-shim] D1 delta init failed: {e}")
-                    });
+                    // Do not drop `guard` in the closure: the closure would move
+                    // it and the runtime below could not store it. A panic unwinds
+                    // this frame and drops the guard at once anyway.
+                    let delta = build_d1_delta()
+                        .unwrap_or_else(|e| panic!("[vfs-shim] D1 delta init failed: {e}"));
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
                         fs: DynFs::from_async(overlay),
@@ -179,10 +180,8 @@ mod shim_exports {
                 {
                     use foundation_core::valtron::initialize_pool;
                     let guard = initialize_pool(42, Some(4));
-                    let delta = build_r2_delta().unwrap_or_else(|e| {
-                        drop(guard);
-                        panic!("[vfs-shim] R2 delta init failed: {e}")
-                    });
+                    let delta = build_r2_delta()
+                        .unwrap_or_else(|e| panic!("[vfs-shim] R2 delta init failed: {e}"));
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
                         fs: DynFs::from_async(overlay),
@@ -270,9 +269,7 @@ mod shim_exports {
 
     // ── open / openat ──
     //
-    // libc's `open` and `openat` are variadic, so the exported entry points
-    // live in `vfs_shim.c` (built by build.rs). Those C shims read the optional
-    // mode and forward to these non-variadic Rust handlers, which decide
+    // The exported entry points below call these handlers, which decide
     // whether the path is virtual or must reach the real libc call.
 
     fn open_common(
@@ -324,40 +321,80 @@ mod shim_exports {
         unsafe { super::real::openat(dirfd, pathname, flags, mode) }
     }
 
-    /// Keeps the C shim's entry points in the cdylib.
+    // ── Exported libc entry points for the dynamic loader ──
+    //
+    // WHY these four entry points are defined in Rust and not in C: rustc links
+    // a cdylib against a generated version script. That script exports only the
+    // symbols the crate itself defines, and it ends with `local: *;`. A symbol
+    // that comes from a linked C object is therefore localized and dropped from
+    // the dynamic symbol table. `LD_PRELOAD` never saw a C `open`, so every
+    // virtual open fell through to real files and failed with `ENOENT`.
+    //
+    // libc declares `open` and `openat` as variadic. Stable Rust cannot define a
+    // variadic `extern "C"` function, so these entry points take the mode as a
+    // fixed third argument. On x86-64, x86, AArch64 and RISC-V the caller writes
+    // that value where a fixed third argument lives, so the value read is the
+    // real one. When `flags` has neither `O_CREAT` nor `O_TMPFILE` the caller
+    // writes no mode and the value is unused. 32-bit ARM passes variadic
+    // arguments on the stack, so the shim does not support `armv7-linux`; see
+    // `docs/bug-backlog.md`.
+
+    /// `open(2)`: serve a virtual path from the VFS, else call real libc.
     ///
-    /// Nothing in Rust calls `open`/`openat` by name, so without these
-    /// references the linker drops the `vfs_shim.c` object from the static
-    /// archive and the `.so` exports nothing to interpose. Storing the
-    /// addresses in a `#[used]` static forces the object in; the declarations
-    /// are placeholder prototypes, so only the symbol names matter.
-    mod c_shim {
-        use std::os::raw::{c_char, c_int};
+    /// # Safety
+    /// `pathname` must be a valid NUL-terminated C string, or null.
+    #[allow(invalid_runtime_symbol_definitions)]
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn open(
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
+        unsafe { foundation_vfs_open(pathname, flags, mode) }
+    }
 
-        extern "C" {
-            // `open` is a runtime symbol the standard-library linter knows; its
-            // declaration must match libc's variadic signature exactly. The
-            // other three are not runtime symbols and keep their own shapes.
-            fn open(path: *const c_char, flags: c_int, ...) -> c_int;
-            fn open64(path: *const c_char, flags: c_int, ...) -> c_int;
-            fn openat(dirfd: c_int, path: *const c_char, flags: c_int, ...) -> c_int;
-            fn __openat64_time64(dirfd: c_int, path: *const c_char, flags: c_int, ...) -> c_int;
-        }
+    /// `open64(2)`: serve a virtual path from the VFS, else call real libc.
+    ///
+    /// # Safety
+    /// `pathname` must be a valid NUL-terminated C string, or null.
+    #[allow(invalid_runtime_symbol_definitions)]
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn open64(
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
+        unsafe { foundation_vfs_open64(pathname, flags, mode) }
+    }
 
-        #[used]
-        static KEEP_OPEN: unsafe extern "C" fn(*const c_char, c_int, ...) -> c_int = open;
-        #[used]
-        static KEEP_OPEN64: unsafe extern "C" fn(*const c_char, c_int, ...) -> c_int = open64;
-        #[used]
-        static KEEP_OPENAT: unsafe extern "C" fn(c_int, *const c_char, c_int, ...) -> c_int =
-            openat;
-        #[used]
-        static KEEP_OPENAT64_TIME64: unsafe extern "C" fn(
-            c_int,
-            *const c_char,
-            c_int,
-            ...
-        ) -> c_int = __openat64_time64;
+    /// `openat(2)`: serve a virtual path from the VFS, else call real libc.
+    ///
+    /// # Safety
+    /// `pathname` must be a valid NUL-terminated C string, or null.
+    #[allow(invalid_runtime_symbol_definitions)]
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn openat(
+        dirfd: c_int,
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
+        unsafe { foundation_vfs_openat(dirfd, pathname, flags, mode) }
+    }
+
+    /// `__openat64_time64`: glibc's 64-bit `time_t` alias of `openat(2)`.
+    ///
+    /// # Safety
+    /// `pathname` must be a valid NUL-terminated C string, or null.
+    #[allow(invalid_runtime_symbol_definitions)]
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn __openat64_time64(
+        dirfd: c_int,
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
+        unsafe { foundation_vfs_openat(dirfd, pathname, flags, mode) }
     }
 
     // ── close ──

@@ -111,6 +111,6 @@ fn sync_returns_profile_folders_and_ciphers() {
     assert_eq!(snapshot.folders.len(), 2);
     assert_eq!(snapshot.ciphers.len(), 2);
     assert!(snapshot.sends.is_empty());
-    assert!(snapshot.collections.is_empty());
+    assert_eq!(snapshot.collections, [] as [serde_json::value::Value; 0]);
     assert!(snapshot.domains.is_some());
 }

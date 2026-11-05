@@ -43,6 +43,24 @@ fn cloudflare_types_are_generated() {
         .expect("the committed Cloudflare wire types are what the generator writes");
 }
 
+/// The full check the Cloudflare build script runs passes on the committed tree.
+///
+/// WHY: `check()` renders the group crates into a scratch tree and compares them
+/// with the committed ones. That scratch tree holds no sibling crates, so a
+/// generator that read the group manifests' versions from next to its output
+/// failed the build. The build script only proves it after a full cargo build of
+/// the umbrella crate; this test proves it in the generator's own suite.
+///
+/// It is slower than `cloudflare_types_are_generated` because it renders and
+/// formats all 43 group crates. That is the point: it is the same work the build
+/// script does.
+#[test]
+fn the_full_cloudflare_check_is_current() {
+    cloudflare_declaration()
+        .check()
+        .expect("the committed group crates and umbrella shim are what the generator writes");
+}
+
 /// The D1 request body and the R2 listing types are in the generated file, not
 /// in a hand-written one.
 #[test]

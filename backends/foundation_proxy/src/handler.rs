@@ -30,7 +30,7 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingR
 
 use foundation_http::native::writer::{render_head, send_not_found, send_text, ResponseWriter};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 
 use crate::config::BackendProtocol;
 use crate::forward::{
@@ -64,16 +64,20 @@ impl ServeFactory for ProxyHandler {
 /// it is written: the handler's early answers (`404`, `503`) carry
 /// `Connection: close`, so the connection must not wait for another request.
 fn closing(result: ConnectionResult) -> ConnectionResult {
-    match result {
-        ConnectionResult::Async(write) => ConnectionResult::Async(Box::pin(async move {
+    match result.split() {
+        Ok(write) => ConnectionResult::Async(Box::pin(async move {
             let _ = write.await;
-            ConnectionResult::Close(None)
+            ServeOutcome::Close(None)
         })),
-        other => other,
+        Err(outcome) => outcome.into(),
     }
 }
 
 impl Serve for ProxyHandler {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the HTTP/1.1 serve path reads best as one ordered flow"
+    )]
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
@@ -236,7 +240,7 @@ impl Serve for ProxyHandler {
             log_access();
             // `lease` drops here, decrementing the backend's in-flight count.
             drop(lease);
-            ConnectionResult::Close(None)
+            ServeOutcome::Close(None)
         }))
     }
 }
@@ -337,6 +341,5 @@ fn client_ip(req: &SimpleIncomingRequest) -> String {
     req.connection
         .peer_addr
         .as_ref()
-        .map(|a| a.ip().to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+        .map_or_else(|| "unknown".to_string(), |a| a.ip().to_string())
 }

@@ -88,7 +88,7 @@ impl NetworkId {
     /// [`WgError::Hex`] on malformed hex; [`WgError::InvalidKey`] on wrong length.
     #[must_use]
     pub fn from_hex(s: &str) -> WgResult<Self> {
-        let bytes = hex::decode(s.trim())?;
+        let bytes = hex::decode(s.trim()).map_err(WgError::from)?;
         let arr: [u8; 16] = bytes.try_into().map_err(|_| {
             WgError::InvalidKey("network id must be 16 bytes (32 hex chars)".into())
         })?;
@@ -160,7 +160,7 @@ impl WgSeed {
     /// Returns [`WgError::Random`] if the OS random source is unavailable.
     pub fn generate(bits: SeedBits) -> WgResult<Self> {
         let mut bytes = vec![0u8; bits.bytes()];
-        getrandom::getrandom(&mut bytes)?;
+        getrandom::getrandom(&mut bytes).map_err(WgError::from)?;
         Ok(Self {
             bytes: Zeroizing::new(bytes),
         })
@@ -176,7 +176,7 @@ impl WgSeed {
     /// Returns [`WgError::InvalidSeedLength`] if `bytes` is not 16 or 32 bytes long.
     pub fn from_bytes(bytes: &[u8]) -> WgResult<Self> {
         if bytes.len() != 16 && bytes.len() != 32 {
-            return Err(WgError::InvalidSeedLength(bytes.len()));
+            return Err(WgError::InvalidSeedLength(bytes.len()).into());
         }
         Ok(Self {
             bytes: Zeroizing::new(bytes.to_vec()),
@@ -215,7 +215,7 @@ impl WgSeed {
     /// [`WgError::Base64`] on malformed base64; [`WgError::InvalidSeedLength`] on a bad
     /// decoded length.
     pub fn from_base64url(s: &str) -> WgResult<Self> {
-        let bytes = URL_SAFE_NO_PAD.decode(s.trim())?;
+        let bytes = URL_SAFE_NO_PAD.decode(s.trim()).map_err(WgError::from)?;
         Self::from_bytes(&bytes)
     }
 
@@ -336,7 +336,7 @@ impl IdentityKeypair {
     /// Returns [`WgError::Random`] if the OS random source is unavailable.
     pub fn generate() -> WgResult<Self> {
         let mut bytes = [0u8; 32];
-        getrandom::getrandom(&mut bytes)?;
+        getrandom::getrandom(&mut bytes).map_err(WgError::from)?;
         clamp_x25519(&mut bytes);
         let secret = StaticSecret::from(bytes);
         let public = PublicKey::from(&secret);
@@ -418,7 +418,7 @@ impl PeerPublicKey {
     pub fn parse(s: &str) -> WgResult<Self> {
         let s = s.trim();
         if s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit()) {
-            let raw = hex::decode(s)?;
+            let raw = hex::decode(s).map_err(WgError::from)?;
             let arr: [u8; 32] = raw
                 .try_into()
                 .map_err(|_| WgError::InvalidKey("hex key must be 32 bytes".into()))?;
@@ -427,7 +427,8 @@ impl PeerPublicKey {
         // base64 (standard alphabet, with or without padding).
         let raw = B64_STD
             .decode(s)
-            .or_else(|_| base64::engine::general_purpose::STANDARD_NO_PAD.decode(s))?;
+            .or_else(|_| base64::engine::general_purpose::STANDARD_NO_PAD.decode(s))
+            .map_err(WgError::from)?;
         let arr: [u8; 32] = raw
             .try_into()
             .map_err(|_| WgError::InvalidKey("base64 key must be 32 bytes".into()))?;

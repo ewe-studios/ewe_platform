@@ -33,14 +33,14 @@ foundation_theme = { path = "../foundation_theme", version = "0.0.3" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
 tracing = { version = "0.1", default-features = false }
 # Arrow IPC v2 over the loop (the `arrow` feature).
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.3", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.4", optional = true }
 
 # Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
 # build_tools — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 clap = { version = "4", features = ["derive"] }
-foundation_codegen = { path = "../foundation_codegen", version = "0.1.2" }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.3" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]

@@ -1,6 +1,6 @@
-//! ErrorWriter tests (spec-41 F21 / Decision 03): protocol-correct error
+//! `ErrorWriter` tests (spec-41 F21 / Decision 03): protocol-correct error
 //! rendering for Connect unary/streaming + gRPC-Web (binary + text), 304, and a
-//! typed-detail base64 (RawStdEncoding) round-trip.
+//! typed-detail base64 (`RawStdEncoding`) round-trip.
 
 use bytes::Bytes;
 use foundation_netio::shared::http::{

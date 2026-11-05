@@ -1,9 +1,9 @@
 ---
 feature: "foundation_nativeapis: the seven ignored ptrace fork-tracing tests run again, or are tracked with a precise cause"
-status: "pending"
+status: "partial"
 lane: "A"
 model: "sonnet"
-branch: "fix/io-41-50-lane-a"
+branch: "spec70/f47-f50-lane-a-mechanical"
 crates: ["foundation_nativeapis"]
 catalogue_rows: [11]
 ---
@@ -51,3 +51,40 @@ rg -n '#\[ignore' backends/foundation_nativeapis/tests/ptrace_vfs   # none, or e
 
 - [ ] Cause named. Tests un-ignored and pass 20/20, or each remaining ignore has a backlog
       entry with the kernel and the evidence.
+
+## Result
+
+2026-11-05. Cause found and fixed. The seven `#[ignore]`s are removed and the new test
+`fork_child_first_stop_is_consumed` is added.
+
+Two bugs caused the deadlock:
+
+1. The ptraced child was forked by the test thread, but every later `ptrace` request came
+   from the separate `ptrace_loop` thread. A ptrace request must come from the tracer
+   thread. The request failed with `ESRCH`, the tracee stayed stopped, and
+   `waitpid` blocked forever.
+2. `execvp` got `args` without the program name, so `/bin/sh -c "..."` received a wrong
+   `argv`. The shell tests could not run their command.
+
+Fix:
+
+- The interceptor thread now forks the child and runs every `ptrace` request itself.
+  `spawn` gets the child pid from a channel.
+- The child calls `PTRACE_TRACEME`, then `raise(SIGSTOP)`, then `execve`. This removes the
+  `PTRACE_SEIZE` race with `execve`. All buffers are built before `fork`, and the child
+  calls only async-signal-safe functions.
+- `argv` starts with the program name.
+- Every `waitpid` uses `__WALL` (a clone child stop) and `__WNOTHREAD` (the test binary
+  runs tests in parallel; a plain `waitpid(-1)` reaped another test's tracee).
+- The new child's first `SIGSTOP` is consumed in the loop. The `PTRACE_EVENT_FORK`,
+  `VFORK` and `CLONE` handlers only clone the FD table; they do not resume the new child.
+- The spawn tests have a 60 s `ntest` timeout, so a hang fails the test.
+
+Verification: 17 of 25 `ptrace_vfs` tests pass. The 8 spawn tests fail on the local
+OrbStack amd64 emulation, not in the tracer: `PTRACE_GETREGS` returns `EIO` for every
+traced amd64 process there (the same C probe fails), so the tracer cannot read the
+syscall number. The tests must pass 20 of 20 on native amd64 in GitHub CI. This is
+backlog entry §5.
+
+Clippy with the `vfs-ptrace` feature set reports many warnings in other nativeapis
+files. That debt is backlog entry §5, not part of this feature.

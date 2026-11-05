@@ -42,7 +42,7 @@ use foundation_netio::shared::http::{
 };
 use serde::Serialize;
 
-use crate::shared::serve::{status_from_code, ConnectionResult};
+use crate::shared::serve::{status_from_code, ConnectionResult, ServeOutcome};
 
 /// Limits for [`ResponseWriter`].
 ///
@@ -99,7 +99,8 @@ impl WriterConfig {
 pub struct ResponseWriter {
     conn: SharedByteBufferStream<RawStream>,
     config: WriterConfig,
-    /// When the socket last took a byte (or when the writer was made).
+    /// When the current write or flush last made progress. Set at the start of
+    /// each operation, never at creation, so an idle writer is not timed out.
     idle_since: Instant,
     /// The timer for `idle_since + send_timeout`; cleared on progress.
     idle_timer: Option<Sleep>,
@@ -130,10 +131,16 @@ impl ResponseWriter {
     /// Write all of `buf`. The offset advances by what the socket took, so a
     /// partial write never repeats bytes. `WouldBlock` parks on write readiness.
     ///
+    /// Each call starts the idle timer again. A writer that stayed idle between
+    /// writes (a long-lived gRPC stream, a keep-alive response) must not time
+    /// out on the first blocked write of a new response: the timer measures a
+    /// stall inside an operation, not the writer's age.
+    ///
     /// # Errors
     /// The connection failed (`ConnectionReset`, `BrokenPipe`, ...), or the
     /// socket took no byte for `send_timeout` (`TimedOut`).
     pub async fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
+        self.progress();
         let mut offset = 0;
         while offset < buf.len() {
             match self.conn.write(&buf[offset..]) {
@@ -153,17 +160,35 @@ impl ResponseWriter {
     /// Flush the stream's own buffer. `WouldBlock` parks on write readiness; the
     /// buffer keeps what is unwritten, so a retry resumes where it stopped.
     ///
+    /// A non-blocking `flush` drains part of that buffer and then returns
+    /// `WouldBlock`. That is progress: the idle timer restarts whenever the
+    /// buffer shrinks, so a large flush to a slow but live client is not cut
+    /// off while it is moving bytes.
+    ///
     /// # Errors
     /// As [`Self::write_all`].
     pub async fn flush(&mut self) -> io::Result<()> {
+        // A flush is an operation of its own; see `write_all`.
+        self.progress();
         loop {
+            let before = self.write_buffered_len();
             match self.conn.flush() {
                 Ok(()) => return Ok(()),
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => self.writable().await?,
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    if self.write_buffered_len() < before {
+                        self.progress();
+                    }
+                    self.writable().await?;
+                }
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) => return Err(e),
             }
         }
+    }
+
+    /// How many bytes the stream still buffers for writing.
+    fn write_buffered_len(&self) -> usize {
+        self.conn.with_inner_ref(RawStream::write_buffer_len)
     }
 
     /// The socket took at least one byte: restart the idle timer.
@@ -297,13 +322,33 @@ pub fn render_head(
     Ok(head)
 }
 
+/// Render a complete response (head and any in-memory body) to wire bytes.
+///
+/// WHY: callers that build a response with custom headers — an upgrade head, an
+/// interim `100 Continue`, an ACME answer — must still write it through
+/// [`ResponseWriter`]. This turns the built response into the bytes that writer
+/// takes, without adding or removing a header.
+///
+/// # Errors
+/// The response could not be rendered.
+pub fn render_message(response: SimpleOutgoingResponse) -> Result<Vec<u8>, String> {
+    let mut out = Vec::new();
+    for chunk in Http11::response(response)
+        .http_render()
+        .map_err(|e| e.to_string())?
+    {
+        out.extend_from_slice(&chunk.map_err(|e| e.to_string())?);
+    }
+    Ok(out)
+}
+
 /// Write `head` then `body` (already in memory, not copied) and report what the
 /// connection does next: `Keep` on success, `Close` on any failure.
 pub async fn write_response<B: AsRef<[u8]>>(
     mut writer: ResponseWriter,
     head: Vec<u8>,
     body: B,
-) -> ConnectionResult {
+) -> ServeOutcome {
     let result = async {
         writer.write_all(&head).await?;
         writer.write_all(body.as_ref()).await?;
@@ -311,10 +356,10 @@ pub async fn write_response<B: AsRef<[u8]>>(
     }
     .await;
     match result {
-        Ok(()) => ConnectionResult::Keep,
+        Ok(()) => ServeOutcome::Keep,
         Err(e) => {
             log_write_failure(&e);
-            ConnectionResult::Close(None)
+            ServeOutcome::Close(None)
         }
     }
 }
@@ -408,4 +453,34 @@ pub fn send_server_error(
     reason: Option<&str>,
 ) -> ConnectionResult {
     send_text(conn, 500, reason.unwrap_or("Internal Server Error"))
+}
+
+/// Send a `100 Continue` interim response. See [`send_bytes`].
+///
+/// A `100 Continue` is a header-less interim response: the `Http11` renderer
+/// allows an informational (1xx) status without headers. The response is
+/// flushed so the client can send its body at once.
+#[must_use]
+pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>) -> ConnectionResult {
+    let response = match SimpleOutgoingResponse::builder()
+        .with_status(status_from_code(100))
+        .with_body(SendSafeBody::None)
+        .build()
+    {
+        Ok(response) => response,
+        Err(e) => {
+            tracing::error!("100 Continue build failed: {e}");
+            return ConnectionResult::Close(None);
+        }
+    };
+    match render_message(response) {
+        Ok(head) => {
+            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            ConnectionResult::Async(Box::pin(write_response(writer, head, [])))
+        }
+        Err(e) => {
+            tracing::error!("100 Continue render failed: {e}");
+            ConnectionResult::Close(None)
+        }
+    }
 }

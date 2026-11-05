@@ -1,6 +1,6 @@
 //! Codec system (Decision 02): the single codec authority.
 //!
-//! WHY: ConnectRPC negotiates message serialization by content-type. The codec
+//! WHY: `ConnectRPC` negotiates message serialization by content-type. The codec
 //! is chosen by the client per request (the wire token in `Content-Type`), so a
 //! procedure owns a *set* of codecs keyed by that token — there is **no
 //! request-time registry** and **no message type-erasure**. The message type
@@ -53,12 +53,28 @@ pub trait Codec: Send + Sync + 'static {
 /// (bounds live on the impl block), keeping `dyn CodecFor<M>` object-safe.
 pub trait CodecFor<M>: Codec {
     /// Encode a concrete message to wire bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn marshal(&self, message: &M) -> Result<Bytes, CodecError>;
     /// Decode wire bytes into a concrete owned message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn unmarshal(&self, data: Bytes) -> Result<M, CodecError>;
     /// Deterministic serialization for HTTP GET caching (stable ordering).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn marshal_stable(&self, message: &M) -> Result<Bytes, CodecError>;
     /// Append-encode into a (pooled) buffer for hot paths (Decision 02 RS8).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the RPC fails.
     fn marshal_append(&self, buf: &mut Vec<u8>, message: &M) -> Result<(), CodecError>;
 }
 

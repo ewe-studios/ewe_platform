@@ -1,8 +1,8 @@
 //! `foundation_wasmtime` — WASM-in-process shell (Surface 3, F33).
 //!
-//! WHY: Surface 1 runs WASM in the WebView's JS engine. Surface 3 runs WASM
+//! WHY: Surface 1 runs WASM in the `WebView`'s JS engine. Surface 3 runs WASM
 //! in wasmtime inside the native process — zero-copy Arrow IPC, session access
-//! via imports, no WebView overhead.
+//! via imports, no `WebView` overhead.
 //!
 //! WHAT: `WasmtimeBuilder` wraps compiled WASM bytes with session imports.
 //! `WasmtimeInstance` holds a running Engine + Store + Instance ready for
@@ -72,7 +72,17 @@ impl WasmtimeBuilder {
         self
     }
 
+    /// The module name set by [`WasmtimeBuilder::with_name`].
+    #[must_use]
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     /// Build the Engine, Module, and Instance. Ready to call exports.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the module does not compile or link.
     pub fn build(&self) -> Result<WasmtimeInstance> {
         let engine = Engine::default();
         let module = Module::from_binary(&engine, &self.wasm_bytes)
@@ -98,6 +108,10 @@ impl WasmtimeBuilder {
     }
 
     /// Build from a file path instead of embedded bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read.
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self> {
         let bytes = std::fs::read(path.as_ref())
             .map_err(|e| ErrorTrace::new(WasmtimeError::Io(e.to_string())))?;
@@ -128,6 +142,10 @@ impl WasmtimeInstance {
     }
 
     /// Call a WASM export function with no arguments and no return value.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the export is missing or the call fails.
     pub fn call_void(&mut self, func_name: &str) -> Result<()> {
         let func = self
             .instance
@@ -139,6 +157,10 @@ impl WasmtimeInstance {
     }
 
     /// Call a WASM export taking a single i32 and returning an i32.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the export is missing or the call fails.
     pub fn call_i32_i32(&mut self, func_name: &str, arg: i32) -> Result<i32> {
         let func = self
             .instance
@@ -157,27 +179,3 @@ impl WasmtimeInstance {
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn builder_creates_from_bytes() {
-        let builder = WasmtimeBuilder::new(b"fake wasm bytes").with_name("test");
-        assert_eq!(builder.name, "test");
-    }
-
-    #[test]
-    fn builder_from_file_missing_returns_error() {
-        let result = WasmtimeBuilder::from_file("/tmp/definitely_not_a_wasm_file.wasm");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn invalid_wasm_returns_error_on_build() {
-        let builder = WasmtimeBuilder::new(b"not valid wasm");
-        let result = builder.build();
-        assert!(result.is_err());
-    }
-}

@@ -1,4 +1,4 @@
-//! spec-44 — embedded Deno (deno_core + deno_web), in-process JS for the wasm harness.
+//! spec-44 — embedded Deno (`deno_core` + `deno_web`), in-process JS for the wasm harness.
 //!
 //! WHY: run the wasm test harness's JavaScript in-process with no external
 //! `node`/`deno` binary — `cargo build` gives JS execution for free (spec-44).
@@ -148,6 +148,10 @@ const BOOTSTRAP_GLOBALS: &str = r#"
 /// Read a file's bytes — replaces the runner's `node:fs`/`fetch` byte loading.
 /// The runner passes the local path of a staged file (`module.wasm`/`cases.json`).
 #[op2]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the op2 macro passes a `#[string]` argument as an owned String"
+)]
 fn op_fwt_read_file(#[string] path: String) -> Result<Uint8Array, JsErrorBox> {
     std::fs::read(&path)
         .map(Uint8Array::from)
@@ -163,7 +167,7 @@ fn op_fwt_report(state: &mut OpState, #[string] json: String) {
     *sink.0.borrow_mut() = Some(json);
 }
 
-/// Fill `buf` from OS entropy (foundation_compact's vendored getrandom): backs
+/// Fill `buf` from OS entropy (`foundation_compact`'s vendored `getrandom`): backs
 /// the bootstrap's `crypto.getRandomValues`, which checks the Web Crypto
 /// contract (integer view, 65536-byte quota) before calling in.
 #[op2(fast)]
@@ -338,7 +342,7 @@ fn install_crypto_provider() {
 }
 
 /// A current-thread tokio runtime with the time driver — the minimal executor
-/// deno_core's event loop + timers (`reactor_tokio.rs`) require.
+/// `deno_core`'s event loop + timers (`reactor_tokio.rs`) require.
 fn tokio_runtime() -> Result<tokio::runtime::Runtime, Box<dyn std::error::Error>> {
     Ok(tokio::runtime::Builder::new_current_thread()
         .enable_io() // deno_websocket dials real TCP — needs the I/O driver
@@ -369,6 +373,10 @@ async fn evaluate(
 // ── W1 spike (kept: smallest possible build/eval/WebAssembly proof) ──────────
 
 /// Evaluate `1 + 1` in an in-process V8 isolate and return the number (W1 spike).
+///
+/// # Panics
+///
+/// Panics if the V8 isolate cannot run the script.
 #[must_use]
 pub fn spike_eval_addition() -> f64 {
     let mut rt = JsRuntime::new(RuntimeOptions::default());
@@ -382,6 +390,10 @@ pub fn spike_eval_addition() -> f64 {
 
 /// Synchronously compile + instantiate a minimal (header-only) wasm module in V8 —
 /// proves the engine's `WebAssembly` works (the harness needs it) (W1 spike).
+///
+/// # Panics
+///
+/// Panics if the V8 isolate cannot run the script.
 #[must_use]
 pub fn spike_wasm_instantiate() -> bool {
     let mut rt = JsRuntime::new(RuntimeOptions::default());

@@ -1,9 +1,9 @@
 ---
 feature: "Move inline #[cfg(test)] modules out of lane A crates (rule 7)"
-status: "pending"
+status: "done"
 lane: "A"
 model: "haiku"
-branch: "fix/io-41-50-lane-a"
+branch: "spec70/f47-f50-lane-a-mechanical"
 crates: ["lane A crates"]
 catalogue_rows: [16]
 ---
@@ -43,3 +43,36 @@ The number of tests per crate before and after is the same or higher (write both
 ## Done when
 
 - [ ] No `#[cfg(test)]` in lane A `src` trees. Test counts kept. CI green.
+
+## Result
+
+2026-11-05. Every lane A source tree named in the feature has no `#[cfg(test)]`
+module. The only remaining match is `foundation_nostd/src/comp/QUICKSTART.md`, a
+documentation file, not Rust source.
+
+| Crate | Tests moved | Before | After |
+|---|---|---|---|
+| `foundation_reactor` | `send_pool` | 5 | 5 |
+| `foundation_keychain` | `core::util` | 2 | 2 |
+| `foundation_nativeapis` | `MemoryRegistry`, IPC version, `BytesMessage` | 9 | 9 |
+| `foundation_proxy` | control wire format | 4 | 4 |
+| `foundation_testbed` | QEMU monitor, docker environment | 5 + 4 | 5 + 4 |
+| `foundation_compact` | `Id`, serde `Id`, `Generator` | 5 + 10 | 5 + 10 |
+| `foundation_wireguard` | iOS C FFI, Android JNI | 5 + 1 | 5 + 1 |
+
+Rules that needed a public item:
+
+- `foundation_proxy`: `Request` and `Response` in `control.rs` became public with
+  documented fields.
+- `foundation_testbed`: `strip_ansi` and `port_is_open` became public with doc
+  comments.
+- `foundation_compact`: `ParseErrorKind` and `ParseError::kind` became public
+  with docs; `Version` uses its public `from_parts` constructor; the test-only
+  `Generator::for_testing` is replaced by a local helper over the public
+  `with_rand_and_time_sources`.
+- `foundation_wireguard`: the `ios` and `android` modules were never declared in
+  `lib.rs`, so their code and tests never compiled. They are now declared for
+  their target OS and for `spec55-complete`.
+
+No consumer calls the new public items, so no version bump is made. The mobile
+targets still need a real iOS/Android build check (backlog §8).

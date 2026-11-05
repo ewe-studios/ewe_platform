@@ -69,8 +69,8 @@ fn register_creates_user_and_prelogin_echoes_kdf() {
     })
     .expect("register");
     assert_eq!(account.email, "alice@example.com"); // normalized
-    assert!(!account.id.is_empty());
-    assert!(!account.security_stamp.is_empty());
+    assert_ne!(account.id, "");
+    assert_ne!(account.security_stamp, "");
 
     // Prelogin for a known user echoes their KDF params.
     let c = ctx.clone();
@@ -93,7 +93,7 @@ fn duplicate_email_conflicts() {
     let dup =
         drive(async move { accounts::register(&c, register_req("BOB@example.com", "h2")).await });
     assert!(
-        matches!(dup, Err(AppError::Conflict(_))),
+        matches!(dup, Err(trace) if matches!(trace.current_context(), AppError::Conflict(_))),
         "duplicate email must conflict"
     );
 }
@@ -177,7 +177,9 @@ fn register_rejects_invalid_email() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { accounts::register(&c, register_req("not-an-email", "h")).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }
 
 #[valtron_test]
@@ -185,5 +187,5 @@ fn verify_unknown_user_is_unauthorized() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { accounts::verify_master_password(&c, "ghost", "h").await });
-    assert!(matches!(res, Err(AppError::Unauthorized)));
+    assert!(matches!(res, Err(trace) if matches!(trace.current_context(), AppError::Unauthorized)));
 }

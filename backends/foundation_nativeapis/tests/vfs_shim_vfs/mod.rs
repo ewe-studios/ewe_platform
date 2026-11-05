@@ -1,9 +1,10 @@
 #![cfg(all(feature = "vfs-preload", target_os = "linux"))]
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::OnceLock;
 
-/// Locate the `LD_PRELOAD` shim, building it if this run hasn't produced it yet.
+/// Locate the `LD_PRELOAD` shim, building it from this crate's source first.
 ///
 /// WHY: the shim is the crate's `cdylib` artifact. `cargo test` builds the
 /// `rlib` and the test binaries, never the `cdylib`, so a bare
@@ -11,23 +12,45 @@ use std::process::Command;
 /// all. Depending on someone having run `cargo build --lib` first makes the
 /// suite order-dependent and silently red on a clean checkout.
 ///
+/// WHY ALWAYS BUILD: a `.so` in the profile directory may come from an earlier
+/// build with a different feature set. Returning it without asking cargo
+/// produced a shim without `vfs-preload` interposition, so the child `open`
+/// failed and the test died with a bare `ExitStatus(256)`. Cargo rebuilds when
+/// the feature set differs from its last build, and does nothing when it does
+/// not, so the call is cheap in the common case and correct in the stale one.
+///
 /// WHAT: the path to `libfoundation_nativeapis.so` in this profile's target dir.
 ///
-/// HOW: look for it; if absent, invoke `cargo build --lib` for this crate,
-/// feature and profile, then look again. The profile is recovered from the
-/// target directory name, so `--profile uat` and `--release` both work.
+/// HOW: build the `cdylib` once per test run (all tests share the result), then
+/// look for it. The profile is recovered from the target directory name, so
+/// `--profile uat` and `--release` both work.
 fn find_shim_so() -> String {
-    // Test binary lives at <target>/<profile>/deps/<bin>; the cdylib is one level up.
-    let target_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(Path::to_path_buf)) // deps/
-        .and_then(|p| p.parent().map(Path::to_path_buf)) // <profile>/
-        .expect("could not find target directory");
+    static SHIM: OnceLock<String> = OnceLock::new();
+    SHIM.get_or_init(|| {
+        let target_dir = profile_dir();
+        build_shim(&target_dir, shim_features());
+        existing_shim(&target_dir).unwrap_or_else(|| {
+            panic!("shim .so not found in {target_dir:?} after building the cdylib")
+        })
+    })
+    .clone()
+}
 
-    if let Some(so) = existing_shim(&target_dir) {
-        return so;
+/// The features the `cdylib` needs: `vfs-preload` always, plus `vfs-d1` when
+/// this test binary carries it, so the D1 delta is inside the shim too.
+/// `vfs-d1` is a superset of `vfs-preload`, and the shim selects the delta
+/// backend from `FOUNDATION_VFS_DELTA` at run time, so one wider shim serves
+/// every test here.
+fn shim_features() -> &'static str {
+    if cfg!(feature = "vfs-d1") {
+        "vfs-preload,vfs-d1"
+    } else {
+        "vfs-preload"
     }
+}
 
+/// Build the `cdylib` for `features` into `target_dir`'s profile.
+fn build_shim(target_dir: &Path, features: &str) {
     let profile = target_dir
         .file_name()
         .and_then(|s| s.to_str())
@@ -43,21 +66,44 @@ fn find_shim_so() -> String {
             "-p",
             "foundation_nativeapis",
             "--features",
-            "vfs-preload",
+            features,
             "--profile",
             profile_flag,
             "--lib",
         ])
         .status()
-        .expect("failed to run cargo build for the vfs-preload shim");
+        .expect("failed to run cargo build for the shim");
     assert!(
         status.success(),
-        "cargo build --lib failed for the vfs-preload shim"
+        "cargo build --lib failed for the shim with features {features}"
     );
+}
 
-    existing_shim(&target_dir).unwrap_or_else(|| {
-        panic!("shim .so still not found in {target_dir:?} after building the cdylib")
-    })
+/// The `<target>/<profile>` directory that holds this run's artifacts.
+///
+/// WHY: the artifact layout is not fixed. With cargo's new build-directory
+/// layout a test binary runs from
+/// `<target>/<profile>/build/<package>/<hash>/out/<binary>`, so the
+/// executable's grandparent is `<hash>`, not the profile directory. Deriving
+/// the profile from it passed the hash to `--profile` and the build failed with
+/// `profile '<hash>' is not defined`.
+///
+/// WHAT: the nearest ancestor of the running executable that holds cargo's
+/// `.cargo-lock`, which cargo writes directly into the profile directory in
+/// every layout.
+///
+/// HOW: walk the executable's ancestors. Panic with the executable path when no
+/// ancestor holds the lock file, so the cause is readable rather than a build
+/// error about a profile name.
+fn profile_dir() -> PathBuf {
+    let exe = std::env::current_exe().expect("could not find the test executable");
+    exe.ancestors()
+        .skip(1) // the executable itself
+        .find(|dir| dir.join(".cargo-lock").is_file())
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| {
+            panic!("no target profile directory above {exe:?}: it must hold `.cargo-lock`")
+        })
 }
 
 fn existing_shim(target_dir: &Path) -> Option<String> {
@@ -145,46 +191,6 @@ fn test_shim_real_path_passthrough() {
     assert!(!stdout.is_empty(), "should read real file, got: {}", stdout);
 }
 
-/// Build the cdylib with `vfs-d1` too. [`find_shim_so`] stops at
-/// `vfs-preload`; the D1 test needs the real D1 delta in the shim, so it builds
-/// unconditionally and overwrites the profile's cdylib with the wider feature
-/// set. The memory tests keep working: `vfs-d1` is a superset of `vfs-preload`.
-#[cfg(feature = "vfs-d1")]
-fn build_shim_d1() -> String {
-    let target_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(Path::to_path_buf))
-        .and_then(|p| p.parent().map(Path::to_path_buf))
-        .expect("could not find target directory");
-    let profile = target_dir
-        .file_name()
-        .and_then(|s| s.to_str())
-        .expect("target directory has no name");
-    let profile_flag = if profile == "debug" { "dev" } else { profile };
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let status = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()))
-        .current_dir(manifest_dir)
-        .args([
-            "build",
-            "-p",
-            "foundation_nativeapis",
-            "--features",
-            "vfs-preload,vfs-d1",
-            "--profile",
-            profile_flag,
-            "--lib",
-        ])
-        .status()
-        .expect("failed to run cargo build for the vfs-preload,vfs-d1 shim");
-    assert!(
-        status.success(),
-        "cargo build --lib failed for the vfs-preload,vfs-d1 shim"
-    );
-    existing_shim(&target_dir).unwrap_or_else(|| {
-        panic!("shim .so still not found in {target_dir:?} after building the cdylib")
-    })
-}
-
 /// The local Cloudflare emulator endpoint and database id, when reachable.
 /// Mirrors the probe in `tests/d1_delta_vfs`; the D1 shim test skips without it.
 #[cfg(feature = "vfs-d1")]
@@ -240,7 +246,7 @@ fn shim_config_d1_uses_d1_delta() {
         return;
     };
     let _guard = foundation_core::valtron::initialize_pool(42, Some(3));
-    let so = build_shim_d1();
+    let so = find_shim_so();
 
     let key = format!("/d1_shim_{}.txt", std::process::id());
     let vpath = format!("/virtual{key}");

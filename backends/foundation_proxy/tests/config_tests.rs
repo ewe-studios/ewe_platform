@@ -1,4 +1,4 @@
-//! Unit tests for ProxyConfig, ServiceConfig, SslConfig.
+//! Unit tests for `ProxyConfig`, `ServiceConfig`, `SslConfig`.
 
 use foundation_proxy::{ProxyConfig, ServiceConfig, SslConfig, SslProvider};
 use std::time::Duration;

@@ -29,7 +29,7 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, ToolArguments, UserModelContent,
 };
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{Ctx, EventQueue, TaskIterator, TaskSpread, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestMemStore = KvMemoryStore<MemoryStorage>;
@@ -40,8 +40,8 @@ type TestDocStore = MemoryDocumentStore;
 
 struct Harness {
     agent: AgentLoop<TestDocStore, TestMemStore>,
-    follow_up: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
-    priority: Arc<concurrent_queue::ConcurrentQueue<Messages>>,
+    follow_up: EventQueue<Messages>,
+    priority: EventQueue<Messages>,
     cancel: Arc<std::sync::atomic::AtomicU32>,
     ledger: TokenLedger,
 }
@@ -89,8 +89,8 @@ fn harness_with_models(
     );
 
     let queues = SteeringQueues::new();
-    let follow_up = Arc::clone(&queues.follow_up);
-    let priority = Arc::clone(&queues.priority);
+    let follow_up = queues.follow_up.clone();
+    let priority = queues.priority.clone();
     let cancel = Arc::clone(&queues.cancel_signal);
 
     let memory = MemoryHierarchy::new(

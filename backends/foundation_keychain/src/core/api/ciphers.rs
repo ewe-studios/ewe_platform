@@ -23,7 +23,9 @@ use crate::core::store::ciphers as store;
 use crate::core::store::ciphers::CipherRow;
 
 fn to_json(cipher: &Cipher) -> AppResult<String> {
-    serde_json::to_string(cipher).map_err(|e| AppError::Internal(format!("serialize cipher: {e}")))
+    serde_json::to_string(cipher)
+        .map_err(|e| AppError::Internal(format!("serialize cipher: {e}")))
+        .map_err(Into::into)
 }
 
 /// Reconstruct the API [`Cipher`] from a row: deserialize the stored content, then
@@ -31,8 +33,8 @@ fn to_json(cipher: &Cipher) -> AppResult<String> {
 fn to_cipher(row: &CipherRow) -> AppResult<Cipher> {
     let mut cipher: Cipher = serde_json::from_str(&row.data)
         .map_err(|e| AppError::Internal(format!("deserialize cipher: {e}")))?;
-    cipher.id = row.uuid.clone();
-    cipher.organization_id = row.organization_uuid.clone();
+    cipher.id.clone_from(&row.uuid);
+    cipher.organization_id.clone_from(&row.organization_uuid);
     cipher.favorite = row.favorite;
     cipher.revision_date = row.updated_at;
     cipher.creation_date = row.created_at;
@@ -46,12 +48,16 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Ci
         .await?
         .ok_or_else(|| AppError::NotFound("cipher not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }
 
 /// `GET /api/ciphers` — all of the user's ciphers (including trash).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Cipher>> {
     store::find_by_user(ctx.db(), user_uuid)
         .await?
@@ -61,13 +67,17 @@ pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Ciphe
 }
 
 /// `POST /api/ciphers` — create a cipher.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     user_uuid: &str,
     req: CipherCreateRequest,
 ) -> AppResult<Cipher> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("cipher name is required".into()));
+        return Err(AppError::BadRequest("cipher name is required".into()).into());
     }
     let now = Utc::now();
     let uuid = crypto::new_uuid_v4()?.to_string();
@@ -107,11 +117,19 @@ pub async fn create(
 }
 
 /// `GET /api/ciphers/:id` — a single owned cipher.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Cipher> {
     to_cipher(&owned(ctx, user_uuid, id).await?)
 }
 
 /// `PUT /api/ciphers/:id` — update an owned cipher.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -123,7 +141,7 @@ pub async fn update(
 
     if let Some(name) = req.name {
         if name.trim().is_empty() {
-            return Err(AppError::BadRequest("cipher name is required".into()));
+            return Err(AppError::BadRequest("cipher name is required".into()).into());
         }
         cipher.name = name;
     }
@@ -172,12 +190,20 @@ pub async fn update(
 }
 
 /// `DELETE /api/ciphers/:id` — hard-delete.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<()> {
     owned(ctx, user_uuid, id).await?;
     store::delete(ctx.db(), id).await
 }
 
 /// `PUT /api/ciphers/:id/delete` — soft-delete (move to trash).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn soft_delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Cipher> {
     owned(ctx, user_uuid, id).await?;
     let now = Utc::now();
@@ -186,6 +212,10 @@ pub async fn soft_delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> Ap
 }
 
 /// `PUT /api/ciphers/:id/restore` — restore from trash.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn restore(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Cipher> {
     owned(ctx, user_uuid, id).await?;
     let now = Utc::now();

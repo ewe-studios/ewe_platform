@@ -111,16 +111,31 @@ class Settings:
     reason: str | None
     # Extra environment for this package's cargo commands (the `env` table).
     env: dict[str, str] = field(default_factory=dict)
+    # Extra Docker options for this package's `container:` job. Only the io_uring
+    # packages set it: Docker's default seccomp profile blocks `io_uring_setup`.
+    container_options: str = ""
+    # A wasm32 build that must fail with a named compile error, as a table with
+    # `run` (feature flags) and `contains` (the message). Checks the documented
+    # minimum feature set instead of dropping the configuration.
+    wasm_expect_error: dict | None = None
 
 
 def cargo_metadata() -> dict:
-    out = subprocess.run(
-        ["cargo", "metadata", "--format-version", "1"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
+    try:
+        out = subprocess.run(
+            ["cargo", "metadata", "--format-version", "1"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    except subprocess.CalledProcessError as err:
+        # Without this the traceback names only the exit code. The reason
+        # (missing submodule, unparsable manifest, offline registry) is in
+        # stderr, and CI captured it away.
+        raise SystemExit(
+            f"cargo metadata failed with exit {err.returncode}:\n{err.stderr}"
+        ) from err
     return json.loads(out)
 
 
@@ -205,6 +220,16 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
         for key, value in env.items():
             if not isinstance(value, str):
                 raise SystemExit(f"{name}: env.{key} must be a string, got {value!r}")
+        container_options = merged.get("container-options", "")
+        if not isinstance(container_options, str):
+            raise SystemExit(f"{name}: `container-options` must be a string")
+        wasm_expect_error = merged.get("wasm-expect-error")
+        if wasm_expect_error is not None:
+            if not isinstance(wasm_expect_error, dict):
+                raise SystemExit(f"{name}: `wasm-expect-error` must be a table")
+            for key in ("run", "contains"):
+                if not isinstance(wasm_expect_error.get(key), str):
+                    raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
         s = Settings(
             skip=merged.get("skip"),
             fmt=merged.get("fmt", "report"),
@@ -220,6 +245,8 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
             timeout_minutes=int(merged.get("timeout-minutes", 60)),
             reason=merged.get("reason"),
             env=env,
+            container_options=container_options,
+            wasm_expect_error=wasm_expect_error,
         )
         for step in STEPS:
             if getattr(s, step) not in MODES:
@@ -346,10 +373,26 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+        # Spec 70 feature 76: the standalone Cloudflare wasm store tests. The
+        # wrangler run below compiles them too, but this step names a compile
+        # break directly, before the harness starts.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_db/integration/wasm_cf/Cargo.toml"],
+        # This package sets fmt = "off" (the workspace fmt step cannot see a
+        # crate outside the workspace), so the standalone crate's formatting
+        # is checked here.
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
     ]
     plan["test"] = [
         ["mise", "run", "test:wasm-testbed:deno"],
         ["mise", "run", "test:wasm-bindgen:deno"],
+        # Spec 70 feature 76: the D1/R2/KV wasm stores on the real local
+        # bindings (`wrangler dev --local`). The REST clients use the same
+        # local D1/R2 state through the explorer API.
+        ["mise", "run", "test:wasm-testbed:wrangler"],
     ]
     return plan
 
@@ -395,6 +438,23 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
         for run in s.wasm_runs:
             plan["wasm"].append(
                 ["cargo", "check", "--target", "wasm32-unknown-unknown", "-p", name, *feature_flags(run)]
+            )
+        if s.wasm_expect_error:
+            # The configuration is unsupported, and the crate refuses it with a
+            # `compile_error!`. Require that exact failure, so the message and
+            # the documented minimum cannot drift apart.
+            expect = s.wasm_expect_error
+            check = [
+                "cargo",
+                "check",
+                "--target",
+                "wasm32-unknown-unknown",
+                "-p",
+                name,
+                *feature_flags(expect["run"]),
+            ]
+            plan["wasm"].append(
+                [sys.executable, "scripts/ci/expect_compile_error.py", expect["contains"], "--", *check]
             )
     return plan
 
@@ -486,6 +546,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
             "package": name,
             "llama": packages[name].needs_llama,
             "timeout": settings[name].timeout_minutes,
+            "container-options": settings[name].container_options,
         }
         for name in sorted(selected)
         if not settings[name].skip

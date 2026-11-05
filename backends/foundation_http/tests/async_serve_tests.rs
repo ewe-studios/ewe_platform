@@ -1,10 +1,10 @@
 //! Feature 08 — `ConnectionResult::Async` for long-lived HTTP/1.1 handlers.
 //!
 //! A handler that needs to wait returns `Async(future)` at once. The connection
-//! task parks on the future via the valtron wake bridge and applies its result
-//! (`Keep` / `Take` / `Close`) when it completes. This tests the three
-//! observable behaviours: keep-alive after `Keep`, drop-on-shutdown for a
-//! still-pending future, and close on a nested `Async`.
+//! task parks on the future via the valtron wake bridge and applies its
+//! [`ServeOutcome`] when it completes. This tests the observable behaviours:
+//! keep-alive after `Keep`, drop-on-shutdown for a still-pending future, and the
+//! connection ending on `Take` and on `Close(Some(_))`.
 
 #![cfg(feature = "multi")]
 
@@ -16,6 +16,8 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{initialize_pool, timer};
+use foundation_errstacks::ErrorTrace;
+use foundation_http::native::writer::send_text;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -26,7 +28,7 @@ use foundation_http::{
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeError, ServeFactory, ServeOutcome},
     },
 };
 
@@ -42,20 +44,28 @@ impl ServeFactory for AsyncKeepHandler {
     }
 }
 
+/// Write a complete response and report how the connection ends.
+async fn write_or_close(response: ConnectionResult) -> ServeOutcome {
+    match response.split() {
+        Ok(future) => future.await,
+        Err(outcome) => outcome,
+    }
+}
+
 impl Serve for AsyncKeepHandler {
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "first").map_or(ConnectionResult::Close(None), |()| {
-            let fut = async move {
-                timer::sleep_for(Duration::from_millis(50)).await;
-                ConnectionResult::Keep
-            };
-            ConnectionResult::Async(Box::pin(fut))
-        })
+        ConnectionResult::Async(Box::pin(async move {
+            if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, "first")).await {
+                return ServeOutcome::Close(err);
+            }
+            timer::sleep_for(Duration::from_millis(50)).await;
+            ServeOutcome::Keep
+        }))
     }
 }
 
@@ -87,40 +97,56 @@ impl Serve for PendingDropHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "pending").map_or(ConnectionResult::Close(None), |()| {
-            let fut = async move {
-                let _guard = DropFlag;
-                std::future::pending::<()>().await;
-                ConnectionResult::Keep
-            };
-            ConnectionResult::Async(Box::pin(fut))
-        })
+        ConnectionResult::Async(Box::pin(async move {
+            if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, "pending")).await
+            {
+                return ServeOutcome::Close(err);
+            }
+            let _guard = DropFlag;
+            std::future::pending::<()>().await;
+            ServeOutcome::Keep
+        }))
     }
 }
 
-/// Writes a 200, then resolves to a nested `Async`. The connection must close.
-struct NestedAsyncHandler;
+/// Writes a response, then ends the future with `Take` on `GET /take` and with
+/// an error `Close` on `GET /close`.
+///
+/// Feature 84 deleted the nested-`Async` test: `ServeFuture` now resolves to
+/// [`ServeOutcome`], which has no `Async` variant, so a future cannot return
+/// another future and that run-time error is impossible.
+struct AsyncEndHandler;
 
-impl ServeFactory for NestedAsyncHandler {
+impl ServeFactory for AsyncEndHandler {
     fn create(_bag: &ContextBag) -> Self {
         Self
     }
 }
 
-impl Serve for NestedAsyncHandler {
+impl Serve for AsyncEndHandler {
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
-        _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "nested").map_or(ConnectionResult::Close(None), |()| {
-            let fut =
-                async move { ConnectionResult::Async(Box::pin(async { ConnectionResult::Keep })) };
-            ConnectionResult::Async(Box::pin(fut))
-        })
+        let take = req.request_url.url.starts_with("/take");
+        ConnectionResult::Async(Box::pin(async move {
+            let body = if take { "take-ok" } else { "close-ok" };
+            if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, body)).await {
+                return ServeOutcome::Close(err);
+            }
+            if take {
+                ServeOutcome::Take
+            } else {
+                ServeOutcome::Close(Some(ErrorTrace::new(ServeError::InternalError {
+                    status: 500,
+                    reason: "feature 84: a future may end with an error close".to_string(),
+                })))
+            }
+        }))
     }
 }
 
@@ -136,6 +162,8 @@ fn start_server<H: ServeFactory + 'static>() -> (
 ) {
     let mut app = HttpApp::new_serve();
     app.route::<H>(SimpleMethod::GET, "/async");
+    app.route::<H>(SimpleMethod::GET, "/take");
+    app.route::<H>(SimpleMethod::GET, "/close");
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -249,39 +277,36 @@ fn async_result_shutdown_drops_future() {
     assert!(returned, "serve_with_listener should return after shutdown");
 }
 
-/// A future that resolves to a nested `Async` is a programming error: the
-/// connection closes.
+/// A future that resolves to `Take` ends the connection task, and a future
+/// that resolves to `Close(Some(_))` logs the error and closes.
 #[test]
 #[foundation_macros::timeout(60000)]
 #[serial(http_test)]
-fn nested_async_closes_with_error() {
+fn async_result_take_and_close() {
     let _pool = initialize_pool(202, Some(4));
-    let (addr, shutdown, done_rx) = start_server::<NestedAsyncHandler>();
+    let (addr, shutdown, done_rx) = start_server::<AsyncEndHandler>();
 
-    let mut stream = TcpStream::connect(addr).expect("connect");
-    stream
-        .write_all(b"GET /async HTTP/1.1\r\nHost: t\r\n\r\n")
-        .expect("write request");
+    for (path, needle) in [("/take", "take-ok"), ("/close", "close-ok")] {
+        let mut stream = TcpStream::connect(addr).expect("connect");
+        stream
+            .write_all(format!("GET {path} HTTP/1.1\r\nHost: t\r\n\r\n").as_bytes())
+            .expect("write request");
 
-    let mut acc = String::new();
-    let mut buf = [0u8; 4096];
-    let mut closed = false;
-    loop {
-        match stream.read(&mut buf) {
-            Ok(0) => {
-                closed = true;
-                break;
-            }
-            Ok(n) => acc.push_str(&String::from_utf8_lossy(&buf[..n])),
-            Err(_) => break,
-        }
+        let response = read_until(&mut stream, needle);
+        assert!(
+            response.contains("HTTP/1.1 200"),
+            "{path} response: {response:?}"
+        );
+        assert!(response.contains(needle), "{path} body: {response:?}");
+
+        stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
+        let mut buf = [0u8; 64];
+        let closed = matches!(stream.read(&mut buf), Ok(0));
+        assert!(
+            closed,
+            "{path} must end the connection task and close the socket"
+        );
     }
-
-    assert!(acc.contains("HTTP/1.1 200"), "response: {acc:?}");
-    assert!(
-        closed,
-        "the connection should close after a nested Async result"
-    );
 
     stop(&shutdown, &done_rx);
 }

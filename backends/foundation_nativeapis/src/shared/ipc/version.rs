@@ -67,39 +67,3 @@ pub fn version() -> Version {
 pub fn version_pre() -> String {
     VERSION_PRE.to_owned()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn pre_zero_minor_must_match() {
-        let v1 = Version((0, 2, 0));
-        let v2 = Version((0, 2, 5));
-        let v3 = Version((0, 3, 0));
-        assert!(v1.compatible(v2));
-        assert!(!v1.compatible(v3));
-    }
-
-    #[test]
-    fn post_one_major_must_match() {
-        let v1 = Version((1, 0, 0));
-        let v2 = Version((1, 5, 0));
-        let v3 = Version((2, 0, 0));
-        assert!(v1.compatible(v2));
-        assert!(!v1.compatible(v3));
-    }
-
-    #[test]
-    fn zero_vs_one() {
-        let v1 = Version((0, 5, 0));
-        let v2 = Version((1, 0, 0));
-        assert!(!v1.compatible(v2));
-    }
-
-    #[test]
-    fn version_display() {
-        let v = Version((1, 2, 3));
-        assert_eq!(format!("{}", v), "1.2.3");
-    }
-}

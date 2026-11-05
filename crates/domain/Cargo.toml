@@ -1,6 +1,6 @@
 [package]
 name = "ewe_domain"
-version = "0.0.1"
+version = "0.0.2"
 description = "The capabaility crate for the ewe_platform crate"
 edition = "2021"
 rust-version = "1.87"
@@ -10,10 +10,11 @@ repository = "https://github.com/ewe-studios/ewe_platform"
 keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 [dependencies]
-ewe_channels = { path = "../channels", version = "0.0.1" }
+ewe_channels = { path = "../channels", version = "0.0.2" }
 tracing = { version = "0.1.40" }
 futures = { version = "0.3" }
-thiserror = { version = "2.0.17" }
+derive_more = { version = ">=2.0", features = ["full"] }
+foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.3" }
 
 [dev-dependencies]
 # crossbeam::atomic backs the CounterApp model in the servicer tests.

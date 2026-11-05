@@ -54,6 +54,8 @@ struct Ticker;
 
 impl TickService for Ticker {
     // The generated trait method returns a boxed stream, so the impl does too.
+    // The generated trait declares an async method; this example does not await.
+    #[allow(clippy::unused_async_trait_impl)]
     async fn subscribe(
         &self,
         _ctx: Ctx,

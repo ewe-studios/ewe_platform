@@ -29,6 +29,16 @@ pub enum CompressionAlgorithm {
 
 impl CompressionAlgorithm {
     /// Parse from Accept-Encoding header value.
+    ///
+    /// # Note
+    /// This is an inherent parser, not the `FromStr` trait: it accepts only
+    /// the four encodings the middleware serves and returns `None` for the
+    /// rest.
+    #[must_use]
+    #[allow(
+        clippy::should_implement_trait,
+        reason = "a fallible lookup over four known values, not a total parser"
+    )]
     pub fn from_str(s: &str) -> Option<Self> {
         match s.trim().to_lowercase().as_str() {
             "gzip" => Some(CompressionAlgorithm::Gzip),
@@ -165,6 +175,7 @@ impl CompressionMiddleware {
     }
 
     /// Parse Accept-Encoding header and select best algorithm.
+    #[must_use]
     pub fn select_algorithm(&self, accept_encoding: &str) -> Option<CompressionAlgorithm> {
         // Parse qvalues: gzip;q=0.8, br;q=1.0, *;q=0
         let mut candidates: Vec<(CompressionAlgorithm, f32)> = Vec::new();

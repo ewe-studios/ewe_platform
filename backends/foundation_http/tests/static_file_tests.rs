@@ -18,10 +18,10 @@ use foundation_core::valtron::initialize_pool;
 use foundation_http::native::handlers::static_asset::StaticAssetHandler;
 use foundation_http::native::handlers::static_file::{StaticFileConfig, StaticFileHandler};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
-use foundation_http::native::writer::send_bytes;
+use foundation_http::native::writer::{send_bytes, send_text};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{respond, ConnectionResult, Serve};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeOutcome};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
@@ -97,20 +97,20 @@ impl Serve for Observing {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let seen = self.seen.clone();
-        let record = move |result: &ConnectionResult| {
+        let record = move |outcome: &ServeOutcome| {
             let mut s = seen.lock().expect("lock");
             s.finished_at = Some(Instant::now());
-            s.closed = matches!(result, ConnectionResult::Close(_));
+            s.closed = matches!(outcome, ServeOutcome::Close(_));
         };
-        match self.inner.serve(bag, req, conn) {
-            ConnectionResult::Async(fut) => ConnectionResult::Async(Box::pin(async move {
-                let result = fut.await;
-                record(&result);
-                result
+        match self.inner.serve(bag, req, conn).split() {
+            Ok(fut) => ConnectionResult::Async(Box::pin(async move {
+                let outcome = fut.await;
+                record(&outcome);
+                outcome
             })),
-            other => {
-                record(&other);
-                other
+            Err(outcome) => {
+                record(&outcome);
+                outcome.into()
             }
         }
     }
@@ -181,10 +181,9 @@ impl Serve for Ping {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "pong")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "pong")
     }
 }
 
@@ -229,7 +228,7 @@ fn content_length(head: &str) -> usize {
 /// byte for byte. A handler that restarts a partial write from byte 0 sends
 /// duplicate bytes and fails the hash (or the length).
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn static_file_large_body_is_byte_exact() {
     let _pool = initialize_pool(300, Some(2));
@@ -266,7 +265,7 @@ fn static_file_large_body_is_byte_exact() {
 /// answered at once: the file writes do not occupy the workers. The smallest
 /// valtron pool has two task workers, so four stalled downloads outnumber them.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn static_file_does_not_hold_worker() {
     let _pool = initialize_pool(301, Some(3));
@@ -313,7 +312,7 @@ fn static_file_does_not_hold_worker() {
 /// A client that closes after the head ends the handler at once. The handler
 /// does not retry a dead peer.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn static_file_peer_reset_closes_without_retry() {
     let _pool = initialize_pool(302, Some(2));
@@ -355,7 +354,7 @@ fn static_file_peer_reset_closes_without_retry() {
 /// Chunk size and write timeout come from `StaticFileConfig`: the builder sets
 /// them, the defaults are documented values, and the handler obeys them.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn static_file_limits_come_from_config() {
     // Defaults: 64 KiB chunks (nginx output_buffers order), 60 s (nginx send_timeout).
@@ -421,7 +420,7 @@ fn static_file_limits_come_from_config() {
 /// `HEAD` sends the head with the file's `Content-Length` and no body; the
 /// connection then serves a `GET` for the same file, and a missing file is 404.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn static_file_head_has_no_body_and_connection_is_kept() {
     let _pool = initialize_pool(304, Some(3));
@@ -498,9 +497,9 @@ fn slow_get(addr: std::net::SocketAddr, path: &str) -> Vec<u8> {
 }
 
 /// A 4 MiB body written through the shared writer arrives byte for byte at a
-/// slow client. (The synchronous `respond::*` path truncates it.)
+/// slow client. (The synchronous `respond_to_buffer::*` path truncates it.)
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn respond_large_body_is_byte_exact() {
     let _pool = initialize_pool(305, Some(3));
@@ -517,7 +516,7 @@ fn respond_large_body_is_byte_exact() {
 
 /// The same for `StaticAssetHandler`.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn static_asset_large_body_is_byte_exact() {
     let _pool = initialize_pool(306, Some(3));
@@ -539,7 +538,7 @@ fn static_asset_large_body_is_byte_exact() {
 /// response: a client that reads up to 512 KiB every 100 ms (the socket is writable again every few hundred ms), with a 1 s
 /// `send_timeout`, receives the whole file.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn send_timeout_is_idle_not_total() {
     let _pool = initialize_pool(307, Some(3));
@@ -577,7 +576,7 @@ fn send_timeout_is_idle_not_total() {
 
 /// A client that stops reading is closed after about `send_timeout`.
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn send_timeout_closes_stalled_client() {
     let _pool = initialize_pool(308, Some(3));

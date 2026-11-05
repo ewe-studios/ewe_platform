@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Sends API — portable handlers (spec-57, F008 Stage 1).
 //!
 //! WHY: time-limited, access-counted secure sharing. Ported from OrangeVault
@@ -26,6 +30,7 @@ fn parse_date(s: &str) -> AppResult<DateTime<Utc>> {
     DateTime::parse_from_rfc3339(s)
         .map(|d| d.with_timezone(&Utc))
         .map_err(|e| AppError::BadRequest(format!("invalid date {s:?}: {e}")))
+        .map_err(Into::into)
 }
 
 fn send_type_from_i64(v: i64) -> SendType {
@@ -60,12 +65,16 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Se
         .await?
         .ok_or_else(|| AppError::NotFound("send not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }
 
 /// `GET /api/sends` — the user's sends.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Send>> {
     Ok(store::find_by_user(ctx.db(), user_uuid)
         .await?
@@ -75,13 +84,17 @@ pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Send>
 }
 
 /// `POST /api/sends` — create a text/file send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     user_uuid: &str,
     req: SendCreateRequest,
 ) -> AppResult<Send> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("send name is required".into()));
+        return Err(AppError::BadRequest("send name is required".into()).into());
     }
     let now = Utc::now();
     let deletion_date = match req.deletion_date.as_deref() {
@@ -113,11 +126,19 @@ pub async fn create(
 }
 
 /// `GET /api/sends/:id` — an owned send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Send> {
     Ok(to_send(&owned(ctx, user_uuid, id).await?))
 }
 
 /// `PUT /api/sends/:id` — update an owned send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -127,7 +148,7 @@ pub async fn update(
     let mut row = owned(ctx, user_uuid, id).await?;
     if let Some(name) = req.name {
         if name.trim().is_empty() {
-            return Err(AppError::BadRequest("send name is required".into()));
+            return Err(AppError::BadRequest("send name is required".into()).into());
         }
         row.name = name;
     }
@@ -158,6 +179,10 @@ pub async fn update(
 }
 
 /// `DELETE /api/sends/:id` — delete an owned send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<()> {
     owned(ctx, user_uuid, id).await?;
     store::delete(ctx.db(), id).await
@@ -168,6 +193,10 @@ pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResu
 /// Enforces disabled / deletion / expiry / max-access-count / password, then
 /// increments the access counter and returns the send (a "not found" is returned
 /// for any access-denied case so a probe can't distinguish reasons).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> AppResult<Send> {
     let mut row = store::find(ctx.db(), id)
         .await?
@@ -181,12 +210,12 @@ pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> 
             .max_access_count
             .is_some_and(|max| row.access_count >= max);
     if gone {
-        return Err(AppError::NotFound("send not found".into()));
+        return Err(AppError::NotFound("send not found".into()).into());
     }
 
     if let Some(required) = row.password.as_deref() {
         if password != Some(required) {
-            return Err(AppError::Unauthorized);
+            return Err(AppError::Unauthorized.into());
         }
     }
 

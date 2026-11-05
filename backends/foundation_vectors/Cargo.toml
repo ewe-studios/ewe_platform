@@ -45,13 +45,13 @@ default-features = false
 # `foundation_core/multi`, which does not build for wasm32.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.4"
+version = "0.0.6"
 features = ["multi"]
 optional = true
 
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.4"
+version = "0.0.6"
 default-features = false
 features = ["wasm-fetch"]
 optional = true

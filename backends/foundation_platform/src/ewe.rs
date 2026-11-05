@@ -156,8 +156,8 @@ pub fn method_from_request(request: &Request<Vec<u8>>) -> Method {
 // ── Mode page rendering ─────────────────────────────────────────────────
 
 /// Return a CSS class + label for the route's source.
-#[allow(dead_code)]
-fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
+#[must_use]
+pub fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
     match decision.source {
         RouteSource::WebviewApp => ("wasm", "🟢 App — WASM in WebView"),
         RouteSource::IpcShell => ("ipc", "🟠 IPC — Native Shell"),
@@ -167,8 +167,8 @@ fn mode_badge_for(decision: &RouteDecision) -> (&'static str, &'static str) {
 
 /// Build a self-contained HTML page showing which mode was activated,
 /// the route, and the raw response payload.
-#[allow(dead_code)]
-fn build_mode_page(
+#[must_use]
+pub fn build_mode_page(
     path: &str,
     (cls, label): &(&str, &str),
     decision: &RouteDecision,
@@ -242,62 +242,6 @@ fn html_escape(s: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&#39;")
-}
-
-#[cfg(test)]
-mod mode_page_tests {
-    use super::*;
-
-    #[test]
-    fn build_mode_page_works_with_json_body() {
-        let d = RouteDecision {
-            source: RouteSource::WebviewApp,
-            presentation: Presentation::Morph,
-            view_kind: ViewKind::WebView,
-            protocol: ProtocolHint::Default,
-            cache_policy: CachePolicy::CacheFirst,
-            profile: Profile::App,
-            native_view_id: None,
-            target: None,
-            capabilities: vec![],
-            auth_origin: None,
-            handler_id: None,
-            sub_path: None,
-        };
-        let (cls, label) = mode_badge_for(&d);
-        let html = build_mode_page("/app/home", &(cls, label), &d, r#"{"type":"wasm_signal"}"#);
-        assert!(html.contains("ewe:///app/home"));
-        assert!(html.contains("wasm_signal"));
-        assert!(html.contains("App"));
-        assert!(!html.contains("panic"));
-    }
-
-    #[test]
-    fn build_mode_page_escapes_html_in_body() {
-        let d = RouteDecision {
-            source: RouteSource::RemoteServer,
-            presentation: Presentation::Morph,
-            view_kind: ViewKind::WebView,
-            protocol: ProtocolHint::Default,
-            cache_policy: CachePolicy::NetworkFirst,
-            profile: Profile::TrustedRemote,
-            native_view_id: None,
-            target: None,
-            capabilities: vec![],
-            auth_origin: None,
-            handler_id: None,
-            sub_path: None,
-        };
-        let (cls, label) = mode_badge_for(&d);
-        let html = build_mode_page(
-            "/remote/data",
-            &(cls, label),
-            &d,
-            "<script>alert('xss')</script>",
-        );
-        assert!(html.contains("&lt;script&gt;"));
-        assert!(!html.contains("<script>alert"));
-    }
 }
 
 // ── Protocol selection ────────────────────────────────────────────────

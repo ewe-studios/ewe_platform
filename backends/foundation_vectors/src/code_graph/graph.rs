@@ -1,3 +1,4 @@
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
 use petgraph::graph::{DiGraph, NodeIndex};
@@ -310,8 +311,8 @@ impl CodeGraph {
 
             for edge_ref in self.graph.edges_directed(current, Direction::Outgoing) {
                 let neighbor = edge_ref.target();
-                if let std::collections::hash_map::Entry::Vacant(e) = visited.entry(neighbor) {
-                    e.insert(true);
+                if let Entry::Vacant(slot) = visited.entry(neighbor) {
+                    slot.insert(true);
                     queue.push_back((neighbor, depth + 1));
                     result_edges.push((
                         self.graph[current].id.clone(),
@@ -322,8 +323,8 @@ impl CodeGraph {
             }
             for edge_ref in self.graph.edges_directed(current, Direction::Incoming) {
                 let neighbor = edge_ref.source();
-                if let std::collections::hash_map::Entry::Vacant(e) = visited.entry(neighbor) {
-                    e.insert(true);
+                if let Entry::Vacant(slot) = visited.entry(neighbor) {
+                    slot.insert(true);
                     queue.push_back((neighbor, depth + 1));
                     result_edges.push((
                         self.graph[neighbor].id.clone(),

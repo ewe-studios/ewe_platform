@@ -136,10 +136,10 @@ async fn park_and_measure(signal: EventReadinessPtr) -> u64 {
 const PARK_MS: u64 = 300;
 
 /// The most readiness checks a parked task may cost over the park. An executor that
-/// sleeps checks the readiness at the park, at the deadline and, on the
-/// single-thread driver, once per `max_yield_duration` (100 ms) wake-up: 2 to 14
-/// checks. The old 1 ms re-check made about `PARK_MS` (300) to 650 checks.
-const MAX_CHECKS: usize = 20;
+/// sleeps checks the readiness at the park, at the deadline and once per
+/// `max_yield_duration` (100 ms) wake-up: 3 to 4 checks in both feature sets. The
+/// old 1 ms re-check made 200 to 650 checks.
+const MAX_CHECKS: usize = 5;
 
 /// One deadline readiness, parked on and counted. `with_any` parks on an
 /// `AnyReadiness` of the earliest deadline, a later one and a signal that never fires.

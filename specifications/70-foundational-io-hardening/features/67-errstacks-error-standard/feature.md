@@ -1,10 +1,10 @@
 ---
 feature: "Every crate reports errors through foundation_errstacks (ErrorTrace over a derive_more enum); no thiserror"
-status: "pending"
+status: "done"
 lane: "after both lanes merge (touches crates of both lanes)"
 model: "sonnet"
 branch: "fix/io-67-errstacks"
-crates: ["foundation_wireguard", "foundation_proxy", "foundation_shell", "foundation_html", "foundation_arrow", "foundation_sshkit", "foundation_toolings", "foundation_codegen", "foundation_nativeapis", "foundation_keychain", "crates/watchers", "crates/domain", "crates/channels", "crates/watch_utils"]
+crates: ["foundation_wireguard", "foundation_proxy", "foundation_html", "foundation_arrow", "foundation_sshkit", "foundation_toolings", "foundation_codegen", "foundation_nativeapis", "foundation_keychain", "crates/watchers", "crates/domain", "crates/channels", "crates/watch_utils"]
 catalogue_rows: [54, 55]
 ---
 
@@ -20,18 +20,37 @@ enum (`Display`, `Error`, `From`), as in `foundation_connectrpc` (`ConnectResult
 
 Starts after both lane PRs merge (crates of both lanes). Branch from `master` then.
 
-## Problem (found in feature 54, audited by the main session on 2026-11-02)
+## Problem (found in feature 54; re-audited on `spec70/io-hardening-final`, 2026-11-05)
 
-1. These crates declare `foundation_errstacks` but never use it (their errors are plain enums):
+1. These crates declare `foundation_errstacks` but have no `ErrorTrace` use in `src`:
    `foundation_wireguard` (`WgResult<T> = Result<T, WgError>`), `foundation_proxy`,
-   `foundation_shell`, `foundation_html`, `foundation_arrow`, `foundation_sshkit`,
-   `foundation_toolings`.
-2. These crates declare `thiserror`: `foundation_wireguard` (unused), `foundation_html` (unused),
-   `crates/watch_utils` (unused), `foundation_codegen` (5 uses), `foundation_nativeapis` (3),
-   `foundation_keychain` (1), `crates/domain` (2), `crates/channels` (2), `crates/watchers` (1).
+   `foundation_arrow`, `foundation_sshkit`, `foundation_toolings`.
+   `foundation_nativeapis` and `foundation_keychain` already use it; their remaining work is
+   the `thiserror` conversion below.
+2. These crates declare `thiserror`: `crates/watch_utils` (no use), `foundation_codegen`
+   (6 uses), `foundation_nativeapis` (3), `foundation_keychain` (1), `crates/domain` (2),
+   `crates/channels` (2), `crates/watchers` (1).
+3. `foundation_html` declares neither `foundation_errstacks` nor `thiserror`. Its errors are
+   plain enums with plain aliases (`ElementError`/`ElementResult`,
+   `ParsingTagError`/`ParsingResult`, `IslandError`, `MarkupStrError`). Convert it: add
+   `foundation_errstacks` to the manifest and return `ErrorTrace<…>`.
 
-Re-run the audit at T0 (`rg -l foundation_errstacks backends/*/Cargo.toml crates/*/Cargo.toml`
-against `rg -l 'ErrorTrace' <crate>/src`; `rg -l '^thiserror' …`).
+`foundation_shell` is out of scope. It is an empty placeholder crate: `src/lib.rs` holds only
+`add(left, right)`, so it has no error surface. It stays in `ci/packages.toml`. Its backlog
+entry says it needs either an implementation (spec 59 moves that work to
+`foundation_shell_repl`) or removal.
+
+Out of scope: `backends/foundation_boringtun` is a published fork of Cloudflare's boringtun
+(BSD-3-Clause) with upstream authors in its manifest. It keeps `thiserror` and the upstream
+shape. The CI guard below skips it by name, with this reason in the code comment.
+
+Measured commands:
+
+```bash
+rg -l foundation_errstacks backends/*/Cargo.toml crates/*/Cargo.toml
+rg -l '^thiserror' backends/*/Cargo.toml crates/*/Cargo.toml
+rg -c 'ErrorTrace' backends/<crate>/src
+```
 
 ## Design (one commit per crate)
 
@@ -66,4 +85,4 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] Every listed crate returns `ErrorTrace<…>`; no `thiserror` left; the CI guard exists.
+- [x] Every listed crate returns `ErrorTrace<…>`; no `thiserror` left; the CI guard exists.

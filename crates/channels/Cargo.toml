@@ -1,6 +1,6 @@
 [package]
 name = "ewe_channels"
-version = "0.0.1"
+version = "0.0.2"
 description = "The channels wrapper for implementing channels in ewe_domain crate"
 edition = "2021"
 rust-version = "1.87"
@@ -14,8 +14,8 @@ tracing = { version = "0.1.40" }
 async-channel = { version = "2.2" }
 futures = { version = "0.3" }
 crossbeam = { version = "0.8" }
-anyhow = { version = "1.0.80" }
-thiserror = { version = "2.0.17" }
+derive_more = { version = ">=2.0", features = ["full"] }
+foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.3" }
 
 [dev-dependencies]
 # Valtron runtime for the tests that exercise async send/receive and the

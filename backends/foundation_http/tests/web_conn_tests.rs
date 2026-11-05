@@ -1,4 +1,4 @@
-//! Tests extracted from shared/web_conn.rs
+//! Tests extracted from `shared/web_conn.rs`
 mod tests {
     use foundation_http::shared::web_conn::*;
 
@@ -6,7 +6,7 @@ mod tests {
     fn test_web_conn_default() {
         let conn = WebConn::default();
         assert_eq!(conn.status, 200);
-        assert!(conn.headers.is_empty());
+        assert_eq!(conn.headers.len(), 0);
         assert!(conn.body.is_none());
     }
 

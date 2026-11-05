@@ -32,7 +32,7 @@ fn to_api(row: FolderRow) -> Folder {
 fn validated_name(name: &str) -> AppResult<String> {
     let trimmed = name.trim();
     if trimmed.is_empty() {
-        return Err(AppError::BadRequest("folder name is required".into()));
+        return Err(AppError::BadRequest("folder name is required".into()).into());
     }
     Ok(trimmed.to_string())
 }
@@ -43,18 +43,26 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Fo
         .await?
         .ok_or_else(|| AppError::NotFound("folder not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }
 
 /// `GET /api/folders` — all folders owned by the user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Folder>> {
     let rows = store::find_by_user(ctx.db(), user_uuid).await?;
     Ok(rows.into_iter().map(to_api).collect())
 }
 
 /// `POST /api/folders` — create a folder for the user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -74,11 +82,19 @@ pub async fn create(
 }
 
 /// `GET /api/folders/:id` — a single owned folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Folder> {
     Ok(to_api(owned(ctx, user_uuid, id).await?))
 }
 
 /// `PUT /api/folders/:id` — rename an owned folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -95,6 +111,10 @@ pub async fn update(
 }
 
 /// `DELETE /api/folders/:id` — delete an owned folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<()> {
     owned(ctx, user_uuid, id).await?;
     store::delete(ctx.db(), id).await?;

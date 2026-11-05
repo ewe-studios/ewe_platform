@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Unary RPC over a real loopback socket — the "hello world" of
 //! `foundation_connectrpc`.
 //!
@@ -112,7 +120,7 @@ impl Message for EchoMessage {
 
 // ── Server ───────────────────────────────────────────────────────────────────
 
-/// Build the ConnectRPC serve handler: one unary `Echo` procedure that returns
+/// Build the `ConnectRPC` serve handler: one unary `Echo` procedure that returns
 /// the request message unchanged.
 fn echo_serve() -> Arc<dyn Serve> {
     let mut router = Router::new();

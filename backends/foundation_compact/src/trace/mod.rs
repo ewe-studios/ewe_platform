@@ -37,11 +37,13 @@ pub enum TraceWriter {
 /// Configuration for [`try_init_tracing_with`] — every knob the
 /// `tracing_subscriber::fmt` builder exposes, gathered into one struct so callers
 /// and the `#[valtron_test]` / `#[wasm_logs]` macros can tune tracing without
-/// touching the RUST_LOG env var.
+/// touching the `RUST_LOG` env var.
 ///
 /// Defaults: libtest-captured output, no targets/file/line/ansi, thread ids on,
 /// filter from `RUST_LOG` (fallback `"info"`), and the `Stdout` writer.
 #[derive(Debug, Clone)]
+// The bools are independent knobs that mirror the fmt builder.
+#[allow(clippy::struct_excessive_bools)]
 pub struct TracingTestConfig {
     /// Override the standard `RUST_LOG` env-var filter. When `None` (default),
     /// `try_init_tracing_with` checks `RUST_LOG`, falling back to `"info"`.
@@ -116,6 +118,8 @@ mod imp {
     /// [`TraceWriter::Console`] write through the same standard output.
     ///
     /// If some other subscriber was installed first, this leaves it alone.
+    // The config is consumed by the builder; passing it by value keeps callers simple.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn try_init_tracing_with(config: TracingTestConfig) {
         let _ = config.writer; // Stdout and Console are the same sink on native.
         let handle = FILTER.get_or_init(|| {
@@ -228,6 +232,8 @@ mod imp {
     /// is a no-op (there is no stdout on wasm). The subscriber is installed once
     /// per process (a `Once`), so repeated calls — one per request, in a worker —
     /// are cheap and idempotent.
+    // The config is consumed by the builder; passing it by value keeps callers simple.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn try_init_tracing_with(config: TracingTestConfig) {
         if config.writer != TraceWriter::Console {
             return;
@@ -319,6 +325,8 @@ mod imp {
     }
 
     /// Initialise a `console.log` tracing subscriber for the given config.
+    // The config is consumed by the builder; passing it by value keeps callers simple.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn try_init_tracing_with(config: TracingTestConfig) {
         if config.writer != TraceWriter::Console {
             return;

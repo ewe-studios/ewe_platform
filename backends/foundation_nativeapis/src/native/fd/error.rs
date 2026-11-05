@@ -43,10 +43,10 @@ impl<T: std::os::unix::io::AsRawFd> std::error::Error for FdRegistrationError<T>
 }
 
 /// Generic registration error (without the inner type).
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, derive_more::Display, derive_more::Error, derive_more::From)]
 pub enum RegistrationError {
-    #[error("failed to register fd with poll selector: {0}")]
+    #[display("failed to register fd with poll selector: {_0}")]
     Registration(#[from] io::Error),
-    #[error("fd is already registered with this selector")]
+    #[display("fd is already registered with this selector")]
     AlreadyRegistered,
 }

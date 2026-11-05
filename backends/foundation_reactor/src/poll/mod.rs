@@ -320,6 +320,10 @@ impl Poll {
     /// `EVFILT_READ` level-triggered for pipes despite `EV_CLEAR`, so the
     /// selector tracks the read edge in software and a drained fd must be
     /// re-armed to receive the next edge.
+    ///
+    /// Unix only: its one caller, [`crate::reactor::Reactor::clear`], is in the
+    /// Unix-only reactor module. On wasm32 the method would be dead code.
+    #[cfg(unix)]
     pub(crate) fn rearm_readable(&self, fd: sys::RawFd) {
         #[cfg(any(
             target_os = "macos",

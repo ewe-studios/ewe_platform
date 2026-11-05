@@ -17,13 +17,13 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_http::{RawStream, SimpleIncomingRequest, SimpleMethod};
 use foundation_netio::shared::client::body_reader::{collect_bytes_bounded, AsyncSendSafeBody};
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 
 use crate::core::context::KeychainContext;
-use crate::core::error::AppError;
+use crate::core::error::{AppError, AppResult};
 use crate::core::router::route;
 
 /// Default for [`KeychainServerConfig::max_request_body`]: 1 MiB, the default of
@@ -160,9 +160,7 @@ fn register_routes(app: &mut HttpApp<Arc<dyn Serve>>) {
 }
 
 /// Serialize a handler result into `(200, json)`.
-fn ser_ok<T: serde::Serialize>(
-    r: Result<T, AppError>,
-) -> Result<(u16, serde_json::Value), AppError> {
+fn ser_ok<T: serde::Serialize>(r: AppResult<T>) -> AppResult<(u16, serde_json::Value)> {
     let v = r?;
     Ok((
         200,
@@ -180,14 +178,18 @@ async fn provisioning_route(
     segments: &[&str],
     body: &str,
     app_secret: Option<&str>,
-) -> Option<Result<(u16, serde_json::Value), AppError>> {
+) -> Option<AppResult<(u16, serde_json::Value)>> {
     use crate::core::provisioning::{apps, ssh_keys};
 
     // App registration is unauthenticated.
     if method == "POST" && segments == ["api", "apps", "register"] {
         let req = match serde_json::from_str(body) {
             Ok(r) => r,
-            Err(e) => return Some(Err(AppError::BadRequest(format!("invalid body: {e}")))),
+            Err(e) => {
+                return Some(Err(
+                    AppError::BadRequest(format!("invalid body: {e}")).into()
+                ))
+            }
         };
         return Some(ser_ok(apps::register(ctx, req).await));
     }
@@ -201,9 +203,8 @@ async fn provisioning_route(
     }
 
     // Everything else needs a valid app secret.
-    let secret = match app_secret {
-        Some(s) => s,
-        None => return Some(Err(AppError::Unauthorized)),
+    let Some(secret) = app_secret else {
+        return Some(Err(AppError::Unauthorized.into()));
     };
     let app_id = match apps::authenticate(ctx, secret).await {
         Ok(id) => id,
@@ -220,7 +221,7 @@ async fn provisioning_route(
         ("GET", ["api", "credentials", "ssh-keys"]) => ser_ok(ssh_keys::list(ctx, app_id).await),
         ("POST", ["api", "credentials", "ssh-keys"]) => match serde_json::from_str(body) {
             Ok(req) => ser_ok(ssh_keys::create(ctx, master_key, app_id, req).await),
-            Err(e) => Err(AppError::BadRequest(format!("invalid body: {e}"))),
+            Err(e) => Err(AppError::BadRequest(format!("invalid body: {e}")).into()),
         },
         ("GET", ["api", "credentials", "ssh-keys", id]) => {
             ser_ok(ssh_keys::get(ctx, master_key, app_id, id).await)
@@ -231,9 +232,7 @@ async fn provisioning_route(
                 Err(e) => Err(e),
             }
         }
-        _ => Err(AppError::NotFound(format!(
-            "no provisioning route for {method}"
-        ))),
+        _ => Err(AppError::NotFound(format!("no provisioning route for {method}")).into()),
     };
     Some(result)
 }
@@ -301,7 +300,7 @@ impl Serve for ServeAdapter {
                         }
                     });
                     let _ = write_json(conn, 413, &json, true).await;
-                    return ConnectionResult::Close(None);
+                    return ServeOutcome::Close(None);
                 }
                 Err(BodyError::NotUtf8) => {
                     let err = AppError::BadRequest("request body is not valid UTF-8".into());
@@ -332,7 +331,10 @@ async fn handle(
     };
     match outcome {
         Ok((status, json)) => (status, json),
-        Err(err) => (err.status(), err.to_json()),
+        Err(err) => (
+            err.current_context().status(),
+            err.current_context().to_json(),
+        ),
     }
 }
 
@@ -376,12 +378,12 @@ async fn write_json(
     status: u16,
     body: &serde_json::Value,
     close: bool,
-) -> ConnectionResult {
+) -> ServeOutcome {
     let bytes = match serde_json::to_vec(body) {
         Ok(bytes) => bytes,
         Err(e) => {
             tracing::error!("keychain response JSON encode failed: {e}");
-            return ConnectionResult::Close(None);
+            return ServeOutcome::Close(None);
         }
     };
     let mut headers = vec![(SimpleHeader::CONTENT_TYPE, "application/json".to_string())];
@@ -395,7 +397,7 @@ async fn write_json(
         }
         Err(e) => {
             tracing::error!("keychain response build failed: {e}");
-            ConnectionResult::Close(None)
+            ServeOutcome::Close(None)
         }
     }
 }

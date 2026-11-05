@@ -1,9 +1,9 @@
 ---
 feature: "Wasm stores tested on the real wrangler bindings (no stub); D1 binding keeps integer types and i64 precision; native REST clients tested on wrangler's local REST API (stub deleted); d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
-status: "pending"
+status: "partial"
 lane: "B"
 model: "sonnet"
-branch: "fix/io-51-60-lane-b"
+branch: "spec70/f76-f55-db-generators"
 crates: ["foundation_db", "foundation_vectors", "foundation_testbed (template and harness only)"]
 catalogue_rows: [91, 92, 93, 94]
 ---
@@ -138,4 +138,65 @@ CF_INTEGRATION_TEST=1 cargo test -p foundation_db --profile dev --test d1r2_docu
 
 ## Done when
 
-- [ ] E0 harness runs the wasm stores on real bindings in CI; the REST tests run on the local explorer API and `worker-stub.js` is gone; E1–E4 fixed with tests; backlog entries deleted. CI green.
+- [x] E0 harness runs the wasm stores on real bindings in CI; the REST tests run on the local
+      explorer API and `worker-stub.js` is gone; E1–E4 fixed with tests; backlog entries
+      deleted.
+- [ ] CI green: the GitHub CI run on the PR (the local verify commands below pass).
+
+## Result (2026-11-05, branch `spec70/f76-f55-db-generators`)
+
+- **E3 and E4 were already on master** (commits `e0eb231cf` and `5221cdade`, from the
+  branch `fix/io-51-60-lane-b`). Re-verified by the `foundation_vectors` code-graph
+  tests and the `StateStore::set_if_version` tests.
+- **E1b and E2 were already on master** (`bf72c750d`): the REST clients use the
+  explorer API and `worker-stub.js` is deleted. Re-verified against `wrangler dev
+  --local` on 8789: `d1r2_document_store_tests` 4/4, then 20 of 20 runs green (each
+  ~0.5 s); `d1_batch`, `d1_kvstore`, `d1_response`, `d1_rest_batch`,
+  `d1_rest_params`, `d1_state_init`, `d1_state_store` and `r2_blobstore` all green
+  (26 tests).
+- **E4b done.** `R2Store::set_if_version` overrides the trait default:
+  `expected = None` sends `If-None-Match: *`; `expected = Some(t)` reads the state and
+  its `ETag` in one GET, compares `updated_at`, then sends `If-Match: <etag>`. A
+  `412` becomes `Ok(false)`. The trait doc now lists `R2Store` as atomic and names the
+  Cloudflare R2 object PUT reference
+  (`https://developers.cloudflare.com/api/resources/r2/subresources/buckets/subresources/objects/methods/put/`).
+  `r2_state_store_tests` (mock that honours both headers) passes 10 of 10, including
+  the 20-writer race with exactly one winner. The wasm `R2WasmStorage` does not
+  implement `StateStore`, so E4b's wasm part does not apply.
+- **E1 done.** `D1WasmStorage` binds an integer as decimal text and rewrites its
+  placeholder to `CAST(? AS INTEGER)`, so the value is an exact INTEGER in an untyped
+  column. A `NULL` parameter is written as the `NULL` literal and dropped (workerd's
+  D1 binding rejects a JS `null` parameter and names the global scope in the error);
+  later `?N` placeholders are renumbered. `QueryStore::query` documents that a D1
+  wasm INTEGER column reads back as a JS number, so a value past 2^53 needs
+  `CAST(col AS TEXT)`.
+- **E0 done.** New standalone wasm test crate
+  `backends/foundation_db/integration/wasm_cf` with 7 `#[wasm_bindgen_test]` cases:
+  D1 key-value, D1 blob, D1 integer types and `i64` precision, R2 blob (ETag, list,
+  range), R2 conditional put, KV, and the `CfD1R2DocumentStore` round trip (including
+  the >4 KB R2 offload). It runs inside workerd with `wasm-testbed test
+  bindgen-wrangler`, on the real local D1/R2/KV bindings declared in the testbed's
+  `wrangler.toml`; the worker passes `env` as `globalThis.__CF_TEST_ENV__`. The
+  runner now probes a `/health` route (a TCP connect is too early), reads the body by
+  `Content-Length`, answers 200 with `{"passed":true|false}` (a 500 goes through
+  wrangler's error middleware), and stops the whole wrangler process group. Command
+  output: `Discovered 7 tests`, `wrangler ready on port 17645`, `{"passed":true}`;
+  the worker's console log shows `test result: ok. 7 passed; 0 failed`. The harness
+  is `mise run test:wasm-testbed:wrangler`, and `wasm_tests_commands()` in
+  `scripts/ci/ci.py` adds it to the wasm runtime CI job.
+- **Blocked by the local tool:** workerd in wrangler 4.156.2 enforces `onlyIf` on an
+  R2 PUT but resolves the promise instead of rejecting when the condition fails
+  (and `etagDoesNotMatch: "*"` is not honoured). `R2WasmStorage` therefore keeps the
+  trait's documented non-atomic check-then-write, which reports
+  `PreconditionFailed`; the harness tests that. An atomic wasm conditional put needs
+  a workerd that rejects. Recorded in `docs/bug-backlog.md`.
+- **Backlog:** the §11 `set_if_version` R2 entry is replaced by the proxy-flock
+  remainder and the workerd R2 limitation; the "R2 range read and conditional put
+  have no test" entry is deleted. §17 was already empty.
+- Verify commands run: the harness command above;
+  `cargo test -p foundation_db --profile uat --test r2_state_store_tests` (10 passed);
+  `cargo check -p foundation_db --target wasm32-unknown-unknown --no-default-features
+  --features wasm-bindgen-storage` (clean); `cargo fmt --all --check` (clean);
+  `python3 scripts/ci/ci.py run foundation_db --profile dev` and
+  `foundation_vectors --profile dev`.
+

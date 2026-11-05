@@ -1,7 +1,7 @@
 //! `foundation_iogate` — the I/O gate between netio transports and the
 //! nativeapis reactor.
 //!
-//! WHY: the io_uring completion read path (Decision 14 F4 / Feature 48) needs a
+//! WHY: the `io_uring` completion read path (Decision 14 F4 / Feature 48) needs a
 //! type that owns *both* `foundation_netio` (the `Connection` enum and its
 //! `CompletionReadWrite` seam) and `foundation_nativeapis` (the `Reactor`,
 //! `RegisteredFd`, and the completion buffer ring). netio cannot depend on

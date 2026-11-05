@@ -10,7 +10,8 @@ use std::{
     sync::{self, Arc},
     task::Context,
 };
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use crate::mspc;
 
@@ -58,19 +59,25 @@ pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
     )
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum ExecutorError {
-    #[error("executor is no more usable")]
+    #[display("executor is no more usable")]
     Decommission,
 
-    #[error("executor requires retry")]
+    #[display("executor requires retry")]
     ChannelFull,
 
-    #[error("executor has no tasks")]
+    #[display("executor has no tasks")]
     NoTasks,
 }
 
-pub type ExecutorResult<E> = anyhow::Result<E, ExecutorError>;
+impl From<ExecutorError> for ErrorTrace<ExecutorError> {
+    fn from(err: ExecutorError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+pub type ExecutorResult<E> = Result<E, ErrorTrace<ExecutorError>>;
 
 pub struct ExecutionService<E: Send + 'static> {
     completed_notification: async_channel::Receiver<()>,
@@ -138,7 +145,7 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// Returns an error if there are no tasks to schedule or if the executor is decommissioned.
     pub fn schedule_serve(&mut self) -> ExecutorResult<()> {
         if self.receiver.is_empty() {
-            return ExecutorResult::Err(ExecutorError::NoTasks);
+            return ExecutorResult::Err(ExecutorError::NoTasks.into());
         }
 
         self.serve_and_capture_pending();
@@ -222,8 +229,8 @@ impl<E: Send + 'static> Executor<E> {
 
         match self.sender.try_send(task) {
             Ok(()) => Ok(()),
-            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
-            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
+            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission.into()),
+            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull.into()),
         }
     }
 
@@ -246,8 +253,8 @@ impl<E: Send + 'static> Executor<E> {
 
         match self.sender.try_send(task) {
             Ok(()) => Ok(()),
-            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
-            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
+            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission.into()),
+            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull.into()),
         }
     }
 }

@@ -19,6 +19,8 @@
 
 #![cfg(all(target_os = "linux", feature = "uring"))]
 
+mod common;
+
 use std::collections::BTreeMap;
 use std::io;
 use std::os::fd::RawFd;
@@ -67,12 +69,20 @@ impl Selector for uring::Selector {
     }
 }
 
-/// Build one selector of each backend.
-fn backends() -> Vec<Box<dyn Selector>> {
-    vec![
+/// Build one selector of each backend, or `None` when the kernel has no io_uring.
+///
+/// The parity claim compares both backends, so a kernel without io_uring cannot
+/// make it. Skipping is correct on a developer machine, but CI sets
+/// `EWE_REQUIRE_IO_URING=1`, so a missing io_uring tier fails with a reason
+/// instead of quietly dropping the suite.
+fn backends(what: &str) -> Option<Vec<Box<dyn Selector>>> {
+    if common::io_uring_missing(what, common::Requires::IoUring) {
+        return None;
+    }
+    Some(vec![
         Box::new(epoll::Selector::new().expect("epoll selector")),
         Box::new(uring::Selector::new().expect("io_uring selector")),
-    ]
+    ])
 }
 
 // ── Observation model ───────────────────────────────────────────────────────
@@ -177,8 +187,11 @@ fn drain_fd(fd: RawFd) {
 /// scenario therefore also asserts the *expected* readiness inside its closure,
 /// where it knows the stimulus. This function only catches divergence.
 fn assert_parity(what: &str, scenario: impl Fn(&dyn Selector) -> Observed) {
+    let Some(backends) = backends(what) else {
+        return;
+    };
     let mut results: Vec<(&'static str, Observed)> = Vec::new();
-    for sel in backends() {
+    for sel in backends {
         let observed = scenario(sel.as_ref());
         results.push((sel.name(), observed));
     }
@@ -417,7 +430,10 @@ fn parity_drain_reports_every_ready_fd() {
 
 #[test]
 fn parity_zero_timeout_never_blocks() {
-    for sel in backends() {
+    let Some(backends) = backends("parity_zero_timeout_never_blocks") else {
+        return;
+    };
+    for sel in backends {
         let (r, w) = nonblocking_pipe();
         sel.register(r, Token(1), Interest::READABLE)
             .expect("register");
@@ -445,7 +461,10 @@ fn parity_zero_timeout_never_blocks() {
 
 #[test]
 fn parity_timeout_expires_and_returns() {
-    for sel in backends() {
+    let Some(backends) = backends("parity_timeout_expires_and_returns") else {
+        return;
+    };
+    for sel in backends {
         let (r, w) = nonblocking_pipe();
         sel.register(r, Token(1), Interest::READABLE)
             .expect("register");

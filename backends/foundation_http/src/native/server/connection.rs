@@ -18,7 +18,6 @@ use foundation_core::valtron::{
     queue_waker, AnyReadiness, Ctx, EventQueue, EventReadiness, EventReadinessPtr, QueueReadiness,
     ReadinessWaker, ResumeSignal, TaskIterator, TaskStatus, WakeToken,
 };
-use foundation_errstacks::ErrorTrace;
 use foundation_iogate::ShutdownSignal;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
@@ -28,7 +27,8 @@ use foundation_netio::shared::http::{
 };
 
 use crate::native::reader::read_next_request;
-use crate::shared::serve::{respond, ConnectionResult, Serve, ServeError, ServeFuture};
+use crate::native::writer::{send_continue_100, send_not_found, send_text};
+use crate::shared::serve::{ConnectionResult, Serve, ServeFuture, ServeOutcome};
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -53,13 +53,21 @@ enum HandlerState {
         /// leaves it `None` and uses the `attempt` countdown instead.
         deadline: Option<Instant>,
     },
+    /// Send the `100 Continue` interim response, then wait for the body.
+    ContinueWrite {
+        future: ServeFuture,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
+    },
     /// Run middleware chain, route, and dispatch to handler.
     Processing {
         req: SimpleIncomingRequest,
         should_close: bool,
     },
     /// A handler returned `ConnectionResult::Async`. The future is polled once per
-    /// `next_status` and parked on the bridge until it resolves or the server drains.
+    /// `next_status` and parked on the bridge until it resolves to a
+    /// [`ServeOutcome`] or the server drains.
     Awaiting {
         future: ServeFuture,
         should_close: bool,
@@ -125,6 +133,10 @@ pub struct ConnectionHandler {
 
 impl ConnectionHandler {
     /// Create a new connection handler.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the handler needs the connection, its app, its limits and its drain guard"
+    )]
     pub fn new(
         app: std::sync::Arc<crate::shared::app::HttpApp<Arc<dyn Serve>>>,
         streams: HTTPStreams<RawStream>,
@@ -176,7 +188,7 @@ impl ConnectionHandler {
     }
 
     /// Total time to wait for the body after 100 Continue when the transport can
-    /// report readiness (the WireGuard overlay). A blocking transport uses the
+    /// report readiness (the `WireGuard` overlay). A blocking transport uses the
     /// `base_delay` / `max_attempts` polling scheme instead.
     fn body_wait_timeout(&self) -> Duration {
         self.timeout_calculator
@@ -346,12 +358,11 @@ impl ConnectionHandler {
                         method = %req.method,
                         "Idle: unsupported HTTP version on HTTP/1.x connection, sending 505"
                     );
-                    report_closing_write(respond::text(
-                        &mut self.conn.clone(),
+                    return self.close_with(send_text(
+                        self.conn.clone(),
                         505,
                         "HTTP Version Not Supported",
                     ));
-                    return None;
                 }
 
                 let should_close = Self::should_close_after(&req);
@@ -397,12 +408,7 @@ impl ConnectionHandler {
                         err = ?e,
                         "Idle: non-transient read error, sending 400"
                     );
-                    let _err = ErrorTrace::new(ServeError::BadRequest {
-                        status: 400,
-                        reason: e.to_string(),
-                    });
-                    report_closing_write(respond::text(&mut self.conn.clone(), 400, "Bad Request"));
-                    None
+                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request"))
                 }
             }
             None => {
@@ -423,7 +429,7 @@ impl ConnectionHandler {
     }
 
     /// Park on the connection's read waker after a `WouldBlock` reading the next
-    /// request, for non-blocking transports (the WireGuard overlay).
+    /// request, for non-blocking transports (the `WireGuard` overlay).
     ///
     /// Returns `Some(Depends(signal))` — re-entering `Idle` when unparked — if the
     /// transport supports readiness wakeups, or `None` for a blocking transport
@@ -497,71 +503,23 @@ impl ConnectionHandler {
                 return Some(TaskStatus::Pending(()));
             }
 
-            // Send 100 Continue and wait for body data.
-            match respond::continue_100(&mut self.conn.clone()) {
-                Ok(()) => {
-                    tracing::trace!(
-                        client_ip = %self.client_ip,
-                        "Sent 100 Continue, entering WaitingForBody state"
-                    );
-                    self.state = Some(HandlerState::WaitingForBody {
+            // Send 100 Continue through the async writer, then wait for body
+            // data. The write may park on socket readiness; `ContinueWrite`
+            // drives it without holding a worker.
+            return match send_continue_100(self.conn.clone()).split() {
+                Ok(future) => {
+                    self.state = Some(HandlerState::ContinueWrite {
+                        future,
                         req,
                         should_close,
-                        attempt: 0,
-                        deadline: None,
+                        continue_retries,
                     });
-                    let delay = self
-                        .timeout_calculator
-                        .calculate_expect_continue_delay(
-                            &TimeoutContext::default(),
-                            0,
-                            self.max_expect_attempts,
-                        )
-                        .expect("first attempt must yield a delay");
-                    return Some(TaskStatus::Delayed(delay));
+                    Some(TaskStatus::Pending(()))
                 }
-                Err(e) => {
-                    let next = continue_retries + 1;
-                    if next <= self.max_continue_retries {
-                        tracing::trace!(
-                            client_ip = %self.client_ip,
-                            err = ?e,
-                            retry = next,
-                            max_retries = self.max_continue_retries,
-                            "100 Continue write failed, retrying"
-                        );
-                        // Re-enter CheckExpect with incremented counter.
-                        self.state = Some(HandlerState::CheckExpect {
-                            req,
-                            should_close,
-                            continue_retries: next,
-                        });
-                        // Short delay before retry — use base delay from calculator.
-                        let delay = self
-                            .timeout_calculator
-                            .calculate_expect_continue_delay(
-                                &TimeoutContext::default(),
-                                continue_retries,
-                                self.max_expect_attempts.max(1),
-                            )
-                            .unwrap_or(Duration::from_millis(100));
-                        return Some(TaskStatus::Delayed(delay));
-                    }
-                    tracing::warn!(
-                        client_ip = %self.client_ip,
-                        err = ?e,
-                        retries = continue_retries,
-                        max_retries = self.max_continue_retries,
-                        "Failed to write 100 Continue after all retries"
-                    );
-                    report_closing_write(respond::text(
-                        &mut self.conn.clone(),
-                        502,
-                        "Bad Gateway — Expect: failed to write response",
-                    ));
-                    return None;
+                Err(outcome) => {
+                    self.apply_continue_result(outcome, req, should_close, continue_retries)
                 }
-            }
+            };
         }
         // No expect header — go straight to processing.
         tracing::trace!(
@@ -637,8 +595,7 @@ impl ConnectionHandler {
                         err = ?e,
                         "WaitingForBody: hard error on probe"
                     );
-                    report_closing_write(respond::text(&mut self.conn.clone(), 400, "Bad Request"));
-                    None
+                    self.close_with(send_text(self.conn.clone(), 400, "Bad Request"))
                 }
             }
         }
@@ -646,7 +603,7 @@ impl ConnectionHandler {
 
     /// Arm the connection's read waker, so a body that arrives while the handler
     /// probes still wakes the parked task. Returns the signal to park on for a
-    /// transport that can report readiness (the WireGuard overlay), or `None`
+    /// transport that can report readiness (the `WireGuard` overlay), or `None`
     /// for a blocking transport, whose caller falls back to fixed delays.
     fn arm_body_waker(&self) -> Option<ResumeSignal> {
         let signal = ResumeSignal::new(false);
@@ -757,16 +714,19 @@ impl ConnectionHandler {
             max_attempts = self.max_expect_attempts,
             "WaitingForBody: body never arrived, sending 408"
         );
-        report_closing_write(respond::text(
-            &mut self.conn.clone(),
+        self.close_with(send_text(
+            self.conn.clone(),
             408,
             "Request Timeout — body not received after 100 Continue",
-        ));
-        None
+        ))
     }
 
     // ---- Processing state -------------------------------------------------
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the middleware chain and route dispatch read best as one flow"
+    )]
     fn handle_processing(
         &mut self,
         mut req: SimpleIncomingRequest,
@@ -931,21 +891,10 @@ impl ConnectionHandler {
                 path = %path,
                 "Processing: no route matched, returning 404"
             );
-            if let Err(err) = respond::not_found(&mut self.conn.clone()) {
-                tracing::debug!(
-                    client_ip = %self.client_ip,
-                    err = ?err,
-                    "Processing: writing the 404 failed; closing"
-                );
-                return None;
-            }
             // The request body was never read: the next request on this
             // connection would start inside it, so the connection must close.
-            if should_close || body_left_unread(&req) {
-                return None;
-            }
-            self.state = Some(HandlerState::Idle);
-            Some(TaskStatus::Pending(()))
+            let close = should_close || body_left_unread(&req);
+            self.await_response(send_not_found(self.conn.clone()), close)
         }
     }
 
@@ -959,21 +908,24 @@ impl ConnectionHandler {
         mut future: ServeFuture,
         should_close: bool,
     ) -> Option<TaskStatus<(), ()>> {
-        // Shutdown first: drop the future and close. Dropping `future` here runs
-        // the handler's drop flags (the shutdown test checks this).
-        if self.shutdown.probe() {
-            tracing::trace!(client_ip = %self.client_ip, "Awaiting: server draining, dropping the handler future");
-            return None;
-        }
-
         // Drain stale tokens before polling (the FutureTask bridge pattern).
         while self.wake_queue.pop().is_ok() {}
 
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
         match future.as_mut().poll(&mut cx) {
+            // Poll before the shutdown check: a future that completes now still
+            // delivers its response during the drain. An in-flight handler that
+            // is only writing its answer completes here, so shutdown never
+            // truncates it.
             Poll::Ready(result) => self.apply_async_result(result, should_close),
             Poll::Pending => {
+                // A future that is still waiting when the server drains is
+                // dropped, and its drop flags run (the shutdown test checks this).
+                if self.shutdown.probe() {
+                    tracing::trace!(client_ip = %self.client_ip, "Awaiting: server draining, dropping the handler future");
+                    return None;
+                }
                 self.state = Some(HandlerState::Awaiting {
                     future,
                     should_close,
@@ -991,14 +943,14 @@ impl ConnectionHandler {
         }
     }
 
-    /// Apply the resolved `ConnectionResult` of an `Async` future.
+    /// Apply the resolved [`ServeOutcome`] of an `Async` future.
     fn apply_async_result(
         &mut self,
-        result: ConnectionResult,
+        result: ServeOutcome,
         should_close: bool,
     ) -> Option<TaskStatus<(), ()>> {
         match result {
-            ConnectionResult::Keep => {
+            ServeOutcome::Keep => {
                 if should_close {
                     tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler kept connection but Connection: close; closing");
                     return None;
@@ -1007,30 +959,185 @@ impl ConnectionHandler {
                 self.state = Some(HandlerState::Idle);
                 Some(TaskStatus::Pending(()))
             }
-            ConnectionResult::Take => {
+            ServeOutcome::Take => {
                 tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler took connection");
                 None
             }
-            ConnectionResult::Close(err) => {
+            ServeOutcome::Close(err) => {
                 if let Some(e) = &err {
                     tracing::error!(client_ip = %self.client_ip, err = ?e, "Connection closed with error");
                 }
                 None
             }
-            ConnectionResult::Async(_) => {
-                // An Async whose future resolves to Async again is a programming error.
-                tracing::error!(client_ip = %self.client_ip, "Awaiting: a handler returned Async from an Async future; closing");
+        }
+    }
+
+    // ---- Async response helpers ------------------------------------------
+
+    /// Write a final response through an async writer and close when it ends.
+    fn close_with(&mut self, result: ConnectionResult) -> Option<TaskStatus<(), ()>> {
+        self.await_response(result, true)
+    }
+
+    /// Drive an async response, then either close (`close`) or return to
+    /// `Idle`. A response that fails to build closes at once, because the
+    /// socket state is unknown.
+    fn await_response(
+        &mut self,
+        result: ConnectionResult,
+        close: bool,
+    ) -> Option<TaskStatus<(), ()>> {
+        match result {
+            ConnectionResult::Async(future) => {
+                self.state = Some(HandlerState::Awaiting {
+                    future,
+                    should_close: close,
+                });
+                Some(TaskStatus::Pending(()))
+            }
+            ConnectionResult::Close(err) => {
+                if let Some(e) = err {
+                    tracing::debug!(
+                        client_ip = %self.client_ip,
+                        err = ?e,
+                        "response could not be built; closing"
+                    );
+                }
                 None
+            }
+            ConnectionResult::Keep | ConnectionResult::Take => {
+                if close {
+                    None
+                } else {
+                    self.state = Some(HandlerState::Idle);
+                    Some(TaskStatus::Pending(()))
+                }
             }
         }
     }
-}
 
-/// Log a failed write of an error response the connection closes after
-/// anyway: there is no one left to tell, but the failure is not hidden.
-fn report_closing_write(result: Result<(), ErrorTrace<ServeError>>) {
-    if let Err(err) = result {
-        tracing::debug!(err = ?err, "could not write the closing error response");
+    /// Poll the `100 Continue` write once. On success, wait for the body; on
+    /// failure, retry up to `max_continue_retries`, then answer `502` and
+    /// close.
+    fn handle_continue_write(
+        &mut self,
+        mut future: ServeFuture,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
+    ) -> Option<TaskStatus<(), ()>> {
+        if self.shutdown.probe() {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "ContinueWrite: server draining, dropping the interim write"
+            );
+            return None;
+        }
+
+        while self.wake_queue.pop().is_ok() {}
+        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let mut cx = Context::from_waker(&waker);
+        match future.as_mut().poll(&mut cx) {
+            Poll::Ready(result) => {
+                self.apply_continue_result(result, req, should_close, continue_retries)
+            }
+            Poll::Pending => {
+                self.state = Some(HandlerState::ContinueWrite {
+                    future,
+                    req,
+                    should_close,
+                    continue_retries,
+                });
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
+                        future: self.wake_queue.readiness(),
+                        shutdown: self.shutdown.clone(),
+                    })))
+                } else {
+                    Some(TaskStatus::Ignore)
+                }
+            }
+        }
+    }
+
+    /// Act on the [`ServeOutcome`] of the `100 Continue` write.
+    fn apply_continue_result(
+        &mut self,
+        result: ServeOutcome,
+        req: SimpleIncomingRequest,
+        should_close: bool,
+        continue_retries: usize,
+    ) -> Option<TaskStatus<(), ()>> {
+        match result {
+            ServeOutcome::Keep => {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    "Sent 100 Continue, entering WaitingForBody state"
+                );
+                self.state = Some(HandlerState::WaitingForBody {
+                    req,
+                    should_close,
+                    attempt: 0,
+                    deadline: None,
+                });
+                let delay = self
+                    .timeout_calculator
+                    .calculate_expect_continue_delay(
+                        &TimeoutContext::default(),
+                        0,
+                        self.max_expect_attempts,
+                    )
+                    .expect("first attempt must yield a delay");
+                Some(TaskStatus::Delayed(delay))
+            }
+            ServeOutcome::Close(err) => {
+                let next = continue_retries + 1;
+                if next <= self.max_continue_retries {
+                    tracing::trace!(
+                        client_ip = %self.client_ip,
+                        err = ?err,
+                        retry = next,
+                        max_retries = self.max_continue_retries,
+                        "100 Continue write failed, retrying"
+                    );
+                    self.state = Some(HandlerState::CheckExpect {
+                        req,
+                        should_close,
+                        continue_retries: next,
+                    });
+                    // Short delay before retry — use base delay from calculator.
+                    let delay = self
+                        .timeout_calculator
+                        .calculate_expect_continue_delay(
+                            &TimeoutContext::default(),
+                            continue_retries,
+                            self.max_expect_attempts.max(1),
+                        )
+                        .unwrap_or(Duration::from_millis(100));
+                    Some(TaskStatus::Delayed(delay))
+                } else {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        err = ?err,
+                        retries = continue_retries,
+                        max_retries = self.max_continue_retries,
+                        "Failed to write 100 Continue after all retries"
+                    );
+                    self.close_with(send_text(
+                        self.conn.clone(),
+                        502,
+                        "Bad Gateway — Expect: failed to write response",
+                    ))
+                }
+            }
+            ServeOutcome::Take => {
+                tracing::error!(
+                    client_ip = %self.client_ip,
+                    "ContinueWrite: unexpected result; closing"
+                );
+                None
+            }
+        }
     }
 }
 
@@ -1088,6 +1195,12 @@ impl TaskIterator for ConnectionHandler {
                 should_close,
                 continue_retries,
             } => self.handle_check_expect(req, should_close, continue_retries),
+            HandlerState::ContinueWrite {
+                future,
+                req,
+                should_close,
+                continue_retries,
+            } => self.handle_continue_write(future, req, should_close, continue_retries),
             HandlerState::WaitingForBody {
                 req,
                 should_close,

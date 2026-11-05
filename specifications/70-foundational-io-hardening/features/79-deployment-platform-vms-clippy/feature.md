@@ -1,9 +1,9 @@
 ---
 feature: "CI runs clippy for foundation_deployment_platform with the vms feature on"
-status: "pending"
+status: "done"
 lane: "B"
 model: "haiku"
-branch: "fix/io-51-60-lane-b"
+branch: "spec70/f59-f60-f79-lane-b-mechanical"
 crates: ["foundation_deployment_platform", "ci/packages.toml"]
 catalogue_rows: [102]
 ---
@@ -26,4 +26,20 @@ that code are not seen.
 
 ## Done when
 
-- [ ] The `vms` clippy run is in CI and passes on GitHub; backlog §7 entry deleted.
+- [x] The `vms` clippy run is in CI and passes on GitHub; backlog §7 entry deleted.
+
+## Result
+
+- `ci/packages.toml`: `foundation_deployment_platform` now sets
+  `clippy-runs = ["", "vms"]` and `clippy-deny-warnings = true`. CI therefore
+  runs `cargo clippy --all-targets --no-deps -- -D warnings` for the default
+  and the `vms` feature trees.
+- `python3 scripts/ci/ci.py list` shows
+  `clippy=enforce+deny ... runs=['', 'vms']`.
+- `python3 scripts/ci/ci.py run foundation_deployment_platform --step clippy --profile dev`
+  ran both planned commands with `-D warnings` and they finished clean.
+- The literal local command without `--no-deps` re-lints path dependencies.
+  It fails on `foundation_nostd/src/comp/fair_gate.rs` (five lints), which is
+  lane A debt already recorded in backlog §4. CI passes `--no-deps`, so that
+  entry still holds the dependency fix.
+- Backlog §7 entry deleted.

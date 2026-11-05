@@ -54,12 +54,16 @@ async fn owned(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<S
         .await?
         .ok_or_else(|| AppError::NotFound("ssh key not found".into()))?;
     if key.app_uuid != app_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(key)
 }
 
 /// `POST /api/credentials/ssh-keys` — generate + store a key for the app.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     master_key: &str,
@@ -67,7 +71,7 @@ pub async fn create(
     req: CreateSshKeyRequest,
 ) -> AppResult<SshKeyResponse> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("key name is required".into()));
+        return Err(AppError::BadRequest("key name is required".into()).into());
     }
     let comment = req.comment.clone().unwrap_or_default();
     let generated = keygen::generate(req.key_type.as_deref().unwrap_or("ed25519"), &comment)?;
@@ -93,6 +97,10 @@ pub async fn create(
 }
 
 /// `GET /api/credentials/ssh-keys` — the app's keys (public only).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, app_id: &str) -> AppResult<Vec<SshKeyResponse>> {
     Ok(store::find_keys_by_app(ctx.db(), app_id)
         .await?
@@ -102,6 +110,10 @@ pub async fn list(ctx: &KeychainContext, app_id: &str) -> AppResult<Vec<SshKeyRe
 }
 
 /// `GET /api/credentials/ssh-keys/:id` — one key with the decrypted private key.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(
     ctx: &KeychainContext,
     master_key: &str,
@@ -116,6 +128,10 @@ pub async fn get(
 }
 
 /// `DELETE /api/credentials/ssh-keys/:id` — delete an owned key.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<()> {
     owned(ctx, app_id, key_id).await?;
     store::delete_key(ctx.db(), key_id).await

@@ -946,9 +946,6 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
     8 * 1024
 };
 
-/// `SharedPointerReader` defines a shared buffer reader pointer that allows reading through
-/// a underlying buffered stream.
-
 /// Marker trait for transport types that can report whether they are
 /// Unix-domain sockets (and thus non-poolable after a single HTTP exchange).
 pub trait IsUnixTransport {
@@ -1538,9 +1535,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let slice = &self.buffer[self.pos..buffer_length];
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
+        let slice_copy = slice.to_vec();
         let slice_length = slice_copy.len();
 
         // move the slice to the start of the buffer.
@@ -1701,11 +1696,7 @@ impl<T: Read> ByteBufferPointer<T> {
         let slice_string = String::from_utf8(slice.to_vec());
         self.pos = self.peek_pos;
 
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
-
-        Some(slice_copy)
+        Some(slice.to_vec())
     }
 
     /// [`Self::consume`] consumes the amount of data that has been peeked over-so far, returning

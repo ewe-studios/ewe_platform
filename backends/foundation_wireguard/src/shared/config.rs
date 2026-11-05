@@ -405,9 +405,11 @@ impl WgConfig {
         let contents = std::fs::read_to_string(path.as_ref()).map_err(|e| {
             WgError::Config(format!("cannot read {}: {e}", path.as_ref().display()))
         })?;
-        toml::from_str(&contents).map_err(|e| {
-            WgError::Config(format!("invalid TOML in {}: {e}", path.as_ref().display()))
-        })
+        toml::from_str(&contents)
+            .map_err(|e| {
+                WgError::Config(format!("invalid TOML in {}: {e}", path.as_ref().display()))
+            })
+            .map_err(Into::into)
     }
 
     /// WHY: Build a config from environment variables — the self-assembly path for
@@ -444,7 +446,7 @@ impl WgConfig {
                         WgError::Config(format!("invalid WG_SEED_ENDPOINTS item '{s}': {e}"))
                     })
                 })
-                .collect::<WgResult<Vec<_>>>()?
+                .collect::<Result<Vec<_>, WgError>>()?
         } else {
             Vec::new()
         };

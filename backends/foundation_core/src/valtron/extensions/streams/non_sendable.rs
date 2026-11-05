@@ -1346,8 +1346,8 @@ where
 
     fn collect_result(self) -> Vec<Self::D> {
         let mut out = Vec::new();
-        let mut inner = self.into_stream_iter();
-        while let Some(item) = inner.next() {
+        let inner = self.into_stream_iter();
+        for item in inner {
             if let Stream::Next(v) = item {
                 out.push(v);
             }
@@ -1356,8 +1356,8 @@ where
     }
 
     fn collect_one(self) -> Option<Self::D> {
-        let mut inner = self.into_stream_iter();
-        while let Some(item) = inner.next() {
+        let inner = self.into_stream_iter();
+        for item in inner {
             if let Stream::Next(v) = item {
                 return Some(v);
             }

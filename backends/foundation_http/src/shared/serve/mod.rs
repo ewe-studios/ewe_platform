@@ -55,9 +55,20 @@ impl From<ServeError> for ErrorTrace<ServeError> {
 // ---------------------------------------------------------------------------
 // ConnectionResult
 
+/// How a handler's async continuation ends. It has no `Async` variant: a
+/// future resolves once, to one of the three connection actions.
+pub enum ServeOutcome {
+    /// The handler wrote a response; the connection carries the next request.
+    Keep,
+    /// The handler owns the connection permanently (WebSocket, SSE, long poll).
+    Take,
+    /// Close the connection, optionally with an error for the log.
+    Close(Option<ErrorTrace<ServeError>>),
+}
+
 /// A handler's async continuation. It owns everything it needs (`'static`) and
-/// resolves to what the connection does next.
-pub type ServeFuture = Pin<Box<dyn Future<Output = ConnectionResult> + Send + 'static>>;
+/// resolves once to what the connection does next.
+pub type ServeFuture = Pin<Box<dyn Future<Output = ServeOutcome> + Send + 'static>>;
 
 /// Three outcomes telling the worker what to do after a handler runs.
 pub enum ConnectionResult {
@@ -71,6 +82,35 @@ pub enum ConnectionResult {
     /// The handler continues asynchronously. The connection task parks on the
     /// future and applies its result (Keep / Take / Close) when it completes.
     Async(ServeFuture),
+}
+
+impl From<ServeOutcome> for ConnectionResult {
+    fn from(outcome: ServeOutcome) -> Self {
+        match outcome {
+            ServeOutcome::Keep => ConnectionResult::Keep,
+            ServeOutcome::Take => ConnectionResult::Take,
+            ServeOutcome::Close(err) => ConnectionResult::Close(err),
+        }
+    }
+}
+
+impl ConnectionResult {
+    /// Split the result into the future to await, or the ready outcome.
+    ///
+    /// `Ok(future)` for `Async`, `Err(outcome)` for the three ready variants. A
+    /// wrapper uses it to observe both cases without a four-arm match.
+    ///
+    /// # Errors
+    /// Returns the ready outcome when the handler did not continue
+    /// asynchronously.
+    pub fn split(self) -> Result<ServeFuture, ServeOutcome> {
+        match self {
+            ConnectionResult::Async(future) => Ok(future),
+            ConnectionResult::Keep => Err(ServeOutcome::Keep),
+            ConnectionResult::Take => Err(ServeOutcome::Take),
+            ConnectionResult::Close(err) => Err(ServeOutcome::Close(err)),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -185,15 +225,15 @@ fn render_response(
     Ok(())
 }
 
-/// Quick-response helpers for common HTTP patterns.
+/// Quick-response helpers for in-memory writers.
 ///
-/// These write synchronously to any `impl Write` (memory buffers, blocking
-/// sockets, wasm). They are not safe for a body larger than the send buffer of
-/// a **non-blocking** connection socket: the write fails with `WouldBlock`
-/// after a partial write. For a native `Serve` handler, return
-/// `native::writer::send_text` / `send_json` / `send_bytes` instead;
-/// they write through `ResponseWriter`.
-pub mod respond {
+/// These write synchronously to any `impl Write` that cannot block: a `Vec<u8>`
+/// in a test, or a wasm response buffer. They are **not** safe for a body larger
+/// than the send buffer of a **non-blocking** connection socket: the write fails
+/// with `WouldBlock` after a partial write. For any native `Serve` handler, use
+/// `native::writer::send_text` / `send_json` / `send_bytes` instead; they write
+/// through `ResponseWriter`. The name says which writers these are for.
+pub mod respond_to_buffer {
     use serde::Serialize;
 
     use super::{
@@ -202,6 +242,10 @@ pub mod respond {
     };
 
     /// Write a JSON response with the given status code.
+    ///
+    /// # Errors
+    /// Returns an error when the body cannot be serialized, or the response
+    /// cannot be built or written.
     pub fn json<T: Serialize>(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -215,6 +259,9 @@ pub mod respond {
     }
 
     /// Write a plain text response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn text(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -224,6 +271,9 @@ pub mod respond {
     }
 
     /// Write an HTML response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn html(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -233,6 +283,9 @@ pub mod respond {
     }
 
     /// Write a redirect response (301 or 302).
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn redirect(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -259,11 +312,17 @@ pub mod respond {
     }
 
     /// Write a 404 Not Found response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn not_found(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
         text(conn, 404, "Not Found")
     }
 
     /// Write a 500 Internal Server Error response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn server_error(
         conn: &mut impl std::io::Write,
         reason: Option<&str>,
@@ -273,6 +332,9 @@ pub mod respond {
     }
 
     /// Write a 100 Continue interim response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built, written or flushed.
     #[tracing::instrument(skip(conn))]
     pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
         // A `100 Continue` interim response is header-less. The `Http11` renderer

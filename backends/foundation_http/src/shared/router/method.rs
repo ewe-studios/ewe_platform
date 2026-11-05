@@ -76,6 +76,10 @@ impl<S> RouteMethod<S> {
     }
 
     /// Get the handler for a specific HTTP method.
+    ///
+    /// # Errors
+    /// Returns `RouteResult::MethodNotAllowed` when no handler is registered
+    /// for `method`.
     pub fn get_method(&self, method: &SimpleMethod) -> RouteResult<S>
     where
         S: Clone,

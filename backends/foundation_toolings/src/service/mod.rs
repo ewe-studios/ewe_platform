@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron;
+use foundation_core::valtron::EventQueue;
 use foundation_nativeapis::signal::{signal_task, SignalKind};
 use foundation_nativeapis::valtron::FileWatcherTask;
 
@@ -28,9 +29,9 @@ impl DevService {
     ///
     /// # Errors
     /// Returns an error if any component fails to spawn.
-    pub fn start(&self) -> Result<(), ToolingError> {
+    pub fn start(&self) -> crate::error::ToolingResult<()> {
         // -- Shared queues
-        let build_complete_queue: Arc<ConcurrentQueue<()>> = Arc::new(ConcurrentQueue::unbounded());
+        let build_complete_queue: EventQueue<()> = EventQueue::unbounded();
         let running_queue: Arc<ConcurrentQueue<()>> = Arc::new(ConcurrentQueue::unbounded());
 
         // -- File watcher (build dirs)
@@ -82,22 +83,20 @@ impl DevService {
         let sig_sub = bus.subscribe();
         tracing::info!("Dev service started — press Ctrl+C to stop");
 
-        loop {
-            match sig_sub.pop() {
-                Ok(event) => match event.kind {
-                    SignalKind::Interrupt | SignalKind::Terminate => {
-                        tracing::info!("Received {}, shutting down", event.kind);
-                        break;
-                    }
-                    SignalKind::Hangup => {
-                        tracing::info!("Received SIGHUP — reload not yet implemented");
-                    }
-                    SignalKind::Quit => {
-                        tracing::info!("Received SIGQUIT — shutting down");
-                        break;
-                    }
-                },
-                Err(_) => break, // queue closed
+        // The queue closes when the signal task stops, so `pop` ends the loop.
+        while let Ok(event) = sig_sub.pop() {
+            match event.kind {
+                SignalKind::Interrupt | SignalKind::Terminate => {
+                    tracing::info!("Received {}, shutting down", event.kind);
+                    break;
+                }
+                SignalKind::Hangup => {
+                    tracing::info!("Received SIGHUP — reload not yet implemented");
+                }
+                SignalKind::Quit => {
+                    tracing::info!("Received SIGQUIT — shutting down");
+                    break;
+                }
             }
         }
 
@@ -109,7 +108,7 @@ impl DevService {
 ///
 /// # Errors
 /// Returns an error if any component fails to start.
-pub fn run_dev_server(project: ProjectDefinition) -> Result<(), ToolingError> {
+pub fn run_dev_server(project: ProjectDefinition) -> crate::error::ToolingResult<()> {
     let dev_service = DevService::new(project);
     let _guard = valtron::initialize_pool(42, None);
     dev_service.start()

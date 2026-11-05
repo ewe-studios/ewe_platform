@@ -86,8 +86,8 @@ fn post(url: &str) -> PreparedRequest {
     }
 }
 
-fn check(seen: &mpsc::Receiver<Seen>, status: Status, total: Duration) {
-    assert_eq!(status, Status::OK);
+fn check(seen: &mpsc::Receiver<Seen>, status: &Status, total: Duration) {
+    assert_eq!(*status, Status::OK);
     let seen = seen
         .recv_timeout(Duration::from_secs(5))
         .expect("server report");
@@ -123,7 +123,7 @@ fn expect_continue_sends_body_after_timeout_tcp() {
     let response = client
         .send(post(&format!("http://127.0.0.1:{port}/containers/create")))
         .expect("send");
-    check(&rx, response.get_status(), started.elapsed());
+    check(&rx, &response.get_status(), started.elapsed());
 }
 
 #[cfg(unix)]
@@ -156,7 +156,7 @@ fn expect_continue_sends_body_after_timeout_unix() {
     let elapsed = started.elapsed();
     let _ = std::fs::remove_file(&path);
     let response = result.expect("send");
-    check(&rx, response.get_status(), elapsed);
+    check(&rx, &response.get_status(), elapsed);
 }
 
 /// Root cause of the Docker stall: `HttpClientBuilder::read_timeout` also set the
@@ -196,7 +196,7 @@ fn read_timeout_does_not_lengthen_expect_continue_wait_unix() {
     let elapsed = started.elapsed();
     let _ = std::fs::remove_file(&path);
     let response = result.expect("send");
-    check(&rx, response.get_status(), elapsed);
+    check(&rx, &response.get_status(), elapsed);
 }
 
 #[valtron_test(timeout = 60_000)]
@@ -218,7 +218,7 @@ fn read_timeout_does_not_lengthen_expect_continue_wait_tcp() {
     let response = client
         .send(post(&format!("http://127.0.0.1:{port}/containers/create")))
         .expect("send");
-    check(&rx, response.get_status(), started.elapsed());
+    check(&rx, &response.get_status(), started.elapsed());
 }
 
 /// Feature 75: the 100-continue timer fires on time on an otherwise idle executor.

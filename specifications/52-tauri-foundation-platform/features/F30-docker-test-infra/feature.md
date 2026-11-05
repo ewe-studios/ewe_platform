@@ -212,3 +212,34 @@ docker exec ewe_windows ver       # Windows version
 - Boots containers, waits for readiness, runs connectivity tests
 - Collects screenshots + artifacts with 7-day retention
 - Triggers on `workflow_dispatch`, platform-related pushes, daily schedule
+
+## Correction (2026-11-05)
+
+The Layer 3 jobs did not test what their names said. The images run the guest operating
+system in QEMU inside a Linux container, so `docker exec` reaches the container's Linux
+side, never the guest. While the spec 70 pull request was open, three defects showed this:
+
+1. `platform-unit` failed on a missing `glib-2.0`. The job now installs the Tauri GTK and
+   WebKit packages.
+2. The macOS job called `docker exec` with the service name `macos`, but the container is
+   named `ewe_macos`, so every exec failed. The readiness probe was `sh -c 'echo ready'`,
+   which the Linux side always answers: the wait ended after 10 seconds without the guest
+   being up.
+3. The "Install Rust on macOS" step installed
+   `stable-x86_64-unknown-linux-gnu`, and the "iOS target check" then looked for the
+   repository at `/shared`. `/shared` was empty, because `docker-compose.yaml` mounted the
+   developer's own absolute host paths and Docker creates an empty directory when one is
+   missing. The Windows job was the same, with `cmd /c "echo ready"` on a Linux container.
+   The `docker` tests were also never run: `--lib` selects library unit tests, and the
+   test file is an integration test.
+
+The jobs now check only what the host side can prove. `scripts/ci/vm-host-smoke.sh` starts
+the container, waits until it runs, waits until its web console answers on the published
+port, and checks that the workspace is mounted at `/shared`. Each job then runs the
+`docker_tests` integration test for its own container. `docker-compose.yaml` takes its
+mount sources from `EWE_SHARED_DIR` and `EWE_{MACOS,WINDOWS}_STORAGE`, so CI points them at
+the checkout and a runner directory.
+
+In-guest builds stay out of scope: they run in the provisioned VM images of
+`.github/workflows/platform-vms.yaml`, which reach the guest over SSH. The iOS example
+build is on the backlog until it moves there.

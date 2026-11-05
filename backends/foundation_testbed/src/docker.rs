@@ -12,7 +12,7 @@
 //! HOW: All operations shell out to `docker` CLI. Zero new Rust dependencies.
 //! Feature-gated behind `docker-tests`.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Output};
 use std::time::{Duration, Instant};
 
@@ -338,7 +338,7 @@ impl TestEnvironment {
         self.docker_exec
             .exec(&format!("screencapture -x {tmp_in}"))?;
 
-        let mut out = Command::new("docker")
+        let out = Command::new("docker")
             .args(["cp", &format!("{}:{tmp_in}", self.container), "-"])
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::null())
@@ -581,7 +581,11 @@ impl TestEnvironment {
 
 // ── Utility: TCP port check ──────────────────────────────────────────────
 
-fn port_is_open(host: &str, port: u16) -> bool {
+/// Whether a TCP connect to `host:port` succeeds within two seconds.
+///
+/// Public so an integration test can pin the reachability probe.
+#[must_use]
+pub fn port_is_open(host: &str, port: u16) -> bool {
     std::net::TcpStream::connect_timeout(
         &format!("{host}:{port}").parse().unwrap(),
         Duration::from_secs(2),
@@ -590,37 +594,3 @@ fn port_is_open(host: &str, port: u16) -> bool {
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn builder_container_not_found_when_not_running() {
-        let builder = TestEnvironmentBuilder::new("nonexistent_container_12345");
-        assert!(!builder.is_running());
-        match builder.connect() {
-            Err(TestEnvError::ContainerNotFound(c)) => assert!(c.contains("nonexistent")),
-            other => panic!("expected ContainerNotFound, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn builder_with_vnc_configures_correctly() {
-        let builder = TestEnvironmentBuilder::new("macos").with_vnc(5900);
-        assert!(builder.is_running()); // macOS container should be up
-    }
-
-    #[test]
-    fn builder_with_rdp_configures_correctly() {
-        let builder = TestEnvironmentBuilder::new("ewe_windows").with_rdp(3389, "Docker", "admin");
-        assert!(builder.is_running()); // Windows container should be up
-    }
-
-    #[test]
-    fn port_is_open_returns_bool() {
-        // 192.0.2.0/24 is TEST-NET-1, reserved and unreachable — always false.
-        let result = port_is_open("192.0.2.1", 80);
-        assert!(!result);
-    }
-}

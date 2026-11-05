@@ -311,11 +311,7 @@ impl PlatformSession {
         if self.cache.should_serve_cached(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
                 // Even for cached responses, record the navigation mode.
-                self.record_presentation(
-                    &route,
-                    &decision.presentation,
-                    decision.target.as_deref(),
-                );
+                self.record_presentation(&route, &decision.presentation);
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -327,11 +323,7 @@ impl PlatformSession {
         // Offline fallback
         if !self.is_online() && self.cache.can_serve_offline(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
-                self.record_presentation(
-                    &route,
-                    &decision.presentation,
-                    decision.target.as_deref(),
-                );
+                self.record_presentation(&route, &decision.presentation);
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -343,7 +335,7 @@ impl PlatformSession {
         // Step 4: Presentation — update the WebView stack before rendering.
         // This records which WebView label the navigation targets and the
         // transition style (morph, replace, new).
-        self.record_presentation(&route, &decision.presentation, decision.target.as_deref());
+        self.record_presentation(&route, &decision.presentation);
 
         // Step 4b: ViewKind routing — if the decision targets a labeled WebView,
         // ensure it exists in the pool. The actual WebView creation happens in
@@ -396,7 +388,7 @@ impl PlatformSession {
     ///
     /// This gives Hotwire-style native navigation feel without the 50-150MB
     /// per-WebView RAM cost of keeping multiple WebViews alive.
-    fn record_presentation(&self, route: &str, presentation: &Presentation, target: Option<&str>) {
+    fn record_presentation(&self, route: &str, presentation: &Presentation) {
         let win_mgr = self.window_manager();
         if let Ok(mut stack) = self.webview_stack.write() {
             if stack.depth() == 0 {

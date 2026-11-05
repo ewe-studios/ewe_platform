@@ -594,6 +594,9 @@ where
 {
     type Ready = Result<F::Output, CancelOutcome>;
     type Pending = ();
+    // The single-threaded executor's readiness type is `!Send` by design, so
+    // the `Arc` here never crosses a thread boundary.
+    #[allow(clippy::arc_with_non_send_sync)]
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.is_cancelled() {
             return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
@@ -929,10 +932,7 @@ where
         let waker = get_noop_waker();
         let mut cx = Context::from_waker(&waker);
 
-        let polled = match self.future.as_mut() {
-            Some(future) => future.as_mut().poll(&mut cx),
-            None => return None,
-        };
+        let polled = self.future.as_mut()?.as_mut().poll(&mut cx);
 
         match polled {
             Poll::Ready(Ok(iter)) => {
