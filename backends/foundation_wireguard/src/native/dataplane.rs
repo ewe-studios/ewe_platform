@@ -42,7 +42,7 @@ impl MeshDataPlane {
         mode: &DataPlaneMode,
         my_ip: IpAddr,
         prefix_len: u8,
-    ) -> Result<Self, crate::shared::error::WgError> {
+    ) -> crate::shared::error::WgResult<Self> {
         Ok(match mode {
             #[cfg(not(target_family = "wasm"))]
             DataPlaneMode::Tun { name, mtu } => {

@@ -122,9 +122,7 @@ pub fn decode(bytes: &[u8]) -> WgResult<SwimMessage> {
         .split_first()
         .ok_or_else(|| WgError::Protocol("empty SWIM message".into()))?;
     if version != SWIM_WIRE_VERSION {
-        return Err(WgError::Protocol(format!(
-            "unsupported SWIM wire version {version}"
-        )));
+        return Err(WgError::Protocol(format!("unsupported SWIM wire version {version}")).into());
     }
     let (message, _len) = bincode::serde::decode_from_slice(body, bincode::config::standard())
         .map_err(|e| WgError::Protocol(format!("malformed SWIM message: {e}")))?;

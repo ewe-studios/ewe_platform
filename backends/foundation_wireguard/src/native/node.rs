@@ -176,8 +176,8 @@ impl WgNode {
         // ── Data plane: from config (smoltcp or kernel TUN) ────────────
         let dp = MeshDataPlane::from_config(&self.config.dataplane.mode, my_ip, OVERLAY_PREFIX)?;
 
-        let udp = UdpSocket::bind(self.config.udp_listen())?;
-        let udp_addr = udp.get_ref().local_addr()?;
+        let udp = UdpSocket::bind(self.config.udp_listen()).map_err(WgError::from)?;
+        let udp_addr = udp.get_ref().local_addr().map_err(WgError::from)?;
 
         let my_record = PeerRecord::new(my_id, my_ip, vec![udp_addr], caps);
         let mut swim = Swim::new(my_record.clone(), mesh_swim_config(), seed_from_id(&my_id));
@@ -199,15 +199,15 @@ impl WgNode {
                         break;
                     }
                     Admission::Reject => {
-                        return Err(WgError::Protocol("join rejected by seed".into()))
+                        return Err(WgError::Protocol("join rejected by seed".into()).into())
                     }
                     Admission::Pending => {
-                        return Err(WgError::Protocol("join pending approval".into()))
+                        return Err(WgError::Protocol("join pending approval".into()).into())
                     }
                 }
             }
             if !joined {
-                return Err(WgError::Protocol("no reachable seed endpoint".into()));
+                return Err(WgError::Protocol("no reachable seed endpoint".into()).into());
             }
         }
 

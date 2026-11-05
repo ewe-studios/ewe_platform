@@ -186,7 +186,7 @@ impl BootstrapServer {
         channel_psk: [u8; 32],
         handler: Arc<dyn BootstrapHandler>,
     ) -> WgResult<Self> {
-        let listener = TcpListener::bind(addr)?;
+        let listener = TcpListener::bind(addr).map_err(WgError::from)?;
         Ok(Self {
             listener,
             channel_psk,
@@ -199,7 +199,7 @@ impl BootstrapServer {
     /// # Errors
     /// [`WgError::Io`] if the address cannot be read.
     pub fn local_addr(&self) -> WgResult<SocketAddr> {
-        Ok(self.listener.local_addr()?)
+        Ok(self.listener.local_addr().map_err(WgError::from)?)
     }
 
     /// The raw fd of the TCP listener, for reactor registration (F02 valtron task).
@@ -237,7 +237,7 @@ impl BootstrapServer {
     /// [`WgError::Protocol`] on a failed handshake (e.g. wrong seed) or malformed frame;
     /// [`WgError::Io`] on transport errors.
     pub fn serve_once(&self) -> WgResult<()> {
-        let (tcp, _peer) = self.listener.accept()?;
+        let (tcp, _peer) = self.listener.accept().map_err(WgError::from)?;
         self.handshake_and_serve(tcp)
     }
 
@@ -258,7 +258,7 @@ impl BootstrapServer {
         use std::sync::atomic::Ordering;
         use std::time::{Duration, Instant};
 
-        self.listener.set_nonblocking(true)?;
+        self.listener.set_nonblocking(true).map_err(WgError::from)?;
         let fd = self.listener_fd();
 
         // Try to register with the shared reactor for edge-triggered wake.
@@ -307,7 +307,7 @@ impl BootstrapServer {
                         std::thread::sleep(Duration::from_millis(50));
                     }
                 }
-                Err(e) => return Err(e.into()),
+                Err(e) => return Err(WgError::from(e).into()),
             }
         }
         Ok(())
@@ -320,7 +320,7 @@ impl BootstrapServer {
 
     fn serve_stream(&self, stream: &mut NoiseStream<TcpStream>) -> WgResult<()> {
         loop {
-            let req = match read_http_request(stream)? {
+            let req = match read_http_request(stream).map_err(WgError::from)? {
                 Some(r) => r,
                 None => return Ok(()), // peer closed
             };
@@ -331,7 +331,9 @@ impl BootstrapServer {
                     let record = match request {
                         BootstrapRequest::Join(r) => r,
                         other => {
-                            return Err(WgError::Protocol(format!("expected Join, got {other:?}")))
+                            return Err(
+                                WgError::Protocol(format!("expected Join, got {other:?}")).into()
+                            )
                         }
                     };
                     let (decision, members) = self.handler.on_join(record);
@@ -354,7 +356,8 @@ impl BootstrapServer {
                         other => {
                             return Err(WgError::Protocol(format!(
                                 "expected Announce, got {other:?}"
-                            )))
+                            ))
+                            .into())
                         }
                     };
                     self.handler.on_announce(record);
@@ -369,7 +372,7 @@ impl BootstrapServer {
                     (501, serde_json::to_vec(&err).unwrap_or_default())
                 }
             };
-            write_http_response(stream, status, &body)?;
+            write_http_response(stream, status, &body).map_err(WgError::from)?;
         }
     }
 }
@@ -487,7 +490,7 @@ impl BootstrapClient {
     /// [`WgError::Io`] if the TCP connect fails; [`WgError::Protocol`] if the handshake
     /// fails (e.g. wrong seed).
     pub fn connect(&self, endpoint: SocketAddr) -> WgResult<BootstrapConnection> {
-        let tcp = TcpStream::connect(endpoint)?;
+        let tcp = TcpStream::connect(endpoint).map_err(WgError::from)?;
         let stream = noise_psk::connect(tcp, self.channel_psk)?;
         Ok(BootstrapConnection { stream })
     }
@@ -517,18 +520,21 @@ impl BootstrapConnection {
     ) -> WgResult<BootstrapResponse> {
         let body =
             serde_json::to_vec(request).map_err(|e| WgError::Protocol(format!("encode: {e}")))?;
-        http_request(&mut self.stream, method, &body)?;
-        let resp = http_response(&mut self.stream)?
+        http_request(&mut self.stream, method, &body).map_err(WgError::from)?;
+        let resp = http_response(&mut self.stream)
+            .map_err(WgError::from)?
             .ok_or_else(|| WgError::Protocol("connection closed before reply".into()))?;
         if resp.status != 200 {
             let detail = String::from_utf8_lossy(&resp.body);
             return Err(WgError::Protocol(format!(
                 "bootstrap server returned {}: {detail}",
                 resp.status
-            )));
+            ))
+            .into());
         }
         serde_json::from_slice(&resp.body)
             .map_err(|e| WgError::Protocol(format!("decode response: {e}")))
+            .map_err(Into::into)
     }
 
     /// Announce self and request admission, returning the decision + membership.
@@ -538,9 +544,7 @@ impl BootstrapConnection {
     pub fn join(&mut self, record: PeerRecord) -> WgResult<(Admission, Vec<PeerRecord>)> {
         match self.request("Join", &BootstrapRequest::Join(record))? {
             BootstrapResponse::JoinResult { decision, members } => Ok((decision, members)),
-            other => Err(WgError::Protocol(format!(
-                "unexpected join reply: {other:?}"
-            ))),
+            other => Err(WgError::Protocol(format!("unexpected join reply: {other:?}")).into()),
         }
     }
 
@@ -551,9 +555,9 @@ impl BootstrapConnection {
     pub fn pull_membership(&mut self) -> WgResult<Vec<PeerRecord>> {
         match self.request("PullMembership", &BootstrapRequest::PullMembership)? {
             BootstrapResponse::Membership(members) => Ok(members),
-            other => Err(WgError::Protocol(format!(
-                "unexpected membership reply: {other:?}"
-            ))),
+            other => {
+                Err(WgError::Protocol(format!("unexpected membership reply: {other:?}")).into())
+            }
         }
     }
 
@@ -564,9 +568,7 @@ impl BootstrapConnection {
     pub fn announce(&mut self, record: PeerRecord) -> WgResult<()> {
         match self.request("Announce", &BootstrapRequest::Announce(record))? {
             BootstrapResponse::Ack => Ok(()),
-            other => Err(WgError::Protocol(format!(
-                "unexpected announce reply: {other:?}"
-            ))),
+            other => Err(WgError::Protocol(format!("unexpected announce reply: {other:?}")).into()),
         }
     }
 }

@@ -185,14 +185,12 @@ impl BootstrapToken {
             .decode(body_b64.trim())
             .map_err(|e| WgError::InvalidToken(format!("base64url: {e}")))?;
         if blob.len() < 4 {
-            return Err(WgError::InvalidToken("token too short".into()));
+            return Err(WgError::InvalidToken("token too short".into()).into());
         }
         let (body, crc_bytes) = blob.split_at(blob.len() - 4);
         let expected = u32::from_be_bytes([crc_bytes[0], crc_bytes[1], crc_bytes[2], crc_bytes[3]]);
         if crc32c(body) != expected {
-            return Err(WgError::InvalidToken(
-                "CRC mismatch (corrupt/truncated)".into(),
-            ));
+            return Err(WgError::InvalidToken("CRC mismatch (corrupt/truncated)".into()).into());
         }
 
         let mut network_id = None;
@@ -250,7 +248,7 @@ impl BootstrapToken {
             network_id.ok_or_else(|| WgError::InvalidToken("missing network_id field".into()))?;
         let secret = secret.ok_or_else(|| WgError::InvalidToken("missing secret field".into()))?;
         if endpoints.is_empty() {
-            return Err(WgError::InvalidToken("token carries no endpoints".into()));
+            return Err(WgError::InvalidToken("token carries no endpoints".into()).into());
         }
         Ok(Self {
             network_id,
@@ -308,7 +306,7 @@ impl WgBootstrap {
 fn parse_bare_seed(s: &str) -> WgResult<WgSeed> {
     let looks_hex = (s.len() == 32 || s.len() == 64) && s.bytes().all(|b| b.is_ascii_hexdigit());
     if looks_hex {
-        let bytes = hex::decode(s)?;
+        let bytes = hex::decode(s).map_err(WgError::from)?;
         return WgSeed::from_bytes(&bytes);
     }
     WgSeed::from_base64url(s)
@@ -357,7 +355,7 @@ fn decode_endpoint(value: &[u8]) -> WgResult<SocketAddr> {
             let port = u16::from_be_bytes([value[17], value[18]]);
             Ok(SocketAddr::new(IpAddr::V6(Ipv6Addr::from(octets)), port))
         }
-        _ => Err(WgError::InvalidToken("malformed endpoint field".into())),
+        _ => Err(WgError::InvalidToken("malformed endpoint field".into()).into()),
     }
 }
 
@@ -389,7 +387,7 @@ fn read_varint(data: &[u8], pos: &mut usize) -> WgResult<u64> {
         }
         shift += 7;
         if shift >= 64 {
-            return Err(WgError::InvalidToken("varint overflow".into()));
+            return Err(WgError::InvalidToken("varint overflow".into()).into());
         }
     }
 }

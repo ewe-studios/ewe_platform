@@ -104,9 +104,9 @@ fn decode<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> WgResult<T> {
         .split_first()
         .ok_or_else(|| WgError::Protocol("empty bootstrap message".into()))?;
     if version != BOOTSTRAP_WIRE_VERSION {
-        return Err(WgError::Protocol(format!(
-            "unsupported bootstrap wire version {version}"
-        )));
+        return Err(
+            WgError::Protocol(format!("unsupported bootstrap wire version {version}")).into(),
+        );
     }
     let (value, _) = bincode::serde::decode_from_slice(body, bincode::config::standard())
         .map_err(|e| WgError::Protocol(format!("malformed bootstrap message: {e}")))?;
