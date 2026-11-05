@@ -34,6 +34,9 @@ toml = { workspace = true }
 foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
 foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+# The project error standard. It is a common dependency: the error types in
+# `shared/error.rs` compile for every target, including wasm32.
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
 smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
@@ -50,9 +53,6 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.6", 
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
 # compiled in. The native code is the only user.
 foundation_netio = { path = "../foundation_netio", version = "0.0.6", default-features = false }
-# The project error standard. Feature 67 adopts it in this crate; keep the
-# dependency now so that change is a code-only edit.
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 # Pure-Rust Noise Protocol implementation for the seed-authenticated bootstrap channel
 # (and the optional identity-pinned mTLS channel). `default-resolver` selects the
 # RustCrypto backends (x25519-dalek / ChaCha20-Poly1305 / BLAKE2s) — no C crypto, so
@@ -65,6 +65,10 @@ snow = { version = "0.10", default-features = false, features = ["default-resolv
 
 # Browser WebAssembly APIs (F07 — browser peer).
 [target.'cfg(target_family = "wasm")'.dependencies]
+# `#[valtron_bindgen]` expands to `foundation_core::valtron` calls, and the
+# browser tests use `foundation_core::valtron` directly. The native section
+# turns on `multi`; wasm keeps the single-threaded executor.
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
