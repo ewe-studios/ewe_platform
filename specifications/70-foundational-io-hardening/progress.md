@@ -2,6 +2,27 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 116, `foundation_core` reaches zero clippy warnings.
+  Branch `spec70/priority-followups`.
+  - Default tree: 333 diagnostics in the test target plus 18 in five examples
+    before, 0 after. `multi` tree: 2 distinct `while_let_on_iterator`
+    diagnostics in `sendable.rs` before, 0 after. `foundation_nostd` stays at 0
+    in both directions.
+  - Bare `--no-default-features`: the named `compile_error!`, 27 errors and one
+    unused-dependency warning before; only the named error after.
+    `pub mod valtron` is gated on `std`, and `futures-core` is optional.
+  - `#[valtron]`/`#[valtron_test]`: the `PoolGuard` now lives in a block scope,
+    so it drops after the body in both feature trees and the macro no longer
+    emits `mem::drop` (89 `drop_non_drop` gone).
+  - `ci/packages.toml`: `[packages.foundation_core]` has
+    `clippy-runs = ["", "multi"]` and `clippy-deny-warnings = true`.
+  - Tests: default 861 passed, 0 failed; `multi` 904 passed, 0 failed;
+    `foundation_macros` 99 passed, 0 failed. `cargo fmt --all --check` clean.
+  - Deleted the two §4 clippy entries and added three limitation entries.
+    Feature 49 moves to `done` with E10 updated.
+  - Status is `pending (CI proof)`: the GitHub run must show the two
+    deny-warning clippy runs green.
+
 - 2026-11-05: CI proof for features 108, 109, 111 and 113.
   Branch `spec70/priority-followups`, commit `02cbb08b5`.
   - GitHub run

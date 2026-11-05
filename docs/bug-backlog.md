@@ -49,31 +49,27 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `Expect: 100-continue` timer and carried it in the request `Extensions` instead. Fix:
   add `Ctx::with_clock(Arc<dyn Clock>) -> Ctx` (a fork with a replaced clock), or read a
   typed `Env` entry in `clock()` before the default `MonotonicClock`.
-- **`foundation_core` and `foundation_nostd` fail `clippy -D warnings`.** Seen on
-  `fix/io-41-50-lane-a` (2026-11-04), `cargo clippy -p foundation_core --no-deps
-  --profile dev --lib -- -D warnings`: 19 errors, none in feature 46 code. Files:
-  `executors/background.rs:283,299` and `task.rs:214` (`double_must_use`),
-  `executors/local.rs:374,375,391,392` and `future_task.rs:616` (`arc_with_non_send_sync`),
-  `future_task.rs:936`, `task_iters.rs:127,449` (`question_mark`),
-  `extensions/streams/non_sendable.rs:1296,1306` (`while_let_on_iterator`),
-  `pipe.rs:114` (`new_ret_no_self`), `pipe_mapped.rs:43,81` (`result_unit_err`,
-  `len_without_is_empty`), `io/ioutils/mod.rs:950,1542,1705`. Without `--no-deps` the run
-  stops earlier on 5 `redundant_closure_for_method_calls` errors in
-  `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
-  the crate at zero.
-  The same run with `--all-targets` also reports warnings in the examples
-  (`examples/valtron_traffic_light.rs`, `valtron_state_task.rs`, `valtron_orchestration.rs`
-  and `valtron_streaming.rs`): `clippy::drop_non_drop` on the `PoolGuard` the
-  `#[valtron]` attribute expands to, and `clippy::needless_pass_by_value` on `Ctx`
-  parameters. Seen 2026-11-05 (feature 114). The package does not set
-  `clippy-deny-warnings`, so CI reports them and passes. Fix: the macro must not emit
-  `drop()` for its guard, and the examples take `Ctx` by reference.
-- **The bare `--no-default-features` build prints its `compile_error!` and then 24 more
-  errors.** `foundation_core` now refuses the configuration with a clear message (feature 78
-  E3), but `pub mod valtron` and its executors still compile and emit unresolved-import errors
-  for `Ctx`. The first error is the actionable one; the rest is noise. Fix: gate `pub mod
-  valtron` on `std`, or put the executors behind the same `cfg`, so only the named error
-  remains.
+- **`#[task]` forces the transition's context by value.** The macro's generated
+  `StateTask` uses the function pointer type `fn(Ctx, T)`, and its validation
+  accepts only a bare `Ctx` type (`backends/foundation_macros/src/state_task.rs`,
+  `type_is(ctx_ty, "Ctx")`). A transition that reads the context but does not
+  consume it therefore raises `clippy::needless_pass_by_value`, and no example or
+  test can take `&Ctx`. Feature 116 marks each such transition with a
+  function-level `#[expect(clippy::needless_pass_by_value, reason = ...)]`. Fix: let
+  the macro accept `&Ctx` and generate the matching call, then remove the expects.
+  Found in feature 116.
+- **`dual!` requires an `async fn` body even when the body never awaits.** The
+  macro in `tests/valtron/async_first_api.rs` calls `$body().await` in both test
+  wrappers, so a body with no `.await` raises `clippy::unused_async`. Feature 116
+  marks those three bodies with an `#[expect]`. Fix: add a sync-body form of the
+  macro, or make the wrapper call the body without `.await` in a sync form.
+  Found in feature 116.
+- **`clippy::assert_is_empty` suggests code that does not compile for a slice.**
+  Its machine-applicable fix rewrites `assert!(!b.is_empty())` to
+  `assert_ne!(b.as_slice(), [])`, and the empty array has no element type, so the
+  test target fails with `E0282`. Feature 116 uses a typed empty slice
+  (`&[] as &[u8]`) instead. This is an upstream clippy limitation; record it so a
+  later automated fix does not reintroduce the failing suggestion.
 - **The idle CPU tests measure the threads of other tests.** File:
   `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
   tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which

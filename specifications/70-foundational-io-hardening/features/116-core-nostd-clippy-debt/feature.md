@@ -1,8 +1,8 @@
 ---
 feature: "`foundation_core` reaches zero clippy warnings and denies them in CI"
-status: "pending"
+status: "pending (CI proof)"
 lane: "priority (owner comment, PR #180, 2026-11-05)"
-model: "haiku"
+model: "sonnet"
 branch: "spec70/f116-core-clippy-debt"
 crates: ["foundation_core", "foundation_nostd"]
 catalogue_rows: []  # from docs/bug-backlog.md §4; not a §8 catalogue row
@@ -124,16 +124,96 @@ python3 scripts/ci/ci.py run foundation_core --profile uat
 
 ## Done when
 
-- [ ] Both `-D warnings` clippy commands for `foundation_core` print no warning.
-- [ ] `foundation_nostd` stays at zero.
-- [ ] The bare `--no-default-features` build prints only its `compile_error!`.
-- [ ] `ci/packages.toml` sets `clippy-runs = ["", "multi"]` and
+- [x] Both `-D warnings` clippy commands for `foundation_core` print no warning.
+- [x] `foundation_nostd` stays at zero.
+- [x] The bare `--no-default-features` build prints only its `compile_error!`.
+- [x] `ci/packages.toml` sets `clippy-runs = ["", "multi"]` and
       `clippy-deny-warnings = true` for `foundation_core`.
-- [ ] The `foundation_core` tests pass in both feature trees.
-- [ ] The backlog §4 entries for the core lints are deleted; feature 49 moves to `done`
+- [x] The `foundation_core` tests pass in both feature trees.
+- [x] The backlog §4 entries for the core lints are deleted; feature 49 moves to `done`
       with its E10 row updated.
 - [ ] CI green.
 
 ## Result
 
-Not started.
+2026-11-06. Done except the CI proof.
+
+### Measured before and after
+
+| Command | Before | After |
+|---|---|---|
+| `cargo clippy --profile uat -p foundation_core --all-targets --no-deps -- -D warnings` | exit 101. The test target `mod` reported 333 diagnostics; five examples added 18 (orchestration 8, state_task 5, streaming 2, traffic_light 2, state_task_async 1). | exit 0, no output. |
+| `cargo clippy --profile uat -p foundation_core --all-targets --features multi --no-deps -- -D warnings` | exit 101. 2 distinct `while_let_on_iterator` diagnostics in `src/valtron/extensions/streams/sendable.rs:1367,1377`, reported for both `lib` and `lib test`. | exit 0, no output. |
+| `cargo clippy --profile uat -p foundation_nostd --all-targets --no-deps -- -D warnings` | exit 0. | exit 0, no output. |
+| `cargo check --profile uat -p foundation_core --no-default-features` | the named `compile_error!`, then 27 more errors and one `unused dependency futures-core` warning. | the named `compile_error!` only. |
+
+The 333 diagnostics in the test target had these causes: `drop_non_drop` 89
+(from the `#[valtron]` guard), `arc_with_non_send_sync` 67,
+`items_after_statements` 35, `doc_markdown` 26, `assert_is_empty` 18,
+`redundant_closure_for_method_calls` 13, `type_complexity` 8,
+`while_let_on_iterator` 8, `uninlined_format_args` 5,
+`semicolon_if_nothing_returned` 5, `useless_borrows_in_formatting` 5, plus the
+smaller groups named in the log.
+
+### What changed
+
+- `backends/foundation_macros/src/valtron_entry.rs`: both macro shapes put the
+  `PoolGuard` in a block scope. The guard drops at the block end, after the
+  body has returned. The explicit `::core::mem::drop` is gone, so the
+  single-threaded build no longer reports `drop_non_drop`. The `multi` build
+  tears down at the same point. In the `timeout` panic arms the guard drops
+  during the unwind; the success path is unchanged. The module walkthrough is
+  updated to the new shape.
+- `backends/foundation_core/src/lib.rs`: `pub mod valtron` is gated on
+  `feature = "std"`. The named `compile_error!` is the only diagnostic in the
+  bare build.
+- `backends/foundation_core/Cargo.toml`: `futures-core` is optional and is
+  pulled in by `alloc` and `std`. This removes the cargo unused-dependency
+  warning from the bare build. Only `valtron` used it.
+- `backends/foundation_core/src/valtron/extensions/streams/sendable.rs`: the
+  two `while_let_on_iterator` loops became `for` loops (the iterator is owned
+  and is not used after the loop).
+- The test targets and examples: mechanical fixes (`doc_markdown`,
+  `items_after_statements`, `assert_is_empty`, the format and closure lints,
+  the sort and pattern lints) plus the checks below. `items_after_statements`
+  is fixed by moving the early `let` below the local `struct`/`impl`, so the
+  items come first in the block.
+- `ci/packages.toml`: `[packages.foundation_core]` sets
+  `clippy-runs = ["", "multi"]` and `clippy-deny-warnings = true`.
+- `docs/bug-backlog.md`: deleted the §4 entries for the core clippy debt and the
+  bare-build noise. Added three limitation entries: the `#[task]` macro forces
+  `Ctx` by value, `dual!` needs an `async` body, and the upstream
+  `assert_is_empty` suggestion does not compile for a slice.
+- Feature 49 E10 is updated and the feature is `done`.
+
+### Narrow, measured `#[expect]` attributes
+
+No blanket `#[allow]` was added. The expectations each name a cause that a
+local change cannot remove:
+
+- `needless_pass_by_value` on every `#[task]` transition in the examples,
+  `tests/valtron/cross_runtime.rs` and `tests/valtron/state_task.rs`. The macro
+  emits `fn(Ctx, T)` and accepts only a bare `Ctx`, so a reference would not
+  compile (backlog §4).
+- `unused_async` on the three `dual!` bodies in
+  `tests/valtron/async_first_api.rs`; `dual!` calls `$body().await`.
+- `too_many_lines` on the two linear scheduling scenarios in
+  `tests/valtron/local_executor.rs`; the step sequence is the test.
+- `arc_with_non_send_sync` in the ten test modules that build the shared
+  `Arc<ConcurrentQueue<...>>` in the single-threaded tree. Each module has
+  `#![cfg_attr(not(feature = "multi"), expect(...))]`: the lint does not fire
+  under `multi`, so a bare `#[expect]` would be unfulfilled there.
+
+### Tests and format
+
+- `cargo test --profile uat -p foundation_core`: 861 passed, 0 failed (the
+  integration target `mod` 744, doc tests 70, and the smaller targets).
+- `cargo test --profile uat -p foundation_core --features multi`: 904 passed,
+  0 failed (the integration target `mod` 785, doc tests 73, and the smaller
+  targets).
+- `cargo test --profile uat -p foundation_macros`: 99 passed, 0 failed, 40 doc
+  tests ignored by design.
+- `cargo fmt --all --check`: clean.
+
+CI is not run here. The GitHub run on this branch must show the two
+deny-warning clippy runs green. The box above stays unticked until then.

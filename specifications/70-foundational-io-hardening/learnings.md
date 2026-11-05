@@ -2,6 +2,33 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 116, `foundation_core` clippy reaches zero):
+  - **`cargo clippy --fix` reverts the whole crate when one suggestion does
+    not compile.** It printed `errors present after applying fixes to crate
+    mod` and wrote nothing. `--broken-code` writes the suggestions so the one
+    broken fix can be repaired by hand. The broken one was
+    `assert_ne!(b.as_slice(), [])` from `clippy::assert_is_empty`; the empty
+    array has no element type (`E0282`). A typed empty (`&[] as &[u8]`) fixes it.
+  - **An `#[expect]` must be `cfg_attr`-gated when the lint fires in one feature
+    tree only.** `arc_with_non_send_sync` fires in the single-threaded tree and
+    not under `multi`. A bare `#[expect]` would be unfulfilled under `multi` and
+    fail `-D warnings`. Use
+    `#![cfg_attr(not(feature = "multi"), expect(...))]` in the test module.
+  - **A block scope is the only shape for the `#[valtron]` guard.** `mem::drop`
+    reports `drop_non_drop` in the single-threaded build, where `PoolGuard` has
+    no `Drop` impl. Moving the guard into a block drops it at the block end in
+    both trees. In the `timeout` panic arms the guard now drops during the
+    unwind; the success path is unchanged.
+  - **The bare build is clean only when `futures-core` is optional.** Gating
+    `pub mod valtron` on `std` removed the unresolved imports, but cargo then
+    reported `unused dependency futures-core`. Making the dependency optional
+    (pulled in by `alloc`/`std`) leaves the named `compile_error!` as the only
+    output.
+  - **The `#[task]` macro pins the transition type.** `state_task.rs` emits
+    `fn(Ctx, T)` and accepts only a bare `Ctx`, so an example cannot take
+    `&Ctx` to silence `needless_pass_by_value`. Use a function-level `#[expect]`
+    with a reason; the real fix is a macro API change (backlog §4).
+
 - 2026-11-05 (CI proof for features 108 to 113):
   - **A push can leave `refs/pull/<n>/head` stale.** Push `02cbb08b5` moved
     `refs/heads/spec70/priority-followups` at once, but `refs/pull/180/head`

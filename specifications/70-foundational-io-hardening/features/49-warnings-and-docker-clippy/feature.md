@@ -1,6 +1,6 @@
 ---
 feature: "Lane A warnings: reactor wasm dead code, testbed deno_v8 lint, foundation_deployment_docker clippy debt"
-status: "partial"
+status: "done"
 lane: "A"
 model: "haiku"
 branch: "spec70/f47-f50-lane-a-mechanical"
@@ -70,15 +70,14 @@ crate. Remove only `thiserror` (unused; `derive_more` is the standard for the er
 
 About ten `doc_markdown` warnings. Fix them; 0 warnings.
 
-## E10. `foundation_core` and `foundation_nostd` clippy debt (found in feature 46)
+## E10. `foundation_core` and `foundation_nostd` clippy debt (found in feature 46) — DONE in feature 116
 
-`cargo clippy -p foundation_core --no-deps --profile dev --lib -- -D warnings` fails with 19
-existing errors, and without `--no-deps` it stops first on 5
-`redundant_closure_for_method_calls` errors in `foundation_nostd/src/comp/fair_gate.rs`. The
-backlog §4 entry lists file and line for each. Fix each lint in the code (no blanket
-`allow`), in both feature sets (default and `multi`), then make CI deny clippy warnings for
-`foundation_core` and `foundation_nostd` in `ci/packages.toml` (as feature 71 did for
-crates at zero).
+Feature 116 finished this task. The library lints in both feature sets are at
+zero, and the test targets and examples are at zero as well. `foundation_core`
+now denies clippy warnings in `ci/packages.toml` with `clippy-runs = ["", "multi"]`,
+and `foundation_nostd` keeps its deny setting. The bare `--no-default-features`
+build prints only its named `compile_error!`. See feature 116 for the measured
+before and after counts.
 
 ## Verify
 
@@ -93,7 +92,8 @@ python3 scripts/ci/ci.py run foundation_connectrpc --profile dev
 
 ## Done when
 
-- [ ] The three warnings sources are at zero; backlog entries (or their docker part) deleted.
+- [x] The three warnings sources are at zero; backlog entries (or their docker part) deleted.
+      (E1's wasm dead code was finished by feature 78 E4.)
 
 ## Result
 
@@ -110,7 +110,7 @@ partly done.
 | E7 | `foundation_proxy` | 0 warnings in the library and tests. |
 | E8 | `foundation_wireguard` | `cargo check` is clean for wasm32 and native. Removed `thiserror` and `web-sys`; kept `foundation_errstacks` and target-gated it. |
 | E9 | `foundation_iogate` | 0 warnings. |
-| E10 | `foundation_core`, `foundation_nostd` | The libraries are clean in both feature sets. `foundation_nostd` denies clippy warnings in CI. `foundation_core` test targets and examples still report 327 warnings, so core does not deny warnings yet (backlog §4). |
+| E10 | `foundation_core`, `foundation_nostd` | Done in feature 116: both crates are at zero clippy warnings in both feature sets and all targets. `foundation_core` denies clippy warnings in CI (`clippy-runs = ["", "multi"]`); `foundation_nostd` keeps its deny setting. The bare `--no-default-features` build prints only its named `compile_error!`. |
 
 Documented `#[allow]`s are used only where the fix would change a public
 signature, split a deliberate state machine, or need a crate version bump. Each
