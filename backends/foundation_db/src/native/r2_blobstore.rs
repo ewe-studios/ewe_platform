@@ -988,7 +988,7 @@ impl StateStore for R2Store {
     /// (`If-None-Match: *`). `expected = Some(t)` reads the state and its
     /// `ETag` in one GET, compares `updated_at`, then writes with
     /// `If-Match: <etag>`. R2 returns `412 Precondition Failed` when the
-    /// condition does not hold, which becomes `Ok(false)`. The ETag pins the
+    /// condition does not hold, which becomes `Ok(false)`. The `ETag` pins the
     /// exact object that was compared, so two writers cannot both win.
     ///
     /// Cloudflare documents both request headers on the R2 object PUT

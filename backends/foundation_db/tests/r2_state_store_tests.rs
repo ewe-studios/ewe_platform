@@ -61,7 +61,7 @@ fn respond_etag(stream: &mut TcpStream, status: &str, body: &[u8], etag: Option<
     stream.flush().unwrap();
 }
 
-/// A stable, quoted ETag for an object body, like R2 returns for the object PUT.
+/// A stable, quoted `ETag` for an object body, like R2 returns for the object PUT.
 fn etag_of(bytes: &[u8]) -> String {
     let mut hash = 0xcbf2_9ce4_8422_2325_u64;
     for byte in bytes {
@@ -71,11 +71,21 @@ fn etag_of(bytes: &[u8]) -> String {
     format!("\"{hash:016x}\"")
 }
 
-fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests) {
-    let mut reader = BufReader::new(stream.try_clone().unwrap());
+/// One parsed HTTP/1.1 request, as the mock needs it.
+struct Request {
+    method: String,
+    object_path: String,
+    query: String,
+    body: Vec<u8>,
+    if_match: Option<String>,
+    if_none_match: Option<String>,
+}
+
+/// Read one request and answer `Expect: 100-continue` like a real server.
+fn read_request(stream: &mut TcpStream, reader: &mut BufReader<TcpStream>) -> Option<Request> {
     let mut request_line = String::new();
     if reader.read_line(&mut request_line).unwrap() == 0 {
-        return;
+        return None;
     }
     let mut content_length = 0usize;
     let mut expects_continue = false;
@@ -118,66 +128,119 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
     let target = parts.next().unwrap().to_string();
     let (path, query) = target.split_once('?').unwrap_or((target.as_str(), ""));
     let (_, object_path) = path.split_once("/objects").unwrap();
+    Some(Request {
+        method,
+        object_path: object_path.to_string(),
+        query: query.to_string(),
+        body,
+        if_match,
+        if_none_match,
+    })
+}
 
+fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests) {
+    let mut reader = BufReader::new(stream.try_clone().unwrap());
+    let Some(request) = read_request(&mut stream, &mut reader) else {
+        return;
+    };
+    let Request {
+        method,
+        object_path,
+        query,
+        body,
+        if_match,
+        if_none_match,
+    } = request;
     let mut objects = objects.lock().unwrap();
-    match (method.as_str(), object_path) {
-        ("GET", "") => {
-            list_requests.fetch_add(1, Ordering::SeqCst);
-            let params: BTreeMap<&str, String> = query
-                .split('&')
-                .filter_map(|kv| kv.split_once('='))
-                .map(|(k, v)| (k, percent_decode(v)))
-                .collect();
-            let prefix = params.get("prefix").cloned().unwrap_or_default();
-            let start: usize = params.get("cursor").map_or(0, |c| c.parse().unwrap());
-            let keys: Vec<&String> = objects.keys().filter(|k| k.starts_with(&prefix)).collect();
-            let page: Vec<_> = keys
-                .iter()
-                .skip(start)
-                .take(PAGE)
-                .map(|k| json!({ "key": k }))
-                .collect();
-            let truncated = start + PAGE < keys.len();
-            let reply = json!({
-                "success": true,
-                "errors": [],
-                "messages": [],
-                "result": page,
-                "result_info": {
-                    "is_truncated": truncated,
-                    "cursor": if truncated { (start + PAGE).to_string() } else { String::new() },
-                },
-            });
-            respond(&mut stream, "200 OK", reply.to_string().as_bytes());
-        }
-        ("GET", key) => match objects.get(&percent_decode(&key[1..])) {
-            Some(data) => {
-                let etag = etag_of(data);
-                respond_etag(&mut stream, "200 OK", &data.clone(), Some(&etag));
-            }
-            None => respond(&mut stream, "404 Not Found", b"{}"),
-        },
-        ("PUT", key) => {
-            let key = percent_decode(&key[1..]);
-            let current = objects.get(&key).map(|data| etag_of(data));
-            let precondition_failed = if_none_match.as_deref() == Some("*") && current.is_some()
-                || if_match
-                    .as_deref()
-                    .is_some_and(|expected| current.as_deref() != Some(expected));
-            if precondition_failed {
-                respond(&mut stream, "412 Precondition Failed", b"{}");
-            } else {
-                let etag = etag_of(&body);
-                objects.insert(key, body);
-                respond_etag(&mut stream, "200 OK", b"{\"success\":true}", Some(&etag));
-            }
-        }
-        ("DELETE", key) => {
-            objects.remove(&percent_decode(&key[1..]));
-            respond(&mut stream, "200 OK", b"{\"success\":true}");
-        }
+    match (method.as_str(), object_path.as_str()) {
+        ("GET", "") => handle_list(&mut stream, &query, &objects, list_requests),
+        ("GET", key) => handle_get(&mut stream, &objects, key),
+        ("PUT", key) => handle_put(
+            &mut stream,
+            &mut objects,
+            key,
+            body,
+            if_match.as_deref(),
+            if_none_match.as_deref(),
+        ),
+        ("DELETE", key) => handle_delete(&mut stream, &mut objects, key),
         _ => respond(&mut stream, "405 Method Not Allowed", b"{}"),
     }
+}
+
+/// List object keys for a page cursor.
+fn handle_list(
+    stream: &mut TcpStream,
+    query: &str,
+    objects: &BTreeMap<String, Vec<u8>>,
+    list_requests: &ListRequests,
+) {
+    list_requests.fetch_add(1, Ordering::SeqCst);
+    let params: BTreeMap<&str, String> = query
+        .split('&')
+        .filter_map(|kv| kv.split_once('='))
+        .map(|(k, v)| (k, percent_decode(v)))
+        .collect();
+    let prefix = params.get("prefix").cloned().unwrap_or_default();
+    let start: usize = params.get("cursor").map_or(0, |c| c.parse().unwrap());
+    let keys: Vec<&String> = objects.keys().filter(|k| k.starts_with(&prefix)).collect();
+    let page: Vec<_> = keys
+        .iter()
+        .skip(start)
+        .take(PAGE)
+        .map(|k| json!({ "key": k }))
+        .collect();
+    let truncated = start + PAGE < keys.len();
+    let reply = json!({
+        "success": true,
+        "errors": [],
+        "messages": [],
+        "result": page,
+        "result_info": {
+            "is_truncated": truncated,
+            "cursor": if truncated { (start + PAGE).to_string() } else { String::new() },
+        },
+    });
+    respond(stream, "200 OK", reply.to_string().as_bytes());
+}
+
+/// Return one object body and its `ETag`, or 404.
+fn handle_get(stream: &mut TcpStream, objects: &BTreeMap<String, Vec<u8>>, key: &str) {
+    match objects.get(&percent_decode(&key[1..])) {
+        Some(data) => {
+            let etag = etag_of(data);
+            respond_etag(stream, "200 OK", data, Some(&etag));
+        }
+        None => respond(stream, "404 Not Found", b"{}"),
+    }
+}
+
+/// Store one object body, honouring the conditional headers.
+fn handle_put(
+    stream: &mut TcpStream,
+    objects: &mut BTreeMap<String, Vec<u8>>,
+    key: &str,
+    body: Vec<u8>,
+    if_match: Option<&str>,
+    if_none_match: Option<&str>,
+) {
+    let key = percent_decode(&key[1..]);
+    let current = objects.get(&key).map(|data| etag_of(data));
+    let precondition_failed = if_none_match == Some("*") && current.is_some()
+        || if_match.is_some_and(|expected| current.as_deref() != Some(expected));
+    if precondition_failed {
+        respond(stream, "412 Precondition Failed", b"{}");
+    } else {
+        let etag = etag_of(&body);
+        objects.insert(key, body);
+        respond_etag(stream, "200 OK", b"{\"success\":true}", Some(&etag));
+    }
+}
+
+/// Delete one object.
+fn handle_delete(stream: &mut TcpStream, objects: &mut BTreeMap<String, Vec<u8>>, key: &str) {
+    objects.remove(&percent_decode(&key[1..]));
+    respond(stream, "200 OK", b"{\"success\":true}");
 }
 
 /// Start the mock and return a state-mode store pointed at it, plus the
