@@ -76,7 +76,7 @@ fn test_shared_write_reader_threaded() {
         let s = shared.clone();
         let handle = std::thread::spawn(move || {
             let mut writer = s.clone();
-            let msg = format!("thread_{}", i);
+            let msg = format!("thread_{i}");
             writer
                 .write_all(msg.as_bytes())
                 .expect("write should succeed");

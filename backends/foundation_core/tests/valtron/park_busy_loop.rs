@@ -2,7 +2,7 @@
 //! caller (`Poll::Pending`), never busy-loop inside `run_until`.
 //!
 //! This reproduces the single-threaded symptom seen under `wrangler dev`:
-//! an AgentLoop task that parks on an in-flight SSE stream (`Init` →
+//! an `AgentLoop` task that parks on an in-flight SSE stream (`Init` →
 //! `Pending` → `Wait` / `Depends`) made `run_until` spin on
 //! `CanProgress(None)` without ever yielding to JS.  The same `run_until`
 //! loop drives the native single executor, so we can pin the exact park
@@ -24,7 +24,7 @@ use foundation_core::valtron::{
 use futures_core::Stream as FuturesStream;
 
 /// A task that emits `Init`, then `Pending`, then parks on `Wait` forever —
-/// the exact shape of an AgentLoop parked on a stream that never delivers.
+/// the exact shape of an `AgentLoop` parked on a stream that never delivers.
 struct ForeverWait {
     step: u8,
 }
@@ -75,7 +75,7 @@ where
     S: FuturesStream<Item = u32> + Unpin,
 {
     let waker = Waker::noop();
-    let mut cx = Context::from_waker(&waker);
+    let mut cx = Context::from_waker(waker);
     Pin::new(stream).poll_next(&mut cx)
 }
 

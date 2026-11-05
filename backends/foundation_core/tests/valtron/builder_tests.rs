@@ -6,6 +6,13 @@
 //!
 //! WHAT: schedule, lift, broadcast (`action()`), plus error paths.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -55,7 +62,7 @@ fn drain_results<R, P>(receiver: NotifyRecvIterator<TaskStatus<R, P>>) -> Vec<Ta
     receiver
         .filter_map(|item| match item {
             NotificationItem::Ready(v) => Some(v),
-            _ => None,
+            NotificationItem::None => None,
         })
         .collect()
 }

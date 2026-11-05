@@ -8,14 +8,13 @@ use foundation_core::valtron::{
 };
 use std::time::Duration;
 
-/// WHY: TimeoutTask must stop task after timeout duration
+/// WHY: `TimeoutTask` must stop task after timeout duration
 /// WHAT: Task that takes too long should return None
 #[test]
 #[cfg(feature = "std")]
 fn test_timeout_task_stops_after_duration() {
     use std::thread;
 
-    let ctx = Ctx::new();
     struct SlowTask {
         count: u32,
     }
@@ -34,6 +33,7 @@ fn test_timeout_task_stops_after_duration() {
             }
         }
     }
+    let ctx = Ctx::new();
 
     let task = SlowTask { count: 0 };
     let mut timeout_task = TimeoutTask::new(task, Duration::from_millis(200));
@@ -50,11 +50,10 @@ fn test_timeout_task_stops_after_duration() {
     assert!(res.is_none(), "Expected None but got: {res:?}");
 }
 
-/// WHY: PollLimitTask must stop after max polls
+/// WHY: `PollLimitTask` must stop after max polls
 /// WHAT: Task exceeding poll limit should return None
 #[test]
 fn test_poll_limit_task_stops_after_max_polls() {
-    let ctx = Ctx::new();
     struct InfiniteTask;
 
     impl TaskIterator for InfiniteTask {
@@ -65,6 +64,7 @@ fn test_poll_limit_task_stops_after_max_polls() {
             Some(TaskStatus::Pending(()))
         }
     }
+    let ctx = Ctx::new();
 
     let task = InfiniteTask;
     let mut limited_task = PollLimitTask::new(task, 5);
@@ -73,8 +73,7 @@ fn test_poll_limit_task_stops_after_max_polls() {
     for i in 0..5 {
         assert!(
             limited_task.next_status(ctx.clone()).is_some(),
-            "Poll {} should succeed",
-            i
+            "Poll {i} should succeed"
         );
     }
 
@@ -82,7 +81,7 @@ fn test_poll_limit_task_stops_after_max_polls() {
     assert!(limited_task.next_status(ctx.clone()).is_none());
 }
 
-/// WHY: BackoffStrategy::Fixed must return constant delay
+/// WHY: `BackoffStrategy::Fixed` must return constant delay
 /// WHAT: All attempts return same duration
 #[test]
 fn test_backoff_strategy_fixed() {
@@ -94,7 +93,7 @@ fn test_backoff_strategy_fixed() {
     assert_eq!(strategy.next_delay(100, max), Duration::from_millis(100));
 }
 
-/// WHY: BackoffStrategy::Exponential must increase exponentially
+/// WHY: `BackoffStrategy::Exponential` must increase exponentially
 /// WHAT: Each attempt doubles the delay
 #[test]
 fn test_backoff_strategy_exponential() {
@@ -110,7 +109,7 @@ fn test_backoff_strategy_exponential() {
     assert_eq!(strategy.next_delay(3, max), Duration::from_millis(800)); // 100 * 2^3
 }
 
-/// WHY: BackoffStrategy::Linear must increase linearly
+/// WHY: `BackoffStrategy::Linear` must increase linearly
 /// WHAT: Each attempt adds increment to base
 #[test]
 fn test_backoff_strategy_linear() {
@@ -126,7 +125,7 @@ fn test_backoff_strategy_linear() {
     assert_eq!(strategy.next_delay(3, max), Duration::from_millis(250)); // 100 + 50*3
 }
 
-/// WHY: BackoffStrategy must respect max_delay
+/// WHY: `BackoffStrategy` must respect `max_delay`
 /// WHAT: Computed delay should be clamped to max
 #[test]
 fn test_backoff_strategy_respects_max() {
@@ -139,8 +138,8 @@ fn test_backoff_strategy_respects_max() {
     assert_eq!(strategy.next_delay(10, max), max); // 100 * 2^10 = 102400ms, clamped to 500ms
 }
 
-/// WHY: AlwaysRetry decider must retry up to max attempts
-/// WHAT: Returns true until max_attempts reached
+/// WHY: `AlwaysRetry` decider must retry up to max attempts
+/// WHAT: Returns true until `max_attempts` reached
 #[test]
 fn test_always_retry_decider() {
     let decider = AlwaysRetry { max_attempts: 3 };

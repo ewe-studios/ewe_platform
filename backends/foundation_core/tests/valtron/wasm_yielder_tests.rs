@@ -1,6 +1,6 @@
-//! Tests for NoThreadController with SpinWaiter
+//! Tests for `NoThreadController` with `SpinWaiter`
 //!
-//! These tests verify that NoThreadController properly uses SpinWaiter
+//! These tests verify that `NoThreadController` properly uses `SpinWaiter`
 //! for iteration-based waiting in single-threaded/WASM environments.
 
 #![cfg(not(feature = "multi"))]

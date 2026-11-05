@@ -209,6 +209,10 @@ fn async_state_task_parks_then_resumes_on_wake() {
 
 /// A countdown that emits `Ignore` for the intermediate steps and a single
 /// final `Ready(1)`, then terminates by returning `None`.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn count_down(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
     let _ = ctx;
@@ -330,6 +334,10 @@ enum Once {
 }
 
 /// Reads the engine-seeded value out of `ctx` on its single transition.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn read_seeded_ctx(ctx: Ctx, state: Once) -> Option<(Once, TaskStatus<u32, ()>)> {
     match state {

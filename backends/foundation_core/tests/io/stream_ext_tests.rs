@@ -252,8 +252,7 @@ fn read_pooled_buffer_propagates_errors() {
 
     let err = Failing
         .read_pooled_buffer(&pool, 64)
-        .err()
-        .expect("a failing reader must return an error");
+        .expect_err("a failing reader must return an error");
     assert_eq!(err.kind(), io::ErrorKind::ConnectionReset);
 }
 

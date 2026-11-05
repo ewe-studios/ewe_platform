@@ -89,7 +89,9 @@ fn test_waitgroup_concurrent() {
         wg.add(1);
         thread::spawn(move || {
             let _guard = wg.guard();
-            thread::sleep(Duration::from_millis(i as u64));
+            thread::sleep(Duration::from_millis(
+                u64::try_from(i).expect("loop index is non-negative"),
+            ));
             results.lock().unwrap().push(i);
         });
     }

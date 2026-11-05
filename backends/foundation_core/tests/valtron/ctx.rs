@@ -206,7 +206,7 @@ impl MockClock {
     /// Move simulated time forward by `d`.
     fn advance(&self, d: foundation_compact::Duration) {
         let mut now = self.now.lock().expect("mock clock poisoned");
-        *now = *now + d;
+        *now += d;
     }
 
     /// Move simulated time backward by `d`. Once `now` falls below the origin,

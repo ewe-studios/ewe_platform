@@ -28,7 +28,6 @@ fn test_future_task_pending() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
-    let ctx = Ctx::new();
     struct PendingThenReady {
         polled: bool,
     }
@@ -45,6 +44,7 @@ fn test_future_task_pending() {
             }
         }
     }
+    let ctx = Ctx::new();
 
     let future = PendingThenReady { polled: false };
     let mut task = FutureTask::new(future);
@@ -108,7 +108,6 @@ fn test_self_wake_returns_pending_not_depends() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
-    let ctx = Ctx::new();
     struct SelfWakeThenReady {
         polled: bool,
     }
@@ -126,6 +125,7 @@ fn test_self_wake_returns_pending_not_depends() {
             }
         }
     }
+    let ctx = Ctx::new();
 
     let mut task = FutureTask::new(SelfWakeThenReady { polled: false });
 
@@ -180,7 +180,6 @@ fn test_self_wake_loop_no_depends_violations() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
-    let ctx = Ctx::new();
     const CYCLES: usize = 20;
 
     struct MultiSelfWake {
@@ -200,6 +199,7 @@ fn test_self_wake_loop_no_depends_violations() {
             }
         }
     }
+    let ctx = Ctx::new();
 
     let mut task = FutureTask::new(MultiSelfWake { remaining: CYCLES });
 
@@ -231,14 +231,13 @@ fn test_self_wake_loop_no_depends_violations() {
 /// WHY: A future may alternate between self-wake (stream progress) and genuine
 ///      park (pipe data arrival). Both paths must coexist in one `FutureTask`.
 /// WHAT: Two self-wake polls → Ignore. Then stash waker → Depends(not-ready).
-///       FutureTask handles the transition cleanly.
+///       `FutureTask` handles the transition cleanly.
 #[test]
 fn test_mixed_self_wake_then_external_park() {
     use core::future::Future;
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
-    let ctx = Ctx::new();
     struct MixedFuture {
         stage: u8,
     }
@@ -268,6 +267,7 @@ fn test_mixed_self_wake_then_external_park() {
             }
         }
     }
+    let ctx = Ctx::new();
 
     let mut task = FutureTask::new(MixedFuture { stage: 0 });
 
@@ -312,7 +312,6 @@ fn test_external_wake_makes_depends_ready() {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
-    let ctx = Ctx::new();
     struct GateFuture {
         open: Arc<AtomicBool>,
     }
@@ -331,6 +330,7 @@ fn test_external_wake_makes_depends_ready() {
             }
         }
     }
+    let ctx = Ctx::new();
 
     let gate = Arc::new(AtomicBool::new(false));
     let mut task = FutureTask::new(GateFuture { open: gate.clone() });

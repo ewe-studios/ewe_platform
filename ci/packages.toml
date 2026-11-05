@@ -111,6 +111,12 @@ wasm-runs = ["--no-default-features"]
 # anyway through a dev-dependency (foundation_testing -> foundation_netio's
 # default `multi`), which meant the single-threaded executor was never tested.
 runs = ["", "multi"]
+# The executors differ by feature, so lint both trees: the `multi` tree compiles
+# `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
+# the single-threaded executor.
+clippy-runs = ["", "multi"]
+# At zero clippy warnings in both trees: a new one fails CI (spec 70 feature 116).
+clippy-deny-warnings = true
 wasm = "enforce"
 # The plain wasm build plus both JS backends: `js-foundation-wasm` is the owned
 # path (foundation_compact's `host-abi` time/entropy, no wasm-bindgen glue),

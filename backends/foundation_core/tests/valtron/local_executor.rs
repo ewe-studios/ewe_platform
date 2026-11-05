@@ -7,6 +7,13 @@
 //! (`any_task_for_mode`, `typed_task_for_mode`, `boxed_spawn_action`), which
 //! pick the `Send` or non-`Send` variant. Only tests that move work to
 //! another OS thread stay `#[cfg(feature = "multi")]`.
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 #![cfg(not(target_family = "wasm"))]
 
 use std::time;
@@ -25,6 +32,9 @@ use foundation_core::valtron::{
     send_any_task as any_task_for_mode, send_typed_task as typed_task_for_mode,
     IntoBoxedSendExecutionAction,
 };
+
+/// One recorded transition: the task name and the status it returned.
+type NamedCounts<R, P> = Arc<Mutex<Vec<(&'static str, TaskStatus<R, P>)>>>;
 
 /// Boxes an action for `TaskStatus::Spawn`, which holds a `Send` action
 /// under `multi` and a non-`Send` one otherwise.
@@ -444,7 +454,7 @@ fn scenario_one_task_a_runs_to_completion() {
 
     let count_clone = Arc::clone(&counts);
     let on_next = OnNext::on_next(Counter("Counter1", 0, 3, 3), move |next, _engine| {
-        count_clone.lock().unwrap().push(next)
+        count_clone.lock().unwrap().push(next);
     });
 
     panic_if_failed!(global.push(on_next.into()));
@@ -587,11 +597,14 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear scheduling scenario; the step sequence is the test"
+)]
 fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -740,11 +753,14 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear scheduling scenario; the step sequence is the test"
+)]
 fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -973,7 +989,7 @@ impl TaskIterator for DaemonCounter {
 
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let current = self.0.load(Ordering::SeqCst);
-        println!("Current state: {:?}", current);
+        println!("Current state: {current:?}");
         if current == 0 {
             return Some(TaskStatus::Pending(()));
         }
@@ -1035,8 +1051,7 @@ impl TaskIterator for SimpleCounter {
 fn scenario_5_task_can_spawn_task_via_actions() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), ()>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<(), ()> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -1135,8 +1150,7 @@ fn scenario_5_task_can_spawn_task_via_actions() {
 fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), ()>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<(), ()> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -1233,8 +1247,7 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -1276,10 +1289,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     executor.run_until(move |_| {
         let items = count_clone3.lock().unwrap();
 
-        if items.len() >= 6 {
-            return true;
-        }
-        false
+        items.len() >= 6
     });
 
     assert_eq!(
@@ -1301,8 +1311,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -1346,10 +1355,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 
         // should be 6 but intentionally setting to 7 to validate it
         // never loops forever
-        if items.len() >= 7 {
-            return true;
-        }
-        false
+        items.len() >= 7
     });
 
     assert_eq!(
@@ -1371,8 +1377,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
-        Arc::new(Mutex::new(Vec::new()));
+    let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
 
@@ -1413,10 +1418,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
     let count_clone3 = Arc::clone(&counts);
     executor.run_until(move |_| {
         let items = count_clone3.lock().unwrap();
-        if items.len() >= 4 {
-            return true;
-        }
-        false
+        items.len() >= 4
     });
 
     assert_eq!(
@@ -1491,7 +1493,7 @@ impl TaskIterator for DependsCounter {
     }
 }
 
-/// A custom EventReadiness that flips after N polls.
+/// A custom `EventReadiness` that flips after N polls.
 struct CounterSignal {
     polls: AtomicUsize,
     threshold: usize,

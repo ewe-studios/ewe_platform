@@ -78,7 +78,10 @@ impl Read for ChunkedReader {
 }
 
 fn framed(payload: &[u8]) -> Vec<u8> {
-    let mut out = (payload.len() as u32).to_be_bytes().to_vec();
+    let mut out = u32::try_from(payload.len())
+        .expect("payload length fits in u32")
+        .to_be_bytes()
+        .to_vec();
     out.extend_from_slice(payload);
     out
 }

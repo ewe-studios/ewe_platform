@@ -1,4 +1,4 @@
-//! Tests for `MappedSender` + `FilterMapReceiver` (pipe_mapped.rs, F39).
+//! Tests for `MappedSender` + `FilterMapReceiver` (`pipe_mapped.rs`, F39).
 
 use bytes::Bytes;
 use foundation_core::valtron::{self as v, Pipe};
@@ -84,7 +84,13 @@ fn filter_map_passes_even() {
     // Filter: odd → None → skipped (item consumed, Empty returned).
     //         even → Some(n) → Ok(n).
     let (tx, rx) = Pipe::<u32>::with_depth(4);
-    let filtered = rx.filter_map_to(|n: &u32| if *n % 2 == 0 { Some(*n) } else { None });
+    let filtered = rx.filter_map_to(|n: &u32| {
+        if (*n).is_multiple_of(2) {
+            Some(*n)
+        } else {
+            None
+        }
+    });
 
     tx.try_send(1).unwrap(); // → filtered → Empty
     assert_eq!(filtered.try_recv(), Err(v::TryRecvError::Empty));

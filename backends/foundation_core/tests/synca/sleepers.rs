@@ -108,7 +108,12 @@ fn test_duration_waker_deadline() {
 
     let expected = before + duration;
     // Allow for small timing differences
-    assert!(deadline >= expected - time::Duration::from_millis(10));
+    assert!(
+        deadline
+            >= expected
+                .checked_sub(time::Duration::from_millis(10))
+                .unwrap()
+    );
     assert!(deadline <= expected + time::Duration::from_millis(10));
 }
 

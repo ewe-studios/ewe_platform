@@ -12,6 +12,13 @@
 //! the executor must check it only a few times while it waits (a counting adapter
 //! in the test). (The CPU cost of a parked worker is measured by `event_driven_cpu` below.)
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use foundation_compact::Instant;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicUsize, Ordering};
