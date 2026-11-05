@@ -20,7 +20,7 @@ use bytes::Buf;
 
 use foundation_arrow::arrow_array::{Array, Int32Array, RecordBatch};
 use foundation_arrow::arrow_schema::{DataType, Field, Schema};
-use foundation_arrow::{ArrowSchema, FromArrow, IpcResult, ToArrow};
+use foundation_arrow::{arrow_err, ArrowSchema, FromArrow, IpcResult, ToArrow};
 use std::sync::Arc;
 
 use foundation_connectrpc::shared::codec::CodecFor;
@@ -80,10 +80,11 @@ impl ToArrow for Tri {
             Self::schema_ref(),
             vec![Arc::new(Int32Array::from(vec![self.v]))],
         )
+        .map_err(arrow_err)
     }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let col = Int32Array::from(values.iter().map(|t| t.v).collect::<Vec<_>>());
-        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(col)])
+        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(col)]).map_err(arrow_err)
     }
 }
 
