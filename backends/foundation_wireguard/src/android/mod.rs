@@ -68,23 +68,22 @@ mod jni_bridge {
 
     /// Placeholder — real JNI calls use `jni::sys`.
     #[cfg(not(target_os = "android"))]
-    pub unsafe fn get_string_utf_chars(
-        _env: JNIEnv,
-        _s: JString,
-    ) -> *const std::ffi::c_char {
+    pub unsafe fn get_string_utf_chars(_env: JNIEnv, _s: JString) -> *const std::ffi::c_char {
         std::ptr::null()
     }
     #[cfg(not(target_os = "android"))]
-    pub unsafe fn release_string_utf_chars(_env: JNIEnv, _s: JString, _p: *const std::ffi::c_char) {}
+    pub unsafe fn release_string_utf_chars(_env: JNIEnv, _s: JString, _p: *const std::ffi::c_char) {
+    }
     #[cfg(not(target_os = "android"))]
-    pub unsafe fn get_string_length(_env: JNIEnv, _s: JString) -> JInt { 0 }
+    pub unsafe fn get_string_length(_env: JNIEnv, _s: JString) -> JInt {
+        0
+    }
     #[cfg(not(target_os = "android"))]
-    pub unsafe fn get_array_length(_env: JNIEnv, _a: JByteArray) -> JInt { 0 }
+    pub unsafe fn get_array_length(_env: JNIEnv, _a: JByteArray) -> JInt {
+        0
+    }
     #[cfg(not(target_os = "android"))]
-    pub unsafe fn get_byte_array_elements(
-        _env: JNIEnv,
-        _a: JByteArray,
-    ) -> *mut i8 {
+    pub unsafe fn get_byte_array_elements(_env: JNIEnv, _a: JByteArray) -> *mut i8 {
         std::ptr::null_mut()
     }
     #[cfg(not(target_os = "android"))]
@@ -93,7 +92,8 @@ mod jni_bridge {
         _a: JByteArray,
         _elems: *mut i8,
         _mode: JInt,
-    ) {}
+    ) {
+    }
 }
 
 use jni_bridge::*;
@@ -122,7 +122,9 @@ pub extern "system" fn Java_com_example_ewe_WireguardService_nativeStartNode(
     let _ = (env, _class, seed_b64, network_id_hex);
     // On a real Android target, decode the JNI strings and construct the config.
     // The desktop/testing stub returns 0 (no node).
-    tracing::warn!("Java_com_example_ewe_WireguardService_nativeStartNode: stub on non-Android target");
+    tracing::warn!(
+        "Java_com_example_ewe_WireguardService_nativeStartNode: stub on non-Android target"
+    );
     0
 }
 
@@ -139,7 +141,9 @@ pub extern "system" fn Java_com_example_ewe_WireguardService_nativeStartNodeFrom
     toml_config: JString,
 ) -> JLong {
     let _ = (env, toml_config);
-    tracing::warn!("Java_com_example_ewe_WireguardService_nativeStartNodeFromToml: stub on non-Android target");
+    tracing::warn!(
+        "Java_com_example_ewe_WireguardService_nativeStartNodeFromToml: stub on non-Android target"
+    );
     0
 }
 
@@ -223,28 +227,3 @@ pub extern "system" fn Java_com_example_ewe_WireguardService_nativeGenerateSeed(
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// JNI symbol names must match the expected Java package/class.
-    /// If a symbol is missing, `System.loadLibrary` throws `UnsatisfiedLinkError`.
-    #[test]
-    fn required_jni_symbols_exist() {
-        // Compile-time assertion: these symbols are present in the binary.
-        // A missing `#[no_mangle]` would be a linker error, so this test just
-        // confirms the module compiles with the expected exports.
-        let expected = [
-            "Java_com_example_ewe_WireguardService_nativeStartNode",
-            "Java_com_example_ewe_WireguardService_nativeStartNodeFromToml",
-            "Java_com_example_ewe_WireguardService_nativeStopNode",
-            "Java_com_example_ewe_WireguardService_nativeMemberCount",
-            "Java_com_example_ewe_WireguardService_nativeOverlayIp",
-            "Java_com_example_ewe_WireguardService_nativeIsJoined",
-            "Java_com_example_ewe_WireguardService_nativeTick",
-            "Java_com_example_ewe_WireguardService_nativeGenerateSeed",
-        ];
-        assert_eq!(expected.len(), 8, "JNI surface should be 8 functions");
-    }
-}

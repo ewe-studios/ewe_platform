@@ -21,6 +21,18 @@ use foundation_errstacks as _;
 /// platform-specific re-exports live here (see `feedback_shared_module_purpose`).
 pub mod shared;
 
+/// Android JNI bridge for the `VpnService` integration (decision 08).
+///
+/// The module was not declared before, so its code and tests never compiled.
+#[cfg(any(target_os = "android", feature = "spec55-complete"))]
+pub mod android;
+
+/// iOS C FFI bridge for `NEPacketTunnelProvider` (decision 08).
+///
+/// The module was not declared before, so its code and tests never compiled.
+#[cfg(any(target_os = "ios", feature = "spec55-complete"))]
+pub mod ios;
+
 /// Completeness gate — emits `compile_error!` for every known spec-55 gap
 /// when `feature = "spec55-complete"` is enabled. Delete the corresponding
 /// `compile_error!` line as each gap is fixed.
