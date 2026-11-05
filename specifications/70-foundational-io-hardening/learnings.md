@@ -2,6 +2,33 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (PR #179 CI fix pass, second round):
+  - **A facade crate can link a second copy of a native library.** `deno_core` 0.404 names
+    the engine itself (`v8` 149.4.0) and needs no `deno_v8`. `deno_v8` 0.4.0 is a facade
+    whose `v8` feature pulls `v8` 150.4.0. With both in the tree the linker reports
+    `duplicate symbol: v8::internal::...`. Remove the unused dependency; do not try to
+    unify the versions. `cargo tree -i v8@150.4.0` names the only parent in one command.
+  - **A test helper that returns a cached artifact can return the wrong build.** The
+    `LD_PRELOAD` shim is a `cdylib`, and `cargo test` does not build it. `find_shim_so`
+    looked for the `.so` and returned the first match, so a file built earlier with a
+    smaller feature set was used unchanged, and the child process failed with a bare
+    `ExitStatus(256)`. Always run `cargo build --lib` with the features the test needs
+    before the lookup: cargo does nothing when the artifact is current, so the cost is
+    one second, and the artifact is correct when it is stale. Build once per test binary
+    (`OnceLock`) so two tests cannot overwrite each other's cdylib.
+  - **A version requirement behind the crate version breaks every patched resolution.**
+    Feature 82 moved `foundation_netio` to 0.0.6; 42 `foundation_cloudflare_*` crates
+    still required `0.0.4`. The workspace build tolerates it where the dependency is a
+    path dependency of a workspace member, but `bin/platform/tests/templates_build`
+    patches crates.io with local paths and then cannot select a version. `cargo metadata`
+    fails the same way. Scan with `cargo metadata --format-version 1` and compare each
+    path dependency's `req` with the target crate's version. Do not trust a text scan of
+    the manifests: a `version = "..."` line at column 0 can belong to a dependency table.
+  - **A captured subprocess hides its own failure.** `ci.py` ran
+    `cargo metadata` with `capture_output=True` and let the `CalledProcessError`
+    escape, so CI printed a traceback with exit 101 and no cause. Raise a `SystemExit`
+    that carries `stderr`.
+
 - 2026-11-05 (PR #179 CI fix pass, two root causes worth remembering):
   - **A signal is not a timeout.** `epoll_wait`, `kevent` and the io_uring submit calls
     return `EINTR` when a handler catches a signal. Returning `Ok` with no events turns

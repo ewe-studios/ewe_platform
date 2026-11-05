@@ -1,6 +1,6 @@
 ---
 feature: "The templates pin the published `foundation_toolings` version"
-status: "pending"
+status: "pending (CI proof)"
 lane: "after 84"
 model: "haiku"
 branch: "spec70/f110-toolings-template-pin"
@@ -57,7 +57,17 @@ cargo test --profile uat -p ewe_platform --test templates_build
 
 ## Done when
 
-- [ ] Both templates pin `foundation_toolings` 0.0.5.
-- [ ] `templates_build` passes.
-- [ ] The backlog §34 entry is deleted.
-- [ ] CI green.
+- [x] Both templates pin `foundation_toolings` 0.0.5.
+- [x] `templates_build` passes.
+- [x] The backlog §34 entry is deleted.
+- [ ] CI green (pending the run on the pushed commit).
+
+## Result (2026-11-05)
+
+Both template manifests now pin `foundation_toolings = "0.0.5"`. The pin scan over
+`bin/platform/templates` and `examples` found no other stale pin: `foundation_config` 0.1.2,
+`foundation_core` 0.0.7, `foundation_http` 0.0.5 and `foundation_toolings` 0.0.5 all match
+their workspace versions.
+
+`cargo test --profile uat -p ewe_platform --test templates_build` passes (1 test, 84 s). Backlog
+§34 is deleted.

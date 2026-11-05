@@ -2,6 +2,37 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: PR #179 CI fix pass, second round. The four failing jobs of run
+  42021286753 are handled:
+  - **`wasm-tests`: `wasm-testbed` did not link.** The binary pulled in two copies of V8
+    (`v8` 149.4.0 from `deno_core` and `v8` 150.4.0 from `deno_v8`), so `ld.lld` reported
+    `duplicate symbol: v8::internal::...`. `deno_core` 0.404 needs no `deno_v8`; the
+    dependency and its `use deno_v8 as _;` are gone, and `Cargo.lock` no longer holds
+    `deno_v8`. `cargo build -p foundation_testbed --no-default-features --features
+    wasm-embedded-js --profile uat --bin wasm-testbed` exits 0.
+  - **`foundation_nativeapis` (`vfs-preload`): `test_shim_writes_to_virtual_path`
+    failed with `ExitStatus(256)`.** `tests/vfs_shim_vfs` returned an existing
+    `libfoundation_nativeapis.so` without asking cargo to build it, and the file in the
+    profile directory came from a build without `vfs-preload`. `find_shim_so` now always
+    runs `cargo build --lib` with the features the test binary needs (`vfs-preload`, plus
+    `vfs-d1` when enabled), once per run behind a `OnceLock`. `build_shim_d1` is deleted;
+    its two-parent directory arithmetic was wrong under cargo's new layout. Verified in
+    the Linux CI image: both shim tests pass.
+  - **`ewe_platform`: the `web-app` and `api-app` templates pinned
+    `foundation_toolings = "0.0.4"` while the crate is 0.0.5** (feature 110). Both pins
+    are 0.0.5. `cargo test --profile uat -p ewe_platform --test templates_build` passes
+    (84 s). Backlog §34 is deleted.
+  - **`foundation_connectrpc`: the `arrow_codec_tests` and the `codecs` example did not
+    compile** (feature 112). Both `ToArrow` implementations map `RecordBatch::try_new`
+    with `.map_err(arrow_err)`. All-targets check, `-D warnings` clippy and the crate's
+    tests pass (15 binaries). Backlog §1 is deleted.
+  - **`foundation_deployment_cloudflare`: `ci.py` failed on `cargo metadata` with exit
+    101 and no reason.** `cargo_metadata` now raises a `SystemExit` that carries cargo's
+    standard error. The failure does not reproduce in the Linux CI image, so the cause
+    stays open in backlog §16 until the next run names it.
+  - Features 110 and 112 stay `pending (CI proof)` until the pushed commit has a green
+    run.
+
 - 2026-11-05: PR #179 CI fix pass on `spec70/io-hardening-final`. The run after feature 84
   had these failures, and each one is fixed:
   - **`foundation_nativeapis` (`fd,uring` run): `parity_timeout_expires_and_returns` failed

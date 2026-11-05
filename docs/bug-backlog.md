@@ -13,21 +13,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - `fix/foundational-backlog`: sections 1–5 (foundation_connectrpc, netio, http, core/valtron, nostd/wasm/iogate).
 ---
 
-## 1. foundation_connectrpc
-
-- **`tests/arrow_codec_tests.rs` and `examples/codecs/main.rs` do not compile with
-  `--all-targets`.** `ToArrow::to_arrow` and `to_arrow_batch` return
-  `IpcResult<RecordBatch>`, which feature 67 changed to
-  `ErrorTrace<ArrowIpcError>`, but they return `RecordBatch::try_new(..)` directly,
-  whose error is `ArrowError` (E0308 at `arrow_codec_tests.rs:79` and `:86`, and
-  `examples/codecs/main.rs:123` and `:130`). The error predates feature 84: it is
-  the same at base `a94fe307b`. Because the test target fails to compile,
-  `cargo test -p foundation_connectrpc` and
-  `cargo clippy -p foundation_connectrpc --all-targets` cannot run. Fix: map the
-  result with `.map_err(Into::into)` (or `.map_err(ErrorTrace::new)`) in both
-  `ToArrow` implementations. Reproduce with
-  `cargo check --profile uat -p foundation_connectrpc --all-targets`.
-
 ## 2. foundation_netio
 
 - **`silent_server_gets_body_when_the_timer_fires` is timing-flaky under load.**
@@ -283,6 +268,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
+- **`ci.py` hides the reason when `cargo metadata` fails.** `cargo_metadata` in
+  `scripts/ci/ci.py` captures both output streams and lets the `CalledProcessError`
+  escape, so CI shows only exit code 101. The job `foundation_deployment_cloudflare` in
+  run 42021286753 failed this way at 12:22:10 UTC, and the log cannot say why. The cause
+  is probably a manifest resolution error. The function now raises a `SystemExit` that
+  carries `cargo`'s standard error, so the next occurrence names the cause. Not
+  reproducible in the Linux CI image (the same step exits 0 there). Fix: read the next
+  failure from the job log, repair the reported cause, and delete this entry.
 - **`foundation_shell` is an empty placeholder crate.** `backends/foundation_shell/src/lib.rs`
   holds only `add(left, right)`, and nothing in the workspace depends on it. It still has a CI
   package entry, so every run builds it for no benefit. Spec 59 puts the shell work in a new
@@ -527,14 +520,6 @@ are clean. Each item needs the per-crate clippy workflow in
   `match`, missing `# Panics`, missing `# Errors`, doc list indentation, clamp
   pattern, `map(...).unwrap_or(...)` on a `Result`. Fix: run the crate hygiene
   plan/execute pass before the next feature that touches this crate.
-
-## 34. bin/platform templates
-
-- **The `foundation_toolings` template pin is stale.** Both `web-app` and
-  `api-app` pin `foundation_toolings = { version = "0.0.4" }`, but the workspace crate is
-  0.0.5. Feature 82 updated the `foundation_http` pins to 0.0.5 and left toolings alone
-  because this feature does not bump it. Fix: bump the pin with the next toolings
-  publish.
 
 ## 35. foundation_nativeapis
 

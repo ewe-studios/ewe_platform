@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_connectrpc` arrow-codec tests and example compile again"
-status: "pending"
+status: "pending (CI proof)"
 lane: "after 84"
 model: "haiku"
 branch: "spec70/f112-connectrpc-arrow-codec-result"
@@ -54,7 +54,25 @@ python3 scripts/ci/ci.py run foundation_connectrpc --profile uat   # in the Linu
 
 ## Done when
 
-- [ ] The all-targets check and clippy pass.
-- [ ] The crate's tests run in CI.
-- [ ] The backlog §1 entry is deleted.
-- [ ] CI green.
+- [x] The all-targets check and clippy pass.
+- [ ] The crate's tests run in CI (pending the run on the pushed commit).
+- [x] The backlog §1 entry is deleted.
+- [ ] CI green (pending the run on the pushed commit).
+
+## Result (2026-11-05)
+
+The two `ToArrow` implementations in `tests/arrow_codec_tests.rs` and
+`examples/codecs/main.rs` now map the result with `.map_err(arrow_err)`, which is
+`foundation_arrow`'s public conversion to `ErrorTrace<ArrowIpcError>`. No trait or public API
+changed, so no version bump. A search of the crate found no other `?` on an `ArrowError`
+inside an `IpcResult` function.
+
+Verified locally:
+
+- `cargo check --profile uat -p foundation_connectrpc --all-targets` exits 0.
+- `cargo clippy --profile uat -p foundation_connectrpc --all-targets --no-deps -- -D warnings`
+  exits 0.
+- `cargo test --profile uat -p foundation_connectrpc` exits 0; 15 test binaries pass,
+  including `arrow_codec_tests` (2 tests).
+
+Backlog §1 is deleted.
