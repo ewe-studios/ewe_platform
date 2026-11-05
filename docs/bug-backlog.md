@@ -27,27 +27,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- `backends/foundation_http/src/shared/serve/mod.rs` (`respond::*`, `render_response`): the
-  synchronous helpers write with `write_all` to any `impl Write`. On a non-blocking socket a body
-  larger than the send buffer, or a slow peer, fails with `WouldBlock` after a partial write and
-  the response is truncated. In `foundation_http` the handlers (`StaticFileHandler`,
-  `StaticAssetHandler`, `HealthHandler`) now use `native::writer::send_*`. Still on the
-  synchronous path: callers in other crates (`foundation_proxy/src/handler.rs`, the web-app and
-  static-html-app templates, `examples/web/wello`), and the small closing or rejection writes in
-  `native/server/{connection,protocol_detect,mod}.rs` and the upgrade heads in
-  `native/upgrade/mod.rs`, which write a few hundred bytes into an empty send buffer. Likely fix:
-  move each handler caller to `native::writer::send_*` (or `ResponseWriter`), then deprecate the
-  synchronous `respond::*` for sockets.
-- **`foundation_http` fails `cargo clippy --all-targets -- -D warnings`.** Seen on
-  `spec70/f77-f62-f78-readiness-ci` (2026-11-05, feature 62): 32 errors in the lib and the
-  tests. Examples: missing `# Errors` sections in `shared/serve/mod.rs` (7) and
-  `shared/router/method.rs`; `doc_markdown` in `native/server/mod.rs`, `native/server/connection.rs`
-  and eight test files; `must_use` on `shared/middleware/compression.rs`, `shared/web_conn.rs` and
-  `shared/middleware/cors.rs`; `too_many_lines` in `native/server/mod.rs` (`serve_loop`, 126/100)
-  and `native/server/connection.rs` (147/100); `needless_continue`,
-  `redundant_closure_for_method_calls` and `map_unwrap_or` in `native/server/mod.rs`. Fix: clear
-  each lint and set `clippy-deny-warnings` for the package. Another agent cleans the lane A
-  crates on a separate branch; check that branch before starting.
+- **SSE event writes can truncate on a non-blocking socket.** `EventWriter::send`
+  (`backends/foundation_netio/src/event_source/shared/writer.rs:53`) writes each
+  event with `writeln!` (that is, `write_all`) and flushes. `SseStream::new` now
+  writes the response head through `ResponseWriter`, but every later event still
+  takes the synchronous path: a slow client can fill the socket and produce a
+  partial event or a `WouldBlock` error. Fix: give `EventWriter` an async send
+  that writes through `ResponseWriter` (or return the number written), and move
+  `SseStream::send`/`message`/`comment` to it. Note the public API change.
 - **`ConnectionHandler::idle_timeout` (`native/server/connection.rs:173`) is the size-based
   read timeout of a streaming context, 100 ms (`TimeoutConfig::min_read_timeout`) when the
   body is unsized** (the same mistake that made the SSE client reconnect a quiet stream, fixed
@@ -168,12 +155,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   executor loop is refactored.
 - **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
   Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
-- **A response writer's send timeout counts from its creation, not from its last
-  byte, for long streams.** `forward_http` and the translators use one
-  `ResponseWriter` for the whole response, so a gRPC stream idle for longer than
-  `relay_send_timeout` times out at its next blocked write. The tunnel splice
-  avoids this with a writer per chunk. Fix: feature 63 E (restart the idle timer
-  when a write starts).
+- **`tests/proxy_features_tests.rs::websocket_upgrade_relays_and_tunnels_bytes`
+  fails on macOS.** The client receives the `101` and writes its frame, but
+  `read_exact` times out (`WouldBlock`) waiting for the echo (line 464). It fails
+  the same way with the feature 63 writer changes reverted for the run, and the
+  proxy's upgrade path (`forward_upgrade` + `aio::splice`) is unchanged, so it
+  predates that feature. Likely a Darwin read-wakeup or timing problem in the
+  upstream→client pump. Reproduce with
+  `cargo test -p foundation_proxy --test proxy_features_tests websocket_upgrade_relays_and_tunnels_bytes`.
+  Fix: trace the splice pumps on macOS, or gate the test to Linux until the pump
+  is fixed.
 
 ## 10. foundation_ai
 

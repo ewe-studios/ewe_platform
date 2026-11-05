@@ -2,10 +2,11 @@
 
 use std::sync::Arc;
 
+use foundation_http::native::writer::{send_html, send_not_found};
 use foundation_http::shared::{
     app::HttpApp,
     context::ContextBag,
-    serve::{respond, ConnectionResult, Serve, ServeFactory},
+    serve::{ConnectionResult, Serve, ServeFactory},
 };
 use foundation_http::{RawStream, SharedByteBufferStream, SimpleIncomingRequest, SimpleMethod};
 use rust_embed::Embed;
@@ -29,17 +30,15 @@ impl Serve for IndexHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         match Assets::get("static/index.html") {
             Some(html_data) => {
                 let content =
                     String::from_utf8(html_data.data.to_vec()).expect("should generate str");
-                respond::html(&mut conn, 200, &content)
-                    .map_or(ConnectionResult::Close(None), |_| ConnectionResult::Keep)
+                send_html(conn, 200, &content)
             }
-            None => respond::not_found(&mut conn)
-                .map_or(ConnectionResult::Close(None), |_| ConnectionResult::Keep),
+            None => send_not_found(conn),
         }
     }
 }

@@ -2,6 +2,48 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 63, retiring the sync response path): a test that must
+  prove a writer parks needs a transport whose readiness the test controls.
+  Loopback TCP did not work: with `SO_SNDBUF` and `SO_RCVBUF` set to 4 KiB,
+  macOS still queued 327,680 bytes before the first `WouldBlock` (the kernel
+  auto-tunes), so the write finished instantly and the old writer passed.
+  A `UnixStream::pair()` queued 4,096-8,064 bytes and blocked, but it failed on
+  Linux: `unix_writable()` only reports writable when the queue is at most 25%
+  full, so a client reading 512 B does not make the fd writable (and epoll
+  therefore never fires `EPOLLOUT`) for seconds. The test then timed out while
+  draining. The final design is a fake in-memory `OverlayReadWrite` transport:
+  a `VecDeque` with a fixed capacity, a `WouldBlock` write when it is full, and
+  a `ConnWaker` the test client fires after every read. It behaves the same on
+  macOS and Linux and exercises the overlay readiness path.
+  A send timeout that starts at writer creation is only observable when the
+  *first* write of the operation blocks: `write_all` already restarted the time
+  on every successful partial write, so an idle writer whose first write
+  succeeds never showed the bug. Pre-fill the transport before creating the
+  writer and start the client reader only after the writer blocks.
+  `BufWriter::flush` on a non-blocking socket can drain part of its buffer and
+  then return `WouldBlock`, so a `flush` that only waits on readiness silently
+  makes progress. Measure the buffered length before and after (`RawStream` now
+  exposes it) and restart the idle timer when it shrinks.
+  Moving a task-driven response to an async writer inside a `TaskIterator`
+  needs a state that owns the `ServeFuture`. The existing `Awaiting` state can
+  serve closing writes by setting `should_close: true`; a `100 Continue` needs
+  its own state because success continues to `WaitingForBody` instead of closing.
+  `block_on_future` is the right tool at a blocking boundary only when the pool
+  exists; a branch that runs *because* `valtron::send` failed has no executor,
+  so it cannot drive an async write (`block_on_future` panics without a pool).
+  Log and close there. Inside a task, spawn a `FutureTask` (protocol detection)
+  so the guard and the connection clone outlive the detector.
+  Poll an `Awaiting` future **before** checking the shutdown flag. The old order
+  dropped the future first, which truncated any handler whose remaining work was
+  the response write; polling first lets it finish, while a future that is still
+  `Pending` is still dropped at the drain checkpoint (the feature-08 test needs
+  that). This is why `completes_inflight_request_within_grace` failed until the
+  order changed.
+  Clearing `clippy -D warnings` on `foundation_http` needed the multi-gated test
+  targets too: CI's clippy run only uses default features, so ~34 warnings in
+  the `multi`-only server tests were never seen. Run clippy with `--features
+  multi` before claiming the crate is clean. `assert!(x.is_empty())` now fails
+  `assert_is_empty`; `assert_ne!(x.len(), 0)` avoids it.
 - 2026-11-05 (feature 59, public FFI callback): moving an inline test out of
   `infrastructure_llama_cpp` made `logs_to_trace` public. Clippy then failed with
   `not_unsafe_ptr_arg_deref` (deny by default in `clippy::correctness`): a public

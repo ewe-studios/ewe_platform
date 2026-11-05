@@ -27,6 +27,7 @@ pub struct WebConn {
 
 impl WebConn {
     /// Create a new connection with default 200 status.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             status: 200,

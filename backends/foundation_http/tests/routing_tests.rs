@@ -1,4 +1,4 @@
-//! Routing tests — RouteSegment tree matching, priority sorting, param extraction.
+//! Routing tests — `RouteSegment` tree matching, priority sorting, param extraction.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;

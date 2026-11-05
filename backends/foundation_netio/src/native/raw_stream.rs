@@ -245,6 +245,34 @@ impl foundation_core::io::ioutils::IsUnixTransport for RawStream {
     }
 }
 
+impl RawStream {
+    /// How many bytes this stream still holds in its write buffer.
+    ///
+    /// WHY: a non-blocking `flush` can drain part of that buffer, then return
+    /// `WouldBlock`. A caller that applies an idle send timeout needs to tell
+    /// that progress from a stall, or a long but healthy flush is cut short.
+    /// WHAT: the length of the `BufWriter` buffer inside the stream. Zero when
+    /// everything written so far has reached the transport.
+    #[must_use]
+    pub fn write_buffer_len(&self) -> usize {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_inner_ref().buffer().len(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsServerTls(inner, _) => inner.get_inner_ref().buffer().len(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::AsClientTls(inner, _) => inner.get_inner_ref().buffer().len(),
+        }
+    }
+}
+
 // --- Readiness wakeups for non-blocking transports (F11 overlay parking)
 
 impl RawStream {

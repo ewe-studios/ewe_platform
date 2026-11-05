@@ -13,6 +13,7 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::writer::send_text;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
@@ -26,7 +27,7 @@ use foundation_http::{
         app::HttpApp,
         context::ContextBag,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeFactory},
     },
 };
 
@@ -43,10 +44,9 @@ impl Serve for SecretHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        respond::text(&mut conn, 200, "smuggled-secret")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "smuggled-secret")
     }
 }
 

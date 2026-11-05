@@ -23,7 +23,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
 use foundation_core::synca::WaitGroupGuard;
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, FutureTask, TaskIterator, TaskStatus};
 use foundation_iogate::ShutdownSignal;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::detect::{detect_protocol, DetectedProtocol, H2C_PREFACE_PEEK_LEN};
@@ -33,8 +33,9 @@ use foundation_netio::shared::http::HTTPStreams;
 use super::connection::ConnectionHandler;
 use super::h2_connection::H2ConnectionHandler;
 use super::KeepAliveConfig;
+use crate::native::writer::send_text;
 use crate::shared::app::ServerApp;
-use crate::shared::serve::respond;
+use crate::shared::serve::ConnectionResult;
 
 const POLL_DELAY: Duration = Duration::from_millis(3);
 
@@ -59,6 +60,10 @@ pub struct ProtocolDetectHandler {
 
 impl ProtocolDetectHandler {
     #[must_use]
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the detector carries the same per-connection state as its sibling handlers"
+    )]
     pub fn new(
         stream: SharedByteBufferStream<RawStream>,
         app: ServerApp,
@@ -182,7 +187,11 @@ impl ProtocolDetectHandler {
                 client = %self.client_ip,
                 "HTTP/1.1 request on an HTTP/2-only server; refusing with 505"
             );
-            let _ = respond::text(&mut self.stream.clone(), 505, "HTTP Version Not Supported");
+            let guard = self.drain_guard.take();
+            self.finish_after_write(
+                send_text(self.stream.clone(), 505, "HTTP Version Not Supported"),
+                guard,
+            );
             return;
         };
 
@@ -206,8 +215,36 @@ impl ProtocolDetectHandler {
             Ok(()) => tracing::trace!(client = %self.client_ip, "submitted h1 connection"),
             Err(e) => {
                 tracing::error!(client = %self.client_ip, err = ?e, "failed to submit connection");
-                let _ = respond::text(&mut self.stream.clone(), 503, "Service Unavailable");
+                self.finish_after_write(
+                    send_text(self.stream.clone(), 503, "Service Unavailable"),
+                    None,
+                );
             }
+        }
+    }
+
+    /// Write a refusal through the async writer and close when it ends.
+    ///
+    /// The write owns its own stream clone, so it outlives this detector task.
+    /// A `guard`, when given, stays alive until the write finishes, so the
+    /// server's drain still counts the connection.
+    fn finish_after_write(&self, response: ConnectionResult, guard: Option<WaitGroupGuard>) {
+        let write = match response {
+            ConnectionResult::Async(write) => write,
+            ConnectionResult::Close(err) => {
+                if let Some(e) = err {
+                    tracing::debug!(client = %self.client_ip, err = ?e, "refusal response could not be built");
+                }
+                return;
+            }
+            ConnectionResult::Keep | ConnectionResult::Take => return,
+        };
+        let task = FutureTask::new(async move {
+            let _guard = guard;
+            let _ = write.await;
+        });
+        if let Err(e) = foundation_core::valtron::send(task) {
+            tracing::error!(client = %self.client_ip, err = ?e, "failed to submit refusal write");
         }
     }
 }

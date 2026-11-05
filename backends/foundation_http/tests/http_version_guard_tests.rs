@@ -28,6 +28,7 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::writer::send_text;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -37,7 +38,7 @@ use foundation_http::{
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
+        serve::{ConnectionResult, Serve, ServeFactory},
     },
 };
 
@@ -58,11 +59,10 @@ impl Serve for EchoHandler {
         &self,
         _bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         HANDLER_CALLED.store(true, Ordering::SeqCst);
-        respond::text(&mut conn, 200, "ok")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "ok")
     }
 }
 

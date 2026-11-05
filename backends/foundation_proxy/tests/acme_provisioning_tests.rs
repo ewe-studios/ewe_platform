@@ -13,7 +13,6 @@
 //! produced — proving ACME is actually wired, not stubbed.
 
 use std::collections::HashSet;
-use std::io::Write;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -22,16 +21,18 @@ use base64::Engine;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{initialize_pool, sleep_async, BlockingFutureExt};
 use foundation_http::native::server::{HttpServer, ServerConfig};
+use foundation_http::native::writer::{
+    render_message, send_json, send_not_found, ResponseWriter, WriterConfig,
+};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
-    Status,
+    SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
@@ -167,9 +168,9 @@ fn jws_protected(body: &[u8]) -> Result<serde_json::Value, String> {
 }
 
 /// Render one ACME answer with a fresh `Replay-Nonce` (and an optional
-/// `Location` header for newAccount).
-fn render_acme(
-    conn: &mut SharedByteBufferStream<RawStream>,
+/// `Location` header for newAccount) through the async response writer.
+async fn render_acme(
+    conn: &SharedByteBufferStream<RawStream>,
     status: Status,
     nonce: &str,
     content_type: &str,
@@ -183,18 +184,38 @@ fn render_acme(
     if let Some(loc) = location {
         builder = builder.add_header(SimpleHeader::LOCATION, loc);
     }
-    if let Ok(response) = builder.with_body(body).build() {
-        let _ = Http11::response(response).http_render_to_writer(conn);
+    let Ok(response) = builder.with_body(body).build() else {
+        tracing::error!("mock ACME: response build failed");
+        return;
+    };
+    let Ok(head) = render_message(response) else {
+        tracing::error!("mock ACME: response render failed");
+        return;
+    };
+    let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default());
+    let result = async {
+        writer.write_all(&head).await?;
+        writer.flush().await
     }
-    let _ = conn.flush();
+    .await;
+    if let Err(e) = result {
+        tracing::warn!("mock ACME: response write failed: {e}");
+    }
+}
+
+/// Write an already-built async response to completion.
+async fn write_response(response: ConnectionResult) {
+    if let ConnectionResult::Async(write) = response {
+        let _ = write.await;
+    }
 }
 
 /// Render a validated 2xx ACME answer with a fresh `Replay-Nonce`.
 // The JSON value is serialized by reference, so the caller can reuse it.
 #[allow(clippy::needless_pass_by_value)]
-fn render_acme_ok(
+async fn render_acme_ok(
     state: &MockAcme,
-    conn: &mut SharedByteBufferStream<RawStream>,
+    conn: &SharedByteBufferStream<RawStream>,
     status: Status,
     value: serde_json::Value,
     location: Option<&str>,
@@ -208,21 +229,22 @@ fn render_acme_ok(
         "application/json",
         SendSafeBody::Bytes(bytes),
         location,
-    );
+    )
+    .await;
 }
 
 /// Answer a JWS POST after validation; on a bad request the client gets a
 /// problem document plus a fresh nonce.
-fn serve_acme_post(
+async fn serve_acme_post(
     state: &MockAcme,
-    conn: &mut SharedByteBufferStream<RawStream>,
+    conn: &SharedByteBufferStream<RawStream>,
     body: &[u8],
     status: Status,
     value: serde_json::Value,
     location: Option<&str>,
 ) {
     match state.validate_jws(body, true) {
-        Ok(()) => render_acme_ok(state, conn, status, value, location),
+        Ok(()) => render_acme_ok(state, conn, status, value, location).await,
         Err(e) => {
             let nonce = state.issue_nonce();
             let bytes = serde_json::to_vec(&serde_json::json!({
@@ -237,7 +259,8 @@ fn serve_acme_post(
                 "application/problem+json",
                 SendSafeBody::Bytes(bytes),
                 None,
-            );
+            )
+            .await;
         }
     }
 }
@@ -255,84 +278,101 @@ impl ServeFactory for MockAcmeHandler {
 }
 
 impl Serve for MockAcmeHandler {
-    #[allow(
-        clippy::too_many_lines,
-        reason = "the mock ACME server reads best as one ordered match"
-    )]
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let path = req.request_url.url.clone();
-        let base = &self.state.base;
-        let body = req.body.and_then(|b| try_collect_bytes(b).ok());
-        let raw = body.as_deref().unwrap_or_default();
+        let state = Arc::clone(&self.state);
+        ConnectionResult::Async(Box::pin(handle_acme(state, req, conn)))
+    }
+}
 
-        match path.as_str() {
-            "/directory" => {
-                let _ = respond::json(
-                    &mut conn,
-                    200,
-                    &serde_json::json!({
-                        "newNonce": format!("{base}/new-nonce"),
-                        "newAccount": format!("{base}/new-account"),
-                        "newOrder": format!("{base}/new-order"),
-                    }),
-                );
-            }
-            "/new-nonce" => {
-                // RFC 8555 §7.2: nonce is returned in the Replay-Nonce header.
-                self.state.nonce_fetches.fetch_add(1, Ordering::Relaxed);
-                let nonce = self.state.issue_nonce();
+/// Answer one ACME request. Every answer goes out through the async response
+/// writer, so a large certificate body cannot truncate.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the mock ACME server reads best as one ordered match"
+)]
+async fn handle_acme(
+    state: Arc<MockAcme>,
+    req: SimpleIncomingRequest,
+    conn: SharedByteBufferStream<RawStream>,
+) -> ConnectionResult {
+    let path = req.request_url.url.clone();
+    let base = &state.base;
+    let body = req.body.and_then(|b| try_collect_bytes(b).ok());
+    let raw = body.as_deref().unwrap_or_default();
+
+    match path.as_str() {
+        "/directory" => {
+            write_response(send_json(
+                conn.clone(),
+                200,
+                &serde_json::json!({
+                    "newNonce": format!("{base}/new-nonce"),
+                    "newAccount": format!("{base}/new-account"),
+                    "newOrder": format!("{base}/new-order"),
+                }),
+            ))
+            .await;
+        }
+        "/new-nonce" => {
+            // RFC 8555 §7.2: nonce is returned in the Replay-Nonce header.
+            state.nonce_fetches.fetch_add(1, Ordering::Relaxed);
+            let nonce = state.issue_nonce();
+            render_acme(
+                &conn,
+                Status::OK,
+                &nonce,
+                "application/octet-stream",
+                SendSafeBody::None,
+                None,
+            )
+            .await;
+            return ConnectionResult::Close(None);
+        }
+        "/new-account" => match state.validate_jws(raw, false) {
+            Ok(()) => {
+                let nonce = state.issue_nonce();
+                let bytes = serde_json::to_vec(&serde_json::json!({
+                    "status": "valid",
+                    "orders": format!("{base}/orders"),
+                }))
+                .expect("serialize account");
                 render_acme(
-                    &mut conn,
-                    Status::OK,
+                    &conn,
+                    Status::Created,
                     &nonce,
-                    "application/octet-stream",
-                    SendSafeBody::None,
-                    None,
-                );
-                return ConnectionResult::Close(None);
+                    "application/json",
+                    SendSafeBody::Bytes(bytes),
+                    Some(&state.account_url()),
+                )
+                .await;
             }
-            "/new-account" => match self.state.validate_jws(raw, false) {
-                Ok(()) => {
-                    let nonce = self.state.issue_nonce();
-                    let bytes = serde_json::to_vec(&serde_json::json!({
-                        "status": "valid",
-                        "orders": format!("{base}/orders"),
-                    }))
-                    .expect("serialize account");
-                    render_acme(
-                        &mut conn,
-                        Status::Created,
-                        &nonce,
-                        "application/json",
-                        SendSafeBody::Bytes(bytes),
-                        Some(&self.state.account_url()),
-                    );
-                }
-                Err(e) => {
-                    let nonce = self.state.issue_nonce();
-                    let bytes = serde_json::to_vec(&serde_json::json!({
-                        "type": "urn:ietf:params:acme:error:malformed",
-                        "detail": e,
-                    }))
-                    .expect("serialize problem");
-                    render_acme(
-                        &mut conn,
-                        Status::BadRequest,
-                        &nonce,
-                        "application/problem+json",
-                        SendSafeBody::Bytes(bytes),
-                        None,
-                    );
-                }
-            },
-            "/new-order" => serve_acme_post(
-                &self.state,
-                &mut conn,
+            Err(e) => {
+                let nonce = state.issue_nonce();
+                let bytes = serde_json::to_vec(&serde_json::json!({
+                    "type": "urn:ietf:params:acme:error:malformed",
+                    "detail": e,
+                }))
+                .expect("serialize problem");
+                render_acme(
+                    &conn,
+                    Status::BadRequest,
+                    &nonce,
+                    "application/problem+json",
+                    SendSafeBody::Bytes(bytes),
+                    None,
+                )
+                .await;
+            }
+        },
+        "/new-order" => {
+            serve_acme_post(
+                &state,
+                &conn,
                 raw,
                 Status::Created,
                 serde_json::json!({
@@ -341,10 +381,13 @@ impl Serve for MockAcmeHandler {
                     "authorizations": [format!("{base}/authz/0")],
                 }),
                 None,
-            ),
-            "/authz/0" => serve_acme_post(
-                &self.state,
-                &mut conn,
+            )
+            .await;
+        }
+        "/authz/0" => {
+            serve_acme_post(
+                &state,
+                &conn,
                 raw,
                 Status::OK,
                 serde_json::json!({
@@ -358,104 +401,108 @@ impl Serve for MockAcmeHandler {
                     }],
                 }),
                 None,
-            ),
-            "/chal/0" => serve_acme_post(
-                &self.state,
-                &mut conn,
+            )
+            .await;
+        }
+        "/chal/0" => {
+            serve_acme_post(
+                &state,
+                &conn,
                 raw,
                 Status::OK,
                 serde_json::json!({ "status": "valid" }),
                 None,
-            ),
-            "/finalize" => match self.state.validate_jws(raw, true) {
-                Ok(()) => match self.state.sign_csr_from_finalize(raw) {
-                    Ok(()) => render_acme_ok(
-                        &self.state,
-                        &mut conn,
+            )
+            .await;
+        }
+        "/finalize" => match state.validate_jws(raw, true) {
+            Ok(()) => match state.sign_csr_from_finalize(raw) {
+                Ok(()) => {
+                    render_acme_ok(
+                        &state,
+                        &conn,
                         Status::OK,
                         serde_json::json!({
                             "status": "valid",
                             "certificate": format!("{base}/cert/0"),
                         }),
                         None,
-                    ),
-                    Err(e) => {
-                        let nonce = self.state.issue_nonce();
-                        let bytes = serde_json::to_vec(&serde_json::json!({
-                            "type": "urn:ietf:params:acme:error:badCSR",
-                            "detail": e,
-                        }))
-                        .expect("serialize problem");
-                        render_acme(
-                            &mut conn,
-                            Status::BadRequest,
-                            &nonce,
-                            "application/problem+json",
-                            SendSafeBody::Bytes(bytes),
-                            None,
-                        );
-                    }
-                },
+                    )
+                    .await;
+                }
                 Err(e) => {
-                    let nonce = self.state.issue_nonce();
+                    let nonce = state.issue_nonce();
                     let bytes = serde_json::to_vec(&serde_json::json!({
-                        "type": "urn:ietf:params:acme:error:malformed",
+                        "type": "urn:ietf:params:acme:error:badCSR",
                         "detail": e,
                     }))
                     .expect("serialize problem");
                     render_acme(
-                        &mut conn,
+                        &conn,
                         Status::BadRequest,
                         &nonce,
                         "application/problem+json",
                         SendSafeBody::Bytes(bytes),
                         None,
-                    );
+                    )
+                    .await;
                 }
             },
-            "/cert/0" => match self.state.validate_jws(raw, true) {
-                Ok(()) => {
-                    let pem = self
-                        .state
-                        .issued
-                        .lock()
-                        .unwrap()
-                        .clone()
-                        .unwrap_or_default();
-                    let nonce = self.state.issue_nonce();
-                    render_acme(
-                        &mut conn,
-                        Status::OK,
-                        &nonce,
-                        "application/pem-certificate-chain",
-                        SendSafeBody::Text(pem),
-                        None,
-                    );
-                }
-                Err(e) => {
-                    let nonce = self.state.issue_nonce();
-                    let bytes = serde_json::to_vec(&serde_json::json!({
-                        "type": "urn:ietf:params:acme:error:malformed",
-                        "detail": e,
-                    }))
-                    .expect("serialize problem");
-                    render_acme(
-                        &mut conn,
-                        Status::BadRequest,
-                        &nonce,
-                        "application/problem+json",
-                        SendSafeBody::Bytes(bytes),
-                        None,
-                    );
-                }
-            },
-            _ => {
-                let _ = respond::not_found(&mut conn);
+            Err(e) => {
+                let nonce = state.issue_nonce();
+                let bytes = serde_json::to_vec(&serde_json::json!({
+                    "type": "urn:ietf:params:acme:error:malformed",
+                    "detail": e,
+                }))
+                .expect("serialize problem");
+                render_acme(
+                    &conn,
+                    Status::BadRequest,
+                    &nonce,
+                    "application/problem+json",
+                    SendSafeBody::Bytes(bytes),
+                    None,
+                )
+                .await;
             }
+        },
+        "/cert/0" => match state.validate_jws(raw, true) {
+            Ok(()) => {
+                let pem = state.issued.lock().unwrap().clone().unwrap_or_default();
+                let nonce = state.issue_nonce();
+                render_acme(
+                    &conn,
+                    Status::OK,
+                    &nonce,
+                    "application/pem-certificate-chain",
+                    SendSafeBody::Text(pem),
+                    None,
+                )
+                .await;
+            }
+            Err(e) => {
+                let nonce = state.issue_nonce();
+                let bytes = serde_json::to_vec(&serde_json::json!({
+                    "type": "urn:ietf:params:acme:error:malformed",
+                    "detail": e,
+                }))
+                .expect("serialize problem");
+                render_acme(
+                    &conn,
+                    Status::BadRequest,
+                    &nonce,
+                    "application/problem+json",
+                    SendSafeBody::Bytes(bytes),
+                    None,
+                )
+                .await;
+            }
+        },
+        _ => {
+            write_response(send_not_found(conn.clone())).await;
         }
-        let _ = conn.flush();
-        ConnectionResult::Close(None)
     }
+    ConnectionResult::Close(None)
 }
 
 /// Start the mock ACME CA on an ephemeral port. Returns

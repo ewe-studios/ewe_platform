@@ -3,15 +3,15 @@
 //! SSE client types are provided by `foundation_netio::event_source`.
 //! Server-side SSE streaming is provided by `SseStream`.
 
-use std::io::Write;
-
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::event_source::{EventWriter, SseEvent};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
-    SimpleOutgoingResponse, Status,
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleOutgoingResponse,
+    Status,
 };
+
+use crate::native::writer::{render_message, ResponseWriter, WriterConfig};
 
 /// Error type for upgrade operations.
 #[derive(Debug)]
@@ -39,18 +39,13 @@ impl From<std::io::Error> for UpgradeError {
     }
 }
 
-/// Accept a WebSocket upgrade and return the raw connection stream.
+/// Accept a WebSocket upgrade and return `true` when the `101` is written.
 ///
-/// Writes the 101 Switching Protocols response to the connection.
-/// Returns `true` if the upgrade was accepted, `false` if the request
-/// was not a valid WebSocket upgrade.
-///
-/// # Panics
-///
-/// Panics if the 101 response cannot be built (this should never happen
-/// with valid input).
-pub fn accept_websocket(
-    conn: &mut SharedByteBufferStream<RawStream>,
+/// The `101 Switching Protocols` response goes out through the async
+/// [`ResponseWriter`], so it cannot truncate on a non-blocking socket. The
+/// caller keeps its own clone of `conn` for the frames that follow.
+pub async fn accept_websocket(
+    conn: &SharedByteBufferStream<RawStream>,
     req: &SimpleIncomingRequest,
 ) -> bool {
     let upgrade = get_header_value(&req.headers, "upgrade");
@@ -74,17 +69,36 @@ pub fn accept_websocket(
         STANDARD.encode(result)
     };
 
-    let response = SimpleOutgoingResponse::builder()
+    let response = match SimpleOutgoingResponse::builder()
         .with_status(Status::SwitchingProtocols)
         .add_header(SimpleHeader::UPGRADE, "websocket")
         .add_header(SimpleHeader::CONNECTION, "Upgrade")
         .add_header(SimpleHeader::custom("Sec-WebSocket-Accept"), accept_key)
         .with_body(SendSafeBody::None)
         .build()
-        .expect("valid 101 response");
+    {
+        Ok(response) => response,
+        Err(e) => {
+            tracing::error!("Failed to build the WebSocket upgrade response: {e}");
+            return false;
+        }
+    };
 
-    match Http11::response(response).http_render_to_writer(conn) {
-        Ok(_) => true,
+    let head = match render_message(response) {
+        Ok(head) => head,
+        Err(e) => {
+            tracing::error!("Failed to render WebSocket upgrade response: {e}");
+            return false;
+        }
+    };
+    let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default());
+    let result = async {
+        writer.write_all(&head).await?;
+        writer.flush().await
+    }
+    .await;
+    match result {
+        Ok(()) => true,
         Err(e) => {
             tracing::error!("Failed to write WebSocket upgrade response: {e}");
             false
@@ -123,12 +137,13 @@ impl SseStream {
     /// - Cache-Control: no-cache
     /// - Connection: keep-alive
     ///
-    /// WHAT: Writes headers to the stream, then creates `EventWriter` wrapper.
+    /// WHAT: Writes the head through the async [`ResponseWriter`], then creates
+    /// the `EventWriter` wrapper.
     ///
     /// # Errors
     ///
     /// Returns `UpgradeError` if header writing fails.
-    pub fn new(conn: &mut SharedByteBufferStream<RawStream>) -> Result<Self, UpgradeError> {
+    pub async fn new(conn: &SharedByteBufferStream<RawStream>) -> Result<Self, UpgradeError> {
         let response = SimpleOutgoingResponse::builder()
             .with_status(Status::OK)
             .add_header(SimpleHeader::CONTENT_TYPE, "text/event-stream")
@@ -138,12 +153,17 @@ impl SseStream {
             .build()
             .map_err(|e| UpgradeError::InvalidRequest(e.to_string()))?;
 
-        Http11::response(response)
-            .http_render_to_writer(conn)
-            .map_err(|e| UpgradeError::WriteError(e.to_string()))?;
+        let head = render_message(response).map_err(UpgradeError::WriteError)?;
 
-        // Flush headers immediately so client receives them
-        conn.flush()
+        let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default());
+        writer
+            .write_all(&head)
+            .await
+            .map_err(|e| UpgradeError::WriteError(e.to_string()))?;
+        // Flush headers immediately so the client receives them.
+        writer
+            .flush()
+            .await
             .map_err(|e| UpgradeError::WriteError(e.to_string()))?;
 
         // Clone the stream for the EventWriter

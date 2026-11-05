@@ -1,4 +1,4 @@
-//! Tests for HttpApp<Arc<dyn CfServe>> and HttpApp<Arc<dyn WebServe>> — route registration
+//! Tests for `HttpApp`<Arc<dyn CfServe>> and `HttpApp`<Arc<dyn WebServe>> — route registration
 //! and dispatch through the generic router.
 //!
 //! Requires `--features wasm-test` on native or wasm32 target.

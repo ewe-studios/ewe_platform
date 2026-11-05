@@ -223,6 +223,11 @@ wasm-runs = ["--no-default-features --features wasm"]
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
 runs = ["", "multi quic"]
+# Clippy covers the default tree, the multi/quic server tests and the TLS
+# server feature consumers enable; all are at zero warnings (spec 70 feature
+# 63), so a new one fails CI.
+clippy-runs = ["", "multi quic ssl"]
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 

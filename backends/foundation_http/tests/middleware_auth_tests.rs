@@ -31,7 +31,7 @@ fn test_auth_config_new() {
     let config = AuthConfig::new();
     assert!(config.bearer_validator.is_none());
     assert!(config.basic_validator.is_none());
-    assert!(config.public_paths.is_empty());
+    assert_eq!(config.public_paths.len(), 0);
     assert_eq!(config.realm, "Protected");
 }
 
