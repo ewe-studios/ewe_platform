@@ -79,11 +79,17 @@ fn upload_then_download(port: u16) -> Result<(String, String), String> {
     fs::write(&src, &payload).map_err(|e| format!("write src: {e}"))?;
 
     let remote = PathBuf::from("/config/sshkit_roundtrip.txt");
-    backend.upload(&host, &src, &remote)?;
+    backend
+        .upload(&host, &src, &remote)
+        .map_err(|e| format!("upload: {e}"))?;
 
-    let cat = backend.execute(&host, &Command::new("cat /config/sshkit_roundtrip.txt"))?;
+    let cat = backend
+        .execute(&host, &Command::new("cat /config/sshkit_roundtrip.txt"))
+        .map_err(|e| format!("execute: {e}"))?;
 
-    backend.download(&host, &remote, &dst)?;
+    backend
+        .download(&host, &remote, &dst)
+        .map_err(|e| format!("download: {e}"))?;
     let downloaded = fs::read_to_string(&dst).map_err(|e| format!("read dst: {e}"))?;
 
     fs::remove_file(&src).ok();
@@ -212,7 +218,7 @@ fn test_execute_wrong_password_is_rejected() {
     );
     let err = result.unwrap_err();
     assert!(
-        err.contains("auth"),
+        err.to_string().to_lowercase().contains("auth"),
         "error should point at the auth step, got: {err:?}"
     );
 }
