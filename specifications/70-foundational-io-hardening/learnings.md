@@ -2,6 +2,29 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (the second proxy failure):
+  - **A selector keyed by fd number can lose a live registration.** The reactor's
+    entries map is keyed by token, but kqueue, epoll and io_uring all identify a
+    registration by fd number. `Reactor::deregister` passes the number alone, so a
+    drop that runs after the socket closed can delete the entry of a *new* socket
+    that reused the number. The parked task then never wakes. Feature 122.
+  - **A bounded retry loop cannot explain a long stall.** The accept loop retries
+    `accept` every `accept_shutdown_poll` (10 ms by default) and on every reactor
+    wake. A clobbered listener registration costs one pause, not 30 s. Check
+    where the wait is bounded before blaming the accept path.
+  - **A recorded deadline is not an enforced deadline.** `Ctx::with_deadline`
+    stores `now + d` and starts no timer. A hung client call waits for the
+    transport's own idle timeout. Feature 123.
+  - **Constrain the CPUs to reproduce a load-dependent flake.** Five runs of both
+    proxy binaries in the Linux CI image on this host pass; with
+    `docker run --cpus=2` the same loop failed once in five, on a third test
+    (`connect_client_stream_via_grpc_backend`, 29.14 s). A GitHub runner has
+    about two usable cores. Always set `--cpus=2` when the flake needs load.
+  - **Record the selector backend before comparing environments.** On Linux the
+    reactor picks io_uring when its probe succeeds and epoll when not
+    (`poll/sys/unix/selector/dispatch.rs`). A local pass on a different backend
+    says nothing about CI.
+
 - 2026-11-06 (CI proof of features 115, 116 and 119):
   - **One stalled test holds every later test of its binary.** `#[valtron_test]`
     takes the process-wide pool on the harness thread, and the pool gate

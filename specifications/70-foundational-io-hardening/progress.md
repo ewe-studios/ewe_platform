@@ -2,6 +2,26 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: the second proxy failure, its mechanism, and two new features.
+  Branch `spec70/priority-followups`, commit `9b1138a63`.
+  - Audit run 42099300473 (attempt 1) failed `foundation_proxy` again, on
+    `h2_integration_tests::h2_grpc_trailers_relayed` after 60.5 s. The other
+    three jobs passed. Attempt 2 (_failed only_) ran afterwards.
+  - Five full runs of both binaries in the Linux CI image pass. Under
+    `--cpus=2` the flake reproduces: run 5 of 10 failed
+    `rpc_proxy_e2e_tests::connect_client_stream_via_grpc_backend` at line 810
+    (`client_stream`) after 29.14 s. That is a third test, in the same class.
+  - Reading `foundation_reactor` found the mechanism: `Reactor::deregister`
+    changes the selector by fd number alone, so a late drop after the number is
+    reused deletes the new socket's registration. Recorded in
+    `docs/bug-backlog.md` §5b and planned as feature 122.
+  - The accept loop is exonerated: it retries `accept` every 10 ms, so a lost
+    listener wake cannot stall it for 30 s. Feature 121 now points at a parked
+    connection task.
+  - `Ctx::with_deadline` only records a timestamp. No layer enforces it, so a
+    parked client call ignores its deadline. Recorded in `docs/bug-backlog.md`
+    §1 and planned as feature 123.
+
 - 2026-11-06: CI proof pass for features 115, 116 and 119, and the proxy e2e
   flake. Branch `spec70/priority-followups`, commit `9b1138a63`.
   - GitHub run 42087629722 finished `failure` with two failed jobs out of 115.

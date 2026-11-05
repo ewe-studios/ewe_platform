@@ -13,6 +13,17 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - `fix/foundational-backlog`: sections 1–5 (foundation_connectrpc, netio, http, core/valtron, nostd/wasm/iogate).
 ---
 
+## 1. foundation_connectrpc
+
+- **A client-side deadline is recorded but never enforced.** `Ctx::with_deadline`
+  (`src/shared/context/mod.rs:228`) stores `now + d` in `RequestContext`; it starts no
+  timer and cancels nothing. A call that parks on a read therefore ignores its deadline
+  and waits for the transport's own idle timeout, or forever. The proxy e2e tests set a
+  15 s deadline and still hung for 30 s (feature 121). Fix: enforce the deadline in the
+  client transport, with a timer that cancels the call and returns `DeadlineExceeded`,
+  and test it against a server that never answers. Found 2026-11-06 while diagnosing
+  feature 121. Scheduled as feature 123.
+
 ## 2. foundation_netio
 
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
@@ -133,6 +144,27 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   the spawn-test failures for this reason; that is the recorded emulation limit, not a code
   defect. Found in feature 47, updated in feature 83.
 
+## 5b. foundation_reactor
+
+- **A late `deregister` can remove another socket's registration after the file
+  descriptor number is reused.** `FdReadiness::drop`
+  (`foundation_reactor/src/fd_readiness.rs:149`) calls
+  `Reactor::deregister(fd, token)` (`reactor.rs:538`). The entries map is keyed by
+  `Token`, but the selector is changed by file descriptor number alone
+  (`Registry::deregister_fd(fd)`, `poll/mod.rs:426`; kqueue and epoll both key by
+  the number). The token argument is never compared. If a socket closes before its
+  `FdReadiness` drops, the operating system can give the same number to a new
+  socket, and the late `deregister` then deletes the new socket's selector entry.
+  The new socket never reports readiness again. The documented case
+  `FdReadiness::drop` names ("the fd may already be closed") is exactly this
+  order. Body-read wakers hold an `Arc<FdReadiness>` that outlives the stream
+  (`foundation_netio/src/native/raw_stream.rs:480`), so the late drop is common.
+  Fix: keep an fd-to-token map in the reactor and skip the selector call when the
+  live token for that number is not this one, or deregister with the token so the
+  selector can compare (epoll `data`, kqueue `udata`). Add a test that closes an
+  fd, reuses the number, then drops the old readiness. Scheduled as feature 122.
+  Likely cause of the stalled proxy test in section 9.
+
 ## 6. foundation_deployment_docker / foundation_deployment
 
 (no open entries)
@@ -179,20 +211,26 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `cargo test -p foundation_proxy --test proxy_features_tests websocket_upgrade_relays_and_tunnels_bytes`.
   Fix: trace the splice pumps on macOS, or gate the test to Linux until the pump
   is fixed.
-- **`tests/rpc_proxy_e2e_tests.rs::connect_streams_spread_across_grpc_backends`
-  can exceed its 30 s cap on Linux CI.** GitHub run 42087629722 (commit
-  `b7bff1de1`) failed the `foundation_proxy` test step with `timeout: the test
-  took 30001 ms. Max 30000 ms.` The suite finishes in 17.5 s on a green run, and
-  the test alone takes 0.11 s on macOS. In the failing log the proxy and both
-  tagged backends start, then no relay activity appears for 30 s. The pool
-  lifecycle gate serialises the tests of one binary, so a stalled pool also
-  holds every later test: when the harness killed this test, six queued tests
-  finished within 0.7 s. A missed wake or a stalled accept on the HTTP/2 front
-  under load is the likely cause, not the load balancer. Fix: reproduce with the
-  full suite in a loop on Linux, instrument the front's accept path and the
-  pool's wake path, and make a hung client call fail on its own 15 s deadline
-  with a useful message. Do not raise the cap as the fix. Scheduled as feature
-  121.
+- **A proxy test stalls a request on Linux CI, in two different tests.** Run
+  42087629722 (commit `b7bff1de1`) failed
+  `tests/rpc_proxy_e2e_tests.rs::connect_streams_spread_across_grpc_backends`
+  with `timeout: the test took 30001 ms. Max 30000 ms.` Run 42099300473 (commit
+  `9b1138a63`) failed
+  `tests/h2_integration_tests.rs::h2_grpc_trailers_relayed` after 60.5 s with
+  `grpc-status trailer ... left: None, right: Some("0")`. In both logs the proxy
+  starts within 2 ms of the previous test's proxy stopping, and no request ever
+  reaches the handler. In run 2 the front's 60 s HTTP/2 idle timeout is the
+  bound that ends the wait. Both suites pass alone and in repeated runs on
+  macOS and in the Linux image. Both binaries run their tests in parallel over
+  one process-wide shared file descriptor reactor. Likely a lost read wake on a
+  connection after file descriptor number reuse; section 5b gives the mechanism
+  and feature 122 the fix. The accept loop is not the stalled wait: it retries
+  `accept` every 10 ms. In run 2 the stalled connection's own 60 s idle timer
+  fired, so the task and its timers ran while the read never reported readiness.
+  Fix: reproduce with the full binaries in a loop on Linux, land feature 122,
+  instrument the connection read path, and make a hung client call fail on its
+  own deadline with a useful message. Do not raise a cap as the fix. Scheduled
+  as feature 121.
 
 ## 10. foundation_ai
 
