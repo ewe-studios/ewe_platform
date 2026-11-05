@@ -2,13 +2,13 @@
 
 use std::borrow::Cow;
 
-/// Which browser to drive: Chromium over CDP, or Firefox over WebDriver BiDi.
+/// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Browser {
     /// Chromium / Chrome (CDP).
     #[default]
     Chromium,
-    /// Firefox (WebDriver BiDi).
+    /// Firefox (`WebDriver` `BiDi`).
     Firefox,
 }
 
@@ -66,7 +66,7 @@ impl LaunchConfig {
         Self::default()
     }
 
-    /// Firefox (WebDriver BiDi) with defaults.
+    /// Firefox (`WebDriver` `BiDi`) with defaults.
     #[must_use]
     pub fn firefox() -> Self {
         Self {

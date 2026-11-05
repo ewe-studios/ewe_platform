@@ -29,7 +29,7 @@ pub struct BrowserProcess {
 }
 
 impl BrowserProcess {
-    /// Launch the browser and discover its `webSocketDebuggerUrl` (CDP) or BiDi
+    /// Launch the browser and discover its `webSocketDebuggerUrl` (CDP) or `BiDi`
     /// session endpoint.
     ///
     /// # Errors
@@ -67,7 +67,7 @@ impl BrowserProcess {
         })
     }
 
-    /// Firefox: pick a free port for the Remote Agent, launch with BiDi enabled,
+    /// Firefox: pick a free port for the Remote Agent, launch with `BiDi` enabled,
     /// and target the BiDi-direct endpoint `ws://127.0.0.1:<port>/session`. (The
     /// engine connect retries while Firefox starts listening.) Chromium-shaped
     /// `extra_args` are not applied to Firefox.
@@ -212,8 +212,7 @@ fn which(name: &str) -> Option<PathBuf> {
 fn unique_profile_dir() -> PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     std::env::temp_dir().join(format!("primal-browser-{}-{nanos}", std::process::id()))
 }
 

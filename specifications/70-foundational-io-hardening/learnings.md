@@ -2,6 +2,26 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-05 (feature 109, `foundation_browser` clippy debt):
+  - **`i64::try_from(f64)` does not exist.** Rust has no safe fallible
+    float-to-integer conversion. The checked-conversion route cannot remove
+    `cast_possible_truncation`. Use one small helper with `#[expect]` and a
+    measured reason, or `f64::to_int_unchecked` in `unsafe`.
+  - **A leading `+ ` in a doc comment is a Markdown list marker.** It makes the
+    next line a lazy continuation and raises `doc_lazy_continuation`. Reword
+    the line ("plus …") instead of adding indentation.
+  - **Do not change a public signature to fix `needless_pass_by_value`.** Rust
+    cannot add a reference to a by-value parameter without breaking every
+    caller. Put `#[expect(clippy::needless_pass_by_value, reason = "...")]` on
+    the function; the reason names the public API.
+  - **`match_same_arms` can appear across a merged arm.** After merging the
+    close/error/end arms in the reader loop, clippy then asked for nested
+    or-patterns (`Some(Ok(..) | Err(_)) | None`). Run clippy again after each
+    merge.
+  - **`tests/smoke.rs` is behind `browser-tests`.** The default test run has 0
+    smoke tests and 1 SSE test. Do not claim the browser suite ran without a
+    real Chromium.
+
 - 2026-11-05 (feature 113, `foundation_nativeapis` clippy debt):
   - **Run `cargo clippy --fix` in the Linux image first.** One pass with
     `--features vfs-preload --no-deps --fix --allow-dirty` applied 29 file

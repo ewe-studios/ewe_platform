@@ -2,6 +2,26 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-05: feature 109, `foundation_browser` clippy debt reaches zero.
+  Branch `spec70/priority-followups`.
+  - `cargo clippy --profile uat -p foundation_browser --all-targets --no-deps
+    -- -D warnings` exits 0: 55 errors before, 0 after.
+  - Fixed `doc_markdown` (36), `cloned_instead_of_copied` (4),
+    `cast_possible_truncation` (4), `needless_pass_by_value` (3),
+    `match_same_arms` (2), and one each of `single_match_else`,
+    `missing_errors_doc`, `missing_panics_doc`, `doc_lazy_continuation`,
+    `manual_clamp` and `map_unwrap_or`.
+  - `ci/packages.toml`: new `[packages.foundation_browser]` with only
+    `clippy-deny-warnings = true`.
+  - The `#[expect]` attributes: the bounded `f64`-to-`i64` cast in
+    `wire_coord`, and `needless_pass_by_value` on the two public functions that
+    take their config by value.
+  - Tests: 1 passed, 0 failed. `tests/smoke.rs` needs a real browser and is
+    behind `browser-tests`, so the default run compiles it to 0 tests.
+  - Deleted backlog §33.
+  - Status is `pending (CI proof)`: the GitHub `foundation_browser` job must
+    show the new deny setting green.
+
 - 2026-11-05: feature 113, `foundation_nativeapis` clippy debt reaches zero.
   Branch `spec70/priority-followups`.
   - Both `-D warnings` clippy commands exit 0: the default run (245 unique

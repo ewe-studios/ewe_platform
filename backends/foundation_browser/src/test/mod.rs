@@ -6,7 +6,7 @@
 //!
 //! The server-driven UI machinery (broadcaster + App sink) lives in
 //! `foundation_wasm_ui::server` — a real server capability, not a test detail —
-//! and is re-exported here for convenience. Only the foundation_http/SSE glue
+//! and is re-exported here for convenience. Only the `foundation_http/SSE` glue
 //! ([`stream`]) is local.
 
 pub mod harness;

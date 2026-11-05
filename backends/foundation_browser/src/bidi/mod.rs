@@ -1,12 +1,12 @@
-//! # WebDriver BiDi support (spec-43 phase-2 — Firefox)
+//! # `WebDriver` `BiDi` support (spec-43 phase-2 — Firefox)
 //!
-//! WHY: BiDi is the cross-browser convergence protocol; Firefox speaks it
+//! WHY: `BiDi` is the cross-browser convergence protocol; Firefox speaks it
 //! directly. It is JSON-RPC over a WebSocket — the same engine as CDP — so only
 //! the bootstrap (`session.new`) and the operation mapping differ.
 //!
 //! WHAT: session/context bootstrap helpers + [`backend::BiDiBackend`].
 //!
-//! HOW: After connecting to Firefox's BiDi endpoint (`ws://host:port/session`),
+//! HOW: After connecting to Firefox's `BiDi` endpoint (`ws://host:port/session`),
 //! `session.new` opens a session (connection-scoped — no per-message session id),
 //! and `browsingContext.getTree` yields the default context every command targets.
 
@@ -17,7 +17,7 @@ use serde_json::{json, Value};
 use crate::error::{BrowserError, Result};
 use crate::jsonrpc::{RpcEngine, WireProtocol};
 
-/// Open a BiDi session over the connected engine (`session.new`). BiDi is
+/// Open a `BiDi` session over the connected engine (`session.new`). `BiDi` is
 /// connection-scoped, so the returned id is informational; subsequent commands
 /// on the same socket run in this session.
 ///

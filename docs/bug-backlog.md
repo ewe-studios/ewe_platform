@@ -508,21 +508,6 @@ are clean. Each item needs the per-crate clippy workflow in
   the `Env` bundle in `Ctx`. Fix: read a clock trait from `Ctx`, and use a simulated clock
   in the tests.
 
-## 33. foundation_browser
-
-- **Clippy debt: 56 errors under `-D warnings` in untouched files.** Command:
-  `cargo clippy --profile uat -p foundation_browser --all-targets --no-deps -- -D warnings`.
-  Found while feature 82 changed `src/test/stream.rs`; that file is now clean. The
-  rest: `bidi/backend.rs` 11, `cdp/launch.rs` 6, `browser.rs` 6, `bidi/mod.rs` 6,
-  `lib.rs` 4, `jsonrpc/engine.rs` 4, `geometry.rs` 4, `test/server.rs` 3,
-  `supervisor.rs` 3, `backend.rs` 3, `locator.rs` 2, `jsonrpc/mod.rs` 2,
-  `test/mod.rs` 1, `test/harness.rs` 1. Kinds: missing doc backticks (36),
-  `cloned` where `copied` applies (4), `f64`-to-`i64` casts (4), needless
-  pass-by-value (3), identical match arms (2), and one each of single-pattern
-  `match`, missing `# Panics`, missing `# Errors`, doc list indentation, clamp
-  pattern, `map(...).unwrap_or(...)` on a `Result`. Fix: run the crate hygiene
-  plan/execute pass before the next feature that touches this crate.
-
 ## 35. foundation_nativeapis
 
 - **The `vfs-preload` interposers take the mode as a fixed argument.** `open`,

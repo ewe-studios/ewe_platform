@@ -252,6 +252,11 @@ runs = ["", "quic"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
+[packages.foundation_browser]
+# At zero clippy warnings under `--all-targets` (spec 70 feature 109): a new one
+# fails CI.
+clippy-deny-warnings = true
+
 [packages.foundation_vectors]
 # `sql-store` adds the SQL / libsql vector stores and their tests; `code-graph`
 # adds the tree-sitter code-graph module and its tests.
