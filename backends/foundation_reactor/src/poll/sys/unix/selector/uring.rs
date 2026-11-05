@@ -36,7 +36,7 @@ use std::collections::HashMap;
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::sync::Mutex;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use io_uring::types::{SubmitArgs, Timespec};
 use io_uring::{cqueue, opcode, types, IoUring};
@@ -56,6 +56,16 @@ const TRACKING_USER_DATA: u64 = u64::MAX;
 struct FdEntry {
     fd: RawFd,
     interest: Interest,
+}
+
+/// Why one bounded wait ended, so [`Selector::poll`] knows whether to resume.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum WaitOutcome {
+    /// The kernel returned with no completion: the timeout expired, or the ring
+    /// reported a transient condition that ends this wait.
+    Expired,
+    /// A caught signal interrupted the wait before the timeout expired.
+    Interrupted,
 }
 
 /// io_uring-based selector.
@@ -326,12 +336,12 @@ impl Selector {
     /// Holds **no** lock: `Submitter` issues `io_uring_enter` directly, so a
     /// concurrent `register_fd` can push its SQE while this thread is parked in
     /// the kernel.
-    fn wait_for_completion(&self, timeout: Option<Duration>) -> io::Result<()> {
+    fn wait_for_completion(&self, timeout: Option<Duration>) -> io::Result<WaitOutcome> {
         /// Kernel conditions that mean "no completion this round", not failure.
         fn is_benign(e: &io::Error) -> bool {
             matches!(
                 e.raw_os_error(),
-                Some(libc::ETIME) | Some(libc::EINTR) | Some(libc::EBUSY) | Some(libc::EAGAIN)
+                Some(libc::ETIME) | Some(libc::EBUSY) | Some(libc::EAGAIN)
             )
         }
 
@@ -348,8 +358,9 @@ impl Selector {
         };
 
         match result {
-            Ok(()) => Ok(()),
-            Err(ref e) if is_benign(e) => Ok(()),
+            Ok(()) => Ok(WaitOutcome::Expired),
+            Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => Ok(WaitOutcome::Interrupted),
+            Err(ref e) if is_benign(e) => Ok(WaitOutcome::Expired),
             Err(e) => Err(e),
         }
     }
@@ -425,6 +436,11 @@ impl Selector {
 
     /// Wait for readiness and fill `events`.
     ///
+    /// The call waits until a completion arrives or `timeout` expires. A signal
+    /// with a handler installed interrupts `io_uring_enter` with `EINTR`; the
+    /// wait then resumes for the time that is left. A signal must never make the
+    /// call return before the timeout the caller asked for.
+    ///
     /// # Errors
     /// Returns an `io::Error` if `io_uring_enter` fails for a reason other than
     /// timeout, interruption, or a busy ring.
@@ -432,7 +448,21 @@ impl Selector {
     /// # Panics
     /// Panics if an internal lock is poisoned.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        self.wait_for_completion(timeout)?;
+        let deadline = timeout.map(|d| Instant::now() + d);
+
+        loop {
+            let remaining =
+                deadline.map(|deadline| deadline.saturating_duration_since(Instant::now()));
+            if self.wait_for_completion(remaining)? == WaitOutcome::Expired {
+                break;
+            }
+            // A caught signal cut the wait short. Run out the clock instead of
+            // reporting a timeout the caller did not ask for.
+            if deadline.is_none_or(|deadline| Instant::now() < deadline) {
+                continue;
+            }
+            break;
+        }
 
         let (seen, needs_rearm) = self.drain_completions();
 

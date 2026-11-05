@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 /// The internal kqueue selector.
 pub struct Selector {
@@ -399,6 +399,14 @@ impl Selector {
 
     /// Wait for readiness events.
     ///
+    /// The call waits until an event arrives or `timeout` expires. A signal
+    /// with a handler installed interrupts `kevent` with `EINTR`; the wait
+    /// then resumes for the time that is left. A signal must never make the
+    /// call return before the timeout the caller asked for.
+    ///
+    /// # Errors
+    /// Returns the `kevent` error for any failure other than interruption.
+    ///
     /// # Panics
     /// Panics if an internal lock is poisoned.
     #[allow(
@@ -407,43 +415,45 @@ impl Selector {
         clippy::cast_sign_loss
     )]
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let mut ts: libc::timespec = unsafe { std::mem::zeroed() };
-        let ts_ptr: *const libc::timespec = if let Some(d) = timeout {
-            ts.tv_sec = d.as_secs() as libc::time_t;
-            ts.tv_nsec = d.subsec_nanos() as libc::c_long;
-            &ts
-        } else {
-            std::ptr::null()
-        };
+        let deadline = timeout.map(|d| Instant::now() + d);
 
-        // Get pointer to the Vec's buffer and its capacity (not length)
-        let (ptr, cap) = events.as_mut_ptr_and_cap();
+        loop {
+            let ts = deadline.map(remaining_timespec);
+            let ts_ptr = ts
+                .as_ref()
+                .map_or(std::ptr::null(), std::ptr::from_ref::<libc::timespec>);
 
-        let n = unsafe {
-            libc::kevent(
-                self.kq.as_raw_fd(),
-                std::ptr::null(),
-                0,
-                ptr as *mut libc::kevent,
-                cap as libc::c_int,
-                if ts_ptr.is_null() {
-                    std::ptr::null()
-                } else {
-                    ts_ptr
-                },
-            )
-        };
+            // Get pointer to the Vec's buffer and its capacity (not length)
+            let (ptr, cap) = events.as_mut_ptr_and_cap();
 
-        if n < 0 {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::Interrupted {
-                events.clear();
-                return Ok(());
+            let n = unsafe {
+                libc::kevent(
+                    self.kq.as_raw_fd(),
+                    std::ptr::null(),
+                    0,
+                    ptr.cast::<libc::kevent>(),
+                    cap as libc::c_int,
+                    ts_ptr,
+                )
+            };
+
+            if n < 0 {
+                let err = io::Error::last_os_error();
+                if err.kind() == io::ErrorKind::Interrupted {
+                    // A caught signal cut the wait short. Run out the clock
+                    // instead of reporting a timeout the caller did not ask for.
+                    events.clear();
+                    if deadline.is_none_or(|deadline| Instant::now() < deadline) {
+                        continue;
+                    }
+                    return Ok(());
+                }
+                return Err(err);
             }
-            return Err(err);
-        }
 
-        events.set_len(n as usize);
+            events.set_len(n as usize);
+            break;
+        }
 
         // macOS kqueue reports `EVFILT_READ` level-triggered for pipes despite
         // `EV_CLEAR`, so the selector enforces the read edge itself: a readable
@@ -503,5 +513,19 @@ impl Selector {
         }
 
         Ok(())
+    }
+}
+
+/// The time left until `deadline`, as a `timespec` for `kevent`.
+///
+/// A zero value means "do not block", so the last round after a signal waits
+/// for whatever is left of the caller's timeout, not for the whole timeout
+/// again.
+#[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+fn remaining_timespec(deadline: Instant) -> libc::timespec {
+    let remaining = deadline.saturating_duration_since(Instant::now());
+    libc::timespec {
+        tv_sec: libc::time_t::try_from(remaining.as_secs()).unwrap_or(libc::time_t::MAX),
+        tv_nsec: libc::c_long::from(remaining.subsec_nanos()),
     }
 }

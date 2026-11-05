@@ -5,7 +5,7 @@ use crate::poll::{Interest, Token};
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::sync::Mutex;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 /// The internal epoll selector.
 ///
@@ -166,35 +166,49 @@ impl Selector {
     }
 
     /// Wait for readiness events.
+    ///
+    /// The call waits until an event arrives or `timeout` expires. A signal
+    /// with a handler installed interrupts `epoll_wait` with `EINTR`; the wait
+    /// then resumes for the time that is left. A signal must never make the
+    /// call return before the timeout the caller asked for.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let timeout_ms = timeout.map(|d| d.as_millis() as libc::c_int).unwrap_or(-1);
+        let deadline = timeout.map(|d| Instant::now() + d);
 
-        // Get pointer to the Vec's buffer and its capacity (not length).
-        // The Vec has capacity but length 0 — epoll_wait writes directly into
-        // the buffer, and we update the length afterward.
-        let (ptr, cap) = events.as_mut_ptr_and_cap();
+        loop {
+            let timeout_ms = deadline.map_or(-1, remaining_ms);
 
-        let n = unsafe {
-            libc::epoll_wait(
-                self.epoll.as_raw_fd(),
-                ptr as *mut libc::epoll_event,
-                cap as libc::c_int,
-                timeout_ms,
-            )
-        };
+            // Get pointer to the Vec's buffer and its capacity (not length).
+            // The Vec has capacity but length 0 — epoll_wait writes directly into
+            // the buffer, and we update the length afterward.
+            let (ptr, cap) = events.as_mut_ptr_and_cap();
 
-        if n < 0 {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::Interrupted {
-                // EINTR — no events, not an error
-                events.clear();
-                return Ok(());
+            let n = unsafe {
+                libc::epoll_wait(
+                    self.epoll.as_raw_fd(),
+                    ptr as *mut libc::epoll_event,
+                    cap as libc::c_int,
+                    timeout_ms,
+                )
+            };
+
+            if n < 0 {
+                let err = io::Error::last_os_error();
+                if err.kind() == io::ErrorKind::Interrupted {
+                    // A caught signal cut the wait short. Run out the clock
+                    // instead of reporting a timeout the caller did not ask for.
+                    events.clear();
+                    if deadline.is_none_or(|deadline| Instant::now() < deadline) {
+                        continue;
+                    }
+                    return Ok(());
+                }
+                return Err(err);
             }
-            return Err(err);
-        }
 
-        // set_len is safe here — n is guaranteed ≤ capacity by epoll_wait
-        events.set_len(n as usize);
+            // set_len is safe here — n is guaranteed ≤ capacity by epoll_wait
+            events.set_len(n as usize);
+            break;
+        }
 
         // Check if the waker fired and clear it
         let waker_token = self.waker_token.lock().unwrap();
@@ -208,6 +222,17 @@ impl Selector {
 
         Ok(())
     }
+}
+
+/// Milliseconds left until `deadline`, for `epoll_wait`'s timeout argument.
+///
+/// Rounds up, so a remainder below one millisecond still waits instead of
+/// turning into a zero timeout, and caps at `c_int::MAX` (about 24 days).
+#[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+fn remaining_ms(deadline: Instant) -> libc::c_int {
+    let remaining = deadline.saturating_duration_since(Instant::now());
+    let millis = remaining.as_nanos().div_ceil(1_000_000);
+    millis.min(libc::c_int::MAX as u128) as libc::c_int
 }
 
 /// Convert `Interest` to epoll event flags.
