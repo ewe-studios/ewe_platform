@@ -262,6 +262,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
+- **The `Free runner disk` step stalls and leaves the run `in_progress`.** The step runs
+  `find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +`
+  (`.github/workflows/check.yaml:121` and `:308`). On 2026-11-05 the
+  `foundation_buildtools` job was cancelled at that step (run 42048334017), and in run
+  42040473182 the `foundation_wireguard` job stayed at it for over an hour, so the whole
+  run never completed. The step deletes whatever the runner image left at depth 2, which
+  can be a large tree. Fix: delete only the paths the job needs freed, or bound the step
+  with `timeout`, and print the size before the delete. Found on 2026-11-05.
 - **`foundation_shell` is an empty placeholder crate.** `backends/foundation_shell/src/lib.rs`
   holds only `add(left, right)`, and nothing in the workspace depends on it. It still has a CI
   package entry, so every run builds it for no benefit. Spec 59 puts the shell work in a new
