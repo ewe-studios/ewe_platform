@@ -350,6 +350,10 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
     plan["test"] = [
         ["mise", "run", "test:wasm-testbed:deno"],
         ["mise", "run", "test:wasm-bindgen:deno"],
+        # Spec 70 feature 76: the D1/R2/KV wasm stores on the real local
+        # bindings (`wrangler dev --local`). The REST clients use the same
+        # local D1/R2 state through the explorer API.
+        ["mise", "run", "test:wasm-testbed:wrangler"],
     ]
     return plan
 

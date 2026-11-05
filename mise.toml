@@ -1089,6 +1089,15 @@ cargo run -p foundation_testbed --no-default-features --features wasm --profile 
 echo "✓ owned web harness green"
 """
 
+[tasks."test:wasm-testbed:wrangler"]
+alias = "test-wasm-testbed-wrangler"
+description = "Cloudflare D1/R2/KV wasm stores on the real bindings (`wrangler dev --local`, no stub) — spec 70 feature 76"
+run = """
+echo "Cloudflare wasm stores on the real D1, R2 and KV bindings..."
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin wasm-testbed -- test bindgen-wrangler backends/foundation_db/integration/wasm_cf
+echo "✓ real-binding wasm stores green"
+"""
+
 [tasks."test:nostd:wasm"]
 alias = "test-nostd-wasm"
 description = "WASM compilation tests for foundation_nostd"

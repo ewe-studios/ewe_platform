@@ -300,13 +300,29 @@ fn run_bindgen_wrangler(
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
 
-    tracing::info!("Running wasm-bindgen (esmodules)...");
+    tracing::info!("Running wasm-bindgen (module)...");
     wasm::run_wasm_bindgen_with_name(
         &build.wasm_path,
         integration_dir,
         BindgenTarget::EsModules,
         Some(&build.package_name),
     )?;
+
+    // The `module` target instantiates the wasm at import time and keeps the
+    // instance private. Export it as `wasm` so the worker can call the
+    // `__wbgt_` test shims (raw wasm exports). Drop the libtest `main` call:
+    // it would run the plain `#[test]`s, which abort on wasm. Keep its
+    // externref-table initialisation: without it a `JsValue` constant (for
+    // example the `true`/`false` that `run` resolves to) maps to a wrong
+    // table slot.
+    let js_file = integration_dir.join(format!("{}.js", build.package_name));
+    let content = std::fs::read_to_string(&js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
+    let content = content.replace(
+        "wasm.__wbindgen_start();",
+        "const __initTable = Object.values(__wbg_get_imports())\n  .map((m) => m && m.__wbindgen_init_externref_table)\n  .find((f) => f);\nif (__initTable) __initTable();",
+    );
+    std::fs::write(&js_file, format!("{content}\nexport {{ wasm }};\n"))
+        .map_err(|e| WasmTestbedError::Io(e).trace())?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let tests = wasm_test::discover_tests(&bg_wasm)?;
@@ -326,10 +342,15 @@ fn run_bindgen_wrangler(
     )?;
 
     let output = wrangler::run(integration_dir, None)?;
-    if output.status_code >= 400 {
-        return Err(
-            WasmTestbedError::WranglerHttpFailed(format!("status {}", output.status_code)).trace(),
-        );
+    let passed = serde_json::from_str::<serde_json::Value>(&output.response_body)
+        .ok()
+        .and_then(|value| value.get("passed").and_then(serde_json::Value::as_bool));
+    if output.status_code >= 400 || passed != Some(true) {
+        return Err(WasmTestbedError::WranglerHttpFailed(format!(
+            "status {}: {} (wrangler: {})",
+            output.status_code, output.response_body, output.wrangler_stderr
+        ))
+        .trace());
     }
     println!("{}", output.response_body);
     Ok(())

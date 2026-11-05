@@ -167,7 +167,7 @@ pub enum WasmTestbedError {
     WranglerStartFailed(std::io::Error),
 
     #[display(
-        "wrangler dev did not become ready within 10 seconds\n\
+        "wrangler dev did not become ready in time\n\
         wrangler stderr:\n{_0}"
     )]
     #[error(ignore)]

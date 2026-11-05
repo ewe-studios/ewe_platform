@@ -70,6 +70,11 @@ wasm-embedded-js = [
   "dep:foundation_compact", # OS entropy behind the crypto.getRandomValues shim (no deno_crypto)
 ]
 
+# Unix only: kill the whole `wrangler dev` process group (npx → wrangler →
+# workerd), not only the direct child.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [dependencies]
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
