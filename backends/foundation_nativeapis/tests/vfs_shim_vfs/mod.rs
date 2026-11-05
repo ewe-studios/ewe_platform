@@ -1,6 +1,6 @@
 #![cfg(all(feature = "vfs-preload", target_os = "linux"))]
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// Locate the `LD_PRELOAD` shim, building it if this run hasn't produced it yet.
@@ -17,12 +17,7 @@ use std::process::Command;
 /// feature and profile, then look again. The profile is recovered from the
 /// target directory name, so `--profile uat` and `--release` both work.
 fn find_shim_so() -> String {
-    // Test binary lives at <target>/<profile>/deps/<bin>; the cdylib is one level up.
-    let target_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(Path::to_path_buf)) // deps/
-        .and_then(|p| p.parent().map(Path::to_path_buf)) // <profile>/
-        .expect("could not find target directory");
+    let target_dir = profile_dir();
 
     if let Some(so) = existing_shim(&target_dir) {
         return so;
@@ -58,6 +53,33 @@ fn find_shim_so() -> String {
     existing_shim(&target_dir).unwrap_or_else(|| {
         panic!("shim .so still not found in {target_dir:?} after building the cdylib")
     })
+}
+
+/// The `<target>/<profile>` directory that holds this run's artifacts.
+///
+/// WHY: the artifact layout is not fixed. With cargo's new build-directory
+/// layout a test binary runs from
+/// `<target>/<profile>/build/<package>/<hash>/out/<binary>`, so the
+/// executable's grandparent is `<hash>`, not the profile directory. Deriving
+/// the profile from it passed the hash to `--profile` and the build failed with
+/// `profile '<hash>' is not defined`.
+///
+/// WHAT: the nearest ancestor of the running executable that holds cargo's
+/// `.cargo-lock`, which cargo writes directly into the profile directory in
+/// every layout.
+///
+/// HOW: walk the executable's ancestors. Panic with the executable path when no
+/// ancestor holds the lock file, so the cause is readable rather than a build
+/// error about a profile name.
+fn profile_dir() -> PathBuf {
+    let exe = std::env::current_exe().expect("could not find the test executable");
+    exe.ancestors()
+        .skip(1) // the executable itself
+        .find(|dir| dir.join(".cargo-lock").is_file())
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| {
+            panic!("no target profile directory above {exe:?}: it must hold `.cargo-lock`")
+        })
 }
 
 fn existing_shim(target_dir: &Path) -> Option<String> {

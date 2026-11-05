@@ -5910,7 +5910,6 @@ dependencies = [
  "async-trait",
  "bincode 2.0.1",
  "blake3",
- "cc",
  "cfg-if",
  "concurrent-queue",
  "derive_more",

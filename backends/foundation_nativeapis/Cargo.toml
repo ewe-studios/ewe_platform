@@ -316,10 +316,6 @@ name = "vfs_sqlite_delta"
 path = "examples/vfs_sqlite_delta/main.rs"
 required-features = ["vfs-sqlite"]
 
-[build-dependencies]
-# Compiles the C variadic `open`/`openat` entry points for the vfs-preload shim.
-cc = "1"
-
 [features]
 # Default: full platform-native stack.
 default = ["native", "signal"]
