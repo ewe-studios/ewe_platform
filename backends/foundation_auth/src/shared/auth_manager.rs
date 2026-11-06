@@ -4,6 +4,11 @@
 //! into a single coherent interface. Handles authentication, token refresh,
 //! persistence, and logout.
 
+use std::sync::Arc;
+
+use foundation_core::valtron::Clock;
+
+use crate::shared::clock::now_seconds;
 use crate::shared::credential_store::{CredentialStorage, CredentialStoreError, OAuthTokenStore};
 use crate::shared::jwks::{JwksError, JwksManager};
 use crate::shared::jwt::{JwtError, JwtManager, JwtToken, JwtVerifier};
@@ -68,6 +73,7 @@ pub struct AuthManager {
     session_mgr: Option<SessionManager<CredentialStorage>>,
     jwt_verifier: Option<JwtVerifier>,
     jwks_manager: Option<JwksManager>,
+    clock: Arc<dyn Clock>,
 }
 
 /// Auth manager error type.
@@ -141,8 +147,9 @@ impl From<JwksError> for AuthManagerError {
 impl AuthManager {
     /// Create a new `AuthManager`.
     #[must_use]
-    pub fn new(store: CredentialStorage, config: AuthManagerConfig) -> Self {
-        let jwt_manager = JwtManager::new().with_refresh_buffer(config.refresh_buffer_seconds);
+    pub fn new(store: CredentialStorage, config: AuthManagerConfig, clock: Arc<dyn Clock>) -> Self {
+        let jwt_manager =
+            JwtManager::new(Arc::clone(&clock)).with_refresh_buffer(config.refresh_buffer_seconds);
         Self {
             store,
             jwt_manager,
@@ -151,6 +158,7 @@ impl AuthManager {
             session_mgr: None,
             jwt_verifier: None,
             jwks_manager: None,
+            clock,
         }
     }
 
@@ -189,13 +197,10 @@ impl AuthManager {
         let token_result = self.store.get_oauth_token("default").await;
         match token_result {
             Ok(Some(oauth_token)) => {
+                let now = now_seconds(self.clock.as_ref());
                 let expires_at = oauth_token.expires_in.map_or_else(
-                    || chrono::Utc::now().timestamp() + 3600,
-                    |exp| {
-                        chrono::Utc::now()
-                            .timestamp()
-                            .saturating_add(i64::try_from(exp).unwrap_or(i64::MAX))
-                    },
+                    || now + 3600,
+                    |exp| now.saturating_add(i64::try_from(exp).unwrap_or(i64::MAX)),
                 );
 
                 let jwt_token = JwtToken::from_parts(
@@ -205,9 +210,10 @@ impl AuthManager {
                     oauth_token.scope.clone(),
                     None,
                     None,
+                    self.clock.as_ref(),
                 );
 
-                if !jwt_token.is_expired() {
+                if !jwt_token.is_expired(self.clock.as_ref()) {
                     self.jwt_manager.set_token(jwt_token);
                     let _ = self
                         .state_machine
@@ -281,6 +287,7 @@ impl AuthManager {
                 None,
                 None,
                 None,
+                self.clock.as_ref(),
             );
             self.jwt_manager.set_token(jwt_token);
 
@@ -307,7 +314,8 @@ impl AuthManager {
         match self.state_machine.current() {
             AuthState::Authenticated => {
                 if let Some(token) = self.jwt_manager.get_token() {
-                    if token.expires_within(self.config.refresh_buffer_seconds) {
+                    if token.expires_within(self.config.refresh_buffer_seconds, self.clock.as_ref())
+                    {
                         return Err(AuthManagerError::TokenExpired);
                     }
                     return Ok(AuthToken::OAuth {
@@ -463,7 +471,7 @@ impl AuthManager {
                     access_token: access_token.get(),
                     token_type: "Bearer".to_string(),
                     expires_in: Some(
-                        u64::try_from((*expires_at - chrono::Utc::now().timestamp()).max(0))
+                        u64::try_from((*expires_at - now_seconds(self.clock.as_ref())).max(0))
                             .unwrap_or(0),
                     ),
                     refresh_token: refresh_token.as_ref().map(ConfidentialText::get),
@@ -484,7 +492,7 @@ impl AuthManager {
             access_token: token.access_token(),
             token_type: "Bearer".to_string(),
             expires_in: Some(
-                u64::try_from((token.expires_at - chrono::Utc::now().timestamp()).max(0))
+                u64::try_from((token.expires_at - now_seconds(self.clock.as_ref())).max(0))
                     .unwrap_or(0),
             ),
             refresh_token: token.refresh_token(),

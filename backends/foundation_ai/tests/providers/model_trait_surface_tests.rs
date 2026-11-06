@@ -8,7 +8,7 @@
 //! generate, never inspecting it. A wrong descriptor silently misprices; a wrong
 //! formatter sends tools in a shape the vendor cannot parse.
 //!
-//! WHAT: the four accessors on the Anthropic, OpenAI and Responses models,
+//! WHAT: the four accessors on the Anthropic, `OpenAI` and Responses models,
 //! asserting each reports its own provider rather than a copy-pasted neighbour's.
 //!
 //! HOW: Anthropic needs no network to resolve a model (it synthesises the spec);
@@ -64,7 +64,7 @@ fn secret() -> AuthCredential {
 
 fn anthropic_model() -> impl Model {
     let cfg = AnthropicConfig::new().with_auth(secret());
-    AnthropicMessagesProvider::new()
+    AnthropicMessagesProvider::new(test_clock())
         .create(Some(cfg))
         .expect("provider builds")
         .get_model(ModelId::Name("claude-sonnet-4-6".into(), None))
@@ -74,6 +74,11 @@ fn anthropic_model() -> impl Model {
 // ---------------------------------------------------------------------------
 // Anthropic
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[test]
 fn anthropic_spec_reports_the_requested_model() {
@@ -131,7 +136,7 @@ fn openai_model_trait_surface() {
         .with_max_retries(0)
         .with_auth(secret());
 
-    let m = OpenAIProvider::with_http_client_and_config(http_client, cfg.clone())
+    let m = OpenAIProvider::with_http_client_and_config(http_client, cfg.clone(), test_clock())
         .create(Some(cfg))
         .expect("provider builds")
         .get_model(ModelId::Name("gpt-4o".into(), None))
@@ -169,7 +174,7 @@ fn responses_model_trait_surface() {
         .with_max_retries(0)
         .with_auth(secret());
 
-    let m = ResponsesProvider::with_http_client_and_config(http_client, cfg.clone())
+    let m = ResponsesProvider::with_http_client_and_config(http_client, cfg.clone(), test_clock())
         .create(Some(cfg))
         .expect("provider builds")
         .get_model(ModelId::Name("gpt-4o".into(), None))
@@ -216,11 +221,12 @@ fn each_provider_reports_a_distinct_identity() {
         .with_base_url(server.base_url())
         .with_max_retries(0)
         .with_auth(secret());
-    let openai = OpenAIProvider::with_http_client_and_config(http_client, cfg.clone())
-        .create(Some(cfg))
-        .expect("builds")
-        .get_model(ModelId::Name("gpt-4o".into(), None))
-        .expect("resolves");
+    let openai =
+        OpenAIProvider::with_http_client_and_config(http_client, cfg.clone(), test_clock())
+            .create(Some(cfg))
+            .expect("builds")
+            .get_model(ModelId::Name("gpt-4o".into(), None))
+            .expect("resolves");
 
     let anthropic_id = anthropic_model().descriptor().expect("descriptor").id;
     let openai_id = openai.descriptor().expect("descriptor").id;

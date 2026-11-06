@@ -4,9 +4,10 @@
 //! Client hashes `(challenge + nonce)` until hash has enough leading zeros.
 //! Server validates by hashing once.
 
+use crate::shared::clock::now_seconds;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 use foundation_db::{KeyValueStore, StorageError};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -51,6 +52,7 @@ pub struct PowService<KV: KeyValueStore> {
     difficulty: u32,
     validity_secs: u64,
     solve_validity_secs: u64,
+    clock: std::sync::Arc<dyn Clock>,
 }
 
 impl<KV: KeyValueStore> PowService<KV> {
@@ -60,12 +62,14 @@ impl<KV: KeyValueStore> PowService<KV> {
         difficulty: u32,
         challenge_validity_secs: u64,
         solve_validity_secs: u64,
+        clock: std::sync::Arc<dyn Clock>,
     ) -> Self {
         Self {
             cache,
             difficulty,
             validity_secs: challenge_validity_secs,
             solve_validity_secs,
+            clock,
         }
     }
 
@@ -80,7 +84,7 @@ impl<KV: KeyValueStore> PowService<KV> {
         foundation_compact::rng::rng().fill_bytes(&mut bytes);
         let challenge = URL_SAFE_NO_PAD.encode(bytes);
 
-        let issued_at = Utc::now().timestamp();
+        let issued_at = now_seconds(self.clock.as_ref());
         let entry = ChallengeEntry {
             difficulty: self.difficulty,
             issued_at,
@@ -113,7 +117,7 @@ impl<KV: KeyValueStore> PowService<KV> {
         };
 
         // Lazy expiry check.
-        if Utc::now().timestamp() >= entry.expires_at {
+        if now_seconds(self.clock.as_ref()) >= entry.expires_at {
             // Best-effort eviction: the entry is already unusable.
             if let Err(e) = self.cache.delete(&key).await {
                 eprintln!("PoW: failed to evict expired challenge: {e}");
@@ -122,7 +126,7 @@ impl<KV: KeyValueStore> PowService<KV> {
         }
 
         // Solve window: a solution must arrive within solve_validity_secs of issue.
-        if Utc::now().timestamp() - entry.issued_at
+        if now_seconds(self.clock.as_ref()) - entry.issued_at
             > i64::try_from(self.solve_validity_secs).unwrap_or(i64::MAX)
         {
             return false;

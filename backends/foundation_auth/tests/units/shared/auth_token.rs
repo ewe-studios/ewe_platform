@@ -3,6 +3,12 @@
 use chrono::Utc;
 use foundation_auth::shared::auth_token::AuthToken;
 use foundation_auth::shared::types::ConfidentialText;
+use foundation_core::valtron::{Clock, MonotonicClock};
+use std::sync::Arc;
+
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 #[test]
 fn test_oauth_token_not_expired() {
@@ -14,7 +20,7 @@ fn test_oauth_token_not_expired() {
         expires_at: future,
         scope: None,
     };
-    assert!(!token.is_expired());
+    assert!(!token.is_expired(test_clock().as_ref()));
 }
 
 #[test]
@@ -27,7 +33,7 @@ fn test_oauth_token_expired() {
         expires_at: past,
         scope: None,
     };
-    assert!(token.is_expired());
+    assert!(token.is_expired(test_clock().as_ref()));
 }
 
 #[test]
@@ -35,7 +41,7 @@ fn test_api_key_never_expires() {
     let token = AuthToken::ApiKey {
         key: ConfidentialText::new("key123".to_string()),
     };
-    assert!(!token.is_expired());
+    assert!(!token.is_expired(test_clock().as_ref()));
 }
 
 #[test]

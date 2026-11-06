@@ -446,9 +446,16 @@ impl Deployable for HetznerServer {
                     );
                     let settled = hetzner.await_running(existing.id).await?;
                     let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
-                    store.store_typed(&key, &output).await.map_err(|e| {
-                        HetznerError::Transport(format!("persist deploy state: {e}"))
-                    })?;
+                    store
+                        .store_typed(
+                            &key,
+                            &output,
+                            &foundation_core::valtron::MonotonicClock::new(),
+                        )
+                        .await
+                        .map_err(|e| {
+                            HetznerError::Transport(format!("persist deploy state: {e}"))
+                        })?;
                     return Ok(output);
                 }
             }
@@ -515,7 +522,11 @@ impl Deployable for HetznerServer {
                 let settled = hetzner.await_running(created_id).await?;
                 let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
                 store
-                    .store_typed(&key, &output)
+                    .store_typed(
+                        &key,
+                        &output,
+                        &foundation_core::valtron::MonotonicClock::new(),
+                    )
                     .await
                     .map_err(|e| HetznerError::Transport(format!("persist deploy state: {e}")))?;
                 Ok::<_, HetznerError>(output)

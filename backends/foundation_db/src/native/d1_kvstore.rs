@@ -13,6 +13,7 @@
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_cloudflare_types::{ApiEnvelope, D1BatchQuery, D1RawResultResponse, D1SingleQuery};
+use foundation_core::valtron::Clock;
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::{stream, StreamExt};
@@ -1175,15 +1176,21 @@ impl QueryStore for D1Store {
 impl RateLimiterStore for D1Store {
     async fn check_rate_limit(
         &self,
+        clock: &dyn Clock,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        rate_limit::sql_check(self, key, max_count, window_seconds).await
+        rate_limit::sql_check(self, clock, key, max_count, window_seconds).await
     }
 
-    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
-        rate_limit::sql_record(self, key, window_seconds).await
+    async fn record_rate_limit(
+        &self,
+        clock: &dyn Clock,
+        key: &str,
+        window_seconds: u64,
+    ) -> StorageResult<u32> {
+        rate_limit::sql_record(self, clock, key, window_seconds).await
     }
 
     async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {

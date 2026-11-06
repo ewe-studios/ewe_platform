@@ -29,6 +29,11 @@ use foundation_ai::types::{
 };
 use foundation_core::valtron::valtron_test;
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 
@@ -80,7 +85,7 @@ fn hello_interaction() -> ModelInteraction {
 
 #[valtron_test]
 fn test_pull_gemma4_e2b_via_preset() {
-    let provider = Gemma4E2b::q4_k_m(Some(gguf_config())).expect("provider builds");
+    let provider = Gemma4E2b::q4_k_m(Some(gguf_config()), test_clock()).expect("provider builds");
 
     let model = provider
         .get_model(ModelId::Name(Gemma4E2b::MODEL_ID.to_string(), None))
@@ -105,8 +110,8 @@ fn test_pull_gemma4_memory_via_router_preset() {
     // gemma_router pairs a big main model (26B) with the small E2B memory model.
     // Building both providers downloads nothing; we only resolve + pull the
     // memory model, so this test stays at the E2B download size.
-    let preset =
-        RouterPreset::gemma(Some(gguf_config()), Some(gguf_config())).expect("router builds");
+    let preset = RouterPreset::gemma(Some(gguf_config()), Some(gguf_config()), test_clock())
+        .expect("router builds");
 
     let memory_id = preset
         .memory_model

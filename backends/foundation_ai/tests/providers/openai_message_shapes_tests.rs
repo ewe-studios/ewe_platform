@@ -23,6 +23,11 @@ use foundation_ai::types::{
     UsageReport,
 };
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -80,8 +85,8 @@ fn request_json(interaction: &ModelInteraction) -> serde_json::Value {
 }
 
 fn response_with(
-    content: serde_json::Value,
-    finish_reason: serde_json::Value,
+    content: &serde_json::Value,
+    finish_reason: &serde_json::Value,
 ) -> ChatCompletionResponse {
     let raw = serde_json::json!({
         "id": "chatcmpl-1",
@@ -99,8 +104,13 @@ fn response_with(
 }
 
 fn parse(resp: &ChatCompletionResponse) -> (Messages, UsageReport) {
-    parse_chat_response(resp, &ModelId::Name("gpt-4o".into(), None), &free_pricing())
-        .expect("parse succeeds")
+    parse_chat_response(
+        resp,
+        &ModelId::Name("gpt-4o".into(), None),
+        &free_pricing(),
+        &*test_clock(),
+    )
+    .expect("parse succeeds")
 }
 
 fn text_of(msg: &Messages) -> String {
@@ -208,11 +218,11 @@ fn an_assistant_embedding_contributes_no_message() {
 #[test]
 fn response_content_parts_are_joined_into_text() {
     let resp = response_with(
-        serde_json::json!([
+        &serde_json::json!([
             {"type": "text", "text": "first"},
             {"type": "text", "text": "second"}
         ]),
-        serde_json::json!("stop"),
+        &serde_json::json!("stop"),
     );
     let (msg, _) = parse(&resp);
     assert_eq!(
@@ -227,11 +237,11 @@ fn response_content_parts_drop_image_entries() {
     // Image parts carry no text; including them would inject a URL into the
     // assistant's spoken content.
     let resp = response_with(
-        serde_json::json!([
+        &serde_json::json!([
             {"type": "text", "text": "described"},
             {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAAA"}}
         ]),
-        serde_json::json!("stop"),
+        &serde_json::json!("stop"),
     );
     let (msg, _) = parse(&resp);
     assert_eq!(text_of(&msg), "described");
@@ -240,7 +250,7 @@ fn response_content_parts_drop_image_entries() {
 #[test]
 fn response_with_null_content_is_empty_not_an_error() {
     // A tool-call-only reply has null content; that is normal, not a failure.
-    let resp = response_with(serde_json::Value::Null, serde_json::json!("stop"));
+    let resp = response_with(&serde_json::Value::Null, &serde_json::json!("stop"));
     let (msg, _) = parse(&resp);
     assert_eq!(text_of(&msg), "");
 }
@@ -258,7 +268,7 @@ fn finish_reason_maps_every_known_value() {
         (serde_json::json!("content_filter"), StopReason::Error),
     ];
     for (raw, expected) in cases {
-        let resp = response_with(serde_json::json!("hi"), raw.clone());
+        let resp = response_with(&serde_json::json!("hi"), &raw.clone());
         let (msg, _) = parse(&resp);
         assert_eq!(
             stop_reason_of(&msg),
@@ -270,7 +280,7 @@ fn finish_reason_maps_every_known_value() {
 
 #[test]
 fn absent_finish_reason_is_treated_as_stop() {
-    let resp = response_with(serde_json::json!("hi"), serde_json::Value::Null);
+    let resp = response_with(&serde_json::json!("hi"), &serde_json::Value::Null);
     let (msg, _) = parse(&resp);
     assert_eq!(stop_reason_of(&msg), StopReason::Stop);
 }
@@ -281,8 +291,8 @@ fn an_unknown_finish_reason_is_preserved_verbatim() {
     // silently reported as a normal completion — "length" vs "stop" is the
     // difference between a truncated answer and a finished one.
     let resp = response_with(
-        serde_json::json!("hi"),
-        serde_json::json!("vendor_specific"),
+        &serde_json::json!("hi"),
+        &serde_json::json!("vendor_specific"),
     );
     let (msg, _) = parse(&resp);
     assert_eq!(
@@ -306,7 +316,8 @@ fn a_response_with_no_choices_is_an_error() {
         parse_chat_response(
             &resp,
             &ModelId::Name("gpt-4o".into(), None),
-            &free_pricing()
+            &free_pricing(),
+            &*test_clock()
         )
         .is_err(),
         "an empty choices array must error rather than yield an empty completion"

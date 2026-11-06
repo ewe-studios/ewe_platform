@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    drive_iterator, park_on, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator,
+    drive_iterator, park_on, CancelOutcome, CancellableFutureTask, Clock, Ctx, DrivenTaskIterator,
     EventReadinessPtr, FutureTask, Stream, StreamSpread, TaskIterator, TaskSpread, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
@@ -510,7 +510,7 @@ fn coalesce_turn(collected: &[Messages]) -> Vec<Messages> {
 /// one assistant text message (the prose around the calls, if any) followed
 /// by one assistant message per call, carrying the last chunk's metadata and
 /// usage so the ledger still records the turn correctly.
-fn with_text_protocol_tool_calls(collected: Vec<Messages>) -> Vec<Messages> {
+fn with_text_protocol_tool_calls(collected: Vec<Messages>, clock: &dyn Clock) -> Vec<Messages> {
     let has_native_call = collected.iter().any(|message| {
         matches!(
             message,
@@ -556,7 +556,7 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>) -> Vec<Messages> {
     let make = |content: ModelOutput, stop_reason: StopReason| Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: model.clone(),
-        timestamp: foundation_compact::SystemTime::now(),
+        timestamp: clock.wall_now(),
         usage: usage.clone(),
         content,
         stop_reason,
@@ -932,7 +932,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_generate(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_generate(&mut self, ctx: &Ctx) -> TaskStatus<SessionRecord, AgentProgress> {
         // We need to take ownership of the state to pump the stream.
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
@@ -950,8 +950,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         let Some(item) = stream.next() else {
             // Stream finished — run loop detection, extract tool calls.
             self.breaker.on_success();
-            let collected = with_text_protocol_tool_calls(collected);
-            return self.on_generation_complete(&collected);
+            let collected = with_text_protocol_tool_calls(collected, &*ctx.clock());
+            return self.on_generation_complete(&collected, &*ctx.clock());
         };
 
         // Check for mid-generation steering interruption (OD-19-3).
@@ -1028,6 +1028,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     fn on_generation_complete(
         &mut self,
         collected: &[Messages],
+        clock: &dyn Clock,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Run loop detection (F17) synchronously on the model outputs.
         // Check the coalesced turn, not the raw chunks: HTTP backends stream
@@ -1160,7 +1161,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                             reason: format!(
                                 "turn produced no usable answer ({answer:?}), retrying"
                             ),
-                            timestamp: foundation_compact::SystemTime::now(),
+                            timestamp: clock.wall_now(),
                         });
                     }
                     // Deliberately NOT a failure. Out of retries, the best thing
@@ -1384,7 +1385,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                         id: foundation_compact::ids::new_scru128(),
                         tool_call_id: req.id,
                         name: req.name,
-                        timestamp: foundation_compact::SystemTime::now(),
+                        timestamp: ctx.clock().wall_now(),
                         details: None,
                         content,
                         error_detail,
@@ -1657,7 +1658,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             AgentLoopState::OuterBoundary => Some(self.transition_outer_boundary()),
             AgentLoopState::InnerAssemble => Some(self.transition_inner_assemble(ctx)),
             AgentLoopState::InnerAssembling { .. } => Some(self.transition_inner_assembling(ctx)),
-            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate()),
+            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate(&ctx)),
             AgentLoopState::InnerToolCalls { .. } => Some(self.transition_inner_tool_calls()),
             AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(&ctx)),
             AgentLoopState::InnerEmitResults { .. } => Some(self.transition_inner_emit_results()),

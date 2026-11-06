@@ -2,6 +2,11 @@ use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::backends::llamacpp_helpers::*;
 use foundation_ai::types::base_types::{ModelParams, ModelProvider};
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[test]
 fn test_build_sampler_chain_default() {
     let params = ModelParams::default();
@@ -61,7 +66,7 @@ fn test_backend_config_default() {
 
 #[test]
 fn test_backend_describe() {
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let descriptor = backend.describe().unwrap();
 
     assert_eq!(descriptor.id, "llamacpp");

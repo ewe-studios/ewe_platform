@@ -59,7 +59,11 @@ fn start_server() -> TestServer {
     let d = Arc::clone(&db);
     drive(async move { apply_schema(d.as_ref()).await }).expect("apply schema");
 
-    let app = KeychainServer::new(KeychainContext::new(db)).http_app();
+    let app = KeychainServer::new(KeychainContext::new(
+        db,
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ))
+    .http_app();
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");

@@ -8,6 +8,7 @@
 //! middleware — provides composable guard functions instead.
 
 use crate::shared::auth_token::AuthToken;
+use foundation_core::valtron::Clock;
 
 /// Request context carrying authentication info.
 #[derive(Debug, Clone)]
@@ -49,8 +50,8 @@ impl AuthContext {
 
     /// Whether the request is authenticated.
     #[must_use]
-    pub fn is_authenticated(&self) -> bool {
-        self.token.as_ref().is_some_and(|t| !t.is_expired())
+    pub fn is_authenticated(&self, clock: &dyn Clock) -> bool {
+        self.token.as_ref().is_some_and(|t| !t.is_expired(clock))
     }
 }
 
@@ -71,10 +72,10 @@ pub enum GuardResult {
 /// `GuardResult::TokenExpired` if the token exists but is expired, or
 /// `GuardResult::Unauthorized` if no token is present.
 #[must_use]
-pub fn require_auth(ctx: AuthContext) -> GuardResult {
+pub fn require_auth(ctx: AuthContext, clock: &dyn Clock) -> GuardResult {
     match ctx.token {
         Some(ref token) => {
-            if token.is_expired() {
+            if token.is_expired(clock) {
                 GuardResult::TokenExpired
             } else {
                 GuardResult::Authorized(Box::new(ctx))
@@ -88,9 +89,9 @@ pub fn require_auth(ctx: AuthContext) -> GuardResult {
 ///
 /// Useful for endpoints that work differently for authenticated vs anonymous users.
 #[must_use]
-pub fn optional_auth(mut ctx: AuthContext) -> GuardResult {
+pub fn optional_auth(mut ctx: AuthContext, clock: &dyn Clock) -> GuardResult {
     if let Some(ref token) = ctx.token {
-        if token.is_expired() {
+        if token.is_expired(clock) {
             ctx.token = None;
         }
     }

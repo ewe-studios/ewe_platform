@@ -18,6 +18,11 @@ use foundation_ai::harness::{RouterPreset, CLAUDE_OPUS};
 use foundation_ai::types::{ModelId, SessionId};
 use foundation_core::valtron::valtron_test;
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 fn named(id: &str) -> ModelId {
     ModelId::Name(id.to_string(), None)
 }
@@ -25,10 +30,10 @@ fn named(id: &str) -> ModelId {
 #[valtron_test]
 async fn into_agent_builder_builds_session_with_id() {
     let id = SessionId::from_name("harness-bridge-preset");
-    let preset = RouterPreset::claude("test-key").expect("router builds");
+    let preset = RouterPreset::claude("test-key", test_clock()).expect("router builds");
 
     let session = preset
-        .into_agent_builder()
+        .into_agent_builder(test_clock())
         .with_session_id(id.clone())
         .build()
         .await
@@ -43,9 +48,9 @@ async fn into_agent_builder_builds_session_with_id() {
 async fn preset_builder_builds_and_accepts_customisation() {
     let id = SessionId::from_name("harness-bridge-wrapper");
 
-    let session = RouterPreset::claude("test-key")
+    let session = RouterPreset::claude("test-key", test_clock())
         .expect("preset builds")
-        .into_agent_builder()
+        .into_agent_builder(test_clock())
         .with_session_id(id.clone())
         .with_system_prompt("You are a helpful assistant.")
         .build()

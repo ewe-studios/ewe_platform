@@ -14,6 +14,8 @@
 //! The async client calls run on the valtron pool through `from_future`,
 //! `execute`, and `collect_one`, inside `#[valtron_test]`.
 
+use std::sync::Arc;
+
 use foundation_auth::shared::body::DEFAULT_MAX_ERROR_BODY;
 use foundation_auth::shared::discovery::DiscoveryError;
 use foundation_auth::shared::introspection::IntrospectionError;
@@ -23,9 +25,14 @@ use foundation_auth::{
     DiscoveryClient, IntrospectionClient, JwksManager, ProviderMapping, ProviderType,
     UpstreamClientError, UpstreamOidcClient, UpstreamProvider, UserInfoClient,
 };
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test};
+use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, MonotonicClock};
 use foundation_netio::HttpClientBuilder;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
+
+/// A real clock for the shared clients, which take one explicitly.
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// The fixed prefix the clients put before a capped error body for a 500.
 const HTTP_500_PREFIX: &str = "HTTP 500: ";
@@ -110,7 +117,12 @@ fn jwks_parses_key_set() {
         .close_after_response(true);
 
     let jwks_url = server.url("/jwks");
-    let mut manager = JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None);
+    let mut manager = JwksManager::with_client(
+        HttpClientBuilder::new().build(),
+        jwks_url,
+        None,
+        test_clock(),
+    );
 
     let (count, kid) = drive(async move {
         manager
@@ -217,7 +229,12 @@ fn jwks_error_body_is_capped() {
     .close_after_response(true);
 
     let jwks_url = server.url("/jwks");
-    let mut manager = JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None);
+    let mut manager = JwksManager::with_client(
+        HttpClientBuilder::new().build(),
+        jwks_url,
+        None,
+        test_clock(),
+    );
 
     let err =
         drive(async move { manager.fetch().await.map(|_| ()) }).expect_err("a 500 is an error");
@@ -357,8 +374,13 @@ fn jwks_error_body_uses_configured_cap() {
     .close_after_response(true);
 
     let jwks_url = server.url("/jwks");
-    let mut manager = JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None)
-        .with_max_error_body(CUSTOM_CAP);
+    let mut manager = JwksManager::with_client(
+        HttpClientBuilder::new().build(),
+        jwks_url,
+        None,
+        test_clock(),
+    )
+    .with_max_error_body(CUSTOM_CAP);
 
     let err =
         drive(async move { manager.fetch().await.map(|_| ()) }).expect_err("a 500 is an error");

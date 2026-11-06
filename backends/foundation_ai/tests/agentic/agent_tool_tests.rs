@@ -62,6 +62,7 @@ fn test_tool() -> AgentTool<D, M> {
         "/tmp/test-delegation".into(),
         test_user(),
         vec![],
+        test_clock(),
     )
 }
 
@@ -74,6 +75,7 @@ fn tool_router(router: ProviderRouter) -> AgentTool<D, M> {
         "/tmp/test-delegation".into(),
         test_user(),
         vec![],
+        test_clock(),
     )
 }
 
@@ -102,6 +104,11 @@ fn poll_until_done(t: &AgentTool<D, M>, id: &str, max_iters: usize) -> Option<se
 // ------------------------------------------------------------------
 // definition
 // ------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[test]
 fn definition_is_multi_commands() {
@@ -215,6 +222,7 @@ fn depth_cap_blocks_delegation() {
             "/tmp".into(),
             test_user(),
             vec![],
+            test_clock(),
         );
         let err = t
             .execute(cmd("start", &[("task", "anything")]))
@@ -448,6 +456,7 @@ fn child_tools_provisioned_on_sub_agent() {
         "/tmp/test-delegation".into(),
         test_user(),
         vec![write_tool],
+        test_clock(),
     );
 
     let result = block_on(t.execute(cmd("start", &[("task", "write something")]))).expect("start");
@@ -474,6 +483,7 @@ fn register_adds_to_manager() {
         "/tmp/delegation",
         test_user(),
         vec![],
+        test_clock(),
     );
 
     assert!(manager.names().contains(&"agent".to_string()));
@@ -491,6 +501,7 @@ fn toolshed_contains_agent_after_registration() {
         "/tmp/delegation",
         test_user(),
         vec![],
+        test_clock(),
     );
 
     let shed = manager.all_declarations();
@@ -750,6 +761,7 @@ fn start_below_the_cap_is_allowed() {
         "/tmp/test-delegation".into(),
         test_user(),
         vec![],
+        test_clock(),
     );
     let out = block_on(t.execute(cmd("start", &[("task", "stuff")])))
         .expect("depth 4 of max 5 must be allowed");
@@ -767,6 +779,7 @@ fn depth_cap_of_zero_refuses_all_delegation() {
             "/tmp".into(),
             test_user(),
             vec![],
+            test_clock(),
         );
         let err = t
             .execute(cmd("start", &[("task", "anything")]))
@@ -798,6 +811,7 @@ fn tool_with_stores(
         test_user(),
         vec![],
         stores,
+        test_clock(),
     )
 }
 

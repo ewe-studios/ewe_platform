@@ -4533,7 +4533,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "candle-core",
@@ -4587,7 +4587,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "argon2",
  "async-trait",
@@ -5473,10 +5473,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_cronjobs"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "chrono",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "futures-lite",
@@ -5489,7 +5490,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -5840,7 +5841,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_keychain"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "age",
  "async-trait",

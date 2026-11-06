@@ -1,6 +1,7 @@
 //! Refresh token entity for the `IdP` server.
 
-use chrono::Utc;
+use crate::shared::clock::now_millis;
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 
 use super::client::hex_sha256;
@@ -24,8 +25,8 @@ impl RefreshToken {
     }
 
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp_millis() >= self.expires_at
+    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
+        now_millis(clock) >= self.expires_at
     }
 
     #[must_use]

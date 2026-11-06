@@ -56,7 +56,7 @@ fn user_msg(text: &str) -> Messages {
 
 /// A session whose router is the given mock, built the way the app builds one.
 async fn session_with(mock: MockModelProvider) -> Session {
-    AgentSession::builder(mock.into_router())
+    AgentSession::builder(mock.into_router(), test_clock())
         .with_system_prompt("You are a helpful assistant.")
         .with_model("mock")
         .with_context_config(ContextConfig::default())
@@ -84,6 +84,11 @@ fn assistant_texts(records: &[SessionRecord]) -> Vec<String> {
 
 // ---------------------------------------------------------------------------
 // Matrix 7.1 — run_turn returns the assistant reply
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[valtron_test]
 async fn run_turn_returns_the_mock_reply() {
@@ -465,7 +470,7 @@ async fn build_and_run_a_turn_on_sql_backed_stores() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello from sqlite")]);
 
-    let session: SqlSession = AgentSession::builder(mock.into_router())
+    let session: SqlSession = AgentSession::builder(mock.into_router(), test_clock())
         .with_doc_store(SqlDocumentStore::new(in_memory_turso().await))
         .with_memory_store(KvMemoryStore::new(in_memory_turso().await))
         .with_model("mock")

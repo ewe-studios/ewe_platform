@@ -1,6 +1,6 @@
 ---
 feature: "A dropped stream facade cancels its reader and writer tasks"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (found by feature 124)"
 model: "sonnet"
 branch: "spec70/priority-followups"
@@ -90,8 +90,7 @@ Then 30 runs of `rpc_proxy_e2e_tests` in the Linux CI image with `--cpus=2`.
 - [x] Splitting a bidi stream does not cancel it under the surviving half.
 - [x] A timeout stops the reader and writer tasks, not only the caller.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green. Pending the pull-request CI; the local checks pass and the Linux
-      CI run is the follow-up stage.
+- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
 
 ## Result
 

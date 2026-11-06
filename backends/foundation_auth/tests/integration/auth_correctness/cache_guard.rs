@@ -4,9 +4,13 @@ use std::sync::Arc;
 
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, Clock, MonotonicClock};
 use foundation_db::{AsyncListStream, KeyValueStore, MemoryStorage, QueryStore, StorageResult};
 use serde::{de::DeserializeOwned, Serialize};
+
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// A cache like Workers KV: every operation works, but `take` keeps the
 /// default read-then-delete (`take_is_atomic` is false).
@@ -35,13 +39,13 @@ impl KeyValueStore for ReadThenDelete {
     }
 }
 
-fn storage<KV: KeyValueStore>(cache: KV) -> Arc<HandlerStorage<KV>> {
+fn storage<KV: KeyValueStore>(cache: KV, clock: Arc<dyn Clock>) -> Arc<HandlerStorage<KV>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let provider =
         crate::integration::turso_provider(dir.path().join("g.db").to_str().unwrap().into());
     std::mem::forget(dir);
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
-    Arc::new(HandlerStorage::new(query_store, cache))
+    Arc::new(HandlerStorage::new(query_store, cache, clock))
 }
 
 fn config() -> IdpConfig {
@@ -50,7 +54,12 @@ fn config() -> IdpConfig {
 
 #[valtron_test(threads = 8, timeout = 60000)]
 fn idp_refuses_a_cache_without_atomic_take() {
-    let refused = IdpServer::try_new(config(), storage(ReadThenDelete(MemoryStorage::new())));
+    let clock = test_clock();
+    let refused = IdpServer::try_new(
+        config(),
+        storage(ReadThenDelete(MemoryStorage::new()), Arc::clone(&clock)),
+        clock,
+    );
     let error = refused
         .err()
         .expect("the cache must be refused")
@@ -61,14 +70,22 @@ fn idp_refuses_a_cache_without_atomic_take() {
 
 #[valtron_test(threads = 8, timeout = 60000)]
 fn the_risk_can_be_accepted_with_a_flag() {
+    let clock = test_clock();
     let accepted = IdpServer::try_new(
         config().with_allow_non_atomic_cache(true),
-        storage(ReadThenDelete(MemoryStorage::new())),
+        storage(ReadThenDelete(MemoryStorage::new()), Arc::clone(&clock)),
+        clock,
     );
     assert!(accepted.is_ok());
 }
 
 #[valtron_test(threads = 8, timeout = 60000)]
 fn atomic_caches_are_accepted() {
-    assert!(IdpServer::try_new(config(), storage(MemoryStorage::new())).is_ok());
+    let clock = test_clock();
+    assert!(IdpServer::try_new(
+        config(),
+        storage(MemoryStorage::new(), Arc::clone(&clock)),
+        clock
+    )
+    .is_ok());
 }

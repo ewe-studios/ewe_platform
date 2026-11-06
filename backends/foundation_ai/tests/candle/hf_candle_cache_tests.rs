@@ -28,6 +28,11 @@ use foundation_ai::backends::huggingface_candle_provider::{
     HuggingFaceCandleConfig, HuggingFaceCandleProvider,
 };
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -59,7 +64,7 @@ fn provider_with_cache(cache: &Path) -> HuggingFaceCandleProvider {
     let config = HuggingFaceCandleConfig::builder()
         .cache_dir(cache.to_path_buf())
         .build();
-    HuggingFaceCandleProvider::new(config).expect("provider builds offline")
+    HuggingFaceCandleProvider::new(config, test_clock()).expect("provider builds offline")
 }
 
 // ---------------------------------------------------------------------------

@@ -217,6 +217,7 @@ async fn a_dying_server_does_not_count_as_alive() {
                     },
                 ),
             },
+            &foundation_core::valtron::MonotonicClock::new(),
         )
         .await
         .expect("seeds state");

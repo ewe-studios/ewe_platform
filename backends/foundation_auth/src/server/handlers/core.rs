@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::SimpleIncomingRequest;
+
+use crate::shared::clock::now_millis;
 
 use super::routes::{route_for, Route};
 use crate::shared::credential_store::KvCredentialStore;
@@ -258,6 +261,7 @@ impl From<TokenServiceError> for IdpError {
 pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
     config: Arc<IdpConfig>,
     storage: Arc<HandlerStorage<KV>>,
+    clock: Arc<dyn Clock>,
     token_service: Arc<TokenService>,
     pow_service: Arc<PowService<KV>>,
     webauthn_service: Arc<WebAuthnService<HandlerStorage<KV>, KV>>,
@@ -277,19 +281,34 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Panics if `IdpConfig::session_key` is shorter than 32 bytes
     /// (`IdpServer::try_new` checks it and returns an error instead).
     #[must_use]
-    pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage<KV>>) -> Self {
+    pub fn new(
+        config: Arc<IdpConfig>,
+        storage: Arc<HandlerStorage<KV>>,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         let cache = storage.cache.clone();
-        let token_service = Arc::new(TokenService::new(Arc::clone(&config)));
-        let pow_service = Arc::new(PowService::new(cache.clone(), 22, 300, 600));
+        let token_service = Arc::new(TokenService::new(Arc::clone(&config), Arc::clone(&clock)));
+        let pow_service = Arc::new(PowService::new(
+            cache.clone(),
+            22,
+            300,
+            600,
+            Arc::clone(&clock),
+        ));
         let webauthn_service = Arc::new(WebAuthnService::new(
             Arc::clone(&config),
             Arc::clone(&storage),
             cache,
+            Arc::clone(&clock),
         ));
-        let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
+        let tos_service = Arc::new(TosService::new(Arc::clone(&storage), Arc::clone(&clock)));
         let mfa_service = Arc::new(
-            MfaService::new(Arc::clone(&storage), config.totp_keys.clone())
-                .with_algorithm(config.totp_algorithm),
+            MfaService::new(
+                Arc::clone(&storage),
+                config.totp_keys.clone(),
+                Arc::clone(&clock),
+            )
+            .with_algorithm(config.totp_algorithm),
         );
         // Sessions live in the cache the rest of the IdP uses, signed with the
         // configured key: every route (every handler instance) sees the same
@@ -302,12 +321,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                     ..Default::default()
                 },
                 &config.session_key,
+                Arc::clone(&clock),
             )
             .expect("IdpConfig::session_key must be at least 32 bytes"),
         );
         Self {
             config,
             storage,
+            clock,
             token_service,
             pow_service,
             webauthn_service,
@@ -484,7 +505,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let auth_code = storage::find_auth_code(self.storage.query_store.as_ref(), code)
             .await?
             .ok_or_else(|| IdpError::BadRequest("Invalid or expired authorization code".into()))?;
-        if auth_code.is_expired() {
+        if auth_code.is_expired(self.clock.as_ref()) {
             return Err(IdpError::BadRequest(
                 "Authorization code has expired".into(),
             ));
@@ -547,14 +568,19 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             storage::find_refresh_token_by_hash(self.storage.query_store.as_ref(), &token_hash)
                 .await?
                 .ok_or_else(|| IdpError::Unauthorized("Invalid refresh token".into()))?;
-        if rt.is_expired() {
+        if rt.is_expired(self.clock.as_ref()) {
             return Err(IdpError::Unauthorized("Refresh token expired".into()));
         }
         if rt.is_rotated() {
             return Err(IdpError::Unauthorized("Refresh token already used".into()));
         }
 
-        storage::mark_refresh_token_rotated(self.storage.query_store.as_ref(), &token_hash).await?;
+        storage::mark_refresh_token_rotated(
+            self.storage.query_store.as_ref(),
+            &token_hash,
+            self.clock.as_ref(),
+        )
+        .await?;
 
         let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &rt.user_id)
             .await?
@@ -715,6 +741,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             scope.to_string(),
             self.config.device_code_ttl,
             self.config.device_code_interval,
+            self.clock.as_ref(),
         );
         storage::store_device_code(self.storage.query_store.as_ref(), &device_code).await?;
 
@@ -754,7 +781,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .await?
             .ok_or_else(|| IdpError::Unauthorized("Invalid credentials".into()))?;
 
-        if user.is_locked() {
+        if user.is_locked(self.clock.as_ref()) {
             let retry = user.locked_until.unwrap_or(0);
             return Err(IdpError::Locked(retry));
         }
@@ -795,12 +822,13 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             let max = self.config.password_policy.max_failed_attempts;
             let lockout_dur = self.config.password_policy.lockout_duration;
             let mut u = user.clone();
-            u.record_failed_attempt(max, lockout_dur);
+            u.record_failed_attempt(max, lockout_dur, self.clock.as_ref());
             update_user_lockout(
                 self.storage.query_store.as_ref(),
                 &u.id,
                 u.failed_login_attempts,
                 u.locked_until,
+                self.clock.as_ref(),
             )
             .await?;
             let remaining = max.saturating_sub(u.failed_login_attempts);
@@ -845,12 +873,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         u.record_failed_attempt(
             self.config.password_policy.max_failed_attempts,
             self.config.password_policy.lockout_duration,
+            self.clock.as_ref(),
         );
         update_user_lockout(
             self.storage.query_store.as_ref(),
             &u.id,
             u.failed_login_attempts,
             u.locked_until,
+            self.clock.as_ref(),
         )
         .await?;
         Ok(())
@@ -869,7 +899,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
             .await?
             .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
-        if user.is_locked() {
+        if user.is_locked(self.clock.as_ref()) {
             return Err(IdpError::Locked(user.locked_until.unwrap_or(0)));
         }
         Ok(user)
@@ -882,7 +912,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         user: &super::super::models::User,
     ) -> Result<(), IdpError> {
         if user.failed_login_attempts > 0 || user.locked_until.is_some() {
-            update_user_lockout(self.storage.query_store.as_ref(), &user.id, 0, None).await?;
+            update_user_lockout(
+                self.storage.query_store.as_ref(),
+                &user.id,
+                0,
+                None,
+                self.clock.as_ref(),
+            )
+            .await?;
         }
         Ok(())
     }
@@ -923,7 +960,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &record.user_id)
             .await?
             .ok_or_else(invalid)?;
-        if user.is_locked() {
+        if user.is_locked(self.clock.as_ref()) {
             return Err(IdpError::Locked(user.locked_until.unwrap_or(0)));
         }
         // Checks the code and spends its time step (a code works once).
@@ -991,6 +1028,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                 "openid profile email".to_string(),
                 pending.nonce.clone(),
                 self.config.auth_code_ttl,
+                self.clock.as_ref(),
             );
             storage::store_auth_code(self.storage.query_store.as_ref(), &auth_code)
                 .await
@@ -1239,7 +1277,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         // Create user
         let id = uuid::Uuid::new_v4().to_string();
-        let now = chrono::Utc::now().timestamp_millis();
+        let now = now_millis(self.clock.as_ref());
         let user = super::super::models::User {
             id: id.clone(),
             email,
@@ -1255,7 +1293,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             deleted_at: None,
         };
 
-        storage::create_user(self.storage.query_store.as_ref(), &user).await?;
+        storage::create_user(
+            self.storage.query_store.as_ref(),
+            &user,
+            self.clock.as_ref(),
+        )
+        .await?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
             "id": id,
@@ -1494,9 +1537,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
         let username = update.get("username").and_then(|v| v.as_str());
-        storage::update_user_profile(self.storage.query_store.as_ref(), &user_id, username)
-            .await
-            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        storage::update_user_profile(
+            self.storage.query_store.as_ref(),
+            &user_id,
+            username,
+            self.clock.as_ref(),
+        )
+        .await
+        .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "updated",
@@ -1556,9 +1604,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let new_hash =
             user_service::hash_password(&new_pw).map_err(|e| IdpError::Internal(e.to_string()))?;
 
-        storage::update_user_password(self.storage.query_store.as_ref(), &user_id, &new_hash)
-            .await
-            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        storage::update_user_password(
+            self.storage.query_store.as_ref(),
+            &user_id,
+            &new_hash,
+            self.clock.as_ref(),
+        )
+        .await
+        .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "password_changed",
@@ -1598,9 +1651,13 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        storage::soft_delete_user(self.storage.query_store.as_ref(), &user_id)
-            .await
-            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        storage::soft_delete_user(
+            self.storage.query_store.as_ref(),
+            &user_id,
+            self.clock.as_ref(),
+        )
+        .await
+        .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "account_revoked",
@@ -2027,6 +2084,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                     } else {
                         Some(app_state)
                     },
+                    self.clock.as_ref(),
                 )
                 .with_client_id(client_id),
             )
@@ -2056,7 +2114,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .ok_or_else(|| IdpError::BadRequest("Missing 'state' query param".into()))?;
 
         let session = session_store
-            .take(state)
+            .take(state, self.clock.as_ref())
             .map_err(|e| IdpError::BadRequest(format!("session: {e}")))?;
 
         let provider =
@@ -2091,9 +2149,13 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .await
             .map_err(|e| IdpError::BadRequest(format!("userinfo: {e}")))?;
 
-        let user_id = provision_from_upstream_profile(self.storage.query_store.as_ref(), &profile)
-            .await
-            .map_err(|e| IdpError::Internal(format!("provisioning: {e}")))?;
+        let user_id = provision_from_upstream_profile(
+            self.storage.query_store.as_ref(),
+            &profile,
+            self.clock.as_ref(),
+        )
+        .await
+        .map_err(|e| IdpError::Internal(format!("provisioning: {e}")))?;
 
         let pending = PendingLogin {
             auth_method: "social".into(),
@@ -2274,6 +2336,7 @@ fn parse_provider_row(row: &SqlRow) -> Result<Option<UpstreamProvider>, String> 
 async fn provision_from_upstream_profile(
     qs: &dyn QueryStore,
     profile: &crate::shared::upstream_client::UpstreamProfile,
+    clock: &dyn Clock,
 ) -> Result<String, String> {
     if let (Some(email), true) = (&profile.email, profile.email_verified) {
         if let Some(user_id) = find_user_by_email_lax(qs, email).await? {
@@ -2283,7 +2346,7 @@ async fn provision_from_upstream_profile(
     let user_id = uuid::Uuid::new_v4().to_string();
     let name = profile.name.as_deref().unwrap_or(&profile.sub);
     let email = profile.email.as_deref().unwrap_or("");
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     qs.execute(
         "INSERT INTO users (id, email, username, password_hash, \
          created_at, updated_at) VALUES (?, ?, ?, '', ?, ?)",

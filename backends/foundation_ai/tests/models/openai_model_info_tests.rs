@@ -97,11 +97,16 @@ impl WebSocketConnector for ModelInfoClient {
 }
 
 fn provider(status: Status, body: &'static str) -> OpenAIProvider {
-    OpenAIProvider::with_http_client(Arc::new(ModelInfoClient { status, body }))
+    OpenAIProvider::with_http_client(Arc::new(ModelInfoClient { status, body }), test_clock())
 }
 
 const MODEL_JSON: &str =
     r#"{"id":"gpt-test","object":"model","owned_by":"acme","created":1700000000}"#;
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[test]
 fn fetch_model_info_parses_the_vendor_model() {

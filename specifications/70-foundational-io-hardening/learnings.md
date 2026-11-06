@@ -2273,3 +2273,42 @@ time can still leave an async consumer with nothing to wake it. The old code had
   that compares a simulated deadline with the real clock sees a difference of
   milliseconds, not hours. That is why the old-code HTTP test failed with
   `Some(Delayed(3ms))` and not with a large value.
+
+- 2026-11-06 (feature 133): a process-global cache that holds a backend also
+  holds the first caller's clock. `foundation_ai` caches GGUF models in
+  `LOADED_MODELS`; a plain reuse would serve a model built with session A's
+  clock to session B. `share_weights(clock)` now re-injects the caller's clock
+  on every load. Check every `static`/`OnceLock` cache that stores a clock.
+- 2026-11-06 (feature 133): `Arc::clone` does not coerce
+  `&Arc<MonotonicClock>` to `&Arc<dyn Clock>`. The clone happens before the
+  argument coercion, so annotate the binding at the construction point:
+  `let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());`. Three app and
+  example call sites hit this. Passing the `Arc<MonotonicClock>` by value does
+  coerce, so constructors that take the clock by value are fine.
+- 2026-11-06 (feature 133): the `foundation_auth --features server-test` suite
+  does not finish at default parallelism on a 10-CPU host. A sampled run shows
+  every test thread blocked in
+  `initialize_pool_with_slow_poll_warning` -> `FairGate::acquire`, while one
+  filtered test passes. Treat this as a separate executor load finding (high);
+  run a new integration test with
+  `--test foundation_auth_tests <name> -- --test-threads=1` to prove it.
+- 2026-11-06 (feature 133): `saturating_sub(now, window)` in
+  `foundation_db::core::rate_limit` looked wrong near the UNIX epoch, but it is
+  correct. The cutoff clamps to 0, and `window_start <= 0` is false for every
+  record stamped after the epoch, so the window is longer, not "elapsed". Do
+  not change it without a failing test.
+- 2026-11-06 (feature 133): a bulk edit that inserts a helper at the first
+  `#[test]`/`#[valtron_test]` occurrence can land inside a doc comment or a
+  `use` block. Two files failed to parse, and nine more lost the doc comment
+  that belonged to the first test. Run `cargo fmt --all --check` after a scripted
+  insertion; it is the cheapest parser check.
+- 2026-11-06 (feature 133, coordinator): a suite that "hangs with every thread
+  in `FairGate::acquire`" can be a panic, not a starvation bug. A panic on a
+  spawned dispatch thread leaves the caller blocked and holding the pool guard,
+  so all later tests wait at the gate. Sample the stuck process and read the
+  last completed test; the panic message is behind it. Check the failing test
+  alone before you suspect the executor.
+- 2026-11-06 (feature 133, coordinator): when a type is needed both in a task
+  `Ctx` and on a required struct (`HandlerStorage`), make the struct the source
+  and let the `Ctx` value win when present. A second required registration
+  makes every host that builds the app by hand panic.

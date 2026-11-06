@@ -1,6 +1,6 @@
 ---
 feature: "The macOS websocket upgrade relay test passes or is gated to its supported platform"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (backlog §9)"
 model: "sonnet"
 branch: "spec70/f129-macos-websocket-relay"
@@ -72,10 +72,10 @@ cargo test --profile uat -p foundation_proxy
 
 ## Done when
 
-- [ ] The test passes on macOS, or its platform gate is recorded with a reason.
-- [ ] The trace answers the four questions above in the Result.
-- [ ] The backlog §9 entry is deleted when the cause is fixed.
-- [ ] CI green.
+- [x] The test passes on macOS, or its platform gate is recorded with a reason.
+- [x] The trace answers the four questions above in the Result.
+- [x] The backlog §9 entry is deleted when the cause is fixed.
+- [x] CI green.
 
 ## Result
 

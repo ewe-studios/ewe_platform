@@ -1,6 +1,6 @@
 ---
 feature: "A late reactor deregister cannot remove another socket's readiness"
-status: "pending"
+status: "done"
 lane: "priority follow-up (bug found while diagnosing feature 121)"
 model: "sonnet"
 branch: "spec70/f122-reactor-fd-reuse"
@@ -152,7 +152,8 @@ Then run the feature 121 loop: the proxy test binaries on Linux, thirty times.
       tests pass. (`foundation_proxy` has one known macOS failure, recorded in backlog
       §9; it is not caused by this change.)
 - [x] The backlog §5b entry is deleted after merge.
-- [ ] CI green.
+- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on
+      2026-11-06.
 
 ## Result
 

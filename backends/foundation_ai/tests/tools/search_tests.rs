@@ -96,7 +96,7 @@ fn search_context_finds_matching_messages() {
         let _ = ctx.message_api().append(SessionRecord::Conversation {
             message: user_msg("the authentication module handles JWT tokens"),
         });
-        let _ = ctx.message_api().flush();
+        ctx.message_api().flush().await.expect("flush");
 
         let tool = SearchContextTool::new(ctx);
         let args = ToolArguments::from_iter([
@@ -123,7 +123,7 @@ fn search_context_hybrid_searches_messages_and_memory() {
         let _ = ctx.message_api().append(SessionRecord::Conversation {
             message: user_msg("the database uses postgres"),
         });
-        let _ = ctx.message_api().flush();
+        ctx.message_api().flush().await.expect("flush");
 
         let working = SessionRecord::WorkingMemory {
             id: foundation_compact::ids::new_scru128(),

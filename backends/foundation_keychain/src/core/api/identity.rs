@@ -16,7 +16,7 @@
 //! (`foundation_auth::JwtSigningKey`); devices + rotated refresh tokens persist via
 //! [`crate::core::store::devices`].
 
-use chrono::Utc;
+use crate::core::clock::wall_now_utc;
 
 use crate::core::api::accounts::verify_user_password;
 use crate::core::auth::{
@@ -101,11 +101,17 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         return Err(invalid_grant("username or password is incorrect").into());
     }
 
-    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier)?;
-    let refresh_token = mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier)?;
+    let access_token =
+        mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.clock())?;
+    let refresh_token = mint_refresh_token(
+        ctx.signing_key(),
+        &user.uuid,
+        &device_identifier,
+        ctx.clock(),
+    )?;
 
     // Upsert the device with the freshly-minted refresh token.
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     match devices::find(ctx.db(), &user.uuid, &device_identifier).await? {
         Some(existing) => {
             devices::update_refresh_token(ctx.db(), &existing.uuid, &refresh_token, now).await?;
@@ -155,9 +161,21 @@ async fn refresh_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<Lo
         .await?
         .ok_or_else(|| invalid_grant("user no longer exists"))?;
 
-    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier)?;
-    let new_refresh = mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier)?;
-    devices::update_refresh_token(ctx.db(), &device.uuid, &new_refresh, Utc::now()).await?;
+    let access_token =
+        mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.clock())?;
+    let new_refresh = mint_refresh_token(
+        ctx.signing_key(),
+        &user.uuid,
+        &device_identifier,
+        ctx.clock(),
+    )?;
+    devices::update_refresh_token(
+        ctx.db(),
+        &device.uuid,
+        &new_refresh,
+        wall_now_utc(ctx.clock()),
+    )
+    .await?;
 
     Ok(build_login_response(&user, access_token, new_refresh))
 }

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::io::readers::Data;
-use foundation_core::valtron::{collect_one, execute, from_future};
+use foundation_core::valtron::{collect_one, execute, from_future, Clock};
 use foundation_errstacks::ErrorTrace;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeError, ServeFactory};
@@ -229,9 +229,9 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
 impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
     /// # Panics
     ///
-    /// If the `ContextBag` holds no `IdpConfig` or no `Arc<HandlerStorage<KV>>`
-    /// (a misconfigured app; serving without storage would answer every
-    /// request as if the database were empty).
+    /// If the `ContextBag` holds no `IdpConfig` or no
+    /// `Arc<HandlerStorage<KV>>` (a misconfigured app; serving without storage
+    /// would answer every request as if the database were empty).
     fn create(bag: &ContextBag) -> Self {
         let config = bag
             .get::<IdpConfig>()
@@ -242,9 +242,15 @@ impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
             .get::<Arc<HandlerStorage<KV>>>()
             .map(|stored| Arc::clone(&*stored))
             .expect("Arc<HandlerStorage<KV>> must be in ContextBag");
+        // The storage was built with the host's injected engine clock, so its
+        // clock is the time source for every `IdP` read. A host that also stores
+        // the clock in the app bag keeps working, with the bag value winning.
+        let clock = bag
+            .get::<Arc<dyn Clock>>()
+            .map_or_else(|| Arc::clone(&storage.clock), |stored| Arc::clone(&*stored));
         // Sessions live in the shared cache with the configured key, so every
         // route sees the same sessions.
-        let mut core = IdpHandlerCore::new(config, storage);
+        let mut core = IdpHandlerCore::new(config, storage, clock);
         if let Some(social) = bag.get::<Arc<MemoryAuthSessionStore>>() {
             core = core.with_social_login(Arc::clone(&*social));
         }

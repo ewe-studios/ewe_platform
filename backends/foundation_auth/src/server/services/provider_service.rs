@@ -20,9 +20,10 @@ use chacha20poly1305::{
     aead::{Aead, KeyInit},
     ChaCha20Poly1305, Key, Nonce,
 };
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 
+use crate::shared::clock::now_millis;
 use foundation_db::core::storage_provider::{AsyncQueryStream, DataValue, QueryStore, SqlRow};
 use futures_lite::StreamExt;
 
@@ -164,14 +165,16 @@ impl ProviderCrypto {
 pub struct ProviderService<QS: QueryStore + ?Sized + 'static> {
     query_store: Arc<QS>,
     crypto: ProviderCrypto,
+    clock: Arc<dyn Clock>,
 }
 
 impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// Create a service over a query store and a crypto wrapper.
-    pub fn new(query_store: Arc<QS>, crypto: ProviderCrypto) -> Self {
+    pub fn new(query_store: Arc<QS>, crypto: ProviderCrypto, clock: Arc<dyn Clock>) -> Self {
         Self {
             query_store,
             crypto,
+            clock,
         }
     }
 
@@ -186,7 +189,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     pub async fn create(&self, mut provider: UpstreamProvider) -> Result<UpstreamProvider> {
         Self::validate(&provider)?;
 
-        let now = Utc::now().timestamp_millis();
+        let now = now_millis(self.clock.as_ref());
         provider.created_at = now;
         provider.updated_at = now;
         provider.encryption_key_id = self.crypto.key_id().to_string();
@@ -348,7 +351,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
         }
 
         Self::validate(&provider)?;
-        provider.updated_at = Utc::now().timestamp_millis();
+        provider.updated_at = now_millis(self.clock.as_ref());
 
         let scopes_json = serde_json::to_string(&provider.scopes)
             .map_err(|e| ProviderServiceError::Parse(e.to_string()))?;
@@ -416,7 +419,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
                 &[
                     DataValue::Blob(ciphertext),
                     DataValue::Text(self.crypto.key_id().to_string()),
-                    DataValue::Integer(Utc::now().timestamp_millis()),
+                    DataValue::Integer(now_millis(self.clock.as_ref())),
                     DataValue::Text(id.to_string()),
                 ],
             )

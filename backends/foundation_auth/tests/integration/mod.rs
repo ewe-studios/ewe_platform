@@ -2,6 +2,7 @@
 mod auth_correctness;
 mod auth_security;
 mod body_streaming;
+mod clock_injection;
 mod e2e;
 mod idp_server;
 mod provider_admin;

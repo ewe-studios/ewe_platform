@@ -45,7 +45,7 @@ fn provider_or_skip() -> Option<impl Model> {
                 .unwrap_or_else(|_| "https://openrouter.ai/api".to_string()),
         )
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)));
-    let provider = OpenAIProvider::with_http_client(http)
+    let provider = OpenAIProvider::with_http_client(http, test_clock())
         .create(Some(config))
         .expect("provider builds");
     Some(
@@ -89,6 +89,11 @@ fn params() -> ModelParams {
         temperature: 0.0,
         ..Default::default()
     }
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
 }
 
 #[valtron_test]

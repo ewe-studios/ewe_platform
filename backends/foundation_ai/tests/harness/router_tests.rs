@@ -44,9 +44,15 @@ fn throwaway_gguf_config() -> HuggingFaceGGUFConfig {
 // ---------------------------------------------------------------------------
 // Cloud presets — primary/memory wiring + per-model routing
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[test]
 fn claude_router_wires_primary_and_memory() {
-    let preset = RouterPreset::claude("test-key").expect("claude router builds offline");
+    let preset =
+        RouterPreset::claude("test-key", test_clock()).expect("claude router builds offline");
 
     assert_eq!(preset.primary_model, Some(named(CLAUDE_OPUS)));
     assert_eq!(preset.memory_model, Some(named(CLAUDE_SONNET)));
@@ -73,7 +79,8 @@ fn explicit_rules_beat_greedy_anthropic_serves() {
     // a probe would route the memory model to the first provider (the opus
     // instance). The preset's rules must override that so the memory id lands on
     // its own provider.
-    let preset = RouterPreset::claude("test-key").expect("claude router builds offline");
+    let preset =
+        RouterPreset::claude("test-key", test_clock()).expect("claude router builds offline");
 
     let memory = preset
         .router
@@ -88,8 +95,9 @@ fn explicit_rules_beat_greedy_anthropic_serves() {
 
 #[test]
 fn openai_chat_and_responses_have_distinct_provider_ids() {
-    let chat = RouterPreset::openai_chat("test-key").expect("chat router builds");
-    let responses = RouterPreset::openai_responses("test-key").expect("responses router builds");
+    let chat = RouterPreset::openai_chat("test-key", test_clock()).expect("chat router builds");
+    let responses =
+        RouterPreset::openai_responses("test-key", test_clock()).expect("responses router builds");
 
     assert_eq!(chat.primary_model, Some(named(OPENAI_GPT4O)));
     assert_eq!(chat.memory_model, Some(named(OPENAI_GPT4O_MINI)));
@@ -111,15 +119,15 @@ fn openai_chat_and_responses_have_distinct_provider_ids() {
 fn router_mix_composes_primary_memory_and_fallback() {
     let preset = RouterMix::new()
         .primary(
-            CloudPresets::claude_opus("k").expect("opus provider"),
+            CloudPresets::claude_opus("k", test_clock()).expect("opus provider"),
             named(CLAUDE_OPUS),
         )
         .memory(
-            CloudPresets::claude_sonnet("k").expect("sonnet provider"),
+            CloudPresets::claude_sonnet("k", test_clock()).expect("sonnet provider"),
             named(CLAUDE_SONNET),
         )
         .fallback(
-            CloudPresets::openai_gpt4o("k").expect("gpt4o provider"),
+            CloudPresets::openai_gpt4o("k", test_clock()).expect("gpt4o provider"),
             named(OPENAI_GPT4O),
         )
         .build();
@@ -143,9 +151,12 @@ fn router_mix_composes_primary_memory_and_fallback() {
 
 #[test]
 fn gguf_router_routes_main_and_memory_and_rejects_unknown() {
-    let preset =
-        RouterPreset::glm52_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-            .expect("gguf router builds offline (no download)");
+    let preset = RouterPreset::glm52_gemma(
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+        test_clock(),
+    )
+    .expect("gguf router builds offline (no download)");
 
     assert_eq!(preset.primary_model, Some(named(harness::Glm52::MODEL_ID)));
     assert_eq!(
@@ -187,33 +198,43 @@ use foundation_ai::harness::{Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
 
 #[test]
 fn glm52_preset_wires_primary_and_memory() {
-    let preset =
-        RouterPreset::glm52_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-            .expect("glm52 preset builds offline");
+    let preset = RouterPreset::glm52_gemma(
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+        test_clock(),
+    )
+    .expect("glm52 preset builds offline");
     assert_eq!(preset.primary_model, Some(named(Glm52::MODEL_ID)));
     assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));
 }
 
 #[test]
 fn qwen36_preset_wires_primary_and_memory() {
-    let preset =
-        RouterPreset::qwen36_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-            .expect("qwen36 preset builds offline");
+    let preset = RouterPreset::qwen36_gemma(
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+        test_clock(),
+    )
+    .expect("qwen36 preset builds offline");
     assert_eq!(preset.primary_model, Some(named(Qwen36::MODEL_ID)));
     assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));
 }
 
 #[test]
 fn gemma_preset_wires_primary_and_memory() {
-    let preset = RouterPreset::gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-        .expect("gemma preset builds offline");
+    let preset = RouterPreset::gemma(
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+        test_clock(),
+    )
+    .expect("gemma preset builds offline");
     assert_eq!(preset.primary_model, Some(named(Gemma4_26b::MODEL_ID)));
     assert_eq!(preset.memory_model, Some(named(Gemma4E2b::MODEL_ID)));
 }
 
 #[test]
 fn candle_llama_preset_has_primary_and_no_memory() {
-    let preset = RouterPreset::candle_llama("HuggingFaceTB/SmolLM2-135M", None)
+    let preset = RouterPreset::candle_llama("HuggingFaceTB/SmolLM2-135M", None, test_clock())
         .expect("candle preset builds offline");
     assert_eq!(
         preset.primary_model,
@@ -227,8 +248,12 @@ fn candle_llama_preset_has_primary_and_no_memory() {
 
 #[test]
 fn gemma_preset_rejects_unknown_model() {
-    let preset = RouterPreset::gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-        .expect("builds");
+    let preset = RouterPreset::gemma(
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+        test_clock(),
+    )
+    .expect("builds");
     // An unknown model must not resolve to any provider. (BoxModel is not Debug,
     // so match on the Result rather than formatting it.)
     assert!(
@@ -250,10 +275,14 @@ async fn preset_session_bridge_builds_offline() {
     // time-ordered timestamp — see SessionId docs), so mint the id ONCE and reuse
     // it on both sides. Comparing two independent `from_name` calls is racy.
     let sid = SessionId::from_name("harness-test");
-    let builder = RouterPreset::gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-        .expect("preset builds offline")
-        .into_agent_builder()
-        .with_session_id(sid.clone());
+    let builder = RouterPreset::gemma(
+        Some(throwaway_gguf_config()),
+        Some(throwaway_gguf_config()),
+        test_clock(),
+    )
+    .expect("preset builds offline")
+    .into_agent_builder(test_clock())
+    .with_session_id(sid.clone());
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
         builder.build().await.expect("session builds");
     assert_eq!(*session.session_id(), sid);
@@ -269,7 +298,7 @@ async fn all_presets_build_sessions_offline() {
 
     async fn session(preset: RouterPreset) -> AgentSession {
         preset
-            .into_agent_builder()
+            .into_agent_builder(test_clock())
             .build()
             .await
             .expect("session builds")
@@ -277,8 +306,12 @@ async fn all_presets_build_sessions_offline() {
 
     // GGUF-backed presets (throwaway configs → no download at construction).
     let glm = session(
-        RouterPreset::glm52_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-            .expect("glm52_gemma builds"),
+        RouterPreset::glm52_gemma(
+            Some(throwaway_gguf_config()),
+            Some(throwaway_gguf_config()),
+            test_clock(),
+        )
+        .expect("glm52_gemma builds"),
     )
     .await;
     assert_eq!(
@@ -286,31 +319,40 @@ async fn all_presets_build_sessions_offline() {
         ModelSelection::new(named(Glm52::MODEL_ID)).with_memory(named(Gemma4E2b::MODEL_ID))
     );
     let qwen = session(
-        RouterPreset::qwen36_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
-            .expect("qwen36_gemma builds"),
+        RouterPreset::qwen36_gemma(
+            Some(throwaway_gguf_config()),
+            Some(throwaway_gguf_config()),
+            test_clock(),
+        )
+        .expect("qwen36_gemma builds"),
     )
     .await;
     assert_eq!(qwen.models().primary, named(Qwen36::MODEL_ID));
 
     // Cloud presets (dummy key; no network at construction).
-    let claude = session(RouterPreset::claude("test-key").expect("claude builds")).await;
+    let claude =
+        session(RouterPreset::claude("test-key", test_clock()).expect("claude builds")).await;
     assert_eq!(
         *claude.models(),
         ModelSelection::new(CLAUDE_OPUS).with_memory(CLAUDE_SONNET)
     );
-    let chat = session(RouterPreset::openai_chat("test-key").expect("openai_chat builds")).await;
+    let chat =
+        session(RouterPreset::openai_chat("test-key", test_clock()).expect("openai_chat builds"))
+            .await;
     assert_eq!(chat.models().primary, named(OPENAI_GPT4O));
-    let responses =
-        session(RouterPreset::openai_responses("test-key").expect("openai_responses builds")).await;
+    let responses = session(
+        RouterPreset::openai_responses("test-key", test_clock()).expect("openai_responses builds"),
+    )
+    .await;
     assert_eq!(responses.models().memory, Some(named(OPENAI_GPT4O_MINI)));
 }
 
 #[cfg(feature = "candle")]
 #[valtron_test]
 async fn candle_llama_preset_builds_a_session_offline() {
-    let session = RouterPreset::candle_llama("HuggingFaceTB/SmolLM2-135M", None)
+    let session = RouterPreset::candle_llama("HuggingFaceTB/SmolLM2-135M", None, test_clock())
         .expect("candle_llama builds")
-        .into_agent_builder()
+        .into_agent_builder(test_clock())
         .build()
         .await
         .expect("session builds");
@@ -327,13 +369,13 @@ async fn a_mix_without_a_primary_model_does_not_build_a_session() {
 
     let preset = RouterMix::new()
         .memory(
-            CloudPresets::claude_sonnet("test-key").expect("provider"),
+            CloudPresets::claude_sonnet("test-key", test_clock()).expect("provider"),
             CLAUDE_SONNET,
         )
         .build();
     assert_eq!(preset.primary_model, None);
     let err = preset
-        .into_agent_builder()
+        .into_agent_builder(test_clock())
         .build()
         .await
         .err()
@@ -360,21 +402,25 @@ fn all_preset_quantizations_build_offline() {
     macro_rules! check {
         ($p:ty) => {{
             assert!(
-                <$p>::q3_k_m(Some(cfg())).is_ok(),
+                <$p>::q3_k_m(Some(cfg()), test_clock()).is_ok(),
                 "{} q3_k_m",
                 stringify!($p)
             );
             assert!(
-                <$p>::q4_k_m(Some(cfg())).is_ok(),
+                <$p>::q4_k_m(Some(cfg()), test_clock()).is_ok(),
                 "{} q4_k_m",
                 stringify!($p)
             );
             assert!(
-                <$p>::q5_k_m(Some(cfg())).is_ok(),
+                <$p>::q5_k_m(Some(cfg()), test_clock()).is_ok(),
                 "{} q5_k_m",
                 stringify!($p)
             );
-            assert!(<$p>::q8_0(Some(cfg())).is_ok(), "{} q8_0", stringify!($p));
+            assert!(
+                <$p>::q8_0(Some(cfg()), test_clock()).is_ok(),
+                "{} q8_0",
+                stringify!($p)
+            );
         }};
     }
 
@@ -422,7 +468,7 @@ fn unusable_gguf_config(tag: &str) -> HuggingFaceGGUFConfig {
 
 #[test]
 fn provider_construction_failure_is_an_agentic_provider_error() {
-    let err = Gemma4E2b::q4_k_m(Some(unusable_gguf_config("provider")))
+    let err = Gemma4E2b::q4_k_m(Some(unusable_gguf_config("provider")), test_clock())
         .err()
         .expect("a cache dir under a file cannot be created");
     match err.current_context() {
@@ -436,7 +482,7 @@ fn provider_construction_failure_is_an_agentic_provider_error() {
 
 #[test]
 fn preset_router_failure_propagates_the_provider_error() {
-    let err = RouterPreset::gemma(Some(unusable_gguf_config("router")), None)
+    let err = RouterPreset::gemma(Some(unusable_gguf_config("router")), None, test_clock())
         .err()
         .expect("the main provider cannot be constructed");
     assert!(

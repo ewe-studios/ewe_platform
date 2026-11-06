@@ -1,6 +1,6 @@
 //! Example: Run a local GGUF model via Llama.cpp (GLM 5.2 + Gemma 4 E2B).
 //!
-//! This downloads models from HuggingFace on first run. GPU offloading can be
+//! This downloads models from `HuggingFace` on first run. GPU offloading can be
 //! enabled via the `metal`, `vulkan`, or `cuda` features.
 //!
 //! Run with:
@@ -18,16 +18,20 @@
 //!   --example hello_llamacpp --features cuda
 //! ```
 
+use std::sync::Arc;
+
 use foundation_ai::agentic::TurnEvent;
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::valtron;
+use foundation_core::valtron::{valtron, MonotonicClock};
 use futures_lite::StreamExt;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // GLM 5.2 (main) + Gemma 4 E2B (memory) via Llama.cpp.
     // None, None = default Q4_K_M quantization, default cache dir, CPU.
-    let builder = RouterPreset::glm52_gemma(None, None)?.into_agent_builder();
+    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let builder =
+        RouterPreset::glm52_gemma(None, None, Arc::clone(&clock))?.into_agent_builder(clock);
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

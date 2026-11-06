@@ -136,7 +136,7 @@ fn kv_memory_store_set_get_hydrate_clear() {
 
         store.clear(&sid).await.unwrap();
         assert!(store.hydrate(&sid).await.unwrap().working.is_none());
-    })
+    });
 }
 
 #[test]

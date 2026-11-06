@@ -1,9 +1,15 @@
 //! `PowService` tests (async, over the in-memory store).
 
 use foundation_auth::server::services::pow_service::{PowService, PowSolution};
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_db::MemoryStorage;
 use futures_lite::future::block_on;
 use sha2::{Digest, Sha256};
+use std::sync::Arc;
+
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn count_leading_zero_bytes(hash: &[u8]) -> u32 {
     let mut count = 0;
@@ -23,7 +29,7 @@ fn count_leading_zero_bytes(hash: &[u8]) -> u32 {
 #[test]
 fn generate_and_verify_easy_pow() {
     block_on(async {
-        let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+        let service = PowService::new(MemoryStorage::new(), 8, 300, 600, test_clock());
         let challenge = service
             .generate_challenge()
             .await
@@ -46,7 +52,7 @@ fn generate_and_verify_easy_pow() {
 #[test]
 fn reuse_solution_fails() {
     block_on(async {
-        let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+        let service = PowService::new(MemoryStorage::new(), 8, 300, 600, test_clock());
         let challenge = service
             .generate_challenge()
             .await
@@ -75,7 +81,7 @@ fn reuse_solution_fails() {
 #[test]
 fn unknown_challenge_returns_false() {
     block_on(async {
-        let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+        let service = PowService::new(MemoryStorage::new(), 8, 300, 600, test_clock());
         assert!(
             !service
                 .verify_solution(&PowSolution {
@@ -93,7 +99,7 @@ fn rejects_solution_below_difficulty() {
         // difficulty 22 -> the old bug compared `count_leading_zero_bytes >= 22 / 8 == 2`,
         // so any hash with 2 leading zero bits passed. A nonce with 8 leading zero bits
         // clears 2 but not 22, so the fixed code must reject it.
-        let service = PowService::new(MemoryStorage::new(), 22, 300, 600);
+        let service = PowService::new(MemoryStorage::new(), 22, 300, 600, test_clock());
         let challenge = service
             .generate_challenge()
             .await
@@ -118,10 +124,10 @@ fn rejects_solution_below_difficulty() {
 fn cross_instance_challenge_match() {
     block_on(async {
         let cache = MemoryStorage::new();
-        let service_a = PowService::new(cache.clone(), 8, 300, 600);
+        let service_a = PowService::new(cache.clone(), 8, 300, 600, test_clock());
         let challenge = service_a.generate_challenge().await.expect("generate");
 
-        let service_b = PowService::new(cache, 8, 300, 600);
+        let service_b = PowService::new(cache, 8, 300, 600, test_clock());
         let sol = find_nonce(&challenge.challenge, 8).expect("should find nonce");
         assert!(
             service_b

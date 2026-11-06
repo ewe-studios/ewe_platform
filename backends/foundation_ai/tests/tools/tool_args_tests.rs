@@ -29,6 +29,11 @@ fn reason(err: ToolError) -> String {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[test]
 fn strings() {
     let map = args(&[
@@ -250,7 +255,7 @@ async fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
     use foundation_ai::agentic::{AgentSession, ToolShed};
     use foundation_ai::types::{ExecutionHint, ProviderRouter};
 
-    let session = AgentSession::builder(ProviderRouter::builder().build())
+    let session = AgentSession::builder(ProviderRouter::builder().build(), test_clock())
         .with_model("test-model")
         .with_toolshed(ToolShed::new().tool(greet_tool()))
         .build()

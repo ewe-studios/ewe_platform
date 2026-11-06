@@ -1,4 +1,4 @@
-//! ToolCall Execution DAG tests (F11).
+//! `ToolCall` Execution DAG tests (F11).
 //!
 //! Tests workflow building (topological staging), retry config, and error classification.
 
@@ -454,8 +454,8 @@ fn get_def_returns_registered_definition() {
     );
 }
 
-/// Matrix 10.6 — a panicking tool is contained at the boundary: execute_one
-/// returns a ToolError::Execution rather than unwinding into the caller.
+/// Matrix 10.6 — a panicking tool is contained at the boundary: `execute_one`
+/// returns a `ToolError::Execution` rather than unwinding into the caller.
 struct PanicTool;
 
 #[async_trait]
@@ -490,7 +490,7 @@ fn panicking_tool_is_contained_as_error() {
 
 /// Matrix 4.8 — malformed tool arguments produce a clean error, not a panic.
 /// The framework delegates schema validation to the tool; a tool that requires
-/// a specific argument rejects a call missing it with InvalidArguments.
+/// a specific argument rejects a call missing it with `InvalidArguments`.
 struct StrictTool;
 
 #[async_trait]

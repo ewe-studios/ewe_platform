@@ -98,7 +98,7 @@ struct EmbeddingMockProvider {
 }
 
 impl RoutableProvider for EmbeddingMockProvider {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "mock-embed"
     }
     fn provider_id(&self) -> ModelProviders {
@@ -137,6 +137,7 @@ fn make_embedder(dims: usize, values: Vec<f32>) -> Arc<dyn EmbeddingProvider> {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     ))
 }
 
@@ -163,6 +164,11 @@ fn sample_def(name: &str, desc: &str, category: &str) -> ToolDefinition {
 // ---------------------------------------------------------------------------
 // ToolDiscovery tests
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[valtron_test]
 async fn index_and_search_finds_tool() {
@@ -260,7 +266,7 @@ fn shed_request(args: ToolArguments) -> ToolCallRequest {
 fn returned_names(result: &ToolCallResult) -> Vec<String> {
     let content = match &result.content {
         foundation_ai::types::UserModelContent::Text(tc) => &tc.content,
-        _ => panic!("expected text content"),
+        foundation_ai::types::UserModelContent::Image(_) => panic!("expected text content"),
     };
     let parsed: ShedResult = serde_json::from_str(content).unwrap();
     parsed.tools.into_iter().map(|t| t.name).collect()
@@ -559,5 +565,5 @@ fn toolshed_all_tools_empty_when_no_fields_set() {
         tools: Vec::new(),
     };
     let tools = shed.all_tools();
-    assert!(tools.is_empty());
+    assert_eq!(tools, [] as [foundation_ai::types::Tool; 0]);
 }

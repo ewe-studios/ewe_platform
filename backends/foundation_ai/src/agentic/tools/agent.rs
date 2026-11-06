@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Clock, Stream};
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 use serde::{Deserialize, Serialize};
@@ -166,6 +166,8 @@ where
     child_tools: Vec<Arc<dyn ToolImpl>>,
     /// Builds each sub-agent's stores.
     stores: Arc<dyn SessionStoreFactory<D, M>>,
+    /// The injected clock every child session's memory is stamped with.
+    clock: Arc<dyn Clock>,
 }
 
 impl<D, M> AgentTool<D, M>
@@ -188,6 +190,7 @@ where
         output_base: String,
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self::with_store_factory(
             router,
@@ -198,6 +201,7 @@ where
             user,
             child_tools,
             Arc::new(DefaultStores),
+            clock,
         )
     }
 }
@@ -223,6 +227,7 @@ where
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
         stores: Arc<dyn SessionStoreFactory<D, M>>,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             router,
@@ -234,6 +239,7 @@ where
             user,
             child_tools,
             stores,
+            clock,
         }
     }
 
@@ -305,7 +311,7 @@ where
                     reason: format!("failed to create the sub-agent's stores: {e}"),
                 })?;
 
-        let mut builder = AgentSession::builder(self.router.clone())
+        let mut builder = AgentSession::builder(self.router.clone(), Arc::clone(&self.clock))
             .with_session_id(child_session_id.clone())
             .with_doc_store(doc_store)
             .with_memory_store(memory_store)
@@ -759,6 +765,7 @@ pub fn register_agent_tool<D, M>(
     output_base: &str,
     user: UserId,
     child_tools: Vec<Arc<dyn ToolImpl>>,
+    clock: Arc<dyn Clock>,
 ) where
     D: DocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
@@ -773,6 +780,7 @@ pub fn register_agent_tool<D, M>(
         user,
         child_tools,
         Arc::new(DefaultStores),
+        clock,
     );
 }
 
@@ -789,6 +797,7 @@ pub fn register_agent_tool_with_stores<D, M>(
     user: UserId,
     child_tools: Vec<Arc<dyn ToolImpl>>,
     stores: Arc<dyn SessionStoreFactory<D, M>>,
+    clock: Arc<dyn Clock>,
 ) where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
@@ -802,6 +811,7 @@ pub fn register_agent_tool_with_stores<D, M>(
         user,
         child_tools,
         stores,
+        clock,
     );
     manager.register(Arc::new(tool));
 }

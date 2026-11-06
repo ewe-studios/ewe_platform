@@ -1,6 +1,6 @@
 ---
 feature: "A streaming call's later receives fail on the call deadline"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (gap found by feature 123)"
 model: "sonnet"
 branch: "spec70/priority-followups"
@@ -141,7 +141,7 @@ cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectr
 - [x] The three tests pass, and the two deadline cases fail without the change.
 - [x] Unary and streaming setup behaviour from feature 123 is unchanged.
 - [x] The backlog §1 "streaming call's later receives" entry is deleted.
-- [ ] CI green.
+- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
 
 ## Result
 

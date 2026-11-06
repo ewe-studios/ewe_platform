@@ -11,7 +11,7 @@
 //! as JSON; server-authoritative metadata (id, type, favorite, folder, dates,
 //! deleted state) lives in columns and is overlaid onto the [`Cipher`] on read.
 
-use chrono::Utc;
+use crate::core::clock::wall_now_utc;
 
 use crate::core::context::KeychainContext;
 use crate::core::crypto;
@@ -79,7 +79,7 @@ pub async fn create(
     if req.name.trim().is_empty() {
         return Err(AppError::BadRequest("cipher name is required".into()).into());
     }
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     let uuid = crypto::new_uuid_v4()?.to_string();
     let cipher = Cipher {
         id: uuid.clone(),
@@ -170,7 +170,7 @@ pub async fn update(
         cipher.favorite = favorite;
     }
 
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     cipher.revision_date = now;
 
     row.name = cipher.name.clone();
@@ -206,7 +206,7 @@ pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResu
 /// Returns an error if the operation fails.
 pub async fn soft_delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Cipher> {
     owned(ctx, user_uuid, id).await?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     store::soft_delete(ctx.db(), id, now).await?;
     to_cipher(&owned(ctx, user_uuid, id).await?)
 }
@@ -218,7 +218,7 @@ pub async fn soft_delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> Ap
 /// Returns an error if the operation fails.
 pub async fn restore(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Cipher> {
     owned(ctx, user_uuid, id).await?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     store::restore(ctx.db(), id, now).await?;
     to_cipher(&owned(ctx, user_uuid, id).await?)
 }

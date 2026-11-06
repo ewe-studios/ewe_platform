@@ -12,57 +12,6 @@ backends/foundation_compact/src/  # the real time backends
 # clock. It is the one place the real call stays.
 backends/foundation_core/src/valtron/ctx.rs  # MonotonicClock: the real clock
 
-backends/foundation_ai/src/agentic/agent_loop.rs  # phase C (services); 3 wall
-backends/foundation_ai/src/agentic/embedding.rs  # phase C (services); 1 wall
-backends/foundation_ai/src/agentic/memory.rs  # phase C (services); 3 wall
-backends/foundation_ai/src/agentic/tools/memory.rs  # phase C (services); 2 wall
-backends/foundation_ai/src/backends/anthropic_messages_provider.rs  # phase C (services); 12 wall
-backends/foundation_ai/src/backends/candle.rs  # phase C (services); 2 wall
-backends/foundation_ai/src/backends/llamacpp.rs  # phase C (services); 5 wall
-backends/foundation_ai/src/backends/openai_provider.rs  # phase C (services); 5 wall
-backends/foundation_ai/src/backends/openai_responses_provider.rs  # phase C (services); 5 wall
-backends/foundation_ai/src/backends/workers_ai.rs  # phase C (services); 1 wall
-backends/foundation_ai/src/models/generator.rs  # phase C (services); 1 monotonic
-backends/foundation_ai/src/toolbox/llama_server_harness.rs  # phase C (services); 1 monotonic
-backends/foundation_auth/src/server/handlers/core.rs  # phase C (services); 2 wall
-backends/foundation_auth/src/server/models/code.rs  # phase C (services); 4 wall
-backends/foundation_auth/src/server/models/token.rs  # phase C (services); 1 wall
-backends/foundation_auth/src/server/models/user.rs  # phase C (services); 2 wall
-backends/foundation_auth/src/server/services/client_service.rs  # phase C (services); 1 wall
-backends/foundation_auth/src/server/services/mfa_service.rs  # phase C (services); 4 wall
-backends/foundation_auth/src/server/services/pow_service.rs  # phase C (services); 3 wall
-backends/foundation_auth/src/server/services/provider_service.rs  # phase C (services); 3 wall
-backends/foundation_auth/src/server/services/token_service.rs  # phase C (services); 2 wall
-backends/foundation_auth/src/server/services/tos_service.rs  # phase C (services); 3 wall
-backends/foundation_auth/src/server/services/webauthn_service.rs  # phase C (services); 1 wall
-backends/foundation_auth/src/server/storage.rs  # phase C (services); 8 wall
-backends/foundation_auth/src/shared/auth_manager.rs  # phase C (services); 4 wall
-backends/foundation_auth/src/shared/auth_session.rs  # phase C (services); 2 wall
-backends/foundation_auth/src/shared/auth_token.rs  # phase C (services); 1 wall
-backends/foundation_auth/src/shared/credential_store.rs  # phase C (services); 3 wall
-backends/foundation_auth/src/shared/introspection.rs  # phase C (services); 1 wall
-backends/foundation_auth/src/shared/jwks.rs  # phase C (services); 1 monotonic
-backends/foundation_auth/src/shared/jwt.rs  # phase C (services); 7 wall
-backends/foundation_auth/src/shared/oauth_token.rs  # phase C (services); 2 wall
-backends/foundation_auth/src/shared/session.rs  # phase C (services); 4 wall
-backends/foundation_auth/src/shared/two_factor.rs  # phase C (services); 2 wall
-backends/foundation_auth/src/wasm_bindgen/session.rs  # phase C (services); 2 wall
-backends/foundation_cronjobs/src/scheduler.rs  # phase C (services); 1 wall
-backends/foundation_db/src/core/backends/mod.rs  # phase C (services); 4 wall
-backends/foundation_db/src/core/state/namespaced.rs  # phase C (services); 1 wall
-backends/foundation_db/src/core/state/store_state_task.rs  # phase C (services); 2 wall
-backends/foundation_keychain/src/core/api/accounts.rs  # phase C (services); 2 wall
-backends/foundation_keychain/src/core/api/ciphers.rs  # phase C (services); 4 wall
-backends/foundation_keychain/src/core/api/events.rs  # phase C (services); 1 wall
-backends/foundation_keychain/src/core/api/folders.rs  # phase C (services); 2 wall
-backends/foundation_keychain/src/core/api/identity.rs  # phase C (services); 2 wall
-backends/foundation_keychain/src/core/api/orgs.rs  # phase C (services); 4 wall
-backends/foundation_keychain/src/core/api/sends.rs  # phase C (services); 3 wall
-backends/foundation_keychain/src/core/api/two_factor.rs  # phase C (services); 2 wall
-backends/foundation_keychain/src/core/auth/mod.rs  # phase C (services); 2 wall
-backends/foundation_keychain/src/core/provisioning/apps.rs  # phase C (services); 1 wall
-backends/foundation_keychain/src/core/provisioning/ssh_keys.rs  # phase C (services); 1 wall
-backends/foundation_keychain/src/core/store/events.rs  # phase C (services); 1 wall
 backends/foundation_browser/src/browser.rs  # phase D (platform); 2 monotonic
 backends/foundation_browser/src/locator.rs  # phase D (platform); 1 monotonic
 backends/foundation_browser/src/supervisor.rs  # phase D (platform); 1 wall, 2 monotonic

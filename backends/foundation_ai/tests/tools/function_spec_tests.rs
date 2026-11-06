@@ -1,6 +1,6 @@
 //! Tests for `Tool::function_spec()` — the bridge from `ToolDefinition` to
 //! `ToolFunctionSpec` that providers consume. Covers returns field propagation
-//! for both SingleCommand and MultiCommands shapes (F19).
+//! for both `SingleCommand` and `MultiCommands` shapes (F19).
 
 use foundation_ai::types::{Args, Tool, ToolDefinition};
 use foundation_jsonschema::ValidationOptions;

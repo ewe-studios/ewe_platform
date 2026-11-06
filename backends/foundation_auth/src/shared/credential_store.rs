@@ -12,11 +12,13 @@
 
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
 use foundation_db::{core::KeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
+use crate::shared::clock::now_seconds;
 use crate::shared::oauth_token::OAuthToken;
 
 /// Credential storage API.
@@ -337,9 +339,8 @@ pub struct OAuthState {
 impl OAuthState {
     /// Check if the state is expired.
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        let now = chrono::Utc::now().timestamp();
-        now >= self.expires_at
+    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
+        now_seconds(clock) >= self.expires_at
     }
 }
 
@@ -362,18 +363,17 @@ pub struct StoredCredential<T> {
 impl<T> StoredCredential<T> {
     /// Create a new stored credential.
     #[must_use]
-    pub fn new(data: T) -> Self {
-        let now = chrono::Utc::now().timestamp();
+    pub fn new(data: T, clock: &dyn Clock) -> Self {
         Self {
             data,
-            created_at: now,
+            created_at: now_seconds(clock),
             last_accessed_at: None,
             metadata: None,
         }
     }
 
     /// Mark the credential as accessed.
-    pub fn mark_accessed(&mut self) {
-        self.last_accessed_at = Some(chrono::Utc::now().timestamp());
+    pub fn mark_accessed(&mut self, clock: &dyn Clock) {
+        self.last_accessed_at = Some(now_seconds(clock));
     }
 }

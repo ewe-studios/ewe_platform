@@ -23,6 +23,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use foundation_core::valtron::Clock;
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 
@@ -80,6 +81,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ContextSearch for Con
 pub trait MemoryAccess: Send + Sync {
     /// The session whose memory this is.
     fn session_id(&self) -> &SessionId;
+    /// The injected clock the memory records are stamped with.
+    fn clock(&self) -> Arc<dyn Clock>;
     /// The latest working memory, observation and reflection records.
     async fn hydrate(&self) -> StorageResult<SessionMemory>;
     /// Write a new working-memory version (`prev_version + 1`) holding `facts`.
@@ -94,6 +97,10 @@ pub trait MemoryAccess: Send + Sync {
 impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryAccess for MemoryHierarchy<M, D> {
     fn session_id(&self) -> &SessionId {
         MemoryHierarchy::session_id(self)
+    }
+
+    fn clock(&self) -> Arc<dyn Clock> {
+        MemoryHierarchy::clock(self)
     }
 
     async fn hydrate(&self) -> StorageResult<SessionMemory> {

@@ -12,6 +12,7 @@ use std::time::Duration as StdDuration;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 use foundation_netio::shared::client::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,7 @@ use sha2::Sha256;
 use zeroize::Zeroizing;
 
 use super::types::ConfidentialText;
+use crate::shared::clock::wall_now_utc;
 use crate::shared::credential_store::CredentialStore;
 use crate::shared::credential_store::CredentialStoreError;
 
@@ -84,8 +86,8 @@ pub struct Session {
 impl Session {
     /// Check if the session is valid (not revoked, not expired).
     #[must_use]
-    pub fn is_valid(&self) -> bool {
-        !self.revoked && Utc::now() < self.expires_at
+    pub fn is_valid(&self, clock: &dyn Clock) -> bool {
+        !self.revoked && wall_now_utc(clock) < self.expires_at
     }
 }
 
@@ -101,6 +103,7 @@ pub struct SessionManager<S> {
     store: S,
     config: SessionConfig,
     signer: Arc<Mutex<TokenSigner>>,
+    clock: Arc<dyn Clock>,
 }
 
 impl<S> SessionManager<S> {
@@ -122,21 +125,33 @@ impl<S> SessionManager<S> {
     /// # Errors
     ///
     /// Returns `SessionError` if the signing key is shorter than 32 bytes.
-    pub fn new(store: S, config: SessionConfig, signing_key: &[u8]) -> Result<Self, SessionError> {
+    pub fn new(
+        store: S,
+        config: SessionConfig,
+        signing_key: &[u8],
+        clock: Arc<dyn Clock>,
+    ) -> Result<Self, SessionError> {
         Ok(Self::with_key_ring(
             store,
             config,
             KeyRing::single(signing_key)?,
+            clock,
         ))
     }
 
     /// Create a new session manager with a key ring (key rotation).
     #[must_use]
-    pub fn with_key_ring(store: S, config: SessionConfig, keys: KeyRing) -> Self {
+    pub fn with_key_ring(
+        store: S,
+        config: SessionConfig,
+        keys: KeyRing,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             store,
             config,
             signer: Arc::new(Mutex::new(TokenSigner::new(keys))),
+            clock,
         }
     }
 
@@ -167,7 +182,7 @@ impl<S> SessionManager<S> {
 
         let cache = SessionDataCache {
             user_id: user_id.to_string(),
-            expires_at: (Utc::now() + Duration::minutes(5)).timestamp(),
+            expires_at: (wall_now_utc(self.clock.as_ref()) + Duration::minutes(5)).timestamp(),
         };
         let cache_json = serde_json::to_string(&cache)
             .map_err(|e| SessionError::Serialization(e.to_string()))?;
@@ -218,7 +233,7 @@ impl<S: CredentialStore> SessionManager<S> {
         user_agent: Option<&str>,
     ) -> Result<(Session, Vec<Cookie>), SessionError> {
         let token = generate_token();
-        let now = Utc::now();
+        let now = wall_now_utc(self.clock.as_ref());
         let expires_at = now + self.config.max_session_age;
         let session_id = session_key(&token);
 
@@ -285,7 +300,7 @@ impl<S: CredentialStore> SessionManager<S> {
         {
             return Ok(None);
         }
-        if !session.is_valid() {
+        if !session.is_valid(self.clock.as_ref()) {
             return Ok(None);
         }
         if self.config.sliding_expiration {
@@ -377,7 +392,7 @@ impl<S: CredentialStore> SessionManager<S> {
 
     /// Extend session expiration (async, sliding expiration).
     async fn extend_session(&self, session: &Session) -> Result<(), SessionError> {
-        let now = Utc::now();
+        let now = wall_now_utc(self.clock.as_ref());
         let time_left = session.expires_at - now;
         if time_left < self.config.sliding_window {
             let mut updated = session.clone();

@@ -2426,3 +2426,36 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   (hard-coded timeout constants) and #214 (`LoadTracker` rate always zero) record
   the limits this feature leaves. Next: feature 133 (services) and 134
   (platform).
+
+- 2026-11-06: feature 133 done (`spec70/priority-followups`). Phase C removes
+  every direct time read from `foundation_auth`, `foundation_ai`,
+  `foundation_keychain`, `foundation_db` and `foundation_cronjobs`: 137 reads in
+  51 files (auth 63/23, ai 41/12, keychain 25/12, db 7/3, cronjobs 1/1). The gate
+  now reports 205 direct reads in 86 files, 0 violations and 0 markers, down
+  from 342 in 137 files; the 51 phase C allowlist entries are deleted and 93
+  lines remain. `CronClock`, `UtcClock` and `SharedCronClock` are deleted; the
+  cron scheduler takes `Arc<dyn Clock>` and reads `wall_now()`.
+  `foundation_ai`'s GGUF cache now re-injects the caller's clock in
+  `share_weights`, so a cached model no longer leaks the first caller's clock.
+  Tests: auth 50 passed plus the clock-injection test (1 passed with
+  `--features server-test`); db exit 0; ai 496 passed, 14 ignored; keychain
+  exit 0; cronjobs 13 + 1 passed. The db and ai old-code runs failed with real
+  time on the left and simulated time on the right. Versions: auth 0.0.6, ai
+  0.0.7, db 0.0.6, keychain 0.1.6, cronjobs 0.0.5, with every consumer
+  requirement updated. `cargo check --profile uat --workspace` passes.
+  Findings left: the deployment crates still pass an inline `MonotonicClock` to
+  `store_typed` until phase D injects a clock (medium); the full
+  `foundation_auth --features server-test` suite hangs at default parallelism,
+  with every thread blocked in `initialize_pool` -> `FairGate::acquire`
+  (high). The active `gh` token has no issue scope, so these two findings are
+  recorded here and in the feature Result, not yet filed. Next: feature 134
+  (platform).
+- 2026-11-06: the coordinator filed the two feature 133 findings as issues
+  #215 (medium) and #216 (high), and fixed #216 before the commit. The hang
+  was a panic, not a load race: `ServeAdapter::create` required
+  `Arc<dyn Clock>` in the app bag, and an app built with `register_routes`
+  stores the clock on `HandlerStorage` instead. The panic ran on a spawned
+  dispatch thread, so the request never answered and the test held the pool
+  guard while every later test waited at the gate. The adapter now takes the
+  storage clock, with a bag clock still winning when a host stores one. The
+  full suite passes: 244 tests, exit 0. Issue #216 is closed.

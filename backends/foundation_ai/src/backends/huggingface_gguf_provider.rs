@@ -5,10 +5,10 @@
 
 use std::path::PathBuf;
 
-use foundation_core::valtron::block_on_future;
+use foundation_core::valtron::{block_on_future, Clock};
 use foundation_deployment_huggingface::{HFClient, HFRepository, RepoDownloadFileParams};
 
-use crate::backends::llamacpp::{LlamaBackendConfig, LlamaBackends, LlamaModels};
+use crate::backends::llamacpp::{LlamaBackendConfig, LlamaBackendKind, LlamaBackends, LlamaModels};
 use crate::errors::{ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
     MessageType, ModelAPI, ModelId, ModelProvider, ModelProviderDescriptor, ModelProviders,
@@ -29,7 +29,8 @@ use foundation_deployment_huggingface::repository;
 #[derive(Clone)]
 pub struct HuggingFaceGGUFProvider {
     hf_client: HFClient,
-    llama_backend: LlamaBackends,
+    llama_backend: LlamaBackendKind,
+    clock: std::sync::Arc<dyn Clock>,
     cache_dir: PathBuf,
     default_quantization: Option<String>,
     /// llama.cpp settings (GPU layers, context length, batch, threads, and the
@@ -44,12 +45,12 @@ pub struct HuggingFaceGGUFProvider {
 ///
 /// ```rust
 /// use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
-/// use foundation_ai::backends::llamacpp::LlamaBackends;
+/// use foundation_ai::backends::llamacpp::LlamaBackendKind;
 ///
 /// let config = HuggingFaceGGUFConfig::builder()
 ///     .token("hf_...")
 ///     .cache_dir("~/.cache/huggingface")
-///     .llama_backend(LlamaBackends::LLamaGPU)  // Use GPU
+///     .llama_backend(LlamaBackendKind::LLamaGPU)  // Use GPU
 ///     .n_gpu_layers(32)
 ///     .build();
 /// ```
@@ -64,7 +65,7 @@ pub struct HuggingFaceGGUFConfig {
     /// llama.cpp backend configuration.
     pub llama_config: LlamaBackendConfig,
     /// Which llama.cpp backend variant to use.
-    pub llama_backend: LlamaBackends,
+    pub llama_backend: LlamaBackendKind,
 }
 
 impl Default for HuggingFaceGGUFConfig {
@@ -74,7 +75,7 @@ impl Default for HuggingFaceGGUFConfig {
             cache_dir: default_cache_dir(),
             default_quantization: Some("q4_k_m".to_string()),
             llama_config: LlamaBackendConfig::default(),
-            llama_backend: LlamaBackends::LLamaCPU,
+            llama_backend: LlamaBackendKind::LLamaCPU,
         }
     }
 }
@@ -126,11 +127,11 @@ impl HuggingFaceGGUFConfig {
         }
     }
 
-    /// This config forced onto the CPU: [`LlamaBackends::LLamaCPU`] with no
+    /// This config forced onto the CPU: [`LlamaBackendKind::LLamaCPU`] with no
     /// layers offloaded. Every other setting is kept.
     #[must_use]
     pub fn on_cpu(mut self) -> Self {
-        self.llama_backend = LlamaBackends::LLamaCPU;
+        self.llama_backend = LlamaBackendKind::LLamaCPU;
         self.llama_config.n_gpu_layers = 0;
         self
     }
@@ -139,8 +140,8 @@ impl HuggingFaceGGUFConfig {
     /// layer offloaded (`n_gpu_layers = u32::MAX`, which llama.cpp clamps to
     /// the model's depth). Every other setting is kept.
     ///
-    /// The backend is [`LlamaBackends::LLamaMetal`] on Apple targets and
-    /// [`LlamaBackends::LLamaGPU`] elsewhere. llama.cpp picks the actual
+    /// The backend is [`LlamaBackendKind::LLamaMetal`] on Apple targets and
+    /// [`LlamaBackendKind::LLamaGPU`] elsewhere. llama.cpp picks the actual
     /// device from the build's GPU feature (`metal`, `cuda`, `vulkan`); the
     /// layer count is what turns offload on. A build without a GPU feature
     /// runs on the CPU — check
@@ -149,9 +150,9 @@ impl HuggingFaceGGUFConfig {
     #[must_use]
     pub fn on_gpu(mut self) -> Self {
         self.llama_backend = if cfg!(target_vendor = "apple") {
-            LlamaBackends::LLamaMetal
+            LlamaBackendKind::LLamaMetal
         } else {
-            LlamaBackends::LLamaGPU
+            LlamaBackendKind::LLamaGPU
         };
         self.llama_config.n_gpu_layers = u32::MAX;
         self
@@ -251,7 +252,7 @@ impl HuggingFaceGGUFConfigBuilder {
 
     /// Set the llama.cpp backend variant.
     #[must_use]
-    pub fn llama_backend(mut self, backend: LlamaBackends) -> Self {
+    pub fn llama_backend(mut self, backend: LlamaBackendKind) -> Self {
         self.config.llama_backend = backend;
         self
     }
@@ -280,7 +281,10 @@ impl HuggingFaceGGUFProvider {
     /// # Errors
     ///
     /// Returns an error if the `HFClient` cannot be initialized.
-    pub fn new(config: HuggingFaceGGUFConfig) -> ModelProviderResult<Self> {
+    pub fn new(
+        config: HuggingFaceGGUFConfig,
+        clock: std::sync::Arc<dyn Clock>,
+    ) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
             .token(
                 config
@@ -309,6 +313,7 @@ impl HuggingFaceGGUFProvider {
         Ok(Self {
             hf_client,
             llama_backend: config.llama_backend,
+            clock,
             cache_dir: config.cache_dir,
             default_quantization: config.default_quantization,
             llama_config: config.llama_config,
@@ -323,7 +328,7 @@ impl HuggingFaceGGUFProvider {
 
     /// The llama.cpp backend variant models load on.
     #[must_use]
-    pub fn llama_backend(&self) -> LlamaBackends {
+    pub fn llama_backend(&self) -> LlamaBackendKind {
         self.llama_backend
     }
 
@@ -530,7 +535,7 @@ impl ModelProvider for HuggingFaceGGUFProvider {
     {
         // If config is provided, recreate with new config
         if let Some(config) = config {
-            HuggingFaceGGUFProvider::new(config)
+            HuggingFaceGGUFProvider::new(config, self.clock)
         } else {
             Ok(self)
         }
@@ -581,7 +586,7 @@ impl ModelProvider for HuggingFaceGGUFProvider {
         // Delegate to LlamaBackends for actual model loading, carrying the full
         // llama.cpp config (GPU layers, context length, …) and the opt-in
         // speculative (MTP) config so they are applied + capability-checked.
-        self.llama_backend
+        LlamaBackends::new(self.llama_backend, std::sync::Arc::clone(&self.clock))
             .load_model(model_spec, &self.llama_config)
     }
 

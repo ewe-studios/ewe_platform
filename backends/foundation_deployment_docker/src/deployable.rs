@@ -140,7 +140,11 @@ impl Deployable for ContainerDeployment {
                 container_id: created.id,
             };
             store
-                .store_typed(&instance_id.to_string(), &output)
+                .store_typed(
+                    &instance_id.to_string(),
+                    &output,
+                    &foundation_core::valtron::MonotonicClock::new(),
+                )
                 .await
                 .map_err(|e| DockerError::Unavailable(format!("persist deploy state: {e}")))?;
             Ok(output)

@@ -123,13 +123,18 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 
     provider
         .get_model(ModelId::Name("gpt-4".into(), None))
         .unwrap()
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
 }
 
 #[valtron_test]
@@ -223,7 +228,7 @@ data: [DONE]\n\n";
     }
 }
 
-/// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
+/// Verify SSE streaming accumulates tool call deltas into a final `ToolCall` message.
 #[valtron_test]
 fn test_provider_streaming_tool_calls() {
     let sse_body = b"data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"tool_calls\":[{\"index\":0,\"id\":\"call_abc\",\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}\n\n\
@@ -280,12 +285,12 @@ data: [DONE]\n\n";
 // SSE streaming with reconnection (SseTestServer)
 // ============================================================================
 
-/// WHY: Verify that the OpenAI provider's SSE stream correctly sends
+/// WHY: Verify that the `OpenAI` provider's SSE stream correctly sends
 /// POST with body and headers, and parses streaming responses. Reconnection
 /// behavior is tested at the SSE event source level in
-/// foundation_core's integration tests (which use the same SseTestServer
-/// with abrupt_drop — the EOF-from-RST timing doesn't survive the valtron
-/// executor's scheduling, so we use clean_close here).
+/// `foundation_core`'s integration tests (which use the same `SseTestServer`
+/// with `abrupt_drop` — the EOF-from-RST timing doesn't survive the valtron
+/// executor's scheduling, so we use `clean_close` here).
 ///
 /// WHAT: Uses `SseTestServer` with clean close to verify:
 /// 1. POST method is used (not GET)
@@ -321,7 +326,6 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             let body_len = match &req.body {
                 foundation_netio::shared::http::SendSafeBody::Text(s) => s.len(),
                 foundation_netio::shared::http::SendSafeBody::Bytes(v) => v.len(),
-                foundation_netio::shared::http::SendSafeBody::None => 0,
                 _ => 0,
             };
 
@@ -367,7 +371,7 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 
@@ -379,19 +383,16 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
 
     let mut final_text: Option<String> = None;
     for item in &mut stream {
-        match &item {
-            Stream::Next(msg) => {
-                if let Messages::Assistant { content, .. } = msg {
-                    if let ModelOutput::Text(tc) = content {
-                        final_text = Some(tc.content.clone());
-                    }
-                }
-            }
-            _ => {}
+        if let Stream::Next(Messages::Assistant {
+            content: ModelOutput::Text(tc),
+            ..
+        }) = &item
+        {
+            final_text = Some(tc.content.clone());
         }
     }
     for (i, (m, p, b)) in captured_clone.requests.lock().unwrap().iter().enumerate() {
-        eprintln!("  [{}] {} {} (body_len={})", i, m, p, b);
+        eprintln!("  [{i}] {m} {p} (body_len={b})");
     }
 
     // Verify streamed content
@@ -450,7 +451,7 @@ fn test_provider_streaming_error_emits_partial_then_failure() {
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
     let model = provider
@@ -683,10 +684,12 @@ fn test_build_response_input_from_messages() {
                     assert_eq!(role, "user");
                     assert!(matches!(content, ResponseInputContent::Text(_)));
                 }
-                _ => panic!("Expected Message item"),
+                ResponseInputItem::FunctionCallOutput { .. } => {
+                    panic!("Expected Message item")
+                }
             }
         }
-        _ => panic!("Expected Items input"),
+        ResponseInput::Text(_) => panic!("Expected Items input"),
     }
 }
 
@@ -1016,8 +1019,13 @@ fn test_parse_chat_response_tool_calls() {
     };
 
     let model_id = ModelId::Name("gpt-4".into(), None);
-    let (msg, _report) =
-        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msg, _report) = parse_chat_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &*test_clock(),
+    )
+    .unwrap();
 
     if let Messages::Assistant {
         content,
@@ -1073,14 +1081,18 @@ fn test_parse_chat_response_text() {
     };
 
     let model_id = ModelId::Name("gpt-4".into(), None);
-    let (msg, _report) =
-        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msg, _report) = parse_chat_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &*test_clock(),
+    )
+    .unwrap();
 
     if let Messages::Assistant {
         content,
         stop_reason,
         usage,
-        metadata: _,
         ..
     } = &msg
     {
@@ -1222,10 +1234,12 @@ fn test_build_chat_request_with_new_fields() {
         chat_template: None,
         tool_choice: Some(ToolChoice::Auto),
     };
-    let mut params = ModelParams::default();
-    params.output_format = Some(OutputFormat::JsonObject);
-    params.frequency_penalty = Some(0.5);
-    params.presence_penalty = Some(0.3);
+    let mut params = ModelParams {
+        output_format: Some(OutputFormat::JsonObject),
+        frequency_penalty: Some(0.5),
+        presence_penalty: Some(0.3),
+        ..ModelParams::default()
+    };
     let mut logit_bias = std::collections::HashMap::new();
     logit_bias.insert("50256".to_string(), -100.0);
     params.logit_bias = Some(logit_bias);
@@ -1351,9 +1365,9 @@ fn responses_provider_constructors() {
     use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 
     // Default constructor + config-carrying constructor both build.
-    let _default = ResponsesProvider::new();
+    let _default = ResponsesProvider::new(test_clock());
     let cfg = ResponsesConfig::new().with_max_retries(3);
-    let _with_config = ResponsesProvider::with_config(cfg);
+    let _with_config = ResponsesProvider::with_config(cfg, test_clock());
 }
 
 // ---------------------------------------------------------------------------
@@ -1412,8 +1426,13 @@ fn parse_chat_response_populates_logprobs_fingerprint_and_refusal() {
     .expect("response deserializes");
 
     let model_id = ModelId::Name("gpt-4o-mini".to_string(), None);
-    let (msg, _usage) =
-        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msg, _usage) = parse_chat_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &*test_clock(),
+    )
+    .unwrap();
 
     let Messages::Assistant { metadata, .. } = msg else {
         panic!("expected assistant message");
@@ -1446,6 +1465,7 @@ fn parse_chat_response_populates_logprobs_fingerprint_and_refusal() {
 // ---------------------------------------------------------------------------
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn build_chat_request_covers_tool_and_format_branches() {
     use std::time::SystemTime;
 
@@ -1669,7 +1689,7 @@ fn build_response_input_covers_all_message_branches() {
                     arguments: None,
                     signature: None,
                     depends_on: Vec::new(),
-                    execution_hint: Default::default(),
+                    execution_hint: foundation_ai::types::ExecutionHint::default(),
                 },
                 stop_reason: StopReason::ToolUse,
                 provider: ModelProviders::OPENAIRESPONSES,
@@ -1731,7 +1751,8 @@ fn setup_responses_model(server: &TestHttpServer, max_retries: u32) -> impl Mode
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
             "test-key".to_string(),
         )));
-    let provider = ResponsesProvider::with_http_client_and_config(http_client, config);
+    let provider =
+        ResponsesProvider::with_http_client_and_config(http_client, config, test_clock());
     provider
         .get_model(ModelId::Name("o1".into(), None))
         .unwrap()

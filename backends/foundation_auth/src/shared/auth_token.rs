@@ -6,9 +6,9 @@
 //! WHAT: `AuthToken` enum with variants for each auth method.
 //! HOW: Wraps existing credential types; provides unified `is_expired()` interface.
 
-use chrono::Utc;
-
+use crate::shared::clock::now_seconds;
 use crate::{AuthCredential, ConfidentialText, JwtCredential, OAuthCredential, SessionCredential};
+use foundation_core::valtron::Clock;
 use foundation_netio::shared::client::Cookie;
 
 /// Unified authentication token representation.
@@ -43,11 +43,11 @@ pub enum AuthToken {
 impl AuthToken {
     /// Whether the token is currently valid.
     #[must_use]
-    pub fn is_expired(&self) -> bool {
+    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
         match self {
             Self::OAuth { expires_at, .. }
             | Self::Jwt { expires_at, .. }
-            | Self::Session { expires_at, .. } => Utc::now().timestamp() >= *expires_at,
+            | Self::Session { expires_at, .. } => now_seconds(clock) >= *expires_at,
             Self::ApiKey { .. } => false, // API keys don't expire
         }
     }

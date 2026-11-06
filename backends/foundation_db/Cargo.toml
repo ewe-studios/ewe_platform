@@ -1,6 +1,6 @@
 [package]
 name = "foundation_db"
-version = "0.0.5"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -76,7 +76,9 @@ futures-util = "0.3"
 libc = "0.2"
 # Turns on the `test-hooks` feature for this crate's own test targets only.
 foundation_db = { path = ".", features = ["test-hooks"] }
-foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
+# `test-clock` provides `SimulatedClock`, so a test proves that a stored row
+# carries the simulated `created_at`, not the real time.
+foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["std", "multi", "test-clock"] }
 
 [features]
 # Test-only hooks (for example `inject_rollback_failure`). Off by default; the

@@ -7,9 +7,13 @@ use foundation_auth::server::models::{PendingLogin, TosVersion};
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::TotpKeyRing;
-use foundation_core::valtron::{valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{valtron_test, BlockingFutureExt, MonotonicClock};
 use foundation_db::{KeyValueStore, MemoryStorage, QueryStore};
 use futures_lite::StreamExt;
+
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn storage() -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -17,7 +21,11 @@ fn storage() -> Arc<HandlerStorage<MemoryStorage>> {
         crate::integration::turso_provider(dir.path().join("e.db").to_str().unwrap().into());
     std::mem::forget(dir);
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
-    Arc::new(HandlerStorage::new(query_store, MemoryStorage::new()))
+    Arc::new(HandlerStorage::new(
+        query_store,
+        MemoryStorage::new(),
+        test_clock(),
+    ))
 }
 
 fn pending() -> PendingLogin {
@@ -44,8 +52,12 @@ async fn keys(storage: &HandlerStorage<MemoryStorage>) -> Vec<String> {
 #[valtron_test(threads = 8, timeout = 60000)]
 fn expired_entries_are_not_returned_and_are_cleaned() {
     let storage = storage();
-    let tos = TosService::new(Arc::clone(&storage));
-    let mfa = MfaService::new(Arc::clone(&storage), TotpKeyRing::default());
+    let tos = TosService::new(Arc::clone(&storage), Arc::clone(&storage.clock));
+    let mfa = MfaService::new(
+        Arc::clone(&storage),
+        TotpKeyRing::default(),
+        Arc::clone(&storage.clock),
+    );
     let storage_c = Arc::clone(&storage);
 
     async move {

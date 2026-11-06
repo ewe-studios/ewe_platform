@@ -8,12 +8,18 @@ use foundation_auth::shared::session::{
     KeyRing, Session, SessionConfig, SessionManager, SigningKey, TokenSigner,
 };
 use foundation_auth::CredentialStore;
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, Clock, MonotonicClock};
+use std::sync::Arc;
+
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn make_manager() -> SessionManager<CredentialStorage> {
     let store = CredentialStorage::memory();
     let key = vec![0xAB; 32];
-    SessionManager::new(store, SessionConfig::default(), &key).expect("create session manager")
+    SessionManager::new(store, SessionConfig::default(), &key, test_clock())
+        .expect("create session manager")
 }
 
 #[valtron_test]
@@ -65,25 +71,25 @@ fn test_session_is_valid() {
         last_active_at: Utc::now(),
         revoked: false,
     };
-    assert!(session.is_valid());
+    assert!(session.is_valid(test_clock().as_ref()));
 
     let expired = Session {
         expires_at: Utc::now() - Duration::hours(1),
         ..session.clone()
     };
-    assert!(!expired.is_valid());
+    assert!(!expired.is_valid(test_clock().as_ref()));
 
     let revoked = Session {
         revoked: true,
         ..session.clone()
     };
-    assert!(!revoked.is_valid());
+    assert!(!revoked.is_valid(test_clock().as_ref()));
 }
 
 #[test]
 fn test_signing_key_too_short() {
     let store = CredentialStorage::memory();
-    let result = SessionManager::new(store, SessionConfig::default(), b"short");
+    let result = SessionManager::new(store, SessionConfig::default(), b"short", test_clock());
     assert!(result.is_err());
 }
 
@@ -242,6 +248,7 @@ async fn session_survives_key_rotation() {
         CredentialStorage::memory(),
         SessionConfig::default(),
         KeyRing::new(key("k1", 1)),
+        test_clock(),
     );
     let (_session, cookies) = mgr.create_session("user_1", None, None).await.unwrap();
     let token = cookies
@@ -335,6 +342,7 @@ async fn get_session_is_a_direct_lookup() {
             ..SessionConfig::default()
         },
         &[0xAB; 32],
+        test_clock(),
     )
     .expect("manager");
     // Many other sessions must not change the cost of one lookup.

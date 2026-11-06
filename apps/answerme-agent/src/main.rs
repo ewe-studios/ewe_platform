@@ -7,10 +7,12 @@
 //!   without driving a terminal UI.
 //! * `agent` — starts a `foundation_repl` session for an interactive chat.
 
+use std::sync::Arc;
+
 use clap::{Parser, Subcommand};
 use foundation_ai::agentic::{AgentSession, AgenticError, Answer};
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::{block_on_future, valtron};
+use foundation_core::valtron::{block_on_future, valtron, MonotonicClock};
 use foundation_errstacks::ErrorTrace;
 use foundation_repl::{Repl, ReplTheme};
 
@@ -90,8 +92,10 @@ fn main() {
 /// `q4_k_m`, 4096-token context, one thread per CPU). The preset's model is
 /// the session's model. `main` is the sync boundary that waits on it.
 async fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
-    let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
-    AgentSession::builder(preset)
+    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let preset =
+        RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None, Arc::clone(&clock))?;
+    AgentSession::builder(preset, clock)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .build()
         .await

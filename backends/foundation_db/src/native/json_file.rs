@@ -4,6 +4,7 @@
 //! Uses atomic writes (temp file + rename) for crash safety and
 //! Zeroizing for secure memory handling of sensitive data.
 
+use foundation_core::valtron::Clock;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -371,6 +372,7 @@ impl QueryStore for JsonFileStorage {
 impl RateLimiterStore for JsonFileStorage {
     async fn check_rate_limit(
         &self,
+        _clock: &dyn Clock,
         _key: &str,
         _max_count: u32,
         _window_seconds: u64,
@@ -380,7 +382,12 @@ impl RateLimiterStore for JsonFileStorage {
         ))
     }
 
-    async fn record_rate_limit(&self, _key: &str, _window_seconds: u64) -> StorageResult<u32> {
+    async fn record_rate_limit(
+        &self,
+        _clock: &dyn Clock,
+        _key: &str,
+        _window_seconds: u64,
+    ) -> StorageResult<u32> {
         Err(StorageError::Generic(
             "RateLimiterStore not supported for JsonFileStorage".to_string(),
         ))

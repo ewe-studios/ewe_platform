@@ -4,9 +4,9 @@
 //! `{app_uuid}.{random}`. The secret is Argon2id-hashed at rest; on every
 //! provisioning call the app presents it and we verify + resolve the app uuid.
 
+use crate::core::clock::wall_now_utc;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 use foundation_auth::shared::password_hash::{
@@ -74,7 +74,7 @@ pub async fn register(
     // Secret embeds the uuid so it resolves the app on later calls.
     let secret = format!("{uuid}.{}", crypto::random_key()?);
     let salt = crypto::random_salt()?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
 
     let row = AppRow {
         uuid: uuid.clone(),

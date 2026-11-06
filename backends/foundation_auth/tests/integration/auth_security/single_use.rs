@@ -8,11 +8,15 @@ use foundation_auth::server::models::{PendingLogin, TosVersion};
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::TotpKeyRing;
-use foundation_core::valtron::{valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{valtron_test, BlockingFutureExt, MonotonicClock};
 use foundation_db::{AsyncListStream, KeyValueStore, MemoryStorage, QueryStore, StorageResult};
 use serde::{de::DeserializeOwned, Serialize};
 
 const THREADS: usize = 50;
+
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// A cache whose `get` is slow. A read-then-delete take lets every thread read
 /// before one deletes; an atomic take does not.
@@ -58,6 +62,7 @@ fn storage() -> Arc<HandlerStorage<SlowGet>> {
     Arc::new(HandlerStorage::new(
         query_store,
         SlowGet(MemoryStorage::new()),
+        test_clock(),
     ))
 }
 
@@ -97,7 +102,10 @@ where
 #[valtron_test(threads = 8, timeout = 60000)]
 fn concurrent_use_of_one_tos_code_lets_exactly_one_through() {
     let storage = storage();
-    let tos = Arc::new(TosService::new(Arc::clone(&storage)));
+    let tos = Arc::new(TosService::new(
+        Arc::clone(&storage),
+        Arc::clone(&storage.clock),
+    ));
     let code = {
         let tos = Arc::clone(&tos);
         async move {
@@ -132,6 +140,7 @@ fn concurrent_use_of_one_mfa_challenge_lets_exactly_one_through() {
     let mfa = Arc::new(MfaService::new(
         Arc::clone(&storage),
         TotpKeyRing::default(),
+        Arc::clone(&storage.clock),
     ));
     let id = {
         let mfa = Arc::clone(&mfa);

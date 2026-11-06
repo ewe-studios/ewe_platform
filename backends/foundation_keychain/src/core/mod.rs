@@ -5,6 +5,7 @@
 
 pub mod api;
 pub mod auth;
+pub mod clock;
 pub mod context;
 pub mod crypto;
 pub mod error;

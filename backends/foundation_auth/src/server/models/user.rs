@@ -1,6 +1,7 @@
 //! User entity for the `IdP` server.
 
-use chrono::Utc;
+use crate::shared::clock::now_millis;
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -22,16 +23,21 @@ pub struct User {
 
 impl User {
     #[must_use]
-    pub fn is_locked(&self) -> bool {
+    pub fn is_locked(&self, clock: &dyn Clock) -> bool {
         self.locked_until
-            .is_some_and(|until| Utc::now().timestamp_millis() < until)
+            .is_some_and(|until| now_millis(clock) < until)
     }
 
-    pub fn record_failed_attempt(&mut self, max_attempts: u32, lockout_duration: Duration) {
+    pub fn record_failed_attempt(
+        &mut self,
+        max_attempts: u32,
+        lockout_duration: Duration,
+        clock: &dyn Clock,
+    ) {
         self.failed_login_attempts += 1;
         if self.failed_login_attempts >= max_attempts {
             self.locked_until =
-                Some(Utc::now().timestamp_millis().saturating_add(
+                Some(now_millis(clock).saturating_add(
                     i64::try_from(lockout_duration.as_millis()).unwrap_or(i64::MAX),
                 ));
         }

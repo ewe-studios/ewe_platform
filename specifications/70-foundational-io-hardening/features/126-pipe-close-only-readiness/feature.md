@@ -1,6 +1,6 @@
 ---
 feature: "A pipe reports a close-only readiness, so a parked producer is not woken by every pop"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (found by feature 125)"
 model: "sonnet"
 branch: "spec70/f126-pipe-closed-readiness"
@@ -151,13 +151,13 @@ cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectr
 
 ## Done when
 
-- [ ] `PipeSender::closed_readiness()` exists and is ready only when the receiver dropped.
-- [ ] A pop does not wake a task parked on it; a close does, exactly once.
-- [ ] `H2Pump` uses it and the `ReceiverGone` adapter is gone.
-- [ ] `foundation_core` is bumped one patch step and all 38 requirements follow;
+- [x] `PipeSender::closed_readiness()` exists and is ready only when the receiver dropped.
+- [x] A pop does not wake a task parked on it; a close does, exactly once.
+- [x] `H2Pump` uses it and the `ReceiverGone` adapter is gone.
+- [x] `foundation_core` is bumped one patch step and all 38 requirements follow;
       `Cargo.lock` is updated.
-- [ ] The backlog §1 entry is deleted.
-- [ ] CI green.
+- [x] The backlog §1 entry is deleted.
+- [x] CI green.
 
 ## Result
 

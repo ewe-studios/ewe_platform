@@ -35,7 +35,7 @@ fn setup_responses_provider(
         .with_base_url(base_url)
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
 
-    let provider = ResponsesProvider::with_http_client(http_client)
+    let provider = ResponsesProvider::with_http_client(http_client, test_clock())
         .create(Some(config))
         .unwrap();
 
@@ -44,10 +44,16 @@ fn setup_responses_provider(
         .unwrap()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 /// Test: generate a response via the Responses API.
+
 #[valtron_test]
 fn test_llama_server_responses_generate() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_responses_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
@@ -91,7 +97,7 @@ fn test_llama_server_responses_generate() {
 /// Test: streaming via the Responses API.
 #[valtron_test]
 fn test_llama_server_responses_stream() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_responses_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {

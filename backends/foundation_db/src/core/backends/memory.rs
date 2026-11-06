@@ -7,6 +7,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+use foundation_core::valtron::Clock;
 use serde::{de::DeserializeOwned, Serialize};
 use zeroize::Zeroizing;
 
@@ -236,11 +237,12 @@ impl BlobStore for MemoryStorage {
 impl RateLimiterStore for MemoryStorage {
     async fn check_rate_limit(
         &self,
+        clock: &dyn Clock,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        let now = unix_now_secs()?;
+        let now = unix_now_secs(clock)?;
         let rate_key = format!("_rate_limit:{key}");
         let data = self
             .data
@@ -256,8 +258,13 @@ impl RateLimiterStore for MemoryStorage {
         }
     }
 
-    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
-        let now = unix_now_secs()?;
+    async fn record_rate_limit(
+        &self,
+        clock: &dyn Clock,
+        key: &str,
+        window_seconds: u64,
+    ) -> StorageResult<u32> {
+        let now = unix_now_secs(clock)?;
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self
             .data

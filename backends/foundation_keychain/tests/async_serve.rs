@@ -113,7 +113,11 @@ fn start_server() -> TestServer {
         inner: real,
         yields: Arc::clone(&yields),
     });
-    let app = KeychainServer::new(KeychainContext::new(db)).http_app();
+    let app = KeychainServer::new(KeychainContext::new(
+        db,
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ))
+    .http_app();
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");

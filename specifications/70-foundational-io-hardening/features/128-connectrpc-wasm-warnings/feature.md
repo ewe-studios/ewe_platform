@@ -1,6 +1,6 @@
 ---
 feature: "The wasm32 rpc build of foundation_connectrpc is warning-free and denied in CI"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (found by feature 123)"
 model: "haiku"
 branch: "spec70/f128-connectrpc-wasm-warnings"
@@ -81,7 +81,7 @@ cargo test --profile uat -p foundation_connectrpc
 - [x] The gate fails on a warning, so the debt cannot return.
 - [x] The native build is unchanged and its tests pass.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green.
+- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
 
 ## Result
 

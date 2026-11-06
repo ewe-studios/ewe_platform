@@ -64,6 +64,7 @@ fn build_harness(config: AgentConfig) -> TestHarness {
         coordinator,
         ledger.clone(),
         MemoryConfig::default(),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
 
     let router = ProviderRouter::builder().build();

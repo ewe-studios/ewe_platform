@@ -13,8 +13,8 @@
 //! HOW: the secret is a base32-encoded 256-bit random key; verification rebuilds
 //! `TOTPSecret::from_bytes` from the decoded secret.
 
+use crate::core::clock::wall_now_utc;
 use base32::Alphabet;
-use chrono::Utc;
 use serde::Serialize;
 
 use foundation_auth::shared::two_factor::TOTPSecret;
@@ -74,7 +74,7 @@ pub async fn get_authenticator(
             object: "twoFactorAuthenticator",
         });
     }
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     let row = TwoFactorRow {
         user_uuid: user_uuid.to_string(),
         secret: new_secret_base32()?,
@@ -105,14 +105,14 @@ pub async fn enable_authenticator(
         .await?
         .ok_or_else(|| AppError::BadRequest("call get-authenticator first".into()))?;
 
-    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE) {
+    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, ctx.clock()) {
         return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
 
     let recovery_code = crypto::new_uuid_v4()?.to_string().replace('-', "");
     row.enabled = true;
     row.recovery_code = Some(recovery_code.clone());
-    row.updated_at = Utc::now();
+    row.updated_at = wall_now_utc(ctx.clock());
     store::upsert(ctx.db(), &row).await?;
 
     Ok(EnableAuthenticatorResponse {
@@ -135,7 +135,7 @@ pub async fn disable_authenticator(
     let row = store::get(ctx.db(), user_uuid)
         .await?
         .ok_or_else(|| AppError::BadRequest("two-factor is not configured".into()))?;
-    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE) {
+    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, ctx.clock()) {
         return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
     store::delete(ctx.db(), user_uuid).await
@@ -167,5 +167,5 @@ pub async fn verify(ctx: &KeychainContext, user_uuid: &str, code: &str) -> AppRe
     if row.recovery_code.as_deref() == Some(code) {
         return Ok(true);
     }
-    Ok(totp_from_base32(&row.secret)?.verify(code, TOLERANCE))
+    Ok(totp_from_base32(&row.secret)?.verify(code, TOLERANCE, ctx.clock()))
 }

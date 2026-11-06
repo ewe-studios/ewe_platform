@@ -9,7 +9,7 @@
 //!
 //! WHAT: loads `nomic-embed-text-v1.5.Q8_0.gguf` from `artefacts/models/` —
 //! downloaded at run time, NOT committed (real weights are gitignored; see
-//! `.gitignore`) — and embeds a short string through `LlamaBackends::LLamaCPU`.
+//! `.gitignore`) — and embeds a short string through `LlamaBackends::cpu(clock)`.
 //! Skips when the GGUF is absent, matching `mtp_generate`.
 //!
 //! HOW: builds the same interaction shape as `make_embedding_interaction`
@@ -106,8 +106,14 @@ fn embedding_interaction(text: &str) -> ModelInteraction {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 /// Unit (no model): the embedding context enables embeddings + the configured
 /// pooling type, while the generation context leaves embeddings off (R1/R2).
+
 #[test]
 fn test_embedding_context_params_enable_embeddings_and_pooling() {
     let gen = LlamaBackendConfig::default().to_context_params();
@@ -144,7 +150,7 @@ fn test_llamacpp_embeddings_nomic_end_to_end() {
         return;
     };
 
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     // Mean pooling is the default and correct for nomic-embed-text-v1.5.
     let config = LlamaBackendConfig::builder()
         .context_length(512)

@@ -1,8 +1,9 @@
 //! Authorization code and device code entities.
 
+use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
@@ -22,6 +23,12 @@ pub struct AuthorizationCode {
 
 impl AuthorizationCode {
     #[must_use]
+    // An authorization code names each OAuth field explicitly, so the
+    // constructor stays in one place with the stored row.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "one explicit constructor for the OAuth code row"
+    )]
     pub fn new(
         user_id: String,
         client_id: String,
@@ -30,8 +37,9 @@ impl AuthorizationCode {
         scope: String,
         nonce: Option<String>,
         ttl: Duration,
+        clock: &dyn Clock,
     ) -> Self {
-        let now = Utc::now().timestamp_millis();
+        let now = now_millis(clock);
         Self {
             code: generate_random_code(64),
             user_id,
@@ -46,8 +54,8 @@ impl AuthorizationCode {
     }
 
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp_millis() >= self.expires_at
+    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
+        now_millis(clock) >= self.expires_at
     }
 
     #[must_use]
@@ -76,8 +84,14 @@ pub struct DeviceCode {
 
 impl DeviceCode {
     #[must_use]
-    pub fn new(client_id: String, scope: String, ttl: Duration, interval: u32) -> Self {
-        let now = Utc::now().timestamp_millis();
+    pub fn new(
+        client_id: String,
+        scope: String,
+        ttl: Duration,
+        interval: u32,
+        clock: &dyn Clock,
+    ) -> Self {
+        let now = now_millis(clock);
         Self {
             device_code: generate_random_code(64),
             user_code: generate_user_code(),
@@ -91,8 +105,8 @@ impl DeviceCode {
     }
 
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        Utc::now().timestamp_millis() >= self.expires_at
+    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
+        now_millis(clock) >= self.expires_at
     }
 
     #[must_use]

@@ -178,7 +178,8 @@ Expired auth rows are removed with `StorageCleanup` (implemented for
 every `QueryStore`), with retention periods from `CleanupConfig`:
 
 ```rust
-let stats = store.run_full_cleanup(&CleanupConfig::default()).await?;
+// `clock` is the injected `Clock`, for example `ctx.clock()`.
+let stats = store.run_full_cleanup(&CleanupConfig::default(), &clock).await?;
 ```
 
 Migrations are idempotent (tracked by `id` in a `_migrations` table). Each

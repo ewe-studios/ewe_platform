@@ -1,9 +1,9 @@
-//! Example: Send a "hello" prompt via OpenRouter and validate the response.
+//! Example: Send a "hello" prompt via `OpenRouter` and validate the response.
 //!
-//! OpenRouter proxies 200+ models through a single OpenAI-compatible API.
+//! `OpenRouter` proxies 200+ models through a single OpenAI-compatible API.
 //! This example demonstrates:
 //!   - Setting up `OpenRouter` with the `OpenAI` provider (`OpenAIConfig::openrouter`)
-//!   - Calling a model by its OpenRouter id (e.g. `google/gemma-4-26b-a4b-it:free`)
+//!   - Calling a model by its `OpenRouter` id (e.g. `google/gemma-4-26b-a4b-it:free`)
 //!   - Validating the response contains actual generated content
 //!
 //! Run with:
@@ -15,15 +15,19 @@
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::harness::{RouterMix, RouterPreset};
-use foundation_core::valtron::valtron;
+use std::sync::Arc;
 
-/// Build a router preset that talks to OpenRouter with the given model as primary.
+use foundation_core::valtron::{valtron, MonotonicClock};
+
+/// Build a router preset that talks to `OpenRouter` with the given model as primary.
 fn openrouter_router(
     api_key: &str,
     primary_model: &str,
     memory_model: Option<&str>,
+    clock: &Arc<dyn foundation_core::valtron::Clock>,
 ) -> RouterPreset {
-    let provider = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key));
+    let provider =
+        || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key), Arc::clone(clock));
 
     let mut mix = RouterMix::new().primary(provider(), primary_model);
     if let Some(memory) = memory_model {
@@ -35,17 +39,17 @@ fn openrouter_router(
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
-
     // Use a free model to avoid charges: google/gemma-4-26b-a4b-it:free
     const PRIMARY: &str = "google/gemma-4-26b-a4b-it:free";
+    let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
 
     println!("Building OpenRouter router for model: {PRIMARY}");
-    let preset = openrouter_router(&api_key, PRIMARY, None);
+    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let preset = openrouter_router(&api_key, PRIMARY, None, &clock);
 
     // Bridge into an AgentSessionBuilder.
     let agent = preset
-        .into_agent_builder()
+        .into_agent_builder(clock)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()

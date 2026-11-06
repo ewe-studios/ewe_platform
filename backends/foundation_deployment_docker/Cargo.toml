@@ -67,7 +67,7 @@ optional = true
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.5"
+version = "0.0.6"
 optional = true
 
 # HTTP/2 server for the BuildKit session sidecar (serves FileSync back to

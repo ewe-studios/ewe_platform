@@ -4,7 +4,9 @@
 //! authorization server's introspection endpoint.
 
 use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
+use crate::shared::clock::now_seconds;
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_core::valtron::Clock;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -52,15 +54,12 @@ pub struct IntrospectionResult {
 impl IntrospectionResult {
     /// Check if the token is active and not expired.
     #[must_use]
-    pub fn is_valid(&self) -> bool {
+    pub fn is_valid(&self, clock: &dyn Clock) -> bool {
         if !self.active {
             return false;
         }
         if let Some(exp) = self.exp {
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map_or(0, |d| i64::try_from(d.as_secs()).unwrap_or(i64::MAX));
-            if exp < now {
+            if exp < now_seconds(clock) {
                 return false;
             }
         }

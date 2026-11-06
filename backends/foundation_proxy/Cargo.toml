@@ -15,7 +15,7 @@ foundation_http = { path = "../foundation_http", version = "0.0.6", features = [
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.7", features = ["fd"] }
-foundation_db = { path = "../foundation_db", version = "0.0.5" }
+foundation_db = { path = "../foundation_db", version = "0.0.6" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 # T3/T4: the proxy's H2 upstream leg reuses connectrpc's streaming H2 client
 # (`H2Transport`) — the only H2 client in the tree with trailing-HEADERS support.

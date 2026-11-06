@@ -1,6 +1,12 @@
 //! `ClientService` tests.
 
 use foundation_auth::server::services::client_service::create_client_record;
+use foundation_core::valtron::{Clock, MonotonicClock};
+use std::sync::Arc;
+
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 #[test]
 fn test_create_client_record() {
@@ -10,6 +16,7 @@ fn test_create_client_record() {
         vec!["authorization_code".into()],
         vec!["openid".into()],
         false,
+        test_clock().as_ref(),
     );
 
     assert_ne!(client.id, "");

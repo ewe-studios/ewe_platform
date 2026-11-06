@@ -7,7 +7,7 @@
 //! filter bug here resolves the *wrong* model silently; a broken cache re-fetches
 //! the catalog on every call.
 //!
-//! WHAT: serves an OpenAI `/models` list from a `TestHttpServer` and asserts the
+//! WHAT: serves an `OpenAI` `/models` list from a `TestHttpServer` and asserts the
 //! filter, ordering, empty result, `NotFound` mapping, and that a repeat
 //! `get_model` is served from cache rather than re-hitting the network.
 //!
@@ -75,7 +75,7 @@ fn provider_for(server: &TestHttpServer) -> OpenAIProvider {
             "test-key".to_string(),
         )));
 
-    OpenAIProvider::with_http_client_and_config(http_client, config.clone())
+    OpenAIProvider::with_http_client_and_config(http_client, config.clone(), test_clock())
         .create(Some(config))
         .expect("provider builds")
 }
@@ -87,6 +87,11 @@ fn catalog_server() -> TestHttpServer {
 // ---------------------------------------------------------------------------
 // get_all — the substring filter
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[valtron_test]
 fn get_all_returns_every_model_matching_the_pattern() {
@@ -287,7 +292,7 @@ fn anthropic_provider() -> AnthropicMessagesProvider {
     let config = AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(
         ConfidentialText::new("test-key".to_string()),
     ));
-    AnthropicMessagesProvider::new()
+    AnthropicMessagesProvider::new(test_clock())
         .create(Some(config))
         .expect("provider builds")
 }
@@ -342,7 +347,7 @@ fn responses_provider_for(server: &TestHttpServer) -> ResponsesProvider {
             "test-key".to_string(),
         )));
 
-    ResponsesProvider::with_http_client_and_config(http_client, config.clone())
+    ResponsesProvider::with_http_client_and_config(http_client, config.clone(), test_clock())
         .create(Some(config))
         .expect("provider builds")
 }

@@ -8,6 +8,7 @@
 //! entry point awaits them with valtron's `block_on_future` / `.block()`
 //! behind `blocking_boundary!`.
 
+use foundation_core::valtron::Clock;
 use futures_lite::StreamExt;
 use serde::{de::DeserializeOwned, Serialize};
 use std::pin::Pin;
@@ -536,7 +537,8 @@ pub trait BlobStore: Send + Sync {
 ///
 /// A window lasts `window_seconds`, which the caller takes from its own
 /// configuration and passes to both `check_rate_limit` and
-/// `record_rate_limit`. Once a key's window has elapsed
+/// `record_rate_limit`. The window's time comes from the `clock` the caller
+/// passes in, never from a global clock. Once a key's window has elapsed
 /// (`now - window_start >= window_seconds`) a check allows it again and the
 /// next record starts a new window; inside the window, a record increments
 /// the count and keeps the window's start.
@@ -546,6 +548,7 @@ pub trait RateLimiterStore: Send + Sync {
     /// has had fewer than `max_count` hits in the current one.
     async fn check_rate_limit(
         &self,
+        clock: &dyn Clock,
         key: &str,
         max_count: u32,
         window_seconds: u64,
@@ -553,7 +556,12 @@ pub trait RateLimiterStore: Send + Sync {
 
     /// Record one hit on `key` and return the count in its current window
     /// (1 when this hit starts a new window).
-    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32>;
+    async fn record_rate_limit(
+        &self,
+        clock: &dyn Clock,
+        key: &str,
+        window_seconds: u64,
+    ) -> StorageResult<u32>;
 
     /// Forget `key`'s window.
     async fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;

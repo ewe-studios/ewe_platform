@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 //! Integration tests for `HuggingFaceCandleProvider`.
 //!
-//! These tests verify safetensors model downloading from HuggingFace Hub
+//! These tests verify safetensors model downloading from `HuggingFace` Hub
 //! and Candle inference. Tests are ignored by default as they require network
 //! access and download model files.
 //!
@@ -48,9 +48,15 @@ fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
     project_root.join("artefacts").join("models")
 }
 
-/// Test HuggingFaceCandleProvider repo_id parsing.
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
+/// Test `HuggingFaceCandleProvider` `repo_id` parsing.
 ///
 /// Does not require network or model files.
+
 #[test]
 fn test_candle_provider_repo_parsing() {
     // parse_repo_id is a static method — no provider needed
@@ -73,7 +79,7 @@ fn test_candle_provider_repo_parsing() {
     assert!(parsed.is_none());
 }
 
-/// Test HuggingFaceCandleProvider describe.
+/// Test `HuggingFaceCandleProvider` describe.
 ///
 /// Does not require network or model files.
 #[test]
@@ -83,7 +89,7 @@ fn test_candle_provider_describe() {
         .cache_dir(&cache_dir)
         .build();
 
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     let descriptor = provider.describe().unwrap();
 
     assert_eq!(descriptor.id, "huggingface-candle");
@@ -92,7 +98,7 @@ fn test_candle_provider_describe() {
         descriptor.provider,
         foundation_ai::types::ModelProviders::HUGGINGFACE
     );
-    assert_eq!(descriptor.base_url, Some("https://huggingface.co".into()));
+    assert_eq!(descriptor.base_url, Some("https://huggingface.co"));
     assert_eq!(descriptor.context_window, 4096);
     assert_eq!(descriptor.max_tokens, 2048);
     assert!(!descriptor.reasoning);
@@ -122,7 +128,7 @@ fn test_candle_config_builder_full_chain_and_clone() {
     assert_eq!(cloned.dtype, config.dtype);
 }
 
-/// Provider Debug + Clone + config AuthProvider (offline, no network).
+/// Provider Debug + Clone + config `AuthProvider` (offline, no network).
 #[test]
 fn test_candle_provider_debug_clone_and_auth() {
     use foundation_ai::types::AuthProvider;
@@ -133,7 +139,7 @@ fn test_candle_provider_debug_clone_and_auth() {
         .build();
     assert!(config.auth().is_some(), "hf_token sets the auth credential");
 
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     // Debug renders without panicking; Clone yields an independent handle.
     let dbg = format!("{provider:?}");
     assert!(dbg.contains("HuggingFaceCandleProvider"), "Debug: {dbg}");
@@ -164,7 +170,7 @@ fn test_candle_provider_download_smollm_safetensors() {
         .dtype(CandleDType::F32)
         .build();
 
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
 
     let model_id = ModelId::Name("HuggingFaceTB/SmolLM2-135M".to_string(), None);
 
@@ -201,13 +207,13 @@ fn test_candle_provider_download_smollm_safetensors() {
     }
 }
 
-/// get_one / get_all always error for the candle provider (no catalog) — offline.
+/// `get_one` / `get_all` always error for the candle provider (no catalog) — offline.
 #[test]
 fn test_candle_provider_catalog_methods_error() {
     let config = HuggingFaceCandleConfig::builder()
         .cache_dir(std::env::temp_dir().join("candle_catalog_test"))
         .build();
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     let id = ModelId::Name("HuggingFaceTB/SmolLM2-135M".to_string(), None);
     assert!(
         provider.get_one(id.clone()).is_err(),
@@ -224,7 +230,7 @@ fn test_candle_list_model_files() {
     let config = HuggingFaceCandleConfig::builder()
         .cache_dir(get_artefacts_dir(get_project_root().as_path()))
         .build();
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     match provider.list_model_files("HuggingFaceTB/SmolLM2-135M") {
         Ok(files) => assert!(
             files.iter().any(|f| f.ends_with(".safetensors")),
@@ -243,7 +249,7 @@ fn test_candle_get_model_by_spec_without_location_errors() {
     let config = HuggingFaceCandleConfig::builder()
         .cache_dir(get_artefacts_dir(get_project_root().as_path()))
         .build();
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     let spec = foundation_ai::types::ModelSpec {
         name: "bad".to_string(),
         id: ModelId::Name(
@@ -269,7 +275,7 @@ fn test_candle_download_of_nonexistent_repo_errors() {
     let config = HuggingFaceCandleConfig::builder()
         .cache_dir(get_artefacts_dir(get_project_root().as_path()))
         .build();
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     let bad = ModelId::Name(
         "ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(),
         None,
@@ -302,7 +308,7 @@ fn test_candle_provider_smollm_inference() {
         .dtype(CandleDType::F32)
         .build();
 
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
 
     let model_id = ModelId::Name("HuggingFaceTB/SmolLM2-135M".to_string(), None);
 
@@ -379,7 +385,7 @@ fn test_candle_provider_load_by_spec() {
         .cache_dir(&cache_dir)
         .build();
 
-    let provider = HuggingFaceCandleProvider::new(download_config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(download_config, test_clock()).unwrap();
     let model_id = ModelId::Name("HuggingFaceTB/SmolLM2-135M".to_string(), None);
     let model = provider
         .get_model(model_id)

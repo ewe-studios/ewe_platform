@@ -3,7 +3,9 @@
 //! Keys are generated server-side, the private key `age`-encrypted at rest with
 //! the server master key, and returned in full only on create/get.
 
-use chrono::{Duration, Utc};
+use chrono::Duration;
+
+use crate::core::clock::wall_now_utc;
 use serde::{Deserialize, Serialize};
 
 use crate::core::context::KeychainContext;
@@ -76,7 +78,7 @@ pub async fn create(
     let comment = req.comment.clone().unwrap_or_default();
     let generated = keygen::generate(req.key_type.as_deref().unwrap_or("ed25519"), &comment)?;
 
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     let expires_at = req
         .ttl_hours
         .filter(|h| *h > 0)

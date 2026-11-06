@@ -1,6 +1,6 @@
 ---
 feature: "The large-response relay failure is reproduced and either fixed or refuted"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (backlog §9)"
 model: "sonnet"
 branch: "spec70/f130-large-response-reproduction"
@@ -66,7 +66,7 @@ Then the loops named above, in the Linux CI image for the `--cpus=2` runs.
 - [x] The failure is reproduced or refuted with recorded counts.
 - [x] A cause is fixed, or the entry is closed with the evidence.
 - [x] The backlog §9 entry is deleted.
-- [ ] CI green.
+- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
 
 ## Result
 

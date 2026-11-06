@@ -5,6 +5,10 @@
 
 use std::sync::Arc;
 
+// Only the `server-native` build records a passkey timestamp.
+#[cfg(feature = "server-native")]
+use crate::shared::clock::now_millis;
+use foundation_core::valtron::Clock;
 use foundation_db::{AuthStore, KeyValueStore, StoredPasskey};
 use futures_lite::StreamExt;
 
@@ -101,12 +105,16 @@ pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
     store: Arc<S>,
     cache: KV,
     webauthn: webauthn_rs::Webauthn,
+    clock: Arc<dyn Clock>,
 }
 
 #[cfg(not(feature = "server-native"))]
 pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
     store: Arc<S>,
     _cache: std::marker::PhantomData<KV>,
+    // The stub build never records a passkey, so it does not read the clock.
+    // The field stays so both builds share the same constructor signature.
+    _clock: Arc<dyn Clock>,
 }
 
 impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
@@ -120,7 +128,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
     #[must_use]
     // `config` is only read in the `server-native` build; the other build drops it.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn new(config: Arc<IdpConfig>, store: Arc<S>, cache: KV) -> Self {
+    pub fn new(config: Arc<IdpConfig>, store: Arc<S>, cache: KV, clock: Arc<dyn Clock>) -> Self {
         #[cfg(feature = "server-native")]
         {
             let origin = url::Url::parse(&config.issuer_url)
@@ -133,6 +141,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 store,
                 cache,
                 webauthn,
+                clock,
             }
         }
         #[cfg(not(feature = "server-native"))]
@@ -142,6 +151,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
             Self {
                 store,
                 _cache: std::marker::PhantomData,
+                _clock: clock,
             }
         }
     }
@@ -256,7 +266,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 credential_id: cred_id_bytes,
                 credential_public_key: passkey_cbor,
                 counter: 0,
-                created_at: chrono::Utc::now().timestamp_millis(),
+                created_at: now_millis(self.clock.as_ref()),
                 last_used_at: None,
             };
 

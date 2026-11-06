@@ -1,6 +1,6 @@
 ---
 feature: "A Connect client call fails on its own deadline"
-status: "pending (CI proof)"
+status: "done"
 lane: "priority follow-up (limitation found while diagnosing feature 121)"
 model: "sonnet"
 branch: "spec70/f123-client-deadline"
@@ -86,7 +86,7 @@ python3 scripts/ci/ci.py run foundation_connectrpc --profile uat
 - [x] The tests pass; the first fails on the old code.
 - [x] `foundation_proxy` tests still pass, except the known macOS test in backlog §9.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green.
+- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
 
 ## Result
 

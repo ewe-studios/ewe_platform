@@ -28,7 +28,7 @@ fn text_of(r: &foundation_ai::agentic::tool_impl::ToolCallResult) -> String {
     }
 }
 
-/// Seed a MemoryFs with a file at `path`.
+/// Seed a `MemoryFs` with a file at `path`.
 async fn fs_with(path: &str, content: &str) -> Arc<MemoryFs> {
     let fs = Arc::new(MemoryFs::new());
     fs.write_file_async(path.to_string(), content.as_bytes().to_vec())
@@ -332,7 +332,7 @@ fn registered_read_tool_executes_via_manager() {
             name: "read".to_string(),
             arguments: args(&[("path", "/x.txt")]),
             depends_on: Vec::new(),
-            execution_hint: Default::default(),
+            execution_hint: foundation_ai::types::ExecutionHint::default(),
         };
         let out = mgr.execute_one(&req).await.expect("manager executes read");
         assert_eq!(text_of(&out), "via-manager");

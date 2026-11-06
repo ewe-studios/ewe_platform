@@ -45,13 +45,19 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(
+            db,
+            Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        ),
+        dir,
+    )
 }
 
 /// The current valid TOTP code for a base32 secret (mirrors what an authenticator app shows).
 fn current_code(key_base32: &str) -> String {
     let bytes = base32::decode(ALPHABET, key_base32).expect("decode secret");
-    TOTPSecret::from_bytes(bytes).now()
+    TOTPSecret::from_bytes(bytes).now(&foundation_core::valtron::MonotonicClock::new())
 }
 
 #[valtron_test]

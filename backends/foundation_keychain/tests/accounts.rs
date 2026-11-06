@@ -42,7 +42,13 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(
+            db,
+            Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        ),
+        dir,
+    )
 }
 
 fn register_req(email: &str, password_hash: &str) -> RegisterRequest {
