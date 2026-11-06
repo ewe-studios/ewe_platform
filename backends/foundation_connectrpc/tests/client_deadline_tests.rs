@@ -1,8 +1,9 @@
-//! Client-side deadline enforcement (features 123 and 124).
+//! Client-side deadline enforcement (features 123, 124 and 131).
 //!
 //! WHY: `Ctx::with_deadline` only records a timestamp. A call parked on a read
 //! must fail on its own deadline, not on the peer's idle timeout — during both
-//! setup and every later receive.
+//! setup and every later receive. A facade that drops, or a wait that times
+//! out, must also stop the call's reader and writer tasks, not only the caller.
 //!
 //! WHAT: drives a typed `Client` over the real native transports:
 //! - `H1Transport` against a real `HttpServer` (the normal path completes) and
@@ -10,7 +11,8 @@
 //! - `H2Transport` against the same silent listener.
 //! - `H2Transport` against a raw HTTP/2 peer that sends one Connect message and
 //!   then stalls. The peer ignores the call timeout header, so only the client
-//!   can end the later receives.
+//!   can end the later receives. The same peer reports whether it saw the
+//!   client close its socket after a drop or a timeout.
 //! - `H2Transport` against a real `HttpServer` whose streaming handler resumes
 //!   after a stall (no deadline is set, so the receive waits).
 //!
@@ -22,7 +24,7 @@
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -210,13 +212,49 @@ fn read_request_stream_id(channel: &mut H2Channel, socket: &mut TcpStream) -> u3
     }
 }
 
+/// Read the socket until the client closes it or `bound` passes.
+///
+/// Returns `true` on `Ok(0)` (a clean TCP close) or a reset, `false` when the
+/// socket is still open at the bound. A read timeout is not a close: it only
+/// means the peer sent nothing in that slice.
+fn observes_close(socket: &mut TcpStream, bound: Duration) -> bool {
+    let until = Instant::now() + bound;
+    let mut buf = [0u8; 8192];
+    while Instant::now() < until {
+        match socket.read(&mut buf) {
+            Ok(0) => return true,
+            Ok(_) => {}
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                ) => {}
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::ConnectionReset
+                        | std::io::ErrorKind::ConnectionAborted
+                        | std::io::ErrorKind::BrokenPipe
+                ) =>
+            {
+                return true;
+            }
+            Err(_) => return false,
+        }
+    }
+    false
+}
+
 /// A raw HTTP/2 peer that sends the response head and one Connect message,
 /// then stalls.
 ///
 /// WHY: the real `HttpServer` enforces the call's `Connect-Timeout-Ms` header
 /// itself, so it cannot show whether the *client* enforces its own deadline.
 /// This peer ignores the header. Only a client-side timer can end the wait.
-fn start_stalled_peer() -> (SocketAddr, thread::JoinHandle<()>) {
+///
+/// It returns whether the client closed the socket within two seconds of the
+/// stall. A deadline that stops only the caller leaves the socket open.
+fn start_stalled_peer() -> (SocketAddr, thread::JoinHandle<bool>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let handle = thread::spawn(move || {
@@ -252,22 +290,61 @@ fn start_stalled_peer() -> (SocketAddr, thread::JoinHandle<()>) {
         flush_frames(&mut channel, &mut socket);
 
         // Stall until the client drops the connection or the bound passes.
-        let bound = Instant::now() + Duration::from_millis(1500);
-        let mut buf = [0u8; 8192];
-        while Instant::now() < bound {
-            match socket.read(&mut buf) {
-                Ok(0) => break,
-                Ok(_) => {}
-                Err(e)
-                    if matches!(
-                        e.kind(),
-                        std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
-                    ) => {}
-                Err(_) => break,
-            }
-        }
+        observes_close(&mut socket, Duration::from_secs(2))
     });
     (addr, handle)
+}
+
+/// A raw HTTP/2 peer for a bidi call. It sends the response head at once, then
+/// waits for the test to say the sender half has dropped before it sends one
+/// message.
+///
+/// This order proves that the surviving receive half is still live after its
+/// sibling drops: the message is sent after the drop and must still arrive.
+fn start_bidi_peer() -> (SocketAddr, mpsc::Sender<()>, thread::JoinHandle<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let (go_tx, go_rx) = mpsc::channel();
+    let handle = thread::spawn(move || {
+        let (mut socket, _) = listener.accept().expect("accept");
+        socket
+            .set_read_timeout(Some(Duration::from_millis(50)))
+            .expect("read timeout");
+
+        let mut channel = H2Channel::new(true);
+        server_handshake(&mut channel, &mut socket);
+        let stream_id = read_request_stream_id(&mut channel, &mut socket);
+
+        let headers = vec![(
+            Bytes::from_static(b"content-type"),
+            Bytes::from_static(b"application/connect+json"),
+        )];
+        channel
+            .send_headers_response(stream_id, 200, &headers, false)
+            .expect("response head");
+        flush_frames(&mut channel, &mut socket);
+
+        // Send only after the test drops the sender half.
+        go_rx
+            .recv_timeout(Duration::from_secs(2))
+            .expect("the test must release the peer after the drop");
+
+        let mut frame = Vec::new();
+        Envelope {
+            flags: 0,
+            data: Bytes::from_static(br#"{"text":"after-drop"}"#),
+        }
+        .encode_into(&mut frame);
+        channel
+            .send_data_frame(stream_id, &frame, false)
+            .expect("message after the drop");
+        flush_frames(&mut channel, &mut socket);
+
+        // Drain until the test drops the receive half, so the call ends
+        // cleanly rather than on the peer's own bound.
+        let _ = observes_close(&mut socket, Duration::from_secs(1));
+    });
+    (addr, go_tx, handle)
 }
 
 /// A listener that accepts every connection and never answers. Each accepted
@@ -606,6 +683,107 @@ async fn a_bidi_receive_fails_on_the_call_deadline() {
     );
     drop(receiver);
     peer.join().expect("peer thread");
+}
+
+/// Dropping a server stream closes the socket, even though the peer never
+/// sends another frame.
+///
+/// The peer sends the head and one message, then nothing. The first message
+/// releases `server_stream` (see the note in the feature Result about the
+/// `response_headers` race); after it, the protocol reader parks on the
+/// response body. Before feature 131 the facade carried no cancel signal: the
+/// drop closed no socket and the peer read timed out.
+#[valtron_test(timeout = 10_000)]
+async fn dropping_a_server_stream_closes_the_socket() {
+    let (addr, peer) = start_stalled_peer();
+    let client = streaming_client(&addr.to_string(), SERVER_STREAM);
+
+    let stream = client
+        .server_stream(Ctx::background(), Request::new(Msg::of("item")))
+        .await
+        .expect("server stream");
+    drop(stream);
+    let started = Instant::now();
+    while !peer.is_finished() {
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "the peer never saw the close"
+        );
+        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
+    }
+
+    let closed = peer.join().expect("peer thread");
+    assert!(
+        closed,
+        "dropping the stream must close the peer's socket within 2 s"
+    );
+}
+
+/// Dropping one half of a split bidi stream keeps the other half live.
+///
+/// The peer sends its message only after the sender half drops, so a receive
+/// that still works proves the drop did not cancel the call.
+#[valtron_test(timeout = 10_000)]
+async fn dropping_one_bidi_half_keeps_the_other_alive() {
+    let (addr, go, peer) = start_bidi_peer();
+    let client = streaming_client(&addr.to_string(), BIDI);
+
+    let stream = client
+        .bidi_stream(Ctx::background(), futures::stream::empty::<Msg>())
+        .await
+        .expect("bidi stream");
+    let (sender, mut receiver) = stream.split();
+    drop(sender);
+    go.send(()).expect("release the peer after the drop");
+
+    let msg = receiver
+        .receive()
+        .await
+        .expect("the receive half must still be live")
+        .expect("the peer sends a message after the drop");
+    assert_eq!(msg, Msg::of("after-drop"));
+
+    drop(receiver);
+    peer.join().expect("peer thread");
+}
+
+/// A timed-out receive stops the call, so the peer sees the socket close.
+///
+/// Before feature 131 the wait passed `None` as the cancel argument: the caller
+/// got `DeadlineExceeded` but the reader task stayed parked and the socket
+/// stayed open.
+#[valtron_test(timeout = 10_000)]
+async fn a_timed_out_receive_cancels_the_call() {
+    let (addr, peer) = start_stalled_peer();
+    let client = streaming_client(&addr.to_string(), SERVER_STREAM);
+
+    let mut stream = client
+        .server_stream(deadline_ctx(), Request::new(Msg::of("item")))
+        .await
+        .expect("server stream");
+    let first = stream
+        .receive()
+        .await
+        .expect("the first receive must succeed")
+        .expect("the server sends one message");
+    assert_eq!(first, Msg::of("first"));
+
+    let err = stream
+        .receive()
+        .await
+        .expect_err("the second receive must fail on its deadline");
+    assert_eq!(
+        err.current_context().code(),
+        Code::DeadlineExceeded,
+        "expected DeadlineExceeded, got: {err}"
+    );
+
+    let closed = peer.join().expect("peer thread");
+    assert!(
+        closed,
+        "a timed-out receive must close the peer's socket within 2 s"
+    );
+    drop(stream);
 }
 
 /// Without a deadline the stall is observable, and the stream still delivers

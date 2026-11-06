@@ -2,6 +2,34 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 131, dropped facade cancels the call):
+  - **`CancelSignal` is global to the call.** It is one `Arc` over a shared
+    flag, and every clone shares it. A raw fire from one facade stops every
+    task of the call, so a split bidi stream needs a live-handle count. A
+    private guard with `Arc<AtomicUsize>` (`Clone` increments, the last `Drop`
+    fires) gives the count without implementing `Drop` on the facades, which
+    would stop `BidiStream::split` from moving fields out.
+  - **Do not implement `Drop` on a struct that a method destructures.**
+    `split(self)` moves the facade's fields; a `Drop` impl forbids that move.
+    Put the `Drop` on a small guard value held by each facade instead.
+  - **A facade wait that times out must fire the call signal.** Passing the
+    facade's signal to `with_deadline_at` is the smallest change, and it also
+    stops the reader and writer tasks, which the caller alone cannot do.
+  - **A peer that sends the head and no body cannot release
+    `server_stream`.** `PipeClientReceiver::response_headers` returns the
+    published head only when the reader task stored it first. The call setup
+    has no yield between spawning the reader and asking, so the reader cannot
+    publish first; the method then waits for the first body frame. Use a peer
+    that sends one message for a drop test, and record the wait as backlog §1.
+  - **A drop closes the socket through the pump, not the protocol reader.**
+    The signal drops the reader task, which drops the body receiver. The h2
+    pump sees the closed body pipe, sends `RST_STREAM(CANCEL)` and exits, which
+    closes the TCP connection; the peer observes `Ok(0)`.
+  - **Prove the old-code failure by reverting only the source file.** Save the
+    new `client.rs` outside the tree, `git checkout --` that file, run the new
+    tests, record the failure, then restore. The test file then compiles against
+    the old library because it uses only public API.
+
 - 2026-11-06 (feature 127, non-blocking H2 dial):
   - **A non-blocking connect to a closed loopback port does not fail inside
     `connect`.** On macOS it returns `EINPROGRESS` (errno 36) and reports

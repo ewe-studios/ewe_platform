@@ -1,9 +1,9 @@
 ---
 feature: "A dropped stream facade cancels its reader and writer tasks"
-status: "pending"
+status: "pending (CI proof)"
 lane: "priority follow-up (found by feature 124)"
 model: "sonnet"
-branch: "spec70/f131-stream-drop-cancel"
+branch: "spec70/priority-followups"
 crates: ["foundation_connectrpc"]
 catalogue_rows: ["1"]
 ---
@@ -86,13 +86,99 @@ Then 30 runs of `rpc_proxy_e2e_tests` in the Linux CI image with `--cpus=2`.
 
 ## Done when
 
-- [ ] A dropped facade closes its socket; the peer observes the close.
-- [ ] Splitting a bidi stream does not cancel it under the surviving half.
-- [ ] A timeout stops the reader and writer tasks, not only the caller.
-- [ ] The backlog §1 entry is deleted.
-- [ ] CI green.
+- [x] A dropped facade closes its socket; the peer observes the close.
+- [x] Splitting a bidi stream does not cancel it under the surviving half.
+- [x] A timeout stops the reader and writer tasks, not only the caller.
+- [x] The backlog §1 entry is deleted.
+- [ ] CI green. Pending the pull-request CI; the local checks pass and the Linux
+      CI run is the follow-up stage.
 
 ## Result
 
-2026-11-06. Plan only. Not started. Feature 124 recorded the leak while it bounded the
-facade waits.
+2026-11-06. Implemented on branch `spec70/priority-followups`. The feature is
+`pending (CI proof)` until the pull-request CI is green.
+
+### What changed
+
+- **One guard for the call's lifetime.** A new private `CancelGuard` in
+  `backends/foundation_connectrpc/src/shared/client.rs` holds the call's
+  `CancelSignal` and a shared `Arc<AtomicUsize>` of live facades. `Clone` adds
+  one to the count; the last `Drop` fires the signal. Firing a signal that
+  already fired does nothing, so a drop during unwinding is safe. The guard
+  allocates nothing itself and takes no lock on an already-fired signal (the
+  `CancelSignal::cancel` fast path is an atomic swap).
+- **Every facade carries the guard.** `ServerStream`, `BidiStream`,
+  `BidiSender` and `BidiReceiver` gain one private field, `cancel: CancelGuard`.
+  Each constructor makes the guard from the call `Ctx` signal, and
+  `BidiStream::split` clones it into the sender half and moves the original
+  into the receiver half. The count therefore equals the number of live facade
+  values.
+- **Every wait can fire the signal.** All 14
+  `with_deadline_at(deadline, None, ..)` call sites now pass
+  `Some(self.cancel.signal())`, so a timeout also stops the reader and writer
+  tasks instead of only the caller. The setup path in `with_deadline` already
+  passed the caller's signal and did not change.
+- **No facade kept by the `Client`.** `server_stream_inner` and
+  `bidi_stream_inner` move the receiver (and, for bidi, the sender) into the
+  returned facade. The spawned reader and writer tasks hold the `CancelSignal`
+  but not the guard, so the count counts only values the caller holds. No
+  public signature changed, so the crate stays 0.0.5.
+
+### `CancelSignal` semantics and the chosen mechanism
+
+`CancelSignal` is an `Arc` over one shared flag: every clone shares it, and one
+`cancel()` stops everything that holds a clone. It is therefore **global to the
+call**. Firing it from one facade would cancel a live sibling, for example the
+other half of a split bidi stream. The feature uses the **shared live-handle
+count** (`Arc<AtomicUsize>`), not the raw fire, and fires only when the last
+facade drops.
+
+### Tests
+
+Three new cases in `tests/client_deadline_tests.rs`:
+
+- `dropping_a_server_stream_closes_the_socket`: the raw peer reports whether
+  the client closed the socket within 2 s. Passing on the new code.
+- `dropping_one_bidi_half_keeps_the_other_alive`: the peer sends its message
+  only after the sender half drops, and the receiver still gets it.
+- `a_timed_out_receive_cancels_the_call`: after the 200 ms deadline, the peer
+  reports the close, not only the caller's `DeadlineExceeded`.
+
+Old-code proof (the new tests run against the reverted `client.rs`):
+
+- `dropping_a_server_stream_closes_the_socket` fails at
+  `tests/client_deadline_tests.rs:714` with
+  `dropping the stream must close the peer's socket within 2 s`.
+- `a_timed_out_receive_cancels_the_call` fails at
+  `tests/client_deadline_tests.rs:780` with
+  `a timed-out receive must close the peer's socket within 2 s`.
+- `dropping_one_bidi_half_keeps_the_other_alive` passes on the old code, as
+  expected: it guards the new count against a wrong raw fire.
+
+### Deviation from the plan's first test
+
+The plan asks for a peer that sends the head and **nothing more**. That peer
+cannot release `server_stream`: the call setup asks
+`PipeClientReceiver::response_headers` for the head before the reader task can
+publish it (there is no yield between spawning the reader and asking), so the
+method waits for the first body frame, and a peer that sends none keeps the
+call open until it closes the socket. The test therefore uses the stalled peer
+(head plus one message); after that message the reader is parked on the response
+body, which is the leak the feature ends. The underlying wait is a separate bug,
+recorded in `docs/bug-backlog.md` §1.
+
+### Verify
+
+- `cargo fmt --all --check`: clean.
+- `cargo clippy --profile uat -p foundation_connectrpc --all-targets
+  --no-deps -- -D warnings`: clean.
+- `cargo test --profile uat -p foundation_connectrpc`: 248 passed, 0 failed,
+  1 ignored.
+- `cargo test --profile uat -p foundation_proxy`: 128 passed, 1 failed (of 129).
+  The failure is the known macOS flake
+  `proxy_features_tests::websocket_upgrade_relays_and_tunnels_bytes`, with
+  `read echo: WouldBlock` in the post-upgrade tunnel (backlog §9, feature 129).
+  The rerun of that binary has the same result. Not caused by this change.
+- `cargo check --profile uat --target wasm32-unknown-unknown -p
+  foundation_connectrpc --no-default-features --features rpc`: clean.
+

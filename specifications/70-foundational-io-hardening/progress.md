@@ -2,6 +2,33 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 131 makes a dropped stream facade cancel its reader and
+  writer tasks. Branch `spec70/priority-followups`.
+  - New private `CancelGuard` in `shared/client.rs`: the call's `CancelSignal`
+    plus a shared `Arc<AtomicUsize>` of live facades. `Clone` increments, the
+    last `Drop` fires the signal. `ServerStream`, `BidiStream`, `BidiSender`
+    and `BidiReceiver` each hold one; `BidiStream::split` clones it into the
+    sender half and moves the original into the receiver half.
+  - All 14 facade waits pass their guard's signal to `with_deadline_at`, so a
+    timeout now stops the reader and writer tasks too.
+  - The `CancelSignal` is global to the call (one shared `Arc` flag), so the
+    raw fire was rejected; the live-handle count fires only when the last
+    facade drops. The `Client` keeps no facade after it returns a stream.
+  - Tests (`tests/client_deadline_tests.rs`, 3 new): drop closes the socket,
+    dropping one bidi half keeps the other live, and a timed-out receive closes
+    the socket. On the old code the first and third fail with the "must close
+    the peer's socket within 2 s" assertions; the second passes. The raw peers
+    now return whether they observed the close.
+  - Deviation: the plan's head-only peer cannot release `server_stream`,
+    because `response_headers` waits for the first frame when the head
+    publication races the call. The drop test uses the stalled peer (head plus
+    one message); the wait is a new backlog §1 entry.
+  - No public API change, so `foundation_connectrpc` stays 0.0.5. `foundation_connectrpc`
+    248 passed (1 ignored). `foundation_proxy` 128 passed and the known macOS
+    websocket flake failed (`websocket_upgrade_relays_and_tunnels_bytes`, backlog
+    §9); the rerun of that binary has the same result. fmt, clippy and the wasm32
+    check are clean. CI proof is pending.
+
 - 2026-11-06: feature 127 makes the H2 client dial without blocking a valtron
   worker. Branch `spec70/priority-followups`.
   - `H2Socket` has a `Connecting(Option<socket2::Socket>)` variant.

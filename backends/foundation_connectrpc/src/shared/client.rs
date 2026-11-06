@@ -16,6 +16,7 @@
 //! the reader/writer tasks and spawn them on the valtron pool via `from_future`.
 
 use std::future::Future;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -638,6 +639,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             trailers: SimpleHeaders::new(),
             got_trailers: false,
             deadline: call_ctx.request.deadline,
+            cancel: CancelGuard::new(call_ctx.cancel_signal().clone()),
         })
     }
 
@@ -815,6 +817,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             spec,
             peer,
             deadline: call_ctx.request.deadline,
+            cancel: CancelGuard::new(call_ctx.cancel_signal().clone()),
         })
     }
 
@@ -1121,6 +1124,69 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 }
 
 // ============================================================================
+// CancelGuard
+// ============================================================================
+
+/// Keeps a streaming call alive while any of its facades is alive.
+///
+/// WHY: the call's [`CancelSignal`] is shared by every clone, so one `cancel()`
+/// stops the reader and writer tasks of the whole call. A caller can split a
+/// bidi stream, or keep more than one facade of the same call. Dropping one
+/// value must not cancel the call under a live sibling.
+///
+/// WHAT: a cloneable handle over the call's signal and a shared count of live
+/// facades.
+///
+/// HOW: [`Clone`] adds one to the count and [`Drop`] subtracts one. The drop
+/// that reaches zero fires the signal. Firing is idempotent, takes no lock on
+/// an already-fired signal and allocates nothing, so a drop during unwinding is
+/// safe. Every facade holds exactly one guard, so the count is the number of
+/// live facade values.
+struct CancelGuard {
+    /// The call's cancel signal. Firing it stops the call's reader and writer
+    /// tasks and closes the transport stream.
+    signal: CancelSignal,
+    /// Number of live facades that hold this call. The path is not shared with
+    /// any other call, because each call makes its own guard.
+    live: Arc<AtomicUsize>,
+}
+
+impl CancelGuard {
+    /// Start the count at one: the caller makes a guard for one facade.
+    fn new(signal: CancelSignal) -> Self {
+        Self {
+            signal,
+            live: Arc::new(AtomicUsize::new(1)),
+        }
+    }
+
+    /// The call's cancel signal, for a wait that must fire it on a timeout.
+    fn signal(&self) -> &CancelSignal {
+        &self.signal
+    }
+}
+
+impl Clone for CancelGuard {
+    fn clone(&self) -> Self {
+        self.live.fetch_add(1, Ordering::Relaxed);
+        Self {
+            signal: self.signal.clone(),
+            live: Arc::clone(&self.live),
+        }
+    }
+}
+
+impl Drop for CancelGuard {
+    fn drop(&mut self) {
+        // `Relaxed` on the add is enough: the count only guards the fire, and
+        // `AcqRel` on the subtract makes the last drop see every earlier one.
+        if self.live.fetch_sub(1, Ordering::AcqRel) == 1 {
+            self.signal.cancel();
+        }
+    }
+}
+
+// ============================================================================
 // ServerStream<Res>
 // ============================================================================
 
@@ -1138,6 +1204,10 @@ pub struct ServerStream<Res> {
     /// Absolute call deadline, copied from the call `Ctx`. Every later wait
     /// fails once it passes.
     deadline: Option<Instant>,
+    /// Call lifetime guard. It fires the call's cancel signal when this value
+    /// (the last live facade of the call) drops, which stops the reader task
+    /// and closes the transport stream.
+    cancel: CancelGuard,
 }
 
 impl<Res: Send + 'static> ServerStream<Res> {
@@ -1148,7 +1218,7 @@ impl<Res: Send + 'static> ServerStream<Res> {
     ///
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>> {
-        with_deadline_at(self.deadline, None, async {
+        with_deadline_at(self.deadline, Some(self.cancel.signal()), async {
             match self.recv.receive().await? {
                 Some(frame) => Ok(Some(self.codec.unmarshal(frame)?)),
                 None => Ok(None),
@@ -1171,9 +1241,13 @@ impl<Res: Send + 'static> ServerStream<Res> {
     pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders> {
         if !self.got_trailers {
             let deadline = self.deadline;
-            self.trailers = with_deadline_at(deadline, None, self.recv.response_trailers())
-                .await?
-                .clone();
+            self.trailers = with_deadline_at(
+                deadline,
+                Some(self.cancel.signal()),
+                self.recv.response_trailers(),
+            )
+            .await?
+            .clone();
             self.got_trailers = true;
         }
         Ok(&self.trailers)
@@ -1271,6 +1345,9 @@ pub struct BidiStream<Req, Res> {
     /// Absolute call deadline, copied from the call `Ctx`. Every later wait
     /// fails once it passes.
     deadline: Option<Instant>,
+    /// Call lifetime guard, shared by both halves after [`Self::split`]. It
+    /// fires the call's cancel signal when the last live facade drops.
+    cancel: CancelGuard,
 }
 
 impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
@@ -1285,7 +1362,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     ///
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()> {
-        with_deadline_at(self.deadline, None, async {
+        with_deadline_at(self.deadline, Some(self.cancel.signal()), async {
             let frame = self.request_codec.marshal(msg)?;
             self.send.send(frame).await
         })
@@ -1299,7 +1376,12 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn send_headers(&mut self) -> ConnectResult<()> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, self.send.flush_headers()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            self.send.flush_headers(),
+        )
+        .await
     }
 
     /// Half-close the request direction (receiver stays live).
@@ -1310,7 +1392,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     pub async fn close_request(&mut self) -> ConnectResult<()> {
         let deadline = self.deadline;
         let old = std::mem::replace(&mut self.send, Box::new(NoopClientSender));
-        with_deadline_at(deadline, None, old.close_send()).await
+        with_deadline_at(deadline, Some(self.cancel.signal()), old.close_send()).await
     }
 
     /// Receive the next decoded response message.
@@ -1319,7 +1401,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     ///
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>> {
-        with_deadline_at(self.deadline, None, async {
+        with_deadline_at(self.deadline, Some(self.cancel.signal()), async {
             match self.recv.receive().await? {
                 Some(frame) => Ok(Some(self.response_codec.unmarshal(frame)?)),
                 None => Ok(None),
@@ -1335,7 +1417,12 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn response_headers(&mut self) -> ConnectResult<&SimpleHeaders> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, self.recv.response_headers()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            self.recv.response_headers(),
+        )
+        .await
     }
 
     /// Response trailers (available after end of stream).
@@ -1345,16 +1432,25 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, self.recv.response_trailers()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            self.recv.response_trailers(),
+        )
+        .await
     }
 
     /// Split into independently-owned typed halves for concurrent send/receive.
     #[must_use]
     pub fn split(self) -> (BidiSender<Req>, BidiReceiver<Res>) {
+        // Both halves hold the same guard, so the call stays alive until the
+        // last of them drops. One clone adds a live handle; the original moves
+        // into the other half.
         let sender = BidiSender {
             send: self.send,
             codec: self.request_codec,
             deadline: self.deadline,
+            cancel: self.cancel.clone(),
         };
         let receiver = BidiReceiver {
             recv: self.recv,
@@ -1362,6 +1458,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
             spec: self.spec,
             peer: self.peer,
             deadline: self.deadline,
+            cancel: self.cancel,
         };
         (sender, receiver)
     }
@@ -1389,6 +1486,8 @@ pub struct BidiSender<Req> {
     codec: Arc<dyn CodecFor<Req>>,
     /// Absolute call deadline, copied from the call `Ctx`.
     deadline: Option<Instant>,
+    /// Call lifetime guard from the split stream.
+    cancel: CancelGuard,
 }
 
 impl<Req: Send + 'static> BidiSender<Req> {
@@ -1398,7 +1497,7 @@ impl<Req: Send + 'static> BidiSender<Req> {
     ///
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()> {
-        with_deadline_at(self.deadline, None, async {
+        with_deadline_at(self.deadline, Some(self.cancel.signal()), async {
             let frame = self.codec.marshal(msg)?;
             self.send.send(frame).await
         })
@@ -1412,7 +1511,12 @@ impl<Req: Send + 'static> BidiSender<Req> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn send_headers(&mut self) -> ConnectResult<()> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, self.send.flush_headers()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            self.send.flush_headers(),
+        )
+        .await
     }
 
     /// Half-close the request direction.
@@ -1422,7 +1526,12 @@ impl<Req: Send + 'static> BidiSender<Req> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn close_request(self) -> ConnectResult<()> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, Box::new(self.send).close_send()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            Box::new(self.send).close_send(),
+        )
+        .await
     }
 }
 
@@ -1434,6 +1543,8 @@ pub struct BidiReceiver<Res> {
     peer: Peer,
     /// Absolute call deadline, copied from the call `Ctx`.
     deadline: Option<Instant>,
+    /// Call lifetime guard from the split stream.
+    cancel: CancelGuard,
 }
 
 impl<Res: Send + 'static> BidiReceiver<Res> {
@@ -1443,7 +1554,7 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
     ///
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>> {
-        with_deadline_at(self.deadline, None, async {
+        with_deadline_at(self.deadline, Some(self.cancel.signal()), async {
             match self.recv.receive().await? {
                 Some(frame) => Ok(Some(self.codec.unmarshal(frame)?)),
                 None => Ok(None),
@@ -1459,7 +1570,12 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn response_headers(&mut self) -> ConnectResult<&SimpleHeaders> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, self.recv.response_headers()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            self.recv.response_headers(),
+        )
+        .await
     }
 
     /// Response trailers.
@@ -1469,7 +1585,12 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
     /// Returns an error if the RPC fails or the call deadline passes.
     pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders> {
         let deadline = self.deadline;
-        with_deadline_at(deadline, None, self.recv.response_trailers()).await
+        with_deadline_at(
+            deadline,
+            Some(self.cancel.signal()),
+            self.recv.response_trailers(),
+        )
+        .await
     }
 
     /// The procedure spec for this call.
