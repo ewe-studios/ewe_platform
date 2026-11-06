@@ -2611,3 +2611,12 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   yielders after that, so a replacement worker is interrupted too. The new test
   panics both workers of a two-worker registry; the follow-up task runs only when
   a replacement starts.
+- 2026-11-07: the `examples` and `wasm-tests` CI jobs pass their build steps.
+  The raw-socket suite needs `RawStream`, which exists only on native
+  targets, so the suite is gated off wasm. The cookie test now uses
+  `foundation_compact::SystemTime`, the type `Cookie::expires` takes.
+  `cf-login-app` passes a `MonotonicClock` to `SessionManager::new`, the
+  same host pattern as the other Cloudflare examples. The example
+  lockfiles move to the new crate versions. The `wasm_cf` lockfile is
+  refreshed in a separate commit. Finding filed: #245 (three standalone
+  example lockfiles are stale, low).
