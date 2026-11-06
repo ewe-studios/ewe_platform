@@ -681,10 +681,12 @@ impl Reactor {
     /// WHAT: store `waker` for `token` so the drain thread wakes it after the
     /// next readiness edge. Returns whether `token` is still registered.
     ///
-    /// HOW: an interior-mutable slot on the cache entry. Callers follow the
-    /// register-before-check protocol: register the waker, then read once more
-    /// before parking, and clear readiness (which disarms the waker) before
-    /// the next read so a stale edge does not re-wake forever.
+    /// HOW: re-arm the selector's read edge, then store the waker in an
+    /// interior-mutable slot on the cache entry. The re-arm lives here, so a
+    /// caller cannot forget it. Callers still follow the register-before-check
+    /// protocol: register the waker, then read once more before parking. Clear
+    /// readiness (which disarms the waker) before the next read so a stale
+    /// latched flag does not re-wake forever.
     ///
     /// # Panics
     /// Panics if the registration map lock or the waker slot is poisoned.
@@ -695,6 +697,11 @@ impl Reactor {
             .expect("entries lock poisoned")
             .get(&token)
         {
+            // Forget the last delivered read event. The kqueue selector
+            // suppresses a readable event when the fd's byte count did not
+            // grow, so a drained fd that receives a smaller frame produces no
+            // new edge until it is re-armed. A no-op on epoll and io_uring.
+            self.poll.rearm_readable(entry.fd);
             *entry.waker.lock().expect("waker lock poisoned") = Some(waker);
             true
         } else {
@@ -710,6 +717,10 @@ impl Reactor {
     /// waker of a task that runs again is a no-op. Returns whether `token` is
     /// still registered.
     ///
+    /// HOW: re-arm the selector's read edge before the task parks, for the same
+    /// reason as [`Reactor::register_waker`]. The re-arm is a no-op on epoll and
+    /// `io_uring`.
+    ///
     /// # Panics
     /// Panics if the registration map lock is poisoned.
     pub fn register_task_waker(&self, token: Token, waker: &ReadinessWaker) -> bool {
@@ -719,7 +730,10 @@ impl Reactor {
             .expect("entries lock poisoned")
             .get(&token)
         {
-            Some(entry) => entry.tasks.register(waker),
+            Some(entry) => {
+                self.poll.rearm_readable(entry.fd);
+                entry.tasks.register(waker)
+            }
             None => false,
         }
     }
@@ -1086,7 +1100,10 @@ impl foundation_core::valtron::EventReadiness for SharedReadiness {
     }
 
     /// Readiness is latched only by the reactor's event drain, which wakes the
-    /// registered tasks after every batch of events.
+    /// registered tasks after every batch of events. Registration also re-arms
+    /// the selector's read edge, so a task gets the next edge without clearing
+    /// the latched flags first; the clear is still needed for the flags
+    /// themselves.
     fn register(&self, waker: &foundation_core::valtron::ReadinessWaker) -> bool {
         self.reactor.register_task_waker(self.token, waker)
     }

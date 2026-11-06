@@ -1,6 +1,6 @@
 ---
 feature: "Registering a read waker re-arms the fd's read edge, so a lost edge needs no caller discipline"
-status: "pending"
+status: "done"
 lane: "priority follow-up (found under feature 129)"
 model: "sonnet"
 branch: "spec70/priority-followups"
@@ -115,15 +115,63 @@ run clippy without `-D warnings` and state that.
 
 ## Done when
 
-- [ ] Registering a read waker re-arms the fd's read edge in the reactor.
-- [ ] The docs say clearing is needed for the latched flags, not for the edge.
-- [ ] The three tests exist; the first fails on the old code on macOS.
-- [ ] `foundation_reactor` is bumped one patch step if the change touches public API, and
+- [x] Registering a read waker re-arms the fd's read edge in the reactor.
+- [x] The docs say clearing is needed for the latched flags, not for the edge.
+- [x] The three tests exist; the first fails on the old code on macOS.
+- [x] `foundation_reactor` is bumped one patch step if the change touches public API, and
       every consumer requirement follows with `Cargo.lock`.
-- [ ] The backlog §5b selector entry is deleted.
-- [ ] CI green on macOS and in the Linux image.
+- [x] The backlog §5b selector entry is deleted.
+- [x] CI green on macOS and in the Linux image.
 
 ## Result
 
-2026-11-06. Plan only. Not started. Written after feature 129 found the missing `clear()`
-in foundation_netio.
+2026-11-06. Done on macOS and in the Linux image.
+
+### Files changed
+
+- `backends/foundation_reactor/src/reactor.rs`. `Reactor::register_waker` and
+  `Reactor::register_task_waker` call `self.poll.rearm_readable(entry.fd)` before
+  they store or register the waker. `Reactor::clear` keeps its re-arm. The docs
+  of both registration functions and of `SharedReadiness`'s
+  `EventReadiness::register` state the new rule.
+- `backends/foundation_reactor/src/fd_readiness.rs`. The module docs and the docs
+  of `FdReadiness::clear`, `FdReadiness::register_waker` and the
+  `EventReadiness::register` impl say that clearing is needed for the latched
+  flags, not for the edge.
+- `backends/foundation_reactor/tests/read_edge_rearm.rs` (new). An auto-discovered
+  integration test target. `tests/mod.rs` only registers subdirectory modules, so
+  adding this top-level file there would compile and run the suite twice.
+- `docs/bug-backlog.md`. The §5b kqueue read-edge entry is deleted. The §5b
+  clippy-debt entry stays.
+- This feature file.
+
+Public API did not change: no function, type or trait signature changed. The
+crate version stays 0.0.1.
+
+### Tests
+
+| Test | What it proves |
+|---|---|
+| `a_smaller_frame_after_a_drain_wakes_a_registered_task` | After a drained 77-byte head, a 15-byte frame wakes the registered waker. |
+| `a_wake_after_a_drain_does_not_repeat_forever` | After the wake and a full drain, the re-armed edge does not wake again within 200 ms. |
+| `clear_still_disarms_the_latched_readiness` | `clear()` removes the latched `READABLE` bit. |
+
+Before the fix, the first test fails on macOS after the 2 s bound. The kqueue
+selector still records 77 bytes and suppresses the 15-byte event. After the fix,
+all three tests pass on macOS and in the Linux image.
+
+### Command outcomes
+
+| Command | Exit | Result |
+|---|---|---|
+| `cargo fmt --all --check` | 0 | clean |
+| `cargo clippy --profile uat -p foundation_reactor --all-targets --no-deps -- -D warnings` | 1 | 120 pre-existing pedantic errors before the feature and 120 after (the first baseline run reported 121). No new warning. The crate debt is backlog §5b and feature 122. |
+| `cargo test --profile uat -p foundation_reactor` | 0 | every test binary passes, including the 3 new tests |
+| `cargo test --profile uat -p foundation_netio` | 0 | 1292 tests pass in 5 binaries |
+| `cargo test --profile uat -p foundation_proxy` | 0 | 129 tests pass in 34 binaries |
+| `scripts/ci/linux.sh foundation_reactor` | 0 | Linux image tests pass, including the 3 new tests; the wasm32 check passes |
+
+`Poll::rearm_readable` is a no-op on epoll and io_uring: the method body only
+calls the selector on the BSD/macOS targets and discards the fd on the other
+targets. The change therefore costs nothing off macOS.
+

@@ -13,7 +13,9 @@
 //! HOW: the reactor latches edge-triggered readiness until it is cleared. Call
 //! [`FdReadiness::clear`] *before* each attempt to read or write, so an edge
 //! that arrives after the attempt's `WouldBlock` stays set and wakes the task
-//! (clearing after the attempt could erase it).
+//! (clearing after the attempt could erase it). Registering a waker re-arms the
+//! selector's read edge by itself, so the clear is needed only for the latched
+//! flags.
 
 use std::io;
 use std::os::fd::RawFd;
@@ -79,8 +81,11 @@ impl FdReadiness {
         self.reactor.reregister(self.fd, self.token, interest)
     }
 
-    /// Forget the readiness seen so far. Call before each read or write
-    /// attempt; see the module docs.
+    /// Forget the readiness seen so far and re-arm the read edge. Call before
+    /// each read or write attempt; see the module docs. The re-arm is a
+    /// convenience for callers that hold this flag protocol. Registering a
+    /// waker re-arms the edge on its own, so this clear is required only for
+    /// the latent flags, not for the edge.
     pub fn clear(&self) {
         self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
     }
@@ -102,12 +107,15 @@ impl FdReadiness {
     /// from `Stream::poll_next`, so it needs a `std::task::Waker`, not the
     /// valtron `EventReadiness` path.
     ///
-    /// WHAT: stores the waker on the reactor entry. Returns whether the fd is
-    /// still registered (a dropped [`FdReadiness`] returns `false`).
+    /// WHAT: stores the waker on the reactor entry and re-arms the selector's
+    /// read edge. Returns whether the fd is still registered (a dropped
+    /// [`FdReadiness`] returns `false`).
     ///
     /// HOW: follow the register-before-check protocol — call [`FdReadiness::clear`]
-    /// first to disarm any stale edge, register the waker, then read once more
-    /// before parking. Clearing on the next read disarms the waker again.
+    /// to disarm the latched flags, register the waker, then read once more
+    /// before parking. The re-arm is part of this call, so a later, smaller
+    /// frame can produce a new edge even without the clear. Clearing on the
+    /// next read disarms the waker again.
     pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
         self.reactor.register_waker(self.token, waker.clone())
     }
@@ -139,8 +147,9 @@ impl EventReadiness for FdReadiness {
         self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
     }
 
-    /// Delegates to the reactor readiness, which wakes the registered task on
-    /// every event.
+    /// Delegates to the reactor readiness, which re-arms the read edge and
+    /// wakes the registered task on every event. The re-arm means a task does
+    /// not have to clear the latched flags to receive the next edge.
     fn register(&self, waker: &foundation_core::valtron::ReadinessWaker) -> bool {
         EventReadiness::register(&self.readiness, waker)
     }
