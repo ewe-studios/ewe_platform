@@ -2231,3 +2231,10 @@ time can still leave an async consumer with nothing to wake it. The old code had
   closes in the fixing change. Clippy debt is one issue with a per-crate checklist, because one
   issue per crate multiplied the noise without adding a separate action.
 
+- 2026-11-06 (feature 120): a crate that CI never lints hides its debt twice. The first
+  `--all-targets` run stops at the lib target, so the test-target warnings appear only after
+  the lib compiles. Measure `--all-targets` on the fixed tree before you claim zero. A
+  newly added `#[must_use]` on a method that many callers ignore produces warnings in
+  dependent crates, not in the crate that declares it, so the per-crate deny command stays
+  green while a fresh build prints 105 lines (issue #211).
+

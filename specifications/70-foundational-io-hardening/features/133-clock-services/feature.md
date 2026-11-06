@@ -127,7 +127,7 @@ python3 -m pytest scripts/ci/tests -q
 - [ ] Each crate has an injection test, and one of them fails on the old code.
 - [ ] A new public API, if any, is a patch bump in the crate and in every consumer
       requirement in the same change.
-- [ ] `docs/bug-backlog.md` has an entry for every marker and every limit left.
+- [ ] A GitHub issue with a severity label exists for every marker and every limit left.
 - [ ] `progress.md` and `learnings.md` have the dated entry.
 - [ ] CI green.
 

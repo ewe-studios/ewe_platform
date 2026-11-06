@@ -2386,4 +2386,12 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-06: the spec 70 features that are still `pending` are 117, 118, 120, 122, 132, 133,
   134 and 135. 117 comes first because 132–134 depend on it. 118 comes before 120. 122 and 135
   are priority follow-ups on `spec70/priority-followups`.
+- 2026-11-06: feature 120 done (`spec70/priority-followups`, commit `1ba90e017`).
+  `foundation_macros` went from 62 to 0 pedantic warnings (`--all-targets` exposed 7 more once
+  the lib compiled, so 69 in all). Six `too_many_lines` sites keep one targeted `#[expect]`
+  each. `chrono` had no user and is removed. `ci/packages.toml` gains
+  `[packages.foundation_macros]` with `clippy-deny-warnings = true`. Tests: 98 pass, 40 doc
+  tests ignored by design. The agent found 105 `unused_must_use` warnings from ignored
+  `.close();` results in `foundation_core`, `foundation_http` and `foundation_connectrpc`;
+  filed as issue #211.
 
