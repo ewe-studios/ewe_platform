@@ -2459,3 +2459,22 @@ head. Copying its files into the branch silently reverts every branch change in
 those files. Apply its diff with `git apply -3` instead, and resolve the hunks
 that the branch refactored (here, the worker exit moved into
 `finish_worker_stop`).
+
+## A dormant event loop is a dormant fix (issue #243)
+
+The activity queue carries the worker exit events. The `Panicked` arm is the only
+code that respawns a worker. Only `block_until_done` drained the queue, and
+nothing calls that method. The fix existed on paper and never ran. Start one
+monitor thread for the life of the pool (`start_activity_monitor`), and stop it
+at shutdown.
+
+Two shutdown details matter:
+
+1. Stop the monitor before `waitgroup.wait()`. A `Panicked` event that it reads
+   just before the kill signal can start a worker after the wait saw zero. That
+   worker stays outside the join set.
+2. Interrupt the yielders after the monitor stops. A worker that the monitor
+   started must see the interrupt.
+
+The monitor holds a `Weak` reference, so it does not keep the registry alive. A
+shutdown sends one benign event to wake it from its timed receive.

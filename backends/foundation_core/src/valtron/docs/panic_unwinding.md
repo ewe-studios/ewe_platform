@@ -64,6 +64,13 @@ respawns the worker. Sending both events made the listener decrement twice, so
 `live_threads` drifted down by one per panic. The `WaitGroup` guard (`_wg`) is
 dropped on both the clean and the panic path, ensuring shutdown never hangs.
 
+The respawn runs only when something reads the activity queue.
+`initialize_pool_with_config_and_ctx` starts one monitor thread
+(`ThreadRegistry::start_activity_monitor`) for the life of the pool, and shutdown
+stops and joins it before the workers stop. Without the monitor nothing read the
+queue during normal operation, so a worker-level panic lost a worker for good and
+the `idle_threads` counter stayed frozen (issue #243).
+
 ### Single-threaded executor (single/mod.rs)
 
 `run_background_job` uses `catch_unwind` for API consistency:

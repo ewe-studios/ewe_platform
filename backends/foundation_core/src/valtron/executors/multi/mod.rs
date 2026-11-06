@@ -497,6 +497,12 @@ pub fn initialize_pool_with_config_and_ctx(
             .expect("Failed to spawn worker thread");
     }
 
+    // Drain the worker-activity queue for the life of the pool (issue #243).
+    // The `Panicked` arm respawns a worker, and the `Blocked`/`Unblocked` arms
+    // keep `idle_threads` accurate; neither runs unless something reads the
+    // queue, and before this the pool read it only from `block_until_done`.
+    registry.start_activity_monitor();
+
     // The background registry has its own lifecycle: `PoolGuard::shutdown`
     // shuts it down (running every job it accepted) before the task workers.
     let bg_registry = BackgroundJobRegistry::with_config(
@@ -1559,6 +1565,13 @@ pub struct ThreadRegistry {
     // Activity monitoring
     activity_sender: mpp::Sender<ThreadActivity>,
     pub(crate) activity_receiver: mpp::Receiver<ThreadActivity>,
+    /// The thread that drains [`Self::activity_receiver`] in normal operation
+    /// (issue #243). `None` until [`Self::start_activity_monitor`] runs, and
+    /// `None` again after shutdown joined it.
+    activity_monitor: Mutex<Option<std::thread::JoinHandle<()>>>,
+    /// Set before the monitor is joined, so it leaves its receive loop instead
+    /// of waiting for the channel to close.
+    activity_monitor_stop: Arc<AtomicBool>,
 
     // Shutdown coordination
     pub(crate) waitgroup: WaitGroup,
@@ -1603,6 +1616,14 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("kill_latch", &"<LockSignal>")
             .field("activity_sender", &"<Sender<ThreadActivity>>")
             .field("activity_receiver", &"<Receiver<ThreadActivity>>")
+            .field(
+                "activity_monitor",
+                &self
+                    .activity_monitor
+                    .lock()
+                    .is_ok_and(|handle| handle.is_some()),
+            )
+            .field("activity_monitor_stop", &self.activity_monitor_stop)
             .field("waitgroup", &"<WaitGroup>")
             .field("rng", &"<Mutex<ChaCha8Rng>>")
             .field("max_threads", &self.max_threads)
@@ -1707,6 +1728,8 @@ impl ThreadRegistry {
             kill_latch,
             activity_sender: activity_sender.clone(),
             activity_receiver,
+            activity_monitor: Mutex::new(None),
+            activity_monitor_stop: Arc::new(AtomicBool::new(false)),
             waitgroup: WaitGroup::new(),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
             root: Ctx::host(),
@@ -1832,7 +1855,14 @@ impl ThreadRegistry {
     /// Shutdown the registry - signals kill and waits for all threads.
     pub fn shutdown(&self) {
         self.kill_signal.turn_on();
-        // Interrupt all yielding threads first
+        // Stop the activity monitor before the wait. It can respawn a worker
+        // from a `Panicked` event that it read just before the kill signal, and
+        // a respawn after `waitgroup.wait()` observed zero would leave a worker
+        // outside the join set. The kill signal is already on, so any such
+        // worker exits at once.
+        self.stop_activity_monitor();
+        // Interrupt the yielding threads after the monitor stopped, so a
+        // replacement worker it started is interrupted too.
         self.interrupt_all_yielders();
         self.latch.signal_all();
         self.waitgroup.wait();
@@ -1853,6 +1883,9 @@ impl ThreadRegistry {
     #[must_use]
     pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
         self.kill_signal.turn_on();
+        // Same reason as [`Self::shutdown`]: no worker may respawn after the
+        // wait, and a replacement worker must see the yielder interrupt.
+        self.stop_activity_monitor();
         self.interrupt_all_yielders();
         self.latch.signal_all();
         let clock = self.clock();
@@ -1916,13 +1949,96 @@ impl ThreadRegistry {
         self.live_threads.load(atomic::Ordering::Acquire)
     }
 
+    /// Start the thread that drains the worker-activity queue.
+    ///
+    /// WHY: the queue carries the worker exit events. The `Panicked` arm is the
+    /// only place that respawns a worker, and it runs when an event is read. A
+    /// pool that never reads the queue therefore loses one worker for good on
+    /// every worker-level panic, and its `live_threads`/`idle_threads`
+    /// accounting stays frozen after startup (issue #243).
+    /// WHAT: spawns one named thread that drains the queue until the registry
+    /// shuts down or every worker is gone. [`initialize_pool_with_config_and_ctx`]
+    /// calls it once, after the workers start. A private registry built by a
+    /// test may call it directly; without it the test must drive the queue with
+    /// [`Self::pump_activity`], because the two compete for the same events.
+    /// HOW: the thread holds a [`Weak`](std::sync::Weak) reference, so it never
+    /// keeps the registry alive; shutdown sets
+    /// [`Self::activity_monitor_stop`](ThreadRegistry) and joins the thread.
+    ///
+    /// Idempotent: a second call does nothing.
+    ///
+    /// # Panics
+    /// Panics when the operating system cannot start the monitor thread.
+    pub fn start_activity_monitor(self: &Arc<Self>) {
+        let mut slot = self
+            .activity_monitor
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
+        if slot.is_some() {
+            return;
+        }
+
+        // A later start after a stop would otherwise see the stale flag and
+        // exit at once.
+        self.activity_monitor_stop
+            .store(false, atomic::Ordering::Release);
+
+        let weak = Arc::downgrade(self);
+        let stop = Arc::clone(&self.activity_monitor_stop);
+        let handle = std::thread::Builder::new()
+            .name("valtron-activity-monitor".into())
+            .spawn(move || {
+                loop {
+                    if stop.load(atomic::Ordering::Acquire) {
+                        break;
+                    }
+                    // The registry may be dropped without a shutdown; a failed
+                    // upgrade means nothing is left to account for.
+                    let Some(registry) = weak.upgrade() else {
+                        break;
+                    };
+                    let keep_going = registry.listen_for_activity_tick().is_some();
+                    drop(registry);
+                    if !keep_going {
+                        break;
+                    }
+                }
+            })
+            .expect("Failed to spawn the valtron activity monitor thread");
+        *slot = Some(handle);
+    }
+
+    /// Stop and join the activity monitor, if it runs.
+    ///
+    /// WHY: the monitor blocks in a timed receive, so a shutdown that only sets
+    /// a flag still waits for the receive timeout. Sending one benign event
+    /// wakes it at once. The worker kill signal is set before this call, so the
+    /// latch signal that `BroadcastedTask` can raise cannot start new work.
+    /// WHAT: sets the stop flag, wakes the monitor, joins it, and leaves the
+    /// slot empty. Idempotent.
+    fn stop_activity_monitor(&self) {
+        self.activity_monitor_stop
+            .store(true, atomic::Ordering::Release);
+        let _ = self.activity_sender.send(ThreadActivity::BroadcastedTask);
+        let handle = self
+            .activity_monitor
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take();
+        if let Some(handle) = handle {
+            if handle.join().is_err() {
+                tracing::warn!("valtron activity monitor panicked");
+            }
+        }
+    }
+
     /// Process at most one pending worker-activity event.
     ///
-    /// WHY: worker-panic accounting and the respawn policy run only when the
-    /// activity queue is drained, and the pool drains it only from
-    /// [`Self::block_until_done`] (which waits for every worker to stop). Tests
-    /// that check the accounting need to advance the queue one event at a time
-    /// while workers stay alive.
+    /// WHY: a private registry that has no activity monitor
+    /// ([`Self::start_activity_monitor`]) needs a way to advance the queue while
+    /// its workers stay alive. The pool starts a monitor, so it does not use
+    /// this hook; a test must not mix the two, because they compete for the same
+    /// events.
     /// WHAT: returns `true` when an event was consumed, `false` when the queue
     /// was empty for [`Self::op_read_time`].
     /// HOW: one [`Self::listen_for_activity_tick`] pass.

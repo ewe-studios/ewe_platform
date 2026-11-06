@@ -2599,3 +2599,15 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-07: a test now pins that `block_on_future` returns a future's
   `Option::None` output as `None`. The "produced no result" branch checks
   whether the task yielded a value, not what the value is.
+- 2026-11-07: issue #243 fixed (`foundation_core`). Nothing read the
+  worker-activity queue while the pool ran. The queue was drained only by
+  `block_until_done`, and no code calls that method. The `Panicked` arm, which is
+  the only code that respawns a worker, therefore never ran, and the
+  `idle_threads` counter stayed frozen after startup.
+  `initialize_pool_with_config_and_ctx` now starts one monitor thread
+  (`ThreadRegistry::start_activity_monitor`) after the workers start. The monitor
+  holds a `Weak` reference to the registry. `shutdown` and `shutdown_within` stop
+  and join the monitor before they wait for the workers, and they interrupt the
+  yielders after that, so a replacement worker is interrupted too. The new test
+  panics both workers of a two-worker registry; the follow-up task runs only when
+  a replacement starts.
