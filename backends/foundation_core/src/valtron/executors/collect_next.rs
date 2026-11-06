@@ -76,7 +76,6 @@ where
     }
 }
 
-#[allow(clippy::needless_lifetimes)]
 impl<Task, Done, Pending> ExecutionIterator for CollectNext<'_, Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
@@ -97,8 +96,10 @@ where
         Some(match task_response {
             Some(inner) => match inner {
                 TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                TaskStatus::Pending(_) => State::Pending(None),
-                TaskStatus::Init => State::Pending(None),
+                TaskStatus::Pending(_)
+                | TaskStatus::Init
+                | TaskStatus::Ignore
+                | TaskStatus::Spread(_) => State::Pending(None),
                 TaskStatus::Spawn(mut action) => match action.apply(Some(entry), executor) {
                     Ok(info) => State::SpawnFinished(info),
                     Err(err) => {
@@ -110,9 +111,7 @@ where
                     self.list.push(TaskStatus::Ready(next));
                     State::ReadyValue(entry)
                 }
-                TaskStatus::Ignore => State::Pending(None),
                 TaskStatus::Wait => State::Wait,
-                TaskStatus::Spread(_) => State::Pending(None),
                 TaskStatus::Depends(signal) => State::Depends(signal),
             },
             None => State::Done,

@@ -53,16 +53,25 @@ impl<T> DurationStore<T> {
 // --- core implementation methods
 
 impl<T: std::fmt::Debug> DurationStore<T> {
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Inserts a new Wakeable.
     pub fn insert(&self, wakeable: DurationWaker<T>) -> Entry {
         self.store.write().unwrap().insert(wakeable)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Update an existing Wakeable returning the old handle used.
     pub fn update(&self, handle: &Entry, wakeable: DurationWaker<T>) -> Option<DurationWaker<T>> {
         self.store.write().unwrap().update(handle, wakeable)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
@@ -71,16 +80,23 @@ impl<T: std::fmt::Debug> DurationStore<T> {
         self.store.write().unwrap().take(handle)
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         self.store.read().unwrap().active_slots() > 0
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn count(&self) -> usize {
         self.store.read().unwrap().active_slots()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the list of
     #[must_use]
     pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
@@ -90,6 +106,9 @@ impl<T: std::fmt::Debug> DurationStore<T> {
             .select_take(|t| t.is_ready(None))
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
     /// guaranteed to be ready for progress.
@@ -108,6 +127,9 @@ impl<T: std::fmt::Debug> DurationStore<T> {
             .copied()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the maximum duration of time of all entries in the
     /// sleeper, providing you the maximum time to potentially wait
     /// for all tasks to be ready.
@@ -197,7 +219,7 @@ impl<T> DurationWaker<T> {
 }
 
 /// Sleepers manages sleeping tasks keyed by their task Entry.
-/// Uses HashMap to avoid entry ID collisions from EntryList.
+/// Uses `HashMap` to avoid entry ID collisions from `EntryList`.
 ///
 /// # Design Note
 /// Previously used `EntryList<T>` which generated new entry IDs for each insert,
@@ -228,7 +250,7 @@ impl<T: Timeable + Waiter + std::fmt::Debug> Timing for Sleepers<T> {
         let sleepers = self.sleepers.read().unwrap();
         sleepers
             .values()
-            .filter_map(|sleeper| sleeper.remaining_duration())
+            .filter_map(Timeable::remaining_duration)
             .min()
     }
 
@@ -239,7 +261,7 @@ impl<T: Timeable + Waiter + std::fmt::Debug> Timing for Sleepers<T> {
         let sleepers = self.sleepers.read().unwrap();
         sleepers
             .values()
-            .filter_map(|sleeper| sleeper.remaining_duration())
+            .filter_map(Timeable::remaining_duration)
             .max()
     }
 }
@@ -295,39 +317,58 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         self.max_readiness_wait
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Inserts a new Wakeable keyed by the task entry.
     /// The entry is the task's entry, not a new sleeper entry.
     pub fn insert(&self, entry: Entry, wakeable: T) {
         self.sleepers.write().unwrap().insert(entry, wakeable);
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Update an existing Wakeable returning the old handle used.
     pub fn update(&self, handle: &Entry, wakeable: T) -> Option<T> {
         self.sleepers.write().unwrap().insert(*handle, wakeable)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Removes a previously inserted sleeping ticker.
     #[must_use]
     pub fn remove(&self, handle: &Entry) -> Option<T> {
         self.sleepers.write().unwrap().remove(handle)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns true if a sleeper exists for the given entry.
     #[must_use]
     pub fn contains(&self, handle: &Entry) -> bool {
         self.sleepers.read().unwrap().contains_key(handle)
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         !self.sleepers.read().unwrap().is_empty()
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn count(&self) -> usize {
         self.sleepers.read().unwrap().len()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the list of matured (ready) sleepers.
     #[must_use]
     pub fn get_matured(&self) -> Vec<T> {
@@ -346,10 +387,14 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         matured
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the earliest deadline among all Timable sleepers.
     ///
     /// Used to calculate how long a thread should sleep when no work is available.
     /// Returns None if no sleepers have deadlines (e.g., all are Atomic).
+    #[must_use]
     pub fn minimum_deadline(&self) -> Option<foundation_compact::Instant>
     where
         T: crate::synca::sleepers::Timeable,
@@ -357,11 +402,14 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         let sleepers = self.sleepers.read().unwrap();
         sleepers
             .values()
-            .filter_map(|sleeper| sleeper.remaining_duration())
+            .filter_map(Timeable::remaining_duration)
             .map(|remaining| foundation_compact::Instant::now() + remaining)
             .min()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the duration until the earliest sleeper deadline.
     ///
     /// Whether any sleeper must be re-checked on a timer (see
@@ -378,7 +426,8 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
     }
 
     /// Returns None if no sleepers have deadlines.
-    /// Returns Duration::ZERO if a sleeper is already past its deadline.
+    /// Returns `Duration::ZERO` if a sleeper is already past its deadline.
+    #[must_use]
     pub fn time_until_next(&self) -> Option<time::Duration>
     where
         T: crate::synca::sleepers::Timeable,

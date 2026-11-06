@@ -1,7 +1,3 @@
-#![allow(clippy::pedantic)]
-#![allow(clippy::too_many_lines)]
-#![allow(clippy::cognitive_complexity)]
-#![allow(clippy::type_complexity)]
 //! Foundation types and the valtron task engine.
 //!
 //! # Feature sets

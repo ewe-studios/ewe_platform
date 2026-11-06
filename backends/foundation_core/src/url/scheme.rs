@@ -146,10 +146,8 @@ impl Scheme {
     #[must_use]
     pub fn default_port(&self) -> u16 {
         match &self.inner {
-            SchemeInner::Http => 80,
-            SchemeInner::Https => 443,
-            SchemeInner::Ws => 80,
-            SchemeInner::Wss => 443,
+            SchemeInner::Http | SchemeInner::Ws => 80,
+            SchemeInner::Https | SchemeInner::Wss => 443,
             SchemeInner::Custom(_) => 0, // No default for custom schemes
         }
     }

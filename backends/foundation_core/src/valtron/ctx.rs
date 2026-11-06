@@ -7,11 +7,11 @@
 //! Two operations distinguish the sharing modes:
 //!
 //! - [`Ctx::clone`] **shares** the map (a cheap `Arc` refcount bump) — used
-//!   within one ExecutionIterator's subtree, so a task and its spawned sub-tasks
+//!   within one `ExecutionIterator`'s subtree, so a task and its spawned sub-tasks
 //!   observe each other's writes.
 //! - [`Ctx::fork`] **copies** the map into a fresh handle (a new `HashMap` whose
 //!   `Arc` values are still shared) — used by the engine at each
-//!   ExecutionIterator boundary, so sibling iterators never mutate each other's
+//!   `ExecutionIterator` boundary, so sibling iterators never mutate each other's
 //!   map while the standard elements stay shared.
 //!
 //! `Ctx` is passed **by value** (an `Arc` clone) through the task traits — never
@@ -169,6 +169,9 @@ impl Ctx {
     /// Entries are keyed by `TypeId`, so two distinct `T`s never collide. The
     /// prior entry (if any) is returned for callers that care; like
     /// `HashMap::insert`, ignoring it is fine.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     pub fn insert<T: Any + Send + Sync>(&self, value: Arc<T>) -> Option<Arc<T>> {
         self.0
             .map
@@ -179,6 +182,9 @@ impl Ctx {
     }
 
     /// The `Arc<T>` stored under `T`, or `None` if absent or of a different type.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn get<T: Any + Send + Sync>(&self) -> Option<Arc<T>> {
         self.0
@@ -191,6 +197,9 @@ impl Ctx {
     }
 
     /// Insert `value` under `T` if absent; return the live `Arc<T>` either way.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn get_or_insert<T: Any + Send + Sync>(&self, value: T) -> Arc<T> {
         let mut map = self.0.map.lock().expect("Ctx map poisoned");
@@ -205,6 +214,9 @@ impl Ctx {
     }
 
     /// Remove and return the `Arc<T>` stored under `T`, if present.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn remove<T: Any + Send + Sync>(&self) -> Option<Arc<T>> {
         self.0
@@ -216,6 +228,9 @@ impl Ctx {
     }
 
     /// Whether a `T` is present in the map.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn contains<T: Any + Send + Sync>(&self) -> bool {
         self.0
@@ -253,6 +268,9 @@ impl Ctx {
     /// private to it), while the `Arc` values and the standard elements stay
     /// shared — so entries inserted *through* this fork remain reachable from the
     /// parent's `Arc` if the parent already held the same `Arc`.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn fork(&self) -> Ctx {
         let map = self.0.map.lock().expect("Ctx map poisoned").clone();
@@ -274,6 +292,9 @@ impl Ctx {
     /// This is the startup hook for a deterministic simulation test (DST): the
     /// host passes the returned handle to `initialize_pool_with_ctx`, and every
     /// task fork reads the same clock from [`Ctx::clock`].
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn with_clock(&self, clock: Arc<dyn Clock>) -> Ctx {
         let map = self.0.map.lock().expect("Ctx map poisoned").clone();

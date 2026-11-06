@@ -548,7 +548,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.inner.next() {
-                Some(Ok(Data::Retry)) => continue, // Absorb and retry
+                Some(Ok(Data::Retry)) => {} // Absorb and retry
                 Some(Ok(Data::Bytes(bytes))) => return Some(Ok(bytes)),
                 Some(Err(e)) => return Some(Err(e)),
                 None => return None,

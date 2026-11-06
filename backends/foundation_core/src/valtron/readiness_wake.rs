@@ -261,7 +261,7 @@ impl std::fmt::Debug for ReadinessNotifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ReadinessNotifier")
             .field("registered", &self.count.load(Ordering::SeqCst))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -420,6 +420,7 @@ impl<T> EventQueue<T> {
     ///
     /// The close-only waiters ([`Self::closed_readiness`]) wake once, on the
     /// first close. A later close of an already closed queue wakes nobody.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.0.queue.close();
         self.0.items.notify();

@@ -5,6 +5,53 @@ use crate::valtron::EventQueue;
 use crate::valtron::branches::{BroadcastPolicy, CollectionState};
 use crate::valtron::{QueueReadiness, ShortCircuit, Stream, StreamIterator, StreamSpread};
 
+/// The observer and continuation returned by a collector split.
+pub type SCollectorPair<I, D, P> = (
+    SCollectorStreamIterator<D, P>,
+    SSplitCollectorContinuation<I, D, P>,
+);
+
+/// The branch observers and continuation returned by a broadcast split.
+pub type SBroadcastPair<I, D, P> = (
+    Vec<SCollectorStreamIterator<D, P>>,
+    SBroadcastContinuation<I, D, P>,
+);
+
+/// The observer and continuation returned by a split-until split.
+pub type SSplitUntilPair<I, D, P> = (SSplitUntilObserver<D, P>, SSplitUntilContinuation<I, D, P>);
+
+/// The observer and continuation returned by a collector-map split.
+pub type SSplitCollectorMapPair<I, D, P, DM, PM> = (
+    SSplitCollectorMapObserver<DM, PM>,
+    SSplitCollectorMapContinuation<I, D, P, DM, PM>,
+);
+
+/// A state predicate over a stream.
+pub type BoxedStreamPredicate<D, P> = Box<dyn Fn(&Stream<D, P>) -> bool + Send>;
+
+/// A predicate over a stream's done value.
+pub type StreamDonePredicate<I> = Box<dyn Fn(&<I as StreamIterator>::D) -> bool + Send>;
+
+/// A mapper from a stream state to an output.
+pub type StreamMapper<I, R> =
+    Box<dyn Fn(Stream<<I as StreamIterator>::D, <I as StreamIterator>::P>) -> R + Send>;
+
+/// A circuit that transforms a stream state.
+pub type StreamCircuit<I> = Box<
+    dyn Fn(
+            Stream<<I as StreamIterator>::D, <I as StreamIterator>::P>,
+        ) -> ShortCircuit<<I as StreamIterator>::D, <I as StreamIterator>::P>
+        + Send,
+>;
+
+/// A predicate that maps a stream state to a collection action.
+pub type BoxedStreamCollectionPredicate<D, P> =
+    Box<dyn Fn(&Stream<D, P>) -> CollectionState + Send>;
+
+/// A transform from a stream state to a match flag and an optional new item.
+pub type StreamTransform<D, P, DM, PM> =
+    Box<dyn Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send>;
+
 /// Extension trait providing combinator methods for any `StreamIterator`.
 ///
 /// This trait is automatically implemented for any type that implements
@@ -165,10 +212,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         self,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        SCollectorStreamIterator<Self::D, Self::P>,
-        SSplitCollectorContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SCollectorPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -176,13 +220,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
 
     /// Convenience method: `split_collector` with `queue_size` = 1.
-    fn split_collect_one<Pred>(
-        self,
-        predicate: Pred,
-    ) -> (
-        SCollectorStreamIterator<Self::D, Self::P>,
-        SSplitCollectorContinuation<Self, Self::D, Self::P>,
-    )
+    fn split_collect_one<Pred>(self, predicate: Pred) -> SCollectorPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -206,10 +244,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         n: usize,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
-        SBroadcastContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SBroadcastPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -227,10 +262,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         n: usize,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
-        SBroadcastContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SBroadcastPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -249,10 +281,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         n: usize,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
-        SBroadcastContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SBroadcastPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -265,10 +294,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         self,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        SSplitUntilObserver<Self::D, Self::P>,
-        SSplitUntilContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SSplitUntilPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -369,10 +395,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         self,
         transform: F,
         queue_size: usize,
-    ) -> (
-        SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
-    )
+    ) -> SSplitCollectorMapPair<Self, Self::D, Self::P, DM, PM>
     where
         Self: Sized,
         DM: Clone + Send + 'static,
@@ -385,10 +408,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     fn split_collect_one_map<F, DM, PM>(
         self,
         transform: F,
-    ) -> (
-        SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
-    )
+    ) -> SSplitCollectorMapPair<Self, Self::D, Self::P, DM, PM>
     where
         Self: Sized,
         DM: Clone + Send + 'static,
@@ -422,8 +442,8 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         }
     }
 
-    /// Map only Next (Done) values to a new StreamIterator, passing through
-    /// other states as Stream::Ignore.
+    /// Map only Next (Done) values to a new `StreamIterator`, passing through
+    /// other states as `Stream::Ignore`.
     ///
     /// The returned `MapIter` drains each inner iterator until `None`, then polls
     /// the outer for the next item.
@@ -444,8 +464,8 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         }
     }
 
-    /// Map only Pending values to a new StreamIterator, passing through
-    /// other states as Stream::Ignore.
+    /// Map only Pending values to a new `StreamIterator`, passing through
+    /// other states as `Stream::Ignore`.
     ///
     /// The returned `MapIter` drains each inner iterator until `None`, then polls
     /// the outer for the next item.
@@ -567,43 +587,59 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
 
     /// Take at most n Next items.
-    fn take(self, n: usize) -> STakeState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    fn take(self, n: usize) -> STakeState<Self, BoxedStreamPredicate<Self::D, Self::P>>
     where
         Self::D: Send + 'static,
+        Self::P: Send + 'static,
     {
-        self.take_state(n, |s| matches!(s, Stream::Next(_)))
+        let predicate: BoxedStreamPredicate<Self::D, Self::P> =
+            Box::new(|s| matches!(s, Stream::Next(_)));
+        self.take_state(n, predicate)
     }
 
     /// Take at most n items of any state.
-    fn take_all(self, n: usize) -> STakeState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool> {
-        self.take_state(n, |_| true)
+    fn take_all(self, n: usize) -> STakeState<Self, BoxedStreamPredicate<Self::D, Self::P>>
+    where
+        Self::D: Send + 'static,
+        Self::P: Send + 'static,
+    {
+        let predicate: BoxedStreamPredicate<Self::D, Self::P> = Box::new(|_| true);
+        self.take_state(n, predicate)
     }
 
     /// Skip first n Next items, return all others unchanged.
-    fn skip(self, n: usize) -> SSkipState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    fn skip(self, n: usize) -> SSkipState<Self, BoxedStreamPredicate<Self::D, Self::P>>
     where
         Self::D: Send + 'static,
+        Self::P: Send + 'static,
     {
-        self.skip_state(n, |s| matches!(s, Stream::Next(_)))
+        let predicate: BoxedStreamPredicate<Self::D, Self::P> =
+            Box::new(|s| matches!(s, Stream::Next(_)));
+        self.skip_state(n, predicate)
     }
 
     /// Skip first n items of any state.
-    fn skip_all(self, n: usize) -> SSkipState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool> {
-        self.skip_state(n, |_| true)
+    fn skip_all(self, n: usize) -> SSkipState<Self, BoxedStreamPredicate<Self::D, Self::P>>
+    where
+        Self::D: Send + 'static,
+        Self::P: Send + 'static,
+    {
+        let predicate: BoxedStreamPredicate<Self::D, Self::P> = Box::new(|_| true);
+        self.skip_state(n, predicate)
     }
 
     /// Take while predicate true on Next values, pass through non-Next.
-    fn take_while<F>(
-        self,
-        f: F,
-    ) -> STakeWhileState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    fn take_while<F>(self, f: F) -> STakeWhileState<Self, BoxedStreamPredicate<Self::D, Self::P>>
     where
         F: Fn(&Self::D) -> bool + Send + 'static,
+        Self::D: Send + 'static,
+        Self::P: Send + 'static,
     {
-        self.take_while_state(move |s| match s {
+        let predicate: BoxedStreamPredicate<Self::D, Self::P> = Box::new(move |s| match s {
             Stream::Next(v) => f(v),
             _ => true,
-        })
+        });
+        self.take_while_state(predicate)
     }
 
     /// Take while predicate true on ANY state.
@@ -615,17 +651,17 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     }
 
     /// Skip while predicate true on Next values, return all others.
-    fn skip_while<F>(
-        self,
-        f: F,
-    ) -> SSkipWhileState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    fn skip_while<F>(self, f: F) -> SSkipWhileState<Self, BoxedStreamPredicate<Self::D, Self::P>>
     where
         F: Fn(&Self::D) -> bool + Send + 'static,
+        Self::D: Send + 'static,
+        Self::P: Send + 'static,
     {
-        self.skip_while_state(move |s| match s {
+        let predicate: BoxedStreamPredicate<Self::D, Self::P> = Box::new(move |s| match s {
             Stream::Next(v) => f(v),
             _ => false,
-        })
+        });
+        self.skip_while_state(predicate)
     }
 
     /// Skip while predicate true on ANY state.
@@ -871,10 +907,7 @@ where
         self,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        SCollectorStreamIterator<Self::D, Self::P>,
-        SSplitCollectorContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SCollectorPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -907,10 +940,7 @@ where
         n: usize,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
-        SBroadcastContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SBroadcastPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -931,10 +961,7 @@ where
         n: usize,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
-        SBroadcastContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SBroadcastPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -955,10 +982,7 @@ where
         n: usize,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
-        SBroadcastContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SBroadcastPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -978,10 +1002,7 @@ where
         self,
         predicate: Pred,
         queue_size: usize,
-    ) -> (
-        SSplitUntilObserver<Self::D, Self::P>,
-        SSplitUntilContinuation<Self, Self::D, Self::P>,
-    )
+    ) -> SSplitUntilPair<Self, Self::D, Self::P>
     where
         Self: Sized,
         Self::D: Clone,
@@ -1027,10 +1048,7 @@ where
         self,
         transform: F,
         queue_size: usize,
-    ) -> (
-        SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
-    )
+    ) -> SSplitCollectorMapPair<Self, Self::D, Self::P, DM, PM>
     where
         Self: Sized,
         DM: Clone + Send + 'static,
@@ -1063,10 +1081,7 @@ where
     fn split_collect_one_map<F, DM, PM>(
         self,
         transform: F,
-    ) -> (
-        SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
-    )
+    ) -> SSplitCollectorMapPair<Self, Self::D, Self::P, DM, PM>
     where
         Self: Sized,
         DM: Clone + Send + 'static,
@@ -1411,25 +1426,27 @@ where
         }
         let item = self.inner.next()?;
         Some(match item {
-            Stream::Next(d) => match (self.mapper)(d) {
-                Some(r) => Stream::Next(r),
-                None => {
+            Stream::Next(d) => {
+                if let Some(r) = (self.mapper)(d) {
+                    Stream::Next(r)
+                } else {
                     self.done = true;
                     return None;
                 }
-            },
+            }
             Stream::Spread(items) => {
                 let mut any_none = false;
                 let mapped: Vec<_> = items
                     .into_iter()
                     .filter_map(|sp| match sp {
-                        StreamSpread::Done(d) => match (self.mapper)(d) {
-                            Some(r) => Some(StreamSpread::Done(r)),
-                            None => {
+                        StreamSpread::Done(d) => {
+                            if let Some(r) = (self.mapper)(d) {
+                                Some(StreamSpread::Done(r))
+                            } else {
                                 any_none = true;
                                 None
                             }
-                        },
+                        }
                         StreamSpread::Pending(p) => Some(StreamSpread::Pending(p)),
                     })
                     .collect();
@@ -1547,7 +1564,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    mapper: Box<dyn Fn(Stream<I::D, I::P>) -> R + Send>,
+    mapper: StreamMapper<I, R>,
 }
 
 impl<I, R> Iterator for MapPendingAndDone<I, R>
@@ -1598,7 +1615,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    predicate: Box<dyn Fn(&I::D) -> bool + Send>,
+    predicate: StreamDonePredicate<I>,
     _phantom: std::marker::PhantomData<I::P>,
 }
 
@@ -1730,7 +1747,7 @@ where
     I: StreamIterator,
 {
     inner: I,
-    circuit: Box<dyn Fn(Stream<I::D, I::P>) -> ShortCircuit<I::D, I::P> + Send>,
+    circuit: StreamCircuit<I>,
     stopped: bool,
     _phantom: std::marker::PhantomData<I::P>,
 }
@@ -1789,9 +1806,8 @@ where
 #[inline]
 fn sstream_observer_push<T>(queue: &EventQueue<T>, item: T) -> Option<T> {
     match queue.push(item) {
-        Ok(()) => None,
+        Ok(()) | Err(concurrent_queue::PushError::Closed(_)) => None,
         Err(concurrent_queue::PushError::Full(item)) => Some(item),
-        Err(concurrent_queue::PushError::Closed(_)) => None,
     }
 }
 
@@ -1853,7 +1869,7 @@ impl<D, P> Drop for SCollectorStreamIterator<D, P> {
     /// continuation's `is_full`/`push` observe `Closed`, so it stops copying to this
     /// branch and keeps forwarding to the survivors.
     fn drop(&mut self) {
-        self.queue.close();
+        let _ = self.queue.close();
     }
 }
 
@@ -1870,7 +1886,7 @@ where
     /// Queue to send copied items to observer
     queue: EventQueue<Stream<D, P>>,
     /// Predicate to determine which items to copy
-    predicate: Box<dyn Fn(&Stream<D, P>) -> bool + Send>,
+    predicate: BoxedStreamPredicate<D, P>,
     /// A matched observer copy awaiting a free slot (F45 Resolution 4 backpressure).
     pending_push: Option<Stream<D, P>>,
     /// The source item held back until the stashed copy is accepted (lockstep).
@@ -1897,11 +1913,9 @@ where
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next() {
-            item
-        } else {
+        let Some(item) = self.inner.next() else {
             // Source iterator is naturally exhausted, close the queue
-            self.queue.close();
+            let _ = self.queue.close();
             return None;
         };
 
@@ -1925,7 +1939,7 @@ where
 {
     fn drop(&mut self) {
         // Close the queue to signal that the source is done
-        self.queue.close();
+        let _ = self.queue.close();
         tracing::debug!("SSplitCollectorContinuation: dropped, queue closed");
     }
 }
@@ -1942,7 +1956,7 @@ where
 fn sbroadcast_build<I, D, P>(
     inner: I,
     n: usize,
-    predicate: Box<dyn Fn(&Stream<D, P>) -> bool + Send>,
+    predicate: BoxedStreamPredicate<D, P>,
     queue_size: usize,
     policy: BroadcastPolicy,
 ) -> (
@@ -1987,7 +2001,7 @@ where
     /// One bounded queue per observer branch.
     queues: Vec<EventQueue<Stream<D, P>>>,
     /// Which `Stream` items to fan out.
-    predicate: Box<dyn Fn(&Stream<D, P>) -> bool + Send>,
+    predicate: BoxedStreamPredicate<D, P>,
     /// How a full branch is handled (Wait / drop-newest / drop-oldest).
     policy: BroadcastPolicy,
     /// A matched item awaiting delivery to all branches (zero-loss backpressure).
@@ -2011,7 +2025,7 @@ where
     /// Close every branch queue (source exhausted or continuation dropped).
     fn close_all(&self) {
         for queue in &self.queues {
-            queue.close();
+            let _ = queue.close();
         }
     }
 }
@@ -2061,9 +2075,7 @@ where
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next() {
-            item
-        } else {
+        let Some(item) = self.inner.next() else {
             self.close_all();
             return None;
         };
@@ -2163,7 +2175,7 @@ pub struct SSplitUntilContinuation<I: StreamIterator<D = D, P = P>, D, P> {
     /// Queue to send copied items to observer
     queue: EventQueue<Stream<D, P>>,
     /// Predicate to determine when to close observer
-    predicate: Box<dyn Fn(&Stream<D, P>) -> CollectionState + Send>,
+    predicate: BoxedStreamCollectionPredicate<D, P>,
     /// A matched observer copy awaiting a free slot (F45 Resolution 4 backpressure).
     pending_push: Option<Stream<D, P>>,
     /// The source item held back until the stashed copy is accepted (lockstep).
@@ -2190,16 +2202,14 @@ where
             }
             if self.pending_close {
                 self.pending_close = false;
-                self.queue.close();
+                let _ = self.queue.close();
             }
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next() {
-            item
-        } else {
+        let Some(item) = self.inner.next() else {
             // Source iterator is naturally exhausted, close the queue
-            self.queue.close();
+            let _ = self.queue.close();
             return None;
         };
 
@@ -2227,7 +2237,7 @@ where
                         return Some(Stream::Wait);
                     }
                 }
-                self.queue.close();
+                let _ = self.queue.close();
             }
         }
 
@@ -2244,7 +2254,7 @@ where
         // Close the queue as backup if not already closed
         if !self.queue.is_closed() {
             tracing::debug!("SSplitUntilContinuation: dropped before completion, closing queue");
-            self.queue.close();
+            let _ = self.queue.close();
         }
     }
 }
@@ -2316,7 +2326,7 @@ pub struct SSplitCollectorMapContinuation<I: StreamIterator<D = D, P = P>, D, P,
     /// Queue to send transformed items to observer
     queue: EventQueue<Stream<DM, PM>>,
     /// Combined predicate + transform function
-    transform: Box<dyn Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send>,
+    transform: StreamTransform<D, P, DM, PM>,
     /// A transformed observer item awaiting a free slot (F45 Resolution 4 backpressure).
     pending_push: Option<Stream<DM, PM>>,
     /// The source item held back until the stashed copy is accepted (lockstep).
@@ -2343,10 +2353,8 @@ where
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next() {
-            item
-        } else {
-            self.queue.close();
+        let Some(item) = self.inner.next() else {
+            let _ = self.queue.close();
             return None;
         };
 
@@ -2374,7 +2382,7 @@ where
             tracing::debug!(
                 "SSplitCollectorMapContinuation: dropped before completion, closing queue"
             );
-            self.queue.close();
+            let _ = self.queue.close();
         }
     }
 }
@@ -2388,6 +2396,7 @@ where
 /// Polls all sources in round-robin fashion, collecting Next values.
 /// Yields `Stream::Pending` with count while any source is still producing.
 /// Yields `Stream::Next` with all collected values when all sources complete.
+#[must_use]
 pub fn collect_all<I, D, P>(iterators: Vec<I>) -> CollectAll<I, D, P>
 where
     I: StreamIterator<D = D, P = P> + Send + 'static,
@@ -2437,6 +2446,7 @@ where
 /// this function yields `Stream::Next(D)` for each individual value from any stream,
 /// removing completed streams from the pool. Returns `Stream::Pending(count)` while
 /// any streams are still pending. When all streams are exhausted, returns `None`.
+#[must_use]
 pub fn collect_next_from_streams<I, D, P>(iterators: Vec<I>) -> CollectNextFromStreams<I, D, P>
 where
     I: StreamIterator<D = D, P = P> + Send + 'static,
@@ -2509,23 +2519,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.collected.len()));
                 }
-                Some(Stream::Pending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.collected.len() + 1));
-                }
                 Some(Stream::Delayed(d)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Delayed(d));
                 }
-                Some(Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Init) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.collected.len() + 1));
                 }
-                Some(Stream::Ignore) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Continue to next source in same pass
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Ignore | Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
@@ -2631,13 +2633,7 @@ where
                     has_pending = true;
                 }
                 Some(Stream::Delayed(d)) => return Some(Stream::Delayed(d)),
-                Some(Stream::Init) => {
-                    all_done = false;
-                }
-                Some(Stream::Ignore) => {
-                    all_done = false;
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Init | Stream::Ignore | Stream::Wait) => {
                     all_done = false;
                 }
                 Some(Stream::Spread(items)) => {
@@ -3274,12 +3270,11 @@ where
             return None;
         }
         let item = self.inner.next()?;
-        match (self.transformer)(item) {
-            Some(transformed) => Some(transformed),
-            None => {
-                self.done = true;
-                None
-            }
+        if let Some(transformed) = (self.transformer)(item) {
+            Some(transformed)
+        } else {
+            self.done = true;
+            None
         }
     }
 }
@@ -3870,23 +3865,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Next(value));
                 }
-                Some(Stream::Pending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
                 Some(Stream::Delayed(d)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Delayed(d));
                 }
-                Some(Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Init) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Ignore) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Continue to next source in same pass
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Ignore | Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }

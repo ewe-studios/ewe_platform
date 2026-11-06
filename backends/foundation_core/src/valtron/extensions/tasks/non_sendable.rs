@@ -9,6 +9,37 @@ use crate::valtron::{
     Ctx, QueueReadiness, Stream, TaskIterator, TaskShortCircuit, TaskSpread, TaskStatus,
 };
 
+/// The branch observers and continuation returned by a broadcast split.
+pub type BroadcastPair<I> = (
+    Vec<CollectorStreamIterator<<I as TaskIterator>::Ready, <I as TaskIterator>::Pending>>,
+    BroadcastContinuation<I>,
+);
+
+/// A state predicate over a task status.
+pub type BoxedTaskPredicate<R, P> = Box<dyn Fn(&TaskStatus<R, P>) -> bool>;
+
+/// A predicate over a task's ready value.
+pub type BoxedReadyPredicate<I> = Box<dyn Fn(&<I as TaskIterator>::Ready) -> bool>;
+
+/// A predicate that maps a ready value to a collection action.
+pub type BoxedReadyCollectionPredicate<I> =
+    Box<dyn Fn(&<I as TaskIterator>::Ready) -> CollectionState>;
+
+/// A transform from a ready value to a collection action and an optional value.
+pub type BoxedReadyTransform<I, D> =
+    Box<dyn Fn(&<I as TaskIterator>::Ready) -> (CollectionState, Option<D>)>;
+
+/// A transform from a ready value to a match flag and an optional value.
+pub type BoxedReadyMatchedTransform<I, M> =
+    Box<dyn Fn(&<I as TaskIterator>::Ready) -> (bool, Option<M>)>;
+
+/// A circuit that maps a task status to a short-circuit action.
+pub type BoxedTaskCircuit<I> = Box<
+    dyn Fn(
+        TaskStatus<<I as TaskIterator>::Ready, <I as TaskIterator>::Pending>,
+    ) -> TaskShortCircuit<<I as TaskIterator>::Ready, <I as TaskIterator>::Pending>,
+>;
+
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
 ///
 /// This trait is automatically implemented for any type that implements `TaskIterator`
@@ -279,15 +310,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Panics
     /// Never panics. (`queue_size` is clamped to at least 1.)
-    fn broadcast<P>(
-        self,
-        n: usize,
-        predicate: P,
-        queue_size: usize,
-    ) -> (
-        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
-        BroadcastContinuation<Self>,
-    )
+    fn broadcast<P>(self, n: usize, predicate: P, queue_size: usize) -> BroadcastPair<Self>
     where
         Self: Sized,
         Self::Ready: Clone,
@@ -306,15 +329,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Panics
     /// Never panics. (`queue_size` is clamped to at least 1.)
-    fn broadcast_lossy<P>(
-        self,
-        n: usize,
-        predicate: P,
-        queue_size: usize,
-    ) -> (
-        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
-        BroadcastContinuation<Self>,
-    )
+    fn broadcast_lossy<P>(self, n: usize, predicate: P, queue_size: usize) -> BroadcastPair<Self>
     where
         Self: Sized,
         Self::Ready: Clone,
@@ -333,15 +348,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Panics
     /// Never panics. (`queue_size` is clamped to at least 1.)
-    fn broadcast_latest<P>(
-        self,
-        n: usize,
-        predicate: P,
-        queue_size: usize,
-    ) -> (
-        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
-        BroadcastContinuation<Self>,
-    )
+    fn broadcast_latest<P>(self, n: usize, predicate: P, queue_size: usize) -> BroadcastPair<Self>
     where
         Self: Sized,
         Self::Ready: Clone,
@@ -928,55 +935,63 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         F: Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool + 'static;
 
     /// Take while predicate true on Ready values, pass through non-Ready.
-    fn take<F>(
-        self,
-        n: usize,
-    ) -> TTakeState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
+    fn take<F>(self, n: usize) -> TTakeState<Self, BoxedTaskPredicate<Self::Ready, Self::Pending>>
     where
         Self::Ready: 'static,
+        Self::Pending: 'static,
     {
-        self.take_state(n, |s| matches!(s, TaskStatus::Ready(_)))
+        let predicate: BoxedTaskPredicate<Self::Ready, Self::Pending> =
+            Box::new(|s| matches!(s, TaskStatus::Ready(_)));
+        self.take_state(n, predicate)
     }
 
     /// Take at most n items of any state.
-    fn take_all(
-        self,
-        n: usize,
-    ) -> TTakeState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool> {
-        self.take_state(n, |_| true)
+    fn take_all(self, n: usize) -> TTakeState<Self, BoxedTaskPredicate<Self::Ready, Self::Pending>>
+    where
+        Self::Ready: 'static,
+        Self::Pending: 'static,
+    {
+        let predicate: BoxedTaskPredicate<Self::Ready, Self::Pending> = Box::new(|_| true);
+        self.take_state(n, predicate)
     }
 
     /// Skip first n Ready items, return all others unchanged.
-    fn skip(
-        self,
-        n: usize,
-    ) -> TSkipState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
+    fn skip(self, n: usize) -> TSkipState<Self, BoxedTaskPredicate<Self::Ready, Self::Pending>>
     where
         Self::Ready: 'static,
+        Self::Pending: 'static,
     {
-        self.skip_state(n, |s| matches!(s, TaskStatus::Ready(_)))
+        let predicate: BoxedTaskPredicate<Self::Ready, Self::Pending> =
+            Box::new(|s| matches!(s, TaskStatus::Ready(_)));
+        self.skip_state(n, predicate)
     }
 
     /// Skip first n items of any state.
-    fn skip_all(
-        self,
-        n: usize,
-    ) -> TSkipState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool> {
-        self.skip_state(n, |_| true)
+    fn skip_all(self, n: usize) -> TSkipState<Self, BoxedTaskPredicate<Self::Ready, Self::Pending>>
+    where
+        Self::Ready: 'static,
+        Self::Pending: 'static,
+    {
+        let predicate: BoxedTaskPredicate<Self::Ready, Self::Pending> = Box::new(|_| true);
+        self.skip_state(n, predicate)
     }
 
     /// Take while predicate true on Ready values, pass through non-Ready.
     fn take_while<F>(
         self,
         f: F,
-    ) -> TTakeWhileState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
+    ) -> TTakeWhileState<Self, BoxedTaskPredicate<Self::Ready, Self::Pending>>
     where
         F: Fn(&Self::Ready) -> bool + 'static,
+        Self::Ready: 'static,
+        Self::Pending: 'static,
     {
-        self.take_while_state(move |s| match s {
-            TaskStatus::Ready(v) => f(v),
-            _ => true,
-        })
+        let predicate: BoxedTaskPredicate<Self::Ready, Self::Pending> =
+            Box::new(move |s| match s {
+                TaskStatus::Ready(v) => f(v),
+                _ => true,
+            });
+        self.take_while_state(predicate)
     }
 
     /// Take while predicate true on ANY state.
@@ -991,14 +1006,18 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn skip_while<F>(
         self,
         f: F,
-    ) -> TSkipWhileState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
+    ) -> TSkipWhileState<Self, BoxedTaskPredicate<Self::Ready, Self::Pending>>
     where
         F: Fn(&Self::Ready) -> bool + 'static,
+        Self::Ready: 'static,
+        Self::Pending: 'static,
     {
-        self.skip_while_state(move |s| match s {
-            TaskStatus::Ready(v) => f(v),
-            _ => false,
-        })
+        let predicate: BoxedTaskPredicate<Self::Ready, Self::Pending> =
+            Box::new(move |s| match s {
+                TaskStatus::Ready(v) => f(v),
+                _ => false,
+            });
+        self.skip_while_state(predicate)
     }
 
     /// Skip while predicate true on ANY state.
@@ -1164,15 +1183,7 @@ where
         self.split_collector(predicate, 1)
     }
 
-    fn broadcast<P>(
-        self,
-        n: usize,
-        predicate: P,
-        queue_size: usize,
-    ) -> (
-        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
-        BroadcastContinuation<Self>,
-    )
+    fn broadcast<P>(self, n: usize, predicate: P, queue_size: usize) -> BroadcastPair<Self>
     where
         Self: Sized,
         Self::Ready: Clone,
@@ -1188,15 +1199,7 @@ where
         )
     }
 
-    fn broadcast_lossy<P>(
-        self,
-        n: usize,
-        predicate: P,
-        queue_size: usize,
-    ) -> (
-        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
-        BroadcastContinuation<Self>,
-    )
+    fn broadcast_lossy<P>(self, n: usize, predicate: P, queue_size: usize) -> BroadcastPair<Self>
     where
         Self: Sized,
         Self::Ready: Clone,
@@ -1212,15 +1215,7 @@ where
         )
     }
 
-    fn broadcast_latest<P>(
-        self,
-        n: usize,
-        predicate: P,
-        queue_size: usize,
-    ) -> (
-        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
-        BroadcastContinuation<Self>,
-    )
+    fn broadcast_latest<P>(self, n: usize, predicate: P, queue_size: usize) -> BroadcastPair<Self>
     where
         Self: Sized,
         Self::Ready: Clone,
@@ -1657,25 +1652,27 @@ where
         }
         let status = self.inner.next_status(ctx)?;
         Some(match status {
-            TaskStatus::Ready(v) => match (self.mapper)(v) {
-                Some(r) => TaskStatus::Ready(r),
-                None => {
+            TaskStatus::Ready(v) => {
+                if let Some(r) = (self.mapper)(v) {
+                    TaskStatus::Ready(r)
+                } else {
                     self.done = true;
                     return None;
                 }
-            },
+            }
             TaskStatus::Spread(items) => {
                 let mut any_none = false;
                 let mapped: Vec<_> = items
                     .into_iter()
                     .filter_map(|item| match item {
-                        TaskSpread::Ready(d) => match (self.mapper)(d) {
-                            Some(r) => Some(TaskSpread::Ready(r)),
-                            None => {
+                        TaskSpread::Ready(d) => {
+                            if let Some(r) = (self.mapper)(d) {
+                                Some(TaskSpread::Ready(r))
+                            } else {
                                 any_none = true;
                                 None
                             }
-                        },
+                        }
                         TaskSpread::Pending(p) => Some(TaskSpread::Pending(p)),
                     })
                     .collect();
@@ -1774,7 +1771,7 @@ where
 /// Filtered-out Ready values are returned as `TaskStatus::Ignore` to avoid blocking.
 pub struct TFilterReady<I: TaskIterator> {
     inner: I,
-    predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    predicate: BoxedReadyPredicate<I>,
 }
 
 impl<I> TaskIterator for TFilterReady<I>
@@ -2302,9 +2299,8 @@ where
 #[inline]
 fn split_observer_push<T>(queue: &EventQueue<T>, item: T) -> Option<T> {
     match queue.push(item) {
-        Ok(()) => None,
+        Ok(()) | Err(concurrent_queue::PushError::Closed(_)) => None,
         Err(concurrent_queue::PushError::Full(item)) => Some(item),
-        Err(concurrent_queue::PushError::Closed(_)) => None,
     }
 }
 
@@ -2367,7 +2363,7 @@ impl<D, P> Drop for CollectorStreamIterator<D, P> {
     /// queue makes the continuation's next push observe `Closed`, so it stops
     /// copying to this branch and keeps forwarding.
     fn drop(&mut self) {
-        self.queue.close();
+        let _ = self.queue.close();
     }
 }
 
@@ -2381,7 +2377,7 @@ pub struct SplitCollectorContinuation<I: TaskIterator> {
     /// Queue to send copied items to observer
     queue: EventQueue<Stream<I::Ready, I::Pending>>,
     /// Predicate to determine which items to copy
-    predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    predicate: BoxedReadyPredicate<I>,
     /// A matched observer item that could not be delivered because the observer
     /// queue was full; retried on the next `next()` before pulling new work
     /// (F45 Part C1 backpressure).
@@ -2412,11 +2408,9 @@ where
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next_status(ctx) {
-            item
-        } else {
+        let Some(item) = self.inner.next_status(ctx) else {
             // Source iterator is naturally exhausted, close the queue
-            self.queue.close();
+            let _ = self.queue.close();
             tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2454,7 +2448,7 @@ where
 {
     fn drop(&mut self) {
         // Close the queue to signal that the source is done
-        self.queue.close();
+        let _ = self.queue.close();
         tracing::debug!("SplitCollectorContinuation: dropped, queue closed");
     }
 }
@@ -2478,13 +2472,10 @@ where
 fn broadcast_build<I>(
     inner: I,
     n: usize,
-    predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    predicate: BoxedReadyPredicate<I>,
     queue_size: usize,
     policy: BroadcastPolicy,
-) -> (
-    Vec<CollectorStreamIterator<I::Ready, I::Pending>>,
-    BroadcastContinuation<I>,
-)
+) -> BroadcastPair<I>
 where
     I: TaskIterator,
 {
@@ -2522,7 +2513,7 @@ pub struct BroadcastContinuation<I: TaskIterator> {
     /// One bounded queue per observer branch.
     queues: Vec<EventQueue<Stream<I::Ready, I::Pending>>>,
     /// Which `Ready` values to fan out.
-    predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    predicate: BoxedReadyPredicate<I>,
     /// How a full branch is handled (park / drop-newest / drop-oldest).
     policy: BroadcastPolicy,
     /// A matched value awaiting delivery to all branches (zero-loss backpressure):
@@ -2545,7 +2536,7 @@ impl<I: TaskIterator> BroadcastContinuation<I> {
     /// Close every branch queue (source exhausted or continuation dropped).
     fn close_all(&self) {
         for queue in &self.queues {
-            queue.close();
+            let _ = queue.close();
         }
     }
 }
@@ -2602,9 +2593,7 @@ where
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next_status(ctx) {
-            item
-        } else {
+        let Some(item) = self.inner.next_status(ctx) else {
             self.close_all();
             tracing::debug!("BroadcastContinuation: source exhausted, branches closed");
             return None;
@@ -2710,7 +2699,7 @@ impl<D, P> Drop for SplitUntilObserver<D, P> {
     /// Close the shared queue on drop so a dropped observer never parks the
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
-        self.queue.close();
+        let _ = self.queue.close();
     }
 }
 
@@ -2725,7 +2714,7 @@ pub struct SplitUntilContinuation<I: TaskIterator> {
     /// Queue to send copied items to observer
     queue: EventQueue<Stream<I::Ready, I::Pending>>,
     /// Predicate to determine when to close observer
-    predicate: Box<dyn Fn(&I::Ready) -> CollectionState>,
+    predicate: BoxedReadyCollectionPredicate<I>,
     /// A matched observer item awaiting a free slot (F45 Part C1 backpressure).
     pending_push: Option<Stream<I::Ready, I::Pending>>,
     /// The source item held back until the stashed copy is accepted.
@@ -2753,16 +2742,14 @@ where
             }
             if self.pending_close {
                 self.pending_close = false;
-                self.queue.close();
+                let _ = self.queue.close();
             }
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next_status(ctx) {
-            item
-        } else {
+        let Some(item) = self.inner.next_status(ctx) else {
             // Source iterator is naturally exhausted, close the queue
-            self.queue.close();
+            let _ = self.queue.close();
             tracing::debug!("SplitUntilContinuation: source exhausted, queue closed");
             return None;
         };
@@ -2805,7 +2792,7 @@ where
                         tracing::trace!("SplitUntilContinuation: closing observer queue without collecting final item");
                     }
                     if !park {
-                        self.queue.close();
+                        let _ = self.queue.close();
                         tracing::debug!("SplitUntilContinuation: observer queue closed after CollectionState::Close");
                     }
                 }
@@ -2830,7 +2817,7 @@ where
         // Close the queue as backup if not already closed
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuation: dropped before completion, closing queue");
-            self.queue.close();
+            let _ = self.queue.close();
         }
     }
 }
@@ -2899,7 +2886,7 @@ impl<D, P> Drop for SplitUntilObserverMap<D, P> {
     /// Close the shared queue on drop so a dropped observer never parks the
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
-        self.queue.close();
+        let _ = self.queue.close();
     }
 }
 
@@ -2914,7 +2901,7 @@ pub struct SplitUntilContinuationMap<I: TaskIterator, D> {
     /// Queue to send transformed copied items to observer
     queue: EventQueue<Stream<D, I::Pending>>,
     /// Combined predicate + transform function
-    transform: Box<dyn Fn(&I::Ready) -> (CollectionState, Option<D>)>,
+    transform: BoxedReadyTransform<I, D>,
     /// A transformed observer item awaiting a free slot (F45 Part C1 backpressure).
     pending_push: Option<Stream<D, I::Pending>>,
     /// The source item held back until the stashed copy is accepted.
@@ -2941,16 +2928,14 @@ where
             }
             if self.pending_close {
                 self.pending_close = false;
-                self.queue.close();
+                let _ = self.queue.close();
             }
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next_status(ctx) {
-            item
-        } else {
+        let Some(item) = self.inner.next_status(ctx) else {
             // Source iterator is naturally exhausted, close the queue
-            self.queue.close();
+            let _ = self.queue.close();
             tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
             return None;
         };
@@ -2997,7 +2982,7 @@ where
                         tracing::trace!("SplitUntilContinuationMap: closing observer queue without collecting final item");
                     }
                     if !park {
-                        self.queue.close();
+                        let _ = self.queue.close();
                         tracing::debug!("SplitUntilContinuationMap: observer queue closed after CollectionState::Close");
                     }
                 }
@@ -3022,7 +3007,7 @@ where
         // Close the queue as backup if not already closed
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuationMap: dropped before completion, closing queue");
-            self.queue.close();
+            let _ = self.queue.close();
         }
     }
 }
@@ -3085,7 +3070,7 @@ impl<M, P> Drop for SplitCollectorMapObserver<M, P> {
     /// Close the shared queue on drop so a dropped observer never parks the
     /// source on a full queue (F45 Part C1 observer-dropped policy).
     fn drop(&mut self) {
-        self.queue.close();
+        let _ = self.queue.close();
     }
 }
 
@@ -3102,7 +3087,7 @@ pub struct SplitCollectorMapContinuation<I: TaskIterator, M> {
     /// Queue to send transformed items to observer
     queue: EventQueue<Stream<M, I::Pending>>,
     /// Combined predicate + transform function
-    transform: Box<dyn Fn(&I::Ready) -> (bool, Option<M>)>,
+    transform: BoxedReadyMatchedTransform<I, M>,
     /// A transformed observer item awaiting a free slot (F45 Part C1 backpressure).
     pending_push: Option<Stream<M, I::Pending>>,
     /// The source item held back until the stashed copy is accepted.
@@ -3128,10 +3113,8 @@ where
             return self.pending_forward.take();
         }
 
-        let item = if let Some(item) = self.inner.next_status(ctx) {
-            item
-        } else {
-            self.queue.close();
+        let Some(item) = self.inner.next_status(ctx) else {
+            let _ = self.queue.close();
             tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
             return None;
         };
@@ -3170,7 +3153,7 @@ where
 {
     fn drop(&mut self) {
         if !self.queue.is_closed() {
-            self.queue.close();
+            let _ = self.queue.close();
         }
     }
 }
@@ -3264,12 +3247,11 @@ where
             return None;
         }
         let status = self.inner.next_status(ctx)?;
-        match (self.transformer)(status) {
-            Some(transformed) => Some(transformed),
-            None => {
-                self.done = true;
-                None
-            }
+        if let Some(transformed) = (self.transformer)(status) {
+            Some(transformed)
+        } else {
+            self.done = true;
+            None
         }
     }
 }
@@ -3517,7 +3499,7 @@ where
             TaskStatus::Spread(items) => {
                 if let Some(r) = items.into_iter().find_map(|item| match item {
                     TaskSpread::Ready(v) => (self.mapper)(v),
-                    _ => None,
+                    TaskSpread::Pending(_) => None,
                 }) {
                     self.found = true;
                     Some(TaskStatus::Ready(Some(r)))
@@ -3570,7 +3552,7 @@ where
                 if let Some(acc) = self.acc.take() {
                     self.acc = Some(items.into_iter().fold(acc, |acc, item| match item {
                         TaskSpread::Ready(v) => (self.folder)(acc, v),
-                        _ => acc,
+                        TaskSpread::Pending(_) => acc,
                     }));
                 }
                 Some(TaskStatus::Ignore)
@@ -3624,12 +3606,12 @@ where
 
         match self.inner.next_status(ctx) {
             Some(TaskStatus::Ready(v)) => {
-                if !(self.predicate)(v) {
+                if (self.predicate)(v) {
+                    Some(TaskStatus::Ignore)
+                } else {
                     self.all_true = false;
                     self.done = true;
                     Some(TaskStatus::Ready(false))
-                } else {
-                    Some(TaskStatus::Ignore)
                 }
             }
             Some(TaskStatus::Spread(items)) => {
@@ -3809,14 +3791,16 @@ where
 
         match self.inner.next_status(ctx) {
             Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
-            Some(TaskStatus::Ready(_))
-            | Some(TaskStatus::Pending(_))
-            | Some(TaskStatus::Delayed(_))
-            | Some(TaskStatus::Init)
-            | Some(TaskStatus::Spawn(_))
-            | Some(TaskStatus::Wait)
-            | Some(TaskStatus::Spread(_))
-            | Some(TaskStatus::Depends(_)) => {
+            Some(
+                TaskStatus::Ready(_)
+                | TaskStatus::Pending(_)
+                | TaskStatus::Delayed(_)
+                | TaskStatus::Init
+                | TaskStatus::Spawn(_)
+                | TaskStatus::Wait
+                | TaskStatus::Spread(_)
+                | TaskStatus::Depends(_),
+            ) => {
                 self.count += 1;
                 Some(TaskStatus::Ignore)
             }
@@ -3841,8 +3825,7 @@ where
 /// return a value and stop, or just stop.
 pub struct TMapCircuit<I: TaskIterator> {
     inner: I,
-    circuit:
-        Box<dyn Fn(TaskStatus<I::Ready, I::Pending>) -> TaskShortCircuit<I::Ready, I::Pending>>,
+    circuit: BoxedTaskCircuit<I>,
     stopped: bool,
     _phantom: std::marker::PhantomData<I>,
 }

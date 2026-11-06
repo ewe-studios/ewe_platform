@@ -374,9 +374,8 @@ where
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
 
-        let iter = match this.inner.as_mut() {
-            Some(iter) => iter,
-            None => return Poll::Ready(None),
+        let Some(iter) = this.inner.as_mut() else {
+            return Poll::Ready(None);
         };
         if !this.primed {
             this.primed = true;
@@ -486,9 +485,8 @@ where
             return Poll::Ready(Some(this.spread.remove(0)));
         }
 
-        let iter = match this.inner.as_mut() {
-            Some(iter) => iter,
-            None => return Poll::Ready(None),
+        let Some(iter) = this.inner.as_mut() else {
+            return Poll::Ready(None);
         };
         if !this.primed {
             this.primed = true;

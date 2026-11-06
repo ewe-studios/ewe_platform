@@ -143,6 +143,7 @@ impl<T> SleepIterator<T> {
 /// Returns the time left as `Some(diff)` only when `diff` is strictly positive.
 /// Returns `None` when the deadline is in the past, is exactly `now`, or overflowed
 /// (`completed_at` is `None`). `None` means the sleep is done.
+#[must_use]
 pub fn remaining(
     completed_at: Option<foundation_compact::Instant>,
     now: foundation_compact::Instant,

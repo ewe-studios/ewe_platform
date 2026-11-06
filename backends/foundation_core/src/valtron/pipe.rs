@@ -280,6 +280,7 @@ impl<T> PipeSender<T> {
 
     /// Explicitly close the send direction (also done on drop). Wakes a parked
     /// consumer so it observes end-of-stream. Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.inner.close_queue();
         self.inner.wake_consumer();
@@ -483,6 +484,7 @@ impl<T> PipeReceiver<T> {
 
     /// Explicitly close the receive direction (also done on drop). Wakes a parked
     /// producer so it observes the close. Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.inner.close_queue();
         self.inner.wake_producer();

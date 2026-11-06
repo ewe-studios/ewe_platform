@@ -108,6 +108,7 @@ pub struct WakeRegistry {
 
 impl WakeRegistry {
     /// Creates an empty registry.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             callbacks: Mutex::new(Vec::new()),
@@ -116,6 +117,9 @@ impl WakeRegistry {
     }
 
     /// Registers a one-shot readiness callback.
+    ///
+    /// # Panics
+    /// Panics if the internal callback lock is poisoned.
     pub fn register(&self, cb: WakeCallback) {
         let mut callbacks = self.callbacks.lock().unwrap();
         callbacks.push(cb);
@@ -125,6 +129,9 @@ impl WakeRegistry {
     /// Replaces every registered callback with a single one. A producer parking
     /// on a full queue re-registers on each retry; keeping only the latest avoids
     /// unbounded growth of stale callbacks while the queue stays full.
+    ///
+    /// # Panics
+    /// Panics if the internal callback lock is poisoned.
     pub fn replace(&self, cb: WakeCallback) {
         let mut callbacks = self.callbacks.lock().unwrap();
         callbacks.clear();
@@ -144,6 +151,9 @@ impl WakeRegistry {
     }
 
     /// Fires every registered callback exactly once, then clears the list.
+    ///
+    /// # Panics
+    /// Panics if the internal callback lock is poisoned.
     pub fn fire(&self) {
         let callbacks = std::mem::take(&mut *self.callbacks.lock().unwrap());
         self.pending.store(0, Ordering::SeqCst);

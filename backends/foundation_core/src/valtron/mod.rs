@@ -65,7 +65,7 @@ pub use wake::*;
 /// JS-hosted wasm (`js-wasmbindgen` / `js-foundation-wasm`), where blocking
 /// would freeze the isolate's only thread.
 ///
-/// Evaluated in this crate, so it reflects foundation_core's own features
+/// Evaluated in this crate, so it reflects `foundation_core`'s own features
 /// after Cargo's feature unification — which a dependent crate cannot see
 /// with its own `cfg`. Use [`blocking_boundary!`](crate::blocking_boundary)
 /// to compile items only where blocking exists.
@@ -78,7 +78,7 @@ pub const BLOCKING_BOUNDARY: bool = !cfg!(all(
 /// ([`BLOCKING_BOUNDARY`] is `true`).
 ///
 /// WHY: `.block()` / `.blocking()` are absent on JS-hosted wasm, and the
-/// choice is made by foundation_core's features, not the dependent crate's.
+/// choice is made by `foundation_core`'s features, not the dependent crate's.
 /// A sync entry point that waits on async code (a `main`, an OS thread)
 /// imports its blocking helpers inside this macro so they exist exactly
 /// where valtron can block.

@@ -1,6 +1,3 @@
-#![allow(clippy::wrong_self_convention)]
-#![allow(clippy::needless_lifetimes)]
-
 use core::str;
 use std::borrow;
 
@@ -22,6 +19,9 @@ impl core::fmt::Display for TryIntoStringError {
 }
 
 pub trait IntoString<'a> {
+    // The name is public API: callers use it across crates. Renaming it would
+    // break them, so keep the borrowing receiver.
+    #[allow(clippy::wrong_self_convention)]
     fn into_string(&'a self) -> String;
 }
 
@@ -147,6 +147,9 @@ impl core::fmt::Display for TryIntoStrError {
 }
 
 pub trait IntoStr<'a> {
+    // The name is public API: callers use it across crates. Renaming it would
+    // break them, so keep the borrowing receiver.
+    #[allow(clippy::wrong_self_convention)]
     fn into_str(&'a self) -> borrow::Cow<'a, str>;
 }
 

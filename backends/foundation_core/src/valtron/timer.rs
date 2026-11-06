@@ -133,7 +133,7 @@ impl core::fmt::Debug for Sleep {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("Sleep")
             .field("deadline", &self.key.0)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 

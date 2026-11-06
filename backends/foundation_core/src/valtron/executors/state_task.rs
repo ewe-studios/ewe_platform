@@ -66,17 +66,14 @@ where
             return None;
         }
         let state = self.state.take()?;
-        match (self.transition)(ctx, state) {
-            // `Ready` is NOT terminal: `next` is threaded back into `state`, so a
-            // single machine may emit `Ready` many times. Only `None` ends it.
-            Some((next, status)) => {
-                self.state = Some(next);
-                Some(status)
-            }
-            None => {
-                self.completed = true;
-                None
-            }
+        // `Ready` is NOT terminal: `next` is threaded back into `state`, so a
+        // single machine may emit `Ready` many times. Only `None` ends it.
+        if let Some((next, status)) = (self.transition)(ctx, state) {
+            self.state = Some(next);
+            Some(status)
+        } else {
+            self.completed = true;
+            None
         }
     }
 }

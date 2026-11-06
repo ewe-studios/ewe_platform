@@ -1028,7 +1028,7 @@ impl<T: Read> SharedByteBufferStream<T> {
     /// Otherwise calls `fill_up()` to try pulling more bytes from the underlying reader.
     ///
     /// # Errors
-    /// Returns the underlying `io::Error` if the fill fails (e.g. WouldBlock,
+    /// Returns the underlying `io::Error` if the fill fails (e.g. `WouldBlock`,
     /// connection reset, etc.).
     pub fn probe(&mut self) -> std::io::Result<usize> {
         self.0.do_once_mut(|inner| {
@@ -1048,7 +1048,8 @@ impl<T: Read> SharedByteBufferStream<T> {
     where
         T: IsUnixTransport,
     {
-        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.is_unix()))
+        self.0
+            .do_ref(|bbp| bbp.with_inner(IsUnixTransport::is_unix))
     }
 
     /// Whether an HTTP connection over this stream may be returned to the pool.
@@ -1060,7 +1061,8 @@ impl<T: Read> SharedByteBufferStream<T> {
     where
         T: IsUnixTransport,
     {
-        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.should_pool()))
+        self.0
+            .do_ref(|bbp| bbp.with_inner(IsUnixTransport::should_pool))
     }
 
     /// Run `f` against the innermost reader `T` by shared reference.
@@ -1512,9 +1514,8 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let buffer_length = self.buffer.len();
-        #[allow(clippy::cast_precision_loss)]
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        percentage > 0.4
+        // 0.4 is 2/5: compare the cross-products exactly, without floats.
+        buffer_length as u128 * 5 > self.pos as u128 * 2
     }
 
     #[inline]
@@ -1526,9 +1527,8 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let distance = self.peek_pos - self.pos;
         let buffer_length = self.buffer.len();
-        #[allow(clippy::cast_precision_loss)]
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        let should_truncate = percentage > 0.7 || force;
+        // 0.7 is 7/10: compare the cross-products exactly, without floats.
+        let should_truncate = buffer_length as u128 * 10 > self.pos as u128 * 7 || force;
 
         if !should_truncate {
             return;

@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 mod pool_guard;
 
 pub use pool_guard::PoolGuard;
@@ -43,7 +41,7 @@ pub struct NoThreadController {
 }
 
 impl NoThreadController {
-    /// Creates a new NoThreadController with platform-appropriate settings.
+    /// Creates a new `NoThreadController` with platform-appropriate settings.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -112,11 +110,14 @@ static VALTRON_SINGLETON: std::sync::Mutex<Option<PoolGuard>> = std::sync::Mutex
 pub struct SingleExecutorSingleton;
 
 impl SingleExecutorSingleton {
-    /// Initialize the executor and return a PoolGuard.
+    /// Initialize the executor and return a `PoolGuard`.
     ///
-    /// On first call: calls `initialize_pool(seed)`, stores a PoolGuard,
+    /// On first call: calls `initialize_pool(seed)`, stores a `PoolGuard`,
     /// runs the setup closure. On subsequent calls: returns a cloned guard
-    /// (PoolGuard is zero-sized in single mode).
+    /// (`PoolGuard` is zero-sized in single mode).
+    ///
+    /// # Panics
+    /// Panics if the singleton lock is poisoned.
     pub fn get_or_init<F: FnOnce(&PoolGuard)>(seed: u64, setup: F) -> PoolGuard {
         initialize_pool(seed);
         let mut guard = VALTRON_SINGLETON.lock().unwrap();
@@ -127,7 +128,11 @@ impl SingleExecutorSingleton {
         guard.clone().unwrap()
     }
 
-    /// Get a PoolGuard. Panics if `get_or_init` has not been called.
+    /// Get a `PoolGuard`.
+    ///
+    /// # Panics
+    /// Panics if `get_or_init` has not been called, or if the singleton lock is
+    /// poisoned.
     pub fn guard() -> PoolGuard {
         VALTRON_SINGLETON
             .lock()
@@ -137,6 +142,9 @@ impl SingleExecutorSingleton {
     }
 
     /// Check if the singleton has been initialized.
+    ///
+    /// # Panics
+    /// Panics if the singleton lock is poisoned.
     pub fn is_initialized() -> bool {
         VALTRON_SINGLETON.lock().unwrap().is_some()
     }
@@ -362,6 +370,17 @@ pub fn run_until_complete() {
     });
 }
 
+/// A task builder whose resolver is boxed over `Task`.
+type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + 'static,
+    >,
+    Task,
+>;
+
 /// `spawn` provides a builder which specifically allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
@@ -376,12 +395,7 @@ pub fn run_until_complete() {
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn<Task>() -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn spawn<Task>() -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,

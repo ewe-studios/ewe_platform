@@ -24,6 +24,10 @@ impl Default for ExponentialBackoffDecider {
 }
 
 impl ExponentialBackoffDecider {
+    /// Creates a decider from the given factor, jitter and duration bounds.
+    ///
+    /// # Panics
+    /// Panics if `jitter` is not between 0 and 1 (exclusive).
     pub fn new(
         factor: u32,
         jitter: f32,
@@ -65,7 +69,9 @@ impl RetryDecider for ExponentialBackoffDecider {
         let duration = self.min_duration.saturating_mul(exponent);
 
         // Apply jitter - use multiples of 100 to prevent rely on floats.
-        let jitter_factor = (self.jitter * 100f32) as u32;
+        // `jitter` is in `(0, 1)`, so its duration is below one second. Its
+        // milliseconds divided by ten give the hundredths used below.
+        let jitter_factor = time::Duration::from_secs_f32(self.jitter).subsec_millis() / 10;
         let random = self.rng.borrow_mut().u32(0..jitter_factor * 2);
 
         let mut duration = duration.saturating_mul(100);

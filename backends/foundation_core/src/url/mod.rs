@@ -512,7 +512,7 @@ impl UriBuilder {
     /// Sets the query from a [`Query`] builder.
     #[must_use]
     pub fn query(mut self, query: Query) -> Self {
-        let q = query.to_string();
+        let q = query.into_string();
         self.query = if q.is_empty() { None } else { Some(q) };
         self
     }

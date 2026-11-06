@@ -50,13 +50,13 @@
 ///     .collect();
 /// assert_eq!(values, vec![3, 2, 1]);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct StreamConfig {
     /// Wait cycle duration for executor polling
     pub wait_cycle: std::time::Duration,
-    /// Max turns for NotifyQueueStreamIterator
+    /// Max turns for `NotifyQueueStreamIterator`
     pub max_turns: usize,
-    /// Park duration for NotifyQueueStreamIterator (used as wait_cycle)
+    /// Park duration for `NotifyQueueStreamIterator` (used as `wait_cycle`)
     pub park_duration: std::time::Duration,
 }
 
@@ -71,21 +71,21 @@ impl Default for StreamConfig {
 }
 
 impl StreamConfig {
-    /// Create a new StreamConfig with custom wait_cycle.
+    /// Create a new `StreamConfig` with custom `wait_cycle`.
     #[must_use]
     pub fn with_wait_cycle(mut self, wait_cycle: std::time::Duration) -> Self {
         self.wait_cycle = wait_cycle;
         self
     }
 
-    /// Create a new StreamConfig with custom max_turns.
+    /// Create a new `StreamConfig` with custom `max_turns`.
     #[must_use]
     pub fn with_max_turns(mut self, max_turns: usize) -> Self {
         self.max_turns = max_turns;
         self
     }
 
-    /// Create a new StreamConfig with custom park_duration.
+    /// Create a new `StreamConfig` with custom `park_duration`.
     #[must_use]
     pub fn with_park_duration(mut self, park_duration: std::time::Duration) -> Self {
         self.park_duration = park_duration;

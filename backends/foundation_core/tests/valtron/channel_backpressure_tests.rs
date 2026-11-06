@@ -108,7 +108,6 @@ fn test_store_and_retry_pattern() {
 #[test]
 // producer/produced/consumer/consumed are the domain vocabulary here — renaming
 // them to satisfy similar_names would make the test harder to follow.
-#[allow(clippy::similar_names)]
 fn test_bounded_queue_producer_consumer_coordination() {
     use std::thread;
 
@@ -162,13 +161,13 @@ fn test_bounded_queue_producer_consumer_coordination() {
         consumed
     });
 
-    let (produced, pending) = producer.join().expect("producer should complete");
-    let consumed = consumer.join().expect("consumer should complete");
+    let (sent, sent_pending) = producer.join().expect("producer should complete");
+    let received = consumer.join().expect("consumer should complete");
 
     // All consumed values should have been produced
-    for c in &consumed {
+    for c in &received {
         assert!(
-            produced.contains(c) || pending == Some(*c),
+            sent.contains(c) || sent_pending == Some(*c),
             "Consumed value {c:} should be in produced or pending",
         );
     }

@@ -1,6 +1,6 @@
 //! Background Job Registry — fixed thread pool for blocking, fire-and-forget closures.
 //!
-//! WHY: ThreadedFuture and other code spawns unbounded OS threads for blocking work.
+//! WHY: `ThreadedFuture` and other code spawns unbounded OS threads for blocking work.
 //! A fixed pool prevents thread explosion and reuses threads across jobs.
 //!
 //! WHAT: `BackgroundJobRegistry` owns N worker threads that take jobs from a
@@ -71,7 +71,7 @@ impl JobQueue {
     fn lock(&self) -> MutexGuard<'_, QueueState> {
         self.state
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
     fn push(&self, job: BackgroundJob) -> Result<(), JobPushError> {
@@ -103,7 +103,7 @@ impl JobQueue {
             state = self
                 .available
                 .wait(state)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
     }
 
@@ -342,7 +342,7 @@ impl BackgroundJobRegistry {
         *registry
             .thread_handles
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner()) = handles;
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = handles;
 
         Ok(registry)
     }
@@ -351,7 +351,7 @@ impl BackgroundJobRegistry {
     ///
     /// WHY: Core execution loop for background workers
     /// WHAT: Takes jobs from the queue and executes them with panic protection
-    /// HOW: Block until a job arrives -> catch_unwind(job) -> repeat; exit once
+    /// HOW: Block until a job arrives -> `catch_unwind(job)` -> repeat; exit once
     /// the queue is closed and empty
     fn worker_loop(queue: &JobQueue, worker_id: usize) {
         let runner = format!("worker {worker_id}");
@@ -383,7 +383,7 @@ impl BackgroundJobRegistry {
     /// threads, and that can never hang on a job that does not return.
     /// WHAT: Closes the queue and waits, up to the shutdown timeout, for the
     /// workers to drain it and exit. See the type-level "Shutdown semantics".
-    /// HOW: close + notify_all -> `waitgroup.wait_timeout(deadline)`.
+    /// HOW: close + `notify_all` -> `waitgroup.wait_timeout(deadline)`.
     /// - In time: join every worker. Jobs still queued (only possible if every
     ///   worker died outside a job) run on the calling thread while the
     ///   deadline allows; the rest are dropped.
@@ -402,7 +402,7 @@ impl BackgroundJobRegistry {
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
             .drain(..)
             .collect();
         let mut busy_workers = 0;
@@ -473,7 +473,7 @@ impl Drop for BackgroundJobRegistry {
 /// `task_threads = total / 2`. The bg pool gets burst capacity; the task pool
 /// still gets enough threads to multiplex since idle tasks park.
 ///
-/// HOW: task_threads = max(2, total / 2), bg_threads = total.
+/// HOW: `task_threads` = max(2, total / 2), `bg_threads` = total.
 ///
 /// # Panics
 ///

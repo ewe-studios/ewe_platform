@@ -1,6 +1,4 @@
 #![cfg(feature = "multi")]
-#![allow(clippy::new_ret_no_self)]
-#![allow(clippy::type_complexity)]
 
 use std::{
     any::Any,
@@ -13,7 +11,7 @@ use std::{
         atomic::{self, AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
-    thread::JoinHandle,
+    thread::{Builder, JoinHandle},
     time::{self},
 };
 
@@ -112,9 +110,15 @@ impl FairGate {
     /// Acquire the gate, blocking in FIFO order until this caller's ticket is up.
     fn acquire(&'static self) -> FairGateGuard {
         let my_ticket = self.next_ticket.fetch_add(1, Ordering::SeqCst);
-        let mut guard = self.inner.lock().unwrap_or_else(|p| p.into_inner());
+        let mut guard = self
+            .inner
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         while self.now_serving.load(Ordering::SeqCst) != my_ticket {
-            guard = self.cond.wait(guard).unwrap_or_else(|p| p.into_inner());
+            guard = self
+                .cond
+                .wait(guard)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
         FairGateGuard { gate: self }
     }
@@ -128,17 +132,25 @@ pub struct FairGateGuard {
 
 impl Drop for FairGateGuard {
     fn drop(&mut self) {
-        let _guard = self.gate.inner.lock().unwrap_or_else(|p| p.into_inner());
+        let _guard = self
+            .gate
+            .inner
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         self.gate.now_serving.fetch_add(1, Ordering::SeqCst);
         self.gate.cond.notify_all();
     }
 }
 
 pub(crate) fn clear_global_registries() {
-    let mut reg = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut reg = REGISTRY
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     *reg = None;
     drop(reg);
-    let mut bg = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut bg = BG_REGISTRY
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     *bg = None;
 }
 
@@ -155,6 +167,18 @@ pub struct LocalPoolHandle {
     yielders: SharedThreadYielders,
 }
 
+/// A thread-pool task builder whose resolver is boxed over `Task`.
+pub type SendThreadPoolTaskBuilder<Task> = ThreadPoolTaskBuilder<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + Send
+            + 'static,
+    >,
+    Task,
+>;
+
 impl LocalPoolHandle {
     fn new(registry: &Arc<ThreadRegistry>) -> Self {
         Self {
@@ -167,14 +191,7 @@ impl LocalPoolHandle {
 
     /// Create a task builder for scheduling work.
     #[must_use]
-    pub fn spawn<Task>(
-        &self,
-    ) -> ThreadPoolTaskBuilder<
-        Task::Ready,
-        Task::Pending,
-        Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
-        Task,
-    >
+    pub fn spawn<Task>(&self) -> SendThreadPoolTaskBuilder<Task>
     where
         Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
@@ -224,7 +241,7 @@ pub fn is_pool_initialized() -> bool {
 pub fn get_pool() -> LocalPoolHandle {
     let registry = REGISTRY
         .lock()
-        .unwrap_or_else(|p| p.into_inner())
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     LocalPoolHandle::new(&registry)
@@ -244,7 +261,7 @@ pub fn get_pool() -> LocalPoolHandle {
 pub fn fork_ctx() -> Ctx {
     let registry = REGISTRY
         .lock()
-        .unwrap_or_else(|p| p.into_inner())
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     registry.fork_ctx()
@@ -274,6 +291,7 @@ where
 /// and clears the global registries to prevent test interference.
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
+#[must_use]
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
     initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
 }
@@ -282,6 +300,7 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
 ///
 /// Every task the pool drives gets a fork of `root`. This is the startup hook
 /// for a deterministic simulation test (DST).
+#[must_use]
 pub fn initialize_pool_with_ctx(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
@@ -414,6 +433,7 @@ impl PoolConfig {
 }
 
 /// [`initialize_pool`] with explicit [`PoolConfig`] tunables.
+#[must_use]
 pub fn initialize_pool_with_config(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
@@ -425,6 +445,9 @@ pub fn initialize_pool_with_config(
 /// [`initialize_pool_with_config`] with an explicit engine root.
 ///
 /// Every task the pool drives gets a fork of `root`.
+///
+/// # Panics
+/// Panics if a worker thread or a background thread cannot start.
 pub fn initialize_pool_with_config_and_ctx(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
@@ -480,9 +503,13 @@ pub fn initialize_pool_with_config_and_ctx(
     )
     .expect("Failed to spawn background worker thread");
 
-    let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut reg_guard = REGISTRY
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     *reg_guard = Some(registry.clone());
-    let mut bg_guard = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut bg_guard = BG_REGISTRY
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     *bg_guard = Some(bg_registry.clone());
     drop(reg_guard);
     drop(bg_guard);
@@ -528,7 +555,7 @@ pub fn initialize_pool_with_slow_poll_warning(
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
     let bg_registry = BG_REGISTRY
         .lock()
-        .unwrap_or_else(|p| p.into_inner())
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
         .clone()
         .expect("Background job pool not initialized, ensure to call initialize_pool first");
     bg_registry.submit(job)
@@ -539,12 +566,7 @@ pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<
 ///
 /// Uses the global registry's shared queue and latch.
 #[must_use]
-pub fn spawn<Task>() -> ThreadPoolTaskBuilder<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
-    Task,
->
+pub fn spawn<Task>() -> SendThreadPoolTaskBuilder<Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
@@ -738,7 +760,9 @@ impl PoolGuard {
     /// is the "clear only if the generation still matches" rule in the
     /// [`PoolGuard`] docs.
     fn clear_owned_globals(&self) {
-        let mut reg = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+        let mut reg = REGISTRY
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let owns_task_slot = reg
             .as_ref()
             .is_some_and(|global| Arc::ptr_eq(global, &self.registry));
@@ -752,7 +776,9 @@ impl PoolGuard {
             // the pool that installed it.
             return;
         };
-        let mut bg_guard = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+        let mut bg_guard = BG_REGISTRY
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let owns_bg_slot = bg_guard
             .as_ref()
             .is_some_and(|global| Arc::ptr_eq(global, bg));
@@ -793,6 +819,7 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 ///
 /// Panics if the desired thread count is greater than the maximum allowed threads.
 /// Panics if the desired thread count is zero.
+#[must_use]
 pub fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
     let desired_threads = get_num_threads();
@@ -856,7 +883,7 @@ pub struct ThreadYielders {
 }
 
 impl ThreadYielders {
-    /// Creates a new ThreadYielders registry.
+    /// Creates a new `ThreadYielders` registry.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -865,13 +892,19 @@ impl ThreadYielders {
     }
 
     /// Register a yielder for interrupt tracking.
+    ///
+    /// # Panics
+    /// Panics if the yielder lock is poisoned.
     pub fn register(&self, yielder: Arc<ThreadYielder>) {
         let mut yielders = self.yielders.write().unwrap();
         yielders.push(yielder);
     }
 
     /// Interrupt all registered yielders.
-    /// Call this when new work arrives to wake threads waiting in yield_for.
+    /// Call this when new work arrives to wake threads waiting in `yield_for`.
+    ///
+    /// # Panics
+    /// Panics if the yielder lock is poisoned.
     pub fn interrupt_all(&self) {
         let yielders = self.yielders.read().unwrap();
         for yielder in yielders.iter() {
@@ -892,9 +925,9 @@ pub struct ThreadYielder {
     thread_id: ThreadId,
     latch: Arc<LockSignal>,
     sender: mpp::Sender<ThreadActivity>,
-    /// CondVar for interruptible waiting - replaces park_timeout
+    /// `CondVar` for interruptible waiting - replaces `park_timeout`
     condvar: Arc<CondVar>,
-    /// State for CondVar waiting
+    /// State for `CondVar` waiting
     wait_state: Arc<CvMutex<WaitState>>,
 }
 
@@ -927,18 +960,18 @@ impl ThreadYielder {
         }
     }
 
-    /// Interrupt the current wait by notifying the CondVar.
+    /// Interrupt the current wait by notifying the `CondVar`.
     /// This wakes the thread waiting in `wait_timeout_while` immediately.
     ///
-    /// WHY: Called during shutdown (via interrupt_all_yielders) or when new work arrives
-    /// WHAT: Sets state to Notified and calls notify_all() on the CondVar
+    /// WHY: Called during shutdown (via `interrupt_all_yielders`) or when new work arrives
+    /// WHAT: Sets state to Notified and calls `notify_all()` on the `CondVar`
     /// HOW:
-    ///   1. Acquire lock on wait_state
-    ///   2. Set state to Notified (causes predicate in wait_timeout_while to return false)
-    ///   3. Call notify_all() to wake any waiting threads
+    ///   1. Acquire lock on `wait_state`
+    ///   2. Set state to Notified (causes predicate in `wait_timeout_while` to return false)
+    ///   3. Call `notify_all()` to wake any waiting threads
     ///
-    /// This wakes threads waiting in yield_for() even if they're in the middle
-    /// of a long sleep. The wait_timeout_while will check the predicate again
+    /// This wakes threads waiting in `yield_for()` even if they're in the middle
+    /// of a long sleep. The `wait_timeout_while` will check the predicate again
     /// after waking and return immediately since state != Waiting.
     pub fn interrupt(&self) {
         if let Ok(mut guard) = self.wait_state.lock() {
@@ -963,19 +996,19 @@ impl Clone for ThreadYielder {
 impl ProcessController for ThreadYielder {
     type YieldSignal = ();
 
-    /// WHY: Uses CondVar::wait_timeout_while for interruptible waiting
-    /// WHAT: Blocks thread with timeout, but can be woken early via interrupt()
+    /// WHY: Uses `CondVar::wait_timeout_while` for interruptible waiting
+    /// WHAT: Blocks thread with timeout, but can be woken early via `interrupt()`
     /// HOW:
-    ///   1. Acquire lock on wait_state
-    ///   2. Call wait_timeout_while which atomically:
+    ///   1. Acquire lock on `wait_state`
+    ///   2. Call `wait_timeout_while` which atomically:
     ///      - Checks predicate (returns immediately if false)
     ///      - If true, unlocks mutex and waits for timeout or notification
     ///      - On wakeup, re-locks mutex and re-checks predicate
     ///   3. Returns when either:
-    ///      - Duration expires (timed_out=true)
-    ///      - interrupt() sets state to Notified and calls notify_all()
+    ///      - Duration expires (`timed_out=true`)
+    ///      - `interrupt()` sets state to Notified and calls `notify_all()`
     ///
-    /// CRITICAL FIX: wait_timeout_while returns the guard still locked.
+    /// CRITICAL FIX: `wait_timeout_while` returns the guard still locked.
     /// We MUST use that returned guard directly to reset state.
     /// Attempting to acquire the lock again causes deadlock.
     fn yield_for(&self, dur: std::time::Duration) {
@@ -1020,13 +1053,19 @@ impl SharedThreadRegistry {
 
     #[must_use]
     pub fn executor_count(&self) -> usize {
-        let registry = self.0.read().unwrap_or_else(|p| p.into_inner());
+        let registry = self
+            .0
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         registry.threads.active_slots()
     }
 
     #[must_use]
-    pub fn get_thread(&self, thread: ThreadId) -> ThreadRef {
-        let registry = self.0.read().unwrap_or_else(|p| p.into_inner());
+    pub fn get_thread(&self, thread: &ThreadId) -> ThreadRef {
+        let registry = self
+            .0
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
 
         match registry.threads.get(thread.get_ref()) {
             Some(thread_ref) => thread_ref.clone(),
@@ -1041,7 +1080,10 @@ impl SharedThreadRegistry {
         latch: Arc<LockSignal>,
         sender: mpp::Sender<ThreadActivity>,
     ) -> ThreadId {
-        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+        let mut registry = self
+            .0
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
 
         // insert thread and get thread key.
         let entry = registry.threads.insert(thread);
@@ -1062,15 +1104,21 @@ impl SharedThreadRegistry {
 
     /// Remove a thread entry from the registry when the thread stops.
     /// This prevents stale entries from accumulating after shutdown/restart cycles.
-    pub fn unregister_thread(&self, thread_id: ThreadId) {
-        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+    pub fn unregister_thread(&self, thread_id: &ThreadId) {
+        let mut registry = self
+            .0
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         registry.threads.vacate(thread_id.get_ref());
     }
 
     /// Clear all thread entries from the registry. Called during shutdown
     /// to ensure a clean state for the next test.
     pub fn clear(&self) {
-        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+        let mut registry = self
+            .0
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         registry.threads.clear();
     }
 }
@@ -1130,8 +1178,9 @@ pub struct ThreadPoolRegistryInner {
 }
 
 impl ThreadPoolRegistryInner {
+    /// An empty registry handle.
     #[must_use]
-    pub fn new() -> SharedThreadRegistry {
+    pub fn shared_empty() -> SharedThreadRegistry {
         SharedThreadRegistry::new(sync::Arc::new(RwLock::new(ThreadPoolRegistryInner {
             threads: EntryList::new(),
         })))
@@ -1157,7 +1206,7 @@ impl core::fmt::Display for ThreadExecutionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Panicked(_) => write!(f, "ThreadExecutionError(_)"),
-            _ => write!(f, "{self:?}"),
+            Self::FailedStart(_) => write!(f, "{self:?}"),
         }
     }
 }
@@ -1213,7 +1262,7 @@ impl<
         self
     }
 
-    #[allow(clippy::return_self_not_must_use)]
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -1222,7 +1271,7 @@ impl<
         self
     }
 
-    #[allow(clippy::return_self_not_must_use)]
+    #[must_use]
     pub fn with_resolver(mut self, resolver: Resolver) -> Self {
         self.resolver = Some(resolver);
         self
@@ -1235,7 +1284,7 @@ impl<
     /// producers will apply backpressure (return Pending/Reschedule).
     ///
     /// Default is unbounded (None).
-    #[allow(clippy::return_self_not_must_use)]
+    #[must_use]
     pub fn with_channel_capacity(mut self, capacity: usize) -> Self {
         self.channel_capacity = Some(capacity);
         self
@@ -1250,6 +1299,9 @@ impl<
     /// This makes it possible to build synchronous experiences in a async world.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn ready_iter(
         self,
         wait_cycle: time::Duration,
@@ -1301,6 +1353,9 @@ impl<
     /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream_iter(
         self,
         wait_cycle: time::Duration,
@@ -1326,6 +1381,9 @@ impl<
     /// # Returns
     ///
     /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream_iter_with_config(
         self,
         wait_cycle: time::Duration,
@@ -1374,6 +1432,9 @@ impl<
     /// This makes it possible to build synchronous experiences in a async world.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
@@ -1413,24 +1474,26 @@ impl<
 
     /// `schedule` adds a task into the global execution queue which should
     /// be processed by the underlying thread pool.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
-            Some(task) => match self.resolver {
-                Some(resolver) => {
+            Some(task) => {
+                if let Some(resolver) = self.resolver {
                     let mut task_iter = OnNext::new(task, resolver);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
-                }
-                None => {
+                } else {
                     let mut task_iter = DoNext::new(task);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
                 }
-            },
+            }
             None => return Err(ExecutorError::TaskRequired),
         };
 
@@ -1464,6 +1527,7 @@ impl<
 where
     F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
+    #[must_use]
     pub fn on_next(self, action: F) -> Self {
         self.with_resolver(FnReady::new(action))
     }
@@ -1478,6 +1542,7 @@ impl<
 where
     F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
+    #[must_use]
     pub fn on_next_mut(self, action: F) -> Self {
         self.with_resolver(FnMutReady::new(action))
     }
@@ -1567,12 +1632,45 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("thread_back_max_duration", &self.thread_back_max_duration)
             .field("registry", &"<SharedThreadRegistry>")
             .field("thread_handles", &"<RwLock<HashMap>>")
-            .finish()
+            .finish_non_exhaustive()
+    }
+}
+
+/// Logs a worker stop and reports the outcome to the activity channel.
+fn finish_worker_stop(
+    worker_tag: &str,
+    seed: u64,
+    sender: &mpp::Sender<ThreadActivity>,
+    sender_id: ThreadId,
+    result: std::thread::Result<()>,
+) {
+    match result {
+        Ok(()) => {
+            tracing::debug!("worker thread({}) {} stopped cleanly", worker_tag, seed);
+        }
+        Err(err) => {
+            // A worker dying to a panic is a real fault; keep it at error level.
+            tracing::error!(
+                "worker thread({}) {} stopped by panic: {:?}",
+                worker_tag,
+                seed,
+                err
+            );
+            sender
+                .send(ThreadActivity::Panicked(sender_id.clone(), err))
+                .expect("should send event");
+            sender
+                .send(ThreadActivity::Stopped(sender_id))
+                .expect("should send event");
+        }
     }
 }
 
 impl ThreadRegistry {
     /// Create a new `ThreadRegistry` with the given seed and thread count.
+    ///
+    /// # Panics
+    /// Panics if `num_threads` is below 2 or above `THREADS_MAX`.
     #[allow(clippy::too_many_arguments)]
     #[must_use]
     pub fn new(
@@ -1712,7 +1810,7 @@ impl ThreadRegistry {
         &self.waitgroup
     }
 
-    /// Register a yielder for interrupt_all tracking.
+    /// Register a yielder for `interrupt_all` tracking.
     pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
         self.yielders.register(yielder);
     }
@@ -1724,7 +1822,7 @@ impl ThreadRegistry {
     }
 
     /// Interrupt all registered yielders.
-    /// Call this during shutdown to wake threads waiting in yield_for.
+    /// Call this during shutdown to wake threads waiting in `yield_for`.
     pub fn interrupt_all_yielders(&self) {
         self.yielders.interrupt_all();
     }
@@ -1763,7 +1861,7 @@ impl ThreadRegistry {
                 let mut map = self
                     .thread_handles
                     .write()
-                    .unwrap_or_else(|p| p.into_inner());
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
                 std::mem::take(&mut *map).len()
             };
             tracing::error!(
@@ -1778,6 +1876,9 @@ impl ThreadRegistry {
     }
 
     /// Join all thread handles.
+    ///
+    /// # Panics
+    /// Panics if the thread-handle lock is poisoned.
     pub fn join_all_threads(&self) {
         let handles = {
             let mut map = self.thread_handles.write().unwrap();
@@ -1818,8 +1919,7 @@ impl ThreadRegistry {
         let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
             Ok(activity) => activity,
             Err(err) => match err {
-                mpp::ReceiverError::Empty => return Some(()),
-                mpp::ReceiverError::Timeout => return Some(()),
+                mpp::ReceiverError::Empty | mpp::ReceiverError::Timeout => return Some(()),
                 mpp::ReceiverError::Closed(_) => return None,
             },
         };
@@ -1830,22 +1930,22 @@ impl ThreadRegistry {
                     self.latch.signal_one();
                 }
             }
-            ThreadActivity::Started(_id) => {
-                tracing::debug!("Thread started: {:?}", _id);
+            ThreadActivity::Started(id) => {
+                tracing::debug!("Thread started: {:?}", id);
             }
             ThreadActivity::Stopped(id) => {
                 tracing::debug!("Thread stopped: {:?}", id);
                 self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
                 // Remove from thread registry entry list to prevent stale entries
-                self.registry.unregister_thread(id.clone());
-                self.remove_thread_id(id);
+                self.registry.unregister_thread(&id);
+                self.remove_thread_id(&id);
             }
             ThreadActivity::Panicked(id, err) => {
                 tracing::debug!("Thread panicked: {:?}, err: {:?}", id, err);
                 self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
                 // Remove from thread registry entry list to prevent stale entries
-                self.registry.unregister_thread(id.clone());
-                self.remove_thread_id(id);
+                self.registry.unregister_thread(&id);
+                self.remove_thread_id(&id);
 
                 // Respawn if under max threads and not killed
                 if self.live_threads.load(atomic::Ordering::Acquire) < self.max_threads
@@ -1876,26 +1976,25 @@ impl ThreadRegistry {
         Some(())
     }
 
-    fn remove_thread_id(&self, thread_id: ThreadId) {
-        self.thread_handles.write().unwrap().remove(&thread_id);
+    fn remove_thread_id(&self, thread_id: &ThreadId) {
+        self.thread_handles.write().unwrap().remove(thread_id);
     }
 
     /// Spawn a worker thread with `WaitGroup` tracking.
+    ///
+    /// # Errors
+    /// Returns `ThreadExecutionError::FailedStart` when the operating system cannot
+    /// start the worker thread.
+    ///
+    /// # Panics
+    /// Panics if the internal RNG lock is poisoned.
     pub fn spawn_worker(&self) -> ThreadExecutionResult<ThreadRef> {
-        use std::thread::Builder;
+        let seed = self.rng.lock().unwrap().next_u64();
 
-        let mut rng = self.rng.lock().unwrap();
-        let seed = rng.next_u64();
-        drop(rng);
+        let b = self
+            .thread_stack_size
+            .map_or_else(Builder::new, |size| Builder::new().stack_size(size));
 
-        let b = Builder::new();
-        let b = if let Some(size) = self.thread_stack_size {
-            b.stack_size(size)
-        } else {
-            b
-        };
-
-        // Register thread in registry first
         let worker_tag = format!("worker-{seed}");
 
         let thread_ref = ThreadRef::new(
@@ -1914,10 +2013,8 @@ impl ThreadRegistry {
             self.activity_sender.clone(),
         );
 
-        // Get updated thread_ref from registry (process field is now populated)
-        let thread_ref = self.registry.get_thread(thread_id.clone());
+        let thread_ref = self.registry.get_thread(&thread_id);
 
-        // Register the yielder for interrupt_all tracking
         let process_clone = thread_ref.process.clone().unwrap();
         self.register_yielder(Arc::new(process_clone.clone()));
 
@@ -1926,8 +2023,7 @@ impl ThreadRegistry {
         let task_clone = thread_ref.tasks.clone();
         let thread_kill_signal = thread_ref.global_kill_signal.clone();
 
-        let sender_id = thread_id.clone();
-        let sender = self.activity_sender.clone();
+        let (sender_id, sender) = (thread_id.clone(), self.activity_sender.clone());
 
         let thread_yield_wait_duration = self.yield_wait_time;
         let thread_max_yield_duration = self.max_yield_duration;
@@ -1938,37 +2034,26 @@ impl ThreadRegistry {
         let thread_back_off_jitter = self.thread_back_off_jitter;
         let thread_back_min_duration = self.thread_back_min_duration;
         let thread_back_max_duration = self.thread_back_max_duration;
-        // Every worker's local executor forks from the pool root, so a clock
-        // injected at startup reaches each task. A clone shares the map Arc and
-        // the clock; the worker never mutates the root map.
         let root = self.root.clone();
 
-        // Get WaitGroup guard BEFORE spawning
         let wg_guard = self.waitgroup.guard();
         self.waitgroup.add(1);
 
-        // Capture the spawning thread's tracing dispatcher so events emitted on
-        // this worker reach the SAME subscriber — including a test's thread-local
-        // `#[traced_test]` subscriber, which otherwise only covers the test thread
-        // (worker-thread `tracing::*` would silently go to the global no-op one).
-        let dispatch = tracing::dispatcher::get_default(|d| d.clone());
+        // Inherit the spawning thread's dispatcher (test thread-local subscribers).
+        let dispatch = tracing::dispatcher::get_default(std::clone::Clone::clone);
 
         match b.spawn(move || {
-            // Install the inherited dispatcher for this worker thread's lifetime.
             let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
             tracing::debug!("worker thread({}) {} started", &worker_tag, seed_clone);
 
-            // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
 
-            // The closure owns a `Ctx` with an injectable `dyn Clock`, which is
-            // not `RefUnwindSafe`. The closure only builds a thread-local
-            // executor from that handle, so a panic cannot leave shared state
-            // half-written; `AssertUnwindSafe` states that.
-            match panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            // The `Ctx` clock is not `RefUnwindSafe`; the closure only builds a
+            // thread-local executor, so a panic cannot leave shared state half-written.
+            let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
                 sender
                     .send(ThreadActivity::Started(sender_id.clone()))
                     .expect("should send event");
@@ -2010,35 +2095,9 @@ impl ThreadRegistry {
                     &worker_tag,
                     seed_clone
                 );
-            })) {
-                Ok(()) => {
-                    tracing::debug!(
-                        "worker thread({}) {} stopped cleanly",
-                        &worker_tag,
-                        seed_clone
-                    );
-                    Ok(())
-                }
-                Err(err) => {
-                    // Error, not warn: a worker dying to a panic is a real
-                    // fault, and callers that quieten this module's routine
-                    // chatter down to `error` must still hear about it.
-                    tracing::error!(
-                        "worker thread({}) {} stopped by panic: {:?}",
-                        &worker_tag,
-                        seed_clone,
-                        err
-                    );
-                    sender
-                        .send(ThreadActivity::Panicked(sender_id.clone(), err))
-                        .expect("should send event");
-                    sender
-                        .send(ThreadActivity::Stopped(sender_id))
-                        .expect("should send event");
-                    Ok(())
-                }
-            }
-            // _wg dropped here → WaitGroup::done()
+            }));
+            finish_worker_stop(&worker_tag, seed_clone, &sender, sender_id, result);
+            Ok(())
         }) {
             Ok(handle) => {
                 self.thread_handles

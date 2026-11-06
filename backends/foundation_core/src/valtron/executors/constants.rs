@@ -29,7 +29,7 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 // ============================================================================
 
 /// `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT` is the default timeout for `NotifyQueue::wait_for_item()`.
-/// This is how long a consumer will wait on the CondVar before returning `None`.
+/// This is how long a consumer will wait on the `CondVar` before returning `None`.
 #[cfg(not(target_family = "wasm"))]
 pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration =
     std::time::Duration::from_millis(10);

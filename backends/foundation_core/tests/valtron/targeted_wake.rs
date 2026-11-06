@@ -255,7 +255,7 @@ async fn closing_an_event_queue_wakes_both_sides() {
         .into_next_stream();
         let thread = std::thread::spawn(move || {
             std::thread::sleep(Duration::from_millis(150));
-            closer.close();
+            let _ = closer.close();
         });
         let ms = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx))
             .await

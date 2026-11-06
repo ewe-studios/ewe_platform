@@ -194,7 +194,8 @@ impl BackoffStrategy {
         let next = match self {
             Self::Fixed(d) => *d,
             Self::Exponential { base, multiplier } => {
-                Duration::from_secs_f64(base.as_secs_f64() * multiplier.powi(attempt as i32))
+                let exponent = i32::try_from(attempt).unwrap_or(i32::MAX);
+                Duration::from_secs_f64(base.as_secs_f64() * multiplier.powi(exponent))
             }
             Self::Linear { base, increment } => *base + (*increment * attempt),
         };

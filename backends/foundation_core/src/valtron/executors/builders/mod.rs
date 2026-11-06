@@ -343,6 +343,9 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Deliver the task to the bottom of the local queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::TaskRequired` when the builder holds no task.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let c = self.config;
         let Some(task) = c.task else {
@@ -360,6 +363,9 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Deliver the task to the top of the local queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::TaskRequired` when the builder holds no task.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let c = self.config;
         let parent = c.parent;
@@ -378,6 +384,10 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Sequence the task with its parent on the local queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::ParentMustBeSupplied` when the builder holds no
+    /// parent, and `ExecutorError::TaskRequired` when it holds no task.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let c = self.config;
         let Some(parent) = c.parent else {
@@ -395,18 +405,33 @@ where
 // Entry points
 // ---------------------------------------------------------------------------
 
+/// A task builder whose resolver is boxed over `Task`.
+type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + 'static,
+    >,
+    Task,
+>;
+
+/// A `Send` task builder whose resolver is boxed over `Task`.
+type SendBoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + Send
+            + 'static,
+    >,
+    Task,
+>;
+
 /// [`spawn_builder`] returns a [`TaskSpawnConfig`] whose resolver is a boxed
 /// `dyn TaskReadyResolver`, for the common local-dispatch paths.
 #[must_use]
-#[allow(clippy::type_complexity)]
-pub fn spawn_builder<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn spawn_builder<Task>(engine: BoxedExecutionEngine) -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
@@ -418,15 +443,9 @@ where
 /// [`spawn_broadcaster`] returns a [`TaskSpawnConfig`] whose resolver is a
 /// `Send` boxed `dyn TaskReadyResolver`, for the broadcast path.
 #[must_use]
-#[allow(clippy::type_complexity)]
 pub fn spawn_broadcaster<Task>(
     engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
-    Task,
->
+) -> SendBoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,

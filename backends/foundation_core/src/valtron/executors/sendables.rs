@@ -1,5 +1,4 @@
 #![cfg(feature = "multi")]
-#![allow(clippy::type_complexity)]
 
 use crate::valtron::multi;
 pub use crate::valtron::multi::{block_on, fork_ctx, get_pool};
@@ -26,14 +25,14 @@ use super::inline_action::InlineActionBehaviour;
 use crate::valtron::executors::local::NotifyQueue;
 use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
 
-#[allow(clippy::type_complexity)]
-pub struct InlineAction<Done, Pending, Task>(
-    Option<(
-        InlineActionBehaviour,
-        Task,
-        Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
-    )>,
-)
+/// The parts of an inline action.
+type InlineActionParts<Done, Pending, Task> = (
+    InlineActionBehaviour,
+    Task,
+    Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
+);
+
+pub struct InlineAction<Done, Pending, Task>(Option<InlineActionParts<Done, Pending, Task>>)
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static;
 
@@ -185,8 +184,8 @@ pub fn initialize_pool_with_slow_poll_warning(
 /// it and this is a no-op. Without `multi` the engine is thread-local and the
 /// same function initializes it for the calling thread; callers use it so
 /// their code is correct in both configurations.
-pub fn initialize_current_thread(_seed_for_rng: u64) {
-    initialize_current_thread_with_ctx(_seed_for_rng, Ctx::new());
+pub fn initialize_current_thread(seed_for_rng: u64) {
+    initialize_current_thread_with_ctx(seed_for_rng, Ctx::new());
 }
 
 /// [`initialize_current_thread`] with an explicit engine root.
@@ -334,9 +333,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
-    tracing::debug!("Executing as a multi-threaded stream in no-wasm with multi=off");
-
     use crate::valtron::multi;
+
+    tracing::debug!("Executing as a multi-threaded stream in no-wasm with multi=off");
 
     // Schedule task and get iterator
     let iter = multi::spawn()
@@ -436,13 +435,13 @@ where
 ///
 /// This function allows configuring:
 /// - `wait_cycle`: Executor polling duration
-/// - `max_turns`: Poll attempts before yielding in NotifyQueueStreamIterator
+/// - `max_turns`: Poll attempts before yielding in `NotifyQueueStreamIterator`
 /// - `park_duration`: Thread park duration when queue is empty
 ///
 /// # Arguments
 ///
 /// - `task`: The task to execute
-/// - `config`: StreamConfig with execution parameters
+/// - `config`: `StreamConfig` with execution parameters
 ///
 /// # Returns
 ///
@@ -545,12 +544,15 @@ where
 
 /// Execute a future that produces an iterator, returning results as an Iterator.
 ///
-/// WHY: Single unified API across all feature configurations (multi, std, no_std)
-/// WHAT: Creates ThreadedIterFuture with configured queue_size and backpressure,
-///       calls execute(), and returns the resulting iterator
+/// WHY: Single unified API across all feature configurations (multi, std, `no_std`)
+/// WHAT: Creates `ThreadedIterFuture` with configured `queue_size` and backpressure,
+///       calls `execute()`, and returns the resulting iterator
 ///
 /// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
 /// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
+///
+/// # Errors
+/// This function does not return an error. The result is always `Ok`.
 pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
@@ -596,6 +598,9 @@ where
 /// "gather them all", not "return the first".
 ///
 /// WHAT: Wraps future in `FutureTask` and executes via unified executor.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + Send + 'static,
@@ -698,6 +703,9 @@ pub fn cancel_signal() -> Arc<AtomicBool> {
 /// Returns `(stream, cancel_signal)` — the caller keeps the signal
 /// and sets it to `true` to cancel the in-flight future. The stream
 /// yields `Stream<Result<F::Output, CancelOutcome>, ()>`.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn drive_cancellable_future<F>(
     future: F,
     wait_cycle: Option<std::time::Duration>,
@@ -715,17 +723,23 @@ where
     Ok((stream, signal))
 }
 
+/// The streams and cancel signals returned by a cancellable fan-out.
+pub type CancellableFuturesResult<F> = GenericResult<(
+    CollectNextFromAllStream<CancellableFutureTask<F>>,
+    Vec<Arc<AtomicBool>>,
+)>;
+
 /// Schedule multiple cancellable futures in parallel and collect results as they arrive.
 ///
 /// Returns `(stream, cancel_signals)` — one signal per future. Setting any
 /// signal cancels the corresponding future.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn execute_cancellable_futures<F>(
     futures: Vec<F>,
     wait_cycle: Option<std::time::Duration>,
-) -> GenericResult<(
-    CollectNextFromAllStream<CancellableFutureTask<F>>,
-    Vec<Arc<AtomicBool>>,
-)>
+) -> CancellableFuturesResult<F>
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
@@ -931,6 +945,9 @@ where
     block_on_future(future)
 }
 
+/// # Panics
+/// Panics if the future produced no result, which happens when the pool is not
+/// initialized or is torn down early.
 pub fn block_on_future<F>(future: F) -> F::Output
 where
     F: Future + Send + 'static,
@@ -1052,15 +1069,14 @@ where
         return Err("empty tasks not allowed".into());
     }
 
-    let stream = execute_collect_all(tasks, None)?;
+    let mut stream = execute_collect_all(tasks, None)?;
     // execute_collect_all yields Pending(count) while in flight, then a single
     // Next(Vec<T::Ready>) when all complete. filter_map skips non-Next items.
     stream
-        .filter_map(|s| match s {
+        .find_map(|s| match s {
             Stream::Next(v) => Some(v),
             _ => None,
         })
-        .next()
         .ok_or_else(|| "sync_all: no results produced by execute_collect_all".into())
 }
 
@@ -1222,6 +1238,7 @@ where
         Self(Some(task_iterator))
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         match &self.0 {
             Some(inner) => inner.is_empty(),
@@ -1230,7 +1247,7 @@ where
     }
 
     /// True once the underlying task stream is closed (the task finished and
-    /// will produce no more items). Combined with is_empty, lets a holder detect
+    /// will produce no more items). Combined with `is_empty`, lets a holder detect
     /// completion without blocking.
     #[must_use]
     pub fn is_closed(&self) -> bool {
@@ -1283,12 +1300,11 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         // Forward to the waking terminal held inside. If the inner has been
         // taken out (exhausted), there is nothing left to register against.
-        match self.0.as_mut() {
-            Some(inner) => inner.wake(cb),
-            None => {
-                let _ = cb;
-                WakeResult::NotSupported
-            }
+        if let Some(inner) = self.0.as_mut() {
+            inner.wake(cb)
+        } else {
+            let _ = cb;
+            WakeResult::NotSupported
         }
     }
 
@@ -1424,23 +1440,11 @@ where
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
-            Some(Stream::Pending(_)) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
             Some(Stream::Delayed(d)) => {
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Delayed(d))
             }
-            Some(Stream::Init) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
-            Some(Stream::Ignore) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
-            Some(Stream::Wait) => {
+            Some(Stream::Pending(_) | Stream::Init | Stream::Ignore | Stream::Wait) => {
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
@@ -1537,6 +1541,7 @@ where
 /// results.sort_unstable();
 /// assert_eq!(results, vec![1, 2, 11, 12]);
 /// ```
+#[must_use]
 pub fn collect_all_streams<S>(streams: Vec<S>) -> CollectAllStreams<S>
 where
     S: StreamIterator<P = usize> + Send + 'static,
@@ -1545,18 +1550,18 @@ where
     CollectAllStreams::new(streams)
 }
 
-/// Create a StreamIterator that yields a single value and then completes.
+/// Create a `StreamIterator` that yields a single value and then completes.
 ///
 /// This is useful for creating error streams or wrapping a single result
-/// in a StreamIterator for combinator chains.
+/// in a `StreamIterator` for combinator chains.
 ///
 /// # Arguments
 ///
-/// * `value` - The value to yield as Stream::Next
+/// * `value` - The value to yield as `Stream::Next`
 ///
 /// # Returns
 ///
-/// Returns a OneShotStream that yields the value once then completes.
+/// Returns a `OneShotStream` that yields the value once then completes.
 ///
 /// # Example
 ///
@@ -1579,7 +1584,7 @@ where
     }
 }
 
-/// A StreamIterator that yields a single value and then completes.
+/// A `StreamIterator` that yields a single value and then completes.
 pub struct OneShotStream<D, P> {
     value: Option<D>,
     _phantom: std::marker::PhantomData<P>,
@@ -1663,23 +1668,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Pending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
                 Some(Stream::Delayed(d)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Delayed(d));
                 }
-                Some(Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Init) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Ignore) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Continue to next source in same pass
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Ignore | Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
@@ -1780,6 +1777,9 @@ where
 /// }
 /// assert_eq!(totals, vec![6]);
 /// ```
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn execute_map_all<T, F, O>(
     tasks: Vec<T>,
     mapper: F,
@@ -1875,19 +1875,13 @@ where
                         None => d,
                     });
                 }
-                Some(Stream::Init) => {
-                    all_done = false;
-                }
-                Some(Stream::Ignore) => {
-                    all_done = false;
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Init | Stream::Ignore | Stream::Wait) => {
                     all_done = false;
                 }
                 Some(Stream::Spread(values)) => {
                     if let Some(last) = values.into_iter().find_map(|item| match item {
                         crate::valtron::streams::StreamSpread::Done(d) => Some(d),
-                        _ => None,
+                        crate::valtron::streams::StreamSpread::Pending(_) => None,
                     }) {
                         self.buffer[i] = Some(last);
                     }
@@ -2003,6 +1997,9 @@ where
 /// seen.dedup();
 /// assert_eq!(seen, vec![1, 2]);
 /// ```
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn execute_map_all_pending_and_done<T, F, O, R>(
     tasks: Vec<T>,
     mapper: F,
@@ -2174,6 +2171,9 @@ where
 /// values.sort_unstable();
 /// assert_eq!(values, vec![1, 1, 2, 2, 3]);
 /// ```
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 #[cfg(feature = "multi")]
 pub fn execute_collect_next_from_all<T>(
     tasks: Vec<T>,
@@ -2251,23 +2251,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Next(value));
                 }
-                Some(Stream::Pending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
                 Some(Stream::Delayed(d)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Delayed(d));
                 }
-                Some(Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Init) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Ignore) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Continue to next source in same pass
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Ignore | Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
@@ -2312,6 +2304,9 @@ where
 
 /// Schedule a future, returning a stream that yields `Stream<Result<T, E>, ()>`.
 /// Errors are preserved as `Stream::Next(Err(e))`.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn schedule_future<T, E, F>(
     future: F,
 ) -> GenericResult<impl Iterator<Item = Stream<Result<T, E>, ()>> + Send + 'static>
@@ -2325,7 +2320,7 @@ where
     execute(task, None).map(|stream| {
         stream.map(|item| match item {
             Stream::Next(result) => Stream::Next(result),
-            Stream::Pending(_) => Stream::Pending(()),
+            Stream::Pending(()) => Stream::Pending(()),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
@@ -2337,7 +2332,7 @@ where
                         crate::valtron::streams::StreamSpread::Done(result) => {
                             crate::valtron::streams::StreamSpread::Done(result)
                         }
-                        crate::valtron::streams::StreamSpread::Pending(_) => {
+                        crate::valtron::streams::StreamSpread::Pending(()) => {
                             crate::valtron::streams::StreamSpread::Pending(())
                         }
                     })
@@ -2348,6 +2343,10 @@ where
 }
 
 /// One-shot blocking bridge: execute a future and return the first `Next` result.
+///
+/// # Errors
+/// Returns the executor error when the task cannot be scheduled, and an error
+/// when the future produced no result.
 pub fn exec_future<T, E, F>(future: F) -> GenericResult<Result<T, E>>
 where
     F: Future<Output = Result<T, E>> + Send + 'static,
@@ -2369,6 +2368,9 @@ where
 
 /// Schedule a sleep for `duration`. Returns a stream that completes after the
 /// duration elapses.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn sleep(
     duration: std::time::Duration,
 ) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>> {
@@ -2416,17 +2418,21 @@ where
     TaskSpawnConfig::new(engine)
 }
 
+/// A task builder whose resolver is boxed over `Task`.
+type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + 'static,
+    >,
+    Task,
+>;
+
 /// `any_task` allows you to create a task builder with less restrictive type
 /// requirements for the builder, specifically resolvers are Boxed.
 #[must_use]
-pub fn any_task<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn any_task<Task>(engine: BoxedExecutionEngine) -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: Send,
     Task::Pending: Send,

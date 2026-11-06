@@ -284,8 +284,9 @@ impl PoolStatsSnapshot {
     /// Hit ratio: `pool_hits` / (`allocations` + `pool_hits`)
     ///
     /// Returns 1.0 if no operations have occurred.
-    #[must_use]
+    // The ratio is a statistic: counts above 2^53 cannot occur for buffers.
     #[allow(clippy::cast_precision_loss)]
+    #[must_use]
     pub fn hit_ratio(&self) -> f64 {
         let total = self.allocations + self.pool_hits;
         if total == 0 {
@@ -346,7 +347,7 @@ impl std::fmt::Debug for PooledBuffer {
         f.debug_struct("PooledBuffer")
             .field("len", &self.buffer.len())
             .field("capacity", &self.buffer.capacity())
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 

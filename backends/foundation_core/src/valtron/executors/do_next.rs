@@ -57,19 +57,17 @@ where
     }
 }
 
-#[allow(clippy::extra_unused_lifetimes)]
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Task, Done: Send + 'a, Pending: Send + 'a> Into<BoxedSendExecutionIterator>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
     for DoNext<Task, Done, Pending>
 where
-    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
     }
 }
 
-#[allow(clippy::needless_lifetimes)]
 impl<Task, Done, Pending> ExecutionIterator for DoNext<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
@@ -90,8 +88,10 @@ where
         Some(match task_response {
             Some(inner) => match inner {
                 TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                TaskStatus::Pending(_) => State::Pending(None),
-                TaskStatus::Init => State::Pending(None),
+                TaskStatus::Pending(_)
+                | TaskStatus::Init
+                | TaskStatus::Ignore
+                | TaskStatus::Spread(_) => State::Pending(None),
                 TaskStatus::Spawn(mut action) => match action.apply(Some(entry), executor) {
                     Ok(info) => State::SpawnFinished(info),
                     Err(err) => {
@@ -100,9 +100,7 @@ where
                     }
                 },
                 TaskStatus::Ready(_) => State::ReadyValue(entry),
-                TaskStatus::Ignore => State::Pending(None),
                 TaskStatus::Wait => State::Wait,
-                TaskStatus::Spread(_) => State::Pending(None),
                 TaskStatus::Depends(signal) => State::Depends(signal),
             },
             None => State::Done,
