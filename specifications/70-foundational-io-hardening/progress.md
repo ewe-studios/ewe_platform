@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 135 wakes the client receiver when the response head is
+  published, so a head-only peer no longer stalls the call setup. Branch
+  `spec70/priority-followups`, commit `f86846e0e`.
+  - `ClientConnEnds` gains `response_head_wake: PipeSender<()>` and
+    `publish_response_headers`. A depth-1 `Pipe<()>` says "the head is
+    published"; `PipeClientReceiver::response_headers` parks on that wake
+    instead of on the next body frame, and returns an empty head when the
+    transport ends without one.
+  - `peeked` is deleted, so `receive` reads the response pipe directly.
+  - New `pub(crate) HeadPublisher` (`ends.head_publisher()`) is passed to the
+    three protocol readers (`connect`, `grpc`, `grpc_web`).
+  - Tests: 3 in `tests/transport_tests.rs` (published head without a frame,
+    empty head after the transport drops, cancel), and feature 131's planned
+    head-only peer now backs `dropping_a_server_stream_closes_the_socket`.
+    Old code fails the head-only test after 2.1 s or does not compile.
+  - `foundation_connectrpc` 0.0.5 → 0.0.6, with `foundation_proxy` and
+    `foundation_deployment_docker`. 251 tests pass. CI proof is pending.
+
 - 2026-11-06: feature 131 makes a dropped stream facade cancel its reader and
   writer tasks. Branch `spec70/priority-followups`.
   - New private `CancelGuard` in `shared/client.rs`: the call's `CancelSignal`

@@ -2,6 +2,24 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 135, response head publication):
+  - **A shared slot is not a wake.** A `Mutex<Option<T>>` lets a reader see a
+    value that is already stored; it cannot tell a reader that a value arrives
+    later. Every publish must fire a signal, and the reader must park on that
+    signal. `Pipe<()>` of depth 1 is the smallest such signal in this tree:
+    `try_send` reports a full pipe when a second publish repeats the wake.
+  - **A peek field is a symptom.** `PipeClientReceiver::peeked` existed only to
+    hold the frame that the head wait consumed. Once the wait parks on the
+    publication, the field and its three-state `Option<Option<Frame>>` drop out.
+    Look for this shape when a wait is folded into an unrelated read.
+  - **The close of the wake pipe is the "no head" signal.** The receiver half
+    returns `None` when every sender is dropped, which is exactly a transport
+    that ends before the head. Keep one sender alive only in the reader task,
+    so the close happens at the right time.
+  - **Closing this class of bug unlocks the stronger test.** Feature 131 had to
+    send one body message to release the call setup. Feature 135 restores the
+    head-only peer, which proves both the setup and the drop.
+
 - 2026-11-06 (feature 131, dropped facade cancels the call):
   - **`CancelSignal` is global to the call.** It is one `Arc` over a shared
     flag, and every clone shares it. A raw fire from one facade stops every
