@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Waker};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// Type alias for mock DNS response storage
 type MockDnsResponses = Arc<Mutex<HashMap<String, Result<Vec<SocketAddr>, DnsError>>>>;

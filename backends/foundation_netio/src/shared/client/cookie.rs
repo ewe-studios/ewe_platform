@@ -14,7 +14,9 @@
 use foundation_core::url::Uri;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
+
+use foundation_compact::SystemTime;
 
 /// `SameSite` attribute for cookies.
 ///

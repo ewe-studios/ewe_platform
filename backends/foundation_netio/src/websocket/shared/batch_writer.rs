@@ -18,7 +18,9 @@ use crate::websocket::shared::frame::WebSocketFrame;
 use foundation_core::valtron::Clock;
 use std::io::Write;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// Default batch size limit (16 KiB).
 ///

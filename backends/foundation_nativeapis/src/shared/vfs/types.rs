@@ -1,5 +1,4 @@
-use std::time::SystemTime;
-
+use foundation_compact::SystemTime;
 use foundation_core::valtron::Clock;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -75,8 +74,8 @@ pub enum VfsEntryState {
 
 /// Serializes `SystemTime` as seconds since UNIX epoch.
 mod system_time_serde {
+    use foundation_compact::SystemTime;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
-    use std::time::SystemTime;
 
     // Serde `with` callbacks must take `&Option<T>`; `Option<&T>` does not fit.
     #[allow(clippy::ref_option)]

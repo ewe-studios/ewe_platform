@@ -6,10 +6,11 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_multiple_type
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
+    use foundation_core::valtron::MonotonicClock;
     use foundation_macros::{MessageBox, TypeUuid};
     use foundation_nativeapis::ipc::{self, Label, LabelOp, Message, Options, Selector};
     use serde::{Deserialize, Serialize};
-    use std::{thread, time::Duration};
+    use std::{sync::Arc, thread, time::Duration};
 
     #[derive(Debug, Serialize, Deserialize, TypeUuid)]
     #[uuid = "7b07473e-9659-4d47-a502-8245d71c0078"]
@@ -34,9 +35,12 @@ fn main() {
 
     let opts =
         Options::new("com.ewe.multi-type-demo", Label::new("node")).controller_affinity(true);
-    let (sender, mut receiver) =
-        ipc::join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("join failed");
+    let (sender, mut receiver) = ipc::join::<AppMessage, AppMessage>(
+        opts,
+        Some(Duration::from_secs(5)),
+        Arc::new(MonotonicClock::new()),
+    )
+    .expect("join failed");
 
     let s = sender.clone();
     thread::spawn(move || {

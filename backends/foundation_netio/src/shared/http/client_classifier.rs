@@ -34,7 +34,9 @@
 use foundation_core::valtron::Clock;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// Client classification based on transfer rate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

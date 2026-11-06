@@ -1,9 +1,9 @@
 //! Rate limiter middleware — in-memory request rate limiting per IP.
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, ReadinessInstant as Instant};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,

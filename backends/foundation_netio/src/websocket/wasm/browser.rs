@@ -121,7 +121,7 @@ pub fn connect(
         let inbound_tx = inbound_tx.clone();
         Closure::<dyn FnMut(CloseEvent)>::wrap(Box::new(move |evt: CloseEvent| {
             let _ = inbound_tx.try_send(Ok(WebSocketMessage::Close(evt.code(), evt.reason())));
-            inbound_tx.close();
+            let _ = inbound_tx.close();
         }))
     };
 

@@ -33,7 +33,9 @@
 use foundation_core::valtron::Clock;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// A single latency sample.
 #[derive(Debug, Clone, Copy)]

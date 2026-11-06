@@ -6,10 +6,12 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_latency
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
+    use foundation_core::valtron::MonotonicClock;
     use foundation_macros::TypeUuid;
     use foundation_nativeapis::ipc::{self, Label, LabelOp, Message, Options, Selector};
     use serde::{Deserialize, Serialize};
     use std::{
+        sync::Arc,
         thread,
         time::{Duration, SystemTime},
     };
@@ -23,9 +25,12 @@ fn main() {
 
     let opts =
         Options::new("com.ewe.latency-demo", Label::new("controller")).controller_affinity(true);
-    let (sender, mut receiver) =
-        ipc::join::<TimedMessage, TimedMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("join failed");
+    let (sender, mut receiver) = ipc::join::<TimedMessage, TimedMessage>(
+        opts,
+        Some(Duration::from_secs(5)),
+        Arc::new(MonotonicClock::new()),
+    )
+    .expect("join failed");
 
     let count = 20;
     thread::spawn(move || {

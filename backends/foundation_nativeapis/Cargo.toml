@@ -17,7 +17,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.15" }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true, default-features = false, features = ["std"] }
 foundation_db = { path = "../foundation_db", version = "0.0.6", optional = true, default-features = false }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.4", optional = true }
 
@@ -348,7 +348,7 @@ uring = ["dep:io-uring", "foundation_reactor/uring"]
 ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
 
 # Virtual filesystem abstraction — core traits + in-memory impls + overlay
-vfs = ["dep:async-trait", "dep:foundation_errstacks"]
+vfs = ["dep:async-trait", "dep:foundation_errstacks", "dep:foundation_compact"]
 
 # VFS search — grep/find over any VfsFileSystem with CLI fallback cascade
 vfs-search = ["vfs", "dep:regex"]

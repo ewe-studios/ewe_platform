@@ -36,11 +36,11 @@ use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::Instant;
 
 use bytes::Bytes;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::Pipe;
+use foundation_core::valtron::ReadinessInstant as Instant;
 #[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::Stream;
 #[cfg(not(target_family = "wasm"))]
