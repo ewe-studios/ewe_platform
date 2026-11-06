@@ -2478,3 +2478,13 @@ Two shutdown details matter:
 
 The monitor holds a `Weak` reference, so it does not keep the registry alive. A
 shutdown sends one benign event to wake it from its timed receive.
+
+## A stored handler is not an installed handler (issue #244)
+
+`TaskSpawnConfig::with_panic_handler` wrote the handler into a field, and no
+terminal read the field. The method compiled, looked wired, and did nothing.
+When you add a setter, add the test that fails when nothing consumes its value.
+
+A stale lockfile check needs full resolution. `cargo metadata --locked
+--no-deps` exits 0 for a stale lockfile, because it skips resolution. Use
+`cargo metadata --locked` without `--no-deps` in the drift check (issue #245).

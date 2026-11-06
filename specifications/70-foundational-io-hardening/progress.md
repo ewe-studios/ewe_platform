@@ -2633,3 +2633,20 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   deployment UUID log in `foundation_deployment_platform`. The owner approved a
   dismissal: the test values as "used in tests", the log lines as "won't fix".
   Each dismissal names the reason in its comment.
+- 2026-11-07: issue #244 fixed (`foundation_core`). The spawn builders stored
+  the panic handler from `with_panic_handler` in `TaskSpawnConfig` and never
+  installed it. Every terminal (`spawn`, `recv`, `stream`, `action`) dropped
+  the payload of a panicking task. `InlineAction` had the same gap: it built
+  its `ConsumingIter` with no handler. Every terminal now installs the handler
+  on the iterator it dispatches. `InlineAction` carries it into `apply` through
+  its private parts tuple, and a new `InlineAction::with_panic_handler` sets
+  one directly. Three tests in `tests/valtron/builder_panic_handler.rs` prove
+  the payload reaches the handler for `recv`, `stream` and `action`.
+- 2026-11-07: issue #245 fixed. Three lockfiles were refreshed with
+  `cargo update -p foundation_core --offline`, and each passed
+  `cargo metadata --locked`. The 70 CI check now validates them on every run,
+  because no package job builds those manifests.
+- 2026-11-07: issue #239 closed. The relay fixes on the branch stop the
+  full-duplex stall. 24 isolated runs of `connect_bidi_via_grpc_backend` in the
+  Linux CI image passed. Two full CI runs of the branch passed every proxy
+  test.
