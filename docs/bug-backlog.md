@@ -33,7 +33,8 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   thousands of wakers. The count is unchanged by feature 138; the old vector had
   the same growth plus one clone per poll. Fix: register the call's waker once
   (for example keep one `cancelled()` future per call and share it), or give the
-  notifier a liveness token for a bridged waker. Found in feature 138.
+  notifier a liveness token for a bridged waker. Found in feature 138;
+  scheduled as feature 140.
 
 ## 2. foundation_netio
 
