@@ -274,7 +274,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -312,7 +312,7 @@ version = "0.0.2"
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "cfg-if",
  "foldhash",
@@ -330,7 +330,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.7"
+version = "0.0.16"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -363,16 +363,18 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.4"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "base64",
  "bytes",
  "concurrent-queue",
+ "foundation_compact",
  "foundation_core",
  "foundation_errstacks",
  "foundation_iogate",
  "foundation_netio",
+ "rand_chacha",
  "regex",
  "serde",
  "serde_json",
@@ -394,11 +396,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.7"
+version = "0.0.10"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
- "chrono",
  "flate2",
  "foundation_nostd",
  "foundation_theme",
@@ -414,9 +415,8 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.6"
+version = "0.0.9"
 dependencies = [
- "cc",
  "cfg-if",
  "concurrent-queue",
  "derive_more",
@@ -431,7 +431,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.5"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "base64",
@@ -470,11 +470,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.6"
+version = "0.0.7"
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_core",
  "io-uring",
@@ -489,10 +489,11 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "concurrent-queue",
  "derive_more",
+ "foundation_compact",
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
@@ -702,7 +703,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -852,7 +853,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

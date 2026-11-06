@@ -89,6 +89,18 @@ jobs:
           CI_PACKAGES: ${{ github.event.inputs.packages }}
         run: python3 scripts/ci/ci.py plan
 
+      # The example manifests outside the workspace take the crates by path.
+      # No package job builds them, so their lockfiles drift behind the crate
+      # versions, and `cargo build --locked` then fails there (issue #245).
+      # `--locked` alone does not check a lockfile without dependency
+      # resolution, so this reads full metadata, not `--no-deps`.
+      - name: Check the standalone example lockfiles
+        run: |
+          for dir in examples/devbinary examples/web/wello examples/platform_android/src-tauri; do
+            echo "checking $dir"
+            cargo metadata --locked --format-version 1 --manifest-path "$dir/Cargo.toml" > /dev/null
+          done
+
   package:
     name: ${{ matrix.package }}
     needs: [plan, image]
