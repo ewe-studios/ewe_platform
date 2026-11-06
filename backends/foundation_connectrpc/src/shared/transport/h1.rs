@@ -157,7 +157,7 @@ impl Transport for H1Transport {
 
         // HTTP/1.1 has no trailing headers — close immediately.
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        trailer_tx.close();
+        let _ = trailer_tx.close();
 
         Ok(TransportStream {
             send_body: Arc::new(send_body),

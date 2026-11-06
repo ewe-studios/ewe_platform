@@ -2,6 +2,472 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 142 deletes the stale commented `clone_stream` block.
+  Branch `spec70/priority-followups`.
+  - The block in `src/native/raw_stream.rs` named `RawStream::AsPlain` and
+    `RawStream::AsTls`, which feature 137 replaced with the private
+    `RawStreamInner` enum. It is deleted. The method is not restored: a clone
+    would share or rebuild the `OnceLock<ReadWakeSource>` from feature 141.
+  - No other line in the file changed. The other `clone_stream` methods in the
+    crate belong to `SharedByteBufferStream`, the SSE stream and the HTTP
+    connection; they are unrelated.
+  - fmt and clippy are clean. The test suite is 1298 passed, 0 failed, 0
+    ignored. The backlog section 2 entry is deleted.
+  - CI is pending the push. Next: feature 143 bounds the `targeted_wake` storm
+    by work (sonnet).
+
+- 2026-11-06: feature 141 does not cache a negative read wake source. Branch
+  `spec70/priority-followups`.
+  - Feature 137 cached `Option<ReadWakeSource>` in a `OnceLock`, so a call made
+    while the socket was still blocking stored `None` forever. A later call
+    after `set_nonblocking(true)` still returned `None`, and the reader never
+    parked on readiness.
+  - `RawStream::read_wake` is now `OnceLock<ReadWakeSource>`; the call returns
+    the cached source, else builds it and stores it only on success. The success
+    path still builds once.
+  - `a_negative_answer_is_not_cached` fails on `39f4eedb3` (0 passed, 1 failed)
+    and passes after; all three wake-source tests pass. fmt and clippy are
+    clean. The backlog section 2 entry is deleted.
+  - Feature 142 deletes the stale commented `clone_stream` block in the same
+    file.
+  - Policy change on 2026-11-06: spec 70 opens no new features. Findings go to
+    GitHub issues with a severity label. Feature 143 became issue 187 and
+    feature 144 became issue 188; both feature files are marked dropped.
+    Issue 188 is fixed directly (no feature): the netio `--all-features` check
+    is warning-free.
+
+- 2026-11-06: feature 137 builds a stream's read wake source once. Commit
+  `39f4eedb3`.
+  - `RawStream::read_wake_source` built a new `FdReadiness` on every call. Each
+    one took a fresh reactor token for the same fd, and the selector registers
+    per fd, so a second source replaced the first source's event registration.
+  - `RawStream` is now a struct over the private `RawStreamInner` enum plus
+    `read_wake: OnceLock<Option<ReadWakeSource>>`. The first call builds the
+    source; later calls return clones of the same `Arc`. The field is declared
+    before the transport, so it drops first and deregisters the fd while the
+    socket is open.
+  - Tests in `tests/read_wake_source_tests.rs`: two calls return the same `Arc`
+    (old code: two tokens), and a waker registered through the first source
+    still fires after a second source exists (old code: replaced, no wake in
+    2 s). Both failed on the old code; 15 consecutive macOS runs passed after.
+    The netio suite, the proxy suite and the Linux image (including the `quic`
+    run and the wasm32 fetch check) pass.
+  - `RawStream` is not `Clone`, so the cache needs no shared inner value. No
+    public signature changed; the version stays 0.0.6.
+  - New backlog entries in section 2: a cached `None` cannot recover (feature
+    141), and a stale commented-out `clone_stream` block names removed
+    variants. The duplicate-token entry is deleted.
+
+- 2026-11-06: feature 140 makes a bridged readiness waker report its liveness.
+  Branch `spec70/priority-followups`.
+  - `ReadinessWaker` gains `live: Option<Arc<AtomicBool>>` and
+    `from_waker_with_liveness(waker, live)`. `is_live()` reads the token for a
+    bridged waker and keeps the `park` check for an executor waker. `from_waker`
+    keeps its signature and passes `None`.
+  - `Cancelled` in `foundation_connectrpc` holds one token per wait and sets it
+    `false` in `Drop`, so the signal's notifier prunes a finished wait on the
+    next register or notify. The token is per wait, not per signal: a shared
+    token would stay true while any wait lived.
+  - New test hooks `ReadinessNotifier::waiter_count`, `ResumeSignal::waiter_count`
+    and `CancelSignal::waiter_count`, all `#[doc(hidden)]`.
+  - Tests: `a_dead_bridged_waker_is_dropped` (foundation_core) and
+    `finished_cancel_waits_do_not_accumulate_wakers` (foundation_connectrpc).
+    The second polls 1000 distinct wakers and asserts the count stays at most 2.
+    The old behaviour keeps all 1000.
+  - `foundation_core` moves to 0.0.12 and every consumer requirement moves with
+    it in the same commit. The backlog section 1 entry is deleted.
+  - The first version held one registration per task: `register` skipped a push
+    on `will_wake`, so the stored token belonged to the first of two waits. If
+    that wait ended first, the signal pruned its only waker and the other wait
+    never woke. A follow-up in the same change adds
+    `ReadinessWaker::same_wait()` (token identity), and a registration is a
+    duplicate only when it wakes the same task and belongs to the same wait.
+  - Follow-up tests, both fail on the code before it:
+    `two_waits_of_one_task_are_both_registered` (foundation_core) and
+    `two_live_cancel_waits_of_one_task_stay_registered` (foundation_connectrpc).
+    The backlog section 4 entry the first version recorded is deleted.
+  - fmt, both clippy runs, both test suites and the wasm32 rpc check are clean.
+    CI proof is pending.
+
+- 2026-11-06: feature 139 names a task poll that blocks a worker. Branch
+  `spec70/priority-followups`, commit `df3ef22ea`.
+  - `PoolConfig::slow_poll_warning` is an `Option<Duration>` with
+    `with_slow_poll_warning`. The library default is `None`: the check reads the
+    monotonic clock twice per task step and a healthy step takes microseconds.
+  - The executor measures the one place a worker invokes a task step,
+    `ExecutorState::do_work` at `iter.next(...)` (`executors/local.rs`). A step
+    at or over the threshold emits `tracing::warn!(target:
+    "valtron::executor", task, micros, "a task poll blocked a worker")`, at most
+    once per task per second.
+  - `ExecutionIterator::name()` returns the concrete task type name
+    (`core::any::type_name`), and every wrapper impl forwards it, so the boxed
+    drive point names the task that blocked.
+  - `#[valtron]` and `#[valtron_test]` accept `slow_poll = <ms>` and set 100 ms
+    when the attribute is silent. The single-threaded engine gets the same
+    threshold through `initialize_current_thread_with_slow_poll_warning`.
+  - Tests in `tests/valtron/slow_poll_warning.rs`: a slow poll is reported with
+    the task name and at least its 50 000 µs; a fast poll is silent; 300 ms of
+    50 ms polls produce at most two warnings. `valtron_macro_tests` accepts the
+    key. The three watchdog tests need `--features multi`.
+  - `foundation_core` moves to 0.0.11 and every consumer requirement moves with
+    it in the same commit. The `foundation_macros` `-D warnings` clippy gate
+    still fails on its recorded pre-existing pedantic debt (feature 120); this
+    change adds none.
+  - The rule "a task poll must not block" is in the valtron iterator skill
+    (`.agents` submodule commit `f1a1246`) and the macro docs. The backlog
+    section 4 silent-starvation entry is deleted.
+  - Open: CI proof is pending. The agent saw one `targeted_wake` timeout on a
+    first full multi run, which did not reproduce in two later full runs; it is
+    recorded in the backlog.
+
+- 2026-11-06: feature 138 moves the call cancel signal onto valtron's readiness
+  port. Branch `spec70/priority-followups`.
+  - `CancelSignal` kept its own `Mutex<Vec<std::task::Waker>>` and called
+    `wake()` itself (`src/shared/context/cancel.rs`). The change is a structural
+    cleanup: no valtron internal had leaked, but the wake plumbing belonged to
+    valtron.
+  - `Inner` is now `{ fired: ResumeSignal, parent: Option<CancelSignal> }`.
+    `cancel()` sets the flag; `Cancelled::poll` registers
+    `ReadinessWaker::from_waker(cx.waker().clone())` on the signal and every
+    ancestor, then re-checks `is_canceled`.
+  - Public API and version unchanged (0.0.6). Two new tests in
+    `tests/context_tests.rs`: every waiter wakes from one cancel, and a second
+    cancel is safe. No test fails on the old code; the proof is the source (no
+    `Vec<Waker>`, no `wake()`).
+  - `context_tests` 10 passed; the full crate 253 passed, 1 ignored. fmt, clippy
+    and the wasm32 rpc check are clean. `scripts/ci/linux.sh foundation_connectrpc`
+    exits 0 on head `060215256`: fmt, build, clippy, the default and `h3` test
+    suites, and the wasm32 rpc check all pass.
+  - The audit that started this is recorded in `learnings.md`: external crates
+    use only the surface (`EventReadiness` impls, `TaskStatus::Depends`,
+    `EventQueue`/`Pipe`, `ReadinessNotifier::notify`); the H2 pump never holds a
+    waker.
+
+- 2026-11-06: the feature 131 CI failure is a test defect, and it is fixed.
+  - CI run `42175894858` failed
+    `client_deadline_tests::a_timed_out_receive_cancels_the_call` twice at
+    `tests/client_deadline_tests.rs:821`.
+  - Cause: the test body ran `peer.join()`, which parks the calling thread; the
+    poll of a `#[valtron_test]` body runs on a valtron pool worker. On CI (2
+    vCPUs, 2 task workers) two blocked bodies held the pool, so the H2 pump never
+    closed the socket. Reproduced 3 of 3 with `threads = 1` and
+    `--test-threads=2`; passed with `threads = 2` or one test thread.
+  - Fix: `join_within` waits on `sleep_async` in 10 ms steps while the peer runs,
+    fails at the 5 s bound, then joins. The six synchronous joins use it.
+  - Proof: the reproduction passed 4 of 4 runs after the fix; the binary passed
+    12 of 12; the full crate 253 passed, 1 ignored.
+  - The general hazard is in `docs/bug-backlog.md` §4 and scheduled as feature
+    139 (a slow-poll warning that names the task).
+
+- 2026-11-06: feature 129 fixes the macOS websocket upgrade relay. The test
+  fails 10 of 10 runs before the fix and passes 20 of 20 alone plus the full
+  suite after it. Branch `spec70/priority-followups`, commit `8878f50d1`.
+  - Cause: `RawStream::read_wake_source` armed the reactor waker without
+    clearing the latched readiness. The kqueue selector delivers a readable
+    edge only when the socket's byte count grows, so a 15-byte echo after a
+    77-byte `101` head was suppressed and the parked upstream→client pump never
+    woke. epoll re-arms by itself, so Linux CI passed.
+  - Fix: call `readiness.clear()` before `register_waker`, which follows the
+    documented clear-register-read-then-park protocol and re-arms the kqueue
+    edge. The test is not gated; no splice path was gated.
+  - Trace answers: the backend receives the frame and sends the echo; the
+    upstream→client pump does not read it before the timeout; macOS uses the
+    buffered `aio::splice` pump, which never calls `splice(2)`.
+  - Two latent hazards are recorded and scheduled: the selector's edge
+    suppression needs caller discipline (backlog §5b, feature 136), and
+    `read_wake_source` creates a new token on every call (backlog §2, feature
+    137).
+  - `foundation_proxy` and `foundation_netio` suites pass. CI proof is pending.
+
+- 2026-11-06: feature 135 wakes the client receiver when the response head is
+  published, so a head-only peer no longer stalls the call setup. Branch
+  `spec70/priority-followups`, commit `f86846e0e`.
+  - `ClientConnEnds` gains `response_head_wake: PipeSender<()>` and
+    `publish_response_headers`. A depth-1 `Pipe<()>` says "the head is
+    published"; `PipeClientReceiver::response_headers` parks on that wake
+    instead of on the next body frame, and returns an empty head when the
+    transport ends without one.
+  - `peeked` is deleted, so `receive` reads the response pipe directly.
+  - New `pub(crate) HeadPublisher` (`ends.head_publisher()`) is passed to the
+    three protocol readers (`connect`, `grpc`, `grpc_web`).
+  - Tests: 3 in `tests/transport_tests.rs` (published head without a frame,
+    empty head after the transport drops, cancel), and feature 131's planned
+    head-only peer now backs `dropping_a_server_stream_closes_the_socket`.
+    Old code fails the head-only test after 2.1 s or does not compile.
+  - `foundation_connectrpc` 0.0.5 → 0.0.6, with `foundation_proxy` and
+    `foundation_deployment_docker`. 251 tests pass. CI proof is pending.
+
+- 2026-11-06: feature 131 makes a dropped stream facade cancel its reader and
+  writer tasks. Branch `spec70/priority-followups`.
+  - New private `CancelGuard` in `shared/client.rs`: the call's `CancelSignal`
+    plus a shared `Arc<AtomicUsize>` of live facades. `Clone` increments, the
+    last `Drop` fires the signal. `ServerStream`, `BidiStream`, `BidiSender`
+    and `BidiReceiver` each hold one; `BidiStream::split` clones it into the
+    sender half and moves the original into the receiver half.
+  - All 14 facade waits pass their guard's signal to `with_deadline_at`, so a
+    timeout now stops the reader and writer tasks too.
+  - The `CancelSignal` is global to the call (one shared `Arc` flag), so the
+    raw fire was rejected; the live-handle count fires only when the last
+    facade drops. The `Client` keeps no facade after it returns a stream.
+  - Tests (`tests/client_deadline_tests.rs`, 3 new): drop closes the socket,
+    dropping one bidi half keeps the other live, and a timed-out receive closes
+    the socket. On the old code the first and third fail with the "must close
+    the peer's socket within 2 s" assertions; the second passes. The raw peers
+    now return whether they observed the close.
+  - Deviation: the plan's head-only peer cannot release `server_stream`,
+    because `response_headers` waits for the first frame when the head
+    publication races the call. The drop test uses the stalled peer (head plus
+    one message); the wait is a new backlog §1 entry.
+  - No public API change, so `foundation_connectrpc` stays 0.0.5. `foundation_connectrpc`
+    248 passed (1 ignored). `foundation_proxy` 128 passed and the known macOS
+    websocket flake failed (`websocket_upgrade_relays_and_tunnels_bytes`, backlog
+    §9); the rerun of that binary has the same result. fmt, clippy and the wasm32
+    check are clean. CI proof is pending.
+
+- 2026-11-06: feature 127 makes the H2 client dial without blocking a valtron
+  worker. Branch `spec70/priority-followups`.
+  - `H2Socket` has a `Connecting(Option<socket2::Socket>)` variant.
+    `H2Socket::connect_tcp` creates a non-blocking socket, starts `connect(2)`
+    and keeps `EINPROGRESS`/`WouldBlock` as "in flight". `socket2` 0.6 is a new
+    native dependency.
+  - `PumpPhase::Connecting` settles the dial from `SO_ERROR` before any read.
+    On success it moves to `Handshaking` and disarms WRITABLE. On failure it
+    publishes `TransportError::Connect` on the head pipe. The fd is registered
+    with the reactor before the first turn and armed WRITABLE while in flight.
+  - `open` keeps its `Transport` signature; a refused dial now reaches the
+    caller from the head, not from `open`. The shared `Client`, the three
+    `foundation_proxy` upstream legs and the buildkit client all map the two
+    paths to the same error class. No public API changed, so the crate stays
+    0.0.5.
+  - Budgets: two, one per phase. The connect budget starts at `open`; the
+    handshake budget starts when the connection is up. A shared deadline at
+    `open + connect + handshake` would double the silent-peer wait and break
+    the 200 ms parking test; the Result gives the full argument.
+  - Tests (`tests/h2_dial_tests.rs`, 3 pass): closed port (head carries
+    `Connect`, `open` in 0.32 ms), blackhole (`open` in 0.54 ms, unrelated
+    task at ~50 ms, head fails at the 300 ms budget), unix dial. With the
+    blocking dial restored, `open` took 302.29 ms for the blackhole and the
+    closed-port error came from `open`; both tests fail.
+  - The Unix path keeps the blocking `UnixStream::connect`; its limitation and
+    the missing connect timeout are the replacement entry in backlog §1.
+  - `foundation_connectrpc` 245 passed (1 ignored), `foundation_proxy` 129
+    passed (the known macOS websocket test passed this run), fmt, clippy and
+    the wasm32 check clean. CI proof is pending.
+
+- 2026-11-06: feature 126 gives a pipe a close-only readiness. Branch
+  `spec70/priority-followups`.
+  - New `QueueClosedReadiness<T>` (`foundation_core/src/valtron/task.rs`) is
+    ready only when the queue is closed. It has both feature-gated impls and a
+    hand-written `Clone` with no `T: Clone` bound.
+  - `EventQueueInner` gains a `closed` notifier, notified by `EventQueue::close`
+    only on the open-to-closed change. `EventQueue::closed_readiness()`,
+    `PipeSender::closed_readiness()` and `MappedSender::closed_readiness()` hand
+    it out. The plan's separate `PipeInner` field is not needed: the pipe's
+    queue is an `EventQueue` and `close_queue` closes it. The one notifier fires
+    once per close, never on a push or a pop.
+  - `H2Pump::park` uses the close-only readiness for the head and body pipes.
+    The `ReceiverGone` adapter is deleted. `client_cancel_resets_the_stream_on_the_server`
+    passes, so a cancelled call still gets `RST_STREAM`.
+  - `LocalQueue` does not exist. `NotifyQueue` has only the vacancy notifier, so
+    it did not gain the accessor.
+  - New core tests: the 3 close-only cases pass. On the old code they fail to
+    compile with `E0599: no method named closed_readiness` at 3 sites.
+  - New pump test: 3 turns with the close-only signal. The old `ReceiverGone`
+    adapter also gives 3, because the executor gates a wake on `signal.is_ready`.
+    A plain `vacancy()` park spins and fails the test with the `[DEPENDS]`
+    tripwire. Recorded in backlog §4.
+  - Version: `foundation_core` 0.0.10, 42 requirements in 38 manifests, and
+    `Cargo.lock`; `foundation_connectrpc` stays 0.0.5.
+  - `foundation_core` 867 passed, `foundation_connectrpc` 242 passed, fmt and
+    both clippy runs clean. `foundation_proxy` and the wasm32 check did not run:
+    the disk is full and the proxy link fails with `No space left on device`.
+    The multi-feature impl compiled in the proxy graph before the link failed.
+    The feature stays `pending (CI proof)`.
+
+- 2026-11-06: feature 128 makes the wasm32 rpc gate of `foundation_connectrpc`
+  warning-free and denies warnings. Branch `spec70/priority-followups`.
+  - `src/shared/router/dispatch.rs` gates `PipeReceiver` and `PipeSender`, and
+    the functions `run_unary` and `grpc_status_trailers`, with
+    `#[cfg(not(target_family = "wasm"))]`. Every item has a native caller in the
+    H2 section or in `native/h3_serve.rs`; none is deleted.
+  - `ci/packages.toml` gains `wasm-deny-warnings = true` for
+    `foundation_connectrpc`. `scripts/ci/ci.py` gains the matching `Settings`
+    field and a `PlannedCommand` (argv plus per-command environment). The runner
+    applies that environment after the package environment.
+  - The deny route is `RUSTFLAGS=-D warnings`, because this cargo rejects
+    `cargo check ... -- -D warnings` with `unexpected argument '-D'`.
+  - Proof: a planted unused import made the planned gate exit 101 with
+    `-D unused-imports`; after the revert it exits 0.
+  - New test `scripts/ci/tests/test_ci_wasm_deny.py` (3 tests); the suite has
+    24 tests. `docs/bug-backlog.md` §1 entry deleted. Native tests: 241 pass.
+  - No version bump: no public API change. CI proof is pending.
+
+- 2026-11-06: feature 117 phase A adds `Clock::wall_now`, the shared timestamp
+  conversions and the time-source gate. Branch `spec70/priority-followups`.
+  - `foundation_core::valtron::Clock` gains the required `wall_now` method.
+    `MonotonicClock` returns `SystemTime::now()` and is the one place the real
+    wall read stays. `SimulatedClock` gains a `wall_origin` at the UNIX epoch, a
+    wall offset, and `advance_wall`.
+  - `foundation_compact::time` has `unix_millis`, `from_unix_millis` and
+    `unix_seconds`. A pre-epoch time is negative; `unix_seconds` rounds down.
+  - `scripts/ci/check_time_sources.py` scans the first-party `src/` trees for
+    `SystemTime::now`, `Utc::now`, `Local::now`, `OffsetDateTime::now` and
+    `Instant::now`. The allowlist holds every remaining offender with the phase
+    that removes it.
+  - Measured: 452 direct reads in 180 files, all allowlisted, 0 markers, 0
+    violations. Phases B, C and D hold 110, 137 and 192 reads. The gate runs in
+    the `foundation_core` build step of `ci.py`, with 8 tests.
+  - The `foundation_boringtun` fork is skipped by name, like `check_errstacks.py`.
+  - After review, the gate also fails on an allowlist entry that matches no direct
+    read, so phases B, C and D must delete their entries as they land. The test
+    file has 10 tests.
+  - Version: `foundation_core` 0.0.9, `foundation_compact` 0.2.4; 42 and 9
+    consumer requirements move with them, in 40 manifests.
+  - Phases B, C and D are written as features 132, 133 and 134.
+  - Closed after review: the agent reported that `foundation_netio`'s test
+    `SimClock` no longer compiled. Its `wall_now` now returns
+    `SystemTime::UNIX_EPOCH`, because those tests read only the monotonic clock.
+    `cargo test --profile uat -p foundation_netio` passes: 1218, 54, 9, 6 and 5
+    tests. The backlog §2 entry is deleted. CI proof is pending.
+
+- 2026-11-06: feature 124 bounds every streaming facade wait with the call
+  deadline. Branch `spec70/priority-followups`.
+  - `with_deadline` is split into
+    `with_deadline_at(deadline, cancel, call)`. The feature 123 form keeps its
+    past-deadline message and its cancel fire, then calls the new form with the
+    call `Ctx`. A facade wait passes `None` as the cancel argument.
+  - `ServerStream`, `BidiStream`, `BidiSender` and `BidiReceiver` carry one
+    private `deadline: Option<Instant>`, copied from the call `Ctx`.
+    `BidiStream::split` copies it into both halves.
+  - All 14 facade waits named in the feature table now race a
+    `valtron::sleep_async` against the wait and return
+    `ConnectError::deadline_exceeded("call deadline exceeded")`. The deadline
+    is absolute, so once it passes every later wait fails at once.
+  - Three new tests in `tests/client_deadline_tests.rs`. The two deadline
+    tests use a raw HTTP/2 peer that ignores the timeout header, because the
+    real server enforces the same header itself and would mask the client gap.
+    Both fail on the old code after about 1.57 s with `Internal` instead of
+    `DeadlineExceeded`. The no-deadline test keeps the real server.
+  - `foundation_connectrpc` 241 tests pass, 0 fail; fmt and clippy are clean.
+    The wasm32 `--features rpc` check passes with the 3 known `dispatch.rs`
+    warnings.
+  - Backlog §1: deleted the "streaming call's later receives" entry. Added an
+    entry: dropping a facade does not cancel its reader task, so a stalled
+    peer keeps the socket open until the transport or the call ends.
+  - No public signature changed, so the crate version stays 0.0.5.
+  - The feature stays `pending (CI proof)` until the pull-request CI is green.
+
+- 2026-11-06: feature 125 parks the H2 client pump on reactor readiness.
+  Branch `spec70/priority-followups`.
+  - `H2Pump::next_status` no longer returns `TaskStatus::Delayed(10 ms)` on its
+    normal waits. Each wait is a `TaskStatus::Depends` over an `AnyReadiness`: the
+    socket's `FdReadiness` (READABLE always, WRITABLE only after a short write),
+    the request-body queue while the request is open, a per-park
+    `DeadlineReadiness` (the handshake deadline or
+    `last_progress + read_timeout`), the response pipe's vacancy while it is full,
+    and a close-only receiver readiness for the head and body pipes.
+    `Delayed(10 ms)` remains only when `FdReadiness::register` fails, logged once
+    at `debug`.
+  - The pump reads until `WouldBlock` before it parks (`read_some` guards), so a
+    latched edge is never lost. It clears the socket once at the start of a turn,
+    before the read loop. The plan's "clear after each read" was wrong: a clear
+    after `WouldBlock` can erase a real edge, and §1 of the feature is corrected.
+  - Write interest is armed only when a write returns `WouldBlock` and dropped when
+    `pending_out` drains. Arming it before every write latched a writable edge on
+    an idle socket, so every park was already ready and logged a `[DEPENDS]`
+    warning.
+  - A missing wake was found and fixed. A cancelled call drops its receivers, so
+    the pump's `is_closed` checks need a close wake or it never sends
+    `RST_STREAM`. `client_cancel_resets_the_stream_on_the_server` failed 3/3
+    without the adapter.
+  - New `tests/h2_pump_parking_tests.rs`, two tests. With `park()` reverted to
+    `Delayed(10 ms)`: 18-19 pump turns in a 200 ms idle handshake and 29 for a
+    300 ms delayed body, and both tests fail. With the park: 2 and 5.
+  - `foundation_connectrpc` 238 tests pass, 0 fail; fmt and clippy are clean.
+    `foundation_proxy` 73 pass; the one failure is the known macOS
+    `websocket_upgrade_relays_and_tunnels_bytes` (backlog §9). The wasm32
+    `--features rpc` check passes with the 3 pre-existing `dispatch.rs` warnings.
+  - Version: `foundation_connectrpc` 0.0.5 for the `h2_pump_poll_count` hook;
+    `foundation_proxy` and `foundation_deployment_docker` requirements follow.
+  - Linux CI image with `--cpus=2` (epoll): 30 runs of `rpc_proxy_e2e_tests`
+    (17 tests each) and 30 runs of `h2_integration_tests` (7 tests each) all
+    pass (`30_RUNS_GREEN`). `scripts/ci/linux.sh foundation_connectrpc` also
+    exits 0: fmt, build, clippy, tests and the wasm check pass in the Linux
+    image, and the new parking tests pass on epoll. The feature stays
+    `pending (CI proof)` until the pull-request CI is green.
+
+- 2026-11-06: feature 121 finds and fixes the proxy stall and the past-due timer.
+  Branch `spec70/priority-followups`.
+  - The watchdog found two defects. First, `ClientRequest::send_async` hands the
+    response socket back in blocking mode, so the proxy's H1 response-body read
+    blocked a valtron worker and every task it hosted. Second,
+    `DurationWaker::remaining` returned `None` for a past-due timer, so
+    `Sleepers::time_until_next` dropped it and a worker chose the next far
+    deadline. A live dump showed one worker sleeping 59,999 ms with a 10 ms H2
+    pump poll pending.
+  - Fixes: `send_async` callers that stream now switch the response socket back
+    to non-blocking (`forward.rs`, `h2_proxy.rs`, and the two sites the first
+    pass missed, `h3_proxy.rs` and `http_client_impl.rs`);
+    `body_reader::map_err` keeps `WouldBlock`; `DurationWaker::remaining`
+    saturates to zero. A `grep` finds no async `read_wake_source()` site that
+    skips the switch.
+  - Two deterministic tests, both fail on the old code:
+    `a_past_due_timer_is_the_next_wakeup` (foundation_core) and
+    `a_would_block_body_read_parks_instead_of_failing` (foundation_netio).
+  - Test bounds name a hang: the rpc e2e context deadline is now 5 s, and
+    `h2_grpc_request` races its future against a 5 s `sleep_async`, so a stall
+    fails in about 5 s with the test name instead of at the 30 s harness cap.
+  - The e2e suite dropped from 16-24 s to about 2.7 s, because pool teardown no
+    longer detaches a blocked worker. `foundation_core` 744 passed,
+    `foundation_netio` 1218 passed, `foundation_proxy` passed except the known
+    macOS websocket failure. fmt and clippy are clean. CI is not run yet; the
+    feature stays `pending (CI proof)`.
+
+- 2026-11-06: feature 123 makes a Connect client call fail on its own deadline.
+  Branch `spec70/priority-followups`.
+  - The shared `Client` now races every call future against
+    `foundation_core::valtron::sleep_async(remaining)` in one helper,
+    `with_deadline` (`shared/client.rs`). The sleep wins -> the call's
+    `CancelSignal` fires, the call and its streams drop, and the caller gets
+    `DeadlineExceeded`. A deadline that already passed fails before the
+    transport opens. The helper sits above `Transport` because `open` is sync
+    and has no `Ctx`, so every transport (H1, H2, H3, wasm) gets the bound.
+  - Added `ClientOptions::with_default_deadline(Duration)` (default `None`); a
+    `Ctx` deadline wins over it. The wire timeout header is unchanged.
+  - New `tests/client_deadline_tests.rs`: 6 tests, all pass (H1 and H2 against a
+    listener that never answers, the client default deadline, the normal path,
+    and unary and bidi calls with a past deadline that send no request). Only
+    the helper body was reverted to `call.await` to prove the old code: the
+    first test then failed after about 3 s with `expected DeadlineExceeded,
+    got: ... [unavailable] transport closed without response head`.
+  - `foundation_connectrpc` 236 passed, 0 failed. Clippy and fmt are clean.
+    `foundation_proxy` passes except the known macOS
+    `websocket_upgrade_relays_and_tunnels_bytes` failure in backlog §9. The
+    wasm32 `--features rpc` check passes with 3 pre-existing warnings in
+    `dispatch.rs`, recorded in backlog §1. CI is not run yet; the feature stays
+    `pending (CI proof)`.
+
+- 2026-11-06: feature 122 stops a late reactor deregister from removing a reused fd.
+  Branch `spec70/priority-followups`.
+  - `Reactor` now keeps `fd_tokens` (fd number to live token) under the existing
+    `reg_lock`. `register` and `register_completion` fill it; `deregister` calls
+    the selector only when the number still belongs to the token. A stale drop
+    logs at debug level and leaves the new registration armed.
+  - New `tests/fd_reuse.rs` reproduces the reuse. It fails on HEAD with
+    `a drop after fd reuse: fd 3 (FdReadiness { fd: 3, token: Token(2) }) did
+    not report readability within 2s`, and passes with the fix on macOS and in
+    the Linux CI image (2 of 2). The live-drop test also passes.
+  - `foundation_reactor` 12 passed, `foundation_netio` 1291 passed,
+    `foundation_http` 66 passed. `foundation_proxy` 128 passed and 1 failed:
+    the known macOS `websocket_upgrade_relays_and_tunnels_bytes` failure in
+    backlog §9.
+  - The other reactor consumers pass on macOS and in the Linux image: the
+    `foundation_nativeapis` reactor and `uring` completion tests and
+    `foundation_iogate`. The Linux `uring` run compiles `register_completion`.
+  - Deleted backlog §5b's late-deregister entry. Added a §5b entry for the
+    crate's 120 pre-existing pedantic clippy errors, which make the
+    `-D warnings` check fail. CI is not run yet; the feature stays `pending`.
+
 - 2026-11-06: the proxy stall localised to the front-to-backend relay.
   Branch `spec70/priority-followups`.
   - Three local loops with `--cpus=2` failed four different e2e tests in
@@ -1899,4 +2365,263 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-03: feature 56 E9 and close (lane B). `foundation_db` clippy with all targets: default 34 lines (12 in the library, the rest in tests) to 0; `libsql` to 0 (library errors counted by feature 71: 12 and 25). Fixes: `# Errors` sections, backticks, a `SpreadItems` type alias, `turso_row_to_sql_row` takes `usize` (no casts), `i32::try_from` for the libsql column index, `write!` instead of `push_str(&format!)`, one `#[allow(clippy::too_many_lines)]` with a reason on a mock request handler. `ci/packages.toml`: `foundation_db` has `clippy-runs = ["", "libsql"]` and `clippy-deny-warnings = true`; `ci.py run foundation_db --step clippy` exits 0. `ci.py run foundation_db --profile dev` exit 0 (fmt report-only), `ci.py run foundation_vectors --profile dev` exit 0. Flake runs (20 each, 0 failures): `d1_response_tests`, `file_state_store_write_is_atomic`, `cleanup_deletes_expired_rows_by_documented_unit`, `d1_param_types_wrangler` (with `CF_INTEGRATION_TEST=1`). Feature 56 is done; backlog §11 clippy entry deleted.
 - 2026-11-03: feature 74 (lane B, branch `fix/io-51-60-lane-b`) code done, one commit per item, pushed after each. E8 session cookies are `Secure`, `HttpOnly`, `SameSite=Lax` (`IdpConfig::secure_cookies`, default on; the `session_data` cookie value was raw JSON that header parsers split and is now base64url). E7 failed TOTP enrollment codes count toward the lockout (423) and `enroll/start` has its own TTL. E6 TOTP is SHA-1 by default (RFC 6238 appendix B vectors verify for SHA-1 and SHA-256), SHA-256 optional, the algorithm is stored with the secret and named in the `otpauth_uri`; old records stay SHA-256. E10 the social authorization code carries its `client_id` (the token endpoint also looked the user up by email instead of id; fixed). E9 `IdpServer::start_sweeper(shutdown)` runs `sweep_expired` as a valtron task every `sweep_interval` (default 5 min). E1 a missing username is stored as NULL. E5 `023_create_vectors.sql` deleted (foundation_vectors owns that table with an identical file and its own runner); a test checks every SQL file is registered. E11 `KeyValueStore::take_is_atomic`; `IdpServer::try_new` refuses a cache without it unless `allow_non_atomic_cache`. E4 a social login that needs the ToS redirects to `IdpConfig::tos_page_url` with the code in the fragment (206 JSON without it). E3 `handlers/routes.rs`: one static (method, pattern) table, whole-path matching, 404 otherwise. E2 sessions are stored in the IdP cache through `KvCredentialStore`, signed with `IdpConfig::session_key`, so all routes share them and they survive a restart with a persistent cache and a stable key. All eleven backlog entries deleted.
 - 2026-11-04: feature 76 partial (lane B, branch `fix/io-51-60-lane-b`): E3, E4, E1b and E2 done; E0 and E1 not started (feature 76 stays pending). E3: a method id is built from its parent (class, impl, trait, Go receiver), so two classes with a method of one name keep two nodes and the second body is walked; `ts_raw_calls_extraction` has its original two-class source back (before: `expected a raw call to findAll, got []`); Go methods now attach to the receiver type (the type was read from the wrong node). E4: `StateStore::set_if_version(id, state, expected_updated_at)`; atomic on the file store (flock around read, compare, rename), libsql, D1 (one statement) and namespaced; `R2Store` keeps the documented non-atomic default; 20 racing writers, one wins. E1b: `D1Store` sends string parameters only and types them in SQL (`CAST(? AS INTEGER)`, `CAST(? AS REAL)`, the `NULL` literal, `unhex(?)`; `?N` renumbered when a NULL is inlined), reads through `/raw`, and takes the whole API prefix (`hosted_api_prefix(account)` or wrangler's `/cdn-cgi/local/explorer/api`); R2 keys are one percent-encoded segment and the explorer's string `is_truncated` is accepted; the generator hoists `d1_raw_result_response` and the overlay no longer widens `d1_params`; `worker-stub.js` is deleted; the CF tests (foundation_db and foundation_nativeapis `d1_delta_vfs`, `r2_delta_vfs`) run on the explorer API with the pinned `WRANGLER_VERSION` 4.156.2 in `mise.toml` (the `package.json` wrangler stays 4.81.1, which has no explorer API). E2: the cause was column order lost in JSON row objects (fixed by `/raw`) plus a test that read a NULL `r2_key` as `String` (NULL reads as ""); the test now reads `Option<String>`. 20 of 20 runs for each new or changed test file. `foundation_nativeapis` `vfs-preload` does not compile (pre-existing, backlog §11), so `vfs_shim_vfs` was not run. R2 range read and conditional put are not served by the explorer: they belong to the E0 harness on the real binding.
+- 2026-11-06: feature 136 done (`spec70/priority-followups`). `foundation_reactor` re-arms the
+  kqueue read edge in `Reactor::register_waker` and `Reactor::register_task_waker`, so a caller
+  cannot lose a smaller frame after a drain. The docs say `clear` serves the latched flags. New
+  `tests/read_edge_rearm.rs` has three tests; the first fails on the old code on macOS. The
+  backlog §5b selector entry is deleted. macOS, netio, proxy and the Linux image pass. No public
+  API change, so no version bump.
+- 2026-11-06: issue #187 fixed (`targeted_wake` flake). The storm thread no longer takes a
+  `Mutex` that the executor also locks: task B sends each `ParkedSignal` through an unbounded
+  `std::sync::mpsc` channel, so `send` never blocks. The storm parks on `recv_timeout` instead
+  of spinning. It stops after `MAX_WAKES` (200) wakes, or after 600 ms once B has been woken
+  `MIN_WAKES` (100) times, with a 5 s hard cap. It drains the channel until the driver loop
+  ends, so the last wake cannot be lost. The helper `run_storm` keeps the test body below
+  clippy's line bound, and the storm holds task A parked to 600 ms so the `ms >= 600` check
+  stays valid. Baseline on this host (load average 99 to 159): 2 of 10 full `tests/mod.rs`
+  runs failed. A first fix with a strict 600 ms stop failed 1 of 5 full-suite runs at load
+  average 132 with only 54 wakes; A was checked 3 times, so no wake was lost. The 600 ms bound
+  is now a floor check. After: 20 of 20 targeted runs and 10 of 10 full
+  `cargo test --profile uat -p foundation_core --features multi` runs passed; the targeted test
+  also passes in the default tree; clippy is clean in the default, `multi` and `test-clock`
+  trees. No production code changed; no lost-wake defect in valtron was seen.
 
+- 2026-11-06: backlog migration done (`spec70/priority-followups`). Three agents audited all 73
+  entries of `docs/bug-backlog.md` against the code. 11 were already fixed and are deleted:
+  ptrace native amd64 CI (feature 83), proxy idle back-off (feature 75), file store torn write
+  (feature 56), timestamp units (feature 56), Turso concurrent use (feature 51), auth server
+  clippy, R2 range test, reactor publish, keychain `poll_ready`, recursion limit and nativeapis
+  clippy default. 22 entries were added to existing issues #99–#103, #106, #107, #110 and #116.
+  22 new issues were created (#189–#210), one per defect or decision, each with a `severity:`
+  label. The wireguard and reactor clippy entries became one item each, and all clippy debt is
+  one tracking issue (#200). `docs/bug-backlog.md` is now a pointer with the section-to-issue
+  map. Rule 7 of `requirements.md` and rule 9 of `CLAUDE.md` now name GitHub issues, not the
+  file.
+- 2026-11-06: the spec 70 features that are still `pending` are 117, 118, 120, 122, 132, 133,
+  134 and 135. 117 comes first because 132–134 depend on it. 118 comes before 120. 122 and 135
+  are priority follow-ups on `spec70/priority-followups`.
+- 2026-11-06: feature 120 done (`spec70/priority-followups`, commit `1ba90e017`).
+  `foundation_macros` went from 62 to 0 pedantic warnings (`--all-targets` exposed 7 more once
+  the lib compiled, so 69 in all). Six `too_many_lines` sites keep one targeted `#[expect]`
+  each. `chrono` had no user and is removed. `ci/packages.toml` gains
+  `[packages.foundation_macros]` with `clippy-deny-warnings = true`. Tests: 98 pass, 40 doc
+  tests ignored by design. The agent found 105 `unused_must_use` warnings from ignored
+  `.close();` results in `foundation_core`, `foundation_http` and `foundation_connectrpc`;
+  filed as issue #211.
+- 2026-11-06: feature 118 done (`spec70/priority-followups`, commit `6ef69227d`).
+  `foundation_core` lost its four crate-level clippy allows. The visible debt was 401
+  diagnostics in the default tree and 483 with `multi`; both trees now report zero. The
+  pre-existing pedantic item and module allows were removed too, which exposed 19 more. One
+  `#[expect(clippy::too_many_lines)]` stays on the local executor state machine.
+  `type_complexity` could not be fixed behind a type alias without changing public
+  signatures: the stream and task extension traits now use the public `BoxedStreamPredicate`,
+  `BoxedStreamCollectionPredicate` and `StreamTransform` aliases and require `D: 'static`
+  and `P: 'static` on the affected methods. `Query::into_string` is new public API. The crate
+  moves from 0.0.12 to 0.0.13, and 38 consumer requirements move with it. Tests: 870 pass in
+  the default tree, 916 with `multi`.
+
+- 2026-11-06: feature 132 done (`spec70/priority-followups`). Phase B removes every
+  direct time read from `foundation_core`, `foundation_netio`, `foundation_http`,
+  `foundation_connectrpc` and `foundation_testbed`: 114 reads in 43 files, down
+  from the 110 that feature 117 measured. The gate reports 342 reads in 137
+  files, 0 violations and 0 markers. The five crates delete their allowlist
+  entries; only `foundation_compact` and the real `MonotonicClock` stay. Tasks
+  read `ctx.clock()`; I/O structs store an `Arc<dyn Clock>`; plain functions take
+  `&dyn Clock`. The executor's blocking waits stay on the real clock through the
+  `MonotonicClock` type (GitHub issue #102). New tests: the core timeout and
+  sleep wrappers, the HTTP protocol-detection timeout, a ConnectRPC call deadline
+  and the Docker readiness deadline. With the old real-clock comparison put back,
+  the HTTP test fails with `left: Some(Delayed(3ms))`, `right: None`. Versions:
+  core 0.0.14, netio 0.0.7, http 0.0.6, connectrpc 0.0.7, testbed 0.0.4; 83
+  manifests change. The change also clears the `unused_must_use` warnings that
+  issue #211 names, because the clippy gate cannot pass with them; #211 is
+  closed. GitHub issue #212 records the one remaining shortcut: a `ContextBag`
+  built outside an engine gets an explicit `MonotonicClock`. Issues #213
+  (hard-coded timeout constants) and #214 (`LoadTracker` rate always zero) record
+  the limits this feature leaves. Next: feature 133 (services) and 134
+  (platform).
+
+- 2026-11-06: feature 133 done (`spec70/priority-followups`). Phase C removes
+  every direct time read from `foundation_auth`, `foundation_ai`,
+  `foundation_keychain`, `foundation_db` and `foundation_cronjobs`: 137 reads in
+  51 files (auth 63/23, ai 41/12, keychain 25/12, db 7/3, cronjobs 1/1). The gate
+  now reports 205 direct reads in 86 files, 0 violations and 0 markers, down
+  from 342 in 137 files; the 51 phase C allowlist entries are deleted and 93
+  lines remain. `CronClock`, `UtcClock` and `SharedCronClock` are deleted; the
+  cron scheduler takes `Arc<dyn Clock>` and reads `wall_now()`.
+  `foundation_ai`'s GGUF cache now re-injects the caller's clock in
+  `share_weights`, so a cached model no longer leaks the first caller's clock.
+  Tests: auth 50 passed plus the clock-injection test (1 passed with
+  `--features server-test`); db exit 0; ai 496 passed, 14 ignored; keychain
+  exit 0; cronjobs 13 + 1 passed. The db and ai old-code runs failed with real
+  time on the left and simulated time on the right. Versions: auth 0.0.6, ai
+  0.0.7, db 0.0.6, keychain 0.1.6, cronjobs 0.0.5, with every consumer
+  requirement updated. `cargo check --profile uat --workspace` passes.
+  Findings left: the deployment crates still pass an inline `MonotonicClock` to
+  `store_typed` until phase D injects a clock (medium); the full
+  `foundation_auth --features server-test` suite hangs at default parallelism,
+  with every thread blocked in `initialize_pool` -> `FairGate::acquire`
+  (high). The active `gh` token has no issue scope, so these two findings are
+  recorded here and in the feature Result, not yet filed. Next: feature 134
+  (platform).
+- 2026-11-06: the coordinator filed the two feature 133 findings as issues
+  #215 (medium) and #216 (high), and fixed #216 before the commit. The hang
+  was a panic, not a load race: `ServeAdapter::create` required
+  `Arc<dyn Clock>` in the app bag, and an app built with `register_routes`
+  stores the clock on `HandlerStorage` instead. The panic ran on a spawned
+  dispatch thread, so the request never answered and the test held the pool
+  guard while every later test waited at the gate. The adapter now takes the
+  storage clock, with a bag clock still winning when a host stores one. The
+  full suite passes: 244 tests, exit 0. Issue #216 is closed.
+
+- 2026-11-06: feature 134 done (`spec70/priority-followups`). Phase D removes
+  every first-party direct time read from the platform crates. Per crate,
+  before -> after: `foundation_deployment_platform` 65 -> 0,
+  `foundation_nativeapis` 32 -> 0, `foundation_wireguard` 26 -> 0,
+  `foundation_proxy` 15 -> 0, `foundation_toolings` 7 -> 0,
+  `foundation_browser` 6 -> 0, `foundation_platform` 5 -> 0,
+  `foundation_deployment` 6 -> 0, `foundation_reactor` 9 -> 0,
+  `foundation_wasm` 7 -> 1 marked, `foundation_deployment_cloudflare` 2 -> 0,
+  `foundation_deployment_docker` 2 -> 0, `foundation_deployment_hetzner`
+  1 -> 0, `foundation_macros` 2 -> 0, `foundation_sshkit` 2 -> 0,
+  `foundation_codegentools` 1 -> 0, `foundation_conditional` 1 -> 0,
+  `foundation_nostd` 1 -> 0, `foundation_repl` 1 -> 0,
+  `foundation_testing` 1 -> 0. The gate reports **14 direct reads in 8 files:
+  13 allowlisted, 1 marked, 0 violations**. The allowlist holds only
+  `backends/foundation_compact/src/` and
+  `backends/foundation_core/src/valtron/ctx.rs`; the 79 phase D entries are
+  deleted. The one marked read is the WASI extern-C ABI boundary in
+  `foundation_wasm/src/wasi_host.rs`; every timer function also has an `_at`
+  variant that takes the instant, and the test uses it. Issues #215 (the
+  deployment `MonotonicClock` shortcut) is fixed: `ProviderClient` now carries
+  `Arc<dyn Clock>` and the Docker and Hetzner deployables use it. Versions:
+  deployment 0.0.4, deployment_platform 0.1.4, cloudflare 0.2.1, hetzner
+  0.1.4, nativeapis 0.0.8, wireguard 0.0.5, proxy 0.1.8, platform 0.0.3,
+  toolings 0.0.6, browser 0.0.5, sshkit 0.1.4, testing 0.0.5, repl 0.2.3,
+  nostd 0.0.7, wasm 0.0.6, codegentools 0.1.4, macros 0.0.9; 101 manifests
+  change and `Cargo.lock` is refreshed once. Injection tests exist for every
+  crate that gained a clock; the platform, nativeapis, wireguard, toolings
+  and browser old-code runs are recorded in the feature Result. The reactor
+  keeps the real monotonic clock at its kernel wait boundary (same boundary
+  as #102). Findings left for GitHub issues are listed in the feature Result.
+  Next: the umbrella feature 117 is complete; close it after CI.
+
+- 2026-11-06: issues #217 and #218 fixed (`spec70/priority-followups`).
+  #217: `PoolGuard::shutdown` is bounded. It calls
+  `shutdown_within(DEFAULT_POOL_SHUTDOWN_GRACE)` (documented, 5 s, placed next
+  to `DEFAULT_TEST_SHUTDOWN_GRACE`), and `Drop` calls `shutdown()`, so a stuck
+  worker can no longer keep the process-wide lifecycle gate shut. New test
+  `pool_guard_drop_is_bounded_and_releases_the_pool_gate` in
+  `tests/valtron/shutdown_mechanism_tests.rs`; on the old unbounded code it
+  hangs (process timeout, exit 124).
+  #218: `Ctx::new(clock)` requires the clock; `Ctx::host()` is the one
+  real-clock constructor; `Default for Ctx` is gone; `Ctx::assert_minimum`
+  checks clock/config/RNG at the pool start and the task iterator boundary.
+  `ContextBag` carries `clock` and `rng` fields and gains `new(clock)`,
+  `build(clock, f)`, `from_ctx`, `with_ctx`, `fork`, `clock`, `rng` and
+  `assert_minimum`; `Default` is gone. The ConnectRPC `clock_from_bag` fallback
+  is removed (#212) and `SseReloadHandler::create` uses `bag.clock()` (#221).
+  `IdpServer::http_app` builds its bag with the injected clock instead of
+  storing it. `#[valtron]`/`#[valtron_test]` emit `Ctx::host()`.
+  Versions: core 0.0.15, http 0.0.7, macros 0.0.10; 89 manifests and
+  `Cargo.lock`.
+  Tests: core default 872 passed, multi 919, test-clock 882; http default 69,
+  multi+quic 150; connectrpc 256; auth server-test 294 (244 in the integration
+  binary); toolings 22; macros 99. 0 failed in every run.
+  Also fixed a stale `#[should_panic]` expectation in
+  `valtron_macro_tests.rs` from commit 63af1c798, and the wasm-only
+  `PoisonError::into_inner` compile failure via `compati::recover_poison`.
+  Clippy: core default/multi/test-clock, http, auth, connectrpc, toolings and
+  macros; every `-D warnings` gate passes. `cargo fmt --all --check` clean. The
+  time gate reports 14 direct reads in 8 files, 13 allowlisted, 1 marked,
+  0 violations.
+  Findings filed as GitHub issues: #233 the background-job shutdown timeout
+  is its own 30 s default, not the pool grace, so a stuck background worker can
+  delay the gate release past `DEFAULT_POOL_SHUTDOWN_GRACE`; #234 `HttpApp::new*`
+  chooses the real clock at a host boundary; #235 `ContextBag::assert_minimum`
+  cannot fail by construction; #236 `Ctx::incomplete_for_test` is a doc-hidden
+  public test hook.
+
+- 2026-11-06: CI repair before the final green (`spec70/priority-followups`,
+  commits `bbdb9c33f` and `662b169c3`). The phase C and D bumps left five
+  consumers behind: `benches`, the root `tests` crate and 21 Node.js
+  integration crates still required `foundation_nostd` 0.0.6 and
+  `foundation_wasm` 0.0.5, which broke `cargo metadata` for every CI job.
+  Every path requirement now matches the crate version. The wasm32 builds
+  failed on `std::sync::PoisonError::into_inner` used as a function value on
+  `foundation_nostd` mutexes (#228, fixed with `compati::recover_poison`).
+  The QUIC feature builds failed on a missing `Clock` trait import (#229).
+  `foundation_core` clippy with `--features test-clock` failed on missing
+  `# Panics` docs (#230). The project templates pinned old versions, so the
+  patch table did not apply (#231). The proxy health-probe test now passes
+  after the #217 bounded shutdown; the Linux thread-count assertion is checked
+  in CI. Findings filed: #232 (proxy thread leak, to confirm on Linux CI) and
+  #233-#236 from the #217/#218 work.
+  Next: read the CI run for `662b169c3`, then correct the "CI green" claims in
+  the feature files that cite failed runs, and update PR 186.
+- 2026-11-06: issue #232 fixed (`health_probe_tests`). The test took its baseline before
+  the first probe. The first probe starts two helper threads that live until the process
+  exits: `valtron-timer` (the `sleep_async` wheel) and `reactor-drain` (the reactor starts
+  when the H2 pump parks on fd readiness). The `+1` tolerance covered one of them, not two.
+  One warm-up probe before the baseline fixes the test; the 20 measured probes keep the
+  strict `+1` check. Linux CI image: 5 of 5 test runs pass, and the package test step
+  passes 34 of 34 targets with `EWE_REQUIRE_IO_URING=0`. Findings filed: #239 (bidi e2e
+  flake, high), #240 (reactor drain leak on a lost init race, low), #241 (`live_threads`
+  drift on panic, medium), #242 (a second panic hides a test failure, low).
+- 2026-11-06: the ten feature files that cited run `42205799516` as "CI green" now say the
+  run failed 13 jobs and that the final run ID goes in when the head passes. Feature 131
+  had the same sentence twice; the duplicate is gone.
+- 2026-11-07: issue #240 fixed (`foundation_reactor` init race). `init_with_config` checked
+  `REACTOR.get()` and then built a full reactor, so every thread that lost the `REACTOR.set`
+  race had already spawned its own `reactor-drain` thread. `Drop` set the shutdown flag but
+  did not join, so the handle was detached. A process-wide `INIT_LOCK` now covers the second
+  check and the build, and `Drop` joins the drain thread. `tests/init_race.rs` releases 16
+  threads through a barrier and asserts one build, one spawn and one live drain thread; it
+  fails on the old code with 16 builds. `foundation_reactor` 0.0.2 for the doc-hidden test
+  hooks, with the four consumer requirements moved.
+- 2026-11-07: issues #241 and #242 fixed (`foundation_core`). A worker that
+  panicked sent `ThreadActivity::Panicked` and then `ThreadActivity::Stopped`.
+  The listener does the same accounting for both arms, so `live_threads`
+  dropped twice and the counter reached 0 while workers were alive. The worker
+  now sends one exit event. `block_on_future` now captures the task panic
+  payload with the builder's panic handler and re-raises it, so a failing
+  `#[valtron_test]` body shows its own assertion instead of "the future
+  produced no result". `tests/valtron/worker_panic_accounting.rs` holds both
+  tests; each one fails on the old code. `foundation_core` 0.0.16 for the new
+  public `ThreadRegistry::live_threads` and `pump_activity` hooks, with every
+  consumer requirement moved. Findings filed: #243 (the activity listener never
+  runs, so a panicking worker is never respawned), #244 (a panic in a spawned
+  sub-task still drops its payload). Both are medium.
+- 2026-11-07: the three `bin/platform` project templates move to
+  `foundation_core` 0.0.16. The templates build test patches the registry-style
+  requirements to the local crates, and a caret requirement on 0.0.15 does not
+  accept 0.0.16.
+- 2026-11-07: a test now pins that `block_on_future` returns a future's
+  `Option::None` output as `None`. The "produced no result" branch checks
+  whether the task yielded a value, not what the value is.
+- 2026-11-07: issue #243 fixed (`foundation_core`). Nothing read the
+  worker-activity queue while the pool ran. The queue was drained only by
+  `block_until_done`, and no code calls that method. The `Panicked` arm, which is
+  the only code that respawns a worker, therefore never ran, and the
+  `idle_threads` counter stayed frozen after startup.
+  `initialize_pool_with_config_and_ctx` now starts one monitor thread
+  (`ThreadRegistry::start_activity_monitor`) after the workers start. The monitor
+  holds a `Weak` reference to the registry. `shutdown` and `shutdown_within` stop
+  and join the monitor before they wait for the workers, and they interrupt the
+  yielders after that, so a replacement worker is interrupted too. The new test
+  panics both workers of a two-worker registry; the follow-up task runs only when
+  a replacement starts.
+- 2026-11-07: the `examples` and `wasm-tests` CI jobs pass their build steps.
+  The raw-socket suite needs `RawStream`, which exists only on native
+  targets, so the suite is gated off wasm. The cookie test now uses
+  `foundation_compact::SystemTime`, the type `Cookie::expires` takes.
+  `cf-login-app` passes a `MonotonicClock` to `SessionManager::new`, the
+  same host pattern as the other Cloudflare examples. The example
+  lockfiles move to the new crate versions. The `wasm_cf` lockfile is
+  refreshed in a separate commit. Finding filed: #245 (three standalone
+  example lockfiles are stale, low).
+- 2026-11-07: CI run `42261737548` (head `cf5ab359a`) passed every job. The ten
+  feature files and feature 117 record it. The branch closes issues #187, #212,
+  #217, #218, #221, #228, #229, #230, #231, #232, #237, #238, #240, #241, #242
+  and #243. Issues #239 (the bidi proxy flake), #244 (a panicking sub-task drops
+  its payload) and #245 (three stale example lockfiles) stay open.

@@ -2,10 +2,20 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, SimulatedClock};
 use foundation_db::{
     CleanupConfig, CleanupStats, DataValue, MemoryStorage, QueryStore, StorageCleanup, TursoStorage,
 };
+
+/// A fixed simulated wall time: 2026-01-01T00:00:00Z, in unix seconds.
+const FIXED_NOW_SECS: u64 = 1_767_225_600;
+
+/// A simulated clock parked at [`FIXED_NOW_SECS`].
+fn fixed_clock() -> SimulatedClock {
+    let clock = SimulatedClock::new(Duration::ZERO);
+    clock.advance_wall(Duration::from_secs(FIXED_NOW_SECS));
+    clock
+}
 
 /// A migrated Turso store in a temp dir (the auth tables cleanup targets).
 async fn turso() -> (TursoStorage, tempfile::TempDir) {
@@ -89,7 +99,7 @@ async fn test_run_full_cleanup_without_the_tables_is_an_error() {
     // The in-memory store has no auth tables, so the cleanup queries fail.
     let storage = MemoryStorage::new();
     assert!(storage
-        .run_full_cleanup(&CleanupConfig::default())
+        .run_full_cleanup(&CleanupConfig::default(), &fixed_clock())
         .await
         .is_err());
 }
@@ -107,20 +117,15 @@ async fn cleanup_expired_jwt_tokens_removes_only_expired_rows() {
 #[valtron_test]
 async fn run_full_cleanup_honours_the_configured_retention() {
     let (store, _dir) = turso().await;
-    let now = i64::try_from(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis(),
-    )
-    .unwrap();
+    let clock = fixed_clock();
+    let now = i64::try_from(FIXED_NOW_SECS * 1_000).unwrap();
     // Expired 2 hours ago, and expired 2 days ago (both in milliseconds).
     insert_jwt(&store, "recent", now - 2 * 60 * 60 * 1000).await;
     insert_jwt(&store, "stale", now - 2 * 24 * 60 * 60 * 1000).await;
 
     // Default retention (30 days) keeps both.
     let stats = store
-        .run_full_cleanup(&CleanupConfig::default())
+        .run_full_cleanup(&CleanupConfig::default(), &clock)
         .await
         .unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 0);
@@ -128,7 +133,7 @@ async fn run_full_cleanup_honours_the_configured_retention() {
     // A 1-day retention removes only the one that expired 2 days ago.
     let config =
         CleanupConfig::default().with_jwt_token_retention(Duration::from_secs(24 * 60 * 60));
-    let stats = store.run_full_cleanup(&config).await.unwrap();
+    let stats = store.run_full_cleanup(&config, &clock).await.unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 1);
     assert_eq!(jwt_ids(&store).await, vec!["recent".to_string()]);
 }
@@ -136,13 +141,7 @@ async fn run_full_cleanup_honours_the_configured_retention() {
 #[valtron_test]
 async fn cleanup_deletes_expired_rows_by_documented_unit() {
     let (store, _dir) = turso().await;
-    let now_ms = i64::try_from(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis(),
-    )
-    .unwrap();
+    let now_ms = i64::try_from(FIXED_NOW_SECS * 1_000).unwrap();
     // One millisecond before the cutoff is expired; one millisecond after is
     // not. A seconds-based comparison would treat both as the same instant.
     insert_jwt(&store, "expired", now_ms - 1).await;

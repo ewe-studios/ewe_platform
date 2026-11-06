@@ -11,7 +11,7 @@ use foundation_core::valtron::{
 
 #[test]
 fn immediate_ready_wraps_in_ok() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let cancel = Arc::new(AtomicBool::new(false));
     let future = core::future::ready(42);
     let mut task = CancellableFutureTask::new(future, cancel);
@@ -43,7 +43,7 @@ fn pending_then_ready() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let cancel = Arc::new(AtomicBool::new(false));
     let mut task = CancellableFutureTask::new(PendingOnce(false), cancel);
@@ -69,7 +69,7 @@ fn pending_then_ready() {
 
 #[test]
 fn cancel_before_first_poll() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let cancel = Arc::new(AtomicBool::new(true));
     let future = core::future::ready(99);
     let mut task = CancellableFutureTask::new(future, cancel);
@@ -93,7 +93,7 @@ fn cancel_after_pending() {
             Poll::Pending
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let cancel = Arc::new(AtomicBool::new(false));
     let mut task = CancellableFutureTask::new(AlwaysPending, Arc::clone(&cancel));

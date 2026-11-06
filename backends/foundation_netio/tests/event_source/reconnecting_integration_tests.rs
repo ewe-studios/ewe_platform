@@ -102,7 +102,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
         .with_max_retries(0);
 
     let mut events = Vec::new();
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(parse_result) = status {
             events.push(parse_result);
         }
@@ -263,7 +263,7 @@ fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
 
     let mut events = Vec::new();
     let mut steps = 0;
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(parse_result) = status {
             events.push(parse_result);
         }

@@ -2,6 +2,7 @@
 
 use crate::shared::credential_store::{CredentialStorage, CredentialStore};
 use crate::shared::session::{Session, SessionError, SessionManager};
+use foundation_core::valtron::Clock;
 use foundation_netio::shared::client::Cookie;
 use std::sync::Arc;
 
@@ -52,8 +53,9 @@ impl<S: CredentialStore> SessionService<S> {
         store: S,
         config: crate::shared::session::SessionConfig,
         signing_key: &[u8],
+        clock: Arc<dyn Clock>,
     ) -> Result<Self, SessionServiceError> {
-        let mgr = SessionManager::new(store, config, signing_key)?;
+        let mgr = SessionManager::new(store, config, signing_key, clock)?;
         Ok(Self::new(Arc::new(mgr)))
     }
 
@@ -145,8 +147,8 @@ impl SessionService<CredentialStorage> {
     /// # Errors
     ///
     /// Returns [`SessionServiceError`] if the session manager cannot be built.
-    pub fn in_memory() -> Result<Self, SessionServiceError> {
-        Self::in_memory_with(crate::shared::session::SessionConfig::default())
+    pub fn in_memory(clock: Arc<dyn Clock>) -> Result<Self, SessionServiceError> {
+        Self::in_memory_with(crate::shared::session::SessionConfig::default(), clock)
     }
 
     /// Like [`in_memory`](Self::in_memory), with this session configuration
@@ -157,11 +159,12 @@ impl SessionService<CredentialStorage> {
     /// Returns [`SessionServiceError`] if the session manager cannot be built.
     pub fn in_memory_with(
         config: crate::shared::session::SessionConfig,
+        clock: Arc<dyn Clock>,
     ) -> Result<Self, SessionServiceError> {
         use foundation_compact::rng::Rng;
         let mut key = [0u8; 32];
         foundation_compact::rng::rng().fill_bytes(&mut key);
-        let mgr = SessionManager::new(CredentialStorage::memory(), config, &key)?;
+        let mgr = SessionManager::new(CredentialStorage::memory(), config, &key, clock)?;
         Ok(Self::new(Arc::new(mgr)))
     }
 }

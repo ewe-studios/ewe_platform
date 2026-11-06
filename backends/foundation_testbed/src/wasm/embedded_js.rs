@@ -35,7 +35,7 @@
 //!   `reactor_tokio::TokioReactor` (`reactor.rs: pub type DefaultReactor =
 //!   crate::reactor_tokio::TokioReactor;`). `jsrealm.rs` then binds
 //!   `UserTimer<DefaultReactor>` with no `RuntimeOptions` field to swap it.
-//! - `TokioReactor` timers are `tokio::time::sleep_until` / `Instant::now()`
+//! - `TokioReactor` timers use tokio's own sleeping and monotonic clock reads
 //!   (`reactor_tokio.rs`), which panic outside a tokio runtime. `uv_compat.rs`
 //!   drives TCP with tokio's `poll_accept` / `try_read` / `try_write`, and
 //!   `deno_websocket` (kept: `embedded_js_tests.rs` exercises the WebSocket

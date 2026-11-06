@@ -13,8 +13,9 @@
 //! callback, validated (state match, not expired, not consumed), and then
 //! consumed (one-time use).
 
+use foundation_compact::time;
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
 
 // ---------------------------------------------------------------------------
 // Domain types
@@ -56,6 +57,7 @@ impl UpstreamAuthSession {
         nonce: Option<String>,
         redirect_to: Option<String>,
         ttl_seconds: u64,
+        clock: &dyn Clock,
     ) -> Self {
         Self::with_app_state(
             state,
@@ -65,6 +67,7 @@ impl UpstreamAuthSession {
             redirect_to,
             ttl_seconds,
             None,
+            clock,
         )
     }
 
@@ -76,6 +79,7 @@ impl UpstreamAuthSession {
     }
 
     #[must_use]
+    #[allow(clippy::too_many_arguments)]
     pub fn with_app_state(
         state: String,
         provider_id: String,
@@ -84,12 +88,9 @@ impl UpstreamAuthSession {
         redirect_to: Option<String>,
         ttl_seconds: u64,
         app_state: Option<String>,
+        clock: &dyn Clock,
     ) -> Self {
-        let now = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis();
-        let now = u64::try_from(now).unwrap_or_default();
+        let now = u64::try_from(time::unix_millis(clock.wall_now())).unwrap_or_default();
         Self {
             state,
             provider_id,
@@ -106,11 +107,8 @@ impl UpstreamAuthSession {
 
     /// Whether the session has expired.
     #[must_use]
-    pub fn is_expired(&self) -> bool {
-        let now = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
+    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
+        let now = u64::try_from(time::unix_seconds(clock.wall_now())).unwrap_or_default();
         now > self.created_at / 1000 + self.ttl_seconds
     }
 }
@@ -170,7 +168,8 @@ pub trait UpstreamAuthSessionStore: Send + Sync {
     /// # Errors
     ///
     /// Returns `AuthSessionError` variants as described.
-    fn take(&self, state: &str) -> Result<UpstreamAuthSession, AuthSessionError>;
+    fn take(&self, state: &str, clock: &dyn Clock)
+        -> Result<UpstreamAuthSession, AuthSessionError>;
 
     /// Remove a session without consuming it (cleanup).
     ///
@@ -193,6 +192,7 @@ pub const DEFAULT_AUTH_SESSION_TTL_SECS: u64 = 600;
 
 pub mod memory {
     use super::{AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore};
+    use foundation_core::valtron::Clock;
     use std::collections::HashMap;
     use std::sync::Mutex;
 
@@ -226,7 +226,11 @@ pub mod memory {
             Ok(())
         }
 
-        fn take(&self, state: &str) -> Result<UpstreamAuthSession, AuthSessionError> {
+        fn take(
+            &self,
+            state: &str,
+            clock: &dyn Clock,
+        ) -> Result<UpstreamAuthSession, AuthSessionError> {
             let mut map = self
                 .sessions
                 .lock()
@@ -235,7 +239,7 @@ pub mod memory {
             if session.consumed {
                 return Err(AuthSessionError::AlreadyConsumed);
             }
-            if session.is_expired() {
+            if session.is_expired(clock) {
                 return Err(AuthSessionError::Expired);
             }
             Ok(session)

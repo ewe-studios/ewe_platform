@@ -27,13 +27,15 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::shared::tunnel::{WgOutcome, WgTunnel};
-use foundation_core::valtron::{Ctx, EventReadiness, ReadinessWaker, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    Clock, Ctx, EventReadiness, ReadinessWaker, TaskIterator, TaskStatus,
+};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;
 use foundation_nativeapis::native::poll::{Interest, Token};
 
-/// How often (ms) the driver re-checks WireGuard timers when otherwise idle.
+/// How often (ms) the driver re-checks `WireGuard` timers when otherwise idle.
 /// WG keepalive and rekey timeouts are on the order of seconds, so a 1 s floor
 /// is safe — the reactor (epoll/kqueue) wakes the task sooner when data arrives.
 const TIMER_TICK_MS: u64 = 1_000;
@@ -53,11 +55,11 @@ impl std::fmt::Debug for PeerLink {
         f.debug_struct("PeerLink")
             .field("endpoint", &self.endpoint)
             .field("tunnel_ip", &self.tunnel_ip)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
-/// Couples a set of WireGuard tunnels with one overlay data plane and one UDP socket.
+/// Couples a set of `WireGuard` tunnels with one overlay data plane and one UDP socket.
 ///
 /// Generic over `D: DataPlane` — smoltcp `NetStack` (default) or kernel `TunDataPlane`.
 /// Monomorphized at compile time: `TunnelDriver<NetStack>` has zero overhead vs the
@@ -67,6 +69,8 @@ pub struct TunnelDriver<D: DataPlane = NetStack> {
     dataplane: D,
     peers: Vec<PeerLink>,
     recv_buf: Vec<u8>,
+    /// The injected clock: task wake times and timer deadlines come from it.
+    clock: Arc<dyn Clock>,
 }
 
 impl<D: DataPlane> std::fmt::Debug for TunnelDriver<D> {
@@ -79,16 +83,17 @@ impl<D: DataPlane> std::fmt::Debug for TunnelDriver<D> {
 
 impl<D: DataPlane> TunnelDriver<D> {
     #[must_use]
-    pub fn new(socket: UdpSocket, dataplane: D) -> Self {
+    pub fn new(socket: UdpSocket, dataplane: D, clock: Arc<dyn Clock>) -> Self {
         Self {
             socket,
             dataplane,
             peers: Vec::new(),
             recv_buf: vec![0u8; RECV_BUF],
+            clock,
         }
     }
 
-    /// WHY: Each discovered peer becomes a WireGuard tunnel with a known UDP endpoint and
+    /// WHY: Each discovered peer becomes a `WireGuard` tunnel with a known UDP endpoint and
     /// overlay IP.
     ///
     /// WHAT: Register a peer tunnel, its UDP endpoint, and its overlay (tunnel) address.
@@ -158,7 +163,7 @@ impl<D: DataPlane> TunnelDriver<D> {
     /// HOW: See the module docs. Returns `(had_work, deadline)`: `had_work` is true when at
     /// least one datagram was decapsulated, one overlay packet was encapsulated, or a timer
     /// produced a keepalive. The deadline is the earlier of the overlay's `poll_at` and the
-    /// periodic WireGuard timer tick.
+    /// periodic `WireGuard` timer tick.
     ///
     /// # Panics
     /// Never panics.
@@ -337,7 +342,7 @@ impl std::fmt::Debug for TunnelDriverTask {
         f.debug_struct("TunnelDriverTask")
             .field("driver", &self.driver)
             .field("stopped", &self.stop.load(Ordering::Relaxed))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -379,7 +384,7 @@ impl TaskIterator for TunnelDriverTask {
         if self.stop.load(Ordering::Relaxed) {
             return None;
         }
-        let now = Instant::now();
+        let now = self.driver.clock.now();
         let (had_work, deadline) = self.driver.drive_once(now);
 
         // Clear the latched readiness edge so the next event fires a fresh wake.
@@ -398,8 +403,10 @@ impl TaskIterator for TunnelDriverTask {
         if let Some(ref readiness) = self.readiness {
             // Compute how long we can park before a WG timer needs service.
             let max_park = deadline
-                .map(|d| d.saturating_duration_since(now))
-                .unwrap_or_else(|| Duration::from_millis(TIMER_TICK_MS))
+                .map_or_else(
+                    || Duration::from_millis(TIMER_TICK_MS),
+                    |d| d.saturating_duration_since(now),
+                )
                 .max(Duration::from_millis(1));
 
             // If the deadline has already passed, re-run immediately.
@@ -413,13 +420,16 @@ impl TaskIterator for TunnelDriverTask {
             let composite = TimedReadiness {
                 fd: Arc::clone(readiness),
                 deadline: now + max_park,
+                clock: Arc::clone(&self.driver.clock),
             };
             Some(TaskStatus::Depends(Arc::new(composite)))
         } else {
             // No reactor — fall back to a 1 s poll.
             let delay = deadline
-                .map(|d| d.saturating_duration_since(now))
-                .unwrap_or_else(|| Duration::from_millis(TIMER_TICK_MS))
+                .map_or_else(
+                    || Duration::from_millis(TIMER_TICK_MS),
+                    |d| d.saturating_duration_since(now),
+                )
                 .max(Duration::from_millis(1));
             Some(TaskStatus::Delayed(delay))
         }
@@ -432,19 +442,21 @@ impl TaskIterator for TunnelDriverTask {
 pub(crate) struct TimedReadiness {
     pub(crate) fd: Arc<SharedReadiness>,
     pub(crate) deadline: Instant,
+    /// The injected clock the deadline is compared against.
+    pub(crate) clock: Arc<dyn Clock>,
 }
 
 impl std::fmt::Debug for TimedReadiness {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("TimedReadiness")
             .field("deadline", &self.deadline)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
 impl EventReadiness for TimedReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.fd.is_ready(None) || Instant::now() >= self.deadline
+        self.fd.is_ready(None) || self.clock.now() >= self.deadline
     }
 
     fn deadline(&self) -> Option<Instant> {

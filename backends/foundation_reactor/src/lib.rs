@@ -48,6 +48,13 @@ pub use reactor::{
     AlreadyInitialised, Reactor, ReactorConfig, SharedReadiness, DEFAULT_DRAIN_POLL_TIMEOUT,
 };
 
+/// Test hooks for issue #240.
+#[cfg(unix)]
+#[doc(hidden)]
+pub use reactor::{
+    drain_thread_spawn_count, init_build_attempts, live_drain_threads, set_init_build_delay,
+};
+
 #[cfg(unix)]
 pub use fd_readiness::FdReadiness;
 

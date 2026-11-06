@@ -2,8 +2,10 @@
 
 use chrono::{DateTime, Utc};
 
+use foundation_core::valtron::Clock;
 use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
+use crate::core::clock::wall_now_utc;
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
 
@@ -35,7 +37,7 @@ fn map_row(row: &SqlRow) -> AppResult<EventRow> {
 /// # Errors
 ///
 /// Returns an error if the operation fails.
-pub async fn insert(db: &dyn QueryStore, row: &EventRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &EventRow, clock: &dyn Clock) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_events (uuid, user_uuid, atype, cipher_uuid, event_date, created_at) \
          VALUES (?, ?, ?, ?, ?, ?)",
@@ -48,7 +50,7 @@ pub async fn insert(db: &dyn QueryStore, row: &EventRow) -> AppResult<()> {
                 None => DataValue::Null,
             },
             DataValue::Text(row.event_date.to_rfc3339()),
-            DataValue::Text(Utc::now().to_rfc3339()),
+            DataValue::Text(wall_now_utc(clock).to_rfc3339()),
         ],
     )
     .await

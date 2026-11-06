@@ -179,3 +179,66 @@ fn shutdown_within_detaches_a_blocked_worker_and_releases_the_pool_gate() {
         42
     );
 }
+
+/// WHY: issue #217 — a `#[valtron_test]` that panics can leave a worker stuck.
+/// `PoolGuard` holds the lifecycle gate as a field, and Rust drops fields only
+/// after `Drop::drop` returns. An unbounded `shutdown()` in `drop` therefore
+/// keeps the gate shut for the rest of the process.
+///
+/// WHAT: with a worker blocked, `drop(guard)` returns within
+/// `DEFAULT_POOL_SHUTDOWN_GRACE`, and a later `initialize_pool` in the same
+/// process succeeds.
+///
+/// HOW: block one worker with `BlockingTask`, drop the guard, measure the drop,
+/// then start a second pool on another thread and require a future to finish.
+#[test]
+fn pool_guard_drop_is_bounded_and_releases_the_pool_gate() {
+    use foundation_core::valtron::{
+        block_on_future, initialize_pool, send, DEFAULT_POOL_SHUTDOWN_GRACE,
+    };
+
+    let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
+    let (started_tx, started_rx) = std::sync::mpsc::channel::<()>();
+
+    let guard = initialize_pool(11, Some(3));
+    send(BlockingTask {
+        started: started_tx,
+        release: release_rx,
+    })
+    .expect("schedule the blocking task");
+    started_rx
+        .recv_timeout(Duration::from_secs(10))
+        .expect("the blocking task should start on a worker");
+
+    let start = Instant::now();
+    drop(guard);
+    let took = start.elapsed();
+
+    // The drop must return near the documented grace, never wait forever.
+    assert!(
+        took >= DEFAULT_POOL_SHUTDOWN_GRACE.saturating_sub(Duration::from_millis(100)),
+        "drop returned before the grace while a worker was blocked, took {took:?}"
+    );
+    assert!(
+        took < DEFAULT_POOL_SHUTDOWN_GRACE + Duration::from_secs(2),
+        "drop must return within the grace, took {took:?}"
+    );
+
+    // The gate must be free: a fresh pool comes up and runs a future.
+    let (done_tx, done_rx) = std::sync::mpsc::channel();
+    thread::spawn(move || {
+        let guard = initialize_pool(12, Some(3));
+        let value = block_on_future(async { 40 + 2 });
+        drop(guard);
+        let _ = done_tx.send(value);
+    });
+    let value = done_rx.recv_timeout(Duration::from_secs(10));
+
+    // Let the detached worker finish now that the assertions are in.
+    let _ = release_tx.send(());
+
+    assert_eq!(
+        value.expect("a new pool must start after a bounded drop (pool gate released)"),
+        42
+    );
+}

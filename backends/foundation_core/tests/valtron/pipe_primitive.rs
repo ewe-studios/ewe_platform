@@ -194,7 +194,7 @@ fn sender_closed_wakes_when_receiver_goes_away() {
 
     // Already closed: resolves at once.
     let (tx2, rx2) = Pipe::<u32>::with_depth(1);
-    rx2.close();
+    let _ = rx2.close();
     let mut closed2 = Box::pin(tx2.closed());
     assert!(matches!(closed2.as_mut().poll(&mut cx), Poll::Ready(())));
 }
@@ -254,7 +254,7 @@ fn vacancy_readiness_tracks_capacity_and_close() {
     // A full-then-closed pipe reports ready so a parked producer unparks.
     tx.try_send(2).expect("send");
     assert!(tx.is_full());
-    tx.close();
+    let _ = tx.close();
     assert!(vacancy.is_ready(None), "closed pipe reports vacancy-ready");
 }
 

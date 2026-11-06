@@ -4,7 +4,10 @@
 /// `MemoryRegistry` keeps a cache of recently-used regions and reuses them
 /// when possible.
 use std::collections::BTreeMap;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
+
+use foundation_core::valtron::Clock;
 
 use super::MemoryRegion;
 
@@ -30,12 +33,21 @@ impl Drop for Guard {
 }
 
 /// Pooled allocator for shared memory regions.
-#[derive(Default)]
 pub struct MemoryRegistry {
     inner: BTreeMap<usize, Vec<MemoryRegionEntry>>,
+    clock: Arc<dyn Clock>,
 }
 
 impl MemoryRegistry {
+    /// A registry whose eviction age reads `clock`.
+    #[must_use]
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
+        Self {
+            inner: BTreeMap::new(),
+            clock,
+        }
+    }
+
     /// Allocate a region of at least `min_size` bytes.
     pub fn alloc(&mut self, min_size: usize, tag: Option<&str>) -> Option<MemoryRegion> {
         self.alloc_inner(min_size, tag, None)
@@ -58,7 +70,7 @@ impl MemoryRegistry {
         tag: Option<&str>,
         free: Option<Box<dyn FnOnce()>>,
     ) -> Option<MemoryRegion> {
-        let now = Instant::now();
+        let now = self.clock.now();
 
         // Search for reusable entries in range [min_size .. min_size * 2)
         for (_, rs) in self
@@ -110,6 +122,6 @@ impl MemoryRegistry {
     }
 
     pub fn maintain(&mut self) {
-        self.maintain_inner(Instant::now());
+        self.maintain_inner(self.clock.now());
     }
 }

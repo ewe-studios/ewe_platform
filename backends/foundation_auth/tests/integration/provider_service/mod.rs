@@ -11,9 +11,13 @@ use foundation_auth::server::models::provider::{
     ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider,
 };
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, MonotonicClock};
 use foundation_db::StorageProvider;
 use tempfile::TempDir;
+
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// Build a real Turso-backed query store with all migrations applied.
 ///
@@ -33,7 +37,7 @@ fn make_store() -> (Arc<StorageProvider>, TempDir) {
 fn make_service() -> (ProviderService<StorageProvider>, TempDir) {
     let (store, dir) = make_store();
     let crypto = ProviderCrypto::from_passphrase("test-passphrase-abc123", "default");
-    (ProviderService::new(store, crypto), dir)
+    (ProviderService::new(store, crypto, test_clock()), dir)
 }
 
 fn sample_provider() -> UpstreamProvider {
@@ -113,6 +117,7 @@ async fn secret_survives_new_service_with_same_passphrase() {
     let svc1 = ProviderService::new(
         store.clone(),
         ProviderCrypto::from_passphrase("shared-passphrase", "default"),
+        test_clock(),
     );
     svc1.create(sample_provider()).await.expect("create");
     svc1.set_secret("google", "the-secret")
@@ -122,6 +127,7 @@ async fn secret_survives_new_service_with_same_passphrase() {
     let svc2 = ProviderService::new(
         store,
         ProviderCrypto::from_passphrase("shared-passphrase", "default"),
+        test_clock(),
     );
     assert_eq!(svc2.get_secret("google").await.unwrap(), "the-secret");
 }
@@ -132,6 +138,7 @@ async fn wrong_passphrase_fails_to_decrypt() {
     let svc1 = ProviderService::new(
         store.clone(),
         ProviderCrypto::from_passphrase("right-passphrase", "default"),
+        test_clock(),
     );
     svc1.create(sample_provider()).await.expect("create");
     svc1.set_secret("google", "the-secret")
@@ -141,6 +148,7 @@ async fn wrong_passphrase_fails_to_decrypt() {
     let svc2 = ProviderService::new(
         store,
         ProviderCrypto::from_passphrase("wrong-passphrase", "default"),
+        test_clock(),
     );
     // AEAD authentication fails with the wrong key.
     assert!(svc2.get_secret("google").await.is_err());

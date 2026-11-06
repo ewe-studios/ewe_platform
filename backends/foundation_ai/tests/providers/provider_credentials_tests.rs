@@ -53,6 +53,8 @@ fn email_auth() -> AuthCredential {
     }
 }
 
+type CredentialCase = (&'static str, fn() -> AuthCredential);
+
 fn username_password() -> AuthCredential {
     AuthCredential::UsernameAndPassword {
         username: "user".into(),
@@ -64,11 +66,16 @@ fn username_password() -> AuthCredential {
 // OpenAI — constructors
 // ---------------------------------------------------------------------------
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[test]
-fn openai_new_and_default_agree() {
-    // `Default` must not diverge from `new()` — they are used interchangeably.
-    let a = OpenAIProvider::new();
-    let b = OpenAIProvider::default();
+fn openai_new_is_consistent() {
+    // Two providers built the same way must not diverge.
+    let a = OpenAIProvider::new(test_clock());
+    let b = OpenAIProvider::new(test_clock());
     assert_eq!(
         a.describe().map(|d| d.id).ok(),
         b.describe().map(|d| d.id).ok()
@@ -78,7 +85,7 @@ fn openai_new_and_default_agree() {
 #[test]
 fn openai_with_config_is_constructible() {
     let cfg = OpenAIConfig::new().with_base_url("https://example.test/v1");
-    let p = OpenAIProvider::with_config(cfg);
+    let p = OpenAIProvider::with_config(cfg, test_clock());
     assert!(
         p.describe().is_ok(),
         "a configured provider must describe itself"
@@ -93,7 +100,7 @@ fn openai_with_config_is_constructible() {
 fn openai_create_accepts_secret_only() {
     let cfg = OpenAIConfig::new().with_auth(secret_only());
     assert!(
-        OpenAIProvider::new().create(Some(cfg)).is_ok(),
+        OpenAIProvider::new(test_clock()).create(Some(cfg)).is_ok(),
         "SecretOnly is the standard API-key shape and must be accepted"
     );
 }
@@ -102,7 +109,7 @@ fn openai_create_accepts_secret_only() {
 fn openai_create_accepts_client_secret() {
     let cfg = OpenAIConfig::new().with_auth(client_secret());
     assert!(
-        OpenAIProvider::new().create(Some(cfg)).is_ok(),
+        OpenAIProvider::new(test_clock()).create(Some(cfg)).is_ok(),
         "ClientSecret must be accepted (the secret half is used as the key)"
     );
 }
@@ -111,7 +118,7 @@ fn openai_create_accepts_client_secret() {
 fn openai_create_accepts_oauth() {
     let cfg = OpenAIConfig::new().with_auth(oauth());
     assert!(
-        OpenAIProvider::new().create(Some(cfg)).is_ok(),
+        OpenAIProvider::new(test_clock()).create(Some(cfg)).is_ok(),
         "OAuth must be accepted (the access token is used as the key)"
     );
 }
@@ -122,7 +129,7 @@ fn openai_create_rejects_email_auth() {
     // produce a provider that 401s on every request with no explanation.
     let cfg = OpenAIConfig::new().with_auth(email_auth());
     assert!(
-        OpenAIProvider::new().create(Some(cfg)).is_err(),
+        OpenAIProvider::new(test_clock()).create(Some(cfg)).is_err(),
         "EmailAuth must be rejected at create() time, not at request time"
     );
 }
@@ -131,7 +138,7 @@ fn openai_create_rejects_email_auth() {
 fn openai_create_rejects_username_and_password() {
     let cfg = OpenAIConfig::new().with_auth(username_password());
     assert!(
-        OpenAIProvider::new().create(Some(cfg)).is_err(),
+        OpenAIProvider::new(test_clock()).create(Some(cfg)).is_err(),
         "UsernameAndPassword must be rejected at create() time"
     );
 }
@@ -141,7 +148,7 @@ fn openai_create_without_config_succeeds() {
     // `create(None)` is the "configure later / no auth needed" path used by
     // local OpenAI-compatible servers (Ollama, llama-server).
     assert!(
-        OpenAIProvider::new().create(None).is_ok(),
+        OpenAIProvider::new(test_clock()).create(None).is_ok(),
         "create(None) must succeed for keyless local endpoints"
     );
 }
@@ -151,7 +158,7 @@ fn openai_create_preserves_the_supplied_config() {
     let cfg = OpenAIConfig::new()
         .with_base_url("https://openrouter.ai/api/v1")
         .with_auth(secret_only());
-    let p = OpenAIProvider::new()
+    let p = OpenAIProvider::new(test_clock())
         .create(Some(cfg))
         .expect("create must succeed");
     // The descriptor still resolves after create — i.e. config replacement did
@@ -165,7 +172,7 @@ fn openai_create_preserves_the_supplied_config() {
 
 #[test]
 fn anthropic_new_is_constructible_and_describes() {
-    let p = AnthropicMessagesProvider::new();
+    let p = AnthropicMessagesProvider::new(test_clock());
     assert!(p.describe().is_ok(), "provider must describe itself");
 }
 
@@ -173,14 +180,18 @@ fn anthropic_new_is_constructible_and_describes() {
 fn anthropic_create_accepts_secret_only() {
     let cfg = AnthropicConfig::new().with_auth(secret_only());
     assert!(
-        AnthropicMessagesProvider::new().create(Some(cfg)).is_ok(),
+        AnthropicMessagesProvider::new(test_clock())
+            .create(Some(cfg))
+            .is_ok(),
         "SecretOnly is the standard Anthropic API-key shape"
     );
 }
 
 #[test]
 fn anthropic_create_without_config_succeeds() {
-    assert!(AnthropicMessagesProvider::new().create(None).is_ok());
+    assert!(AnthropicMessagesProvider::new(test_clock())
+        .create(None)
+        .is_ok());
 }
 
 #[test]
@@ -189,7 +200,7 @@ fn anthropic_create_preserves_a_custom_base_url() {
     let cfg = AnthropicConfig::new()
         .with_base_url("https://proxy.example.test")
         .with_auth(secret_only());
-    let p = AnthropicMessagesProvider::new()
+    let p = AnthropicMessagesProvider::new(test_clock())
         .create(Some(cfg))
         .expect("create must succeed");
     assert!(p.describe().is_ok());
@@ -204,14 +215,14 @@ fn every_key_bearing_credential_shape_is_accepted() {
     // A caller swapping credential shapes should not discover that one is
     // silently refused. `AuthCredential` is not Clone, so each case builds a
     // fresh value via its constructor.
-    let cases: [(&str, fn() -> AuthCredential); 3] = [
+    let cases: [CredentialCase; 3] = [
         ("SecretOnly", secret_only),
         ("ClientSecret", client_secret),
         ("OAuth", oauth),
     ];
     for (label, build) in cases {
         assert!(
-            OpenAIProvider::new()
+            OpenAIProvider::new(test_clock())
                 .create(Some(OpenAIConfig::new().with_auth(build())))
                 .is_ok(),
             "OpenAI must accept the key-bearing credential {label}"
@@ -221,13 +232,13 @@ fn every_key_bearing_credential_shape_is_accepted() {
 
 #[test]
 fn every_interactive_credential_shape_is_rejected() {
-    let cases: [(&str, fn() -> AuthCredential); 2] = [
+    let cases: [CredentialCase; 2] = [
         ("EmailAuth", email_auth),
         ("UsernameAndPassword", username_password),
     ];
     for (label, build) in cases {
         assert!(
-            OpenAIProvider::new()
+            OpenAIProvider::new(test_clock())
                 .create(Some(OpenAIConfig::new().with_auth(build())))
                 .is_err(),
             "OpenAI must reject the interactive credential {label} at create() time"
@@ -247,7 +258,9 @@ fn every_interactive_credential_shape_is_rejected() {
 fn anthropic_create_accepts_client_secret() {
     let cfg = AnthropicConfig::new().with_auth(client_secret());
     assert!(
-        AnthropicMessagesProvider::new().create(Some(cfg)).is_ok(),
+        AnthropicMessagesProvider::new(test_clock())
+            .create(Some(cfg))
+            .is_ok(),
         "ClientSecret must be accepted (the secret half is used as the key)"
     );
 }
@@ -256,20 +269,22 @@ fn anthropic_create_accepts_client_secret() {
 fn anthropic_create_accepts_oauth() {
     let cfg = AnthropicConfig::new().with_auth(oauth());
     assert!(
-        AnthropicMessagesProvider::new().create(Some(cfg)).is_ok(),
+        AnthropicMessagesProvider::new(test_clock())
+            .create(Some(cfg))
+            .is_ok(),
         "OAuth must be accepted (the access token is used as the key)"
     );
 }
 
 #[test]
 fn anthropic_create_rejects_interactive_credentials() {
-    let cases: [(&str, fn() -> AuthCredential); 2] = [
+    let cases: [CredentialCase; 2] = [
         ("EmailAuth", email_auth),
         ("UsernameAndPassword", username_password),
     ];
     for (label, build) in cases {
         assert!(
-            AnthropicMessagesProvider::new()
+            AnthropicMessagesProvider::new(test_clock())
                 .create(Some(AnthropicConfig::new().with_auth(build())))
                 .is_err(),
             "Anthropic must reject {label} at create() time, not at request time"
@@ -283,14 +298,14 @@ fn anthropic_create_rejects_interactive_credentials() {
 
 #[test]
 fn responses_create_accepts_every_key_bearing_credential() {
-    let cases: [(&str, fn() -> AuthCredential); 3] = [
+    let cases: [CredentialCase; 3] = [
         ("SecretOnly", secret_only),
         ("ClientSecret", client_secret),
         ("OAuth", oauth),
     ];
     for (label, build) in cases {
         assert!(
-            ResponsesProvider::new()
+            ResponsesProvider::new(test_clock())
                 .create(Some(ResponsesConfig::new().with_auth(build())))
                 .is_ok(),
             "Responses must accept the key-bearing credential {label}"
@@ -300,13 +315,13 @@ fn responses_create_accepts_every_key_bearing_credential() {
 
 #[test]
 fn responses_create_rejects_interactive_credentials() {
-    let cases: [(&str, fn() -> AuthCredential); 2] = [
+    let cases: [CredentialCase; 2] = [
         ("EmailAuth", email_auth),
         ("UsernameAndPassword", username_password),
     ];
     for (label, build) in cases {
         assert!(
-            ResponsesProvider::new()
+            ResponsesProvider::new(test_clock())
                 .create(Some(ResponsesConfig::new().with_auth(build())))
                 .is_err(),
             "Responses must reject {label} at create() time"
@@ -316,7 +331,7 @@ fn responses_create_rejects_interactive_credentials() {
 
 #[test]
 fn responses_create_without_config_succeeds() {
-    assert!(ResponsesProvider::new().create(None).is_ok());
+    assert!(ResponsesProvider::new(test_clock()).create(None).is_ok());
 }
 
 // ---------------------------------------------------------------------------
@@ -337,7 +352,7 @@ fn anthropic_config_builders_chain_and_survive_create() {
         .with_messages_endpoint("/custom/messages")
         .with_auth(secret_only());
 
-    let p = AnthropicMessagesProvider::new()
+    let p = AnthropicMessagesProvider::new(test_clock())
         .create(Some(cfg))
         .expect("a fully-configured provider must build");
     assert!(p.describe().is_ok());
@@ -353,7 +368,7 @@ fn responses_config_builders_chain_and_survive_create() {
         .with_streaming(false)
         .with_auth(secret_only());
 
-    let p = ResponsesProvider::new()
+    let p = ResponsesProvider::new(test_clock())
         .create(Some(cfg))
         .expect("a fully-configured provider must build");
     assert!(p.describe().is_ok());
@@ -369,7 +384,7 @@ fn openai_config_builders_chain_and_survive_create() {
         .with_streaming(true)
         .with_auth(secret_only());
 
-    let p = OpenAIProvider::new()
+    let p = OpenAIProvider::new(test_clock())
         .create(Some(cfg))
         .expect("a fully-configured provider must build");
     assert!(p.describe().is_ok());
@@ -380,20 +395,20 @@ fn openai_config_builders_chain_and_survive_create() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn anthropic_default_matches_new() {
-    let a = AnthropicMessagesProvider::default();
-    let b = AnthropicMessagesProvider::new();
+fn anthropic_new_is_consistent() {
+    let a = AnthropicMessagesProvider::new(test_clock());
+    let b = AnthropicMessagesProvider::new(test_clock());
     assert_eq!(
         a.describe().map(|d| d.id).ok(),
         b.describe().map(|d| d.id).ok(),
-        "Default and new() are used interchangeably and must not diverge"
+        "two providers built the same way must not diverge"
     );
 }
 
 #[test]
-fn responses_default_matches_new() {
-    let a = ResponsesProvider::default();
-    let b = ResponsesProvider::new();
+fn responses_new_is_consistent() {
+    let a = ResponsesProvider::new(test_clock());
+    let b = ResponsesProvider::new(test_clock());
     assert_eq!(
         a.describe().map(|d| d.id).ok(),
         b.describe().map(|d| d.id).ok()

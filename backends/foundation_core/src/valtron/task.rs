@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 use crate::valtron::{Ctx, ReadinessNotifier, ReadinessWaker, Stream};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
@@ -127,6 +125,16 @@ impl ResumeSignal {
     pub fn get(&self) -> bool {
         self.0.flag.load(Ordering::SeqCst)
     }
+
+    /// The number of wakers registered on this signal.
+    ///
+    /// This is a test hook: a test proves that finished waits do not pile up
+    /// wakers. It is not part of the stable API.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn waiter_count(&self) -> usize {
+        self.0.notifier.waiter_count()
+    }
 }
 
 impl EventReadiness for ResumeSignal {
@@ -171,6 +179,7 @@ struct BoolSignalInner {
 
 impl BoolSignal {
     /// Create a new `BoolSignal` with the given initial value.
+    #[must_use]
     pub fn new(value: bool) -> Self {
         Self(Arc::new(BoolSignalInner {
             flag: Arc::new(AtomicBool::new(value)),
@@ -195,6 +204,7 @@ impl BoolSignal {
     ///
     /// Prefer [`BoolSignal::set`]: a raw store wakes nobody. Taking the atomic
     /// puts the signal on the timed re-check, so a raw store is still seen.
+    #[must_use]
     pub fn clone_inner(&self) -> Arc<AtomicBool> {
         self.0.raw.store(true, Ordering::SeqCst);
         self.0.flag.clone()
@@ -453,6 +463,7 @@ impl<T> QueueReadiness<T> {
     /// Push with [`QueueReadiness::push`] (or through the [`EventQueue`] that
     /// made this readiness) so the parked consumer is woken. A raw push wakes
     /// nobody.
+    #[must_use]
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
     }
@@ -473,6 +484,7 @@ impl<T> QueueReadiness<T> {
 
     /// Close the queue and wake the parked consumer, so it observes the end.
     /// Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.queue.close();
         self.changed();
@@ -569,6 +581,7 @@ impl<T> QueueVacancyReadiness<T> {
     /// Pop with [`QueueVacancyReadiness::pop`] (or through the [`EventQueue`] that
     /// made this readiness) so the parked producer is woken. A raw pop wakes
     /// nobody.
+    #[must_use]
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
     }
@@ -589,6 +602,7 @@ impl<T> QueueVacancyReadiness<T> {
 
     /// Close the queue and wake the parked producer, so it observes the close.
     /// Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.queue.close();
         self.changed();
@@ -613,6 +627,91 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
 impl<T> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         self.queue.is_closed() || !self.queue.is_full()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
+/// The **close-only** readiness signal for a bounded `ConcurrentQueue<T>`.
+///
+/// WHY: a producer that must learn "the consumer dropped the queue" has no
+/// exact signal. [`QueueVacancyReadiness`] reports "not full", which is true for
+/// every queue with room, so a producer parked on it wakes on each consumer pop.
+/// This signal is ready only after the queue closes, and its notifier fires only
+/// on the close.
+///
+/// WHAT: An [`EventReadiness`] that is ready when the queue **is closed**, so a
+/// producer parks on it with `TaskStatus::Depends` and runs again once the
+/// consumer goes away.
+///
+/// HOW: Wraps the same `Arc<ConcurrentQueue<T>>` the pipe owns and reports
+/// `queue.is_closed()`. The notifier is fired by the pipe's close funnel
+/// (`PipeInner::close_queue`), never by a push or a pop, and only on the first
+/// close.
+///
+/// # Example
+///
+/// ```
+/// use foundation_core::valtron::{EventReadiness, Pipe};
+///
+/// let (tx, rx) = Pipe::<u32>::with_depth(1);
+/// let closed = tx.closed_readiness();
+///
+/// // The receiver is alive: the close has not happened, even with room.
+/// assert!(!closed.is_ready(None));
+///
+/// drop(rx);
+/// assert!(closed.is_ready(None));
+/// ```
+pub struct QueueClosedReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken only when the queue closes, never by a push or a pop.
+    notifier: Arc<ReadinessNotifier>,
+}
+
+// Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
+impl<T> Clone for QueueClosedReadiness<T> {
+    fn clone(&self) -> Self {
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
+    }
+}
+
+impl<T> QueueClosedReadiness<T> {
+    /// A readiness over a queue whose close calls `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self { queue, notifier }
+    }
+
+    /// Get a clone of the underlying queue.
+    #[must_use]
+    pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
+        self.queue.clone()
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<T: Send> EventReadiness for QueueClosedReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueClosedReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.queue.is_closed()
     }
 
     fn register(&self, waker: &ReadinessWaker) -> bool {
@@ -666,6 +765,7 @@ pub struct AnyReadiness(Vec<EventReadinessPtr>);
 
 impl AnyReadiness {
     /// Create an `AnyReadiness` over the given child signals.
+    #[must_use]
     pub fn new(children: Vec<EventReadinessPtr>) -> Self {
         Self(children)
     }
@@ -854,11 +954,10 @@ impl<D, P> From<TaskStatus<D, P>> for Stream<D, P> {
     fn from(val: TaskStatus<D, P>) -> Self {
         match val {
             TaskStatus::Init => Stream::Init,
-            TaskStatus::Spawn(_) => Stream::Ignore,
+            TaskStatus::Spawn(_) | TaskStatus::Ignore | TaskStatus::Depends(_) => Stream::Ignore,
             TaskStatus::Ready(inner) => Stream::Next(inner),
             TaskStatus::Delayed(inner) => Stream::Delayed(inner),
             TaskStatus::Pending(inner) => Stream::Pending(inner),
-            TaskStatus::Ignore => Stream::Ignore,
             TaskStatus::Wait => Stream::Wait,
             TaskStatus::Spread(items) => Stream::Spread(
                 items
@@ -869,7 +968,6 @@ impl<D, P> From<TaskStatus<D, P>> for Stream<D, P> {
                     })
                     .collect(),
             ),
-            TaskStatus::Depends(_) => Stream::Ignore,
         }
     }
 }
@@ -1096,9 +1194,10 @@ impl<D: 'static, P: 'static> Iterator for TaskAsIterator<D, P> {
 /// Terminal (draining) methods for the contextual orchestrator.
 ///
 /// These drive the wrapped task to completion, always threading the `ctx` this
-/// orchestrator was seeded with — never minting a fresh `Ctx::new()`.
+/// orchestrator was seeded with — never minting a fresh `Ctx::host()`.
 impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     /// Drives the task, returning the first `Ready` value (if any).
+    #[must_use]
     pub fn first_ready(mut self) -> Option<D> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
             if let TaskStatus::Ready(value) = status {
@@ -1109,6 +1208,7 @@ impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     }
 
     /// Drives the task, returning the first `Pending` value (if any).
+    #[must_use]
     pub fn first_pending(mut self) -> Option<P> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
             if let TaskStatus::Pending(value) = status {
@@ -1119,6 +1219,7 @@ impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     }
 
     /// Drains the task, collecting every `Ready` value into a `Vec`.
+    #[must_use]
     pub fn collect_ready(mut self) -> Vec<D> {
         let mut out = Vec::new();
         while let Some(status) = self.0.next_status(self.1.clone()) {
@@ -1130,6 +1231,7 @@ impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     }
 
     /// Drains the task, returning the first `Ready` value (if any).
+    #[must_use]
     pub fn collect_one_ready(mut self) -> Option<D> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
             if let TaskStatus::Ready(value) = status {
@@ -1213,15 +1315,15 @@ impl PartialEq for State {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Pending(a), Self::Pending(b)) => a == b,
-            (Self::Panicked, Self::Panicked) => true,
-            (Self::SpawnFailed(a), Self::SpawnFailed(b)) => a == b,
-            (Self::SpawnFinished(_), Self::SpawnFinished(_)) => true,
-            (Self::Reschedule, Self::Reschedule) => true,
-            (Self::Progressed, Self::Progressed) => true,
-            (Self::ReadyValue(a), Self::ReadyValue(b)) => a == b,
-            (Self::Done, Self::Done) => true,
-            (Self::Wait, Self::Wait) => true,
-            (Self::Depends(_), Self::Depends(_)) => true,
+            (Self::SpawnFailed(a), Self::SpawnFailed(b))
+            | (Self::ReadyValue(a), Self::ReadyValue(b)) => a == b,
+            (Self::Panicked, Self::Panicked)
+            | (Self::SpawnFinished(_), Self::SpawnFinished(_))
+            | (Self::Reschedule, Self::Reschedule)
+            | (Self::Progressed, Self::Progressed)
+            | (Self::Done, Self::Done)
+            | (Self::Wait, Self::Wait)
+            | (Self::Depends(_), Self::Depends(_)) => true,
             _ => false,
         }
     }
@@ -1261,6 +1363,15 @@ pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 /// the underlying state information it returns.
 pub trait ExecutionIterator {
     fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State>;
+
+    /// A short name for this task, used by executor diagnostics.
+    ///
+    /// WHY: the slow-poll watchdog (feature 139) names the task that blocked a
+    /// worker in its warning. The default returns the concrete type's name,
+    /// which is a compile-time constant, so it costs nothing to produce.
+    fn name(&self) -> &'static str {
+        core::any::type_name::<Self>()
+    }
 }
 
 pub trait IntoBoxedExecutionIterator {
@@ -1342,15 +1453,22 @@ impl ExecutionIterator for CanCloneExecutionIterator {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.0.next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.0.name()
+    }
 }
 
-#[allow(clippy::needless_lifetimes)]
-impl<'a, M> ExecutionIterator for &'a mut M
+impl<M> ExecutionIterator for &mut M
 where
     M: ExecutionIterator,
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         (**self).next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        (**self).name()
     }
 }
 
@@ -1361,6 +1479,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.get_mut().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.borrow().name()
+    }
 }
 
 impl<M> ExecutionIterator for Rc<RefCell<Box<M>>>
@@ -1369,6 +1491,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.borrow_mut().next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        self.borrow().name()
     }
 }
 
@@ -1379,6 +1505,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.get_mut().unwrap().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.lock().unwrap().name()
+    }
 }
 
 impl<M> ExecutionIterator for Arc<Mutex<Box<M>>>
@@ -1388,6 +1518,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.lock().unwrap().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.lock().unwrap().name()
+    }
 }
 
 impl<M> ExecutionIterator for Box<M>
@@ -1396,6 +1530,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         (**self).next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        (**self).name()
     }
 }
 
@@ -1461,6 +1599,9 @@ pub trait ExecutionEngine {
     ///
     /// If `parent` is provided then a dependency connection is made
     /// with the relevant parent's identified by the `Entry` key.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     fn sequenced(
         &self,
         task: BoxedExecutionIterator,
@@ -1478,6 +1619,8 @@ pub trait ExecutionEngine {
     /// to completion before the parent is scheduled immediately
     /// to process the result or continue its opration.
     ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     fn lift(
         &self,
         task: BoxedExecutionIterator,
@@ -1488,17 +1631,28 @@ pub trait ExecutionEngine {
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the `ExecutionEngine`).
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// `broadcast` allows you to deliver a task to the global execution queue
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::QueueFull` or `ExecutorError::QueueClosed` from
+    /// the global queue.
     fn broadcast(&self, task: GlobalTask) -> AnyResult<SpawnInfo, ExecutorError>;
 
     /// `broadcast_or_lift` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts the task to the global queue so another worker picks it up
     /// - `multi=off`: lifts the task to the top of the local queue for priority execution
+    ///
+    /// # Errors
+    /// Returns the error from the chosen dispatch call: [`Self::broadcast`] in
+    /// multi mode, [`Self::lift`] otherwise.
     fn broadcast_or_lift(
         &self,
         task: GlobalTask,
@@ -1518,6 +1672,10 @@ pub trait ExecutionEngine {
     /// `broadcast_or_sequence` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts the task to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
+    ///
+    /// # Errors
+    /// Returns the error from the chosen dispatch call: [`Self::broadcast`] in
+    /// multi mode, [`Self::sequenced`] otherwise.
     fn broadcast_or_sequence(
         &self,
         task: GlobalTask,
@@ -1554,6 +1712,10 @@ pub type BoxedSendExecutionAction = Box<dyn ExecutionAction + Send + 'static>;
 /// Returns:
 ///     A result indicating success or failure with the error that caused said failure.
 pub trait ExecutionAction {
+    /// Applies the action through `engine`, with `key` as the parent entry.
+    ///
+    /// # Errors
+    /// Returns the error from the engine call that cannot accept the task.
     fn apply(
         &mut self,
         key: Option<Entry>,
@@ -1683,8 +1845,7 @@ impl<Done, Pending> TaskReadyResolver<Done, Pending> for NoResolving<Done, Pendi
     }
 }
 
-#[allow(clippy::needless_lifetimes)]
-impl<'a, F, D, P> TaskReadyResolver<D, P> for &'a mut F
+impl<F, D, P> TaskReadyResolver<D, P> for &mut F
 where
     F: TaskReadyResolver<D, P>,
 {
@@ -1849,9 +2010,9 @@ where
                 | TaskStatus::Pending(_)
                 | TaskStatus::Ignore
                 | TaskStatus::Wait
-                | TaskStatus::Depends(_) => Some(ReadyValue::Skip),
+                | TaskStatus::Depends(_)
+                | TaskStatus::Spread(_) => Some(ReadyValue::Skip),
                 TaskStatus::Ready(item) => Some(ReadyValue::Inner(item)),
-                TaskStatus::Spread(_) => Some(ReadyValue::Skip),
             },
             None => None,
         }
@@ -2027,7 +2188,7 @@ where
 /// #     }
 /// # }
 /// #
-/// # let ctx = Ctx::new();
+/// # let ctx = Ctx::host();
 /// # let task = Steps {
 /// #     items: vec![
 /// #         Outcome::Ok(1),

@@ -9,8 +9,9 @@
 //!
 //! WHAT: task A parks on a readiness that never fires, counted. Task B parks again
 //! and again on a fresh `ResumeSignal`, and another thread sets each one as soon
-//! as it is published, as fast as it can. B is woken hundreds of times; A's
-//! readiness must be checked only a few times.
+//! as it is published, as fast as it can. The storm stops after [`MAX_WAKES`]
+//! wakes, or after 600 ms once it has made [`MIN_WAKES`] wakes. B is woken
+//! hundreds of times; A's readiness must be checked only a few times.
 
 #![cfg_attr(
     not(feature = "multi"),
@@ -21,7 +22,8 @@
 )]
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
@@ -105,8 +107,12 @@ impl EventReadiness for ParkedSignal {
 }
 
 /// Parks on a fresh `ResumeSignal` each time it runs, until `stop` is set.
+///
+/// WHY: each signal goes to the storm thread through an unbounded channel.
+/// `send` never blocks, so the executor never waits on a lock that the storm
+/// thread holds.
 struct ParkAgainAndAgain {
-    published: Arc<Mutex<Option<ParkedSignal>>>,
+    published: Sender<ParkedSignal>,
     wakes: Arc<AtomicUsize>,
     stop: Arc<AtomicBool>,
     parked: bool,
@@ -128,7 +134,17 @@ impl TaskIterator for ParkAgainAndAgain {
             signal: ResumeSignal::new(false),
             registered: Arc::new(AtomicBool::new(false)),
         };
-        *self.published.lock().unwrap() = Some(signal.clone());
+        if self.published.send(signal.clone()).is_err() {
+            // The storm thread is gone. Do not park on a signal that nobody
+            // can set.
+            return None;
+        }
+        // The storm can stop between the check above and the send. Check once
+        // more: if it did stop, end now. The receiver may still hold this
+        // signal. Setting it is harmless because this task does not park.
+        if self.stop.load(Ordering::SeqCst) {
+            return None;
+        }
         Some(TaskStatus::Depends(Arc::new(signal)))
     }
 }
@@ -138,11 +154,129 @@ impl TaskIterator for ParkAgainAndAgain {
 /// made 2160 to 3780.
 const MAX_CHECKS: usize = 20;
 
+/// The fewest wakes the test needs.
+const MIN_WAKES: usize = 100;
+
+/// The storm stops after this many wakes, even if its time bound has not passed.
+///
+/// WHY: a work bound ends the storm early on a fast machine. The bound is above
+/// [`MIN_WAKES`], so the test still sees a real storm.
+const MAX_WAKES: usize = 200;
+
+/// The time after which the storm ends, if B has also been woken [`MIN_WAKES`]
+/// times, in milliseconds.
+///
+/// WHY: this is a floor check, not a hard cut. Under a heavy host load the
+/// executor can be too starved to reach [`MIN_WAKES`] wakes in this time.
+const STORM_MS: u64 = 600;
+
+/// The time after which the storm always ends, in milliseconds.
+///
+/// WHY: this hard cap keeps the test bounded when the executor is starved. It is
+/// well below the test's 20 s timeout.
+const STORM_HARD_MS: u64 = 5_000;
+
+/// How long the storm waits for a new signal before it reads the counters, in
+/// milliseconds.
+///
+/// WHY: the storm thread must not busy-spin. `recv_timeout` parks it, so the
+/// executor gets the CPU. A send wakes it at once.
+const STORM_POLL_MS: u64 = 1;
+
+/// The most time the storm waits for B to end after `stop`, in milliseconds.
+const STORM_DRAIN_MS: u64 = 5_000;
+
+/// The storm prints the wake count after each group of this many wakes.
+const REPORT_EVERY: usize = 100;
+
+/// Sets task B's published signals until the storm ends.
+///
+/// WHY: the storm stops on work ([`MAX_WAKES`] wakes) or on time once it has
+/// made [`MIN_WAKES`] wakes ([`STORM_MS`]), with a hard cap ([`STORM_HARD_MS`]).
+/// It then drains the channel until the driver loop returns, so the last wake
+/// cannot be lost.
+fn run_storm(
+    parked: &Receiver<ParkedSignal>,
+    wakes: &AtomicUsize,
+    stop: &AtomicBool,
+    finished: &AtomicBool,
+) {
+    let started = Instant::now();
+    let soft_until = started + Duration::from_millis(STORM_MS);
+    let hard_until = started + Duration::from_millis(STORM_HARD_MS);
+    let mut pending: Option<ParkedSignal> = None;
+    let mut reported = 0usize;
+    // Set signals until B has been woken `MAX_WAKES` times, or until
+    // `STORM_MS` has passed and B was woken at least `MIN_WAKES` times.
+    // `STORM_HARD_MS` always ends the storm.
+    loop {
+        let woken = wakes.load(Ordering::SeqCst);
+        if woken / REPORT_EVERY > reported {
+            reported = woken / REPORT_EVERY;
+            eprintln!("storm: B was woken {woken} times");
+        }
+        let now = Instant::now();
+        if woken >= MAX_WAKES || (now >= soft_until && woken >= MIN_WAKES) || now >= hard_until {
+            break;
+        }
+        if pending.is_none() {
+            // Park until B publishes a signal. This leaves the CPU to the
+            // executor; a send wakes this thread at once.
+            match parked.recv_timeout(Duration::from_millis(STORM_POLL_MS)) {
+                Ok(signal) => pending = Some(signal),
+                Err(RecvTimeoutError::Timeout) => {}
+                Err(RecvTimeoutError::Disconnected) => break,
+            }
+        }
+        // Set a signal only after the executor registered its waker: a task
+        // that parks on an already-ready signal counts as a violation.
+        if pending
+            .as_ref()
+            .is_some_and(|signal| signal.registered.load(Ordering::SeqCst))
+        {
+            let signal = pending.take().expect("the pending signal");
+            signal.signal.set(true);
+        } else if pending.is_some() {
+            // Wait for the executor to register its waker. Yield so it runs.
+            std::thread::yield_now();
+        }
+    }
+    // End the storm: B sees this flag on its next run.
+    stop.store(true, Ordering::SeqCst);
+    eprintln!(
+        "storm: stop set after {} wakes",
+        wakes.load(Ordering::SeqCst)
+    );
+    // Guarantee the final wake. The executor can publish a signal after the
+    // last read of `stop`. Set every signal that is still in the channel so B
+    // wakes, sees `stop`, and ends. Keep the receiver alive until the driver
+    // loop has returned: dropping it makes a later send fail.
+    if let Some(signal) = pending.take() {
+        signal.signal.set(true);
+    }
+    let drain_until = Instant::now() + Duration::from_millis(STORM_DRAIN_MS);
+    loop {
+        if finished.load(Ordering::SeqCst) || Instant::now() >= drain_until {
+            break;
+        }
+        match parked.recv_timeout(Duration::from_millis(50)) {
+            Ok(signal) => signal.signal.set(true),
+            Err(RecvTimeoutError::Timeout) => {}
+            Err(RecvTimeoutError::Disconnected) => break,
+        }
+    }
+    // Keep task A parked for at least `STORM_MS`. The final assertion uses that
+    // floor, and the wake storm can end on its work bound before the time
+    // bound. This wait sets no signal.
+    std::thread::sleep(soft_until.saturating_duration_since(Instant::now()));
+}
+
 #[valtron_test(threads = 2, timeout = 20_000)]
 async fn a_wake_for_another_task_does_not_make_a_parked_task_re_check() {
-    let published = Arc::new(Mutex::new(None::<ParkedSignal>));
+    let (published, parked) = mpsc::channel::<ParkedSignal>();
     let wakes = Arc::new(AtomicUsize::new(0));
     let stop = Arc::new(AtomicBool::new(false));
+    let finished = Arc::new(AtomicBool::new(false));
 
     // Task A: parked on a readiness nobody sets until the end.
     let never = ResumeSignal::new(false);
@@ -165,7 +299,7 @@ async fn a_wake_for_another_task_does_not_make_a_parked_task_re_check() {
     // Task B: woken again and again by the storm thread.
     let mut b = execute(
         ParkAgainAndAgain {
-            published: Arc::clone(&published),
+            published,
             wakes: Arc::clone(&wakes),
             stop: Arc::clone(&stop),
             parked: false,
@@ -176,28 +310,10 @@ async fn a_wake_for_another_task_does_not_make_a_parked_task_re_check() {
     .into_next_stream();
 
     let storm = {
-        let published = Arc::clone(&published);
+        let wakes = Arc::clone(&wakes);
         let stop = Arc::clone(&stop);
-        std::thread::spawn(move || {
-            let until = Instant::now() + Duration::from_millis(600);
-            while Instant::now() < until {
-                let parked = {
-                    let mut slot = published.lock().unwrap();
-                    match slot.as_ref() {
-                        Some(s) if s.registered.load(Ordering::SeqCst) => slot.take(),
-                        _ => None,
-                    }
-                };
-                match parked {
-                    Some(signal) => signal.signal.set(true),
-                    None => std::thread::yield_now(),
-                }
-            }
-            stop.store(true, Ordering::SeqCst);
-            if let Some(signal) = published.lock().unwrap().take() {
-                signal.signal.set(true);
-            }
-        })
+        let finished = Arc::clone(&finished);
+        std::thread::spawn(move || run_storm(&parked, &wakes, &stop, &finished))
     };
     // Drive the executors until B has seen the stop flag (on one thread the
     // consumer is the executor).
@@ -205,14 +321,17 @@ async fn a_wake_for_another_task_does_not_make_a_parked_task_re_check() {
         .await
         .is_some()
     {}
+    // Let the storm thread release its receiver. B ended, so nothing more can
+    // be published.
+    finished.store(true, Ordering::SeqCst);
     storm.join().expect("storm thread");
 
     let checked = checks.load(Ordering::SeqCst);
     let woken = wakes.load(Ordering::SeqCst);
     eprintln!("B was woken {woken} times; A's readiness was checked {checked} times");
     assert!(
-        woken >= 100,
-        "the storm must be real: B was woken only {woken} times"
+        woken >= MIN_WAKES,
+        "the storm must be real: B was woken only {woken} times; the floor is {MIN_WAKES}"
     );
     assert!(
         checked <= MAX_CHECKS,
@@ -255,7 +374,7 @@ async fn closing_an_event_queue_wakes_both_sides() {
         .into_next_stream();
         let thread = std::thread::spawn(move || {
             std::thread::sleep(Duration::from_millis(150));
-            closer.close();
+            let _ = closer.close();
         });
         let ms = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx))
             .await
@@ -316,7 +435,7 @@ async fn observer_wakes(close: bool) -> u64 {
             .send((observer.readiness(), Instant::now()))
             .expect("send readiness");
         std::thread::sleep(Duration::from_millis(200));
-        while continuation.next_status(Ctx::new()).is_some() {}
+        while continuation.next_status(Ctx::host()).is_some() {}
         drop(continuation);
         // Keep the observer alive until the continuation is done: dropping it
         // closes the queue too.

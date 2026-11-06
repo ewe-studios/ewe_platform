@@ -7,6 +7,9 @@
 //! - `.utm` bundle config.plist generation and modification
 
 use std::path::PathBuf;
+use std::sync::Arc;
+
+use foundation_core::valtron::Clock;
 
 use crate::config::{DisplayMode, Result, TestbedError, VmProfile};
 use crate::providers::{Provider, ProviderId, ResolvedPorts, VmHandle, VmProvider};
@@ -23,13 +26,16 @@ pub const MIN_UTM_VERSION: &str = "4.6.5";
 /// UTM provider — manages UTM VMs on macOS.
 pub struct UtmProvider {
     display: DisplayMode,
+    /// The host's clock for every launch and readiness deadline.
+    clock: Arc<dyn Clock>,
 }
 
 impl UtmProvider {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         UtmProvider {
             display: DisplayMode::Headless,
+            clock,
         }
     }
 
@@ -41,13 +47,13 @@ impl UtmProvider {
 
     // ── Shared helpers ──
 
-    fn launch_vm(profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle> {
-        let warnings = utmctl::ensure_utm()?;
+    fn launch_vm(profile: &VmProfile, mode: DisplayMode, clock: &dyn Clock) -> Result<VmHandle> {
+        let warnings = utmctl::ensure_utm(clock)?;
         for w in &warnings {
             eprintln!("  Warning: {w}");
         }
 
-        let bundle_path = import::ensure_utm_bundle(profile)?;
+        let bundle_path = import::ensure_utm_bundle(profile, clock)?;
         let vm_entry =
             utmctl::find_vm_by_name(profile.name)?.ok_or_else(|| TestbedError::Qcow2Error {
                 message: format!(
@@ -95,7 +101,7 @@ impl UtmProvider {
         }
 
         utmctl::start_vm(profile.name)?;
-        let vm_entry = wait_for_vm_started(profile.name, 120)?;
+        let vm_entry = wait_for_vm_started(profile.name, 120, clock)?;
 
         // Network port forwards
         let mut extra_forwards = Vec::new();
@@ -125,6 +131,7 @@ impl UtmProvider {
             &vm_uuid,
             resolved_ports.ssh_port,
             false,
+            clock,
         )?;
 
         Ok(VmHandle {
@@ -148,12 +155,6 @@ impl UtmProvider {
     }
 }
 
-impl Default for UtmProvider {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 // ── Associated-types Provider (canonical impl) ─────────────────────────
 
 impl Provider for UtmProvider {
@@ -169,7 +170,7 @@ impl Provider for UtmProvider {
     }
 
     fn launch(&self, config: &VmProfile) -> Result<VmHandle> {
-        Self::launch_vm(config, self.display)
+        Self::launch_vm(config, self.display, self.clock.as_ref())
     }
 
     fn stop(&self, handle: &VmHandle) -> Result<()> {
@@ -220,7 +221,7 @@ impl VmProvider for UtmProvider {
         })
     }
     fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf> {
-        import::ensure_utm_bundle(profile)
+        import::ensure_utm_bundle(profile, self.clock.as_ref())
     }
     fn host_health(&self) -> crate::doctor::HostHealth {
         crate::doctor::check_host()
@@ -230,10 +231,14 @@ impl VmProvider for UtmProvider {
 // ── Public API ──────────────────────────────────────────────────────────
 
 /// Wait for a VM to appear in `utmctl list` with status "started".
-fn wait_for_vm_started(name: &str, timeout_secs: u64) -> Result<utmctl::VmEntry> {
-    let start = std::time::Instant::now();
+fn wait_for_vm_started(
+    name: &str,
+    timeout_secs: u64,
+    clock: &dyn Clock,
+) -> Result<utmctl::VmEntry> {
+    let start = clock.now();
     loop {
-        if start.elapsed().as_secs() > timeout_secs {
+        if clock.now().duration_since(start).as_secs() > timeout_secs {
             return Err(TestbedError::Qcow2Error {
                 message: format!("VM '{name}' did not start within {timeout_secs}s"),
             });

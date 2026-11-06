@@ -56,7 +56,7 @@ fn run_with_one_reconnect() -> (String, usize, Vec<String>) {
     let mut markers = 0;
     let mut order = Vec::new();
     let mut steps = 0;
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(parse_result) = status {
             match parse_result.event {
                 Event::Reconnect => {
@@ -147,7 +147,7 @@ fn a_response_with_content_length_ends_without_a_reconnect() {
         let started = std::time::Instant::now();
         let mut order = Vec::new();
         let mut steps = 0;
-        while let Some(status) = task.next_status(Ctx::new()) {
+        while let Some(status) = task.next_status(Ctx::host()) {
             if let TaskStatus::Ready(parse_result) = status {
                 match parse_result.event {
                     Event::Reconnect => order.push("reconnect".to_string()),

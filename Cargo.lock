@@ -4533,7 +4533,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "candle-core",
@@ -4587,7 +4587,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "argon2",
  "async-trait",
@@ -4676,10 +4676,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
+ "foundation_compact",
  "foundation_core",
  "foundation_http",
  "foundation_macros",
@@ -5349,10 +5350,12 @@ dependencies = [
 
 [[package]]
 name = "foundation_codegentools"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "clap",
  "foundation_codegen",
+ "foundation_compact",
+ "foundation_core",
  "foundation_errstacks",
  "foundation_openapi",
  "serde",
@@ -5366,7 +5369,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
@@ -5402,7 +5405,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.4"
+version = "0.0.7"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
@@ -5412,6 +5415,7 @@ dependencies = [
  "flate2",
  "foundation_arrow",
  "foundation_auth",
+ "foundation_compact",
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
@@ -5424,6 +5428,7 @@ dependencies = [
  "libc",
  "serde",
  "serde_json",
+ "socket2 0.6.5",
  "tracing",
  "zstd",
 ]
@@ -5439,7 +5444,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.8"
+version = "0.0.16"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -5472,10 +5477,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_cronjobs"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "chrono",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "futures-lite",
@@ -5488,7 +5494,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -5525,12 +5531,13 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "base85rs",
  "bytes",
  "chrono",
  "derive_more",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_macros",
@@ -5549,7 +5556,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_cloudflare"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "derive_more",
@@ -5598,6 +5605,7 @@ dependencies = [
  "foundation_cloudflare_workers",
  "foundation_cloudflare_zones",
  "foundation_codegentools",
+ "foundation_compact",
  "foundation_core",
  "foundation_deployment",
  "foundation_errstacks",
@@ -5665,12 +5673,13 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_hetzner"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "base85rs",
  "chrono",
  "derive_more",
  "foundation_codegentools",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_deployment",
@@ -5707,7 +5716,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_platform"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5716,6 +5725,7 @@ dependencies = [
  "derive_more",
  "dirs 6.0.0",
  "flate2",
+ "foundation_compact",
  "foundation_core",
  "foundation_deployment_docker",
  "foundation_errstacks",
@@ -5773,12 +5783,13 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.5"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bytes",
  "concurrent-queue",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
@@ -5792,6 +5803,7 @@ dependencies = [
  "js-sys",
  "libc",
  "ntest",
+ "rand_chacha 0.10.0",
  "regex",
  "serde",
  "serde_json",
@@ -5839,7 +5851,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_keychain"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "age",
  "async-trait",
@@ -5882,11 +5894,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.8"
+version = "0.0.10"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
- "chrono",
  "flate2",
  "foundation_arrow",
  "foundation_connectrpc",
@@ -5909,7 +5920,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.7"
+version = "0.0.9"
 dependencies = [
  "async-trait",
  "bincode 2.0.1",
@@ -5954,7 +5965,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
@@ -6007,8 +6018,9 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
+ "foundation_core",
  "foundation_testing",
  "ntest",
  "serial_test",
@@ -6052,9 +6064,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "concurrent-queue",
+ "foundation_compact",
+ "foundation_core",
  "foundation_netio",
  "foundation_nostd",
  "foundation_ui_traits",
@@ -6070,12 +6084,13 @@ dependencies = [
 
 [[package]]
 name = "foundation_proxy"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "base64 0.22.1",
  "bytes",
  "chrono",
  "derive_more",
+ "foundation_compact",
  "foundation_connectrpc",
  "foundation_core",
  "foundation_db",
@@ -6104,7 +6119,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_core",
  "io-uring",
@@ -6115,9 +6130,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_repl"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "crossterm",
+ "foundation_core",
  "js-sys",
  "ratatui",
  "ratzilla",
@@ -6170,7 +6186,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_sshkit"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -6186,7 +6202,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testbed"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -6234,7 +6250,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testing"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "base64 0.22.1",
  "criterion 0.5.1",
@@ -6258,10 +6274,11 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "concurrent-queue",
  "derive_more",
+ "foundation_compact",
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
@@ -6322,7 +6339,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "clap",
  "concurrent-queue",
@@ -6366,13 +6383,14 @@ dependencies = [
 
 [[package]]
 name = "foundation_wireguard"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "base64 0.22.1",
  "bincode 2.0.1",
  "blake2",
  "derive_more",
  "foundation_boringtun",
+ "foundation_compact",
  "foundation_core",
  "foundation_errstacks",
  "foundation_macros",

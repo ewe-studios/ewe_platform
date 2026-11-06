@@ -1,10 +1,10 @@
 // Proxy handlers: SseReloadHandler.
 
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::timer;
+use foundation_core::valtron::{timer, Clock};
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::{render_message, ResponseWriter, WriterConfig};
 use foundation_http::shared::context::ContextBag;
@@ -21,9 +21,15 @@ use crate::watcher::FileChange;
 
 pub struct SseReloadHandler {
     reload_rx: Arc<ConcurrentQueue<FileChange>>,
+    clock: Arc<dyn Clock>,
 }
 
 impl ServeFactory for SseReloadHandler {
+    /// # Panics
+    ///
+    /// Panics when the bag has no reload queue or no clock. The host that
+    /// builds the bag must store both; a missing clock is a design fault, not
+    /// a reason to fall back to the real clock.
     fn create(bag: &ContextBag) -> Self {
         let tx = bag
             .get::<Arc<ConcurrentQueue<FileChange>>>()
@@ -31,8 +37,13 @@ impl ServeFactory for SseReloadHandler {
         // bag.get() returns Arc<T>, T is already Arc<ConcurrentQueue>
         // We need to get the inner Arc via deref
         let queue: &Arc<ConcurrentQueue<FileChange>> = &tx;
+
+        // The bag carries the clock as a field, so `create` cannot miss it.
+        let clock = bag.clock();
+
         Self {
             reload_rx: (*queue).clone(),
+            clock,
         }
     }
 }
@@ -45,6 +56,7 @@ impl Serve for SseReloadHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let reload_rx = Arc::clone(&self.reload_rx);
+        let clock = Arc::clone(&self.clock);
 
         // The response head and every event go through the async
         // `ResponseWriter`: a slow client parks on write readiness instead of
@@ -71,7 +83,7 @@ impl Serve for SseReloadHandler {
             }
             let mut writer = SseWriter::from_writer(response);
 
-            let mut last_keepalive = Instant::now();
+            let mut next_keepalive = clock.now() + Duration::from_secs(1);
             loop {
                 // Send every queued reload event.
                 while reload_rx.pop().is_ok() {
@@ -81,12 +93,12 @@ impl Serve for SseReloadHandler {
                     }
                 }
 
-                // Send a keep-alive every second.
-                if last_keepalive.elapsed() >= Duration::from_secs(1) {
+                // Send a keep-alive every second, timed by the injected clock.
+                if clock.now() >= next_keepalive {
                     if writer.comment("keep-alive").await.is_err() {
                         return ServeOutcome::Take;
                     }
-                    last_keepalive = Instant::now();
+                    next_keepalive = clock.now() + Duration::from_secs(1);
                 }
 
                 timer::sleep_for(Duration::from_millis(50)).await;

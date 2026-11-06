@@ -1,8 +1,9 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.3"
+version = "0.1.4"
 
 [dependencies]
+foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 
 # Native only: `dns_ops.rs` and `types.rs` (both `cfg(not(target_family = "wasm"))`).
 [target.'cfg(not(target_family = "wasm"))'.dependencies.chrono]
@@ -16,18 +17,18 @@ workspace = true
 # Native only: used by `dns_ops.rs` and `types.rs`.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.8"
+version = "0.0.16"
 
 # foundation_deployment is only used by the REST API (generated code + client.rs)
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.3"
+version = "0.0.4"
 
 # Native only: nothing on wasm32 uses it.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.8"
+version = "0.0.10"
 
 # Native only: `types.rs` (errstacks) and the REST API client `client.rs` and
 # `dns_ops.rs` (netio) sit behind `cfg(not(target_family = "wasm"))`, so on wasm32
@@ -45,7 +46,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.6"
+version = "0.0.7"
 
 # Native: `types.rs` and `dns_ops.rs`. The wasm32 entries (optional, enabled by the
 # `workers` feature) are in the wasm table below.
@@ -341,13 +342,20 @@ full = ["cloudflare"]
 workers = ["dep:worker", "dep:js-sys", "dep:wasm-bindgen", "dep:serde", "dep:serde_json"]
 zones = ["cloudflare_zones"]
 
+[dev-dependencies]
+# `SimulatedClock` for the clock-injection test (spec 70 feature 134).
+[dev-dependencies.foundation_core]
+path = "../foundation_core"
+version = "0.0.16"
+features = ["test-clock"]
+
 [lints]
 workspace = true
 
 [package]
 description = "Cloudflare API v4 client — DNS records, zones, certificates"
 name = "foundation_deployment_cloudflare"
-version = "0.2.0"
+version = "0.2.1"
 
 [package.authors]
 workspace = true

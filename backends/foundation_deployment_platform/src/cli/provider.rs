@@ -1,9 +1,12 @@
 //! Provider-agnostic CLI commands (start, stop, import, doctor, ls, init).
 
+use std::sync::Arc;
+
 use crate::config::{self, DisplayMode, get_profile};
 use crate::providers::default_provider;
 use crate::state;
 use clap::ArgMatches;
+use foundation_core::valtron::Clock;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -13,7 +16,7 @@ fn resolve_profile(name: &str) -> std::result::Result<config::VmProfile, BoxedEr
         .map_err(|e| Box::new(e) as BoxedError)
 }
 
-pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_start(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let headful = args.get_flag("headful");
     let profile = resolve_profile(name)?;
@@ -29,7 +32,8 @@ pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         if headful { "headful" } else { "headless" }
     );
 
-    let provider = default_provider()?;
+    let created_at = crate::clock::wall_now_rfc3339(clock.as_ref());
+    let provider = default_provider(clock)?;
     let handle = provider.launch(&profile, display)?;
 
     // Save VM state to disk so bootstrap/stop commands can find it
@@ -46,7 +50,7 @@ pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         rdp_port: handle.resolved_ports.rdp_port,
         vnc_port: handle.resolved_ports.vnc_port,
         bootstrapped: false,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at,
     };
     state::save(&vm_state)?;
 
@@ -67,7 +71,7 @@ pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     Ok(())
 }
 
-pub fn cmd_stop(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_stop(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
 
     let vm_state = state::load(name)?;
@@ -75,7 +79,7 @@ pub fn cmd_stop(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         .pid
         .ok_or_else(|| format!("VM '{}' is not running (no PID in state)", name))?;
 
-    let provider = default_provider()?;
+    let provider = default_provider(clock)?;
 
     // Build a minimal handle from state for the provider
     let profile = resolve_profile(name)?;
@@ -97,11 +101,11 @@ pub fn cmd_stop(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     Ok(())
 }
 
-pub fn cmd_import(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_import(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let profile = resolve_profile(name)?;
 
-    let provider = default_provider()?;
+    let provider = default_provider(clock)?;
     let path = provider.ensure_image(&profile)?;
 
     println!("Image available at {:?}", path);
@@ -111,16 +115,16 @@ pub fn cmd_import(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     Ok(())
 }
 
-pub fn cmd_doctor(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_doctor(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
     let profile_name = args.get_one::<String>("profile");
 
-    let provider = default_provider()?;
+    let provider = default_provider(Arc::clone(&clock))?;
     let host_health = provider.host_health();
     host_health.print();
 
     if let Some(name) = profile_name {
         let profile = resolve_profile(name)?;
-        let vm_health = crate::doctor::check_vm(&profile);
+        let vm_health = crate::doctor::check_vm(&profile, clock);
         vm_health.print();
     }
 

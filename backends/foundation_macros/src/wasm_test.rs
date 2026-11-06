@@ -309,17 +309,16 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[link_section = "__fwt_manifest"]
         static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;
     }
-    .into()
 }
 
 /// `#[valtron_wasm_test]` — `#[wasm_test]` but with a live valtron pool.
 ///
 /// Same as `#[wasm_test]` (owned export + manifest entry + runner),
-/// but wraps the test body in `valtron::initialize_pool()` / drop() so
+/// but wraps the test body in `valtron::initialize_pool()` / `drop()` so
 /// `valtron::execute()` and `valtron::spawn()` are available without
 /// manual pool setup.
-pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let flags = match parse_flags(attr) {
+pub(crate) fn valtron_wasm_test(attr: &TokenStream, item: &TokenStream) -> TokenStream {
+    let flags = match parse_flags(attr.clone()) {
         Ok(flags) => flags,
         Err(err) => return err.to_compile_error(),
     };
@@ -406,5 +405,4 @@ pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenSt
         #[link_section = "__fwt_manifest"]
         static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;
     }
-    .into()
 }

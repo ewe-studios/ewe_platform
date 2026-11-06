@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer, TotpKeyRing};
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, Clock, MonotonicClock};
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -115,13 +115,21 @@ fn config() -> IdpConfig {
         .with_totp_keys(TotpKeyRing::new("k1", [7u8; 32]))
 }
 
-fn memory_storage() -> Arc<HandlerStorage<MemoryStorage>> {
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
+
+fn memory_storage(clock: Arc<dyn Clock>) -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let provider =
         crate::integration::turso_provider(dir.path().join("s.db").to_str().unwrap().into());
     std::mem::forget(dir);
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
-    Arc::new(HandlerStorage::new(query_store, MemoryStorage::new()))
+    Arc::new(HandlerStorage::new(
+        query_store,
+        MemoryStorage::new(),
+        clock,
+    ))
 }
 
 #[valtron_test(threads = 8, timeout = 60000)]
@@ -129,7 +137,7 @@ fn register_routes_share_one_session_store() {
     // An app built with `register_routes` only: every route has its own
     // handler instance, and no shared session service was put in the app.
     let config = config();
-    let storage = memory_storage();
+    let storage = memory_storage(test_clock());
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
     app.ctx.store(storage);
@@ -163,19 +171,21 @@ fn session_survives_restart_with_a_persistent_store() {
         kv
     }
     .block();
-    let storage = Arc::new(HandlerStorage::new(query_store, cache));
+    let clock = test_clock();
+    let storage = Arc::new(HandlerStorage::new(query_store, cache, Arc::clone(&clock)));
     // A stable key, as a deployment reads it from its secret store.
     let make_config = || config().with_session_key(vec![0x5A; 32]);
 
     // First run: log in, then stop the server.
     let cookie = {
-        let app = IdpServer::new(make_config(), Arc::clone(&storage)).http_app();
+        let app =
+            IdpServer::new(make_config(), Arc::clone(&storage), Arc::clone(&clock)).http_app();
         let server = serve(app);
         server.register_and_login("restart@example.com")
     };
 
     // Second run: a new server over the same store and key accepts the cookie.
-    let app = IdpServer::new(make_config(), Arc::clone(&storage)).http_app();
+    let app = IdpServer::new(make_config(), Arc::clone(&storage), Arc::clone(&clock)).http_app();
     let server = serve(app);
     let (status, _) = server.post(NEEDS_SESSION, &serde_json::json!({}), Some(&cookie));
     assert_eq!(status, 200, "the session survived the restart");
@@ -185,7 +195,7 @@ fn session_survives_restart_with_a_persistent_store() {
         .with_dev_mode(true)
         .with_totp_keys(TotpKeyRing::new("k1", [7u8; 32]))
         .with_session_key(vec![0xA5; 32]);
-    let app = IdpServer::new(other_key, Arc::clone(&storage)).http_app();
+    let app = IdpServer::new(other_key, Arc::clone(&storage), clock).http_app();
     let server = serve(app);
     let (status, _) = server.post(NEEDS_SESSION, &serde_json::json!({}), Some(&cookie));
     assert_eq!(
@@ -196,7 +206,8 @@ fn session_survives_restart_with_a_persistent_store() {
 
 #[valtron_test(threads = 8, timeout = 60000)]
 fn a_short_session_key_is_refused() {
-    let storage = memory_storage();
-    let refused = IdpServer::try_new(config().with_session_key(vec![1u8; 8]), storage);
+    let clock = test_clock();
+    let storage = memory_storage(Arc::clone(&clock));
+    let refused = IdpServer::try_new(config().with_session_key(vec![1u8; 8]), storage, clock);
     assert!(refused.is_err());
 }

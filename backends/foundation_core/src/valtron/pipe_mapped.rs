@@ -12,7 +12,7 @@ use core::task::{Context, Poll};
 use std::sync::Mutex;
 
 use crate::valtron::pipe::{PipeReceiver, PipeSender, SendError};
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 use concurrent_queue::{PopError, PushError};
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -42,6 +42,13 @@ where
     /// consumed). Returns `Ok(())` on success. The stash absorbs transient Fulls.
     // A named error type would change this public signature; the feature that
     // does that also bumps the crate version. Until then, `()` has one meaning.
+    ///
+    /// # Errors
+    /// Returns `Err(())` when the inner pipe is full. The item stays in the
+    /// stash and the caller retries at the next poll.
+    ///
+    /// # Panics
+    /// Panics if the internal stash mutex is poisoned.
     #[allow(clippy::result_unit_err)]
     pub fn try_send(&self, outer: &Outer) -> Result<(), ()> {
         // Drain stash first.
@@ -96,6 +103,15 @@ where
         Inner: Send,
     {
         self.inner.vacancy()
+    }
+
+    /// Ready only once the inner pipe closes, so a task parked on it is not
+    /// woken by every consumer pop. See [`PipeSender::closed_readiness`].
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<Inner>
+    where
+        Inner: Send,
+    {
+        self.inner.closed_readiness()
     }
 }
 
@@ -165,12 +181,11 @@ where
     type Output = Result<(), SendError<Outer>>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let item: Inner = match self.stashed.take() {
-            Some(inner) => inner,
-            None => {
-                let outer = self.outer.as_ref().expect("polled after Ready");
-                (self.sender.f)(outer)
-            }
+        let item: Inner = if let Some(inner) = self.stashed.take() {
+            inner
+        } else {
+            let outer = self.outer.as_ref().expect("polled after Ready");
+            (self.sender.f)(outer)
         };
 
         match self.sender.inner.inner.queue.push(item) {
@@ -220,6 +235,11 @@ where
 {
     /// Non-blocking pop through the transform. Returns `Err(Empty)` if the inner
     /// pipe is empty, or if the transform returns `None` for the popped item.
+    ///
+    /// # Errors
+    /// Returns `TryRecvError::Empty` when the inner pipe is empty or the
+    /// transform returns `None`, and `TryRecvError::Closed` when the pipe is
+    /// closed.
     pub fn try_recv(&self) -> Result<Outer, crate::valtron::pipe::TryRecvError> {
         let inner = self.inner.try_recv()?;
         (self.f)(&inner).ok_or(crate::valtron::pipe::TryRecvError::Empty)

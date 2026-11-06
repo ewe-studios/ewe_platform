@@ -22,6 +22,12 @@
 #   wasm-runs       = [...]   one `cargo check --target wasm32` per entry, same
 #                             feature-flag syntax as `runs`. Only the wasm-
 #                             relevant crates set this.
+#   wasm-deny-warnings = true  run every wasm check of this package with
+#                             `RUSTFLAGS=-D warnings`, so a warning fails CI.
+#                             Default false. `cargo check` takes no trailing
+#                             rustc arguments, so the flag cannot use `--`.
+#                             Set it only for packages at zero warnings (with
+#                             every feature tree in `wasm-runs`).
 #   clippy-deny-warnings = true  pass `--no-deps -- -D warnings` to every clippy run of this
 #                             package, so a clippy warning fails CI. Default
 #                             false. Set it only for packages at zero warnings
@@ -139,6 +145,12 @@ wasm-expect-error = { run = "--no-default-features", contains = "foundation_core
 # The crate had no clippy runs of its own; its lints were only seen through the
 # crates that depend on it. Lint it directly and fail on a warning (spec 70
 # feature 49 E10).
+clippy-deny-warnings = true
+
+[packages.foundation_macros]
+# At zero clippy warnings across its one feature tree (spec 70 feature 120):
+# a new warning fails CI. The crate has no features, so the default run is
+# the only tree to lint.
 clippy-deny-warnings = true
 
 [packages.foundation_jsonschema]
@@ -352,6 +364,9 @@ wasm-runs = [""]
 runs = ["", "h3"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
+# Spec 70 feature 128: the rpc wasm build is at zero warnings, and the gate
+# keeps it there. The native-dep items in `dispatch.rs` are gated to non-wasm.
+wasm-deny-warnings = true
 
 # ---------------------------------------------------------------------------
 # Example workspaces

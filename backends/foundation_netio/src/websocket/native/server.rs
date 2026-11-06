@@ -196,8 +196,11 @@ impl WebSocketServerConnection {
     ///
     /// * `stream` - The shared byte buffer stream after successful handshake
     #[must_use]
-    pub fn new(stream: SharedByteBufferStream<RawStream>) -> Self {
-        let writer = BatchFrameWriter::with_defaults(stream.clone());
+    pub fn new(
+        stream: SharedByteBufferStream<RawStream>,
+        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
+    ) -> Self {
+        let writer = BatchFrameWriter::with_defaults(stream.clone(), clock);
         Self {
             stream,
             writer,

@@ -232,7 +232,7 @@ fn streaming_roundtrip_normalizes_endstream() {
                 recv_body: foundation_connectrpc::shared::transport::body_stream_from_pipe(resp_rx),
                 trailers: {
                     let (tx, rx) = Pipe::with_depth(1);
-                    tx.close();
+                    let _ = tx.close();
                     rx
                 },
             },

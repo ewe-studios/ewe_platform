@@ -157,7 +157,7 @@ fn test_derive_scaffold_multiple_fields() {
     };
 
     assert!(gateway.authenticate("token"));
-    assert!(gateway.query("SELECT 1").is_empty());
+    assert_eq!(gateway.query("SELECT 1").len(), 0);
 }
 
 // ── Manual pathway tests ──

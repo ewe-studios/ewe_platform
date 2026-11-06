@@ -12,7 +12,7 @@
 //! ```ignore
 //! use foundation_nativeapis::vfs::{ObservableFs, MemoryFs};
 //!
-//! let fs = ObservableFs::new(MemoryFs::new());
+//! let fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())));
 //! let rx = fs.subscribe();
 //!
 //! fs.write_file_async("/hello.txt".into(), b"world".to_vec()).await.unwrap();

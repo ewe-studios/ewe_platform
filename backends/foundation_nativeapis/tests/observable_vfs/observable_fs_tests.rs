@@ -2,7 +2,9 @@ use foundation_core::synca::mpp::Receiver;
 use foundation_nativeapis::{MemoryFs, ObservableFs, SyncFs, VfsEvent, VfsFileSystem};
 
 fn make_observable() -> (SyncFs<ObservableFs<MemoryFs>>, Receiver<VfsEvent>) {
-    let fs = SyncFs::new(ObservableFs::new(MemoryFs::new()));
+    let fs = SyncFs::new(ObservableFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))));
     let rx = fs.subscribe();
     (fs, rx)
 }
@@ -225,7 +227,9 @@ fn test_error_emits_operation_failed() {
 
 #[test]
 fn test_multiple_subscribers() {
-    let fs = SyncFs::new(ObservableFs::new(MemoryFs::new()));
+    let fs = SyncFs::new(ObservableFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))));
     let rx1 = fs.subscribe();
     let rx2 = fs.subscribe();
 

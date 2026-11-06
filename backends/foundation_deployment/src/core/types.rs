@@ -10,7 +10,10 @@
 //! factory methods for dry-run and skipped scenarios.
 
 use chrono::{DateTime, Utc};
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
+
+use crate::clock::wall_now_utc;
 
 /// Output from a build step.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,27 +73,27 @@ pub struct DeploymentResult {
 impl DeploymentResult {
     /// Create a result for a dry-run (no actual deployment).
     #[must_use]
-    pub fn dry_run(provider: &str, resource_name: &str) -> Self {
+    pub fn dry_run(provider: &str, resource_name: &str, clock: &dyn Clock) -> Self {
         Self {
             deployment_id: "dry-run".to_string(),
             provider: provider.to_string(),
             resource_name: resource_name.to_string(),
             environment: None,
             url: None,
-            deployed_at: Utc::now(),
+            deployed_at: wall_now_utc(clock),
         }
     }
 
     /// Create a result for a skipped deployment (config unchanged).
     #[must_use]
-    pub fn skipped(reason: &str) -> Self {
+    pub fn skipped(reason: &str, clock: &dyn Clock) -> Self {
         Self {
             deployment_id: format!("skipped: {reason}"),
             provider: String::new(),
             resource_name: String::new(),
             environment: None,
             url: None,
-            deployed_at: Utc::now(),
+            deployed_at: wall_now_utc(clock),
         }
     }
 }

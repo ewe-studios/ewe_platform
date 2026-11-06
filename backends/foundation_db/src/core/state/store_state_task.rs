@@ -333,7 +333,12 @@ where
                             }
                         };
 
-                        let now = chrono::Utc::now();
+                        // The row's timestamps come from the task's injected
+                        // clock, never from a global clock. An out-of-range
+                        // value falls back to the UNIX epoch.
+                        let now_ms = foundation_compact::time::unix_millis(ctx.clock().wall_now());
+                        let now = chrono::DateTime::from_timestamp_millis(now_ms)
+                            .unwrap_or(chrono::DateTime::UNIX_EPOCH);
 
                         let state = ResourceState {
                             id: resource_id.clone(),
@@ -646,7 +651,12 @@ where
                             }
                         };
 
-                        let now = chrono::Utc::now();
+                        // The row's timestamps come from the task's injected
+                        // clock, never from a global clock. An out-of-range
+                        // value falls back to the UNIX epoch.
+                        let now_ms = foundation_compact::time::unix_millis(ctx.clock().wall_now());
+                        let now = chrono::DateTime::from_timestamp_millis(now_ms)
+                            .unwrap_or(chrono::DateTime::UNIX_EPOCH);
 
                         let state = ResourceState {
                             id: resource_id,

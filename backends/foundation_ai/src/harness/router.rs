@@ -34,6 +34,9 @@
 //! model id to that name, and remembers which role the model fills. `build()`
 //! folds everything into a [`ProviderRouter`] via its builder.
 
+use std::sync::Arc;
+
+use foundation_core::valtron::Clock;
 use foundation_db::traits::DocumentStore;
 
 use crate::agentic::{AgentSession, AgentSessionBuilder, MemoryStore};
@@ -190,8 +193,8 @@ impl RouterPreset {
     /// `with_model` / `with_memory_model` / `with_fallback_models` override
     /// the preset's choice.
     #[must_use]
-    pub fn into_agent_builder(self) -> AgentSessionBuilder {
-        AgentSession::builder(self)
+    pub fn into_agent_builder(self, clock: Arc<dyn Clock>) -> AgentSessionBuilder {
+        AgentSession::builder(self, clock)
     }
 
     /// [`into_agent_builder`](Self::into_agent_builder) over explicit stores.
@@ -204,12 +207,13 @@ impl RouterPreset {
         session_id: SessionId,
         doc_store: D,
         memory_store: M,
+        clock: Arc<dyn Clock>,
     ) -> AgentSessionBuilder<D, M>
     where
         D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
-        self.into_agent_builder()
+        self.into_agent_builder(clock)
             .with_session_id(session_id)
             .with_doc_store(doc_store)
             .with_memory_store(memory_store)

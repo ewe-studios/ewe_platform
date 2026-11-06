@@ -16,9 +16,10 @@ use std::fmt::Write as _;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 use sha2::{Digest, Sha256};
 
 use super::super::models::{PendingLogin, TosAcceptance, TosCodeRecord, TosVersion};
@@ -87,12 +88,13 @@ pub struct TosChallenge {
 /// `ToS` service — manages `ToS` versions, user acceptances and `ToS` codes.
 pub struct TosService<KV: KeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
+    clock: Arc<dyn Clock>,
 }
 
 impl<KV: KeyValueStore> TosService<KV> {
     #[must_use]
-    pub fn new(storage: Arc<HandlerStorage<KV>>) -> Self {
-        Self { storage }
+    pub fn new(storage: Arc<HandlerStorage<KV>>, clock: Arc<dyn Clock>) -> Self {
+        Self { storage, clock }
     }
 
     async fn versions(&self) -> Result<Vec<TosVersion>, StorageOpError> {
@@ -179,7 +181,7 @@ impl<KV: KeyValueStore> TosService<KV> {
         let acceptance = TosAcceptance {
             user_id: user_id.to_string(),
             tos_version: latest.version,
-            accepted_at: Utc::now().timestamp_millis(),
+            accepted_at: now_millis(self.clock.as_ref()),
             ip_address: ip_address.map(std::string::ToString::to_string),
         };
         storage::store_tos_acceptance(self.storage.query_store.as_ref(), &acceptance)
@@ -224,8 +226,7 @@ impl<KV: KeyValueStore> TosService<KV> {
             user_id: user_id.to_string(),
             tos_version: latest.version.clone(),
             pending_login,
-            expires_at: Utc::now()
-                .timestamp_millis()
+            expires_at: now_millis(self.clock.as_ref())
                 .saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
         };
         self.storage
@@ -260,7 +261,7 @@ impl<KV: KeyValueStore> TosService<KV> {
         else {
             return Ok(None);
         };
-        if Utc::now().timestamp_millis() >= record.expires_at {
+        if now_millis(self.clock.as_ref()) >= record.expires_at {
             return Ok(None);
         }
         Ok(Some(record))

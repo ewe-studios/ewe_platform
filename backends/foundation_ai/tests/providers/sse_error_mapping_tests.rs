@@ -120,13 +120,19 @@ fn assert_maps_failed(mut stream: ModelStreamBox) {
     );
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[valtron_test]
 fn openai_stream_maps_failed_to_model_error() {
     let client: DynNetClient = Arc::new(FailedSseClient);
     let config = OpenAIConfig::new().with_base_url("http://localhost");
-    let provider = OpenAIProvider::with_http_client_and_config(client, config.clone())
-        .create(Some(config))
-        .unwrap();
+    let provider =
+        OpenAIProvider::with_http_client_and_config(client, config.clone(), test_clock())
+            .create(Some(config))
+            .unwrap();
     let model = provider
         .get_model(ModelId::Name("gpt-4".into(), None))
         .unwrap();
@@ -140,9 +146,10 @@ fn workers_ai_stream_maps_failed_to_model_error() {
     let config = WorkersAiConfig::new()
         .with_base_url("http://localhost")
         .with_account_id("test-account");
-    let provider = WorkersAiProvider::with_http_client_and_config(client, config.clone())
-        .create(Some(config))
-        .unwrap();
+    let provider =
+        WorkersAiProvider::with_http_client_and_config(client, config.clone(), test_clock())
+            .create(Some(config))
+            .unwrap();
     let model = provider
         .get_model(ModelId::Name("@cf/meta/llama-3-8b-instruct".into(), None))
         .unwrap();

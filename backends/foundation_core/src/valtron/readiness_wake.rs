@@ -21,12 +21,12 @@
 //! their own.
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::{Arc, Mutex};
 use std::task::{Wake, Waker};
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
 
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 
 /// The executor a [`ReadinessWaker`] wakes: the thread that parked the task.
 #[cfg(not(target_family = "wasm"))]
@@ -84,6 +84,7 @@ impl ParkState {
         ReadinessWaker {
             waker: Waker::from(Arc::clone(self)),
             park: Some(Arc::clone(self)),
+            live: None,
         }
     }
 
@@ -134,6 +135,10 @@ pub struct ReadinessWaker {
     waker: Waker,
     /// The parked task this waker belongs to, when the executor made it.
     park: Option<Arc<ParkState>>,
+    /// The liveness token of the wait behind a bridged waker. The bridge owner
+    /// stores `false` when its `Future` goes away, so the notifier can drop the
+    /// waker.
+    live: Option<Arc<AtomicBool>>,
 }
 
 impl std::fmt::Debug for ReadinessWaker {
@@ -157,18 +162,63 @@ impl ReadinessWaker {
         self.waker.will_wake(&other.waker)
     }
 
+    /// Whether this waker and `other` belong to the same wait.
+    ///
+    /// An executor waker has no liveness token, so `will_wake` alone identifies
+    /// it. A bridged waker carries one token per wait. Two waits polled by one
+    /// task wake the same task, but each must keep its own registration: if the
+    /// notifier kept one and that wait ended first, the other would never wake.
+    #[must_use]
+    fn same_wait(&self, other: &Self) -> bool {
+        match (&self.live, &other.live) {
+            (Some(mine), Some(theirs)) => Arc::ptr_eq(mine, theirs),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
     /// Whether the task is still parked on this waker. A source may drop a
     /// waker that is not live.
+    ///
+    /// A waker the executor made checks its [`ParkState`]. A bridged waker
+    /// checks the liveness token its owner gave it, so a `Future` that is gone
+    /// stops holding a registration.
     #[must_use]
     pub fn is_live(&self) -> bool {
-        self.park.as_ref().is_none_or(|park| park.is_parked())
+        if let Some(live) = &self.live {
+            live.load(Ordering::SeqCst)
+        } else {
+            self.park.as_ref().is_none_or(|park| park.is_parked())
+        }
     }
 
     /// A waker built on a standard waker, for a source that bridges to a
     /// `Future` (waking it wakes that waker).
+    ///
+    /// This waker reports live for as long as it exists. A bridge whose wait can
+    /// end before the source does uses [`Self::from_waker_with_liveness`].
     #[must_use]
     pub fn from_waker(waker: Waker) -> Self {
-        Self { waker, park: None }
+        Self {
+            waker,
+            park: None,
+            live: None,
+        }
+    }
+
+    /// A bridged waker whose liveness the caller controls.
+    ///
+    /// The caller stores `false` in `live` when the wait behind this waker is
+    /// gone (a `Future` that is dropped). The notifier's next `register` or
+    /// `notify` then drops the waker instead of keeping it until the source
+    /// fires.
+    #[must_use]
+    pub fn from_waker_with_liveness(waker: Waker, live: Arc<AtomicBool>) -> Self {
+        Self {
+            waker,
+            park: None,
+            live: Some(live),
+        }
     }
 
     /// The standard waker behind this one, for a source that needs a
@@ -185,6 +235,7 @@ impl ReadinessWaker {
         Self {
             waker: Waker::noop().clone(),
             park: None,
+            live: None,
         }
     }
 }
@@ -210,7 +261,7 @@ impl std::fmt::Debug for ReadinessNotifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ReadinessNotifier")
             .field("registered", &self.count.load(Ordering::SeqCst))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -225,9 +276,15 @@ impl ReadinessNotifier {
     /// `true`: it is what `EventReadiness::register` returns for a readiness
     /// that calls `notify` on every change.
     pub fn register(&self, waker: &ReadinessWaker) -> bool {
-        let mut wakers = self.wakers.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut wakers = self
+            .wakers
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         wakers.retain(ReadinessWaker::is_live);
-        if !wakers.iter().any(|kept| kept.will_wake(waker)) {
+        if !wakers
+            .iter()
+            .any(|kept| kept.will_wake(waker) && kept.same_wait(waker))
+        {
             wakers.push(waker.clone());
         }
         self.count.store(wakers.len(), Ordering::SeqCst);
@@ -241,7 +298,10 @@ impl ReadinessNotifier {
             return;
         }
         let wakers: Vec<ReadinessWaker> = {
-            let mut wakers = self.wakers.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut wakers = self
+                .wakers
+                .lock()
+                .unwrap_or_else(crate::compati::recover_poison);
             wakers.retain(ReadinessWaker::is_live);
             self.count.store(wakers.len(), Ordering::SeqCst);
             wakers.clone()
@@ -257,6 +317,16 @@ impl ReadinessNotifier {
     pub fn has_waiters(&self) -> bool {
         self.count.load(Ordering::SeqCst) > 0
     }
+
+    /// The number of registered wakers.
+    ///
+    /// This is a test hook: a test proves that a dead bridged waker is pruned.
+    /// It is not part of the stable API.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn waiter_count(&self) -> usize {
+        self.count.load(Ordering::SeqCst)
+    }
 }
 
 struct EventQueueInner<T> {
@@ -265,6 +335,8 @@ struct EventQueueInner<T> {
     items: Arc<ReadinessNotifier>,
     /// Woken after a pop and on close: tasks that wait for room.
     space: Arc<ReadinessNotifier>,
+    /// Woken only on close: tasks that wait for the consumer to go away.
+    closed: Arc<ReadinessNotifier>,
 }
 
 /// A queue that wakes the tasks parked on it by itself.
@@ -276,7 +348,9 @@ struct EventQueueInner<T> {
 ///
 /// WHAT: the `ConcurrentQueue` operations a task needs, where `push` wakes the
 /// tasks parked on [`Self::readiness`], `pop` wakes the tasks parked on
-/// [`Self::vacancy`], and `close` wakes both. Clones share the queue.
+/// [`Self::vacancy`], and `close` wakes both. A close also wakes the tasks
+/// parked on [`Self::closed_readiness`], which nothing else wakes. Clones share
+/// the queue.
 pub struct EventQueue<T>(Arc<EventQueueInner<T>>);
 
 impl<T> Clone for EventQueue<T> {
@@ -300,6 +374,7 @@ impl<T> EventQueue<T> {
             queue: Arc::new(queue),
             items: Arc::new(ReadinessNotifier::new()),
             space: Arc::new(ReadinessNotifier::new()),
+            closed: Arc::new(ReadinessNotifier::new()),
         }))
     }
 
@@ -348,10 +423,17 @@ impl<T> EventQueue<T> {
 
     /// Close the queue and wake every task parked on it, so each sees the end.
     /// Returns `true` if this call closed it.
+    ///
+    /// The close-only waiters ([`Self::closed_readiness`]) wake once, on the
+    /// first close. A later close of an already closed queue wakes nobody.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.0.queue.close();
         self.0.items.notify();
         self.0.space.notify();
+        if closed {
+            self.0.closed.notify();
+        }
         closed
     }
 
@@ -397,5 +479,13 @@ impl<T> EventQueue<T> {
     #[must_use]
     pub fn vacancy(&self) -> QueueVacancyReadiness<T> {
         QueueVacancyReadiness::with_notifier(Arc::clone(&self.0.queue), Arc::clone(&self.0.space))
+    }
+
+    /// A readiness that is ready only once the queue closes. A push or a pop
+    /// does not wake a task parked on it, so a producer that must learn "the
+    /// consumer is gone" does not wake on every item the consumer takes.
+    #[must_use]
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<T> {
+        QueueClosedReadiness::with_notifier(Arc::clone(&self.0.queue), Arc::clone(&self.0.closed))
     }
 }

@@ -1,7 +1,7 @@
 //! Membership records — the gossiped unit (spec-55, feature 03; decision 05).
 //!
 //! WHY: Full-membership gossip means every node holds, for every peer, exactly what
-//! WireGuard configuration needs: identity key, overlay IP, and current endpoint(s) —
+//! `WireGuard` configuration needs: identity key, overlay IP, and current endpoint(s) —
 //! plus the SWIM bookkeeping (incarnation, state, heartbeat) that makes merges a CRDT.
 //!
 //! WHAT: [`PeerId`], [`Capabilities`], [`MemberState`], and [`PeerRecord`].
@@ -91,7 +91,7 @@ impl MemberState {
 pub struct PeerRecord {
     /// Node identity (post-handoff public key); the map key.
     pub id: PeerId,
-    /// Overlay (tunnel) address — WireGuard `allowed_ips` (decision 12).
+    /// Overlay (tunnel) address — `WireGuard` `allowed_ips` (decision 12).
     pub tunnel_ip: IpAddr,
     /// Observed reachable UDP endpoints (last-writer-wins).
     pub endpoints: Vec<SocketAddr>,

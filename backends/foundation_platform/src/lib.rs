@@ -9,6 +9,7 @@ pub mod backend;
 mod builder;
 mod cache;
 pub mod capability;
+mod clock;
 pub mod codegen;
 pub mod ewe;
 mod injector;

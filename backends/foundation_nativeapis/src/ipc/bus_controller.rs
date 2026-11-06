@@ -5,8 +5,10 @@ use std::{
     marker::PhantomData,
     sync::{Arc, RwLock},
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
+
+use foundation_core::valtron::Clock;
 
 use crate::ipc::{
     platform::{look_up, register, EncodedMessage, IoHub, IoMultiplexing, Remote},
@@ -16,11 +18,14 @@ use crate::ipc::{
 };
 
 /// Join a message bus.
+///
+/// The join timeout and every later receive deadline read `clock`.
 pub fn join<T: MessageBox, R: MessageBox>(
     options: Options,
     timeout: Option<Duration>,
+    clock: Arc<dyn Clock>,
 ) -> Result<(EndpointSender<T>, EndpointReceiver<R>), JoinError> {
-    let joined = Rule::join(options, 0, Arc::new(IoMultiplexing::new()), timeout)?;
+    let joined = Rule::join(options, 0, Arc::new(IoMultiplexing::new()), timeout, clock)?;
     tracing::debug!(endpoint_id = ?joined.endpoint_id(), "ipc endpoint joined the bus");
     let rule = Arc::new(RwLock::new(joined));
 
@@ -59,43 +64,52 @@ impl<T: MessageBox> EndpointSender<T> {
         loop {
             let rule = self.rule.read().unwrap();
             match &*rule {
-                Rule::Client { remote, epoch, .. } => match msg.send(remote) {
-                    Err(Error::Disconnect) => {
-                        let epoch = *epoch;
-                        drop(rule);
+                Rule::Client {
+                    remote,
+                    epoch,
+                    clock,
+                    ..
+                } => {
+                    let clock = Arc::clone(clock);
+                    match msg.send(remote) {
+                        Err(Error::Disconnect) => {
+                            let epoch = *epoch;
+                            drop(rule);
 
-                        let mut rule = self.rule.write().unwrap();
-                        match &mut *rule {
-                            Rule::Client {
-                                options,
-                                io_hub,
-                                reader_closed,
-                                im,
-                                epoch: epoch1,
-                                ..
-                            } => {
-                                if epoch == *epoch1 {
-                                    let reader_closed_val = *reader_closed;
-                                    drop(io_hub.take());
+                            let mut rule = self.rule.write().unwrap();
+                            match &mut *rule {
+                                Rule::Client {
+                                    options,
+                                    io_hub,
+                                    reader_closed,
+                                    im,
+                                    epoch: epoch1,
+                                    ..
+                                } => {
+                                    if epoch == *epoch1 {
+                                        let reader_closed_val = *reader_closed;
+                                        drop(io_hub.take());
 
-                                    *rule = Rule::join(
-                                        options.clone(),
-                                        epoch.overflowing_add(1).0,
-                                        im.clone(),
-                                        None,
-                                    )?;
+                                        *rule = Rule::join(
+                                            options.clone(),
+                                            epoch.overflowing_add(1).0,
+                                            im.clone(),
+                                            None,
+                                            clock,
+                                        )?;
 
-                                    if reader_closed_val {
-                                        rule.reader_close();
+                                        if reader_closed_val {
+                                            rule.reader_close();
+                                        }
                                     }
                                 }
+                                Rule::Server { .. } => {}
                             }
-                            Rule::Server { .. } => {}
                         }
+                        Err(_) => unreachable!(),
+                        Ok(_) => break Ok(()),
                     }
-                    Err(_) => unreachable!(),
-                    Ok(_) => break Ok(()),
-                },
+                }
                 Rule::Server { bus_sender, im, .. } => {
                     bus_sender.lock().unwrap().send(msg).unwrap();
                     im.wake();
@@ -130,8 +144,10 @@ impl<R: MessageBox> EndpointReceiver<R> {
                     io_hub,
                     reader_closed,
                     epoch,
+                    clock,
                     ..
                 } => {
+                    let clock = Arc::clone(clock);
                     if !*reader_closed && io_hub.is_none() {
                         let epoch_val = *epoch;
                         drop(rule);
@@ -154,6 +170,7 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                         epoch_val.overflowing_add(1).0,
                                         im.clone(),
                                         timeout,
+                                        Arc::clone(&clock),
                                     )?;
                                     if rc {
                                         rule.reader_close();
@@ -167,7 +184,7 @@ impl<R: MessageBox> EndpointReceiver<R> {
 
                     let mut io_hub_guard = io_hub.as_ref().expect("reader closed").lock().unwrap();
 
-                    match io_hub_guard.recv(timeout, Some(remote)) {
+                    match io_hub_guard.recv(timeout, Some(remote), clock.as_ref()) {
                         Ok(encoded_msg) => {
                             if encoded_msg.selector.label_op.validate(&options.label) {
                                 match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data)
@@ -213,6 +230,7 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                             epoch_val.overflowing_add(1).0,
                                             im.clone(),
                                             timeout,
+                                            Arc::clone(&clock),
                                         )?;
                                         if rc {
                                             rule.reader_close();
@@ -286,6 +304,7 @@ enum Rule {
         reader_closed: bool,
         im: Arc<IoMultiplexing>,
         epoch: u32,
+        clock: Arc<dyn Clock>,
     },
     Server {
         endpoint_id: EndpointID,
@@ -311,14 +330,15 @@ impl Rule {
         epoch: u32,
         im: Arc<IoMultiplexing>,
         timeout: Option<Duration>,
+        clock: Arc<dyn Clock>,
     ) -> Result<Self, JoinError> {
-        let end = timeout.map(|t| Instant::now() + t);
+        let end = timeout.map(|t| clock.now() + t);
 
         macro_rules! wait {
             () => {
                 let mut w = Duration::from_secs(2);
                 if let Some(end) = end {
-                    let remain = end.saturating_duration_since(Instant::now());
+                    let remain = end.saturating_duration_since(clock.now());
                     if remain.is_zero() {
                         return Err(JoinError::Timeout);
                     }
@@ -337,6 +357,7 @@ impl Rule {
                 options.label.clone(),
                 options.token.clone(),
                 im.clone(),
+                Arc::clone(&clock),
             );
 
             match r {
@@ -349,6 +370,7 @@ impl Rule {
                         reader_closed: false,
                         im,
                         epoch,
+                        clock: Arc::clone(&clock),
                     };
                 }
                 Err(Error::IdentifierNotInUse) => {
@@ -369,6 +391,7 @@ impl Rule {
                                 options.token,
                                 tx,
                                 io_hub,
+                                Arc::clone(&clock),
                             );
                             ctrl.run();
 

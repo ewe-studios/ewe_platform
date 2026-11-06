@@ -3,7 +3,9 @@ use foundation_nativeapis::shared::vfs::{MemoryFs, ObservableFs, SyncFs, VfsFile
 fn main() {
     println!("=== ObservableFs Example ===\n");
 
-    let inner = MemoryFs::new();
+    let inner = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     // ObservableFs implements the async VFS traits; `main` is a sync
     // boundary, so the example uses it through `SyncFs`.
     let fs = SyncFs::new(ObservableFs::new(inner));

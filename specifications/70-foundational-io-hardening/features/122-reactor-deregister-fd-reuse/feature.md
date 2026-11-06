@@ -1,6 +1,6 @@
 ---
 feature: "A late reactor deregister cannot remove another socket's readiness"
-status: "pending"
+status: "done"
 lane: "priority follow-up (bug found while diagnosing feature 121)"
 model: "sonnet"
 branch: "spec70/f122-reactor-fd-reuse"
@@ -99,7 +99,8 @@ it at `tracing::debug!` with both tokens and the fd.
 
 ## Tests
 
-Test target: `tests/token_lifetime.rs` (new binary, registered in `tests/mod.rs`).
+Test target: `tests/fd_reuse.rs`, a new binary that cargo discovers on its own (like
+`tests/selector_wait.rs`). It needs its own process for the reactor singleton.
 
 - `a_drop_after_fd_reuse_leaves_the_new_registration_armed`. Both Linux and macOS give
   the lowest free fd number, so the sequence is deterministic:
@@ -135,20 +136,98 @@ cargo test --profile uat -p foundation_proxy
 python3 scripts/ci/ci.py run foundation_reactor --profile uat
 ```
 
+`foundation_reactor` is not in the `clippy-deny-warnings` set in `ci/packages.toml`, so CI
+does not run its `-D warnings` check. The crate already carries 120 `clippy::pedantic`
+errors on `master`, and this change adds none. Backlog §5b holds the entry that schedules
+the cleanup.
+
 Then run the feature 121 loop: the proxy test binaries on Linux, thirty times.
 
 ## Done when
 
-- [ ] The fd-to-token map guards every selector deregistration.
-- [ ] `a_drop_after_fd_reuse_leaves_the_new_registration_armed` fails without the fix and
+- [x] The fd-to-token map guards every selector deregistration.
+- [x] `a_drop_after_fd_reuse_leaves_the_new_registration_armed` fails without the fix and
       passes with it.
-- [ ] `foundation_reactor`, `foundation_netio`, `foundation_http` and `foundation_proxy`
-      tests pass.
-- [ ] The backlog §5b entry is deleted after merge.
-- [ ] CI green.
+- [x] `foundation_reactor`, `foundation_netio`, `foundation_http` and `foundation_proxy`
+      tests pass. (`foundation_proxy` has one known macOS failure, recorded in backlog
+      §9; it is not caused by this change.)
+- [x] The backlog §5b entry is deleted after merge.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 
-2026-11-06. Plan only. Not started. The defect was found by reading
-`fd_readiness.rs`, `reactor.rs`, `poll/mod.rs` and the kqueue and epoll selectors while
-diagnosing feature 121.
+2026-11-06. Implemented on branch `spec70/priority-followups`.
+
+### What changed
+
+`backends/foundation_reactor/src/reactor.rs`, only:
+
+- New private field `Reactor::fd_tokens: Mutex<HashMap<RawFd, Token>>`. It records the
+  live token for each registered fd number.
+- `register` and `register_completion` insert `fd -> token` after the selector call
+  succeeds. `insert` replaces an older token for the same number, because the latest
+  registration owns the number.
+- `reregister` leaves the mapping unchanged: the fd number and the token do not change.
+- `deregister(fd, token)` always removes `entries[token]`. It then reads `fd_tokens[fd]`
+  and compares it with `token`:
+  - equal: remove the map entry and call `registry.deregister_fd(fd)` as before;
+  - different: log at `tracing::debug!` with the fd and both tokens, and do not touch
+    the selector;
+  - absent: do not touch the selector.
+  `ENOENT` from the selector stays harmless.
+
+Invariants:
+
+- The map holds one token per fd number, so it is bounded by the open-fd count.
+- All access happens under the existing `reg_lock`, in the existing order
+  (`reg_lock`, then the entry map or the token map). No second lock order is added.
+- A selector deregistration happens only when the number still belongs to the token.
+- No public API changes. No crate version change. `Cargo.lock` is unchanged.
+
+### Tests
+
+New binary `backends/foundation_reactor/tests/fd_reuse.rs` (two tests, serialised by a
+process-local mutex because both need a known fd number):
+
+- `a_drop_after_fd_reuse_leaves_the_new_registration_armed`: registers socket A on
+  number L, closes A, reopens a socket on L, registers it, drops A's `FdReadiness`,
+  writes from the peer and waits up to 2 s for readiness.
+- `a_drop_of_the_live_registration_still_deregisters`: the live drop removes the
+  registration; a later event does not reach the old token; the number accepts a new
+  registration.
+
+Old-code proof: `reactor.rs` was replaced with `git show HEAD:.../reactor.rs` (test
+file unchanged) and the reuse test was run. Observed failure:
+
+```text
+thread 'a_drop_after_fd_reuse_leaves_the_new_registration_armed' (...) panicked at
+backends/foundation_reactor/tests/fd_reuse.rs:69:5:
+a drop after fd reuse: fd 3 (FdReadiness { fd: 3, token: Token(2) }) did not report
+readability within 2s
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out;
+finished in 2.08s
+```
+
+With the fix the same test passes in 2 of 2 cases on macOS and in the Linux CI image.
+
+### Commands and results
+
+| Command | Result |
+| --- | --- |
+| `cargo fmt --all --check` | pass |
+| `cargo check --profile uat -p foundation_reactor --all-targets` | pass, no warnings |
+| `cargo clippy --profile uat -p foundation_reactor --all-targets --no-deps -- -D warnings` | **fails on 120 pre-existing `clippy::pedantic` errors**; HEAD and `master` report the same 120, so this change adds none. `foundation_reactor` is not in the `clippy-deny-warnings` set in `ci/packages.toml`. Recorded in backlog §5b. |
+| `cargo test --profile uat -p foundation_reactor` | pass: 12 tests passed, 0 failed, 1 doc test ignored |
+| `cargo test --profile uat -p foundation_netio` | pass: 1291 tests passed, 0 failed |
+| `cargo test --profile uat -p foundation_http` | pass: 66 tests passed, 0 failed, 1 ignored |
+| `cargo test --profile uat -p foundation_proxy --no-fail-fast` | 128 passed, 1 failed: `proxy_features_tests::websocket_upgrade_relays_and_tunnels_bytes`, the known macOS failure in backlog §9 (`WouldBlock`, `proxy_features_tests.rs:464`) |
+| `cargo test --profile uat -p foundation_nativeapis --test reactor_shared_selector_tests --test reactor_parking_tests --test reactor_event_gen_tests --test fd_event_driven_tests` | pass: 9 passed, 0 failed |
+| `cargo test --profile uat -p foundation_iogate` | pass: 8 passed, 0 failed |
+| Linux image: `cargo test --profile uat -p foundation_reactor` | pass: all binaries green, including `fd_reuse` 2 of 2 |
+| Linux image: `cargo test --profile uat -p foundation_nativeapis --features uring --test completion_source_seam_tests --test reactor_shared_selector_tests --test reactor_parking_tests --test fd_event_driven_tests` | pass: 18 passed, 0 failed (the `uring` run compiles `register_completion`) |
+| Linux image: `cargo test --profile uat -p foundation_iogate` | pass: 10 passed, 0 failed |
+
+CI (GitHub) is not run from this branch; the feature stays `pending` until that run is
+green.
+

@@ -1,6 +1,6 @@
 ---
 feature: "Every timestamp comes from the injected `Clock`"
-status: "pending"
+status: "done"
 lane: "after 115"
 model: "sonnet"
 branch: "spec70/f117-timestamps-from-the-clock"
@@ -187,14 +187,121 @@ Each phase deletes its paths from the gate allowlist and states its new count in
 
 ## Done when (this feature)
 
-- [ ] `Clock::wall_now` exists, and every implementor in the tree implements it.
-- [ ] `SimulatedClock` has a wall origin and `advance_wall`.
-- [ ] `foundation_compact::time` has the three conversion functions with tests.
-- [ ] `scripts/ci/check_time_sources.py` exists, has tests, and runs in `ci.py`.
-- [ ] The gate passes with the allowlist that holds every remaining offender.
-- [ ] Phases B, C and D are written as feature files with their scope and counts.
-- [ ] CI green.
+- [x] `Clock::wall_now` exists, and every implementor in the tree implements it.
+      `MonotonicClock`, `SimulatedClock` and the core test `MockClock` implement it.
+      The netio test `SimClock` stopped compiling when the method became required;
+      the main session added its `wall_now` (`SystemTime::UNIX_EPOCH`, because that
+      clock feeds only the monotonic path) in the follow-up commit, and
+      `cargo test --profile uat -p foundation_netio` passes (1218 + 9 + 6 + 5 + 54).
+- [x] `SimulatedClock` has a wall origin and `advance_wall`.
+- [x] `foundation_compact::time` has the three conversion functions with tests.
+- [x] `scripts/ci/check_time_sources.py` exists, has tests, and runs in `ci.py`.
+- [x] The gate passes with the allowlist that holds every remaining offender.
+- [x] Phases B, C and D are written as feature files with their scope and counts
+      (features 132, 133 and 134).
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
 
 ## Result
 
-Not started.
+Implemented on branch `spec70/priority-followups` (2026-11-06).
+
+Public API added:
+
+- `Clock::wall_now(&self) -> SystemTime` in `foundation_core::valtron`
+  (`backends/foundation_core/src/valtron/ctx.rs`). It is a required method, not a
+  defaulted one.
+- `MonotonicClock::wall_now` returns `SystemTime::now()`. This is the one place in
+  the engine where the real wall-clock read stays.
+- `SimulatedClock` gains a `wall_origin` (the UNIX epoch) and a `wall_offset`, plus
+  `advance_wall(&self, by: Duration)`. Its `wall_now` never reads the real clock.
+- `foundation_compact::time` with `unix_millis`, `from_unix_millis` and
+  `unix_seconds`.
+- `scripts/ci/check_time_sources.py` and its allowlist
+  `scripts/ci/time_sources_allowlist.txt`.
+
+Measured facts:
+
+- The gate scans the first-party `src/` trees (`backends/*/src`, `crates/*/src`,
+  `bin/*/src`, `infrastructure/*/src`). Over the tree it finds **452 direct reads in
+  180 files**, all allowlisted, **0 `// time-source:` markers, 0 violations**.
+- The allowlist holds 439 reads in 173 files, each tagged with the phase that
+  removes it (B, C or D), plus the two permanent entries:
+  `backends/foundation_compact/src/` (9 reads) and
+  `backends/foundation_core/src/valtron/ctx.rs` (4 reads).
+- Per phase: B has 110 reads in 43 files, C has 137 reads in 51 files, and D has 192
+  reads in 79 files. The plan's figures (152 and 136) are older than the tree; the
+  feature files use the measured values.
+- Added after review: the gate fails on an allowlist entry that matches no direct
+  read. Without that rule, a phase that fixes a file can leave its entry behind and
+  the allowlist stops shrinking without a signal. Two tests cover a stale file entry
+  and a stale directory entry (`scripts/ci/tests/test_check_time_sources.py`, 10
+  tests). The four temporary-directory tests now pass an explicit empty allowlist,
+  because the repository allowlist names files that do not exist in a temp root.
+- `foundation_boringtun` is skipped by name. It is the published upstream fork, and
+  `check_errstacks.py` skips it for the same reason. It has 15 reads.
+- The gate accepts a path or a trailing-slash directory prefix. A marker counts as an
+  allowed read and appears in the summary.
+- `scripts/ci/ci.py` runs the gate in the `foundation_core` build step, next to
+  `check_executor_wake.py`. `python3 -m unittest discover -s scripts/ci/tests` runs
+  the gate tests, and `pytest` passes them.
+
+Tests:
+
+- `backends/foundation_compact/tests/time.rs`: 6 tests. The epoch is zero; a
+  millisecond value round-trips through `from_unix_millis`; a pre-epoch time is
+  negative; `unix_seconds` truncates a positive time and rounds a pre-epoch time
+  down.
+- `backends/foundation_core/tests/valtron/clock_wall.rs`: 3 tests.
+  `monotonic_clock_wall_now_is_near_real_time` runs in the default tree.
+  `simulated_wall_time_moves_only_when_advanced` and
+  `the_task_ctx_reports_the_simulated_wall_time` need `--features test-clock`.
+- `scripts/ci/tests/test_check_time_sources.py`: 8 tests. A clean file passes; each of
+  the five patterns fails; an allowlisted path and a marked line pass; a directory
+  prefix works; the vendored crate and a `tests/` tree are not scanned.
+
+Verify (all commands pass):
+
+- `cargo fmt --all --check`: clean.
+- `cargo clippy --profile uat -p foundation_compact --all-targets --no-deps --
+  -D warnings`: clean. The run found one pre-existing `clippy::needless_continue`
+  in `src/entropy/backends/getentropy.rs:31`; this feature fixes it.
+- `cargo clippy --profile uat -p foundation_core --all-targets --features multi
+  --no-deps -- -D warnings`: clean.
+- The same with `--features test-clock`: clean.
+- `cargo test --profile uat -p foundation_compact`: exit 0; the new file passes 6 of
+  6.
+- `cargo test --profile uat -p foundation_core --features multi`: exit 0, 786 in
+  `tests/mod.rs`, 0 failed.
+- `cargo test --profile uat -p foundation_core --features test-clock`: exit 0, 753 in
+  `tests/mod.rs`, 0 failed. The three `clock_wall` tests pass.
+- `python3 scripts/ci/check_time_sources.py --root . --check`: exit 0, 452 reads,
+  0 violations.
+- `python3 -m pytest scripts/ci/tests -q`: 19 passed.
+
+Version bump:
+
+- `foundation_core` 0.0.8 to 0.0.9. The change updates 42 requirements in the
+  workspace (38 inline, 4 table-form) and its own package version.
+- `foundation_compact` 0.2.3 to 0.2.4. The change updates 9 consumer requirements.
+- `Cargo.lock` is refreshed once. 40 manifests change in all.
+
+Closed after review:
+
+- `backends/foundation_netio/tests/simple_http/nonblocking_client_tests.rs:126`
+  implements `Clock` and did not implement `wall_now`, so the `foundation_netio`
+  test target stopped compiling. The feature's brief limits the edits to
+  `foundation_core`, `foundation_compact` and `scripts/ci`, so the agent reported it.
+  The main session added the method in the follow-up commit:
+  `fn wall_now(&self) -> SystemTime { SystemTime::UNIX_EPOCH }`. These tests read
+  only the monotonic clock, so a fixed wall time is the correct value; a real
+  reading would make the test depend on the machine's date. The backlog §2 entry
+  is deleted, and the first step of feature 132 is removed.
+- CI is not run here. The pull-request CI proves the two crates.
+
+Phase D (feature 134) is done on 2026-11-06. The gate allowlist holds only the
+two permanent entries, `backends/foundation_compact/src/` and
+`backends/foundation_core/src/valtron/ctx.rs`. The gate reports 14 direct reads
+in 8 files: 13 allowlisted, 1 marked at the WASI extern-C boundary, 0
+violations. The umbrella completion criterion is met. GitHub CI runs when the
+change is pushed.
+

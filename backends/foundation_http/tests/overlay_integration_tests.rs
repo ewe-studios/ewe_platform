@@ -83,14 +83,20 @@ fn overlay_connector_http_round_trip() {
     let seed = WgSeed::generate(SeedBits::Bits256).expect("seed");
     let net = seed.derive_network_id();
 
-    let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net))
-        .join()
-        .expect("A join");
+    let handle_a = WgNode::from_config(
+        WgConfig::seed(seed.clone(), net),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .join()
+    .expect("A join");
     let a_boot = handle_a.bootstrap_addr();
 
-    let handle_b = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot]))
-        .join()
-        .expect("B join");
+    let handle_b = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), net, vec![a_boot]),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .join()
+    .expect("B join");
 
     let dl = std::time::Instant::now() + Duration::from_secs(10);
     while std::time::Instant::now() < dl {

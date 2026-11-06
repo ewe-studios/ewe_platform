@@ -163,17 +163,20 @@ impl Serve for ConnectRpcServe {
             body,
             None | Some(SendSafeBody::None)
         )));
+        let clock = crate::shared::context::clock_from_bag(&bag);
         let body: RequestBody<'static> = Box::pin(H1Body {
             reader: BodyReader::new(body),
             io: Arc::clone(&io),
             timeout: self.timeouts.body_read,
             wait: None,
             drained: Arc::clone(&drained),
+            clock: clock.clone(),
         });
         let sink = H1Sink {
             conn,
             io: Arc::clone(&io),
             timeout: self.timeouts.write,
+            clock,
         };
         let cancel = CancelSignal::new();
         let hooks = CallHooks::new(cancel.clone()).with_timer(&SERVE_TIMER);
@@ -234,6 +237,8 @@ struct H1Body {
     wait: Option<IoReady>,
     /// Set once the body has been read to its end.
     drained: Arc<AtomicBool>,
+    /// The engine clock that bounds each readiness wait.
+    clock: Arc<dyn foundation_core::valtron::Clock>,
 }
 
 impl futures::Stream for H1Body {
@@ -261,7 +266,11 @@ impl futures::Stream for H1Body {
                 }
                 BodyStep::Failed(e) => return Poll::Ready(Some(Err(e))),
                 BodyStep::WouldBlock => {
-                    this.wait = Some(this.io.ready(IoInterest::Readable, this.timeout));
+                    this.wait = Some(this.io.ready(
+                        IoInterest::Readable,
+                        this.timeout,
+                        this.clock.as_ref(),
+                    ));
                 }
             }
         }
@@ -274,6 +283,8 @@ struct H1Sink {
     conn: SharedByteBufferStream<RawStream>,
     io: Arc<ConnIo>,
     timeout: Duration,
+    /// The engine clock that bounds each readiness wait.
+    clock: Arc<dyn foundation_core::valtron::Clock>,
 }
 
 impl H1Sink {
@@ -289,7 +300,13 @@ impl H1Sink {
                 Ok(n) => buf = &buf[n..],
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    IoReady::new(self.io.clone(), IoInterest::Writable, self.timeout).await?;
+                    IoReady::new(
+                        self.io.clone(),
+                        IoInterest::Writable,
+                        self.timeout,
+                        self.clock.as_ref(),
+                    )
+                    .await?;
                 }
                 Err(e) => return Err(e),
             }
@@ -303,7 +320,13 @@ impl H1Sink {
                 Ok(()) => return Ok(()),
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    IoReady::new(self.io.clone(), IoInterest::Writable, self.timeout).await?;
+                    IoReady::new(
+                        self.io.clone(),
+                        IoInterest::Writable,
+                        self.timeout,
+                        self.clock.as_ref(),
+                    )
+                    .await?;
                 }
                 Err(e) => return Err(e),
             }

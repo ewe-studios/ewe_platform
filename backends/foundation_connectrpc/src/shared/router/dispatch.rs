@@ -36,13 +36,14 @@ use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::Instant;
 
 use bytes::Bytes;
+use foundation_compact::Instant;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::Pipe;
 #[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::Stream;
+#[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_http::shared::context::ContextBag;
@@ -61,7 +62,9 @@ use foundation_netio::shared::http::{
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 
-use crate::shared::context::{CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec};
+use crate::shared::context::{
+    clock_from_bag, CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec,
+};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::error_writer::ErrorWriter;
 use crate::shared::protocol::{ExchangeConfig, ProtocolHandler, UnaryOutcome};
@@ -621,6 +624,7 @@ pub(crate) async fn run_unary_until_deadline(
 /// Unary over a request whose body is already in `request.body` (h2, h3),
 /// bounded by the call's deadline when `timer` is given. See
 /// [`run_unary_until_deadline`].
+#[cfg(not(target_family = "wasm"))]
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn run_unary(
     handler: Arc<dyn super::erased::ErasedUnaryHandler>,
@@ -787,7 +791,7 @@ async fn run_streaming(
                 break;
             }
         }
-        req_tx.close();
+        let _ = req_tx.close();
         Ok::<(), io::Error>(())
     };
 
@@ -1120,9 +1124,10 @@ pub(crate) fn build_ctx(
     protocol: &dyn ProtocolHandler,
     cancel: CancelSignal,
 ) -> Ctx {
+    let clock = clock_from_bag(&bag);
     let deadline = protocol
         .parse_timeout(&request.headers)
-        .map(|d| Instant::now() + d);
+        .map(|d| clock.now() + d);
     let peer = Peer {
         addr: request
             .connection
@@ -1140,6 +1145,7 @@ pub(crate) fn build_ctx(
         foundation_netio::shared::http::Extensions::new(),
         request.connection.clone(),
         cancel,
+        clock,
     );
     Ctx {
         bag,
@@ -1727,7 +1733,7 @@ async fn run_streaming_h2(
                 break;
             }
         }
-        req_tx.close();
+        let _ = req_tx.close();
         Ok::<(), io::Error>(())
     };
 
@@ -1886,6 +1892,7 @@ async fn run_streaming_h2(
 
 /// gRPC trailing headers for a streaming outcome: `grpc-status: 0` on success,
 /// the error's code and percent-encoded message otherwise (gRPC spec §Responses).
+#[cfg(not(target_family = "wasm"))]
 #[allow(
     clippy::format_push_string,
     reason = "the percent-encoded trailer string is short; `format!` reads clearer"

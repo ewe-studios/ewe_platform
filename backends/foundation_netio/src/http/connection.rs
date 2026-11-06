@@ -725,9 +725,14 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// as the blocking path does, without re-dialing. This wraps the private pool
     /// so the request task can reach it.
     #[must_use]
-    pub fn checkout_connection(&self, host: &str, port: u16) -> Option<HttpClientConnection> {
+    pub fn checkout_connection(
+        &self,
+        host: &str,
+        port: u16,
+        clock: &dyn foundation_core::valtron::Clock,
+    ) -> Option<HttpClientConnection> {
         self.pool
-            .checkout(host, port)
+            .checkout(host, port, clock)
             .map(|stream| HttpClientConnection {
                 stream,
                 host: host.to_string(),
@@ -767,6 +772,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         &self,
         url: &Uri,
         timeout: Option<Duration>,
+        clock: &dyn foundation_core::valtron::Clock,
     ) -> Result<HttpClientConnection, HttpClientError> {
         // Extract host/port for pool lookup
         let host = url
@@ -779,7 +785,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         //
         // If your actual `ConnectionPool` API uses different method names, update
         // the calls here to match the real signatures.
-        if let Some(stream) = self.pool.checkout(host.as_str(), port) {
+        if let Some(stream) = self.pool.checkout(host.as_str(), port, clock) {
             // Wrap the pooled RawStream into our HttpClientConnection and return.
             return Ok(HttpClientConnection { stream, host, port });
         }
@@ -824,6 +830,17 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// This is a best-effort helper that calls into the pool's `put`/`release`
     /// style API. Adjust the call if your pool uses a different method name.
     pub fn return_to_pool(&self, conn: HttpClientConnection) {
+        // A caller that has no engine clock (for example a host adapter) uses
+        // the real clock explicitly. A task uses `return_to_pool_with_clock`.
+        self.return_to_pool_with_clock(conn, &foundation_core::valtron::MonotonicClock::new());
+    }
+
+    /// Return a `RawStream` back into the pool, stamping it on `clock`.
+    pub fn return_to_pool_with_clock(
+        &self,
+        conn: HttpClientConnection,
+        clock: &dyn foundation_core::valtron::Clock,
+    ) {
         // WHY: Some transports must never be pooled — Unix sockets (Docker,
         // BuildKitd) close after every response, and an SSH `docker system
         // dial-stdio` channel is a one-shot bridge. The next checkout would get
@@ -838,7 +855,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         // Destructure to move fields out without partially borrowing `conn`.
         let HttpClientConnection { host, port, stream } = conn;
         // Attempt to put the stream back; ignore failures to avoid panics.
-        self.pool.checkin(host.as_str(), port, stream);
+        self.pool.checkin(host.as_str(), port, stream, clock);
     }
 
     /// Clears all pooled connections. Useful for tests to force fresh connections.
@@ -1263,17 +1280,18 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// let url = Uri::parse("http://example.com").unwrap();
     ///
     /// // Direct connection (no proxy).
-    /// let _conn = pool.create_connection_with_proxy(&url, None, None);
+    /// let _conn = pool.create_connection_with_proxy(&url, None, None, &foundation_core::valtron::MonotonicClock::new());
     ///
     /// // Through an HTTP proxy.
     /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080").unwrap();
-    /// let _conn = pool.create_connection_with_proxy(&url, Some(&proxy), None);
+    /// let _conn = pool.create_connection_with_proxy(&url, Some(&proxy), None, &foundation_core::valtron::MonotonicClock::new());
     /// ```
     pub fn create_connection_with_proxy(
         &self,
         url: &Uri,
         proxy: Option<&crate::shared::client::ProxyConfig>,
         timeout: Option<Duration>,
+        clock: &dyn foundation_core::valtron::Clock,
     ) -> Result<HttpClientConnection, HttpClientError> {
         use crate::http::{ProxyConfig, ProxyProtocol};
 
@@ -1287,7 +1305,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         if let Some(proxy_config) = proxy {
             if ProxyConfig::should_bypass(&target_host) {
                 // Bypass proxy, create direct connection
-                return self.create_http_connection(url, timeout);
+                return self.create_http_connection(url, timeout, clock);
             }
 
             // Establish proxy tunnel based on protocol
@@ -1346,7 +1364,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             }
         } else {
             // No proxy, create direct connection
-            self.create_http_connection(url, timeout)
+            self.create_http_connection(url, timeout, clock)
         }
     }
 }

@@ -309,8 +309,14 @@ int main(int argc, char **argv) {
     use foundation_nativeapis::native::vfs::d1_delta::D1Delta;
     use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
     use foundation_nativeapis::shared::vfs::VfsFileSystem;
-    let delta = D1Delta::new_with_base_url("test-token", "test-account", &db_id, Some(&base))
-        .expect("D1Delta::new_with_base_url");
+    let delta = D1Delta::new_with_base_url(
+        "test-token",
+        "test-account",
+        &db_id,
+        Some(&base),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .expect("D1Delta::new_with_base_url");
     let read = SyncFs::new(delta)
         .read_file(&key)
         .unwrap_or_else(|e| panic!("read back failed: {e}"));

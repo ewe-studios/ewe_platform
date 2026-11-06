@@ -23,14 +23,14 @@ use crate::valtron::{
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::future::Future;
 
-#[allow(clippy::type_complexity)]
-pub struct InlineAction<Done, Pending, Task>(
-    Option<(
-        InlineActionBehaviour,
-        Task,
-        Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
-    )>,
-)
+/// The parts of an inline action.
+pub type InlineActionParts<Done, Pending, Task> = (
+    InlineActionBehaviour,
+    Task,
+    Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
+);
+
+pub struct InlineAction<Done, Pending, Task>(Option<InlineActionParts<Done, Pending, Task>>)
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>;
 
@@ -164,7 +164,7 @@ pub fn initialize_pool(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
 ) -> super::single::PoolGuard {
-    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::host())
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -177,8 +177,30 @@ pub fn initialize_pool_with_ctx(
     _user_thread_num: Option<usize>,
     root: Ctx,
 ) -> super::single::PoolGuard {
+    root.assert_minimum();
     tracing::debug!("Starting under not(feature=multi), so single threaded");
     single::initialize_pool_with_ctx(seed_for_rng, root);
+    single::PoolGuard
+}
+
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// WHY: both `#[valtron]` and `#[valtron_test]` must turn the watchdog on, and
+/// the same call must compile in the multi-threaded build (where it sets a
+/// `PoolConfig` field instead).
+/// WHAT: starts this thread's single-threaded engine with the threshold. A
+/// thread that already has an engine keeps it, so a later call does not change
+/// the threshold.
+#[must_use]
+pub fn initialize_pool_with_slow_poll_warning(
+    seed_for_rng: u64,
+    _user_thread_num: Option<usize>,
+    slow_poll_warning: Option<std::time::Duration>,
+    root: Ctx,
+) -> super::single::PoolGuard {
+    root.assert_minimum();
+    tracing::debug!("Starting under not(feature=multi), so single threaded");
+    single::initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, slow_poll_warning);
     single::PoolGuard
 }
 
@@ -195,7 +217,7 @@ pub fn initialize_pool_with_ctx(
 /// Idempotent: a thread that already has an engine keeps it. Under `multi` the
 /// same function is a no-op, because that pool is process-wide.
 pub fn initialize_current_thread(seed_for_rng: u64) {
-    initialize_current_thread_with_ctx(seed_for_rng, Ctx::new());
+    initialize_current_thread_with_ctx(seed_for_rng, Ctx::host());
 }
 
 /// [`initialize_current_thread`] with an explicit engine root.
@@ -203,7 +225,21 @@ pub fn initialize_current_thread(seed_for_rng: u64) {
 /// Idempotent like [`initialize_current_thread`]: a thread that already has an
 /// engine keeps it, and keeps the root it was built with.
 pub fn initialize_current_thread_with_ctx(seed_for_rng: u64, root: Ctx) {
+    root.assert_minimum();
     single::initialize_pool_with_ctx(seed_for_rng, root);
+}
+
+/// [`initialize_current_thread_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// Idempotent like [`initialize_current_thread`]: a thread that already has an
+/// engine keeps it, including its warning threshold.
+pub fn initialize_current_thread_with_slow_poll_warning(
+    seed_for_rng: u64,
+    slow_poll_warning: Option<std::time::Duration>,
+    root: Ctx,
+) {
+    root.assert_minimum();
+    single::initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, slow_poll_warning);
 }
 
 /// Submit a blocking closure for execution on the appropriate background executor.
@@ -446,6 +482,9 @@ pub fn cancel_signal() -> std::sync::Arc<core::sync::atomic::AtomicBool> {
 /// and sets it to `true` to cancel the in-flight future. The stream
 /// yields `Stream<Result<F::Output, CancelOutcome>, ()>`.
 #[cfg(any(feature = "std", feature = "alloc"))]
+///
+/// # Errors
+/// Returns the executor error when the task cannot be scheduled.
 pub fn drive_cancellable_future<F>(
     future: F,
     wait_cycle: Option<std::time::Duration>,
@@ -477,7 +516,7 @@ where
     FutureTask::new(future)
 }
 
-/// Wrap a stream into a TaskIterator (WASM — Send required by unified executor trait,
+/// Wrap a stream into a `TaskIterator` (WASM — Send required by unified executor trait,
 /// but no actual cross-thread movement occurs since wasm32 is single-threaded).
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub fn from_stream<S>(stream: S) -> StreamTask<S>
@@ -516,6 +555,9 @@ where
     target_family = "wasm",
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
 )))]
+///
+/// # Errors
+/// Returns the executor error when the task cannot be scheduled.
 pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + 'static,
@@ -534,9 +576,9 @@ where
 
 /// Execute a future that produces an iterator, returning results as an Iterator.
 ///
-/// WHY: Single unified API across all feature configurations (multi, std, no_std)
-/// WHAT: Creates ThreadedIterFuture with configured queue_size and backpressure,
-///       calls execute(), and returns the resulting iterator
+/// WHY: Single unified API across all feature configurations (multi, std, `no_std`)
+/// WHAT: Creates `ThreadedIterFuture` with configured `queue_size` and backpressure,
+///       calls `execute()`, and returns the resulting iterator
 ///
 /// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
 /// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
@@ -548,6 +590,9 @@ where
     target_family = "wasm",
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
 )))]
+///
+/// # Errors
+/// This function does not return an error. The result is always `Ok`.
 pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
@@ -595,13 +640,13 @@ where
 ///
 /// This function allows configuring:
 /// - `wait_cycle`: Executor polling duration
-/// - `max_turns`: Poll attempts before yielding in NotifyQueueStreamIterator
+/// - `max_turns`: Poll attempts before yielding in `NotifyQueueStreamIterator`
 /// - `park_duration`: Thread park duration when queue is empty
 ///
 /// # Arguments
 ///
 /// - `task`: The task to execute
-/// - `config`: StreamConfig with execution parameters
+/// - `config`: `StreamConfig` with execution parameters
 ///
 /// # Returns
 ///
@@ -1057,15 +1102,14 @@ where
         return Err("empty tasks not allowed".into());
     }
 
-    let stream = execute_collect_all(tasks, None)?;
+    let mut stream = execute_collect_all(tasks, None)?;
     // execute_collect_all yields Pending(count) while in flight, then a single
     // Next(Vec<T::Ready>) when all complete. filter_map skips non-Next items.
     stream
-        .filter_map(|s| match s {
+        .find_map(|s| match s {
             Stream::Next(v) => Some(v),
             _ => None,
         })
-        .next()
         .ok_or_else(|| "sync_all: no results produced by execute_collect_all".into())
 }
 
@@ -1403,7 +1447,7 @@ impl ConsumerSlot {
         let wake = self
             .wake
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(crate::compati::recover_poison)
             .take();
         if let Some(wake) = wake {
             wake();
@@ -1481,11 +1525,11 @@ where
             // the caller gets `Wait` and decides whether to poll again.
             #[cfg(not(target_family = "wasm"))]
             if pulled.is_none() && !single::has_runnable_work() {
-                let until = foundation_compact::Instant::now() + single::sleeper_budget();
+                let until = single::clock().now() + single::sleeper_budget();
                 while pulled.is_none() && single::wait_for_sleepers(until) {
                     run_until_next_state();
                     pulled = task_iterator.try_next();
-                    if pulled.is_none() && foundation_compact::Instant::now() >= until {
+                    if pulled.is_none() && single::clock().now() >= until {
                         pulled = Some(Some(Stream::Wait));
                     }
                 }
@@ -1530,15 +1574,12 @@ where
         // Keeping the inner blocking preserves "block only when nothing here can
         // run" in `next`: the one real boundary of a thread that is its own
         // executor.
-        match self.0.as_ref() {
-            Some(inner) => {
-                inner.chan().register_wake(cb);
-                WakeResult::Successful
-            }
-            None => {
-                let _ = cb;
-                WakeResult::NotSupported
-            }
+        if let Some(inner) = self.0.as_ref() {
+            inner.chan().register_wake(cb);
+            WakeResult::Successful
+        } else {
+            let _ = cb;
+            WakeResult::NotSupported
         }
     }
 
@@ -1558,7 +1599,7 @@ where
         *slot
             .wake
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cb);
+            .unwrap_or_else(crate::compati::recover_poison) = Some(cb);
 
         // 1. The output queue.
         if !slot
@@ -1594,12 +1635,9 @@ where
             // on the readiness quantum. Replacing the handle cancels the last one.
             self.1.timer = single::parked_wake_after().map(|after| {
                 let timer_slot = Arc::clone(&slot);
-                crate::valtron::timer::call_at(
-                    foundation_compact::Instant::now() + after,
-                    move || {
-                        timer_slot.fire();
-                    },
-                )
+                crate::valtron::timer::call_at(single::clock().now() + after, move || {
+                    timer_slot.fire();
+                })
             });
         }
         WakeResult::Successful
@@ -1619,6 +1657,9 @@ where
     T::Pending: 'static,
 {
     pub fn new(task_iterator: T, ctx: Ctx) -> Self {
+        // The task boundary: reject a context that lost an engine-minimum
+        // element on a path the compiler cannot check.
+        ctx.assert_minimum();
         Self(Some(task_iterator), ctx)
     }
 }
@@ -1767,23 +1808,11 @@ where
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
-            Some(Stream::Pending(_)) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
             Some(Stream::Delayed(d)) => {
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Delayed(d))
             }
-            Some(Stream::Init) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
-            Some(Stream::Ignore) => {
-                self.current_index = (self.current_index + 1) % self.sources.len();
-                Some(Stream::Pending(self.sources.len()))
-            }
-            Some(Stream::Wait) => {
+            Some(Stream::Pending(_) | Stream::Init | Stream::Ignore | Stream::Wait) => {
                 self.current_index = (self.current_index + 1) % self.sources.len();
                 Some(Stream::Pending(self.sources.len()))
             }
@@ -1884,6 +1913,7 @@ where
 /// results.sort_unstable();
 /// assert_eq!(results, vec![1, 2, 11, 12]);
 /// ```
+#[must_use]
 pub fn collect_all_streams<S>(streams: Vec<S>) -> CollectAllStreams<S>
 where
     S: StreamIterator<P = usize> + 'static,
@@ -1892,18 +1922,18 @@ where
     CollectAllStreams::new(streams)
 }
 
-/// Create a StreamIterator that yields a single value and then completes.
+/// Create a `StreamIterator` that yields a single value and then completes.
 ///
 /// This is useful for creating error streams or wrapping a single result
-/// in a StreamIterator for combinator chains.
+/// in a `StreamIterator` for combinator chains.
 ///
 /// # Arguments
 ///
-/// * `value` - The value to yield as Stream::Next
+/// * `value` - The value to yield as `Stream::Next`
 ///
 /// # Returns
 ///
-/// Returns a OneShotStream that yields the value once then completes.
+/// Returns a `OneShotStream` that yields the value once then completes.
 ///
 /// # Example
 ///
@@ -1926,7 +1956,7 @@ where
     }
 }
 
-/// A StreamIterator that yields a single value and then completes.
+/// A `StreamIterator` that yields a single value and then completes.
 pub struct OneShotStream<D, P> {
     value: Option<D>,
     _phantom: std::marker::PhantomData<P>,
@@ -2010,23 +2040,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Pending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
                 Some(Stream::Delayed(d)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Delayed(d));
                 }
-                Some(Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Init) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Ignore) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Continue to next source in same pass
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Ignore | Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
@@ -2075,6 +2097,8 @@ where
 // Feature 04: Mapping Combinators
 // ============================================================================
 
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn execute_map_all<T, F, O>(
     tasks: Vec<T>,
     mapper: F,
@@ -2168,13 +2192,7 @@ where
                         None => d,
                     });
                 }
-                Some(Stream::Init) => {
-                    all_done = false;
-                }
-                Some(Stream::Ignore) => {
-                    all_done = false;
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Init | Stream::Ignore | Stream::Wait) => {
                     all_done = false;
                 }
                 Some(Stream::Spread(items)) => {
@@ -2221,6 +2239,8 @@ where
     }
 }
 
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn execute_map_all_pending_and_done<T, F, O, R>(
     tasks: Vec<T>,
     mapper: F,
@@ -2334,6 +2354,8 @@ where
 // Collect Next From All (New Feature)
 // ============================================================================
 
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn execute_collect_next_from_all<T>(
     tasks: Vec<T>,
     wait_cycle: Option<std::time::Duration>,
@@ -2410,23 +2432,15 @@ where
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Next(value));
                 }
-                Some(Stream::Pending(_)) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    return Some(Stream::Pending(self.sources.len()));
-                }
                 Some(Stream::Delayed(d)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Delayed(d));
                 }
-                Some(Stream::Init) => {
+                Some(Stream::Pending(_) | Stream::Init) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     return Some(Stream::Pending(self.sources.len()));
                 }
-                Some(Stream::Ignore) => {
-                    self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Continue to next source in same pass
-                }
-                Some(Stream::Wait) => {
+                Some(Stream::Ignore | Stream::Wait) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Continue to next source in same pass
                 }
@@ -2476,6 +2490,9 @@ where
 
 /// Schedule a future, returning a stream that yields `Stream<Result<T, E>, ()>`.
 /// Errors are preserved as `Stream::Next(Err(e))`.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub fn schedule_future<T, E, F>(
     future: F,
@@ -2490,7 +2507,7 @@ where
     execute(task, None).map(|stream| {
         stream.map(|item| match item {
             Stream::Next(result) => Stream::Next(result),
-            Stream::Pending(_) => Stream::Pending(()),
+            Stream::Pending(()) => Stream::Pending(()),
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
@@ -2500,7 +2517,7 @@ where
                     .into_iter()
                     .map(|item| match item {
                         StreamSpread::Done(result) => StreamSpread::Done(result),
-                        StreamSpread::Pending(_) => StreamSpread::Pending(()),
+                        StreamSpread::Pending(()) => StreamSpread::Pending(()),
                     })
                     .collect(),
             ),
@@ -2509,6 +2526,10 @@ where
 }
 
 /// One-shot blocking bridge: execute a future and return the first `Next` result.
+///
+/// # Errors
+/// Returns the executor error when the task cannot be scheduled, and an error
+/// when the future produced no result.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub fn exec_future<T, E, F>(future: F) -> GenericResult<Result<T, E>>
 where
@@ -2531,6 +2552,9 @@ where
 
 /// Schedule a sleep for `duration`. Returns a stream that completes after the
 /// duration elapses.
+///
+/// # Errors
+/// Returns the executor error when a task cannot be scheduled.
 pub fn sleep(
     duration: std::time::Duration,
 ) -> crate::valtron::GenericResult<DrivenStreamIterator<super::sleep::SleepingTask>> {
@@ -2577,17 +2601,21 @@ where
     TaskSpawnConfig::new(engine)
 }
 
+/// A boxed resolver over a task's ready and pending types.
+pub type BoxedResolver<Done, Pending> = Box<dyn TaskReadyResolver<Done, Pending> + 'static>;
+
+/// A task builder whose resolver is boxed over `Task`.
+pub type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    BoxedResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>,
+    Task,
+>;
+
 /// `any_task` allows you to create a task builder with less restrictive type
 /// requirements for the builder, specifically resolvers are Boxed.
 #[must_use]
-pub fn any_task<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn any_task<Task>(engine: BoxedExecutionEngine) -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task: TaskIterator + 'static,
 {

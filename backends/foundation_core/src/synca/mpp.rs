@@ -90,14 +90,21 @@ impl<T> Receiver<T> {
         self.chan.try_iter()
     }
 
+    #[must_use]
     pub fn into_recv_iter_timeout(&self, duration: Duration) -> RecvIterator<T> {
         RecvIterator::from_chan(self.chan.clone(), duration)
     }
 
+    #[must_use]
     pub fn into_recv_iter(&self) -> RecvIterator<T> {
         RecvIterator::from_hundred_millis(self.chan.clone())
     }
 
+    /// Receives the next value from the channel.
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Empty`] when the channel has no value, and
+    /// [`ReceiverError::Closed`] when the channel is closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
         match self.chan.pop() {
             Ok(value) => Ok(value),
@@ -111,8 +118,16 @@ impl<T> Receiver<T> {
     /// `recv_timeout` attempts to read value from the channel within the specified duration.
     /// It internally uses [`std::thread::park_timeout`] to block the current thread
     /// for a given duration until a value is received or the timeout is reached.
-    pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
-        let started = foundation_compact::Instant::now();
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Timeout`] when the duration expires, and
+    /// [`ReceiverError::Closed`] when the channel is closed.
+    pub fn recv_timeout(
+        &self,
+        dur: std::time::Duration,
+        clock: &dyn crate::valtron::Clock,
+    ) -> Result<T, ReceiverError> {
+        let started = clock.now();
 
         let mut remaining_timeout = dur;
         loop {
@@ -122,7 +137,7 @@ impl<T> Receiver<T> {
                 Err(err) => match err {
                     PopError::Empty => {
                         // check the state and see if we've crossed that threshold.
-                        let elapsed = started.elapsed();
+                        let elapsed = clock.now().saturating_duration_since(started);
                         if elapsed >= remaining_timeout {
                             return Err(ReceiverError::Timeout);
                         }
@@ -188,6 +203,10 @@ impl<T> RecvIter<T> {
 
     /// [`Self::recv`] returns a Result of the value from the underlying channel if
     /// there is a value or if empty or closed.
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Empty`] when the channel has no value, and
+    /// [`ReceiverError::Closed`] when the channel is closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
         match self.chan.pop() {
             Ok(value) => Ok(value),
@@ -200,6 +219,9 @@ impl<T> RecvIter<T> {
 
     /// [`Self::block_recv`] blocks the thread with a spinning loop waiting for an item
     /// to be received on the channel.
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Closed`] when the channel is closed.
     pub fn block_recv(&self, block_ts: time::Duration) -> Result<T, ReceiverError> {
         let mut yield_now = false;
         loop {
@@ -358,6 +380,12 @@ impl<T> Sender<T> {
         self.chan.is_full()
     }
 
+    /// Sends a value to the channel.
+    ///
+    /// # Errors
+    /// Returns [`SenderError::Full`] when the bounded channel is full, and
+    /// [`SenderError::Closed`] when the channel is closed. The error carries the
+    /// value back.
     pub fn send(&self, value: T) -> Result<(), SenderError<T>> {
         match self.chan.push(value) {
             Ok(()) => Ok(()),
@@ -366,6 +394,11 @@ impl<T> Sender<T> {
         }
     }
 
+    /// Sends a value even when the channel is full, and returns the evicted value.
+    ///
+    /// # Errors
+    /// Returns [`SenderError::Closed`] when the channel is closed. The error
+    /// carries the value back.
     pub fn force_send(&self, value: T) -> Result<Option<T>, SenderError<T>> {
         match self.chan.force_push(value) {
             Ok(v) => Ok(v),
@@ -404,6 +437,7 @@ pub struct Broadcaster<T: Clone + Send + 'static> {
 
 impl<T: Clone + Send + 'static> Broadcaster<T> {
     /// Create a new broadcaster with the given per-subscriber channel capacity.
+    #[must_use]
     pub fn new(capacity: usize) -> Self {
         Self {
             subscribers: Vec::new(),
@@ -430,6 +464,8 @@ impl<T: Clone + Send + 'static> Broadcaster<T> {
                 Err(_) => false,
             },
         });
+        // Every subscriber holds a clone, so the original is not needed.
+        drop(event);
     }
 
     /// Clean up dead subscribers (Receiver dropped).
@@ -438,6 +474,7 @@ impl<T: Clone + Send + 'static> Broadcaster<T> {
     }
 
     /// Number of active subscribers.
+    #[must_use]
     pub fn subscriber_count(&self) -> usize {
         self.subscribers.len()
     }
@@ -480,10 +517,12 @@ pub struct TrackedBroadcaster<T: Clone + Send + 'static> {
 }
 
 impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
+    #[must_use]
     pub fn new(capacity: usize) -> Self {
         Self::with_max_retries(capacity, 16)
     }
 
+    #[must_use]
     pub fn with_max_retries(capacity: usize, max_retries: u32) -> Self {
         Self {
             inner: std::sync::Mutex::new(TrackedInner {
@@ -496,7 +535,10 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
     }
 
     pub fn subscribe(&self) -> Receiver<T> {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let mut inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         let cap = inner.capacity;
         let idx = inner.event_index;
         let (tx, rx) = bounded(cap);
@@ -515,7 +557,10 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
     /// `consecutive_failures`. After `max_retries` consecutive failures,
     /// evict: close the queue and remove the slot.
     pub fn broadcast(&self, event: T) {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let mut inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         inner.event_index += 1;
         let idx = inner.event_index;
         let max = inner.max_retries;
@@ -524,33 +569,38 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
             if slot.sender.is_closed() {
                 return false;
             }
-            match slot.sender.send(event.clone()) {
-                Ok(()) => {
-                    slot.delivered_up_to = idx;
-                    slot.consecutive_failures = 0;
+            if let Ok(()) = slot.sender.send(event.clone()) {
+                slot.delivered_up_to = idx;
+                slot.consecutive_failures = 0;
+                true
+            } else {
+                slot.consecutive_failures += 1;
+                if slot.consecutive_failures >= max {
+                    let _ = slot.sender.close();
+                    false
+                } else {
                     true
-                }
-                Err(_) => {
-                    slot.consecutive_failures += 1;
-                    if slot.consecutive_failures >= max {
-                        let _ = slot.sender.close();
-                        false
-                    } else {
-                        true
-                    }
                 }
             }
         });
+        // Every subscriber holds a clone, so the original is not needed.
+        drop(event);
     }
 
     pub fn subscriber_count(&self) -> usize {
-        let inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         inner.slots.len()
     }
 
     /// Close all subscriber queues (session-end lifecycle signal).
     pub fn close(&self) {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let mut inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         for slot in &inner.slots {
             let _ = slot.sender.close();
         }

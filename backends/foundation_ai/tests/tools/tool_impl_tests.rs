@@ -67,7 +67,7 @@ fn register_and_execute() {
         mgr.deregister("echo");
         assert!(mgr.get("echo").is_none());
         assert_eq!(mgr.names().len(), 0);
-    })
+    });
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn unknown_tool_returns_error() {
         };
         let err = mgr.execute_one(&request).await.unwrap_err();
         assert_eq!(err, ToolError::UnknownTool("nonexistent".into()));
-    })
+    });
 }
 
 #[test]
@@ -101,7 +101,7 @@ fn build_toolshed_populates_by_category() {
             echo.definitions().next().unwrap().description,
             "Echoes the message argument"
         );
-    })
+    });
 }
 
 #[test]
@@ -116,8 +116,8 @@ fn build_toolshed_empty_has_no_shed_meta_tool() {
             shed.shed.is_none(),
             "empty registry must not include the shed meta-tool"
         );
-        assert!(shed.tools.is_empty());
-    })
+        assert_eq!(shed.tools, [] as [foundation_ai::types::Tool; 0]);
+    });
 }
 
 #[test]
@@ -132,5 +132,5 @@ fn build_toolshed_with_tools_includes_shed_meta_tool() {
             "shed",
             "a populated registry should offer the shed meta-tool"
         );
-    })
+    });
 }

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_http"
-version = "0.0.5"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,8 +10,14 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.8" }
+foundation_core = { path = "../foundation_core", version = "0.0.16" }
+# The instant type the injected clock returns. On every native target this is
+# `std::time::Instant`; on JS wasm it is the host-clock instant, so a rate-limit
+# window compiles and runs on both.
+foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+# `ContextBag::rng` names the concrete `ChaCha8Rng`, as `Ctx::rng` does.
+rand_chacha = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -34,13 +40,13 @@ concurrent-queue = { workspace = true }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
 # netio is target-gated so wasm never pulls its `multi` feature (native =
 # defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
-foundation_netio = { path = "../foundation_netio", version = "0.0.6" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.7" }
 
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }
 getrandom = { version = "0.2", optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.6", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.7", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { version = "0.2", optional = true }
@@ -58,9 +64,12 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.5", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.6", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
+# `test-clock` provides `SimulatedClock`, so a test can prove that a server
+# timeout follows the injected clock.
+foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_testing = { path = "../foundation_testing" }
 # `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.

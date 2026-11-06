@@ -20,10 +20,10 @@ use std::future::poll_fn;
 use std::io;
 use std::sync::Arc;
 use std::task::Poll;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{sleep_async, Stream};
+use foundation_core::valtron::{sleep_async, Clock, Stream};
 use foundation_netio::http::{ClientRequestBuilder, HttpClientConnection, HttpConnectionPool};
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Error, H3Request};
@@ -80,9 +80,15 @@ impl H3Serve for H3ProxyHandler {
             let send_timeout = state.writer_config().send_timeout;
             let read_timeout = state.client_read_timeout();
             let limit = state.max_request_body();
+            let clock = state.clock().clone();
             // Read the request head off the H3 stream.
-            let Some(fields) =
-                read_headers(&mut request, read_timeout, state.h3_body_gauge()).await
+            let Some(fields) = read_headers(
+                &mut request,
+                read_timeout,
+                state.h3_body_gauge(),
+                clock.as_ref(),
+            )
+            .await
             else {
                 return Ok(());
             };
@@ -92,11 +98,27 @@ impl H3Serve for H3ProxyHandler {
 
             // Route + pick a backend.
             let Some(service) = state.router().route(&host, &path) else {
-                let _ = respond(&mut request, 404, &[], Bytes::new(), send_timeout).await;
+                let _ = respond(
+                    &mut request,
+                    404,
+                    &[],
+                    Bytes::new(),
+                    send_timeout,
+                    clock.as_ref(),
+                )
+                .await;
                 return Ok(());
             };
             let Some((lease, _idx)) = service.pick_sticky(None) else {
-                let _ = respond(&mut request, 503, &[], Bytes::new(), send_timeout).await;
+                let _ = respond(
+                    &mut request,
+                    503,
+                    &[],
+                    Bytes::new(),
+                    send_timeout,
+                    clock.as_ref(),
+                )
+                .await;
                 return Ok(());
             };
 
@@ -110,7 +132,7 @@ impl H3Serve for H3ProxyHandler {
                     .and_then(|v| v.trim().parse::<usize>().ok())
                     .is_some_and(|len| len > limit)
             {
-                reject_too_large(&mut request, send_timeout).await;
+                reject_too_large(&mut request, send_timeout, clock.as_ref()).await;
                 return Ok(());
             }
 
@@ -124,6 +146,7 @@ impl H3Serve for H3ProxyHandler {
             let first = match park_op(
                 &mut request,
                 read_timeout,
+                clock.as_ref(),
                 counted(state.h3_body_gauge(), H3Request::poll_body),
             )
             .await
@@ -148,6 +171,7 @@ impl H3Serve for H3ProxyHandler {
                         limit,
                         gauge,
                         read_timeout,
+                        clock.as_ref(),
                     )
                     .fuse();
                     pin_mut!(fwd, pump);
@@ -175,13 +199,24 @@ impl H3Serve for H3ProxyHandler {
 
             match outcome {
                 Ok(Ok(upstream)) => {
-                    relay_response(&mut request, upstream, gauge, send_timeout).await;
+                    relay_response(&mut request, upstream, gauge, send_timeout, clock.as_ref())
+                        .await;
                 }
                 Ok(Err(e)) => {
                     tracing::warn!(%url, "H3 upstream forward failed: {e}");
-                    let _ = respond(&mut request, 502, &[], Bytes::new(), send_timeout).await;
+                    let _ = respond(
+                        &mut request,
+                        502,
+                        &[],
+                        Bytes::new(),
+                        send_timeout,
+                        clock.as_ref(),
+                    )
+                    .await;
                 }
-                Err(BodyEnd::TooLarge) => reject_too_large(&mut request, send_timeout).await,
+                Err(BodyEnd::TooLarge) => {
+                    reject_too_large(&mut request, send_timeout, clock.as_ref()).await;
+                }
                 Err(BodyEnd::Read) => request.reset(error_code::H3_REQUEST_CANCELLED),
             }
             drop(lease);
@@ -226,6 +261,16 @@ async fn forward(
         .map_err(|e| format!("send upstream request: {e}"))?;
     let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
 
+    // `send_async` hands the response socket back in blocking mode, but this leg
+    // streams the body asynchronously. Keep the socket non-blocking so the body
+    // read parks on the reactor (`read_wake_source`) instead of blocking this
+    // valtron worker and every task it hosts (spec 70 feature 121).
+    if let Some(conn) = conn.as_ref() {
+        if let Err(e) = conn.set_nonblocking(true) {
+            tracing::debug!(error = %e, "cannot set upstream response socket non-blocking");
+        }
+    }
+
     // The body is an async stream that parks on the upstream socket
     // (Content-Length, chunked, or close-delimited; the client handles all three).
     let mut chunks = AsyncSendSafeBody::from(resp_body);
@@ -257,6 +302,7 @@ async fn relay_response(
     upstream: UpstreamResponse,
     gauge: &BufferedBytesGauge,
     send_timeout: Duration,
+    clock: &dyn Clock,
 ) {
     let UpstreamResponse {
         status,
@@ -276,7 +322,7 @@ async fn relay_response(
     let mut head: Vec<(&[u8], &[u8])> = vec![(b":status", status_text.as_bytes())];
     head.extend(fields.iter().map(|(n, v)| (n.as_bytes(), v.as_bytes())));
     let head = H3Request::<QuinnBidiStream>::encode_headers(&head);
-    if let Err(e) = send_all(request, head, true, send_timeout).await {
+    if let Err(e) = send_all(request, head, true, send_timeout, clock).await {
         tracing::debug!("H3 response head not sent: {e}");
         request.reset(error_code::H3_REQUEST_CANCELLED);
         return;
@@ -297,7 +343,7 @@ async fn relay_response(
         let held = chunk.len();
         gauge.add(held);
         let frame = H3Request::<QuinnBidiStream>::encode_data(Bytes::from(chunk));
-        let sent = send_all(request, frame, false, send_timeout).await;
+        let sent = send_all(request, frame, false, send_timeout, clock).await;
         gauge.sub(held);
         if let Err(e) = sent {
             tracing::debug!("H3 client stopped taking the body: {e}");
@@ -306,7 +352,7 @@ async fn relay_response(
         }
     }
 
-    if finish(request, send_timeout).await.is_err() {
+    if finish(request, send_timeout, clock).await.is_err() {
         return;
     }
     if let (Some(pool), Some(mut stream)) = (pool, conn) {
@@ -323,8 +369,16 @@ async fn read_headers(
     request: &mut H3Request<QuinnBidiStream>,
     timeout: Duration,
     gauge: &BufferedBytesGauge,
+    clock: &dyn Clock,
 ) -> Option<Vec<(Bytes, Bytes)>> {
-    match park_op(request, timeout, counted(gauge, H3Request::poll_headers)).await {
+    match park_op(
+        request,
+        timeout,
+        clock,
+        counted(gauge, H3Request::poll_headers),
+    )
+    .await
+    {
         Some(Ok(fields)) => Some(fields),
         _ => None,
     }
@@ -349,6 +403,7 @@ async fn pump_request_body(
     limit: usize,
     gauge: &BufferedBytesGauge,
     read_timeout: Duration,
+    clock: &dyn Clock,
 ) -> Result<(), BodyEnd> {
     let mut chunk = first;
     let mut total = 0usize;
@@ -366,7 +421,14 @@ async fn pump_request_body(
             return Ok(());
         }
         chunk = loop {
-            match park_op(request, read_timeout, counted(gauge, H3Request::poll_body)).await {
+            match park_op(
+                request,
+                read_timeout,
+                clock,
+                counted(gauge, H3Request::poll_body),
+            )
+            .await
+            {
                 Some(Ok(Some(next))) if next.is_empty() => {}
                 Some(Ok(Some(next))) => break next,
                 Some(Ok(None)) => {
@@ -380,8 +442,12 @@ async fn pump_request_body(
 }
 
 /// Answer `413` and tell the client to stop sending.
-async fn reject_too_large(request: &mut H3Request<QuinnBidiStream>, send_timeout: Duration) {
-    let _ = respond(request, 413, &[], Bytes::new(), send_timeout).await;
+async fn reject_too_large(
+    request: &mut H3Request<QuinnBidiStream>,
+    send_timeout: Duration,
+    clock: &dyn Clock,
+) {
+    let _ = respond(request, 413, &[], Bytes::new(), send_timeout, clock).await;
     request.stop_sending(error_code::H3_NO_ERROR);
 }
 
@@ -404,11 +470,12 @@ fn counted<'a, T>(
 async fn park_op<T>(
     request: &mut H3Request<QuinnBidiStream>,
     limit: Duration,
+    clock: &dyn Clock,
     mut op: impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()>,
 ) -> Option<Result<T, H3Error>> {
-    let deadline = Instant::now() + limit;
+    let deadline = clock.now() + limit;
     loop {
-        let remaining = deadline.checked_duration_since(Instant::now())?;
+        let remaining = deadline.checked_duration_since(clock.now())?;
         // Register the waker before the try, so a change between the try and the
         // park wakes this task.
         let attempt = poll_fn(|cx| {
@@ -434,6 +501,7 @@ async fn respond(
     extra_headers: &[(&str, &str)],
     body: Bytes,
     send_timeout: Duration,
+    clock: &dyn Clock,
 ) -> io::Result<()> {
     let status_str = status.to_string();
     let mut fields: Vec<(&[u8], &[u8])> = vec![(b":status", status_str.as_bytes())];
@@ -441,21 +509,22 @@ async fn respond(
         fields.push((k.as_bytes(), v.as_bytes()));
     }
     let header_frame = H3Request::<QuinnBidiStream>::encode_headers(&fields);
-    send_all(request, header_frame, true, send_timeout).await?;
+    send_all(request, header_frame, true, send_timeout, clock).await?;
 
     if !body.is_empty() {
         let data_frame = H3Request::<QuinnBidiStream>::encode_data(body);
-        send_all(request, data_frame, false, send_timeout).await?;
+        send_all(request, data_frame, false, send_timeout, clock).await?;
     }
-    finish(request, send_timeout).await
+    finish(request, send_timeout, clock).await
 }
 
 /// End the send half (FIN), waiting at most `send_timeout`.
 async fn finish(
     request: &mut H3Request<QuinnBidiStream>,
     send_timeout: Duration,
+    clock: &dyn Clock,
 ) -> io::Result<()> {
-    match park_op(request, send_timeout, H3Request::poll_finish).await {
+    match park_op(request, send_timeout, clock, H3Request::poll_finish).await {
         Some(Ok(())) => Ok(()),
         Some(Err(e)) => Err(io::Error::other(format!("h3 finish failed: {e}"))),
         None => Err(io::Error::other("h3 finish timed out")),
@@ -470,8 +539,9 @@ async fn send_all(
     mut pending: Bytes,
     headers: bool,
     send_timeout: Duration,
+    clock: &dyn Clock,
 ) -> io::Result<()> {
-    let sent = park_op(request, send_timeout, |r| {
+    let sent = park_op(request, send_timeout, clock, |r| {
         if headers {
             r.poll_send_headers(&mut pending)
         } else {

@@ -33,7 +33,7 @@ fn test_timeout_task_stops_after_duration() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let task = SlowTask { count: 0 };
     let mut timeout_task = TimeoutTask::new(task, Duration::from_millis(200));
@@ -64,7 +64,7 @@ fn test_poll_limit_task_stops_after_max_polls() {
             Some(TaskStatus::Pending(()))
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let task = InfiniteTask;
     let mut limited_task = PollLimitTask::new(task, 5);

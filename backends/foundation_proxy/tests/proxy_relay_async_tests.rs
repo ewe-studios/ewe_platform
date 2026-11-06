@@ -144,7 +144,12 @@ fn start_proxy_with_limit(services: Vec<ServiceConfig>, limit: usize) -> ProxySe
     for svc in services {
         config = config.service(svc);
     }
-    ProxyServer::start(config).block().expect("start proxy")
+    ProxyServer::start(
+        config,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .block()
+    .expect("start proxy")
 }
 
 fn open_request(addr: SocketAddr, host: &str) -> TcpStream {

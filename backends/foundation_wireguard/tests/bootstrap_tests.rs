@@ -40,7 +40,7 @@ fn token_round_trips_all_fields() {
     assert_eq!(parsed.expires_at, Some(1_900_000_000));
     match parsed.secret {
         TokenSecret::Seed(seed) => assert_eq!(seed.as_bytes(), &[0x33u8; 32]),
-        other => panic!("expected seed secret, got {other:?}"),
+        TokenSecret::BootstrapPubkey(_) => panic!("expected seed secret"),
     }
 }
 
@@ -77,7 +77,7 @@ fn parse_dispatches_token_vs_bare_seed() {
     let encoded = sample_token().to_token();
     match WgBootstrap::parse(&encoded).expect("parse token") {
         WgBootstrap::Token(t) => assert_eq!(t.endpoints.len(), 2),
-        other => panic!("expected token, got {other:?}"),
+        WgBootstrap::Seed(_) => panic!("expected token"),
     }
 
     // Bare seed — base64url form.
@@ -85,14 +85,14 @@ fn parse_dispatches_token_vs_bare_seed() {
     let b64 = seed.to_base64url();
     match WgBootstrap::parse(&b64).expect("parse base64url seed") {
         WgBootstrap::Seed(s) => assert_eq!(s.as_bytes(), seed.as_bytes()),
-        other => panic!("expected seed, got {other:?}"),
+        WgBootstrap::Token(_) => panic!("expected seed"),
     }
 
     // Bare seed — hex form (64 hex chars = 32 bytes).
     let hex_seed = hex::encode([0xABu8; 32]);
     match WgBootstrap::parse(&hex_seed).expect("parse hex seed") {
         WgBootstrap::Seed(s) => assert_eq!(s.as_bytes(), &[0xABu8; 32]),
-        other => panic!("expected seed, got {other:?}"),
+        WgBootstrap::Token(_) => panic!("expected seed"),
     }
 
     // A seed carried either way is retrievable.

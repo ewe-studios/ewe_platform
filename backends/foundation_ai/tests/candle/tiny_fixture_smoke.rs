@@ -1,4 +1,4 @@
-//! Smoke test: the committed tiny-random fixtures load through CandleBackend.
+//! Smoke test: the committed tiny-random fixtures load through `CandleBackend`.
 //!
 //! WHY: `artefacts/test-models/` costs ~54 MB of permanent repo history. That is
 //! only justified if the fixtures actually load offline through our own backend
@@ -14,6 +14,11 @@ fn fixture_dir(name: &str) -> std::path::PathBuf {
         .join(name)
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[valtron_test]
 fn tiny_random_llama_fixture_loads_offline() {
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
@@ -22,7 +27,7 @@ fn tiny_random_llama_fixture_loads_offline() {
         "fixture missing: {dir:?}"
     );
 
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let spec = ModelSpec {
         name: "tiny-random-llama".to_string(),
         id: ModelId::Name("tiny-random-llama".to_string(), None),
@@ -58,7 +63,7 @@ fn load_tiny_llama() -> impl Model {
         model_location: Some(dir.to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    CandleBackend::cpu()
+    CandleBackend::cpu(test_clock())
         .get_model_by_spec(spec)
         .expect("fixture loads")
 }
@@ -89,7 +94,7 @@ fn params() -> ModelParams {
     }
 }
 
-/// Matrix 8.1 — generate() produces token records (gibberish is fine).
+/// Matrix 8.1 — `generate()` produces token records (gibberish is fine).
 #[valtron_test]
 fn candle_generate_produces_output() {
     let model = load_tiny_llama();
@@ -102,7 +107,7 @@ fn candle_generate_produces_output() {
     );
 }
 
-/// Matrix 8.2 / 8.4 — stream() advances beyond its first item.
+/// Matrix 8.2 / 8.4 — `stream()` advances beyond its first item.
 #[valtron_test]
 fn candle_stream_advances() {
     let model = load_tiny_llama();
@@ -114,10 +119,14 @@ fn candle_stream_advances() {
     let mut items = 0;
     for item in stream {
         items += 1;
-        if let Stream::Next(Messages::Assistant { content, .. }) = &item {
-            if let ModelOutput::Text(_) = content {
-                nexts += 1;
-            }
+        if matches!(
+            &item,
+            Stream::Next(Messages::Assistant {
+                content: ModelOutput::Text(_),
+                ..
+            })
+        ) {
+            nexts += 1;
         }
         if items > 100 {
             break;
@@ -129,7 +138,7 @@ fn candle_stream_advances() {
     );
 }
 
-/// Matrix 8.3 — generate() and stream() agree in shape: both yield text tokens.
+/// Matrix 8.3 — `generate()` and `stream()` agree in shape: both yield text tokens.
 #[valtron_test]
 fn candle_generate_and_stream_agree_in_shape() {
     let model = load_tiny_llama();
@@ -301,13 +310,11 @@ fn candle_unsupported_architecture_fails_loudly() {
         model_location: Some(tmp.to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    let result = CandleBackend::cpu().get_model_by_spec(spec);
+    let result = CandleBackend::cpu(test_clock()).get_model_by_spec(spec);
 
     let _ = std::fs::remove_dir_all(&tmp);
 
-    let err = result
-        .err()
-        .expect("a non-Llama architecture must not load as Llama");
+    let err = result.expect_err("a non-Llama architecture must not load as Llama");
     let msg = format!("{err:?}").to_lowercase();
     assert!(
         msg.contains("qwen2"),
@@ -330,7 +337,7 @@ fn load_tiny_gemma2() -> impl Model {
         model_location: Some(dir.to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    CandleBackend::cpu()
+    CandleBackend::cpu(test_clock())
         .get_model_by_spec(spec)
         .expect("gemma2 fixture loads")
 }
@@ -393,7 +400,7 @@ async fn agent_session_run_turn_through_candle_fixture() {
 
     // Concrete CandleModels (Clone via Arc) for PreloadedProvider.
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
-    let model = CandleBackend::cpu()
+    let model = CandleBackend::cpu(test_clock())
         .get_model_by_spec(ModelSpec {
             name: "tiny-llama".to_string(),
             id: ModelId::Name("tiny-llama".to_string(), None),
@@ -406,7 +413,7 @@ async fn agent_session_run_turn_through_candle_fixture() {
     let router = PreloadedProvider::new(model, model_id.clone()).into_router();
 
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        AgentSession::builder(router)
+        AgentSession::builder(router, test_clock())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id)
             .with_config(AgentConfig {
@@ -445,7 +452,7 @@ async fn agent_session_run_turn_through_candle_fixture() {
 }
 
 /// Matrix 3.8 / 7.4 — multi-turn continuity through a real candle model, offline.
-/// A second run_turn on the same session must also complete (the loop re-enters
+/// A second `run_turn` on the same session must also complete (the loop re-enters
 /// cleanly and the shared model handle keeps working across turns).
 #[valtron_test]
 async fn candle_session_handles_multiple_turns() {
@@ -456,7 +463,7 @@ async fn candle_session_handles_multiple_turns() {
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
-    let model = CandleBackend::cpu()
+    let model = CandleBackend::cpu(test_clock())
         .get_model_by_spec(ModelSpec {
             name: "tiny-llama".to_string(),
             id: ModelId::Name("tiny-llama".to_string(), None),
@@ -468,19 +475,22 @@ async fn candle_session_handles_multiple_turns() {
     let model_id = ModelId::Name("tiny-llama".into(), None);
 
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        AgentSession::builder(PreloadedProvider::new(model, model_id.clone()).into_router())
-            .with_system_prompt("You are a helpful assistant.")
-            .with_model(model_id)
-            .with_config(AgentConfig {
-                model_params: params(),
-                ..Default::default()
-            })
-            .with_context_config(ContextConfig::default())
-            .with_memory_config(MemoryConfig::default())
-            .with_error_policy(ErrorPolicy::new())
-            .build()
-            .await
-            .expect("session builds");
+        AgentSession::builder(
+            PreloadedProvider::new(model, model_id.clone()).into_router(),
+            test_clock(),
+        )
+        .with_system_prompt("You are a helpful assistant.")
+        .with_model(model_id)
+        .with_config(AgentConfig {
+            model_params: params(),
+            ..Default::default()
+        })
+        .with_context_config(ContextConfig::default())
+        .with_memory_config(MemoryConfig::default())
+        .with_error_policy(ErrorPolicy::new())
+        .build()
+        .await
+        .expect("session builds");
 
     let msg = |t: &str| Messages::User {
         id: foundation_compact::ids::new_scru128(),
@@ -544,7 +554,7 @@ fn gen_text(model: &impl Model, p: ModelParams) -> String {
         .collect()
 }
 
-/// Matrix 8.16 — top_k changes sampled output (greedy vs a wide stochastic set).
+/// Matrix 8.16 — `top_k` changes sampled output (greedy vs a wide stochastic set).
 #[valtron_test]
 fn candle_top_k_changes_output() {
     let model = load_tiny_llama();
@@ -603,7 +613,7 @@ fn candle_missing_config_errors() {
         model_location: Some(tmp.to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    let result = CandleBackend::cpu().get_model_by_spec(spec);
+    let result = CandleBackend::cpu(test_clock()).get_model_by_spec(spec);
     let _ = std::fs::remove_dir_all(&tmp);
     assert!(
         result.is_err(),
@@ -622,12 +632,14 @@ fn candle_missing_model_dir_errors() {
         lora_location: None,
     };
     assert!(
-        CandleBackend::cpu().get_model_by_spec(spec).is_err(),
+        CandleBackend::cpu(test_clock())
+            .get_model_by_spec(spec)
+            .is_err(),
         "a nonexistent model path must error"
     );
 }
 
-/// Matrix 8.17 — top_p changes sampled output vs greedy.
+/// Matrix 8.17 — `top_p` changes sampled output vs greedy.
 #[valtron_test]
 fn candle_top_p_changes_output() {
     let model = load_tiny_llama();
@@ -662,7 +674,7 @@ fn candle_top_p_changes_output() {
 /// returns the same cached handle.
 #[valtron_test]
 fn candle_backend_caches_loaded_model() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
     let spec = || ModelSpec {
         name: "tiny".into(),
@@ -678,7 +690,7 @@ fn candle_backend_caches_loaded_model() {
     assert_eq!(a.spec().name, b.spec().name);
 }
 
-/// Matrix 8.18 — repeat_penalty alters the sampled sequence (same seed, penalty
+/// Matrix 8.18 — `repeat_penalty` alters the sampled sequence (same seed, penalty
 /// on vs off) — the penalty reshapes logits over the context.
 #[valtron_test]
 fn candle_repeat_penalty_changes_output() {
@@ -716,7 +728,7 @@ async fn cost_accounting_is_per_session() {
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
     let dir = fixture_dir("tiny-random-LlamaForCausalLM");
-    let model = CandleBackend::cpu()
+    let model = CandleBackend::cpu(test_clock())
         .get_model_by_spec(ModelSpec {
             name: "tiny".into(),
             id: ModelId::Name("tiny".into(), None),
@@ -728,19 +740,22 @@ async fn cost_accounting_is_per_session() {
     let model_id = ModelId::Name("tiny".into(), None);
 
     let build = async || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
-        AgentSession::builder(PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
-            .with_system_prompt("You are a helpful assistant.")
-            .with_model(model_id.clone())
-            .with_config(AgentConfig {
-                model_params: params(),
-                ..Default::default()
-            })
-            .with_context_config(ContextConfig::default())
-            .with_memory_config(MemoryConfig::default())
-            .with_error_policy(ErrorPolicy::new())
-            .build()
-            .await
-            .expect("builds")
+        AgentSession::builder(
+            PreloadedProvider::new(model.clone(), model_id.clone()).into_router(),
+            test_clock(),
+        )
+        .with_system_prompt("You are a helpful assistant.")
+        .with_model(model_id.clone())
+        .with_config(AgentConfig {
+            model_params: params(),
+            ..Default::default()
+        })
+        .with_context_config(ContextConfig::default())
+        .with_memory_config(MemoryConfig::default())
+        .with_error_policy(ErrorPolicy::new())
+        .build()
+        .await
+        .expect("builds")
     };
 
     let s1 = build().await;
@@ -792,16 +807,15 @@ fn candle_no_chat_template_uses_fallback() {
         model_location: Some(tmp.to_string_lossy().to_string().into()),
         lora_location: None,
     };
-    let model = CandleBackend::cpu()
+    let model = CandleBackend::cpu(test_clock())
         .get_model_by_spec(spec)
         .expect("a model without a chat template must still load");
     let out = model.generate(greeting(), Some(params()));
     let _ = std::fs::remove_dir_all(&tmp);
 
     assert!(
-        out.expect("generation must succeed via the plain fallback")
-            .len()
-            > 0,
+        !out.expect("generation must succeed via the plain fallback")
+            .is_empty(),
         "generation without a chat template must still produce output"
     );
 }

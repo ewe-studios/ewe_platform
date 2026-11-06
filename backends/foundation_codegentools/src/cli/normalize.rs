@@ -141,6 +141,7 @@ pub fn normalize_provider(
     spec: &ProviderSpec,
     workspace_root: &Path,
     out_dir: &Path,
+    clock: &dyn foundation_core::valtron::Clock,
 ) -> Result<NormalizeReport, BoxedError> {
     let raw_path = workspace_root.join(spec.raw);
     let raw = std::fs::read_to_string(&raw_path).map_err(|e| -> BoxedError {
@@ -239,7 +240,7 @@ pub fn normalize_provider(
         format!("cannot write {}: {e}", canonical_path.display()).into()
     })?;
 
-    write_manifest(spec, &provider_dir, &report, &raw, &body)?;
+    write_manifest(spec, &provider_dir, &report, &raw, &body, clock)?;
 
     Ok(report)
 }
@@ -251,12 +252,13 @@ fn write_manifest(
     report: &NormalizeReport,
     raw: &str,
     canonical: &str,
+    clock: &dyn foundation_core::valtron::Clock,
 ) -> Result<(), BoxedError> {
     let manifest = serde_json::json!({
         "provider": spec.name,
         "source": spec.source,
         "raw": spec.raw,
-        "normalized_at": now_rfc3339(),
+        "normalized_at": now_unix_seconds(clock),
         // What feature 00's pin validates against — read from here rather than
         // re-parsing a 9.3 MB document.
         "spec_version": report.spec_version,
@@ -290,12 +292,9 @@ fn inline_count(doc: &Value) -> usize {
     })
 }
 
-fn now_rfc3339() -> String {
-    // Seconds since the epoch is enough provenance and costs no dependency.
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |d| d.as_secs());
-    format!("{secs}")
+fn now_unix_seconds(clock: &dyn foundation_core::valtron::Clock) -> String {
+    // Seconds since the epoch is enough provenance.
+    foundation_compact::time::unix_seconds(clock.wall_now()).to_string()
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -338,6 +337,8 @@ pub fn command() -> clap::Command {
 /// Returns an error for an unknown provider, or any failure from
 /// [`normalize_provider`].
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
+    // The CLI is the host entry point: build the one real clock here.
+    let clock = foundation_core::valtron::MonotonicClock::new();
     let provider = matches
         .get_one::<String>("provider")
         .map_or("all", String::as_str);
@@ -366,7 +367,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     };
 
     for spec in targets {
-        let report = normalize_provider(spec, &workspace_root, &out_dir)?;
+        let report = normalize_provider(spec, &workspace_root, &out_dir, &clock)?;
         println!(
             "{}: inline {} -> 0 | hoisted {} (renamed {}) | schemas {} | spec_version {} | {:?}",
             spec.name,

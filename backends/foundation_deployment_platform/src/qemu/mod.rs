@@ -15,13 +15,16 @@ use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::process::{Child, Command, Stdio};
+use std::sync::Arc;
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_core::valtron::Clock;
+use tracing::debug;
 
 use crate::config::{
     DisplayMode, GuestOs, Result, TestbedError, VmProfile, ensure_dirs, monitor_dir,
 };
-use tracing::debug;
 
 /// A running QEMU VM instance.
 ///
@@ -40,6 +43,8 @@ pub struct QemuVm {
     pub pid: u32,
     /// Resolved ports (may differ from profile defaults if ports were in use).
     pub resolved_ports: ResolvedPorts,
+    /// The host's clock for every shutdown and monitor deadline.
+    clock: Arc<dyn Clock>,
 }
 
 /// Actual port numbers the VM is listening on.
@@ -52,7 +57,7 @@ pub struct ResolvedPorts {
 }
 
 /// Configuration for launching a QEMU VM.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct QemuConfig {
     profile: VmProfile,
     display_mode: DisplayMode,
@@ -61,11 +66,28 @@ pub struct QemuConfig {
     project_mount_guest_path: Option<String>,
     project_mount_readonly: bool,
     cdrom_path: Option<std::path::PathBuf>,
+    /// The host's clock for the launch and readiness deadlines.
+    clock: Arc<dyn Clock>,
+}
+
+impl std::fmt::Debug for QemuConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("QemuConfig")
+            .field("profile", &self.profile)
+            .field("display_mode", &self.display_mode)
+            .field("extra_args", &self.extra_args)
+            .field("project_mount", &self.project_mount)
+            .field("project_mount_guest_path", &self.project_mount_guest_path)
+            .field("project_mount_readonly", &self.project_mount_readonly)
+            .field("cdrom_path", &self.cdrom_path)
+            .field("clock", &"<dyn Clock>")
+            .finish()
+    }
 }
 
 impl QemuConfig {
     #[must_use]
-    pub fn new(profile: VmProfile, display_mode: DisplayMode) -> Self {
+    pub fn new(profile: VmProfile, display_mode: DisplayMode, clock: Arc<dyn Clock>) -> Self {
         Self {
             profile,
             display_mode,
@@ -74,6 +96,7 @@ impl QemuConfig {
             project_mount_guest_path: None,
             project_mount_readonly: false,
             cdrom_path: None,
+            clock,
         }
     }
 
@@ -200,7 +223,7 @@ impl QemuConfig {
                     &socket_path,
                     config.project_mount_readonly,
                 );
-                spawn_virtiofsd(&daemon_config)?;
+                spawn_virtiofsd(&daemon_config, config.clock.as_ref())?;
             }
         }
 
@@ -248,9 +271,9 @@ impl QemuConfig {
         })?;
 
         // Wait for monitor socket to appear (up to 5s)
-        let deadline = Instant::now() + Duration::from_secs(5);
+        let deadline = config.clock.now() + Duration::from_secs(5);
         let monitor = loop {
-            if Instant::now() > deadline {
+            if config.clock.now() > deadline {
                 process.kill().ok();
                 return Err(TestbedError::QemuExited {
                     code: process
@@ -292,6 +315,7 @@ impl QemuConfig {
             disk_path,
             pid,
             resolved_ports: resolved,
+            clock: config.clock,
         })
     }
 }
@@ -311,6 +335,7 @@ impl QemuVm {
         pid: u32,
         monitor_path: &std::path::Path,
         resolved_ports: ResolvedPorts,
+        clock: Arc<dyn Clock>,
     ) -> Result<Self> {
         let monitor = UnixStream::connect(monitor_path).map_err(|e| TestbedError::Qcow2Error {
             message: format!(
@@ -327,6 +352,7 @@ impl QemuVm {
             disk_path,
             pid,
             resolved_ports,
+            clock,
         })
     }
 
@@ -362,8 +388,8 @@ impl QemuVm {
 
         // Try graceful shutdown via monitor
         if self.monitor_command("system_powerdown").is_ok() {
-            let deadline = Instant::now() + Duration::from_secs(30);
-            while Instant::now() < deadline {
+            let deadline = self.clock.now() + Duration::from_secs(30);
+            while self.clock.now() < deadline {
                 thread::sleep(Duration::from_millis(500));
                 if !self.is_running() {
                     return Ok(());
@@ -430,10 +456,10 @@ impl QemuVm {
         // Read response until (qemu) prompt
         let reader = BufReader::new(&self.monitor);
         let mut output = String::new();
-        let deadline = Instant::now() + Duration::from_secs(5);
+        let deadline = self.clock.now() + Duration::from_secs(5);
 
         for line in reader.lines() {
-            if Instant::now() > deadline {
+            if self.clock.now() > deadline {
                 return Err(TestbedError::MonitorFailed {
                     source: anyhow::anyhow!("monitor response timeout"),
                 });
@@ -493,6 +519,7 @@ impl QemuVm {
 pub fn adopt(
     profile: &VmProfile,
     disk_path: &std::path::Path,
+    clock: &dyn Clock,
 ) -> Result<(VmProfile, std::path::PathBuf)> {
     if !disk_path.exists() {
         return Err(TestbedError::Qcow2Error {
@@ -528,7 +555,7 @@ pub fn adopt(
         rdp_port: profile.rdp_port,
         vnc_port: profile.vnc_port,
         bootstrapped: false,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at: crate::clock::wall_now_rfc3339(clock),
     })?;
 
     Ok((profile.clone(), dest))
@@ -546,7 +573,11 @@ pub fn adopt(
 ///
 /// Returns an error if the VM cannot be stopped, relaunched, or if the new
 /// state cannot be saved.
-pub fn refresh_network(profile: &VmProfile, display_mode: DisplayMode) -> Result<QemuVm> {
+pub fn refresh_network(
+    profile: &VmProfile,
+    display_mode: DisplayMode,
+    clock: Arc<dyn Clock>,
+) -> Result<QemuVm> {
     // Stop if running
     if let Ok(state) = crate::state::load(profile.name)
         && let Some(pid) = state.pid
@@ -555,12 +586,14 @@ pub fn refresh_network(profile: &VmProfile, display_mode: DisplayMode) -> Result
         let alive = std::path::Path::new(&format!("/proc/{pid}")).exists();
         if alive {
             // Try graceful stop via QEMU monitor
-            if let Ok(mut vm) = QemuConfig::new(profile.clone(), display_mode).launch() {
+            if let Ok(mut vm) =
+                QemuConfig::new(profile.clone(), display_mode, Arc::clone(&clock)).launch()
+            {
                 vm.shutdown()?;
             }
             // Wait for process to fully exit
-            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
-            while std::time::Instant::now() < deadline {
+            let deadline = clock.now() + std::time::Duration::from_secs(15);
+            while clock.now() < deadline {
                 if !std::path::Path::new(&format!("/proc/{pid}")).exists() {
                     break;
                 }
@@ -570,7 +603,7 @@ pub fn refresh_network(profile: &VmProfile, display_mode: DisplayMode) -> Result
     }
 
     // Relaunch with fresh ports
-    let vm = QemuConfig::new(profile.clone(), display_mode).launch()?;
+    let vm = QemuConfig::new(profile.clone(), display_mode, clock).launch()?;
 
     // Save updated state with new ports
     crate::state::save(&crate::state::VmState {
@@ -585,7 +618,7 @@ pub fn refresh_network(profile: &VmProfile, display_mode: DisplayMode) -> Result
         rdp_port: vm.resolved_ports.rdp_port,
         vnc_port: vm.resolved_ports.vnc_port,
         bootstrapped: false,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at: crate::clock::wall_now_rfc3339(vm.clock.as_ref()),
     })?;
 
     Ok(vm)
@@ -835,7 +868,7 @@ fn find_qemu_system() -> Result<std::path::PathBuf> {
 /// virtiofsd 1.13.x creates the socket, QEMU immediately connects, and
 /// the filesystem socket may vanish. We check for the PID file (`.sock.pid`)
 /// as a reliable readiness indicator since virtiofsd creates it early.
-fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
+fn spawn_virtiofsd(config: &mount::VirtiofsdConfig, clock: &dyn Clock) -> Result<()> {
     // Clean stale socket and PID file
     let _ = std::fs::remove_file(&config.socket_path);
     let pid_path = config.socket_path.with_extension("sock.pid");
@@ -853,8 +886,8 @@ fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
         })?;
 
     // Wait for readiness signal (up to 10s)
-    let deadline = Instant::now() + Duration::from_secs(10);
-    while Instant::now() < deadline {
+    let deadline = clock.now() + Duration::from_secs(10);
+    while clock.now() < deadline {
         // Check for child process exit first
         if let Some(status) = child.try_wait().map_err(|e| TestbedError::Qcow2Error {
             message: format!("virtiofsd child error: {e}"),

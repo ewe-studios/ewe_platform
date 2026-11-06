@@ -134,6 +134,118 @@ fn cancelled_await_wakes_via_parent_link() {
     assert!(child.is_canceled());
 }
 
+#[test]
+fn cancelled_await_wakes_every_waiter() {
+    let signal = CancelSignal::new();
+    let first = signal.clone();
+    let second = signal.clone();
+    let firer = signal.clone();
+    let one = std::thread::spawn(move || block_on(first.cancelled()));
+    let two = std::thread::spawn(move || block_on(second.cancelled()));
+    std::thread::sleep(Duration::from_millis(100));
+    firer.cancel();
+    one.join().expect("first waiter");
+    two.join().expect("second waiter");
+    assert!(signal.is_canceled());
+}
+
+#[test]
+fn cancel_twice_stays_canceled() {
+    let signal = CancelSignal::new();
+    signal.cancel();
+    signal.cancel();
+    assert!(signal.is_canceled());
+}
+
+/// A finished `cancelled()` wait does not keep its waker (spec 70 feature 140).
+///
+/// Each facade wait builds a fresh `cancelled()` future, and valtron hands each
+/// poll a different waker. Without a liveness token on the bridged waker, the
+/// signal keeps every one of them until it fires.
+#[test]
+fn finished_cancel_waits_do_not_accumulate_wakers() {
+    use std::future::Future;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Wake, Waker};
+
+    struct CountingWake(AtomicUsize);
+
+    impl Wake for CountingWake {
+        fn wake(self: Arc<Self>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    let signal = CancelSignal::new();
+    // The wakers stay alive, so each one is distinct and `will_wake` is false.
+    // That is what a stream task gets when valtron re-parks it on each poll.
+    let wakers: Vec<Waker> = (0..1000)
+        .map(|_| Waker::from(Arc::new(CountingWake(AtomicUsize::new(0)))))
+        .collect();
+    for waker in &wakers {
+        let mut cx = std::task::Context::from_waker(waker);
+        let future = signal.cancelled();
+        let mut future = std::pin::pin!(future);
+        assert!(
+            future.as_mut().poll(&mut cx).is_pending(),
+            "a signal that did not fire must keep the wait pending"
+        );
+        // `future` drops here: its wait is gone.
+    }
+
+    let registered = signal.waiter_count();
+    assert!(
+        registered <= 2,
+        "1000 finished waits left {registered} registered wakers; a finished \
+         wait must be pruned on the next register"
+    );
+}
+
+/// Two live cancel waits of one task must both keep a registration.
+///
+/// Both waits poll with the same task waker, so a de-duplication on `will_wake`
+/// alone keeps the first wait's liveness token only. If that wait ends, the
+/// signal prunes its only waker and the second wait never wakes.
+#[test]
+fn two_live_cancel_waits_of_one_task_stay_registered() {
+    use std::future::Future;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Wake, Waker};
+
+    struct CountingWake(AtomicUsize);
+
+    impl Wake for CountingWake {
+        fn wake(self: Arc<Self>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    let signal = CancelSignal::new();
+    let counter = Arc::new(CountingWake(AtomicUsize::new(0)));
+    let waker = Waker::from(Arc::clone(&counter));
+    let mut cx = std::task::Context::from_waker(&waker);
+
+    let mut first = Box::pin(signal.cancelled());
+    assert!(first.as_mut().poll(&mut cx).is_pending());
+    let mut second = Box::pin(signal.cancelled());
+    assert!(second.as_mut().poll(&mut cx).is_pending());
+    assert_eq!(
+        signal.waiter_count(),
+        2,
+        "two live waits of one task are two registrations; a de-duplication on \
+         will_wake leaves only the first"
+    );
+
+    // The first wait ends. The signal must still wake the pending second wait.
+    drop(first);
+    signal.cancel();
+    assert!(second.as_mut().poll(&mut cx).is_ready());
+    assert!(
+        counter.0.load(Ordering::SeqCst) >= 1,
+        "the pending second wait's task must be woken"
+    );
+}
+
 // ── Deadline ──────────────────────────────────────────────────────────────────
 
 #[test]

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Pipe;
+use foundation_core::valtron::{Clock, Pipe};
 use foundation_db::traits::{Document, DocumentStore, PromotableDocument};
 use foundation_db::{AsyncStorageItemStream, StorageError, StorageResult};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -92,45 +92,45 @@ pub struct FjallDocumentStore<V: AsyncVfsFileSystem> {
     by_type: fjall::PartitionHandle,
     collections: Mutex<HashMap<String, Arc<RwLock<CollectionState>>>>,
     durability: Arc<DurabilityWriteConfig>,
+    clock: Arc<dyn Clock>,
 }
 
-/// A store over `V::default()` with its fjall index in a fresh directory under
-/// the system temp dir, so every default store starts empty and doesn't share
-/// an index with another. With an in-memory `V` (e.g. `MemoryFs`) nothing
-/// outlives the process except that index directory. Use
-/// [`FjallDocumentStore::open`] to choose where the data and index live.
-///
-/// # Panics
-///
-/// If the index directory can't be created or opened.
-impl<V: AsyncVfsFileSystem + Default> Default for FjallDocumentStore<V> {
-    fn default() -> Self {
+impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
+    /// A store over `vfs` with its fjall index in a fresh directory under the
+    /// system temp dir, so every store starts empty and does not share an index
+    /// with another. The flush timer and the unique index name read `clock`.
+    ///
+    /// # Panics
+    ///
+    /// If the index directory cannot be created or opened.
+    #[must_use]
+    pub fn new(vfs: V, clock: Arc<dyn Clock>) -> Self {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let unique = format!(
             "ewe-fjall-{}-{}-{}",
             std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map_or(0, |d| d.as_nanos()),
+            foundation_compact::time::unix_millis(clock.wall_now()),
             NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
         );
         let index_path = std::env::temp_dir().join(unique);
         futures_lite::future::block_on(Self::open(
-            V::default(),
+            vfs,
             "/documents".to_string(),
             &index_path,
             Arc::new(DurabilityWriteConfig::default()),
+            clock,
         ))
         .unwrap_or_else(|e| {
             panic!(
-                "FjallDocumentStore::default: can't open an index at {}: {e}",
+                "FjallDocumentStore::new: can't open an index at {}: {e}",
                 index_path.display()
             )
         })
     }
-}
 
-impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
+    /// Open a store over `vfs` whose flush timer and unique index names read
+    /// `clock`.
+    ///
     /// # Errors
     /// Returns an error if the fjall keyspace or VFS root cannot be opened.
     pub async fn open(
@@ -138,6 +138,7 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
         root: String,
         index_path: impl AsRef<std::path::Path>,
         durability: Arc<DurabilityWriteConfig>,
+        clock: Arc<dyn Clock>,
     ) -> StorageResult<Self> {
         vfs.mkdir_all_async(root.clone())
             .await
@@ -163,6 +164,7 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
             by_type,
             collections: Mutex::new(HashMap::new()),
             durability,
+            clock,
         };
 
         store.rebuild_stale_indexes().await?;
@@ -324,7 +326,7 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
             state.accumulated_batch_bytes += line_len;
 
             if state.first_unflushed_at.is_none() {
-                state.first_unflushed_at = Some(Instant::now());
+                state.first_unflushed_at = Some(self.clock.now());
             }
 
             let should_flush = if self.durability.batch_size_bytes == 0 {

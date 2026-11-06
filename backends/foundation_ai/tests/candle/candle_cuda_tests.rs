@@ -74,7 +74,12 @@ fn params() -> ModelParams {
 /// in on a host with no usable card (no driver, driver/library mismatch), so the
 /// tests below self-skip rather than fail there.
 fn cuda_available() -> bool {
-    CandleBackend::try_cuda(0).is_ok()
+    CandleBackend::try_cuda(0, test_clock()).is_ok()
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
 }
 
 #[test]
@@ -84,7 +89,7 @@ fn a_cuda_backend_can_be_constructed_and_opened() {
         return;
     }
     // The whole point of B2: this used to be impossible to build at all.
-    let backend = CandleBackend::try_cuda(0).expect("CUDA device 0 opens");
+    let backend = CandleBackend::try_cuda(0, test_clock()).expect("CUDA device 0 opens");
     // describe() names the device, proving we hold the Cuda variant rather than
     // a CPU value that merely compiled under the feature.
     let desc = backend.describe().expect("describe");
@@ -104,7 +109,7 @@ fn an_absent_cuda_device_is_a_distinguishable_error() {
     // Acceptance #4: asking for a device that cannot exist must error, not
     // silently hand back a working CPU backend. Ordinal 99 is far past any real
     // GPU count on this host.
-    let result = CandleBackend::try_cuda(99);
+    let result = CandleBackend::try_cuda(99, test_clock());
     assert!(
         result.is_err(),
         "opening a nonexistent CUDA ordinal must fail rather than downgrade to CPU"
@@ -127,7 +132,7 @@ fn the_tiny_fixture_generates_on_cuda() {
     // the CUDA context up front, and get_model_by_spec loads the weights onto
     // that device. Random weights emit gibberish, so this is structural — that
     // generation happens at all on CUDA, not what it says.
-    let backend = CandleBackend::try_cuda(0).expect("CUDA device 0 opens");
+    let backend = CandleBackend::try_cuda(0, test_clock()).expect("CUDA device 0 opens");
     let model = backend
         .get_model_by_spec(spec())
         .expect("fixture loads on CUDA");
@@ -157,7 +162,7 @@ fn a_cuda_stream_advances() {
         eprintln!("[skip] no usable CUDA device 0");
         return;
     }
-    let backend = CandleBackend::try_cuda(0).expect("CUDA device 0 opens");
+    let backend = CandleBackend::try_cuda(0, test_clock()).expect("CUDA device 0 opens");
     let model = backend
         .get_model_by_spec(spec())
         .expect("fixture loads on CUDA");
@@ -191,7 +196,7 @@ fn best_available_selects_cuda_when_present() {
         return;
     }
     // With a working GPU, best_available must not land on CPU.
-    let backend = CandleBackend::best_available();
+    let backend = CandleBackend::best_available(test_clock());
     let desc = backend.describe().expect("describe");
     assert!(
         desc.name.contains("CUDA"),
@@ -204,7 +209,7 @@ fn best_available_selects_cuda_when_present() {
 fn a_second_gpu_is_usable_when_present() {
     // Acceptance #5: exercise a non-default device. Skips gracefully on a
     // single-GPU host — try_cuda(1) simply errors there.
-    match CandleBackend::try_cuda(1) {
+    match CandleBackend::try_cuda(1, test_clock()) {
         Ok(backend) => {
             let desc = backend.describe().expect("describe");
             assert!(desc.name.contains("CUDA"), "device 1 must report CUDA");

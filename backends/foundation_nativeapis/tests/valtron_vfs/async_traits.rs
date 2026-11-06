@@ -46,7 +46,9 @@ where
 #[tracing_test::traced_test]
 fn async_memoryfs_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new());
+    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     // mkdir_async
     let fs_clone = fs.clone();
@@ -69,7 +71,9 @@ fn async_memoryfs_via_valtron() {
 #[tracing_test::traced_test]
 fn async_memoryfs_write_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new());
+    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     // create + write via valtron
     let fs_clone = fs.clone();
@@ -93,7 +97,9 @@ fn async_memoryfs_write_via_valtron() {
 #[tracing_test::traced_test]
 fn async_memoryfs_open_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new());
+    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     let fs_setup = fs.clone();
     run_async(async move {
@@ -123,7 +129,9 @@ fn async_memoryfs_open_via_valtron() {
 #[tracing_test::traced_test]
 fn async_memoryfs_directory_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new());
+    let fs: Arc<MemoryFs> = Arc::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     let fs_s = fs.clone();
     run_async(async move { fs_s.mkdir_async("/dir".to_string()).await }).unwrap();
@@ -156,7 +164,9 @@ fn async_memoryfs_directory_via_valtron() {
 #[tracing_test::traced_test]
 fn async_memorydelta_whiteout_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryDelta> = Arc::new(MemoryDelta::new());
+    let fs: Arc<MemoryDelta> = Arc::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     let fs_clone = fs.clone();
     run_async(async move {
@@ -193,7 +203,9 @@ fn async_memorydelta_whiteout_via_valtron() {
 #[tracing_test::traced_test]
 fn async_memorydelta_reset_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryDelta> = Arc::new(MemoryDelta::new());
+    let fs: Arc<MemoryDelta> = Arc::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     let fs_s = fs.clone();
     run_async(async move { fs_s.mkdir_async("/data".to_string()).await }).unwrap();
@@ -229,7 +241,9 @@ fn async_memorydelta_reset_via_valtron() {
 #[tracing_test::traced_test]
 fn async_memorydelta_flush_via_valtron() {
     let _guard = init_pool();
-    let fs: Arc<MemoryDelta> = Arc::new(MemoryDelta::new());
+    let fs: Arc<MemoryDelta> = Arc::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     let fs_clone = fs.clone();
     run_async(async move { fs_clone.flush_async().await }).unwrap();

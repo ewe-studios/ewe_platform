@@ -7,14 +7,14 @@
 #![recursion_limit = "256"]
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::{DateTime, TimeZone, Utc};
-use foundation_core::valtron::{valtron_test, Ctx, TaskIterator, TaskStatus};
-use foundation_cronjobs::{
-    CronClock, CronError, CronJob, CronScheduler, Job, JobConfig, MissedJobPolicy, SharedCronClock,
+use foundation_core::valtron::{
+    valtron_test, Clock, Ctx, SimulatedClock, TaskIterator, TaskStatus,
 };
+use foundation_cronjobs::{CronError, CronJob, CronScheduler, Job, JobConfig, MissedJobPolicy};
 use foundation_db::{DataValue, MemoryStorage, QueryStore, TursoStorage};
 
 fn job(id: &str) -> JobConfig {
@@ -42,28 +42,15 @@ async fn turso() -> (Arc<TursoStorage>, tempfile::TempDir) {
     )
 }
 
-/// A wall clock a test can move.
-#[derive(Clone)]
-struct MockClock {
-    now: Arc<Mutex<DateTime<Utc>>>,
-}
-
-impl MockClock {
-    fn new(now: DateTime<Utc>) -> Self {
-        Self {
-            now: Arc::new(Mutex::new(now)),
-        }
-    }
-
-    fn set(&self, now: DateTime<Utc>) {
-        *self.now.lock().expect("mock clock poisoned") = now;
-    }
-}
-
-impl CronClock for MockClock {
-    fn now_utc(&self) -> DateTime<Utc> {
-        *self.now.lock().expect("mock clock poisoned")
-    }
+/// A simulated wall clock parked at `at`.
+///
+/// The clock starts at the UNIX epoch and moves only through `advance_wall`,
+/// so a test controls every wall time the scheduler reads.
+fn clock_at(at: DateTime<Utc>) -> Arc<SimulatedClock> {
+    let clock = SimulatedClock::new(Duration::ZERO);
+    let secs = u64::try_from(at.timestamp()).expect("wall time after the epoch");
+    clock.advance_wall(Duration::from_secs(secs));
+    Arc::new(clock)
 }
 
 fn utc(y: i32, mo: u32, d: u32, h: u32, mi: u32, s: u32) -> DateTime<Utc> {
@@ -95,13 +82,12 @@ fn scheduler_task(
     config: JobConfig,
     job: Arc<dyn Job>,
     policy: MissedJobPolicy,
-    clock: &MockClock,
+    clock: Arc<dyn Clock>,
 ) -> foundation_cronjobs::JobRunTask {
     let mut s = CronScheduler::new(Arc::new(MemoryStorage::new()));
     s.register(config).expect("valid expression");
-    let shared_clock = SharedCronClock::new(Arc::new(clock.clone()));
     let mut tasks = s
-        .into_run_tasks(&[job], policy, &shared_clock)
+        .into_run_tasks(&[job], policy, clock)
         .expect("runner registered");
     tasks.pop().expect("one task")
 }
@@ -113,11 +99,11 @@ fn seeded_task(
     job: Arc<dyn Job>,
     policy: MissedJobPolicy,
     next_run: DateTime<Utc>,
-    clock: &MockClock,
+    clock: Arc<dyn Clock>,
 ) -> foundation_cronjobs::JobRunTask {
     let mut cron_job = CronJob::new(config).expect("valid expression");
     cron_job.state.next_run = next_run.timestamp();
-    cron_job.into_run_task(job, policy, SharedCronClock::new(Arc::new(clock.clone())))
+    cron_job.into_run_task(job, policy, clock)
 }
 
 // ── E1: next fire follows the expression ────────────────────────────────
@@ -180,14 +166,14 @@ async fn scheduler_runs_job_at_fire_time() {
         id: "j1".into(),
         runs: Arc::clone(&runs),
     });
-    let clock = MockClock::new(utc(2026, 1, 1, 0, 0, 0));
+    let clock = clock_at(utc(2026, 1, 1, 0, 0, 0));
     let mut task = scheduler_task(
         job_with("j1", "*/15 * * * *"),
         job,
         MissedJobPolicy::Skip,
-        &clock,
+        clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     // Before the first fire: parks for 15 minutes and does not run.
     let status = task.next_status(ctx.clone());
@@ -198,7 +184,7 @@ async fn scheduler_runs_job_at_fire_time() {
     assert_eq!(runs.load(Ordering::SeqCst), 0);
 
     // At the fire time: runs once and parks for the next fire.
-    clock.set(utc(2026, 1, 1, 0, 15, 0));
+    clock.advance_wall(Duration::from_secs(15 * 60));
     let status = task.next_status(ctx.clone());
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
     assert_eq!(runs.load(Ordering::SeqCst), 1);
@@ -211,18 +197,18 @@ async fn scheduler_records_result() {
         id: "j1".into(),
         runs: Arc::clone(&runs),
     });
-    let clock = MockClock::new(utc(2026, 1, 1, 0, 0, 0));
+    let clock = clock_at(utc(2026, 1, 1, 0, 0, 0));
     let mut task = scheduler_task(
         job_with("j1", "*/15 * * * *"),
         job,
         MissedJobPolicy::Skip,
-        &clock,
+        clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     task.next_status(ctx.clone());
 
     let fire = utc(2026, 1, 1, 0, 15, 0);
-    clock.set(fire);
+    clock.advance_wall(Duration::from_secs(15 * 60));
     task.next_status(ctx.clone());
 
     let snap = task.snapshot();
@@ -237,6 +223,45 @@ async fn scheduler_records_result() {
     assert_eq!(runs.load(Ordering::SeqCst), 1);
 }
 
+/// A `* * * * *` job parked at 00:00 fires when the injected wall clock passes
+/// `next_run`, and the recorded run time is the simulated unix second.
+#[valtron_test]
+async fn run_time_follows_the_injected_wall_clock() {
+    let runs = Arc::new(AtomicUsize::new(0));
+    let job = Arc::new(CountingJob {
+        id: "j1".into(),
+        runs: Arc::clone(&runs),
+    });
+    let clock = clock_at(utc(2026, 1, 1, 0, 0, 0));
+    let mut task = scheduler_task(
+        job_with("j1", "* * * * *"),
+        job,
+        MissedJobPolicy::Skip,
+        clock.clone(),
+    );
+    let ctx = Ctx::host();
+
+    // The first poll schedules the next fire and parks one minute out.
+    assert_eq!(
+        task.next_status(ctx.clone()),
+        Some(TaskStatus::Delayed(Duration::from_secs(60)))
+    );
+    assert_eq!(runs.load(Ordering::SeqCst), 0);
+
+    // Move only the simulated wall clock; the run time follows it.
+    clock.advance_wall(Duration::from_secs(60));
+    assert!(matches!(
+        task.next_status(ctx.clone()),
+        Some(TaskStatus::Delayed(_))
+    ));
+    let expected = utc(2026, 1, 1, 0, 1, 0).timestamp();
+    let snap = task.snapshot();
+    assert_eq!(runs.load(Ordering::SeqCst), 1);
+    assert_eq!(snap.results.len(), 1);
+    assert_eq!(snap.results[0].at, expected);
+    assert_eq!(snap.last_run, expected);
+}
+
 #[valtron_test]
 async fn missed_policy_skip_runs_nothing() {
     let runs = Arc::new(AtomicUsize::new(0));
@@ -245,15 +270,15 @@ async fn missed_policy_skip_runs_nothing() {
         runs: Arc::clone(&runs),
     });
     // Fires every 15 minutes; the persisted next fire (00:00) is missed by 01:00.
-    let clock = MockClock::new(utc(2026, 1, 1, 1, 0, 0));
+    let clock = clock_at(utc(2026, 1, 1, 1, 0, 0));
     let mut task = seeded_task(
         job_with("j1", "*/15 * * * *"),
         job,
         MissedJobPolicy::Skip,
         utc(2026, 1, 1, 0, 0, 0),
-        &clock,
+        clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let status = task.next_status(ctx.clone());
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
@@ -273,15 +298,15 @@ async fn missed_policy_catch_up_runs_once() {
         runs: Arc::clone(&runs),
     });
     // Several fires were missed; catch-up runs the job exactly once.
-    let clock = MockClock::new(utc(2026, 1, 1, 1, 0, 0));
+    let clock = clock_at(utc(2026, 1, 1, 1, 0, 0));
     let mut task = seeded_task(
         job_with("j1", "*/15 * * * *"),
         job,
         MissedJobPolicy::CatchUp,
         utc(2026, 1, 1, 0, 0, 0),
-        &clock,
+        clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let status = task.next_status(ctx.clone());
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
@@ -300,15 +325,15 @@ async fn missed_policy_run_all_runs_each_missed_fire() {
         runs: Arc::clone(&runs),
     });
     // From 00:00 to 00:59 there are four fires: 00:00, 00:15, 00:30, 00:45.
-    let clock = MockClock::new(utc(2026, 1, 1, 0, 59, 0));
+    let clock = clock_at(utc(2026, 1, 1, 0, 59, 0));
     let mut task = seeded_task(
         job_with("j1", "*/15 * * * *"),
         job,
         MissedJobPolicy::RunAll,
         utc(2026, 1, 1, 0, 0, 0),
-        &clock,
+        clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let status = task.next_status(ctx.clone());
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
@@ -331,14 +356,14 @@ async fn scheduler_parks_between_fires() {
         runs: Arc::clone(&runs),
     });
     // Fires daily at midnight.
-    let clock = MockClock::new(utc(2026, 1, 1, 0, 0, 0));
+    let clock = clock_at(utc(2026, 1, 1, 0, 0, 0));
     let mut task = scheduler_task(
         job_with("j1", "0 0 * * *"),
         job,
         MissedJobPolicy::Skip,
-        &clock,
+        clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let status = task.next_status(ctx.clone());
     assert_eq!(

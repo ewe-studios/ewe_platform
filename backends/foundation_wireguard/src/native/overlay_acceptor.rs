@@ -2,7 +2,7 @@
 //!
 //! WHY: `HttpServer` takes a generic `Acceptor` trait (defined in `foundation_netio`).
 //! `OverlayAcceptor` wraps a smoltcp `OverlayListener` so `HttpServer` can serve
-//! on a WireGuard overlay IP with zero transport changes — `accept_connection`
+//! on a `WireGuard` overlay IP with zero transport changes — `accept_connection`
 //! returns `Connection::Overlay(...)` just like TCP returns `Connection::Tcp(...)`.
 //!
 //! WHAT: [`OverlayAcceptor`] wraps an [`OverlayListener`] + overlay IP behind a
@@ -28,6 +28,7 @@ pub struct OverlayAcceptor {
 
 impl OverlayAcceptor {
     /// Create from an `OverlayListener` (obtained via `WgHandle::tcp_listen`).
+    #[must_use]
     pub fn new(listener: OverlayListener, local_ip: std::net::IpAddr, port: u16) -> Self {
         Self {
             listener: Arc::new(Mutex::new(listener)),

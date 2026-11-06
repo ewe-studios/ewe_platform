@@ -12,7 +12,7 @@
 //! HOW: persistence via [`crate::core::store::folders`]; the transport layer is
 //! responsible for auth extraction, JSON (de)serialization, and notifications.
 
-use chrono::Utc;
+use crate::core::clock::wall_now_utc;
 
 use crate::core::context::KeychainContext;
 use crate::core::crypto;
@@ -69,7 +69,7 @@ pub async fn create(
     req: FolderCreateRequest,
 ) -> AppResult<Folder> {
     let name = validated_name(&req.name)?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     let row = FolderRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
         user_uuid: user_uuid.to_string(),
@@ -103,7 +103,7 @@ pub async fn update(
 ) -> AppResult<Folder> {
     let mut row = owned(ctx, user_uuid, id).await?;
     let name = validated_name(&req.name)?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     store::update_name(ctx.db(), id, &name, now).await?;
     row.name = name;
     row.updated_at = now;

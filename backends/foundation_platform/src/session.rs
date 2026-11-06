@@ -14,7 +14,10 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
+use foundation_core::valtron::Clock;
+
 use crate::backend::http::HttpBackend;
+use crate::clock::wall_millis;
 use crate::route::RouteDecisionExt;
 use crate::route_handler::RouteResponder;
 use foundation_ui_traits::{
@@ -50,7 +53,7 @@ pub struct PlatformSession {
     /// navigation. First `Some(decision)` wins, `None` falls through.
     route_handlers: RwLock<Vec<Box<dyn super::route_handler::RouteHandler>>>,
 
-    /// Platform capability registry (WasmCapability + 5-layer defense).
+    /// Platform capability registry (`WasmCapability` + 5-layer defense).
     capability_registry: crate::capability::CapabilityRegistry,
 
     /// Cache manager.
@@ -104,52 +107,50 @@ pub struct PlatformSession {
     /// pooling are managed centrally.
     http_backend: HttpBackend,
 
-    /// WebView stack manager (F06 + F29 Stage 3). Tracks navigation history,
+    /// `WebView` stack manager (F06 + F29 Stage 3). Tracks navigation history,
     /// screenshots, and the multi-WebView pool. Wrapped in `RwLock` so
     /// route handlers can push/pop without `&mut self`.
     webview_stack: RwLock<crate::stack::WebViewStack>,
 
-    /// Per-app isolation registry (F21). Maps route prefixes to WebView labels,
+    /// Per-app isolation registry (F21). Maps route prefixes to `WebView` labels,
     /// profiles, capability allowlists. Resolved during route dispatch.
     app_isolation: crate::multi_app::AppIsolation,
 
     /// Worker registry (F34). Named typed channels for background workers.
     pub(crate) workers_: crate::worker::WorkerRegistry,
 
-    /// Window manager (F35). Bridges Tauri WebView lifecycle with the pool.
+    /// Window manager (F35). Bridges Tauri `WebView` lifecycle with the pool.
     /// `None` in tests; injected by `PlatformBuilder` in production.
     window_manager: crate::window::WindowManager,
 
     /// Wasmtime shell registry (F33). Named WASM modules that run in-process
     /// via wasmtime (Surface 3). Registered at setup time, built on first request.
     pub(crate) wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell,
+
+    /// The host clock this session and its subsystems stamp wall times from.
+    clock: Arc<dyn Clock>,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
 
 impl PlatformSession {
-    /// Initialize the session with the resolved resource root directory and
-    /// a pre-configured [`ScriptInjector`] (F24).
+    /// Initialize the session with the resolved resource root directory, a
+    /// pre-configured [`ScriptInjector`] (F24) and the host's clock.
     /// Called once at app launch.
     /// Returns `Arc<Self>` — subsystems clone the Arc to share ownership.
     #[must_use]
-    #[allow(clippy::cast_possible_truncation)]
     pub fn new(
         resource_root: PathBuf,
         script_injector: crate::injector::ScriptInjector,
+        clock: Arc<dyn Clock>,
     ) -> Arc<Self> {
-        let session_id = SessionId(
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis() as u64,
-        );
+        let session_id = SessionId(wall_millis(clock.as_ref()));
 
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
             capability_registry: crate::capability::CapabilityRegistry::new(),
-            cache: crate::cache::CacheManager::in_memory(),
-            mutation_queue: crate::mutation::MutationQueue::in_memory(),
+            cache: crate::cache::CacheManager::in_memory(Arc::clone(&clock)),
+            mutation_queue: crate::mutation::MutationQueue::in_memory(Arc::clone(&clock)),
             session_id,
             visit_counter: AtomicU64::new(0),
             active_page: RwLock::new(None),
@@ -168,18 +169,20 @@ impl PlatformSession {
             workers_: crate::worker::WorkerRegistry::new(),
             window_manager: crate::window::WindowManager::new(),
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
+            clock,
         })
     }
 }
 
 impl PlatformSession {
-    /// TEST ONLY: create a session with an empty ScriptInjector.
+    /// TEST ONLY: create a session with an empty ScriptInjector and `clock`.
     #[doc(hidden)]
     #[must_use]
-    pub fn new_test(resource_root: PathBuf) -> Arc<Self> {
+    pub fn new_test(resource_root: PathBuf, clock: Arc<dyn Clock>) -> Arc<Self> {
         Self::new(
             resource_root,
             crate::injector::ScriptInjector::new(PathBuf::from(".")),
+            clock,
         )
     }
 }
@@ -311,7 +314,7 @@ impl PlatformSession {
         if self.cache.should_serve_cached(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
                 // Even for cached responses, record the navigation mode.
-                self.record_presentation(&route, &decision.presentation);
+                self.record_presentation(&route, decision.presentation);
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -323,7 +326,7 @@ impl PlatformSession {
         // Offline fallback
         if !self.is_online() && self.cache.can_serve_offline(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
-                self.record_presentation(&route, &decision.presentation);
+                self.record_presentation(&route, decision.presentation);
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -335,7 +338,7 @@ impl PlatformSession {
         // Step 4: Presentation — update the WebView stack before rendering.
         // This records which WebView label the navigation targets and the
         // transition style (morph, replace, new).
-        self.record_presentation(&route, &decision.presentation);
+        self.record_presentation(&route, decision.presentation);
 
         // Step 4b: ViewKind routing — if the decision targets a labeled WebView,
         // ensure it exists in the pool. The actual WebView creation happens in
@@ -375,26 +378,26 @@ impl PlatformSession {
         response
     }
 
-    /// Record a navigation with its presentation mode in the WebView stack.
+    /// Record a navigation with its presentation mode in the `WebView` stack.
     ///
     /// Implements the HYBRID model (F06, revised 2026-07-22):
     ///
-    /// - Morph/Replace: in-place navigate in the same WebView.
-    /// - Push/Modal: screenshot old → create NEW WebView → destroy old WebView
+    /// - Morph/Replace: in-place navigate in the same `WebView`.
+    /// - Push/Modal: screenshot old → create NEW `WebView` → destroy old `WebView`
     ///   to free RAM. The screenshot is kept in the slot for instant back-nav.
-    /// - Pop (back): show screenshot instantly (0ms) → navigate WebView to
+    /// - Pop (back): show screenshot instantly (0ms) → navigate `WebView` to
     ///   old route in background → fade to live when loaded.
-    /// - Root: destroy all WebViews, create one for the new root.
+    /// - Root: destroy all `WebViews`, create one for the new root.
     ///
     /// This gives Hotwire-style native navigation feel without the 50-150MB
-    /// per-WebView RAM cost of keeping multiple WebViews alive.
-    fn record_presentation(&self, route: &str, presentation: &Presentation) {
+    /// per-WebView RAM cost of keeping multiple `WebViews` alive.
+    fn record_presentation(&self, route: &str, presentation: Presentation) {
         let win_mgr = self.window_manager();
         if let Ok(mut stack) = self.webview_stack.write() {
             if stack.depth() == 0 {
                 stack.init(route);
-                if let Some(mut pool) = stack.pool_mut() {
-                    win_mgr.ensure(&mut pool, "main", route);
+                if let Some(pool) = stack.pool_mut() {
+                    win_mgr.ensure(pool, "main", route);
                     pool.set_state("main", crate::stack::WebViewState::Active);
                 }
                 return;
@@ -405,8 +408,7 @@ impl PlatformSession {
             let prev_route = stack
                 .slots()
                 .get(active_idx)
-                .map(|s| s.route.clone())
-                .unwrap_or_else(|| "main".to_string());
+                .map_or_else(|| "main".to_string(), |s| s.route.clone());
             let prev_label = prev_route
                 .trim_start_matches('/')
                 .split('/')
@@ -421,8 +423,8 @@ impl PlatformSession {
                         slot.route = route.to_string();
                     }
                     // Navigate existing window.
-                    if let Some(mut pool) = stack.pool_mut() {
-                        win_mgr.navigate(&mut pool, &prev_label, route);
+                    if let Some(pool) = stack.pool_mut() {
+                        win_mgr.navigate(pool, &prev_label, route);
                     }
                 }
                 Presentation::Push | Presentation::Modal => {
@@ -431,13 +433,13 @@ impl PlatformSession {
 
                     // Phase 1: screenshot old, then destroy it to free RAM.
                     {
-                        let screenshot_data = if let Some(mut pool) = stack.pool_mut() {
+                        let screenshot_data = if let Some(pool) = stack.pool_mut() {
                             let ss = if win_mgr.is_available() {
-                                win_mgr.screenshot(&mut pool, &prev_label)
+                                win_mgr.screenshot(pool, &prev_label)
                             } else {
                                 Vec::new()
                             };
-                            win_mgr.destroy(&mut pool, &prev_label);
+                            win_mgr.destroy(pool, &prev_label);
                             ss
                         } else {
                             Vec::new()
@@ -453,8 +455,8 @@ impl PlatformSession {
                     }
 
                     // Phase 2: create new WebView.
-                    if let Some(mut pool) = stack.pool_mut() {
-                        win_mgr.ensure(&mut pool, &label, route);
+                    if let Some(pool) = stack.pool_mut() {
+                        win_mgr.ensure(pool, &label, route);
                         pool.set_state(&label, crate::stack::WebViewState::Active);
                         pool.set_route(&label, route);
                     }
@@ -465,17 +467,17 @@ impl PlatformSession {
                     stack.push_slot(new_slot);
                 }
                 Presentation::External => {
-                    if let Some(mut pool) = stack.pool_mut() {
-                        win_mgr.open_external(&mut pool, route);
+                    if let Some(pool) = stack.pool_mut() {
+                        win_mgr.open_external(pool, route);
                     }
                 }
                 Presentation::Root => {
-                    if let Some(mut pool) = stack.pool_mut() {
+                    if let Some(pool) = stack.pool_mut() {
                         let labels: Vec<String> = pool.labels();
                         for old_label in labels {
-                            win_mgr.destroy(&mut pool, &old_label);
+                            win_mgr.destroy(pool, &old_label);
                         }
-                        win_mgr.ensure(&mut pool, "wv_0", route);
+                        win_mgr.ensure(pool, "wv_0", route);
                         pool.set_state("wv_0", crate::stack::WebViewState::Active);
                         pool.set_route("wv_0", route);
                     }
@@ -559,6 +561,12 @@ impl PlatformSession {
         self.session_id
     }
 
+    /// The host clock this session stamps wall times from.
+    #[must_use]
+    pub fn clock(&self) -> &Arc<dyn Clock> {
+        &self.clock
+    }
+
     /// The current visit counter value (before increment).
     pub fn visit_count(&self) -> u64 {
         self.visit_counter.load(Ordering::SeqCst)
@@ -627,7 +635,7 @@ impl PlatformSession {
         }
     }
 
-    /// Access the WebView stack for navigation tracking (F29 Stage 3).
+    /// Access the `WebView` stack for navigation tracking (F29 Stage 3).
     ///
     /// # Panics
     ///
@@ -636,7 +644,7 @@ impl PlatformSession {
         self.webview_stack.read().unwrap()
     }
 
-    /// Mutable access to the WebView stack (F29 Stage 3).
+    /// Mutable access to the `WebView` stack (F29 Stage 3).
     ///
     /// # Panics
     ///

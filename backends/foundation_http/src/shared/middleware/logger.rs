@@ -4,7 +4,6 @@
 //! WHAT: Logs request method, path, client IP, and duration at configurable levels.
 
 use std::sync::Arc;
-use std::time::Instant;
 
 use foundation_netio::shared::http::SimpleIncomingRequest;
 
@@ -163,8 +162,6 @@ impl Default for LoggerMiddleware {
 
 impl RequestMiddleware for LoggerMiddleware {
     fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
-        let _start = Instant::now();
-
         let method = format!("{}", req.method);
         let path = &req.request_url.url;
 

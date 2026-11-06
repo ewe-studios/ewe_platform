@@ -45,7 +45,7 @@ fn load_qwen() -> Option<impl Model> {
         lora_location: None,
     };
     Some(
-        LlamaBackends::LLamaCPU
+        LlamaBackends::cpu(test_clock())
             .load_model(spec, &config)
             .expect("local qwen GGUF should load in-process"),
     )
@@ -90,8 +90,14 @@ fn text_of(msgs: &[Messages]) -> String {
         .collect()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 /// generate() produces coherent multi-token output — the docs/fixes/007
 /// regression guard: a degenerate single "." would fail the length check.
+
 #[valtron_test]
 fn qwen_generate_is_coherent() {
     let Some(model) = load_qwen() else {

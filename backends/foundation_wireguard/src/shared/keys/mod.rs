@@ -1,6 +1,6 @@
 //! Seed-derived and random-identity key handling (spec-55, feature 01; decision 03).
 //!
-//! WHY: The bootstrap "128/256 key" is a **derivation seed**, not a raw WireGuard key —
+//! WHY: The bootstrap "128/256 key" is a **derivation seed**, not a raw `WireGuard` key —
 //! sharing the small secret shares the identical bootstrap keypair. Steady-state
 //! per-peer identity keys, by contrast, are random and per-node.
 //!
@@ -86,7 +86,6 @@ impl NetworkId {
     ///
     /// # Errors
     /// [`WgError::Hex`] on malformed hex; [`WgError::InvalidKey`] on wrong length.
-    #[must_use]
     pub fn from_hex(s: &str) -> WgResult<Self> {
         let bytes = hex::decode(s.trim()).map_err(WgError::from)?;
         let arr: [u8; 16] = bytes.try_into().map_err(|_| {
@@ -127,10 +126,10 @@ pub struct BootstrapKeys {
     pub static_secret: StaticSecret,
     /// The matching bootstrap public key.
     pub public: PublicKey,
-    /// WireGuard preshared key for bootstrap-phase tunnels (Noise defense-in-depth).
+    /// `WireGuard` preshared key for bootstrap-phase tunnels (Noise defense-in-depth).
     pub psk: [u8; 32],
     /// Pre-shared key for the Noise-PSK bootstrap control channel (decision 06). Domain-separated
-    /// from `psk` so the control channel and the WireGuard tunnel never share key material.
+    /// from `psk` so the control channel and the `WireGuard` tunnel never share key material.
     pub channel_psk: [u8; 32],
 }
 
@@ -275,7 +274,7 @@ impl WgSeed {
             .expect("32 bytes within HKDF limits");
 
         // The intermediate secret bytes are copied into StaticSecret; wipe our copy.
-        sk_bytes.iter_mut().for_each(|b| *b = 0);
+        sk_bytes.fill(0);
 
         BootstrapKeys {
             static_secret,
@@ -340,7 +339,7 @@ impl IdentityKeypair {
         clamp_x25519(&mut bytes);
         let secret = StaticSecret::from(bytes);
         let public = PublicKey::from(&secret);
-        bytes.iter_mut().for_each(|b| *b = 0);
+        bytes.fill(0);
         Ok(Self { secret, public })
     }
 
@@ -358,7 +357,7 @@ impl IdentityKeypair {
         clamp_x25519(&mut bytes);
         let secret = StaticSecret::from(bytes);
         let public = PublicKey::from(&secret);
-        bytes.iter_mut().for_each(|b| *b = 0);
+        bytes.fill(0);
         Self { secret, public }
     }
 
@@ -395,7 +394,7 @@ impl std::fmt::Debug for IdentityKeypair {
     }
 }
 
-/// A peer's x25519 public key, parseable from hex-64 or base64 (mirrors WireGuard's
+/// A peer's x25519 public key, parseable from hex-64 or base64 (mirrors `WireGuard`'s
 /// `KeyBytes`, which is `pub(crate)` in boringtun so we own this parser).
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct PeerPublicKey(PublicKey);
@@ -447,7 +446,7 @@ impl PeerPublicKey {
         *self.0.as_bytes()
     }
 
-    /// Standard WireGuard base64 (44 chars).
+    /// Standard `WireGuard` base64 (44 chars).
     #[must_use]
     pub fn to_base64(&self) -> String {
         encode_public(&self.0)
@@ -474,12 +473,12 @@ impl std::fmt::Display for PeerPublicKey {
 
 /// Apply the standard curve25519 clamp to a 32-byte scalar.
 fn clamp_x25519(bytes: &mut [u8; 32]) {
-    bytes[0] &= 248;
-    bytes[31] &= 127;
-    bytes[31] |= 64;
+    bytes[0] &= 0b1111_1000;
+    bytes[31] &= 0b0111_1111;
+    bytes[31] |= 0b0100_0000;
 }
 
-/// Encode a public key as standard-alphabet base64 (WireGuard's canonical form).
+/// Encode a public key as standard-alphabet base64 (`WireGuard`'s canonical form).
 fn encode_public(key: &PublicKey) -> String {
     B64_STD.encode(key.as_bytes())
 }

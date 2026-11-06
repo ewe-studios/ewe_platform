@@ -2,6 +2,7 @@
 
 #![cfg(feature = "vms")]
 
+use foundation_core::valtron::MonotonicClock;
 use foundation_deployment_platform::state::{VmState, from_qemu, is_process_alive, state_dir};
 
 #[test]
@@ -34,6 +35,7 @@ fn test_from_qemu_creates_valid_state() {
         Some(3389),
         5900,
         false,
+        &MonotonicClock::new(),
     );
     assert_eq!(state.profile_name, "test-vm");
     assert_eq!(state.pid, Some(12345));
@@ -54,6 +56,7 @@ fn test_state_serialization_roundtrip() {
         None,
         5900,
         true,
+        &MonotonicClock::new(),
     );
     let json = serde_json::to_string(&state).unwrap();
     let restored: VmState = serde_json::from_str(&json).unwrap();

@@ -210,7 +210,10 @@ fn router_as_route_handler() {
     let mut router = PatternRouter::new();
     router.route("/app/*", webview_app());
 
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let d = router.resolve(&intent("/app/dashboard"), &session).unwrap();
     assert_eq!(d.source, RouteSource::WebviewApp);
 }

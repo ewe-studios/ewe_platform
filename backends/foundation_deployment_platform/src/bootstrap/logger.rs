@@ -7,13 +7,19 @@
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
+
+use foundation_core::valtron::Clock;
 
 /// Thread-safe bootstrap logger.
 pub struct BootstrapLogger {
     vm_name: String,
     log_file: Mutex<File>,
+    /// The host's clock. Every step duration and log timestamp reads it, so a
+    /// test can control both (AGENTS rule 11).
+    clock: Arc<dyn Clock>,
+    /// The instant the logger was built, on [`Self::clock`].
     start: Instant,
 }
 
@@ -22,7 +28,7 @@ impl BootstrapLogger {
     ///
     /// # Errors
     /// Returns an error if the log directory or file cannot be created.
-    pub fn new(vm_name: &str) -> std::io::Result<Self> {
+    pub fn new(vm_name: &str, clock: Arc<dyn Clock>) -> std::io::Result<Self> {
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         let log_dir = cwd.join(".testbed").join(vm_name);
         fs::create_dir_all(&log_dir)?;
@@ -31,11 +37,29 @@ impl BootstrapLogger {
             .create(true)
             .append(true)
             .open(&log_path)?;
+        let start = clock.now();
         Ok(Self {
             vm_name: vm_name.to_string(),
             log_file: Mutex::new(file),
-            start: Instant::now(),
+            clock,
+            start,
         })
+    }
+
+    /// The injected clock that this logger and its callers read.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        Arc::clone(&self.clock)
+    }
+
+    /// The current monotonic instant on [`Self::clock`].
+    fn now(&self) -> Instant {
+        self.clock.now()
+    }
+
+    /// The time since the logger was built, on [`Self::clock`].
+    fn since_start(&self) -> std::time::Duration {
+        self.now().duration_since(self.start)
     }
 
     fn log_line(&self, line: &str) -> std::io::Result<()> {
@@ -48,7 +72,7 @@ impl BootstrapLogger {
     }
 
     pub fn step_start(&self, label: &str) {
-        let elapsed = self.start.elapsed();
+        let elapsed = self.since_start();
         let _ = self.log_line(&format!(
             "[{:.1}s] [bootstrap] {} → {}...",
             elapsed.as_secs_f64(),
@@ -58,7 +82,7 @@ impl BootstrapLogger {
     }
 
     pub fn step_done(&self, label: &str, duration: std::time::Duration) {
-        let total = self.start.elapsed();
+        let total = self.since_start();
         let _ = self.log_line(&format!(
             "[{:.1}s] [bootstrap] {} ✓ {} ({:?})",
             total.as_secs_f64(),
@@ -69,7 +93,7 @@ impl BootstrapLogger {
     }
 
     pub fn message(&self, msg: &str) {
-        let elapsed = self.start.elapsed();
+        let elapsed = self.since_start();
         let _ = self.log_line(&format!(
             "[{:.1}s] [bootstrap] {} {msg}",
             elapsed.as_secs_f64(),
@@ -88,7 +112,7 @@ impl BootstrapLogger {
     }
 
     pub fn elapsed(&self) -> std::time::Duration {
-        self.start.elapsed()
+        self.since_start()
     }
 
     /// Log intermediate progress during a long-running step.
@@ -113,9 +137,9 @@ where
     F: FnOnce() -> crate::config::Result<()>,
 {
     logger.step_start(label);
-    let start = Instant::now();
+    let start = logger.now();
     let result = f();
-    let elapsed = start.elapsed();
+    let elapsed = logger.now().duration_since(start);
     match &result {
         Ok(()) => logger.step_done(label, elapsed),
         Err(e) => {

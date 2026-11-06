@@ -7,17 +7,24 @@
 //!
 //! NOTE: A full *two-node* SWIM-over-TUN exchange needs one network namespace per node — a
 //! single host has one routing table, so both overlay IPs cannot coexist without the kernel
-//! delivering the peer's overlay address locally and short-circuiting the WireGuard path
+//! delivering the peer's overlay address locally and short-circuiting the `WireGuard` path
 //! (which would be test theater). That netns harness is tracked as a follow-up; these cover
 //! the TUN plane up to a live single node.
 #![cfg(not(target_family = "wasm"))]
 
 use std::net::{IpAddr, Ipv4Addr};
+use std::sync::Arc;
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::dataplane::MeshDataPlane;
 use foundation_wireguard::native::{WgConfig, WgNode};
 use foundation_wireguard::{DataPlaneMode, WgSeed};
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test.
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// Overlay prefix length (matches `node::OVERLAY_PREFIX` — the 10.0.0.0/8 overlay).
 const OVERLAY_PREFIX: u8 = 8;
@@ -33,8 +40,13 @@ fn overlay_ip(last: u8) -> IpAddr {
 #[test]
 #[traced_test]
 fn netstack_plane_is_not_tun_and_exposes_netstack() {
-    let dp = MeshDataPlane::from_config(&DataPlaneMode::Netstack, overlay_ip(1), OVERLAY_PREFIX)
-        .expect("netstack plane builds without privileges");
+    let dp = MeshDataPlane::from_config(
+        &DataPlaneMode::Netstack,
+        overlay_ip(1),
+        OVERLAY_PREFIX,
+        test_clock(),
+    )
+    .expect("netstack plane builds without privileges");
 
     assert!(!dp.is_tun(), "smoltcp plane must not report TUN mode");
     assert!(
@@ -53,7 +65,7 @@ fn tun_plane_opens_and_reports_tun() {
         name: "ewe-wg-dp0".into(),
         mtu: 1380,
     };
-    let dp = MeshDataPlane::from_config(&mode, overlay_ip(1), OVERLAY_PREFIX)
+    let dp = MeshDataPlane::from_config(&mode, overlay_ip(1), OVERLAY_PREFIX, test_clock())
         .expect("TUN plane opens (needs CAP_NET_ADMIN)");
 
     assert!(dp.is_tun(), "kernel plane must report TUN mode");
@@ -83,7 +95,7 @@ fn tun_mode_seed_node_starts_over_kernel_gossip() {
         .build()
         .expect("build TUN seed config");
 
-    let node = WgNode::from_config(config)
+    let node = WgNode::from_config(config, test_clock())
         .join()
         .expect("TUN-mode seed node stands up (needs CAP_NET_ADMIN)");
 

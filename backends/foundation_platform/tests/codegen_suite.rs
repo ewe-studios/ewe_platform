@@ -10,13 +10,13 @@ fn scan_detects_platform_annotations() {
     let file = tmp.join("test.rs");
     std::fs::write(
         &file,
-        r#"
+        r"
 #[wasm_bin] fn my_app() {}
 
 #[platform_bin] fn main_setup(session: PlatformSession) {}
 
 fn not_annotated() {}
-"#,
+",
     )
     .unwrap();
 
@@ -50,7 +50,7 @@ fn empty_directory_returns_no_annotations() {
 #[test]
 fn generate_creates_generated_dir() {
     let tmp = std::env::temp_dir().join("fplat_generate_test");
-    std::fs::create_dir_all(&tmp.join("src")).unwrap();
+    std::fs::create_dir_all(tmp.join("src")).unwrap();
 
     // Write a marker file so we can test
     let src_file = tmp.join("src").join("main.rs");

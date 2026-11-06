@@ -345,8 +345,8 @@ const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
 const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status(Ctx::new());
-    let _ = client.next_status(Ctx::new());
+    let _ = server.next_status(Ctx::host());
+    let _ = client.next_status(Ctx::host());
 }
 
 fn drive_until<T>(
@@ -392,8 +392,8 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
     // Pump the QUIC drivers so reordered packets don't starve either side.
     let deadline = Instant::now() + Duration::from_secs(5);
     while Instant::now() < deadline {
-        let _ = srv_driver.next_status(Ctx::new());
-        let _ = cli_driver.next_status(Ctx::new());
+        let _ = srv_driver.next_status(Ctx::host());
+        let _ = cli_driver.next_status(Ctx::host());
 
         // Client sends a datagram.
         let _ = client_session.queue_datagram(Bytes::from("hello-quic"));

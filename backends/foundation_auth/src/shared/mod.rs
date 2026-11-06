@@ -6,6 +6,7 @@ pub mod auth_session; // Feature 04: Upstream auth session store
 pub mod auth_state;
 pub mod auth_token;
 pub mod body; // Shared cap on error-body reads.
+pub mod clock; // Wall-clock conversions from the injected engine clock.
 pub mod credential_store;
 pub mod discovery; // Feature 03: OIDC Discovery
 pub mod introspection; // Feature 06: Token Introspection

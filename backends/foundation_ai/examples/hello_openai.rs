@@ -1,4 +1,4 @@
-//! Example: Send a "hello" prompt to OpenAI GPT-4o and print the response.
+//! Example: Send a "hello" prompt to `OpenAI` GPT-4o and print the response.
 //!
 //! Run with:
 //! ```bash
@@ -8,14 +8,18 @@
 
 use foundation_ai::agentic::Answer;
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::valtron;
+use std::sync::Arc;
+
+use foundation_core::valtron::{valtron, MonotonicClock};
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // GPT-4o (main) + GPT-4o-mini (memory) via Chat Completions API.
-    let builder = RouterPreset::openai_chat(&api_key)?.into_agent_builder();
+    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let builder =
+        RouterPreset::openai_chat(&api_key, Arc::clone(&clock))?.into_agent_builder(clock);
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

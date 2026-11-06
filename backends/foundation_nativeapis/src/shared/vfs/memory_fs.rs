@@ -3,6 +3,7 @@ use std::io::SeekFrom;
 use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
+use foundation_core::valtron::Clock;
 use foundation_errstacks::ErrorTrace;
 
 use super::async_traits::{
@@ -127,20 +128,31 @@ impl MemoryFsInner {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MemoryFs {
     inner: Arc<RwLock<MemoryFsInner>>,
+    clock: Arc<dyn Clock>,
+}
+
+impl std::fmt::Debug for MemoryFs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MemoryFs")
+            .field("inner", &self.inner)
+            .finish_non_exhaustive()
+    }
 }
 
 impl MemoryFs {
+    /// An empty file system whose root directory and every later entry take
+    /// their timestamps from `clock`.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         let mut nodes = HashMap::new();
         let mut ino_to_path = HashMap::new();
         nodes.insert(
             "/".to_string(),
             MemoryNode::Directory {
-                metadata: VfsMetadata::new_directory(1, DEFAULT_DIR_PERMS),
+                metadata: VfsMetadata::new_directory(1, DEFAULT_DIR_PERMS, clock.as_ref()),
             },
         );
         ino_to_path.insert(1u64, "/".to_string());
@@ -151,13 +163,8 @@ impl MemoryFs {
                 version: 0,
                 next_inode: 2,
             })),
+            clock,
         }
-    }
-}
-
-impl Default for MemoryFs {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -166,6 +173,7 @@ pub struct MemoryFile {
     path: String,
     fs: Arc<RwLock<MemoryFsInner>>,
     mode: OpenMode,
+    clock: Arc<dyn Clock>,
 }
 
 impl VfsFile for MemoryFile {
@@ -199,7 +207,7 @@ impl VfsFile for MemoryFile {
             let meta = node.metadata_mut();
             meta.size = content.len() as u64;
             meta.version = version;
-            meta.modified = Some(std::time::SystemTime::now());
+            meta.modified = Some(self.clock.wall_now());
         }
         Ok(buf.len())
     }
@@ -226,7 +234,7 @@ impl VfsFile for MemoryFile {
             let meta = node.metadata_mut();
             meta.size = size;
             meta.version = version;
-            meta.modified = Some(std::time::SystemTime::now());
+            meta.modified = Some(self.clock.wall_now());
         }
         Ok(())
     }
@@ -317,6 +325,7 @@ unsafe impl Sync for SeekableMemoryFile {}
 pub struct MemoryDirectory {
     fs: Arc<RwLock<MemoryFsInner>>,
     dir_path: String,
+    clock: Arc<dyn Clock>,
 }
 
 impl MemoryDirectory {
@@ -393,7 +402,7 @@ impl VfsDirectory for MemoryDirectory {
         let ino = inner.alloc_inode();
         let version = inner.next_version();
         let content = Arc::new(RwLock::new(Vec::new()));
-        let mut metadata = VfsMetadata::new_file(ino, 0, mode);
+        let mut metadata = VfsMetadata::new_file(ino, 0, mode, self.clock.as_ref());
         metadata.version = version;
         inner.ino_to_path.insert(ino, child_path.clone());
         inner.nodes.insert(
@@ -407,6 +416,7 @@ impl VfsDirectory for MemoryDirectory {
             content,
             path: child_path,
             fs: self.fs.clone(),
+            clock: self.clock.clone(),
             mode: OpenMode::ReadWrite,
         })
     }
@@ -425,7 +435,7 @@ impl VfsDirectory for MemoryDirectory {
         }
         let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
+        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS, self.clock.as_ref());
         metadata.version = version;
         inner.ino_to_path.insert(ino, child_path.clone());
         inner
@@ -433,6 +443,7 @@ impl VfsDirectory for MemoryDirectory {
             .insert(child_path.clone(), MemoryNode::Directory { metadata });
         Ok(Box::new(MemoryDirectory {
             fs: self.fs.clone(),
+            clock: self.clock.clone(),
             dir_path: child_path,
         }))
     }
@@ -510,6 +521,7 @@ impl VfsDirectory for MemoryDirectory {
                 content: content.clone(),
                 path: resolved,
                 fs: self.fs.clone(),
+                clock: self.clock.clone(),
                 mode,
             }),
             Some(_) => Err(ErrorTrace::new(VfsError::NotAFile { path: resolved })),
@@ -536,6 +548,7 @@ impl VfsDirectory for MemoryDirectory {
         match inner.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => Ok(Box::new(MemoryDirectory {
                 fs: self.fs.clone(),
+                clock: self.clock.clone(),
                 dir_path: resolved,
             })),
             Some(_) => Err(ErrorTrace::new(VfsError::NotADirectory { path: resolved })),
@@ -655,7 +668,7 @@ impl VfsFileSystem for MemoryFs {
         }
         let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_symlink(ino);
+        let mut metadata = VfsMetadata::new_symlink(ino, self.clock.as_ref());
         metadata.version = version;
         inner.ino_to_path.insert(ino, link.clone());
         inner.nodes.insert(
@@ -759,6 +772,7 @@ impl VfsFileSystem for MemoryFs {
                 content: content.clone(),
                 path: resolved,
                 fs: self.inner.clone(),
+                clock: self.clock.clone(),
                 mode,
             }),
             Some(_) => Err(ErrorTrace::new(VfsError::NotAFile { path: resolved })),
@@ -781,6 +795,7 @@ impl VfsFileSystem for MemoryFs {
         match inner.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => Ok(MemoryDirectory {
                 fs: self.inner.clone(),
+                clock: self.clock.clone(),
                 dir_path: resolved,
             }),
             Some(_) => Err(ErrorTrace::new(VfsError::NotADirectory { path: resolved })),
@@ -804,7 +819,7 @@ impl VfsFileSystem for MemoryFs {
         let ino = inner.alloc_inode();
         let version = inner.next_version();
         let content = Arc::new(RwLock::new(Vec::new()));
-        let mut metadata = VfsMetadata::new_file(ino, 0, mode);
+        let mut metadata = VfsMetadata::new_file(ino, 0, mode, self.clock.as_ref());
         metadata.version = version;
         inner.ino_to_path.insert(ino, path.clone());
         inner.nodes.insert(
@@ -818,6 +833,7 @@ impl VfsFileSystem for MemoryFs {
             content,
             path,
             fs: self.inner.clone(),
+            clock: self.clock.clone(),
             mode: OpenMode::ReadWrite,
         })
     }
@@ -837,7 +853,7 @@ impl VfsFileSystem for MemoryFs {
         }
         let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
+        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS, self.clock.as_ref());
         metadata.version = version;
         inner.ino_to_path.insert(ino, path.clone());
         inner.nodes.insert(path, MemoryNode::Directory { metadata });
@@ -870,7 +886,7 @@ impl VfsFileSystem for MemoryFs {
                     let meta = node.metadata_mut();
                     meta.size = data.len() as u64;
                     meta.version = version;
-                    meta.modified = Some(std::time::SystemTime::now());
+                    meta.modified = Some(self.clock.wall_now());
                 }
                 Ok(())
             }
@@ -883,7 +899,8 @@ impl VfsFileSystem for MemoryFs {
                 }
                 let ino = inner.alloc_inode();
                 let content = Arc::new(RwLock::new(data.to_vec()));
-                let mut metadata = VfsMetadata::new_file(ino, data.len() as u64, 0o644);
+                let mut metadata =
+                    VfsMetadata::new_file(ino, data.len() as u64, 0o644, self.clock.as_ref());
                 metadata.version = version;
                 inner.ino_to_path.insert(ino, path.clone());
                 inner

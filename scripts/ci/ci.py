@@ -106,6 +106,10 @@ class Settings:
     clippy_deny_warnings: bool
     wasm: str  # wasm32-unknown-unknown compile check mode
     wasm_runs: list[str]  # one `cargo check --target wasm32` per entry; feature flags
+    # True: every wasm run of the package gets `RUSTFLAGS=-D warnings`, so a
+    # warning fails the wasm gate. `cargo check` takes no trailing rustc args,
+    # so the flag travels in the environment of that command only.
+    wasm_deny_warnings: bool
     test_args: list[str]
     timeout_minutes: int
     reason: str | None
@@ -118,6 +122,19 @@ class Settings:
     # `run` (feature flags) and `contains` (the message). Checks the documented
     # minimum feature set instead of dropping the configuration.
     wasm_expect_error: dict | None = None
+
+
+@dataclass
+class PlannedCommand:
+    """One planned command: the argv and extra environment for just this run.
+
+    Most planned commands are plain argv lists. A command that needs a variable
+    for itself (the wasm deny gate sets `RUSTFLAGS`) carries it here, so the
+    package-wide `env` stays unchanged.
+    """
+
+    argv: list[str]
+    env: dict[str, str] = field(default_factory=dict)
 
 
 def cargo_metadata() -> dict:
@@ -207,52 +224,57 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
     if unknown:
         raise SystemExit(f"ci/packages.toml names packages not in the workspace: {unknown}")
 
-    settings: dict[str, Settings] = {}
-    for name in packages:
-        package = overrides.get(name, {})
-        merged = {**defaults, **package}
-        # `env` merges key by key, so a package adds to [defaults.env] rather
-        # than replacing it.
-        for table, where in ((defaults, "[defaults]"), (package, f"[packages.{name}]")):
-            if not isinstance(table.get("env", {}), dict):
-                raise SystemExit(f"{where}: `env` must be a table of strings")
-        env = {**defaults.get("env", {}), **package.get("env", {})}
-        for key, value in env.items():
-            if not isinstance(value, str):
-                raise SystemExit(f"{name}: env.{key} must be a string, got {value!r}")
-        container_options = merged.get("container-options", "")
-        if not isinstance(container_options, str):
-            raise SystemExit(f"{name}: `container-options` must be a string")
-        wasm_expect_error = merged.get("wasm-expect-error")
-        if wasm_expect_error is not None:
-            if not isinstance(wasm_expect_error, dict):
-                raise SystemExit(f"{name}: `wasm-expect-error` must be a table")
-            for key in ("run", "contains"):
-                if not isinstance(wasm_expect_error.get(key), str):
-                    raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
-        s = Settings(
-            skip=merged.get("skip"),
-            fmt=merged.get("fmt", "report"),
-            build=merged.get("build", "enforce"),
-            clippy=merged.get("clippy", "enforce"),
-            test=merged.get("test", "enforce"),
-            runs=list(merged.get("runs", [""])) or [""],
-            clippy_runs=list(merged.get("clippy-runs", [])),
-            clippy_deny_warnings=bool(merged.get("clippy-deny-warnings", False)),
-            wasm=merged.get("wasm", "off"),
-            wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
-            test_args=list(merged.get("test-args", [])),
-            timeout_minutes=int(merged.get("timeout-minutes", 60)),
-            reason=merged.get("reason"),
-            env=env,
-            container_options=container_options,
-            wasm_expect_error=wasm_expect_error,
-        )
-        for step in STEPS:
-            if getattr(s, step) not in MODES:
-                raise SystemExit(f"{name}: `{step}` must be one of {MODES}, got {getattr(s, step)!r}")
-        settings[name] = s
-    return settings
+    return {
+        name: settings_for(name, defaults, overrides.get(name, {}))
+        for name in packages
+    }
+
+
+def settings_for(name: str, defaults: dict, package: dict) -> Settings:
+    """Merge `[defaults]` with one `[packages.<name>]` table and validate it."""
+    merged = {**defaults, **package}
+    # `env` merges key by key, so a package adds to [defaults.env] rather
+    # than replacing it.
+    for table, where in ((defaults, "[defaults]"), (package, f"[packages.{name}]")):
+        if not isinstance(table.get("env", {}), dict):
+            raise SystemExit(f"{where}: `env` must be a table of strings")
+    env = {**defaults.get("env", {}), **package.get("env", {})}
+    for key, value in env.items():
+        if not isinstance(value, str):
+            raise SystemExit(f"{name}: env.{key} must be a string, got {value!r}")
+    container_options = merged.get("container-options", "")
+    if not isinstance(container_options, str):
+        raise SystemExit(f"{name}: `container-options` must be a string")
+    wasm_expect_error = merged.get("wasm-expect-error")
+    if wasm_expect_error is not None:
+        if not isinstance(wasm_expect_error, dict):
+            raise SystemExit(f"{name}: `wasm-expect-error` must be a table")
+        for key in ("run", "contains"):
+            if not isinstance(wasm_expect_error.get(key), str):
+                raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
+    s = Settings(
+        skip=merged.get("skip"),
+        fmt=merged.get("fmt", "report"),
+        build=merged.get("build", "enforce"),
+        clippy=merged.get("clippy", "enforce"),
+        test=merged.get("test", "enforce"),
+        runs=list(merged.get("runs", [""])) or [""],
+        clippy_runs=list(merged.get("clippy-runs", [])),
+        clippy_deny_warnings=bool(merged.get("clippy-deny-warnings", False)),
+        wasm=merged.get("wasm", "off"),
+        wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
+        wasm_deny_warnings=bool(merged.get("wasm-deny-warnings", False)),
+        test_args=list(merged.get("test-args", [])),
+        timeout_minutes=int(merged.get("timeout-minutes", 60)),
+        reason=merged.get("reason"),
+        env=env,
+        container_options=container_options,
+        wasm_expect_error=wasm_expect_error,
+    )
+    for step in STEPS:
+        if getattr(s, step) not in MODES:
+            raise SystemExit(f"{name}: `{step}` must be one of {MODES}, got {getattr(s, step)!r}")
+    return s
 
 
 # ---------------------------------------------------------------------------
@@ -397,12 +419,12 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
     return plan
 
 
-def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]:
+def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str] | PlannedCommand]]:
     if name == "examples":
         return examples_commands(profile)
     if name == "wasm-tests":
         return wasm_tests_commands()
-    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])
     if name == "foundation_core" and s.build == "enforce":
@@ -410,6 +432,11 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
         # One repository-wide scan, run with the package that owns them (in the
         # enforced `build` step), and the test of the scan itself.
         plan["build"].append([sys.executable, "scripts/ci/check_executor_wake.py"])
+        # Spec 70 feature 117: a crate reads the time from the injected `Clock`,
+        # never from the global. The allowlist names every remaining offender.
+        plan["build"].append(
+            [sys.executable, "scripts/ci/check_time_sources.py", "--check"]
+        )
         plan["build"].append([sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci/tests"])
     if s.build != "off":
         # Library, binaries, tests, examples and benches: compile errors show
@@ -435,8 +462,9 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
         # binaries or uat tuning), just `cargo check` on the wasm-relevant
         # feature set. Catches the `multi`-into-`!Send`-wasm leak and other
         # native-dep regressions that native-only builds never see.
+        wasm_commands: list[list[str]] = []
         for run in s.wasm_runs:
-            plan["wasm"].append(
+            wasm_commands.append(
                 ["cargo", "check", "--target", "wasm32-unknown-unknown", "-p", name, *feature_flags(run)]
             )
         if s.wasm_expect_error:
@@ -453,9 +481,16 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
                 name,
                 *feature_flags(expect["run"]),
             ]
-            plan["wasm"].append(
+            wasm_commands.append(
                 [sys.executable, "scripts/ci/expect_compile_error.py", expect["contains"], "--", *check]
             )
+        for cmd in wasm_commands:
+            if s.wasm_deny_warnings:
+                # `cargo check` rejects trailing rustc args, so the deny flag
+                # goes through `RUSTFLAGS` for this command only.
+                plan["wasm"].append(PlannedCommand(cmd, {"RUSTFLAGS": "-D warnings"}))
+            else:
+                plan["wasm"].append(cmd)
     return plan
 
 
@@ -488,8 +523,18 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     deadline = time.monotonic() + s.timeout_minutes * 60
     for step in steps:
         mode = getattr(s, step)
-        for cmd in plan[step]:
+        for entry in plan[step]:
+            if isinstance(entry, PlannedCommand):
+                cmd, cmd_env = entry.argv, entry.env
+            else:
+                cmd, cmd_env = entry, {}
             line = shlex.join(cmd)
+            if cmd_env:
+                # Show the command-only environment in the log, so a reader can
+                # see the deny flag that the runner applies.
+                line = " ".join(
+                    f"{k}={shlex.quote(v)}" for k, v in sorted(cmd_env.items())
+                ) + " " + line
             print(f"::group::{step}: {line}" if IN_GITHUB else f"$ {line}", flush=True)
             remaining = deadline - time.monotonic()
             if remaining <= 0:
@@ -499,7 +544,9 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
                 annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
                 return 1
             try:
-                code = subprocess.run(cmd, cwd=ROOT, env=env, timeout=remaining).returncode
+                code = subprocess.run(
+                    cmd, cwd=ROOT, env={**env, **cmd_env}, timeout=remaining
+                ).returncode
             except subprocess.TimeoutExpired:
                 if IN_GITHUB:
                     print("::endgroup::", flush=True)

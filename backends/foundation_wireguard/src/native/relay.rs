@@ -14,7 +14,10 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 use std::time::Instant;
+
+use foundation_core::valtron::Clock;
 
 use crate::shared::membership::PeerId;
 use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelaySession};
@@ -52,6 +55,8 @@ pub struct RelayServer {
     idle_timeout_secs: u64,
     /// Maximum concurrent sessions.
     max_sessions: u32,
+    /// The injected clock: session idle times and the GC window come from it.
+    clock: Arc<dyn Clock>,
 }
 
 /// A frame received and ready to be forwarded to the destination peer.
@@ -69,12 +74,21 @@ impl RelayServer {
     /// WHY: A relay needs an upper bound on resource usage.
     ///
     /// WHAT: Create a new relay server with rate limiting and session caps.
-    pub fn new(max_sessions: u32, rate_limit_pps: u32, idle_timeout_secs: u64) -> Self {
+    ///
+    /// HOW: Stores the limits and the injected `clock`; every session idle time
+    /// and the garbage-collection window come from `Clock::now`.
+    pub fn new(
+        max_sessions: u32,
+        rate_limit_pps: u32,
+        idle_timeout_secs: u64,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             sessions: HashMap::new(),
             rate_limit_pps,
             idle_timeout_secs,
             max_sessions,
+            clock,
         }
     }
 
@@ -86,7 +100,7 @@ impl RelayServer {
     /// reject the oldest idle session.
     pub fn attach(&mut self, peer_id: PeerId) -> bool {
         if let Some(entry) = self.sessions.get_mut(&peer_id) {
-            entry.last_active = Instant::now();
+            entry.last_active = self.clock.now();
             return true;
         }
         if self.sessions.len() >= self.max_sessions as usize {
@@ -99,7 +113,7 @@ impl RelayServer {
         self.sessions.insert(
             peer_id,
             RelaySessionEntry {
-                last_active: Instant::now(),
+                last_active: self.clock.now(),
                 byte_count: AtomicU64::new(0),
                 packet_count: AtomicU64::new(0),
             },
@@ -119,13 +133,12 @@ impl RelayServer {
         let frame = RelayFrame::decode(raw)?;
 
         // Rate-limit the source.
-        if let Some(entry) = self.sessions.get(&src) {
+        {
+            let entry = self.sessions.get(&src)?;
             let count = entry.packet_count.fetch_add(1, Ordering::Relaxed) + 1;
-            if count > self.rate_limit_pps as u64 {
+            if count > u64::from(self.rate_limit_pps) {
                 return None;
             }
-        } else {
-            return None; // not attached
         }
 
         // Lookup destination.
@@ -148,7 +161,7 @@ impl RelayServer {
     /// HOW: Called every tick; iterates once, removing stale entries.
     pub fn gc(&mut self) {
         let timeout = self.idle_timeout_secs;
-        let now = Instant::now();
+        let now = self.clock.now();
         self.sessions
             .retain(|_, e| now.duration_since(e.last_active).as_secs() < timeout);
     }

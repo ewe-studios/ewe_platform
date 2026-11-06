@@ -7,7 +7,9 @@ fn main() {
     println!("=== OverlayFileSystem Example ===\n");
 
     // Base layer: read-only MemoryFs with some initial files
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.mkdir("/src").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
     base.write_file("/src/lib.rs", b"pub mod utils;").unwrap();
@@ -15,7 +17,9 @@ fn main() {
     println!("Base layer: 3 files in /src + /README.md");
 
     // Delta layer: writable MemoryDelta
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
 
     // Compose the overlay. It implements the async VFS traits; `main` is a
     // sync boundary, so the example uses it through `SyncFs`.

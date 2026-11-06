@@ -16,6 +16,8 @@ use std::io::{self, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
+
 use super::noise_psk::{self, NoiseStream};
 use crate::shared::bootstrap::rpc::{Admission, BootstrapRequest, BootstrapResponse};
 use crate::shared::error::{WgError, WgResult};
@@ -211,7 +213,11 @@ impl BootstrapServer {
 
     /// Try to accept one connection and serve it synchronously.
     /// Returns `Ok(true)` when a connection was served, `Ok(false)` when
-    /// no connection was waiting (WouldBlock), or an error.
+    /// no connection was waiting (`WouldBlock`), or an error.
+    ///
+    /// # Errors
+    /// Returns the listener error unless it is `WouldBlock`, which returns
+    /// `Ok(false)`.
     pub fn try_accept_and_serve(&self) -> io::Result<bool> {
         match self.listener.accept() {
             Ok((tcp, _peer)) => {
@@ -251,12 +257,19 @@ impl BootstrapServer {
     /// granularity — the reactor drain thread updates it asynchronously from
     /// epoll/kqueue events. Falls back to 50ms sleep when no reactor is running.
     ///
+    /// The idle wait deadline comes from `clock`, so a test can drive it with a
+    /// simulated clock and never sleep.
+    ///
     /// # Errors
     /// [`WgError::Io`] only on a fatal listener error; per-connection failures (e.g. a
     /// wrong-seed handshake) are logged and skipped.
-    pub fn serve_until(&self, stop: &std::sync::atomic::AtomicBool) -> WgResult<()> {
+    pub fn serve_until(
+        &self,
+        stop: &std::sync::atomic::AtomicBool,
+        clock: &dyn Clock,
+    ) -> WgResult<()> {
         use std::sync::atomic::Ordering;
-        use std::time::{Duration, Instant};
+        use std::time::Duration;
 
         self.listener.set_nonblocking(true).map_err(WgError::from)?;
         let fd = self.listener_fd();
@@ -291,8 +304,8 @@ impl BootstrapServer {
                             reactor_token,
                             foundation_nativeapis::native::fd::Ready::READABLE,
                         );
-                        let deadline = Instant::now() + Duration::from_millis(50);
-                        while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
+                        let deadline = clock.now() + Duration::from_millis(50);
+                        while clock.now() < deadline && !stop.load(Ordering::Relaxed) {
                             if r.is_ready(reactor_token) {
                                 r.clear(
                                     reactor_token,
@@ -320,9 +333,8 @@ impl BootstrapServer {
 
     fn serve_stream(&self, stream: &mut NoiseStream<TcpStream>) -> WgResult<()> {
         loop {
-            let req = match read_http_request(stream).map_err(WgError::from)? {
-                Some(r) => r,
-                None => return Ok(()), // peer closed
+            let Some(req) = read_http_request(stream).map_err(WgError::from)? else {
+                return Ok(()); // peer closed
             };
             let (status, body) = match req.method.as_str() {
                 "Join" => {

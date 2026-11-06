@@ -44,11 +44,16 @@ fn empty_router() -> ProviderRouter {
 /// A builder over the in-memory stores with a primary model set — `build()`
 /// refuses a session without one.
 fn builder() -> AgentSessionBuilder {
-    AgentSession::builder(empty_router()).with_model("test-model")
+    AgentSession::builder(empty_router(), test_clock()).with_model("test-model")
 }
 
 // ---------------------------------------------------------------------------
 // Builder + preflight tests
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[valtron_test]
 async fn builder_creates_session_with_named_id() {
@@ -413,7 +418,7 @@ async fn builder_takes_model_names_as_strings() {
 
 #[valtron_test]
 async fn build_fails_when_no_model_was_set() {
-    let err = AgentSession::builder(empty_router())
+    let err = AgentSession::builder(empty_router(), test_clock())
         .build()
         .await
         .err()
@@ -428,7 +433,7 @@ async fn build_fails_when_no_model_was_set() {
 async fn config_without_models_does_not_satisfy_build() {
     // AgentConfig no longer carries a model, so passing one cannot stand in
     // for `with_model`.
-    let err = AgentSession::builder(empty_router())
+    let err = AgentSession::builder(empty_router(), test_clock())
         .with_config(AgentConfig::default())
         .build()
         .await
@@ -442,7 +447,7 @@ async fn config_without_models_does_not_satisfy_build() {
 
 #[valtron_test]
 async fn builder_fills_the_model_selection() {
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = AgentSession::builder(empty_router(), test_clock())
         .with_model("primary")
         .with_fallback_models(["first-fallback", "second-fallback"])
         .with_memory_model("memory")
@@ -503,7 +508,7 @@ async fn an_application_needs_only_the_agentic_root() {
         AgentSession, Answer, ModelSelection, ToolPreset, ToolShed, TurnEvent, TurnSummary,
     };
 
-    let session: TestSession = AgentSession::builder(empty_router())
+    let session: TestSession = AgentSession::builder(empty_router(), test_clock())
         .with_model("test-model")
         .with_toolshed(ToolShed::new().tools(ToolPreset::shell()))
         .build()

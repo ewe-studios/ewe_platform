@@ -21,7 +21,16 @@ use foundation_nativeapis::shared::vfs::{
 /// I/O-backed store.
 fn open_sync(path: &std::path::Path) -> SyncFs<LibsqlDelta> {
     let path = path.to_path_buf();
-    SyncFs::new(exec_async(async move { LibsqlDelta::new(path).await }).unwrap())
+    SyncFs::new(
+        exec_async(async move {
+            LibsqlDelta::new(
+                path,
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .await
+        })
+        .unwrap(),
+    )
 }
 
 fn init_pool() -> PoolGuard {

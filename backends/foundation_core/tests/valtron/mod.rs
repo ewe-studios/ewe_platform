@@ -3,13 +3,16 @@ mod async_first_api;
 #[cfg(not(target_family = "wasm"))]
 mod bridge_park;
 mod bridge_park_executor;
+mod bridged_waker_liveness;
 #[cfg(not(target_family = "wasm"))]
 mod broadcast_tests;
 mod builder_tests;
 mod cancellable_future;
 #[cfg(not(target_family = "wasm"))]
 mod channel_backpressure_tests;
+mod clock_driven_tasks;
 mod clock_injection;
+mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
 #[cfg(feature = "std")]
@@ -80,6 +83,8 @@ mod multi_allocatable_threads;
 #[cfg(feature = "multi")]
 mod multi_workers;
 #[cfg(not(target_family = "wasm"))]
+mod pipe_closed_readiness;
+#[cfg(not(target_family = "wasm"))]
 mod pipe_mapped_tests;
 #[cfg(not(target_family = "wasm"))]
 mod pipe_primitive;
@@ -87,6 +92,8 @@ mod pipe_primitive;
 mod pool_config_tests;
 #[cfg(not(target_family = "wasm"))]
 mod single_executor;
+#[cfg(feature = "multi")]
+mod slow_poll_warning;
 mod task_status;
 #[cfg(not(all(
     target_family = "wasm",
@@ -97,4 +104,6 @@ mod valtron_macro_tests;
 mod wakeable_stream;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
+#[cfg(feature = "multi")]
+mod worker_panic_accounting;
 mod wrappers;

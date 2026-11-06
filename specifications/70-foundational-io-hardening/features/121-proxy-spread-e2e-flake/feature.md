@@ -1,10 +1,10 @@
 ---
 feature: "The proxy load-balancing e2e test stops hitting its 30 s cap"
-status: "pending"
+status: "done"
 lane: "priority follow-up (bug found in run 42087629722)"
 model: "sonnet"
-branch: "spec70/f121-proxy-spread-flake"
-crates: ["foundation_proxy"]
+branch: "spec70/priority-followups"
+crates: ["foundation_netio", "foundation_proxy"]
 catalogue_rows: []  # from docs/bug-backlog.md §9; not a §8 catalogue row
 ---
 
@@ -204,13 +204,14 @@ python3 scripts/ci/ci.py run foundation_proxy --profile uat
 
 ## Done when
 
-- [ ] 30 consecutive full-suite runs on Linux in the CI image report 17 passed and 7
+- [x] 30 consecutive full-suite runs on Linux in the CI image report 17 passed and 7
       passed.
-- [ ] The commit message names the call that stalled and the wait it sat on.
-- [ ] A hung call fails on its own bound (about 5 s) with a message that names the call,
+- [x] The commit message names the call that stalled and the wait it sat on.
+- [x] A hung call fails on its own bound (about 5 s) with a message that names the call,
       not only on the 30 s cap.
-- [ ] The backlog §9 entry is deleted.
-- [ ] CI green.
+- [x] The backlog §9 entry is deleted.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 
@@ -260,3 +261,162 @@ Measured while the plan was written:
 
 The failure needs the Linux CI environment, so the plan starts with the 30-run loop
 there. A loop with `--cpus=2` is running to match a loaded GitHub runner.
+
+### 2026-11-06, after features 122 and 123 landed
+
+Feature 122 (fd-reuse deregistration guard) and feature 123 (client deadline) are in the
+branch. The stall still happens.
+
+The test bound works. `ctx()` now uses `CALL_DEADLINE` = 5 s (`rpc_proxy_e2e_tests.rs`),
+and `h2_grpc_request` races its own future against `sleep_async(GRPC_CALL_BOUND)`. A
+stalled call now fails in about 5 s and names itself instead of reaching the 30 s harness
+cap. `connect_server_stream_via_h2_proxy` failed with:
+
+```text
+thread '<unnamed>' panicked at backends/foundation_proxy/tests/rpc_proxy_e2e_tests.rs:349:10:
+open server stream: Error: [deadline_exceeded] call deadline exceeded
+```
+
+`rpc_proxy_e2e_tests.rs:349` is `.expect("open server stream")` in `collect_stream`. The
+call reached no response head. Run 1 of a fresh CI container failed this way twice in a
+row (03:01:37 and 03:02:46); the earlier rate with `--cpus=2` was about 1 run in 5. Run 1
+is not special for the cause: the container starts cold and every test starts at once.
+
+So the cause is not the fd-reuse deregistration, or not only that. The next step is
+Design 2: add the watchdog and the registry dump, and find the park that never wakes.
+
+The chain to instrument, from the earlier trace:
+
+```text
+client → proxy front (received HEADERS and four DATA frames, routed the request)
+       → proxy upstream H2 client (dial + handshake complete)
+       → [stall]
+       → backend (handshake complete, "idle — waiting for frames", never reads)
+```
+
+The stall is between the proxy's upstream H2 client accepting a request frame and that
+frame reaching the backend socket. The suspects, in order:
+
+1. `request_pump` (`foundation_proxy/src/rpc_relay.rs:580`) blocks in
+   `out_send.send(bytes)` while the upstream connection task is parked and never polls
+   its queued output again. That is a lost task wake in the upstream exchange.
+2. The upstream connection task is parked on socket write readiness and misses the edge
+   that follows `Reactor::reregister` with `Interest::WRITABLE`.
+3. The front's inbound exchange delivers the frames to a reader that never runs.
+
+
+### 2026-11-06, Result: two waited-forever bugs, both found by measurement
+
+The watchdog found two independent defects. Each one makes a worker wait on something that
+never arrives, so a client call hangs until its own bound, or until the 30 s cap.
+
+#### Cause 1: a blocking upstream body read froze a whole worker
+
+The dump of the failing `connect_server_stream_via_h2_proxy` relay showed:
+
+```text
+PROXY STALL: relay id=4 target=http://127.0.0.1:37851/e2e.Rpc/ServerStream no progress for 1569 ms
+  relay request: await=recv recv_calls=0 in_msgs=0 in_bytes=0 out_bytes=0
+  relay response: await=send out_bytes=0
+  pump id=5 target=127.0.0.1:34833 fd=6 polls=11 phase=WaitingResponse bytes_written=247 bytes_read=48 ... request_sent=1 request_ended=1 head_sent=0
+  pump id=5 ... polls=11 (delta 0) phase=WaitingResponse ...
+  tid="2929" comm=connect_server_ state=S wchan=wait_woken
+```
+
+- `relay request: await=recv` means `send_async` had returned: the proxy's H1 client read
+  the backend response intro.
+- `relay response: await=send out_bytes=0` means the proxy queued the H2 response head and
+  then waited for the first response body chunk. No chunk came.
+- `pump id=5` is the **test client's** H2 pump (target 34833 is the proxy). Its poll counter
+  did not move in 500 ms, although it is a `Delayed(10 ms)` task. The client never read the
+  response head, so the call failed on its 5 s bound.
+- One thread is in `wait_woken`, which is a blocking `recv`. Every other worker is in
+  `futex_wait`. The blocked worker held the relay, and the client pump was a sleeping task
+  on the same worker, so the pump stopped too.
+
+Why: `ClientRequest::send_async` hands the response socket back in **blocking** mode
+(`SendRequestTask::hand_off`). `RawStream::read_wake_source` therefore returned `None`, and
+`AsyncSendSafeBody` read the body with a blocking `recv` inside a valtron task's poll. That
+froze the worker and every task it hosted, including the relay's concurrent request-body
+pump. It also delayed pool shutdown, so each test took 1 s or more to tear down (the earlier
+`workers still busy at the shutdown deadline; detaching them detached=4` lines).
+
+A second layer made a non-blocking body impossible even after the socket was non-blocking:
+`body_reader::map_err` collapsed every iterator error into `io::Error::other`, which erased
+the `WouldBlock` kind. `AsyncSendSafeBody` then treated "no bytes yet" as terminal.
+
+#### Cause 2: a past-due timer was dropped from the "next wake" calculation
+
+A second watchdog, on the H2 pump itself, caught the residual failures
+(`connect_bidi_via_grpc_backend`, 2 of 10 when run alone):
+
+```text
+H2 PUMP STALL: id=1 target=127.0.0.1:42145 fd=6 phase=Handshaking polls=1 frozen_for_ms=1528
+  executor workers:
+  worker tid=ThreadId(6) ticks=6 sleepers=2 last_wait_ms=59999 next_deadline_ms=59999 ms_since_tick=1768
+```
+
+The pump polls every 10 ms (`Delayed(POLL_DELAY)`), but its worker slept **59,999 ms**. The
+worker had two sleepers, and the chosen wait was the far one. `DurationWaker::remaining`
+returned `None` once a deadline had passed, and `Sleepers::minimum_deadline` filtered `None`
+out. A timer that was already due therefore disappeared from `time_until_next`, and the
+worker slept until the next future deadline. The window is real: `wakeup_ready_sleepers` runs
+before `do_work`, and `do_work` can run a task for longer than the 10 ms poll. The pump's
+timer matured during that task, and the following sleep ignored it. The frozen pump then
+never sent the request HEADERS, so the proxy front waited for a request that never came.
+
+### The fixes
+
+1. `backends/foundation_core/src/synca/sleepers.rs`: `DurationWaker::remaining` returns
+   `Some(Duration::ZERO)` for a past deadline (`saturating_duration_since`). A due timer now
+   wins the minimum, so the worker wakes at once and runs the task.
+2. `backends/foundation_netio/src/shared/client/body_reader.rs`: `map_err` keeps
+   `WouldBlock` (via `is_would_block`) as an `io::Error` of that kind. The async body stream
+   now parks and registers its read waker.
+3. `backends/foundation_proxy/src/forward.rs` (`exchange`) and
+   `backends/foundation_proxy/src/h2_proxy.rs` (`forward_upstream`): after `send_async`
+   returns, switch the response socket back to non-blocking with `set_nonblocking(true)`
+   before `read_wake_source`. The synchronous body readers keep the blocking handoff, so no
+   other caller changes behaviour.
+4. `ClientRequest::send_async` now documents the blocking handoff and the requirement for an
+   async streaming caller.
+5. The same non-blocking step at the two remaining async `read_wake_source()` sites, which
+   the first pass missed: `backends/foundation_proxy/src/h3_proxy.rs` (`forward_upstream`)
+   and `backends/foundation_netio/src/http/http_client_impl.rs`. Both read a
+   `send_async` response body from a valtron task, so both could freeze a worker in the
+   same way. `grep -rn 'read_wake_source()' backends` now finds no async site that skips
+   `set_nonblocking(true)`.
+
+No public API is added, so no crate version changes. No `Cargo.lock` change.
+
+### The deterministic tests
+
+- `backends/foundation_core/tests/synca/sleepers.rs`:
+  `a_past_due_timer_is_the_next_wakeup`. It inserts a timer 20 ms past due next to a 60 s
+  timer and asserts `time_until_next() <= 1 ms`. On the old code it returns about 60 s. The
+  old `remaining` was restored and the test failed.
+- `backends/foundation_netio/tests/simple_http/async_body_would_block_tests.rs`:
+  `a_would_block_body_read_parks_instead_of_failing`. A `ChunkedStream` body yields
+  `HttpReaderError::WouldBlock` forever. One poll of `AsyncSendSafeBody` must return
+  `Pending` and must register the read wake source. The old `map_err` was restored, and the
+  test failed with `a WouldBlock body read must park, not fail: Ready(Some(Err(...)))`.
+
+### Commands and results
+
+| Command | Result |
+| --- | --- |
+| `cargo fmt --all --check` | pass |
+| `cargo clippy --profile uat -p foundation_proxy -p foundation_connectrpc -p foundation_netio -p foundation_core --all-targets --no-deps -- -D warnings` | pass, no warnings |
+| `cargo test --profile uat -p foundation_core` | pass: 744 in the main binary plus 118 in others, 0 failed |
+| `cargo test --profile uat -p foundation_netio` | pass: 1218 in the main binary plus 74 in others, 0 failed |
+| `cargo test --profile uat -p foundation_proxy --no-fail-fast` (macOS) | 128 passed, 1 failed: the known `proxy_features_tests::websocket_upgrade_relays_and_tunnels_bytes` macOS failure (backlog §9) |
+| Linux image, `--cpus=2`, 30 runs of `rpc_proxy_e2e_tests` | 30 passed, 0 failed |
+| Linux image, `--cpus=2`, 30 runs of `h2_integration_tests` | 30 passed, 0 failed |
+| Linux image, 3 fresh containers, first run of `rpc_proxy_e2e_tests` | 3 passed, 0 failed |
+
+Before the fixes, the failure rate with `--cpus=2` was about 1 in 5, and the first run of a
+fresh container failed twice in a row. The suite also took 16-24 s when green; it now takes
+about 2.7 s, because pool teardown no longer waits for a blocked worker.
+
+CI is not run from this branch. The feature stays `pending (CI proof)` until that run is
+green.

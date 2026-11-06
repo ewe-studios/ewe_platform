@@ -257,20 +257,20 @@ fn valtron_stream_and_driver_integration() {
     let mut driver = HubDriver::new(hub);
 
     // Drive manually as the executor would: pump until Ready, then drain.
-    let status = driver.next_status(Ctx::new()).expect("driver alive");
+    let status = driver.next_status(Ctx::host()).expect("driver alive");
     assert!(matches!(status, TaskStatus::Ready(report) if report.commands_applied == 1));
     assert!(
         matches!(
-            driver.next_status(Ctx::new()),
+            driver.next_status(Ctx::host()),
             Some(TaskStatus::Pending(()))
         ),
         "idle tick is Pending, never blocking"
     );
 
-    let next: Option<TaskStatus<i32, ()>> = stream.next_status(Ctx::new());
+    let next: Option<TaskStatus<i32, ()>> = stream.next_status(Ctx::host());
     assert!(matches!(next, Some(TaskStatus::Ready(5))));
     assert!(matches!(
-        stream.next_status(Ctx::new()),
+        stream.next_status(Ctx::host()),
         Some(TaskStatus::Pending(()))
     ));
 }

@@ -20,6 +20,11 @@ fn text_and_role(message: &Messages) -> (String, MessageRole) {
 // Item 6 — message constructors
 // ---------------------------------------------------------------------------
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[test]
 fn message_constructors_set_the_role_and_text() {
     assert_eq!(
@@ -78,17 +83,23 @@ fn anthropic() -> foundation_ai::backends::anthropic_messages_provider::Anthropi
         AnthropicConfig, AnthropicMessagesProvider,
     };
     use foundation_auth::{AuthCredential, ConfidentialText};
-    AnthropicMessagesProvider::with_config(AnthropicConfig::new().with_auth(
-        AuthCredential::SecretOnly(ConfidentialText::new("k".into())),
-    ))
+    AnthropicMessagesProvider::with_config(
+        AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "k".into(),
+        ))),
+        test_clock(),
+    )
 }
 
 fn openai() -> foundation_ai::backends::openai_provider::OpenAIProvider {
     use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
     use foundation_auth::{AuthCredential, ConfidentialText};
-    OpenAIProvider::with_config(OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(
-        ConfidentialText::new("k".into()),
-    )))
+    OpenAIProvider::with_config(
+        OpenAIConfig::new().with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "k".into(),
+        ))),
+        test_clock(),
+    )
 }
 
 #[test]
@@ -140,7 +151,7 @@ fn openai_name() -> String {
 async fn agent_session_builder_takes_a_provider() {
     use foundation_ai::agentic::AgentSession;
 
-    let session = AgentSession::builder(anthropic())
+    let session = AgentSession::builder(anthropic(), test_clock())
         .with_model("claude-sonnet-4-6")
         .build()
         .await
@@ -194,9 +205,15 @@ fn providers_build_from_an_api_key() {
     use foundation_ai::types::ModelProvider;
 
     // Each provider still describes itself, so it can be routed.
-    assert!(AnthropicMessagesProvider::api_key("k").describe().is_ok());
-    assert!(OpenAIProvider::api_key("k").describe().is_ok());
-    assert!(ResponsesProvider::api_key("k").describe().is_ok());
+    assert!(AnthropicMessagesProvider::api_key("k", test_clock())
+        .describe()
+        .is_ok());
+    assert!(OpenAIProvider::api_key("k", test_clock())
+        .describe()
+        .is_ok());
+    assert!(ResponsesProvider::api_key("k", test_clock())
+        .describe()
+        .is_ok());
 }
 
 #[test]

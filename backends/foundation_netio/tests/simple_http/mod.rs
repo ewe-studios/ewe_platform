@@ -14,6 +14,7 @@
 
 mod actions_tests;
 mod async_body_readiness_tests;
+mod async_body_would_block_tests;
 mod body_bytes_wait_tests;
 mod body_memory_bound_tests;
 mod body_reader_tests;

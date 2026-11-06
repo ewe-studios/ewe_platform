@@ -86,8 +86,9 @@ These come from `CLAUDE.md` and `.agents/AGENTS.md`. Read both before you start.
 5. **Limits are configuration** with a builder method and a documented default that names its
    source (nginx, Go `net/http`, Caddy, the RFC).
 6. **Stream bodies, never buffer them.**
-7. **Every bug you notice goes in `docs/bug-backlog.md`** in the same change. Delete an entry
-   in the PR that fixes it.
+7. **Every bug you notice becomes a GitHub issue with a severity label** in the same change.
+   Close the issue in the change that fixes it. Do not add an entry to
+   `docs/bug-backlog.md`; that file is retired (owner rule 2026-11-06).
 8. **Async all the way.** Blocking only at real boundaries, behind `blocking_boundary!`.
 
 ## 4. Deterministic verification protocol
@@ -276,7 +277,8 @@ _The diagram shows which feature must finish before another starts._
 ## 7. Done for the whole spec
 
 - [ ] Every entry in `docs/bug-backlog.md` sections 1–21 (and the four branch-only bugs in §1)
-      is fixed and deleted, or rewritten with a reason and a follow-up feature.
+      is fixed and closed in its GitHub issue, or rewritten in the issue with a reason and a
+      follow-up. The file was retired on 2026-11-06; the section-to-issue map is in it.
 - [ ] Issues #28, #137 and #142 can be closed.
 - [ ] `rg -n 'thread::sleep|yield_now|spin_loop' backends/foundation_{core,netio,http,connectrpc,iogate}/src`
       returns only waits that sit behind `blocking_boundary!` or that the feature files name as

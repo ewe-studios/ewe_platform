@@ -16,6 +16,11 @@
 
 use std::sync::Arc;
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 use foundation_ai::agentic::memory::{MemoryConfig, MemoryHierarchy};
 use foundation_ai::agentic::memory_coordinator::MemoryCoordinator;
 use foundation_ai::agentic::memory_store::KvMemoryStore;
@@ -37,7 +42,9 @@ type Hierarchy = MemoryHierarchy<Mem, Doc>;
 // ---------------------------------------------------------------------------
 
 fn fs() -> Arc<MemoryFs> {
-    Arc::new(MemoryFs::new())
+    Arc::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )))
 }
 
 fn hierarchy() -> Arc<Hierarchy> {
@@ -50,6 +57,7 @@ fn hierarchy() -> Arc<Hierarchy> {
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     ))
 }
 
@@ -115,6 +123,7 @@ fn agent_preset_provides_the_six_command_agent_tool() {
         "/tmp/test-delegation",
         UserId("test".into()),
         vec![],
+        test_clock(),
     );
     assert_eq!(names(&p), vec!["agent"]);
 

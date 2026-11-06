@@ -3,7 +3,6 @@
 use std::io::{Read, Write};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 
 use crate::backends::Backend;
 use crate::command::{Command, CommandResult};
@@ -119,7 +118,7 @@ impl Dialer {
 impl Backend for Ssh2Backend {
     fn execute(&self, host: &Host, cmd: &Command) -> SshKitResult<CommandResult> {
         let session = self.pool.get(host)?;
-        let start = Instant::now();
+        let start = self.pool.clock().now();
         let shell_cmd = cmd.to_shell_command();
 
         let mut channel = session
@@ -144,7 +143,7 @@ impl Backend for Ssh2Backend {
             exit_code,
             stdout,
             stderr,
-            runtime: start.elapsed(),
+            runtime: self.pool.clock().now().saturating_duration_since(start),
             host: format!("{}@{}", host.user, host.hostname),
         })
     }

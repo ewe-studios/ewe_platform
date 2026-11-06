@@ -343,7 +343,11 @@ async fn zip_all<T: Send + 'static>(futs: Vec<futures_lite::future::Boxed<T>>) -
 #[valtron_test]
 async fn ipc_request_awaits_without_blocking() {
     let config = test_config("await");
-    let mut server = DaemonTransport::serve_with_config(config.clone()).unwrap();
+    let mut server = DaemonTransport::serve_with_config(
+        config.clone(),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .unwrap();
     let handle = std::thread::spawn(move || {
         let msg = server
             .recv_request_timeout(Duration::from_secs(10))
@@ -361,7 +365,12 @@ async fn ipc_request_awaits_without_blocking() {
             .unwrap();
     });
 
-    let transport = ClientTransport::connect_with_config(config, None).unwrap();
+    let transport = ClientTransport::connect_with_config(
+        config,
+        None,
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .unwrap();
 
     let ticks = Arc::new(AtomicUsize::new(0));
     let done = Arc::new(AtomicBool::new(false));
@@ -420,7 +429,11 @@ fn ipc_timeouts_come_from_config() {
 #[valtron_test]
 async fn ipc_out_of_order_responses_match_by_id() {
     let config = test_config("ooo");
-    let mut server = DaemonTransport::serve_with_config(config.clone()).unwrap();
+    let mut server = DaemonTransport::serve_with_config(
+        config.clone(),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .unwrap();
     let handle = std::thread::spawn(move || {
         let first = server
             .recv_request_timeout(Duration::from_secs(10))
@@ -454,7 +467,12 @@ async fn ipc_out_of_order_responses_match_by_id() {
             .unwrap();
     });
 
-    let transport = ClientTransport::connect_with_config(config, None).unwrap();
+    let transport = ClientTransport::connect_with_config(
+        config,
+        None,
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .unwrap();
     let (a, b) = zip(
         transport.request(VfsRequestBody::ReadFile { path: "/a".into() }),
         transport.request(VfsRequestBody::ReadFile { path: "/b".into() }),
@@ -487,13 +505,24 @@ async fn ipc_concurrent_requests() {
         NativeFs::new(tmp.path()).expect("create NativeFs"),
     )));
     let running = Arc::new(AtomicBool::new(true));
-    let mut server = DaemonTransport::serve_with_config(config.clone()).unwrap();
+    let mut server = DaemonTransport::serve_with_config(
+        config.clone(),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .unwrap();
     let (server_daemon, server_running) = (Arc::clone(&daemon), Arc::clone(&running));
     let server_handle = std::thread::spawn(move || {
         let _ = run_daemon_loop(&mut server, &server_daemon, &server_running);
     });
 
-    let transport = Arc::new(ClientTransport::connect_with_config(config, None).unwrap());
+    let transport = Arc::new(
+        ClientTransport::connect_with_config(
+            config,
+            None,
+            Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .unwrap(),
+    );
     let client = Arc::new(VfsClient::new(transport).await);
 
     let futs: Vec<futures_lite::future::Boxed<(usize, Vec<u8>)>> = (0..16)

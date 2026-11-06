@@ -36,8 +36,8 @@ const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 const BUDGET: Duration = Duration::from_secs(5);
 
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status(Ctx::new());
-    let _ = client.next_status(Ctx::new());
+    let _ = server.next_status(Ctx::host());
+    let _ = client.next_status(Ctx::host());
 }
 
 /// Drive both QUIC drivers until `done` yields.
@@ -86,8 +86,8 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status(Ctx::new());
-            let _ = $client.next_status(Ctx::new());
+            let _ = $server.next_status(Ctx::host());
+            let _ = $client.next_status(Ctx::host());
         }
     }};
 }

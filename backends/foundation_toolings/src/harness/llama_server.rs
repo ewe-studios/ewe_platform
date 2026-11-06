@@ -4,11 +4,14 @@
 //! endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
+//! use std::sync::Arc;
+//!
+//! use foundation_core::valtron::MonotonicClock;
 //! use foundation_toolings::harness::LlamaServer;
 //!
 //! let server = LlamaServer::builder()
 //!     .model_file("path/to/model.gguf")
-//!     .build()
+//!     .build(Arc::new(MonotonicClock::new()))
 //!     .expect("failed to start llama-server");
 //!
 //! println!("Server at {}", server.base_url());
@@ -19,7 +22,10 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::sync::Arc;
+use std::time::Duration;
+
+use foundation_core::valtron::Clock;
 
 fn project_root() -> PathBuf {
     let manifest_dir =
@@ -39,11 +45,14 @@ pub struct LlamaServer {
 }
 
 impl LlamaServer {
-    pub fn start() -> Result<Self, LlamaServerError> {
-        Self::start_with(LlamaServerConfig::default())
+    pub fn start(clock: Arc<dyn Clock>) -> Result<Self, LlamaServerError> {
+        Self::start_with(LlamaServerConfig::default(), clock)
     }
 
-    pub fn start_with(config: LlamaServerConfig) -> Result<Self, LlamaServerError> {
+    pub fn start_with(
+        config: LlamaServerConfig,
+        clock: Arc<dyn Clock>,
+    ) -> Result<Self, LlamaServerError> {
         if !config.server_bin.exists() {
             return Err(LlamaServerError::BinaryNotFound(
                 config.server_bin.display().to_string(),
@@ -96,7 +105,7 @@ impl LlamaServer {
         let pid = child.id();
         tracing::info!(pid, "llama-server spawned, waiting for health check");
 
-        if !wait_for_health(port, config.startup_timeout) {
+        if !wait_for_health(port, config.startup_timeout, clock.as_ref()) {
             let guard = Self {
                 child: Some(child),
                 port,
@@ -231,8 +240,8 @@ impl LlamaServerConfig {
         self
     }
 
-    pub fn build(self) -> Result<LlamaServer, LlamaServerError> {
-        LlamaServer::start_with(self)
+    pub fn build(self, clock: Arc<dyn Clock>) -> Result<LlamaServer, LlamaServerError> {
+        LlamaServer::start_with(self, clock)
     }
 }
 
@@ -263,9 +272,9 @@ fn kill_existing(port: u16) {
     std::thread::sleep(Duration::from_millis(500));
 }
 
-fn wait_for_health(port: u16, timeout: Duration) -> bool {
-    let start = Instant::now();
-    while start.elapsed() < timeout {
+fn wait_for_health(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
+    let deadline = clock.now() + timeout;
+    while clock.now() < deadline {
         if let Ok(stream) = TcpStream::connect_timeout(
             &format!("127.0.0.1:{port}").parse().unwrap(),
             Duration::from_secs(1),

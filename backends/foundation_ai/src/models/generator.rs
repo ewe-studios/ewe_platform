@@ -1,8 +1,8 @@
-use foundation_compact::{Duration, Instant};
+use foundation_compact::Duration;
 use std::collections::BTreeMap;
 
 use derive_more::{Display, From};
-use foundation_core::valtron::{self, from_future, Stream};
+use foundation_core::valtron::{self, from_future, Clock, Stream};
 use foundation_netio::shared::client::body_reader::collect_string_async;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::Deserialize;
@@ -1424,7 +1424,7 @@ pub fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<Model
 /// # Panics
 ///
 /// Panics if the valtron execution fails to return a stream.
-pub fn generate_model_descriptors() -> Result<GenerationResult, BoxedError> {
+pub fn generate_model_descriptors(clock: &dyn Clock) -> Result<GenerationResult, BoxedError> {
     let _guard = valtron::initialize_pool(100, None);
 
     let client = HttpClientBuilder::new()
@@ -1439,7 +1439,7 @@ pub fn generate_model_descriptors() -> Result<GenerationResult, BoxedError> {
         .build();
 
     tracing::info!("Starting model descriptor generation with PARALLEL fetch...");
-    let start_time = Instant::now();
+    let start_time = clock.now();
 
     let models_dev_task = from_future(fetch_catalog(
         DynNetClient::clone(&client),

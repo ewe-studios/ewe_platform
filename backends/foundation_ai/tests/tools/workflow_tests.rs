@@ -1,6 +1,6 @@
 //! Public-API coverage for `ToolCallManager::build_workflow` — the F11 tool-call
 //! dependency DAG that groups calls into ordered parallel/sequential stages.
-//! Pure and deterministic; tool_impl.rs was 75% region coverage and this path
+//! Pure and deterministic; `tool_impl.rs` was 75% region coverage and this path
 //! (topo-sort, cycle + unknown-dep detection, stage grouping) was untested.
 
 use foundation_ai::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallStage};

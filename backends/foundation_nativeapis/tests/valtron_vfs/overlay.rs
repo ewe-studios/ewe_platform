@@ -23,12 +23,16 @@ fn init_pool() -> PoolGuard {
 fn overlay_memory_read_passthrough() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.mkdir("/src").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
     base.write_file("/readme.md", b"# Project").unwrap();
 
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Read from base through overlay
@@ -46,8 +50,12 @@ fn overlay_memory_read_passthrough() {
 fn overlay_memory_write_to_delta() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
-    let delta = MemoryDelta::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Write goes to delta
@@ -62,10 +70,14 @@ fn overlay_memory_write_to_delta() {
 fn overlay_memory_cow() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.write_file("/file.txt", b"original").unwrap();
 
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // CoW: write to overlay copies base file to delta first
@@ -84,11 +96,15 @@ fn overlay_memory_cow() {
 fn overlay_memory_whiteout_hides_base() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.write_file("/old.txt", b"should be hidden").unwrap();
     base.mkdir("/old_dir").unwrap();
 
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     delta.add_whiteout("/old.txt", 1).unwrap();
 
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
@@ -107,11 +123,15 @@ fn overlay_memory_whiteout_hides_base() {
 fn overlay_memory_directory_listing() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.mkdir("/dir").unwrap();
     base.write_file("/dir/base.txt", b"from base").unwrap();
 
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     delta.mkdir("/dir").unwrap();
     delta.add_whiteout("/dir/base.txt", 1).unwrap();
 
@@ -134,12 +154,16 @@ fn overlay_memory_directory_listing() {
 fn overlay_memory_nested_dirs() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.mkdir("/a").unwrap();
     base.mkdir("/a/b").unwrap();
     base.write_file("/a/b/c.txt", b"nested").unwrap();
 
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Read nested
@@ -157,12 +181,16 @@ fn overlay_memory_nested_dirs() {
 fn overlay_memory_remove_all() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.mkdir("/project").unwrap();
     base.write_file("/project/a.txt", b"a").unwrap();
     base.write_file("/project/b.txt", b"b").unwrap();
 
-    let delta = MemoryDelta::new();
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     overlay.remove_all("/project").unwrap();
@@ -176,8 +204,12 @@ fn overlay_memory_remove_all() {
 fn overlay_memory_mkdir_all() {
     let _guard = init_pool();
 
-    let base = MemoryFs::new();
-    let delta = MemoryDelta::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    let delta = MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     overlay.mkdir_all("/deep/nested/path").unwrap();

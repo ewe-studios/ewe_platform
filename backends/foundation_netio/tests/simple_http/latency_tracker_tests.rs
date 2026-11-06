@@ -1,7 +1,9 @@
 //! Latency tracker tests (moved from `src/shared/http/latency_tracker.rs`).
 
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_netio::shared::http::latency_tracker::{
     percentile, EndpointLatency, LatencySample, LatencyTracker,
 };
@@ -9,7 +11,7 @@ use foundation_netio::shared::http::latency_tracker::{
 #[test]
 fn test_latency_sample_new() {
     let before = Instant::now();
-    let sample = LatencySample::new(Duration::from_millis(100));
+    let sample = LatencySample::new(Duration::from_millis(100), clock().as_ref());
     let after = Instant::now();
 
     assert_eq!(sample.duration, Duration::from_millis(100));
@@ -19,16 +21,28 @@ fn test_latency_sample_new() {
 
 #[test]
 fn test_endpoint_latency_record() {
-    let mut ep = EndpointLatency::new(3);
+    let mut ep = EndpointLatency::new(3, clock());
 
-    ep.record(LatencySample::new(Duration::from_millis(100)));
-    ep.record(LatencySample::new(Duration::from_millis(200)));
-    ep.record(LatencySample::new(Duration::from_millis(300)));
+    ep.record(LatencySample::new(
+        Duration::from_millis(100),
+        clock().as_ref(),
+    ));
+    ep.record(LatencySample::new(
+        Duration::from_millis(200),
+        clock().as_ref(),
+    ));
+    ep.record(LatencySample::new(
+        Duration::from_millis(300),
+        clock().as_ref(),
+    ));
 
     assert_eq!(ep.sample_count(), 3);
 
     // Should evict oldest
-    ep.record(LatencySample::new(Duration::from_millis(400)));
+    ep.record(LatencySample::new(
+        Duration::from_millis(400),
+        clock().as_ref(),
+    ));
     assert_eq!(ep.sample_count(), 3);
 }
 
@@ -47,11 +61,14 @@ fn test_percentile_calculation() {
 
 #[test]
 fn test_endpoint_latency_stats() {
-    let mut ep = EndpointLatency::new(100);
+    let mut ep = EndpointLatency::new(100, clock());
 
     // Add samples: 10, 20, 30, ..., 100
     for i in 1..=10 {
-        ep.record(LatencySample::new(Duration::from_millis(i * 10)));
+        ep.record(LatencySample::new(
+            Duration::from_millis(i * 10),
+            clock().as_ref(),
+        ));
     }
 
     let stats = ep.get_stats(Duration::from_secs(60)).unwrap();
@@ -65,7 +82,7 @@ fn test_endpoint_latency_stats() {
 
 #[test]
 fn test_latency_tracker_record_and_get() {
-    let tracker = LatencyTracker::new();
+    let tracker = LatencyTracker::new(clock());
 
     tracker.record("api.example.com", Duration::from_millis(100));
     tracker.record("api.example.com", Duration::from_millis(200));
@@ -78,7 +95,7 @@ fn test_latency_tracker_record_and_get() {
 
 #[test]
 fn test_latency_tracker_multiple_endpoints() {
-    let tracker = LatencyTracker::new();
+    let tracker = LatencyTracker::new(clock());
 
     tracker.record("api1.example.com", Duration::from_millis(100));
     tracker.record("api2.example.com", Duration::from_millis(200));
@@ -94,7 +111,7 @@ fn test_latency_tracker_multiple_endpoints() {
 
 #[test]
 fn test_latency_tracker_unknown_endpoint() {
-    let tracker = LatencyTracker::new();
+    let tracker = LatencyTracker::new(clock());
 
     let stats = tracker.get_stats("unknown.example.com");
     assert!(stats.is_none());
@@ -102,7 +119,7 @@ fn test_latency_tracker_unknown_endpoint() {
 
 #[test]
 fn test_latency_tracker_clear() {
-    let tracker = LatencyTracker::new();
+    let tracker = LatencyTracker::new(clock());
 
     tracker.record("api.example.com", Duration::from_millis(100));
     assert_eq!(tracker.endpoint_count(), 1);
@@ -113,14 +130,23 @@ fn test_latency_tracker_clear() {
 
 #[test]
 fn test_cache_invalidation() {
-    let mut ep = EndpointLatency::new(100);
+    let mut ep = EndpointLatency::new(100, clock());
 
-    ep.record(LatencySample::new(Duration::from_millis(100)));
+    ep.record(LatencySample::new(
+        Duration::from_millis(100),
+        clock().as_ref(),
+    ));
     let stats1 = ep.get_stats(Duration::from_secs(60)).unwrap();
 
     // Add more samples - cache should be invalidated
-    ep.record(LatencySample::new(Duration::from_millis(500)));
-    ep.record(LatencySample::new(Duration::from_millis(500)));
+    ep.record(LatencySample::new(
+        Duration::from_millis(500),
+        clock().as_ref(),
+    ));
+    ep.record(LatencySample::new(
+        Duration::from_millis(500),
+        clock().as_ref(),
+    ));
     let stats2 = ep.get_stats(Duration::from_secs(60)).unwrap();
 
     // P50 should have increased
@@ -141,4 +167,8 @@ fn test_single_sample_percentile() {
     let p99 = percentile(&data, 99);
     assert_eq!(p50, 42);
     assert_eq!(p99, 42);
+}
+/// A real clock: these tests only exercise ordering.
+fn clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
 }

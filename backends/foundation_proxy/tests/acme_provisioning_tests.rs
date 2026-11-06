@@ -537,18 +537,20 @@ fn noop_dns_setter() -> Dns01Setter {
 /// An ACME client aimed at the mock CA, with a short DNS wait so the tests run
 /// fast. The signer is a dummy: the CA checks the JWS headers, not the signature.
 fn test_acme_client(directory: &str) -> AcmeClient {
-    AcmeClient::with_directory(test_client(), directory)
-        .with_jwk(serde_json::json!({
-            "kty": "EC",
-            "crv": "P-256",
-            "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        }))
-        .with_signer(|_input: &str| -> Result<String, String> {
-            Ok(B64.encode(b"dummy-signature"))
-        })
-        .with_dns_setter(|_name: &str, _value: &str| Ok(()))
-        .with_dns_wait_timeout(Duration::from_millis(50))
+    AcmeClient::with_directory(
+        test_client(),
+        directory,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .with_jwk(serde_json::json!({
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    }))
+    .with_signer(|_input: &str| -> Result<String, String> { Ok(B64.encode(b"dummy-signature")) })
+    .with_dns_setter(|_name: &str, _value: &str| Ok(()))
+    .with_dns_wait_timeout(Duration::from_millis(50))
 }
 
 /// A valid DER CSR for `domains`, plus the key (kept alive by the caller only).
@@ -587,6 +589,7 @@ fn acme_cert_manager_provisions_a_usable_cert() {
         directory,
         test_client(),
         noop_dns_setter(),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
 
     let pair = manager
@@ -626,9 +629,12 @@ fn proxy_server_starts_with_acme_letsencrypt_provider() {
         .acme(noop_dns_setter(), Some(directory))
         .service(svc);
 
-    let proxy = ProxyServer::start(config)
-        .block()
-        .expect("proxy must start with ACME-provisioned TLS");
+    let proxy = ProxyServer::start(
+        config,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .block()
+    .expect("proxy must start with ACME-provisioned TLS");
     assert!(proxy.local_addr().port() > 0, "TLS front end bound");
     proxy.shutdown();
 

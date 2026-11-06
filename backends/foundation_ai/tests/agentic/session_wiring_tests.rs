@@ -53,7 +53,7 @@ async fn session_with(mock: MockModelProvider) -> Session {
 }
 
 async fn session_with_tools(mock: MockModelProvider, tools: ToolShed) -> Session {
-    AgentSession::builder(mock.into_router())
+    AgentSession::builder(mock.into_router(), test_clock())
         .with_model(mock_model())
         .with_toolshed(tools)
         .build()
@@ -193,13 +193,18 @@ where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    AgentSession::builder(router)
+    AgentSession::builder(router, test_clock())
         .with_doc_store(doc)
         .with_memory_store(mem)
         .with_model(mock_model())
         .build()
         .await
         .expect("session builds over explicit stores")
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
 }
 
 #[valtron_test]
@@ -287,7 +292,7 @@ async fn resume_sees_earlier_history() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("first answer")]);
-    let first = AgentSession::builder(mock.into_router())
+    let first = AgentSession::builder(mock.into_router(), test_clock())
         .with_session_id(id.clone())
         .with_doc_store(doc)
         .with_memory_store(mem)
@@ -317,7 +322,7 @@ async fn resume_sees_earlier_history() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("second answer")]);
-    let resumed = AgentSession::builder(mock.into_router())
+    let resumed = AgentSession::builder(mock.into_router(), test_clock())
         .resume(id)
         .with_doc_store(carried)
         .with_memory_store(KvMemoryStore::new(MemoryStorage::new()))
@@ -435,7 +440,7 @@ async fn duplicate_tool_names_fail_the_build() {
     let (first, _) = RecordingTool::new();
     let (second, _) = RecordingTool::new();
 
-    let err = AgentSession::builder(mock.into_router())
+    let err = AgentSession::builder(mock.into_router(), test_clock())
         .with_model(mock_model())
         .with_toolshed(ToolShed::new().tool(first).tool(second))
         .build()
@@ -585,7 +590,7 @@ async fn shed_searches_by_embedding_when_the_session_has_an_embedder() {
     mock.on_any(vec![mock_text("ok")]);
     let (tool, _) = RecordingTool::new();
 
-    let session = AgentSession::builder(mock.into_router())
+    let session = AgentSession::builder(mock.into_router(), test_clock())
         .with_model(mock_model())
         .with_embedder(Arc::new(GreetingEmbedder), "greeting")
         .with_toolshed(ToolShed::new().tool(tool))
@@ -761,7 +766,7 @@ impl SessionAccessProvider for ScriptedAccess {
 
 async fn session_with_access(mock: MockModelProvider, access: Arc<ScriptedAccess>) -> Session {
     let (tool, _) = RecordingTool::new();
-    AgentSession::builder(mock.into_router())
+    AgentSession::builder(mock.into_router(), test_clock())
         .with_model(mock_model())
         .with_toolshed(ToolShed::new().tool(tool))
         .with_access(access)

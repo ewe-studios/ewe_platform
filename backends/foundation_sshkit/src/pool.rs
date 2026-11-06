@@ -4,9 +4,10 @@ use crate::error::{SshKitError, SshKitResult};
 use crate::host::Host;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::Clock;
 use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 
 /// A pool of SSH sessions, keyed by (hostname, port, user).
@@ -14,14 +15,23 @@ use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 pub struct ConnectionPool {
     sessions: Mutex<HashMap<String, (Instant, ssh2::Session)>>,
     idle_timeout: Duration,
+    /// The clock that stamps a session and measures its idle age.
+    clock: Arc<dyn Clock>,
 }
 
 impl ConnectionPool {
-    pub fn new(idle_timeout: Duration) -> Self {
+    pub fn new(idle_timeout: Duration, clock: Arc<dyn Clock>) -> Self {
         Self {
             sessions: Mutex::new(HashMap::new()),
             idle_timeout,
+            clock,
         }
+    }
+
+    /// The clock that stamps a session and measures its idle age.
+    #[must_use]
+    pub fn clock(&self) -> &Arc<dyn Clock> {
+        &self.clock
     }
 
     fn key(host: &Host) -> String {
@@ -43,14 +53,16 @@ impl ConnectionPool {
         }
 
         let session = connect_session(host)?;
-        sessions.insert(key.clone(), (Instant::now(), session.clone()));
+        sessions.insert(key.clone(), (self.clock.now(), session.clone()));
         Ok(session)
     }
 
     /// Evict idle sessions.
     pub fn evict_idle(&self) {
         if let Ok(mut sessions) = self.sessions.lock() {
-            sessions.retain(|_, (ts, _)| ts.elapsed() < self.idle_timeout);
+            sessions.retain(|_, (ts, _)| {
+                self.clock.now().saturating_duration_since(*ts) < self.idle_timeout
+            });
         }
     }
 }

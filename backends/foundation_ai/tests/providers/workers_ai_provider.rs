@@ -66,20 +66,27 @@ fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
             "test-token".to_string(),
         )));
 
-    let provider = WorkersAiProvider::with_http_client_and_config(http_client, config)
-        .create(Some(
-            WorkersAiConfig::new()
-                .with_account_id("test-account")
-                .with_base_url(base_url),
-        ))
-        .unwrap();
+    let provider =
+        WorkersAiProvider::with_http_client_and_config(http_client, config, test_clock())
+            .create(Some(
+                WorkersAiConfig::new()
+                    .with_account_id("test-account")
+                    .with_base_url(base_url),
+            ))
+            .unwrap();
 
     provider
         .get_model(ModelId::Name("@cf/meta/llama-3.1-8b-instruct".into(), None))
         .unwrap()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 /// Verify non-streaming generation parses `{"result":{"response":"..."}}`.
+
 #[valtron_test]
 fn test_workers_ai_generate() {
     let chat_response = br#"{"result":{"response":"Hello from Workers AI!"}}"#;

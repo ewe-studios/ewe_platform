@@ -1,7 +1,9 @@
 //! OAuth token data type (pure data, no native deps).
 
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 
+use crate::shared::clock::now_seconds;
 use crate::shared::jwt::JwtToken;
 
 /// OAuth token response.
@@ -25,11 +27,11 @@ impl OAuthToken {
     /// Convert to a [`JwtToken`].
     #[must_use]
     #[allow(clippy::cast_possible_wrap)]
-    pub fn into_jwt_token(self) -> Option<JwtToken> {
-        let expires_at = self.expires_in.map_or_else(
-            || chrono::Utc::now().timestamp() + 3600,
-            |exp| chrono::Utc::now().timestamp() + exp as i64,
-        );
+    pub fn into_jwt_token(self, clock: &dyn Clock) -> Option<JwtToken> {
+        let now = now_seconds(clock);
+        let expires_at = self
+            .expires_in
+            .map_or_else(|| now + 3600, |exp| now + exp as i64);
 
         JwtToken::from_parts(
             self.access_token,
@@ -38,6 +40,7 @@ impl OAuthToken {
             self.scope,
             None,
             None,
+            clock,
         )
         .into()
     }

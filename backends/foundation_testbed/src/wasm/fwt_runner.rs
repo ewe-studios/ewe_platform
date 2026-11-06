@@ -203,7 +203,12 @@ pub fn run_web(args: &OwnedRunArgs) -> Result<RunOutcome> {
     let serving = server::start_serving(dir.path())?;
     let url = serving.url("index.html");
     info!("serving owned harness at {url}");
-    let outcome = crate::wasm::browser::run(&url, &args.browser, args.headless);
+    let outcome = crate::wasm::browser::run(
+        &url,
+        &args.browser,
+        args.headless,
+        &foundation_core::valtron::MonotonicClock::new(),
+    );
     serving.shutdown();
     let browser_output = outcome?;
 

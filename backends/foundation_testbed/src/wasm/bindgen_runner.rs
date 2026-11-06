@@ -156,7 +156,12 @@ pub fn run_bindgen(args: &BindgenArgs) -> Result<RunOutcome> {
     let url = serving.url("index.html");
     info!("serving at {url}");
 
-    let output = browser::run(&url, &crate::wasm::cli::Browser::Chrome, args.headless)?;
+    let output = browser::run(
+        &url,
+        &crate::wasm::cli::Browser::Chrome,
+        args.headless,
+        &foundation_core::valtron::MonotonicClock::new(),
+    )?;
     serving.shutdown();
 
     let exit_code = i32::from(!output.test_result.contains("test result: ok"));

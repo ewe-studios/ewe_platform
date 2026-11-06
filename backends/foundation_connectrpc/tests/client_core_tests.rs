@@ -146,7 +146,7 @@ impl Transport for MockTransport {
             .ok_or_else(|| TransportError::Protocol("mock: no pipes prepared".into()))?;
 
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        trailer_tx.close();
+        let _ = trailer_tx.close();
         Ok(TransportStream {
             send_body: Arc::new(pipes.req_tx),
             head: head_stream_from_pipe(pipes.head_rx),

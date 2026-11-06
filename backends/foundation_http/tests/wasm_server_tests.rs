@@ -62,7 +62,7 @@ fn make_request() -> SimpleIncomingRequest {
 #[test]
 fn test_run_middleware_no_chain_returns_none() {
     let app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -74,7 +74,7 @@ fn test_run_middleware_no_chain_returns_none() {
 fn test_run_middleware_pass_through() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(PassThroughMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -86,7 +86,7 @@ fn test_run_middleware_pass_through() {
 fn test_run_middleware_short_circuit_401() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(RejectMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (_returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -100,7 +100,7 @@ fn test_run_middleware_short_circuit_401() {
 fn test_run_middleware_adds_header() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(AddHeaderMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -119,7 +119,7 @@ fn test_run_middleware_multiple_continue() {
     app.middleware(PassThroughMiddleware);
     app.middleware(AddHeaderMiddleware);
     app.middleware(PassThroughMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -133,7 +133,7 @@ fn test_run_middleware_first_blocks_skips_rest() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(RejectMiddleware);
     app.middleware(AddHeaderMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (_returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -163,7 +163,7 @@ fn test_middleware_short_circuit_forbidden_text() {
 
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(TextMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (_, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -193,7 +193,7 @@ fn test_middleware_short_circuit_bytes_body() {
 
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(BinaryMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (_, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -228,7 +228,7 @@ fn test_middleware_short_circuit_with_headers() {
 
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(HeaderMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let req = make_request();
 
     let (_, short_circuit) = run_middleware_writer(&app, bag, req);

@@ -679,7 +679,7 @@ fn setup_streaming_relay_to_grpc<H: ProtocolHandler>(
     if !req_body.is_empty() {
         let _ = body_tx.try_send(req_body);
     }
-    body_tx.close();
+    let _ = body_tx.close();
 
     let (driver, _cancel) =
         build_streaming_relay_to_grpc(handler, request, body_rx, responder_tx, url, out_headers)?;

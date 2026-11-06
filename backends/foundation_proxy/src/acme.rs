@@ -11,9 +11,9 @@
 //! Cloudflare-hosted zone, one that calls the Cloudflare DNS API).
 
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use foundation_core::valtron::sleep_async;
+use foundation_core::valtron::{sleep_async, Clock};
 use foundation_netio::shared::client::body_reader::{collect_bytes_async, AsyncSendSafeBody};
 use foundation_netio::shared::client::request::PreparedRequest;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
@@ -191,11 +191,15 @@ pub struct AcmeClient {
     dns_wait_timeout: Duration,
     /// Longest one DNS wait sleep step may last.
     dns_wait_interval: Duration,
+    /// The host clock the DNS wait deadline reads.
+    clock: Arc<dyn Clock>,
 }
 
 impl AcmeClient {
     /// Create a client targeting Let's Encrypt production.
-    pub fn production(client: DynNetClient) -> Self {
+    ///
+    /// `clock` times the DNS-01 propagation wait.
+    pub fn production(client: DynNetClient, clock: Arc<dyn Clock>) -> Self {
         Self {
             client,
             max_error_body: DEFAULT_MAX_ERROR_BODY,
@@ -206,11 +210,12 @@ impl AcmeClient {
             dns_setter: None,
             dns_wait_timeout: DEFAULT_DNS_WAIT_TIMEOUT,
             dns_wait_interval: DEFAULT_DNS_WAIT_INTERVAL,
+            clock,
         }
     }
 
     /// Create a client targeting Let's Encrypt staging (for testing).
-    pub fn staging(client: DynNetClient) -> Self {
+    pub fn staging(client: DynNetClient, clock: Arc<dyn Clock>) -> Self {
         Self {
             client,
             max_error_body: DEFAULT_MAX_ERROR_BODY,
@@ -221,13 +226,18 @@ impl AcmeClient {
             dns_setter: None,
             dns_wait_timeout: DEFAULT_DNS_WAIT_TIMEOUT,
             dns_wait_interval: DEFAULT_DNS_WAIT_INTERVAL,
+            clock,
         }
     }
 
     /// Create a client targeting an explicit directory URL (a private/enterprise
     /// ACME CA, or a local test server such as Pebble / the mock in the F15
     /// integration test).
-    pub fn with_directory(client: DynNetClient, directory_url: impl Into<String>) -> Self {
+    pub fn with_directory(
+        client: DynNetClient,
+        directory_url: impl Into<String>,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             client,
             max_error_body: DEFAULT_MAX_ERROR_BODY,
@@ -238,6 +248,7 @@ impl AcmeClient {
             dns_setter: None,
             dns_wait_timeout: DEFAULT_DNS_WAIT_TIMEOUT,
             dns_wait_interval: DEFAULT_DNS_WAIT_INTERVAL,
+            clock,
         }
     }
 
@@ -489,9 +500,9 @@ impl AcmeClient {
             // Let the TXT record propagate before answering the challenge. The
             // wait yields to the executor in `dns_wait_interval` steps until
             // `dns_wait_timeout` elapses, so no worker thread is blocked.
-            let deadline = Instant::now() + self.dns_wait_timeout;
+            let deadline = self.clock.now() + self.dns_wait_timeout;
             loop {
-                let now = Instant::now();
+                let now = self.clock.now();
                 if now >= deadline {
                     break;
                 }

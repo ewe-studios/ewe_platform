@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 mod pool_guard;
 
 pub use pool_guard::PoolGuard;
@@ -43,7 +41,7 @@ pub struct NoThreadController {
 }
 
 impl NoThreadController {
-    /// Creates a new NoThreadController with platform-appropriate settings.
+    /// Creates a new `NoThreadController` with platform-appropriate settings.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -112,11 +110,14 @@ static VALTRON_SINGLETON: std::sync::Mutex<Option<PoolGuard>> = std::sync::Mutex
 pub struct SingleExecutorSingleton;
 
 impl SingleExecutorSingleton {
-    /// Initialize the executor and return a PoolGuard.
+    /// Initialize the executor and return a `PoolGuard`.
     ///
-    /// On first call: calls `initialize_pool(seed)`, stores a PoolGuard,
+    /// On first call: calls `initialize_pool(seed)`, stores a `PoolGuard`,
     /// runs the setup closure. On subsequent calls: returns a cloned guard
-    /// (PoolGuard is zero-sized in single mode).
+    /// (`PoolGuard` is zero-sized in single mode).
+    ///
+    /// # Panics
+    /// Panics if the singleton lock is poisoned.
     pub fn get_or_init<F: FnOnce(&PoolGuard)>(seed: u64, setup: F) -> PoolGuard {
         initialize_pool(seed);
         let mut guard = VALTRON_SINGLETON.lock().unwrap();
@@ -127,7 +128,11 @@ impl SingleExecutorSingleton {
         guard.clone().unwrap()
     }
 
-    /// Get a PoolGuard. Panics if `get_or_init` has not been called.
+    /// Get a `PoolGuard`.
+    ///
+    /// # Panics
+    /// Panics if `get_or_init` has not been called, or if the singleton lock is
+    /// poisoned.
     pub fn guard() -> PoolGuard {
         VALTRON_SINGLETON
             .lock()
@@ -137,6 +142,9 @@ impl SingleExecutorSingleton {
     }
 
     /// Check if the singleton has been initialized.
+    ///
+    /// # Panics
+    /// Panics if the singleton lock is poisoned.
     pub fn is_initialized() -> bool {
         VALTRON_SINGLETON.lock().unwrap().is_some()
     }
@@ -147,7 +155,7 @@ impl SingleExecutorSingleton {
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
 pub fn initialize_pool(seed_for_rng: u64) {
-    initialize_pool_with_ctx(seed_for_rng, Ctx::new());
+    initialize_pool_with_ctx(seed_for_rng, Ctx::host());
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -155,6 +163,19 @@ pub fn initialize_pool(seed_for_rng: u64) {
 /// A thread that already has an engine keeps it, so this is idempotent like
 /// [`initialize_pool`]. Every task the engine drives gets a fork of `root`.
 pub fn initialize_pool_with_ctx(seed_for_rng: u64, root: Ctx) {
+    initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, None);
+}
+
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// Idempotent: a thread that already has an engine keeps it, so a later call
+/// does not change the threshold.
+pub fn initialize_pool_with_ctx_and_slow_poll_warning(
+    seed_for_rng: u64,
+    root: Ctx,
+    slow_poll_warning: Option<std::time::Duration>,
+) {
+    root.assert_minimum();
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
             // `SharedTaskQueue` is `Arc<…>` in BOTH cfgs so one alias serves the
@@ -187,6 +208,7 @@ pub fn initialize_pool_with_ctx(seed_for_rng: u64, root: Ctx) {
                 None,
                 root,
             )
+            .with_slow_poll_warning(slow_poll_warning)
         });
     });
 }
@@ -298,7 +320,7 @@ where
 /// The single-threaded engine owns one root [`Ctx`] seeded at construction and
 /// forks it per task. This exposes that same root-fork to code that drives a
 /// task alongside the engine (e.g. [`super::non_sendables::DrivenTaskIterator`])
-/// so it never mints an unrelated `Ctx::new()`.
+/// so it never mints an unrelated `Ctx::host()`.
 ///
 /// # Panics
 ///
@@ -307,6 +329,23 @@ where
 pub fn fork_ctx() -> Ctx {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.fork_ctx(),
+        None => panic!("Thread pool not initialized, ensure to call initialize() first"),
+    })
+}
+
+/// The clock of the current engine's stable root.
+///
+/// A caller that drives the engine alongside its own steps (see
+/// [`super::non_sendables::DrivenStreamIterator`]) times its waits on this
+/// clock, so a simulated clock controls them as it controls the tasks.
+///
+/// # Panics
+///
+/// Panics if the pool has not been initialized (mirrors [`fork_ctx`]).
+#[must_use]
+pub fn clock() -> std::sync::Arc<dyn crate::valtron::Clock> {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
+        Some(pool) => pool.state_clock(),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
     })
 }
@@ -349,6 +388,17 @@ pub fn run_until_complete() {
     });
 }
 
+/// A task builder whose resolver is boxed over `Task`.
+type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + 'static,
+    >,
+    Task,
+>;
+
 /// `spawn` provides a builder which specifically allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
@@ -363,12 +413,7 @@ pub fn run_until_complete() {
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn<Task>() -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn spawn<Task>() -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,

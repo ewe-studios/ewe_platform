@@ -25,7 +25,7 @@
 //! ```
 
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 /// Load level classification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -112,17 +112,14 @@ impl LoadTracker {
 
     /// Create a new load tracker with custom config.
     #[must_use]
-    // The two adjacent `Instant::now()` calls differ by ~0 ns, so the u128 ->
-    // u64 cast of `as_nanos()` is lossless for this sentinel value.
-    #[allow(clippy::cast_possible_truncation)]
     pub fn with_config(config: LoadTrackerConfig) -> Self {
         Self {
             active_connections: AtomicUsize::new(0),
             connection_count: AtomicU64::new(0),
             connection_rate_milli: AtomicU64::new(0),
-            last_calculation: AtomicU64::new(
-                Instant::now().duration_since(Instant::now()).as_nanos() as u64,
-            ),
+            // `0` is the "no rate calculated yet" sentinel. The rate
+            // calculation is not implemented yet, so no clock read is needed.
+            last_calculation: AtomicU64::new(0),
             config,
         }
     }

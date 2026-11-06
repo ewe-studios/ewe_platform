@@ -1,6 +1,6 @@
 [package]
 name = "foundation_reactor"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -20,7 +20,7 @@ name = "config"
 path = "tests/config/mod.rs"
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.8" }
+foundation_core = { path = "../foundation_core", version = "0.0.16" }
 tracing = { workspace = true }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls.

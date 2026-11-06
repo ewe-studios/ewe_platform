@@ -28,9 +28,11 @@ mod shim_exports {
 
     use tracing;
 
+    use std::sync::Arc;
+
     #[cfg(any(feature = "vfs-sqlite", feature = "vfs-turso"))]
     use foundation_core::valtron::initialize_pool;
-    use foundation_core::valtron::PoolGuard;
+    use foundation_core::valtron::{MonotonicClock, PoolGuard};
 
     #[cfg(feature = "vfs-sqlite")]
     use crate::native::vfs::libsql_delta::LibsqlDelta;
@@ -67,11 +69,13 @@ mod shim_exports {
     static VFS: std::sync::LazyLock<VfsRuntime> = std::sync::LazyLock::new(|| {
         let root = CONFIG.root_dir.clone().unwrap_or_else(|| ".".to_string());
         let base = NativeFs::new(root.clone()).unwrap_or_else(|_| NativeFs::new(".").unwrap());
+        // The shim is a host entry point: it builds the real clock once.
+        let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
 
         macro_rules! mem_fallback {
             ($msg:expr) => {{
                 tracing::warn!("[vfs-shim] {} — falling back to memory", $msg);
-                let delta = MemoryDelta::new();
+                let delta = MemoryDelta::new(Arc::clone(&clock));
                 let overlay = OverlayFileSystem::new(base, delta);
                 return VfsRuntime {
                     fs: DynFs::from_async(overlay),
@@ -82,7 +86,7 @@ mod shim_exports {
 
         match &CONFIG.delta_backend {
             super::config::DeltaBackend::Memory => {
-                let delta = MemoryDelta::new();
+                let delta = MemoryDelta::new(Arc::clone(&clock));
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime {
                     fs: DynFs::from_async(overlay),
@@ -98,13 +102,16 @@ mod shim_exports {
                         let dir = std::env::temp_dir();
                         dir.join("vfs-delta.db").to_string_lossy().to_string()
                     });
-                    let delta = match exec_async(async move { LibsqlDelta::new(&path).await }) {
-                        Ok(d) => d,
-                        Err(e) => {
-                            drop(guard);
-                            mem_fallback!(format!("sqlite delta failed: {e}"))
-                        }
-                    };
+                    let delta_clock = Arc::clone(&clock);
+                    let delta =
+                        match exec_async(async move { LibsqlDelta::new(&path, delta_clock).await })
+                        {
+                            Ok(d) => d,
+                            Err(e) => {
+                                drop(guard);
+                                mem_fallback!(format!("sqlite delta failed: {e}"))
+                            }
+                        };
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
                         fs: DynFs::from_async(overlay),
@@ -123,7 +130,10 @@ mod shim_exports {
                         let dir = std::env::temp_dir();
                         dir.join("vfs-turso.db").to_string_lossy().to_string()
                     });
-                    let delta = match exec_async(async move { TursoDelta::new(&path).await }) {
+                    let delta_clock = Arc::clone(&clock);
+                    let delta = match exec_async(async move {
+                        TursoDelta::new(&path, delta_clock).await
+                    }) {
                         Ok(d) => d,
                         Err(e) => {
                             drop(guard);
@@ -201,15 +211,16 @@ mod shim_exports {
     fn build_d1_delta(
     ) -> crate::shared::vfs::error::VfsResult<crate::native::vfs::d1_delta::D1Delta> {
         use crate::native::vfs::d1_delta::D1Delta;
+        let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
         let Some(base) = std::env::var("LOCAL_CF_API_BASE").ok() else {
-            return D1Delta::from_env();
+            return D1Delta::from_env(clock);
         };
         let token = std::env::var("CF_API_TOKEN").unwrap_or_else(|_| "test-token".to_string());
         let account = std::env::var("CF_ACCOUNT_ID").unwrap_or_else(|_| "test-account".to_string());
         let db = std::env::var("LOCAL_D1_DATABASE_ID")
             .or_else(|_| std::env::var("CF_D1_DATABASE_ID"))
             .unwrap_or_else(|_| "test-db-preview".to_string());
-        D1Delta::new_with_base_url(&token, &account, &db, Some(&base))
+        D1Delta::new_with_base_url(&token, &account, &db, Some(&base), clock)
     }
 
     /// An R2 delta for the shim. Reads the Cloudflare credential variables.
@@ -219,14 +230,15 @@ mod shim_exports {
     fn build_r2_delta(
     ) -> crate::shared::vfs::error::VfsResult<crate::native::vfs::r2_delta::R2Delta> {
         use crate::native::vfs::r2_delta::R2Delta;
+        let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
         let Some(base) = std::env::var("LOCAL_CF_API_BASE").ok() else {
-            return R2Delta::from_env();
+            return R2Delta::from_env(clock);
         };
         let token = std::env::var("CF_API_TOKEN").unwrap_or_else(|_| "test-token".to_string());
         let account = std::env::var("CF_ACCOUNT_ID").unwrap_or_else(|_| "test-account".to_string());
         let bucket =
             std::env::var("CF_R2_BUCKET").unwrap_or_else(|_| "test-bucket-preview".to_string());
-        R2Delta::new_with_base_url(&token, &account, &bucket, Some(&base))
+        R2Delta::new_with_base_url(&token, &account, &bucket, Some(&base), clock)
     }
 
     static FD_TABLE: std::sync::LazyLock<VirtualFdTable> =

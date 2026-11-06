@@ -13,8 +13,9 @@
 //! from its box and dispatches trusted pointer/keyboard events. Assertions retry
 //! to a deadline to absorb reactive timing.
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_core::valtron::Clock;
 use serde_json::{json, Value};
 
 use crate::browser::Page;
@@ -25,13 +26,19 @@ use crate::geometry::Rect;
 pub struct Locator<'p> {
     page: &'p Page<'p>,
     selector: String,
+    clock: &'p dyn Clock,
 }
 
 impl<'p> Locator<'p> {
-    pub(crate) fn new(page: &'p Page<'p>, selector: impl Into<String>) -> Self {
+    pub(crate) fn new(
+        page: &'p Page<'p>,
+        selector: impl Into<String>,
+        clock: &'p dyn Clock,
+    ) -> Self {
         Self {
             page,
             selector: selector.into(),
+            clock,
         }
     }
 
@@ -222,7 +229,7 @@ impl LocatorAssertions<'_, '_> {
     where
         F: FnMut() -> Result<(bool, String)>,
     {
-        let start = Instant::now();
+        let end = self.locator.clock.now() + self.deadline;
         loop {
             let actual = match probe() {
                 Ok((true, _)) => return Ok(()),
@@ -230,7 +237,7 @@ impl LocatorAssertions<'_, '_> {
                 Err(BrowserError::SelectorNotFound(_)) => "no element".into(),
                 Err(e) => return Err(e),
             };
-            if start.elapsed() >= self.deadline {
+            if self.locator.clock.now() >= end {
                 return Err(BrowserError::Assertion {
                     selector: self.locator.selector.clone(),
                     expected: what.to_string(),

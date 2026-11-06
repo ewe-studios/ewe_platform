@@ -37,6 +37,7 @@ mod std;
 #[cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))]
 pub use std::*;
 
+pub mod time;
 pub mod timestamp;
 
 // ─── Entropy ────────────────────────────────────────────────────────────────────

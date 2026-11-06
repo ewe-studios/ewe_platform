@@ -128,9 +128,14 @@ const CLAUDE: &str = "claude-test";
 const CLAUDE_JSON: &str = r#"{"type":"model","id":"claude-test","display_name":"Claude Test","created_at":"2025-02-19T00:00:00Z"}"#;
 
 fn anthropic(client: &Arc<RecordingClient>) -> AnthropicMessagesProvider {
-    AnthropicMessagesProvider::with_http_client(Arc::clone(client) as DynNetClient)
+    AnthropicMessagesProvider::with_http_client(Arc::clone(client) as DynNetClient, test_clock())
         .create(Some(AnthropicConfig::api_key("sk-test")))
         .expect("provider")
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
 }
 
 #[test]
@@ -213,7 +218,7 @@ const GPT_JSON: &str =
     r#"{"id":"gpt-test","object":"model","owned_by":"acme","created":1700000000}"#;
 
 fn responses(client: &Arc<RecordingClient>) -> ResponsesProvider {
-    ResponsesProvider::with_http_client(Arc::clone(client) as DynNetClient)
+    ResponsesProvider::with_http_client(Arc::clone(client) as DynNetClient, test_clock())
         .create(None)
         .expect("provider")
 }
@@ -233,9 +238,10 @@ fn responses_fetch_model_info_updates_earlier_models() {
 #[test]
 fn responses_fetch_model_info_is_a_bearer_get_and_parses() {
     let client = RecordingClient::new(Status::OK, GPT_JSON);
-    let provider = ResponsesProvider::with_http_client(Arc::clone(&client) as DynNetClient)
-        .create(Some(ResponsesConfig::api_key("sk-test")))
-        .expect("provider");
+    let provider =
+        ResponsesProvider::with_http_client(Arc::clone(&client) as DynNetClient, test_clock())
+            .create(Some(ResponsesConfig::api_key("sk-test")))
+            .expect("provider");
     let info = futures_lite::future::block_on(provider.fetch_model_info(GPT)).expect("lookup");
     assert_eq!(info.id, GPT);
     assert_eq!(info.object, "model");
@@ -344,22 +350,25 @@ impl WebSocketConnector for NeverAnswers {
 fn get_model_never_waits_on_the_network() {
     let client: DynNetClient = Arc::new(NeverAnswers);
 
-    let model = AnthropicMessagesProvider::with_http_client(Arc::clone(&client))
+    let model = AnthropicMessagesProvider::with_http_client(Arc::clone(&client), test_clock())
         .create(Some(AnthropicConfig::api_key("sk-test")))
         .expect("provider")
         .get_model(ModelId::Name(CLAUDE.to_string(), None))
         .expect("model");
     assert_eq!(model.info().id, CLAUDE);
 
-    let model = ResponsesProvider::with_http_client(Arc::clone(&client))
+    let model = ResponsesProvider::with_http_client(Arc::clone(&client), test_clock())
         .create(None)
         .expect("provider")
         .get_model(ModelId::Name(GPT.to_string(), None))
         .expect("model");
     assert_eq!(model.info().id, GPT);
 
-    let model = foundation_ai::backends::openai_provider::OpenAIProvider::with_http_client(client)
-        .get_model(ModelId::Name(GPT.to_string(), None))
-        .expect("model");
+    let model = foundation_ai::backends::openai_provider::OpenAIProvider::with_http_client(
+        client,
+        test_clock(),
+    )
+    .get_model(ModelId::Name(GPT.to_string(), None))
+    .expect("model");
     assert_eq!(model.info().id, GPT);
 }

@@ -15,7 +15,9 @@ fn main() {
     // SyncFs<A> wraps any AsyncVfsFileSystem and bridges it to the sync API
     // using valtron's exec_async (no tokio needed).
 
-    let async_fs = Arc::new(MemoryFs::new());
+    let async_fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     // Direct async usage via exec_async
     println!("--- Direct async via exec_async ---");
@@ -37,7 +39,9 @@ fn main() {
 
     // SyncFs bridge: wrap the async impl for purely sync usage
     println!("\n--- SyncFs bridge ---");
-    let sync_fs = SyncFs::new(MemoryFs::new());
+    let sync_fs = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     // All operations go through exec_async internally
     sync_fs.mkdir("/bridged").unwrap();

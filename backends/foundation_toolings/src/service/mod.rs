@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron;
-use foundation_core::valtron::EventQueue;
+use foundation_core::valtron::{Clock, EventQueue, MonotonicClock};
 use foundation_nativeapis::signal::{signal_task, SignalKind};
 use foundation_nativeapis::valtron::FileWatcherTask;
 
@@ -29,7 +29,11 @@ impl DevService {
     ///
     /// # Errors
     /// Returns an error if any component fails to spawn.
-    pub fn start(&self) -> crate::error::ToolingResult<()> {
+    ///
+    /// The caller supplies `clock`; the runner reads every reload deadline
+    /// from it. The host entry [`run_dev_server`] supplies the real
+    /// [`MonotonicClock`].
+    pub fn start(&self, clock: Arc<dyn Clock>) -> crate::error::ToolingResult<()> {
         // -- Shared queues
         let build_complete_queue: EventQueue<()> = EventQueue::unbounded();
         let running_queue: Arc<ConcurrentQueue<()>> = Arc::new(ConcurrentQueue::unbounded());
@@ -67,15 +71,19 @@ impl DevService {
         valtron::execute(builder, None).map_err(|e| ToolingError::Build(e.to_string()))?;
 
         // -- Binary runner
-        let runner =
-            BinaryRunnerTask::new(self.project.clone(), build_complete_queue, running_queue);
+        let runner = BinaryRunnerTask::new(
+            self.project.clone(),
+            build_complete_queue,
+            running_queue,
+            Arc::clone(&clock),
+        );
         valtron::execute(runner, None).map_err(|e| ToolingError::Run(e.to_string()))?;
 
         // -- Signal handler (Ctrl+C / SIGTERM)
         // signal_task parks on epoll/kqueue — zero CPU until a signal arrives.
         // Under multi, pool threads drive the task. We just wait on the bus
         // subscriber queue, whose pop() blocks until a signal event is delivered.
-        let (sig_task, bus) = signal_task().map_err(|e| ToolingError::Watch(e.to_string()))?;
+        let (sig_task, bus) = signal_task(clock).map_err(|e| ToolingError::Watch(e.to_string()))?;
         valtron::send(sig_task).map_err(|e| ToolingError::Watch(e.to_string()))?;
 
         // Block on the bus subscriber — ConcurrentQueue::pop() blocks via
@@ -111,5 +119,7 @@ impl DevService {
 pub fn run_dev_server(project: ProjectDefinition) -> crate::error::ToolingResult<()> {
     let dev_service = DevService::new(project);
     let _guard = valtron::initialize_pool(42, None);
-    dev_service.start()
+    // Host entry point: this is where the real clock enters the service.
+    let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());
+    dev_service.start(clock)
 }

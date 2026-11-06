@@ -25,6 +25,11 @@ impl HttpBackend {
         }
     }
 
+    /// Set the bearer token sent to `domain` on later fetches.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the token map lock is poisoned.
     pub fn set_auth(&self, domain: &str, token: &str) {
         self.auth_tokens
             .lock()
@@ -33,6 +38,11 @@ impl HttpBackend {
     }
 
     /// Fetch content from a URL. Returns `(body_bytes, content_type)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the URL is invalid, the request fails, or the
+    /// answer status is outside `200..400`.
     pub fn fetch(&self, url: &str) -> Result<(Vec<u8>, String), String> {
         tracing::debug!(%url, "HttpBackend::fetch");
 
@@ -45,7 +55,7 @@ impl HttpBackend {
             .map_err(|e| format!("fetch '{url}' failed: {e}"))?;
 
         let status_code: usize = response.get_status().into();
-        if status_code < 200 || status_code >= 400 {
+        if !(200..400).contains(&status_code) {
             return Err(format!("HTTP {status_code} for {url}"));
         }
 

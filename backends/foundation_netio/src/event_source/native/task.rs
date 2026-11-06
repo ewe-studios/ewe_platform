@@ -354,7 +354,7 @@ where
 
     // Long by design: one match over every event-source state.
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {
@@ -434,7 +434,10 @@ where
                 debug!(state = "Connecting", host = %url.host_str().unwrap_or_else(|| "unknown".to_string()), "Establishing connection via pool");
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) = self.pool.create_http_connection(&url, None) else {
+                let Ok(connection) =
+                    self.pool
+                        .create_http_connection(&url, None, ctx.clock().as_ref())
+                else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(EventSourceState::Closed(
                         EventSourceCloseReason::ConnectionError,
@@ -539,7 +542,7 @@ where
                                 self.state = Some(EventSourceState::ReadingStream {
                                     conn,
                                     iterator,
-                                    last_activity: Instant::now(),
+                                    last_activity: ctx.clock().now(),
                                 });
                                 return Some(TaskStatus::Pending(EventSourceProgress::Reading));
                             }
@@ -615,9 +618,10 @@ where
                 // timeout, not the size-based read timeout (100 ms when unsized).
                 let idle_timeout = self.timeout_calculator.streaming_idle_timeout();
 
-                if last_activity.elapsed() > idle_timeout {
+                let idle = ctx.clock().now().saturating_duration_since(last_activity);
+                if idle > idle_timeout {
                     warn!(
-                        elapsed_secs = ?last_activity.elapsed().as_secs(),
+                        elapsed_secs = ?idle.as_secs(),
                         timeout_secs = ?idle_timeout.as_secs(),
                         "Idle timeout exceeded"
                     );
@@ -640,7 +644,7 @@ where
                         self.state = Some(EventSourceState::Reading {
                             conn,
                             parser,
-                            last_activity: Instant::now(),
+                            last_activity: ctx.clock().now(),
                         });
                         Some(TaskStatus::Ready(parse_result))
                     }
@@ -672,9 +676,10 @@ where
                 // timeout, not the size-based read timeout (100 ms when unsized).
                 let idle_timeout = self.timeout_calculator.streaming_idle_timeout();
 
-                if last_activity.elapsed() > idle_timeout {
+                let idle = ctx.clock().now().saturating_duration_since(last_activity);
+                if idle > idle_timeout {
                     warn!(
-                        elapsed_secs = ?last_activity.elapsed().as_secs(),
+                        elapsed_secs = ?idle.as_secs(),
                         timeout_secs = ?idle_timeout.as_secs(),
                         "Idle timeout exceeded"
                     );
@@ -697,7 +702,7 @@ where
                         self.state = Some(EventSourceState::ReadingStream {
                             conn,
                             iterator,
-                            last_activity: Instant::now(),
+                            last_activity: ctx.clock().now(),
                         });
                         Some(TaskStatus::Ready(parse_result))
                     }

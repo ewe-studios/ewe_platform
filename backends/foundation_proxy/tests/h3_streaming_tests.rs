@@ -165,7 +165,12 @@ fn h3_forward_streams_large_body() {
         ))
         .h3_bind("127.0.0.1:0")
         .service(svc);
-    let proxy = ProxyServer::start(config).block().expect("start proxy");
+    let proxy = ProxyServer::start(
+        config,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .block()
+    .expect("start proxy");
     let h3_addr = proxy.h3_local_addr().expect("H3 front end bound");
     std::thread::sleep(ms(300));
 

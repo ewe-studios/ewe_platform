@@ -52,7 +52,8 @@ fn ota_manifest_deserialize() {
 
 #[test]
 fn chrono_now_produces_iso8601() {
-    let ts = chrono_now();
+    let clock = foundation_core::valtron::MonotonicClock::new();
+    let ts = chrono_now(&clock);
     assert!(ts.contains('T'));
     assert!(ts.ends_with('Z'));
     // Basic format check: YYYY-MM-DDTHH:MM:SSZ

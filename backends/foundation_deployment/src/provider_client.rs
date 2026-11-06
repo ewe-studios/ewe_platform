@@ -11,6 +11,7 @@
 
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 use foundation_db::core::state::traits::StateStore;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
@@ -38,6 +39,11 @@ where
     /// HTTP client for API calls. A clone is cheap (`Arc`) and shares the
     /// client's connection pool.
     pub http_client: DynNetClient,
+    /// The clock that stamps the state a deploy records.
+    ///
+    /// The host builds the real clock once and passes it in. A test passes a
+    /// `SimulatedClock`, so a recorded `created_at` is deterministic.
+    pub clock: Arc<dyn Clock>,
 }
 
 impl<S> Clone for ProviderClient<S>
@@ -50,6 +56,7 @@ where
             project: self.project.clone(),
             stage: self.stage.clone(),
             http_client: self.http_client.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -66,23 +73,32 @@ where
     /// * `project` - Project name for state namespacing
     /// * `stage` - Stage name (dev, staging, prod)
     /// * `state_store` - State store implementation
+    /// * `clock` - The clock that stamps the state a deploy records
     ///
     /// # Example
     ///
     /// ```rust,no_run
     /// use std::path::Path;
+    /// use std::sync::Arc;
+    /// use foundation_core::valtron::MonotonicClock;
     /// use foundation_deployment::provider_client::ProviderClient;
     /// use foundation_db::core::state::FileStateStore;
     ///
     /// let state_store = FileStateStore::new(Path::new("/path"), "my-project", "dev");
-    /// let client = ProviderClient::new("my-project", "dev", state_store);
+    /// let client = ProviderClient::new(
+    ///     "my-project",
+    ///     "dev",
+    ///     state_store,
+    ///     Arc::new(MonotonicClock::new()),
+    /// );
     /// ```
-    pub fn new(project: &str, stage: &str, state_store: S) -> Self {
+    pub fn new(project: &str, stage: &str, state_store: S, clock: Arc<dyn Clock>) -> Self {
         Self::with_client(
             HttpClientBuilder::new().build(),
             project,
             stage,
             state_store,
+            clock,
         )
     }
 
@@ -93,12 +109,14 @@ where
         project: &str,
         stage: &str,
         state_store: S,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             state_store: Arc::new(state_store),
             project: project.to_string(),
             stage: stage.to_string(),
             http_client,
+            clock,
         }
     }
 
@@ -124,6 +142,12 @@ where
     #[must_use]
     pub fn http_client(&self) -> &DynNetClient {
         &self.http_client
+    }
+
+    /// Get the clock that stamps recorded state.
+    #[must_use]
+    pub fn clock(&self) -> &Arc<dyn Clock> {
+        &self.clock
     }
 }
 

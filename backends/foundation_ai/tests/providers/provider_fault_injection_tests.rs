@@ -90,7 +90,7 @@ fn model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> 
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(
             OpenAIConfig::new()
                 .with_base_url(server.base_url())
@@ -135,6 +135,11 @@ fn expect_generate_error(resp: HttpResponse, max_retries: u32) -> String {
 // ---------------------------------------------------------------------------
 // Non-2xx statuses
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[valtron_test]
 fn unauthorized_surfaces_an_error() {
@@ -397,7 +402,7 @@ async fn generate_async_retries_with_async_backoff() {
         }
     };
 
-    let (out, _) = zip(model.generate_async(interaction(), None), ticker).await;
+    let (out, ()) = zip(model.generate_async(interaction(), None), ticker).await;
 
     let out = out.expect("a transient 503 followed by a 200 must succeed");
     assert!(
@@ -431,10 +436,13 @@ fn anthropic_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model 
             "test-key".to_string(),
         )));
 
-    let provider =
-        AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
-            .create(Some(config))
-            .expect("provider builds");
+    let provider = AnthropicMessagesProvider::with_http_client_and_config(
+        http_client,
+        config.clone(),
+        test_clock(),
+    )
+    .create(Some(config))
+    .expect("provider builds");
 
     provider
         .get_model(ModelId::Name("claude-3-5-sonnet".into(), None))
@@ -522,9 +530,10 @@ fn responses_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model 
             "test-key".to_string(),
         )));
 
-    let provider = ResponsesProvider::with_http_client_and_config(http_client, config.clone())
-        .create(Some(config))
-        .expect("provider builds");
+    let provider =
+        ResponsesProvider::with_http_client_and_config(http_client, config.clone(), test_clock())
+            .create(Some(config))
+            .expect("provider builds");
 
     provider
         .get_model(ModelId::Name("o3-mini".into(), None))
@@ -782,7 +791,7 @@ fn an_embedding_response_with_no_data_is_an_error() {
 // loses the agent's persona, and sending `temperature: 0` when the caller meant
 // "unset" changes model behaviour rather than leaving the vendor default.
 
-/// Run one generate() against a recording server and return the request body.
+/// Run one `generate()` against a recording server and return the request body.
 fn responses_request_body(interaction: ModelInteraction, params: Option<ModelParams>) -> String {
     use foundation_netio::shared::http::SendSafeBody;
 
@@ -951,7 +960,7 @@ fn a_top_p_of_one_is_omitted_as_a_no_op() {
 fn big_error_body() -> Vec<u8> {
     let mut body = Vec::with_capacity(1_048_576 + 24);
     body.extend_from_slice(b"BEGIN_MARKER");
-    body.extend(std::iter::repeat(b'x').take(1_048_576));
+    body.extend(std::iter::repeat_n(b'x', 1_048_576));
     body.extend_from_slice(b"END_MARKER");
     body
 }

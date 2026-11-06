@@ -21,6 +21,7 @@
 use std::sync::{Arc, Mutex};
 
 use foundation_auth::shared::jwt::JwtSigningKey;
+use foundation_core::valtron::MonotonicClock;
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use worker::{event, Context, Env, Request, Response, Result as WorkerResult};
@@ -122,7 +123,8 @@ async fn build_context(env: &Env) -> Result<KeychainContext, String> {
     // ── JWT signing key (KV-backed) ────────────────────────────────────
     let signing_key = load_or_create_signing_key(env).await?;
 
-    Ok(KeychainContext::with_signing_key(store, signing_key))
+    let clock = Arc::new(MonotonicClock::new());
+    Ok(KeychainContext::with_signing_key(store, signing_key, clock))
 }
 
 /// Load the Ed25519 JWT signing key from KV, or generate a new one and

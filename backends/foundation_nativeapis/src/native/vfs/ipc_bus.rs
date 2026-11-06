@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use foundation_core::valtron::{Pipe, PipeSender};
+use foundation_core::valtron::{Clock, Pipe, PipeSender};
 use foundation_errstacks::ErrorTrace;
 
 use crate::ipc::{self, join, Message, Options, Selector};
@@ -150,22 +150,26 @@ impl ClientTransport {
     /// Connect to an existing VFS daemon on the default bus.
     ///
     /// Returns `Err` if no daemon is running within the join timeout.
-    pub fn connect(timeout: Option<Duration>) -> VfsResult<Self> {
-        Self::connect_with_config(VfsIpcConfig::default(), timeout)
+    pub fn connect(timeout: Option<Duration>, clock: Arc<dyn Clock>) -> VfsResult<Self> {
+        Self::connect_with_config(VfsIpcConfig::default(), timeout, clock)
     }
 
     /// Connect with a config. `timeout`, when given, overrides the config join
     /// timeout for this one connect.
-    pub fn connect_with_config(config: VfsIpcConfig, timeout: Option<Duration>) -> VfsResult<Self> {
+    pub fn connect_with_config(
+        config: VfsIpcConfig,
+        timeout: Option<Duration>,
+        clock: Arc<dyn Clock>,
+    ) -> VfsResult<Self> {
         let join_timeout = timeout.unwrap_or_else(|| config.join_timeout());
         let opts =
             Options::new(config.identifier(), Label::new("vfs-client")).controller_affinity(false);
-        let (sender, receiver) = join::<VfsRequest, VfsResponse>(opts, Some(join_timeout))
+        let (sender, receiver) = join::<VfsRequest, VfsResponse>(opts, Some(join_timeout), clock)
             .map_err(|e| {
-                ErrorTrace::new(VfsError::Backend {
-                    message: format!("failed to join VFS bus as client: {e}"),
-                })
-            })?;
+            ErrorTrace::new(VfsError::Backend {
+                message: format!("failed to join VFS bus as client: {e}"),
+            })
+        })?;
         let pending = Arc::new(Mutex::new(HashMap::new()));
         let shutdown = Arc::new(AtomicBool::new(false));
         let reader = spawn_client_reader(
@@ -242,20 +246,22 @@ pub struct DaemonTransport {
 
 impl DaemonTransport {
     /// Register as the VFS daemon server on the default bus.
-    pub fn serve() -> VfsResult<Self> {
-        Self::serve_with_config(VfsIpcConfig::default())
+    pub fn serve(clock: Arc<dyn Clock>) -> VfsResult<Self> {
+        Self::serve_with_config(VfsIpcConfig::default(), clock)
     }
 
     /// Register as the VFS daemon server with a config.
-    pub fn serve_with_config(config: VfsIpcConfig) -> VfsResult<Self> {
+    pub fn serve_with_config(config: VfsIpcConfig, clock: Arc<dyn Clock>) -> VfsResult<Self> {
         let opts =
             Options::new(config.identifier(), Label::new("vfs-daemon")).controller_affinity(true);
-        let (sender, receiver) = join::<VfsResponse, VfsRequest>(opts, Some(config.join_timeout()))
-            .map_err(|e| {
-                ErrorTrace::new(VfsError::Backend {
-                    message: format!("failed to join VFS bus as server: {e}"),
-                })
-            })?;
+        let (sender, receiver) =
+            join::<VfsResponse, VfsRequest>(opts, Some(config.join_timeout()), clock).map_err(
+                |e| {
+                    ErrorTrace::new(VfsError::Backend {
+                        message: format!("failed to join VFS bus as server: {e}"),
+                    })
+                },
+            )?;
         Ok(Self {
             sender,
             receiver,

@@ -15,11 +15,14 @@
 //! bundles are preferred over compiled-in ones.
 
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 
 use crate::backend::http::HttpBackend;
+use crate::clock::wall_seconds;
 
 // ── Manifest types ──────────────────────────────────────────────────────
 
@@ -70,14 +73,19 @@ pub struct LocalVersion {
 impl LocalVersion {
     /// Read the local version file for an app.
     #[must_use]
-    pub fn read(app_dir: &PathBuf, app_id: &str) -> Option<Self> {
+    pub fn read(app_dir: &Path, app_id: &str) -> Option<Self> {
         let path = app_dir.join(app_id).join(".ewe_version.json");
         let data = std::fs::read_to_string(path).ok()?;
         serde_json::from_str(&data).ok()
     }
 
     /// Write the local version file for an app.
-    pub fn write(&self, app_dir: &PathBuf) -> Result<(), String> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the directory or file cannot be created, the
+    /// version cannot be encoded, or the write fails.
+    pub fn write(&self, app_dir: &Path) -> Result<(), String> {
         let dir = app_dir.join(&self.app_id);
         std::fs::create_dir_all(&dir).map_err(|e| format!("mkdir failed: {e}"))?;
         let path = dir.join(".ewe_version.json");
@@ -98,6 +106,7 @@ impl LocalVersion {
 /// let directorate = PackageDirectorate::new(
 ///     resource_root,
 ///     "https://cdn.example.com/manifest.json",
+///     clock,
 /// );
 ///
 /// // At app startup:
@@ -114,15 +123,19 @@ pub struct PackageDirectorate {
     manifest_url: String,
     /// HTTP backend for fetching manifest and bundles.
     http: HttpBackend,
+    /// The clock an applied update's `updated_at` comes from.
+    clock: Arc<dyn Clock>,
 }
 
 impl PackageDirectorate {
+    /// A directorate that stamps applied updates with `clock`.
     #[must_use]
-    pub fn new(resource_root: PathBuf, manifest_url: &str) -> Self {
+    pub fn new(resource_root: PathBuf, manifest_url: &str, clock: Arc<dyn Clock>) -> Self {
         Self {
             resource_root,
             manifest_url: manifest_url.to_string(),
             http: HttpBackend::new(),
+            clock,
         }
     }
 
@@ -149,7 +162,7 @@ impl PackageDirectorate {
             let local = LocalVersion::read(&self.resource_root, &entry.app_id);
             let is_newer = local
                 .as_ref()
-                .map_or(true, |l| l.bundle_version != entry.bundle_version);
+                .is_none_or(|l| l.bundle_version != entry.bundle_version);
 
             if is_newer {
                 updates.push(entry.clone());
@@ -169,7 +182,8 @@ impl PackageDirectorate {
     /// Returns an error string if any download or write fails.
     pub fn apply_update(&self, manifest: &OtaManifest, entry: &OtaAppEntry) -> Result<(), String> {
         let app_dir = self.resource_root.join(&entry.app_id);
-        std::fs::create_dir_all(&app_dir).map_err(|e| format!("mkdir {app_dir:?}: {e}"))?;
+        std::fs::create_dir_all(&app_dir)
+            .map_err(|e| format!("mkdir {}: {e}", app_dir.display()))?;
 
         for file in &entry.files {
             let url = format!("{}/{}/{}", manifest.base_url, entry.app_id, file.path);
@@ -191,21 +205,24 @@ impl PackageDirectorate {
             // Write atomically: temp file → rename
             let dest = app_dir.join(&file.path);
             if let Some(parent) = dest.parent() {
-                std::fs::create_dir_all(parent).map_err(|e| format!("mkdir {parent:?}: {e}"))?;
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| format!("mkdir {}: {e}", parent.display()))?;
             }
 
             let tmp = dest.with_extension("tmp");
-            let mut f = std::fs::File::create(&tmp).map_err(|e| format!("create {tmp:?}: {e}"))?;
+            let mut f = std::fs::File::create(&tmp)
+                .map_err(|e| format!("create {}: {e}", tmp.display()))?;
             f.write_all(&data)
-                .map_err(|e| format!("write {tmp:?}: {e}"))?;
-            std::fs::rename(&tmp, &dest).map_err(|e| format!("rename {tmp:?} → {dest:?}: {e}"))?;
+                .map_err(|e| format!("write {}: {e}", tmp.display()))?;
+            std::fs::rename(&tmp, &dest)
+                .map_err(|e| format!("rename {} → {}: {e}", tmp.display(), dest.display()))?;
         }
 
         // Write local version manifest
         LocalVersion {
             app_id: entry.app_id.clone(),
             bundle_version: entry.bundle_version.clone(),
-            updated_at: chrono_now(),
+            updated_at: chrono_now(self.clock.as_ref()),
         }
         .write(&self.resource_root)?;
 
@@ -213,13 +230,10 @@ impl PackageDirectorate {
     }
 }
 
-/// Get current UTC timestamp as ISO 8601 string (without chrono dep).
+/// Get `clock`'s wall time as an ISO 8601 string (without a chrono dep).
 #[must_use]
-pub fn chrono_now() -> String {
-    let dur = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default();
-    let secs = dur.as_secs();
+pub fn chrono_now(clock: &dyn Clock) -> String {
+    let secs = wall_seconds(clock);
     // Simple ISO 8601: YYYY-MM-DDTHH:MM:SSZ
     let days_since_epoch = secs / 86400;
     let time_of_day = secs % 86400;
@@ -229,7 +243,7 @@ pub fn chrono_now() -> String {
 
     // Compute year/month/day from days since epoch (approximate, good enough for version tracking)
     let mut year = 1970i64;
-    let mut remaining_days = days_since_epoch as i64;
+    let mut remaining_days = i64::try_from(days_since_epoch).unwrap_or(i64::MAX);
     loop {
         let days_in_year = if is_leap(year) { 366 } else { 365 };
         if remaining_days < days_in_year {
@@ -247,10 +261,10 @@ pub fn chrono_now() -> String {
 
     let mut month = 1;
     for &md in &month_days {
-        if remaining_days < md as i64 {
+        if remaining_days < i64::from(md) {
             break;
         }
-        remaining_days -= md as i64;
+        remaining_days -= i64::from(md);
         month += 1;
     }
     let day = remaining_days + 1;

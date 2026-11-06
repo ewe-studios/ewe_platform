@@ -10,7 +10,7 @@
 //! The session is built on the first request and reused by this isolate.
 
 use std::cell::RefCell;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -18,7 +18,7 @@ use wasm_bindgen_futures::JsFuture;
 use foundation_ai::agentic::{AgentSession, TurnTextEvent};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
-use foundation_core::valtron::{initialize_pool, PoolGuard};
+use foundation_core::valtron::{initialize_pool, MonotonicClock, PoolGuard};
 use foundation_core::wasm_logs;
 use foundation_netio::HttpClientBuilder;
 use foundation_netio::wasm::response::sse_response;
@@ -135,11 +135,15 @@ async fn session(env: &worker::Env) -> Result<AgentSession, String> {
     if let Some(base_url) = setting(env, "OPENROUTER_BASE_URL") {
         config = config.with_base_url(base_url);
     }
-    let provider = OpenAIProvider::with_http_client(HttpClientBuilder::new().build())
-        .create(Some(config))
-        .map_err(|e| e.to_string())?;
+    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let provider = OpenAIProvider::with_http_client(
+        HttpClientBuilder::new().build(),
+        Arc::clone(&clock),
+    )
+    .create(Some(config))
+    .map_err(|e| e.to_string())?;
     let model = setting(env, "MODEL").unwrap_or_else(|| DEFAULT_MODEL.to_string());
-    let session = AgentSession::builder(provider)
+    let session = AgentSession::builder(provider, clock)
         .with_model(ModelId::from(model))
         .with_system_prompt(SYSTEM_PROMPT)
         .build()

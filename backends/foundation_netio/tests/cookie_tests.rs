@@ -1,7 +1,8 @@
 //! Tests extracted from `simple_http/client/shared/cookie.rs`
 mod tests {
+    use foundation_compact::SystemTime;
     use foundation_netio::shared::client::cookie::*;
-    use std::time::{Duration, SystemTime};
+    use std::time::Duration;
 
     #[test]
     fn to_set_cookie_string_minimal() {

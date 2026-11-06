@@ -14,10 +14,12 @@
 
 use std::io;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Instant;
 
 use std::net::IpAddr;
 
+use foundation_core::valtron::Clock;
 use foundation_nativeapis::dataplane::netstack::{
     NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp,
 };
@@ -30,7 +32,7 @@ use crate::shared::config::DataPlaneMode;
 pub enum MeshDataPlane {
     /// smoltcp userspace TCP/IP stack (default, no privileges, cross-platform).
     Stack(NetStack),
-    /// Kernel TUN device (Linux/Darwin, requires CAP_NET_ADMIN or TUN ownership).
+    /// Kernel TUN device (Linux/Darwin, requires `CAP_NET_ADMIN` or TUN ownership).
     #[allow(dead_code)]
     Tun(TunDataPlane),
 }
@@ -38,10 +40,18 @@ pub enum MeshDataPlane {
 impl MeshDataPlane {
     /// Create a data plane from config. Returns an error if TUN open fails
     /// (missing device, no permissions, etc.).
+    ///
+    /// `clock` is the injected clock; the smoltcp stack seeds its poll time from
+    /// it, so a simulation can drive the data plane deterministically.
+    ///
+    /// # Errors
+    /// Returns [`crate::shared::error::WgError::Config`] if the kernel TUN device
+    /// cannot be opened (missing device, no permission).
     pub fn from_config(
         mode: &DataPlaneMode,
         my_ip: IpAddr,
         prefix_len: u8,
+        clock: Arc<dyn Clock>,
     ) -> crate::shared::error::WgResult<Self> {
         Ok(match mode {
             #[cfg(not(target_family = "wasm"))]
@@ -52,7 +62,7 @@ impl MeshDataPlane {
                     ipv6: false,
                 })
                 .map_err(|e| {
-                    crate::shared::error::WgError::Config(format!("TUN device '{}': {e}", name))
+                    crate::shared::error::WgError::Config(format!("TUN device '{name}': {e}"))
                 })?;
                 #[cfg(target_os = "linux")]
                 add_tun_route(name);
@@ -65,16 +75,19 @@ impl MeshDataPlane {
             }
             DataPlaneMode::Netstack => Self::Stack(NetStack::new(
                 NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
+                clock,
             )),
         })
     }
 
     /// Whether this is a kernel TUN data plane (apps use OS sockets).
+    #[must_use]
     pub fn is_tun(&self) -> bool {
         matches!(self, Self::Tun(_))
     }
 
-    /// Access the smoltcp NetStack, if this is the Stack variant.
+    /// Access the smoltcp `NetStack`, if this is the Stack variant.
+    #[must_use]
     pub fn netstack(&self) -> Option<&NetStack> {
         match self {
             Self::Stack(ns) => Some(ns),

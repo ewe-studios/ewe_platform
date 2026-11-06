@@ -257,10 +257,22 @@ impl ContainerHandle {
 
         let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        config
-            .wait
-            .apply(docker, container_id, host_ip, &ports)
-            .await?;
+        // A wait strategy needs a clock for its deadline. The host sets one on
+        // the config; a config built by `#[docker_container]` has none, so the
+        // wait reads the root clock of the valtron pool the start runs on. That
+        // is the host's injected clock, not the real one. The crate always
+        // builds foundation_core with `multi` (foundation_netio enables it), so
+        // the pool is process-wide.
+        if config.wait.timeout().is_some() {
+            let clock = config
+                .clock
+                .clone()
+                .unwrap_or_else(|| foundation_core::valtron::multi::fork_ctx().clock());
+            config
+                .wait
+                .apply(docker, container_id, host_ip, &ports, clock.as_ref())
+                .await?;
+        }
 
         Ok(ports)
     }

@@ -35,7 +35,7 @@ use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
     body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame,
-    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    HeadPublisher, PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
@@ -436,7 +436,7 @@ async fn read_frames(
                     None
                 };
                 let _ = tx.send(Frame::EndStream { error, trailers }).await;
-                tx.close();
+                let _ = tx.close();
                 return Ok(true);
             }
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
@@ -456,7 +456,7 @@ async fn read_frames(
             Some(Err(err)) => return Err(err.into()),
             None => {
                 if !client {
-                    tx.close();
+                    let _ = tx.close();
                 }
                 return Ok(false);
             }
@@ -530,7 +530,7 @@ async fn write_frames(
 async fn read_grpc_web_response(
     mut stream: TransportStream,
     tx: PipeSender<Frame>,
-    response_headers: Arc<std::sync::Mutex<Option<SimpleHeaders>>>,
+    publish: HeadPublisher,
     config: ClientExchangeConfig,
     text: bool,
 ) -> ConnectResult<()> {
@@ -539,7 +539,7 @@ async fn read_grpc_web_response(
         &mut stream.head,
         &mut stream.recv_body,
         &tx,
-        &response_headers,
+        &publish,
         &cancel,
         config.read_max_bytes,
     )
@@ -557,7 +557,7 @@ async fn read_grpc_web_response(
             cancel.cancelled(),
         )
         .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
     match read_frames(
@@ -580,7 +580,7 @@ async fn read_grpc_web_response(
                     cancel.cancelled(),
                 )
                 .await;
-                tx.close();
+                let _ = tx.close();
                 Ok(())
             } else {
                 let e =
@@ -990,20 +990,22 @@ impl ProtocolClient for GrpcWebClient {
             DEFAULT_PIPE_DEPTH,
         );
 
+        let publish = ends.head_publisher();
+        let head_wake = ends.response_head_wake;
+        let text = self.text;
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
             EnvelopeWriter::new(None, 0, 0),
-            self.text,
+            text,
             false,
         ));
-        let reader: BoxedTask = Box::pin(read_grpc_web_response(
-            stream,
-            ends.response_tx,
-            ends.response_headers,
-            config,
-            self.text,
-        ));
+        let reader: BoxedTask = Box::pin(async move {
+            // One sender keeps the wake pipe open until the reader ends; the
+            // publisher holds the other.
+            let _head_wake = head_wake;
+            read_grpc_web_response(stream, ends.response_tx, publish, config, text).await
+        });
 
         Ok(ClientExchange {
             conn: Box::new(conn),

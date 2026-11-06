@@ -4,7 +4,7 @@ use std::sync::Mutex;
 
 use foundation_platform::*;
 
-/// A fake WebView for testing — records operations for assertions.
+/// A fake `WebView` for testing — records operations for assertions.
 struct FakeWebView {
     navigated_urls: Mutex<Vec<String>>,
     eval_scripts: Mutex<Vec<String>>,
@@ -309,16 +309,6 @@ fn full_navigation_cycle() {
 
 // ── Presentation mode tests (F35 — Multi-WebView) ──────────────
 
-/// Build a NavigationIntent for testing.
-fn intent_for(url: &str) -> foundation_platform::NavigationIntent {
-    foundation_platform::NavigationIntent {
-        url: url.to_string(),
-        method: foundation_platform::Method::Get,
-        source: foundation_platform::IntentSource::LinkClick,
-        referrer: None,
-    }
-}
-
 #[test]
 fn presentation_morph_keeps_one_slot() {
     // Morph replaces content in-place — no new slot, depth unchanged.
@@ -564,7 +554,10 @@ fn presentation_preload_queue() {
 #[test]
 fn presentation_recorded_in_session() {
     // Verify session.record_presentation updates the WebViewStack for each mode.
-    let session = foundation_platform::PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = foundation_platform::PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Morph
     session.webview_stack_mut().init("/app/home");

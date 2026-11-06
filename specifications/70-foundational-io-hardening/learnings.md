@@ -2,6 +2,438 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 142 — a stale commented block survives a compiler):
+  - **A comment is invisible to the compiler, clippy and the tests.** The
+    commented `clone_stream` block named two enum variants that feature 137 had
+    removed, and every check stayed green. A dead-code or refactor sweep must
+    grep the comments too, not only the live items.
+  - **A later reader treats a stale example as current.** The block looked like
+    a working method, so a reader would believe `RawStream` still has a public
+    `AsPlain` and an `AsTls` variant. Delete stale examples; do not keep them
+    as history, because the version control system keeps the history.
+  - **A clone of `RawStream` must not copy the wake source.** The type holds a
+    `OnceLock<ReadWakeSource>`. A derived or hand-written clone would either
+    share one source between two streams or build a second source for the same
+    file descriptor. That is the reason the method stays deleted.
+
+- 2026-11-06 (feature 141 — a negative read wake source is not cached):
+  - **Cache a success, not a snapshot of a condition that can change.** Feature
+    137 cached `Option<ReadWakeSource>`, so a `None` taken while the socket was
+    blocking was permanent even after `set_nonblocking(true)`. The fix keeps
+    `OnceLock<ReadWakeSource>` and fills it only on a successful build.
+  - **Write the test so it fails on the old code before the fix lands.** Running
+    `a_negative_answer_is_not_cached` against `39f4eedb3` gave 0 passed and 1
+    failed; that output is the proof that the test pins the defect.
+  - **`std::sync::OnceLock::get_or_init` takes `&self`.** `RawStream` is moved
+    between threads but never shared as `&`, so a `get` before `get_or_init`
+    cannot race with a second builder. A type that is shared as `&` would let
+    two callers reach the builder, and the second source takes a second reactor
+    token for the same fd.
+
+- 2026-11-06 (feature 137 — one wake source per stream):
+  - **Do not cache a negative answer when the reason can change.**
+    `read_wake_source` returned `None` because the socket was still blocking,
+    and a `OnceLock<Option<_>>` kept that answer after the caller set
+    non-blocking. Cache only a successful source; repeat the checks otherwise.
+    The backlog now schedules this as feature 141.
+  - **A public enum can become a struct without a version bump** when no
+    consumer names or constructs the variants. Prove it with a workspace grep
+    and the dependent compile checks, then say so in the Result.
+  - **A top-level test file is auto-discovered.** Registering it again in
+    `tests/mod.rs` compiles and runs the same tests in both targets. Check how
+    the crate's `tests/mod.rs` is built before adding a module entry; feature
+    136 left its file unregistered for this reason.
+
+- 2026-11-06 (feature 140 — liveness for a bridged waker):
+  - **A bridged waker with no liveness state can never be pruned.**
+    `ReadinessWaker::from_waker` sets `park: None`, so `is_live()` is always
+    true. `ReadinessNotifier::register` and `notify` therefore keep every dead
+    waker until the source fires. A bridge whose wait can end first needs a
+    liveness token (`from_waker_with_liveness`).
+  - **The token belongs to one wait, not to the signal.** A token shared by
+    every `cancelled()` future stays true while any wait lives, so a dead waker
+    is never pruned. One `Arc<AtomicBool>` per `Cancelled`, set false in `Drop`,
+    bounds the registrations to the live waits.
+  - **`will_wake` only de-duplicates the same task waker.** A valtron task that
+    re-parks gets a fresh `ParkState`, and therefore a fresh `Waker`, on each
+    poll. `will_wake` is then false and the growth was real. A test that reuses
+    one `Waker` does not show the growth; use a distinct waker per poll.
+  - **Expose a count, not the field.** A crate outside `foundation_core` cannot
+    read the notifier of a `ResumeSignal`. Three `#[doc(hidden)]`
+    `waiter_count()` hooks (`ReadinessNotifier`, `ResumeSignal`, `CancelSignal`)
+    let the test prove the bound without private access.
+  - **Liveness makes an old de-duplication unsafe.** `register` skipped a push
+    when `will_wake` matched. Two live waits behind one task then shared one
+    registration whose token belonged to the first. When the first ended, the
+    notifier pruned the only waker and the second never woke. De-duplicate on
+    the wait identity (`Arc::ptr_eq` of the token) as well as on `will_wake`.
+    A repeated poll of one future keeps its token, so its registration stays
+    single; two waits keep one each.
+
+- 2026-11-06 (feature 139 — where a slow poll is actually measured):
+  - **The cited poll line numbers are inner polls, not the worker drive point.**
+    `FutureTask::next_status` polls a future, but a pool worker invokes the task
+    through `ExecutorState::do_work` -> `iter.next(...)` in `executors/local.rs`.
+    That call is the one place to measure: it sees every task type and every
+    wrapper, including the single-threaded engine.
+  - **Name the task from the trait, not from the entry.** `ExecutionIterator::name()`
+    defaults to `core::any::type_name::<Self>()`; the boxed and `Rc`/`Mutex`/`Arc`
+    wrapper impls forward it. Without a name the warning cannot tell a developer
+    which task to fix.
+  - **Warn at most once per task per second.** A blocked task blocks on every
+    poll turn. An unthrottled warning floods the log and hides the other tasks.
+    The per-entry `last_warn` map is removed with the task's `Ctx`.
+  - **A blocking task and a blocking caller look different.** The caller of a
+    `#[valtron_test]` body is a normal thread; the body itself is polled by a
+    worker. Measure the poll, not the test wall time.
+  - **Two existing gates stay red for unrelated reasons.** A `-D warnings`
+    clippy run that includes `foundation_macros` fails on the pedantic debt of
+    feature 120, and a full multi run can show the `targeted_wake` timeout. Note
+    both as pre-existing, but do not call them green.
+
+- 2026-11-06 (features 131, 138, 139 — valtron surface and pool starvation):
+  - **The poll of a `#[valtron_test]` body runs on a valtron pool worker.** The
+    caller thread blocks on the result, and the pool polls the body's future. A
+    synchronous call inside the body (`thread::join()`, a blocking socket read, a
+    blocking file read) therefore holds a worker, not the caller's thread. On CI
+    with 2 vCPUs the pool has 2 task workers, so two such bodies starve it. This
+    is the CI-only failure of `a_timed_out_receive_cancels_the_call`: the H2 pump
+    task never ran, so the socket never closed.
+  - **Reproduce pool starvation by pinning the pool.** `threads = 1` on the test
+    plus `--test-threads=2` failed 3 of 3 runs locally; `threads = 2` or one test
+    thread passed. A CI-only async failure is worth a pinned-pool run before any
+    client-side theory.
+  - **Wait for a thread without blocking a worker.** Poll `JoinHandle::is_finished()`
+    with `valtron::sleep_async(10 ms)` up to the bound, then `join()`. The helper
+    `join_within` in `tests/client_deadline_tests.rs` is the pattern.
+  - **A "leak" of valtron means a detail, not a type.** External crates may use the
+    surface: implement `EventReadiness`/`WakeableStream`, return
+    `TaskStatus::Depends(AnyReadiness)`, use `EventQueue`/`Pipe`, and fire a
+    readiness source's own `ReadinessNotifier`. They must not hold a waker to poke
+    the executor. The audit of this branch found no such leak: the H2 pump reports
+    readiness and never touches a waker.
+  - **`ResumeSignal` is the port for "set a flag and wake the waiters".** It is a
+    flag plus a `ReadinessNotifier`; `set(true)` fires the notifier and valtron
+    wakes. `ReadinessWaker::from_waker(cx.waker().clone())` bridges a `Future` to
+    it. A hand-rolled `Mutex<Vec<Waker>>` plus `wake()` duplicates this and loses
+    de-duplication and stale-waker cleanup (`CancelSignal` did; feature 138 moved
+    it).
+  - **Register before the re-check, and ignore the return in a `Future`.**
+    `EventReadiness::register` returns "wakes on every change", which the executor
+    uses to sleep without a quantum. A `Future` re-checks its own state instead,
+    so it ignores the value but must still register first to close the race.
+
+- 2026-11-06 (feature 129, macOS read edge lost):
+  - **macOS kqueue reports pipes level-triggered despite `EV_CLEAR`.** The
+    selector in `foundation_reactor` suppresses repeated read events itself: it
+    stores the fd's byte count and delivers again only when the count grows. A
+    drained socket that receives a smaller frame produces no new edge.
+  - **`Reactor::clear` is the re-arm.** Clearing `READABLE` calls
+    `Poll::rearm_readable`, which forgets the stored count. `FdReadiness::clear`
+    is therefore part of the park protocol, not only a flag reset. The netio
+    wake source skipped it; the task never woke again.
+  - **Linux CI cannot prove edge-triggered code.** epoll re-arms without a call,
+    so the missing `clear` passed every Linux run. A readiness change needs a
+    macOS run, or a test that drives the selector directly.
+  - **A 10-of-10 failure is evidence.** The feature was recorded as
+    intermittent. Ten runs alone and ten full-suite runs failed every time,
+    which narrowed the range at once. Count runs before theorising.
+  - **Probe the selector, not only the pumps.** The decisive line was the
+    selector's own `data=15 last=Some(77) new_edge=false` printout: it proved
+    the bytes arrived and were suppressed, rather than lost in the relay.
+
+- 2026-11-06 (feature 135, response head publication):
+  - **A shared slot is not a wake.** A `Mutex<Option<T>>` lets a reader see a
+    value that is already stored; it cannot tell a reader that a value arrives
+    later. Every publish must fire a signal, and the reader must park on that
+    signal. `Pipe<()>` of depth 1 is the smallest such signal in this tree:
+    `try_send` reports a full pipe when a second publish repeats the wake.
+  - **A peek field is a symptom.** `PipeClientReceiver::peeked` existed only to
+    hold the frame that the head wait consumed. Once the wait parks on the
+    publication, the field and its three-state `Option<Option<Frame>>` drop out.
+    Look for this shape when a wait is folded into an unrelated read.
+  - **The close of the wake pipe is the "no head" signal.** The receiver half
+    returns `None` when every sender is dropped, which is exactly a transport
+    that ends before the head. Keep one sender alive only in the reader task,
+    so the close happens at the right time.
+  - **Closing this class of bug unlocks the stronger test.** Feature 131 had to
+    send one body message to release the call setup. Feature 135 restores the
+    head-only peer, which proves both the setup and the drop.
+
+- 2026-11-06 (feature 131, dropped facade cancels the call):
+  - **`CancelSignal` is global to the call.** It is one `Arc` over a shared
+    flag, and every clone shares it. A raw fire from one facade stops every
+    task of the call, so a split bidi stream needs a live-handle count. A
+    private guard with `Arc<AtomicUsize>` (`Clone` increments, the last `Drop`
+    fires) gives the count without implementing `Drop` on the facades, which
+    would stop `BidiStream::split` from moving fields out.
+  - **Do not implement `Drop` on a struct that a method destructures.**
+    `split(self)` moves the facade's fields; a `Drop` impl forbids that move.
+    Put the `Drop` on a small guard value held by each facade instead.
+  - **A facade wait that times out must fire the call signal.** Passing the
+    facade's signal to `with_deadline_at` is the smallest change, and it also
+    stops the reader and writer tasks, which the caller alone cannot do.
+  - **A peer that sends the head and no body cannot release
+    `server_stream`.** `PipeClientReceiver::response_headers` returns the
+    published head only when the reader task stored it first. The call setup
+    has no yield between spawning the reader and asking, so the reader cannot
+    publish first; the method then waits for the first body frame. Use a peer
+    that sends one message for a drop test, and record the wait as backlog §1.
+  - **A drop closes the socket through the pump, not the protocol reader.**
+    The signal drops the reader task, which drops the body receiver. The h2
+    pump sees the closed body pipe, sends `RST_STREAM(CANCEL)` and exits, which
+    closes the TCP connection; the peer observes `Ok(0)`.
+  - **Prove the old-code failure by reverting only the source file.** Save the
+    new `client.rs` outside the tree, `git checkout --` that file, run the new
+    tests, record the failure, then restore. The test file then compiles against
+    the old library because it uses only public API.
+
+- 2026-11-06 (feature 127, non-blocking H2 dial):
+  - **A non-blocking connect to a closed loopback port does not fail inside
+    `connect`.** On macOS it returns `EINPROGRESS` (errno 36) and reports
+    `ECONNREFUSED` (61) through `SO_ERROR` once the fd turns writable. Linux does
+    the same for TCP. The dial failure therefore always reaches the caller from
+    the pump, not from `open`; a test that expects `Err` from `open` fails.
+  - **Rust does not map `EINPROGRESS` to `WouldBlock`.** Check
+    `raw_os_error() == Some(libc::EINPROGRESS)` on unix as well as
+    `kind() == WouldBlock`. `foundation_netio`'s `PendingConnect` does the same;
+    the order is: socket, non-blocking, connect, then treat these two as in
+    flight.
+  - **`SO_ERROR == 0` does not prove the connection is up.** While the connect is
+    in flight `take_error` also returns `None`. Call `peer_addr()`: it succeeds
+    only after the connection completes and fails with `ENOTCONN` before. Use
+    both checks.
+  - **Do not read before the connect settles.** An in-flight non-blocking socket
+    answers a read with `ENOTCONN`, not `WouldBlock`, and the pump's error arm
+    would end the call. Settle the connect at the top of the turn, before the
+    read loop, and only then enter `Handshaking`.
+  - **Arm WRITABLE before the pump's first turn.** Register the fd with the
+    reactor in `open`, then call `set_writable(true)` and record
+    `watching_writes = true`. The connect-completion edge can arrive before the
+    pump first runs. Disarm it when the connect resolves.
+  - **Two budgets, one per phase, are correct here.** A single deadline at
+    `open + connect_timeout + handshake_timeout` doubles the wait for a silent
+    peer and breaks `an_idle_h2_call_does_not_busy_poll`, whose 200 ms handshake
+    timeout must fire inside a 5 s test bound. Start the connect budget at
+    `open` and the handshake budget when the connect resolves.
+  - **The closed-port test and the blackhole test fail for different reasons.**
+    On the old code the closed-port test fails because `open` returns `Err`
+    (the path changed); it is not a timing test. The blackhole test is the
+    timing proof: `open` took 302.29 ms with the blocking dial, and under 50 ms
+    with the new one.
+  - **`10.255.255.1:9` stays in flight on macOS.** The OS would wait about 75 s,
+    so the pump's 300 ms deadline is what ends the call. The unrelated task
+    finishes at about 50 ms. Record a skip when `open` returns `EACCES`,
+    `ENETUNREACH` or `EHOSTUNREACH` at once, and when the head resolves before
+    the unrelated task can run.
+
+- 2026-11-06 (feature 126, close-only pipe readiness):
+  - **A spurious readiness wake is not a poll turn.** The single-threaded
+    executor gates a woken sleeper on `(park.take_woken() || due) &&
+    signal.is_ready(dur)` in `executors/local.rs`. The old `ReceiverGone` adapter
+    reports not-ready after a pop, so its notifier runs but the pump never
+    re-runs. The pump turn count is 3 on both the old adapter and the new
+    close-only signal. Do not plan a turn-count regression test for a wake that
+    leaves its signal false; the only cost is the executor-thread interrupt, and
+    no public counter observes it. A plain `vacancy()` park does fail the same
+    test, because vacancy is ready on an empty pipe and the task spins.
+  - **A pop must land while the pump is parked for the test to mean
+    anything.** With 20 ms chunk spacing the consumer popped in the window
+    between the pump's push and its park, so even the old notifier found no
+    waker. The test now sends one chunk every 200 ms and waits 220 ms before
+    each pop, which leaves at least 160 ms of parked time.
+  - **The design's `PipeInner` notifier duplicates the queue's.** The pipe's
+    queue is an `EventQueue`, and `PipeInner::close_queue` closes it. A
+    close-only notifier in `EventQueueInner` is fired once by
+    `EventQueue::close` (guarded by the open-to-closed change). A second field
+    in `PipeInner` would be unused. Both drops call `close_queue`, so the
+    open-to-closed guard is what makes the wake exactly-once.
+  - **There is no `LocalQueue` in the workspace.** The design names
+    `executors/local.rs`; the queue there is `NotifyQueue`, and its
+    `space_tasks` notifier fires on every pop. It has no close-only notifier, so
+    no accessor was added.
+  - **The disk stopped two verify commands.** `foundation_proxy` links three
+    test binaries and failed with `ld: ... No space left on device`; the wasm32
+    check was not attempted. The `foundation_core/multi` impl did compile in the
+    proxy graph before the link failed.
+
+- 2026-11-06 (feature 128, wasm deny gate):
+  - **`cargo check` takes no trailing rustc arguments.** This cargo
+    (`1.100.0-nightly`) rejects `cargo check ... -- -D warnings` with
+    `error: unexpected argument '-D' found`, unlike `cargo clippy` and
+    `cargo test`. The deny flag must travel in `RUSTFLAGS` for that single
+    command. Cargo caps lints on registry dependencies, so the flag does not
+    turn a third-party warning into a failure; the workspace path dependencies
+    stay uncapped and must be warning-free.
+  - **A per-command environment keeps the package environment intact.** Setting
+    `RUSTFLAGS` for the whole package would also change the native build's
+    fingerprints. A small plan value that carries argv plus its own environment
+    scopes the flag to the wasm gate.
+  - **A wasm warning can be a native-only item, not dead code.** All three
+    warnings came from functions that the H2 server and `native/h3_serve.rs`
+    call. The fix is a `cfg` gate, never a deletion. Confirm each caller first:
+    `native` is compiled only off wasm.
+  - **The test for a CI plan does not need `cargo metadata`.** Extracting
+    `settings_for(name, defaults, package)` from `load_settings` lets a unit
+    test merge the real `ci/packages.toml` table and build the real plan,
+    without the slow workspace scan or its unknown-package check.
+
+- 2026-11-06 (feature 117, timestamps from the injected clock):
+  - **A required trait method breaks every implementor, including ones outside the
+    feature's crate scope.** `Clock::wall_now` is required because a default would
+    read the real global, but `foundation_netio`'s test `SimClock` is a fourth
+    implementor. The gate and the crates compile, but the netio test target does
+    not. The plan must name every implementor before it sets the crate scope, or
+    the scope must include the implementor files. The main session added the
+    method after review; a test clock that reads only `now` returns a fixed
+    `UNIX_EPOCH` for `wall_now`.
+  - **An allowlist needs a stale-entry rule.** A ratchet that only fails on new
+    reads keeps entries after the fix, and the count stops going down without a
+    signal. The gate now fails on an entry that matches no read, and a temp-dir
+    test must pass an explicit empty allowlist or the repository allowlist counts
+    as stale there.
+  - **A directory allowlist entry and a file allowlist entry are both needed.** The
+    real time backends are a whole crate subtree (`foundation_compact/src/`) plus
+    one file (`foundation_core/src/valtron/ctx.rs`). The gate supports a trailing
+    slash for the first and an exact path for the second.
+  - **Measure the tree, do not copy the plan's counts.** The plan was written on
+    2026-11-05; features 116 and 118 changed `foundation_core` afterwards. The
+    measured start is 452 reads, not 428. The phase files use the measured values.
+  - **The scan finds doc comments and the polyfill, not only calls.** Words like
+    `` `Instant::now()` `` in a doc comment match. A directory allowlist entry for
+    the real backends is simpler and more stable than a line marker per doc line.
+  - **A pre-epoch time needs a negative branch, and seconds round down.** On the
+    native and wasm `SystemTime`, `duration_since(UNIX_EPOCH)` returns an error
+    before the epoch. `unix_seconds` rounds down on the number line, so half a
+    second before the epoch is `-1`, not `0`.
+  - **A simulated wall clock must start at a fixed value.** `SimulatedClock` starts
+    its wall clock at the UNIX epoch and moves only through `advance_wall`. Reading
+    `SystemTime::now()` in the constructor would make a deterministic simulation
+    test (DST) non-deterministic.
+  - **`cargo clippy` found pre-existing debt in the crate under change.** The
+    `needless_continue` in `foundation_compact`'s getentropy backend is fixed in the
+    same change, because a zero-warning run is the rule.
+
+- 2026-11-06 (feature 124, streaming receive deadlines):
+  - **A deadline test needs a peer that does not enforce the deadline.** The
+    real Connect server reads `Connect-Timeout-Ms` and races the whole handler
+    against it. A stalled server-stream against the real server still ends with
+    `DeadlineExceeded`, so the test passes on the old client code and proves
+    nothing. Use a raw HTTP/2 peer (`H2Channel`) that ignores the header when
+    the property under test is "the client enforces its own deadline". Keep the
+    real server for the no-deadline path.
+  - **Copy the absolute deadline into the facade, do not count idle time.**
+    "A call fails on its deadline" is a gRPC contract about one end time, not
+    about each wait. A stream that sends one item per minute under a 10 s
+    deadline fails on the first wait that crosses it. The unary path and the
+    facade now use the same absolute instant.
+  - **Split the helper instead of duplicating the race.** Taking the deadline
+    and an optional cancel reference keeps one implementation for setup and
+    for every facade wait. The feature 123 form keeps its own past-deadline
+    check so its message and cancel fire do not change.
+  - **Dropping a facade does not stop its reader task.** The facade holds no
+    `CancelSignal`. The reader task owns the response body, so it stays parked
+    on a silent peer after the caller drops the stream. The stalled-peer test
+    observes the socket stay open past the deadline and the drop. Recorded in
+    backlog §1.
+
+- 2026-11-06 (feature 125, the H2 client pump):
+  - **Clear reactor readiness before an attempt, never after it.** The `FdReadiness`
+    module doc and `foundation_http`'s h2 server (`arm_wakers`) clear at the start of a
+    turn. A clear after `WouldBlock` can erase an edge that arrived during the attempt
+    and lose the wake. A clear before can only cause a spurious wake, which the next
+    read resolves.
+  - **Read until `WouldBlock` before parking.** The h2 channel can answer `WouldBlock`
+    with bytes still in the kernel: the read took 8 KiB and a frame needs more. Parking
+    there after clearing loses the edge. Guard every park with "if this turn read bytes,
+    continue".
+  - **A park must include a wake for every liveness check in the turn.** The pump checks
+    `head_tx.is_closed()` and `body_tx.is_closed()` to abort a cancelled call. A parked
+    task never runs those checks: without a close wake, a cancelled gRPC call left the
+    pump parked and never sent `RST_STREAM`
+    (`client_cancel_resets_the_stream_on_the_server` failed 3/3). `QueueVacancyReadiness`
+    is not a close signal, because an empty pipe is "not full". The close-only adapter
+    shares the pipe's vacancy notifier, so a consumer pop still wakes the pump; the
+    readiness filter stops a spin, and the cost is one extra poll per delivered chunk.
+    A dedicated close notifier on `PipeSender` would remove it.
+  - **Arm write interest only when a write comes up short.** Arming it before every write
+    latches WRITABLE on an always-writable socket; the next park is already ready, logs
+    `[DEPENDS] already-ready signal`, and costs one extra poll per turn. Arm it in the
+    `WouldBlock` arm, and drop it when `pending_out` drains.
+  - Measured pump turns: idle 200 ms handshake = 2 (old `Delayed(10 ms)`: 18-19); 300 ms
+    delayed body = 5 (old: 29).
+
+- 2026-11-06 (feature 121, the proxy stall):
+  - **A blocking read inside a valtron task freezes the whole worker.** A task's
+    `next_status` runs on a worker that also hosts other tasks. If it calls a
+    blocking `recv`, every task on that worker stops, including the ones the
+    blocking call waits on. The symptom is two tasks frozen at once (here the
+    proxy relay and the client's H2 pump). Rule: keep a task non-blocking and
+    park on a readiness.
+  - **`send_async` returns a blocking response socket.** `SendRequestTask`
+    restores blocking mode for the synchronous body readers. An async streaming
+    caller must call `set_nonblocking(true)` and attach `read_wake_source`, or
+    the body read blocks the worker.
+  - **A past-due `DurationWaker` must report zero remaining time, not `None`.**
+    `Sleepers::time_until_next` filters `None`, so a due timer vanished from the
+    minimum and the worker slept to the next far deadline. The window is real:
+    `wakeup_ready_sleepers` runs before `do_work`, and a task step can last
+    longer than a 10 ms timer. Evidence: `worker ... last_wait_ms=59999` next to
+    a 10 ms pump poll.
+  - **Preserve `WouldBlock` through error mapping.** `map_err` collapsed errors
+    into `io::Error::other`, which erased the kind and made "no bytes yet" a
+    terminal error. A body stream can park only if the kind survives.
+  - **Instrument the scheduler, not only the socket.** The reactor dump was
+    clean (`wake_skipped=0`). The decisive evidence was the worker's last sleep
+    duration and its sleeper count, sampled next to the frozen poll counter.
+  - **A green run that takes 16-24 s for 17 tests is a clue.** The tests are
+    serialised by the pool gate. Each test paid a pool-shutdown wait for a
+    blocked worker. After the fix the suite takes about 2.7 s.
+
+- 2026-11-06 (feature 123, the client deadline):
+  - **Enforce a deadline above the transport trait, not inside each transport.**
+    `Transport::open` is synchronous and receives no `Ctx`, so a transport
+    cannot read the deadline. Put the race in the shared `Client`, which every
+    transport goes through, and a new transport inherits the bound. This is
+    stronger than a per-transport check, which a new transport can forget.
+  - **`sleep_async` is the portable timer.** On native it rides the valtron
+    timer thread; on wasm it is a valtron sleep task. Racing it against the call
+    future keeps one code path for both targets, with no thread and no OS timer.
+  - **A past deadline must be checked before the first poll.** The call future
+    dials in `transport.open` on its first poll. Return the error before polling
+    it when `remaining` is zero, or the "no request" contract breaks.
+  - **The old code does not hang forever, so assert the code and the time.** The
+    H1 client has its own timeout: the call without enforcement failed after
+    about 3 s with `Unavailable` ("transport closed without response head"),
+    while the new code returns `DeadlineExceeded` in about 200 ms. A test that
+    asserted only "an error" would pass on the old code.
+  - **Check the wasm gate's warning policy separately.** The wasm run in
+    `ci/packages.toml` does not deny warnings, while the native clippy run does.
+    A crate can be clippy-clean and still print warnings under
+    `--no-default-features --features rpc` on wasm32. Record them.
+
+- 2026-11-06 (feature 122, the fd-reuse deregistration):
+  - **A number-keyed selector needs a number-to-owner map to deregister safely.**
+    kqueue, epoll and io_uring identify a registration by fd number. A token is
+    therefore not enough to remove a registration: the reactor must also know
+    which token currently owns the number. `Reactor::fd_tokens` provides that,
+    under the existing `reg_lock`, so no new lock order appears.
+  - **A stale-drop test must control fd allocation.** The operating system gives
+    the lowest free number, so closing a socket then opening a pair gets the
+    number back. Keep every non-matching pair open so each retry gets a higher
+    number, and serialise tests that need a known number with a process-local
+    mutex: parallel tests in one binary compete for the same fd.
+  - **Prove a guard test by reverting only the guard.** Replacing
+    `reactor.rs` with `git show HEAD:...` and keeping the new test showed
+    `a drop after fd reuse: fd 3 (FdReadiness { fd: 3, token: Token(2) }) did not
+    report readability within 2s`. A full revert would not isolate the guard.
+  - **Check the package's CI lint policy before trusting a verify command.**
+    `foundation_reactor` is not in the `clippy-deny-warnings` set in
+    `ci/packages.toml`, and it carries 120 pre-existing pedantic warnings. The
+    `-- -D warnings` check fails at HEAD and on `master` for that reason alone,
+    so a new feature cannot make it pass without the crate-wide cleanup. Record
+    it; do not hide it.
+
 - 2026-11-06 (the second proxy failure):
   - **A selector keyed by fd number can lose a live registration.** The reactor's
     entries map is keyed by token, but kqueue, epoll and io_uring all identify a
@@ -1781,4 +2213,268 @@ time can still leave an async consumer with nothing to wake it. The old code had
   stream. Any non-blocking writer must track how much it wrote.
 - 2026-10-28: the shared reactor's drain thread must request an executor resume after it latches
   events, or parked tasks wait for the idle back-off (up to 100 ms).
+- 2026-11-06 (issue #187, `targeted_wake`): a test storm that busy-loops on a `Mutex` shared with
+  the executor can starve the executor on a loaded machine. The old storm could also lose its own
+  last wake: the executor can publish a new signal just after the storm's final take, and then
+  nobody sets it, so the task parks forever. Fix the hand-off with an unbounded
+  `std::sync::mpsc` channel (`send` never blocks). Park the storm on `recv_timeout`, do not spin:
+  on a host under load average 132 the spinning storm let the executor make only 54 wakes in the
+  600 ms bound, below the 100 the test needs. A strict time bound therefore cannot hold while the
+  test also requires 100 wakes. Make 600 ms a floor check that stops the storm only at 100 wakes
+  or more, and add a 5 s hard cap well below the 20 s test timeout. Keep the receiver alive until
+  the driver loop returns and set every signal that arrives after `stop`. A wall-clock floor in
+  the storm thread keeps the separate "A waits at least 600 ms" check honest.
 
+- 2026-11-06 (feature 136): the kqueue read-edge re-arm belongs in the reactor, not in
+  every caller. `Reactor::register_waker` and `Reactor::register_task_waker` now call
+  `Poll::rearm_readable(entry.fd)` before they store the waker. The selector suppresses a
+  readable event while the fd's byte count does not grow, so a drained socket that receives a
+  smaller frame must first forget the old count. A loopback TCP test proves the rule: 77
+  bytes, drain, arm the waker, then 15 bytes. The first test fails on the old code on macOS
+  after the 2 s bound. `clear` keeps its re-arm; the docs now say it serves the latched flags,
+  not the edge. Clippy stayed at the recorded pedantic debt (121 before, 120 after).
+
+- 2026-11-06 (backlog migration): a written backlog rots in both directions. Of 73 entries, 11
+  described bugs that were already fixed, and 3 described code that no longer matched the text
+  (`BashTool::timeout` is read, `FileChangeEventPump` has a user, `QueueReadiness` clones `Arc`s
+  rather than duplicating state). Each entry needs a code check before it is trusted. The
+  tracker is now the issue tracker, where an entry carries the same labels as the defect and
+  closes in the fixing change. Clippy debt is one issue with a per-crate checklist, because one
+  issue per crate multiplied the noise without adding a separate action.
+
+- 2026-11-06 (feature 120): a crate that CI never lints hides its debt twice. The first
+  `--all-targets` run stops at the lib target, so the test-target warnings appear only after
+  the lib compiles. Measure `--all-targets` on the fixed tree before you claim zero. A
+  newly added `#[must_use]` on a method that many callers ignore produces warnings in
+  dependent crates, not in the crate that declares it, so the per-crate deny command stays
+  green while a fresh build prints 105 lines (issue #211).
+
+- 2026-11-06 (feature 118): the `type_complexity` lint and `impl Trait` do not mix behind an
+  alias. A type alias cannot name `impl Fn`, so "fix it with an alias" forces a boxed trait
+  object, which adds `'static` bounds and changes public signatures. On an extension trait
+  that returns `impl Fn`, either keep `impl Fn` and carry one `#[expect]`, or accept the
+  breaking change and bump the crate. Feature 118 took the second path: foundation_core
+  0.0.13 and 38 consumer requirements. Measure a lint fix on the public surface as an API
+  change before you apply it, not after.
+
+
+- 2026-11-06 (feature 132): the executor already owns the pool root `Ctx`. A
+  deadline that the executor computes can therefore read `root.clock()` without a
+  new bundle. The only reads that cannot move are the blocking waits: the timer
+  thread, the condvar park and the accept loop. They name `MonotonicClock`
+  explicitly, so the code says "real clock here" and the gate still counts no
+  direct read. Do not hide such a read in a helper; name the backend type.
+- 2026-11-06 (feature 132): a ConnectRPC call context has its own `Ctx`, not the
+  valtron `Ctx`. The shared `ContextBag` is the seam: the HTTP server stores its
+  engine clock in the app bag before it dispatches, and `build_ctx` reads it. A
+  bag built outside an engine has no clock, so a direct dispatcher test gets an
+  explicit `MonotonicClock`. That is a host shortcut, not a global fallback.
+- 2026-11-06 (feature 132): `#[must_use]` on `PipeSender::close` and
+  `PipeReceiver::close` produced 105 warnings in dependent crates (issue #211).
+  Some `.close()` calls return `()` (a sink trait method), so a blanket
+  `let _ = x.close();` triggers `clippy::let_unit_value`. Find the exact warning
+  lines; do not rewrite every `.close();`. The clippy gate fails on the
+  `unused_must_use` warnings even with `--no-deps`, so a feature in these crates
+  cannot pass until they are fixed.
+- 2026-11-06 (feature 132): a Rust doc example is a compiled test. A changed
+  constructor in a `//!` or `///` example fails the crate's doctest target, not
+  the lib target. Update the example and keep its `//!` prefix on every line.
+- 2026-11-06 (feature 132): `SimulatedClock::now()` starts at the real instant it
+  was built plus its offset, while `wall_now` starts at the UNIX epoch. A test
+  that compares a simulated deadline with the real clock sees a difference of
+  milliseconds, not hours. That is why the old-code HTTP test failed with
+  `Some(Delayed(3ms))` and not with a large value.
+
+- 2026-11-06 (feature 133): a process-global cache that holds a backend also
+  holds the first caller's clock. `foundation_ai` caches GGUF models in
+  `LOADED_MODELS`; a plain reuse would serve a model built with session A's
+  clock to session B. `share_weights(clock)` now re-injects the caller's clock
+  on every load. Check every `static`/`OnceLock` cache that stores a clock.
+- 2026-11-06 (feature 133): `Arc::clone` does not coerce
+  `&Arc<MonotonicClock>` to `&Arc<dyn Clock>`. The clone happens before the
+  argument coercion, so annotate the binding at the construction point:
+  `let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());`. Three app and
+  example call sites hit this. Passing the `Arc<MonotonicClock>` by value does
+  coerce, so constructors that take the clock by value are fine.
+- 2026-11-06 (feature 133): the `foundation_auth --features server-test` suite
+  does not finish at default parallelism on a 10-CPU host. A sampled run shows
+  every test thread blocked in
+  `initialize_pool_with_slow_poll_warning` -> `FairGate::acquire`, while one
+  filtered test passes. Treat this as a separate executor load finding (high);
+  run a new integration test with
+  `--test foundation_auth_tests <name> -- --test-threads=1` to prove it.
+- 2026-11-06 (feature 133): `saturating_sub(now, window)` in
+  `foundation_db::core::rate_limit` looked wrong near the UNIX epoch, but it is
+  correct. The cutoff clamps to 0, and `window_start <= 0` is false for every
+  record stamped after the epoch, so the window is longer, not "elapsed". Do
+  not change it without a failing test.
+- 2026-11-06 (feature 133): a bulk edit that inserts a helper at the first
+  `#[test]`/`#[valtron_test]` occurrence can land inside a doc comment or a
+  `use` block. Two files failed to parse, and nine more lost the doc comment
+  that belonged to the first test. Run `cargo fmt --all --check` after a scripted
+  insertion; it is the cheapest parser check.
+- 2026-11-06 (feature 133, coordinator): a suite that "hangs with every thread
+  in `FairGate::acquire`" can be a panic, not a starvation bug. A panic on a
+  spawned dispatch thread leaves the caller blocked and holding the pool guard,
+  so all later tests wait at the gate. Sample the stuck process and read the
+  last completed test; the panic message is behind it. Check the failing test
+  alone before you suspect the executor.
+- 2026-11-06 (feature 133, coordinator): when a type is needed both in a task
+  `Ctx` and on a required struct (`HandlerStorage`), make the struct the source
+  and let the `Ctx` value win when present. A second required registration
+  makes every host that builds the app by hand panic.
+
+- 2026-11-06 (feature 134): a crate below `foundation_core` cannot take
+  core's `Clock` without a dependency cycle (`foundation_core` depends on
+  `foundation_nostd` and, optionally, `foundation_wasm`). `foundation_nostd`
+  defines its own small `TimeSource` trait for the blocking wait.
+  `foundation_wasm` keeps one `Instant::now()` and marks it with
+  `// time-source:` because its WASI extern-C ABI has no Rust caller that can
+  pass a clock; every timer function gained an `_at` variant instead.
+- 2026-11-06 (feature 134): a selector that blocks in the kernel must compute
+  its EINTR-resume deadline from the operating system's monotonic clock. A
+  simulated clock would make `epoll_wait`/`kevent` return at once or block
+  forever. `foundation_reactor` names `MonotonicClock` explicitly for this
+  boundary, like the executor waits in issue #102. Do not inject a simulated
+  clock into a real blocking wait.
+- 2026-11-06 (feature 134): a time value used only as an ID seed does not need
+  a clock. `foundation_deployment_docker` replaced the timestamp seed in
+  `new_session_id` with a process-wide counter mixed with the process id. The
+  ID is still unique within the process and the read is gone.
+- 2026-11-06 (feature 134): generated code carries the caller's API version.
+  When `WgNode::from_config` and `PlatformSession::new_test` gained a clock,
+  the `#[wireguard_main]` and `#[platform_test]` generators had to change in
+  the same feature. Grep every `quote!` block that calls a changed
+  constructor; a macro crate can compile while its output does not.
+- 2026-11-06 (feature 134): a public API change ripples into test helper
+  modules, not only `src/`. `foundation_testbed/tests/common/mod.rs` and
+  `foundation_ai/tests/tools/*` called the changed constructors. Run
+  `cargo check --workspace` and every changed crate with `--all-targets`.
+- 2026-11-06 (feature 134): read a crate's own version from `[package]` with
+  a TOML parser. Several manifests put `[package]` after the dependency
+  tables, so `grep -m1 '^version'` returns a dependency's version.
+  `foundation_deployment_cloudflare` is 0.2.0, not 0.1.3; it moved to 0.2.1.
+- 2026-11-06 (feature 134): the gate fails on an allowlist entry that matches
+  no read. A phase that fixes a crate must delete its entries in the same
+  change; the count then only falls. The final state is 13 allowlisted reads
+  (the two permanent entries) and 1 marked boundary read.
+- 2026-11-06 (feature 134): editing a shared dependency while other agents
+  build breaks their runs. The `foundation_reactor` selector signature briefly
+  broke `foundation_nativeapis` and `foundation_wireguard` builds. Schedule a
+  shared dependency (reactor, sshkit) after the agents that compile it, or
+  keep the change internal so its public signatures do not move.
+- 2026-11-06 (issues #217 and #218): `Drop` runs before the fields drop. A
+  guard that holds a lifecycle gate in a field keeps the gate shut until
+  `Drop::drop` returns, so an unbounded join in `drop` can freeze the gate for
+  the whole process. The stop call must have a deadline, and `drop` must use
+  that same stop call. This is the root cause that stalled the auth suite.
+- 2026-11-06 (#217/#218): do not name `std::sync::PoisonError::into_inner` as
+  a function value. The poison type differs by target (`std` on native,
+  `foundation_nostd::primitives::PoisonError` for the wasm locks), and one
+  explicit path does not compile on both. The closure works, but clippy's
+  `redundant_closure` rejects it on native. Use one helper
+  (`compati::recover_poison`) with a trait impl for both poison types.
+- 2026-11-06 (#217/#218): an engine-minimum guard needs a context that can be
+  incomplete, or its panic path cannot be tested. `CtxInner` keeps the three
+  standard elements as `Option` fields; every public constructor fills them,
+  and `Ctx::incomplete_for_test` (doc hidden) builds the one-element-missing
+  case. `Ctx::assert_minimum` runs at the pool start and the task iterator
+  boundary.
+- 2026-11-06 (#217/#218): a `#[should_panic(expected = ...)]` string can go
+  stale when a macro message changes. Commit 63af1c798 changed the timeout
+  message but not the test, so the `--features multi` suite failed on the
+  first full run. A grep for the old message in tests would have caught it.
+- 2026-11-06 (#217/#218): the clock migration is mostly a constructor rename.
+  Replacing all 284 `Ctx::new()` calls with `Ctx::host()` first, then checking
+  the few sites that had an injected clock in hand, kept the change small.
+  `ContextBag::from_ctx(&Ctx::host())` is the host-boundary form for a bag with
+  no task context.
+- 2026-11-06 (#217/#218): a map-entry replacement needs a second grep. The
+  mechanical `ContextBag::new()` pass missed `IdpServer::http_app`, which stored
+  `self.clock` in the bag for the old `bag.get::<Arc<dyn Clock>>()` lookup.
+  After the change, `ServeAdapter::create` read `bag.clock()` and got the app
+  builder's host clock instead of the server's injected clock. Grep for
+  `store(clock)` and `store(self.clock)` as well as the constructors, and build
+  the bag with the injected clock when one is in hand.
+- 2026-11-06 (CI repair): a bump of a workspace crate must reach every
+  consumer, including the crates that no feature agent owns. Phase D moved
+  `foundation_nostd` to 0.0.7 and `foundation_wasm` to 0.0.6, but `benches`,
+  the root `tests` crate and 21 Node.js integration crates still required the
+  old versions, so `cargo metadata` failed and every CI job stopped. A path
+  requirement with a version is a hard match for a 0.0.x crate. Run a
+  workspace-wide requirement check after every bump, not only a check of the
+  crates in the feature's list.
+- 2026-11-06 (CI repair): the project templates pin registry versions, and
+  the `templates_build` test patches each pin to the local crate. A `[patch]`
+  entry applies only when the local version satisfies the requirement, so a
+  stale pin silently makes the test build the *published* crate. The pins must
+  equal the local versions, or the test proves nothing.
+- 2026-11-06 (CI repair): a green check on one job is not a green workflow.
+  Earlier feature notes cited runs 42205799516 and 42215248185 as green, but
+  both failed 13 jobs: wasm builds, QUIC builds, clippy with `--features
+  test-clock`, the proxy health probe and the template build. Read the run
+  conclusion and the failing job list before writing "CI green" into a feature
+  file, and quote the run ID.
+- 2026-11-06 (CI repair): local checks that leave out a feature flag leave
+  code paths unbuilt. `foundation_netio` compiles without `--features quic`,
+  and `foundation_core` compiles without `--features test-clock`, so the
+  missing `Clock` import and the missing `# Panics` docs stayed hidden. Run
+  the exact feature sets that CI uses for each crate the change touches.
+- 2026-11-06 (issue #232): a leak test that takes its baseline before the first call of
+  the path it measures counts the path's one-time setup as a leak. Name the surviving
+  threads from `/proc/self/task/*/comm` before you change the test. Here the setup was the
+  `valtron-timer` wheel and the reactor's drain thread, one per process. A warm-up call
+  before the baseline keeps the tolerance at `+1`. Widening it to `+2` would hide a real
+  per-call leak.
+- 2026-11-07 (issue #240): a `OnceLock` makes *installing* a singleton atomic, not building
+  it. Every thread that missed `get()` built its own copy and its own thread before `set()`
+  failed. Single-flight the whole check-and-build with one mutex, and join the thread you
+  started in `Drop`; a dropped `JoinHandle` only detaches it.
+
+## A worker exit sends one event, not two (issue #241)
+
+`ThreadRegistry::listen_for_activity` treats `Stopped` and `Panicked` the same
+way: it decrements `live_threads`, unregisters the thread and removes its
+handle. The `Panicked` arm also respawns. A worker that sent both events was
+therefore counted twice. Keep one exit event per worker.
+
+The listener runs only from `block_until_done`, and nothing calls that method.
+The panic-respawn path is dormant in normal pool use (issue #243). The test
+drives the queue through the doc-hidden `pump_activity` hook.
+
+## Re-raise a task panic at the sync boundary (issue #242)
+
+The worker's `catch_unwind` reports a panic and closes the result channel.
+`block_on_future` saw an empty stream and panicked with its own message, so the
+real assertion was lost. The builder's panic handler is the channel that carries
+the payload out of the worker; `stream_iter_with_config` did not wire it in, so
+the payload was dropped. Wire it in and call `resume_unwind` with the payload
+when the stream ends without a value. `resume_unwind` does not run the panic
+hook, so the caller sees the original panic message once.
+
+## Patch a worktree branch onto a moved branch with 3-way apply
+
+An agent worktree starts from the master commit, not from the feature branch
+head. Copying its files into the branch silently reverts every branch change in
+those files. Apply its diff with `git apply -3` instead, and resolve the hunks
+that the branch refactored (here, the worker exit moved into
+`finish_worker_stop`).
+
+## A dormant event loop is a dormant fix (issue #243)
+
+The activity queue carries the worker exit events. The `Panicked` arm is the only
+code that respawns a worker. Only `block_until_done` drained the queue, and
+nothing calls that method. The fix existed on paper and never ran. Start one
+monitor thread for the life of the pool (`start_activity_monitor`), and stop it
+at shutdown.
+
+Two shutdown details matter:
+
+1. Stop the monitor before `waitgroup.wait()`. A `Panicked` event that it reads
+   just before the kill signal can start a worker after the wait saw zero. That
+   worker stays outside the join set.
+2. Interrupt the yielders after the monitor stops. A worker that the monitor
+   started must see the interrupt.
+
+The monitor holds a `Weak` reference, so it does not keep the registry alive. A
+shutdown sends one benign event to wake it from its timed receive.

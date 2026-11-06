@@ -8,6 +8,8 @@
 // here (the depth is in the external `turso` dependency).
 #![recursion_limit = "256"]
 
+use std::sync::Arc;
+
 use foundation_auth::shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
 use foundation_auth::shared::auth_state::AuthState;
 use foundation_auth::shared::credential_store::{CredentialStorage, OAuthTokenStore};
@@ -17,14 +19,18 @@ use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_auth::shared::session::{SessionConfig, SessionManager};
 use foundation_auth::shared::types::{AuthCredential, ConfidentialText};
 use foundation_auth::OAuthCredential;
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, MonotonicClock};
+
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn test_config() -> AuthManagerConfig {
     AuthManagerConfig::new().with_refresh_buffer(300)
 }
 
 fn test_manager() -> AuthManager {
-    AuthManager::new(CredentialStorage::memory(), test_config())
+    AuthManager::new(CredentialStorage::memory(), test_config(), test_clock())
 }
 
 async fn store_valid_oauth_token(store: &CredentialStorage) {
@@ -83,7 +89,7 @@ async fn test_init_from_store_valid_token() {
     assert!(result.is_some());
     assert!(mgr.is_authenticated());
     assert_eq!(mgr.state(), AuthState::Authenticated);
-    assert!(!result.unwrap().is_expired());
+    assert!(!result.unwrap().is_expired(test_clock().as_ref()));
 }
 
 #[valtron_test]
@@ -159,7 +165,7 @@ async fn test_get_valid_token_authenticated() {
     mgr.init_from_store().await.unwrap();
 
     let token = mgr.get_valid_token().unwrap();
-    assert!(!token.is_expired());
+    assert!(!token.is_expired(test_clock().as_ref()));
 }
 
 #[test]
@@ -208,6 +214,7 @@ async fn test_refresh_success() {
                 None,
                 None,
                 None,
+                test_clock().as_ref(),
             ))
         })
         .await;
@@ -278,6 +285,7 @@ async fn test_refresh_from_token_expired_state() {
                 None,
                 None,
                 None,
+                test_clock().as_ref(),
             ))
         })
         .await;
@@ -315,6 +323,7 @@ async fn test_logout_with_session_manager() {
         CredentialStorage::memory(),
         SessionConfig::default(),
         &signing_key,
+        test_clock(),
     )
     .unwrap();
 
@@ -379,6 +388,7 @@ fn test_with_jwks_manager() {
     let mgr = test_manager().with_jwks_manager(JwksManager::new(
         "https://example.com/.well-known/jwks.json".to_string(),
         None,
+        test_clock(),
     ));
     assert!(mgr.jwks_manager().is_some());
 }

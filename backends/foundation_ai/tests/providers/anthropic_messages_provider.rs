@@ -81,14 +81,22 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
             "test-key".to_string(),
         )));
 
-    let provider =
-        AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
-            .create(Some(config))
-            .unwrap();
+    let provider = AnthropicMessagesProvider::with_http_client_and_config(
+        http_client,
+        config.clone(),
+        test_clock(),
+    )
+    .create(Some(config))
+    .unwrap();
 
     provider
         .get_model(ModelId::Name("claude-3-5-sonnet".into(), None))
         .unwrap()
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
 }
 
 #[valtron_test]
@@ -243,7 +251,7 @@ event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\"
     }
 }
 
-/// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
+/// Verify SSE streaming accumulates tool call deltas into a final `ToolCall` message.
 #[valtron_test]
 fn test_provider_streaming_tool_calls() {
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":50,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
@@ -731,8 +739,13 @@ fn test_parse_response_text() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let (msgs, _report) =
-        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) = parse_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &*test_clock(),
+    )
+    .unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -777,8 +790,13 @@ fn test_parse_response_tool_use() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let (msgs, _report) =
-        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) = parse_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &*test_clock(),
+    )
+    .unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -826,8 +844,13 @@ fn test_parse_response_thinking() {
     };
 
     let model_id = ModelId::Name("claude-3-7-sonnet".into(), None);
-    let (msgs, _report) =
-        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) = parse_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &*test_clock(),
+    )
+    .unwrap();
 
     assert_eq!(msgs.len(), 2);
 

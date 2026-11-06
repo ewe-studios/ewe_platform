@@ -33,8 +33,8 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status(Ctx::new());
-            let _ = $client.next_status(Ctx::new());
+            let _ = $server.next_status(Ctx::host());
+            let _ = $client.next_status(Ctx::host());
         }
     }};
 }
@@ -59,8 +59,8 @@ fn h3_pair() -> (
             break conn;
         }
         assert!(Instant::now() < deadline, "server never accepted");
-        let _ = sq.next_status(Ctx::new());
-        let _ = cq.next_status(Ctx::new());
+        let _ = sq.next_status(Ctx::host());
+        let _ = cq.next_status(Ctx::host());
     };
 
     let mut server = H3Connection::new(server_conn);
@@ -110,8 +110,8 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
             !matches!(server.poll_accept_webtransport(), Stream::Next(_)),
             "nothing is complete yet"
         );
-        let _ = sq.next_status(Ctx::new());
-        let _ = cq.next_status(Ctx::new());
+        let _ = sq.next_status(Ctx::host());
+        let _ = cq.next_status(Ctx::host());
     }
 
     let fields: Vec<(&[u8], &[u8])> = vec![

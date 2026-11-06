@@ -1,4 +1,4 @@
-//! #[platform_test] attribute macro — sets up a test with PlatformSession.
+//! `#[platform_test]` attribute macro — sets up a test with `PlatformSession`.
 //!
 //! Supports optional backends:
 //!
@@ -35,7 +35,7 @@ impl Default for PlatformTestArgs {
     }
 }
 
-fn parse_args(attr: TokenStream) -> PlatformTestArgs {
+fn parse_args(attr: &TokenStream) -> PlatformTestArgs {
     if attr.is_empty() {
         return PlatformTestArgs::default();
     }
@@ -63,13 +63,10 @@ fn parse_args(attr: TokenStream) -> PlatformTestArgs {
 
 /// Quick check: is a Docker container running?
 fn docker_running_check(image: &str) -> String {
-    format!(
-        "docker ps --filter name={img} --format '{{{{.Status}}}}' 2>/dev/null | grep -q Up",
-        img = image
-    )
+    format!("docker ps --filter name={image} --format '{{{{.Status}}}}' 2>/dev/null | grep -q Up")
 }
 
-pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn platform_test(attr: &TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_args(attr);
     let input = syn::parse_macro_input!(item as syn::ItemFn);
     let fn_name = &input.sig.ident;
@@ -83,7 +80,10 @@ pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 #vis fn #fn_name() {
                     let session = ::std::sync::Arc::new(
                         ::foundation_platform::PlatformSession::new_test(
-                            ::std::path::PathBuf::from(".")
+                            ::std::path::PathBuf::from("."),
+                            ::std::sync::Arc::new(
+                                ::foundation_core::valtron::MonotonicClock::new()
+                            ),
                         )
                     );
                     #[allow(unused)]
@@ -114,7 +114,10 @@ pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 
                     let session = ::std::sync::Arc::new(
                         ::foundation_platform::PlatformSession::new_test(
-                            ::std::path::PathBuf::from(".")
+                            ::std::path::PathBuf::from("."),
+                            ::std::sync::Arc::new(
+                                ::foundation_core::valtron::MonotonicClock::new()
+                            ),
                         )
                     );
                     #[allow(unused)]

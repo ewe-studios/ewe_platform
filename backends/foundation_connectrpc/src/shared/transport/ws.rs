@@ -148,7 +148,7 @@ impl Transport for WsTransport {
         let head = Box::pin(head_obs.into_next_stream());
         let recv_body = Box::pin(body_obs.into_next_stream());
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        trailer_tx.close(); // WS has no h2 trailers
+        let _ = trailer_tx.close(); // WS has no h2 trailers
 
         Ok(TransportStream {
             send_body,

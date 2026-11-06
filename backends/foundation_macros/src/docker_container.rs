@@ -448,9 +448,10 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
 fn container_start(def: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
     let config = container_config(def, platform);
 
-    let lookup_key = match &def.lookup_key {
-        Some(k) => quote! { ::core::option::Option::Some(::std::string::String::from(#k)) },
-        None => quote! { ::core::option::Option::None },
+    let lookup_key = if let Some(k) = &def.lookup_key {
+        quote! { ::core::option::Option::Some(::std::string::String::from(#k)) }
+    } else {
+        quote! { ::core::option::Option::None }
     };
 
     // `required = true` means a missing daemon is a hard failure, so the
@@ -480,6 +481,10 @@ fn container_start(def: &ContainerDef, platform: &TokenStream2) -> TokenStream2 
 }
 
 /// Builds one container's `ContainerConfig` builder chain.
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear builder-chain expansion, kept in field order so it matches the config"
+)]
 fn container_config(args: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
     let image = &args.image;
     let mut config_calls = Vec::new();

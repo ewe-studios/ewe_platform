@@ -548,6 +548,16 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         let request = self.request(builder)?;
         let response = request.send_async().await?;
         let (status, headers, body, _pool, conn) = response.into_parts();
+        // This method is asynchronous, so its caller reads the body with an
+        // async reader. `ClientRequest::send_async` hands the socket back in
+        // blocking mode; a blocking body read would hold the valtron worker
+        // that polls it. Set the mode the read wake source needs (spec 70
+        // feature 121).
+        if let Some(conn) = conn.as_ref() {
+            if let Err(e) = conn.set_nonblocking(true) {
+                tracing::debug!(error = %e, "cannot set response socket non-blocking");
+            }
+        }
         let source = conn.as_ref().and_then(|c| c.read_wake_source());
 
         Ok(SimpleResponse::with_read_wake(

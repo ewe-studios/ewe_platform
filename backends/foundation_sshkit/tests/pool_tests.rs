@@ -1,11 +1,15 @@
 //! Unit tests for ConnectionPool.
 
 use foundation_sshkit::{ConnectionPool, Host};
+use std::sync::Arc;
 use std::time::Duration;
 
 #[test]
 fn test_pool_creates_session() {
-    let pool = ConnectionPool::new(Duration::from_secs(30));
+    let pool = ConnectionPool::new(
+        Duration::from_secs(30),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let host = Host::parse("github.com:22"); // github has public SSH
 
     let result = pool.get(&host);
@@ -23,14 +27,20 @@ fn test_pool_creates_session() {
 
 #[test]
 fn test_pool_evict_idle() {
-    let pool = ConnectionPool::new(Duration::from_millis(1));
+    let pool = ConnectionPool::new(
+        Duration::from_millis(1),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     // Eviction should not panic even with empty pool
     pool.evict_idle();
 }
 
 #[test]
 fn test_pool_get_same_host_twice() {
-    let pool = ConnectionPool::new(Duration::from_secs(30));
+    let pool = ConnectionPool::new(
+        Duration::from_secs(30),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let host = Host::parse("github.com:22");
 
     let first = pool.get(&host);

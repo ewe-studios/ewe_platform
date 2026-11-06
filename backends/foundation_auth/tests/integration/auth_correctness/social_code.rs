@@ -28,6 +28,7 @@ fn new_client(env: &Env, name: &str) -> (OAuthClient, String) {
         vec!["authorization_code".into()],
         vec!["openid".into()],
         false,
+        env.storage.clock.as_ref(),
     );
     let query_store = Arc::clone(&env.storage.query_store);
     let stored = client.clone();
@@ -41,7 +42,7 @@ fn new_client(env: &Env, name: &str) -> (OAuthClient, String) {
 fn social_code(env: &Env, user_id: &str, client_id: &str) -> String {
     env.seed_tos("v1", 1000);
     let (user_id_again, client_id) = (user_id.to_string(), client_id.to_string());
-    let service = TosService::new(Arc::clone(&env.storage));
+    let service = TosService::new(Arc::clone(&env.storage), Arc::clone(&env.storage.clock));
     let user_id = user_id.to_string();
     let pending = PendingLogin {
         auth_method: "social".into(),

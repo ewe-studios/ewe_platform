@@ -99,7 +99,7 @@ pub async fn fail_stream(
     // Either way the stream is over: delivered, the consumer gone, or the call
     // cancelled — nothing is left to do with the outcome.
     let _ = race(tx.send(frame), cancel.cancelled()).await;
-    tx.close();
+    let _ = tx.close();
 }
 
 /// Future returned by [`race`].

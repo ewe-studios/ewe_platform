@@ -25,7 +25,9 @@ fn init_pool() -> PoolGuard {
 #[tracing_test::traced_test]
 fn syncfs_memory_mkdir_and_stat() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.mkdir("/src").unwrap();
     sync.mkdir("/src/lib").unwrap();
@@ -44,7 +46,9 @@ fn syncfs_memory_mkdir_and_stat() {
 #[tracing_test::traced_test]
 fn syncfs_memory_create_write_read() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.mkdir("/data").unwrap();
     let file = sync.create("/data/hello.txt", 0o644).unwrap();
@@ -65,7 +69,9 @@ fn syncfs_memory_create_write_read() {
 #[tracing_test::traced_test]
 fn syncfs_memory_read_file_write_file() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.write_file("/test.txt", b"test content").unwrap();
     let data = sync.read_file("/test.txt").unwrap();
@@ -83,7 +89,9 @@ fn syncfs_memory_read_file_write_file() {
 #[tracing_test::traced_test]
 fn syncfs_memory_open_seekable() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.write_file("/seek.txt", b"0123456789abcdef").unwrap();
 
@@ -108,7 +116,9 @@ fn syncfs_memory_open_seekable() {
 #[tracing_test::traced_test]
 fn syncfs_memory_seek_operations() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.write_file("/seek.txt", b"0123456789").unwrap();
     let mut seekable = sync.open_seekable("/seek.txt", OpenMode::Read).unwrap();
@@ -136,7 +146,9 @@ fn syncfs_memory_seek_operations() {
 #[tracing_test::traced_test]
 fn syncfs_memory_rename_and_remove() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.write_file("/old.txt", b"content").unwrap();
     sync.rename("/old.txt", "/new.txt").unwrap();
@@ -155,7 +167,9 @@ fn syncfs_memory_rename_and_remove() {
 #[tracing_test::traced_test]
 fn syncfs_memory_remove_all() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.mkdir("/a").unwrap();
     sync.write_file("/a/b.txt", b"data").unwrap();
@@ -175,7 +189,9 @@ fn syncfs_memory_remove_all() {
 #[tracing_test::traced_test]
 fn syncfs_memory_chmod() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.write_file("/file.txt", b"data").unwrap();
     let before = sync.stat("/file.txt").unwrap();
@@ -192,7 +208,9 @@ fn syncfs_memory_chmod() {
 #[tracing_test::traced_test]
 fn syncfs_memory_directory_operations() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.mkdir("/dir").unwrap();
     sync.write_file("/dir/a.txt", b"a").unwrap();
@@ -212,7 +230,9 @@ fn syncfs_memory_directory_operations() {
 #[tracing_test::traced_test]
 fn syncfs_memory_copy() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.write_file("/src.txt", b"source data").unwrap();
     sync.copy("/src.txt", "/dst.txt").unwrap();
@@ -229,7 +249,9 @@ fn syncfs_memory_copy() {
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_basic() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryDelta::new());
+    let sync = SyncFs::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.mkdir("/delta").unwrap();
     sync.write_file("/delta/file.txt", b"delta content")
@@ -243,7 +265,9 @@ fn syncfs_memory_delta_basic() {
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_whiteout() {
     let _guard = init_pool();
-    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new());
+    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.add_whiteout("/hidden.txt", 1).unwrap();
     assert_eq!(sync.is_whiteout("/hidden.txt").unwrap(), Some(1));
@@ -259,7 +283,9 @@ fn syncfs_memory_delta_whiteout() {
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_list_whiteouts() {
     let _guard = init_pool();
-    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new());
+    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.add_whiteout("/src/a.rs", 1).unwrap();
     sync.add_whiteout("/src/b.rs", 2).unwrap();
@@ -277,7 +303,9 @@ fn syncfs_memory_delta_list_whiteouts() {
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_reset() {
     let _guard = init_pool();
-    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new());
+    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     sync.mkdir("/data").unwrap();
     sync.write_file("/data/file.txt", b"data").unwrap();
@@ -295,7 +323,9 @@ fn syncfs_memory_delta_reset() {
 #[tracing_test::traced_test]
 fn syncfs_memory_delta_flush() {
     let _guard = init_pool();
-    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new());
+    let sync: SyncFs<MemoryDelta> = SyncFs::new(MemoryDelta::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
 
     // Flush should be a no-op for MemoryDelta but must not panic
     sync.flush().unwrap();
@@ -310,7 +340,9 @@ fn syncfs_memory_delta_flush() {
 fn syncfs_memory_concurrent_mkdir() {
     let _guard = init_pool();
 
-    let sync = std::sync::Arc::new(SyncFs::new(MemoryFs::new()));
+    let sync = std::sync::Arc::new(SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))));
 
     let mut handles = Vec::new();
     for i in 0..5 {
@@ -335,7 +367,9 @@ fn syncfs_memory_concurrent_mkdir() {
 fn syncfs_memory_concurrent_write_different_files() {
     let _guard = init_pool();
 
-    let sync = std::sync::Arc::new(SyncFs::new(MemoryFs::new()));
+    let sync = std::sync::Arc::new(SyncFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))));
 
     let mut handles = Vec::new();
     for i in 0..5 {

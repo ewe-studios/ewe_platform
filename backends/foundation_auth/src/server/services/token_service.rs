@@ -3,9 +3,11 @@
 use std::sync::Arc;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
+
+use crate::shared::clock::now_seconds;
 
 use super::super::config::IdpConfig;
 use super::super::models::client::hex_sha256;
@@ -41,12 +43,13 @@ impl std::error::Error for TokenServiceError {}
 
 pub struct TokenService {
     config: Arc<IdpConfig>,
+    clock: Arc<dyn Clock>,
 }
 
 impl TokenService {
     #[must_use]
-    pub fn new(config: Arc<IdpConfig>) -> Self {
-        Self { config }
+    pub fn new(config: Arc<IdpConfig>, clock: Arc<dyn Clock>) -> Self {
+        Self { config, clock }
     }
 
     /// Generate tokens.
@@ -61,7 +64,7 @@ impl TokenService {
         scope: &str,
         nonce: Option<&str>,
     ) -> Result<TokenPair, TokenServiceError> {
-        let now = Utc::now().timestamp();
+        let now = now_seconds(self.clock.as_ref());
         let expires_in = self.config.access_token_ttl.as_secs();
         let exp = now.saturating_add(i64::try_from(expires_in).unwrap_or(i64::MAX));
         let jti = uuid::Uuid::new_v4().to_string();
@@ -80,7 +83,7 @@ impl TokenService {
         let access_token = self
             .config
             .signing_key
-            .sign_claims(&access_claims)
+            .sign_claims(&access_claims, self.clock.as_ref())
             .map_err(|e| TokenServiceError::SigningFailed(e.to_string()))?;
 
         let mut id_claims = serde_json::json!({
@@ -103,7 +106,7 @@ impl TokenService {
         let id_token = self
             .config
             .signing_key
-            .sign_claims(&id_claims)
+            .sign_claims(&id_claims, self.clock.as_ref())
             .map_err(|e| TokenServiceError::SigningFailed(e.to_string()))?;
 
         let refresh_token = generate_refresh_token();
@@ -127,7 +130,7 @@ impl TokenService {
         client: &OAuthClient,
         scope: &str,
     ) -> Result<TokenPair, TokenServiceError> {
-        let now = Utc::now().timestamp();
+        let now = now_seconds(self.clock.as_ref());
         let expires_in = self.config.access_token_ttl.as_secs();
         let exp = now.saturating_add(i64::try_from(expires_in).unwrap_or(i64::MAX));
         let jti = uuid::Uuid::new_v4().to_string();
@@ -146,7 +149,7 @@ impl TokenService {
         let access_token = self
             .config
             .signing_key
-            .sign_claims(&claims)
+            .sign_claims(&claims, self.clock.as_ref())
             .map_err(|e| TokenServiceError::SigningFailed(e.to_string()))?;
 
         Ok(TokenPair {

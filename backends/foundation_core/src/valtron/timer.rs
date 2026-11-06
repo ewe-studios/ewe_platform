@@ -16,12 +16,13 @@
 //! thread cannot be started the futures still complete, by checking the clock
 //! each time they are polled.
 
+use super::{Clock, MonotonicClock};
 use foundation_compact::Instant;
 use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
+use std::sync::{Condvar, Mutex, MutexGuard, OnceLock};
 use std::task::{Context, Poll, Wake, Waker};
 use std::time::Duration;
 
@@ -37,7 +38,9 @@ struct Timers {
 impl Timers {
     fn pending(&self) -> MutexGuard<'_, BTreeMap<(Instant, u64), Waker>> {
         // The map holds no invariant a panic could break.
-        self.pending.lock().unwrap_or_else(PoisonError::into_inner)
+        self.pending
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
     }
 }
 
@@ -62,9 +65,13 @@ fn timers() -> &'static Timers {
 
 /// The timer thread: sleep until the earliest deadline, wake what is due.
 fn run(timers: &'static Timers) {
+    // The timer thread is the executor's parking path: it blocks on the real
+    // operating-system clock (GitHub issue #102). It reads that clock through
+    // the real `Clock` backend rather than the global.
+    let clock = MonotonicClock::new();
     let mut pending = timers.pending();
     loop {
-        let now = Instant::now();
+        let now = clock.now();
         let mut due = Vec::new();
         while let Some(entry) = pending.first_entry() {
             if entry.key().0 > now {
@@ -86,13 +93,13 @@ fn run(timers: &'static Timers) {
                 timers
                     .changed
                     .wait_timeout(pending, wait)
-                    .unwrap_or_else(PoisonError::into_inner)
+                    .unwrap_or_else(crate::compati::recover_poison)
                     .0
             }
             None => timers
                 .changed
                 .wait(pending)
-                .unwrap_or_else(PoisonError::into_inner),
+                .unwrap_or_else(crate::compati::recover_poison),
         };
     }
 }
@@ -111,7 +118,9 @@ pub fn sleep_until(deadline: Instant) -> Sleep {
 /// A future that completes `duration` from now. See [`sleep_until`].
 #[must_use = "a timer does nothing unless awaited"]
 pub fn sleep_for(duration: Duration) -> Sleep {
-    sleep_until(Instant::now() + duration)
+    // The timer thread parks on the real clock (GitHub issue #102), so a
+    // duration-based sleep is measured on the same real backend.
+    sleep_until(MonotonicClock::new().now() + duration)
 }
 
 /// The future returned by [`sleep_until`] and [`sleep_for`].
@@ -133,7 +142,7 @@ impl core::fmt::Debug for Sleep {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("Sleep")
             .field("deadline", &self.key.0)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -141,7 +150,9 @@ impl Future for Sleep {
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
-        if Instant::now() >= self.key.0 {
+        // This future is woken by the real-clock timer thread (GitHub issue
+        // #102), so it checks the same real backend.
+        if MonotonicClock::new().now() >= self.key.0 {
             if self.registered {
                 self.timers.pending().remove(&self.key);
                 self.registered = false;
@@ -181,7 +192,11 @@ struct CallbackWake(Mutex<Option<Box<dyn FnOnce() + Send>>>);
 
 impl Wake for CallbackWake {
     fn wake(self: std::sync::Arc<Self>) {
-        let cb = self.0.lock().unwrap_or_else(PoisonError::into_inner).take();
+        let cb = self
+            .0
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take();
         if let Some(cb) = cb {
             cb();
         }

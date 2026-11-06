@@ -28,7 +28,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, MonotonicClock};
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
@@ -128,7 +128,12 @@ fn json(status: u16, body: &str) -> HttpResponse {
 async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore> {
     let store = FileStateStore::new(dir, "ewe-test", "dev");
     store.init().await.expect("init state store");
-    ProviderClient::new("ewe-test", "dev", store)
+    ProviderClient::new(
+        "ewe-test",
+        "dev",
+        store,
+        std::sync::Arc::new(MonotonicClock::new()),
+    )
 }
 
 fn tmpdir(name: &str) -> std::path::PathBuf {
@@ -166,7 +171,11 @@ fn is_list_query(call: &str) -> bool {
 
 fn server_for(mock: &TestHttpServer, name: &str) -> HetznerServer {
     HetznerServer::new(
-        HetznerClient::new("test-token").with_base_url(mock.base_url().to_string()),
+        HetznerClient::new(
+            "test-token",
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .with_base_url(mock.base_url().to_string()),
         name,
     )
 }
@@ -217,6 +226,7 @@ async fn a_dying_server_does_not_count_as_alive() {
                     },
                 ),
             },
+            &foundation_core::valtron::MonotonicClock::new(),
         )
         .await
         .expect("seeds state");

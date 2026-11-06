@@ -4,8 +4,9 @@
 //! progress indication.
 
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_core::valtron::Clock;
 use indicatif::ProgressBar;
 
 use crate::config::{GuestOs, Result, TestbedError, VmProfile};
@@ -17,14 +18,14 @@ use crate::config::{GuestOs, Result, TestbedError, VmProfile};
 ///
 /// # Errors
 /// Returns an error if the SSH port does not respond before the timeout.
-pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
+pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64, clock: &dyn Clock) -> Result<()> {
     let port = profile.ssh_port;
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    let deadline = clock.now() + Duration::from_secs(timeout_secs);
     let pb = ProgressBar::new_spinner();
     pb.set_message(format!("Waiting for SSH on port {port}..."));
     pb.enable_steady_tick(Duration::from_millis(200));
 
-    while Instant::now() < deadline {
+    while clock.now() < deadline {
         if std::net::TcpStream::connect(("127.0.0.1", port)).is_ok() {
             pb.finish_with_message(format!("SSH ready on 127.0.0.1:{port}"));
             return Ok(());
@@ -46,16 +47,16 @@ pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
 ///
 /// # Errors
 /// Returns an error if no `WinRM` port is set or the port does not respond before the timeout.
-pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
+pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64, clock: &dyn Clock) -> Result<()> {
     let port = profile
         .winrm_port
         .ok_or_else(|| TestbedError::WinrmNotReachable { port: 0 })?;
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    let deadline = clock.now() + Duration::from_secs(timeout_secs);
     let pb = ProgressBar::new_spinner();
     pb.set_message(format!("Waiting for WinRM on port {port}..."));
     pb.enable_steady_tick(Duration::from_millis(200));
 
-    while Instant::now() < deadline {
+    while clock.now() < deadline {
         if std::net::TcpStream::connect(("127.0.0.1", port)).is_ok() {
             pb.finish_with_message(format!("WinRM ready on 127.0.0.1:{port}"));
             return Ok(());
@@ -74,12 +75,12 @@ pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
 ///
 /// # Errors
 /// Returns an error if SSH or `WinRM` does not become ready.
-pub fn wait_for_vm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
-    wait_for_ssh(profile, timeout_secs)?;
+pub fn wait_for_vm(profile: &VmProfile, timeout_secs: u64, clock: &dyn Clock) -> Result<()> {
+    wait_for_ssh(profile, timeout_secs, clock)?;
     if profile.os == GuestOs::Windows {
         // Give WinRM a bit more time to start after SSH is ready
         thread::sleep(Duration::from_secs(5));
-        wait_for_winrm(profile, timeout_secs)?;
+        wait_for_winrm(profile, timeout_secs, clock)?;
     }
     Ok(())
 }

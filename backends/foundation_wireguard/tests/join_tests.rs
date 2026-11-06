@@ -22,7 +22,9 @@ fn peer_id(n: u8) -> PeerId {
 
 fn record(n: u8) -> PeerRecord {
     let ip: IpAddr = format!("10.4.0.{n}").parse().unwrap();
-    let endpoint: SocketAddr = format!("127.0.0.1:{}", 51820 + n as u16).parse().unwrap();
+    let endpoint: SocketAddr = format!("127.0.0.1:{}", 51820 + u16::from(n))
+        .parse()
+        .unwrap();
     PeerRecord::new(peer_id(n), ip, vec![endpoint], Capabilities::default())
 }
 

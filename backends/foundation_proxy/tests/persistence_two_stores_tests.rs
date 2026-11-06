@@ -34,8 +34,16 @@ fn two_stores_on_one_backend_do_not_lose_updates() {
     let dir = temp_state_dir();
     // Two separate store objects: separate in-process locks, one directory.
     let stores = [
-        Arc::new(ProxyStateStore::new(&dir, "two.example")),
-        Arc::new(ProxyStateStore::new(&dir, "two.example")),
+        Arc::new(ProxyStateStore::new(
+            &dir,
+            "two.example",
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )),
+        Arc::new(ProxyStateStore::new(
+            &dir,
+            "two.example",
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )),
     ];
     let start = Arc::new(Barrier::new(2));
 

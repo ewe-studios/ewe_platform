@@ -24,9 +24,9 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::io::SeekFrom;
 use std::sync::Arc;
-use std::time::SystemTime;
 
 use async_trait::async_trait;
+use foundation_core::valtron::Clock;
 use foundation_db::{BlobStore, StorageError};
 use foundation_errstacks::ErrorTrace;
 use futures_lite::StreamExt;
@@ -104,8 +104,14 @@ fn path_hash(path: &str) -> u64 {
     h.finish()
 }
 
-fn new_meta(path: &str, size: u64, file_type: VfsFileType, permissions: u32) -> VfsMetadata {
-    let now = SystemTime::now();
+fn new_meta(
+    path: &str,
+    size: u64,
+    file_type: VfsFileType,
+    permissions: u32,
+    clock: &dyn Clock,
+) -> VfsMetadata {
+    let now = clock.wall_now();
     VfsMetadata {
         inode: path_hash(path),
         size,
@@ -161,6 +167,7 @@ pub struct BlobDelta<S: BlobStore + 'static> {
     store: Arc<S>,
     capabilities: VfsCapabilities,
     chunk_size: usize,
+    clock: Arc<dyn Clock>,
 }
 
 impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
@@ -169,6 +176,7 @@ impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
             store: Arc::clone(&self.store),
             capabilities: self.capabilities,
             chunk_size: self.chunk_size,
+            clock: Arc::clone(&self.clock),
         }
     }
 }
@@ -176,13 +184,17 @@ impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
 impl<S: BlobStore + 'static> BlobDelta<S> {
     /// A delta over `store` with the default configuration.
     #[must_use]
-    pub fn from_store(store: S) -> Self {
-        Self::from_store_with_config(store, BlobDeltaConfig::default())
+    pub fn from_store(store: S, clock: Arc<dyn Clock>) -> Self {
+        Self::from_store_with_config(store, BlobDeltaConfig::default(), clock)
     }
 
     /// A delta over `store` with `config`.
     #[must_use]
-    pub fn from_store_with_config(store: S, config: BlobDeltaConfig) -> Self {
+    pub fn from_store_with_config(
+        store: S,
+        config: BlobDeltaConfig,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             store: Arc::new(store),
             capabilities: VfsCapabilities {
@@ -193,6 +205,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
                 persistent: true,
             },
             chunk_size: config.chunk_size.max(1),
+            clock,
         }
     }
 
@@ -341,9 +354,9 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         let mut meta = self
             .get_meta(path)
             .await?
-            .unwrap_or_else(|| new_meta(path, 0, VfsFileType::Regular, 0o644));
+            .unwrap_or_else(|| new_meta(path, 0, VfsFileType::Regular, 0o644, self.clock.as_ref()));
         meta.size = size;
-        meta.modified = Some(SystemTime::now());
+        meta.modified = Some(self.clock.wall_now());
         self.store_meta(path, &meta).await
     }
 
@@ -372,6 +385,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
                 data.len() as u64,
                 VfsFileType::Regular,
                 0o644,
+                self.clock.as_ref(),
             )),
             None => Err(not_found(path)),
         }
@@ -400,8 +414,11 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         for key in self.list_keys_after(&Self::data_prefix(path)).await? {
             self.store.delete_blob(&key).await.map_err(serr)?;
         }
-        self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular, mode))
-            .await?;
+        self.store_meta(
+            path,
+            &new_meta(path, 0, VfsFileType::Regular, mode, self.clock.as_ref()),
+        )
+        .await?;
         // A path created again is no longer whited out.
         self.store
             .delete_blob(&Self::whiteout_key(path))
@@ -411,8 +428,11 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     }
 
     async fn mkdir(&self, path: &str) -> VfsResult<()> {
-        self.store_meta(path, &new_meta(path, 0, VfsFileType::Directory, 0o755))
-            .await?;
+        self.store_meta(
+            path,
+            &new_meta(path, 0, VfsFileType::Directory, 0o755, self.clock.as_ref()),
+        )
+        .await?;
         self.store
             .delete_blob(&Self::whiteout_key(path))
             .await

@@ -56,7 +56,7 @@ where
     C: TaskIterator<Ready = u32, Pending = String>,
     O: Iterator<Item = Stream<u32, String>>,
 {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let n = observers.len();
     let mut branches: Vec<Vec<u32>> = vec![Vec::new(); n];
     let mut forwarded: Vec<u32> = Vec::new();
@@ -184,7 +184,7 @@ fn pop_next<O: Iterator<Item = Stream<u32, String>>>(obs: &mut O) -> Option<u32>
 /// branch is full, then resume and deliver once both branches drain — zero loss.
 #[test]
 fn test_broadcast_parks_on_full_branch_and_resumes() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = BroadcastTestTask::new(vec![TaskStatus::Ready(10), TaskStatus::Ready(20)]);
     let (mut observers, mut cont) = task.broadcast(2, |_v| true, 1);
 

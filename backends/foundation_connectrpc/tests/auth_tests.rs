@@ -369,7 +369,9 @@ fn test_jwt_authenticator_valid_token() {
         "iss": "test-issuer",
         "aud": "test-audience",
     });
-    let token = key_pair.sign_claims(&claims).expect("valid signature");
+    let token = key_pair
+        .sign_claims(&claims, &foundation_core::valtron::MonotonicClock::new())
+        .expect("valid signature");
 
     // Build request with bearer token
     let headers = {

@@ -1,4 +1,4 @@
-//! Tests for PlatformSession — the central coordination bus.
+//! Tests for `PlatformSession` — the central coordination bus.
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
@@ -6,7 +6,32 @@ use std::sync::{Arc, RwLock};
 use foundation_platform::*;
 
 fn session() -> Arc<PlatformSession> {
-    PlatformSession::new_test(std::path::PathBuf::from("."))
+    PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+}
+
+/// A handler that answers `/app/` routes.
+struct A;
+
+impl RouteHandler for A {
+    fn resolve(&self, i: &NavigationIntent, _: &PlatformSession) -> Option<RouteDecision> {
+        if i.url.contains("/app/") {
+            Some(webview_app())
+        } else {
+            None
+        }
+    }
+}
+
+/// A handler that must never be reached after `A` matched.
+struct B;
+
+impl RouteHandler for B {
+    fn resolve(&self, _: &NavigationIntent, _: &PlatformSession) -> Option<RouteDecision> {
+        panic!("B should never be called");
+    }
 }
 
 fn intent(url: &str) -> NavigationIntent {
@@ -33,24 +58,6 @@ fn starts_with_valid_state() {
 #[test]
 fn first_match_wins() {
     let s = session();
-
-    struct A;
-    impl RouteHandler for A {
-        fn resolve(&self, i: &NavigationIntent, _: &PlatformSession) -> Option<RouteDecision> {
-            if i.url.contains("/app/") {
-                Some(webview_app())
-            } else {
-                None
-            }
-        }
-    }
-
-    struct B;
-    impl RouteHandler for B {
-        fn resolve(&self, _: &NavigationIntent, _: &PlatformSession) -> Option<RouteDecision> {
-            panic!("B should never be called");
-        }
-    }
 
     s.register_handler(A);
     s.register_handler(B);

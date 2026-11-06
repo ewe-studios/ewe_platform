@@ -11,7 +11,8 @@
 //! use foundation_deployment_platform::qemu::QemuConfig;
 //!
 //! let profile = get_profile("windows-build").unwrap();
-//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless)
+//! let clock = Arc::new(MonotonicClock::new());
+//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless, clock)
 //!     .launch()
 //!     .unwrap();
 //! ```
@@ -38,6 +39,11 @@
 // ── Core types (always available — used by Docker provider) ──────────────
 
 pub mod providers;
+
+/// Wall-clock conversions from the injected `Clock`. The VM surface uses them;
+/// the Docker surface reads only the monotonic clock.
+#[cfg(feature = "vms")]
+mod clock;
 
 // ── VM types (available with vms) ────────────────────────────────────────
 

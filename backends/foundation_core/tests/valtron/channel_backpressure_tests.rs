@@ -108,7 +108,6 @@ fn test_store_and_retry_pattern() {
 #[test]
 // producer/produced/consumer/consumed are the domain vocabulary here — renaming
 // them to satisfy similar_names would make the test harder to follow.
-#[allow(clippy::similar_names)]
 fn test_bounded_queue_producer_consumer_coordination() {
     use std::thread;
 
@@ -162,13 +161,13 @@ fn test_bounded_queue_producer_consumer_coordination() {
         consumed
     });
 
-    let (produced, pending) = producer.join().expect("producer should complete");
-    let consumed = consumer.join().expect("consumer should complete");
+    let (sent, sent_pending) = producer.join().expect("producer should complete");
+    let received = consumer.join().expect("consumer should complete");
 
     // All consumed values should have been produced
-    for c in &consumed {
+    for c in &received {
         assert!(
-            produced.contains(c) || pending == Some(*c),
+            sent.contains(c) || sent_pending == Some(*c),
             "Consumed value {c:} should be in produced or pending",
         );
     }
@@ -322,7 +321,7 @@ impl TaskIterator for SeqTask {
 fn test_split_continuation_parks_on_full_observer_no_loss() {
     use foundation_core::valtron::{Stream, TaskIteratorExt};
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Three matched items through a depth-1 (queue_size = 1) observer queue.
     let task = SeqTask {
         items: vec![
@@ -404,7 +403,7 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 fn test_split_continuation_survives_dropped_observer() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SeqTask {
         items: vec![
             TaskStatus::Ready(1),

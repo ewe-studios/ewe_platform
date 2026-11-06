@@ -12,6 +12,14 @@
 //! handshake completes) and then stays silent. Twenty probes must each return
 //! `false` in about the probe timeout — not the 10 s handshake timeout — and the
 //! process must return to its baseline thread and file-descriptor counts.
+//!
+//! The baseline follows one warm-up probe. The first probe starts the two
+//! process-wide helper threads that the probe path creates on first use: the
+//! `valtron-timer` wheel that `sleep_async` needs, and the shared reactor's
+//! `reactor-drain` thread when the H2 pump parks on fd readiness. They run
+//! until the process exits by design, so they are not per-probe leaks. The
+//! warm-up puts them in the baseline, and the check then covers only the growth
+//! that the 20 measured probes add.
 
 use std::io::{Read, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -91,7 +99,31 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
 
     let base_url = format!("grpc://127.0.0.1:{port}");
 
-    // The accept thread is now part of the baseline (it is constant for the test).
+    // Warm up the probe path before the baseline. The first probe starts the
+    // process-wide helper threads that the probe path creates on first use: the
+    // `valtron-timer` thread that `sleep_async` needs, and — when the H2 pump
+    // parks on fd readiness — the shared reactor's `reactor-drain` thread. Both
+    // live until the process exits by design, so they are not per-probe leaks.
+    // A probe before the baseline makes them part of it; any thread that the 20
+    // measured probes add is then a real leak.
+    #[cfg(target_os = "linux")]
+    let fds_before_warmup = fd_count();
+    assert!(
+        !probe_grpc_health(&base_url, timeout),
+        "a silent backend must fail its health probe"
+    );
+    // The warm-up pump closes its socket just after the probe returns. Wait for
+    // that descriptor to go, so a transient one is not in the baseline.
+    #[cfg(target_os = "linux")]
+    {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while Instant::now() < deadline && fd_count() > fds_before_warmup {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    // The accept thread and the helper threads are now part of the baseline
+    // (both are constant for the test).
     #[cfg(target_os = "linux")]
     let (base_threads, base_fds) = (thread_count(), fd_count());
 

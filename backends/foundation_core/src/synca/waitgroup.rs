@@ -1,4 +1,4 @@
-//! WaitGroup - Thread completion tracking primitive.
+//! `WaitGroup` - Thread completion tracking primitive.
 //!
 //! WHY: Provides a counting barrier for tracking N outstanding work items.
 //!
@@ -60,14 +60,14 @@ impl WaitGroup {
     /// Increment the counter by n.
     pub fn add(&self, n: usize) {
         let (lock, _) = &*self.inner;
-        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         *count += n;
     }
 
     /// Decrement the counter. If it reaches 0, wake all waiters.
     pub fn done(&self) {
         let (lock, cond) = &*self.inner;
-        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         debug_assert!(*count > 0, "WaitGroup::done() called more times than add()");
         *count -= 1;
         if *count == 0 {
@@ -80,9 +80,11 @@ impl WaitGroup {
     /// Block until count reaches 0.
     pub fn wait(&self) {
         let (lock, cond) = &*self.inner;
-        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         while *count != 0 {
-            count = cond.wait(count).unwrap_or_else(|p| p.into_inner());
+            count = cond
+                .wait(count)
+                .unwrap_or_else(crate::compati::recover_poison);
         }
     }
 
@@ -95,19 +97,21 @@ impl WaitGroup {
     /// spurious condvar wakeups shorten the remaining wait rather than resetting
     /// it.
     #[must_use]
-    pub fn wait_timeout(&self, timeout: std::time::Duration) -> bool {
+    pub fn wait_timeout(
+        &self,
+        timeout: std::time::Duration,
+        clock: &dyn crate::valtron::Clock,
+    ) -> bool {
         let (lock, cond) = &*self.inner;
-        let deadline = foundation_compact::Instant::now() + timeout;
-        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        let deadline = clock.now() + timeout;
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         while *count != 0 {
-            let Some(remaining) =
-                deadline.checked_duration_since(foundation_compact::Instant::now())
-            else {
+            let Some(remaining) = deadline.checked_duration_since(clock.now()) else {
                 return false;
             };
             let (next, res) = cond
                 .wait_timeout(count, remaining)
-                .unwrap_or_else(|p| p.into_inner());
+                .unwrap_or_else(crate::compati::recover_poison);
             count = next;
             if res.timed_out() && *count != 0 {
                 return false;

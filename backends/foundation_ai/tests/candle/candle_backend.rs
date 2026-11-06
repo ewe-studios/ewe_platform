@@ -1,7 +1,7 @@
-//! Unit tests for Candle backend configuration, config builder, and AuthProvider.
+//! Unit tests for Candle backend configuration, config builder, and `AuthProvider`.
 //!
-//! These tests verify config defaults, builder patterns, AuthProvider trait,
-//! dtype conversion, and repo_id parsing without requiring model files.
+//! These tests verify config defaults, builder patterns, `AuthProvider` trait,
+//! dtype conversion, and `repo_id` parsing without requiring model files.
 
 #![cfg(feature = "candle")]
 
@@ -16,6 +16,11 @@ use foundation_ai::types::{AuthProvider, ModelProvider};
 // ==================================
 // CandleBackendConfig Tests
 // ==================================
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[test]
 fn test_candle_backend_config_default() {
@@ -97,7 +102,7 @@ fn test_huggingface_candle_config_default() {
     assert!(matches!(config.architecture, CandleArchitecture::Llama));
     assert!(config.auth.is_none());
     // cache_dir should default to some HF cache path (not None)
-    assert!(config.cache_dir.as_os_str().len() > 0);
+    assert!(!config.cache_dir.as_os_str().is_empty());
 }
 
 #[test]
@@ -149,7 +154,7 @@ fn test_huggingface_candle_config_clone_skips_auth() {
 
 #[test]
 fn test_candle_backend_cpu_creation() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let descriptor = backend.describe().unwrap();
 
     assert_eq!(descriptor.id, "candle");
@@ -159,7 +164,7 @@ fn test_candle_backend_cpu_creation() {
 
 #[test]
 fn test_candle_backend_create_with_config() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let config = CandleBackendConfig::builder().context_length(2048).build();
 
     let result = backend.create(Some(config));
@@ -172,14 +177,14 @@ fn test_candle_backend_create_with_config() {
 
 #[test]
 fn test_candle_backend_create_without_config() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let result = backend.create(None::<CandleBackendConfig>);
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_candle_backend_get_model_requires_path() {
-    let backend = CandleBackend::cpu();
+    let backend = CandleBackend::cpu(test_clock());
     let result = backend.get_model(foundation_ai::types::ModelId::Name(
         "test".to_string(),
         None,
@@ -228,7 +233,7 @@ fn test_huggingface_candle_provider_describe() {
         .cache_dir("/tmp/candle_test")
         .build();
 
-    let provider = HuggingFaceCandleProvider::new(config).unwrap();
+    let provider = HuggingFaceCandleProvider::new(config, test_clock()).unwrap();
     let descriptor = provider.describe().unwrap();
 
     assert_eq!(descriptor.id, "huggingface-candle");
@@ -237,6 +242,6 @@ fn test_huggingface_candle_provider_describe() {
         descriptor.provider,
         foundation_ai::types::ModelProviders::HUGGINGFACE
     );
-    assert_eq!(descriptor.base_url, Some("https://huggingface.co".into()));
+    assert_eq!(descriptor.base_url, Some("https://huggingface.co"));
     assert!(!descriptor.reasoning);
 }

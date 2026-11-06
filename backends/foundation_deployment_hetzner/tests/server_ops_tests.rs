@@ -139,7 +139,11 @@ fn ssh_keys_json(keys: &[(i64, &str, &str)]) -> String {
 fn client_for(server: &TestHttpServer) -> HetznerClient {
     // Inject the token rather than exporting it: std::env is process-global and
     // these tests run threaded (decision 02 §5).
-    HetznerClient::new("test-token").with_base_url(server.base_url().to_string())
+    HetznerClient::new(
+        "test-token",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .with_base_url(server.base_url().to_string())
 }
 
 // ── create ───────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 //! Background Job Registry — fixed thread pool for blocking, fire-and-forget closures.
 //!
-//! WHY: ThreadedFuture and other code spawns unbounded OS threads for blocking work.
+//! WHY: `ThreadedFuture` and other code spawns unbounded OS threads for blocking work.
 //! A fixed pool prevents thread explosion and reuses threads across jobs.
 //!
 //! WHAT: `BackgroundJobRegistry` owns N worker threads that take jobs from a
@@ -17,7 +17,6 @@ use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 
-use foundation_compact::Instant;
 use foundation_nostd::comp::condvar_comp::{CondVar, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
@@ -71,7 +70,7 @@ impl JobQueue {
     fn lock(&self) -> MutexGuard<'_, QueueState> {
         self.state
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .unwrap_or_else(crate::compati::recover_poison)
     }
 
     fn push(&self, job: BackgroundJob) -> Result<(), JobPushError> {
@@ -103,7 +102,7 @@ impl JobQueue {
             state = self
                 .available
                 .wait(state)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(crate::compati::recover_poison);
         }
     }
 
@@ -342,7 +341,7 @@ impl BackgroundJobRegistry {
         *registry
             .thread_handles
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner()) = handles;
+            .unwrap_or_else(crate::compati::recover_poison) = handles;
 
         Ok(registry)
     }
@@ -351,7 +350,7 @@ impl BackgroundJobRegistry {
     ///
     /// WHY: Core execution loop for background workers
     /// WHAT: Takes jobs from the queue and executes them with panic protection
-    /// HOW: Block until a job arrives -> catch_unwind(job) -> repeat; exit once
+    /// HOW: Block until a job arrives -> `catch_unwind(job)` -> repeat; exit once
     /// the queue is closed and empty
     fn worker_loop(queue: &JobQueue, worker_id: usize) {
         let runner = format!("worker {worker_id}");
@@ -383,7 +382,7 @@ impl BackgroundJobRegistry {
     /// threads, and that can never hang on a job that does not return.
     /// WHAT: Closes the queue and waits, up to the shutdown timeout, for the
     /// workers to drain it and exit. See the type-level "Shutdown semantics".
-    /// HOW: close + notify_all -> `waitgroup.wait_timeout(deadline)`.
+    /// HOW: close + `notify_all` -> `waitgroup.wait_timeout(deadline)`.
     /// - In time: join every worker. Jobs still queued (only possible if every
     ///   worker died outside a job) run on the calling thread while the
     ///   deadline allows; the rest are dropped.
@@ -394,15 +393,15 @@ impl BackgroundJobRegistry {
     /// Idempotent; concurrent callers each wait at most the timeout. Must not
     /// be called from inside a background job (it would wait for itself until
     /// the timeout).
-    pub fn shutdown(&self) -> ShutdownOutcome {
-        let deadline = Instant::now() + self.shutdown_timeout;
+    pub fn shutdown(&self, clock: &dyn crate::valtron::Clock) -> ShutdownOutcome {
+        let deadline = clock.now() + self.shutdown_timeout;
         self.queue.close();
-        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout);
+        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout, clock);
 
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
             .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .unwrap_or_else(crate::compati::recover_poison)
             .drain(..)
             .collect();
         let mut busy_workers = 0;
@@ -427,7 +426,7 @@ impl BackgroundJobRegistry {
             );
         }
         for job in leftover {
-            if drained_in_time && Instant::now() < deadline {
+            if drained_in_time && clock.now() < deadline {
                 run_job(job, "the shutdown caller");
             } else {
                 abandoned_jobs += 1;
@@ -473,7 +472,7 @@ impl Drop for BackgroundJobRegistry {
 /// `task_threads = total / 2`. The bg pool gets burst capacity; the task pool
 /// still gets enough threads to multiplex since idle tasks park.
 ///
-/// HOW: task_threads = max(2, total / 2), bg_threads = total.
+/// HOW: `task_threads` = max(2, total / 2), `bg_threads` = total.
 ///
 /// # Panics
 ///

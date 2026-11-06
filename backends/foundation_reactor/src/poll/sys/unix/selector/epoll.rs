@@ -172,10 +172,10 @@ impl Selector {
     /// then resumes for the time that is left. A signal must never make the
     /// call return before the timeout the caller asked for.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let deadline = timeout.map(|d| Instant::now() + d);
+        let deadline = timeout.map(|d| os_now() + d);
 
         loop {
-            let timeout_ms = deadline.map_or(-1, remaining_ms);
+            let timeout_ms = deadline.map_or(-1, |d| remaining_ms(d, os_now()));
 
             // Get pointer to the Vec's buffer and its capacity (not length).
             // The Vec has capacity but length 0 — epoll_wait writes directly into
@@ -197,7 +197,7 @@ impl Selector {
                     // A caught signal cut the wait short. Run out the clock
                     // instead of reporting a timeout the caller did not ask for.
                     events.clear();
-                    if deadline.is_none_or(|deadline| Instant::now() < deadline) {
+                    if deadline.is_none_or(|deadline| os_now() < deadline) {
                         continue;
                     }
                     return Ok(());
@@ -224,13 +224,24 @@ impl Selector {
     }
 }
 
+/// The real monotonic clock for the kernel wait arithmetic.
+///
+/// The selector blocks in the operating system, so the deadline it recomputes
+/// after an interrupt must use the operating system's monotonic clock. A
+/// simulated clock would break the real block. This is the same boundary as
+/// the executor's blocking waits (GitHub issue #102).
+fn os_now() -> Instant {
+    use foundation_core::valtron::Clock as _;
+    foundation_core::valtron::MonotonicClock::new().now()
+}
+
 /// Milliseconds left until `deadline`, for `epoll_wait`'s timeout argument.
 ///
 /// Rounds up, so a remainder below one millisecond still waits instead of
 /// turning into a zero timeout, and caps at `c_int::MAX` (about 24 days).
 #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-fn remaining_ms(deadline: Instant) -> libc::c_int {
-    let remaining = deadline.saturating_duration_since(Instant::now());
+fn remaining_ms(deadline: Instant, now: Instant) -> libc::c_int {
+    let remaining = deadline.saturating_duration_since(now);
     let millis = remaining.as_nanos().div_ceil(1_000_000);
     millis.min(libc::c_int::MAX as u128) as libc::c_int
 }

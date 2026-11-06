@@ -8,6 +8,8 @@
 use std::cell::{Cell, RefCell};
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use foundation_core::valtron::Clock;
+
 use crate::shared::activity::Activity;
 use crate::shared::commands::{CommandRegistry, CommandResult};
 use crate::shared::config::ReplConfig;
@@ -31,18 +33,20 @@ pub struct Repl {
     commands: RefCell<CommandRegistry>,
     history: RefCell<ReplHistory>,
     exited: Cell<bool>,
+    /// The clock the activity indicator measures elapsed time on.
+    clock: Arc<dyn Clock>,
 }
 
 impl Repl {
     /// Create a new REPL with default config, using the platform-native backend.
     #[must_use]
-    pub fn new() -> Self {
-        Self::with_config(ReplConfig::default())
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
+        Self::with_config(ReplConfig::default(), clock)
     }
 
-    /// Create a new REPL with custom config.
+    /// Create a new REPL with custom config and the injected clock.
     #[must_use]
-    pub fn with_config(config: ReplConfig) -> Self {
+    pub fn with_config(config: ReplConfig, clock: Arc<dyn Clock>) -> Self {
         let (input, display) = Self::make_backend(config.theme.clone());
         Self {
             config,
@@ -51,6 +55,7 @@ impl Repl {
             commands: RefCell::new(CommandRegistry::new()),
             history: RefCell::new(ReplHistory::new(1000)),
             exited: Cell::new(false),
+            clock,
         }
     }
 
@@ -117,9 +122,11 @@ impl Repl {
     /// # Examples
     ///
     /// ```no_run
+    /// use foundation_core::valtron::MonotonicClock;
     /// use foundation_repl::Repl;
+    /// use std::sync::Arc;
     ///
-    /// let repl = Repl::new();
+    /// let repl = Repl::new(Arc::new(MonotonicClock::new()));
     /// for input in repl.messages() {
     ///     let stream = repl.animation("thinking");
     ///     for chunk in answer(&input) {
@@ -135,6 +142,7 @@ impl Repl {
             Arc::clone(&self.display),
             self.config.theme.activity.clone(),
             label.into(),
+            Arc::clone(&self.clock),
         )
     }
 
@@ -163,12 +171,6 @@ impl Repl {
         self.display
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
-    }
-}
-
-impl Default for Repl {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -276,12 +278,22 @@ impl Iterator for ReplMessageIter<'_> {
 }
 
 /// Builder for customizing a REPL.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct ReplBuilder {
     config: ReplConfig,
+    clock: Option<Arc<dyn Clock>>,
 }
 
 impl ReplBuilder {
+    /// Set the clock the activity indicator measures elapsed time on.
+    ///
+    /// Required: there is no fallback to the real clock.
+    #[must_use]
+    pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
+        self.clock = Some(clock);
+        self
+    }
+
     /// Set the primary prompt.
     #[must_use]
     pub fn prompt(mut self, s: impl Into<String>) -> Self {
@@ -325,8 +337,15 @@ impl ReplBuilder {
     }
 
     /// Build the REPL.
+    ///
+    /// # Panics
+    /// Panics when [`ReplBuilder::clock`] was not called. A REPL without an
+    /// injected clock is a design fault, and a fallback would read the global.
     #[must_use]
     pub fn build(self) -> Repl {
-        Repl::with_config(self.config)
+        let clock = self
+            .clock
+            .expect("ReplBuilder::build needs the injected clock; call .clock(clock)");
+        Repl::with_config(self.config, clock)
     }
 }

@@ -1,4 +1,4 @@
-//! Code-first ConnectRPC service generation (Feature 27, Decision 10 Mode 3).
+//! Code-first `ConnectRPC` service generation (Feature 27, Decision 10 Mode 3).
 //!
 //! WHY: Proto is not the only source of truth. A service may be defined as a
 //! plain Rust trait via `#[foundation_connectrpc::service(package = "…", codecs(…))]`, and
@@ -7,7 +7,7 @@
 //!
 //! WHAT: Two proc-macro entry points:
 //!   - `#[service]` (attribute) — transforms a trait into the full set of
-//!     ConnectRPC service items, also emitting a `#[macro_export]` descriptor
+//!     `ConnectRPC` service items, also emitting a `#[macro_export]` descriptor
 //!     macro for cross-crate generation.
 //!   - `generate!` (function-like) — syntactic sugar that expands a cross-crate
 //!     descriptor macro inside a module.
@@ -15,7 +15,7 @@
 //! HOW: The attribute macro parses the trait, classifies each method's stream
 //! shape by return type and argument pattern, then emits the service name
 //! constant, procedure module, trait (with default unimplemented bodies),
-//! registration fn, UnimplementedHandler, typed Client struct, ClientTrait,
+//! registration fn, `UnimplementedHandler`, typed Client struct, `ClientTrait`,
 //! and the descriptor macro.
 
 use proc_macro2::TokenStream;
@@ -77,7 +77,7 @@ impl Parse for ServiceAttr {
 
 // ── RPC method shape ───────────────────────────────────────────────────────
 
-/// The four ConnectRPC streaming shapes (Decision 04).
+/// The four `ConnectRPC` streaming shapes (Decision 04).
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum MethodKind {
     Unary,
@@ -88,7 +88,7 @@ enum MethodKind {
 
 /// Information extracted from one trait method.
 struct MethodInfo {
-    /// snake_case variant (e.g. `"greet"`).
+    /// `snake_case` variant (e.g. `"greet"`).
     snake: String,
     /// Token stream of the request inner type (e.g. `GreetRequest`).
     req_type: TokenStream,
@@ -165,7 +165,7 @@ fn type_mentions_stream(ty: &Type) -> bool {
 fn request_is_stream(sig: &syn::Signature) -> bool {
     sig.inputs.iter().any(|arg| match arg {
         FnArg::Typed(pt) => type_mentions_stream(&pt.ty),
-        _ => false,
+        FnArg::Receiver(_) => false,
     })
 }
 
@@ -173,7 +173,7 @@ fn request_is_stream(sig: &syn::Signature) -> bool {
 fn response_is_stream(ret: &ReturnType) -> bool {
     match ret {
         ReturnType::Type(_, ty) => type_mentions_stream(ty),
-        _ => false,
+        ReturnType::Default => false,
     }
 }
 
@@ -295,22 +295,21 @@ fn extract_req_type(sig: &syn::Signature) -> TokenStream {
         return quote!(()); // Fallback
     }
 
-    match non_self[1] {
-        FnArg::Typed(PatType { ty, .. }) => {
-            // Request<T> → T
-            if let Some(t) = extract_type_arg(ty, "Request") {
-                return quote!(#t);
-            }
-
-            // impl Stream<Item = ConnectResult<T>> → T
-            if type_mentions_stream(ty) {
-                return extract_stream_item_inner(ty);
-            }
-
-            // Fallback: emit the type as-is
-            quote!(#ty)
+    if let Some(FnArg::Typed(PatType { ty, .. })) = non_self.get(1) {
+        // Request<T> → T
+        if let Some(t) = extract_type_arg(ty, "Request") {
+            return quote!(#t);
         }
-        _ => quote!(()),
+
+        // impl Stream<Item = ConnectResult<T>> → T
+        if type_mentions_stream(ty) {
+            return extract_stream_item_inner(ty);
+        }
+
+        // Fallback: emit the type as-is
+        quote!(#ty)
+    } else {
+        quote!(())
     }
 }
 
@@ -320,28 +319,27 @@ fn extract_req_type(sig: &syn::Signature) -> TokenStream {
 /// - `ConnectResult<Response<T>>` → `T` (unary / client-stream)
 /// - `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T` (server / bidi)
 fn extract_res_type(ret: &ReturnType) -> TokenStream {
-    match ret {
-        ReturnType::Type(_, ty) => {
-            // Streaming FIRST: `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T`.
-            // This must precede the `Response` unwrap: `extract_response_from_connect_result`
-            // falls back to returning the whole `ConnectResult` inner when it finds no
-            // `Response<…>`, which for a streaming method is the `impl Stream<…>` type —
-            // the wrong answer (and illegal nested `impl Trait` downstream).
-            if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
-                if type_mentions_stream(inner) {
-                    return extract_stream_item_inner(inner);
-                }
+    if let ReturnType::Type(_, ty) = ret {
+        // Streaming FIRST: `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T`.
+        // This must precede the `Response` unwrap: `extract_response_from_connect_result`
+        // falls back to returning the whole `ConnectResult` inner when it finds no
+        // `Response<…>`, which for a streaming method is the `impl Stream<…>` type —
+        // the wrong answer (and illegal nested `impl Trait` downstream).
+        if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
+            if type_mentions_stream(inner) {
+                return extract_stream_item_inner(inner);
             }
-
-            // Unary / client-stream: `ConnectResult<Response<T>>` → `T`.
-            if let Some(r) = extract_response_from_connect_result(ty) {
-                return r;
-            }
-
-            // Fallback
-            quote!(#ty)
         }
-        _ => quote!(()),
+
+        // Unary / client-stream: `ConnectResult<Response<T>>` → `T`.
+        if let Some(r) = extract_response_from_connect_result(ty) {
+            return r;
+        }
+
+        // Fallback
+        quote!(#ty)
+    } else {
+        quote!(())
     }
 }
 
@@ -352,24 +350,24 @@ fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
     let name = method.sig.ident.to_string();
     let snake = to_snake_case(&name);
 
-    let req_stream = request_is_stream(&method.sig);
-    let res_stream = response_is_stream(&method.sig.output);
+    let request_stream = request_is_stream(&method.sig);
+    let response_stream = response_is_stream(&method.sig.output);
 
-    let kind = match (req_stream, res_stream) {
+    let kind = match (request_stream, response_stream) {
         (false, false) => MethodKind::Unary,
         (false, true) => MethodKind::ServerStream,
         (true, false) => MethodKind::ClientStream,
         (true, true) => MethodKind::BidiStream,
     };
 
-    let req_type = extract_req_type(&method.sig);
-    let res_type = extract_res_type(&method.sig.output);
+    let request_type = extract_req_type(&method.sig);
+    let response_type = extract_res_type(&method.sig.output);
     let span = method.sig.span();
 
     MethodInfo {
         snake,
-        req_type,
-        res_type,
+        req_type: request_type,
+        res_type: response_type,
         kind,
         span,
     }
@@ -377,7 +375,7 @@ fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
 
 // ── Name conversion ────────────────────────────────────────────────────────
 
-/// Convert snake_case to PascalCase (e.g. `greet_group` → `GreetGroup`).
+/// Convert `snake_case` to `PascalCase` (e.g. `greet_group` → `GreetGroup`).
 fn to_pascal_case(name: &str) -> String {
     name.split('_')
         .filter(|s| !s.is_empty())
@@ -402,11 +400,11 @@ fn to_snake_case(name: &str) -> String {
                 let prev = chars[i - 1];
                 let next = chars.get(i + 1).copied();
                 let prev_lower = prev.is_lowercase() || prev.is_ascii_digit();
-                let next_lower = next.map_or(false, |n| n.is_lowercase());
-                if prev_lower || (next_lower && i + 1 < len) {
-                    if result.as_bytes().last() != Some(&b'_') {
-                        result.push('_');
-                    }
+                let next_lower = next.is_some_and(char::is_lowercase);
+                if (prev_lower || (next_lower && i + 1 < len))
+                    && result.as_bytes().last() != Some(&b'_')
+                {
+                    result.push('_');
                 }
             }
             result.push(c.to_ascii_lowercase());
@@ -462,19 +460,10 @@ fn ensure_send_sync_static(trait_def: &mut ItemTrait) {
 /// pins a concrete return type (`Response<Res>` for unary/client-stream, a boxed
 /// `Pin<Box<dyn Stream + Send>>` for server/bidi-stream), so the `Err` Ok-type
 /// infers with no annotation — no hidden `impl Stream` to pin.
-fn make_default_body(kind: MethodKind, path_const: &Ident, _res_type: &TokenStream) -> syn::Block {
-    let tokens = match kind {
-        MethodKind::Unary | MethodKind::ClientStream => {
-            quote! {{
-                Err(foundation_connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
-            }}
-        }
-        MethodKind::ServerStream | MethodKind::BidiStream => {
-            quote! {{
-                Err(foundation_connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
-            }}
-        }
-    };
+fn make_default_body(_kind: MethodKind, path_const: &Ident, _res_type: &TokenStream) -> syn::Block {
+    let tokens = quote! {{
+        Err(foundation_connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
+    }};
     syn::parse2(tokens).expect("connectrpc_service: failed to parse default body")
 }
 
@@ -570,20 +559,24 @@ fn add_default_bodies(trait_def: &mut ItemTrait) {
 
 /// Generate the `ProcedureCodecs::<Req, Res>::of(…)` expression for the
 /// requested codec families.
-fn codec_expr(codecs: &[String], req_type: &TokenStream, res_type: &TokenStream) -> TokenStream {
+fn codec_expr(
+    codecs: &[String],
+    request_type: &TokenStream,
+    response_type: &TokenStream,
+) -> TokenStream {
     let has_proto = codecs.iter().any(|c| c == "proto");
     let has_json = codecs.iter().any(|c| c == "json");
     let has_arrow = codecs.iter().any(|c| c == "arrow");
 
     if has_proto {
         // proto always pairs with json
-        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::defaults() }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#request_type, #response_type>::defaults() }
     } else if has_arrow && !has_json {
         // Arrow-only
-        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::only(foundation_connectrpc::ArrowCodec) }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#request_type, #response_type>::only(foundation_connectrpc::ArrowCodec) }
     } else if has_json && !has_arrow {
         // Json-only
-        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::of((foundation_connectrpc::JsonCodec,)) }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#request_type, #response_type>::of((foundation_connectrpc::JsonCodec,)) }
     } else {
         // Both json + arrow (or default = json)
         let inner = if has_arrow {
@@ -591,7 +584,7 @@ fn codec_expr(codecs: &[String], req_type: &TokenStream, res_type: &TokenStream)
         } else {
             quote! { (foundation_connectrpc::JsonCodec,) }
         };
-        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::of(#inner) }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#request_type, #response_type>::of(#inner) }
     }
 }
 
@@ -600,6 +593,10 @@ fn codec_expr(codecs: &[String], req_type: &TokenStream, res_type: &TokenStream)
 /// Entry point for the `#[service]` attribute macro.
 /// Accepts `proc_macro2::TokenStream` (converted from `proc_macro::TokenStream`
 /// by the `#[proc_macro_attribute]` wrapper in `lib.rs`).
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear expansion that assembles every generated artifact in order"
+)]
 pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attr_args: ServiceAttr = match parse2(attr) {
         Ok(a) => a,
@@ -645,7 +642,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     let client_trait_ident = format_ident!("{}ClientExt", svc_name);
     let descriptor_macro_ident = format_ident!("{}_rpc_definitions", svc_snake);
 
-    let qualified_name = format!("{}.{}", package, svc_name);
+    let qualified_name = format!("{package}.{svc_name}");
 
     // ── Procedure constants ───────────────────────────────────────────────
     let procedure_consts: Vec<TokenStream> = methods
@@ -653,7 +650,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         .map(|m| {
             let const_name = Ident::new(&m.snake.to_uppercase(), m.span);
             let pascal_name = to_pascal_case(&m.snake);
-            let path = format!("/{}.{}/{}", package, svc_name, pascal_name);
+            let path = format!("/{package}.{svc_name}/{pascal_name}");
             quote! {
                 /// Procedure path for #path.
                 pub const #const_name: &str = #path;
@@ -666,10 +663,10 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         .iter()
         .map(|m| {
             let path_const = Ident::new(&m.snake.to_uppercase(), m.span);
-            let req_type = &m.req_type;
-            let res_type = &m.res_type;
+            let request_type = &m.req_type;
+            let response_type = &m.res_type;
             let method_name = Ident::new(&m.snake, m.span);
-            let codec = codec_expr(codecs, req_type, res_type);
+            let codec = codec_expr(codecs, request_type, response_type);
 
             let register_call = match m.kind {
                 MethodKind::Unary => quote! { router.unary },
@@ -1097,7 +1094,7 @@ mod tests {
 
     /// WHY: First TDD test — verify a basic unary method produces the expected
     /// generated items: service name constant, procedure module, trait with
-    /// default body, registration fn, UnimplementedHandler, client struct,
+    /// default body, registration fn, `UnimplementedHandler`, client struct,
     /// and client trait.
     #[test]
     fn test_expand_basic_unary() {
@@ -1240,7 +1237,7 @@ mod tests {
         assert!(out_str.contains("self . bidi_stream_method . bidi_stream"));
     }
 
-    /// WHY: Verify snake_case conversion is applied correctly.
+    /// WHY: Verify `snake_case` conversion is applied correctly.
     #[test]
     fn test_method_name_conversion() {
         let attr = quote! { package = "p.v1" };
@@ -1302,7 +1299,7 @@ mod tests {
         );
     }
 
-    /// WHY: Verify that protocol buffer codecs use defaults().
+    /// WHY: Verify that protocol buffer codecs use `defaults()`.
     #[test]
     fn test_codec_proto_expr() {
         let attr = quote! { package = "test.v1", codecs(proto) };

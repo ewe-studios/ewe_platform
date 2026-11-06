@@ -177,9 +177,15 @@ async fn wait_for_stdout_matches_across_frames() {
     );
     let client = DockerClient::connect_unix(&socket);
 
-    wait_for_stdout(&client, "abc123", "hello world", Duration::from_secs(5))
-        .await
-        .expect("a message split across two frames should be found");
+    wait_for_stdout(
+        &client,
+        "abc123",
+        "hello world",
+        Duration::from_secs(5),
+        &foundation_core::valtron::MonotonicClock::new(),
+    )
+    .await
+    .expect("a message split across two frames should be found");
 
     mock_socket::stop(&socket, &stop);
 }
@@ -201,7 +207,14 @@ async fn wait_for_stdout_ignores_stderr() {
     );
     let client = DockerClient::connect_unix(&socket);
 
-    let result = wait_for_stdout(&client, "abc123", "hello world", Duration::from_secs(5)).await;
+    let result = wait_for_stdout(
+        &client,
+        "abc123",
+        "hello world",
+        Duration::from_secs(5),
+        &foundation_core::valtron::MonotonicClock::new(),
+    )
+    .await;
     assert!(
         matches!(result, Err(ref e) if matches!(e.current_context(), DockerError::WaitTimeout { .. })),
         "a stderr-only message must not match, got: {result:?}"
@@ -229,9 +242,15 @@ async fn wait_for_stdout_reads_each_byte_once() {
     );
     let client = DockerClient::connect_unix(&socket);
 
-    wait_for_stdout(&client, "abc123", "world", Duration::from_secs(5))
-        .await
-        .expect("the message should be found in the followed stream");
+    wait_for_stdout(
+        &client,
+        "abc123",
+        "world",
+        Duration::from_secs(5),
+        &foundation_core::valtron::MonotonicClock::new(),
+    )
+    .await
+    .expect("the message should be found in the followed stream");
 
     mock_socket::stop(&socket, &stop);
 

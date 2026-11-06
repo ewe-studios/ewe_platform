@@ -4,7 +4,6 @@
 //! and [`CandleModels`] implementing [`Model`] for safetensors models via
 //! `HuggingFace`'s Candle framework.
 
-use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::path::PathBuf;
@@ -16,7 +15,7 @@ use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::llama as candle_llama;
 use tokenizers::Tokenizer;
 
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Clock, Stream};
 
 use crate::backends::backend_utils::flatten_tools;
 use crate::costing::CostAccumulator;
@@ -172,12 +171,13 @@ impl CandleBackendConfigBuilder {
 // ==================================
 
 /// Hardware backend variants for Candle.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum CandleBackend {
     /// CPU-only execution.
     Cpu {
         config: CandleBackendConfig,
         cache: Arc<Mutex<HashMap<String, CandleModels>>>,
+        clock: Arc<dyn Clock>,
     },
     /// CUDA GPU execution.
     #[cfg(feature = "candle-cuda")]
@@ -185,6 +185,7 @@ pub enum CandleBackend {
         config: CandleBackendConfig,
         device_id: usize,
         cache: Arc<Mutex<HashMap<String, CandleModels>>>,
+        clock: Arc<dyn Clock>,
     },
     /// Apple Metal execution.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
@@ -192,22 +193,39 @@ pub enum CandleBackend {
         config: CandleBackendConfig,
         device_id: usize,
         cache: Arc<Mutex<HashMap<String, CandleModels>>>,
+        clock: Arc<dyn Clock>,
     },
+}
+
+impl core::fmt::Debug for CandleBackend {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let variant = match self {
+            CandleBackend::Cpu { .. } => "Cpu",
+            #[cfg(feature = "candle-cuda")]
+            CandleBackend::Cuda { .. } => "Cuda",
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
+            CandleBackend::Metal { .. } => "Metal",
+        };
+        f.debug_struct("CandleBackend")
+            .field("variant", &variant)
+            .finish_non_exhaustive()
+    }
 }
 
 impl CandleBackend {
     /// Create a CPU backend with default config.
     #[must_use]
-    pub fn cpu() -> Self {
-        Self::cpu_with_config(CandleBackendConfig::default())
+    pub fn cpu(clock: Arc<dyn Clock>) -> Self {
+        Self::cpu_with_config(CandleBackendConfig::default(), clock)
     }
 
     /// Create a CPU backend with an explicit config.
     #[must_use]
-    pub fn cpu_with_config(config: CandleBackendConfig) -> Self {
+    pub fn cpu_with_config(config: CandleBackendConfig, clock: Arc<dyn Clock>) -> Self {
         Self::Cpu {
             config,
             cache: Arc::new(Mutex::new(HashMap::new())),
+            clock,
         }
     }
 
@@ -222,18 +240,23 @@ impl CandleBackend {
     /// could build a value that reached them, so the backend never ran on a GPU.
     #[cfg(feature = "candle-cuda")]
     #[must_use]
-    pub fn cuda(device_id: usize) -> Self {
-        Self::cuda_with_config(device_id, CandleBackendConfig::default())
+    pub fn cuda(device_id: usize, clock: Arc<dyn Clock>) -> Self {
+        Self::cuda_with_config(device_id, CandleBackendConfig::default(), clock)
     }
 
     /// Create a CUDA backend on `device_id`, with an explicit config.
     #[cfg(feature = "candle-cuda")]
     #[must_use]
-    pub fn cuda_with_config(device_id: usize, config: CandleBackendConfig) -> Self {
+    pub fn cuda_with_config(
+        device_id: usize,
+        config: CandleBackendConfig,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self::Cuda {
             config,
             device_id,
             cache: Arc::new(Mutex::new(HashMap::new())),
+            clock,
         }
     }
 
@@ -249,28 +272,33 @@ impl CandleBackend {
     /// Returns the underlying [`candle_core::Error`] when the device cannot be
     /// opened.
     #[cfg(feature = "candle-cuda")]
-    pub fn try_cuda(device_id: usize) -> Result<Self, candle_core::Error> {
+    pub fn try_cuda(device_id: usize, clock: Arc<dyn Clock>) -> Result<Self, candle_core::Error> {
         // Open once to validate; the backend re-opens lazily via `device()`,
         // which is cheap once the driver context exists.
         let _device = Device::new_cuda(device_id)?;
-        Ok(Self::cuda(device_id))
+        Ok(Self::cuda(device_id, clock))
     }
 
     /// Create a Metal backend on `device_id`, with default config.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
     #[must_use]
-    pub fn metal(device_id: usize) -> Self {
-        Self::metal_with_config(device_id, CandleBackendConfig::default())
+    pub fn metal(device_id: usize, clock: Arc<dyn Clock>) -> Self {
+        Self::metal_with_config(device_id, CandleBackendConfig::default(), clock)
     }
 
     /// Create a Metal backend on `device_id`, with an explicit config.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
     #[must_use]
-    pub fn metal_with_config(device_id: usize, config: CandleBackendConfig) -> Self {
+    pub fn metal_with_config(
+        device_id: usize,
+        config: CandleBackendConfig,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self::Metal {
             config,
             device_id,
             cache: Arc::new(Mutex::new(HashMap::new())),
+            clock,
         }
     }
 
@@ -283,13 +311,13 @@ impl CandleBackend {
     /// after the fact — a GPU job that secretly ran on CPU is the failure this
     /// method exists to make visible.
     #[must_use]
-    pub fn best_available() -> Self {
+    pub fn best_available(clock: Arc<dyn Clock>) -> Self {
         // A CUDA success returns eagerly. The Apple and non-Apple tails are
         // mutually exclusive by cfg, so exactly one is ever the tail expression
         // — no unreachable-code warning under any feature combination.
         #[cfg(feature = "candle-cuda")]
         {
-            match Self::try_cuda(0) {
+            match Self::try_cuda(0, Arc::clone(&clock)) {
                 Ok(backend) => {
                     tracing::info!(device = "cuda:0", "candle: using CUDA accelerator");
                     return backend;
@@ -302,12 +330,12 @@ impl CandleBackend {
         #[cfg(all(target_vendor = "apple", feature = "candle"))]
         {
             tracing::info!(device = "metal:0", "candle: using Metal accelerator");
-            Self::metal(0)
+            Self::metal(0, clock)
         }
         #[cfg(not(all(target_vendor = "apple", feature = "candle")))]
         {
             tracing::info!(device = "cpu", "candle: using CPU");
-            Self::cpu()
+            Self::cpu(clock)
         }
     }
 
@@ -342,6 +370,18 @@ impl CandleBackend {
         }
     }
 
+    /// The injected clock every message from this backend is stamped with.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        match self {
+            CandleBackend::Cpu { clock, .. } => Arc::clone(clock),
+            #[cfg(feature = "candle-cuda")]
+            CandleBackend::Cuda { clock, .. } => Arc::clone(clock),
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
+            CandleBackend::Metal { clock, .. } => Arc::clone(clock),
+        }
+    }
+
     fn model_id_key(model_id: &ModelId) -> String {
         format!("{model_id:?}")
     }
@@ -358,18 +398,28 @@ impl ModelProvider for CandleBackend {
         if let Some(config) = config {
             let cache = Arc::new(Mutex::new(HashMap::new()));
             match self {
-                CandleBackend::Cpu { .. } => Ok(CandleBackend::Cpu { config, cache }),
+                CandleBackend::Cpu { clock, .. } => Ok(CandleBackend::Cpu {
+                    config,
+                    cache,
+                    clock,
+                }),
                 #[cfg(feature = "candle-cuda")]
-                CandleBackend::Cuda { device_id, .. } => Ok(CandleBackend::Cuda {
+                CandleBackend::Cuda {
+                    device_id, clock, ..
+                } => Ok(CandleBackend::Cuda {
                     config,
                     device_id,
                     cache,
+                    clock,
                 }),
                 #[cfg(all(target_vendor = "apple", feature = "candle"))]
-                CandleBackend::Metal { device_id, .. } => Ok(CandleBackend::Metal {
+                CandleBackend::Metal {
+                    device_id, clock, ..
+                } => Ok(CandleBackend::Metal {
                     config,
                     device_id,
                     cache,
+                    clock,
                 }),
             }
         } else {
@@ -454,6 +504,7 @@ fn load_from_local(
     model_spec: &ModelSpec,
 ) -> ModelProviderResult<CandleModels> {
     let config = backend.config();
+    let clock = backend.clock();
     let device = backend.device().map_err(|e| {
         ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
             "Device init failed: {e}"
@@ -505,6 +556,7 @@ fn load_from_local(
         &device,
         &config.architecture,
         model_spec.clone(),
+        clock,
     )
 }
 
@@ -534,6 +586,7 @@ fn build_candle_model(
     device: &Device,
     architecture: &CandleArchitecture,
     spec: ModelSpec,
+    clock: Arc<dyn Clock>,
 ) -> ModelProviderResult<CandleModels> {
     // An explicit config override wins; otherwise detect from the model files.
     let detected = detect_architecture(config_path);
@@ -551,6 +604,7 @@ fn build_candle_model(
             dtype,
             device,
             spec,
+            clock,
         );
     }
     if arch.contains("gemma2") {
@@ -561,6 +615,7 @@ fn build_candle_model(
             dtype,
             device,
             spec,
+            clock,
         );
     }
 
@@ -581,6 +636,7 @@ fn build_llama_model(
     dtype: DType,
     device: &Device,
     spec: ModelSpec,
+    clock: Arc<dyn Clock>,
 ) -> ModelProviderResult<CandleModels> {
     let config_content = std::fs::read_to_string(config_path).map_err(|e| {
         ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
@@ -651,6 +707,7 @@ fn build_llama_model(
         eos_token_id,
         spec,
         chat_template,
+        clock,
     ))
 }
 
@@ -678,6 +735,7 @@ fn build_gemma2_model(
     dtype: DType,
     device: &Device,
     spec: ModelSpec,
+    clock: Arc<dyn Clock>,
 ) -> ModelProviderResult<CandleModels> {
     use candle_transformers::models::gemma2;
 
@@ -712,6 +770,7 @@ fn build_gemma2_model(
         eos_token_id,
         spec,
         chat_template,
+        clock,
     ))
 }
 
@@ -781,6 +840,8 @@ struct CandleModelsState {
     cumulative_cost: CostAccumulator,
     /// The model's own chat template (from `tokenizer_config.json`), if any.
     chat_template: Option<ChatTemplate>,
+    /// The injected clock every message this model emits is stamped with.
+    clock: Arc<dyn Clock>,
 }
 
 /// A model's chat template plus the special-token strings it references.
@@ -908,6 +969,7 @@ impl CandleModels {
         eos_token_id: Option<u32>,
         spec: ModelSpec,
         chat_template: Option<ChatTemplate>,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(CandleModelsState {
@@ -921,6 +983,7 @@ impl CandleModels {
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
                 chat_template,
+                clock,
             })),
         }
     }
@@ -1051,7 +1114,7 @@ impl Model for CandleModels {
         Ok(vec![Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: inner.spec.id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: inner.clock.wall_now(),
             usage,
             content: ModelOutput::Text(TextContent {
                 content: output_text,
@@ -1094,6 +1157,8 @@ struct CandleStreamState {
     initialized: bool,
     /// Persisted across polls so its rng advances token to token (spec-60/S3).
     processor: LogitsProcessor,
+    /// The injected clock every streamed message is stamped with.
+    clock: Arc<dyn Clock>,
 }
 
 impl CandleStream {
@@ -1125,6 +1190,8 @@ impl CandleStream {
 
         let processor = build_logits_processor(&params);
 
+        let clock = Arc::clone(&model.inner.lock().unwrap().clock);
+
         Ok(Self {
             inner: Arc::new(Mutex::new(CandleStreamState {
                 model,
@@ -1135,6 +1202,7 @@ impl CandleStream {
                 tokens_generated: 0,
                 finished: false,
                 initialized: false,
+                clock,
             })),
         })
     }
@@ -1244,7 +1312,7 @@ impl Iterator for CandleStream {
         Some(Stream::Next(Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: spec.id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: state.clock.wall_now(),
             usage: UsageReport {
                 input: state.input_len as f64,
                 output: state.tokens_generated as f64,

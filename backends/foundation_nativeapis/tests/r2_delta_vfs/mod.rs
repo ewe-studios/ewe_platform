@@ -46,8 +46,14 @@ fn make_sync_r2() -> Option<SyncFs<R2Delta>> {
         .unwrap_or_else(|_| "http://localhost:8789/cdn-cgi/local/explorer/api".to_string());
     let bucket =
         std::env::var("LOCAL_R2_BUCKET").unwrap_or_else(|_| "test-bucket-preview".to_string());
-    let delta =
-        R2Delta::new_with_base_url("test-token", "test-account", &bucket, Some(&base)).ok()?;
+    let delta = R2Delta::new_with_base_url(
+        "test-token",
+        "test-account",
+        &bucket,
+        Some(&base),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .ok()?;
     Some(SyncFs::new(delta))
 }
 
@@ -55,13 +61,20 @@ fn make_sync_r2() -> Option<SyncFs<R2Delta>> {
 
 #[test]
 fn test_r2_delta_new_with_credentials() {
-    let result = R2Delta::new("test-token", "test-account", "test-bucket");
+    let result = R2Delta::new(
+        "test-token",
+        "test-account",
+        "test-bucket",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_r2_delta_from_env_no_creds() {
-    let result = R2Delta::from_env();
+    let result = R2Delta::from_env(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     assert!(result.is_err());
 }
 

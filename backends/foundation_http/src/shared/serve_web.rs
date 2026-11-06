@@ -39,7 +39,7 @@ impl HttpApp<Arc<dyn WebServe>> {
     pub fn new_web() -> Self {
         use crate::shared::router::Router;
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }

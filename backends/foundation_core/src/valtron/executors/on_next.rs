@@ -1,7 +1,3 @@
-#![allow(clippy::return_self_not_must_use)]
-#![allow(clippy::type_complexity)]
-#![allow(clippy::extra_unused_lifetimes)]
-
 use std::{any::Any, marker::PhantomData};
 
 use crate::synca::Entry;
@@ -73,15 +69,14 @@ where
     }
 }
 
-#[allow(clippy::needless_lifetimes)]
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Resolver, Task, Done: Send + 'a, Pending: Send + 'a>
-    Into<BoxedSendExecutionIterator> for OnNext<Resolver, Task, Done, Pending>
+impl<Resolver, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for OnNext<Resolver, Task, Done, Pending>
 where
     Done: Send,
     Pending: Send,
-    Resolver: TaskReadyResolver<Done, Pending> + Send + 'a,
-    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'a,
+    Resolver: TaskReadyResolver<Done, Pending> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -109,7 +104,10 @@ where
         Some(match task_response {
             Some(value) => match value {
                 TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-                TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
+                TaskStatus::Init
+                | TaskStatus::Pending(_)
+                | TaskStatus::Ignore
+                | TaskStatus::Spread(_) => State::Pending(None),
                 TaskStatus::Spawn(mut action) => match action.apply(Some(entry), executor) {
                     Ok(info) => State::SpawnFinished(info),
                     Err(err) => {
@@ -121,9 +119,7 @@ where
                     self.resolver.handle(TaskStatus::Ready(content), executor);
                     State::Progressed
                 }
-                TaskStatus::Ignore => State::Pending(None),
                 TaskStatus::Wait => State::Wait,
-                TaskStatus::Spread(_) => State::Pending(None),
                 TaskStatus::Depends(signal) => State::Depends(signal),
             },
             None => State::Done,

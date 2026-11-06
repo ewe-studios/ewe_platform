@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_macros` reaches zero clippy warnings and enters the CI lint set"
-status: "pending"
+status: "done"
 lane: "after 118"
 model: "haiku"
 branch: "spec70/f120-macros-clippy"
@@ -70,14 +70,34 @@ python3 scripts/ci/ci.py run foundation_macros --profile uat
 
 ## Done when
 
-- [ ] The clippy command exits 0 with no warning.
-- [ ] `chrono` is gone or is proven used.
-- [ ] `ci/packages.toml` has `[packages.foundation_macros]` with
+- [x] The clippy command exits 0 with no warning.
+- [x] `chrono` is gone or is proven used.
+- [x] `ci/packages.toml` has `[packages.foundation_macros]` with
       `clippy-deny-warnings = true`.
-- [ ] The tests pass.
-- [ ] The backlog §30 entry is deleted.
+- [x] The tests pass.
+- [x] The item in GitHub issue #200 is ticked.
 - [ ] CI green.
 
 ## Result
 
-Not started.
+Done on branch `spec70/priority-followups` (2026-11-06), commit `1ba90e017`.
+
+- The count went from 62 to 0 in the lib target. Once the lib compiled, `--all-targets`
+  exposed 7 more (3 `doc_markdown` in an inline test module, 4 `assert_is_empty` in
+  `tests/`), so 69 diagnostics were addressed.
+- Six `too_many_lines` sites keep one `#[expect(clippy::too_many_lines, reason = "...")]`
+  each, because each is one linear macro expansion.
+- `chrono` had no user in code, tests, targets or features. It is removed from
+  `backends/foundation_macros/Cargo.toml`, and `Cargo.lock` loses that dependency.
+- `ci/packages.toml` gains `[packages.foundation_macros]` with
+  `clippy-deny-warnings = true`.
+- Verify: `cargo clippy --profile uat -p foundation_macros --all-targets --no-deps --
+  -D warnings` exit 0; `cargo test --profile uat -p foundation_macros` exit 0 (98 tests
+  pass, 40 doc tests ignored by design); `python3 scripts/ci/ci.py run foundation_macros
+  --profile uat` exit 0.
+- `cargo fmt --all --check` failed only in `backends/foundation_core/src/valtron/executors/local.rs`,
+  which belongs to feature 118 and was in flight.
+- Out-of-scope finding: 105 `unused_must_use` warnings from ignored `.close();` results.
+  Filed as issue #211.
+- The five inline `#[cfg(test)] mod tests` modules stay: a proc-macro crate cannot expose
+  its private helpers to `tests/`. Issue #199 tracks the move.

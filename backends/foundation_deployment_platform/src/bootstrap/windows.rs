@@ -9,6 +9,8 @@ use std::thread;
 use std::time::Duration;
 use tracing::{debug, warn};
 
+use foundation_core::valtron::Clock;
+
 use crate::bootstrap::BootstrapLogger;
 use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::config::{Result, TestbedError, VmProfile};
@@ -131,9 +133,12 @@ pub fn bootstrap_windows(
 
     // Phase 4: Configure autologin (Winlogon registry keys)
     logger.step_start("configure autologin");
-    let autologin_start = std::time::Instant::now();
+    let autologin_start = logger.clock().now();
     let needs_reboot = set_autologin(winrm)?;
-    logger.step_done("configure autologin", autologin_start.elapsed());
+    logger.step_done(
+        "configure autologin",
+        logger.clock().now().duration_since(autologin_start),
+    );
 
     // Autologin keys only take effect after reboot
     if needs_reboot {
@@ -166,7 +171,12 @@ pub fn bootstrap_windows(
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session, winrm, &["virtiofs", "smb"])
+        setup_project_mount(
+            session,
+            winrm,
+            &["virtiofs", "smb"],
+            logger.clock().as_ref(),
+        )
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
@@ -225,9 +235,9 @@ pub fn bootstrap_windows_winrm_phase(
 
     // Autologin registry keys only take effect after a reboot.
     logger.step_start("configure autologin");
-    let start = std::time::Instant::now();
+    let start = logger.clock().now();
     let needs_reboot = set_autologin(winrm)?;
-    let elapsed = start.elapsed();
+    let elapsed = logger.clock().now().duration_since(start);
     logger.step_done("configure autologin", elapsed);
 
     if needs_reboot {
@@ -276,7 +286,12 @@ pub fn bootstrap_windows_ssh_phase(
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session, winrm, &["virtiofs", "smb"])
+        setup_project_mount(
+            session,
+            winrm,
+            &["virtiofs", "smb"],
+            logger.clock().as_ref(),
+        )
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
@@ -389,8 +404,8 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     let _ = winrm.run_ps("Restart-Computer -Force");
 
     // Wait for WinRM to go down (reboot in progress)
-    let deadline = std::time::Instant::now() + Duration::from_secs(30);
-    while std::time::Instant::now() < deadline {
+    let deadline = logger.clock().now() + Duration::from_secs(30);
+    while logger.clock().now() < deadline {
         thread::sleep(Duration::from_secs(2));
         if winrm.run_ps_quiet("echo 1").is_err() {
             break;
@@ -398,9 +413,9 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     }
 
     // Wait for WinRM to come back (autologin should be active now)
-    let deadline = std::time::Instant::now() + Duration::from_secs(300);
+    let deadline = logger.clock().now() + Duration::from_secs(300);
     loop {
-        if std::time::Instant::now() > deadline {
+        if logger.clock().now() > deadline {
             return Err(crate::config::TestbedError::BootstrapFailed {
                 step: "wait for VM after reboot".to_string(),
                 message: "timed out waiting for WinRM after autologin reboot".to_string(),
@@ -594,7 +609,7 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
         }
 
         // Use fresh WinRM connection for each attempt
-        let fresh_winrm = crate::winrm::WinRM::from_profile(profile)?;
+        let fresh_winrm = crate::winrm::WinRM::from_profile(profile, winrm.clock_arc())?;
         match fresh_winrm.run_ps(INSTALL_WEBVIEW2_PS1) {
             Ok(_) => return Ok(()),
             Err(e) => {
@@ -677,7 +692,12 @@ pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
 /// on every boot (runs as 'vagrant' in the interactive session so `WinFsp`
 /// can create a user-visible mount at `C:\Users\vagrant\project`).
 /// Then starts the task immediately and waits for the mount to appear.
-fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]) -> Result<()> {
+fn setup_project_mount(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    _methods: &[&str],
+    clock: &dyn Clock,
+) -> Result<()> {
     // Check if already mounted with content verification
     let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
     let stdout = check.stdout.trim();
@@ -691,9 +711,9 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
 
     if stdout.starts_with("starting|") {
         debug!("virtiofs process starting, waiting for completion...");
-        let deadline = std::time::Instant::now() + Duration::from_secs(30);
+        let deadline = clock.now() + Duration::from_secs(30);
         loop {
-            if std::time::Instant::now() > deadline {
+            if clock.now() > deadline {
                 break;
             }
             thread::sleep(Duration::from_secs(3));
@@ -710,9 +730,9 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     elevated::run_elevated(winrm, REGISTER_VIRTIOFS_STARTUP_PS1, 60, None)?;
 
     // Wait for virtiofs mount to appear
-    let deadline = std::time::Instant::now() + Duration::from_secs(90);
+    let deadline = clock.now() + Duration::from_secs(90);
     loop {
-        if std::time::Instant::now() > deadline {
+        if clock.now() > deadline {
             break;
         }
         thread::sleep(Duration::from_secs(5));
@@ -765,9 +785,9 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     debug!("virtiofs startup mount failed, falling back to SMB");
     elevated::run_interactive(winrm, SETUP_SMB_MOUNT_PS1, "vagrant")?;
 
-    let deadline = std::time::Instant::now() + Duration::from_secs(60);
+    let deadline = clock.now() + Duration::from_secs(60);
     loop {
-        if std::time::Instant::now() > deadline {
+        if clock.now() > deadline {
             break;
         }
         thread::sleep(Duration::from_secs(5));

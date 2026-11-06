@@ -64,7 +64,11 @@ fn test_mock_resolver_returns_not_found_for_unconfigured_host() {
 fn test_caching_resolver_caches_results() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let mock = MockDnsResolver::new().with_response("cache-test.com", vec![addr]);
-    let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
+    let resolver = CachingDnsResolver::new(
+        mock,
+        std::time::Duration::from_secs(60),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // First resolution - cache miss
     assert_eq!(resolver.cache_size(), 0);
@@ -84,7 +88,11 @@ fn test_caching_resolver_expires_entries() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let mock = MockDnsResolver::new().with_response("expire-test.com", vec![addr]);
     // Short TTL for deterministic expiration
-    let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_millis(100));
+    let resolver = CachingDnsResolver::new(
+        mock,
+        std::time::Duration::from_millis(100),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // First resolution
     let result1 = resolve_blocking(&resolver, "expire-test.com", 80);
@@ -105,7 +113,11 @@ fn test_caching_resolver_expires_entries() {
 fn test_caching_resolver_clear_cache() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let mock = MockDnsResolver::new().with_response("clear-test.com", vec![addr]);
-    let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
+    let resolver = CachingDnsResolver::new(
+        mock,
+        std::time::Duration::from_secs(60),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Populate cache
     resolve_blocking(&resolver, "clear-test.com", 80).unwrap();
@@ -124,7 +136,11 @@ fn test_caching_resolver_differentiates_by_port() {
         .with_response("port-test.com", vec![addr1])
         .with_response("port-test.com", vec![addr2]);
 
-    let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
+    let resolver = CachingDnsResolver::new(
+        mock,
+        std::time::Duration::from_secs(60),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Resolve with different ports (cache keys include port)
     resolve_blocking(&resolver, "port-test.com", 80).unwrap();
@@ -270,7 +286,11 @@ fn test_system_resolver_handles_invalid_host() {
 fn test_caching_resolver_propagates_errors() {
     let mock = MockDnsResolver::new()
         .with_error("error.com", DnsError::ResolutionFailed("test".to_string()));
-    let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
+    let resolver = CachingDnsResolver::new(
+        mock,
+        std::time::Duration::from_secs(60),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let result = resolve_blocking(&resolver, "error.com", 80);
     assert!(result.is_err());

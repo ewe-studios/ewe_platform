@@ -19,7 +19,9 @@
 //! use foundation_netio::shared::http::client_classifier::ClientClassifier;
 //! use std::time::Duration;
 //!
-//! let classifier = ClientClassifier::new();
+//! let classifier = ClientClassifier::new(std::sync::Arc::new(
+//!     foundation_core::valtron::MonotonicClock::new(),
+//! ));
 //!
 //! // Record a transfer
 //! classifier.record_transfer("192.168.1.1", 10240, Duration::from_secs(1));
@@ -29,9 +31,12 @@
 //! println!("Classification: {:?}", classification);
 //! ```
 
+use foundation_core::valtron::Clock;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// Client classification based on transfer rate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -110,13 +115,13 @@ pub struct ClientStats {
 impl ClientStats {
     /// Create new stats with initial classification.
     #[must_use]
-    pub fn new(classification: ClientClassification) -> Self {
+    pub fn new(classification: ClientClassification, clock: &dyn Clock) -> Self {
         Self {
             classification,
             total_bytes: 0,
             total_duration: Duration::ZERO,
             consecutive_slow: 0,
-            last_transfer: Instant::now(),
+            last_transfer: clock.now(),
             transfer_count: 0,
         }
     }
@@ -150,6 +155,8 @@ pub struct ClientClassifier {
     thresholds: ClassificationThresholds,
     /// Security logger (optional).
     security_logger: Option<Arc<dyn SecurityLogger>>,
+    /// The clock that stamps a transfer and measures the client TTL.
+    clock: Arc<dyn Clock>,
 }
 
 impl std::fmt::Debug for ClientClassifier {
@@ -158,24 +165,25 @@ impl std::fmt::Debug for ClientClassifier {
             .field("clients", &self.clients)
             .field("thresholds", &self.thresholds)
             .field("has_security_logger", &self.security_logger.is_some())
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
 impl ClientClassifier {
     /// Create a new client classifier with default thresholds.
     #[must_use]
-    pub fn new() -> Self {
-        Self::with_thresholds(ClassificationThresholds::default())
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
+        Self::with_thresholds(ClassificationThresholds::default(), clock)
     }
 
     /// Create a new classifier with custom thresholds.
     #[must_use]
-    pub fn with_thresholds(thresholds: ClassificationThresholds) -> Self {
+    pub fn with_thresholds(thresholds: ClassificationThresholds, clock: Arc<dyn Clock>) -> Self {
         Self {
             clients: Arc::new(RwLock::new(HashMap::new())),
             thresholds,
             security_logger: None,
+            clock,
         }
     }
 
@@ -205,13 +213,13 @@ impl ClientClassifier {
         let mut clients = self.clients.write().expect("poisoned lock");
         let stats = clients
             .entry(client_ip.to_string())
-            .or_insert_with(|| ClientStats::new(classification));
+            .or_insert_with(|| ClientStats::new(classification, &*self.clock));
 
         // Update stats
         stats.total_bytes += bytes;
         stats.total_duration += duration;
         stats.transfer_count += 1;
-        stats.last_transfer = Instant::now();
+        stats.last_transfer = self.clock.now();
 
         // Handle progressive penalties
         match classification {
@@ -315,10 +323,10 @@ impl ClientClassifier {
     ///
     /// This function does not panic.
     pub fn cleanup(&self) {
-        let now = Instant::now();
+        let now = self.clock.now();
         let mut clients = self.clients.write().expect("poisoned lock");
         clients.retain(|_, stats| {
-            now.duration_since(stats.last_transfer) < self.thresholds.client_ttl
+            now.saturating_duration_since(stats.last_transfer) < self.thresholds.client_ttl
         });
     }
 
@@ -331,11 +339,5 @@ impl ClientClassifier {
         } else {
             ClientClassification::Suspicious
         }
-    }
-}
-
-impl Default for ClientClassifier {
-    fn default() -> Self {
-        Self::new()
     }
 }

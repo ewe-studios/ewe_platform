@@ -20,8 +20,8 @@
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use chrono::Utc;
 
+use crate::core::clock::wall_now_utc;
 use crate::core::context::KeychainContext;
 use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
@@ -123,7 +123,7 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
     )
     .await?;
 
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     let kdf = req.kdf.unwrap_or(KdfType::Pbkdf2Sha256);
     let row = UserRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
@@ -184,7 +184,7 @@ pub async fn update_profile(
     let mut user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
         .ok_or(AppError::Unauthorized)?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.clock());
     if req.name.is_some() {
         user.name = req.name;
     }

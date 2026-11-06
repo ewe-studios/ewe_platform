@@ -203,7 +203,10 @@ fn can_queue_and_complete_task() {
         let handler_kill = thread::spawn(move || {
             tracing::debug!("Waiting for kill signal");
             receiver
-                .recv_timeout(Duration::from_secs(2))
+                .recv_timeout(
+                    Duration::from_secs(2),
+                    &foundation_core::valtron::MonotonicClock::new(),
+                )
                 .expect("receive signal");
             tracing::debug!("Got kill signal");
             pool_clone.kill();

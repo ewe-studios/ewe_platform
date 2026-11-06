@@ -1,6 +1,6 @@
 //! ewe:// handler integration — exercises full request → response pipeline.
 //!
-//! Proves that EweUrl parsing, session route resolution, backend query,
+//! Proves that `EweUrl` parsing, session route resolution, backend query,
 //! protocol selection, and content encoding all compose through the handler.
 //! Does NOT require a running Tauri app — tests the handler logic directly.
 
@@ -10,7 +10,10 @@ use foundation_platform::*;
 /// Parse URI → resolve route → query backend → select protocol → encode
 #[test]
 fn full_ewe_pipeline_webview_app() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     session.route("/app/*", webview_app().with_profile(Profile::App));
 
     // Step 1-2: Parse URI, resolve route
@@ -30,7 +33,7 @@ fn full_ewe_pipeline_webview_app() {
 
     // Step 5: Backend query
     let content = query_backend(&DefaultTransport, &decision, "/app/items");
-    assert!(!content.is_empty());
+    assert_ne!(content, [] as [u8; 0]);
 
     // Step 6: Protocol selection (query param = json)
     let proto = select_protocol(&ProtocolHint::Default, Some(&"json".to_string()), &content);
@@ -47,7 +50,10 @@ fn full_ewe_pipeline_webview_app() {
 
 #[test]
 fn full_ewe_pipeline_remote_server() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     session.route(
         "/remote/*",
         remote_fetch()
@@ -78,7 +84,10 @@ fn full_ewe_pipeline_remote_server() {
 
 #[test]
 fn full_ewe_pipeline_ipc_shell_with_target() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     // Route that explicitly targets a wasm_app
     session.route("/api/*", ipc_shell_with("business_logic"));
 
@@ -99,7 +108,10 @@ fn full_ewe_pipeline_ipc_shell_with_target() {
 
 #[test]
 fn cache_intercepts_before_backend_query() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     session.route(
         "/cached/*",
         remote_fetch().with_cache_policy(CachePolicy::CacheFirst),
@@ -137,7 +149,10 @@ fn cache_intercepts_before_backend_query() {
 
 #[test]
 fn capability_gating_in_full_pipeline() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     session.route(
         "/camera/*",
         webview_app()
@@ -158,7 +173,10 @@ fn capability_gating_in_full_pipeline() {
 
 #[test]
 fn offline_route_fails_with_online_only() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     session.route(
         "/live/*",
         remote_fetch().with_cache_policy(CachePolicy::OnlineOnly),
@@ -187,14 +205,17 @@ fn offline_route_fails_with_online_only() {
 
 #[test]
 fn mutation_queue_integrates_with_connectivity() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Go offline, enqueue
     session.set_online(false);
-    session
+    let _ = session
         .mutation_queue()
         .enqueue("create", serde_json::json!({"item": "x"}));
-    session
+    let _ = session
         .mutation_queue()
         .enqueue("update", serde_json::json!({"id": 1}));
     assert_eq!(session.mutation_queue().pending_count(), 2);

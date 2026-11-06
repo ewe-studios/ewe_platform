@@ -27,12 +27,18 @@ pub enum WebRtcSignal {
 }
 
 impl WebRtcSignal {
-    /// Serialize to bytes for embedding in SwimMessage::WebRtcSignal.
+    /// Serialize to bytes for embedding in `SwimMessage::WebRtcSignal`.
+    ///
+    /// # Panics
+    /// Panics if the signal cannot be encoded as JSON. The payload is a plain
+    /// enum of strings, so serialization cannot fail in practice.
+    #[must_use]
     pub fn to_bytes(&self) -> Vec<u8> {
         serde_json::to_vec(self).expect("WebRtcSignal encode")
     }
 
-    /// Deserialize from the SwimMessage payload.
+    /// Deserialize from the `SwimMessage` payload.
+    #[must_use]
     pub fn from_bytes(data: &[u8]) -> Option<Self> {
         serde_json::from_slice(data).ok()
     }

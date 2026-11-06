@@ -2,10 +2,10 @@
 //!
 //! WHY: Tauri has no built-in overlay/toolbar system. The platform needs a
 //! way to render navigation bars, slide panels, and modal overlays on top
-//! of WebView content — without native bridge overhead.
+//! of `WebView` content — without native bridge overhead.
 //!
 //! WHAT: `OverlayCapability` is a `PlatformCapability` that injects the
-//! `floating-nav.js` toolbar into the WebView. `OverlayConfig` lets route
+//! `floating-nav.js` toolbar into the `WebView`. `OverlayConfig` lets route
 //! handlers customize position, visibility, and toolbar buttons.
 //!
 //! HOW: The overlay is pure CSS + JS injected by the `ScriptInjector`.
@@ -20,6 +20,10 @@ use crate::capability::PlatformCapability;
 // ── Overlay config ───────────────────────────────────────────────────────
 
 /// Configuration for the floating navigation toolbar.
+///
+/// The boolean fields are independent visibility switches, not a state machine,
+/// so the pedantic `struct_excessive_bools` suggestion does not apply.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone)]
 pub struct OverlayConfig {
     /// Toolbar position: `"top"` or `"bottom"`.
@@ -152,7 +156,7 @@ impl WasmCapability for OverlayCapability {
                         },
                         visible: config
                             .get("visible")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         title: config
                             .get("title")
@@ -160,19 +164,19 @@ impl WasmCapability for OverlayCapability {
                             .map(String::from),
                         show_back: config
                             .get("show_back")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         show_home: config
                             .get("show_home")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         show_refresh: config
                             .get("show_refresh")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         show_app_switcher: config
                             .get("show_app_switcher")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                     };
                     oc.to_js()

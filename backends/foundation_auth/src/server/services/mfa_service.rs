@@ -20,9 +20,10 @@ use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use zeroize::Zeroizing;
 
+use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -183,17 +184,19 @@ pub struct MfaService<KV: KeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
     keys: TotpKeyRing,
     algorithm: TotpAlgorithm,
+    clock: Arc<dyn Clock>,
 }
 
 impl<KV: KeyValueStore> MfaService<KV> {
     /// `keys` encrypt the TOTP secrets (`IdpConfig::totp_keys`). With no
     /// active key, enrolling a secret fails.
     #[must_use]
-    pub fn new(storage: Arc<HandlerStorage<KV>>, keys: TotpKeyRing) -> Self {
+    pub fn new(storage: Arc<HandlerStorage<KV>>, keys: TotpKeyRing, clock: Arc<dyn Clock>) -> Self {
         Self {
             storage,
             keys,
             algorithm: TotpAlgorithm::default(),
+            clock,
         }
     }
 
@@ -306,7 +309,7 @@ impl<KV: KeyValueStore> MfaService<KV> {
             return Ok(false);
         };
         let accepted = secret
-            .verify_step(code.trim(), TOTP_TOLERANCE_STEPS)
+            .verify_step(code.trim(), TOTP_TOLERANCE_STEPS, self.clock.as_ref())
             .filter(|step| *step > last);
         self.storage
             .cache
@@ -334,8 +337,7 @@ impl<KV: KeyValueStore> MfaService<KV> {
         let secret = TOTPSecret::generate().with_algorithm(self.algorithm);
         let pending = PendingEnrollment {
             secret: encrypt_secret(&self.keys, user_id, &secret)?,
-            expires_at: Utc::now()
-                .timestamp_millis()
+            expires_at: now_millis(self.clock.as_ref())
                 .saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
         };
         self.storage
@@ -373,11 +375,12 @@ impl<KV: KeyValueStore> MfaService<KV> {
         else {
             return Ok(false);
         };
-        if Utc::now().timestamp_millis() >= pending.expires_at {
+        if now_millis(self.clock.as_ref()) >= pending.expires_at {
             return Ok(false);
         }
         let secret = decrypt_secret(&self.keys, user_id, &pending.secret)?;
-        let Some(step) = secret.verify_step(code.trim(), TOTP_TOLERANCE_STEPS) else {
+        let Some(step) = secret.verify_step(code.trim(), TOTP_TOLERANCE_STEPS, self.clock.as_ref())
+        else {
             return Ok(false);
         };
         // The first code is spent: it cannot be used to log in.
@@ -405,8 +408,7 @@ impl<KV: KeyValueStore> MfaService<KV> {
         let record = MfaChallengeRecord {
             user_id: user_id.to_string(),
             pending_login,
-            expires_at: Utc::now()
-                .timestamp_millis()
+            expires_at: now_millis(self.clock.as_ref())
                 .saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
         };
         self.storage
@@ -438,7 +440,7 @@ impl<KV: KeyValueStore> MfaService<KV> {
         else {
             return Ok(None);
         };
-        if Utc::now().timestamp_millis() >= record.expires_at {
+        if now_millis(self.clock.as_ref()) >= record.expires_at {
             return Ok(None);
         }
         Ok(Some(record))

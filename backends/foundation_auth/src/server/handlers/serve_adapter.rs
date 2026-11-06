@@ -229,9 +229,9 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
 impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
     /// # Panics
     ///
-    /// If the `ContextBag` holds no `IdpConfig` or no `Arc<HandlerStorage<KV>>`
-    /// (a misconfigured app; serving without storage would answer every
-    /// request as if the database were empty).
+    /// If the `ContextBag` holds no `IdpConfig` or no
+    /// `Arc<HandlerStorage<KV>>` (a misconfigured app; serving without storage
+    /// would answer every request as if the database were empty).
     fn create(bag: &ContextBag) -> Self {
         let config = bag
             .get::<IdpConfig>()
@@ -242,9 +242,12 @@ impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
             .get::<Arc<HandlerStorage<KV>>>()
             .map(|stored| Arc::clone(&*stored))
             .expect("Arc<HandlerStorage<KV>> must be in ContextBag");
+        // The bag carries the host's injected engine clock as a field, so every
+        // `IdP` read uses the clock the host chose.
+        let clock = bag.clock();
         // Sessions live in the shared cache with the configured key, so every
         // route sees the same sessions.
-        let mut core = IdpHandlerCore::new(config, storage);
+        let mut core = IdpHandlerCore::new(config, storage, clock);
         if let Some(social) = bag.get::<Arc<MemoryAuthSessionStore>>() {
             core = core.with_social_login(Arc::clone(&*social));
         }
@@ -260,8 +263,10 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
     core: Arc<IdpHandlerCore<KV>>,
     req: SimpleIncomingRequest,
 ) -> Result<HandlerResponse, IdpError> {
+    let clock = core.clock();
     let task = from_future(async move {
-        let bag = ContextBag::new();
+        // The dispatch bag reads the same injected clock as the core.
+        let bag = ContextBag::new(clock);
         core.dispatch(&bag, &req).await
     });
     let stream = execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;

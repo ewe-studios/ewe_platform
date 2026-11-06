@@ -25,11 +25,23 @@ mod cancel;
 pub use cancel::CancelSignal;
 
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_compact::Instant;
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};
+
+/// Read the engine clock from `bag`.
+///
+/// The bag always carries the clock as a field, so a served call reads the
+/// injected clock. There is no fallback to the real clock: a host that wants
+/// the real clock passes it to [`ContextBag::new`] explicitly.
+#[must_use]
+pub fn clock_from_bag(bag: &ContextBag) -> Arc<dyn Clock> {
+    bag.clock()
+}
 
 /// The RPC's streaming shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -121,6 +133,8 @@ pub struct RequestContext {
     /// connection's requests (Decision 04 Q13 / Decision 12 §13).
     pub connection: Arc<ConnectionContext>,
     cancel: CancelSignal,
+    /// The engine clock that measures the deadline and the remaining timeout.
+    pub clock: Arc<dyn Clock>,
 }
 
 impl RequestContext {
@@ -135,6 +149,9 @@ impl RequestContext {
             extensions: Extensions::new(),
             connection: Arc::new(ConnectionContext::default()),
             cancel: CancelSignal::new(),
+            // A base context has no server engine; the host shortcut names the
+            // real clock explicitly.
+            clock: Arc::new(MonotonicClock::new()),
         }
     }
 
@@ -152,6 +169,7 @@ impl RequestContext {
         extensions: Extensions,
         connection: Arc<ConnectionContext>,
         cancel: CancelSignal,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             spec: Arc::new(spec),
@@ -161,6 +179,7 @@ impl RequestContext {
             extensions,
             connection,
             cancel,
+            clock,
         }
     }
 
@@ -179,7 +198,7 @@ impl RequestContext {
     #[must_use]
     pub fn remaining_timeout(&self) -> Option<Duration> {
         self.deadline
-            .map(|d| d.saturating_duration_since(Instant::now()))
+            .map(|d| d.saturating_duration_since(self.clock.now()))
     }
 
     /// The call's cancel signal — the transport holds a clone and fires it on
@@ -205,19 +224,30 @@ impl Ctx {
     /// Client-side base context: app deps only, empty per-call state.
     #[must_use]
     pub fn client(bag: Arc<ContextBag>) -> Ctx {
-        Ctx {
-            bag,
-            request: RequestContext::empty(true),
-        }
+        let clock = clock_from_bag(&bag);
+        let mut request = RequestContext::empty(true);
+        request.clock = clock;
+        Ctx { bag, request }
     }
 
     /// Empty-bag base — tests, CLIs, wasm entry points.
     #[must_use]
     pub fn background() -> Ctx {
+        // A base context has no server engine; the host shortcut names the real
+        // clock explicitly in the bag it builds.
+        let bag = ContextBag::new(Arc::new(MonotonicClock::new()));
+        let mut request = RequestContext::empty(false);
+        request.clock = clock_from_bag(&bag);
         Ctx {
-            bag: Arc::new(ContextBag::new()),
-            request: RequestContext::empty(false),
+            bag: Arc::new(bag),
+            request,
         }
+    }
+
+    /// The engine clock carried by this call context.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.request.clock.clone()
     }
 
     // ── COW derivations: rebuild-and-move; the original is untouched ──
@@ -226,7 +256,7 @@ impl Ctx {
     /// unchanged; downstream layers receive the new context.
     #[must_use]
     pub fn with_deadline(mut self, d: Duration) -> Ctx {
-        self.request.deadline = Some(Instant::now() + d);
+        self.request.deadline = Some(self.request.clock.now() + d);
         self
     }
 

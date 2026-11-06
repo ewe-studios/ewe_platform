@@ -34,7 +34,7 @@ use foundation_core::valtron::{
 /// single machine emits `Ready` once *per step* (not once ever).
 #[test]
 fn sync_state_task_drives_a_multi_state_machine() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let mut task: StateTask<u32, u32, (), _> = StateTask::new(3, |_ctx, n| {
         if n == 0 {
             None
@@ -57,7 +57,7 @@ fn sync_state_task_drives_a_multi_state_machine() {
 /// machine.
 #[test]
 fn sync_state_task_passes_non_ready_statuses_through() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let mut task: StateTask<u32, u32, &'static str, _> = StateTask::new(0, |_ctx, n| match n {
         0 => Some((1, TaskStatus::Pending("waiting"))),
         1 => Some((2, TaskStatus::Ready(42))),
@@ -119,7 +119,7 @@ enum RunOnce {
 ///      exactly this) and inspect the returned readiness signal.
 #[test]
 fn async_state_task_parks_then_resumes_on_wake() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let poll_count = Arc::new(AtomicUsize::new(0));
     let ready = Arc::new(AtomicBool::new(false));
     let waker_slot: Arc<Mutex<Option<Waker>>> = Arc::new(Mutex::new(None));
@@ -230,7 +230,7 @@ fn count_down(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
 ///       `count_down(ctx, n)` still runs as the raw transition.
 #[test]
 fn task_macro_sync_drives_to_ready_and_stays_callable() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     // The transition itself remains directly callable (value namespace).
     assert_eq!(count_down(ctx.clone(), 5), Some((4, TaskStatus::Ignore)));
@@ -298,7 +298,7 @@ async fn async_count_down(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)
 ///       collects `[1]`.
 #[test]
 fn task_macro_async_drives_through_pending() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let mut task = async_count_down::new(3);
     // Self-wake "still in flight" and the transition's own `Ignore` both report
@@ -356,7 +356,7 @@ fn read_seeded_ctx(ctx: Ctx, state: Once) -> Option<(Once, TaskStatus<u32, ()>)>
 ///       and assert the transition reads it back as its `Ready` value.
 #[test]
 fn transition_receives_the_engine_ctx() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     ctx.insert::<Seed>(Arc::new(Seed(42)));
 
     let mut task = read_seeded_ctx::new(Once::Go);
@@ -385,7 +385,7 @@ async fn async_read_seeded_ctx(ctx: Ctx, state: Once) -> Option<(Once, TaskStatu
 ///       `Ready(seed)` after the yield), and assert the seed is read back.
 #[test]
 fn async_transition_owns_ctx_across_await() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     ctx.insert::<Seed>(Arc::new(Seed(7)));
 
     let mut task = async_read_seeded_ctx::new(Once::Go);
@@ -416,7 +416,7 @@ fn generated_structs_are_send() {
 /// as a plain `Iterator`, threading the supplied `Ctx` (success criterion).
 #[test]
 fn generated_struct_drives_manually_via_with_ctx() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let mut iter = count_down::new(3).with_ctx(ctx);
     assert_eq!(iter.next(), Some(TaskStatus::Ignore));
     assert_eq!(iter.next(), Some(TaskStatus::Ignore));

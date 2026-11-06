@@ -4,11 +4,14 @@
 //! file, waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
+//! use std::sync::Arc;
+//!
+//! use foundation_core::valtron::MonotonicClock;
 //! use foundation_toolings::harness::Workerd;
 //!
 //! let wd = Workerd::builder()
 //!     .config_file("worker.capnp")
-//!     .build()
+//!     .build(Arc::new(MonotonicClock::new()))
 //!     .expect("failed to start workerd");
 //!
 //! println!("Worker at {}", wd.base_url());
@@ -20,7 +23,10 @@ use std::io::Write as IoWrite;
 use std::net::TcpStream;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::sync::Arc;
+use std::time::Duration;
+
+use foundation_core::valtron::Clock;
 
 pub struct Workerd {
     child: Option<Child>,
@@ -28,11 +34,11 @@ pub struct Workerd {
 }
 
 impl Workerd {
-    pub fn start() -> Result<Self, WorkerdError> {
-        Self::start_with(WorkerdConfig::default())
+    pub fn start(clock: Arc<dyn Clock>) -> Result<Self, WorkerdError> {
+        Self::start_with(WorkerdConfig::default(), clock)
     }
 
-    pub fn start_with(config: WorkerdConfig) -> Result<Self, WorkerdError> {
+    pub fn start_with(config: WorkerdConfig, clock: Arc<dyn Clock>) -> Result<Self, WorkerdError> {
         let config_file = config
             .config_file
             .as_ref()
@@ -89,7 +95,7 @@ impl Workerd {
             port,
         };
 
-        if !wait_for_ready(port, config.startup_timeout) {
+        if !wait_for_ready(port, config.startup_timeout, clock.as_ref()) {
             let stderr = server.collect_stderr();
             server.stop();
             return Err(WorkerdError::ReadyTimeout {
@@ -210,8 +216,8 @@ impl WorkerdConfig {
         self
     }
 
-    pub fn build(self) -> Result<Workerd, WorkerdError> {
-        Workerd::start_with(self)
+    pub fn build(self, clock: Arc<dyn Clock>) -> Result<Workerd, WorkerdError> {
+        Workerd::start_with(self, clock)
     }
 }
 
@@ -248,9 +254,9 @@ fn resolve_bin(explicit: &Option<PathBuf>) -> Result<PathBuf, WorkerdError> {
     which::which("workerd").map_err(|_| WorkerdError::BinaryNotFound)
 }
 
-fn wait_for_ready(port: u16, timeout: Duration) -> bool {
-    let start = Instant::now();
-    while start.elapsed() < timeout {
+fn wait_for_ready(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
+    let deadline = clock.now() + timeout;
+    while clock.now() < deadline {
         if http_get("127.0.0.1", port, "/").is_ok() {
             return true;
         }

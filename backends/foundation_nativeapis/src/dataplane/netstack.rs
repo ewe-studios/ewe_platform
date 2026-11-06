@@ -22,6 +22,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::Clock;
 use smoltcp::iface::{Config, Interface, SocketHandle, SocketSet};
 use smoltcp::phy::{Device, DeviceCapabilities, Medium};
 use smoltcp::socket::{tcp, udp};
@@ -361,9 +362,9 @@ impl NetStack {
     /// # Panics
     /// Never panics.
     #[must_use]
-    pub fn new(config: NetStackConfig) -> Self {
+    pub fn new(config: NetStackConfig, clock: Arc<dyn Clock>) -> Self {
         let mut device = TunnDevice::new(config.mtu);
-        let base = Instant::now();
+        let base = clock.now();
         let iface_config = Config::new(HardwareAddress::Ip);
         let mut iface = Interface::new(iface_config, &mut device, SmolInstant::ZERO);
 

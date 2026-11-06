@@ -17,7 +17,7 @@
 //! `application/grpc+` content-type prefix. The capability floor enforces
 //! `h2_trailers` (Decision 11).
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
@@ -35,8 +35,8 @@ use crate::shared::context::{Peer, Spec, StreamType};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
-    body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, HeadStream,
-    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, HeadPublisher,
+    HeadStream, PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::grpc_web::build_status_trailers;
@@ -290,7 +290,7 @@ impl ProtocolHandler for GrpcHandler {
             // error when the read failed, so it cannot pass for a clean end.
             match &result {
                 Ok(()) => {
-                    request_tx.close();
+                    let _ = request_tx.close();
                 }
                 Err(e) => fail_stream(&request_tx, e, &cancel).await,
             }
@@ -494,19 +494,27 @@ impl ProtocolClient for GrpcClient {
         let (conn, ends) =
             PipeClientConn::new(spec.clone(), headers, config.cancel, DEFAULT_PIPE_DEPTH);
 
+        let publish = ends.head_publisher();
+        let head_wake = ends.response_head_wake;
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
             EnvelopeWriter::new(None, 0, 0),
         ));
-        let reader: BoxedTask = Box::pin(read_grpc_response(
-            stream.head,
-            stream.recv_body,
-            stream.trailers,
-            ends.response_tx,
-            ends.response_headers,
-            config.read_max_bytes,
-        ));
+        let reader: BoxedTask = Box::pin(async move {
+            // One sender keeps the wake pipe open until the reader ends; the
+            // publisher holds the other.
+            let _head_wake = head_wake;
+            read_grpc_response(
+                stream.head,
+                stream.recv_body,
+                stream.trailers,
+                ends.response_tx,
+                publish,
+                config.read_max_bytes,
+            )
+            .await
+        });
 
         Ok(ClientExchange {
             conn: Box::new(conn),
@@ -533,7 +541,7 @@ async fn read_grpc_response(
     body: BodyStream,
     trailers: PipeReceiver<SimpleHeaders>,
     tx: PipeSender<Frame>,
-    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    publish: HeadPublisher,
     read_max: usize,
 ) -> ConnectResult<()> {
     // 1. Response head. Publish the headers so `response_headers()` works.
@@ -549,7 +557,7 @@ async fn read_grpc_response(
                     trailers: SimpleHeaders::new(),
                 })
                 .await;
-            tx.close();
+            let _ = tx.close();
             return Ok(());
         }
         None => {
@@ -561,13 +569,11 @@ async fn read_grpc_response(
                     trailers: SimpleHeaders::new(),
                 })
                 .await;
-            tx.close();
+            let _ = tx.close();
             return Ok(());
         }
     };
-    *response_headers
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(resp_headers.clone());
+    publish.publish(resp_headers.clone());
 
     if status != Status::OK {
         let err: ErrorTrace<ConnectError> =
@@ -578,7 +584,7 @@ async fn read_grpc_response(
                 trailers: resp_headers,
             })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -591,7 +597,7 @@ async fn read_grpc_response(
                 trailers: resp_headers,
             })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -605,7 +611,7 @@ async fn read_grpc_response(
                 trailers: SimpleHeaders::new(),
             })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -618,7 +624,7 @@ async fn read_grpc_response(
             trailers: trls,
         })
         .await;
-    tx.close();
+    let _ = tx.close();
     Ok(())
 }
 

@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, MonotonicClock};
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -16,13 +16,13 @@ use foundation_netio::shared::http::SimpleResponse;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
-fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
+fn make_storage(clock: Arc<MonotonicClock>) -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("test_auth.db");
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
-    Arc::new(HandlerStorage::new(query_store, cache))
+    Arc::new(HandlerStorage::new(query_store, cache, clock))
 }
 
 fn start_idp(
@@ -40,7 +40,8 @@ fn start_idp(
         .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
-    let idp = IdpServer::new(config, make_storage());
+    let clock = Arc::new(MonotonicClock::new());
+    let idp = IdpServer::new(config, make_storage(Arc::clone(&clock)), clock);
     let app = idp.http_app();
     let server = HttpServer::with_config(app, &bind_addr, server_config);
 
@@ -72,7 +73,7 @@ fn start_idp_with_prefix(
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
-    app.ctx.store(make_storage());
+    app.ctx.store(make_storage(Arc::new(MonotonicClock::new())));
     IdpServer::<MemoryStorage>::register_routes(&mut app, prefix);
     let server = HttpServer::with_config(app, &bind_addr, server_config);
 

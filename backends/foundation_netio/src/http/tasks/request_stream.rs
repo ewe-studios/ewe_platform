@@ -72,7 +72,11 @@ where
     type Pending = HttpOperationState;
     type Ready = super::HttpStreamReady;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one match covers every connection and response phase"
+    )]
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.0.take()? {
             HttpOperationState::Init => {
                 if self.1.request.is_none() {
@@ -130,9 +134,12 @@ where
                     let proxy_config = env_proxy.as_ref().or(self.1.config.proxy.as_ref());
 
                     // Try to get connection from pool or create new one (with proxy support).
-                    self.1
-                        .pool
-                        .create_connection_with_proxy(&request.url, proxy_config, None)
+                    self.1.pool.create_connection_with_proxy(
+                        &request.url,
+                        proxy_config,
+                        None,
+                        ctx.clock().as_ref(),
+                    )
                 };
 
                 match stream {

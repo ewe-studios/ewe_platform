@@ -21,8 +21,9 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_core::valtron::Clock;
 use foundation_netio::websocket::shared::frame::{Opcode, WebSocketFrame};
 use foundation_netio::websocket::shared::handshake::compute_accept_key;
 
@@ -95,12 +96,18 @@ pub struct RelayWsAcceptor {
 
 impl RelayWsAcceptor {
     /// Bind a TCP listener for browser WS connections.
+    ///
+    /// # Errors
+    /// Returns the listener bind error if the address is unavailable.
     pub fn bind(addr: std::net::SocketAddr, server: Arc<Mutex<RelayServer>>) -> io::Result<Self> {
         let listener = TcpListener::bind(addr)?;
         Ok(Self { listener, server })
     }
 
     /// The bound address.
+    ///
+    /// # Errors
+    /// Returns the listener address error if the socket has none.
     pub fn local_addr(&self) -> io::Result<std::net::SocketAddr> {
         self.listener.local_addr()
     }
@@ -109,7 +116,16 @@ impl RelayWsAcceptor {
     /// Each connection gets its own relay session; frames are forwarded
     /// through the relay server's UDP path. The listener fd is registered
     /// with the shared reactor for edge-triggered wake — no blind sleep.
-    pub fn serve(&self, stop: &AtomicBool) -> io::Result<()> {
+    ///
+    /// The idle wait deadline comes from `clock`, so a test can drive it with a
+    /// simulated clock and never sleep.
+    ///
+    /// # Errors
+    /// Returns the listener accept error unless it is `WouldBlock`.
+    ///
+    /// # Panics
+    /// Panics if the relay server lock is poisoned.
+    pub fn serve(&self, stop: &AtomicBool, clock: &dyn Clock) -> io::Result<()> {
         use std::os::unix::io::AsRawFd;
         self.listener.set_nonblocking(true)?;
 
@@ -132,8 +148,8 @@ impl RelayWsAcceptor {
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                     if let Some(ref r) = reactor {
                         r.clear(token, foundation_nativeapis::native::fd::Ready::READABLE);
-                        let deadline = Instant::now() + Duration::from_millis(50);
-                        while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
+                        let deadline = clock.now() + Duration::from_millis(50);
+                        while clock.now() < deadline && !stop.load(Ordering::Relaxed) {
                             if r.is_ready(token) {
                                 r.clear(token, foundation_nativeapis::native::fd::Ready::READABLE);
                                 break;
@@ -150,9 +166,8 @@ impl RelayWsAcceptor {
             };
 
             // Perform WebSocket upgrade.
-            let ws_key = match parse_ws_key(&mut stream) {
-                Ok(k) => k,
-                Err(_) => continue,
+            let Ok(ws_key) = parse_ws_key(&mut stream) else {
+                continue;
             };
             let accept = compute_accept_key(&ws_key);
             if send_ws_upgrade(&mut stream, &accept).is_err() {
@@ -201,8 +216,8 @@ fn serve_ws_session(stream: &mut TcpStream, server: &Arc<Mutex<RelayServer>>) ->
                     }
                 }
             }
-            Ok(None) => return Some(peer_id), // close frame
-            Err(_) => return Some(peer_id),
+            // Close frame or read error: end the session either way.
+            Ok(None) | Err(_) => return Some(peer_id),
         }
     }
 }

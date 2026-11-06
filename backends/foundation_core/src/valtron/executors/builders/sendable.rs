@@ -100,6 +100,9 @@ macro_rules! delivery_terminals {
             Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
         {
             /// Receive produced `TaskStatus` values via a `NotifyRecvIterator`.
+            ///
+            /// # Errors
+            /// Returns `ExecutorError` when the engine cannot accept the task.
             pub fn recv(
                 self,
                 wait: time::Duration,
@@ -114,6 +117,9 @@ macro_rules! delivery_terminals {
 
             /// Receive produced `Stream` values via a `NotifyQueueStreamIterator`
             /// using the default max-turns.
+            ///
+            /// # Errors
+            /// Returns `ExecutorError` when the engine cannot accept the task.
             pub fn stream(
                 self,
                 wait: time::Duration,
@@ -122,6 +128,9 @@ macro_rules! delivery_terminals {
             }
 
             /// Receive produced `Stream` values with a configurable max-turns.
+            ///
+            /// # Errors
+            /// Returns `ExecutorError` when the engine cannot accept the task.
             pub fn stream_with_config(
                 self,
                 wait: time::Duration,
@@ -212,6 +221,10 @@ where
     Resolver: TaskReadyResolver<Done, Pending> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
+    /// Receives produced `TaskStatus` values through the global queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn recv(
         self,
         wait: time::Duration,
@@ -224,6 +237,10 @@ where
         )
     }
 
+    /// Receives produced `Stream` values through the global queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream(
         self,
         wait: time::Duration,
@@ -231,6 +248,10 @@ where
         self.stream_with_config(wait, DEFAULT_MAX_TURNS)
     }
 
+    /// Receives produced `Stream` values with a configurable max-turns.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream_with_config(
         self,
         wait: time::Duration,
@@ -245,6 +266,11 @@ where
         )
     }
 
+    /// Broadcasts the task to the global queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::TaskRequired` when the builder holds no task,
+    /// and the global-queue error when the broadcast cannot accept it.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let _ = self.fallback;
         let c = self.config;
@@ -258,6 +284,10 @@ where
         c.engine.broadcast(boxed)
     }
 
+    /// Builds the inline action and its result iterator.
+    ///
+    /// # Panics
+    /// Panics if the builder holds no task.
     pub fn action(
         self,
         wait: time::Duration,

@@ -5,7 +5,7 @@
 //! client on wasm32) for HTTP I/O with
 //! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
 
-use foundation_compact::{SendWrapper, SystemTime};
+use foundation_compact::SendWrapper;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -16,7 +16,7 @@ use crate::backends::backend_utils::{
 };
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
+use foundation_core::valtron::{sleep_async, Clock, Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
@@ -215,39 +215,37 @@ pub struct OpenAIProvider {
     api_key: Option<ConfidentialText>,
     http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
-}
-
-impl Default for OpenAIProvider {
-    fn default() -> Self {
-        Self::new()
-    }
+    /// The injected clock every message this provider emits is stamped with.
+    clock: Arc<dyn Clock>,
 }
 
 impl OpenAIProvider {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
+            clock,
         }
     }
 
     /// A provider authenticated with an API key: shorthand for
     /// `with_config(OpenAIConfig::api_key(key))`.
     #[must_use]
-    pub fn api_key(key: impl Into<String>) -> Self {
-        Self::with_config(OpenAIConfig::api_key(key))
+    pub fn api_key(key: impl Into<String>, clock: Arc<dyn Clock>) -> Self {
+        Self::with_config(OpenAIConfig::api_key(key), clock)
     }
 
     #[must_use]
-    pub fn with_config(config: OpenAIConfig) -> Self {
+    pub fn with_config(config: OpenAIConfig, clock: Arc<dyn Clock>) -> Self {
         Self {
             config,
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
+            clock,
         }
     }
 
@@ -256,23 +254,29 @@ impl OpenAIProvider {
     /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
     /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: DynNetClient) -> Self {
+    pub fn with_http_client(client: DynNetClient, clock: Arc<dyn Clock>) -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
+            clock,
         }
     }
 
     /// [`Self::with_http_client`] with a config.
     #[must_use]
-    pub fn with_http_client_and_config(client: DynNetClient, config: OpenAIConfig) -> Self {
+    pub fn with_http_client_and_config(
+        client: DynNetClient,
+        config: OpenAIConfig,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             config,
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
+            clock,
         }
     }
 
@@ -528,6 +532,7 @@ impl ModelProvider for OpenAIProvider {
             models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
+            clock: Arc::clone(&self.clock),
         })
     }
 
@@ -592,6 +597,8 @@ pub struct OpenAIModel {
     models_cache: ModelInfoCache,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
+    /// The injected clock every message this model emits is stamped with.
+    clock: Arc<dyn Clock>,
 }
 
 impl OpenAIModel {
@@ -855,7 +862,7 @@ impl OpenAIModel {
         Ok(vec![Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: self.clock.wall_now(),
             usage: emb_usage,
             content: ModelOutput::Embedding {
                 dimensions: data.embedding.len(),
@@ -1077,7 +1084,8 @@ impl Model for OpenAIModel {
         let url = self.build_url("chat/completions");
         let response: ChatCompletionResponse = self.execute_request(&url, &body)?;
 
-        let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
+        let (message, report) =
+            parse_chat_response(&response, &self.model_id, &self.pricing, &*self.clock)?;
         self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(vec![message])
     }
@@ -1103,7 +1111,8 @@ impl Model for OpenAIModel {
         let url = self.build_url("chat/completions");
         let response: ChatCompletionResponse = self.execute_request_async(&url, &body).await?;
 
-        let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
+        let (message, report) =
+            parse_chat_response(&response, &self.model_id, &self.pricing, &*self.clock)?;
         self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(vec![message])
     }
@@ -1140,6 +1149,7 @@ impl Model for OpenAIModel {
             done: false,
             pricing: self.pricing,
             cumulative_cost: Arc::clone(&self.cumulative_cost),
+            clock: Arc::clone(&self.clock),
         }))
     }
 }
@@ -1163,6 +1173,7 @@ struct OpenAIStream {
     done: bool,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
+    clock: Arc<dyn Clock>,
 }
 
 pub struct AccumulatedToolCall {
@@ -1288,7 +1299,7 @@ impl OpenAIStream {
             Stream::Next(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: SystemTime::now(),
+                timestamp: self.clock.wall_now(),
                 usage: empty_usage_report(),
                 content: ModelOutput::Text(TextContent {
                     content: self.accumulated_text.clone(),
@@ -1322,7 +1333,7 @@ impl OpenAIStream {
         let partial = Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: self.clock.wall_now(),
             usage: empty_usage_report(),
             content: ModelOutput::Text(TextContent {
                 content: self.accumulated_text.clone(),
@@ -1424,7 +1435,7 @@ impl OpenAIStream {
         let msg = Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: self.clock.wall_now(),
             usage: usage_report.clone(),
             content,
             stop_reason,
@@ -2153,6 +2164,7 @@ pub fn parse_chat_response(
     response: &ChatCompletionResponse,
     model_id: &ModelId,
     pricing: &ModelUsageCosting,
+    clock: &dyn Clock,
 ) -> GenerationResult<(Messages, UsageReport)> {
     let choice = response
         .choices
@@ -2242,7 +2254,7 @@ pub fn parse_chat_response(
         Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: model_id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: clock.wall_now(),
             usage: usage_report.clone(),
             content: output,
             stop_reason,

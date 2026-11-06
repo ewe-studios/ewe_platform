@@ -56,6 +56,7 @@ impl<T: Send + 'static> WorkerChannel<T> {
     /// Build the channel. Returns `(sender, receiver)`. The receiver half
     /// is consumed by `session.spawn_worker()`. The sender is cloneable
     /// and can be sent to the registry for cross-site dispatch.
+    #[must_use]
     pub fn build(self) -> (Self, WorkerReceiver<T>) {
         let rx = WorkerReceiver {
             queue: Arc::clone(&self.queue),
@@ -98,11 +99,8 @@ impl<T: Send + 'static> WorkerReceiver<T> {
 
     /// Non-blocking receive. Returns `None` if empty (not closed).
     pub fn try_recv(&mut self) -> Option<T> {
-        match self.queue.pop() {
-            Ok(item) => Some(item),
-            Err(concurrent_queue::PopError::Empty) => None,
-            Err(concurrent_queue::PopError::Closed) => None,
-        }
+        // Both an empty queue and a closed one mean "nothing to receive now".
+        self.queue.pop().ok()
     }
 }
 
@@ -140,6 +138,10 @@ impl WorkerRegistry {
     }
 
     /// Register a channel for named dispatch.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the registry lock is poisoned.
     pub fn register<T: Send + 'static>(&self, name: &str, queue: Arc<ConcurrentQueue<T>>) {
         self.channels
             .lock()
@@ -149,6 +151,10 @@ impl WorkerRegistry {
 
     /// Send a command to a named worker. Returns `false` if unknown or
     /// the type doesn't match.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the registry lock is poisoned.
     pub fn send<T: Send + 'static>(&self, name: &str, cmd: T) -> bool {
         match self.channels.lock().unwrap().get(name) {
             Some(erased) => erased.try_send(Box::new(cmd)),
@@ -156,15 +162,30 @@ impl WorkerRegistry {
         }
     }
 
+    /// Whether a worker with `name` is registered.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the registry lock is poisoned.
     #[must_use]
     pub fn exists(&self, name: &str) -> bool {
         self.channels.lock().unwrap().contains_key(name)
     }
 
+    /// Remove the worker with `name`, if any.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the registry lock is poisoned.
     pub fn deregister(&self, name: &str) {
         self.channels.lock().unwrap().remove(name);
     }
 
+    /// The registered worker names.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the registry lock is poisoned.
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.channels.lock().unwrap().keys().cloned().collect()
@@ -187,7 +208,7 @@ impl PlatformSession {
     /// # Example
     /// ```ignore
     /// let (tx, rx) = WorkerChannel::<SyncCommand>::new("sync").build();
-    /// session.spawn_worker(tx.clone(), rx, |mut rx, session| {
+    /// session.spawn_worker(&tx, rx, |mut rx, session| {
     ///     while let Some(cmd) = rx.recv() {
     ///         match cmd {
     ///             SyncCommand::FullSync => { /* ... */ }
@@ -199,7 +220,7 @@ impl PlatformSession {
     /// ```
     pub fn spawn_worker<T, F>(
         self: &Arc<Self>,
-        channel: WorkerChannel<T>,
+        channel: &WorkerChannel<T>,
         receiver: WorkerReceiver<T>,
         handler: F,
     ) where

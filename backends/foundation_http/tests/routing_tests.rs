@@ -83,9 +83,11 @@ fn test_static_route_get() {
     let handler = router.dispatch(&SimpleMethod::GET, "/hello");
     assert!(handler.is_some());
 
-    let result = handler
-        .unwrap()
-        .serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let result = handler.unwrap().serve(
+        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert!(matches!(result, ConnectionResult::Keep));
     assert_eq!(count.load(Ordering::SeqCst), 1);
 }
@@ -172,13 +174,21 @@ fn test_static_precedence_over_param() {
     let handler = router
         .dispatch(&SimpleMethod::GET, "/users/profile")
         .unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(static_count.load(Ordering::SeqCst), 1);
     assert_eq!(param_count.load(Ordering::SeqCst), 0);
 
     // Param route should match for non-static
     let handler = router.dispatch(&SimpleMethod::GET, "/users/edit").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(param_count.load(Ordering::SeqCst), 1);
 }
 
@@ -200,12 +210,20 @@ fn test_multiple_methods_same_path() {
     );
 
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(get_count.load(Ordering::SeqCst), 1);
     assert_eq!(post_count.load(Ordering::SeqCst), 0);
 
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(post_count.load(Ordering::SeqCst), 1);
 }
 

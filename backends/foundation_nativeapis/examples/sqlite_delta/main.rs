@@ -15,7 +15,14 @@ fn main() {
     // Create a LibsqlDelta — async-first implementation. `main` is a sync
     // boundary: it waits for the async constructor through `exec_async`.
     let path = db_path.clone();
-    let async_delta = exec_async(async move { LibsqlDelta::new(path).await }).unwrap();
+    let async_delta = exec_async(async move {
+        LibsqlDelta::new(
+            path,
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .await
+    })
+    .unwrap();
     println!("Created LibsqlDelta at {:?}", db_path);
 
     // Wrap in SyncFs for the sync API

@@ -24,7 +24,7 @@ use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime};
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
@@ -135,6 +135,12 @@ impl Clock for SimClock {
 
     fn elapsed(&self) -> Duration {
         self.now().saturating_duration_since(self.origin)
+    }
+
+    fn wall_now(&self) -> SystemTime {
+        // These clients read only the monotonic clock. Pin the wall time to the
+        // UNIX epoch so no test depends on the machine's clock or on the date.
+        SystemTime::UNIX_EPOCH
     }
 }
 

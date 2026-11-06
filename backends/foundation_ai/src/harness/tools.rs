@@ -19,6 +19,7 @@
 
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
@@ -195,6 +196,7 @@ impl ToolPreset {
         output_base: &str,
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
+        clock: Arc<dyn Clock>,
     ) -> Self
     where
         D: DocumentStore + Default + 'static,
@@ -208,6 +210,7 @@ impl ToolPreset {
             output_base.to_string(),
             user,
             child_tools,
+            clock,
         ))])
     }
 
@@ -224,6 +227,7 @@ impl ToolPreset {
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
         stores: Arc<dyn SessionStoreFactory<D, M>>,
+        clock: Arc<dyn Clock>,
     ) -> Self
     where
         D: DocumentStore + 'static,
@@ -238,6 +242,7 @@ impl ToolPreset {
             user,
             child_tools,
             stores,
+            clock,
         ))])
     }
 

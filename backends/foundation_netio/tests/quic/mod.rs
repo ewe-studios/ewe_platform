@@ -43,8 +43,8 @@ const BUDGET: Duration = Duration::from_secs(5);
 
 /// Step both drivers once. Returns `true` if either made progress.
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) -> bool {
-    let s = server.next_status(Ctx::new());
-    let c = client.next_status(Ctx::new());
+    let s = server.next_status(Ctx::host());
+    let c = client.next_status(Ctx::host());
     matches!(s, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
         || matches!(c, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
 }
@@ -374,7 +374,7 @@ fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
     // No datagrams, no connections: the driver has nothing to do. It must park on
     // the reactor, not burn a worker with `Delayed`.
     let status = server
-        .next_status(Ctx::new())
+        .next_status(Ctx::host())
         .expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Depends(_)),
@@ -389,7 +389,7 @@ fn idle_driver_without_readiness_falls_back_to_delayed() {
     let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
 
     let status = server
-        .next_status(Ctx::new())
+        .next_status(Ctx::host())
         .expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Delayed(_)),
@@ -450,7 +450,7 @@ fn queued_reset_wakes_a_driver_parked_on_readiness() {
     // Drain the server until it has no work and parks. Each `next_status` clears
     // the self-wake latch, so the captured park is genuinely idle.
     let parked = loop {
-        match server.next_status(Ctx::new()) {
+        match server.next_status(Ctx::host()) {
             Some(TaskStatus::Depends(r)) => break r,
             Some(_) => continue,
             None => panic!("server driver ended unexpectedly"),

@@ -20,7 +20,10 @@ use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::{DeltaStore, OpenMode, VfsFileSystem, VfsFileType};
 
 fn delta() -> BlobDelta<MemoryStorage> {
-    BlobDelta::from_store(MemoryStorage::new())
+    BlobDelta::from_store(
+        MemoryStorage::new(),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
 }
 
 /// A blob store that counts every byte passed to `put_blob`.
@@ -254,7 +257,11 @@ async fn blob_delta_reset_clears_everything() {
 async fn blob_delta_small_writes_touch_one_chunk() {
     let (store, written) = CountingStore::new();
     let config = BlobDeltaConfig::default().with_chunk_size(4096);
-    let d = BlobDelta::from_store_with_config(store, config);
+    let d = BlobDelta::from_store_with_config(
+        store,
+        config,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let f = d.create_async("/big".into(), 0o644).await.unwrap();
 
     // 1 MiB in 4 KiB pieces. Chunked writes touch one 4 KiB chunk per write,

@@ -1,9 +1,11 @@
-//! Tests for cache tiers — per-route cache with foundation_db StorageProvider backend.
+//! Tests for cache tiers — per-route cache with `foundation_db` `StorageProvider` backend.
 
 use foundation_platform::*;
 
 fn cache() -> CacheManager {
-    CacheManager::in_memory()
+    CacheManager::in_memory(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }
 
 fn decision_with(policy: CachePolicy, profile: Profile) -> RouteDecision {

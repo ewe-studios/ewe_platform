@@ -58,7 +58,7 @@ fn test_reconnecting_task_receives_events() {
     let mut got_event = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(ParseResult {
                 event: Event::Message { ref data, .. },
@@ -99,7 +99,7 @@ fn test_reconnecting_task_tracks_event_id() {
     let mut event_ids: Vec<String> = Vec::new();
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { id: Some(id), .. },
             ..
@@ -136,7 +136,7 @@ fn test_reconnecting_task_connection_refused_retries() {
     let mut delayed_count = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Delayed(_) = status {
             delayed_count += 1;
         }
@@ -171,7 +171,7 @@ fn test_reconnecting_task_multiple_events() {
     let mut data_values: Vec<String> = Vec::new();
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
             ..
@@ -210,7 +210,7 @@ fn test_reconnecting_task_passes_comments() {
     let mut saw_message = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(ParseResult {
                 event: Event::Comment(c),
@@ -262,7 +262,7 @@ fn test_reconnecting_task_eof_does_not_retry() {
     let mut backoff_delays = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(ParseResult {
                 event: Event::Message { ref data, .. },
@@ -310,7 +310,7 @@ fn test_reconnecting_task_error_triggers_retry() {
     let mut backoff_delays = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Delayed(_) = status {
             backoff_delays += 1;
         }
@@ -343,7 +343,7 @@ fn test_reconnecting_task_close_reason_eof() {
         .with_max_retries(3);
 
     // Exhaust the task
-    while task.next_status(Ctx::new()).is_some() {}
+    while task.next_status(Ctx::host()).is_some() {}
 
     // Verify: Close reason should be None or EOF (no error occurred)
     // The inner task closes with EOF, but ReconnectingEventSourceTask
@@ -376,7 +376,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
     let mut backoff_delays = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Delayed(_) = status {
             backoff_delays += 1;
         }
@@ -411,7 +411,7 @@ fn test_reconnecting_task_respects_server_retry() {
     let mut received_data = Vec::new();
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..
@@ -473,7 +473,7 @@ fn test_reconnecting_task_with_body_uses_post() {
     let mut steps = 0;
 
     tracing::trace!("Checking status");
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..
@@ -532,7 +532,7 @@ fn test_reconnecting_task_default_method_is_get() {
     let mut got_event = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..

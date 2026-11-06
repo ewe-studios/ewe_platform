@@ -5,7 +5,7 @@ use foundation_core::valtron::{from_future, Ctx, FutureTask, TaskStatus};
 /// WHAT: Future that returns Ready immediately should complete on first poll
 #[test]
 fn test_future_task_immediate_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let future = core::future::ready(42);
     let mut task = FutureTask::new(future);
 
@@ -44,7 +44,7 @@ fn test_future_task_pending() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let future = PendingThenReady { polled: false };
     let mut task = FutureTask::new(future);
@@ -75,7 +75,7 @@ fn test_future_task_pending() {
 /// WHAT: Creates `FutureTask` correctly
 #[test]
 fn test_from_future_convenience() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let future = core::future::ready("hello");
     let mut task = from_future(future);
 
@@ -125,7 +125,7 @@ fn test_self_wake_returns_pending_not_depends() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let mut task = FutureTask::new(SelfWakeThenReady { polled: false });
 
@@ -153,7 +153,7 @@ fn test_self_wake_returns_pending_not_depends() {
 /// WHAT: Verify the event-driven path is unchanged.
 #[test]
 fn test_pending_without_self_wake_returns_depends_not_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let future = core::future::pending::<i32>();
     let mut task = FutureTask::new(future);
 
@@ -199,7 +199,7 @@ fn test_self_wake_loop_no_depends_violations() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let mut task = FutureTask::new(MultiSelfWake { remaining: CYCLES });
 
@@ -267,7 +267,7 @@ fn test_mixed_self_wake_then_external_park() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let mut task = FutureTask::new(MixedFuture { stage: 0 });
 
@@ -330,7 +330,7 @@ fn test_external_wake_makes_depends_ready() {
             }
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let gate = Arc::new(AtomicBool::new(false));
     let mut task = FutureTask::new(GateFuture { open: gate.clone() });

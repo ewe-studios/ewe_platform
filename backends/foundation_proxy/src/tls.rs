@@ -15,6 +15,7 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+use foundation_core::valtron::Clock;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::DynNetClient;
 
@@ -113,18 +114,22 @@ pub struct AcmeCertManager {
     directory_url: String,
     client: DynNetClient,
     dns_setter: Dns01Setter,
+    /// The host clock the ACME DNS wait reads.
+    clock: Arc<dyn Clock>,
     cached: Mutex<Option<CertPair>>,
 }
 
 impl AcmeCertManager {
     /// Build a manager for `domains`, authenticating to the CA at
     /// `directory_url` (`AcmeClient::PRODUCTION`/`STAGING`, or a private CA).
+    /// `clock` times the DNS-01 propagation wait.
     pub fn new(
         domains: Vec<String>,
         email: impl Into<String>,
         directory_url: impl Into<String>,
         client: DynNetClient,
         dns_setter: Dns01Setter,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             domains,
@@ -132,6 +137,7 @@ impl AcmeCertManager {
             directory_url: directory_url.into(),
             client,
             dns_setter,
+            clock,
             cached: Mutex::new(None),
         }
     }
@@ -165,6 +171,7 @@ impl AcmeCertManager {
         let acme = AcmeClient::with_directory(
             DynNetClient::clone(&self.client),
             self.directory_url.clone(),
+            Arc::clone(&self.clock),
         )
         .with_jwk(jwk)
         .with_signer(signer)
@@ -228,6 +235,7 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
 pub fn build_cert_manager(
     config: &ProxyConfig,
     client: DynNetClient,
+    clock: Arc<dyn Clock>,
 ) -> ProxyResult<Arc<dyn CertManager>> {
     match &config.ssl.provider {
         SslProvider::Static { cert, key } => {
@@ -251,6 +259,7 @@ pub fn build_cert_manager(
                 directory,
                 client,
                 Arc::clone(&acme.dns01_setter),
+                clock,
             )))
         }
         SslProvider::Cloudflare { zone_id } => Err(ProxyError::Ssl(format!(

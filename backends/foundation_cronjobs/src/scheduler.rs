@@ -14,7 +14,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use foundation_core::valtron::{AsyncStateTask, AsyncTransition, Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    AsyncStateTask, AsyncTransition, Clock, Ctx, TaskIterator, TaskStatus,
+};
 use foundation_db::{DataValue, QueryStore, SqlRow, StorageError};
 use futures_lite::StreamExt;
 use saffron::Cron;
@@ -102,12 +104,10 @@ impl CronJob {
     /// Compute the next fire time strictly after `now`.
     ///
     /// `now` is a wall-clock UTC time. A cron expression needs calendar time
-    /// (weekday, month, leap day), which valtron's monotonic [`Clock`] cannot
-    /// provide, so the run task is given a wall clock explicitly (see
-    /// [`SharedCronClock`]); this method is pure and takes the time as an
-    /// argument so tests can move it.
-    ///
-    /// [`Clock`]: foundation_core::valtron::Clock
+    /// (weekday, month, leap day), which valtron's monotonic instant cannot
+    /// provide, so the caller passes a wall-clock time derived from the
+    /// injected [`Clock::wall_now`]. This method is pure, so a test can move
+    /// the time without a live clock.
     #[must_use]
     pub fn next_fire(&self, now: DateTime<Utc>) -> Option<DateTime<Utc>> {
         self.cron.next_after(now)
@@ -119,67 +119,9 @@ impl CronJob {
         self,
         job: Arc<dyn Job>,
         policy: MissedJobPolicy,
-        clock: SharedCronClock,
+        clock: Arc<dyn Clock>,
     ) -> JobRunTask {
         JobRunTask::new(self.config, self.cron, self.state, job, policy, clock)
-    }
-}
-
-// ── Wall clock ──────────────────────────────────────────────────────────
-
-/// A wall clock: returns the current UTC date and time for cron matching.
-///
-/// Cron matching uses calendar fields (weekday, day of month, month), so it
-/// needs wall-clock time. Valtron's own [`Clock`] is monotonic-only (an
-/// [`Instant`], no calendar), so this crate takes its wall clock as an explicit
-/// argument (the same injection seam the host uses for the monotonic clock,
-/// random numbers and configuration).
-///
-/// [`Clock`]: foundation_core::valtron::Clock
-pub trait CronClock: Send + Sync + 'static {
-    /// The current wall-clock UTC time.
-    #[must_use]
-    fn now_utc(&self) -> DateTime<Utc>;
-}
-
-/// The default [`CronClock`]: the real system UTC clock.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct UtcClock;
-
-impl CronClock for UtcClock {
-    fn now_utc(&self) -> DateTime<Utc> {
-        Utc::now()
-    }
-}
-
-/// A shared wall clock passed explicitly to a run task.
-///
-/// Wrap an [`Arc<dyn CronClock>`] (the real [`UtcClock`] or a test mock). The
-/// host passes it to [`CronScheduler::into_run_tasks`]; a run task reads it from
-/// its own state. There is no fallback to the real clock, so a caller that
-/// forgets to pass one fails instead of silently using the real wall clock.
-#[derive(Clone)]
-pub struct SharedCronClock {
-    inner: Arc<dyn CronClock>,
-}
-
-impl SharedCronClock {
-    /// Wrap a wall clock for passing to a run task.
-    #[must_use]
-    pub fn new(clock: Arc<dyn CronClock>) -> Self {
-        Self { inner: clock }
-    }
-
-    /// The current wall-clock UTC time.
-    #[must_use]
-    pub fn now_utc(&self) -> DateTime<Utc> {
-        self.inner.now_utc()
-    }
-}
-
-impl fmt::Debug for SharedCronClock {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SharedCronClock").finish_non_exhaustive()
     }
 }
 
@@ -232,7 +174,7 @@ struct JobRunState {
     job: Arc<dyn Job>,
     state: JobState,
     policy: MissedJobPolicy,
-    clock: SharedCronClock,
+    clock: Arc<dyn Clock>,
     initialized: bool,
     results: Vec<JobRunResult>,
 }
@@ -257,7 +199,7 @@ impl JobRunTask {
         state: JobState,
         job: Arc<dyn Job>,
         policy: MissedJobPolicy,
-        clock: SharedCronClock,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         let shared = Arc::new(Mutex::new(JobRunState {
             config,
@@ -327,11 +269,10 @@ async fn job_transition(
     shared: Arc<Mutex<JobRunState>>,
 ) -> Option<((), TaskStatus<(), ()>)> {
     loop {
-        let now = shared
-            .lock()
-            .expect("job run state poisoned")
-            .clock
-            .now_utc();
+        let now = {
+            let s = shared.lock().expect("job run state poisoned");
+            wall_now_utc(s.clock.as_ref())
+        };
         let plan = {
             let mut s = shared.lock().expect("job run state poisoned");
             next_plan(&mut s, now)
@@ -343,7 +284,7 @@ async fn job_transition(
                 let job = shared.lock().expect("job run state poisoned").job.clone();
                 let result = job.run(ctx.clone()).await;
                 let mut s = shared.lock().expect("job run state poisoned");
-                let now = s.clock.now_utc();
+                let now = wall_now_utc(s.clock.as_ref());
                 record_run(&mut s, now, &result);
                 s.state.next_run = next_fire_unix(&s.cron, now);
             }
@@ -357,7 +298,7 @@ async fn job_transition(
                 loop {
                     let result = job.run(ctx.clone()).await;
                     let mut s = shared.lock().expect("job run state poisoned");
-                    let now = s.clock.now_utc();
+                    let now = wall_now_utc(s.clock.as_ref());
                     record_run(&mut s, now, &result);
                     let next = next_fire_unix_from(&s.cron, dt_from_unix(cursor));
                     if next == 0 || next > now.timestamp() {
@@ -451,6 +392,13 @@ fn dt_from_unix(secs: i64) -> DateTime<Utc> {
     DateTime::from_timestamp(secs, 0).unwrap_or(DateTime::UNIX_EPOCH)
 }
 
+/// The wall-clock UTC time on `clock`; the epoch when the value is out of
+/// range.
+fn wall_now_utc(clock: &dyn Clock) -> DateTime<Utc> {
+    DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(clock.wall_now()))
+        .unwrap_or(DateTime::UNIX_EPOCH)
+}
+
 // ── Scheduler ───────────────────────────────────────────────────────────
 
 /// The cron scheduler — owns registered jobs and drives their lifecycle.
@@ -501,11 +449,15 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
     /// # Errors
     ///
     /// Returns [`CronError::MissingJob`] when a registered job has no runner.
+    // The scheduler takes the clock by value so the signature states that one
+    // task per job gets a shared handle. It clones the `Arc` for every task
+    // because the caller usually keeps its own handle to move the clock.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn into_run_tasks(
         self,
         jobs: &[Arc<dyn Job>],
         policy: MissedJobPolicy,
-        clock: &SharedCronClock,
+        clock: Arc<dyn Clock>,
     ) -> Result<Vec<JobRunTask>, CronError> {
         let runners: HashMap<&str, Arc<dyn Job>> =
             jobs.iter().map(|j| (j.id(), Arc::clone(j))).collect();
@@ -517,7 +469,7 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
                     .get(id.as_str())
                     .cloned()
                     .ok_or(CronError::MissingJob(id))?;
-                Ok(job.into_run_task(runner, policy, clock.clone()))
+                Ok(job.into_run_task(runner, policy, Arc::clone(&clock)))
             })
             .collect()
     }

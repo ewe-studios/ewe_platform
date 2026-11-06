@@ -412,6 +412,7 @@ fn test_connection_state_tracking() {
     #[allow(clippy::no_effect_underscore_binding)]
     let _new_fn: fn(
         foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
+        std::sync::Arc<dyn foundation_core::valtron::Clock>,
     ) -> WebSocketServerConnection = WebSocketServerConnection::new;
 
     // The actual is_open() method is tested through integration tests

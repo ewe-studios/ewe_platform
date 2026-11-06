@@ -40,7 +40,10 @@ fn registry_register_and_invoke() {
     let reg = IpcRegistry::new();
     reg.register(EchoIpc);
 
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let req = IpcRequest {
         ipc: "echo".into(),
         action: "ping".into(),
@@ -55,7 +58,10 @@ fn registry_register_and_invoke() {
 #[test]
 fn registry_unknown_ipc() {
     let reg = IpcRegistry::new();
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let req = IpcRequest {
         ipc: "nonexistent".into(),
         action: "do".into(),

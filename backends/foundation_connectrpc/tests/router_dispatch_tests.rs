@@ -167,7 +167,7 @@ fn header(
 }
 
 fn bag() -> Arc<ContextBag> {
-    Arc::new(ContextBag::new())
+    Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()))
 }
 
 fn echo_router() -> Router {

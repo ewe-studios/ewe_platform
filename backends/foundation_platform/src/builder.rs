@@ -2,6 +2,7 @@ use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 use tauri::{App, Context, Manager, Runtime};
 
@@ -27,6 +28,9 @@ pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     script_injector: ScriptInjector,
     /// Whether platform runtimes have been auto-registered.
     runtimes_injected: bool,
+    /// The host clock every session wall time comes from. [`Self::build`]
+    /// requires it; there is no fallback to the real clock.
+    clock: Option<Arc<dyn Clock>>,
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
@@ -39,7 +43,18 @@ impl<R: Runtime> PlatformBuilder<R> {
             index_url: None,
             script_injector: ScriptInjector::new(PathBuf::new()),
             runtimes_injected: false,
+            clock: None,
         }
+    }
+
+    /// Set the host clock. Every session wall time comes from it.
+    ///
+    /// [`Self::build`] panics when the builder was not given a clock: a missing
+    /// clock is a wiring fault, never a reason to read the real one.
+    #[must_use]
+    pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
+        self.clock = Some(clock);
+        self
     }
 
     #[must_use]
@@ -124,12 +139,20 @@ impl<R: Runtime> PlatformBuilder<R> {
     /// # Errors
     ///
     /// Returns [`tauri::Error`] if Tauri initialisation fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the builder has no clock; call [`Self::clock`] first.
     #[allow(clippy::needless_pass_by_value)]
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         let mut routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
         let _index_url = self.index_url.clone();
         let script_injector = std::mem::take(&mut self.script_injector);
+        let clock = self
+            .clock
+            .take()
+            .expect("PlatformBuilder::build needs a clock: call PlatformBuilder::clock(clock)");
 
         self.inner = self.inner.setup(move |app| {
             let resource_root = app
@@ -144,7 +167,7 @@ impl<R: Runtime> PlatformBuilder<R> {
                 script_injector
             };
 
-            let session = PlatformSession::new(resource_root, injector);
+            let session = PlatformSession::new(resource_root, injector, clock);
 
             for entry in routes.drain(..) {
                 let mut d = entry.decision.clone();

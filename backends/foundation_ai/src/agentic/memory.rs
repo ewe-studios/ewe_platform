@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::memory_coordinator::MemoryCoordinator;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::types::{MemoryFact, ModelId, SessionId, SessionRecord};
-use foundation_compact::SystemTime;
+use foundation_core::valtron::Clock;
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 
@@ -144,6 +144,9 @@ struct MemoryInner<M, D> {
     coordinator: MemoryCoordinator<M, D>,
     ledger: TokenLedger,
     config: MemoryConfig,
+    /// The injected clock: observation, reflection and working-memory records
+    /// stamp their wall time from it.
+    clock: Arc<dyn Clock>,
     observation_tokens: AtomicU64,
     is_generating: AtomicBool,
 }
@@ -155,6 +158,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         coordinator: MemoryCoordinator<M, D>,
         ledger: TokenLedger,
         config: MemoryConfig,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             inner: Arc::new(MemoryInner {
@@ -162,10 +166,17 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
                 coordinator,
                 ledger,
                 config,
+                clock,
                 observation_tokens: AtomicU64::new(0),
                 is_generating: AtomicBool::new(false),
             }),
         }
+    }
+
+    /// The injected clock this hierarchy stamps its records with.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        Arc::clone(&self.inner.clock)
     }
 
     #[must_use]
@@ -214,7 +225,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
             id: foundation_compact::ids::new_scru128(),
             observations,
             token_count,
-            timestamp: SystemTime::now(),
+            timestamp: self.inner.clock.wall_now(),
         };
 
         self.inner
@@ -248,7 +259,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         let record = SessionRecord::Reflection {
             id: foundation_compact::ids::new_scru128(),
             reflections,
-            generated_at: SystemTime::now(),
+            generated_at: self.inner.clock.wall_now(),
             observation_token_count_before,
             reflection_token_count_after: reflection_token_count,
         };
@@ -276,7 +287,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
             id: foundation_compact::ids::new_scru128(),
             facts,
             version: prev_version + 1,
-            timestamp: SystemTime::now(),
+            timestamp: self.inner.clock.wall_now(),
         };
         self.inner
             .coordinator

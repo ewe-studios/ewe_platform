@@ -119,6 +119,7 @@ fn start_proxy(backend: &str) -> ProxyServer {
         ProxyConfig::new("tunnel.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(ServiceConfig::new("t", "t.local").backend(backend)),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy")

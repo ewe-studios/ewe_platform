@@ -30,7 +30,11 @@ fn temp_state_dir() -> PathBuf {
 #[test]
 fn concurrent_backend_saves_keep_every_update() {
     let dir = temp_state_dir();
-    let store = Arc::new(ProxyStateStore::new(&dir, "test.example"));
+    let store = Arc::new(ProxyStateStore::new(
+        &dir,
+        "test.example",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
 
     let mut threads = Vec::new();
     for i in 0..16 {

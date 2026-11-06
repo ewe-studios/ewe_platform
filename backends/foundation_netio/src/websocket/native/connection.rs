@@ -63,8 +63,11 @@ impl WebSocketConnection {
     /// WHY: After successful handshake, user needs a connection object.
     /// WHAT: Wraps the stream for frame-based communication.
     #[must_use]
-    pub fn new(stream: SharedByteBufferStream<RawStream>) -> Self {
-        let writer = BatchFrameWriter::with_defaults(stream.clone());
+    pub fn new(
+        stream: SharedByteBufferStream<RawStream>,
+        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
+    ) -> Self {
+        let writer = BatchFrameWriter::with_defaults(stream.clone(), clock);
         Self {
             stream,
             writer,

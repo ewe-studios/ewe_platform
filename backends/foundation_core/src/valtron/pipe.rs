@@ -36,7 +36,7 @@ use std::sync::Arc;
 use concurrent_queue::{PopError, PushError};
 
 use crate::compati::Mutex;
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 
 /// Shared state behind both pipe halves: the bounded queue plus the two waker
 /// stashes fired by the opposite end.
@@ -215,6 +215,21 @@ impl<T> PipeSender<T> {
         self.inner.queue.vacancy()
     }
 
+    /// Producer-side readiness for "the consumer dropped the pipe", for the
+    /// valtron-task path: park with `Depends(sender.closed_readiness())`.
+    ///
+    /// WHY: [`vacancy`](Self::vacancy) is ready on "not full", which is true for
+    /// any pipe with room, so a producer that parks on it wakes on every
+    /// consumer pop. This signal is ready only once the pipe closes, and a pop
+    /// does not wake a task parked on it. A close wakes it exactly once.
+    #[must_use]
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<T>
+    where
+        T: Send,
+    {
+        self.inner.queue.closed_readiness()
+    }
+
     /// Wake `waker` when an item is popped or the pipe closes. For a producer
     /// that is not a future (a valtron task): register, then `try_send`, and
     /// park on what the waker sets when the pipe is full. The pipe holds one
@@ -265,6 +280,7 @@ impl<T> PipeSender<T> {
 
     /// Explicitly close the send direction (also done on drop). Wakes a parked
     /// consumer so it observes end-of-stream. Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.inner.close_queue();
         self.inner.wake_consumer();
@@ -468,6 +484,7 @@ impl<T> PipeReceiver<T> {
 
     /// Explicitly close the receive direction (also done on drop). Wakes a parked
     /// producer so it observes the close. Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.inner.close_queue();
         self.inner.wake_producer();

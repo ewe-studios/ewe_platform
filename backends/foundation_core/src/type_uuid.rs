@@ -82,6 +82,12 @@ macro_rules! external_type_uuid {
 /// Parse a UUID string into a `[u8; 16]` at compile time.
 ///
 /// Accepts the standard `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` format.
+///
+/// # Panics
+/// Panics when the text is not 36 characters, does not hold exactly 32 hex
+/// digits, or holds a character that is not a hexadecimal digit. Constant
+/// evaluation reports the panic at compile time.
+#[must_use]
 pub const fn parse_uuid_const(s: &str) -> Bytes {
     let b = s.as_bytes();
     assert!(b.len() == 36, "UUID must be 36 characters");

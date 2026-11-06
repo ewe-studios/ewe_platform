@@ -10,6 +10,7 @@
 
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
 use futures_lite::StreamExt;
 
 use super::traits::{StateStore, StateStoreStream};
@@ -56,6 +57,10 @@ impl<S: StateStore> NamespacedStore<S> {
     /// Store a typed value under the given key.
     ///
     /// Serializes the value as JSON into the `ResourceState`'s `output` field.
+    /// `created_at` and `updated_at` come from `clock`, never from a global
+    /// clock, so a deterministic simulation test controls them. A wall time
+    /// outside the range of `chrono::DateTime<Utc>` falls back to
+    /// `DateTime::UNIX_EPOCH`.
     ///
     /// # Errors
     ///
@@ -64,12 +69,15 @@ impl<S: StateStore> NamespacedStore<S> {
         &self,
         key: &str,
         value: &T,
+        clock: &dyn Clock,
     ) -> StorageResult<()> {
         let full_key = self.full_key(key);
         let json_value = serde_json::to_value(value)
             .map_err(|e| StorageError::Serialization(format!("Failed to serialize state: {e}")))?;
 
-        let now = chrono::Utc::now();
+        let now_ms = foundation_compact::time::unix_millis(clock.wall_now());
+        let now =
+            chrono::DateTime::from_timestamp_millis(now_ms).unwrap_or(chrono::DateTime::UNIX_EPOCH);
         let state = ResourceState {
             id: full_key.clone(),
             kind: String::new(),

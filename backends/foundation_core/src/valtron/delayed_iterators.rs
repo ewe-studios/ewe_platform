@@ -124,17 +124,46 @@ impl<T> Iterator for DelayedAsIterator<T> {
 /// It will keep responding with a `Delayed::Pending` till the time marked
 /// for sleeping to end which indicates to the caller to perform whatever
 /// task they were waiting for.
-#[derive(Clone, Debug)]
-pub struct SleepIterator<T>(foundation_compact::Instant, std::time::Duration, Option<T>);
+pub struct SleepIterator<T>(
+    foundation_compact::Instant,
+    std::time::Duration,
+    Option<T>,
+    std::sync::Arc<dyn crate::valtron::Clock>,
+);
+
+impl<T: core::fmt::Debug> core::fmt::Debug for SleepIterator<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_tuple("SleepIterator")
+            .field(&self.0)
+            .field(&self.1)
+            .field(&self.2)
+            .finish()
+    }
+}
+
+impl<T: Clone> Clone for SleepIterator<T> {
+    fn clone(&self) -> Self {
+        Self(self.0, self.1, self.2.clone(), self.3.clone())
+    }
+}
 
 impl<T> SleepIterator<T> {
-    pub fn new(from: foundation_compact::Instant, until: std::time::Duration, value: T) -> Self {
-        Self(from, until, Some(value))
+    pub fn new(
+        from: foundation_compact::Instant,
+        until: std::time::Duration,
+        value: T,
+        clock: std::sync::Arc<dyn crate::valtron::Clock>,
+    ) -> Self {
+        Self(from, until, Some(value), clock)
     }
 
-    pub fn until(duration: std::time::Duration, value: T) -> Self {
-        let from = foundation_compact::Instant::now();
-        Self(from, duration, Some(value))
+    pub fn until(
+        duration: std::time::Duration,
+        value: T,
+        clock: std::sync::Arc<dyn crate::valtron::Clock>,
+    ) -> Self {
+        let from = clock.now();
+        Self(from, duration, Some(value), clock)
     }
 }
 
@@ -143,6 +172,7 @@ impl<T> SleepIterator<T> {
 /// Returns the time left as `Some(diff)` only when `diff` is strictly positive.
 /// Returns `None` when the deadline is in the past, is exactly `now`, or overflowed
 /// (`completed_at` is `None`). `None` means the sleep is done.
+#[must_use]
 pub fn remaining(
     completed_at: Option<foundation_compact::Instant>,
     now: foundation_compact::Instant,
@@ -161,7 +191,7 @@ impl<T> DelayedIterator for SleepIterator<T> {
     fn next(&mut self) -> Option<Delayed<Self::Item>> {
         self.2.as_ref()?;
 
-        let now = foundation_compact::Instant::now();
+        let now = self.3.now();
         let completed_at = self.0.checked_add(self.1);
         let result = match remaining(completed_at, now) {
             Some(diff) => Delayed::Pending(self.0, self.1, diff),

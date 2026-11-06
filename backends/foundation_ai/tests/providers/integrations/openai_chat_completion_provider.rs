@@ -43,17 +43,23 @@ fn setup_llama_server_provider(
         .with_base_url(base_url.clone())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
 
-    let provider = OpenAIProvider::with_http_client(http_client)
+    let provider = OpenAIProvider::with_http_client(http_client, test_clock())
         .create(Some(config))
         .unwrap();
 
     provider.get_model(ModelId::Name(model_name, None)).unwrap()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 /// Test: generate a short response against the real llama-server.
+
 #[valtron_test]
 fn test_llama_server_generate() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
@@ -99,7 +105,7 @@ fn test_llama_server_generate() {
 /// Test: streaming text generation against the real llama-server.
 #[valtron_test]
 fn test_llama_server_streaming() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
@@ -157,7 +163,7 @@ fn test_llama_server_streaming() {
 /// Test: multi-turn conversation with conversation history.
 #[valtron_test]
 fn test_llama_server_multi_turn() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
@@ -237,7 +243,7 @@ fn test_llama_server_multi_turn() {
 /// Test: max_tokens constraint truncates output.
 #[valtron_test]
 fn test_llama_server_max_tokens() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider(&llama_server_guard);
 
     let interaction = ModelInteraction {
@@ -275,7 +281,7 @@ fn test_llama_server_max_tokens() {
 /// Test: provider can resolve a model name against the running llama-server.
 #[valtron_test]
 fn test_llama_server_resolve_model() {
-    let llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server(test_clock());
     let model = setup_llama_server_provider(&llama_server_guard);
 
     // If we got a model handle, the provider connected successfully.

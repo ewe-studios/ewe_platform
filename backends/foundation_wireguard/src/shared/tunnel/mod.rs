@@ -1,4 +1,4 @@
-//! Sans-I/O per-peer WireGuard tunnel wrapper (spec-55, feature 01).
+//! Sans-I/O per-peer `WireGuard` tunnel wrapper (spec-55, feature 01).
 //!
 //! WHY: `foundation_boringtun::noise::Tunn` is a pure crypto state machine with no I/O and a
 //! lifetime-bound output buffer. We wrap it so callers get owned, ergonomic outcomes and
@@ -16,7 +16,7 @@ use std::net::IpAddr;
 use foundation_boringtun::noise::{Tunn, TunnResult};
 use foundation_boringtun::x25519::{PublicKey, StaticSecret};
 
-/// Scratch buffer size — large enough for any IP packet plus WireGuard overhead
+/// Scratch buffer size — large enough for any IP packet plus `WireGuard` overhead
 /// (boringtun requires `dst >= src + 32` and `>= 148`).
 const SCRATCH: usize = 65_535;
 
@@ -44,7 +44,7 @@ impl std::fmt::Debug for WgOutcome {
     }
 }
 
-/// A single WireGuard tunnel to one peer.
+/// A single `WireGuard` tunnel to one peer.
 pub struct WgTunnel {
     tunn: Tunn,
     peer_public: PublicKey,
@@ -133,7 +133,7 @@ impl WgTunnel {
         }
     }
 
-    /// WHY: WireGuard drives handshakes, keepalives, and rekeys off timers.
+    /// WHY: `WireGuard` drives handshakes, keepalives, and rekeys off timers.
     ///
     /// WHAT: Advance this tunnel's timers, possibly yielding a keepalive/handshake packet.
     ///

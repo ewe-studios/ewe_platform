@@ -638,7 +638,7 @@ where
 // ThreadedValue - Common result type (unconditional)
 // ============================================================================
 
-/// Result value sent from ThreadedIterFuture worker or iterator.
+/// Result value sent from `ThreadedIterFuture` worker or iterator.
 #[derive(Debug)]
 pub enum ThreadedValue<T, E> {
     Value(Result<T, E>),
@@ -748,8 +748,8 @@ impl Default for ThreadedIterFutureConfig {
 
 /// A future executor that runs !Send operations on a background worker thread.
 ///
-/// In multi-threaded mode, this submits work to the BackgroundJobRegistry.
-/// In single-threaded mode, this polls the future inline on each next() call.
+/// In multi-threaded mode, this submits work to the `BackgroundJobRegistry`.
+/// In single-threaded mode, this polls the future inline on each `next()` call.
 #[cfg(feature = "multi")]
 pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
@@ -773,13 +773,13 @@ where
     T: Send + 'static,
     E: Send + 'static,
 {
-    /// Create a new ThreadedIterFuture with the default
+    /// Create a new `ThreadedIterFuture` with the default
     /// [`ThreadedIterFutureConfig`].
     pub fn new(future_fn: F) -> Self {
         Self::with_config(future_fn, ThreadedIterFutureConfig::default())
     }
 
-    /// Create a new ThreadedIterFuture with custom queue size and the default
+    /// Create a new `ThreadedIterFuture` with custom queue size and the default
     /// back-pressure park timeout.
     pub fn with_queue_size(future_fn: F, queue_size: usize) -> Self {
         Self::with_config(
@@ -791,7 +791,7 @@ where
         )
     }
 
-    /// Create a new ThreadedIterFuture with custom queue size and back-pressure
+    /// Create a new `ThreadedIterFuture` with custom queue size and back-pressure
     /// park timeout.
     pub fn with_backpressure_wait(
         future_fn: F,
@@ -808,7 +808,7 @@ where
         )
     }
 
-    /// Create a new ThreadedIterFuture with an explicit
+    /// Create a new `ThreadedIterFuture` with an explicit
     /// [`ThreadedIterFutureConfig`].
     pub fn with_config(future_fn: F, config: ThreadedIterFutureConfig) -> Self {
         Self {
@@ -819,6 +819,9 @@ where
     }
 
     /// Execute the future on a background worker thread.
+    ///
+    /// # Errors
+    /// Returns the executor error when the background worker cannot start.
     pub fn execute(
         self,
     ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>> {

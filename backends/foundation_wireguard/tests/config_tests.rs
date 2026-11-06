@@ -1,4 +1,4 @@
-//! Integration tests for WgConfig — macro, builder, and TOML convergence (spec-55, F09).
+//! Integration tests for `WgConfig` — macro, builder, and TOML convergence (spec-55, F09).
 //!
 //! Tests that the same network expressed via macro, builder, and TOML all produce
 //! equivalent configurations and working nodes.
@@ -7,11 +7,18 @@
 
 use std::io::Write;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed};
 use std::sync::Mutex;
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test.
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// Helper: generate a fresh 256-bit seed + its network id.
 fn fresh_seed() -> (WgSeed, NetworkId) {
@@ -86,7 +93,7 @@ fn seed_and_joiner_constructors_preserved() {
 
     // Seed constructor: no join targets.
     let cfg = WgConfig::seed(seed.clone(), net);
-    assert!(cfg.seed_endpoints().is_empty());
+    assert_eq!(cfg.seed_endpoints(), []);
 
     // Joiner constructor: has join targets.
     let ep = "10.0.0.1:51820".parse().expect("addr");
@@ -295,7 +302,9 @@ fn two_nodes_join_from_config() {
         .build()
         .expect("build A");
 
-    let handle_a = WgNode::from_config(cfg_a).join().expect("join A");
+    let handle_a = WgNode::from_config(cfg_a, test_clock())
+        .join()
+        .expect("join A");
     let a_boot = handle_a.bootstrap_addr();
 
     // Same config via TOML round-trip (verify equivalence).
@@ -309,7 +318,9 @@ fn two_nodes_join_from_config() {
         .expect("build B");
 
     // Node B: joiner from A.
-    let handle_b = WgNode::from_config(cfg_b).join().expect("join B");
+    let handle_b = WgNode::from_config(cfg_b, test_clock())
+        .join()
+        .expect("join B");
 
     // Verify mutual gossip discovery (this is what F09 is about: nodes formed from config join).
     assert!(

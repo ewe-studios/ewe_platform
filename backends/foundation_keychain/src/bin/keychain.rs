@@ -16,7 +16,9 @@
 fn main() {
     use std::sync::Arc;
 
-    use foundation_core::valtron::{block_on_future, initialize_pool, BlockingFutureExt};
+    use foundation_core::valtron::{
+        block_on_future, initialize_pool, BlockingFutureExt, MonotonicClock,
+    };
     use foundation_db::core::storage_provider::QueryStore;
     use foundation_db::{StorageBackend, StorageProvider};
     use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -42,7 +44,8 @@ fn main() {
     block_on_future(async move { apply_schema(schema_db.as_ref()).await })
         .expect("apply keychain schema");
 
-    let app = KeychainServer::new(KeychainContext::new(db)).http_app();
+    let clock = Arc::new(MonotonicClock::new());
+    let app = KeychainServer::new(KeychainContext::new(db, clock)).http_app();
     let listener = std::net::TcpListener::bind(&addr).expect("bind listen address");
     let shutdown = Arc::new(ShutdownSignal::new());
     let server = HttpServer::with_config(app, &addr, ServerConfig::defaults());

@@ -44,6 +44,11 @@ fn gpu_offload_usable() -> bool {
     backend.supports_gpu_offload()
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
+
 #[test]
 fn the_build_reports_gpu_offload_support() {
     // Proves the `cuda` feature actually compiled llama.cpp with GPU support —
@@ -100,7 +105,7 @@ fn the_tiny_gguf_generates_with_offload() {
     };
 
     // LLamaGPU selects the GPU-offload path; the config carries the layer count.
-    let model = LlamaBackends::LLamaGPU
+    let model = LlamaBackends::gpu(test_clock())
         .load_model(spec, &config)
         .expect("tiny GGUF loads with offload requested");
 

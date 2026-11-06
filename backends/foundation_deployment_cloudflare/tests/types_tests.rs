@@ -64,7 +64,9 @@ fn test_cloudflare_client_from_env_missing() {
     // Should fail when env vars are not set
     std::env::remove_var("CLOUDFLARE_API_TOKEN");
     std::env::remove_var("CLOUDFLARE_ZONE_ID");
-    let result = CloudflareClient::from_env();
+    let result = CloudflareClient::from_env(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     assert!(result.is_err());
 }
 

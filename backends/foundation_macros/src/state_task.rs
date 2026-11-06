@@ -14,7 +14,7 @@ use syn::spanned::Spanned;
 use crate::crate_paths::foundation_core_path;
 
 /// `#[task]` entry point — see the module docs.
-pub(crate) fn task(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub(crate) fn task(attr: &TokenStream, item: TokenStream) -> TokenStream {
     if !attr.is_empty() {
         return syn::Error::new(attr.span(), "#[task] takes no arguments").to_compile_error();
     }
@@ -71,6 +71,10 @@ fn same_type(a: &syn::Type, b: &syn::Type) -> bool {
     quote!(#a).to_string() == quote!(#b).to_string()
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear expansion that emits the state-machine items in order"
+)]
 fn expand(func: &syn::ItemFn) -> syn::Result<TokenStream> {
     let name = &func.sig.ident;
     let vis = &func.vis;

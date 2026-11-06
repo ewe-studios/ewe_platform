@@ -6,6 +6,8 @@
 
 use std::sync::Arc;
 
+use crate::shared::clock::now_millis;
+use foundation_core::valtron::Clock;
 use foundation_db::core::storage_provider::{AsyncQueryStream, DataValue, QueryStore, SqlRow};
 use foundation_db::{
     AsyncStorageItemStream, AuthStore, KeyValueStore, PasskeyStore, StorageError, StorageResult,
@@ -246,8 +248,9 @@ pub async fn find_refresh_token_by_hash(
 pub async fn mark_refresh_token_rotated(
     store: &dyn QueryStore,
     token_hash: &str,
+    clock: &dyn Clock,
 ) -> Result<(), StorageOpError> {
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     let sql = "UPDATE refresh_tokens SET rotated_at = ? WHERE token_hash = ?";
     execute(
         store,
@@ -429,10 +432,11 @@ pub async fn update_user_lockout(
     user_id: &str,
     failed_attempts: u32,
     locked_until: Option<i64>,
+    clock: &dyn Clock,
 ) -> Result<(), StorageOpError> {
     let sql =
         "UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?";
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     let locked = locked_until.unwrap_or(0);
     execute(
         store,
@@ -472,8 +476,9 @@ pub async fn update_user_profile(
     store: &dyn QueryStore,
     user_id: &str,
     username: Option<&str>,
+    clock: &dyn Clock,
 ) -> Result<(), StorageOpError> {
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     let sql = "UPDATE users SET username = ?, updated_at = ? WHERE id = ?";
     execute(
         store,
@@ -496,8 +501,9 @@ pub async fn update_user_password(
     store: &dyn QueryStore,
     user_id: &str,
     new_hash: &str,
+    clock: &dyn Clock,
 ) -> Result<(), StorageOpError> {
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     let sql = "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?";
     execute(
         store,
@@ -516,8 +522,12 @@ pub async fn update_user_password(
 /// # Errors
 ///
 /// Returns [`StorageOpError`] if the operation fails.
-pub async fn soft_delete_user(store: &dyn QueryStore, user_id: &str) -> Result<(), StorageOpError> {
-    let now = chrono::Utc::now().timestamp_millis();
+pub async fn soft_delete_user(
+    store: &dyn QueryStore,
+    user_id: &str,
+    clock: &dyn Clock,
+) -> Result<(), StorageOpError> {
+    let now = now_millis(clock);
     let sql = "UPDATE users SET deleted_at = ?, updated_at = ? WHERE id = ?";
     execute(
         store,
@@ -537,9 +547,13 @@ pub async fn soft_delete_user(store: &dyn QueryStore, user_id: &str) -> Result<(
 ///
 /// `Parse` if the user's metadata can't be serialized; `Query` on insert
 /// failure.
-pub async fn create_user(store: &dyn QueryStore, user: &User) -> Result<(), StorageOpError> {
+pub async fn create_user(
+    store: &dyn QueryStore,
+    user: &User,
+    clock: &dyn Clock,
+) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO users (id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, NULL)";
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     let email_verified_at = if user.email_verified { Some(now) } else { None };
     let metadata = serde_json::to_string(&user.metadata)
         .map_err(|e| StorageOpError::Parse(format!("user metadata: {e}")))?;
@@ -718,9 +732,10 @@ pub async fn update_passkey_counter(
     store: &dyn QueryStore,
     passkey_id: &str,
     counter: u32,
+    clock: &dyn Clock,
 ) -> Result<(), StorageOpError> {
     let sql = "UPDATE passkeys SET counter = ?, last_used_at = ? WHERE id = ?";
-    let now = chrono::Utc::now().timestamp_millis();
+    let now = now_millis(clock);
     execute(
         store,
         sql,
@@ -882,6 +897,9 @@ pub struct HandlerStorage<KV: KeyValueStore> {
     /// handler works with an in-memory cache (single process) or a persistent
     /// store (Turso/D1) for multi-instance, crash-safe operation.
     pub cache: KV,
+    /// The injected engine clock. The store's own trait methods (`PasskeyStore`,
+    /// the cache sweeper) read their timestamps from it.
+    pub clock: Arc<dyn Clock>,
 }
 
 /// Cache key prefixes whose values carry an `expires_at` field (Unix
@@ -895,8 +913,12 @@ pub const EXPIRING_CACHE_PREFIXES: &[&str] = &[
 ];
 
 impl<KV: KeyValueStore> HandlerStorage<KV> {
-    pub fn new(query_store: Arc<dyn QueryStore>, cache: KV) -> Self {
-        Self { query_store, cache }
+    pub fn new(query_store: Arc<dyn QueryStore>, cache: KV, clock: Arc<dyn Clock>) -> Self {
+        Self {
+            query_store,
+            cache,
+            clock,
+        }
     }
 
     /// Delete the expired entries of the short-lived handshake state in the
@@ -914,7 +936,7 @@ impl<KV: KeyValueStore> HandlerStorage<KV> {
     ///
     /// Returns [`StorageOpError`] if a cache call fails.
     pub async fn sweep_expired(&self) -> Result<usize, StorageOpError> {
-        let now = chrono::Utc::now().timestamp_millis();
+        let now = now_millis(self.clock.as_ref());
         let mut removed = 0;
         for prefix in EXPIRING_CACHE_PREFIXES {
             // The key stream ends before the next call on the same store.
@@ -1052,9 +1074,14 @@ impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
     }
 
     async fn update_passkey_counter(&self, passkey_id: &str, counter: u32) -> Result<(), String> {
-        update_passkey_counter(self.query_store.as_ref(), passkey_id, counter)
-            .await
-            .map_err(map_storage_err)
+        update_passkey_counter(
+            self.query_store.as_ref(),
+            passkey_id,
+            counter,
+            self.clock.as_ref(),
+        )
+        .await
+        .map_err(map_storage_err)
     }
 
     async fn update_passkey_name(&self, passkey_id: &str, name: &str) -> Result<(), String> {

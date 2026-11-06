@@ -38,7 +38,7 @@ use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
 use foundation_core::valtron::{
-    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
+    AnyReadiness, Clock, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
     TaskIterator, TaskStatus,
 };
 use quinn_proto::{
@@ -75,11 +75,11 @@ pub enum QuicEvent {
 /// signal so a driver parked on socket readiness still wakes for QUIC timers
 /// (loss detection, idle timeout, keep-alive) — a `Depends` sleeper has no
 /// deadline of its own, so the driver composes this with the socket signal.
-struct DeadlinePassed(Instant);
+struct DeadlinePassed(Instant, Arc<dyn foundation_core::valtron::Clock>);
 
 impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        Instant::now() >= self.0
+        self.1.now() >= self.0
     }
 
     fn deadline(&self) -> Option<Instant> {
@@ -172,7 +172,10 @@ impl QuicDriver {
         let endpoint = Endpoint::new(Arc::new(EndpointConfig::default()), None, true, None);
         let mut driver = Self::new(endpoint, socket, false);
 
-        let now = Instant::now();
+        // Connection setup runs before any task context exists, so it names
+        // the real clock explicitly. The driver task itself reads the engine
+        // clock from its `Ctx`.
+        let now = foundation_core::valtron::MonotonicClock::new().now();
         let (handle, conn) = driver
             .endpoint
             .connect(now, cfg, addr, server_name)
@@ -500,12 +503,12 @@ impl TaskIterator for QuicDriver {
     type Ready = QuicEvent;
     type Pending = ();
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }
 
-        let now = Instant::now();
+        let now = ctx.clock().now();
 
         // Clear edge-triggered readiness before reading, so a datagram that
         // arrives after a `WouldBlock` re-latches and wakes us again — the same
@@ -552,8 +555,11 @@ impl TaskIterator for QuicDriver {
         let woken: EventReadinessPtr = Arc::new(self.driver_woken.clone());
         match self.next_timeout() {
             Some(deadline) => Some(TaskStatus::Depends(Arc::new(
-                AnyReadiness::either(Arc::clone(fd), Arc::new(DeadlinePassed(deadline)))
-                    .with(woken),
+                AnyReadiness::either(
+                    Arc::clone(fd),
+                    Arc::new(DeadlinePassed(deadline, ctx.clock())),
+                )
+                .with(woken),
             ))),
             None => Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
                 Arc::clone(fd),

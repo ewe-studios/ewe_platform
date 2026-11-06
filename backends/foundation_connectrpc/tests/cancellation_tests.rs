@@ -169,7 +169,12 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
     let (resp_tx, resp_rx) = Pipe::<H2Frame>::with_depth(8);
     let (done_tx, done) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
-        let fut = handler.dispatch_h2(Arc::new(ContextBag::new()), header, body_rx, resp_tx);
+        let fut = handler.dispatch_h2(
+            Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+            header,
+            body_rx,
+            resp_tx,
+        );
         let _ = done_tx.send(futures::executor::block_on(fut));
     });
     H2Stream {
@@ -200,7 +205,7 @@ fn h2_reset_cancels_the_handlers_ctx() {
         .body
         .try_send(H2IncomingFrame::Reset(ErrorCode::Cancel))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
     assert_cancelled_within(&ctx, Duration::from_secs(5));
     let outcome = stream
         .done
@@ -255,7 +260,7 @@ fn h2_reset_lets_a_streaming_handler_observe_its_cancellation() {
         .body
         .try_send(H2IncomingFrame::Reset(ErrorCode::Cancel))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
     stream
         .done
         .recv_timeout(Duration::from_secs(5))
@@ -280,7 +285,7 @@ fn h2_dropped_stream_after_request_end_cancels_the_call() {
         .body
         .try_send(H2IncomingFrame::Data(json_envelope("a")))
         .unwrap();
-    stream.body.close(); // END_STREAM
+    let _ = stream.body.close(); // END_STREAM
     let ctx = slot.wait_entered();
     assert!(!ctx.is_canceled());
 
@@ -307,7 +312,7 @@ fn h2_dropped_unary_stream_cancels_the_call() {
             b"{\"text\":\"a\"}",
         )))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
     let ctx = slot.wait_entered();
 
     drop(stream.response);
@@ -334,7 +339,7 @@ fn h2_deadline_cancels_and_answers_deadline_exceeded() {
             b"{\"text\":\"a\"}",
         )))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
 
     let ctx = slot.wait_entered();
     assert_cancelled_within(&ctx, Duration::from_secs(5));

@@ -3,7 +3,7 @@
 use std::sync::{Arc, Mutex};
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::EventQueue;
+use foundation_core::valtron::{Clock, EventQueue};
 
 use crate::signal::event::SignalEvent;
 
@@ -12,6 +12,7 @@ pub struct SignalBus {
     /// Subscribers that are valtron tasks: a delivered event wakes the task
     /// parked on the queue's readiness.
     event_subscribers: std::sync::Mutex<Vec<EventQueue<SignalEvent>>>,
+    clock: Arc<dyn Clock>,
 }
 
 impl Clone for SignalBus {
@@ -19,17 +20,25 @@ impl Clone for SignalBus {
         Self {
             subscribers: std::sync::Mutex::new(Vec::new()),
             event_subscribers: std::sync::Mutex::new(Vec::new()),
+            clock: Arc::clone(&self.clock),
         }
     }
 }
 
 impl SignalBus {
+    /// A bus whose event timestamps read `clock`.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         Self {
             subscribers: Mutex::new(Vec::new()),
             event_subscribers: Mutex::new(Vec::new()),
+            clock,
         }
+    }
+
+    /// The clock that stamps every delivered event.
+    pub(crate) fn clock(&self) -> &Arc<dyn Clock> {
+        &self.clock
     }
 
     /// Subscribe — returns a queue that receives all signal events.
@@ -62,11 +71,5 @@ impl SignalBus {
         for sub in self.event_subscribers.lock().unwrap().iter() {
             let _ = sub.push(event.clone());
         }
-    }
-}
-
-impl Default for SignalBus {
-    fn default() -> Self {
-        Self::new()
     }
 }

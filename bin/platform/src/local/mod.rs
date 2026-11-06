@@ -157,7 +157,9 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     // `DevService::start` installs its own SIGINT/SIGTERM handling and returns
     // once Ctrl+C (or SIGTERM/SIGQUIT) arrives, so shutdown is graceful
     // without a separate ctrlc handler (which it would override anyway).
-    DevService::new(definition).start()?;
+    DevService::new(definition).start(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))?;
 
     Ok(())
 }

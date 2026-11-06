@@ -61,8 +61,7 @@ pub fn generate_platform_code() {
     // F33: Discover wasmtime shell apps (surface 3 — in-process WASM).
     // Only generates modules if foundation_wasmtime is in Cargo.toml deps.
     let has_wasmtime_dep = std::fs::read_to_string(manifest_dir.join("Cargo.toml"))
-        .map(|c| c.contains("foundation_wasmtime"))
-        .unwrap_or(false);
+        .is_ok_and(|c| c.contains("foundation_wasmtime"));
     let mut shells: Vec<AppDistribution> = Vec::new();
     if has_wasmtime_dep {
         let shell_dir = project_root.join("app-shell");
@@ -127,7 +126,7 @@ pub fn build_all_wasm_apps(apps: &[AppDistribution], public_dir: &Path) {
 ///
 /// Scans for `#[wasm_app]` annotations, compiles the crate to `wasm32-wasip1`,
 /// and copies the `.wasm` binary to the output directory. Unlike
-/// `build_wasm_app` (which targets wasm32-unknown-unknown for the WebView),
+/// `build_wasm_app` (which targets wasm32-unknown-unknown for the `WebView`),
 /// this targets wasip1 so the module runs in wasmtime with WASI support.
 ///
 /// # Panics
@@ -428,14 +427,16 @@ pub fn scan_for_annotations(dir: &Path) -> Vec<Annotation> {
                             .find("target")
                             .and_then(|pos| t[pos + 6..].trim_start().strip_prefix('='))
                             .map(|rest| rest.trim().trim_matches('"').trim_matches('#'))
-                            .map(|s| {
-                                s.split(',')
-                                    .next()
-                                    .unwrap_or(s)
-                                    .trim_matches('"')
-                                    .to_string()
-                            })
-                            .unwrap_or_else(|| String::from("wasm32-unknown-unknown"));
+                            .map_or_else(
+                                || String::from("wasm32-unknown-unknown"),
+                                |s| {
+                                    s.split(',')
+                                        .next()
+                                        .unwrap_or(s)
+                                        .trim_matches('"')
+                                        .to_string()
+                                },
+                            );
                         if let Some(n) = name {
                             v.push(Annotation {
                                 name: n,

@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use clap::ArgMatches;
+use foundation_core::valtron::Clock;
 
 use crate::bootstrap::BootstrapLogger;
 use crate::config::{DisplayMode, GuestOs, get_profile};
@@ -23,14 +24,17 @@ fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, 
 }
 
 /// Ensure the VM image is available in the cache.
-fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
+fn ensure_image(
+    profile: &crate::config::VmProfile,
+    clock: Arc<dyn Clock>,
+) -> Result<(), BoxedError> {
     let cache_path = profile.image_cache_path();
     if cache_path.exists() {
         return Ok(());
     }
 
     eprintln!("  Image not cached, importing...");
-    let provider = default_provider()?;
+    let provider = default_provider(clock)?;
     let path = provider
         .ensure_image(profile)
         .map_err(|e| format!("Failed to import image: {e}"))?;
@@ -39,7 +43,10 @@ fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
 }
 
 /// Launch the VM if not already running. Returns resolved ports.
-fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts, BoxedError> {
+fn ensure_vm_running(
+    profile: &crate::config::VmProfile,
+    clock: Arc<dyn Clock>,
+) -> Result<ResolvedPorts, BoxedError> {
     // Check if there's existing state with a live PID
     if state::is_running(&profile.name) {
         let vm_state =
@@ -57,7 +64,7 @@ fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts
     }
 
     eprintln!("  VM '{}' not running, launching...", profile.name);
-    let provider = default_provider()?;
+    let provider = default_provider(clock)?;
     let handle = provider
         .launch(profile, DisplayMode::Headless)
         .map_err(|e| format!("Failed to launch VM: {e}"))?;
@@ -76,15 +83,16 @@ fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts
 fn ensure_bootstrapped(
     profile: &crate::config::VmProfile,
     ports: &ResolvedPorts,
+    clock: Arc<dyn Clock>,
 ) -> Result<(), BoxedError> {
-    if crate::bootstrap::is_bootstrapped(profile) {
+    if crate::bootstrap::is_bootstrapped(profile, Arc::clone(&clock)) {
         eprintln!("  VM already bootstrapped, skipping.");
         return Ok(());
     }
 
     eprintln!("  Bootstrapping VM...");
     let logger = Arc::new(
-        BootstrapLogger::new(&profile.name)
+        BootstrapLogger::new(&profile.name, clock)
             .map_err(|e| format!("Failed to create bootstrap logger: {e}"))?,
     );
 
@@ -117,20 +125,25 @@ fn bootstrap_windows(
     ports: &ResolvedPorts,
 ) -> Result<(), BoxedError> {
     use crate::winrm::elevated::ProgressCallback;
-    use std::time::Instant;
 
     let winrm_port = ports
         .winrm_port
         .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
 
     eprintln!("  Waiting for WinRM on port {winrm_port}...");
-    let start = Instant::now();
+    let start = logger.clock().now();
     let timeout = Duration::from_secs(300);
     loop {
-        if start.elapsed() > timeout {
+        if logger.clock().now().duration_since(start) > timeout {
             return Err(format!("Timed out waiting for WinRM after {:?}", timeout).into());
         }
-        let winrm = WinRM::new("127.0.0.1", winrm_port, profile.user, profile.pass);
+        let winrm = WinRM::new(
+            "127.0.0.1",
+            winrm_port,
+            profile.user,
+            profile.pass,
+            logger.clock(),
+        );
         if winrm.ping() {
             break;
         }
@@ -138,7 +151,13 @@ fn bootstrap_windows(
     }
     eprintln!("  WinRM ready");
 
-    let winrm = WinRM::new("127.0.0.1", winrm_port, profile.user, profile.pass);
+    let winrm = WinRM::new(
+        "127.0.0.1",
+        winrm_port,
+        profile.user,
+        profile.pass,
+        logger.clock(),
+    );
     let progress_cb: ProgressCallback<'_> = Some(&|msg: &str| {
         eprintln!("    {}", msg);
     });
@@ -148,10 +167,10 @@ fn bootstrap_windows(
 
     // Wait for SSH
     eprintln!("  Waiting for SSH on port {}...", ports.ssh_port);
-    let start = Instant::now();
+    let start = logger.clock().now();
     let timeout = Duration::from_secs(120);
     loop {
-        if start.elapsed() > timeout {
+        if logger.clock().now().duration_since(start) > timeout {
             return Err("Timed out waiting for SSH".into());
         }
         if crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os).is_ok() {
@@ -177,7 +196,7 @@ fn bootstrap_windows(
 }
 
 /// Build a project inside a VM and retrieve artifacts.
-pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_build(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let project_dir = args.get_one::<String>("project").unwrap();
     let _target_override = args.get_one::<String>("target");
@@ -202,13 +221,13 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     }
 
     // Ensure image is imported
-    ensure_image(&profile)?;
+    ensure_image(&profile, Arc::clone(&clock))?;
 
     // Ensure VM is running
-    let ports = ensure_vm_running(&profile)?;
+    let ports = ensure_vm_running(&profile, Arc::clone(&clock))?;
 
     // Ensure VM is bootstrapped
-    ensure_bootstrapped(&profile, &ports)?;
+    ensure_bootstrapped(&profile, &ports, clock)?;
 
     // Connect via SSH
     eprintln!("Connecting to VM via SSH...");

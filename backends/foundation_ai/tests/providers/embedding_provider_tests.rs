@@ -95,7 +95,7 @@ struct EmbeddingMockProvider {
 }
 
 impl RoutableProvider for EmbeddingMockProvider {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "mock-embed"
     }
 
@@ -140,6 +140,11 @@ fn make_router(dims: usize, values: Vec<f32>) -> ProviderRouter {
 // ---------------------------------------------------------------------------
 // TextChunker tests
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
+    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+}
 
 #[test]
 fn whole_text_chunker_returns_single_chunk() {
@@ -197,6 +202,7 @@ async fn embed_returns_correct_dimensions_and_data() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     let result = provider.embed("hello", "mock-embed").await.unwrap();
@@ -213,6 +219,7 @@ async fn embed_caches_results() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     provider.embed("test text", "mock-embed").await.unwrap();
@@ -232,6 +239,7 @@ async fn embed_batch_returns_one_per_input() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     let texts = vec!["a".into(), "b".into(), "c".into()];
@@ -250,6 +258,7 @@ async fn register_model_enforces_dimensions() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     provider.register_model("mock-embed", 3);
@@ -261,6 +270,7 @@ async fn register_model_enforces_dimensions() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
     wrong_provider.register_model("mock-embed", 3);
     assert!(wrong_provider
@@ -277,6 +287,7 @@ async fn clear_cache_resets_stats() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     provider.embed("a", "mock-embed").await.unwrap();
@@ -298,6 +309,7 @@ async fn lru_eviction_when_cache_full() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         2,
+        test_clock(),
     );
 
     provider.embed("first", "mock-embed").await.unwrap();
@@ -317,6 +329,7 @@ async fn sentence_chunker_averages_embeddings() {
         Box::new(SentenceChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     let result = provider
@@ -330,7 +343,7 @@ async fn sentence_chunker_averages_embeddings() {
 #[valtron_test]
 async fn with_defaults_constructs_provider() {
     let router = make_router(4, vec![1.0, 2.0, 3.0, 4.0]);
-    let provider = CachedEmbeddingProvider::with_defaults(router);
+    let provider = CachedEmbeddingProvider::with_defaults(router, test_clock());
     let result = provider
         .embed("single sentence", "mock-embed")
         .await
@@ -414,7 +427,7 @@ struct DelayedEmbeddingProvider {
 }
 
 impl RoutableProvider for DelayedEmbeddingProvider {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "delayed-embed"
     }
 
@@ -467,6 +480,7 @@ async fn embedding_search_does_not_block_worker() {
         Box::new(WholeTextChunker),
         Box::new(NoopColdCache),
         100,
+        test_clock(),
     );
 
     // A ticker that shares the executor thread: each tick is a 5 ms cooperative
@@ -482,7 +496,7 @@ async fn embedding_search_does_not_block_worker() {
         }
     };
 
-    let (result, _) = zip(provider.embed("hello", "delayed-embed"), ticker).await;
+    let (result, ()) = zip(provider.embed("hello", "delayed-embed"), ticker).await;
 
     let embedding = result.expect("the delayed embedder must succeed");
     assert_eq!(embedding.dimensions, 3);

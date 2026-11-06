@@ -6,6 +6,8 @@
 //! HOW: HMAC (SHA-1 by default, SHA-256 optional) with time steps. Synchronous — CPU-bound crypto ops.
 
 use foundation_compact::rng::Rng;
+use foundation_compact::time;
+use foundation_core::valtron::Clock;
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
 use sha1::Sha1;
@@ -86,14 +88,10 @@ impl TOTPSecret {
         }
     }
 
-    /// Generate a TOTP code for the current time.
+    /// Generate a TOTP code for the clock's current wall time.
     #[must_use]
-    #[allow(clippy::missing_panics_doc)]
-    pub fn now(&self) -> String {
-        let timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock before Unix epoch")
-            .as_secs();
+    pub fn now(&self, clock: &dyn Clock) -> String {
+        let timestamp = u64::try_from(time::unix_seconds(clock.wall_now())).unwrap_or_default();
         self.code_at(timestamp)
     }
 
@@ -110,8 +108,8 @@ impl TOTPSecret {
     /// Checks the current time step and `tolerance` steps before and after to
     /// account for clock drift.
     #[must_use]
-    pub fn verify(&self, code: &str, tolerance: u64) -> bool {
-        self.verify_step(code, tolerance).is_some()
+    pub fn verify(&self, code: &str, tolerance: u64, clock: &dyn Clock) -> bool {
+        self.verify_step(code, tolerance, clock).is_some()
     }
 
     /// Like [`verify`](Self::verify), but returns the time step the code
@@ -119,11 +117,8 @@ impl TOTPSecret {
     /// code for the same or an earlier step (replay).
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn verify_step(&self, code: &str, tolerance: u64) -> Option<u64> {
-        let timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock before Unix epoch")
-            .as_secs();
+    pub fn verify_step(&self, code: &str, tolerance: u64, clock: &dyn Clock) -> Option<u64> {
+        let timestamp = u64::try_from(time::unix_seconds(clock.wall_now())).unwrap_or_default();
         let time_step = timestamp / self.period;
 
         // Check every step in the window; do not stop at the first match, so
