@@ -2,6 +2,51 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 123 makes a Connect client call fail on its own deadline.
+  Branch `spec70/priority-followups`.
+  - The shared `Client` now races every call future against
+    `foundation_core::valtron::sleep_async(remaining)` in one helper,
+    `with_deadline` (`shared/client.rs`). The sleep wins -> the call's
+    `CancelSignal` fires, the call and its streams drop, and the caller gets
+    `DeadlineExceeded`. A deadline that already passed fails before the
+    transport opens. The helper sits above `Transport` because `open` is sync
+    and has no `Ctx`, so every transport (H1, H2, H3, wasm) gets the bound.
+  - Added `ClientOptions::with_default_deadline(Duration)` (default `None`); a
+    `Ctx` deadline wins over it. The wire timeout header is unchanged.
+  - New `tests/client_deadline_tests.rs`: 5 tests, all pass (H1 and H2 against a
+    listener that never answers, the client default deadline, the normal path,
+    and a past deadline that sends no request). Only the helper body was
+    reverted to `call.await` to prove the old code: the first test then failed
+    after about 3 s with `expected DeadlineExceeded, got: ... [unavailable]
+    transport closed without response head`.
+  - `foundation_connectrpc` 235 passed, 0 failed. Clippy and fmt are clean.
+    `foundation_proxy` passes except the known macOS
+    `websocket_upgrade_relays_and_tunnels_bytes` failure in backlog §9. The
+    wasm32 `--features rpc` check passes with 3 pre-existing warnings in
+    `dispatch.rs`, recorded in backlog §1. CI is not run yet; the feature stays
+    `pending (CI proof)`.
+
+- 2026-11-06: feature 122 stops a late reactor deregister from removing a reused fd.
+  Branch `spec70/priority-followups`.
+  - `Reactor` now keeps `fd_tokens` (fd number to live token) under the existing
+    `reg_lock`. `register` and `register_completion` fill it; `deregister` calls
+    the selector only when the number still belongs to the token. A stale drop
+    logs at debug level and leaves the new registration armed.
+  - New `tests/fd_reuse.rs` reproduces the reuse. It fails on HEAD with
+    `a drop after fd reuse: fd 3 (FdReadiness { fd: 3, token: Token(2) }) did
+    not report readability within 2s`, and passes with the fix on macOS and in
+    the Linux CI image (2 of 2). The live-drop test also passes.
+  - `foundation_reactor` 12 passed, `foundation_netio` 1291 passed,
+    `foundation_http` 66 passed. `foundation_proxy` 128 passed and 1 failed:
+    the known macOS `websocket_upgrade_relays_and_tunnels_bytes` failure in
+    backlog §9.
+  - The other reactor consumers pass on macOS and in the Linux image: the
+    `foundation_nativeapis` reactor and `uring` completion tests and
+    `foundation_iogate`. The Linux `uring` run compiles `register_completion`.
+  - Deleted backlog §5b's late-deregister entry. Added a §5b entry for the
+    crate's 120 pre-existing pedantic clippy errors, which make the
+    `-D warnings` check fail. CI is not run yet; the feature stays `pending`.
+
 - 2026-11-06: the proxy stall localised to the front-to-backend relay.
   Branch `spec70/priority-followups`.
   - Three local loops with `--cpus=2` failed four different e2e tests in

@@ -15,14 +15,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- **A client-side deadline is recorded but never enforced.** `Ctx::with_deadline`
-  (`src/shared/context/mod.rs:228`) stores `now + d` in `RequestContext`; it starts no
-  timer and cancels nothing. A call that parks on a read therefore ignores its deadline
-  and waits for the transport's own idle timeout, or forever. The proxy e2e tests set a
-  15 s deadline and still hung for 30 s (feature 121). Fix: enforce the deadline in the
-  client transport, with a timer that cancels the call and returns `DeadlineExceeded`,
-  and test it against a server that never answers. Found 2026-11-06 while diagnosing
-  feature 121. Scheduled as feature 123.
+- **The wasm32 `--features rpc` build reports three warnings.** File
+  `src/shared/router/dispatch.rs`. `cargo check --target wasm32-unknown-unknown
+  -p foundation_connectrpc --no-default-features --features rpc` reports the
+  unused imports `PipeReceiver` and `PipeSender` (line 46) and the dead
+  functions `run_unary` (line 625) and `grpc_status_trailers` (line 1893).
+  The native build is clean; the wasm gate in `ci/packages.toml` does not deny
+  warnings, so CI passes. Fix: gate the import and the two functions to the
+  feature set that uses them, or add the missing wasm caller. Found in feature
+  123.
 
 ## 2. foundation_netio
 
@@ -146,24 +147,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 5b. foundation_reactor
 
-- **A late `deregister` can remove another socket's registration after the file
-  descriptor number is reused.** `FdReadiness::drop`
-  (`foundation_reactor/src/fd_readiness.rs:149`) calls
-  `Reactor::deregister(fd, token)` (`reactor.rs:538`). The entries map is keyed by
-  `Token`, but the selector is changed by file descriptor number alone
-  (`Registry::deregister_fd(fd)`, `poll/mod.rs:426`; kqueue and epoll both key by
-  the number). The token argument is never compared. If a socket closes before its
-  `FdReadiness` drops, the operating system can give the same number to a new
-  socket, and the late `deregister` then deletes the new socket's selector entry.
-  The new socket never reports readiness again. The documented case
-  `FdReadiness::drop` names ("the fd may already be closed") is exactly this
-  order. Body-read wakers hold an `Arc<FdReadiness>` that outlives the stream
-  (`foundation_netio/src/native/raw_stream.rs:480`), so the late drop is common.
-  Fix: keep an fd-to-token map in the reactor and skip the selector call when the
-  live token for that number is not this one, or deregister with the token so the
-  selector can compare (epoll `data`, kqueue `udata`). Add a test that closes an
-  fd, reuses the number, then drops the old readiness. Scheduled as feature 122.
-  Likely cause of the stalled proxy test in section 9.
+- **The crate is not clean under `cargo clippy -- -D warnings` with the pedantic
+  group.** `cargo clippy --profile uat -p foundation_reactor --all-targets
+  --no-deps -- -D warnings` reports 120 errors, mostly
+  `clippy::must_use_candidate`, `clippy::doc_markdown`,
+  `clippy::missing_errors_doc` and `clippy::cast_lossless`, in
+  `reactor.rs`, `fd_readiness.rs`, `ready.rs`, `shutdown_signal.rs` and
+  `poll/**`. HEAD and `master` report the same count, so feature 122 added none.
+  `ci/packages.toml` does not set `clippy-deny-warnings` for the package, which
+  is why CI reports them instead of failing. Fix: clear the crate, then add the
+  package to the `clippy-deny-warnings` set. Found in feature 122.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

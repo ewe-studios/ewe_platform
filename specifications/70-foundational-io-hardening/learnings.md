@@ -2,6 +2,28 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 122, the fd-reuse deregistration):
+  - **A number-keyed selector needs a number-to-owner map to deregister safely.**
+    kqueue, epoll and io_uring identify a registration by fd number. A token is
+    therefore not enough to remove a registration: the reactor must also know
+    which token currently owns the number. `Reactor::fd_tokens` provides that,
+    under the existing `reg_lock`, so no new lock order appears.
+  - **A stale-drop test must control fd allocation.** The operating system gives
+    the lowest free number, so closing a socket then opening a pair gets the
+    number back. Keep every non-matching pair open so each retry gets a higher
+    number, and serialise tests that need a known number with a process-local
+    mutex: parallel tests in one binary compete for the same fd.
+  - **Prove a guard test by reverting only the guard.** Replacing
+    `reactor.rs` with `git show HEAD:...` and keeping the new test showed
+    `a drop after fd reuse: fd 3 (FdReadiness { fd: 3, token: Token(2) }) did not
+    report readability within 2s`. A full revert would not isolate the guard.
+  - **Check the package's CI lint policy before trusting a verify command.**
+    `foundation_reactor` is not in the `clippy-deny-warnings` set in
+    `ci/packages.toml`, and it carries 120 pre-existing pedantic warnings. The
+    `-- -D warnings` check fails at HEAD and on `master` for that reason alone,
+    so a new feature cannot make it pass without the crate-wide cleanup. Record
+    it; do not hide it.
+
 - 2026-11-06 (the second proxy failure):
   - **A selector keyed by fd number can lose a live registration.** The reactor's
     entries map is keyed by token, but kqueue, epoll and io_uring all identify a

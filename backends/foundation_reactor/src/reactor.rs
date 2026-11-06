@@ -89,6 +89,16 @@ pub struct Reactor {
     registry: Registry,
     /// Token → readiness cache. Arc'd so the drain thread holds a ref.
     entries: Arc<RwLock<HashMap<Token, Entry>>>,
+    /// The live token for each registered fd number.
+    ///
+    /// The selector keys a registration by fd number alone, so a late
+    /// [`Reactor::deregister`] cannot tell whether the number still belongs to
+    /// its token. This map answers that question: the entry is inserted after
+    /// the selector call succeeds and removed together with the selector entry.
+    /// It holds one token per open fd, so it is bounded by the open-fd count.
+    /// Guarded by `reg_lock`, which already serialises selector changes, so it
+    /// adds no second lock order.
+    fd_tokens: Mutex<HashMap<std::os::fd::RawFd, Token>>,
     /// Registration lock — serialises `epoll_ctl` calls.
     reg_lock: Mutex<()>,
     /// Drain thread.
@@ -333,6 +343,7 @@ impl Reactor {
             poll,
             registry,
             entries,
+            fd_tokens: Mutex::new(HashMap::new()),
             reg_lock: Mutex::new(()),
             _drain: drain,
             shutdown,
@@ -420,7 +431,7 @@ impl Reactor {
     /// its readiness.
     ///
     /// HOW: takes `reg_lock` to serialise selector mutation, registers, then
-    /// installs a zeroed cache entry.
+    /// installs a zeroed cache entry and records the fd's live token.
     ///
     /// # Errors
     /// Returns the selector's `io::Error` if registration fails; the cache entry
@@ -446,6 +457,13 @@ impl Reactor {
                 tasks: Arc::new(ReadinessNotifier::new()),
             },
         );
+        // The latest `register` owns the number: replace any earlier mapping,
+        // so a stale deregistration for the old token can no longer touch the
+        // selector.
+        self.fd_tokens
+            .lock()
+            .expect("fd_tokens lock poisoned")
+            .insert(fd, token);
         Ok(())
     }
 
@@ -458,6 +476,8 @@ impl Reactor {
     ///
     /// HOW: takes `reg_lock` to serialise selector mutation, re-registers the
     /// fd, then records the new interest in the cache entry for observability.
+    /// The fd-to-token mapping stays as it is: the fd number and its token do
+    /// not change.
     ///
     /// # Errors
     /// Returns the selector's `io::Error` if re-registration fails.
@@ -519,16 +539,28 @@ impl Reactor {
                 tasks: Arc::new(ReadinessNotifier::new()),
             },
         );
+        // The latest `register_completion` owns the number, as in `register`.
+        self.fd_tokens
+            .lock()
+            .expect("fd_tokens lock poisoned")
+            .insert(fd, token);
         Ok(armed)
     }
 
     /// WHY: a closed connection must stop consuming a selector slot and a cache
-    /// entry.
+    /// entry. The selector is keyed by fd number alone, so a late call — after
+    /// the number was closed and reused — must not remove the new socket's
+    /// registration. See the `fd_tokens` map.
     ///
-    /// WHAT: deregister `fd` and drop its readiness tracking.
+    /// WHAT: deregister `fd` and drop its readiness tracking, but only when the
+    /// number still belongs to `token`.
     ///
-    /// HOW: `ENOENT` from the selector is expected (the fd may already be gone,
-    /// e.g. closed before deregistration) and is treated as success.
+    /// HOW: always remove the token's cache entry. Then compare `fd`'s live
+    /// token with `token`: only a match removes the mapping and calls the
+    /// selector's deregister. A mismatch is a stale drop after fd reuse; it is
+    /// logged at debug level and the selector is left untouched. `ENOENT` from
+    /// the selector is expected (the fd may already be closed, e.g. before
+    /// deregistration) and is treated as success.
     ///
     /// # Errors
     /// Returns the selector's `io::Error` for any failure other than `ENOENT`.
@@ -537,15 +569,41 @@ impl Reactor {
     /// Panics if the registration map lock is poisoned.
     pub fn deregister(&self, fd: std::os::fd::RawFd, token: Token) -> io::Result<()> {
         let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
+        self.entries
+            .write()
+            .expect("entries lock poisoned")
+            .remove(&token);
+
+        let owns_number = {
+            let mut fd_tokens = self.fd_tokens.lock().expect("fd_tokens lock poisoned");
+            match fd_tokens.get(&fd).copied() {
+                Some(live) if live == token => {
+                    fd_tokens.remove(&fd);
+                    true
+                }
+                Some(live) => {
+                    tracing::debug!(
+                        fd,
+                        stale_token = ?token,
+                        live_token = ?live,
+                        "fd number was reused; keeping the live registration"
+                    );
+                    false
+                }
+                // No live registration for this number (for example, the
+                // selector already forgot it), so there is nothing to remove.
+                None => false,
+            }
+        };
+        if !owns_number {
+            return Ok(());
+        }
+
         if let Err(e) = self.registry.deregister_fd(fd) {
             if e.raw_os_error() != Some(libc::ENOENT) {
                 return Err(e);
             }
         }
-        self.entries
-            .write()
-            .expect("entries lock poisoned")
-            .remove(&token);
         Ok(())
     }
 
