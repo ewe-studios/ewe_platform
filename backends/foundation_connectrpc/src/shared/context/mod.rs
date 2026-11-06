@@ -27,7 +27,8 @@ pub use cancel::CancelSignal;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock, ReadinessInstant as Instant};
+use foundation_compact::Instant;
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};

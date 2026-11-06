@@ -11,6 +11,10 @@ keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.15" }
+# The instant type the injected clock returns. On every native target this is
+# `std::time::Instant`; on JS wasm it is the host-clock instant, so a call
+# deadline compiles and runs on both.
+foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
 tracing = "0.1"
