@@ -14,6 +14,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   - `a_negative_answer_is_not_cached` fails on `39f4eedb3` (0 passed, 1 failed)
     and passes after; all three wake-source tests pass. fmt and clippy are
     clean. The backlog section 2 entry is deleted.
+  - Next: feature 142 deletes the stale commented `clone_stream` block in the
+    same file (haiku). Feature 143 reproduces the `targeted_wake` full-suite
+    timeout before it bounds the storm by work (sonnet). Both are planned, not
+    started.
 
 - 2026-11-06: feature 137 builds a stream's read wake source once. Commit
   `39f4eedb3`.

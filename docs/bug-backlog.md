@@ -31,7 +31,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `src/native/raw_stream.rs`. Problem: the block still refers to
   `RawStream::AsPlain` and `RawStream::AsTls` after `RawStream` became a
   struct over a private inner enum. It is dead text with no compile effect.
-  Likely fix: delete the block. Found in feature 137.
+  Likely fix: delete the block. Found in feature 137; scheduled as feature 142.
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) the private `RawStreamInner` enum has
   only the `Plain` variant, so `if let RawStreamInner::Plain(inner, _) = &self.inner`
@@ -129,7 +129,8 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   detached worker of `hung_body_fails_at_its_timeout_instead_of_hanging`
   sleeping for an hour. Likely fix: bound the storm by wake count as well as
   time, or run the test in its own binary so no detached worker or heavy
-  parallel load skews it. Found in feature 139; not reproduced.
+  parallel load skews it. Found in feature 139; not reproduced. Scheduled as
+  feature 143, which reproduces first.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
