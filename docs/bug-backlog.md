@@ -32,6 +32,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
   pattern. Keep the `if let`: the TLS feature sets add the other variants. Found
   in feature 49; the default and all-feature sets are warning-free.
+- **`RawStream::read_wake_source` registers a new readiness token on every call.**
+  File `src/native/raw_stream.rs:480`. Each call builds a fresh `FdReadiness` (a new
+  token) for the same fd, so two live sources on one fd can replace each other's
+  selector registration, and the first one then never wakes. No current caller holds
+  two sources at once, so no test hits it. Fix: build the source once per stream
+  (cache it on `RawStream`) and hand out clones of the same `Arc`, or refuse a second
+  call with a typed error. Found in feature 129; scheduled as feature 137.
 
 ## 3. foundation_http
 
@@ -170,6 +177,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `ci/packages.toml` does not set `clippy-deny-warnings` for the package, which
   is why CI reports them instead of failing. Fix: clear the crate, then add the
   package to the `clippy-deny-warnings` set. Found in feature 122.
+- **The kqueue read-edge suppression is a latent lost wake for every socket user.**
+  File `src/poll/sys/unix/selector/kqueue.rs:458-489`. macOS reports `EVFILT_READ`
+  level-triggered for pipes despite `EV_CLEAR`, so the selector delivers a readable
+  event only when the fd's byte count grows, and re-arms only through
+  `Reactor::clear` → `Poll::rearm_readable`. A socket that drains N bytes and then
+  receives a smaller frame (M < N) produces no new edge, so a task that forgot
+  `FdReadiness::clear` before it parked never wakes. Feature 129 fixed the one such
+  caller in foundation_netio; the rule stays latent for every other readiness user,
+  and the clear-before-register protocol is easy to miss. Fix: re-arm the read edge
+  inside `FdReadiness::register_waker` and `EventReadiness::register` so no caller
+  can lose a later edge, keep `clear` for the latched flags, and add a selector test
+  that drains N bytes then delivers M < N with no explicit re-arm. Found in feature
+  129; scheduled as feature 136.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

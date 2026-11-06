@@ -2,6 +2,26 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 129 fixes the macOS websocket upgrade relay. The test
+  fails 10 of 10 runs before the fix and passes 20 of 20 alone plus the full
+  suite after it. Branch `spec70/priority-followups`, commit `8878f50d1`.
+  - Cause: `RawStream::read_wake_source` armed the reactor waker without
+    clearing the latched readiness. The kqueue selector delivers a readable
+    edge only when the socket's byte count grows, so a 15-byte echo after a
+    77-byte `101` head was suppressed and the parked upstream→client pump never
+    woke. epoll re-arms by itself, so Linux CI passed.
+  - Fix: call `readiness.clear()` before `register_waker`, which follows the
+    documented clear-register-read-then-park protocol and re-arms the kqueue
+    edge. The test is not gated; no splice path was gated.
+  - Trace answers: the backend receives the frame and sends the echo; the
+    upstream→client pump does not read it before the timeout; macOS uses the
+    buffered `aio::splice` pump, which never calls `splice(2)`.
+  - Two latent hazards are recorded and scheduled: the selector's edge
+    suppression needs caller discipline (backlog §5b, feature 136), and
+    `read_wake_source` creates a new token on every call (backlog §2, feature
+    137).
+  - `foundation_proxy` and `foundation_netio` suites pass. CI proof is pending.
+
 - 2026-11-06: feature 135 wakes the client receiver when the response head is
   published, so a head-only peer no longer stalls the call setup. Branch
   `spec70/priority-followups`, commit `f86846e0e`.

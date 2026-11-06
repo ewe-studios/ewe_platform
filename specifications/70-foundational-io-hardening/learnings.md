@@ -2,6 +2,25 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 129, macOS read edge lost):
+  - **macOS kqueue reports pipes level-triggered despite `EV_CLEAR`.** The
+    selector in `foundation_reactor` suppresses repeated read events itself: it
+    stores the fd's byte count and delivers again only when the count grows. A
+    drained socket that receives a smaller frame produces no new edge.
+  - **`Reactor::clear` is the re-arm.** Clearing `READABLE` calls
+    `Poll::rearm_readable`, which forgets the stored count. `FdReadiness::clear`
+    is therefore part of the park protocol, not only a flag reset. The netio
+    wake source skipped it; the task never woke again.
+  - **Linux CI cannot prove edge-triggered code.** epoll re-arms without a call,
+    so the missing `clear` passed every Linux run. A readiness change needs a
+    macOS run, or a test that drives the selector directly.
+  - **A 10-of-10 failure is evidence.** The feature was recorded as
+    intermittent. Ten runs alone and ten full-suite runs failed every time,
+    which narrowed the range at once. Count runs before theorising.
+  - **Probe the selector, not only the pumps.** The decisive line was the
+    selector's own `data=15 last=Some(77) new_edge=false` printout: it proved
+    the bytes arrived and were suppressed, rather than lost in the relay.
+
 - 2026-11-06 (feature 135, response head publication):
   - **A shared slot is not a wake.** A `Mutex<Option<T>>` lets a reader see a
     value that is already stored; it cannot tell a reader that a value arrives
