@@ -36,7 +36,13 @@ cancelled call drops its response receivers, and the pump must see that and send
 `RST_STREAM`. The pump cannot park on `vacancy()` directly: an empty pipe is "not full", so
 the task would spin. It uses a local `ReceiverGone` adapter that registers the vacancy
 notifier but reports readiness only for the close. That is correct, but each consumer pop
-still wakes the pump for nothing, which costs one extra poll per response chunk.
+still wakes the pump for nothing.
+
+Correction, measured in this feature: the spurious wake does **not** cost a pump turn.
+The executor gates a woken sleeper on `is_ready`, so an adapter that reports "not ready"
+makes the task sleep again without a poll. The cost is one executor-thread interrupt per
+pop. The value of this feature is an exact shared signal in place of a private adapter,
+not a lower poll count. See the Result for the measurement.
 
 `docs/bug-backlog.md` §1 holds this entry.
 
@@ -263,6 +269,13 @@ recorded in `docs/bug-backlog.md` §4.
 | `cargo test --profile uat -p foundation_connectrpc --test grpc_tests client_cancel_resets_the_stream_on_the_server` | 1 passed |
 | `cargo test --profile uat -p foundation_proxy` | blocked: `ld: ... No space left on device` (link step) |
 | `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectrpc --no-default-features --features rpc` | not run: disk full |
+
+Run again by the main session after it deleted the incremental caches:
+
+| command | result |
+|---|---|
+| `RUSTFLAGS='-D warnings' cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectrpc --no-default-features --features rpc` | exit 0, no warning |
+| `cargo test --profile uat -p foundation_proxy` | every binary passes except `proxy_features_tests::websocket_upgrade_relays_and_tunnels_bytes`, the known macOS failure in backlog §9 (feature 129) |
 
 The default `foundation_core` feature set (no `multi`) compiled and ran its
 tests, so the `not(multi)` readiness impl is proven. The `multi` impl compiled
