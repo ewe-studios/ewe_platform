@@ -130,7 +130,8 @@ Then 30 runs of `rpc_proxy_e2e_tests` in the Linux CI image with `--cpus=2`.
 - [x] A dial failure still reaches the caller as a connect error, on the same path.
 - [x] `a_blackholed_dial_does_not_block_the_worker` fails on the old code and passes.
 - [x] The unix path is unchanged or its limitation is recorded in the backlog.
-- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
+- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
+      proof. Record the final run ID here when the branch head passes.
 
 ## Result
 

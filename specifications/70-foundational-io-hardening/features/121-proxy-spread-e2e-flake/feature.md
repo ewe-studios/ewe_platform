@@ -210,7 +210,8 @@ python3 scripts/ci/ci.py run foundation_proxy --profile uat
 - [x] A hung call fails on its own bound (about 5 s) with a message that names the call,
       not only on the 30 s cap.
 - [x] The backlog §9 entry is deleted.
-- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
+- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
+      proof. Record the final run ID here when the branch head passes.
 
 ## Result
 

@@ -152,8 +152,8 @@ Then run the feature 121 loop: the proxy test binaries on Linux, thirty times.
       tests pass. (`foundation_proxy` has one known macOS failure, recorded in backlog
       §9; it is not caused by this change.)
 - [x] The backlog §5b entry is deleted after merge.
-- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on
-      2026-11-06.
+- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is
+      not proof. Record the final run ID here when the branch head passes.
 
 ## Result
 

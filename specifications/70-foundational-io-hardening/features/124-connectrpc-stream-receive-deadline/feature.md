@@ -141,7 +141,8 @@ cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectr
 - [x] The three tests pass, and the two deadline cases fail without the change.
 - [x] Unary and streaming setup behaviour from feature 123 is unchanged.
 - [x] The backlog §1 "streaming call's later receives" entry is deleted.
-- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
+- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
+      proof. Record the final run ID here when the branch head passes.
 
 ## Result
 

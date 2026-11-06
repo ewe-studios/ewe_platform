@@ -66,7 +66,8 @@ Then the loops named above, in the Linux CI image for the `--cpus=2` runs.
 - [x] The failure is reproduced or refuted with recorded counts.
 - [x] A cause is fixed, or the entry is closed with the evidence.
 - [x] The backlog §9 entry is deleted.
-- [x] CI green. GitHub Actions run `42205799516` (head `bc7e870d5`) passed on 2026-11-06.
+- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
+      proof. Record the final run ID here when the branch head passes.
 
 ## Result
 
