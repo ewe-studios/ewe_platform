@@ -2,6 +2,27 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 121 finds and fixes the proxy stall and the past-due timer.
+  Branch `spec70/priority-followups`.
+  - The watchdog found two defects. First, `ClientRequest::send_async` hands the
+    response socket back in blocking mode, so the proxy's H1 response-body read
+    blocked a valtron worker and every task it hosted. Second,
+    `DurationWaker::remaining` returned `None` for a past-due timer, so
+    `Sleepers::time_until_next` dropped it and a worker chose the next far
+    deadline. A live dump showed one worker sleeping 59,999 ms with a 10 ms H2
+    pump poll pending.
+  - Fixes: `send_async` callers that stream now switch the response socket back
+    to non-blocking (`forward.rs`, `h2_proxy.rs`); `body_reader::map_err` keeps
+    `WouldBlock`; `DurationWaker::remaining` saturates to zero.
+  - Two deterministic tests, both fail on the old code:
+    `a_past_due_timer_is_the_next_wakeup` (foundation_core) and
+    `a_would_block_body_read_parks_instead_of_failing` (foundation_netio).
+  - The e2e suite dropped from 16-24 s to about 2.7 s, because pool teardown no
+    longer detaches a blocked worker. `foundation_core` 744 passed,
+    `foundation_netio` 1218 passed, `foundation_proxy` passed except the known
+    macOS websocket failure. fmt and clippy are clean. CI is not run yet; the
+    feature stays `pending (CI proof)`.
+
 - 2026-11-06: feature 123 makes a Connect client call fail on its own deadline.
   Branch `spec70/priority-followups`.
   - The shared `Client` now races every call future against

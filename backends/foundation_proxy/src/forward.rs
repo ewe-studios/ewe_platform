@@ -466,6 +466,15 @@ async fn exchange(
     })?;
 
     let (status, headers, body, pool, upstream_conn) = response.into_parts();
+    // `send_async` hands the response socket back in blocking mode, but this leg
+    // streams the body asynchronously. Keep the socket non-blocking so the body
+    // read parks on the reactor (`read_wake_source`) instead of blocking this
+    // valtron worker and every task it hosts (spec 70 feature 121).
+    if let Some(conn) = upstream_conn.as_ref() {
+        if let Err(e) = conn.set_nonblocking(true) {
+            tracing::debug!(error = %e, "cannot set upstream response socket non-blocking");
+        }
+    }
     let read_wake = upstream_conn.as_ref().and_then(|c| c.read_wake_source());
     let mut body = AsyncSendSafeBody::from(body);
     if let Some(source) = read_wake {

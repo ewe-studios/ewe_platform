@@ -173,10 +173,14 @@ impl<T> DurationWaker<T> {
 
     pub fn remaining(&self) -> Option<time::Duration> {
         let now = foundation_compact::Instant::now();
-        match self.from.checked_add(self.how_long) {
-            Some(when_ready) => when_ready.checked_duration_since(now),
-            None => None,
-        }
+        // A deadline that has already passed is due NOW, not "no deadline".
+        // Returning `None` here made `Sleepers::time_until_next` drop a past-due
+        // timer, so a worker picked the next far deadline and slept past a task
+        // that was already runnable (spec 70 feature 121: a 10 ms H2 pump poll
+        // next to a 60 s idle deadline slept for 60 s).
+        self.from
+            .checked_add(self.how_long)
+            .map(|when_ready| when_ready.saturating_duration_since(now))
     }
 
     pub fn try_is_ready(&self) -> Option<bool> {

@@ -445,3 +445,35 @@ fn test_duration_store_max_duration_empty() {
     let store: DurationStore<MockWaker> = DurationStore::new();
     assert!(store.max_duration().is_none());
 }
+
+/// A timer that is already past due is due NOW, not "no deadline".
+///
+/// `DurationWaker::remaining` used to return `None` once the deadline passed.
+/// `Sleepers::time_until_next` filtered that out, so a worker picked the next
+/// far deadline and slept past a task that was already runnable. In a live
+/// trace one worker slept 59,999 ms with a 10 ms H2 pump poll pending (spec 70
+/// feature 121).
+#[test]
+fn a_past_due_timer_is_the_next_wakeup() {
+    let sleepers: Sleepers<DurationWaker<MockWaker>> = Sleepers::new();
+    sleepers.insert(
+        Entry::new(1, 0),
+        DurationWaker::new(
+            MockWaker::new(),
+            foundation_compact::Instant::now()
+                .checked_sub(time::Duration::from_millis(20))
+                .expect("20 ms before now"),
+            time::Duration::from_millis(10),
+        ),
+    );
+    sleepers.insert(
+        Entry::new(2, 0),
+        DurationWaker::from_now(MockWaker::new(), time::Duration::from_secs(60)),
+    );
+
+    let next = sleepers.time_until_next().expect("a timer is armed");
+    assert!(
+        next <= time::Duration::from_millis(1),
+        "a past-due timer must be due now, not skipped for the 60 s timer: {next:?}"
+    );
+}

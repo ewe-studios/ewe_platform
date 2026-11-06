@@ -33,6 +33,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   carry the call deadline into the stream halves and race each receive against
   `valtron::sleep_async`, mapping the timeout to `DeadlineExceeded`. Found in
   feature 123.
+- **`H2Transport::open` dials with a blocking `connect_timeout`.** File
+  `src/native/transport/h2.rs`. `open()` runs on a valtron worker and calls
+  `TcpStream::connect_timeout`, which can block that worker (and every task it
+  hosts) for up to the 10 s connect budget. This is the same blocking-boundary
+  class that feature 121 removed from the response-body read. Fix: dial without
+  blocking and park on write readiness, or move the dial to a boundary thread.
+  Found in feature 121.
 
 ## 2. foundation_netio
 
@@ -221,37 +228,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `cargo test -p foundation_proxy --test proxy_features_tests websocket_upgrade_relays_and_tunnels_bytes`.
   Fix: trace the splice pumps on macOS, or gate the test to Linux until the pump
   is fixed.
-- **A proxy test stalls a request on Linux CI, in two different tests.** Run
-  42087629722 (commit `b7bff1de1`) failed
-  `tests/rpc_proxy_e2e_tests.rs::connect_streams_spread_across_grpc_backends`
-  with `timeout: the test took 30001 ms. Max 30000 ms.` Run 42099300473 (commit
-  `9b1138a63`) failed
-  `tests/h2_integration_tests.rs::h2_grpc_trailers_relayed` after 60.5 s with
-  `grpc-status trailer ... left: None, right: Some("0")`. In both logs the proxy
-  starts within 2 ms of the previous test's proxy stopping, and no request ever
-  reaches the handler. In run 2 the front's 60 s HTTP/2 idle timeout is the
-  bound that ends the wait. Both suites pass alone and in repeated runs on
-  macOS and in the Linux image. Both binaries run their tests in parallel over
-  one process-wide shared file descriptor reactor. Likely a lost read wake on a
-  connection after file descriptor number reuse; section 5b gives the mechanism
-  and feature 122 the fix. The accept loop is not the stalled wait: it retries
-  `accept` every 10 ms. In run 2 the stalled connection's own 60 s idle timer
-  fired, so the task and its timers ran while the read never reported readiness.
-  Fix: reproduce with the full binaries in a loop on Linux, land feature 122,
-  instrument the connection read path, and make a hung client call fail on its
-  own deadline with a useful message. Do not raise a cap as the fix. Scheduled
-  as feature 121. Reproduced on 2026-11-06 with `docker run --cpus=2`: the
-  loops failed four different tests in total, and a trace run localises
-  the stall: the proxy front accepts, parses and dispatches the request, the
-  proxy dials the backend and the backend completes its HTTP/2 handshake, then
-  the backend never reads the forwarded request while the client waits. So the
-  stalled wait is in the front-to-backend relay, after the handshake.
-  **Feature 122 landed and did not stop the stall.** Run 1 of a fresh CI
-  container failed `connect_server_stream_via_h2_proxy` on `open server stream`
-  twice in a row; the client now fails on its own 5 s deadline (feature 121
-  test bound) and no longer waits 30 s. The remaining suspects are a lost task
-  wake in the proxy's upstream H2 client, a missed write-readiness edge after
-  `reregister`, or a front inbound exchange that never delivers its frames.
 
 ## 10. foundation_ai
 

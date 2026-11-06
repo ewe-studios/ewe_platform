@@ -2,6 +2,33 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 121, the proxy stall):
+  - **A blocking read inside a valtron task freezes the whole worker.** A task's
+    `next_status` runs on a worker that also hosts other tasks. If it calls a
+    blocking `recv`, every task on that worker stops, including the ones the
+    blocking call waits on. The symptom is two tasks frozen at once (here the
+    proxy relay and the client's H2 pump). Rule: keep a task non-blocking and
+    park on a readiness.
+  - **`send_async` returns a blocking response socket.** `SendRequestTask`
+    restores blocking mode for the synchronous body readers. An async streaming
+    caller must call `set_nonblocking(true)` and attach `read_wake_source`, or
+    the body read blocks the worker.
+  - **A past-due `DurationWaker` must report zero remaining time, not `None`.**
+    `Sleepers::time_until_next` filters `None`, so a due timer vanished from the
+    minimum and the worker slept to the next far deadline. The window is real:
+    `wakeup_ready_sleepers` runs before `do_work`, and a task step can last
+    longer than a 10 ms timer. Evidence: `worker ... last_wait_ms=59999` next to
+    a 10 ms pump poll.
+  - **Preserve `WouldBlock` through error mapping.** `map_err` collapsed errors
+    into `io::Error::other`, which erased the kind and made "no bytes yet" a
+    terminal error. A body stream can park only if the kind survives.
+  - **Instrument the scheduler, not only the socket.** The reactor dump was
+    clean (`wake_skipped=0`). The decisive evidence was the worker's last sleep
+    duration and its sleeper count, sampled next to the frozen poll counter.
+  - **A green run that takes 16-24 s for 17 tests is a clue.** The tests are
+    serialised by the pool gate. Each test paid a pool-shutdown wait for a
+    blocked worker. After the fix the suite takes about 2.7 s.
+
 - 2026-11-06 (feature 123, the client deadline):
   - **Enforce a deadline above the transport trait, not inside each transport.**
     `Transport::open` is synchronous and receives no `Ctx`, so a transport

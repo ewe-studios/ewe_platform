@@ -523,6 +523,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// Asynchronous version of `send()`. Drives both intro and body streams
     /// to completion using valtron's `into_ready_future()`, allowing the
     /// caller to `.await` without blocking the current thread.
+    ///
+    /// The response socket is handed back in **blocking** mode, because the
+    /// synchronous body readers budget a blocking read with a read timeout. A
+    /// caller that streams the response body asynchronously must call
+    /// `set_nonblocking(true)` on the returned connection and attach
+    /// `read_wake_source()`; otherwise the first body read blocks the valtron
+    /// worker that polls it (spec 70 feature 121).
     #[tracing::instrument(skip(self))]
     ///
     /// # Errors

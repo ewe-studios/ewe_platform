@@ -1993,6 +1993,12 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
 }
 
 fn map_err(e: &BoxedError) -> SendableBoxedError {
+    // Preserve a non-blocking `WouldBlock`: it is "no bytes yet", not a
+    // failure. Collapsing it into `io::Error::other` made `AsyncSendSafeBody`
+    // treat it as terminal and stalled every streaming proxy body read.
+    if is_would_block(&**e) {
+        return Box::new(std::io::Error::from(std::io::ErrorKind::WouldBlock));
+    }
     Box::new(std::io::Error::other(e.to_string()))
 }
 
