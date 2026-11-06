@@ -127,6 +127,16 @@ impl ResumeSignal {
     pub fn get(&self) -> bool {
         self.0.flag.load(Ordering::SeqCst)
     }
+
+    /// The number of wakers registered on this signal.
+    ///
+    /// This is a test hook: a test proves that finished waits do not pile up
+    /// wakers. It is not part of the stable API.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn waiter_count(&self) -> usize {
+        self.0.notifier.waiter_count()
+    }
 }
 
 impl EventReadiness for ResumeSignal {

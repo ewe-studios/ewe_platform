@@ -2,6 +2,25 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 140 — liveness for a bridged waker):
+  - **A bridged waker with no liveness state can never be pruned.**
+    `ReadinessWaker::from_waker` sets `park: None`, so `is_live()` is always
+    true. `ReadinessNotifier::register` and `notify` therefore keep every dead
+    waker until the source fires. A bridge whose wait can end first needs a
+    liveness token (`from_waker_with_liveness`).
+  - **The token belongs to one wait, not to the signal.** A token shared by
+    every `cancelled()` future stays true while any wait lives, so a dead waker
+    is never pruned. One `Arc<AtomicBool>` per `Cancelled`, set false in `Drop`,
+    bounds the registrations to the live waits.
+  - **`will_wake` only de-duplicates the same task waker.** A valtron task that
+    re-parks gets a fresh `ParkState`, and therefore a fresh `Waker`, on each
+    poll. `will_wake` is then false and the growth was real. A test that reuses
+    one `Waker` does not show the growth; use a distinct waker per poll.
+  - **Expose a count, not the field.** A crate outside `foundation_core` cannot
+    read the notifier of a `ResumeSignal`. Three `#[doc(hidden)]`
+    `waiter_count()` hooks (`ReadinessNotifier`, `ResumeSignal`, `CancelSignal`)
+    let the test prove the bound without private access.
+
 - 2026-11-06 (feature 139 — where a slow poll is actually measured):
   - **The cited poll line numbers are inner polls, not the worker drive point.**
     `FutureTask::next_status` polls a future, but a pool worker invokes the task

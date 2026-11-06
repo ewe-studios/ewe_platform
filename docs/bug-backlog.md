@@ -24,17 +24,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   set it non-blocking, connect to the `SockAddr`, and settle it from `SO_ERROR` in
   `PumpPhase::Connecting` exactly as the TCP path does (the reactor already watches the
   fd). Found in feature 127.
-- **`CancelSignal` keeps one waker per facade wait until it fires.** File
-  `src/shared/context/cancel.rs`. Each `receive()` on a stream builds a fresh
-  `cancelled()` future, and each poll registers a `ReadinessWaker` built with
-  `ReadinessWaker::from_waker`, whose `is_live()` is always true (it has no
-  `ParkState`). The signal's `ReadinessNotifier` therefore cannot drop a waker
-  from a finished wait, so a long call that returns thousands of messages keeps
-  thousands of wakers. The count is unchanged by feature 138; the old vector had
-  the same growth plus one clone per poll. Fix: register the call's waker once
-  (for example keep one `cancelled()` future per call and share it), or give the
-  notifier a liveness token for a bridged waker. Found in feature 138;
-  scheduled as feature 140.
 
 ## 2. foundation_netio
 
@@ -70,6 +59,20 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Fix: capture the QUIC and H3 state of a failing run (`tracing`), then close the race.
 
 ## 4. foundation_core / valtron
+
+- **`ReadinessNotifier::register` de-duplicates by `will_wake`, so the retained
+  liveness token can belong to a finished wait.** File
+  `src/valtron/readiness_wake.rs`. Two `cancelled()` futures (or any two bridged
+  waits) polled by the same task give the same `cx.waker()`, so the second
+  register skips the push and the stored waker keeps the **first** wait's
+  token. If the first wait is dropped before the source fires, `notify` prunes
+  the stored waker as dead and never wakes the still-pending second wait: a
+  lost wake. No in-tree caller selects two cancellations at once (feature 140
+  audited the call sites), so no test hits it. Fix: on `will_wake`, replace the
+  stored waker with the newest one. That fixes the common order only; a fully
+  correct fix also needs a liveness state shared by the waits behind one task
+  waker (an `Arc` live count), so an older wait that outlives the newer one
+  keeps the registration. Found in feature 140.
 
 - **Executor parking stays on the real monotonic clock.** Feature 115 makes the
   clock in `Ctx` replaceable, so a task reads an injected clock from
@@ -198,19 +201,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `ci/packages.toml` does not set `clippy-deny-warnings` for the package, which
   is why CI reports them instead of failing. Fix: clear the crate, then add the
   package to the `clippy-deny-warnings` set. Found in feature 122.
-- **The kqueue read-edge suppression is a latent lost wake for every socket user.**
-  File `src/poll/sys/unix/selector/kqueue.rs:458-489`. macOS reports `EVFILT_READ`
-  level-triggered for pipes despite `EV_CLEAR`, so the selector delivers a readable
-  event only when the fd's byte count grows, and re-arms only through
-  `Reactor::clear` → `Poll::rearm_readable`. A socket that drains N bytes and then
-  receives a smaller frame (M < N) produces no new edge, so a task that forgot
-  `FdReadiness::clear` before it parked never wakes. Feature 129 fixed the one such
-  caller in foundation_netio; the rule stays latent for every other readiness user,
-  and the clear-before-register protocol is easy to miss. Fix: re-arm the read edge
-  inside `FdReadiness::register_waker` and `EventReadiness::register` so no caller
-  can lose a later edge, keep `clear` for the latched flags, and add a selector test
-  that drains N bytes then delivers M < N with no explicit re-arm. Found in feature
-  129; scheduled as feature 136.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

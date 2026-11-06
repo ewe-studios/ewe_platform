@@ -19,6 +19,7 @@
 
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
@@ -79,7 +80,22 @@ impl CancelSignal {
 
     /// Resolve once this signal fires (race it against other work in `select!`).
     pub async fn cancelled(&self) {
-        Cancelled { signal: self }.await;
+        Cancelled {
+            signal: self,
+            live: Arc::new(AtomicBool::new(true)),
+        }
+        .await;
+    }
+
+    /// The number of wakers registered on this signal.
+    ///
+    /// This is a test hook: a test proves that finished waits do not pile up
+    /// wakers. It is not part of the stable API. For a linked signal it counts
+    /// this signal's own notifier only.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn waiter_count(&self) -> usize {
+        self.0.fired.waiter_count()
     }
 
     /// Register `waker` on this signal and every ancestor, so a parent's
@@ -111,6 +127,17 @@ impl core::fmt::Debug for CancelSignal {
 
 struct Cancelled<'a> {
     signal: &'a CancelSignal,
+    /// The liveness of this one wait. A fresh `cancelled()` future gets its own
+    /// token, so the signal's notifier can drop the waker of a finished wait on
+    /// the next register or notify. A token shared by every wait would stay
+    /// true while any wait lived, and the dead wakers would never be pruned.
+    live: Arc<AtomicBool>,
+}
+
+impl Drop for Cancelled<'_> {
+    fn drop(&mut self) {
+        self.live.store(false, Ordering::SeqCst);
+    }
 }
 
 impl Future for Cancelled<'_> {
@@ -121,8 +148,10 @@ impl Future for Cancelled<'_> {
             return Poll::Ready(());
         }
         // the bridge for a source behind a `Future`: waking this waker wakes
-        // `cx.waker()`, and valtron owns what that means.
-        let waker = ReadinessWaker::from_waker(cx.waker().clone());
+        // `cx.waker()`, and valtron owns what that means. The token tells the
+        // signal when this wait is gone, so a finished wait is pruned.
+        let waker =
+            ReadinessWaker::from_waker_with_liveness(cx.waker().clone(), Arc::clone(&self.live));
         self.signal.register(&waker);
         // Re-check to close the register/fire race.
         if self.signal.is_canceled() {

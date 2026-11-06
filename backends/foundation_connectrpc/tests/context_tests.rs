@@ -157,6 +157,50 @@ fn cancel_twice_stays_canceled() {
     assert!(signal.is_canceled());
 }
 
+/// A finished `cancelled()` wait does not keep its waker (spec 70 feature 140).
+///
+/// Each facade wait builds a fresh `cancelled()` future, and valtron hands each
+/// poll a different waker. Without a liveness token on the bridged waker, the
+/// signal keeps every one of them until it fires.
+#[test]
+fn finished_cancel_waits_do_not_accumulate_wakers() {
+    use std::future::Future;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Wake, Waker};
+
+    struct CountingWake(AtomicUsize);
+
+    impl Wake for CountingWake {
+        fn wake(self: Arc<Self>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    let signal = CancelSignal::new();
+    // The wakers stay alive, so each one is distinct and `will_wake` is false.
+    // That is what a stream task gets when valtron re-parks it on each poll.
+    let wakers: Vec<Waker> = (0..1000)
+        .map(|_| Waker::from(Arc::new(CountingWake(AtomicUsize::new(0)))))
+        .collect();
+    for waker in &wakers {
+        let mut cx = std::task::Context::from_waker(waker);
+        let future = signal.cancelled();
+        let mut future = std::pin::pin!(future);
+        assert!(
+            future.as_mut().poll(&mut cx).is_pending(),
+            "a signal that did not fire must keep the wait pending"
+        );
+        // `future` drops here: its wait is gone.
+    }
+
+    let registered = signal.waiter_count();
+    assert!(
+        registered <= 2,
+        "1000 finished waits left {registered} registered wakers; a finished \
+         wait must be pruned on the next register"
+    );
+}
+
 // ── Deadline ──────────────────────────────────────────────────────────────────
 
 #[test]

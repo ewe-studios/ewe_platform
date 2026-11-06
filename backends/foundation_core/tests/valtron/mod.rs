@@ -3,6 +3,7 @@ mod async_first_api;
 #[cfg(not(target_family = "wasm"))]
 mod bridge_park;
 mod bridge_park_executor;
+mod bridged_waker_liveness;
 #[cfg(not(target_family = "wasm"))]
 mod broadcast_tests;
 mod builder_tests;

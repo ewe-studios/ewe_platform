@@ -2,6 +2,31 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 140 makes a bridged readiness waker report its liveness.
+  Branch `spec70/priority-followups`.
+  - `ReadinessWaker` gains `live: Option<Arc<AtomicBool>>` and
+    `from_waker_with_liveness(waker, live)`. `is_live()` reads the token for a
+    bridged waker and keeps the `park` check for an executor waker. `from_waker`
+    keeps its signature and passes `None`.
+  - `Cancelled` in `foundation_connectrpc` holds one token per wait and sets it
+    `false` in `Drop`, so the signal's notifier prunes a finished wait on the
+    next register or notify. The token is per wait, not per signal: a shared
+    token would stay true while any wait lived.
+  - New test hooks `ReadinessNotifier::waiter_count`, `ResumeSignal::waiter_count`
+    and `CancelSignal::waiter_count`, all `#[doc(hidden)]`.
+  - Tests: `a_dead_bridged_waker_is_dropped` (foundation_core) and
+    `finished_cancel_waits_do_not_accumulate_wakers` (foundation_connectrpc).
+    The second polls 1000 distinct wakers and asserts the count stays at most 2.
+    The old behaviour keeps all 1000.
+  - `foundation_core` moves to 0.0.12 and every consumer requirement moves with
+    it in the same commit. The backlog section 1 entry is deleted.
+  - One new backlog entry in section 4: `ReadinessNotifier::register` skips a
+    push when `will_wake` matches, so two waits behind one task waker share one
+    stored waker and its token belongs to the older wait. No in-tree caller
+    selects two cancellations at once. Not fixed here.
+  - fmt, both clippy runs, both test suites and the wasm32 rpc check are clean.
+    CI proof is pending.
+
 - 2026-11-06: feature 139 names a task poll that blocks a worker. Branch
   `spec70/priority-followups`, commit `df3ef22ea`.
   - `PoolConfig::slow_poll_warning` is an `Option<Duration>` with

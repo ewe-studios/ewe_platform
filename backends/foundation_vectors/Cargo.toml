@@ -15,7 +15,7 @@ serde_json = { version = "1", optional = true }
 libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
-foundation_core = { path = "../foundation_core", version = "0.0.11", features = ["std"], optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.12", features = ["std"], optional = true }
 # Retry jitter reads the platform entropy source through foundation_compact's
 # vendored backend (rule 11), not through rand/getrandom.
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false, optional = true }

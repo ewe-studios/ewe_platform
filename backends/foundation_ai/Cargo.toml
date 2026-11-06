@@ -16,7 +16,7 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
-foundation_core = { path = "../foundation_core", version = "0.0.11" }
+foundation_core = { path = "../foundation_core", version = "0.0.12" }
 # foundation_netio is target-gated below (native vs wasm): native needs the
 # multi-threaded executor (`multi`) + TLS/compression/wire modules; wasm needs
 # only `wasm-fetch` (the browser fetch client) — matching foundation_auth.

@@ -84,6 +84,7 @@ impl ParkState {
         ReadinessWaker {
             waker: Waker::from(Arc::clone(self)),
             park: Some(Arc::clone(self)),
+            live: None,
         }
     }
 
@@ -134,6 +135,10 @@ pub struct ReadinessWaker {
     waker: Waker,
     /// The parked task this waker belongs to, when the executor made it.
     park: Option<Arc<ParkState>>,
+    /// The liveness token of the wait behind a bridged waker. The bridge owner
+    /// stores `false` when its `Future` goes away, so the notifier can drop the
+    /// waker.
+    live: Option<Arc<AtomicBool>>,
 }
 
 impl std::fmt::Debug for ReadinessWaker {
@@ -159,16 +164,46 @@ impl ReadinessWaker {
 
     /// Whether the task is still parked on this waker. A source may drop a
     /// waker that is not live.
+    ///
+    /// A waker the executor made checks its [`ParkState`]. A bridged waker
+    /// checks the liveness token its owner gave it, so a `Future` that is gone
+    /// stops holding a registration.
     #[must_use]
     pub fn is_live(&self) -> bool {
-        self.park.as_ref().is_none_or(|park| park.is_parked())
+        if let Some(live) = &self.live {
+            live.load(Ordering::SeqCst)
+        } else {
+            self.park.as_ref().is_none_or(|park| park.is_parked())
+        }
     }
 
     /// A waker built on a standard waker, for a source that bridges to a
     /// `Future` (waking it wakes that waker).
+    ///
+    /// This waker reports live for as long as it exists. A bridge whose wait can
+    /// end before the source does uses [`Self::from_waker_with_liveness`].
     #[must_use]
     pub fn from_waker(waker: Waker) -> Self {
-        Self { waker, park: None }
+        Self {
+            waker,
+            park: None,
+            live: None,
+        }
+    }
+
+    /// A bridged waker whose liveness the caller controls.
+    ///
+    /// The caller stores `false` in `live` when the wait behind this waker is
+    /// gone (a `Future` that is dropped). The notifier's next `register` or
+    /// `notify` then drops the waker instead of keeping it until the source
+    /// fires.
+    #[must_use]
+    pub fn from_waker_with_liveness(waker: Waker, live: Arc<AtomicBool>) -> Self {
+        Self {
+            waker,
+            park: None,
+            live: Some(live),
+        }
     }
 
     /// The standard waker behind this one, for a source that needs a
@@ -185,6 +220,7 @@ impl ReadinessWaker {
         Self {
             waker: Waker::noop().clone(),
             park: None,
+            live: None,
         }
     }
 }
@@ -256,6 +292,16 @@ impl ReadinessNotifier {
     #[must_use]
     pub fn has_waiters(&self) -> bool {
         self.count.load(Ordering::SeqCst) > 0
+    }
+
+    /// The number of registered wakers.
+    ///
+    /// This is a test hook: a test proves that a dead bridged waker is pruned.
+    /// It is not part of the stable API.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn waiter_count(&self) -> usize {
+        self.count.load(Ordering::SeqCst)
     }
 }
 
