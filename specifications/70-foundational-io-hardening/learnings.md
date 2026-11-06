@@ -2,6 +2,27 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 139 — where a slow poll is actually measured):
+  - **The cited poll line numbers are inner polls, not the worker drive point.**
+    `FutureTask::next_status` polls a future, but a pool worker invokes the task
+    through `ExecutorState::do_work` -> `iter.next(...)` in `executors/local.rs`.
+    That call is the one place to measure: it sees every task type and every
+    wrapper, including the single-threaded engine.
+  - **Name the task from the trait, not from the entry.** `ExecutionIterator::name()`
+    defaults to `core::any::type_name::<Self>()`; the boxed and `Rc`/`Mutex`/`Arc`
+    wrapper impls forward it. Without a name the warning cannot tell a developer
+    which task to fix.
+  - **Warn at most once per task per second.** A blocked task blocks on every
+    poll turn. An unthrottled warning floods the log and hides the other tasks.
+    The per-entry `last_warn` map is removed with the task's `Ctx`.
+  - **A blocking task and a blocking caller look different.** The caller of a
+    `#[valtron_test]` body is a normal thread; the body itself is polled by a
+    worker. Measure the poll, not the test wall time.
+  - **Two existing gates stay red for unrelated reasons.** A `-D warnings`
+    clippy run that includes `foundation_macros` fails on the pedantic debt of
+    feature 120, and a full multi run can show the `targeted_wake` timeout. Note
+    both as pre-existing, but do not call them green.
+
 - 2026-11-06 (features 131, 138, 139 — valtron surface and pool starvation):
   - **The poll of a `#[valtron_test]` body runs on a valtron pool worker.** The
     caller thread blocks on the result, and the pool polls the body's future. A

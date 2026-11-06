@@ -2,6 +2,37 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 139 names a task poll that blocks a worker. Branch
+  `spec70/priority-followups`, commit `df3ef22ea`.
+  - `PoolConfig::slow_poll_warning` is an `Option<Duration>` with
+    `with_slow_poll_warning`. The library default is `None`: the check reads the
+    monotonic clock twice per task step and a healthy step takes microseconds.
+  - The executor measures the one place a worker invokes a task step,
+    `ExecutorState::do_work` at `iter.next(...)` (`executors/local.rs`). A step
+    at or over the threshold emits `tracing::warn!(target:
+    "valtron::executor", task, micros, "a task poll blocked a worker")`, at most
+    once per task per second.
+  - `ExecutionIterator::name()` returns the concrete task type name
+    (`core::any::type_name`), and every wrapper impl forwards it, so the boxed
+    drive point names the task that blocked.
+  - `#[valtron]` and `#[valtron_test]` accept `slow_poll = <ms>` and set 100 ms
+    when the attribute is silent. The single-threaded engine gets the same
+    threshold through `initialize_current_thread_with_slow_poll_warning`.
+  - Tests in `tests/valtron/slow_poll_warning.rs`: a slow poll is reported with
+    the task name and at least its 50 000 µs; a fast poll is silent; 300 ms of
+    50 ms polls produce at most two warnings. `valtron_macro_tests` accepts the
+    key. The three watchdog tests need `--features multi`.
+  - `foundation_core` moves to 0.0.11 and every consumer requirement moves with
+    it in the same commit. The `foundation_macros` `-D warnings` clippy gate
+    still fails on its recorded pre-existing pedantic debt (feature 120); this
+    change adds none.
+  - The rule "a task poll must not block" is in the valtron iterator skill
+    (`.agents` submodule commit `f1a1246`) and the macro docs. The backlog
+    section 4 silent-starvation entry is deleted.
+  - Open: CI proof is pending. The agent saw one `targeted_wake` timeout on a
+    first full multi run, which did not reproduce in two later full runs; it is
+    recorded in the backlog.
+
 - 2026-11-06: feature 138 moves the call cancel signal onto valtron's readiness
   port. Branch `spec70/priority-followups`.
   - `CancelSignal` kept its own `Mutex<Vec<std::task::Waker>>` and called
