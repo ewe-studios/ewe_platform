@@ -32,15 +32,20 @@ What is known:
 - It fails the same way with the feature 63 writer changes reverted for the run.
 - The proxy's upgrade path (`forward_upgrade` plus `aio::splice`) is unchanged by feature
   63, so the failure predates it.
-- It fails on every macOS run and passes in the Linux CI image.
-- Feature 121 has since replaced a blocking body read and a lost timer wake in nearby
-  code, so the cause may already be gone; the test has not been re-run since.
+- It passes in the Linux CI image.
+- Retested on 2026-11-06 while features 126 and 127 ran the suite: it **failed** inside
+  `cargo test -p foundation_proxy` twice and **passed** inside the same command once. The
+  earlier note that it "fails on every macOS run" is wrong: the failure is intermittent,
+  so a single green run does not close this feature.
+- Feature 121 has replaced a blocking body read and a lost timer wake in nearby code. The
+  failure survives that change.
 
 ## Design
 
 1. Re-run the test alone and in the full suite on the current branch, ten times each, and
-   record the result. If it now passes, close this feature with that evidence and delete
-   the backlog entry.
+   record the result as a pass/fail count. Because the failure is intermittent, a single
+   pass is not evidence; twenty green runs in a row are. If all pass, close this feature
+   with that count and delete the backlog entry.
 2. If it still fails, trace the two relays with `RUST_LOG=foundation_proxy=trace,
    foundation_netio=trace`. Answer these questions in the Result:
    - Does the backend receive the client's frame?
