@@ -14,8 +14,9 @@ use crate::{SystemTime, UNIX_EPOCH};
 
 /// The number of milliseconds from the UNIX epoch to `time`.
 ///
-/// A time before the epoch returns a negative value. A value outside the `i64`
-/// range saturates at the nearest bound.
+/// A time before the epoch returns a negative value, rounded toward zero at a
+/// fraction of a millisecond. A value outside the `i64` range saturates at the
+/// nearest bound.
 #[must_use]
 pub fn unix_millis(time: SystemTime) -> i64 {
     match time.duration_since(UNIX_EPOCH) {

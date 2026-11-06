@@ -231,6 +231,12 @@ Measured facts:
 - Per phase: B has 110 reads in 43 files, C has 137 reads in 51 files, and D has 192
   reads in 79 files. The plan's figures (152 and 136) are older than the tree; the
   feature files use the measured values.
+- Added after review: the gate fails on an allowlist entry that matches no direct
+  read. Without that rule, a phase that fixes a file can leave its entry behind and
+  the allowlist stops shrinking without a signal. Two tests cover a stale file entry
+  and a stale directory entry (`scripts/ci/tests/test_check_time_sources.py`, 10
+  tests). The four temporary-directory tests now pass an explicit empty allowlist,
+  because the repository allowlist names files that do not exist in a temp root.
 - `foundation_boringtun` is skipped by name. It is the published upstream fork, and
   `check_errstacks.py` skips it for the same reason. It has 15 reads.
 - The gate accepts a path or a trailing-slash directory prefix. A marker counts as an

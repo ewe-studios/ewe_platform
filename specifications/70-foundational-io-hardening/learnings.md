@@ -11,6 +11,11 @@ _What an agent learned that the next agent needs. Newest first._
     the scope must include the implementor files. The main session added the
     method after review; a test clock that reads only `now` returns a fixed
     `UNIX_EPOCH` for `wall_now`.
+  - **An allowlist needs a stale-entry rule.** A ratchet that only fails on new
+    reads keeps entries after the fix, and the count stops going down without a
+    signal. The gate now fails on an entry that matches no read, and a temp-dir
+    test must pass an explicit empty allowlist or the repository allowlist counts
+    as stale there.
   - **A directory allowlist entry and a file allowlist entry are both needed.** The
     real time backends are a whole crate subtree (`foundation_compact/src/`) plus
     one file (`foundation_core/src/valtron/ctx.rs`). The gate supports a trailing

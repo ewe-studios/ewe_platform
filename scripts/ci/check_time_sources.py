@@ -19,6 +19,9 @@ direct read. Each line is a path with a reason after `#`. An entry that ends in
 `/` is a directory prefix. Feature 117 and its phases B, C and D delete their
 own entries, so the count only goes down.
 
+An entry that matches no read fails the gate. Without that rule an allowlist
+entry outlives its fix, and the ratchet silently stops ratcheting.
+
 A single line may opt out with `// time-source: <reason>`; the marker counts as
 an allowed read and the script reports the total. Every marker needs a backlog
 entry in `docs/bug-backlog.md`.
@@ -72,15 +75,15 @@ def load_allowlist(path: Path) -> list[str]:
     return entries
 
 
-def is_allowed(rel: str, allowlist: list[str]) -> bool:
-    """A file is allowed by an exact path or by a trailing-slash prefix."""
+def matching_entry(rel: str, allowlist: list[str]) -> str | None:
+    """The allowlist entry for `rel`: an exact path or a trailing-slash prefix."""
     for entry in allowlist:
         if entry.endswith("/"):
             if rel.startswith(entry):
-                return True
+                return entry
         elif rel == entry:
-            return True
-    return False
+            return entry
+    return None
 
 
 def source_files(root: Path):
@@ -99,13 +102,14 @@ def source_files(root: Path):
 
 
 def scan(root: Path, allowlist: list[str]) -> dict[str, object]:
-    """Count every direct read and collect the unallowlisted ones."""
+    """Count every direct read, the unallowlisted ones, and the unused entries."""
     reads = 0
     marked = 0
     allowed_reads = 0
     files = 0
     violations: list[str] = []
     inventory: list[tuple[str, int]] = []
+    used: set[str] = set()
 
     for rel in source_files(root):
         path = root / rel
@@ -114,7 +118,7 @@ def scan(root: Path, allowlist: list[str]) -> dict[str, object]:
         except OSError:
             continue
         rel_text = rel.as_posix()
-        allowed = is_allowed(rel_text, allowlist)
+        entry = matching_entry(rel_text, allowlist)
         file_reads = 0
         for number, line in enumerate(text.splitlines(), start=1):
             if not (WALL.search(line) or MONOTONIC.search(line)):
@@ -124,8 +128,9 @@ def scan(root: Path, allowlist: list[str]) -> dict[str, object]:
             if MARKER in line:
                 marked += 1
                 continue
-            if allowed:
+            if entry is not None:
                 allowed_reads += 1
+                used.add(entry)
                 continue
             violations.append(f"{rel_text}:{number}: {line.strip()}")
         if file_reads:
@@ -139,6 +144,7 @@ def scan(root: Path, allowlist: list[str]) -> dict[str, object]:
         "files": files,
         "violations": sorted(violations),
         "inventory": inventory,
+        "unused": sorted(set(allowlist) - used),
     }
 
 
@@ -158,6 +164,7 @@ def main() -> int:
 
     result = scan(args.root.resolve(), load_allowlist(args.allowlist))
     violations = result["violations"]
+    unused = result["unused"]
     summary = (
         f"{result['reads']} direct reads in {result['files']} files: "
         f"{result['allowed']} allowlisted, {result['marked']} marked, "
@@ -172,6 +179,14 @@ def main() -> int:
         for item in violations:
             print(f"  {item}")
         print(f"time source guard: {summary}")
+        return 1
+
+    if unused:
+        print("time source guard: an allowlist entry matches no direct read.")
+        print("Delete the entry, or fix the path. The entry outlived its fix. Found:")
+        for item in unused:
+            print(f"  {item}")
+        print(f"time source guard: {len(unused)} unused allowlist entries")
         return 1
 
     if not args.check:

@@ -69,7 +69,7 @@ pub trait Clock: Send + Sync + 'static {
     #[must_use]
     fn elapsed(&self) -> Duration;
 
-    /// The current wall-clock time, as the operating system reports it.
+    /// The current wall-clock time.
     ///
     /// This is a required method. A default that read the real clock would be a
     /// silent fallback to the global, so every implementation must choose a

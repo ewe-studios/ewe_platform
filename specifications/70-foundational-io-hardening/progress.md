@@ -18,6 +18,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     violations. Phases B, C and D hold 110, 137 and 192 reads. The gate runs in
     the `foundation_core` build step of `ci.py`, with 8 tests.
   - The `foundation_boringtun` fork is skipped by name, like `check_errstacks.py`.
+  - After review, the gate also fails on an allowlist entry that matches no direct
+    read, so phases B, C and D must delete their entries as they land. The test
+    file has 10 tests.
   - Version: `foundation_core` 0.0.9, `foundation_compact` 0.2.4; 42 and 9
     consumer requirements move with them, in 40 manifests.
   - Phases B, C and D are written as features 132, 133 and 134.

@@ -48,7 +48,8 @@ class CheckTimeSources(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write(root, "backends/foundation_x/src/a.rs", "fn f(clock: &dyn Clock) { clock.now(); }\n")
-            result = run(root, "--check")
+            allow = allowlist(root, "")
+            result = run(root, "--check", "--allowlist", str(allow))
             self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_each_forbidden_pattern_fails(self):
@@ -84,21 +85,48 @@ class CheckTimeSources(unittest.TestCase):
                 "backends/foundation_x/src/a.rs",
                 "fn f() { Instant::now(); } // time-source: the host entry point\n",
             )
-            result = run(root, "--check")
+            allow = allowlist(root, "")
+            result = run(root, "--check", "--allowlist", str(allow))
             self.assertEqual(result.returncode, 0, result.stdout)
             self.assertIn("1 marked", result.stdout)
+
+    def test_a_stale_allowlist_entry_fails(self):
+        # The ratchet must not keep entry for a read that is gone: after a phase
+        # fixes a file, the entry has to go, or the allowlist stops shrinking.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write(root, "backends/foundation_x/src/a.rs", "fn f(clock: &dyn Clock) { clock.now(); }\n")
+            allow = allowlist(root, "backends/foundation_x/src/b.rs  # fixed elsewhere\n")
+            result = run(root, "--check", "--allowlist", str(allow))
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn("matches no direct read", result.stdout)
+            self.assertIn("backends/foundation_x/src/b.rs", result.stdout)
+
+    def test_a_stale_directory_entry_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write(root, "backends/foundation_x/src/a.rs", "fn f(clock: &dyn Clock) { clock.now(); }\n")
+            allow = allowlist(root, "backends/foundation_x/src/gone/  # fixed elsewhere\n")
+            result = run(root, "--check", "--allowlist", str(allow))
+            self.assertEqual(result.returncode, 1, result.stdout)
 
     def test_a_vendored_crate_is_skipped(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write(root, "backends/foundation_boringtun/src/a.rs", "fn f() { Instant::now(); }\n")
-            self.assertEqual(run(root, "--check").returncode, 0)
+            allow = allowlist(root, "")
+            self.assertEqual(
+                run(root, "--check", "--allowlist", str(allow)).returncode, 0
+            )
 
     def test_a_test_tree_is_not_scanned(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write(root, "backends/foundation_x/tests/a.rs", "fn f() { Instant::now(); }\n")
-            self.assertEqual(run(root, "--check").returncode, 0)
+            allow = allowlist(root, "")
+            self.assertEqual(
+                run(root, "--check", "--allowlist", str(allow)).returncode, 0
+            )
 
 
 if __name__ == "__main__":

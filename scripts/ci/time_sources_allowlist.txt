@@ -2,6 +2,8 @@
 # Each entry: path, then `#` and the phase that removes it, with the count.
 # A trailing `/` allows the whole directory; otherwise the path is exact.
 # The gate drops an entry when its phase injects the `Clock`.
+# An entry that matches no direct read fails the gate: delete it when you fix
+# the file, and do not leave it for the next phase.
 
 # These two entries stay for good. They are the real backends.
 # foundation_compact implements the time polyfill (`Instant`, `SystemTime`).
