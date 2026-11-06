@@ -28,17 +28,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 2. foundation_netio
 
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
-  `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
-  variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
-  pattern. Keep the `if let`: the TLS feature sets add the other variants. Found
-  in feature 49; the default and all-feature sets are warning-free.
-- **`RawStream::read_wake_source` registers a new readiness token on every call.**
-  File `src/native/raw_stream.rs:480`. Each call builds a fresh `FdReadiness` (a new
-  token) for the same fd, so two live sources on one fd can replace each other's
-  selector registration, and the first one then never wakes. No current caller holds
-  two sources at once, so no test hits it. Fix: build the source once per stream
-  (cache it on `RawStream`) and hand out clones of the same `Arc`, or refuse a second
-  call with a typed error. Found in feature 129; scheduled as feature 137.
+  `--no-default-features` (no `ssl-*` feature) the private `RawStreamInner` enum has
+  only the `Plain` variant, so `if let RawStreamInner::Plain(inner, _) = &self.inner`
+  warns as an irrefutable pattern. Keep the `if let`: the TLS feature sets add the
+  other variants. Found in feature 49; the default and all-feature sets are
+  warning-free.
 
 ## 3. foundation_http
 
