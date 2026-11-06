@@ -98,10 +98,11 @@ becomes exact. Delete the adapter and its doc comment.
 
 ## Version
 
-This adds public API to `foundation_core`, so bump it from 0.0.8 to 0.0.9 and every
-consumer's requirement in the same commit. 38 manifests name the version. Update them with
-one mechanical edit, then run `cargo metadata` to refresh `Cargo.lock`. `foundation_connectrpc`
-does not change its public API here, so it keeps its version.
+This adds public API to `foundation_core`, so bump it by one patch step from whatever
+version it has when this feature starts and every consumer's requirement in the same
+commit. 38 manifests name the version. Update them with one mechanical edit, then run
+`cargo metadata` to refresh `Cargo.lock`. `foundation_connectrpc` does not change its
+public API here, so it keeps its version.
 
 ## Tests
 
@@ -147,7 +148,8 @@ cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectr
 - [ ] `PipeSender::closed_readiness()` exists and is ready only when the receiver dropped.
 - [ ] A pop does not wake a task parked on it; a close does, exactly once.
 - [ ] `H2Pump` uses it and the `ReceiverGone` adapter is gone.
-- [ ] `foundation_core` is 0.0.9 and all 38 requirements follow; `Cargo.lock` is updated.
+- [ ] `foundation_core` is bumped one patch step and all 38 requirements follow;
+      `Cargo.lock` is updated.
 - [ ] The backlog §1 entry is deleted.
 - [ ] CI green.
 
