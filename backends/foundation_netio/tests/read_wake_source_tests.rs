@@ -15,6 +15,8 @@
 //! On the old code the first test compares two distinct `Arc`s and the second
 //! times out because B's registration owns the fd's selector event.
 
+#![cfg(unix)]
+
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
