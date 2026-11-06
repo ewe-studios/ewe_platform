@@ -2238,3 +2238,11 @@ time can still leave an async consumer with nothing to wake it. The old code had
   dependent crates, not in the crate that declares it, so the per-crate deny command stays
   green while a fresh build prints 105 lines (issue #211).
 
+- 2026-11-06 (feature 118): the `type_complexity` lint and `impl Trait` do not mix behind an
+  alias. A type alias cannot name `impl Fn`, so "fix it with an alias" forces a boxed trait
+  object, which adds `'static` bounds and changes public signatures. On an extension trait
+  that returns `impl Fn`, either keep `impl Fn` and carry one `#[expect]`, or accept the
+  breaking change and bump the crate. Feature 118 took the second path: foundation_core
+  0.0.13 and 38 consumer requirements. Measure a lint fix on the public surface as an API
+  change before you apply it, not after.
+

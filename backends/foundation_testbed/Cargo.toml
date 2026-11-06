@@ -77,7 +77,7 @@ libc = "0.2"
 [dependencies]
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
-foundation_core = { path = "../foundation_core", version = "0.0.12" }
+foundation_core = { path = "../foundation_core", version = "0.0.13" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
@@ -144,7 +144,7 @@ foundation_deployment_platform = { path = "../foundation_deployment_platform", v
 # JS-yield executor, so forcing `multi` there broke their `cargo check --tests
 # --target wasm32-unknown-unknown` (E0433 `idle_wake`).
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.12", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.13", features = ["multi"] }
 
 [dev-dependencies]
 # The VM e2e tests (`vms`) build `TestbedError::SshFailed`, whose `source` is

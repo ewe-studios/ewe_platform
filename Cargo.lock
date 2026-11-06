@@ -5440,7 +5440,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "bytes",
  "concurrent-queue",

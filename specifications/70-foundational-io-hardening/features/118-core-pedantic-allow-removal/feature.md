@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_core` removes its crate-level clippy allows"
-status: "pending"
+status: "done"
 lane: "after 115"
 model: "sonnet"
 branch: "spec70/f118-core-pedantic-allow"
@@ -102,13 +102,13 @@ grep -n 'allow(clippy' backends/foundation_core/src/lib.rs   # no output
 
 ## Done when
 
-- [ ] The four crate-level allows are gone from `src/lib.rs`.
-- [ ] Both clippy commands exit 0 with no warning.
-- [ ] The per-lint counts are recorded in this file.
-- [ ] Each surviving `#[expect]` has a reason and, where a later local fix can remove it,
-      a backlog entry.
-- [ ] The tests pass in both trees.
-- [ ] The backlog §4 entry for the crate-level allow is deleted.
+- [x] The four crate-level allows are gone from `src/lib.rs`.
+- [x] Both clippy commands exit 0 with no warning.
+- [x] The per-lint counts are recorded in this file.
+- [x] Each surviving `#[expect]` has a reason and, where a later local fix can remove it,
+      a GitHub issue (the item in #102).
+- [x] The tests pass in both trees.
+- [x] The item for the crate-level allow in GitHub issue #102 is ticked.
 - [ ] CI green.
 
 ## Result
@@ -249,3 +249,24 @@ cargo test --profile uat -p foundation_core --features multi # 916 passed, exit 
 ```
 
 The tests count each test binary, the doctests and the `multi` variants.
+
+### Public API and version
+
+Removing the `type_complexity` lint changed public signatures. The stream and task
+extension traits (`StreamIteratorExt`, `SendableStreamExt`, `TaskIteratorExt`,
+`SendableTaskExt` and the non-sendable forms) returned `impl Fn` closures. A type alias
+cannot name `impl Trait`, so those parameters are now the public aliases
+`BoxedStreamPredicate`, `BoxedStreamCollectionPredicate` and `StreamTransform`. The methods
+that take them (`take`, `take_all`, `skip`, `skip_all`, `take_while`, `skip_while`, the
+collect and transform forms) add `D: 'static` and `P: 'static` where the boxed trait
+object needs them. A caller that passed a closure which borrowed a local value now gets a
+compile error. This is a breaking change for the released crate.
+
+A new public method, `Query::into_string(self)` (`src/url/query.rs`), consumes the value
+for `needless_pass_by_value`.
+
+Both changes need a version bump, so `foundation_core` moved from 0.0.12 to 0.0.13, and
+38 consumer requirements were updated in the same change. `Cargo.lock` is refreshed once.
+
+Workspace proof: `cargo check --workspace --all-targets --profile uat` compiles every
+dependent against the new signatures (see the commit record).

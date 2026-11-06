@@ -21,7 +21,7 @@ tracing = { workspace = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.6" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.7", features = ["fd"] }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
-foundation_core = { path = "../foundation_core", version = "0.0.12" }
+foundation_core = { path = "../foundation_core", version = "0.0.13" }
 
 # ── Linux gains the io_uring completion path ────────────────────────────
 # WHY: the `uring` feature pulls the `io-uring` crate, which only builds on

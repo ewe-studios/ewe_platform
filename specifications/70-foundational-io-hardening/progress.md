@@ -2394,4 +2394,15 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   tests ignored by design. The agent found 105 `unused_must_use` warnings from ignored
   `.close();` results in `foundation_core`, `foundation_http` and `foundation_connectrpc`;
   filed as issue #211.
+- 2026-11-06: feature 118 done (`spec70/priority-followups`, commit `6ef69227d`).
+  `foundation_core` lost its four crate-level clippy allows. The visible debt was 401
+  diagnostics in the default tree and 483 with `multi`; both trees now report zero. The
+  pre-existing pedantic item and module allows were removed too, which exposed 19 more. One
+  `#[expect(clippy::too_many_lines)]` stays on the local executor state machine.
+  `type_complexity` could not be fixed behind a type alias without changing public
+  signatures: the stream and task extension traits now use the public `BoxedStreamPredicate`,
+  `BoxedStreamCollectionPredicate` and `StreamTransform` aliases and require `D: 'static`
+  and `P: 'static` on the affected methods. `Query::into_string` is new public API. The crate
+  moves from 0.0.12 to 0.0.13, and 38 consumer requirements move with it. Tests: 870 pass in
+  the default tree, 916 with `multi`.
 
