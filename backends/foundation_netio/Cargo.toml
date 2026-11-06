@@ -67,7 +67,7 @@ web-sys = { version = "0.3", optional = true, features = [
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # The I/O reactor (poll readiness) is used only by the native `raw_stream`
 # path; it has no wasm32 poll backend, so keep it off the wasm build.
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
 # SSL/TLS backends — not available on wasm32 (require C compilation or OS APIs)
 ring = { version = "0.17.14", optional = true }
 aws-lc-rs = { version = "1.16.1", optional = true }

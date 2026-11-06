@@ -54,7 +54,7 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.6", optional = t
 libc = "0.2"
 # The shared reactor parks the HTTP/1.1 server's connection driver on socket
 # readiness (`FdReadiness`), replacing the old per-request `poll(2)`/`block_on`.
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
 
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a call

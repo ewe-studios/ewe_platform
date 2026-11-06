@@ -37,7 +37,7 @@
 
 use std::collections::HashMap;
 use std::io;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock, RwLock};
 use std::task::Waker;
 use std::thread;
@@ -101,8 +101,9 @@ pub struct Reactor {
     fd_tokens: Mutex<HashMap<std::os::fd::RawFd, Token>>,
     /// Registration lock — serialises `epoll_ctl` calls.
     reg_lock: Mutex<()>,
-    /// Drain thread.
-    _drain: thread::JoinHandle<()>,
+    /// Drain thread. `Some` for the process lifetime; [`Drop`] takes it so it
+    /// can join instead of merely detaching the handle.
+    drain: Option<thread::JoinHandle<()>>,
     /// Signal the drain thread to stop.
     shutdown: Arc<AtomicBool>,
     /// Event generation + condvar (F50 B2). The drain thread bumps the counter and
@@ -132,6 +133,142 @@ impl std::fmt::Debug for Reactor {
 
 /// Global singleton.
 static REACTOR: OnceLock<Arc<Reactor>> = OnceLock::new();
+
+/// Serialises reactor construction (issue #240).
+///
+/// WHY: `REACTOR` alone makes *installing* the reactor atomic, but not
+/// *building* it. Before this lock, every thread that missed `REACTOR.get()`
+/// went on to build its own `Reactor` and spawn its own `reactor-drain` thread;
+/// all but one then lost `REACTOR.set` and dropped their instance. This lock
+/// makes the whole "miss → build → install" sequence single-flight, so only the
+/// winner ever constructs a selector or starts a thread.
+///
+/// WHAT: held across the second `REACTOR.get()` check and the whole of
+/// [`Reactor::init_inner`], released once `REACTOR.set` has run.
+static INIT_LOCK: Mutex<()> = Mutex::new(());
+
+/// Number of `reactor-drain` threads alive in this process.
+///
+/// WHY: issue #240 was a drain thread leaked by every initialisation-race
+/// loser. A unit test cannot see that leak through the public behaviour, so
+/// this counter makes it observable. It is test instrumentation only; nothing
+/// in the reactor reads it.
+static LIVE_DRAIN_THREADS: AtomicUsize = AtomicUsize::new(0);
+
+/// Test hook: the number of live `reactor-drain` threads (issue #240).
+///
+/// WHY: a lost reactor-initialisation race must not leave a drain thread
+/// behind. External test binaries count this to prove it, without reading
+/// `/proc` (which is Linux-only).
+///
+/// WHAT: the current value of the process-wide live-drain-thread counter.
+///
+/// HOW: the counter is incremented when the drain thread starts and decremented
+/// when its loop returns, through an RAII guard so a panic cannot skew it.
+///
+/// # Panics
+/// Never panics.
+#[doc(hidden)]
+pub fn live_drain_threads() -> usize {
+    LIVE_DRAIN_THREADS.load(Ordering::SeqCst)
+}
+
+/// Number of `Reactor::init_inner` entries in this process.
+///
+/// Test instrumentation: single-flight initialisation must let exactly one
+/// thread build the reactor. The live-thread counter above proves the drain
+/// thread side; this counter proves no second build was even attempted.
+static INIT_BUILDS: AtomicUsize = AtomicUsize::new(0);
+
+/// Test hook: how many threads have entered the reactor's build body.
+///
+/// WHY: issue #240 was every losing initialiser building (and spawning) its own
+/// reactor. Counting build entries pins the single-flight guarantee directly.
+///
+/// WHAT: how many times `init_inner` has been entered since process start.
+///
+/// HOW: read the process-wide counter. Nothing in the reactor reads it.
+///
+/// # Panics
+/// Never panics.
+#[doc(hidden)]
+pub fn init_build_attempts() -> usize {
+    INIT_BUILDS.load(Ordering::SeqCst)
+}
+
+/// Number of `reactor-drain` threads spawned in this process.
+///
+/// Test instrumentation: the old race spawned one per init race loser. A build
+/// entry does not prove a thread was spawned (the selector could fail first),
+/// and a live-thread count does not prove how many were ever spawned (a detached
+/// loser thread exits as soon as it observes `shutdown`). This counter is
+/// incremented in the parent immediately after `spawn` returns.
+static DRAIN_THREADS_SPAWNED: AtomicUsize = AtomicUsize::new(0);
+
+/// Test hook: how many `reactor-drain` threads have been spawned.
+///
+/// WHY: issue #240 leaked one drain thread per initialisation-race loser. This
+/// counts them directly, so the test can show "one per loser" instead of racing
+/// a transient live count.
+///
+/// WHAT: how many successful `reactor-drain` spawns have happened since process
+/// start.
+///
+/// HOW: read the process-wide counter. Nothing in the reactor reads it.
+///
+/// # Panics
+/// Never panics.
+#[doc(hidden)]
+pub fn drain_thread_spawn_count() -> usize {
+    DRAIN_THREADS_SPAWNED.load(Ordering::SeqCst)
+}
+
+/// Test-only pause, in milliseconds, applied inside the reactor build body.
+///
+/// WHY: the window between the `REACTOR.get()` miss and `REACTOR.set` is only
+/// microseconds wide, so a race test is scheduling-dependent: sometimes one
+/// thread finishes before the others even check. Holding every builder inside
+/// the body makes the race reproduction deterministic.
+///
+/// WHAT: zero (the default) disables the pause; anything else sleeps that many
+/// milliseconds at the start of `init_inner`.
+///
+/// HOW: set by `#[doc(hidden)]` test hook [`set_init_build_delay`]. Normal code
+/// never writes it.
+static INIT_BUILD_DELAY_MS: AtomicU64 = AtomicU64::new(0);
+
+/// Test hook: pause every reactor builder for `delay` (issue #240 race tests).
+///
+/// WHY: reproduce the initialisation race deterministically. See
+/// [`INIT_BUILD_DELAY_MS`].
+///
+/// WHAT: set the delay applied at the start of `init_inner`. Zero disables it.
+///
+/// HOW: stores milliseconds in a process-wide atomic.
+///
+/// # Panics
+/// Never panics.
+#[doc(hidden)]
+pub fn set_init_build_delay(delay: Duration) {
+    let millis = u64::try_from(delay.as_millis()).unwrap_or(u64::MAX);
+    INIT_BUILD_DELAY_MS.store(millis, Ordering::SeqCst);
+}
+
+/// RAII guard that keeps [`LIVE_DRAIN_THREADS`] accurate across panics.
+struct LiveDrainGuard;
+
+impl LiveDrainGuard {
+    fn enter() -> Self {
+        LIVE_DRAIN_THREADS.fetch_add(1, Ordering::SeqCst);
+        Self
+    }
+}
+
+impl Drop for LiveDrainGuard {
+    fn drop(&mut self) {
+        LIVE_DRAIN_THREADS.fetch_sub(1, Ordering::SeqCst);
+    }
+}
 
 /// Error returned by [`Reactor::init`] when a reactor is already running on
 /// a different backend than the one requested.
@@ -217,9 +354,10 @@ impl Reactor {
     ///
     /// WHAT: get or initialise the shared reactor.
     ///
-    /// HOW: `OnceLock` doesn't support fallible init, so this checks for an
-    /// existing instance, otherwise builds one and races to `set()` it; a
-    /// loser of that race drops its instance and returns the winner's.
+    /// HOW: `OnceLock` doesn't support fallible init, so this delegates to
+    /// [`Reactor::init_with_config`], whose [`INIT_LOCK`] makes the check and the
+    /// build single-flight; a loser of the build waits and returns the winner's
+    /// instance.
     ///
     /// The reactor is initialised with [`BackendPreference::Auto`] — the probe
     /// ladder picks the best available backend. Call [`Reactor::init`] instead
@@ -273,8 +411,9 @@ impl Reactor {
     /// call wins; a later call returns the existing instance and ignores
     /// `config`, exactly as [`Reactor::init`] ignores a later preference.
     ///
-    /// HOW: holds the first-call-wins check (the backend-match test and the
-    /// existing-instance early return), then builds via [`Reactor::init_inner`].
+    /// HOW: takes [`INIT_LOCK`] so construction is single-flight, applies the
+    /// backend-match policy to an existing instance, and otherwise builds via
+    /// [`Reactor::init_inner`] while holding the lock.
     ///
     /// # Errors
     /// - [`AlreadyInitialised`] if the reactor is already running on a
@@ -287,30 +426,84 @@ impl Reactor {
         preference: BackendPreference,
         config: ReactorConfig,
     ) -> io::Result<Arc<Self>> {
+        // Fast path: already initialised, so no build (and no drain thread) is
+        // needed. Kept lock-free so every ordinary caller pays only an atomic
+        // load.
         if let Some(existing) = REACTOR.get() {
-            let running = existing.backend();
-            // If the running backend matches the preference, return it.
-            // Mismatch: the caller asked for something different than what is
-            // already running.
-            if !backend_matches(running, preference) {
-                return Err(AlreadyInitialised {
-                    running,
-                    requested: preference,
-                }
-                .into());
-            }
-            tracing::debug!(
-                running = %running,
-                ?preference,
-                "reactor already initialised on a matching backend; returning existing instance (config ignored)"
-            );
-            return Ok(Arc::clone(existing));
+            return Self::already_initialised(existing, preference);
         }
+
+        // Single-flight (issue #240): the window between the miss above and
+        // `REACTOR.set` used to allow every racer to build its own reactor and
+        // leak its own drain thread. Holding this lock across the second check
+        // and `init_inner` means exactly one thread builds; the rest wait, then
+        // see the winner's instance on the re-check.
+        let _init = INIT_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+
+        if let Some(existing) = REACTOR.get() {
+            return Self::already_initialised(existing, preference);
+        }
+
         Self::init_inner(preference, config)
     }
 
-    /// Shared init body — builds the reactor and races to install it.
+    /// Return an existing reactor, or the conflict error if `preference` does
+    /// not match the running backend.
+    ///
+    /// WHY: both the lock-free fast path and the post-lock re-check in
+    /// [`Reactor::init_with_config`] apply the same backend-match policy.
+    ///
+    /// WHAT: first-call-wins for a matching preference; [`AlreadyInitialised`]
+    /// for a mismatch.
+    ///
+    /// HOW: compares the running backend through [`backend_matches`].
+    ///
+    /// # Errors
+    /// [`AlreadyInitialised`] when the request conflicts with the running
+    /// backend.
+    ///
+    /// # Panics
+    /// Never panics.
+    fn already_initialised(
+        existing: &Arc<Self>,
+        preference: BackendPreference,
+    ) -> io::Result<Arc<Self>> {
+        let running = existing.backend();
+        // If the running backend matches the preference, return it.
+        // Mismatch: the caller asked for something different than what is
+        // already running.
+        if !backend_matches(running, preference) {
+            return Err(AlreadyInitialised {
+                running,
+                requested: preference,
+            }
+            .into());
+        }
+        tracing::debug!(
+            running = %running,
+            ?preference,
+            "reactor already initialised on a matching backend; returning existing instance (config ignored)"
+        );
+        Ok(Arc::clone(existing))
+    }
+
+    /// Shared init body — builds the reactor and installs it.
+    ///
+    /// Callers must hold [`INIT_LOCK`], which makes this the only build in
+    /// flight, so [`REACTOR.set`] cannot actually race. The loser branch below
+    /// is kept as a defensive fallback.
     fn init_inner(preference: BackendPreference, config: ReactorConfig) -> io::Result<Arc<Self>> {
+        INIT_BUILDS.fetch_add(1, Ordering::SeqCst);
+
+        // Test instrumentation (issue #240): widen the race window so a test can
+        // make every contender reach this point before any of them finishes.
+        let delay_ms = INIT_BUILD_DELAY_MS.load(Ordering::SeqCst);
+        if delay_ms > 0 {
+            thread::sleep(Duration::from_millis(delay_ms));
+        }
+
         let poll = Arc::new(Self::make_poll(preference)?);
         let registry = poll.registry();
         let shutdown = Arc::new(AtomicBool::new(false));
@@ -330,6 +523,7 @@ impl Reactor {
         let drain = thread::Builder::new()
             .name("reactor-drain".into())
             .spawn(move || {
+                let _live = LiveDrainGuard::enter();
                 drain_loop(
                     &drain_poll,
                     &drain_entries,
@@ -338,6 +532,7 @@ impl Reactor {
                     drain_timeout,
                 );
             })?;
+        DRAIN_THREADS_SPAWNED.fetch_add(1, Ordering::SeqCst);
 
         let reactor = Arc::new(Reactor {
             poll,
@@ -345,7 +540,7 @@ impl Reactor {
             entries,
             fd_tokens: Mutex::new(HashMap::new()),
             reg_lock: Mutex::new(()),
-            _drain: drain,
+            drain: Some(drain),
             shutdown,
             events_gen,
             drain_poll_timeout: drain_timeout,
@@ -357,6 +552,8 @@ impl Reactor {
                 Ok(reactor)
             }
             // Lost the init race — the winner's instance is authoritative.
+            // Unreachable while callers hold `INIT_LOCK`; kept as a defensive
+            // fallback so a future caller cannot silently drop a built reactor.
             Err(_) => Ok(Arc::clone(
                 REACTOR.get().expect("set() raced, so it is populated"),
             )),
@@ -937,7 +1134,20 @@ impl Reactor {
 
 impl Drop for Reactor {
     fn drop(&mut self) {
+        // Tell the drain loop to stop, then join it. Dropping a `JoinHandle`
+        // only detaches the thread: before this join, a loser of the
+        // initialisation race could leave a `reactor-drain` thread polling an
+        // empty selector (issue #240).
         self.shutdown.store(true, Ordering::SeqCst);
+        // Release any thread parked in `wait_for_events`. The drain loop itself
+        // waits in `poll()`, not on this condvar, so it exits when the poll
+        // timeout expires; joining below waits at most `drain_poll_timeout`.
+        self.wake_waiters();
+        if let Some(drain) = self.drain.take() {
+            if drain.join().is_err() {
+                tracing::warn!("reactor drain thread panicked during shutdown");
+            }
+        }
     }
 }
 

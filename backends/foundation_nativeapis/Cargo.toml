@@ -14,7 +14,7 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.15" }
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true, default-features = false, features = ["std"] }
