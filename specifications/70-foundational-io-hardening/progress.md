@@ -2527,3 +2527,21 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   chooses the real clock at a host boundary; #235 `ContextBag::assert_minimum`
   cannot fail by construction; #236 `Ctx::incomplete_for_test` is a doc-hidden
   public test hook.
+
+- 2026-11-06: CI repair before the final green (`spec70/priority-followups`,
+  commits `bbdb9c33f` and `662b169c3`). The phase C and D bumps left five
+  consumers behind: `benches`, the root `tests` crate and 21 Node.js
+  integration crates still required `foundation_nostd` 0.0.6 and
+  `foundation_wasm` 0.0.5, which broke `cargo metadata` for every CI job.
+  Every path requirement now matches the crate version. The wasm32 builds
+  failed on `std::sync::PoisonError::into_inner` used as a function value on
+  `foundation_nostd` mutexes (#228, fixed with `compati::recover_poison`).
+  The QUIC feature builds failed on a missing `Clock` trait import (#229).
+  `foundation_core` clippy with `--features test-clock` failed on missing
+  `# Panics` docs (#230). The project templates pinned old versions, so the
+  patch table did not apply (#231). The proxy health-probe test now passes
+  after the #217 bounded shutdown; the Linux thread-count assertion is checked
+  in CI. Findings filed: #232 (proxy thread leak, to confirm on Linux CI) and
+  #233-#236 from the #217/#218 work.
+  Next: read the CI run for `662b169c3`, then correct the "CI green" claims in
+  the feature files that cite failed runs, and update PR 186.

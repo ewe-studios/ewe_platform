@@ -17,7 +17,8 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::dataplane::MeshDataPlane;
-use foundation_wireguard::DataPlaneMode;
+use foundation_wireguard::native::{WgConfig, WgNode};
+use foundation_wireguard::{DataPlaneMode, WgSeed};
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.

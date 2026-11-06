@@ -2385,3 +2385,27 @@ time can still leave an async consumer with nothing to wake it. The old code had
   builder's host clock instead of the server's injected clock. Grep for
   `store(clock)` and `store(self.clock)` as well as the constructors, and build
   the bag with the injected clock when one is in hand.
+- 2026-11-06 (CI repair): a bump of a workspace crate must reach every
+  consumer, including the crates that no feature agent owns. Phase D moved
+  `foundation_nostd` to 0.0.7 and `foundation_wasm` to 0.0.6, but `benches`,
+  the root `tests` crate and 21 Node.js integration crates still required the
+  old versions, so `cargo metadata` failed and every CI job stopped. A path
+  requirement with a version is a hard match for a 0.0.x crate. Run a
+  workspace-wide requirement check after every bump, not only a check of the
+  crates in the feature's list.
+- 2026-11-06 (CI repair): the project templates pin registry versions, and
+  the `templates_build` test patches each pin to the local crate. A `[patch]`
+  entry applies only when the local version satisfies the requirement, so a
+  stale pin silently makes the test build the *published* crate. The pins must
+  equal the local versions, or the test proves nothing.
+- 2026-11-06 (CI repair): a green check on one job is not a green workflow.
+  Earlier feature notes cited runs 42205799516 and 42215248185 as green, but
+  both failed 13 jobs: wasm builds, QUIC builds, clippy with `--features
+  test-clock`, the proxy health probe and the template build. Read the run
+  conclusion and the failing job list before writing "CI green" into a feature
+  file, and quote the run ID.
+- 2026-11-06 (CI repair): local checks that leave out a feature flag leave
+  code paths unbuilt. `foundation_netio` compiles without `--features quic`,
+  and `foundation_core` compiles without `--features test-clock`, so the
+  missing `Clock` import and the missing `# Panics` docs stayed hidden. Run
+  the exact feature sets that CI uses for each crate the change touches.
