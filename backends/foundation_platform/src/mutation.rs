@@ -8,20 +8,19 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Mutex, RwLock};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::{Arc, Mutex, RwLock};
+
+use foundation_core::valtron::Clock;
+
+use crate::clock::wall_millis;
 
 // ── ID generation ────────────────────────────────────────────────────
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
-#[allow(clippy::cast_possible_truncation)]
-fn generate_id() -> String {
+fn generate_id(clock: &dyn Clock) -> String {
     let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    let ts = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64;
+    let ts = wall_millis(clock);
     format!("{ts:x}-{id:x}")
 }
 
@@ -162,30 +161,31 @@ impl QueueStorage for MemoryQueueStorage {
 /// Offline mutation queue with LWW conflict resolution.
 pub struct MutationQueue {
     storage: Box<dyn QueueStorage>,
+    /// The clock every mutation id and timestamp comes from; set by the host.
+    clock: Arc<dyn Clock>,
 }
 
 impl MutationQueue {
-    pub fn new(storage: impl QueueStorage) -> Self {
+    /// A queue over `storage` that stamps mutations with `clock`.
+    pub fn new(storage: impl QueueStorage, clock: Arc<dyn Clock>) -> Self {
         Self {
             storage: Box::new(storage),
+            clock,
         }
     }
 
+    /// An in-memory queue that stamps mutations with `clock`.
     #[must_use]
-    pub fn in_memory() -> Self {
-        Self::new(MemoryQueueStorage::new())
+    pub fn in_memory(clock: Arc<dyn Clock>) -> Self {
+        Self::new(MemoryQueueStorage::new(), clock)
     }
 
     /// Enqueue a mutation. Generates a UUID and timestamp.
     /// Validates the mutation locally before enqueuing.
     #[must_use]
     pub fn enqueue(&self, mutation_type: &str, payload: serde_json::Value) -> String {
-        let id = generate_id();
-        #[allow(clippy::cast_possible_truncation)]
-        let created_at = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64;
+        let id = generate_id(self.clock.as_ref());
+        let created_at = wall_millis(self.clock.as_ref());
 
         let mutation = Mutation {
             id,

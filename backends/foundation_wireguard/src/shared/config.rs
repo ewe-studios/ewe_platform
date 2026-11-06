@@ -121,7 +121,7 @@ impl NetworkConfig {
 /// Node-local settings (ports, capabilities, persistence).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConfig {
-    /// Outer WireGuard UDP socket bind address.
+    /// Outer `WireGuard` UDP socket bind address.
     #[serde(default = "default_udp_listen", deserialize_with = "deser_socket_addr")]
     pub udp_listen: SocketAddr,
 
@@ -147,11 +147,11 @@ pub struct NodeConfig {
 }
 
 fn default_udp_listen() -> SocketAddr {
-    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0))
+    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
 }
 
 fn default_bootstrap_listen() -> SocketAddr {
-    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0))
+    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
 }
 
 impl Default for NodeConfig {
@@ -169,20 +169,16 @@ impl Default for NodeConfig {
 /// Data plane mode — which TCP/IP stack backs the overlay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "mode", rename_all = "lowercase")]
+#[derive(Default)]
 pub enum DataPlaneMode {
     /// smoltcp userspace netstack (default — no privileges, cross-platform).
     #[serde(alias = "smoltcp")]
+    #[default]
     Netstack,
-    /// Kernel TUN device (Linux/Darwin, requires CAP_NET_ADMIN or TUN ownership).
+    /// Kernel TUN device (Linux/Darwin, requires `CAP_NET_ADMIN` or TUN ownership).
     #[serde(alias = "tun")]
     #[cfg(not(target_family = "wasm"))]
     Tun { name: String, mtu: u32 },
-}
-
-impl Default for DataPlaneMode {
-    fn default() -> Self {
-        Self::Netstack
-    }
 }
 
 /// Data plane settings (smoltcp netstack, kernel TUN).
@@ -196,7 +192,7 @@ pub struct DataPlaneConfig {
     #[serde(default = "default_mtu")]
     pub mtu: u16,
 
-    /// WireGuard persistent-keepalive interval in seconds. Default 25.
+    /// `WireGuard` persistent-keepalive interval in seconds. Default 25.
     #[serde(default = "default_keepalive")]
     pub keepalive_secs: u16,
 }
@@ -380,9 +376,9 @@ impl WgConfig {
 
     /// WHY: Start a programmatic builder from a seed.
     ///
-    /// WHAT: Returns a [`WgConfigBuilder`] initialised with the seed + network_id.
+    /// WHAT: Returns a [`WgConfigBuilder`] initialised with the seed + `network_id`.
     ///
-    /// HOW: The seed and optional network_id are the only truly required fields.
+    /// HOW: The seed and optional `network_id` are the only truly required fields.
     #[must_use]
     pub fn builder() -> WgConfigBuilder {
         WgConfigBuilder::default()
@@ -451,9 +447,7 @@ impl WgConfig {
             Vec::new()
         };
 
-        let relay_advertise = std::env::var("WG_RELAY")
-            .map(|v| v == "true" || v == "1")
-            .unwrap_or(false);
+        let relay_advertise = std::env::var("WG_RELAY").is_ok_and(|v| v == "true" || v == "1");
 
         Ok(Self {
             network: NetworkConfig {
@@ -537,7 +531,7 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Bind the WireGuard UDP socket to this address.
+    /// Bind the `WireGuard` UDP socket to this address.
     #[must_use]
     pub fn udp_listen(mut self, addr: SocketAddr) -> Self {
         self.udp_listen = Some(addr);
@@ -579,7 +573,7 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Set the WireGuard keepalive interval in seconds.
+    /// Set the `WireGuard` keepalive interval in seconds.
     #[must_use]
     pub fn keepalive_secs(mut self, secs: u16) -> Self {
         self.keepalive_secs = Some(secs);
@@ -621,7 +615,7 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Use a kernel TUN device. Requires CAP_NET_ADMIN or TUN ownership.
+    /// Use a kernel TUN device. Requires `CAP_NET_ADMIN` or TUN ownership.
     #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn dataplane_tun(mut self, name: &str, mtu: u32) -> Self {

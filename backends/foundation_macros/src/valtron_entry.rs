@@ -521,7 +521,6 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 #ctx_binding
                 let __valtron_guard = #init_pool_timeout;
                 let __timeout_ms: u64 = #timeout_ms;
-                let __timeout_start = std::time::Instant::now();
                 type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
                 let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
                 std::thread::spawn(move || {
@@ -551,8 +550,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                         // thread) are detached, and the gate is released on drop.
                         let __stopped = __valtron_guard.shutdown_within(#shutdown_grace);
                         panic!(
-                            "timeout: the test took {} ms. Max {} ms.{}",
-                            __timeout_start.elapsed().as_millis(),
+                            "timeout: the test did not finish within {} ms.{}",
                             __timeout_ms,
                             if __stopped { "" } else { " Pool workers were still blocked and were detached." },
                         );

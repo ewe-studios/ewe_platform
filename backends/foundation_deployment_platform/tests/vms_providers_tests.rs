@@ -32,17 +32,19 @@ fn test_vm_handle_pid_parsing() {
 
 #[test]
 fn test_qemu_provider_creation() {
+    use foundation_core::valtron::MonotonicClock;
     use foundation_deployment_platform::providers::qemu::QemuProvider;
-    let provider = QemuProvider::new();
+    let provider = QemuProvider::new(std::sync::Arc::new(MonotonicClock::new()));
     assert_eq!(provider.name(), "qemu");
     assert_eq!(provider.id(), ProviderId::Qemu);
 }
 
 #[test]
 fn test_qemu_provider_host_health() {
+    use foundation_core::valtron::MonotonicClock;
     use foundation_deployment_platform::providers::Provider;
     use foundation_deployment_platform::providers::qemu::QemuProvider;
-    let provider = QemuProvider::new();
+    let provider = QemuProvider::new(std::sync::Arc::new(MonotonicClock::new()));
     let health = provider.host_health();
     // The provider reports one (name, ok, message) row per host check the
     // doctor runs. Individual checks may fail (no KVM, no qemu on the host);
@@ -103,8 +105,15 @@ fn test_save_from_runtime_creates_valid_state() {
     use foundation_deployment_platform::providers::utm::state::{
         delete, exists, save_from_runtime,
     };
-    save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false)
-        .expect("saving UTM runtime state must succeed");
+    save_from_runtime(
+        "test-utm",
+        "/tmp/test.utm",
+        "test-uuid",
+        2222,
+        false,
+        &foundation_core::valtron::MonotonicClock::new(),
+    )
+    .expect("saving UTM runtime state must succeed");
     assert!(exists("test-utm"));
     delete("test-utm").expect("deleting UTM runtime state must succeed");
     assert!(!exists("test-utm"));

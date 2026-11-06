@@ -2,7 +2,7 @@
 //!
 //! Tests the full WebRTC signaling flow: browser offer → SDP answer →
 //! ICE candidate exchange → connected state. Signaling is carried over
-//! SWIM gossip via SwimMessage::WebRtcSignal.
+//! SWIM gossip via `SwimMessage::WebRtcSignal`.
 
 #![cfg(not(target_family = "wasm"))]
 
@@ -48,7 +48,7 @@ fn offerer_initiates_and_processes_answer() {
         Some("0".into()),
         Some(0),
     );
-    assert!(!offerer.local_candidates().is_empty());
+    assert_ne!(offerer.local_candidates(), &[] as &[String]);
 
     // Connected.
     offerer.on_connected();
@@ -73,7 +73,7 @@ fn answerer_receives_offer_and_generates_answer() {
     assert_eq!(answerer.state, AnswererState::Idle);
 
     let offer = "v=0\r\no=- 0 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-ufrag:browser\r\na=ice-pwd:browser-pwd\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n".to_string();
-    let answer = answerer.on_offer(test_peer(), offer);
+    let answer = answerer.on_offer(test_peer(), &offer);
     assert!(answer.is_some());
     assert!(answer.unwrap().contains("a=ice-ufrag:browser"));
     assert_eq!(answerer.state, AnswererState::Answered);
@@ -84,7 +84,7 @@ fn answerer_receives_offer_and_generates_answer() {
 #[test]
 fn answerer_ice_exchange_and_connected() {
     let mut answerer = WebRtcAnswerer::new();
-    answerer.on_offer(test_peer(), "v=0\r\no=- 0 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-ufrag:b\r\na=ice-pwd:b\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n".to_string());
+    answerer.on_offer(test_peer(), "v=0\r\no=- 0 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-ufrag:b\r\na=ice-pwd:b\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n");
 
     // First ICE candidate from browser.
     let locals = answerer.on_ice_candidate(
@@ -92,7 +92,7 @@ fn answerer_ice_exchange_and_connected() {
         Some("0".into()),
         Some(0),
     );
-    assert!(!locals.is_empty()); // generated local candidates
+    assert_ne!(locals, [] as [String; 0]); // generated local candidates
     assert_eq!(answerer.state, AnswererState::IceExchange);
 
     // More candidates arrive.
@@ -111,7 +111,7 @@ fn answerer_ice_exchange_and_connected() {
 #[test]
 fn answerer_failure() {
     let mut answerer = WebRtcAnswerer::new();
-    answerer.on_offer(test_peer(), "offer".into());
+    answerer.on_offer(test_peer(), "offer");
     answerer.on_failure("timeout");
     assert_eq!(answerer.state, AnswererState::Failed);
 }
@@ -176,7 +176,7 @@ fn browser_peer_ws_relay_and_webrtc_upgrade() {
 
     // Native answerer processes the offer.
     let mut answerer = WebRtcAnswerer::new();
-    let answer = answerer.on_offer(native_peer, "v=0\r\no=- 0 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-ufrag:browser\r\na=ice-pwd:browser-pwd\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n".to_string()).expect("answer");
+    let answer = answerer.on_offer(native_peer, "v=0\r\no=- 0 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-ufrag:browser\r\na=ice-pwd:browser-pwd\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n").expect("answer");
     assert_eq!(answerer.state, AnswererState::Answered);
 
     // Answer fed back to offerer via gossip.

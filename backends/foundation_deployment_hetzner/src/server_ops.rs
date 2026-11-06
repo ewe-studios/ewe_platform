@@ -55,7 +55,10 @@ fn auth_mod(token: &str) -> impl FnOnce(&mut PreparedRequestBuilder) {
 /// This is where decision 02 §3 lands: 401 and 429 get their own variants, and
 /// everything else carries Hetzner's `error.code` — a stable string like
 /// `invalid_input` — rather than only a number.
-pub(crate) fn map_api_error(err: ApiError) -> HetznerError {
+pub(crate) fn map_api_error(
+    err: ApiError,
+    clock: &dyn foundation_core::valtron::Clock,
+) -> HetznerError {
     match err {
         ApiError::HttpStatus {
             code,
@@ -64,7 +67,7 @@ pub(crate) fn map_api_error(err: ApiError) -> HetznerError {
         } => match code {
             401 | 403 => HetznerError::Unauthorized,
             429 => HetznerError::RateLimited {
-                retry_after_secs: rate_limit_reset_in(&headers),
+                retry_after_secs: rate_limit_reset_in(&headers, clock),
             },
             _ => {
                 let (error_code, message) = parse_error_body(body.as_deref());
@@ -116,21 +119,21 @@ fn parse_error_body(body: Option<&str>) -> (String, String) {
 ///
 /// `None` when the header is missing or unparseable: a made-up backoff would be
 /// worse than letting the caller choose its own.
-fn rate_limit_reset_in(headers: &SimpleHeaders) -> Option<u64> {
+fn rate_limit_reset_in(
+    headers: &SimpleHeaders,
+    clock: &dyn foundation_core::valtron::Clock,
+) -> Option<u64> {
     let reset = headers
         .get(&SimpleHeader::Custom("RateLimit-Reset".to_string()))
         .or_else(|| headers.get(&SimpleHeader::Custom("ratelimit-reset".to_string())))?
         .first()?
         .parse::<u64>()
         .ok()?;
-    Some(reset.saturating_sub(now_secs()))
+    Some(reset.saturating_sub(now_secs(clock)))
 }
 
-fn now_secs() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+fn now_secs(clock: &dyn foundation_core::valtron::Clock) -> u64 {
+    u64::try_from(foundation_compact::time::unix_seconds(clock.wall_now())).unwrap_or(0)
 }
 
 impl HetznerClient {
@@ -170,7 +173,7 @@ impl HetznerClient {
             Some(auth_mod(&self.token())),
         )
         .await
-        .map_err(map_api_error)?;
+        .map_err(|e| map_api_error(e, self.clock().as_ref()))?;
 
         let server = &response.body.server;
         Ok(Server {
@@ -208,7 +211,7 @@ impl HetznerClient {
         {
             Ok(response) => response,
             Err(ApiError::HttpStatus { code: 404, .. }) => return Ok(None),
-            Err(e) => return Err(map_api_error(e)),
+            Err(e) => return Err(map_api_error(e, self.clock().as_ref())),
         };
 
         let Some(server) = &response.body.server else {
@@ -246,7 +249,7 @@ impl HetznerClient {
             Some(auth_mod(&self.token())),
         )
         .await
-        .map_err(map_api_error)?;
+        .map_err(|e| map_api_error(e, self.clock().as_ref()))?;
 
         Ok(response
             .body
@@ -291,7 +294,7 @@ impl HetznerClient {
             Some(auth_mod(&self.token())),
         )
         .await
-        .map_err(map_api_error)?;
+        .map_err(|e| map_api_error(e, self.clock().as_ref()))?;
 
         Ok(response
             .body
@@ -345,7 +348,7 @@ impl HetznerClient {
         {
             Ok(_) => Ok(()),
             Err(ApiError::HttpStatus { code: 404, .. }) => Ok(()),
-            Err(e) => Err(map_api_error(e)),
+            Err(e) => Err(map_api_error(e, self.clock().as_ref())),
         }
     }
 
@@ -361,7 +364,7 @@ impl HetznerClient {
             Some(auth_mod(&self.token())),
         )
         .await
-        .map_err(map_api_error)?;
+        .map_err(|e| map_api_error(e, self.clock().as_ref()))?;
 
         Ok(response
             .body
@@ -399,7 +402,7 @@ impl HetznerClient {
             Some(auth_mod(&self.token())),
         )
         .await
-        .map_err(map_api_error)?;
+        .map_err(|e| map_api_error(e, self.clock().as_ref()))?;
 
         let key = &response.body.ssh_key;
         Ok(SshKey {
@@ -471,7 +474,7 @@ impl HetznerClient {
     /// return. A server that vanished mid-poll is an `Api` error rather than a
     /// timeout — it is a different problem and deserves a different message.
     pub async fn await_running(&self, id: i64) -> Result<Server, HetznerError> {
-        let deadline = now_secs() + AWAIT_RUNNING_TIMEOUT_SECS;
+        let deadline = now_secs(self.clock().as_ref()) + AWAIT_RUNNING_TIMEOUT_SECS;
 
         loop {
             match self.get_server(id).await {
@@ -490,7 +493,7 @@ impl HetznerClient {
                 Err(e) => return Err(e),
             }
 
-            if now_secs() >= deadline {
+            if now_secs(self.clock().as_ref()) >= deadline {
                 return Err(HetznerError::Timeout {
                     waiting_for: format!("server {id} to finish building"),
                     after_secs: AWAIT_RUNNING_TIMEOUT_SECS,

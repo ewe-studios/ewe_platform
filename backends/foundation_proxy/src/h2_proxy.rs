@@ -811,7 +811,7 @@ async fn feed_request_body(
             }
         }
     }
-    body_tx.close();
+    let _ = body_tx.close();
 }
 
 /// Drain the relay's framed response bytes into H2 DATA frames, terminating the

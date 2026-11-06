@@ -165,6 +165,7 @@ fn sticky_cookie_pins_requests_to_one_backend() {
         ProxyConfig::new("test.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(svc),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy");
@@ -213,6 +214,7 @@ fn draining_returns_503() {
         ProxyConfig::new("test.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(svc),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy");
@@ -253,6 +255,7 @@ fn ssl_redirect_301_to_https() {
             .ssl(SslConfig::static_cert(&cert, &key))
             .redirect_bind("127.0.0.1:0")
             .service(svc),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy with TLS");
@@ -289,6 +292,7 @@ fn redirect_handles_head_split_over_reads() {
             .ssl(SslConfig::static_cert(&cert, &key))
             .redirect_bind("127.0.0.1:0")
             .service(svc),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy with TLS");
@@ -336,6 +340,7 @@ fn redirect_rejects_head_over_limit() {
             .redirect_bind("127.0.0.1:0")
             .redirect_head_limit(64)
             .service(svc),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy with TLS");
@@ -426,6 +431,7 @@ fn websocket_upgrade_relays_and_tunnels_bytes() {
         ProxyConfig::new("test.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(svc),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy");

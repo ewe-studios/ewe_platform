@@ -5,6 +5,7 @@
 
 use std::path::Path;
 
+use foundation_core::valtron::Clock;
 use serde::Serialize;
 
 use crate::config::{GuestOs, Result, TestbedError, VmProfile};
@@ -40,6 +41,7 @@ impl ExportManifest {
         installed_tools: std::collections::HashMap<String, String>,
         bootstrap_version: u32,
         notes: &str,
+        clock: &dyn Clock,
     ) -> Result<Self> {
         let meta = std::fs::metadata(image_path).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading exported image metadata: {e}"),
@@ -58,7 +60,7 @@ impl ExportManifest {
             GuestOs::MacOS => "macos".to_string(),
         };
 
-        let created_at = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let created_at = crate::clock::wall_now_rfc3339_secs(clock);
         let created_by = whoami::hostname().unwrap_or("unknown".to_string());
         let git_commit = get_git_commit();
 

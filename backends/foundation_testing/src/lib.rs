@@ -30,7 +30,8 @@
 //!     .iterations(1000);
 //!
 //! let counter = Arc::new(AtomicUsize::new(0));
-//! let harness = StressHarness::new(config);
+//! use foundation_core::valtron::MonotonicClock;
+//! let harness = StressHarness::new(config, Arc::new(MonotonicClock::new()));
 //!
 //! let counter_clone = Arc::clone(&counter);
 //! let results = harness.run(move |_thread_id, _iteration| {

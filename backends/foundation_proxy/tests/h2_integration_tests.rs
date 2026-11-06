@@ -490,9 +490,12 @@ async fn h2_grpc_request_inner(
 fn h2_echo_roundtrip() {
     let _guard = initialize_pool(42, Some(4));
     let (backend_port, _backend) = start_echo_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port))
-        .block()
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .block()
+    .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let (status, body) = h2_request(
@@ -515,9 +518,12 @@ fn h2_echo_roundtrip() {
 fn h2_404_on_unknown_host() {
     let _guard = initialize_pool(42, Some(4));
     let (backend_port, _backend) = start_echo_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port))
-        .block()
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .block()
+    .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let (status, _) = h2_request(proxy_port, "unknown.local", "/", None);
@@ -535,9 +541,12 @@ fn h2_404_on_unknown_host() {
 #[valtron_test]
 async fn h2_grpc_forward_no_downgrade() {
     let (backend_port, observed, backend_shutdown) = start_h2_backend(false);
-    let proxy = ProxyServer::start(grpc_proxy_config(backend_port))
-        .await
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        grpc_proxy_config(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .await
+    .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let payload = b"h2-grpc-no-downgrade-payload".to_vec();
@@ -584,9 +593,12 @@ async fn h2_grpc_forward_no_downgrade() {
 #[valtron_test]
 async fn h2_grpc_trailers_relayed() {
     let (backend_port, _observed, backend_shutdown) = start_h2_backend(true);
-    let proxy = ProxyServer::start(grpc_proxy_config(backend_port))
-        .await
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        grpc_proxy_config(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .await
+    .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let payload = b"h2-grpc-trailers-payload".to_vec();
@@ -620,9 +632,12 @@ async fn h2_grpc_trailers_relayed() {
 #[valtron_test]
 async fn h2_grpc_streams_without_buffering() {
     let (backend_port, backend_shutdown, release_tx) = start_streaming_backend();
-    let proxy = ProxyServer::start(grpc_proxy_config(backend_port))
-        .await
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        grpc_proxy_config(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .await
+    .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let url = format!("http://127.0.0.1:{proxy_port}{GRPC_PATH}");

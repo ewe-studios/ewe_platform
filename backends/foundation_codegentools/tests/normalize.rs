@@ -12,6 +12,7 @@
 use foundation_codegentools::cli::normalize::{
     normalize_provider, provider_spec, Normalizer, ProviderSpec, PROVIDER_SPECS,
 };
+use foundation_core::valtron::MonotonicClock;
 use serde_json::json;
 
 fn tmpdir(name: &str) -> std::path::PathBuf {
@@ -68,6 +69,11 @@ fn digitalocean_hoists_rather_than_passing_through() {
     );
 }
 
+/// The real clock the CLI host injects.
+fn clock() -> MonotonicClock {
+    MonotonicClock::new()
+}
+
 // ── normalize_provider ───────────────────────────────────────────────────────
 
 fn bundled_spec() -> serde_json::Value {
@@ -105,7 +111,7 @@ fn normalizes_a_bundled_spec_and_writes_artefact_plus_manifest() {
         &bundled_spec(),
     );
 
-    let report = normalize_provider(&test_provider(), &root, &out).expect("normalizes");
+    let report = normalize_provider(&test_provider(), &root, &out, &clock()).expect("normalizes");
 
     assert_eq!(report.inline_before, 2, "request + response were inline");
     assert_eq!(report.hoisted, 2);
@@ -169,7 +175,7 @@ fn a_wrong_classification_fails_loudly_rather_than_writing_a_broken_artefact() {
     let mut wrong = test_provider();
     wrong.normalizer = Normalizer::ValidateOnly;
 
-    let err = normalize_provider(&wrong, &root, &out).expect_err("must not pass");
+    let err = normalize_provider(&wrong, &root, &out, &clock()).expect_err("must not pass");
     let msg = err.to_string();
     assert!(msg.contains("not canonical"), "{msg}");
     assert!(
@@ -188,7 +194,7 @@ fn a_wrong_classification_fails_loudly_rather_than_writing_a_broken_artefact() {
 fn a_missing_raw_spec_names_the_file() {
     let root = tmpdir("missing");
     let out = root.join("artefacts/cloud_providers");
-    let err = normalize_provider(&test_provider(), &root, &out).expect_err("no raw spec");
+    let err = normalize_provider(&test_provider(), &root, &out, &clock()).expect_err("no raw spec");
     assert!(err.to_string().contains("raw/testprov.json"), "{err}");
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -201,7 +207,7 @@ fn a_spec_that_is_not_json_says_so() {
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     std::fs::write(&path, "openapi: 3.0.1\npaths: {}\n").unwrap(); // YAML, not JSON
 
-    let err = normalize_provider(&test_provider(), &root, &out).expect_err("not JSON");
+    let err = normalize_provider(&test_provider(), &root, &out, &clock()).expect_err("not JSON");
     assert!(err.to_string().contains("not JSON"), "{err}");
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -218,9 +224,9 @@ fn normalizing_is_deterministic() {
         &bundled_spec(),
     );
 
-    let first = normalize_provider(&test_provider(), &root, &out).expect("first");
+    let first = normalize_provider(&test_provider(), &root, &out, &clock()).expect("first");
     let a = std::fs::read_to_string(out.join("testprov/openapi.json")).unwrap();
-    let second = normalize_provider(&test_provider(), &root, &out).expect("second");
+    let second = normalize_provider(&test_provider(), &root, &out, &clock()).expect("second");
     let b = std::fs::read_to_string(out.join("testprov/openapi.json")).unwrap();
 
     assert_eq!(a, b, "same input, same artefact");

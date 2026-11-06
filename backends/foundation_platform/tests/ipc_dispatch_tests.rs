@@ -73,7 +73,10 @@ fn session_transport_dispatch_ipc_real_registry() {
         }
     }
 
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     session.register_ipc(EchoIpc);
 
     let transport = SessionTransport::new(session.clone());
@@ -83,7 +86,10 @@ fn session_transport_dispatch_ipc_real_registry() {
 
 #[test]
 fn http_backend_in_session() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     // HttpBackend is now on the session — verify it exists.
     let _ = session.http_backend();
 }

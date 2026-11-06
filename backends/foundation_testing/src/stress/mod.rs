@@ -9,6 +9,8 @@
 
 use core::time::Duration;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+use foundation_core::valtron::Clock;
 use std::sync::Arc;
 use std::thread;
 
@@ -83,13 +85,16 @@ impl StressResult {
 /// until the test completes (based on iteration count or duration).
 pub struct StressHarness {
     config: StressConfig,
+    /// The clock that measures the run. The caller injects it, so a test can
+    /// measure a deterministic duration.
+    clock: Arc<dyn Clock>,
 }
 
 impl StressHarness {
-    /// Creates a new stress test harness with the given configuration.
+    /// Creates a new stress test harness with the given configuration and clock.
     #[must_use]
-    pub const fn new(config: StressConfig) -> Self {
-        Self { config }
+    pub fn new(config: StressConfig, clock: Arc<dyn Clock>) -> Self {
+        Self { config, clock }
     }
 
     /// Runs a stress test with the given operation closure.
@@ -103,13 +108,14 @@ impl StressHarness {
     /// # Examples
     ///
     /// ```
+    /// use foundation_core::valtron::MonotonicClock;
     /// use foundation_testing::stress::{StressConfig, StressHarness};
     /// use std::sync::atomic::{AtomicUsize, Ordering};
     /// use std::sync::Arc;
     ///
     /// let counter = Arc::new(AtomicUsize::new(0));
     /// let config = StressConfig::new().threads(4).iterations(100);
-    /// let harness = StressHarness::new(config);
+    /// let harness = StressHarness::new(config, Arc::new(MonotonicClock::new()));
     ///
     /// let counter_clone = Arc::clone(&counter);
     /// let result = harness.run(move |_thread_id, _iteration| {
@@ -128,7 +134,7 @@ impl StressHarness {
     where
         F: Fn(usize, usize) -> bool + Send + Sync + 'static,
     {
-        let start = std::time::Instant::now();
+        let start = self.clock.now();
         let operation = Arc::new(operation);
 
         let successes = Arc::new(AtomicUsize::new(0));
@@ -178,7 +184,7 @@ impl StressHarness {
             handle.join().expect("Thread panicked during stress test");
         }
 
-        let duration = start.elapsed();
+        let duration = self.clock.now().saturating_duration_since(start);
 
         StressResult::new(
             successes.load(Ordering::Relaxed),

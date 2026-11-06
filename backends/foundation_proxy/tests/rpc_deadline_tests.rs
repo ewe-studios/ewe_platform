@@ -188,9 +188,12 @@ fn connect_h2_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
 #[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
 async fn connect_deadline_is_observed_at_grpc_backend() {
     let (backend_port, backend_shutdown) = start_grpc_backend(build_deadline_router());
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port))
-        .await
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -352,9 +355,12 @@ fn drive_raw_h2_cancel(
 async fn cancelled_connect_stream_tears_down_grpc_backend() {
     let slot = Slot::default();
     let (backend_port, backend_shutdown) = start_grpc_backend(build_cancel_router(slot.clone()));
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port))
-        .await
-        .expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     // The raw client reports once it has read the first item, then waits for the

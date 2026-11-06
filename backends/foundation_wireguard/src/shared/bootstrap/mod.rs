@@ -203,7 +203,9 @@ impl BootstrapToken {
         while pos < body.len() {
             let tag = body[pos];
             pos += 1;
-            let len = read_varint(body, &mut pos)? as usize;
+            let len = usize::try_from(read_varint(body, &mut pos)?).map_err(|_| {
+                WgError::InvalidToken("field length exceeds the address space".into())
+            })?;
             let value = body
                 .get(pos..pos + len)
                 .ok_or_else(|| WgError::InvalidToken("truncated field value".into()))?;

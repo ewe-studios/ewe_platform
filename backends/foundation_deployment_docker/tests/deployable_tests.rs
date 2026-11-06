@@ -13,7 +13,7 @@
 
 mod common;
 
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, MonotonicClock};
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
@@ -31,7 +31,15 @@ async fn provider_client() -> (ProviderClient<FileStateStore>, std::path::PathBu
     let _ = std::fs::remove_dir_all(&dir);
     let store = FileStateStore::new(&dir, "ewe-test", "dev");
     store.init().await.expect("init state store");
-    (ProviderClient::new("ewe-test", "dev", store), dir)
+    (
+        ProviderClient::new(
+            "ewe-test",
+            "dev",
+            store,
+            std::sync::Arc::new(MonotonicClock::new()),
+        ),
+        dir,
+    )
 }
 
 #[valtron_test]

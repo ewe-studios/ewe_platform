@@ -8,11 +8,18 @@
 
 use std::io::ErrorKind;
 use std::net::IpAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::{WgConfig, WgHandle, WgNode};
 use foundation_wireguard::WgSeed;
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test.
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn network() -> (WgSeed, foundation_wireguard::NetworkId) {
     let seed = WgSeed::from_bytes(&[0x5Au8; 32]).unwrap();
@@ -68,9 +75,8 @@ fn exchange_over_overlay(handle: &WgHandle, peer_ip: IpAddr, port: u16, msg: &[u
     let mut buf = [0u8; 512];
     for _ in 0..800 {
         match stream.read(&mut buf) {
-            Ok(0) => {}
+            Ok(0) | Err(_) => {}
             Ok(n) => got.extend_from_slice(&buf[..n]),
-            Err(_) => {}
         }
         if got.len() >= msg.len() {
             break;
@@ -110,23 +116,29 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     let (seed, network_id) = network();
 
     // Node A — the seed.
-    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id))
+    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id), test_clock())
         .join()
         .expect("A joins");
     let a_boot = node_a.bootstrap_addr();
     let a_ip = node_a.overlay_ip();
 
     // Node B joins A.
-    let node_b = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot]))
-        .join()
-        .expect("B joins");
+    let node_b = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
+        test_clock(),
+    )
+    .join()
+    .expect("B joins");
     let b_ip = node_b.overlay_ip();
     let b_boot = node_b.bootstrap_addr();
 
     // Node C joins A too; it should learn about B purely via gossip/membership.
-    let node_c = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot]))
-        .join()
-        .expect("C joins");
+    let node_c = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
+        test_clock(),
+    )
+    .join()
+    .expect("C joins");
     let c_ip = node_c.overlay_ip();
 
     // C discovers B (not statically configured) through membership.
@@ -163,9 +175,12 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     );
 
     // A fourth node D joins from a survivor (B), proving the seed's role ended at t=0.
-    let node_d = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![b_boot]))
-        .join()
-        .expect("D joins from survivor B");
+    let node_d = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), network_id, vec![b_boot]),
+        test_clock(),
+    )
+    .join()
+    .expect("D joins from survivor B");
     let d_ip = node_d.overlay_ip();
     assert!(
         node_d.wait_for_peer(c_ip, Duration::from_secs(8)),

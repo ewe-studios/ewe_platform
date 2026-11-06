@@ -29,7 +29,10 @@ pub fn check() {
     // Check 3: RelayServer + RelayClient instantiable (F05 relay)
     {
         use crate::shared::relay::{RelaySelector, RelayStrategy};
-        let _s = crate::native::relay::RelayServer::new(16, 1000, 60);
+        use foundation_core::valtron::MonotonicClock;
+        use std::sync::Arc;
+        let _s =
+            crate::native::relay::RelayServer::new(16, 1000, 60, Arc::new(MonotonicClock::new()));
         let _c =
             crate::native::relay::RelayClient::new(RelaySelector::new(RelayStrategy::LowestLoad));
     }

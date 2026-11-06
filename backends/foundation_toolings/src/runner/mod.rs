@@ -2,55 +2,55 @@
 // Spawns to background, uses Depends to park between state transitions.
 
 use std::process::{Command, Stdio};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, EventQueue, EventReadiness, TaskIterator, TaskStatus};
+use foundation_compact::Instant;
+use foundation_core::valtron::{Clock, Ctx, EventQueue, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::types::ProjectDefinition;
 
 // -- DurationSleeper: EventReadiness for time-based waits
 
+/// A deadline wait that reads the engine's injected [`Clock`].
+///
+/// `None` means the wait has not started. `start` stores the deadline, and
+/// `is_done` compares the clock to it, so a simulated clock drives the wait.
 #[derive(Clone)]
 pub struct DurationSleeper {
-    deadline: Arc<AtomicU64>, // epoch millis, 0 = not started
-}
-
-impl Default for DurationSleeper {
-    fn default() -> Self {
-        Self::new()
-    }
+    clock: Arc<dyn Clock>,
+    deadline: Arc<Mutex<Option<Instant>>>,
 }
 
 impl DurationSleeper {
-    pub fn new() -> Self {
+    /// A sleeper that reads `clock`.
+    #[must_use]
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         Self {
-            deadline: Arc::new(AtomicU64::new(0)),
+            clock,
+            deadline: Arc::new(Mutex::new(None)),
         }
     }
 
+    /// Start a wait of `duration` from the current clock instant.
     pub fn start(&mut self, duration: Duration) {
-        // Store deadline as epoch millis
-        let epoch = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64
-            + duration.as_millis() as u64;
-        self.deadline.store(epoch, Ordering::SeqCst);
+        let deadline = self.clock.now() + duration;
+        let mut slot = self
+            .deadline
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *slot = Some(deadline);
     }
 
+    /// Whether the clock has reached the deadline.
+    #[must_use]
     pub fn is_done(&self) -> bool {
-        let deadline = self.deadline.load(Ordering::SeqCst);
-        if deadline == 0 {
-            return false;
-        }
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64;
-        now >= deadline
+        let deadline = *self
+            .deadline
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        deadline.is_some_and(|deadline| self.clock.now() >= deadline)
     }
 }
 
@@ -85,6 +85,7 @@ impl BinaryRunnerTask {
         project: ProjectDefinition,
         build_queue: EventQueue<()>,
         running_tx: Arc<ConcurrentQueue<()>>,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             project: project.clone(),
@@ -92,7 +93,7 @@ impl BinaryRunnerTask {
             running_tx,
             child: None,
             wait_before_reload: project.wait_before_reload,
-            reload_sleeper: DurationSleeper::new(),
+            reload_sleeper: DurationSleeper::new(clock),
             state: RunnerState::Idle,
         }
     }

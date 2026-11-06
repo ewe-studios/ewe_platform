@@ -155,6 +155,7 @@ fn proxy_large_response_is_byte_exact() {
         ProxyConfig::new("app.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(service),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )
     .block()
     .expect("start proxy");

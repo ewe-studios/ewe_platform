@@ -69,7 +69,11 @@ impl TestVm {
         // Ensure image is available
         let _disk = foundation_testbed::platform::import::ensure_image(&profile)?;
 
-        let mut config = QemuConfig::new(profile.clone(), display);
+        let mut config = QemuConfig::new(
+            profile.clone(),
+            display,
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        );
         if mount_project {
             let guest_path = match profile.os {
                 GuestOs::Windows => "C:/Users/vagrant/project",
@@ -101,6 +105,7 @@ impl TestVm {
             qemu.resolved_ports.rdp_port,
             qemu.resolved_ports.vnc_port,
             false,
+            &foundation_core::valtron::MonotonicClock::new(),
         );
         state::save(&vm_state).ok();
 
@@ -165,9 +170,10 @@ impl TestVm {
                             },
                         );
                     }
-                    if let Ok(winrm) =
-                        foundation_testbed::platform::winrm::WinRM::from_profile(&self.profile)
-                    {
+                    if let Ok(winrm) = foundation_testbed::platform::winrm::WinRM::from_profile(
+                        &self.profile,
+                        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                    ) {
                         if winrm.ping() {
                             println!("[{}] WinRM ready", &self.profile_name);
                             return Ok(());
@@ -186,13 +192,20 @@ impl TestVm {
     ///
     /// Logs are written to `$PWD/.testbed/<profile-name>/bootstrap.log`.
     pub fn bootstrap(&mut self) -> Result<()> {
-        if foundation_testbed::platform::bootstrap::is_bootstrapped(&self.profile) {
+        if foundation_testbed::platform::bootstrap::is_bootstrapped(
+            &self.profile,
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        ) {
             println!("[{}] Already bootstrapped, skipping", &self.profile_name);
             return Ok(());
         }
 
         // Create logger for test output
-        let logger = BootstrapLogger::new(&self.profile_name).map_err(|e| {
+        let logger = BootstrapLogger::new(
+            &self.profile_name,
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .map_err(|e| {
             foundation_testbed::platform::config::TestbedError::BootstrapFailed {
                 step: "create logger".to_string(),
                 message: e.to_string(),
@@ -217,6 +230,7 @@ impl TestVm {
                     winrm_port,
                     self.profile.user,
                     self.profile.pass,
+                    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
                 );
 
                 // Phase 1: WinRM-only (installs OpenSSH, configures SSH)

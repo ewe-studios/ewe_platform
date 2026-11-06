@@ -1,18 +1,23 @@
-//! Two-node WireGuard mesh — two peers form a private overlay network, discover
+//! Two-node `WireGuard` mesh — two peers form a private overlay network, discover
 //! each other via SWIM gossip, and exchange data over an overlay TCP channel.
 //!
 //! ```bash
 //! cargo run --example two_node_mesh
 //! ```
 
-use std::io::{Read, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::WgNode;
 use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
+
+/// The real clock: this example is the host entry point that builds it.
+fn real_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn main() {
     tracing_subscriber::fmt::init();
@@ -22,14 +27,14 @@ fn main() {
     tracing::info!(network = %net);
 
     // ── Start node A (seed) ───────────────────────────────────────────
-    let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net))
+    let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net), real_clock())
         .join()
         .expect("A join");
     tracing::info!(identity=%handle_a.identity(), ip=%handle_a.overlay_ip(), "🟢 seed node A");
 
     // ── Start node B (joiner) ────────────────────────────────────────
     let a_boot = handle_a.bootstrap_addr();
-    let handle_b = WgNode::from_config(WgConfig::joiner(seed, net, vec![a_boot]))
+    let handle_b = WgNode::from_config(WgConfig::joiner(seed, net, vec![a_boot]), real_clock())
         .join()
         .expect("B join");
     tracing::info!(identity=%handle_b.identity(), ip=%handle_b.overlay_ip(), boot=%a_boot, "🟢 joiner node B");
@@ -70,7 +75,7 @@ fn main() {
     let done_c = Arc::clone(&done);
     let echo_thread = thread::spawn(move || {
         while !done_c.load(Ordering::Relaxed) {
-            if let Ok(mut c) = listener.accept() {
+            if let Ok(c) = listener.accept() {
                 let mut buf = [0u8; 512];
                 if let Ok(n) = c.read(&mut buf) {
                     tracing::info!("📨 B received: {}", String::from_utf8_lossy(&buf[..n]));

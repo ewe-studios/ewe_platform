@@ -1,14 +1,16 @@
 //! Integration tests for relay framing, server, and hole-punch (spec-55, F05).
 //!
-//! Tests: RelayFrame encode/decode, RelayServer attach/forward/GC/rate-limit,
-//! RelaySelector selection + failover, RelaySession connectivity ladder,
-//! and HolePuncher SYN/ACK flow.
+//! Tests: `RelayFrame` encode/decode, `RelayServer` attach/forward/GC/rate-limit,
+//! `RelaySelector` selection + failover, `RelaySession` connectivity ladder,
+//! and `HolePuncher` SYN/ACK flow.
 
 #![cfg(not(target_family = "wasm"))]
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::relay::{HolePuncher, RelayClient, RelayServer};
 use foundation_wireguard::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord};
 use foundation_wireguard::shared::relay::{
@@ -16,19 +18,26 @@ use foundation_wireguard::shared::relay::{
 };
 use tracing_test::traced_test;
 
+/// The real clock for this host-level test.
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
+
 fn test_peer(id: u8) -> PeerId {
     PeerId([id; 32])
 }
 
 fn test_record(id: u8, relay: bool, ip_octet: u8) -> PeerRecord {
-    let mut caps = Capabilities::default();
-    caps.relay = relay;
+    let caps = Capabilities {
+        relay,
+        ..Capabilities::default()
+    };
     PeerRecord {
         id: test_peer(id),
         tunnel_ip: IpAddr::V4(Ipv4Addr::new(10, 0, 0, ip_octet)),
         endpoints: vec![SocketAddr::new(
-            IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            51000 + id as u16,
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+            51000 + u16::from(id),
         )],
         caps,
         incarnation: 1,
@@ -78,7 +87,7 @@ fn frame_rejects_wrong_version() {
 #[traced_test]
 #[test]
 fn server_attach_and_forward() {
-    let mut server = RelayServer::new(16, 1000, 60);
+    let mut server = RelayServer::new(16, 1000, 60, test_clock());
     let src = test_peer(10);
     let dst = test_peer(20);
 
@@ -96,7 +105,7 @@ fn server_attach_and_forward() {
 #[traced_test]
 #[test]
 fn server_rejects_unattached_sender() {
-    let mut server = RelayServer::new(16, 1000, 60);
+    let mut server = RelayServer::new(16, 1000, 60, test_clock());
     server.attach(test_peer(20)); // only dst
     let frame = RelayFrame::new(test_peer(20), vec![1, 2, 3]);
     assert!(server.forward(test_peer(99), &frame.encode()).is_none());
@@ -105,7 +114,7 @@ fn server_rejects_unattached_sender() {
 #[traced_test]
 #[test]
 fn server_rejects_unknown_dst() {
-    let mut server = RelayServer::new(16, 1000, 60);
+    let mut server = RelayServer::new(16, 1000, 60, test_clock());
     server.attach(test_peer(10)); // only src
     let frame = RelayFrame::new(test_peer(99), vec![1, 2]); // dst not attached
     assert!(server.forward(test_peer(10), &frame.encode()).is_none());
@@ -114,7 +123,7 @@ fn server_rejects_unknown_dst() {
 #[traced_test]
 #[test]
 fn server_gc_removes_stale() {
-    let mut server = RelayServer::new(16, 1000, 0); // 0s timeout
+    let mut server = RelayServer::new(16, 1000, 0, test_clock()); // 0s timeout
     server.attach(test_peer(1));
     server.attach(test_peer(2));
     assert_eq!(server.session_count(), 2);
@@ -125,7 +134,7 @@ fn server_gc_removes_stale() {
 #[traced_test]
 #[test]
 fn server_detach_removes_peer() {
-    let mut server = RelayServer::new(16, 1000, 60);
+    let mut server = RelayServer::new(16, 1000, 60, test_clock());
     server.attach(test_peer(1));
     server.detach(&test_peer(1));
     assert!(!server.is_attached(&test_peer(1)));
@@ -189,7 +198,7 @@ fn selector_rtt_degradation_triggers_failover() {
     // Record bad RTT on first; should fail over on next select.
     sel.record_rtt(first_id, 100_000); // 100ms
                                        // Second relay should now be better — failover picks it.
-    sel.failover();
+    let _ = sel.failover();
     let next_id = sel.select().expect("next").peer_id;
     assert_ne!(next_id, first_id);
 }
@@ -292,11 +301,11 @@ fn hole_punch_timeout_cleans_up() {
     puncher.initiate(peer, &["127.0.0.1:1".parse().expect("addr")]);
 
     // Drain syn ensures the attempt moves from Gathering to SynSent.
-    puncher.drain_syns(Instant::now());
+    let _ = puncher.drain_syns(Instant::now());
 
     // Tick should remove timed-out SynSent.
     let confirmed = puncher.tick(Instant::now());
-    assert!(confirmed.is_empty());
+    assert_eq!(confirmed, [] as [foundation_wireguard::PeerId; 0]);
     assert!(!puncher.has_pending(&peer));
 }
 
@@ -322,7 +331,7 @@ fn hole_punch_ack_contains_magic() {
 #[test]
 fn three_node_mesh_with_relay() {
     use foundation_wireguard::native::WgNode;
-    use foundation_wireguard::shared::membership::MemberState;
+
     use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 
     let seed = WgSeed::generate(SeedBits::Bits256).expect("seed");
@@ -336,7 +345,9 @@ fn three_node_mesh_with_relay() {
         .relay_max_sessions(128)
         .build()
         .expect("A");
-    let handle_a = WgNode::from_config(cfg_a).join().expect("join A");
+    let handle_a = WgNode::from_config(cfg_a, test_clock())
+        .join()
+        .expect("join A");
     let a_boot = handle_a.bootstrap_addr();
 
     // Node B: joiner (not relay).
@@ -346,7 +357,9 @@ fn three_node_mesh_with_relay() {
         .seed_endpoint(a_boot)
         .build()
         .expect("B");
-    let handle_b = WgNode::from_config(cfg_b).join().expect("join B");
+    let handle_b = WgNode::from_config(cfg_b, test_clock())
+        .join()
+        .expect("join B");
 
     // Node C: joiner (not relay).
     let cfg_c = WgConfig::builder()
@@ -355,7 +368,9 @@ fn three_node_mesh_with_relay() {
         .seed_endpoint(a_boot)
         .build()
         .expect("C");
-    let handle_c = WgNode::from_config(cfg_c).join().expect("join C");
+    let handle_c = WgNode::from_config(cfg_c, test_clock())
+        .join()
+        .expect("join C");
 
     // All three should discover each other.
     assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_secs(5)));
@@ -382,14 +397,16 @@ fn selector_multi_relay_returns_top_n() {
 
     let mut records = Vec::new();
     for i in 1..=3 {
-        let mut caps = foundation_wireguard::shared::membership::Capabilities::default();
-        caps.relay = true;
+        let caps = foundation_wireguard::shared::membership::Capabilities {
+            relay: true,
+            ..Default::default()
+        };
         records.push(foundation_wireguard::shared::membership::PeerRecord {
             id: test_peer(i),
             tunnel_ip: std::net::IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, i)),
             endpoints: vec![std::net::SocketAddr::new(
-                std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
-                51000 + i as u16,
+                std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+                51000 + u16::from(i),
             )],
             caps,
             incarnation: 1,
@@ -431,7 +448,10 @@ fn browser_ws_relay_frame_encoding_and_forward() {
 
     // ── WS frame encoding (RFC 6455 §5.2, browser does this) ───────
     // Masked binary frame: FIN=1, opcode=2(binary), mask=1
-    let mut wsf = vec![0x82u8, (encoded.len() | 0x80) as u8];
+    let mut wsf = vec![
+        0x82u8,
+        u8::try_from(encoded.len() | 0x80).expect("test payload fits in one length byte"),
+    ];
     let mask: [u8; 4] = [0xAA; 4];
     wsf.extend_from_slice(&mask);
     let mut masked = encoded.clone();
@@ -458,7 +478,7 @@ fn browser_ws_relay_frame_encoding_and_forward() {
 
     // ── Relay server forwards the frame ─────────────────────────────
     let browser_id = test_peer(99);
-    let server = Arc::new(Mutex::new(RelayServer::new(16, 1000, 60)));
+    let server = Arc::new(Mutex::new(RelayServer::new(16, 1000, 60, test_clock())));
     server.lock().expect("lock").attach(browser_id);
     server.lock().expect("lock").attach(test_peer(1));
 

@@ -44,7 +44,7 @@ pub enum WgError {
     #[display("randomness unavailable: {_0}")]
     Random(getrandom::Error),
 
-    /// The WireGuard Noise layer reported an error.
+    /// The `WireGuard` Noise layer reported an error.
     #[display("wireguard protocol error: {_0}")]
     #[from(ignore)]
     Protocol(#[error(not(source))] String),

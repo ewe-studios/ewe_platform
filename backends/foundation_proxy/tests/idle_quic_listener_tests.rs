@@ -48,7 +48,12 @@ fn idle_quic_listener_uses_no_cpu() {
         ))
         .h3_bind("127.0.0.1:0")
         .service(ServiceConfig::new("idle", "localhost").backend("http://127.0.0.1:9"));
-    let proxy = ProxyServer::start(config).block().expect("start proxy");
+    let proxy = ProxyServer::start(
+        config,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .block()
+    .expect("start proxy");
     assert!(proxy.h3_local_addr().is_some(), "the H3 listener is bound");
 
     // Let start-up work finish, then hold still.

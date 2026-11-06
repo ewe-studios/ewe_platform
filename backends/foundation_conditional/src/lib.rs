@@ -10,10 +10,11 @@
 //! use foundation_conditional::debug;
 //!
 //! debug! {
-//!     let start = std::time::Instant::now();
+//!     // `clock` is the `Clock` injected into this code.
+//!     let start = clock.now();
 //!     tracing::debug!("processing file: {:?}", path);
 //!     let result = expensive_validation(&path);
-//!     tracing::debug!("validation took: {:?}", start.elapsed());
+//!     tracing::debug!("validation took: {:?}", clock.now() - start);
 //! }
 //! ```
 //!

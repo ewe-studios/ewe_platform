@@ -28,9 +28,9 @@ pub const RELAY_MAX_PAYLOAD: usize = 2048;
 // RelayFrame — what the relay forwards
 // ---------------------------------------------------------------------------
 
-/// A frame sent through a relay: destination peer id + opaque WireGuard bytes.
+/// A frame sent through a relay: destination peer id + opaque `WireGuard` bytes.
 ///
-/// WHY: The relay **never decrypts** — WireGuard crypto is end-to-end between the
+/// WHY: The relay **never decrypts** — `WireGuard` crypto is end-to-end between the
 /// real peers. The relay only needs the destination id to do a table lookup
 /// (decision 07, trustless).
 ///
@@ -43,7 +43,7 @@ pub struct RelayFrame {
     pub version: u8,
     /// The destination peer (the peer the relay must forward this to).
     pub dst_peer_id: PeerId,
-    /// Opaque WireGuard transport data — **never** decrypted by the relay.
+    /// Opaque `WireGuard` transport data — **never** decrypted by the relay.
     pub ciphertext: Vec<u8>,
 }
 
@@ -72,12 +72,17 @@ impl RelayFrame {
     }
 
     /// Encode to wire format: `version (1) + dst (32) + len (2, big-endian) + payload`.
+    ///
+    /// # Panics
+    /// Panics if `ciphertext.len() > RELAY_MAX_PAYLOAD`, which the wire length
+    /// field cannot represent. [`RelayFrame::new`] already enforces the limit.
     #[must_use]
     pub fn encode(&self) -> Vec<u8> {
         let mut buf = Vec::with_capacity(1 + 32 + 2 + self.ciphertext.len());
         buf.push(self.version);
         buf.extend_from_slice(self.dst_peer_id.as_bytes());
-        let len = self.ciphertext.len() as u16;
+        let len = u16::try_from(self.ciphertext.len())
+            .expect("RELAY_MAX_PAYLOAD is enforced by RelayFrame::new and fits in u16");
         buf.extend_from_slice(&len.to_be_bytes());
         buf.extend_from_slice(&self.ciphertext);
         buf
@@ -157,7 +162,9 @@ impl RelaySelector {
 
     /// Threshold multiplier: if the current relay's avg RTT exceeds the best
     /// candidate's by this factor, trigger failover.
-    const FAILOVER_RTT_FACTOR: f64 = 3.0;
+    /// The integer failover ratio: a candidate must have an RTT more than this
+    /// many times the best candidate's RTT before we switch to the best one.
+    const FAILOVER_RTT_FACTOR: u64 = 3;
 
     /// WHY: Select a relay strategy: lowest load, lowest RTT, or random.
     ///
@@ -230,7 +237,9 @@ impl RelaySelector {
                     if let (Some(best_rtt), Some(cur_rtt)) =
                         (self.candidates[0].rtt_us, self.candidates[pos].rtt_us)
                     {
-                        if cur_rtt as f64 > best_rtt as f64 * Self::FAILOVER_RTT_FACTOR {
+                        let threshold = u128::from(best_rtt)
+                            .saturating_mul(u128::from(Self::FAILOVER_RTT_FACTOR));
+                        if u128::from(cur_rtt) > threshold {
                             self.current = Some(self.candidates[0].peer_id);
                             return self.candidates.first();
                         }
@@ -307,7 +316,7 @@ impl RelaySelector {
 /// The current connectivity path to a peer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConnectivityPath {
-    /// Direct WireGuard tunnel over the peer's advertised UDP endpoint.
+    /// Direct `WireGuard` tunnel over the peer's advertised UDP endpoint.
     Direct,
     /// Attempting UDP hole-punch; waiting for the simultaneous-open to complete.
     HolePunching,
@@ -357,6 +366,10 @@ impl RelaySession {
     ///
     /// WHAT: Transition from `Direct` → `HolePunching` if endpoints are available,
     /// otherwise → `Relayed`. If already `Relayed`, stay there.
+    ///
+    /// # Panics
+    /// Panics when the current path is `HolePunching` and `relay` is `None`: the
+    /// ladder has no next step without a relay.
     pub fn on_direct_failure(&mut self, relay: Option<PeerId>) {
         match self.path {
             ConnectivityPath::Direct => {

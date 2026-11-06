@@ -18,6 +18,7 @@
 //! `ProviderClient` only for state. See `README.md` for the full pattern and the
 //! "unique underlying mechanics" case.
 
+pub mod clock;
 pub mod config;
 pub mod core;
 pub mod error;

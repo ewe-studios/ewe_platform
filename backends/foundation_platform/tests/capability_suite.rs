@@ -2,14 +2,17 @@
 
 use std::sync::Arc;
 
-use foundation_platform::capability::{test_registry, TestPlatformCap};
+use foundation_platform::capability::test_registry;
 use foundation_platform::*;
 use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 
 #[test]
 fn invoke_unknown_capability_returns_error() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     session.record_navigation("/app");
     let active = session.active_page_identity().unwrap();
 
@@ -28,7 +31,10 @@ fn invoke_unknown_capability_returns_error() {
 #[test]
 fn invoke_with_correct_capability_succeeds() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let route = remote_fetch()
         .with_profile(Profile::App)
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
@@ -51,7 +57,10 @@ fn invoke_with_correct_capability_succeeds() {
 #[test]
 fn profile_too_low_denies_capability() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let route = remote_fetch().with_profile(Profile::UntrustedRemote);
 
     session.record_navigation("/app");
@@ -72,7 +81,10 @@ fn profile_too_low_denies_capability() {
 #[test]
 fn per_route_allowlist_blocks_unlisted_capability() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let route = webview_app().with_allowed_capabilities(&[CapabilityId("microphone".into())]);
 
     session.record_navigation("/chat");
@@ -93,7 +105,10 @@ fn per_route_allowlist_blocks_unlisted_capability() {
 #[test]
 fn stale_page_guard_rejects_old_request() {
     let reg = test_registry();
-    let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
+    let session = Arc::new(PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
 
     let old_page = session.record_navigation("/app/old");
     session.record_navigation("/app/new");

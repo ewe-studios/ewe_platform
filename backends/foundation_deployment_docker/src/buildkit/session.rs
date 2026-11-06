@@ -893,17 +893,16 @@ impl SessionBuilder {
         // and wakes instantly when data arrives, keeping the tunnel's added
         // round-trip latency to a minimum.
         let (up_tx, up_rx) = std::sync::mpsc::channel::<Vec<u8>>();
-        let start = std::time::Instant::now();
         let read_thread = std::thread::spawn(move || {
             let mut buf = vec![0u8; 32 * 1024];
             loop {
                 match tcp_read.read(&mut buf) {
                     Ok(0) => {
-                        tracing::debug!(elapsed = ?start.elapsed(), "session loopback closed");
+                        tracing::debug!("session loopback closed");
                         break;
                     }
                     Err(e) => {
-                        tracing::warn!(elapsed = ?start.elapsed(), err = %e, "session loopback read error");
+                        tracing::warn!(err = %e, "session loopback read error");
                         break;
                     }
                     Ok(n) => {
@@ -911,7 +910,6 @@ impl SessionBuilder {
                         tracing::trace!(
                             bytes = n,
                             frame = tag,
-                            elapsed_ms = start.elapsed().as_secs_f64() * 1000.0,
                             "session: loopback -> buildkitd (read)"
                         );
                         if up_tx.send(buf[..n].to_vec()).is_err() {
@@ -1043,19 +1041,22 @@ impl Drop for SessionServer {
     }
 }
 
-/// A random `BuildKit` identifier (32 lowercase-hex chars, like buildx's
+/// A process-unique counter for session ids and build refs.
+///
+/// The counter replaces the clock seed. A clock read here was ID generation, a
+/// side effect that rule 11 injects; a counter and the process id give the same
+/// per-process uniqueness without one.
+static NEXT_SESSION_ID: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// A `BuildKit` identifier (32 lowercase-hex chars, like buildx's
 /// `identity.NewID()`). Used for session ids and build refs alike.
-#[allow(
-    clippy::cast_possible_truncation,
-    reason = "the low 64 bits of the timestamp seed the xorshift state"
-)]
+///
+/// The value is unique within a process: a counter mixed with the process id
+/// seeds the xorshift state.
 pub(crate) fn new_session_id() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let seed = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_nanos();
-    let mut x = seed as u64 ^ 0x9E37_79B9_7F4A_7C15;
+    let counter = NEXT_SESSION_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let seed = counter ^ (u64::from(std::process::id()) << 32);
+    let mut x = seed ^ 0x9E37_79B9_7F4A_7C15;
     let mut s = String::with_capacity(32);
     for _ in 0..4 {
         x ^= x << 13;

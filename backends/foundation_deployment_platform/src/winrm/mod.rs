@@ -7,8 +7,12 @@
 
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 use tracing::{debug, trace};
+
+use foundation_core::valtron::Clock;
 
 use crate::config::{Result, TestbedError, VmProfile};
 
@@ -28,18 +32,37 @@ pub struct WinRM {
     port: u16,
     user: String,
     pass: String,
+    /// The host's clock. Request IDs and the receive deadline read it, so a
+    /// test can control both (AGENTS rule 11).
+    clock: Arc<dyn Clock>,
 }
+
+/// Distinguishes two request IDs minted in the same wall millisecond.
+static MESSAGE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 impl WinRM {
     /// Create a new `WinRM` client.
     #[must_use]
-    pub fn new(host: &str, port: u16, user: &str, pass: &str) -> Self {
+    pub fn new(host: &str, port: u16, user: &str, pass: &str, clock: Arc<dyn Clock>) -> Self {
         Self {
             host: host.to_string(),
             port,
             user: user.to_string(),
             pass: pass.to_string(),
+            clock,
         }
+    }
+
+    /// The injected clock that this client reads.
+    #[must_use]
+    pub fn clock(&self) -> &dyn Clock {
+        self.clock.as_ref()
+    }
+
+    /// The injected clock, as a shared handle for a client built from this one.
+    #[must_use]
+    pub fn clock_arc(&self) -> Arc<dyn Clock> {
+        Arc::clone(&self.clock)
     }
 
     /// Create from a VM profile.
@@ -47,7 +70,7 @@ impl WinRM {
     /// # Errors
     ///
     /// Returns an error if the profile has no `WinRM` port.
-    pub fn from_profile(profile: &VmProfile) -> Result<Self> {
+    pub fn from_profile(profile: &VmProfile, clock: Arc<dyn Clock>) -> Result<Self> {
         let winrm_port = profile
             .winrm_port
             .ok_or_else(|| TestbedError::WinrmNotReachable { port: 0 })?;
@@ -56,6 +79,7 @@ impl WinRM {
             winrm_port,
             profile.user,
             profile.pass,
+            clock,
         ))
     }
 
@@ -102,7 +126,7 @@ impl WinRM {
 
     /// Create a `WinRM` shell.
     fn shell_create(&self) -> Result<String> {
-        let msg_id = uuid_simple();
+        let msg_id = uuid_simple(self.clock());
         let body = format!(
             r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:p="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.xmlsoap.org/ws/2004/09/transfer/Create</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI s="true">http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:MaxEnvelopeSize>153600</w:MaxEnvelopeSize><w:OperationTimeout>PT60S</w:OperationTimeout><w:OptionSet><w:Option Name="WINRS_NOPROFILE">FALSE</w:Option><w:Option Name="WINRS_CODEPAGE">437</w:Option></w:OptionSet></env:Header><env:Body><p:Shell><p:InputStreams>stdin</p:InputStreams><p:OutputStreams>stdout stderr</p:OutputStreams></p:Shell></env:Body></env:Envelope>"#,
             msg_id, self.host, self.port
@@ -118,7 +142,7 @@ impl WinRM {
 
     /// Execute a command in an existing shell.
     fn shell_exec(&self, shell_id: &str, command: &str) -> Result<String> {
-        let msg_id = uuid_simple();
+        let msg_id = uuid_simple(self.clock());
         let body = format!(
             r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Command</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:CommandLine><rsp:Command>{}</rsp:Command></rsp:CommandLine></env:Body></env:Envelope>"#,
             msg_id, self.host, self.port, shell_id, command
@@ -145,7 +169,7 @@ impl WinRM {
         let mut stderr = String::new();
         let mut exit_code = 0;
         let deadline = if max_wait_secs > 0 {
-            Some(std::time::Instant::now() + std::time::Duration::from_secs(max_wait_secs))
+            Some(self.clock.now() + std::time::Duration::from_secs(max_wait_secs))
         } else {
             None
         };
@@ -154,7 +178,7 @@ impl WinRM {
         for (iteration, _) in (0..3600).enumerate() {
             // 1800s total at 500ms intervals
             if let Some(dl) = deadline
-                && std::time::Instant::now() > dl
+                && self.clock.now() > dl
             {
                 debug!(
                     "shell_receive: TIMEOUT after {} iterations, stdout={:?} stderr={:?}",
@@ -165,7 +189,7 @@ impl WinRM {
                 });
             }
 
-            let msg_id = uuid_simple();
+            let msg_id = uuid_simple(self.clock());
             let body = format!(
                 r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:rsp="http://schemas.microsoft.com/wbem/wsman/1/windows/shell"><env:Header><a:Action>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body><rsp:Receive><rsp:DesiredStream CommandId="{}">stdout stderr</rsp:DesiredStream></rsp:Receive></env:Body></env:Envelope>"#,
                 msg_id, self.host, self.port, shell_id, command_id
@@ -236,7 +260,7 @@ impl WinRM {
 
     /// Delete a `WinRM` shell.
     fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) {
-        let msg_id = uuid_simple();
+        let msg_id = uuid_simple(self.clock());
         let command_selector = command_id
             .map(|id| format!("<rsp:Signal CommandId=\"{id}\"><w:Code>0</w:Code></rsp:Signal>"))
             .unwrap_or_default();
@@ -400,22 +424,18 @@ fn extract_streams(response: &str) -> Vec<(String, bool)> {
 /// Generate a unique message ID for `WinRM` request correlation.
 #[allow(dead_code)]
 #[must_use]
-pub fn generate_message_id() -> String {
-    let uuid = uuid_simple();
+pub fn generate_message_id(clock: &dyn Clock) -> String {
+    let uuid = uuid_simple(clock);
     format!("uuid:{uuid}")
 }
 
-/// Simple UUID generation without external dependency.
+/// Simple message ID generation from the injected wall clock and a counter.
+///
+/// Two IDs minted in the same wall millisecond stay distinct because the
+/// counter never repeats within the process.
 #[allow(dead_code)]
-fn uuid_simple() -> String {
-    use std::time::SystemTime;
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos();
-    format!(
-        "{:016x}{:016x}",
-        now,
-        now.wrapping_mul(0x6C62_272E_07BB_0142)
-    )
+fn uuid_simple(clock: &dyn Clock) -> String {
+    let millis = crate::clock::wall_now_millis(clock).unsigned_abs();
+    let sequence = MESSAGE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    format!("{millis:016x}{sequence:016x}")
 }

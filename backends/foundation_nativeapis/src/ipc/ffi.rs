@@ -4,7 +4,10 @@
 /// All functions return 0 on success, -1 on error.
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
+use std::sync::Arc;
 use std::time::Duration;
+
+use foundation_core::valtron::MonotonicClock;
 
 use crate::ipc::{
     BytesMessage, EndpointReceiver, EndpointSender, Label, LabelOp, Message, Options, Selector,
@@ -71,7 +74,10 @@ pub unsafe extern "C" fn ipmb_join(
         Some(Duration::from_millis(timeout_ms as u64))
     };
 
-    match crate::ipc::join::<BytesMessage, BytesMessage>(opts, timeout) {
+    // The C caller is a host entry point: it has no `Ctx`, so build the real
+    // clock here.
+    let clock = Arc::new(MonotonicClock::new());
+    match crate::ipc::join::<BytesMessage, BytesMessage>(opts, timeout, clock) {
         Ok((sender, receiver)) => {
             *out_sender = Box::into_raw(Box::new(ipmb_Sender {
                 inner: Box::into_raw(Box::new(sender)),

@@ -12,9 +12,11 @@
 //! `BackendTarget` that accepts either a bare string or a table.
 
 use derive_more::Display;
+use foundation_core::valtron::Clock;
 use foundation_iogate::ServerIo;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 
 /// Runtime hooks for ACME provisioning (Decision 18, F15).
@@ -306,12 +308,12 @@ impl ProxyConfig {
             .map_err(|e| ProxyError::Config(format!("parse {path}: {e}")).into())
     }
 
-    /// Start the proxy from this configuration.
+    /// Start the proxy from this configuration, with `clock` as the host clock.
     ///
     /// # Errors
     /// Returns `ProxyError` if validation fails or the listener cannot bind.
-    pub async fn start(self) -> ProxyResult<crate::server::ProxyServer> {
-        crate::server::ProxyServer::start(self).await
+    pub async fn start(self, clock: Arc<dyn Clock>) -> ProxyResult<crate::server::ProxyServer> {
+        crate::server::ProxyServer::start(self, clock).await
     }
 }
 

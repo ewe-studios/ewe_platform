@@ -30,6 +30,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_core::valtron::MonotonicClock;
 use foundation_toolings::harness::Miniflare;
 
 /// The answer every mock streams, one word per SSE event.
@@ -196,7 +197,7 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
             format!("http://127.0.0.1:{}/api", vendor.port),
         )
         .startup_timeout(Duration::from_secs(90))
-        .build()
+        .build(Arc::new(MonotonicClock::new()))
         .expect("start cf-cloud-provider under miniflare");
 
     let (status, body) = worker
@@ -238,7 +239,7 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
             format!("http://127.0.0.1:{}", vendor.port),
         )
         .startup_timeout(Duration::from_secs(90))
-        .build()
+        .build(Arc::new(MonotonicClock::new()))
         .expect("start cf-agent-loop under miniflare");
 
     let (status, body) = worker

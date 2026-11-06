@@ -50,7 +50,10 @@ fn sshd_config() -> ContainerConfig {
 /// container, and check that each host reports success. Blocking libssh2 calls
 /// run here, on the test thread, not on a valtron pool worker.
 fn run_all_strategies(port: u16) -> Result<(), String> {
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(30)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(30),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let backend = Ssh2Backend::new(pool);
     let hosts: Vec<Host> = (0..3)
         .map(|_| Host::parse(&format!("{SSH_USER}@127.0.0.1:{port}")).with_password(SSH_PASSWORD))

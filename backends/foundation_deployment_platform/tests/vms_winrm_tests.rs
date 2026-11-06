@@ -2,9 +2,16 @@
 
 #![cfg(feature = "vms")]
 
+use std::sync::Arc;
+
+use foundation_core::valtron::MonotonicClock;
 use foundation_deployment_platform::winrm::{
     WinRM, generate_message_id, parse_command_id, parse_receive_response, parse_shell_id,
 };
+
+fn clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 #[test]
 fn test_parse_shell_id() {
@@ -22,14 +29,14 @@ fn test_parse_command_id() {
 
 #[test]
 fn test_generate_message_id_starts_with_uuid() {
-    let id = generate_message_id();
+    let id = generate_message_id(clock().as_ref());
     assert!(id.starts_with("uuid:"));
     assert!(id.len() > 30);
 }
 
 #[test]
 fn test_auth_header_value() {
-    let client = WinRM::new("127.0.0.1", 5985, "vagrant", "vagrant");
+    let client = WinRM::new("127.0.0.1", 5985, "vagrant", "vagrant", clock());
     let auth = client.auth_header_value();
     // "vagrant:vagrant" base64 = "dmFncmFudDp2YWdyYW50"
     assert_eq!(auth, "dmFncmFudDp2YWdyYW50");

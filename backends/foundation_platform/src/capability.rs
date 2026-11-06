@@ -41,6 +41,10 @@ pub trait PlatformCapability: foundation_wasm::WasmCapability {
     /// before this is called.
     /// The registry passes session to the handler AFTER security checks.
     /// Override to access IPCs, state, or other registries at invoke time.
+    ///
+    /// # Errors
+    ///
+    /// Returns the capability's [`CapabilityError`] when the invocation fails.
     fn invoke_with_session(
         &self,
         session: &PlatformSession,
@@ -81,6 +85,12 @@ impl CapabilityRegistry {
 
     /// Invoke a capability through the full five-layer defense chain.
     ///
+    /// # Errors
+    ///
+    /// Returns [`CapabilityError::PermissionDenied`] when a defense layer
+    /// rejects the call, and [`CapabilityError::UnknownCapability`] when no
+    /// handler has the requested name.
+    ///
     /// # Panics
     ///
     /// Panics if the internal `RwLock` is poisoned.
@@ -106,9 +116,7 @@ impl CapabilityRegistry {
             .ok_or_else(|| CapabilityError::UnknownCapability(request.capability.clone()))?;
 
         // Layer 3: Profile-level gate
-        let profile = current_route
-            .map(|r| r.profile)
-            .unwrap_or(Profile::UntrustedRemote);
+        let profile = current_route.map_or(Profile::UntrustedRemote, |r| r.profile);
         let gate = ProfileGate::new(profile);
         if let Err(e) = gate.check(Service::NativeApi, Access::Execute) {
             return Err(CapabilityError::PermissionDenied(e.to_string()));
@@ -142,6 +150,12 @@ impl CapabilityRegistry {
 
     /// Invoke a capability through the security layer with a JSON payload.
     /// Convenience method that serializes JSON → wire bytes → invoke → deserialize.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error from [`Self::invoke`], or
+    /// [`CapabilityError::InvalidPayload`] when the JSON does not encode or
+    /// decode.
     pub fn invoke_json(
         &self,
         session: &PlatformSession,
@@ -168,14 +182,23 @@ impl CapabilityRegistry {
     }
 
     /// Look up a capability by name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn PlatformCapability> {
         let guard = self.handlers.read().unwrap();
         guard
             .get(name)
-            .map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformCapability) })
+            .map(|b| unsafe { &*std::ptr::from_ref::<dyn PlatformCapability>(b.as_ref()) })
     }
 
+    /// The registered capability names.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.handlers.read().unwrap().keys().cloned().collect()

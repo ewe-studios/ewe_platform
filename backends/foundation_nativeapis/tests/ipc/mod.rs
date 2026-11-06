@@ -44,9 +44,12 @@ mod tests {
     fn controller_loopback() {
         let bus = unique_bus("loopback");
         let opts = Options::new(&bus, Label::new("ctrl")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join failed");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("join failed");
 
         let payload = BytesMessage {
             format: 1,
@@ -71,9 +74,12 @@ mod tests {
         let bus_clone = bus.clone();
         let ctrl = thread::spawn(move || {
             let opts = Options::new(&bus_clone, Label::new("controller")).controller_affinity(true);
-            let (_sender, mut receiver) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("controller join");
+            let (_sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .expect("controller join");
 
             let msg = receiver
                 .recv(Some(Duration::from_secs(5)))
@@ -84,9 +90,12 @@ mod tests {
         thread::sleep(Duration::from_millis(100));
 
         let opts = Options::new(&bus, Label::new("client")).controller_affinity(false);
-        let (sender, _receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("client join");
+        let (sender, _receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("client join");
 
         let payload = BytesMessage {
             format: 0,
@@ -108,8 +117,12 @@ mod tests {
     fn custom_message_type() {
         let bus = unique_bus("custom-type");
         let opts = Options::new(&bus, Label::new("node")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<TestEvent, TestEvent>(opts, Some(Duration::from_secs(5))).expect("join failed");
+        let (sender, mut receiver) = join::<TestEvent, TestEvent>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("join failed");
 
         let event = TestEvent {
             path: "/src/main.rs".into(),
@@ -135,9 +148,12 @@ mod tests {
         let endpoint_b = thread::spawn(move || {
             thread::sleep(Duration::from_millis(100));
             let opts = Options::new(&bus_c, Label::new("b")).controller_affinity(false);
-            let (_sender, mut receiver) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("b join");
+            let (_sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .expect("b join");
             receiver
                 .recv(Some(Duration::from_secs(5)))
                 .expect("b recv")
@@ -146,8 +162,12 @@ mod tests {
         });
 
         let opts = Options::new(&bus, Label::new("a")).controller_affinity(true);
-        let (sender, mut receiver_a) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("a join");
+        let (sender, mut receiver_a) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("a join");
 
         thread::sleep(Duration::from_millis(300));
 
@@ -176,9 +196,12 @@ mod tests {
         let bus_c = bus.clone();
         let target = thread::spawn(move || {
             let opts = Options::new(&bus_c, Label::new("target")).controller_affinity(true);
-            let (_s, mut r) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("target join");
+            let (_s, mut r) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .expect("target join");
             r.recv(Some(Duration::from_secs(5)))
                 .expect("target recv")
                 .payload
@@ -190,17 +213,24 @@ mod tests {
         let bus_c = bus.clone();
         let other = thread::spawn(move || {
             let opts = Options::new(&bus_c, Label::new("other")).controller_affinity(false);
-            let (_s, mut r) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("other join");
+            let (_s, mut r) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .expect("other join");
             r.recv(Some(Duration::from_millis(500)))
         });
 
         thread::sleep(Duration::from_millis(100));
 
         let opts = Options::new(&bus, Label::new("sender")).controller_affinity(false);
-        let (sender, _r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("sender join");
+        let (sender, _r) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("sender join");
 
         let msg = Message::new(
             Selector::unicast(LabelOp::Leaf("target".into())),
@@ -227,9 +257,12 @@ mod tests {
     fn shared_memory_region() {
         let bus = unique_bus("shmem");
         let opts = Options::new(&bus, Label::new("mem")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join failed");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("join failed");
 
         let mut region = MemoryRegion::new(4096).expect("MemoryRegion::new failed");
         {
@@ -268,9 +301,12 @@ mod tests {
             let opts = Options::new(&bus_c, Label::new("ctrl"))
                 .controller_affinity(true)
                 .token("secret123");
-            let (_s, mut r) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("ctrl join");
+            let (_s, mut r) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .expect("ctrl join");
             let _ = r.recv(Some(Duration::from_secs(3)));
         });
 
@@ -279,7 +315,11 @@ mod tests {
         let opts = Options::new(&bus, Label::new("intruder"))
             .controller_affinity(false)
             .token("wrong-token");
-        let result = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(2)));
+        let result = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(2)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        );
 
         assert!(result.is_err(), "join with wrong token should fail");
     }
@@ -290,8 +330,12 @@ mod tests {
     fn multiple_messages_sequence() {
         let bus = unique_bus("sequence");
         let opts = Options::new(&bus, Label::new("seq")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("join");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("join");
 
         for i in 0..10u16 {
             let msg = Message::new(
@@ -317,8 +361,12 @@ mod tests {
     fn sender_clone_multithreaded() {
         let bus = unique_bus("clone-send");
         let opts = Options::new(&bus, Label::new("hub")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("join");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("join");
 
         let mut handles = vec![];
         for i in 0..4u16 {
@@ -374,8 +422,12 @@ mod tests {
     fn heterogeneous_message_types() {
         let bus = unique_bus("hetero");
         let opts = Options::new(&bus, Label::new("app")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5))).expect("join");
+        let (sender, mut receiver) = join::<AppMessage, AppMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        )
+        .expect("join");
 
         // Send a FileEvent
         sender

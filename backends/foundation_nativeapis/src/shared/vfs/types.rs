@@ -1,5 +1,7 @@
 use std::time::SystemTime;
 
+use foundation_core::valtron::Clock;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum OpenMode {
     Read,
@@ -113,9 +115,10 @@ pub struct VfsMetadata {
 }
 
 impl VfsMetadata {
+    /// A regular-file entry whose three times come from `clock`.
     #[must_use]
-    pub fn new_file(inode: u64, size: u64, permissions: u32) -> Self {
-        let now = Some(SystemTime::now());
+    pub fn new_file(inode: u64, size: u64, permissions: u32, clock: &dyn Clock) -> Self {
+        let now = Some(clock.wall_now());
         Self {
             inode,
             size,
@@ -131,9 +134,10 @@ impl VfsMetadata {
         }
     }
 
+    /// A directory entry whose three times come from `clock`.
     #[must_use]
-    pub fn new_directory(inode: u64, permissions: u32) -> Self {
-        let now = Some(SystemTime::now());
+    pub fn new_directory(inode: u64, permissions: u32, clock: &dyn Clock) -> Self {
+        let now = Some(clock.wall_now());
         Self {
             inode,
             size: 0,
@@ -149,9 +153,10 @@ impl VfsMetadata {
         }
     }
 
+    /// A symlink entry whose three times come from `clock`.
     #[must_use]
-    pub fn new_symlink(inode: u64) -> Self {
-        let now = Some(SystemTime::now());
+    pub fn new_symlink(inode: u64, clock: &dyn Clock) -> Self {
+        let now = Some(clock.wall_now());
         Self {
             inode,
             size: 0,

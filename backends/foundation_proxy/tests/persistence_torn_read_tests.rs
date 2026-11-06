@@ -21,8 +21,16 @@ fn load_never_sees_a_torn_file() {
         .expect("clock after epoch")
         .as_nanos();
     let dir = std::env::temp_dir().join(format!("ewe_proxy_torn_{}_{nanos}", std::process::id()));
-    let writer = Arc::new(ProxyStateStore::new(&dir, "torn.example"));
-    let reader = ProxyStateStore::new(&dir, "torn.example");
+    let writer = Arc::new(ProxyStateStore::new(
+        &dir,
+        "torn.example",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
+    let reader = ProxyStateStore::new(
+        &dir,
+        "torn.example",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // The first state exists before the reader starts, so every load has a file.
     futures_lite::future::block_on(writer.save_backend_state("svc", "http://seed", "active"))

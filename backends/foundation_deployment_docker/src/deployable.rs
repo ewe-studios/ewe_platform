@@ -131,6 +131,7 @@ impl Deployable for ContainerDeployment {
         let body = self.create_body();
         let name = self.name.clone();
         let store = self.store(&client);
+        let clock = client.clock().clone();
 
         Box::pin(async move {
             let created = docker.create_container(&body, name.as_deref()).await?;
@@ -140,11 +141,7 @@ impl Deployable for ContainerDeployment {
                 container_id: created.id,
             };
             store
-                .store_typed(
-                    &instance_id.to_string(),
-                    &output,
-                    &foundation_core::valtron::MonotonicClock::new(),
-                )
+                .store_typed(&instance_id.to_string(), &output, clock.as_ref())
                 .await
                 .map_err(|e| DockerError::Unavailable(format!("persist deploy state: {e}")))?;
             Ok(output)

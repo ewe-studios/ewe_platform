@@ -1,6 +1,6 @@
 //! Wasmtime responder — route handler for Surface 3 WASM apps (F33).
 //!
-//! WHY: Surface 3 apps run in wasmtime instead of a WebView. They need a
+//! WHY: Surface 3 apps run in wasmtime instead of a `WebView`. They need a
 //! `RouteResponder` that builds the wasmtime instance, calls the WASM
 //! entrypoint, and returns the response through the session.
 //!

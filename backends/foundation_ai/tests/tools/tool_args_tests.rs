@@ -172,7 +172,9 @@ fn edit_accepts_replace_all_in_either_spelling() {
             serde_json::json!(true),
             serde_json::Value::String("true".into()),
         ] {
-            let fs = Arc::new(MemoryFs::new());
+            let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )));
             fs.write_file_async("f.txt".into(), b"a a a".to_vec())
                 .await
                 .expect("seed file");

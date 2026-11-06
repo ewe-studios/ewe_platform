@@ -13,12 +13,15 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
+
+use foundation_core::valtron::Clock;
 
 use crate::docker::image::DockerFileConfig;
 use crate::docker::wait_for::WaitFor;
 
 /// Builder for a Docker container configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ContainerConfig {
     /// Docker image name (e.g. "redis:7", "postgres:16", "dockurr/windows:5.15").
     pub image: String,
@@ -63,6 +66,37 @@ pub struct ContainerConfig {
     /// so the two reach each other on `localhost`. See
     /// [`ContainerConfig::share_caller_network`].
     pub share_caller_network: bool,
+    /// The host's clock that bounds the readiness wait. When absent, the wait
+    /// reads the root clock of the valtron pool the start runs on.
+    pub clock: Option<Arc<dyn Clock>>,
+}
+
+impl std::fmt::Debug for ContainerConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ContainerConfig")
+            .field("image", &self.image)
+            .field("name", &self.name)
+            .field("ports", &self.ports)
+            .field("env", &self.env)
+            .field("volumes", &self.volumes)
+            .field("network", &self.network)
+            .field("network_aliases", &self.network_aliases)
+            .field("wait", &self.wait)
+            .field("stop_timeout", &self.stop_timeout)
+            .field("memory", &self.memory)
+            .field("cpus", &self.cpus)
+            .field("labels", &self.labels)
+            .field("extra_hosts", &self.extra_hosts)
+            .field("always_pull", &self.always_pull)
+            .field("command", &self.command)
+            .field("devices", &self.devices)
+            .field("cap_add", &self.cap_add)
+            .field("required", &self.required)
+            .field("build", &self.build)
+            .field("share_caller_network", &self.share_caller_network)
+            .field("has_clock", &self.clock.is_some())
+            .finish()
+    }
 }
 
 /// A port mapping from container to host.
@@ -126,7 +160,18 @@ impl ContainerConfig {
             required: false,
             build: None,
             share_caller_network: false,
+            clock: None,
         }
+    }
+
+    /// Set the host clock that bounds the readiness wait.
+    ///
+    /// A host passes its injected clock here. A config without one reads the
+    /// root clock of the valtron pool the start runs on.
+    #[must_use]
+    pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
+        self.clock = Some(clock);
+        self
     }
 
     /// Build the image from `dockerfile` before starting, tagged with this

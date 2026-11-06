@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use foundation_core::valtron::Clock;
 use libsql::Connection;
 
 use crate::shared::vfs::async_traits::{AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile};
@@ -24,6 +25,7 @@ pub struct SqliteFile {
     pub mode: OpenMode,
     pub chunk_size: usize,
     pub size: u64,
+    pub clock: Arc<dyn Clock>,
 }
 
 impl SqliteFile {
@@ -162,10 +164,7 @@ impl AsyncVfsFile for SqliteFile {
         }
 
         let checksum = blake3::hash(&file_data[..new_size as usize]);
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.clock.wall_now());
 
         self.db
             .execute(
@@ -209,7 +208,14 @@ impl AsyncVfsFile for SqliteFile {
     }
 
     async fn truncate_async(&self, size: u64) -> VfsResult<()> {
-        truncate_file_async(&self.db, self.ino, size, self.chunk_size).await
+        truncate_file_async(
+            &self.db,
+            self.ino,
+            size,
+            self.chunk_size,
+            self.clock.as_ref(),
+        )
+        .await
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
@@ -316,6 +322,7 @@ pub struct SqliteDirectory {
     pub db: Arc<Connection>,
     pub ino: i64,
     pub path: String,
+    pub clock: Arc<dyn Clock>,
 }
 
 #[async_trait]
@@ -405,10 +412,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
     }
 
     async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.clock.wall_now());
         let version_id = super::types::next_version_id();
 
         self.db
@@ -461,6 +465,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             mode: OpenMode::Write,
             chunk_size: 64 * 1024,
             size: 0,
+            clock: Arc::clone(&self.clock),
         })
     }
 
@@ -469,10 +474,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         name: String,
     ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
     {
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.clock.wall_now());
         let version_id = super::types::next_version_id();
 
         let new_path = if self.path == "/" {
@@ -530,6 +532,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             db: Arc::clone(&self.db),
             ino,
             path: new_path,
+            clock: Arc::clone(&self.clock),
         }))
     }
 
@@ -587,10 +590,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
     }
 
     async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.clock.wall_now());
         self.db
             .execute(
                 "UPDATE vfs_dentry SET name = ?, updated_at = ? WHERE parent_ino = ? AND name = ?",
@@ -631,6 +631,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             mode,
             chunk_size,
             size,
+            clock: Arc::clone(&self.clock),
         })
     }
 
@@ -680,6 +681,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             db: Arc::clone(&self.db),
             ino,
             path: full_path,
+            clock: Arc::clone(&self.clock),
         }))
     }
 

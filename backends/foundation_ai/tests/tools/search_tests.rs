@@ -189,12 +189,16 @@ fn search_context_graph_returns_empty() {
 }
 
 fn make_vfs_tool() -> SearchFileTool {
-    let fs = Arc::new(foundation_nativeapis::MemoryFs::new());
+    let fs = Arc::new(foundation_nativeapis::MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
     SearchFileTool::from_vfs(fs, "/".into())
 }
 
 fn make_vfs_tool_with_files() -> SearchFileTool {
-    let fs = foundation_nativeapis::MemoryFs::new();
+    let fs = foundation_nativeapis::MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     fs.write_file("/hello.txt", b"hello world\ngoodbye world\n")
         .unwrap();
     fs.write_file("/foo.rs", b"fn main() {}").unwrap();

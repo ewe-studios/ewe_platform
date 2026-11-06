@@ -13,10 +13,10 @@
 
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr, TcpStream, UdpSocket};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crate::docker::error::{DockerError, DockerResult, classify_docker_client_err, docker_err};
-use foundation_core::valtron::sleep_async;
+use foundation_core::valtron::{Clock, sleep_async};
 use foundation_deployment_docker::DockerClient;
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
@@ -108,7 +108,8 @@ impl WaitFor {
     /// (see [`crate::docker::ContainerHandle::host_ip`]).
     ///
     /// All waits are async and use valtron's cooperative [`sleep_async`] for
-    /// backoff — no thread blocking.
+    /// backoff — no thread blocking. Every deadline reads `clock`, so a test
+    /// can move a simulated clock instead of waiting.
     ///
     /// # Errors
     /// Returns an error when the container is not ready before its timeout.
@@ -118,25 +119,26 @@ impl WaitFor {
         container_id: &str,
         host: Ipv4Addr,
         ports: &HashMap<String, u16>,
+        clock: &dyn Clock,
     ) -> DockerResult<()> {
         let mut stack = vec![self];
         while let Some(strategy) = stack.pop() {
             match strategy {
                 WaitFor::Port { port, timeout } => {
-                    wait_for_port_at(host, *port, *timeout, ports).await?;
+                    wait_for_port_at(host, *port, *timeout, ports, clock).await?;
                 }
                 WaitFor::Udp { port, timeout } => {
-                    wait_for_udp(host, *port, *timeout, ports).await?;
+                    wait_for_udp(host, *port, *timeout, ports, clock).await?;
                 }
                 WaitFor::Stdout { message, timeout } => {
-                    wait_for_stdout(client, container_id, message, *timeout).await?;
+                    wait_for_stdout(client, container_id, message, *timeout, clock).await?;
                 }
                 WaitFor::Http {
                     url,
                     expected_status,
                     timeout,
                 } => {
-                    wait_for_http(url, *expected_status, *timeout).await?;
+                    wait_for_http(url, *expected_status, *timeout, clock).await?;
                 }
                 WaitFor::Composite { strategies } => {
                     for s in strategies.iter().rev() {
@@ -162,8 +164,9 @@ pub async fn wait_for_port(
     port: u16,
     timeout: Duration,
     ports: &HashMap<String, u16, impl std::hash::BuildHasher>,
+    clock: &dyn Clock,
 ) -> DockerResult<()> {
-    wait_for_port_at(Ipv4Addr::LOCALHOST, port, timeout, ports).await
+    wait_for_port_at(Ipv4Addr::LOCALHOST, port, timeout, ports, clock).await
 }
 
 /// Wait until the host port `port` is published and accepts TCP connections on
@@ -178,6 +181,7 @@ pub async fn wait_for_port_at(
     port: u16,
     timeout: Duration,
     ports: &HashMap<String, u16, impl std::hash::BuildHasher>,
+    clock: &dyn Clock,
 ) -> DockerResult<()> {
     let key = format!("{port}/tcp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
@@ -187,16 +191,16 @@ pub async fn wait_for_port_at(
     })?;
     let addr = SocketAddr::from((host, host_port));
 
-    let start = Instant::now();
+    let start = clock.now();
     let mut backoff = Duration::from_millis(100);
 
     loop {
         match TcpStream::connect_timeout(&addr, Duration::from_secs(1)) {
             Ok(_) => return Ok(()),
-            Err(_) if start.elapsed() >= timeout => {
+            Err(_) if clock.now().duration_since(start) >= timeout => {
                 return Err(docker_err(DockerError::WaitTimeout {
                     strategy: format!("Port({port} via {addr})"),
-                    elapsed: start.elapsed(),
+                    elapsed: clock.now().duration_since(start),
                 }));
             }
             Err(_) => {
@@ -215,6 +219,7 @@ pub(crate) async fn wait_for_udp(
     port: u16,
     timeout: Duration,
     ports: &HashMap<String, u16>,
+    clock: &dyn Clock,
 ) -> DockerResult<()> {
     let key = format!("{port}/udp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
@@ -224,16 +229,16 @@ pub(crate) async fn wait_for_udp(
     })?;
     let addr = SocketAddr::from((host, host_port));
 
-    let start = Instant::now();
+    let start = clock.now();
     let mut backoff = Duration::from_millis(100);
 
     loop {
         match udp_probe(addr) {
             true => return Ok(()),
-            false if start.elapsed() >= timeout => {
+            false if clock.now().duration_since(start) >= timeout => {
                 return Err(docker_err(DockerError::WaitTimeout {
                     strategy: format!("Udp({port} via {addr})"),
-                    elapsed: start.elapsed(),
+                    elapsed: clock.now().duration_since(start),
                 }));
             }
             false => {
@@ -293,12 +298,13 @@ pub async fn wait_for_stdout(
     container_id: &str,
     message: &str,
     timeout: Duration,
+    clock: &dyn Clock,
 ) -> DockerResult<()> {
     if message.is_empty() {
         return Ok(());
     }
 
-    let start = Instant::now();
+    let start = clock.now();
     let options = ContainerLogsOptions {
         follow: true,
         stdout: true,
@@ -320,7 +326,7 @@ pub async fn wait_for_stdout(
     let mut buf: Vec<u8> = Vec::new();
 
     loop {
-        let remaining = timeout.saturating_sub(start.elapsed());
+        let remaining = timeout.saturating_sub(clock.now().duration_since(start));
         // `race` polls both futures in place; whichever resolves first wins and
         // the other is dropped, so a slow stream cannot overrun the timeout.
         let outcome = futures_lite::future::race(
@@ -338,7 +344,7 @@ pub async fn wait_for_stdout(
             FrameOrTimeout::TimedOut | FrameOrTimeout::Frame(None) => {
                 return Err(docker_err(DockerError::WaitTimeout {
                     strategy: format!("Stdout(\"{message}\")"),
-                    elapsed: start.elapsed(),
+                    elapsed: clock.now().duration_since(start),
                 }));
             }
             FrameOrTimeout::Frame(Some(frame)) => {
@@ -361,9 +367,14 @@ pub async fn wait_for_stdout(
 
 /// HTTP GET loop over the platform network client (`HttpClientBuilder`).
 /// Only the status is checked; the body is never read.
-async fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> DockerResult<()> {
+async fn wait_for_http(
+    url: &str,
+    expected_status: u16,
+    timeout: Duration,
+    clock: &dyn Clock,
+) -> DockerResult<()> {
     let client = HttpClientBuilder::new().build();
-    let start = Instant::now();
+    let start = clock.now();
     let mut backoff = Duration::from_millis(100);
 
     loop {
@@ -380,10 +391,10 @@ async fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> Do
             return Ok(());
         }
 
-        if start.elapsed() >= timeout {
+        if clock.now().duration_since(start) >= timeout {
             return Err(docker_err(DockerError::WaitTimeout {
                 strategy: format!("Http({url}, expected {expected_status})"),
-                elapsed: start.elapsed(),
+                elapsed: clock.now().duration_since(start),
             }));
         }
 

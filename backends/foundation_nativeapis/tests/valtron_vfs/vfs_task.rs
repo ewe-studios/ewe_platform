@@ -23,7 +23,9 @@ fn init_pool() -> PoolGuard {
 fn vfs_task_receives_write_events() {
     let _guard = init_pool();
 
-    let mut fs = ObservableFs::new(MemoryFs::new());
+    let mut fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
     let task = VfsTask::from_observable(&mut fs);
     let stop = task.stop_signal();
 
@@ -51,7 +53,9 @@ fn vfs_task_receives_write_events() {
 fn vfs_task_receives_multiple_events() {
     let _guard = init_pool();
 
-    let mut fs = ObservableFs::new(MemoryFs::new());
+    let mut fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
     let task = VfsTask::from_observable(&mut fs);
     let stop = task.stop_signal();
 
@@ -85,7 +89,9 @@ fn vfs_task_receives_multiple_events() {
 fn vfs_task_stop_signal_terminates() {
     let _guard = init_pool();
 
-    let mut fs = ObservableFs::new(MemoryFs::new());
+    let mut fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
     let task = VfsTask::from_observable(&mut fs);
     let stop = task.stop_signal();
 
@@ -104,7 +110,9 @@ fn vfs_task_stop_signal_terminates() {
 fn vfs_task_subscribe_for_downstream() {
     let _guard = init_pool();
 
-    let mut fs = ObservableFs::new(MemoryFs::new());
+    let mut fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )));
     let mut task = VfsTask::from_observable(&mut fs);
 
     let rx = task.subscribe();

@@ -1,23 +1,30 @@
-//! WireGuard tunnel + driver tests (spec-55, feature 01).
+//! `WireGuard` tunnel + driver tests (spec-55, feature 01).
 //!
 //! WHY: Proves success criterion 1 — two nodes on one host, sharing a network, form a
-//! real WireGuard tunnel over loopback UDP and exchange application traffic over smoltcp
+//! real `WireGuard` tunnel over loopback UDP and exchange application traffic over smoltcp
 //! overlay sockets, with no kernel TUN and no privileges.
 //!
 //! HOW: Two [`TunnelDriver`]s bound to loopback UDP, each with the peer's identity public
-//! key + a shared PSK. We drive both pumps in a loop; a raw WireGuard handshake completes,
+//! key + a shared PSK. We drive both pumps in a loop; a raw `WireGuard` handshake completes,
 //! then an overlay TCP connection carries bytes end to end.
 #![cfg(not(target_family = "wasm"))]
 
 use std::net::{IpAddr, SocketAddr};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack, NetStackConfig};
 use foundation_nativeapis::native::net::UdpSocket;
 use foundation_wireguard::native::TunnelDriver;
 use foundation_wireguard::{IdentityKeypair, WgSeed, WgTunnel};
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test.
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 #[test]
 #[traced_test]
@@ -49,6 +56,10 @@ fn pump(a: &mut TunnelDriver, b: &mut TunnelDriver) {
 
 #[test]
 #[traced_test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "one end-to-end test drives both nodes; splitting it hides the sequence"
+)]
 fn two_nodes_handshake_and_pass_tcp_over_overlay() {
     // Shared network material: identity keys are per-node, the PSK is shared (derived).
     let seed = WgSeed::from_bytes(&[0x55u8; 32]).expect("seed");
@@ -67,14 +78,22 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
     let ip_a: IpAddr = "10.9.0.1".parse().unwrap();
     let ip_b: IpAddr = "10.9.0.2".parse().unwrap();
 
-    let mut driver_a = TunnelDriver::new(sock_a, NetStack::new(NetStackConfig::new(ip_a, 24)));
+    let mut driver_a = TunnelDriver::new(
+        sock_a,
+        NetStack::new(NetStackConfig::new(ip_a, 24), test_clock()),
+        test_clock(),
+    );
     driver_a.add_peer(
         WgTunnel::new(alice.secret().clone(), bob.public(), Some(psk), Some(25), 1),
         addr_b,
         ip_b,
     );
 
-    let mut driver_b = TunnelDriver::new(sock_b, NetStack::new(NetStackConfig::new(ip_b, 24)));
+    let mut driver_b = TunnelDriver::new(
+        sock_b,
+        NetStack::new(NetStackConfig::new(ip_b, 24), test_clock()),
+        test_clock(),
+    );
     driver_b.add_peer(
         WgTunnel::new(bob.secret().clone(), alice.public(), Some(psk), Some(25), 2),
         addr_a,
@@ -130,9 +149,8 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
     let mut scratch = [0u8; 1024];
     for _ in 0..800 {
         match server.read(&mut scratch) {
-            Ok(0) => {}
+            Ok(0) | Err(_) => {}
             Ok(n) => received.extend_from_slice(&scratch[..n]),
-            Err(_) => {}
         }
         if received.len() >= request.len() {
             break;
@@ -161,9 +179,8 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
     let mut echoed = Vec::new();
     for _ in 0..800 {
         match client.read(&mut scratch) {
-            Ok(0) => {}
+            Ok(0) | Err(_) => {}
             Ok(n) => echoed.extend_from_slice(&scratch[..n]),
-            Err(_) => {}
         }
         if echoed.len() >= response.len() {
             break;
@@ -183,11 +200,10 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 fn tunnel_with_keepalive_emits_network_write_after_idle() {
     use foundation_boringtun::x25519::{PublicKey, StaticSecret};
     use foundation_wireguard::shared::tunnel::WgOutcome;
-    use std::time::{Duration, Instant};
 
     // Create a tunnel with keepalive enabled (25s is the WG default).
     let sk = StaticSecret::from([0x5Bu8; 32]);
-    let pk = PublicKey::from(&sk);
+    let _pk = PublicKey::from(&sk);
     let mut tunnel = WgTunnel::new(
         StaticSecret::from([0x5Au8; 32]),
         PublicKey::from(&StaticSecret::from([0x5Bu8; 32])),

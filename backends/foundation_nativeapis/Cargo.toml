@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.7"
+version = "0.0.8"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -15,7 +15,7 @@ crate-type = ["rlib", "cdylib"]
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.14" }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.7", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.6", optional = true, default-features = false }
@@ -24,7 +24,7 @@ foundation_arrow = { path = "../foundation_arrow", version = "0.0.4", optional =
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.8", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.9", optional = true }
 cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
@@ -89,6 +89,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.14", features = 
 turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
+foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["test-clock"] }
 foundation_arrow = { path = "../foundation_arrow" }
 foundation_macros = { path = "../foundation_macros" }
 tracing-test.workspace = true
@@ -451,4 +452,9 @@ required-features = ["vfs-native", "vfs-nfs"]
 [[test]]
 name = "copy_vfs"
 path = "tests/copy_vfs/mod.rs"
+required-features = ["vfs"]
+
+[[test]]
+name = "clock_injection"
+path = "tests/clock_injection/mod.rs"
 required-features = ["vfs"]

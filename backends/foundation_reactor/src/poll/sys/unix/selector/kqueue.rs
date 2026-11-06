@@ -415,10 +415,10 @@ impl Selector {
         clippy::cast_sign_loss
     )]
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let deadline = timeout.map(|d| Instant::now() + d);
+        let deadline = timeout.map(|d| os_now() + d);
 
         loop {
-            let ts = deadline.map(remaining_timespec);
+            let ts = deadline.map(|d| remaining_timespec(d, os_now()));
             let ts_ptr = ts
                 .as_ref()
                 .map_or(std::ptr::null(), std::ptr::from_ref::<libc::timespec>);
@@ -443,7 +443,7 @@ impl Selector {
                     // A caught signal cut the wait short. Run out the clock
                     // instead of reporting a timeout the caller did not ask for.
                     events.clear();
-                    if deadline.is_none_or(|deadline| Instant::now() < deadline) {
+                    if deadline.is_none_or(|deadline| os_now() < deadline) {
                         continue;
                     }
                     return Ok(());
@@ -522,8 +522,20 @@ impl Selector {
 /// for whatever is left of the caller's timeout, not for the whole timeout
 /// again.
 #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-fn remaining_timespec(deadline: Instant) -> libc::timespec {
-    let remaining = deadline.saturating_duration_since(Instant::now());
+
+/// The real monotonic clock for the kernel wait arithmetic.
+///
+/// The selector blocks in the operating system, so the deadline it recomputes
+/// after an interrupt must use the operating system's monotonic clock. A
+/// simulated clock would break the real block. This is the same boundary as
+/// the executor's blocking waits (GitHub issue #102).
+fn os_now() -> Instant {
+    use foundation_core::valtron::Clock as _;
+    foundation_core::valtron::MonotonicClock::new().now()
+}
+
+fn remaining_timespec(deadline: Instant, now: Instant) -> libc::timespec {
+    let remaining = deadline.saturating_duration_since(now);
     libc::timespec {
         tv_sec: libc::time_t::try_from(remaining.as_secs()).unwrap_or(libc::time_t::MAX),
         tv_nsec: libc::c_long::from(remaining.subsec_nanos()),

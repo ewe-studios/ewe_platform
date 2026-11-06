@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wireguard"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -33,7 +33,7 @@ toml = { workspace = true }
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
 foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
-foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.9" }
 # The project error standard. It is a common dependency: the error types in
 # `shared/error.rs` compile for every target, including wasm32.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
@@ -46,8 +46,11 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 # available to foundation_netio's ExchangeContinuation (which requires Send on
 # non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
 foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["multi"] }
+# UNIX timestamp conversions for the injected wall clock. `native::node` uses
+# `foundation_compact::time::unix_seconds`; no crate repeats the epoch math.
+foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.7", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.8", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
 # The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
@@ -75,6 +78,9 @@ js-sys = "0.3"
 getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
+# `test-clock` adds `SimulatedClock`, so the clock injection tests advance time
+# by hand and never sleep. Native-only because the clock API is std-gated.
+foundation_core = { path = "../foundation_core", features = ["test-clock"] }
 # wasm32 browser tests (F07 task 5). Dev-only to prevent dep cycle:
 # deployment_platform -> wireguard -> testbed -> deployment_platform
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }

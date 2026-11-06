@@ -8,7 +8,10 @@ use foundation_toolings::VecStringExt;
 use foundation_toolings::{Http1, ProjectDefinition, ProxyRemoteConfig, ProxyType, Tunnel};
 
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
+
+use foundation_core::valtron::MonotonicClock;
 
 // -- VecStringExt
 
@@ -113,7 +116,7 @@ fn test_tunnel_type() {
 
 #[test]
 fn test_duration_sleeper() {
-    let mut sleeper = DurationSleeper::new();
+    let mut sleeper = DurationSleeper::new(Arc::new(MonotonicClock::new()));
     assert!(!sleeper.is_done());
 
     sleeper.start(Duration::from_millis(50));

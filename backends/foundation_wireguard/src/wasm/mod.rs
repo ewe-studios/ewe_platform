@@ -39,6 +39,7 @@ pub mod webtransport {
     impl WasmWtBridge {
         /// # Panics
         /// Always panics on native. `WasmWtBridge` is wasm32-only.
+        #[must_use]
         pub fn new(_datagrams_enabled: bool) -> Self {
             panic!("WasmWtBridge is wasm32-only; native peers use foundation_netio::webtransport::WtSession")
         }
@@ -47,14 +48,17 @@ pub mod webtransport {
             Self::unreachable()
         }
         /// Always `false` on native.
+        #[must_use]
         pub fn is_ready(&self) -> bool {
             false
         }
         /// Always `false` on native.
+        #[must_use]
         pub fn is_open(&self) -> bool {
             false
         }
         /// Always `false` on native.
+        #[must_use]
         pub fn is_closed(&self) -> bool {
             false
         }
@@ -71,6 +75,9 @@ pub mod webtransport {
             Self::unreachable()
         }
         /// Panics on native.
+        ///
+        /// # Errors
+        /// Never returns `Err`: the native stub panics before it can fail.
         pub fn queue_datagram(&mut self, _data: Vec<u8>) -> Result<(), String> {
             Self::unreachable()
         }

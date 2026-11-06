@@ -24,7 +24,10 @@ fn unreachable_hosts(count: usize) -> Vec<Host> {
 #[test]
 fn test_parallel_returns_one_result_per_host() {
     let hosts = unreachable_hosts(3);
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(1)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(1),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let backend = Ssh2Backend::new(pool);
 
     let results = Runner::parallel().run(&hosts, &backend, |_h| Command::new("true"));
@@ -39,7 +42,10 @@ fn test_parallel_returns_one_result_per_host() {
 #[test]
 fn test_sequential_returns_one_result_per_host() {
     let hosts = unreachable_hosts(3);
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(1)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(1),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let backend = Ssh2Backend::new(pool);
 
     let results = Runner::sequential(Duration::from_millis(1))
@@ -52,7 +58,10 @@ fn test_sequential_returns_one_result_per_host() {
 #[test]
 fn test_group_batches_cover_all_hosts() {
     let hosts = unreachable_hosts(5);
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(1)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(1),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let backend = Ssh2Backend::new(pool);
 
     let results = Runner::group(2).run(&hosts, &backend, |_h| Command::new("true"));
@@ -67,7 +76,10 @@ fn test_command_builder_receives_each_host() {
         Host::parse("root@127.0.0.1:1"),
         Host::parse("root@127.0.0.1:2"),
     ];
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(1)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(1),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     let backend = Ssh2Backend::new(pool);
     let seen = std::sync::Mutex::new(Vec::new());
 

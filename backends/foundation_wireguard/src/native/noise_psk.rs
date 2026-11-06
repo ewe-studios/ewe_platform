@@ -50,15 +50,15 @@ pub fn connect<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseSt
         .map_err(|e| WgError::Protocol(format!("noise params: {e}")))?;
     let mut handshake = Builder::new(params)
         .psk(0, &psk)
-        .map_err(noise_err)?
+        .map_err(|e| noise_err(&e))?
         .build_initiator()
-        .map_err(noise_err)?;
+        .map_err(|e| noise_err(&e))?;
 
     let mut scratch = vec![0u8; MAX_NOISE_MSG];
     // -> psk, e
     let n = handshake
         .write_message(&[], &mut scratch)
-        .map_err(noise_err)?;
+        .map_err(|e| noise_err(&e))?;
     write_frame(&mut inner, &scratch[..n]).map_err(WgError::from)?;
     // <- e, ee
     let msg = read_frame(&mut inner)
@@ -66,9 +66,9 @@ pub fn connect<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseSt
         .ok_or_else(|| WgError::Protocol("peer closed during noise handshake".into()))?;
     handshake
         .read_message(&msg, &mut scratch)
-        .map_err(noise_err)?;
+        .map_err(|e| noise_err(&e))?;
 
-    let transport = handshake.into_transport_mode().map_err(noise_err)?;
+    let transport = handshake.into_transport_mode().map_err(|e| noise_err(&e))?;
     Ok(NoiseStream::new(inner, transport))
 }
 
@@ -89,9 +89,9 @@ pub fn accept<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseStr
         .map_err(|e| WgError::Protocol(format!("noise params: {e}")))?;
     let mut handshake = Builder::new(params)
         .psk(0, &psk)
-        .map_err(noise_err)?
+        .map_err(|e| noise_err(&e))?
         .build_responder()
-        .map_err(noise_err)?;
+        .map_err(|e| noise_err(&e))?;
 
     let mut scratch = vec![0u8; MAX_NOISE_MSG];
     // -> psk, e
@@ -100,14 +100,14 @@ pub fn accept<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseStr
         .ok_or_else(|| WgError::Protocol("peer closed during noise handshake".into()))?;
     handshake
         .read_message(&msg, &mut scratch)
-        .map_err(noise_err)?;
+        .map_err(|e| noise_err(&e))?;
     // <- e, ee
     let n = handshake
         .write_message(&[], &mut scratch)
-        .map_err(noise_err)?;
+        .map_err(|e| noise_err(&e))?;
     write_frame(&mut inner, &scratch[..n]).map_err(WgError::from)?;
 
-    let transport = handshake.into_transport_mode().map_err(noise_err)?;
+    let transport = handshake.into_transport_mode().map_err(|e| noise_err(&e))?;
     Ok(NoiseStream::new(inner, transport))
 }
 
@@ -153,10 +153,9 @@ impl<S: Read + Write> std::fmt::Debug for NoiseStream<S> {
 impl<S: Read + Write> Read for NoiseStream<S> {
     fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
         if self.offset >= self.plaintext.len() {
-            let frame = match read_frame(&mut self.inner)? {
-                // Clean close on a frame boundary is a normal end-of-stream.
-                None => return Ok(0),
-                Some(frame) => frame,
+            // A clean close on a frame boundary is a normal end-of-stream.
+            let Some(frame) = read_frame(&mut self.inner)? else {
+                return Ok(0);
             };
             let mut plaintext = vec![0u8; frame.len()];
             let n = self
@@ -184,7 +183,7 @@ impl<S: Read + Write> Write for NoiseStream<S> {
         let n = self
             .transport
             .write_message(chunk, &mut sealed)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("noise encrypt: {e}")))?;
+            .map_err(|e| io::Error::other(format!("noise encrypt: {e}")))?;
         write_frame(&mut self.inner, &sealed[..n])?;
         Ok(chunk.len())
     }
@@ -221,6 +220,6 @@ fn read_frame(inner: &mut impl Read) -> io::Result<Option<Vec<u8>>> {
     Ok(Some(payload))
 }
 
-fn noise_err(err: snow::Error) -> WgError {
+fn noise_err(err: &snow::Error) -> WgError {
     WgError::Protocol(format!("noise handshake failed: {err}"))
 }

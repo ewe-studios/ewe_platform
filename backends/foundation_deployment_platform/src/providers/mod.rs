@@ -9,6 +9,11 @@ use crate::config::{DisplayMode, Result, VmProfile};
 use crate::doctor::HostHealth;
 #[cfg(feature = "vms")]
 use std::path::PathBuf;
+#[cfg(feature = "vms")]
+use std::sync::Arc;
+
+#[cfg(feature = "vms")]
+use foundation_core::valtron::Clock;
 
 use serde::{Deserialize, Serialize};
 
@@ -104,8 +109,8 @@ pub trait VmProvider: Send + Sync {
 ///
 /// # Errors
 /// Returns an error if the platform has no supported provider.
-pub fn default_provider() -> Result<Box<dyn VmProvider>> {
-    Ok(Box::new(qemu::QemuProvider::new()))
+pub fn default_provider(clock: Arc<dyn Clock>) -> Result<Box<dyn VmProvider>> {
+    Ok(Box::new(qemu::QemuProvider::new(clock)))
 }
 
 #[cfg(feature = "vms")]
@@ -114,8 +119,8 @@ pub fn default_provider() -> Result<Box<dyn VmProvider>> {
 ///
 /// # Errors
 /// Returns an error if the platform has no supported provider.
-pub fn default_provider() -> Result<Box<dyn VmProvider>> {
-    Ok(Box::new(utm::UtmProvider::new()))
+pub fn default_provider(clock: Arc<dyn Clock>) -> Result<Box<dyn VmProvider>> {
+    Ok(Box::new(utm::UtmProvider::new(clock)))
 }
 
 #[cfg(feature = "vms")]
@@ -124,7 +129,8 @@ pub fn default_provider() -> Result<Box<dyn VmProvider>> {
 ///
 /// # Errors
 /// Returns an error if the platform has no supported provider.
-pub fn default_provider() -> Result<Box<dyn VmProvider>> {
+pub fn default_provider(clock: Arc<dyn Clock>) -> Result<Box<dyn VmProvider>> {
+    let _ = clock;
     Err(crate::config::TestbedError::Qcow2Error {
         message: "testbed only supports Linux (QEMU) and macOS (UTM)".to_string(),
     })

@@ -47,7 +47,7 @@ pub fn run(
 
     info!("Running browser test: {url} (headless={headless})");
 
-    let driver = BrowserDriver::launch(LaunchConfig::chromium().headless(headless))
+    let driver = BrowserDriver::launch_borrowed(LaunchConfig::chromium().headless(headless), clock)
         .map_err(|e| WasmTestbedError::BrowserDriver(format!("launch: {e}")).trace())?;
     let page = driver
         .new_page()

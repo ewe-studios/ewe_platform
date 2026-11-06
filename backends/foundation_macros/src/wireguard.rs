@@ -314,7 +314,10 @@ pub fn wireguard_main_impl(attr: &TokenStream, item: TokenStream) -> TokenStream
 
             // Load config + join the mesh.
             let __wg_config = #config_load;
-            let __wg_node = foundation_wireguard::native::WgNode::from_config(__wg_config);
+            let __wg_node = foundation_wireguard::native::WgNode::from_config(
+                __wg_config,
+                ::std::sync::Arc::new(::foundation_core::valtron::MonotonicClock::new()),
+            );
             let __wg_handle = __wg_node.join().expect("wireguard mesh join failed");
 
             // Run the user body.

@@ -10,10 +10,11 @@ use std::{
         mpsc::{Receiver, Sender, TryRecvError},
         Arc, Once,
     },
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 use foundation_core::type_uuid::TypeUuid;
+use foundation_core::valtron::Clock;
 
 use crate::ipc::{
     decode, util::Align4, version::version, version::Version, EndpointID, Error, Label, LabelOp,
@@ -429,8 +430,9 @@ impl IoHub {
         &mut self,
         timeout: Option<Duration>,
         _remote: Option<&Remote>,
+        clock: &dyn Clock,
     ) -> Result<EncodedMessage, Error> {
-        let end = timeout.map(|t| Instant::now() + t);
+        let end = timeout.map(|t| clock.now() + t);
 
         loop {
             if let Some(rx) = &self.bus_receiver {
@@ -461,7 +463,7 @@ impl IoHub {
             }
 
             if let Some(end) = end {
-                let remaining = end.saturating_duration_since(Instant::now());
+                let remaining = end.saturating_duration_since(clock.now());
                 if remaining.is_zero() {
                     return Err(Error::Timeout);
                 }
@@ -515,6 +517,7 @@ pub(crate) fn look_up(
     label: Label,
     token: String,
     im: Arc<IoMultiplexing>,
+    clock: Arc<dyn Clock>,
 ) -> Result<(IoHub, Remote, EndpointID), Error> {
     #[cfg(target_os = "windows")]
     unsafe {
@@ -607,7 +610,7 @@ pub(crate) fn look_up(
 
         let local = Local { pipe: read_handle };
         let mut io_hub = IoHub::for_endpoint(local, im);
-        let ack_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote))?;
+        let ack_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), clock.as_ref())?;
         let ack =
             crate::ipc::ConnectMessageAck::decode(ack_msg.selector.uuid, ack_msg.payload_data)?;
 

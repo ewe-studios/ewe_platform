@@ -23,7 +23,9 @@ fn peer_id(n: u8) -> PeerId {
 
 fn record(n: u8) -> PeerRecord {
     let ip: IpAddr = format!("10.7.0.{n}").parse().unwrap();
-    let endpoint: SocketAddr = format!("127.0.0.1:{}", 4000 + n as u16).parse().unwrap();
+    let endpoint: SocketAddr = format!("127.0.0.1:{}", 4000 + u16::from(n))
+        .parse()
+        .unwrap();
     PeerRecord::new(peer_id(n), ip, vec![endpoint], Capabilities::default())
 }
 
@@ -145,27 +147,27 @@ struct Sim {
 
 impl Sim {
     fn new(n: u8, drop_per_thousand: u64) -> Self {
-        Self::with_config(n, drop_per_thousand, sim_config())
+        Self::with_config(n, drop_per_thousand, &sim_config())
     }
 
-    fn with_config(n: u8, drop_per_thousand: u64, cfg: SwimConfig) -> Self {
+    fn with_config(n: u8, drop_per_thousand: u64, cfg: &SwimConfig) -> Self {
         let mut nodes = Vec::new();
         let mut index = HashMap::new();
         for i in 0..n {
-            let swim = Swim::new(record(i), cfg.clone(), (i as u64) + 1);
+            let swim = Swim::new(record(i), cfg.clone(), u64::from(i) + 1);
             index.insert(peer_id(i), i as usize);
             nodes.push(swim);
         }
         // Bootstrap: every non-seed node learns the seed (node 0) and announces itself.
         let seed_snapshot = nodes[0].snapshot();
         let mut queue = VecDeque::new();
-        for i in 1..n as usize {
-            nodes[i].merge(&seed_snapshot);
+        for (i, node) in nodes.iter_mut().enumerate().skip(1) {
+            node.merge(&seed_snapshot);
             queue.push_back((
-                peer_id(i as u8),
+                peer_id(u8::try_from(i).unwrap_or(u8::MAX)),
                 peer_id(0),
                 SwimMessage::Gossip {
-                    updates: vec![nodes[i].my_record().clone()],
+                    updates: vec![node.my_record().clone()],
                 },
             ));
         }
@@ -356,7 +358,7 @@ fn swim_detects_dead_node_without_false_positives() {
 fn swim_garbage_collects_tombstones() {
     let mut cfg = sim_config();
     cfg.tombstone_ttl = Duration::from_millis(2000);
-    let mut sim = Sim::with_config(4, 0, cfg);
+    let mut sim = Sim::with_config(4, 0, &cfg);
     sim.run(60, Duration::from_millis(40));
     sim.kill(3);
     let victim = peer_id(3);

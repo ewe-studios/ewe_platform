@@ -17,6 +17,8 @@ pub use store_upload::upload_to_store;
 
 use std::path::{Path, PathBuf};
 
+use foundation_core::valtron::Clock;
+
 use crate::config::{self, ImageStore, Result, TestbedError, VmProfile, get_profile};
 use crate::ssh;
 use crate::state;
@@ -48,7 +50,7 @@ pub struct ExportOptions {
 /// Returns an error if the profile is not found. Returns an error if any export step fails.
 // Long function; refactor is tracked separately.
 #[allow(clippy::too_many_lines)]
-pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
+pub fn export_vm(name: &str, opts: &ExportOptions, clock: &dyn Clock) -> Result<PathBuf> {
     let profile = get_profile(name).cloned()?;
 
     // Step 1: Determine output path
@@ -181,6 +183,7 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         installed_tools,
         bootstrap_version,
         &opts.notes,
+        clock,
     )?;
     manifest.write_to(&output_name)?;
     println!(

@@ -19,10 +19,10 @@
 use std::net::{SocketAddr, TcpListener, UdpSocket};
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{from_future, send, sleep_async};
+use foundation_core::valtron::{from_future, send, sleep_async, Clock};
 use foundation_http::native::writer::WriterConfig;
 use foundation_iogate::ServerIo;
 use foundation_netio::shared::client::{DnsResolver, SystemDnsResolver};
@@ -278,7 +278,7 @@ pub struct UdpPassthrough {
 
 impl UdpPassthrough {
     /// Bind `listen_addr` and relay every datagram to `backend_authority`, with
-    /// the default [`PassthroughConfig`].
+    /// the default [`PassthroughConfig`]. `clock` times the response wait.
     ///
     /// Returns immediately with a handle; the relay runs as a future until
     /// [`UdpPassthrough::shutdown`] (or drop).
@@ -286,8 +286,17 @@ impl UdpPassthrough {
     /// # Errors
     /// Returns the bind error if `listen_addr` cannot be bound, or an error if
     /// the loop cannot be started on the pool.
-    pub fn start(listen_addr: &str, backend_authority: &str) -> std::io::Result<Self> {
-        Self::start_with(listen_addr, backend_authority, PassthroughConfig::default())
+    pub fn start(
+        listen_addr: &str,
+        backend_authority: &str,
+        clock: Arc<dyn Clock>,
+    ) -> std::io::Result<Self> {
+        Self::start_with(
+            listen_addr,
+            backend_authority,
+            PassthroughConfig::default(),
+            clock,
+        )
     }
 
     /// Like [`Self::start`], with explicit limits.
@@ -298,6 +307,7 @@ impl UdpPassthrough {
         listen_addr: &str,
         backend_authority: &str,
         config: PassthroughConfig,
+        clock: Arc<dyn Clock>,
     ) -> std::io::Result<Self> {
         let socket = UdpSocket::bind(listen_addr)?;
         socket.set_nonblocking(true)?;
@@ -308,7 +318,7 @@ impl UdpPassthrough {
         let (done_tx, done_rx) = std::sync::mpsc::channel();
 
         spawn_loop(
-            relay_udp(socket, backend, Arc::clone(&shutdown), config),
+            relay_udp(socket, backend, Arc::clone(&shutdown), config, clock),
             done_tx,
         )?;
 
@@ -343,6 +353,7 @@ async fn relay_udp(
     backend_authority: String,
     shutdown: Arc<OnSignal>,
     config: PassthroughConfig,
+    clock: Arc<dyn Clock>,
 ) {
     let Some(backend) = resolve_first(&backend_authority).await else {
         tracing::error!(backend_addr = %backend_authority, "UDP relay: cannot resolve backend address");
@@ -370,12 +381,12 @@ async fn relay_udp(
             continue;
         }
         // Wait for the response, in slices so shutdown stays responsive.
-        let deadline = Instant::now() + config.udp_response_timeout;
+        let deadline = clock.now() + config.udp_response_timeout;
         let mut responded = false;
-        while !responded && Instant::now() < deadline && !shutdown.probe() {
+        while !responded && clock.now() < deadline && !shutdown.probe() {
             let slice = config
                 .shutdown_poll
-                .min(deadline.saturating_duration_since(Instant::now()));
+                .min(deadline.saturating_duration_since(clock.now()));
             match or_tick(socket.read_with(|s| s.recv_from(&mut buf)), slice).await {
                 None => {}
                 Some(Ok((m, _from))) => {

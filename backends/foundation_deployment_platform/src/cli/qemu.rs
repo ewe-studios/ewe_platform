@@ -2,9 +2,11 @@
 //! These require direct QEMU access (monitor socket, qcow2 manipulation).
 
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::config::{DisplayMode, get_profile};
 use clap::ArgMatches;
+use foundation_core::valtron::Clock;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -17,6 +19,7 @@ fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, 
 /// Attach to an already-running VM via its state file + monitor socket.
 fn attach_running(
     profile: &crate::config::VmProfile,
+    clock: Arc<dyn Clock>,
 ) -> std::result::Result<crate::qemu::QemuVm, BoxedError> {
     let vm_state = crate::state::load(&profile.name).map_err(|e| Box::new(e) as BoxedError)?;
     let pid = vm_state
@@ -37,18 +40,22 @@ fn attach_running(
         pid,
         &monitor,
         resolved,
+        clock,
     )?;
 
     Ok(vm)
 }
 
-pub fn cmd_snapshot(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_snapshot(
+    args: &ArgMatches,
+    clock: Arc<dyn Clock>,
+) -> std::result::Result<(), BoxedError> {
     match args.subcommand() {
         Some(("save", m)) => {
             let name = m.get_one::<String>("profile").unwrap();
             let snap_name = m.get_one::<String>("name").unwrap();
             let profile = resolve_profile(name)?;
-            let mut vm = attach_running(&profile)?;
+            let mut vm = attach_running(&profile, clock)?;
             crate::qemu::snapshot::save(&mut vm, snap_name)?;
             println!("Snapshot '{}' saved for VM '{}'", snap_name, name);
         }
@@ -56,7 +63,7 @@ pub fn cmd_snapshot(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
             let name = m.get_one::<String>("profile").unwrap();
             let snap_name = m.get_one::<String>("name").unwrap();
             let profile = resolve_profile(name)?;
-            let mut vm = attach_running(&profile)?;
+            let mut vm = attach_running(&profile, clock)?;
             crate::qemu::snapshot::load(&mut vm, snap_name)?;
             println!("Restored VM '{}' to snapshot '{}'", name, snap_name);
         }
@@ -64,14 +71,14 @@ pub fn cmd_snapshot(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
             let name = m.get_one::<String>("profile").unwrap();
             let snap_name = m.get_one::<String>("name").unwrap();
             let profile = resolve_profile(name)?;
-            let mut vm = attach_running(&profile)?;
+            let mut vm = attach_running(&profile, clock)?;
             crate::qemu::snapshot::delete(&mut vm, snap_name)?;
             println!("Snapshot '{}' deleted for VM '{}'", snap_name, name);
         }
         Some(("list", m)) => {
             let name = m.get_one::<String>("profile").unwrap();
             let profile = resolve_profile(name)?;
-            let mut vm = attach_running(&profile)?;
+            let mut vm = attach_running(&profile, clock)?;
             let snapshots = crate::qemu::snapshot::list(&mut vm)?;
             if snapshots.is_empty() {
                 println!("No snapshots found for VM '{}'", name);
@@ -157,10 +164,11 @@ pub fn cmd_mount(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 fn wait_for_ssh_ready(
     profile: &crate::config::VmProfile,
     timeout_secs: u64,
+    clock: &dyn Clock,
 ) -> Result<crate::ssh::VmSession, BoxedError> {
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(timeout_secs);
+    let deadline = clock.now() + std::time::Duration::from_secs(timeout_secs);
 
-    while std::time::Instant::now() < deadline {
+    while clock.now() < deadline {
         match crate::ssh::connect(profile) {
             Ok(session) => {
                 return Ok(session);
@@ -325,7 +333,10 @@ fn verify_mount(
 /// Without --daemonize: Start VM, wait for ready, verify mount, keep running
 /// With --daemonize: Start VM in background thread, wait for ready, verify mount,
 ///                   print diagnosis, stop VM
-pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_network(
+    args: &ArgMatches,
+    clock: Arc<dyn Clock>,
+) -> std::result::Result<(), BoxedError> {
     use crate::config::{DisplayMode, GuestOs};
     use crate::providers::default_provider;
     use crate::state;
@@ -400,7 +411,7 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     }
 
     // Launch the VM using the default provider
-    let provider = default_provider()?;
+    let provider = default_provider(Arc::clone(&clock))?;
     let handle = provider.launch(&profile, display)?;
 
     // Save state
@@ -417,7 +428,7 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         rdp_port: handle.resolved_ports.rdp_port,
         vnc_port: handle.resolved_ports.vnc_port,
         bootstrapped: false,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at: crate::clock::wall_now_rfc3339(clock.as_ref()),
     };
     state::save(&vm_state)?;
 
@@ -434,14 +445,17 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         // Create channel for SSH ready signal
         let (ready_tx, ready_rx) = mpsc::channel::<Result<crate::ssh::VmSession, String>>();
         let profile_clone = profile.clone();
+        let ssh_clock = clock;
 
         // Spawn background thread to wait for SSH
-        std::thread::spawn(move || match wait_for_ssh_ready(&profile_clone, 120) {
-            Ok(session) => {
-                let _ = ready_tx.send(Ok(session));
-            }
-            Err(e) => {
-                let _ = ready_tx.send(Err(e.to_string()));
+        std::thread::spawn(move || {
+            match wait_for_ssh_ready(&profile_clone, 120, ssh_clock.as_ref()) {
+                Ok(session) => {
+                    let _ = ready_tx.send(Ok(session));
+                }
+                Err(e) => {
+                    let _ = ready_tx.send(Err(e.to_string()));
+                }
             }
         });
 
@@ -488,7 +502,7 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     // Non-daemonize: wait for SSH in main thread
     println!("\n→ Waiting for VM to be ready...");
-    let mut session = match wait_for_ssh_ready(&profile, 120) {
+    let mut session = match wait_for_ssh_ready(&profile, 120, clock.as_ref()) {
         Ok(session) => {
             println!("✓ SSH connected");
             session
@@ -528,12 +542,12 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     }
 }
 
-pub fn cmd_adopt(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_adopt(args: &ArgMatches, clock: &dyn Clock) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let disk = args.get_one::<String>("disk").unwrap();
     let profile = resolve_profile(name)?;
 
-    let (adopted_profile, disk_path) = crate::qemu::adopt(&profile, Path::new(disk))?;
+    let (adopted_profile, disk_path) = crate::qemu::adopt(&profile, Path::new(disk), clock)?;
     println!(
         "Adopted disk {} as VM '{}'",
         disk_path.display(),
@@ -543,11 +557,14 @@ pub fn cmd_adopt(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     Ok(())
 }
 
-pub fn cmd_refresh_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_refresh_network(
+    args: &ArgMatches,
+    clock: Arc<dyn Clock>,
+) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let profile = resolve_profile(name)?;
 
-    let vm = crate::qemu::refresh_network(&profile, DisplayMode::Headless)?;
+    let vm = crate::qemu::refresh_network(&profile, DisplayMode::Headless, clock)?;
     println!("VM '{}' restarted with fresh ports:", profile.name);
     println!("  SSH: 127.0.0.1:{}", vm.resolved_ports.ssh_port);
     if let Some(p) = vm.resolved_ports.winrm_port {
@@ -557,7 +574,7 @@ pub fn cmd_refresh_network(args: &ArgMatches) -> std::result::Result<(), BoxedEr
     Ok(())
 }
 
-pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_export(args: &ArgMatches, clock: &dyn Clock) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let out = args
         .get_one::<String>("out")
@@ -597,6 +614,6 @@ pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         compression,
     };
 
-    crate::export::export_vm(name, &opts)?;
+    crate::export::export_vm(name, &opts, clock)?;
     Ok(())
 }

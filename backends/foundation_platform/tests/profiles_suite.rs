@@ -1,4 +1,4 @@
-//! Tests for WebView profiles and access gates.
+//! Tests for `WebView` profiles and access gates.
 
 use foundation_platform::*;
 

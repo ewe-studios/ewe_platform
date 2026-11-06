@@ -2312,3 +2312,43 @@ time can still leave an async consumer with nothing to wake it. The old code had
   `Ctx` and on a required struct (`HandlerStorage`), make the struct the source
   and let the `Ctx` value win when present. A second required registration
   makes every host that builds the app by hand panic.
+
+- 2026-11-06 (feature 134): a crate below `foundation_core` cannot take
+  core's `Clock` without a dependency cycle (`foundation_core` depends on
+  `foundation_nostd` and, optionally, `foundation_wasm`). `foundation_nostd`
+  defines its own small `TimeSource` trait for the blocking wait.
+  `foundation_wasm` keeps one `Instant::now()` and marks it with
+  `// time-source:` because its WASI extern-C ABI has no Rust caller that can
+  pass a clock; every timer function gained an `_at` variant instead.
+- 2026-11-06 (feature 134): a selector that blocks in the kernel must compute
+  its EINTR-resume deadline from the operating system's monotonic clock. A
+  simulated clock would make `epoll_wait`/`kevent` return at once or block
+  forever. `foundation_reactor` names `MonotonicClock` explicitly for this
+  boundary, like the executor waits in issue #102. Do not inject a simulated
+  clock into a real blocking wait.
+- 2026-11-06 (feature 134): a time value used only as an ID seed does not need
+  a clock. `foundation_deployment_docker` replaced the timestamp seed in
+  `new_session_id` with a process-wide counter mixed with the process id. The
+  ID is still unique within the process and the read is gone.
+- 2026-11-06 (feature 134): generated code carries the caller's API version.
+  When `WgNode::from_config` and `PlatformSession::new_test` gained a clock,
+  the `#[wireguard_main]` and `#[platform_test]` generators had to change in
+  the same feature. Grep every `quote!` block that calls a changed
+  constructor; a macro crate can compile while its output does not.
+- 2026-11-06 (feature 134): a public API change ripples into test helper
+  modules, not only `src/`. `foundation_testbed/tests/common/mod.rs` and
+  `foundation_ai/tests/tools/*` called the changed constructors. Run
+  `cargo check --workspace` and every changed crate with `--all-targets`.
+- 2026-11-06 (feature 134): read a crate's own version from `[package]` with
+  a TOML parser. Several manifests put `[package]` after the dependency
+  tables, so `grep -m1 '^version'` returns a dependency's version.
+  `foundation_deployment_cloudflare` is 0.2.0, not 0.1.3; it moved to 0.2.1.
+- 2026-11-06 (feature 134): the gate fails on an allowlist entry that matches
+  no read. A phase that fixes a crate must delete its entries in the same
+  change; the count then only falls. The final state is 13 allowlisted reads
+  (the two permanent entries) and 1 marked boundary read.
+- 2026-11-06 (feature 134): editing a shared dependency while other agents
+  build breaks their runs. The `foundation_reactor` selector signature briefly
+  broke `foundation_nativeapis` and `foundation_wireguard` builds. Schedule a
+  shared dependency (reactor, sshkit) after the agents that compile it, or
+  keep the change internal so its public signatures do not move.

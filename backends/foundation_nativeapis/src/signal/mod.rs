@@ -20,6 +20,8 @@ pub use task::SignalTask;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
+use foundation_core::valtron::Clock;
+
 static GLOBAL_BUS_PTR: AtomicU64 = AtomicU64::new(0);
 
 pub(crate) fn set_global_bus(bus: Arc<SignalBus>) {
@@ -33,7 +35,7 @@ pub(crate) fn deliver_signal(kind: SignalKind) {
         let bus: &SignalBus = unsafe { &*(ptr as *const SignalBus) };
         bus.deliver(&SignalEvent {
             kind,
-            timestamp: std::time::Instant::now(),
+            timestamp: bus.clock().now(),
         });
     }
 }
@@ -63,8 +65,10 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
 ///
 /// # Errors
 /// Returns an error if signal registration fails (unsupported platform, OS error).
-pub fn signal_task() -> Result<(SignalTask, std::sync::Arc<SignalBus>), SignalError> {
-    let bus = std::sync::Arc::new(SignalBus::new());
+pub fn signal_task(
+    clock: Arc<dyn Clock>,
+) -> Result<(SignalTask, std::sync::Arc<SignalBus>), SignalError> {
+    let bus = std::sync::Arc::new(SignalBus::new(clock));
     set_global_bus(bus.clone());
     let handle = register_signals()?;
     let task = SignalTask::new(bus.clone(), handle);

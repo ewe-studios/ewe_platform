@@ -24,6 +24,7 @@
 
 pub mod acme;
 pub mod aio;
+mod clock;
 pub mod config;
 pub mod control;
 pub mod forward;

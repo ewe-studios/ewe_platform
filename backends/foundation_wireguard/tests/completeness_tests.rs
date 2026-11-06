@@ -2,11 +2,19 @@
 
 #![cfg(not(target_family = "wasm"))]
 
+use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::WgNode;
 use foundation_wireguard::{wireguard, NetworkId, SeedBits, WgConfig, WgSeed};
 use tracing_test::traced_test;
+
+/// The real clock for this host-level test. Production hosts pass their engine
+/// clock instead; the node never falls back to the global.
+fn test_clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 fn fresh_seed() -> (WgSeed, NetworkId) {
     let seed = WgSeed::generate(SeedBits::Bits256).expect("generate seed");
@@ -18,13 +26,16 @@ fn fresh_seed() -> (WgSeed, NetworkId) {
 #[test]
 fn two_nodes_mutual_discovery() {
     let (seed, net) = fresh_seed();
-    let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net))
+    let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net), test_clock())
         .join()
         .expect("A");
     let a_boot = ha.bootstrap_addr();
-    let hb = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot]))
-        .join()
-        .expect("B");
+    let hb = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), net, vec![a_boot]),
+        test_clock(),
+    )
+    .join()
+    .expect("B");
 
     assert!(
         ha.wait_for_peer(hb.overlay_ip(), Duration::from_secs(5)),
@@ -45,17 +56,23 @@ fn two_nodes_mutual_discovery() {
 #[test]
 fn three_node_gossip_discovery() {
     let (seed, net) = fresh_seed();
-    let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net))
+    let ha = WgNode::from_config(WgConfig::seed(seed.clone(), net), test_clock())
         .join()
         .expect("A");
     let a_boot = ha.bootstrap_addr();
-    let hb = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot]))
-        .join()
-        .expect("B");
+    let hb = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), net, vec![a_boot]),
+        test_clock(),
+    )
+    .join()
+    .expect("B");
     let b_boot = hb.bootstrap_addr();
-    let hc = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![b_boot]))
-        .join()
-        .expect("C");
+    let hc = WgNode::from_config(
+        WgConfig::joiner(seed.clone(), net, vec![b_boot]),
+        test_clock(),
+    )
+    .join()
+    .expect("C");
 
     assert!(
         hc.wait_for_peer(ha.overlay_ip(), Duration::from_secs(5)),
@@ -81,7 +98,7 @@ fn identity_persistence_restart() {
             .identity_path("/tmp/wg_completeness_test_identity.key")
             .build()
             .expect("build");
-        let h = WgNode::from_config(cfg).join().expect("join");
+        let h = WgNode::from_config(cfg, test_clock()).join().expect("join");
         let id = h.identity();
         h.shutdown();
         id
@@ -92,7 +109,9 @@ fn identity_persistence_restart() {
         .identity_path("/tmp/wg_completeness_test_identity.key")
         .build()
         .expect("build");
-    let h2 = WgNode::from_config(cfg2).join().expect("join");
+    let h2 = WgNode::from_config(cfg2, test_clock())
+        .join()
+        .expect("join");
     assert_eq!(path, h2.identity(), "restart rejoined as same identity");
     h2.shutdown();
     let _ = std::fs::remove_file("/tmp/wg_completeness_test_identity.key");
@@ -111,7 +130,7 @@ fn relay_capability_advertised() {
         .relay_idle_timeout_secs(90)
         .build()
         .expect("build");
-    let h = WgNode::from_config(cfg).join().expect("join");
+    let h = WgNode::from_config(cfg, test_clock()).join().expect("join");
     assert!(h.is_relay());
     let m = h.members();
     let s = m.iter().find(|p| p.identity == h.identity()).expect("self");
@@ -182,7 +201,9 @@ fn macro_produces_valid_config() {
     );
 
     // Verify it boots a working node.
-    let handle = WgNode::from_config(config).join().expect("join");
+    let handle = WgNode::from_config(config, test_clock())
+        .join()
+        .expect("join");
     assert!(handle.is_relay(), "macro-built config boots with relay");
     handle.shutdown();
 }

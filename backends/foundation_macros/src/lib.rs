@@ -742,7 +742,6 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
         #vis #sig {
             fn __timeout_callback() #output
             #body
-            let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (sender, receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
             std::thread::spawn(move || {
@@ -757,7 +756,7 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
                     std::panic::resume_unwind(payload);
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    panic!("timeout: the test took {} ms. Max {} ms", __timeout_start.elapsed().as_millis(), #time_ms);
+                    panic!("timeout: the test did not finish within {} ms", #time_ms);
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
                     panic!("timeout: test thread disconnected unexpectedly");
@@ -908,7 +907,7 @@ pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///         },
 ///     },
 /// };
-/// config.start()?;
+/// config.start(::std::sync::Arc::new(::foundation_core::valtron::MonotonicClock::new()))?;
 /// ```
 #[proc_macro]
 pub fn proxy(input: TokenStream) -> TokenStream {

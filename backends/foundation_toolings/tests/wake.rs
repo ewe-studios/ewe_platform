@@ -242,7 +242,12 @@ async fn runner_build_readiness_wakes_on_a_build_complete() {
     let build_queue = EventQueue::<()>::unbounded();
     let pusher = build_queue.clone();
     let running_tx = Arc::new(ConcurrentQueue::<()>::unbounded());
-    let runner = BinaryRunnerTask::new(project_definition(), build_queue, running_tx);
+    let runner = BinaryRunnerTask::new(
+        project_definition(),
+        build_queue,
+        running_tx,
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let ready: EventReadinessPtr = runner.readiness();
     let _ = park_and_trigger("runner build queue", ready, move || {
         pusher.push(()).expect("push");

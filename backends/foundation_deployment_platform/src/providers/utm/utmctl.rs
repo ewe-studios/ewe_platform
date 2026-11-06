@@ -5,7 +5,9 @@
 
 use std::process::Command;
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_core::valtron::Clock;
 
 use crate::config::{Result, TestbedError};
 
@@ -73,7 +75,7 @@ pub fn installed_utm_version() -> Option<String> {
 ///
 /// # Errors
 /// Returns an error if UTM is not installed. Returns an error if utmctl cannot run.
-pub fn ensure_utm() -> Result<Vec<String>> {
+pub fn ensure_utm(clock: &dyn Clock) -> Result<Vec<String>> {
     let mut warnings = Vec::new();
 
     // Check utmctl exists
@@ -105,8 +107,8 @@ pub fn ensure_utm() -> Result<Vec<String>> {
             })?;
 
         // Wait up to 30s for UTM to become responsive
-        let deadline = Instant::now() + Duration::from_secs(30);
-        while Instant::now() < deadline {
+        let deadline = clock.now() + Duration::from_secs(30);
+        while clock.now() < deadline {
             thread::sleep(Duration::from_secs(1));
             if Command::new(UTMCTL)
                 .arg("list")
@@ -325,10 +327,10 @@ pub fn is_vm_running(name: &str) -> Result<bool> {
 ///
 /// # Errors
 /// Returns an error if the VM list cannot be read.
-pub fn wait_for_vm(uuid: &str, timeout_secs: u64) -> Result<bool> {
-    let start = Instant::now();
+pub fn wait_for_vm(uuid: &str, timeout_secs: u64, clock: &dyn Clock) -> Result<bool> {
+    let start = clock.now();
     loop {
-        if start.elapsed().as_secs() > timeout_secs {
+        if clock.now().duration_since(start).as_secs() > timeout_secs {
             return Ok(false);
         }
         if let Ok(vms) = list_vms() {

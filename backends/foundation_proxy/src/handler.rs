@@ -22,9 +22,9 @@
 //! section 9 for the async plan. Responses carry `Connection: close`.
 
 use std::sync::Arc;
-use std::time::Instant;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::valtron::Clock;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingRequest};
 
@@ -41,9 +41,19 @@ use crate::runtime::STICKY_COOKIE;
 use crate::state::ProxyState;
 
 /// Reverse-proxy handler backed by the shared [`ProxyState`].
-#[derive(Debug)]
 pub struct ProxyHandler {
     state: Arc<ProxyState>,
+    /// The host clock the access log duration is measured on.
+    clock: Arc<dyn Clock>,
+}
+
+impl std::fmt::Debug for ProxyHandler {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // The clock has no `Debug`; the shared state is the useful part.
+        f.debug_struct("ProxyHandler")
+            .field("state", &self.state)
+            .finish_non_exhaustive()
+    }
 }
 
 impl ServeFactory for ProxyHandler {
@@ -56,7 +66,8 @@ impl ServeFactory for ProxyHandler {
         let state = bag
             .get::<ProxyState>()
             .expect("ProxyState must be stored in the ContextBag before routing");
-        Self { state }
+        let clock = state.clock().clone();
+        Self { state, clock }
     }
 }
 
@@ -145,7 +156,8 @@ impl Serve for ProxyHandler {
         }
 
         // Access log: method, host, path, status (filled by relay), duration.
-        let log_start = Instant::now();
+        let log_start = self.clock.now();
+        let log_clock = Arc::clone(&self.clock);
         let log_host = host.clone();
         let log_path = path.clone();
         let log_method = method.clone();
@@ -158,7 +170,7 @@ impl Serve for ProxyHandler {
                 path = %log_path,
                 client_ip = %log_ip,
                 user_agent = %log_ua,
-                duration_ms = log_start.elapsed().as_millis(),
+                duration_ms = log_clock.now().duration_since(log_start).as_millis(),
                 "access"
             );
         };

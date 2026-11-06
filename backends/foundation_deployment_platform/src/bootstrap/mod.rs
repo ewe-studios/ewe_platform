@@ -6,8 +6,11 @@
 //!
 //! After bootstrap, nushell is the default execution shell.
 
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+
+use foundation_core::valtron::Clock;
 
 use crate::config::{GuestOs, Result, VmProfile};
 use crate::ssh::VmSession;
@@ -29,11 +32,11 @@ const MACOS_MARKER: &str = "/Users/vagrant/.testbed-bootstrapped";
 
 /// Check if a profile's VM has already been bootstrapped.
 #[must_use]
-pub fn is_bootstrapped(profile: &VmProfile) -> bool {
+pub fn is_bootstrapped(profile: &VmProfile, clock: Arc<dyn Clock>) -> bool {
     match profile.os {
         GuestOs::Windows => {
             // Try WinRM first, fall back to SSH (WinRM may be down after nushell setup)
-            if let Ok(winrm) = WinRM::from_profile(profile) {
+            if let Ok(winrm) = WinRM::from_profile(profile, clock) {
                 let result = winrm.run_ps_quiet(&format!(
                     "if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}"
                 ));
@@ -99,25 +102,25 @@ pub fn bootstrap(
     logger: &BootstrapLogger,
     progress: ProgressCallback<'_>,
 ) -> Result<()> {
-    if is_bootstrapped(profile) {
+    if is_bootstrapped(profile, logger.clock()) {
         logger.message("already bootstrapped, skipping");
         return Ok(());
     }
 
     match profile.os {
         GuestOs::Windows => {
-            let winrm = WinRM::from_profile(profile)?;
+            let winrm = WinRM::from_profile(profile, logger.clock())?;
 
             // Phase 1: WinRM-only (installs OpenSSH)
-            if !is_bootstrapped(profile) {
+            if !is_bootstrapped(profile, logger.clock()) {
                 windows::bootstrap_windows_winrm_phase(profile, &winrm, logger, progress)?;
             }
 
             // Wait for SSH to come up
             thread::sleep(Duration::from_secs(10));
-            let deadline = std::time::Instant::now() + Duration::from_secs(120);
+            let deadline = logger.clock().now() + Duration::from_secs(120);
             loop {
-                if std::time::Instant::now() > deadline {
+                if logger.clock().now() > deadline {
                     return Err(crate::config::TestbedError::BootstrapFailed {
                         step: "wait for SSH".to_string(),
                         message: "timed out waiting for SSH after WinRM bootstrap".to_string(),
@@ -146,7 +149,7 @@ pub fn bootstrap(
     }
 
     // Verify bootstrap succeeded
-    if !is_bootstrapped(profile) {
+    if !is_bootstrapped(profile, logger.clock()) {
         return Err(crate::config::TestbedError::BootstrapFailed {
             step: "verification".to_string(),
             message: "bootstrap marker not found after completion".to_string(),

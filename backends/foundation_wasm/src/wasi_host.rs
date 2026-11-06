@@ -31,12 +31,23 @@ static TIMERS: Mutex<TimerState> = Mutex::new(TimerState::new());
 
 static START_TIME: Mutex<Option<std::time::Instant>> = Mutex::new(None);
 
-fn monotonic_secs() -> f64 {
+/// The host's monotonic time.
+///
+/// The WASI extern-C ABI has no Rust caller to pass a clock, so this is the one
+/// place the real monotonic read stays. Every timer function also has an `_at`
+/// variant that takes the instant from its caller; a host or a test that has a
+/// clock uses that variant.
+fn host_now() -> std::time::Instant {
+    std::time::Instant::now() // time-source: the WASI extern-C ABI has no Rust caller to pass a clock
+}
+
+/// Seconds since the first timer call, measured on `now`.
+fn monotonic_secs_at(now: std::time::Instant) -> f64 {
     let mut guard = START_TIME
         .lock()
         .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
-    let start = *guard.get_or_insert_with(std::time::Instant::now);
-    start.elapsed().as_secs_f64()
+    let start = *guard.get_or_insert(now);
+    now.saturating_duration_since(start).as_secs_f64()
 }
 
 #[cfg(target_family = "wasm")]
@@ -44,7 +55,7 @@ pub fn register_schedule<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: Fn() + 'static,
 {
-    register_schedule_inner(timing_ms, internal_api::register_schedule(f))
+    arm_schedule_at(timing_ms, internal_api::register_schedule(f), host_now())
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -52,7 +63,7 @@ pub fn register_schedule<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: Fn() + Send + Sync + 'static,
 {
-    register_schedule_inner(timing_ms, internal_api::register_schedule(f))
+    arm_schedule_at(timing_ms, internal_api::register_schedule(f), host_now())
 }
 
 /// Run `f` once on the next host tick — the WASI counterpart of the web
@@ -80,7 +91,11 @@ pub fn register_schedule_callback<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: crate::DoTask + 'static,
 {
-    register_schedule_inner(timing_ms, internal_api::register_schedule_callback(f))
+    arm_schedule_at(
+        timing_ms,
+        internal_api::register_schedule_callback(f),
+        host_now(),
+    )
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -88,11 +103,28 @@ pub fn register_schedule_callback<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: crate::DoTask + Send + Sync + 'static,
 {
-    register_schedule_inner(timing_ms, internal_api::register_schedule_callback(f))
+    arm_schedule_at(
+        timing_ms,
+        internal_api::register_schedule_callback(f),
+        host_now(),
+    )
 }
 
-fn register_schedule_inner(timing_ms: f64, id: InternalPointer) -> InternalPointer {
-    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timing_ms as u64);
+/// Register a one-shot timer measured from the caller's `now`.
+pub fn register_schedule_at<F>(timing_ms: f64, f: F, now: std::time::Instant) -> InternalPointer
+where
+    F: Fn() + Send + Sync + 'static,
+{
+    arm_schedule_at(timing_ms, internal_api::register_schedule(f), now)
+}
+
+/// Arm an already-registered callback as a one-shot timer at `now`.
+fn arm_schedule_at(
+    timing_ms: f64,
+    id: InternalPointer,
+    now: std::time::Instant,
+) -> InternalPointer {
+    let deadline = now + std::time::Duration::from_millis(timing_ms as u64);
     TIMERS
         .lock()
         .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
@@ -115,7 +147,7 @@ pub fn register_interval<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: Fn() -> TickState + 'static,
 {
-    register_interval_inner(timing_ms, internal_api::register_interval(f))
+    arm_interval_at(timing_ms, internal_api::register_interval(f), host_now())
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -123,7 +155,7 @@ pub fn register_interval<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: Fn() -> TickState + Send + Sync + 'static,
 {
-    register_interval_inner(timing_ms, internal_api::register_interval(f))
+    arm_interval_at(timing_ms, internal_api::register_interval(f), host_now())
 }
 
 #[cfg(target_family = "wasm")]
@@ -131,7 +163,11 @@ pub fn register_interval_callback<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: crate::IntervalCallback + 'static,
 {
-    register_interval_inner(timing_ms, internal_api::register_interval_callback(f))
+    arm_interval_at(
+        timing_ms,
+        internal_api::register_interval_callback(f),
+        host_now(),
+    )
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -139,10 +175,19 @@ pub fn register_interval_callback<F>(timing_ms: f64, f: F) -> InternalPointer
 where
     F: crate::IntervalCallback + Send + Sync + 'static,
 {
-    register_interval_inner(timing_ms, internal_api::register_interval_callback(f))
+    arm_interval_at(
+        timing_ms,
+        internal_api::register_interval_callback(f),
+        host_now(),
+    )
 }
 
-fn register_interval_inner(timing_ms: f64, id: InternalPointer) -> InternalPointer {
+/// Register a recurring timer measured from the caller's `now`.
+fn arm_interval_at(
+    timing_ms: f64,
+    id: InternalPointer,
+    now: std::time::Instant,
+) -> InternalPointer {
     let period = std::time::Duration::from_millis(timing_ms as u64);
     TIMERS
         .lock()
@@ -152,7 +197,7 @@ fn register_interval_inner(timing_ms: f64, id: InternalPointer) -> InternalPoint
             id,
             IntervalEntry {
                 period,
-                next_fire: std::time::Instant::now() + period,
+                next_fire: now + period,
             },
         );
     id
@@ -174,8 +219,11 @@ pub fn unregister_interval(id: InternalPointer) {
 /// The WASI host (or the guest's own main loop) should call this
 /// periodically. For blocking operation, use [`poll_blocking`] instead.
 pub fn tick() -> TickState {
-    let now = std::time::Instant::now();
+    tick_at(host_now())
+}
 
+/// Fire the timers that are due at `now`.
+pub fn tick_at(now: std::time::Instant) -> TickState {
     // -- One-shot timeouts --
     // Collect expired IDs under the lock, then drop before firing callbacks
     // (callbacks may re-register timers, which would deadlock if held).
@@ -209,7 +257,6 @@ pub fn tick() -> TickState {
     }
 
     // -- Recurring intervals --
-    let now = std::time::Instant::now();
     let due: Vec<InternalPointer> = {
         let timers = TIMERS
             .lock()
@@ -230,7 +277,6 @@ pub fn tick() -> TickState {
     }
 
     {
-        let now = std::time::Instant::now();
         let mut timers = TIMERS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
@@ -248,7 +294,7 @@ pub fn tick() -> TickState {
     }
 
     // -- Animation frames (monotonic timestamp in seconds) --
-    internal_api::run_animation_frames(monotonic_secs());
+    internal_api::run_animation_frames(monotonic_secs_at(now));
 
     // -- Check if work remains --
     let timers = TIMERS
@@ -265,7 +311,11 @@ pub fn tick() -> TickState {
 /// Returns the duration until the next timer fires, or `None` when idle.
 /// The WASI host can use this to sleep efficiently between ticks.
 pub fn time_until_next_event() -> Option<std::time::Duration> {
-    let now = std::time::Instant::now();
+    time_until_next_event_at(host_now())
+}
+
+/// The duration until the next timer fires at `now`, or `None` when idle.
+pub fn time_until_next_event_at(now: std::time::Instant) -> Option<std::time::Duration> {
     let timers = TIMERS
         .lock()
         .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);

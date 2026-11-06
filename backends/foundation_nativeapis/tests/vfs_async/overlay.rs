@@ -6,10 +6,17 @@ use foundation_nativeapis::shared::vfs::{
 };
 
 fn overlay_with_base_dir() -> OverlayFileSystem<MemoryFs, MemoryDelta> {
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.mkdir_all("/src/deep").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
-    OverlayFileSystem::new(base, MemoryDelta::new())
+    OverlayFileSystem::new(
+        base,
+        MemoryDelta::new(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
+    )
 }
 
 /// Bug fix: a directory handle held raw pointers to the layers, so it was a

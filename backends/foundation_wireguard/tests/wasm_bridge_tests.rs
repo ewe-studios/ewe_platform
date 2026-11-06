@@ -1,4 +1,4 @@
-//! Browser-peer bridge tests: JsDevice smoltcp Device impl, WsRelayClient, BrowserWgNode tick (F07).
+//! Browser-peer bridge tests: `JsDevice` smoltcp Device impl, `WsRelayClient`, `BrowserWgNode` tick (F07).
 
 #![cfg(not(target_family = "wasm"))]
 

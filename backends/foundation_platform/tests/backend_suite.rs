@@ -1,4 +1,4 @@
-//! Tests for backend query dispatch through BackendTransport.
+//! Tests for backend query dispatch through `BackendTransport`.
 
 use foundation_platform::backend::TestTransport;
 use foundation_platform::*;

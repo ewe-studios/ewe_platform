@@ -7,6 +7,7 @@
 
 use std::path::PathBuf;
 
+use foundation_core::valtron::Clock;
 use serde::{Deserialize, Serialize};
 
 use crate::config::{Result, TestbedError};
@@ -180,6 +181,7 @@ pub fn from_runtime(
     rdp_port: Option<u16>,
     vnc_port: u16,
     bootstrapped: bool,
+    clock: &dyn Clock,
 ) -> VmState {
     VmState {
         profile_name: profile_name.to_string(),
@@ -193,11 +195,7 @@ pub fn from_runtime(
         rdp_port,
         vnc_port,
         bootstrapped,
-        created_at: format!(
-            "{}T{}",
-            chrono::Utc::now().date_naive(),
-            chrono::Utc::now().time()
-        ),
+        created_at: crate::clock::wall_now_date_time(clock),
     }
 }
 
@@ -213,6 +211,7 @@ pub fn from_qemu(
     rdp_port: Option<u16>,
     vnc_port: u16,
     bootstrapped: bool,
+    clock: &dyn Clock,
 ) -> VmState {
     VmState {
         profile_name: profile_name.to_string(),
@@ -226,11 +225,7 @@ pub fn from_qemu(
         rdp_port,
         vnc_port,
         bootstrapped,
-        created_at: format!(
-            "{}T{}",
-            chrono::Utc::now().date_naive(),
-            chrono::Utc::now().time()
-        ),
+        created_at: crate::clock::wall_now_date_time(clock),
     }
 }
 

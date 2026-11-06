@@ -35,7 +35,12 @@ fn test_vfs_dir_entry_roundtrip() {
 
 #[test]
 fn test_vfs_metadata_roundtrip() {
-    let meta = VfsMetadata::new_file(1, 42, 0o644);
+    let meta = VfsMetadata::new_file(
+        1,
+        42,
+        0o644,
+        &*std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let batch = meta.to_arrow().expect("to_arrow failed");
     let encoded = encode_ipc(&batch).expect("encode failed");
     let decoded = decode_ipc(&encoded).expect("decode failed");

@@ -14,7 +14,13 @@ fn init_pool() -> PoolGuard {
 
 /// Create a `SyncFs<TursoDelta>` over an in-memory database.
 fn make_sync_turso() -> SyncFs<TursoDelta> {
-    let delta = exec_async(async move { TursoDelta::in_memory().await }).unwrap();
+    let delta = exec_async(async move {
+        TursoDelta::in_memory(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        ))
+        .await
+    })
+    .unwrap();
     SyncFs::new(delta)
 }
 
@@ -131,7 +137,14 @@ fn syncfs_turso_file_persistence() {
 
     {
         let db_path = path.clone();
-        let delta = exec_async(async move { TursoDelta::new(db_path).await }).unwrap();
+        let delta = exec_async(async move {
+            TursoDelta::new(
+                db_path,
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .await
+        })
+        .unwrap();
         let sync = SyncFs::new(delta);
         sync.create("/persist.txt", 0o644).unwrap();
         sync.write_file("/persist.txt", b"persisted").unwrap();
@@ -140,7 +153,14 @@ fn syncfs_turso_file_persistence() {
 
     {
         let db_path = path.clone();
-        let delta = exec_async(async move { TursoDelta::new(db_path).await }).unwrap();
+        let delta = exec_async(async move {
+            TursoDelta::new(
+                db_path,
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            )
+            .await
+        })
+        .unwrap();
         let sync = SyncFs::new(delta);
         assert_eq!(sync.read_file("/persist.txt").unwrap(), b"persisted");
     }

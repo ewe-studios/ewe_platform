@@ -95,6 +95,17 @@ impl std::fmt::Debug for Selector {
     }
 }
 
+/// The real monotonic clock for the kernel wait arithmetic.
+///
+/// The selector blocks in the operating system, so the deadline it recomputes
+/// after an interrupt must use the operating system's monotonic clock. A
+/// simulated clock would break the real block. This is the same boundary as
+/// the executor's blocking waits (GitHub issue #102).
+fn os_now() -> Instant {
+    use foundation_core::valtron::Clock as _;
+    foundation_core::valtron::MonotonicClock::new().now()
+}
+
 impl Selector {
     const DEFAULT_ENTRIES: u32 = 256;
 
@@ -448,17 +459,16 @@ impl Selector {
     /// # Panics
     /// Panics if an internal lock is poisoned.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let deadline = timeout.map(|d| Instant::now() + d);
+        let deadline = timeout.map(|d| os_now() + d);
 
         loop {
-            let remaining =
-                deadline.map(|deadline| deadline.saturating_duration_since(Instant::now()));
+            let remaining = deadline.map(|deadline| deadline.saturating_duration_since(os_now()));
             if self.wait_for_completion(remaining)? == WaitOutcome::Expired {
                 break;
             }
             // A caught signal cut the wait short. Run out the clock instead of
             // reporting a timeout the caller did not ask for.
-            if deadline.is_none_or(|deadline| Instant::now() < deadline) {
+            if deadline.is_none_or(|deadline| os_now() < deadline) {
                 continue;
             }
             break;

@@ -7,11 +7,11 @@
 //! WHAT: `SessionTransport` implements `BackendTransport` using the live
 //! platform session. `dispatch_ipc()` routes through the IPC registry;
 //! `fetch_remote()` uses the shared `HttpBackend`; `signal_webview()`
-//! evaluates JS in the active WebView.
+//! evaluates JS in the active `WebView`.
 //!
 //! HOW: Holds an `Arc<PlatformSession>` — cheap to clone, shared across
 //! all subsystems. The session provides the registry, HTTP backend, and
-//! WebView eval access.
+//! `WebView` eval access.
 
 use std::sync::Arc;
 
@@ -32,7 +32,7 @@ use crate::session::PlatformSession;
 /// - `fetch_remote(route)` → uses `session.http_backend().fetch()` to
 ///   make a real HTTP request. Auth tokens are injected from session state.
 /// - `signal_webview(route)` → returns a JSON signal envelope. The
-///   caller (or platform shell) evaluates it in the WebView.
+///   caller (or platform shell) evaluates it in the `WebView`.
 pub struct SessionTransport {
     session: Arc<PlatformSession>,
 }

@@ -25,7 +25,10 @@ const CLIENT_IP: &str = "10.9.0.1";
 const SERVER_PORT: u16 = 8080;
 
 fn stack(ip: &str) -> NetStack {
-    NetStack::new(NetStackConfig::new(ip.parse().expect("ip"), 24))
+    NetStack::new(
+        NetStackConfig::new(ip.parse().expect("ip"), 24),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
 }
 
 fn server_addr() -> SocketAddr {
@@ -322,6 +325,7 @@ fn netstack_listener_queues_connections_made_before_accept() {
 fn netstack_listener_backlog_limit_refuses_then_recovers() {
     let mut server = NetStack::new(
         NetStackConfig::new(SERVER_IP.parse().expect("ip"), 24).with_listen_backlog(1),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
     let mut client = stack(CLIENT_IP);
     let mut listener = server.tcp_listen(server_addr()).expect("listen");

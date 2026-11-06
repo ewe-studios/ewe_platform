@@ -7,7 +7,7 @@
 //! The heartbeat is reported via the `progress` callback every ~15 seconds.
 
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use tracing::{debug, trace, warn};
 
 use crate::config::{Result, TestbedError};
@@ -35,10 +35,7 @@ pub type ProgressCallback<'a> = Option<&'a dyn Fn(&str)>;
 pub fn run_interactive(winrm: &WinRM, ps_code: &str, user: &str) -> Result<()> {
     let task_name = format!(
         "FoundationTestbed_Interactive_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
+        crate::clock::wall_now_millis(winrm.clock()),
     );
     let script_path = format!("C:\\testbed-interactive-{task_name}.ps1");
 
@@ -117,13 +114,7 @@ pub fn run_elevated(
 ) -> Result<()> {
     const CHUNK_SIZE: usize = 1500;
     // Unique sentinel per invocation — avoids false positives from previous runs
-    let sentinel_id = format!(
-        "{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis()
-    );
+    let sentinel_id = format!("{}", crate::clock::wall_now_millis(winrm.clock()));
     let sentinel_path = format!("C:\\bootstrap-sentinel-{sentinel_id}.done");
     let heartbeat_path = "C:\\bootstrap-heartbeat.txt";
     let error_log = "C:\\bootstrap-step-error.log";
@@ -296,12 +287,13 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
     }
 
     // Poll for unique sentinel file, checking heartbeat for liveness
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
-    let mut last_heartbeat = Instant::now();
+    let start = winrm.clock().now();
+    let deadline = start + Duration::from_secs(timeout_secs);
+    let mut last_heartbeat = start;
     let mut poll_count: u64 = 0;
     let mut last_error_log_size: u64 = 0;
     let mut last_transcript_size: u64 = 0;
-    while Instant::now() < deadline {
+    while winrm.clock().now() < deadline {
         thread::sleep(Duration::from_secs(5));
         poll_count += 1;
 
@@ -378,10 +370,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         {
             debug!(
                 "run_elevated: script completed after {:?}",
-                deadline
-                    .checked_sub(Duration::from_secs(timeout_secs))
-                    .unwrap()
-                    .elapsed()
+                winrm.clock().now().duration_since(start)
             );
             // Check for errors — fail if error log exists and has content
             // Use file size check to avoid CLIXML wrapper issues
@@ -490,12 +479,12 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         if let Ok(ref h) = hb
             && h.stdout.contains("HB_OK")
         {
-            last_heartbeat = Instant::now();
+            last_heartbeat = winrm.clock().now();
         }
 
         // Report progress every 15 seconds (3 polls)
         if poll_count.is_multiple_of(3) {
-            let hb_age = last_heartbeat.elapsed().as_secs();
+            let hb_age = winrm.clock().now().duration_since(last_heartbeat).as_secs();
             let msg = if hb_age < 15 {
                 format!("♥ alive ({hb_age}s since heartbeat)")
             } else {

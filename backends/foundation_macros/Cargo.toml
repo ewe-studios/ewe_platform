@@ -1,6 +1,6 @@
 [package]
 name = "foundation_macros"
-version = "0.0.8"
+version = "0.0.9"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,7 +14,7 @@ readme = "README.md"
 proc-macro = true
 
 [dependencies]
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
 # Shared theme CSS generator — called at macro-expansion time so theme!{} and
 # #[derive(ThemeTokens)] embed identical, runtime-generated CSS.
 foundation_theme = { path = "../foundation_theme", version = "0.0.3" }

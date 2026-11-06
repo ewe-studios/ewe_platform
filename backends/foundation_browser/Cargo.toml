@@ -1,6 +1,6 @@
 [package]
 name = "foundation_browser"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,12 +14,13 @@ keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
 # `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
 # (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
 foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["multi"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
 # bundled localhost dev cert — for testing secure-context features.
 foundation_http = { path = "../foundation_http", version = "0.0.6", features = ["ssl-rustls-ring"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.5" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.9" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.6" }
 # embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we
 # serve <mount-stream> without a build step.
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.1", features = ["embedded-js"] }
@@ -37,6 +38,10 @@ zeroize = "1"
 # Integration tests that require a real Chromium binary opt into this so CI
 # without a browser skips them.
 browser-tests = []
+
+[dev-dependencies]
+# `test-clock` supplies `SimulatedClock` for the injection test.
+foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["test-clock"] }
 
 [lints]
 workspace = true

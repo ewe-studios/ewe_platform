@@ -12,18 +12,56 @@
 //! 9. Post-render (page identity tracking)
 //!
 //! EVERY subsystem gets exercised. No mocks — every component is the
-//! real implementation: PlatformSession, PatternRouter, CacheManager,
-//! MutationQueue, CapabilityRegistry, ProfileGate, WebViewStack.
+//! real implementation: `PlatformSession`, `PatternRouter`, `CacheManager`,
+//! `MutationQueue`, `CapabilityRegistry`, `ProfileGate`, `WebViewStack`.
 
 use std::sync::Arc;
 
+use foundation_platform::capability::PlatformCapability;
 use foundation_platform::*;
+use foundation_wasm::{
+    CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
+};
+
+/// A capability the registry test registers.
+struct GreetCap;
+
+impl WasmCapability for GreetCap {
+    fn name(&self) -> &'static str {
+        "greet"
+    }
+    fn invoke_capability(
+        &self,
+        request: &CapabilityRequest<Vec<u8>>,
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+        let action = &request.action;
+        let payload = format!("hello, {action}");
+        Ok(CapabilityResponse {
+            capability: request.capability.clone(),
+            action: request.action.clone(),
+            payload: payload.into_bytes(),
+            content_type: request.content_type,
+        })
+    }
+}
+
+impl PlatformCapability for GreetCap {
+    fn capability_id(&self) -> &CapabilityId {
+        Box::leak(Box::new(CapabilityId("greet".into())))
+    }
+    fn min_profile(&self) -> Profile {
+        Profile::App
+    }
+}
 
 // ── Full session bootstrap ──────────────────────────────────────────
 
 #[test]
 fn session_bootstraps_with_all_subsystems() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // All subsystems are immediately available
     let _cache = session.cache();
@@ -40,7 +78,10 @@ fn session_bootstraps_with_all_subsystems() {
 
 #[test]
 fn route_through_handler_chain_with_protocol_selection() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Step 1-2: Register routes and resolve
     session.route("/app/*", webview_app().with_profile(Profile::App));
@@ -73,7 +114,10 @@ fn route_through_handler_chain_with_protocol_selection() {
 
 #[test]
 fn cache_serves_cached_content_with_correct_policy() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Cache a response for /cached/data
     session.cache().store(
@@ -115,7 +159,10 @@ fn cache_serves_cached_content_with_correct_policy() {
 
 #[test]
 fn cache_is_profile_scoped() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     session
         .cache()
@@ -142,41 +189,10 @@ fn cache_is_profile_scoped() {
 
 #[test]
 fn capability_invocation_through_registry() {
-    use foundation_platform::capability::PlatformCapability;
-    use foundation_wasm::{
-        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse,
-        WasmCapability,
-    };
-
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-
-    struct GreetCap;
-    impl WasmCapability for GreetCap {
-        fn name(&self) -> &str {
-            "greet"
-        }
-        fn invoke_capability(
-            &self,
-            request: &CapabilityRequest<Vec<u8>>,
-        ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
-            let action = &request.action;
-            let payload = format!("hello, {action}");
-            Ok(CapabilityResponse {
-                capability: request.capability.clone(),
-                action: request.action.clone(),
-                payload: payload.into_bytes(),
-                content_type: request.content_type,
-            })
-        }
-    }
-    impl PlatformCapability for GreetCap {
-        fn capability_id(&self) -> &CapabilityId {
-            Box::leak(Box::new(CapabilityId("greet".into())))
-        }
-        fn min_profile(&self) -> Profile {
-            Profile::App
-        }
-    }
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     session.capabilities().register(GreetCap);
 
@@ -206,7 +222,10 @@ fn capability_invocation_through_registry() {
 
 #[test]
 fn mutation_queue_enqueue_and_replay() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Enqueue mutations while "offline"
     session.set_online(false);
@@ -290,7 +309,10 @@ fn webview_stack_navigation_flow() {
 
 #[test]
 fn session_events_notify_listeners() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     let fired = Arc::new(std::sync::atomic::AtomicBool::new(false));
     let f = fired.clone();
     session.on_event(move |_| {
@@ -306,7 +328,10 @@ fn session_events_notify_listeners() {
 
 #[test]
 fn full_execution_contract_walking_skeleton() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Step 1: Navigation interception — simulate a link click
     // (in production: Tauri's on_navigation fires, constructs NavigationIntent)

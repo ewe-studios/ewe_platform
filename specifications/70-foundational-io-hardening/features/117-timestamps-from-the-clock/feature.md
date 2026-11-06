@@ -1,6 +1,6 @@
 ---
 feature: "Every timestamp comes from the injected `Clock`"
-status: "pending"
+status: "done"
 lane: "after 115"
 model: "sonnet"
 branch: "spec70/f117-timestamps-from-the-clock"
@@ -297,4 +297,11 @@ Closed after review:
   reading would make the test depend on the machine's date. The backlog §2 entry
   is deleted, and the first step of feature 132 is removed.
 - CI is not run here. The pull-request CI proves the two crates.
+
+Phase D (feature 134) is done on 2026-11-06. The gate allowlist holds only the
+two permanent entries, `backends/foundation_compact/src/` and
+`backends/foundation_core/src/valtron/ctx.rs`. The gate reports 14 direct reads
+in 8 files: 13 allowlisted, 1 marked at the WASI extern-C boundary, 0
+violations. The umbrella completion criterion is met. GitHub CI runs when the
+change is pushed.
 

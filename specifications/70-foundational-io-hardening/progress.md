@@ -2459,3 +2459,35 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   guard while every later test waited at the gate. The adapter now takes the
   storage clock, with a bag clock still winning when a host stores one. The
   full suite passes: 244 tests, exit 0. Issue #216 is closed.
+
+- 2026-11-06: feature 134 done (`spec70/priority-followups`). Phase D removes
+  every first-party direct time read from the platform crates. Per crate,
+  before -> after: `foundation_deployment_platform` 65 -> 0,
+  `foundation_nativeapis` 32 -> 0, `foundation_wireguard` 26 -> 0,
+  `foundation_proxy` 15 -> 0, `foundation_toolings` 7 -> 0,
+  `foundation_browser` 6 -> 0, `foundation_platform` 5 -> 0,
+  `foundation_deployment` 6 -> 0, `foundation_reactor` 9 -> 0,
+  `foundation_wasm` 7 -> 1 marked, `foundation_deployment_cloudflare` 2 -> 0,
+  `foundation_deployment_docker` 2 -> 0, `foundation_deployment_hetzner`
+  1 -> 0, `foundation_macros` 2 -> 0, `foundation_sshkit` 2 -> 0,
+  `foundation_codegentools` 1 -> 0, `foundation_conditional` 1 -> 0,
+  `foundation_nostd` 1 -> 0, `foundation_repl` 1 -> 0,
+  `foundation_testing` 1 -> 0. The gate reports **14 direct reads in 8 files:
+  13 allowlisted, 1 marked, 0 violations**. The allowlist holds only
+  `backends/foundation_compact/src/` and
+  `backends/foundation_core/src/valtron/ctx.rs`; the 79 phase D entries are
+  deleted. The one marked read is the WASI extern-C ABI boundary in
+  `foundation_wasm/src/wasi_host.rs`; every timer function also has an `_at`
+  variant that takes the instant, and the test uses it. Issues #215 (the
+  deployment `MonotonicClock` shortcut) is fixed: `ProviderClient` now carries
+  `Arc<dyn Clock>` and the Docker and Hetzner deployables use it. Versions:
+  deployment 0.0.4, deployment_platform 0.1.4, cloudflare 0.2.1, hetzner
+  0.1.4, nativeapis 0.0.8, wireguard 0.0.5, proxy 0.1.8, platform 0.0.3,
+  toolings 0.0.6, browser 0.0.5, sshkit 0.1.4, testing 0.0.5, repl 0.2.3,
+  nostd 0.0.7, wasm 0.0.6, codegentools 0.1.4, macros 0.0.9; 101 manifests
+  change and `Cargo.lock` is refreshed once. Injection tests exist for every
+  crate that gained a clock; the platform, nativeapis, wireguard, toolings
+  and browser old-code runs are recorded in the feature Result. The reactor
+  keeps the real monotonic clock at its kernel wait boundary (same boundary
+  as #102). Findings left for GitHub issues are listed in the feature Result.
+  Next: the umbrella feature 117 is complete; close it after CI.

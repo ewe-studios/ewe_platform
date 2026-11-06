@@ -21,11 +21,11 @@
 use std::net::TcpStream;
 use std::sync::Arc;
 use std::thread::JoinHandle;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{block_on_future, sleep_async};
+use foundation_core::valtron::{block_on_future, sleep_async, Clock};
 use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl,
@@ -120,13 +120,14 @@ impl HealthMonitor {
 ///
 /// Returns a [`HealthMonitor`]; the threads run until `shutdown` is turned on.
 /// A service without a `health_check` config spawns nothing — its backends stay
-/// at their initial healthy state.
+/// at their initial healthy state. `clock` times the wait between two probes.
 #[must_use]
 // The shutdown handle is cloned into every probe handle.
 #[allow(clippy::needless_pass_by_value)]
 pub fn spawn_service_probes(
     service: &Arc<ServiceRuntime>,
     shutdown: Arc<ShutdownSignal>,
+    clock: Arc<dyn Clock>,
 ) -> HealthMonitor {
     let Some(config) = service.config().health_check.clone() else {
         return HealthMonitor {
@@ -146,11 +147,12 @@ pub fn spawn_service_probes(
         let config = config.clone();
         let client = client.clone();
         let shutdown = Arc::clone(&shutdown);
+        let clock = Arc::clone(&clock);
         // Kept: a dedicated thread per backend (not per request). The probe
         // uses the blocking `DynNetClient`, so it is a real blocking boundary
         // that must not run on a pool worker.
         let handle = std::thread::spawn(move || {
-            probe_loop(&backend, &config, &client, &shutdown);
+            probe_loop(&backend, &config, &client, &shutdown, clock.as_ref());
         });
         handles.push(handle);
     }
@@ -163,6 +165,7 @@ fn probe_loop(
     config: &HealthCheckConfig,
     client: &DynNetClient,
     shutdown: &Arc<ShutdownSignal>,
+    clock: &dyn Clock,
 ) {
     let mut state = ProbeState::new(
         config.healthy_threshold,
@@ -186,7 +189,7 @@ fn probe_loop(
         }
 
         // Sleep the interval in small slices so shutdown is responsive.
-        if !sleep_interruptible(config, shutdown) {
+        if !sleep_interruptible(config, shutdown, clock) {
             return;
         }
     }
@@ -443,15 +446,19 @@ fn join_url(base_url: &str, path: &str) -> String {
 /// Sleep `config.interval` in slices of `config.shutdown_check_millis`,
 /// returning `false` if shutdown fired. Runs on the dedicated probe thread (a
 /// blocking boundary), never on a pool worker.
-fn sleep_interruptible(config: &HealthCheckConfig, shutdown: &Arc<ShutdownSignal>) -> bool {
-    let total = config.interval;
+fn sleep_interruptible(
+    config: &HealthCheckConfig,
+    shutdown: &Arc<ShutdownSignal>,
+    clock: &dyn Clock,
+) -> bool {
     let slice = Duration::from_millis(config.shutdown_check_millis.max(1));
-    let start = Instant::now();
-    while start.elapsed() < total {
+    let deadline = clock.now() + config.interval;
+    while clock.now() < deadline {
         if shutdown.probe() {
             return false;
         }
-        std::thread::sleep(slice.min(total.saturating_sub(start.elapsed())));
+        let remaining = deadline.saturating_duration_since(clock.now());
+        std::thread::sleep(slice.min(remaining));
     }
     true
 }

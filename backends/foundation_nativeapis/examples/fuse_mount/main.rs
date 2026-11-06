@@ -23,15 +23,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== FUSE Mount Example ===\n");
 
     // Build a MemoryFs as the base with some initial content
-    let base = MemoryFs::new();
+    let base = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
     base.write_file("/hello.txt", b"Hello from FUSE!\n")?;
     base.write_file("/readme.md", b"This is a FUSE-mounted MemoryFs.\n")?;
     base.mkdir_all("/src")?;
     base.write_file("/src/main.rs", b"fn main() { println!(\"Hello\"); }")?;
 
     // Create a writable overlay with MemoryDelta
-    let overlay: OverlayFileSystem<MemoryFs, MemoryDelta> =
-        OverlayFileSystem::new(base, MemoryDelta::new());
+    let overlay: OverlayFileSystem<MemoryFs, MemoryDelta> = OverlayFileSystem::new(
+        base,
+        MemoryDelta::new(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
+    );
 
     println!("Virtual filesystem ready:");
     println!("  /hello.txt     (42 bytes)");
@@ -51,7 +57,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // FUSE calls the file system synchronously, so the async overlay goes
         // in through `SyncFs`.
-        let fuse = FuseMount::new(SyncFs::new(overlay), FuseMountOptions::default());
+        let fuse = FuseMount::new(
+            SyncFs::new(overlay),
+            FuseMountOptions::default(),
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        );
         // In a real scenario this would block until unmount:
         // fuse.mount(&mount_point)?;
         println!("FUSE mount would start here. Full implementation requires:");

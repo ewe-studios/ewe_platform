@@ -10,7 +10,7 @@ fn webview_app_sets_correct_defaults() {
     assert_eq!(d.presentation, Presentation::Morph);
     assert!(d.native_view_id.is_none());
     assert!(d.target.is_none());
-    assert!(d.capabilities.is_empty());
+    assert_eq!(d.capabilities, [] as [foundation_platform::CapabilityId; 0]);
 }
 
 #[test]
@@ -100,7 +100,7 @@ fn mobile_directory_serves_app_index_html() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/platform_android/src-tauri/public");
     let location = root.join(&file);
-    assert!(location.exists(), "expected file at {:?}", location);
+    assert!(location.exists(), "expected file at {location:?}");
 
     let data = std::fs::read(&location).unwrap();
     let body = String::from_utf8_lossy(&data);
@@ -129,7 +129,7 @@ fn mobile_directory_serves_app_bundle_js() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/platform_android/src-tauri/public");
     let location = root.join(&file);
-    assert!(location.exists(), "expected file at {:?}", location);
+    assert!(location.exists(), "expected file at {location:?}");
 
     let data = std::fs::read(&location).unwrap();
     assert!(!data.is_empty(), "bundle.js should not be empty");

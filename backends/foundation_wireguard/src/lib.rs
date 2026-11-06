@@ -1,7 +1,7 @@
-//! `foundation_wireguard` — a userspace WireGuard® mesh (spec-55).
+//! `foundation_wireguard` — a userspace `WireGuard`® mesh (spec-55).
 //!
 //! WHY: Let any EWE service stand up a private, encrypted mesh from a single bootstrap
-//! secret and let other services join it — over WireGuard, entirely in userspace (no
+//! secret and let other services join it — over `WireGuard`, entirely in userspace (no
 //! kernel module, no privileges in the default mode), across native/wasm/mobile.
 //!
 //! WHAT: This crate is the **top combiner**. It wraps `boringtun`'s Noise state machine
