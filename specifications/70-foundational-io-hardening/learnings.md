@@ -2,6 +2,32 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 125, the H2 client pump):
+  - **Clear reactor readiness before an attempt, never after it.** The `FdReadiness`
+    module doc and `foundation_http`'s h2 server (`arm_wakers`) clear at the start of a
+    turn. A clear after `WouldBlock` can erase an edge that arrived during the attempt
+    and lose the wake. A clear before can only cause a spurious wake, which the next
+    read resolves.
+  - **Read until `WouldBlock` before parking.** The h2 channel can answer `WouldBlock`
+    with bytes still in the kernel: the read took 8 KiB and a frame needs more. Parking
+    there after clearing loses the edge. Guard every park with "if this turn read bytes,
+    continue".
+  - **A park must include a wake for every liveness check in the turn.** The pump checks
+    `head_tx.is_closed()` and `body_tx.is_closed()` to abort a cancelled call. A parked
+    task never runs those checks: without a close wake, a cancelled gRPC call left the
+    pump parked and never sent `RST_STREAM`
+    (`client_cancel_resets_the_stream_on_the_server` failed 3/3). `QueueVacancyReadiness`
+    is not a close signal, because an empty pipe is "not full". The close-only adapter
+    shares the pipe's vacancy notifier, so a consumer pop still wakes the pump; the
+    readiness filter stops a spin, and the cost is one extra poll per delivered chunk.
+    A dedicated close notifier on `PipeSender` would remove it.
+  - **Arm write interest only when a write comes up short.** Arming it before every write
+    latches WRITABLE on an always-writable socket; the next park is already ready, logs
+    `[DEPENDS] already-ready signal`, and costs one extra poll per turn. Arm it in the
+    `WouldBlock` arm, and drop it when `pending_out` drains.
+  - Measured pump turns: idle 200 ms handshake = 2 (old `Delayed(10 ms)`: 18-19); 300 ms
+    delayed body = 5 (old: 29).
+
 - 2026-11-06 (feature 121, the proxy stall):
   - **A blocking read inside a valtron task freezes the whole worker.** A task's
     `next_status` runs on a worker that also hosts other tasks. If it calls a

@@ -40,6 +40,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   class that feature 121 removed from the response-body read. Fix: dial without
   blocking and park on write readiness, or move the dial to a boundary thread.
   Found in feature 121.
+- **A producing `Pipe<T>` has no close-only readiness.** Files
+  `foundation_core/src/valtron/pipe.rs` and
+  `foundation_connectrpc/src/native/transport/h2.rs`. A task that produces into a
+  pipe and parks cannot wait for "the receiver was dropped" without also being
+  woken by every consumer pop: `PipeSender::vacancy` is ready on "not full",
+  which is true for any pipe with room. The H2 pump's `ReceiverGone` adapter
+  filters that readiness to the close case, so it does not spin, but each
+  consumer pop still costs it one extra poll. Fix: add
+  `PipeSender::closed_readiness()` backed by its own `ReadinessNotifier` and
+  notified by `close_queue`. Found in feature 125.
 
 ## 2. foundation_netio
 

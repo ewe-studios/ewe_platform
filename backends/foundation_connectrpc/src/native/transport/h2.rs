@@ -6,17 +6,25 @@
 //!
 //! WHAT: [`H2Transport`] wraps nothing — it is a stateless factory. The pump
 //! ([`H2Pump`]) is a [`TaskIterator`] that owns a non-blocking `TcpStream` and an
-//! [`H2Channel`]. Each poll: read fd bytes → feed channel → step → drain output →
-//! write fd. On `WouldBlock` it yields `TaskStatus::Delayed` so the valtron
-//! executor re-polls without busy-spinning.
+//! [`H2Channel`]. Each turn: read fd bytes → feed channel → step → drain output →
+//! write fd. When there is nothing to do it parks on `TaskStatus::Depends`: the
+//! socket's reactor readiness, the request-body queue and its own deadline. The
+//! valtron executor then stops polling it until a real event arrives.
 //!
 //! HOW: Pattern matches `H1Transport` — `valtron::send(pump)` spawns the task
 //! on the pool; the caller gets `TransportStream { send_body, head, recv_body }`
 //! and drains response bytes from the pipe handles.
+//!
+//! `TaskStatus::Delayed` remains only as the fallback for a platform or a
+//! process where `FdReadiness::register` fails, so the pump still makes
+//! progress without a reactor.
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
 use std::net::TcpStream;
+#[cfg(unix)]
+use std::os::unix::io::{AsRawFd, RawFd};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -24,18 +32,40 @@ use bytes::Bytes;
 use foundation_core::valtron::{
     self, Ctx, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
 };
+#[cfg(unix)]
+use foundation_core::valtron::{
+    AnyReadiness, EventReadiness, EventReadinessPtr, QueueVacancyReadiness, ReadinessWaker,
+};
 use foundation_netio::http2::channel::{H2Channel, H2StreamEvent};
 use foundation_netio::http2::connection::H2Request;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
 };
+#[cfg(unix)]
+use foundation_reactor::FdReadiness;
 
 use crate::shared::transport::{
     body_stream_from_pipe, BodyStream, HeadStream, Transport, TransportCapabilities,
     TransportError, TransportStream,
 };
 
+/// Fallback re-poll interval for a pump with no reactor registration. The
+/// normal path parks on reactor readiness; see [`H2Pump::park`].
 const POLL_DELAY: Duration = Duration::from_millis(10);
+
+/// The number of [`H2Pump`] turns in this process. Read by
+/// [`h2_pump_poll_count`].
+static H2_PUMP_POLLS: AtomicU64 = AtomicU64::new(0);
+
+/// The number of [`H2Pump`] poll turns since process start.
+///
+/// `#[doc(hidden)]`: this exists so the parking regression test can prove that
+/// the pump waits on reactor readiness instead of polling every [`POLL_DELAY`].
+#[doc(hidden)]
+#[must_use]
+pub fn h2_pump_poll_count() -> u64 {
+    H2_PUMP_POLLS.load(Ordering::Relaxed)
+}
 
 /// The response head as the pump publishes it: the head, or the pre-head
 /// failure (h2 handshake error or handshake timeout) that stopped the call.
@@ -86,6 +116,35 @@ impl Write for H2Socket {
             Self::Tcp(s) => s.flush(),
             #[cfg(unix)]
             Self::Unix(s) => s.flush(),
+        }
+    }
+}
+
+#[cfg(unix)]
+impl AsRawFd for H2Socket {
+    fn as_raw_fd(&self) -> RawFd {
+        match self {
+            Self::Tcp(s) => s.as_raw_fd(),
+            Self::Unix(s) => s.as_raw_fd(),
+        }
+    }
+}
+
+/// Register `stream` with the shared reactor for read readiness.
+///
+/// `None` when the reactor cannot watch it (a failed registration, or a
+/// platform without a reactor); the pump then polls on [`POLL_DELAY`].
+#[cfg(unix)]
+fn register_socket_readiness(stream: &H2Socket) -> Option<Arc<FdReadiness>> {
+    match FdReadiness::register(stream.as_raw_fd()) {
+        Ok(readiness) => Some(Arc::new(readiness)),
+        Err(e) => {
+            tracing::debug!(
+                error = %e,
+                poll_delay = ?POLL_DELAY,
+                "h2 pump: cannot watch the socket on the reactor; polling instead"
+            );
+            None
         }
     }
 }
@@ -275,8 +334,21 @@ impl Transport for H2Transport {
         let (body_tx, body_rx) = Pipe::<Bytes>::new();
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
 
+        // ── Park signals ─────────────────────────────────────────────────────
+        // The socket is already non-blocking (set above), so the reactor can
+        // watch it now. WRITABLE starts off; `write_out` turns it on only while
+        // output is queued.
+        #[cfg(unix)]
+        let socket = register_socket_readiness(&stream);
+        #[cfg(unix)]
+        let body_queued: EventReadinessPtr = Arc::new(send_rx.readiness());
+
         // ── Spawn the valtron pump ────────────────────────────────────────────
         let pump = H2Pump {
+            #[cfg(unix)]
+            socket,
+            #[cfg(unix)]
+            watching_writes: false,
             stream,
             channel,
             state: PumpPhase::Handshaking,
@@ -287,6 +359,9 @@ impl Transport for H2Transport {
             send_rx,
             head_tx,
             body_tx,
+            #[cfg(unix)]
+            body_queued,
+            polls: &H2_PUMP_POLLS,
             trailer_tx,
             method: method.to_string(),
             host,
@@ -323,6 +398,71 @@ impl Transport for H2Transport {
 
 // ── H2Pump — valtron TaskIterator ──────────────────────────────────────────
 
+/// Ready once `at` has passed. It has no waker: the executor sleeps until the
+/// instant it reports in [`EventReadiness::deadline`] and then runs the task.
+/// Built per park, because the idle deadline moves with `last_progress`.
+#[cfg(unix)]
+struct DeadlineReadiness {
+    at: Instant,
+}
+
+#[cfg(unix)]
+impl DeadlineReadiness {
+    fn at(at: Instant) -> Self {
+        Self { at }
+    }
+}
+
+#[cfg(unix)]
+impl EventReadiness for DeadlineReadiness {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        Instant::now() >= self.at
+    }
+
+    // `foundation_compact::Instant` re-exports `std::time::Instant` on native,
+    // so the trait's return type is this one.
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.at)
+    }
+
+    /// Nothing signals it: the executor wakes at [`Self::deadline`].
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
+}
+
+/// Ready only when the pipe's receiver is gone, which means the call was
+/// cancelled (the caller dropped the response it was reading).
+///
+/// [`QueueVacancyReadiness`] reports "not full", which is true for an empty
+/// pipe; a park that includes it directly would spin. This adapter keeps its
+/// notifier — which fires on a close — but reports readiness only for the
+/// close.
+#[cfg(unix)]
+struct ReceiverGone<T> {
+    vacancy: QueueVacancyReadiness<T>,
+}
+
+#[cfg(unix)]
+impl<T: Send> ReceiverGone<T> {
+    fn of(sender: &PipeSender<T>) -> Self {
+        Self {
+            vacancy: sender.vacancy(),
+        }
+    }
+}
+
+#[cfg(unix)]
+impl<T: Send> EventReadiness for ReceiverGone<T> {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.vacancy.queue().is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.vacancy.register(waker)
+    }
+}
+
 enum PumpPhase {
     /// Exchanging the connection preface and SETTINGS with the peer.
     Handshaking,
@@ -337,6 +477,15 @@ enum PumpPhase {
     reason = "the flags are independent protocol state"
 )]
 struct H2Pump {
+    /// The socket's reactor registration. READABLE is always watched; WRITABLE
+    /// is added only while `pending_out` holds bytes, because an idle socket is
+    /// always writable and would keep the reactor reporting it.
+    #[cfg(unix)]
+    socket: Option<Arc<FdReadiness>>,
+    /// The current WRITABLE interest, so an unchanged value costs no selector
+    /// re-registration.
+    #[cfg(unix)]
+    watching_writes: bool,
     stream: H2Socket,
     channel: H2Channel,
     state: PumpPhase,
@@ -352,6 +501,13 @@ struct H2Pump {
     /// yet. Written ahead of any later output so frames are never split or lost.
     pending_out: Vec<u8>,
     send_rx: PipeReceiver<Bytes>,
+    /// Ready when a request body chunk is queued in `send_rx`. Included in a
+    /// park only while the request direction is still open: a closed queue is
+    /// always ready and would spin the task.
+    #[cfg(unix)]
+    body_queued: EventReadinessPtr,
+    /// Counts this pump's poll turns for [`h2_pump_poll_count`].
+    polls: &'static AtomicU64,
     head_tx: PipeSender<HeadItem>,
     body_tx: PipeSender<Bytes>,
     trailer_tx: PipeSender<SimpleHeaders>,
@@ -377,6 +533,107 @@ struct H2Pump {
 }
 
 impl H2Pump {
+    /// Forget the socket's latched readiness, so the edge-triggered reactor
+    /// re-arms for the next event.
+    ///
+    /// Call it once at the start of a turn, before the read loop. Clearing
+    /// *before* an attempt can only cause a harmless spurious wake; clearing
+    /// *after* a `WouldBlock` could erase an edge that arrived during the
+    /// attempt, and that wake would be lost.
+    #[cfg(unix)]
+    fn clear_socket(&self) {
+        if let Some(socket) = &self.socket {
+            socket.clear();
+        }
+    }
+
+    #[cfg(not(unix))]
+    fn clear_socket(&self) {}
+
+    /// Watch or stop watching the socket for WRITABLE.
+    ///
+    /// `write_out` turns it on when a write comes up short (the socket is full)
+    /// and off once `pending_out` drains. An idle socket is always writable, so
+    /// arming it earlier would latch a spurious wake on every turn.
+    #[cfg(unix)]
+    fn set_writable(&mut self, watch: bool) {
+        if self.watching_writes == watch {
+            return;
+        }
+        if let Some(socket) = &self.socket {
+            match socket.set_writable(watch) {
+                Ok(()) => self.watching_writes = watch,
+                Err(e) => {
+                    tracing::debug!(error = %e, "h2 pump: cannot change socket write interest");
+                }
+            }
+        }
+    }
+
+    #[cfg(not(unix))]
+    fn set_writable(&mut self, _watch: bool) {}
+
+    /// The instant the pump must wake on its own, if any.
+    ///
+    /// During the handshake it is the handshake deadline. Once the request is
+    /// out and a read timeout is configured, it is `last_progress + read_timeout`.
+    #[cfg(unix)]
+    fn next_deadline(&self) -> Option<Instant> {
+        if matches!(self.state, PumpPhase::Handshaking) {
+            Some(self.handshake_deadline)
+        } else if !self.read_timeout.is_zero() && self.request_sent {
+            Some(self.last_progress + self.read_timeout)
+        } else {
+            None
+        }
+    }
+
+    /// The wait for a turn with nothing to do right now.
+    ///
+    /// Parks on the socket's reactor readiness, the request-body queue while
+    /// the request direction is open, the response pipe while it holds chunks
+    /// the consumer has not taken (or while the consumer may still be there),
+    /// and the pump's own deadline. Without a reactor registration it falls
+    /// back to [`POLL_DELAY`].
+    #[cfg(unix)]
+    fn park(&self) -> TaskStatus<(), ()> {
+        let Some(socket) = &self.socket else {
+            return TaskStatus::Delayed(POLL_DELAY);
+        };
+        let mut children: Vec<EventReadinessPtr> = Vec::with_capacity(4);
+        children.push(Arc::clone(socket) as EventReadinessPtr);
+        // A closed queue is always ready: include it only while the request
+        // direction can still receive a chunk, or the task would spin.
+        if self.request_sent && !self.request_ended {
+            children.push(Arc::clone(&self.body_queued));
+        }
+        // The response pipe is full and holds chunks. The consumer's next pop
+        // frees a slot and wakes this task through the pipe vacancy signal.
+        if !self.pending_body.is_empty() {
+            children.push(Arc::new(self.body_tx.vacancy()) as EventReadinessPtr);
+        } else if !self.response_ended {
+            // A cancelled call drops its response receiver. Without this, a
+            // parked pump never notices and never resets the peer's stream.
+            // The vacancy signal already covers the close when it is present.
+            children.push(Arc::new(ReceiverGone::of(&self.body_tx)) as EventReadinessPtr);
+        }
+        // Likewise before the head arrives: the pump checks `head_tx.is_closed`
+        // each turn, so a dropped head receiver must wake it.
+        if !self.response_head_sent {
+            children.push(Arc::new(ReceiverGone::of(&self.head_tx)) as EventReadinessPtr);
+        }
+        if let Some(deadline) = self.next_deadline() {
+            children.push(Arc::new(DeadlineReadiness::at(deadline)) as EventReadinessPtr);
+        }
+        TaskStatus::Depends(Arc::new(AnyReadiness::new(children)))
+    }
+
+    /// No reactor off unix: keep the fixed re-poll interval.
+    #[cfg(not(unix))]
+    fn park(&self) -> TaskStatus<(), ()> {
+        TaskStatus::Delayed(POLL_DELAY)
+    }
+
     /// Forward any newly-available request body chunks, and terminate the request
     /// direction once `send_rx` closes. Returns `false` on a fatal channel error.
     ///
@@ -484,12 +741,18 @@ impl H2Pump {
                     self.pending_out.drain(..n);
                     self.last_progress = Instant::now();
                 }
-                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(false),
+                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    // The socket is full. Arm WRITABLE now: the drain back to
+                    // writable is the edge that must wake the parked task.
+                    self.set_writable(true);
+                    return Ok(false);
+                }
                 Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) => return Err(e),
             }
         }
         self.stream.flush()?;
+        self.set_writable(false);
         Ok(true)
     }
 
@@ -513,8 +776,12 @@ impl TaskIterator for H2Pump {
         reason = "one poll step covers every protocol phase in order"
     )]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
-        // Set non-blocking
-        self.stream.set_nonblocking(true).ok();
+        self.polls.fetch_add(1, Ordering::Relaxed);
+
+        // Re-arm the socket's edge-triggered registration once, before this
+        // turn reads it. Clearing before an attempt can only cause a spurious
+        // wake; clearing after a `WouldBlock` could erase a real edge.
+        self.clear_socket();
 
         loop {
             // ── Idle read timeout ──────────────────────────────────────
@@ -610,12 +877,12 @@ impl TaskIterator for H2Pump {
                                 self.fail_before_head(TransportError::Timeout);
                                 return None;
                             }
-                            // More bytes may already be waiting; otherwise yield
-                            // the worker instead of blocking it on the peer.
+                            // More bytes may already be waiting: read them
+                            // before parking, so no latched edge is lost.
                             if read_some {
                                 continue;
                             }
-                            return Some(TaskStatus::Delayed(POLL_DELAY));
+                            return Some(self.park());
                         }
                         Err(e) => {
                             self.fail_before_head(TransportError::Connect(Arc::new(e)));
@@ -726,7 +993,14 @@ impl TaskIterator for H2Pump {
                     // Flush output
                     match self.write_out() {
                         Ok(true) => {}
-                        Ok(false) => return Some(TaskStatus::Delayed(POLL_DELAY)),
+                        // The socket is full. Drain anything already readable
+                        // first, then park on writability (armed by `write_out`).
+                        Ok(false) => {
+                            if read_some {
+                                continue;
+                            }
+                            return Some(self.park());
+                        }
                         Err(_e) => {
                             let _ = self
                                 .head_tx
@@ -743,7 +1017,10 @@ impl TaskIterator for H2Pump {
                     if self.request_sent {
                         self.state = PumpPhase::WaitingResponse;
                     } else {
-                        return Some(TaskStatus::Delayed(POLL_DELAY));
+                        if read_some {
+                            continue;
+                        }
+                        return Some(self.park());
                     }
                 }
 
@@ -824,13 +1101,17 @@ impl TaskIterator for H2Pump {
                             return None;
                         }
                         Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                            // Need more data — flush writes, then yield
+                            // Need more data — flush writes, then park on the
+                            // socket. Drain any bytes still in the kernel first.
                             if self.write_out().is_err() {
                                 self.head_tx.close();
                                 self.body_tx.close();
                                 return None;
                             }
-                            return Some(TaskStatus::Delayed(POLL_DELAY));
+                            if read_some {
+                                continue;
+                            }
+                            return Some(self.park());
                         }
                         Err(_e) => {
                             let _ = self
@@ -868,7 +1149,12 @@ impl TaskIterator for H2Pump {
                         return None;
                     }
                     if !self.pending_body.is_empty() {
-                        return Some(TaskStatus::Delayed(POLL_DELAY));
+                        // The response pipe is full. Read the rest of what the
+                        // kernel has before parking on the pipe's vacancy.
+                        if read_some {
+                            continue;
+                        }
+                        return Some(self.park());
                     }
                     if self.response_ended {
                         self.state = PumpPhase::Done;
@@ -937,7 +1223,10 @@ impl TaskIterator for H2Pump {
                                 self.trailer_tx.close();
                                 return None;
                             }
-                            return Some(TaskStatus::Delayed(POLL_DELAY));
+                            if read_some {
+                                continue;
+                            }
+                            return Some(self.park());
                         }
                         Err(_e) => {
                             self.body_tx.close();
@@ -969,7 +1258,12 @@ impl TaskIterator for H2Pump {
             // Flush output
             match self.write_out() {
                 Ok(true) => {}
-                Ok(false) => return Some(TaskStatus::Delayed(POLL_DELAY)),
+                Ok(false) => {
+                    if read_some {
+                        continue;
+                    }
+                    return Some(self.park());
+                }
                 Err(_e) => {
                     self.head_tx.close();
                     self.body_tx.close();

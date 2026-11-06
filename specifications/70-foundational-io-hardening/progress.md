@@ -2,6 +2,45 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 125 parks the H2 client pump on reactor readiness.
+  Branch `spec70/priority-followups`.
+  - `H2Pump::next_status` no longer returns `TaskStatus::Delayed(10 ms)` on its
+    normal waits. Each wait is a `TaskStatus::Depends` over an `AnyReadiness`: the
+    socket's `FdReadiness` (READABLE always, WRITABLE only after a short write),
+    the request-body queue while the request is open, a per-park
+    `DeadlineReadiness` (the handshake deadline or
+    `last_progress + read_timeout`), the response pipe's vacancy while it is full,
+    and a close-only receiver readiness for the head and body pipes.
+    `Delayed(10 ms)` remains only when `FdReadiness::register` fails, logged once
+    at `debug`.
+  - The pump reads until `WouldBlock` before it parks (`read_some` guards), so a
+    latched edge is never lost. It clears the socket once at the start of a turn,
+    before the read loop. The plan's "clear after each read" was wrong: a clear
+    after `WouldBlock` can erase a real edge, and §1 of the feature is corrected.
+  - Write interest is armed only when a write returns `WouldBlock` and dropped when
+    `pending_out` drains. Arming it before every write latched a writable edge on
+    an idle socket, so every park was already ready and logged a `[DEPENDS]`
+    warning.
+  - A missing wake was found and fixed. A cancelled call drops its receivers, so
+    the pump's `is_closed` checks need a close wake or it never sends
+    `RST_STREAM`. `client_cancel_resets_the_stream_on_the_server` failed 3/3
+    without the adapter.
+  - New `tests/h2_pump_parking_tests.rs`, two tests. With `park()` reverted to
+    `Delayed(10 ms)`: 18-19 pump turns in a 200 ms idle handshake and 29 for a
+    300 ms delayed body, and both tests fail. With the park: 2 and 5.
+  - `foundation_connectrpc` 238 tests pass, 0 fail; fmt and clippy are clean.
+    `foundation_proxy` 73 pass; the one failure is the known macOS
+    `websocket_upgrade_relays_and_tunnels_bytes` (backlog §9). The wasm32
+    `--features rpc` check passes with the 3 pre-existing `dispatch.rs` warnings.
+  - Version: `foundation_connectrpc` 0.0.5 for the `h2_pump_poll_count` hook;
+    `foundation_proxy` and `foundation_deployment_docker` requirements follow.
+  - Linux CI image with `--cpus=2` (epoll): 30 runs of `rpc_proxy_e2e_tests`
+    (17 tests each) and 30 runs of `h2_integration_tests` (7 tests each) all
+    pass (`30_RUNS_GREEN`). `scripts/ci/linux.sh foundation_connectrpc` also
+    exits 0: fmt, build, clippy, tests and the wasm check pass in the Linux
+    image, and the new parking tests pass on epoll. The feature stays
+    `pending (CI proof)` until the pull-request CI is green.
+
 - 2026-11-06: feature 121 finds and fixes the proxy stall and the past-due timer.
   Branch `spec70/priority-followups`.
   - The watchdog found two defects. First, `ClientRequest::send_async` hands the

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_connectrpc"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -139,6 +139,10 @@ required-features = ["rpc_multi"]
 
 [[test]]
 name = "conn_io_fallback_tests"
+required-features = ["rpc_multi"]
+
+[[test]]
+name = "h2_pump_parking_tests"
 required-features = ["rpc_multi"]
 
 [lints]
