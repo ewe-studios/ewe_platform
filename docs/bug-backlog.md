@@ -228,6 +228,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.
+- **`rpc_proxy_e2e_tests::connect_server_stream_via_h2_proxy` stalled on Linux
+  and failed on its 5 s deadline.** GitHub run 42154487867, head `d9cf916ec`, job
+  `foundation_proxy`, 2026-11-06T03:57:51Z. The proxy logged
+  `Get intro from stream - got: Intro(OK, HTTP11, Some("Ok"))` and then nothing
+  for 5 s. The client panicked at `tests/rpc_proxy_e2e_tests.rs:349` with
+  `open server stream: Error: [deadline_exceeded] call deadline exceeded`. Both
+  later runs of the branch were cancelled, so the failure was never retested.
+  Fix: retest on the current head, then, if it recurs, trace the response-head
+  path from the proxy's H1 leg to the client's H2 pump. Found in feature 121.
 - **`tests/proxy_features_tests.rs::websocket_upgrade_relays_and_tunnels_bytes`
   fails on macOS.** The client receives the `101` and writes its frame, but
   `read_exact` times out (`WouldBlock`) waiting for the echo (line 464). It fails
