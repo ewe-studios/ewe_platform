@@ -132,19 +132,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   shows it. Likely fix: add a `#[doc(hidden)]` wake counter beside
   `h2_pump_poll_count` (on `ReadinessNotifier` or `ExecutorWake`), then assert
   that a pop does not wake a parked producer. Found in feature 126.
-- **A blocking call inside a task poll starves the pool silently.** Files:
-  `backends/foundation_core/src/valtron/executors/future_task.rs:268,325,398,437,841,935`
-  and `state_task.rs:171,224` (the poll sites; none measures the poll);
-  `backends/foundation_connectrpc/tests/client_deadline_tests.rs` (the case that
-  exposed it). Problem: `thread::join()`, a blocking socket read or a blocking
-  file call inside an async body holds the valtron worker that polls the body.
-  With a 2-worker pool the H2 pump then never runs. CI failed
-  `a_timed_out_receive_cancels_the_call` twice; a local pool with
-  `threads = 1` and `--test-threads=2` failed 3 of 3 runs, and `threads = 2`
-  passed. Each test now waits with a bounded async poll, but nothing reports
-  the next one. Fix: a `PoolConfig::slow_poll_warning` threshold that names the
-  task and the duration, on by default in the test harness, plus the rule in
-  the valtron skill. Found in feature 131; scheduled as feature 139.
+- **`targeted_wake` can time out under a full parallel suite.** File:
+  `backends/foundation_core/tests/valtron/targeted_wake.rs`
+  (`a_wake_for_another_task_does_not_make_a_parked_task_re_check`). Problem: one
+  full `cargo test -p foundation_core --features multi` run timed out the test at
+  its 20 s bound. It passed alone and in the next full run. The test races a
+  600 ms wake storm against a 20 s timeout, and a full run also leaves the
+  detached worker of `hung_body_fails_at_its_timeout_instead_of_hanging`
+  sleeping for an hour. Likely fix: bound the storm by wake count as well as
+  time, or run the test in its own binary so no detached worker or heavy
+  parallel load skews it. Found in feature 139; not reproduced.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 

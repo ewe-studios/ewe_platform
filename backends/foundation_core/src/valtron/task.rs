@@ -1345,6 +1345,15 @@ pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 /// the underlying state information it returns.
 pub trait ExecutionIterator {
     fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State>;
+
+    /// A short name for this task, used by executor diagnostics.
+    ///
+    /// WHY: the slow-poll watchdog (feature 139) names the task that blocked a
+    /// worker in its warning. The default returns the concrete type's name,
+    /// which is a compile-time constant, so it costs nothing to produce.
+    fn name(&self) -> &'static str {
+        core::any::type_name::<Self>()
+    }
 }
 
 pub trait IntoBoxedExecutionIterator {
@@ -1426,6 +1435,10 @@ impl ExecutionIterator for CanCloneExecutionIterator {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.0.next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.0.name()
+    }
 }
 
 #[allow(clippy::needless_lifetimes)]
@@ -1436,6 +1449,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         (**self).next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        (**self).name()
+    }
 }
 
 impl<M> ExecutionIterator for RefCell<Box<M>>
@@ -1444,6 +1461,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.get_mut().next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        self.borrow().name()
     }
 }
 
@@ -1454,6 +1475,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.borrow_mut().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.borrow().name()
+    }
 }
 
 impl<M> ExecutionIterator for Mutex<Box<M>>
@@ -1462,6 +1487,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.get_mut().unwrap().next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        self.lock().unwrap().name()
     }
 }
 
@@ -1472,6 +1501,10 @@ where
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         self.lock().unwrap().next(entry, engine, ctx)
     }
+
+    fn name(&self) -> &'static str {
+        self.lock().unwrap().name()
+    }
 }
 
 impl<M> ExecutionIterator for Box<M>
@@ -1480,6 +1513,10 @@ where
 {
     fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         (**self).next(entry, engine, ctx)
+    }
+
+    fn name(&self) -> &'static str {
+        (**self).name()
     }
 }
 

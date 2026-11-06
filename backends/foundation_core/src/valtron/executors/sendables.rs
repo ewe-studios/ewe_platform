@@ -155,6 +155,29 @@ pub fn initialize_pool_with_ctx(
     multi::initialize_pool_with_ctx(seed_for_rng, user_thread_num, root)
 }
 
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// WHY: both `#[valtron]` and `#[valtron_test]` must turn the watchdog on
+/// without naming every other `PoolConfig` field, and the same call must
+/// compile in the single-threaded build.
+/// WHAT: builds a default `PoolConfig` with `slow_poll_warning` set and starts
+/// the pool. `None` disables the check.
+#[must_use]
+pub fn initialize_pool_with_slow_poll_warning(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    slow_poll_warning: Option<std::time::Duration>,
+    root: Ctx,
+) -> crate::valtron::multi::PoolGuard {
+    tracing::debug!("Starting under feature=multi");
+    multi::initialize_pool_with_slow_poll_warning(
+        seed_for_rng,
+        user_thread_num,
+        slow_poll_warning,
+        root,
+    )
+}
+
 /// Make the calling thread able to drive valtron work set up by
 /// [`initialize_pool`] on another thread.
 ///
@@ -171,6 +194,17 @@ pub fn initialize_current_thread(_seed_for_rng: u64) {
 /// Under `multi` this is a no-op, because the process-wide pool already holds
 /// its root.
 pub fn initialize_current_thread_with_ctx(_seed_for_rng: u64, _root: Ctx) {}
+
+/// [`initialize_current_thread_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// Under `multi` this is a no-op: the pool workers were started with the
+/// threshold already, so the calling thread has nothing to install.
+pub fn initialize_current_thread_with_slow_poll_warning(
+    _seed_for_rng: u64,
+    _slow_poll_warning: Option<std::time::Duration>,
+    _root: Ctx,
+) {
+}
 
 /// Submit a blocking closure for execution on the appropriate background executor.
 ///

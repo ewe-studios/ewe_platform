@@ -90,6 +90,8 @@ mod pipe_primitive;
 mod pool_config_tests;
 #[cfg(not(target_family = "wasm"))]
 mod single_executor;
+#[cfg(feature = "multi")]
+mod slow_poll_warning;
 mod task_status;
 #[cfg(not(all(
     target_family = "wasm",

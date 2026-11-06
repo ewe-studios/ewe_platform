@@ -961,7 +961,23 @@ pub struct ExecutorState {
 
     /// Per-entry [`Ctx`] fork: one per `ExecutionIterator`, keyed by its `Entry`.
     pub task_ctx: rc::Rc<cell::RefCell<HashMap<Entry, Ctx>>>,
+
+    /// Warn when one task step takes longer than this (the slow-poll
+    /// watchdog). `None` disables the check. See
+    /// `PoolConfig::slow_poll_warning`.
+    slow_poll_warning: Option<time::Duration>,
+
+    /// The instant of the last slow-poll warning per task entry, so one blocked
+    /// task cannot flood the log. Entries are removed with the task.
+    slow_poll_last_warn: rc::Rc<cell::RefCell<HashMap<Entry, foundation_compact::Instant>>>,
 }
+
+/// The shortest gap between two slow-poll warnings for the same task.
+///
+/// WHY: a task that blocks on every turn would otherwise emit one warning per
+/// poll turn. One warning per second still shows a persistent block and keeps
+/// the log readable. The feature that added the watchdog fixes this rate.
+const SLOW_POLL_WARN_INTERVAL: time::Duration = time::Duration::from_secs(1);
 
 // --- constructors
 
@@ -1027,6 +1043,8 @@ impl ExecutorState {
             depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             root,
             task_ctx: rc::Rc::new(cell::RefCell::new(HashMap::new())),
+            slow_poll_warning: None,
+            slow_poll_last_warn: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
 }
@@ -1091,6 +1109,8 @@ impl Clone for ExecutorState {
             depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             root: self.root.clone(),
             task_ctx: rc::Rc::new(cell::RefCell::new(HashMap::new())),
+            slow_poll_warning: self.slow_poll_warning,
+            slow_poll_last_warn: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
 }
@@ -1108,6 +1128,7 @@ impl core::fmt::Debug for ExecutorState {
             .field("rng", &self.rng)
             .field("sleepers", &self.sleepers)
             .field("idler", &self.idler.borrow().count())
+            .field("slow_poll_warning", &self.slow_poll_warning)
             .finish()
     }
 }
@@ -1224,6 +1245,19 @@ impl ExecutorState {
     #[inline]
     pub fn set_readiness_wait(&mut self, dur: time::Duration) {
         self.sleepers.set_max_readiness_wait(dur);
+    }
+
+    /// The slow-poll watchdog threshold. `None` disables the check.
+    #[inline]
+    #[must_use]
+    pub fn slow_poll_warning(&self) -> Option<time::Duration> {
+        self.slow_poll_warning
+    }
+
+    /// Set the slow-poll watchdog threshold. `None` disables the check.
+    #[inline]
+    pub fn set_slow_poll_warning(&mut self, warning: Option<time::Duration>) {
+        self.slow_poll_warning = warning;
     }
 
     /// How many tasks currently have a streak of `Depends` on an already-ready
@@ -1366,11 +1400,44 @@ impl ExecutorState {
         entry
     }
 
-    /// Drop a task's per-entry [`Ctx`] fork once the task is permanently removed
-    /// from the local task list.
+    /// Drop a task's per-entry state once the task is permanently removed from
+    /// the local task list: its [`Ctx`] fork and its slow-poll warning record.
     #[inline]
     fn remove_task_ctx(&self, entry: &Entry) {
         self.task_ctx.borrow_mut().remove(entry);
+        self.slow_poll_last_warn.borrow_mut().remove(entry);
+    }
+
+    /// Report one task step that took at least the configured threshold.
+    ///
+    /// A task that blocks on every turn would otherwise warn on every turn.
+    /// One warning per [`SLOW_POLL_WARN_INTERVAL`] is enough to show the block.
+    /// `poll_end` is the instant already read to measure the poll, so the
+    /// report costs no extra clock read.
+    fn warn_slow_poll(
+        &self,
+        entry: Entry,
+        name: &str,
+        elapsed: time::Duration,
+        poll_end: foundation_compact::Instant,
+    ) {
+        let last = self.slow_poll_last_warn.borrow().get(&entry).copied();
+        if last.is_some_and(|last| poll_end.duration_since(last) < SLOW_POLL_WARN_INTERVAL) {
+            return;
+        }
+        self.slow_poll_last_warn
+            .borrow_mut()
+            .insert(entry, poll_end);
+
+        // WHY: a blocking call in a task body holds the worker that polls it,
+        // so the pool starves with no trace. This warning names the task and
+        // the duration (feature 139).
+        tracing::warn!(
+            target: "valtron::executor",
+            task = %name,
+            micros = u64::try_from(elapsed.as_micros()).unwrap_or(u64::MAX),
+            "a task poll blocked a worker"
+        );
     }
 
     /// `schedule_next` will attempt to pull a new task from the
@@ -1556,7 +1623,19 @@ impl ExecutorState {
             .get(&top_entry)
             .cloned()
             .unwrap_or_else(|| self.root.fork());
+
+        // The slow-poll watchdog (feature 139). `None` costs no clock read.
+        let poll_start = self
+            .slow_poll_warning
+            .map(|_| foundation_compact::Instant::now());
         let next_result = iter.next(top_entry, engine, ctx);
+        if let Some(threshold) = self.slow_poll_warning {
+            let poll_end = foundation_compact::Instant::now();
+            let elapsed = poll_end.duration_since(poll_start.unwrap());
+            if elapsed >= threshold {
+                self.warn_slow_poll(top_entry, iter.name(), elapsed, poll_end);
+            }
+        }
 
         // if result is none
         if next_result.is_none() {
@@ -2226,6 +2305,18 @@ impl ReferencedExecutorState {
             .set_readiness_wait(dur);
     }
 
+    /// See [`ExecutorState::set_slow_poll_warning`].
+    ///
+    /// # Panics
+    /// Panics if the underlying [`ExecutorState`] is shared (the executor was
+    /// cloned). Builders run on a fresh executor before it is shared.
+    #[inline]
+    pub fn set_slow_poll_warning(&mut self, warning: Option<time::Duration>) {
+        rc::Rc::get_mut(&mut self.inner)
+            .expect("cannot set slow-poll warning on a shared executor state")
+            .set_slow_poll_warning(warning);
+    }
+
     /// See [`ExecutorState::number_of_depends_true_violations`].
     #[inline]
     #[must_use]
@@ -2846,6 +2937,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     #[must_use]
     pub fn with_readiness_wait(mut self, duration: time::Duration) -> Self {
         self.state.set_readiness_wait(duration);
+        self
+    }
+
+    /// Set the slow-poll watchdog threshold. `None` disables the check.
+    /// Default `None`; a pool passes its
+    /// `PoolConfig::slow_poll_warning` here.
+    #[must_use]
+    pub(crate) fn with_slow_poll_warning(mut self, warning: Option<time::Duration>) -> Self {
+        self.state.set_slow_poll_warning(warning);
         self
     }
 

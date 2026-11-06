@@ -182,6 +182,26 @@ pub fn initialize_pool_with_ctx(
     single::PoolGuard
 }
 
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// WHY: both `#[valtron]` and `#[valtron_test]` must turn the watchdog on, and
+/// the same call must compile in the multi-threaded build (where it sets a
+/// `PoolConfig` field instead).
+/// WHAT: starts this thread's single-threaded engine with the threshold. A
+/// thread that already has an engine keeps it, so a later call does not change
+/// the threshold.
+#[must_use]
+pub fn initialize_pool_with_slow_poll_warning(
+    seed_for_rng: u64,
+    _user_thread_num: Option<usize>,
+    slow_poll_warning: Option<std::time::Duration>,
+    root: Ctx,
+) -> super::single::PoolGuard {
+    tracing::debug!("Starting under not(feature=multi), so single threaded");
+    single::initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, slow_poll_warning);
+    single::PoolGuard
+}
+
 /// Make the calling thread able to drive valtron work set up by
 /// [`initialize_pool`] on another thread.
 ///
@@ -204,6 +224,18 @@ pub fn initialize_current_thread(seed_for_rng: u64) {
 /// engine keeps it, and keeps the root it was built with.
 pub fn initialize_current_thread_with_ctx(seed_for_rng: u64, root: Ctx) {
     single::initialize_pool_with_ctx(seed_for_rng, root);
+}
+
+/// [`initialize_current_thread_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// Idempotent like [`initialize_current_thread`]: a thread that already has an
+/// engine keeps it, including its warning threshold.
+pub fn initialize_current_thread_with_slow_poll_warning(
+    seed_for_rng: u64,
+    slow_poll_warning: Option<std::time::Duration>,
+    root: Ctx,
+) {
+    single::initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, slow_poll_warning);
 }
 
 /// Submit a blocking closure for execution on the appropriate background executor.

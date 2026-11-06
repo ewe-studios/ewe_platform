@@ -32,7 +32,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 # Foundation deps
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
-foundation_core = { path = "../foundation_core", version = "0.0.10" }
+foundation_core = { path = "../foundation_core", version = "0.0.11" }
 foundation_db = { path = "../foundation_db", version = "0.0.5", default-features = false }
 # Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on

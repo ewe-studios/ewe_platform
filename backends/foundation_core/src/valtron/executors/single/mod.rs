@@ -155,6 +155,18 @@ pub fn initialize_pool(seed_for_rng: u64) {
 /// A thread that already has an engine keeps it, so this is idempotent like
 /// [`initialize_pool`]. Every task the engine drives gets a fork of `root`.
 pub fn initialize_pool_with_ctx(seed_for_rng: u64, root: Ctx) {
+    initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, None);
+}
+
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// Idempotent: a thread that already has an engine keeps it, so a later call
+/// does not change the threshold.
+pub fn initialize_pool_with_ctx_and_slow_poll_warning(
+    seed_for_rng: u64,
+    root: Ctx,
+    slow_poll_warning: Option<std::time::Duration>,
+) {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
             // `SharedTaskQueue` is `Arc<…>` in BOTH cfgs so one alias serves the
@@ -187,6 +199,7 @@ pub fn initialize_pool_with_ctx(seed_for_rng: u64, root: Ctx) {
                 None,
                 root,
             )
+            .with_slow_poll_warning(slow_poll_warning)
         });
     });
 }

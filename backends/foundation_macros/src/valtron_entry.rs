@@ -88,6 +88,17 @@
 //! on a new thread and receives the same root through
 //! `initialize_current_thread_with_ctx`.
 //!
+//! Both macros take `slow_poll = ms`: warn when one task poll holds a worker
+//! longer than `ms` milliseconds. The default is 100 ms, so a blocked test
+//! reports itself. A warning names the task and the elapsed microseconds, at
+//! most once per task per second.
+//!
+//! **A task poll must not block.** Do not call `join()`, `recv()` on a blocking
+//! socket, or a blocking file read inside a task body or a future. The call
+//! holds the worker that polls it, so a small pool starves and the effect looks
+//! like a flaky test. Wait with a readiness signal, a timer, or an async
+//! equivalent instead. `slow_poll` reports the next violation.
+//!
 //! # Why the guard handling is the whole point
 //!
 //! `initialize_pool` returns a `PoolGuard` whose `Drop` tears the engine down.
@@ -120,6 +131,9 @@ struct Args {
     seed: Option<syn::Expr>,
     threads: Option<syn::Expr>,
     timeout: Option<syn::Expr>,
+    /// `slow_poll = ms` — warn when one task poll blocks a worker longer than
+    /// this. Default 100 ms.
+    slow_poll: Option<syn::Expr>,
     /// `ctx = expr` — the `Ctx` the engine starts with. Absent → the engine
     /// uses its default `Ctx::new()`.
     ctx: Option<syn::Expr>,
@@ -150,6 +164,7 @@ const KNOWN_ARGS: &[&str] = &[
     "seed",
     "threads",
     "timeout",
+    "slow_poll",
     "ctx",
     "shutdown_grace",
     "tracing",
@@ -180,7 +195,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `key = value` pairs (seed, threads, timeout, ctx, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
+            "expected `key = value` pairs (seed, threads, timeout, slow_poll, ctx, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
         )
     })?;
     for pair in pairs {
@@ -193,6 +208,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),
             "timeout" => args.timeout = Some(pair.value),
+            "slow_poll" => args.slow_poll = Some(pair.value),
             "ctx" => args.ctx = Some(pair.value),
             "shutdown_grace" => args.shutdown_grace = Some(pair.value),
             "tracing" => args.tracing = Some(pair.value),
@@ -395,6 +411,17 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         Some(expr) => quote! { ::core::option::Option::Some((#expr) as usize) },
     };
 
+    // Slow-poll watchdog: on by default in BOTH macros, because a blocking
+    // call in a task body holds the worker and starves the pool with no trace.
+    // 100 ms is ten times the executor's 10 ms readiness quantum, and well under
+    // the 2 s peer bound of the 2026-11-06 failure. `slow_poll = ms` overrides.
+    let slow_poll = match &args.slow_poll {
+        None => quote! { ::core::option::Option::Some(std::time::Duration::from_millis(100)) },
+        Some(expr) => quote! {
+            ::core::option::Option::Some(std::time::Duration::from_millis((#expr) as u64))
+        },
+    };
+
     // `ctx = expr`: the engine root. Absent → the expansion is the same as
     // before this argument existed. With `timeout`, the body runs on a new
     // thread that must bring its own (single-threaded) engine up, so bind the
@@ -405,26 +432,58 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         Some(expr) => quote! { let __valtron_ctx: #fc::valtron::Ctx = (#expr); },
     };
     let init_pool_direct = match ctx_expr {
-        None => quote! { #fc::valtron::initialize_pool(#seed, #threads) },
-        Some(expr) => quote! { #fc::valtron::initialize_pool_with_ctx(#seed, #threads, (#expr)) },
+        None => quote! {
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
+                #seed,
+                #threads,
+                #slow_poll,
+                #fc::valtron::Ctx::new(),
+            )
+        },
+        Some(expr) => quote! {
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
+                #seed,
+                #threads,
+                #slow_poll,
+                (#expr),
+            )
+        },
     };
     let init_pool_timeout = if ctx_expr.is_some() {
         quote! {
-            #fc::valtron::initialize_pool_with_ctx(
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
                 __valtron_seed,
                 #threads,
+                #slow_poll,
                 __valtron_ctx.clone(),
             )
         }
     } else {
-        quote! { #fc::valtron::initialize_pool(__valtron_seed, #threads) }
+        quote! {
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
+                __valtron_seed,
+                #threads,
+                #slow_poll,
+                #fc::valtron::Ctx::new(),
+            )
+        }
     };
     let init_current_thread_timeout = if ctx_expr.is_some() {
         quote! {
-            #fc::valtron::initialize_current_thread_with_ctx(__valtron_seed, __valtron_ctx)
+            #fc::valtron::initialize_current_thread_with_slow_poll_warning(
+                __valtron_seed,
+                #slow_poll,
+                __valtron_ctx,
+            )
         }
     } else {
-        quote! { #fc::valtron::initialize_current_thread(__valtron_seed) }
+        quote! {
+            #fc::valtron::initialize_current_thread_with_slow_poll_warning(
+                __valtron_seed,
+                #slow_poll,
+                #fc::valtron::Ctx::new(),
+            )
+        }
     };
 
     let test_attr = if is_test {

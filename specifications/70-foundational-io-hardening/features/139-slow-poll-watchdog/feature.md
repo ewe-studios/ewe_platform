@@ -1,6 +1,6 @@
 ---
 feature: "The executor names a poll that blocks a worker for too long"
-status: "pending"
+status: "done"
 lane: "priority follow-up (found under the feature 131 CI failure)"
 model: "sonnet"
 branch: "spec70/priority-followups"
@@ -118,13 +118,83 @@ scripts/ci/linux.sh foundation_core
 
 ## Done when
 
-- [ ] `PoolConfig::slow_poll_warning` exists with a documented default and builder.
-- [ ] The three tests exist; the first fails on the old code.
-- [ ] The macro accepts `slow_poll` and defaults the test harness to 100 ms.
-- [ ] The rule is in the valtron skill and the macro docs.
-- [ ] The backlog §4 entry is deleted.
-- [ ] CI green.
+- [x] `PoolConfig::slow_poll_warning` exists with a documented default and builder.
+- [x] The three tests exist; the first fails on the old code.
+- [x] The macro accepts `slow_poll` and defaults the test harness to 100 ms.
+- [x] The rule is in the valtron skill and the macro docs.
+- [x] The backlog §4 entry is deleted.
+- [ ] CI green. (Pending the main session's Linux gate and GitHub run.)
 
 ## Result
 
-2026-11-06. Plan only. Written from the feature 131 CI failure.
+2026-11-06. Landed on `spec70/priority-followups`.
+
+What changed:
+
+- `PoolConfig::slow_poll_warning: Option<std::time::Duration>` and
+  `with_slow_poll_warning` in
+  `backends/foundation_core/src/valtron/executors/multi/mod.rs`. The default is
+  `None`; the doc comment gives the reason (two clock reads per poll) and the
+  100 ms test default.
+- `ExecutorState` reads the threshold in `do_work`
+  (`executors/local.rs`). This is the one place a pool worker invokes a task
+  step (`iter.next(top_entry, engine, ctx)`), so a blocking call in any inner
+  poll is measured. Two `foundation_compact::Instant` reads wrap the step only
+  when the threshold is `Some`.
+- `warn_slow_poll` emits
+  `tracing::warn!(target: "valtron::executor", task = %name, micros = <elapsed microseconds>, "a task poll blocked a worker")`.
+  `micros` is `u64`. A per-entry `slow_poll_last_warn` map limits one task to
+  one warning per second, and the entry is removed with the task.
+- `ExecutionIterator::name()` is a provided method. The default returns
+  `core::any::type_name::<Self>()`; the forwarding impls (`Box`, `&mut`,
+  `RefCell`, `Rc`, `Mutex`, `Arc`, `CanCloneExecutionIterator`) forward it, so
+  the boxed drive point names the concrete task type.
+- `#[valtron]` and `#[valtron_test]` accept `slow_poll = <ms>` and default to
+  100 ms. They call `initialize_pool_with_slow_poll_warning` and
+  `initialize_current_thread_with_slow_poll_warning`, which exist in both the
+  multi and single builds. The key is documented beside `threads` and `timeout`,
+  with the "a task poll must not block" rule.
+- The rule is in `.agents/skills/rust-valtron-iterator/skill.md` and in the
+  `#[valtron_test]` docs.
+- The backlog section 4 entry is deleted. Feature 139 closes it: the threshold,
+  the task name, the test-harness default and the rule all landed.
+- Tests in `backends/foundation_core/tests/valtron/slow_poll_warning.rs`,
+  registered in `tests/valtron/mod.rs`:
+  `a_slow_poll_is_reported`, `a_fast_poll_is_silent` and
+  `the_warning_repeats_at_most_once_per_second`. They use a scoped
+  `tracing_subscriber` layer; no generic field-capture helper existed, so the
+  file holds one. `a_slow_poll_is_reported` does not compile on the old code
+  (no `with_slow_poll_warning`). A fourth test,
+  `valtron_macro_tests::slow_poll_argument_is_accepted`, proves the macro key
+  parses and runs.
+
+Verify on macOS, profile `uat`:
+
+| Command | Real outcome |
+|---------|--------------|
+| `cargo fmt --all --check` | Passed. |
+| `cargo clippy --profile uat -p foundation_core --all-targets --no-deps -- -D warnings` | Passed (default features). |
+| `cargo clippy --profile uat -p foundation_core --features multi --all-targets --no-deps -- -D warnings` | Passed. |
+| `cargo clippy --profile uat -p foundation_core -p foundation_macros --all-targets --no-deps -- -D warnings` | Failed in `foundation_macros`: the 62 pre-existing pedantic warnings recorded in `docs/bug-backlog.md` section 30 and scheduled as feature 120. This change adds none; `foundation_core` passes alone in both feature trees. |
+| `cargo test --profile uat -p foundation_core --test mod slow_poll` | 0 tests matched: these tests are `#[cfg(feature = "multi")]` and the default test build has no `multi`. |
+| `cargo test --profile uat -p foundation_core --features multi --test mod slow_poll` | 4 passed, 0 failed (`a_slow_poll_is_reported`, `a_fast_poll_is_silent`, `the_warning_repeats_at_most_once_per_second`, `slow_poll_argument_is_accepted`). |
+| `cargo test --profile uat -p foundation_core` | All targets passed; the `mod` target ran 749 tests, 0 failed. |
+| `cargo test --profile uat -p foundation_core --features multi` | All targets passed; the `mod` target ran 793 tests, 0 failed on two later full runs. The first full run timed out `targeted_wake::a_wake_for_another_task_does_not_make_a_parked_task_re_check` at its 20 s bound; the test passes alone, so it is a timing flake under full-suite load. |
+| `cargo test --profile uat -p foundation_macros` | All targets passed (33 + 54 + 10 + 1 passed, 40 ignored). |
+
+Not run here:
+
+- `scripts/ci/linux.sh foundation_core`: the Linux Docker gate runs after the
+  commit in the main session.
+- The version bump for the new public API (rule 12). It needs every workspace
+  consumer's `foundation_core` requirement to move in the same change, which is
+  outside this feature's crate ownership. The main session must schedule it.
+
+Follow-ups found:
+
+- `.agents` is a git submodule. The skill rule is an uncommitted change inside
+  it; commit it in the submodule and bump the gitlink with this feature.
+- The `targeted_wake` timing flake under full-suite load (see above).
+- `foundation_macros` clippy debt (feature 120) blocks any `-D warnings` run
+  that includes that crate.
+

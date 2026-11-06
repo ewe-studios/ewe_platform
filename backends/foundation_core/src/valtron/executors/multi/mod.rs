@@ -321,6 +321,15 @@ pub struct PoolConfig {
     /// Maximum back-off duration for an idle worker. Default
     /// [`DEFAULT_BACK_OFF_MAX_DURATION`].
     pub back_off_max_duration: std::time::Duration,
+    /// Warn when one task step takes longer than this (the slow-poll
+    /// watchdog). `None` disables the check.
+    ///
+    /// WHY off by default: the check reads the monotonic clock twice on every
+    /// task poll, and a healthy poll takes microseconds. Turn it on in a test
+    /// harness or a diagnostic run. The `#[valtron]` and `#[valtron_test]`
+    /// macros turn it on with 100 ms: ten times the executor's 10 ms readiness
+    /// quantum, and well under the 2 s peer bound of the 2026-11-06 failure.
+    pub slow_poll_warning: Option<std::time::Duration>,
 }
 
 impl Default for PoolConfig {
@@ -334,6 +343,7 @@ impl Default for PoolConfig {
             back_off_jitter: DEFAULT_BACK_OFF_JITTER,
             back_off_min_duration: DEFAULT_BACK_OFF_MIN_DURATION,
             back_off_max_duration: DEFAULT_BACK_OFF_MAX_DURATION,
+            slow_poll_warning: None,
         }
     }
 }
@@ -392,6 +402,13 @@ impl PoolConfig {
     #[must_use]
     pub fn with_back_off_max_duration(mut self, duration: std::time::Duration) -> Self {
         self.back_off_max_duration = duration;
+        self
+    }
+
+    /// Set [`Self::slow_poll_warning`].
+    #[must_use]
+    pub fn with_slow_poll_warning(mut self, warning: Option<std::time::Duration>) -> Self {
+        self.slow_poll_warning = warning;
         self
     }
 }
@@ -471,6 +488,28 @@ pub fn initialize_pool_with_config_and_ctx(
     drop(bg_guard);
 
     PoolGuard::with_bg_registry(registry, bg_registry, lifecycle)
+}
+
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// WHY: both `#[valtron]` and `#[valtron_test]` must turn the watchdog on
+/// without naming every other [`PoolConfig`] field, and the same call must
+/// compile in the single-threaded build.
+/// WHAT: builds a default [`PoolConfig`] with `slow_poll_warning` set and
+/// starts the pool. `None` disables the check.
+#[must_use]
+pub fn initialize_pool_with_slow_poll_warning(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    slow_poll_warning: Option<time::Duration>,
+    root: Ctx,
+) -> PoolGuard {
+    initialize_pool_with_config_and_ctx(
+        seed_for_rng,
+        user_thread_num,
+        PoolConfig::default().with_slow_poll_warning(slow_poll_warning),
+        root,
+    )
 }
 
 /// Submit a blocking closure for execution on the background job pool.
@@ -1480,6 +1519,7 @@ pub struct ThreadRegistry {
     op_read_time: time::Duration,
     yield_wait_time: time::Duration,
     max_yield_duration: time::Duration,
+    slow_poll_warning: Option<time::Duration>,
     thread_stack_size: Option<usize>,
     thread_max_idle_count: u32,
     thread_max_sleep_before_end: u32,
@@ -1514,6 +1554,7 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("op_read_time", &self.op_read_time)
             .field("yield_wait_time", &self.yield_wait_time)
             .field("max_yield_duration", &self.max_yield_duration)
+            .field("slow_poll_warning", &self.slow_poll_warning)
             .field("thread_stack_size", &self.thread_stack_size)
             .field("thread_max_idle_count", &self.thread_max_idle_count)
             .field(
@@ -1582,6 +1623,7 @@ impl ThreadRegistry {
             op_read_time,
             yield_wait_time: yield_wait,
             max_yield_duration,
+            slow_poll_warning: None,
             thread_stack_size,
             thread_max_idle_count,
             thread_max_sleep_before_end,
@@ -1634,6 +1676,9 @@ impl ThreadRegistry {
         );
         // The registry is not shared yet, so replace the default root here.
         registry.root = root;
+        // Same for the slow-poll watchdog: `new` has no argument for it, so
+        // the config sets it on the still-unshared registry.
+        registry.slow_poll_warning = config.slow_poll_warning;
         registry
     }
 
@@ -1886,6 +1931,7 @@ impl ThreadRegistry {
 
         let thread_yield_wait_duration = self.yield_wait_time;
         let thread_max_yield_duration = self.max_yield_duration;
+        let thread_slow_poll_warning = self.slow_poll_warning;
         let thread_max_idle_count = self.thread_max_idle_count;
         let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
         let thread_back_off_factor = self.thread_back_off_factor;
@@ -1951,7 +1997,8 @@ impl ThreadRegistry {
                     Some(sender.clone()),
                     root,
                 )
-                .with_max_yield_duration(thread_max_yield_duration);
+                .with_max_yield_duration(thread_max_yield_duration)
+                .with_slow_poll_warning(thread_slow_poll_warning);
 
                 thread_executor.block_on();
 

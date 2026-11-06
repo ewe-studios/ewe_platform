@@ -636,22 +636,32 @@ pub fn valtron_bindgen(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 /// Runs a function with the valtron execution engine live around it (the
 /// `#[tokio::main]` analogue): initializes the pool via
-/// `foundation_core::valtron::initialize_pool(seed, threads)` and holds the
-/// returned `PoolGuard` until the function body has fully returned.
+/// `foundation_core::valtron::initialize_pool_with_slow_poll_warning` and holds
+/// the returned `PoolGuard` until the function body has fully returned.
 ///
-/// Arguments (both optional): `#[valtron(seed = 42, threads = 4)]`. `threads`
-/// supplied → `Some(N)`, absent → `None` (engine default). Without `seed`, a
-/// random `RandomState`-derived u64 is used. Also exported as
-/// `foundation_core::valtron::valtron`.
+/// Arguments (all optional): `#[valtron(seed = 42, threads = 4, slow_poll = 50)]`.
+/// `threads` supplied → `Some(N)`, absent → `None` (engine default). Without
+/// `seed`, a random `RandomState`-derived u64 is used. `slow_poll = ms` warns
+/// when one task poll holds a worker longer than `ms`; the default is 100 ms.
+/// A task poll must not block: wait with a readiness signal, a timer or an async
+/// equivalent, never with `join()`, a blocking socket `recv()` or a blocking
+/// file call. Also exported as `foundation_core::valtron::valtron`.
 #[proc_macro_attribute]
 pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron(attr.into(), item.into()).into()
 }
 
 /// `#[test]` + a live valtron engine around the case (the `#[tokio::test]`
-/// analogue). Same `seed`/`threads` rules as `#[valtron]`: `threads = N` →
-/// `Some(N)`, absent → `None`; `seed` absent → random. Also exported as
-/// `foundation_core::valtron::valtron_test`.
+/// analogue). Same `seed`/`threads`/`slow_poll` rules as `#[valtron]`:
+/// `threads = N` → `Some(N)`, absent → `None`; `seed` absent → random;
+/// `slow_poll = ms` → warn on a poll that holds a worker longer than `ms`,
+/// default 100 ms. Also exported as `foundation_core::valtron::valtron_test`.
+///
+/// **A task poll must not block.** Do not call `join()`, `recv()` on a blocking
+/// socket, or a blocking file read inside a task body or a future: the call
+/// holds the worker that polls it, so a small pool starves and the case looks
+/// flaky. Wait with a readiness signal, a timer or an async equivalent instead.
+/// The `slow_poll` warning names the next violation.
 ///
 /// `timeout = ms` (any `u64` expression, so a suite can read it from its own
 /// config) fails the test once the body runs longer than `ms`. The pool is then

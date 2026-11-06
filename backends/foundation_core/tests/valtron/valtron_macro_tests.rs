@@ -62,6 +62,14 @@ fn explicit_seed_and_threads_are_accepted() {
     assert_eq!(run_counting_task(), vec![1, 2, 3]);
 }
 
+/// WHY: the macro turns the slow-poll watchdog on by default and accepts
+/// `slow_poll = ms` to override the 100 ms default (feature 139). The key must
+/// parse and the resulting engine must still run tasks in every build.
+#[valtron_test(slow_poll = 500)]
+fn slow_poll_argument_is_accepted() {
+    assert_eq!(run_counting_task(), vec![1, 2, 3]);
+}
+
 #[valtron_test(threads = 1)]
 fn thread_count_below_the_minimum_is_clamped_not_rejected() {
     // The macro passes `Some(1)` straight through; the multi engine clamps it up
