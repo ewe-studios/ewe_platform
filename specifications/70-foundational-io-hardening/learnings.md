@@ -20,6 +20,13 @@ _What an agent learned that the next agent needs. Newest first._
     read the notifier of a `ResumeSignal`. Three `#[doc(hidden)]`
     `waiter_count()` hooks (`ReadinessNotifier`, `ResumeSignal`, `CancelSignal`)
     let the test prove the bound without private access.
+  - **Liveness makes an old de-duplication unsafe.** `register` skipped a push
+    when `will_wake` matched. Two live waits behind one task then shared one
+    registration whose token belonged to the first. When the first ended, the
+    notifier pruned the only waker and the second never woke. De-duplicate on
+    the wait identity (`Arc::ptr_eq` of the token) as well as on `will_wake`.
+    A repeated poll of one future keeps its token, so its registration stays
+    single; two waits keep one each.
 
 - 2026-11-06 (feature 139 — where a slow poll is actually measured):
   - **The cited poll line numbers are inner polls, not the worker drive point.**
@@ -2164,4 +2171,13 @@ time can still leave an async consumer with nothing to wake it. The old code had
   stream. Any non-blocking writer must track how much it wrote.
 - 2026-10-28: the shared reactor's drain thread must request an executor resume after it latches
   events, or parked tasks wait for the idle back-off (up to 100 ms).
+
+- 2026-11-06 (feature 136): the kqueue read-edge re-arm belongs in the reactor, not in
+  every caller. `Reactor::register_waker` and `Reactor::register_task_waker` now call
+  `Poll::rearm_readable(entry.fd)` before they store the waker. The selector suppresses a
+  readable event while the fd's byte count does not grow, so a drained socket that receives a
+  smaller frame must first forget the old count. A loopback TCP test proves the rule: 77
+  bytes, drain, arm the waker, then 15 bytes. The first test fails on the old code on macOS
+  after the 2 s bound. `clear` keeps its re-arm; the docs now say it serves the latched flags,
+  not the edge. Clippy stayed at the recorded pedantic debt (121 before, 120 after).
 

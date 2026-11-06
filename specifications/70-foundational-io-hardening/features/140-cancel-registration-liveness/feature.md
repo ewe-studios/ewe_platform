@@ -148,10 +148,33 @@ Command outcomes:
   finished, exit 0.
 - `cargo metadata --format-version 1 --offline`: exit 0.
 
-New bug recorded, not fixed (backlog §4): `ReadinessNotifier::register` skips a
-push when `will_wake` matches, so two waits behind one task waker share one
-stored waker and the stored token belongs to the older wait. If the older wait
-drops first, `notify` prunes the registration and the newer wait never wakes.
-No in-tree caller selects two cancellations at once; the likely fix is to
-replace the stored waker with the newest on `will_wake`, plus a liveness state
-shared by the waits behind one task waker.
+### Follow-up fixed in the same change: one registration per live wait
+
+The first version of this change introduced a lost wake. `ReadinessNotifier::register`
+skipped a push when `will_wake` matched, so two live waits behind one task waker shared
+one stored waker, and the stored token belonged to the first wait. If that wait ended
+first, the next `notify` pruned the registration and the still-pending wait never woke.
+Before the liveness token, the stored waker stayed live, so the second wait still woke:
+the token made the old de-duplication unsafe.
+
+The fix adds `ReadinessWaker::same_wait()`. A registration is a duplicate only when it
+wakes the same task **and** belongs to the same wait (`Arc::ptr_eq` on the liveness
+token; an executor waker has no token and keeps the old `will_wake` rule). The `register`
+predicate is now `will_wake && same_wait`.
+
+- A repeated poll of one future keeps its token, so its registration stays single.
+- Two waits behind one task each keep a registration, so one ending cannot silently
+  remove the other.
+- Dead waits are still pruned, so the vector is bounded by the number of live waits.
+
+New tests, both fail on the code before the follow-up:
+
+- `valtron::bridged_waker_liveness::two_waits_of_one_task_are_both_registered`: two
+  bridged wakers over one task waker hold two registrations; when the first goes dead,
+  `notify` wakes the task once and the count is one.
+- `two_live_cancel_waits_of_one_task_stay_registered` in
+  `foundation_connectrpc/tests/context_tests.rs`: two polled `cancelled()` futures on one
+  counting waker give `waiter_count() == 2`; after the first drops, `cancel()` still wakes
+  the task.
+
+The backlog §4 entry this recorded is deleted.

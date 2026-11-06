@@ -162,6 +162,21 @@ impl ReadinessWaker {
         self.waker.will_wake(&other.waker)
     }
 
+    /// Whether this waker and `other` belong to the same wait.
+    ///
+    /// An executor waker has no liveness token, so `will_wake` alone identifies
+    /// it. A bridged waker carries one token per wait. Two waits polled by one
+    /// task wake the same task, but each must keep its own registration: if the
+    /// notifier kept one and that wait ended first, the other would never wake.
+    #[must_use]
+    fn same_wait(&self, other: &Self) -> bool {
+        match (&self.live, &other.live) {
+            (Some(mine), Some(theirs)) => Arc::ptr_eq(mine, theirs),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+
     /// Whether the task is still parked on this waker. A source may drop a
     /// waker that is not live.
     ///
@@ -263,7 +278,10 @@ impl ReadinessNotifier {
     pub fn register(&self, waker: &ReadinessWaker) -> bool {
         let mut wakers = self.wakers.lock().unwrap_or_else(PoisonError::into_inner);
         wakers.retain(ReadinessWaker::is_live);
-        if !wakers.iter().any(|kept| kept.will_wake(waker)) {
+        if !wakers
+            .iter()
+            .any(|kept| kept.will_wake(waker) && kept.same_wait(waker))
+        {
             wakers.push(waker.clone());
         }
         self.count.store(wakers.len(), Ordering::SeqCst);

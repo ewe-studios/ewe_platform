@@ -64,3 +64,40 @@ fn a_dead_bridged_waker_is_dropped() {
         "a notify must drop a bridged waker whose wait is gone"
     );
 }
+
+/// Two live waits polled by one task must both keep a registration.
+///
+/// Both waits wake the same task, so `will_wake` is true for the second one.
+/// Deduplicating on `will_wake` alone keeps only the first wait's token; when
+/// that wait ends, the notifier prunes the only registration and the second
+/// wait never wakes. Deduplicating on the wait identity keeps both.
+#[test]
+fn two_waits_of_one_task_are_both_registered() {
+    let notifier = ReadinessNotifier::new();
+    let counter = Arc::new(CountingWake(AtomicUsize::new(0)));
+    let task = Waker::from(Arc::clone(&counter));
+
+    let first_live = Arc::new(AtomicBool::new(true));
+    let second_live = Arc::new(AtomicBool::new(true));
+    let first = ReadinessWaker::from_waker_with_liveness(task.clone(), Arc::clone(&first_live));
+    let second = ReadinessWaker::from_waker_with_liveness(task.clone(), Arc::clone(&second_live));
+
+    notifier.register(&first);
+    notifier.register(&second);
+    assert_eq!(
+        notifier.waiter_count(),
+        2,
+        "two live waits of one task are two registrations; deduplicating on \
+         will_wake leaves only the first"
+    );
+
+    // The first wait ends. The second is still pending and must be woken.
+    first_live.store(false, Ordering::SeqCst);
+    notifier.notify();
+    assert_eq!(
+        counter.0.load(Ordering::SeqCst),
+        1,
+        "the pending wait's task must be woken after the other wait ended"
+    );
+    assert_eq!(notifier.waiter_count(), 1);
+}

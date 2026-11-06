@@ -60,20 +60,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
-- **`ReadinessNotifier::register` de-duplicates by `will_wake`, so the retained
-  liveness token can belong to a finished wait.** File
-  `src/valtron/readiness_wake.rs`. Two `cancelled()` futures (or any two bridged
-  waits) polled by the same task give the same `cx.waker()`, so the second
-  register skips the push and the stored waker keeps the **first** wait's
-  token. If the first wait is dropped before the source fires, `notify` prunes
-  the stored waker as dead and never wakes the still-pending second wait: a
-  lost wake. No in-tree caller selects two cancellations at once (feature 140
-  audited the call sites), so no test hits it. Fix: on `will_wake`, replace the
-  stored waker with the newest one. That fixes the common order only; a fully
-  correct fix also needs a liveness state shared by the waits behind one task
-  waker (an `Arc` live count), so an older wait that outlives the newer one
-  keeps the registration. Found in feature 140.
-
 - **Executor parking stays on the real monotonic clock.** Feature 115 makes the
   clock in `Ctx` replaceable, so a task reads an injected clock from
   `ctx.clock()`. The executor's own waits do not read that clock: the single

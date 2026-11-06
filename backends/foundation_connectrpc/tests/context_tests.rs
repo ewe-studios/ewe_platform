@@ -201,6 +201,51 @@ fn finished_cancel_waits_do_not_accumulate_wakers() {
     );
 }
 
+/// Two live cancel waits of one task must both keep a registration.
+///
+/// Both waits poll with the same task waker, so a de-duplication on `will_wake`
+/// alone keeps the first wait's liveness token only. If that wait ends, the
+/// signal prunes its only waker and the second wait never wakes.
+#[test]
+fn two_live_cancel_waits_of_one_task_stay_registered() {
+    use std::future::Future;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Wake, Waker};
+
+    struct CountingWake(AtomicUsize);
+
+    impl Wake for CountingWake {
+        fn wake(self: Arc<Self>) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    let signal = CancelSignal::new();
+    let counter = Arc::new(CountingWake(AtomicUsize::new(0)));
+    let waker = Waker::from(Arc::clone(&counter));
+    let mut cx = std::task::Context::from_waker(&waker);
+
+    let mut first = Box::pin(signal.cancelled());
+    assert!(first.as_mut().poll(&mut cx).is_pending());
+    let mut second = Box::pin(signal.cancelled());
+    assert!(second.as_mut().poll(&mut cx).is_pending());
+    assert_eq!(
+        signal.waiter_count(),
+        2,
+        "two live waits of one task are two registrations; a de-duplication on \
+         will_wake leaves only the first"
+    );
+
+    // The first wait ends. The signal must still wake the pending second wait.
+    drop(first);
+    signal.cancel();
+    assert!(second.as_mut().poll(&mut cx).is_ready());
+    assert!(
+        counter.0.load(Ordering::SeqCst) >= 1,
+        "the pending second wait's task must be woken"
+    );
+}
+
 // ── Deadline ──────────────────────────────────────────────────────────────────
 
 #[test]
