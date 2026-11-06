@@ -24,6 +24,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   set it non-blocking, connect to the `SockAddr`, and settle it from `SO_ERROR` in
   `PumpPhase::Connecting` exactly as the TCP path does (the reactor already watches the
   fd). Found in feature 127.
+- **`CancelSignal` keeps one waker per facade wait until it fires.** File
+  `src/shared/context/cancel.rs`. Each `receive()` on a stream builds a fresh
+  `cancelled()` future, and each poll registers a `ReadinessWaker` built with
+  `ReadinessWaker::from_waker`, whose `is_live()` is always true (it has no
+  `ParkState`). The signal's `ReadinessNotifier` therefore cannot drop a waker
+  from a finished wait, so a long call that returns thousands of messages keeps
+  thousands of wakers. The count is unchanged by feature 138; the old vector had
+  the same growth plus one clone per poll. Fix: register the call's waker once
+  (for example keep one `cancelled()` future per call and share it), or give the
+  notifier a liveness token for a bridged waker. Found in feature 138.
 
 ## 2. foundation_netio
 
@@ -121,6 +131,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   shows it. Likely fix: add a `#[doc(hidden)]` wake counter beside
   `h2_pump_poll_count` (on `ReadinessNotifier` or `ExecutorWake`), then assert
   that a pop does not wake a parked producer. Found in feature 126.
+- **A blocking call inside a task poll starves the pool silently.** Files:
+  `backends/foundation_core/src/valtron/executors/future_task.rs:268,325,398,437,841,935`
+  and `state_task.rs:171,224` (the poll sites; none measures the poll);
+  `backends/foundation_connectrpc/tests/client_deadline_tests.rs` (the case that
+  exposed it). Problem: `thread::join()`, a blocking socket read or a blocking
+  file call inside an async body holds the valtron worker that polls the body.
+  With a 2-worker pool the H2 pump then never runs. CI failed
+  `a_timed_out_receive_cancels_the_call` twice; a local pool with
+  `threads = 1` and `--test-threads=2` failed 3 of 3 runs, and `threads = 2`
+  passed. Each test now waits with a bounded async poll, but nothing reports
+  the next one. Fix: a `PoolConfig::slow_poll_warning` threshold that names the
+  task and the duration, on by default in the test harness, plus the rule in
+  the valtron skill. Found in feature 131; scheduled as feature 139.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 

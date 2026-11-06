@@ -2,6 +2,43 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 138 moves the call cancel signal onto valtron's readiness
+  port. Branch `spec70/priority-followups`.
+  - `CancelSignal` kept its own `Mutex<Vec<std::task::Waker>>` and called
+    `wake()` itself (`src/shared/context/cancel.rs`). The change is a structural
+    cleanup: no valtron internal had leaked, but the wake plumbing belonged to
+    valtron.
+  - `Inner` is now `{ fired: ResumeSignal, parent: Option<CancelSignal> }`.
+    `cancel()` sets the flag; `Cancelled::poll` registers
+    `ReadinessWaker::from_waker(cx.waker().clone())` on the signal and every
+    ancestor, then re-checks `is_canceled`.
+  - Public API and version unchanged (0.0.6). Two new tests in
+    `tests/context_tests.rs`: every waiter wakes from one cancel, and a second
+    cancel is safe. No test fails on the old code; the proof is the source (no
+    `Vec<Waker>`, no `wake()`).
+  - `context_tests` 10 passed; the full crate 253 passed, 1 ignored. fmt, clippy
+    and the wasm32 rpc check are clean. CI proof is pending.
+  - The audit that started this is recorded in `learnings.md`: external crates
+    use only the surface (`EventReadiness` impls, `TaskStatus::Depends`,
+    `EventQueue`/`Pipe`, `ReadinessNotifier::notify`); the H2 pump never holds a
+    waker.
+
+- 2026-11-06: the feature 131 CI failure is a test defect, and it is fixed.
+  - CI run `42175894858` failed
+    `client_deadline_tests::a_timed_out_receive_cancels_the_call` twice at
+    `tests/client_deadline_tests.rs:821`.
+  - Cause: the test body ran `peer.join()`, which parks the calling thread; the
+    poll of a `#[valtron_test]` body runs on a valtron pool worker. On CI (2
+    vCPUs, 2 task workers) two blocked bodies held the pool, so the H2 pump never
+    closed the socket. Reproduced 3 of 3 with `threads = 1` and
+    `--test-threads=2`; passed with `threads = 2` or one test thread.
+  - Fix: `join_within` waits on `sleep_async` in 10 ms steps while the peer runs,
+    fails at the 5 s bound, then joins. The six synchronous joins use it.
+  - Proof: the reproduction passed 4 of 4 runs after the fix; the binary passed
+    12 of 12; the full crate 253 passed, 1 ignored.
+  - The general hazard is in `docs/bug-backlog.md` §4 and scheduled as feature
+    139 (a slow-poll warning that names the task).
+
 - 2026-11-06: feature 129 fixes the macOS websocket upgrade relay. The test
   fails 10 of 10 runs before the fix and passes 20 of 20 alone plus the full
   suite after it. Branch `spec70/priority-followups`, commit `8878f50d1`.

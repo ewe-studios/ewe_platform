@@ -245,6 +245,29 @@ fn observes_close(socket: &mut TcpStream, bound: Duration) -> bool {
     false
 }
 
+/// Waits for a peer thread and returns what it reported.
+///
+/// WHY: `thread::JoinHandle::join` parks the calling thread. Inside a
+/// `#[valtron_test]` body the calling thread is a valtron pool worker, so a
+/// synchronous join holds that worker until the peer finishes. The H2 pump
+/// runs on the same pool: it cannot close the socket, the peer's close bound
+/// expires, and the test fails for a reason that is not the client's.
+///
+/// WHAT: waits on the async timer while the peer runs, then joins (which
+/// returns at once). The wait fails the test when the peer outlives `bound`.
+async fn join_within<T: Send + 'static>(
+    handle: thread::JoinHandle<T>,
+    bound: Duration,
+    message: &str,
+) -> T {
+    let started = Instant::now();
+    while !handle.is_finished() {
+        assert!(started.elapsed() < bound, "{message}");
+        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
+    }
+    handle.join().expect("peer thread")
+}
+
 /// A raw HTTP/2 peer that sends the response head and one Connect message,
 /// then stalls.
 ///
@@ -651,7 +674,12 @@ async fn a_server_stream_receive_fails_on_the_call_deadline() {
         "the 200 ms deadline must end the receive in under 1 s, took {elapsed:?}"
     );
     drop(stream);
-    peer.join().expect("peer thread");
+    join_within(
+        peer,
+        Duration::from_secs(5),
+        "the peer never finished after the timed-out receive",
+    )
+    .await;
 }
 
 /// After the first message, a stalled bidi receive fails on the call deadline,
@@ -688,7 +716,12 @@ async fn a_bidi_receive_fails_on_the_call_deadline() {
         "the 200 ms deadline must end the receive in under 1 s, took {elapsed:?}"
     );
     drop(stream);
-    peer.join().expect("peer thread");
+    join_within(
+        peer,
+        Duration::from_secs(5),
+        "the peer never finished after the timed-out bidi receive",
+    )
+    .await;
 
     // Split receive half.
     let (addr, peer) = start_stalled_peer();
@@ -721,7 +754,12 @@ async fn a_bidi_receive_fails_on_the_call_deadline() {
         "the 200 ms deadline must end the receive in under 1 s, took {elapsed:?}"
     );
     drop(receiver);
-    peer.join().expect("peer thread");
+    join_within(
+        peer,
+        Duration::from_secs(5),
+        "the peer never finished after the timed-out split receive",
+    )
+    .await;
 }
 
 /// Dropping a server stream closes the socket, even though the peer never
@@ -742,16 +780,7 @@ async fn dropping_a_server_stream_closes_the_socket() {
         .await
         .expect("a head-only peer must not stall the call setup");
     drop(stream);
-    let started = Instant::now();
-    while !peer.is_finished() {
-        assert!(
-            started.elapsed() < Duration::from_secs(5),
-            "the peer never saw the close"
-        );
-        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
-    }
-
-    let closed = peer.join().expect("peer thread");
+    let closed = join_within(peer, Duration::from_secs(5), "the peer never saw the close").await;
     assert!(
         closed,
         "dropping the stream must close the peer's socket within 2 s"
@@ -783,7 +812,12 @@ async fn dropping_one_bidi_half_keeps_the_other_alive() {
     assert_eq!(msg, Msg::of("after-drop"));
 
     drop(receiver);
-    peer.join().expect("peer thread");
+    join_within(
+        peer,
+        Duration::from_secs(5),
+        "the peer never finished after the drop",
+    )
+    .await;
 }
 
 /// A timed-out receive stops the call, so the peer sees the socket close.
@@ -817,7 +851,7 @@ async fn a_timed_out_receive_cancels_the_call() {
         "expected DeadlineExceeded, got: {err}"
     );
 
-    let closed = peer.join().expect("peer thread");
+    let closed = join_within(peer, Duration::from_secs(5), "the peer never saw the close").await;
     assert!(
         closed,
         "a timed-out receive must close the peer's socket within 2 s"

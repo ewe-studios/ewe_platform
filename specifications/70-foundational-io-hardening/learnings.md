@@ -2,6 +2,38 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (features 131, 138, 139 — valtron surface and pool starvation):
+  - **The poll of a `#[valtron_test]` body runs on a valtron pool worker.** The
+    caller thread blocks on the result, and the pool polls the body's future. A
+    synchronous call inside the body (`thread::join()`, a blocking socket read, a
+    blocking file read) therefore holds a worker, not the caller's thread. On CI
+    with 2 vCPUs the pool has 2 task workers, so two such bodies starve it. This
+    is the CI-only failure of `a_timed_out_receive_cancels_the_call`: the H2 pump
+    task never ran, so the socket never closed.
+  - **Reproduce pool starvation by pinning the pool.** `threads = 1` on the test
+    plus `--test-threads=2` failed 3 of 3 runs locally; `threads = 2` or one test
+    thread passed. A CI-only async failure is worth a pinned-pool run before any
+    client-side theory.
+  - **Wait for a thread without blocking a worker.** Poll `JoinHandle::is_finished()`
+    with `valtron::sleep_async(10 ms)` up to the bound, then `join()`. The helper
+    `join_within` in `tests/client_deadline_tests.rs` is the pattern.
+  - **A "leak" of valtron means a detail, not a type.** External crates may use the
+    surface: implement `EventReadiness`/`WakeableStream`, return
+    `TaskStatus::Depends(AnyReadiness)`, use `EventQueue`/`Pipe`, and fire a
+    readiness source's own `ReadinessNotifier`. They must not hold a waker to poke
+    the executor. The audit of this branch found no such leak: the H2 pump reports
+    readiness and never touches a waker.
+  - **`ResumeSignal` is the port for "set a flag and wake the waiters".** It is a
+    flag plus a `ReadinessNotifier`; `set(true)` fires the notifier and valtron
+    wakes. `ReadinessWaker::from_waker(cx.waker().clone())` bridges a `Future` to
+    it. A hand-rolled `Mutex<Vec<Waker>>` plus `wake()` duplicates this and loses
+    de-duplication and stale-waker cleanup (`CancelSignal` did; feature 138 moved
+    it).
+  - **Register before the re-check, and ignore the return in a `Future`.**
+    `EventReadiness::register` returns "wakes on every change", which the executor
+    uses to sleep without a quantum. A `Future` re-checks its own state instead,
+    so it ignores the value but must still register first to close the race.
+
 - 2026-11-06 (feature 129, macOS read edge lost):
   - **macOS kqueue reports pipes level-triggered despite `EV_CLEAR`.** The
     selector in `foundation_reactor` suppresses repeated read events itself: it

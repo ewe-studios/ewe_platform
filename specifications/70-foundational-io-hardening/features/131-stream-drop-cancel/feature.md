@@ -182,3 +182,29 @@ recorded in `docs/bug-backlog.md` §1.
 - `cargo check --profile uat --target wasm32-unknown-unknown -p
   foundation_connectrpc --no-default-features --features rpc`: clean.
 
+### CI failure and its cause (2026-11-06, after the feature landed)
+
+CI run `42175894858` failed
+`client_deadline_tests::a_timed_out_receive_cancels_the_call` twice, at
+`tests/client_deadline_tests.rs:821`, with "a timed-out receive must close the
+peer's socket within 2 s". The client was not at fault. The test blocked a
+valtron worker:
+
+- The test body ran `peer.join()`, which parks the calling thread. In a
+  `#[valtron_test]` body the poll that matters runs on a valtron pool worker,
+  and on CI (2 vCPUs) the pool has 2 task workers. Two test bodies that block in
+  `join()` held both, so the H2 pump task never ran and never closed the socket.
+- Reproduction: with `threads = 1` on the tests and `--test-threads=2`, 3 of 3
+  local runs failed with the same panic. With `threads = 2`, or with one test
+  thread, all runs passed. This is the same signature as CI.
+- Fix: `join_within` in `tests/client_deadline_tests.rs` waits on
+  `valtron::sleep_async` in 10 ms steps while `JoinHandle::is_finished()` is
+  false, fails the test at the bound, and only then calls `join()`. The six
+  synchronous joins in the file now use it. `dropping_a_server_stream_closes_the_socket`
+  already used this pattern.
+- After the fix, the `threads = 1` + `--test-threads=2` reproduction passed 4 of
+  4 runs and the full binary passed 12 of 12.
+
+The general hazard (any blocking call in a poll starves the pool silently) is
+recorded in `docs/bug-backlog.md` §4 and scheduled as feature 139.
+

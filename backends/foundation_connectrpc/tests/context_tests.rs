@@ -134,6 +134,29 @@ fn cancelled_await_wakes_via_parent_link() {
     assert!(child.is_canceled());
 }
 
+#[test]
+fn cancelled_await_wakes_every_waiter() {
+    let signal = CancelSignal::new();
+    let first = signal.clone();
+    let second = signal.clone();
+    let firer = signal.clone();
+    let one = std::thread::spawn(move || block_on(first.cancelled()));
+    let two = std::thread::spawn(move || block_on(second.cancelled()));
+    std::thread::sleep(Duration::from_millis(100));
+    firer.cancel();
+    one.join().expect("first waiter");
+    two.join().expect("second waiter");
+    assert!(signal.is_canceled());
+}
+
+#[test]
+fn cancel_twice_stays_canceled() {
+    let signal = CancelSignal::new();
+    signal.cancel();
+    signal.cancel();
+    assert!(signal.is_canceled());
+}
+
 // ── Deadline ──────────────────────────────────────────────────────────────────
 
 #[test]

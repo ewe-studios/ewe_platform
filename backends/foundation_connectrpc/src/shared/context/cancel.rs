@@ -11,19 +11,22 @@
 //!
 //! WHAT: [`CancelSignal`] with `new`/`linked`/`cancel`/`is_canceled`/`cancelled`.
 //!
-//! HOW: an `Arc` over `{ AtomicBool, parked wakers, optional parent }`. A pending
-//! [`cancelled`](CancelSignal::cancelled) future registers its waker in the
-//! signal **and every ancestor**, so a parent's `cancel()` wakes linked children.
+//! HOW: an `Arc` over `{ ResumeSignal, optional parent }`. `ResumeSignal` is valtron's
+//! flag-plus-notifier port: `set(true)` wakes the tasks parked on it, and the waking stays
+//! inside valtron. A pending [`cancelled`](CancelSignal::cancelled) future registers its
+//! waker through [`EventReadiness::register`] on the signal **and every ancestor**, so a
+//! parent's `cancel()` wakes linked children.
 
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
-use std::task::{Context, Poll, Waker};
+use std::sync::Arc;
+use std::task::{Context, Poll};
+
+use foundation_core::valtron::{EventReadiness, ReadinessWaker, ResumeSignal};
 
 struct Inner {
-    canceled: AtomicBool,
-    wakers: Mutex<Vec<Waker>>,
+    /// The fired flag and its notifier. Valtron owns the wake.
+    fired: ResumeSignal,
     /// Opt-in one-way-down link; `is_canceled` also consults the parent.
     parent: Option<CancelSignal>,
 }
@@ -37,8 +40,7 @@ impl CancelSignal {
     #[must_use]
     pub fn new() -> Self {
         Self(Arc::new(Inner {
-            canceled: AtomicBool::new(false),
-            wakers: Mutex::new(Vec::new()),
+            fired: ResumeSignal::new(false),
             parent: None,
         }))
     }
@@ -48,8 +50,7 @@ impl CancelSignal {
     #[must_use]
     pub fn linked(parent: &CancelSignal) -> Self {
         Self(Arc::new(Inner {
-            canceled: AtomicBool::new(false),
-            wakers: Mutex::new(Vec::new()),
+            fired: ResumeSignal::new(false),
             parent: Some(parent.clone()),
         }))
     }
@@ -57,25 +58,18 @@ impl CancelSignal {
     /// Fire the signal, waking everything awaiting it (and any linked children).
     /// Idempotent.
     pub fn cancel(&self) {
-        if !self.0.canceled.swap(true, Ordering::AcqRel) {
-            let wakers = {
-                let mut guard = self
-                    .0
-                    .wakers
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner);
-                std::mem::take(&mut *guard)
-            };
-            for waker in wakers {
-                waker.wake();
-            }
+        // `set(true)` wakes through the signal's notifier. A second concurrent
+        // caller can wake the same tasks again; a repeated wake is harmless,
+        // because every waiter re-checks `is_canceled`.
+        if !self.0.fired.get() {
+            self.0.fired.set(true);
         }
     }
 
     /// Whether this signal (or any ancestor it is linked to) has fired.
     #[must_use]
     pub fn is_canceled(&self) -> bool {
-        self.0.canceled.load(Ordering::Acquire)
+        self.0.fired.get()
             || self
                 .0
                 .parent
@@ -90,12 +84,10 @@ impl CancelSignal {
 
     /// Register `waker` on this signal and every ancestor, so a parent's
     /// `cancel()` wakes a child's pending `cancelled()` future.
-    fn register(&self, waker: &Waker) {
-        self.0
-            .wakers
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .push(waker.clone());
+    fn register(&self, waker: &ReadinessWaker) {
+        // The return value says "this source wakes on every change"; the caller
+        // re-checks `is_canceled` instead, so it is not needed here.
+        let _ = EventReadiness::register(&self.0.fired, waker);
         if let Some(parent) = &self.0.parent {
             parent.register(waker);
         }
@@ -128,7 +120,10 @@ impl Future for Cancelled<'_> {
         if self.signal.is_canceled() {
             return Poll::Ready(());
         }
-        self.signal.register(cx.waker());
+        // the bridge for a source behind a `Future`: waking this waker wakes
+        // `cx.waker()`, and valtron owns what that means.
+        let waker = ReadinessWaker::from_waker(cx.waker().clone());
+        self.signal.register(&waker);
         // Re-check to close the register/fire race.
         if self.signal.is_canceled() {
             Poll::Ready(())
