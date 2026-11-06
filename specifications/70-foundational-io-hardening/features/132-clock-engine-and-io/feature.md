@@ -69,10 +69,10 @@ Rules for the crate group:
 - The executor still parks on the real monotonic clock. That is backlog §4 in
   `docs/bug-backlog.md` and it is not part of this phase.
 - `foundation_netio` has a private `SimClock` in
-  `tests/simple_http/nonblocking_client_tests.rs:126`. It must implement the new
-  `Clock::wall_now`, and then it can be replaced by `SimulatedClock`. Feature 117
-  leaves it broken because `foundation_netio` is outside its scope; this phase fixes
-  it first.
+  `tests/simple_http/nonblocking_client_tests.rs:126`. It now implements
+  `Clock::wall_now` (a fixed `SystemTime::UNIX_EPOCH`, added in feature 117's
+  follow-up commit). This phase can replace it with `SimulatedClock` when it needs
+  a controlled wall clock.
 - Each crate deletes its file entries from
   `scripts/ci/time_sources_allowlist.txt` as it lands. Do not delete another crate's
   entries.
@@ -92,8 +92,8 @@ All tests live in each crate's `tests/` directory and register in its `tests/**/
 1. `foundation_core`: a `#[valtron_test(ctx = ...)]` task with a `SimulatedClock`
    reports the simulated `now()` and `wall_now()`. Advance both clocks and assert
    that the task sees the new values.
-2. `foundation_netio`: the `SimClock` test clock implements `Clock::wall_now`; a
-   client timer test drives a deadline with the injected clock, not with `sleep`.
+2. `foundation_netio`: a client timer test drives a deadline with the injected clock,
+   not with `sleep`.
 3. `foundation_http`: a server read timeout and an idle timeout read
    `ctx.clock().now()`; a test advances the clock and asserts the timeout fires.
 4. `foundation_connectrpc`: a call deadline read from the `Ctx` clock; a test sets

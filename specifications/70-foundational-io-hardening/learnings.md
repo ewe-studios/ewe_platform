@@ -8,7 +8,9 @@ _What an agent learned that the next agent needs. Newest first._
     read the real global, but `foundation_netio`'s test `SimClock` is a fourth
     implementor. The gate and the crates compile, but the netio test target does
     not. The plan must name every implementor before it sets the crate scope, or
-    the scope must include the implementor files.
+    the scope must include the implementor files. The main session added the
+    method after review; a test clock that reads only `now` returns a fixed
+    `UNIX_EPOCH` for `wall_now`.
   - **A directory allowlist entry and a file allowlist entry are both needed.** The
     real time backends are a whole crate subtree (`foundation_compact/src/`) plus
     one file (`foundation_core/src/valtron/ctx.rs`). The gate supports a trailing

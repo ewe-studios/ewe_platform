@@ -187,10 +187,12 @@ Each phase deletes its paths from the gate allowlist and states its new count in
 
 ## Done when (this feature)
 
-- [ ] `Clock::wall_now` exists, and every implementor in the tree implements it.
+- [x] `Clock::wall_now` exists, and every implementor in the tree implements it.
       `MonotonicClock`, `SimulatedClock` and the core test `MockClock` implement it.
-      The netio test `SimClock` does not: `foundation_netio` is outside this
-      feature's scope. See the Result.
+      The netio test `SimClock` stopped compiling when the method became required;
+      the main session added its `wall_now` (`SystemTime::UNIX_EPOCH`, because that
+      clock feeds only the monotonic path) in the follow-up commit, and
+      `cargo test --profile uat -p foundation_netio` passes (1218 + 9 + 6 + 5 + 54).
 - [x] `SimulatedClock` has a wall origin and `advance_wall`.
 - [x] `foundation_compact::time` has the three conversion functions with tests.
 - [x] `scripts/ci/check_time_sources.py` exists, has tests, and runs in `ci.py`.
@@ -277,15 +279,16 @@ Version bump:
 - `foundation_compact` 0.2.3 to 0.2.4. The change updates 9 consumer requirements.
 - `Cargo.lock` is refreshed once. 40 manifests change in all.
 
-Open item (out of scope):
+Closed after review:
 
 - `backends/foundation_netio/tests/simple_http/nonblocking_client_tests.rs:126`
-  implements `Clock` and does not implement `wall_now`, so the `foundation_netio`
-  test target does not compile. This feature's brief limits the edits to
-  `foundation_core`, `foundation_compact` and `scripts/ci`, so it does not edit
-  `foundation_netio`. Fix: add
-  `fn wall_now(&self) -> foundation_compact::SystemTime { foundation_compact::SystemTime::now() }`,
-  or replace the private `SimClock` with `SimulatedClock`. Recorded in
-  `docs/bug-backlog.md` §2 and scheduled as the first step of feature 132 (phase B).
-- CI is not run here. The pull-request CI proves the two crates after the netio fix.
+  implements `Clock` and did not implement `wall_now`, so the `foundation_netio`
+  test target stopped compiling. The feature's brief limits the edits to
+  `foundation_core`, `foundation_compact` and `scripts/ci`, so the agent reported it.
+  The main session added the method in the follow-up commit:
+  `fn wall_now(&self) -> SystemTime { SystemTime::UNIX_EPOCH }`. These tests read
+  only the monotonic clock, so a fixed wall time is the correct value; a real
+  reading would make the test depend on the machine's date. The backlog §2 entry
+  is deleted, and the first step of feature 132 is removed.
+- CI is not run here. The pull-request CI proves the two crates.
 

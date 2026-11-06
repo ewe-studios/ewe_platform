@@ -55,19 +55,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **The test `SimClock` does not implement `Clock::wall_now`, so the tests do not
-  compile.** File:
-  `backends/foundation_netio/tests/simple_http/nonblocking_client_tests.rs:126`.
-  Feature 117 makes `wall_now` a required method of
-  `foundation_core::valtron::Clock`. The private `SimClock` in this test file
-  implements only `now` and `elapsed`, so `cargo test -p foundation_netio` fails
-  with `E0046` (not all trait items implemented). `foundation_netio` was outside
-  feature 117's crate scope, so that feature did not edit it. Fix: add
-  `fn wall_now(&self) -> foundation_compact::SystemTime { foundation_compact::SystemTime::now() }`
-  first, then replace the private `SimClock` with `SimulatedClock` when the test
-  needs a controlled wall clock. Found in feature 117; scheduled as the first step
-  of feature 132 (phase B).
-
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
   variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable

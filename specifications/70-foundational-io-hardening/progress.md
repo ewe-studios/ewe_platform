@@ -21,10 +21,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   - Version: `foundation_core` 0.0.9, `foundation_compact` 0.2.4; 42 and 9
     consumer requirements move with them, in 40 manifests.
   - Phases B, C and D are written as features 132, 133 and 134.
-  - Open: `foundation_netio`'s test `SimClock` does not implement `wall_now`, so
-    its test target does not compile. `foundation_netio` is outside this
-    feature's scope; the fix is the first step of feature 132 and is in
-    `docs/bug-backlog.md` §2. CI proof is pending.
+  - Closed after review: the agent reported that `foundation_netio`'s test
+    `SimClock` no longer compiled. Its `wall_now` now returns
+    `SystemTime::UNIX_EPOCH`, because those tests read only the monotonic clock.
+    `cargo test --profile uat -p foundation_netio` passes: 1218, 54, 9, 6 and 5
+    tests. The backlog §2 entry is deleted. CI proof is pending.
 
 - 2026-11-06: feature 124 bounds every streaming facade wait with the call
   deadline. Branch `spec70/priority-followups`.
