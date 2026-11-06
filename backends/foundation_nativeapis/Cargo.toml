@@ -90,6 +90,10 @@ turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["test-clock"] }
+# The signal delivery tests measure elapsed time with the foundation_compact
+# instant type. The library dependency is optional (the `vfs` features), so the
+# test target needs its own entry.
+foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false, features = ["std"] }
 foundation_arrow = { path = "../foundation_arrow" }
 foundation_macros = { path = "../foundation_macros" }
 tracing-test.workspace = true
