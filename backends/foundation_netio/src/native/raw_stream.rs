@@ -748,19 +748,6 @@ impl RawStream {
         }
     }
 
-    // #[inline]
-    // pub fn clone_stream(&self) -> errors::TlsResult<Self> {
-    //     let work = match &self.inner {
-    //         RawStream::AsPlain(inner, addr) => RawStreamInner::Plain(inner.try_clone(), addr.clone()),
-    //         RawStream::AsTls(inner, _) => inner.get_inner_ref().get_ref().clone(),
-    //     };
-
-    //     match work {
-    //         Ok(inner) => Ok(inner),
-    //         Err(err) => Err(err.into()),
-    //     }
-    // }
-
     #[inline]
     #[must_use]
     pub fn addrs(&self) -> DataStreamAddr {

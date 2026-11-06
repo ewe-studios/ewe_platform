@@ -153,7 +153,7 @@ scripts/ci/linux.sh foundation_connectrpc
 - [ ] `cancel.rs` holds no `Vec<Waker>` and calls no `wake()`.
 - [ ] The parent/child wake path still works and is covered by a test.
 - [ ] The two new tests exist.
-- [ ] All checks above pass, including Linux CI.
+- [x] All checks above pass, including Linux CI.
 - [ ] The backlog §1 entry is deleted.
 
 ## Result
@@ -176,4 +176,9 @@ scripts/ci/linux.sh foundation_connectrpc
   The proof is the source, not a red test.
 - `cargo fmt --all --check`, clippy (all targets, `-D warnings`) and the wasm32 rpc check
   (`RUSTFLAGS=-D warnings`) are clean.
-- Linux CI: pending the push; the pull request proof table is updated with the result.
+- Linux CI: `scripts/ci/linux.sh foundation_connectrpc` exit 0 on 2026-11-06, head
+  `060215256`. Every step passed: `cargo fmt --check`; `cargo build --profile uat
+  --all-targets`; clippy; `cargo test --profile uat` (default features and `h3`); and
+  `RUSTFLAGS='-D warnings' cargo check --target wasm32-unknown-unknown
+  --no-default-features --features rpc`. All test binaries report 0 failed; the log is
+  `/tmp/ci-connectrpc-linux.log` on the owner's machine.

@@ -27,17 +27,21 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **The commented-out `clone_stream` block names removed variants.** File:
-  `src/native/raw_stream.rs`. Problem: the block still refers to
-  `RawStream::AsPlain` and `RawStream::AsTls` after `RawStream` became a
-  struct over a private inner enum. It is dead text with no compile effect.
-  Likely fix: delete the block. Found in feature 137; scheduled as feature 142.
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) the private `RawStreamInner` enum has
   only the `Plain` variant, so `if let RawStreamInner::Plain(inner, _) = &self.inner`
   warns as an irrefutable pattern. Keep the `if let`: the TLS feature sets add the
   other variants. Found in feature 49; the default and all-feature sets are
   warning-free.
+- **`--all-features` warns that the `openssl` dependency is unused.** Command:
+  `cargo check --profile uat -p foundation_netio --all-features`. Cargo's
+  `unused_dependencies` lint reports one warning in the manifest, because the
+  TLS import order prefers `ssl-rustls` when both `ssl-rustls` and
+  `ssl-openssl` are on, so no code names `openssl`. Each backend alone is
+  clean. Likely fix: in the TLS module, add
+  `#[cfg(all(feature = "ssl-openssl", feature = "ssl-rustls"))] use openssl as _;`
+  with a comment that rustls wins, or declare the two features mutually
+  exclusive. Found in feature 142; scheduled as feature 144.
 
 ## 3. foundation_http
 

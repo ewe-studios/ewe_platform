@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 142 deletes the stale commented `clone_stream` block.
+  Branch `spec70/priority-followups`.
+  - The block in `src/native/raw_stream.rs` named `RawStream::AsPlain` and
+    `RawStream::AsTls`, which feature 137 replaced with the private
+    `RawStreamInner` enum. It is deleted. The method is not restored: a clone
+    would share or rebuild the `OnceLock<ReadWakeSource>` from feature 141.
+  - No other line in the file changed. The other `clone_stream` methods in the
+    crate belong to `SharedByteBufferStream`, the SSE stream and the HTTP
+    connection; they are unrelated.
+  - fmt and clippy are clean. The test suite is 1298 passed, 0 failed, 0
+    ignored. The backlog section 2 entry is deleted.
+  - CI is pending the push. Next: feature 143 bounds the `targeted_wake` storm
+    by work (sonnet).
+
 - 2026-11-06: feature 141 does not cache a negative read wake source. Branch
   `spec70/priority-followups`.
   - Feature 137 cached `Option<ReadWakeSource>` in a `OnceLock`, so a call made
@@ -16,8 +30,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     clean. The backlog section 2 entry is deleted.
   - Next: feature 142 deletes the stale commented `clone_stream` block in the
     same file (haiku). Feature 143 reproduces the `targeted_wake` full-suite
-    timeout before it bounds the storm by work (sonnet). Both are planned, not
-    started.
+    timeout before it bounds the storm by work (sonnet). Feature 144 removes
+    the unused `openssl` warning from the netio all-features check (haiku).
 
 - 2026-11-06: feature 137 builds a stream's read wake source once. Commit
   `39f4eedb3`.
@@ -118,7 +132,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     cancel is safe. No test fails on the old code; the proof is the source (no
     `Vec<Waker>`, no `wake()`).
   - `context_tests` 10 passed; the full crate 253 passed, 1 ignored. fmt, clippy
-    and the wasm32 rpc check are clean. CI proof is pending.
+    and the wasm32 rpc check are clean. `scripts/ci/linux.sh foundation_connectrpc`
+    exits 0 on head `060215256`: fmt, build, clippy, the default and `h3` test
+    suites, and the wasm32 rpc check all pass.
   - The audit that started this is recorded in `learnings.md`: external crates
     use only the surface (`EventReadiness` impls, `TaskStatus::Depends`,
     `EventQueue`/`Pipe`, `ReadinessNotifier::notify`); the H2 pump never holds a

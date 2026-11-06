@@ -2,6 +2,20 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 142 — a stale commented block survives a compiler):
+  - **A comment is invisible to the compiler, clippy and the tests.** The
+    commented `clone_stream` block named two enum variants that feature 137 had
+    removed, and every check stayed green. A dead-code or refactor sweep must
+    grep the comments too, not only the live items.
+  - **A later reader treats a stale example as current.** The block looked like
+    a working method, so a reader would believe `RawStream` still has a public
+    `AsPlain` and an `AsTls` variant. Delete stale examples; do not keep them
+    as history, because the version control system keeps the history.
+  - **A clone of `RawStream` must not copy the wake source.** The type holds a
+    `OnceLock<ReadWakeSource>`. A derived or hand-written clone would either
+    share one source between two streams or build a second source for the same
+    file descriptor. That is the reason the method stays deleted.
+
 - 2026-11-06 (feature 141 — a negative read wake source is not cached):
   - **Cache a success, not a snapshot of a condition that can change.** Feature
     137 cached `Option<ReadWakeSource>`, so a `None` taken while the socket was
