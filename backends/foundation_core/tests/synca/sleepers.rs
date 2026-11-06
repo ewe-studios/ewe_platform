@@ -3,9 +3,15 @@
 use foundation_core::synca::{
     DurationStore, DurationWaker, Entry, Sleepers, Timeable, Timing, Waiter, Waker,
 };
+use foundation_core::valtron::{Clock, MonotonicClock};
 use std::sync::Arc;
 use std::thread;
 use std::time;
+
+/// The clock that decides when a waker matures.
+fn clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 #[derive(Debug, Clone)]
 struct MockWaker {
@@ -60,7 +66,7 @@ fn test_duration_waker_new() {
     let start = foundation_compact::Instant::now();
     let duration = time::Duration::from_millis(100);
 
-    let waker = DurationWaker::new(handle, start, duration);
+    let waker = DurationWaker::new(handle, start, duration, clock());
 
     assert!(waker.remaining().is_some());
 }
@@ -70,7 +76,7 @@ fn test_duration_waker_from_now() {
     let handle = MockWaker::new();
     let duration = time::Duration::from_millis(100);
 
-    let waker = DurationWaker::from_now(handle, duration);
+    let waker = DurationWaker::from_now(handle, duration, clock());
 
     assert!(waker.remaining().is_some());
 }
@@ -80,7 +86,7 @@ fn test_duration_waker_is_ready_when_not_elapsed() {
     let handle = MockWaker::new();
     let duration = time::Duration::from_secs(10);
 
-    let waker = DurationWaker::from_now(handle, duration);
+    let waker = DurationWaker::from_now(handle, duration, clock());
 
     assert_eq!(Some(false), waker.try_is_ready());
 }
@@ -90,7 +96,7 @@ fn test_duration_waker_is_ready_when_elapsed() {
     let handle = MockWaker::new();
     let duration = time::Duration::from_millis(10);
 
-    let waker = DurationWaker::from_now(handle, duration);
+    let waker = DurationWaker::from_now(handle, duration, clock());
 
     thread::sleep(time::Duration::from_millis(50));
 
@@ -103,7 +109,7 @@ fn test_duration_waker_deadline() {
     let duration = time::Duration::from_millis(100);
     let before = foundation_compact::Instant::now();
 
-    let waker = DurationWaker::from_now(handle, duration);
+    let waker = DurationWaker::from_now(handle, duration, clock());
     let deadline = waker.deadline();
 
     let expected = before + duration;
@@ -119,7 +125,7 @@ fn test_duration_waker_deadline() {
 
 #[test]
 fn test_sleepers_insert_and_remove() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
     let sleeper = MockSleeper { ready: false };
 
@@ -133,7 +139,7 @@ fn test_sleepers_insert_and_remove() {
 
 #[test]
 fn test_sleepers_remove_nonexistent() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::new();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     let removed = sleepers.remove(&entry);
@@ -142,7 +148,7 @@ fn test_sleepers_remove_nonexistent() {
 
 #[test]
 fn test_sleepers_get_matured_returns_ready_sleepers() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry1 = Entry { id: 1, gen: 0 };
     let entry2 = Entry { id: 2, gen: 0 };
 
@@ -156,7 +162,7 @@ fn test_sleepers_get_matured_returns_ready_sleepers() {
 
 #[test]
 fn test_sleepers_get_matured_empty_when_none_ready() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry1 = Entry { id: 1, gen: 0 };
     let entry2 = Entry { id: 2, gen: 0 };
 
@@ -170,14 +176,14 @@ fn test_sleepers_get_matured_empty_when_none_ready() {
 
 #[test]
 fn test_sleepers_get_matured_empty_when_no_sleepers() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::new();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     let matured = sleepers.get_matured();
     assert!(matured.is_empty());
 }
 
 #[test]
 fn test_sleepers_count() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     assert_eq!(sleepers.count(), 0);
 
     sleepers.insert(Entry { id: 1, gen: 0 }, MockSleeper { ready: false });
@@ -192,7 +198,7 @@ fn test_sleepers_count() {
 
 #[test]
 fn test_sleepers_has_pending_tasks() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     assert!(!sleepers.has_pending_tasks());
 
     sleepers.insert(Entry { id: 1, gen: 0 }, MockSleeper { ready: false });
@@ -204,7 +210,7 @@ fn test_sleepers_has_pending_tasks() {
 
 #[test]
 fn test_sleepers_update_existing() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     sleepers.insert(entry, MockSleeper { ready: false });
@@ -217,7 +223,7 @@ fn test_sleepers_update_existing() {
 
 #[test]
 fn test_sleepers_update_nonexistent() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     let old = sleepers.update(&entry, MockSleeper { ready: true });
@@ -227,7 +233,7 @@ fn test_sleepers_update_nonexistent() {
 
 #[test]
 fn test_sleepers_clone() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     sleepers.insert(entry, MockSleeper { ready: false });
@@ -240,14 +246,14 @@ fn test_sleepers_clone() {
 
 #[test]
 fn test_sleepers_default() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::default();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     assert_eq!(sleepers.count(), 0);
     assert!(!sleepers.has_pending_tasks());
 }
 
 #[test]
 fn test_sleepers_timing_min_duration() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     sleepers.insert(entry, MockSleeper { ready: false });
@@ -257,7 +263,7 @@ fn test_sleepers_timing_min_duration() {
 
 #[test]
 fn test_sleepers_timing_max_duration() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     sleepers.insert(entry, MockSleeper { ready: false });
@@ -270,7 +276,7 @@ fn test_sleepers_timing_max_duration() {
 /// WHAT: with a ready (0s) and a pending (1s) sleeper, min is 0s and max is 1s.
 #[test]
 fn test_sleepers_timing_min_and_max_differ() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     sleepers.insert(Entry { id: 1, gen: 0 }, MockSleeper { ready: true });
     sleepers.insert(Entry { id: 2, gen: 0 }, MockSleeper { ready: false });
 
@@ -280,7 +286,7 @@ fn test_sleepers_timing_min_and_max_differ() {
 
 #[test]
 fn test_sleepers_minimum_deadline() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry1 = Entry { id: 1, gen: 0 };
     let entry2 = Entry { id: 2, gen: 0 };
 
@@ -294,7 +300,7 @@ fn test_sleepers_minimum_deadline() {
 
 #[test]
 fn test_sleepers_time_until_next() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     sleepers.insert(entry, MockSleeper { ready: false });
@@ -304,7 +310,7 @@ fn test_sleepers_time_until_next() {
 
 #[test]
 fn test_sleepers_time_until_next_when_past_deadline() {
-    let sleepers = Sleepers::new();
+    let sleepers = Sleepers::new(clock());
     let entry = Entry { id: 1, gen: 0 };
 
     // A ready sleeper has zero remaining time
@@ -315,25 +321,25 @@ fn test_sleepers_time_until_next_when_past_deadline() {
 
 #[test]
 fn test_sleepers_timing_min_duration_empty() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::new();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     assert!(sleepers.min_duration().is_none());
 }
 
 #[test]
 fn test_sleepers_timing_max_duration_empty() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::new();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     assert!(sleepers.max_duration().is_none());
 }
 
 #[test]
 fn test_sleepers_minimum_deadline_empty() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::new();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     assert!(sleepers.minimum_deadline().is_none());
 }
 
 #[test]
 fn test_sleepers_time_until_next_empty() {
-    let sleepers: Sleepers<MockSleeper> = Sleepers::new();
+    let sleepers: Sleepers<MockSleeper> = Sleepers::new(clock());
     assert!(sleepers.time_until_next().is_none());
 }
 
@@ -341,7 +347,7 @@ fn test_sleepers_time_until_next_empty() {
 fn test_duration_store_insert() {
     let store = DurationStore::new();
     let handle = MockWaker::new();
-    let waker = DurationWaker::from_now(handle, time::Duration::from_millis(100));
+    let waker = DurationWaker::from_now(handle, time::Duration::from_millis(100), clock());
 
     let entry = store.insert(waker);
     assert!(store.has_pending_tasks());
@@ -356,10 +362,11 @@ fn test_duration_store_insert() {
 fn test_duration_store_update() {
     let store = DurationStore::new();
     let handle = MockWaker::new();
-    let waker = DurationWaker::from_now(handle, time::Duration::from_millis(100));
+    let waker = DurationWaker::from_now(handle, time::Duration::from_millis(100), clock());
 
     let entry = store.insert(waker);
-    let new_waker = DurationWaker::from_now(MockWaker::new(), time::Duration::from_millis(200));
+    let new_waker =
+        DurationWaker::from_now(MockWaker::new(), time::Duration::from_millis(200), clock());
 
     let old = store.update(&entry, new_waker);
     assert!(old.is_some());
@@ -369,7 +376,7 @@ fn test_duration_store_update() {
 fn test_duration_store_get_matured() {
     let store = DurationStore::new();
     let handle = MockWaker::new();
-    let waker = DurationWaker::from_now(handle, time::Duration::from_millis(10));
+    let waker = DurationWaker::from_now(handle, time::Duration::from_millis(10), clock());
 
     store.insert(waker);
 
@@ -384,7 +391,7 @@ fn test_duration_store_get_matured() {
 fn test_duration_store_get_matured_empty_when_not_ready() {
     let store = DurationStore::new();
     let handle = MockWaker::new();
-    let waker = DurationWaker::from_now(handle, time::Duration::from_secs(10));
+    let waker = DurationWaker::from_now(handle, time::Duration::from_secs(10), clock());
 
     store.insert(waker);
 
@@ -401,10 +408,12 @@ fn test_duration_store_min_duration() {
     store.insert(DurationWaker::from_now(
         handle1,
         time::Duration::from_millis(100),
+        clock(),
     ));
     store.insert(DurationWaker::from_now(
         handle2,
         time::Duration::from_millis(50),
+        clock(),
     ));
 
     let min = store.min_duration();
@@ -422,10 +431,12 @@ fn test_duration_store_max_duration() {
     store.insert(DurationWaker::from_now(
         handle1,
         time::Duration::from_millis(100),
+        clock(),
     ));
     store.insert(DurationWaker::from_now(
         handle2,
         time::Duration::from_millis(50),
+        clock(),
     ));
 
     let max = store.max_duration();
@@ -455,7 +466,7 @@ fn test_duration_store_max_duration_empty() {
 /// feature 121).
 #[test]
 fn a_past_due_timer_is_the_next_wakeup() {
-    let sleepers: Sleepers<DurationWaker<MockWaker>> = Sleepers::new();
+    let sleepers: Sleepers<DurationWaker<MockWaker>> = Sleepers::new(clock());
     sleepers.insert(
         Entry::new(1, 0),
         DurationWaker::new(
@@ -464,11 +475,12 @@ fn a_past_due_timer_is_the_next_wakeup() {
                 .checked_sub(time::Duration::from_millis(20))
                 .expect("20 ms before now"),
             time::Duration::from_millis(10),
+            clock(),
         ),
     );
     sleepers.insert(
         Entry::new(2, 0),
-        DurationWaker::from_now(MockWaker::new(), time::Duration::from_secs(60)),
+        DurationWaker::from_now(MockWaker::new(), time::Duration::from_secs(60), clock()),
     );
 
     let next = sleepers.time_until_next().expect("a timer is armed");

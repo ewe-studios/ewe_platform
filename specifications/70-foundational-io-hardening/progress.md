@@ -2406,3 +2406,21 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   moves from 0.0.12 to 0.0.13, and 38 consumer requirements move with it. Tests: 870 pass in
   the default tree, 916 with `multi`.
 
+- 2026-11-06: feature 132 done (`spec70/priority-followups`). Phase B removes every
+  direct time read from `foundation_core`, `foundation_netio`, `foundation_http`,
+  `foundation_connectrpc` and `foundation_testbed`: 114 reads in 43 files, down
+  from the 110 that feature 117 measured. The gate reports 342 reads in 137
+  files, 0 violations and 0 markers. The five crates delete their allowlist
+  entries; only `foundation_compact` and the real `MonotonicClock` stay. Tasks
+  read `ctx.clock()`; I/O structs store an `Arc<dyn Clock>`; plain functions take
+  `&dyn Clock`. The executor's blocking waits stay on the real clock through the
+  `MonotonicClock` type (GitHub issue #102). New tests: the core timeout and
+  sleep wrappers, the HTTP protocol-detection timeout, a ConnectRPC call deadline
+  and the Docker readiness deadline. With the old real-clock comparison put back,
+  the HTTP test fails with `left: Some(Delayed(3ms))`, `right: None`. Versions:
+  core 0.0.14, netio 0.0.7, http 0.0.6, connectrpc 0.0.7, testbed 0.0.4; 83
+  manifests change. The change also clears the `unused_must_use` warnings that
+  issue #211 names, because the clippy gate cannot pass with them; #211 is
+  closed. GitHub issue #212 records the one remaining shortcut: a `ContextBag`
+  built outside an engine gets an explicit `MonotonicClock`. Next: feature 133
+  (services) and 134 (platform).

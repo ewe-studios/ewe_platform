@@ -15,7 +15,9 @@
 
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::WebSocketFrame;
+use foundation_core::valtron::Clock;
 use std::io::Write;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 /// Default batch size limit (16 KiB).
@@ -49,7 +51,7 @@ const DEFAULT_FLUSH_TIMEOUT: Duration = Duration::from_millis(10);
 /// use foundation_netio::websocket::{BatchFrameWriter, Opcode, WebSocketFrame};
 /// use std::time::Duration;
 ///
-/// let mut writer = BatchFrameWriter::new(Vec::new(), 16 * 1024, Duration::from_millis(10));
+/// let mut writer = BatchFrameWriter::new(Vec::new(), 16 * 1024, Duration::from_millis(10), std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()));
 ///
 /// let frame = WebSocketFrame {
 ///     fin: true,
@@ -74,6 +76,8 @@ pub struct BatchFrameWriter<W> {
     flush_timeout: Duration,
     /// Time when the current batch started accumulating.
     batch_start: Option<Instant>,
+    /// The clock that measures the batch flush timeout.
+    clock: Arc<dyn Clock>,
     /// Number of frames queued in the current batch.
     frame_count: usize,
     /// Statistics: total frames written.
@@ -99,15 +103,16 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let mut writer = BatchFrameWriter::with_defaults(Vec::new());
+    /// let mut writer = BatchFrameWriter::with_defaults(Vec::new(), std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()));
     /// ```
-    pub fn with_defaults(inner: W) -> Self {
+    pub fn with_defaults(inner: W, clock: Arc<dyn Clock>) -> Self {
         Self {
             inner,
             buffer: Vec::with_capacity(DEFAULT_BATCH_SIZE_BYTES),
             max_batch_size: DEFAULT_BATCH_SIZE_BYTES,
             flush_timeout: DEFAULT_FLUSH_TIMEOUT,
             batch_start: None,
+            clock,
             frame_count: 0,
             total_frames_written: 0,
             total_flushes: 0,
@@ -129,15 +134,21 @@ where
     /// use foundation_netio::websocket::BatchFrameWriter;
     /// use std::time::Duration;
     ///
-    /// let writer = BatchFrameWriter::new(Vec::new(), 32 * 1024, Duration::from_millis(5));
+    /// let writer = BatchFrameWriter::new(Vec::new(), 32 * 1024, Duration::from_millis(5), std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()));
     /// ```
-    pub fn new(inner: W, max_batch_size: usize, flush_timeout: Duration) -> Self {
+    pub fn new(
+        inner: W,
+        max_batch_size: usize,
+        flush_timeout: Duration,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             inner,
             buffer: Vec::with_capacity(max_batch_size),
             max_batch_size,
             flush_timeout,
             batch_start: None,
+            clock,
             frame_count: 0,
             total_frames_written: 0,
             total_flushes: 0,
@@ -161,7 +172,7 @@ where
 
         // Flush if timeout has elapsed since batch started
         if let Some(start) = self.batch_start {
-            if start.elapsed() >= self.flush_timeout {
+            if self.clock.now().saturating_duration_since(start) >= self.flush_timeout {
                 return true;
             }
         }
@@ -195,7 +206,7 @@ where
 
         // Start timing the batch if this is the first frame
         if self.batch_start.is_none() {
-            self.batch_start = Some(Instant::now());
+            self.batch_start = Some(self.clock.now());
         }
 
         // Check if adding this frame would exceed the batch limit
@@ -203,7 +214,7 @@ where
         if self.buffer.len() + encoded_len > self.max_batch_size && !self.buffer.is_empty() {
             self.flush()?;
             // Restart timing for the new batch
-            self.batch_start = Some(Instant::now());
+            self.batch_start = Some(self.clock.now());
         }
 
         // Add frame to buffer
@@ -325,7 +336,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(Vec::new());
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()));
     /// assert_eq!(writer.queued_frame_count(), 0);
     /// ```
     #[must_use]
@@ -340,7 +351,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(Vec::new());
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()));
     /// assert_eq!(writer.buffered_bytes(), 0);
     /// ```
     #[must_use]
@@ -355,7 +366,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(Vec::new());
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()));
     /// let stats = writer.stats();
     /// assert_eq!(stats.frames, 0);
     /// assert_eq!(stats.flushes, 0);

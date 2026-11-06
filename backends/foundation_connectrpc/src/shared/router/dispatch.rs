@@ -62,7 +62,9 @@ use foundation_netio::shared::http::{
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 
-use crate::shared::context::{CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec};
+use crate::shared::context::{
+    clock_from_bag, CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec,
+};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::error_writer::ErrorWriter;
 use crate::shared::protocol::{ExchangeConfig, ProtocolHandler, UnaryOutcome};
@@ -789,7 +791,7 @@ async fn run_streaming(
                 break;
             }
         }
-        req_tx.close();
+        let _ = req_tx.close();
         Ok::<(), io::Error>(())
     };
 
@@ -1122,9 +1124,10 @@ pub(crate) fn build_ctx(
     protocol: &dyn ProtocolHandler,
     cancel: CancelSignal,
 ) -> Ctx {
+    let clock = clock_from_bag(&bag);
     let deadline = protocol
         .parse_timeout(&request.headers)
-        .map(|d| Instant::now() + d);
+        .map(|d| clock.now() + d);
     let peer = Peer {
         addr: request
             .connection
@@ -1142,6 +1145,7 @@ pub(crate) fn build_ctx(
         foundation_netio::shared::http::Extensions::new(),
         request.connection.clone(),
         cancel,
+        clock,
     );
     Ctx {
         bag,
@@ -1729,7 +1733,7 @@ async fn run_streaming_h2(
                 break;
             }
         }
-        req_tx.close();
+        let _ = req_tx.close();
         Ok::<(), io::Error>(())
     };
 

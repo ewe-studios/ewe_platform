@@ -16,7 +16,7 @@ workspace = true
 # Native only: used by `dns_ops.rs` and `types.rs`.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.13"
+version = "0.0.14"
 
 # foundation_deployment is only used by the REST API (generated code + client.rs)
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.
@@ -45,7 +45,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.6"
+version = "0.0.7"
 
 # Native: `types.rs` and `dns_ops.rs`. The wasm32 entries (optional, enabled by the
 # `workers` feature) are in the wasm table below.

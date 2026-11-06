@@ -117,7 +117,13 @@ fn masked_text_message_delivers_via_incremental_decoder() {
 
     let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
     let (tx, _rx) = Pipe::with_depth(8);
-    let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None);
+    let mut task = WebSocketServerTask::new(
+        stream,
+        WsServerConfig::default(),
+        tx,
+        None,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let msgs = drain(&mut task);
     assert_eq!(msgs.len(), 1);
@@ -132,7 +138,13 @@ fn ping_triggers_pong_output() {
 
     let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
     let (tx, _rx) = Pipe::with_depth(8);
-    let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None);
+    let mut task = WebSocketServerTask::new(
+        stream,
+        WsServerConfig::default(),
+        tx,
+        None,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Ping → no `Ready` message (control frame handled internally, pong written
     // straight to the stream). The task stays alive, not drained.
@@ -151,7 +163,13 @@ fn close_frame_drains_task() {
 
     let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
     let (tx, _rx) = Pipe::with_depth(8);
-    let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None);
+    let mut task = WebSocketServerTask::new(
+        stream,
+        WsServerConfig::default(),
+        tx,
+        None,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let msgs = drain(&mut task);
     assert_eq!(
@@ -173,7 +191,13 @@ fn unmasked_frame_triggers_close_and_drain() {
 
     let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
     let (tx, _rx) = Pipe::with_depth(8);
-    let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None);
+    let mut task = WebSocketServerTask::new(
+        stream,
+        WsServerConfig::default(),
+        tx,
+        None,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // No messages — violation sends close and drains.
     let msgs = drain(&mut task);

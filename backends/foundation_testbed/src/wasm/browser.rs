@@ -8,9 +8,10 @@
 //! HOW: `foundation_browser::BrowserDriver` (CDP over our own WebSocket client);
 //! the page writes results into `#output`, which we read with `Page::eval`.
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_browser::{BrowserDriver, LaunchConfig};
+use foundation_core::valtron::Clock;
 use tracing::{debug, info};
 
 use crate::wasm::cli::Browser;
@@ -31,7 +32,12 @@ const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
 ///
 /// Returns an error if the browser is not supported, the page cannot be
 /// opened, or the result does not arrive before the timeout.
-pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput> {
+pub fn run(
+    url: &str,
+    browser: &Browser,
+    headless: bool,
+    clock: &dyn Clock,
+) -> Result<BrowserOutput> {
     if !matches!(browser, Browser::Chrome) {
         return Err(WasmTestbedError::BrowserDriver(format!(
             "{browser:?} is not supported by the pure-Rust CDP driver yet — use Chrome"
@@ -65,7 +71,7 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput
     // browser fetch and execute the module graph.
     std::thread::sleep(Duration::from_secs(3));
 
-    let deadline = Instant::now() + RESULT_TIMEOUT;
+    let deadline = clock.now() + RESULT_TIMEOUT;
     let output = loop {
         let text = page
             .eval("(document.querySelector('#output') || {}).textContent || ''")
@@ -75,7 +81,7 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput
         if text.contains("test result:") {
             break text;
         }
-        if Instant::now() >= deadline {
+        if clock.now() >= deadline {
             let diagnostic = page
                 .eval("JSON.stringify({title:document.title||'',hasOutput:!!document.querySelector('#output'),body:(document.body?.textContent||'').substring(0,500)})")
                 .ok()

@@ -11,7 +11,10 @@ use foundation_netio::websocket::TimerReadiness;
 
 #[test]
 fn timer_readiness_fires_after_interval() {
-    let timer = TimerReadiness::new(Duration::from_millis(50));
+    let timer = TimerReadiness::new(
+        Duration::from_millis(50),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     // First call: last_ready is now(), elapsed ≈ 0. Not ready yet.
     assert!(!timer.is_ready(None));
 
@@ -25,7 +28,10 @@ fn timer_readiness_fires_after_interval() {
 
 #[test]
 fn timer_readiness_implements_event_readiness() {
-    let timer = Arc::new(TimerReadiness::new(Duration::from_millis(0)));
+    let timer = Arc::new(TimerReadiness::new(
+        Duration::from_millis(0),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    ));
     // 0ms interval — always fires immediately.
     let ready: Arc<dyn EventReadiness + Send + Sync> = timer;
     assert!(ready.is_ready(None));

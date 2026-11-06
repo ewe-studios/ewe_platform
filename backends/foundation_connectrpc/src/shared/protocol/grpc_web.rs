@@ -436,7 +436,7 @@ async fn read_frames(
                     None
                 };
                 let _ = tx.send(Frame::EndStream { error, trailers }).await;
-                tx.close();
+                let _ = tx.close();
                 return Ok(true);
             }
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
@@ -456,7 +456,7 @@ async fn read_frames(
             Some(Err(err)) => return Err(err.into()),
             None => {
                 if !client {
-                    tx.close();
+                    let _ = tx.close();
                 }
                 return Ok(false);
             }
@@ -557,7 +557,7 @@ async fn read_grpc_web_response(
             cancel.cancelled(),
         )
         .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
     match read_frames(
@@ -580,7 +580,7 @@ async fn read_grpc_web_response(
                     cancel.cancelled(),
                 )
                 .await;
-                tx.close();
+                let _ = tx.close();
                 Ok(())
             } else {
                 let e =

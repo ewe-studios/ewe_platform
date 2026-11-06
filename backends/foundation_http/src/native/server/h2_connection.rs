@@ -99,11 +99,12 @@ impl ActiveStream {
     /// already ended by `END_STREAM`, and the closed response pipe covers every
     /// other case (see `PipeSender::closed`).
     fn cancel(&self, code: ErrorCode) {
-        self.resp_rx.close();
+        // Close is idempotent, so the "this call closed it" flag needs no action.
+        let _resp_closed = self.resp_rx.close();
         if !self.body_tx.is_closed() {
             let _ = self.body_tx.try_send(H2IncomingFrame::Reset(code));
         }
-        self.body_tx.close();
+        let _body_closed = self.body_tx.close();
     }
 }
 
@@ -135,6 +136,8 @@ pub struct H2ConnectionHandler {
     parker: Parker,
     /// The transport took our read waker (the overlay has no fd to watch).
     overlay_waker: bool,
+    /// The engine clock, seeded from the pool root `Ctx`.
+    clock: Arc<dyn foundation_core::valtron::Clock>,
 }
 
 /// What wakes a parked h2 connection task.
@@ -206,12 +209,12 @@ fn socket_fd(_conn: &H2Conn) -> i32 {
     -1
 }
 
-/// Ready once a deadline has passed.
-struct DeadlinePassed(Instant);
+/// Ready once a deadline has passed on the connection's clock.
+struct DeadlinePassed(Instant, Arc<dyn foundation_core::valtron::Clock>);
 
 impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        Instant::now() >= self.0
+        self.1.now() >= self.0
     }
 
     fn deadline(&self) -> Option<Instant> {
@@ -245,7 +248,12 @@ impl H2ConnectionHandler {
         connection: Arc<ConnectionContext>,
         shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
+        clock: Arc<dyn foundation_core::valtron::Clock>,
     ) -> Self {
+        // Store the engine clock in the app bag so a dispatched ConnectRPC
+        // server reads the same clock for its call deadlines.
+        app.context()
+            .store::<Arc<dyn foundation_core::valtron::Clock>>(clock.clone());
         Self {
             conn,
             app,
@@ -258,6 +266,7 @@ impl H2ConnectionHandler {
             uncredited_conn: 0,
             parker: Parker::new(),
             overlay_waker: false,
+            clock,
         }
     }
 }
@@ -385,8 +394,9 @@ impl H2ConnectionHandler {
             self.idle_since = None;
             return Some(self.park_or(POLL_DELAY, None));
         }
-        let since = *self.idle_since.get_or_insert_with(Instant::now);
-        if since.elapsed() >= IDLE_TIMEOUT {
+        let now = self.clock.now();
+        let since = *self.idle_since.get_or_insert(now);
+        if now.saturating_duration_since(since) >= IDLE_TIMEOUT {
             return None;
         }
         Some(self.park_or(POLL_DELAY, Some(since + IDLE_TIMEOUT)))
@@ -456,7 +466,7 @@ impl H2ConnectionHandler {
             ready = ready.with(socket);
         }
         if let Some(deadline) = deadline {
-            ready = ready.with(Arc::new(DeadlinePassed(deadline)));
+            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.clock.clone())));
         }
         TaskStatus::Depends(Arc::new(ready))
     }
@@ -500,7 +510,7 @@ impl H2ConnectionHandler {
 
         // HEADERS carrying END_STREAM means the request has no body at all.
         if hf.flags & headers_flags::END_STREAM != 0 {
-            body_tx.close();
+            let _closed = body_tx.close();
         }
 
         let fut = handler.serve_h2(self.app.context().clone(), header, body_rx, resp_tx);
@@ -566,7 +576,7 @@ impl H2ConnectionHandler {
 
         if end_stream {
             if stream.pending_body.is_empty() {
-                stream.body_tx.close();
+                let _closed = stream.body_tx.close();
             } else {
                 stream.body_ended = true;
             }
@@ -595,7 +605,7 @@ impl H2ConnectionHandler {
                 conn.send_window_update(*sid, credit);
             }
             if stream.body_ended && stream.pending_body.is_empty() {
-                stream.body_tx.close();
+                let _closed = stream.body_tx.close();
             }
         }
         if *uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
@@ -660,7 +670,7 @@ impl H2ConnectionHandler {
 
         for sid in finished {
             if let Some(stream) = self.streams.remove(&sid) {
-                stream.body_tx.close();
+                let _closed = stream.body_tx.close();
             }
         }
 
@@ -684,14 +694,12 @@ impl H2ConnectionHandler {
 
 /// Generate 8 opaque bytes for a keepalive PING.
 fn new_ping_opaque_h2srv() -> [u8; 8] {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    // Opaque 8-byte PING nonce — any value works. Fold the full nanos into a
-    // u64 (truncation is fine and intended for a nonce).
-    let dur = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default();
-    let nonce = (u64::from(dur.subsec_nanos())) ^ dur.as_secs().rotate_left(32);
-    nonce.to_be_bytes()
+    // Opaque 8-byte PING nonce — any value works, so a counter is enough and
+    // needs no clock read.
+    static NEXT_NONCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    NEXT_NONCE
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+        .to_be_bytes()
 }
 
 /// A payload length as `u32`. HTTP/2 DATA payloads are bounded by the frame

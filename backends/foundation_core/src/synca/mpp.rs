@@ -122,8 +122,12 @@ impl<T> Receiver<T> {
     /// # Errors
     /// Returns [`ReceiverError::Timeout`] when the duration expires, and
     /// [`ReceiverError::Closed`] when the channel is closed.
-    pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
-        let started = foundation_compact::Instant::now();
+    pub fn recv_timeout(
+        &self,
+        dur: std::time::Duration,
+        clock: &dyn crate::valtron::Clock,
+    ) -> Result<T, ReceiverError> {
+        let started = clock.now();
 
         let mut remaining_timeout = dur;
         loop {
@@ -133,7 +137,7 @@ impl<T> Receiver<T> {
                 Err(err) => match err {
                     PopError::Empty => {
                         // check the state and see if we've crossed that threshold.
-                        let elapsed = started.elapsed();
+                        let elapsed = clock.now().saturating_duration_since(started);
                         if elapsed >= remaining_timeout {
                             return Err(ReceiverError::Timeout);
                         }

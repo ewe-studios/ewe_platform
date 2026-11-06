@@ -31,15 +31,17 @@ use std::time::{Duration, Instant};
 use bytes::Bytes;
 use futures::StreamExt;
 
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, SimulatedClock};
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::frame::Kind;
 
+use foundation_connectrpc::shared::context::SharedClock;
 use foundation_connectrpc::shared::envelope::Envelope;
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::{
@@ -897,4 +899,33 @@ async fn a_receive_with_no_deadline_still_waits() {
         }
     }
     shutdown.turn_on();
+}
+
+/// A call deadline read from the injected `Clock` fires on that clock.
+///
+/// The test moves a `SimulatedClock` past the deadline before the call. The call
+/// must fail at once, without touching the silent server. Before feature 132 the
+/// deadline was `Instant::now() + d` on the real clock, so the simulated advance
+/// had no effect and the call waited on the silent peer until the test timeout.
+#[valtron_test(timeout = 5_000)]
+async fn a_simulated_clock_past_the_deadline_fails_the_call_at_once() {
+    let server = SilentServer::start();
+    let client = client_for(Arc::new(H1Transport::default()), server.addr);
+
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let bag = ContextBag::new();
+    bag.store::<SharedClock>(clock.clone());
+    let ctx = Ctx::client(Arc::new(bag)).with_deadline(Duration::from_secs(5));
+    clock.advance(Duration::from_secs(10));
+
+    let result = client
+        .unary(ctx, Request::new(Msg::of("past the deadline")))
+        .await;
+
+    let err = result.expect_err("a deadline in the past must fail the call");
+    assert_eq!(
+        err.current_context().code(),
+        Code::DeadlineExceeded,
+        "expected DeadlineExceeded, got: {err}"
+    );
 }

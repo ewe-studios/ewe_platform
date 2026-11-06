@@ -5402,7 +5402,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
@@ -5440,7 +5440,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.13"
+version = "0.0.14"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -5774,7 +5774,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5954,7 +5954,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
@@ -6186,7 +6186,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testbed"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

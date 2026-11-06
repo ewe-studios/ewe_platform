@@ -327,7 +327,7 @@ pub(crate) async fn open_response_stream(
     };
     // Delivered, the consumer gone, or the call cancelled: the stream is over.
     let _ = race(tx.send(end), cancel.cancelled()).await;
-    tx.close();
+    let _ = tx.close();
     None
 }
 

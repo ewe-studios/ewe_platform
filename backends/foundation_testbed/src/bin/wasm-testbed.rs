@@ -121,7 +121,12 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     let server = server::start_serving(&integration_dir)?;
                     let url = server.url("index.html");
                     tracing::info!("Serving at {}", url);
-                    let output = browser::run(&url, &args.browser, args.headless)?;
+                    let output = browser::run(
+                        &url,
+                        &args.browser,
+                        args.headless,
+                        &foundation_core::valtron::MonotonicClock::new(),
+                    )?;
                     tracing::info!("Test output: {}", output.test_result);
                     server.shutdown();
                     if output.exit_code != 0 {
@@ -147,7 +152,11 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     std::fs::copy(&build.wasm_path, &wasm_dest)
                         .map_err(|e| WasmTestbedError::Io(e).trace())?;
                     tracing::info!("Copied wasm to {}", wasm_dest.display());
-                    let output = wrangler::run(&integration_dir, None)?;
+                    let output = wrangler::run(
+                        &integration_dir,
+                        None,
+                        &foundation_core::valtron::MonotonicClock::new(),
+                    )?;
                     if output.status_code >= 400 {
                         return Err(WasmTestbedError::WranglerHttpFailed(format!(
                             "status {}",
@@ -229,7 +238,12 @@ fn run_bindgen_web(
     let url = server.url("index.html");
     tracing::info!("Serving at {}", url);
 
-    let output = browser::run(&url, browser, headless)?;
+    let output = browser::run(
+        &url,
+        browser,
+        headless,
+        &foundation_core::valtron::MonotonicClock::new(),
+    )?;
     tracing::info!("Test output: {}", output.test_result);
 
     server.shutdown();
@@ -300,6 +314,11 @@ fn run_bindgen_wrangler(
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
 
+    // The wasm-bindgen CLI emits this call; a version that stops emitting it
+    // would leave the libtest `main` in place and skip the table setup, with
+    // no error at that point. Fail with the version rule instead.
+    const START_CALL: &str = "wasm.__wbindgen_start();";
+
     tracing::info!("Running wasm-bindgen (module)...");
     wasm::run_wasm_bindgen_with_name(
         &build.wasm_path,
@@ -317,10 +336,6 @@ fn run_bindgen_wrangler(
     // table slot.
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
     let content = std::fs::read_to_string(&js_file).map_err(|e| WasmTestbedError::Io(e).trace())?;
-    // The wasm-bindgen CLI emits this call; a version that stops emitting it
-    // would leave the libtest `main` in place and skip the table setup, with
-    // no error at this point. Fail with the version rule instead.
-    const START_CALL: &str = "wasm.__wbindgen_start();";
     if !content.contains(START_CALL) {
         return Err(WasmTestbedError::WasmParseFailed(format!(
             "the wasm-bindgen `module` output has no `{START_CALL}`; update the \
@@ -352,7 +367,11 @@ fn run_bindgen_wrangler(
         integration_dir,
     )?;
 
-    let output = wrangler::run(integration_dir, None)?;
+    let output = wrangler::run(
+        integration_dir,
+        None,
+        &foundation_core::valtron::MonotonicClock::new(),
+    )?;
     let passed = serde_json::from_str::<serde_json::Value>(&output.response_body)
         .ok()
         .and_then(|value| value.get("passed").and_then(serde_json::Value::as_bool));

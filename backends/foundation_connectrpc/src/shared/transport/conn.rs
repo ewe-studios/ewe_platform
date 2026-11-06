@@ -262,7 +262,7 @@ impl ConnSender for PipeConnSender {
     ) -> BoxFuture<'static, ConnectResult<()>> {
         Box::pin(async move {
             send_frame(&self.tx, Frame::EndStream { error, trailers }, &self.cancel).await?;
-            self.tx.close();
+            let _ = self.tx.close();
             Ok(())
         })
     }
@@ -482,7 +482,7 @@ impl ClientSender for PipeClientSender {
     }
     fn close_send(self: Box<Self>) -> BoxFuture<'static, ConnectResult<()>> {
         Box::pin(async move {
-            self.tx.close();
+            let _ = self.tx.close();
             Ok(())
         })
     }

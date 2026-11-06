@@ -15,8 +15,9 @@ use std::net::TcpStream;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_core::valtron::Clock;
 use tracing::{debug, info};
 
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
@@ -241,8 +242,12 @@ fn read_wrangler_log(path: &Path) -> String {
 ///
 /// Returns an error if wrangler (or `npx`) is not on PATH, wrangler does not
 /// accept a connection within the startup timeout, or the HTTP request fails.
-pub fn run(integration_dir: &Path, _config_path: Option<&Path>) -> Result<WranglerOutput> {
-    run_with_config(integration_dir, &WranglerConfig::default())
+pub fn run(
+    integration_dir: &Path,
+    _config_path: Option<&Path>,
+    clock: &dyn Clock,
+) -> Result<WranglerOutput> {
+    run_with_config(integration_dir, &WranglerConfig::default(), clock)
 }
 
 /// Run a wrangler dev test with an explicit [`WranglerConfig`].
@@ -254,6 +259,7 @@ pub fn run(integration_dir: &Path, _config_path: Option<&Path>) -> Result<Wrangl
 pub(crate) fn run_with_config(
     integration_dir: &Path,
     config: &WranglerConfig,
+    clock: &dyn Clock,
 ) -> Result<WranglerOutput> {
     let port =
         portpicker::pick_unused_port().ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
@@ -263,7 +269,7 @@ pub(crate) fn run_with_config(
     // Poll the worker's `/health` route until it answers. A raw TCP connect is
     // not enough: workerd accepts connections before the module finishes
     // loading, and the test request would wait for the build.
-    let deadline = Instant::now() + config.startup_timeout;
+    let deadline = clock.now() + config.startup_timeout;
     loop {
         if let Ok(Some(status)) = child.try_wait() {
             let log = read_wrangler_log(&log_path);
@@ -282,7 +288,7 @@ pub(crate) fn run_with_config(
             config.headerless_body_timeout,
         ) {
             Ok((200, _)) => break,
-            Ok((status, _)) if Instant::now() >= deadline => {
+            Ok((status, _)) if clock.now() >= deadline => {
                 stop_wrangler(&mut child);
                 return Err(WasmTestbedError::WranglerHttpFailed(format!(
                     "the /health route answered {status}: {}",
@@ -290,7 +296,7 @@ pub(crate) fn run_with_config(
                 ))
                 .trace());
             }
-            _ if Instant::now() < deadline => {
+            _ if clock.now() < deadline => {
                 debug!("wrangler not ready yet (port {port})");
                 thread::sleep(Duration::from_millis(100));
             }

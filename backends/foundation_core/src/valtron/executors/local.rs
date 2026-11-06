@@ -220,8 +220,14 @@ pub enum Sleepable {
     /// When the signal accepted the task's waker (`EventReadiness::register`
     /// returned `true`) the third field holds the task's wake state, and the
     /// signal is re-checked only after a wake or at its deadline. Without it the
-    /// signal is re-checked on the readiness quantum.
-    Readiness(EventReadinessPtr, Entry, Option<crate::valtron::ParkGuard>),
+    /// signal is re-checked on the readiness quantum. The fourth field is the
+    /// engine clock that decides when the signal's deadline has passed.
+    Readiness(
+        EventReadinessPtr,
+        Entry,
+        Option<crate::valtron::ParkGuard>,
+        sync::Arc<dyn crate::valtron::Clock>,
+    ),
 }
 
 impl core::fmt::Debug for Sleepable {
@@ -229,7 +235,7 @@ impl core::fmt::Debug for Sleepable {
         match self {
             Self::Timable(inner) => f.debug_tuple("Timable").field(inner).finish(),
             Self::Atomic(_, entry) => f.debug_tuple("Atomic").field(entry).finish(),
-            Self::Readiness(_, entry, _) => f.debug_tuple("Readiness").field(entry).finish(),
+            Self::Readiness(_, entry, _, _) => f.debug_tuple("Readiness").field(entry).finish(),
         }
     }
 }
@@ -245,7 +251,7 @@ impl Sleepable {
         match self {
             Sleepable::Timable(inner) => Some(inner.deadline()),
             Sleepable::Atomic(_, _) => None,
-            Sleepable::Readiness(signal, _, _) => signal.deadline(),
+            Sleepable::Readiness(signal, _, _, _) => signal.deadline(),
         }
     }
 }
@@ -255,9 +261,9 @@ impl Timeable for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
             Sleepable::Atomic(_, _) => None,
-            Sleepable::Readiness(signal, _, _) => signal.deadline().map(|deadline| {
-                deadline.saturating_duration_since(foundation_compact::Instant::now())
-            }),
+            Sleepable::Readiness(signal, _, _, clock) => signal
+                .deadline()
+                .map(|deadline| deadline.saturating_duration_since(clock.now())),
         }
     }
 
@@ -268,7 +274,7 @@ impl Timeable for Sleepable {
             // to run again.
             Sleepable::Atomic(_, _) => true,
             // Re-checked on a timer unless the signal took the task's waker.
-            Sleepable::Readiness(_, _, park) => park.is_none(),
+            Sleepable::Readiness(_, _, park, _) => park.is_none(),
         }
     }
 }
@@ -278,16 +284,16 @@ impl Waiter for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.is_ready(dur),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
-            Sleepable::Readiness(signal, _, Some(park)) => {
+            Sleepable::Readiness(signal, _, Some(park), clock) => {
                 // The signal wakes this task: look at it only after a wake (the
                 // first look is after the park, see `ParkState::new`) or when its
                 // deadline has passed. A wake for another task costs nothing here.
                 let due = signal
                     .deadline()
-                    .is_some_and(|deadline| foundation_compact::Instant::now() >= deadline);
+                    .is_some_and(|deadline| clock.now() >= deadline);
                 (park.0.take_woken() || due) && signal.is_ready(dur)
             }
-            Sleepable::Readiness(signal, _, None) => signal.is_ready(dur),
+            Sleepable::Readiness(signal, _, None, _) => signal.is_ready(dur),
         }
     }
 }
@@ -490,7 +496,11 @@ impl<T> NotifyQueue<T> {
     ///
     /// # Panics
     /// Panics if the internal mutex is poisoned.
-    pub fn wait_for_item(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
+    pub fn wait_for_item(
+        &self,
+        timeout: time::Duration,
+        clock: &dyn crate::valtron::Clock,
+    ) -> Option<NotificationItem<T>> {
         // First try non-blocking pop
         match self.pop() {
             Ok(item) => return Some(NotificationItem::Ready(item)),
@@ -505,7 +515,7 @@ impl<T> NotifyQueue<T> {
         // spurious wake-up goes round again until the total is spent.
         let max_spins = self.max_spins.load(Ordering::Relaxed);
         let total = timeout.saturating_mul(u32::try_from(max_spins).unwrap_or(u32::MAX));
-        let deadline = foundation_compact::Instant::now().checked_add(total);
+        let deadline = clock.now().checked_add(total);
         let mut guard = self.mutex.lock().unwrap();
 
         loop {
@@ -523,9 +533,7 @@ impl<T> NotifyQueue<T> {
             }
 
             let left = match deadline {
-                Some(deadline) => {
-                    deadline.saturating_duration_since(foundation_compact::Instant::now())
-                }
+                Some(deadline) => deadline.saturating_duration_since(clock.now()),
                 None => total,
             };
             if left.is_zero() {
@@ -680,7 +688,10 @@ impl<T> NotifyRecvIter<T> {
     /// or `None` (Option) if queue is closed.
     #[must_use]
     pub fn block_recv(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
-        self.queue.wait_for_item(timeout)
+        // A blocking consumer parks on the real operating-system clock
+        // (GitHub issue #102).
+        self.queue
+            .wait_for_item(timeout, &crate::valtron::MonotonicClock::new())
     }
 }
 
@@ -848,8 +859,12 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
             return Some(Stream::Wait);
         }
 
-        // Queue is empty - block efficiently until item is available
-        match self.chan.wait_for_item(self.park_duration) {
+        // Queue is empty - block efficiently until item is available. The
+        // blocking consumer parks on the real clock (GitHub issue #102).
+        match self
+            .chan
+            .wait_for_item(self.park_duration, &crate::valtron::MonotonicClock::new())
+        {
             Some(NotificationItem::Ready(value)) => Some(value),
             Some(NotificationItem::None) => {
                 // Queue open but empty after max_spins — signal executor to yield
@@ -1018,6 +1033,12 @@ static DEQUEUE_CAPACITY: usize = 10;
 const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 4096;
 
 impl ExecutorState {
+    /// The engine clock, seeded from the pool root [`Ctx`].
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn crate::valtron::Clock> {
+        self.root.clock()
+    }
+
     pub fn new(
         state_owner: String,
         global_tasks: SharedTaskQueue,
@@ -1057,7 +1078,7 @@ impl ExecutorState {
             task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             local_tasks: rc::Rc::new(cell::RefCell::new(EntryList::new())),
-            sleepers: Sleepers::with_max_readiness_wait(readiness_wait),
+            sleepers: Sleepers::with_max_readiness_wait(readiness_wait, root.clock()),
             processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
                 DEQUEUE_CAPACITY,
             ))),
@@ -1241,7 +1262,7 @@ impl ExecutorState {
         for matured in self.sleepers.get_matured() {
             match matured {
                 Sleepable::Timable(wakeable) => self.wake_up(wakeable.handle),
-                Sleepable::Atomic(_, entry) | Sleepable::Readiness(_, entry, _) => {
+                Sleepable::Atomic(_, entry) | Sleepable::Readiness(_, entry, _, _) => {
                     self.wake_up(entry);
                 }
             }
@@ -1658,12 +1679,10 @@ impl ExecutorState {
             .unwrap_or_else(|| self.root.fork());
 
         // The slow-poll watchdog (feature 139). `None` costs no clock read.
-        let poll_start = self
-            .slow_poll_warning
-            .map(|_| foundation_compact::Instant::now());
+        let poll_start = self.slow_poll_warning.map(|_| self.root.clock().now());
         let next_result = iter.next(top_entry, engine, ctx);
         if let Some(threshold) = self.slow_poll_warning {
-            let poll_end = foundation_compact::Instant::now();
+            let poll_end = self.root.clock().now();
             let elapsed = poll_end.duration_since(poll_start.unwrap());
             if elapsed >= threshold {
                 self.warn_slow_poll(top_entry, iter.name(), elapsed, poll_end);
@@ -1947,7 +1966,11 @@ impl ExecutorState {
                     // Store sleeper keyed by the task entry to avoid ID collisions
                     self.sleepers.insert(
                         top_entry,
-                        Sleepable::Timable(DurationWaker::from_now(top_entry, inner)),
+                        Sleepable::Timable(DurationWaker::from_now(
+                            top_entry,
+                            inner,
+                            self.root.clock(),
+                        )),
                     );
 
                     if !self.processing.borrow().is_empty() {
@@ -2063,8 +2086,10 @@ impl ExecutorState {
                 // makes any waker it kept a no-op.
                 let park = accepted.then_some(crate::valtron::ParkGuard(state));
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-                self.sleepers
-                    .insert(top_entry, Sleepable::Readiness(signal, top_entry, park));
+                self.sleepers.insert(
+                    top_entry,
+                    Sleepable::Readiness(signal, top_entry, park, self.root.clock()),
+                );
 
                 if self.has_incoming_global_tasks() || self.has_inflight_task() {
                     return ProgressIndicator::CanProgress(None);
@@ -2300,6 +2325,13 @@ impl ReferencedExecutorState {
     #[must_use]
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
+    }
+
+    /// The engine clock, seeded from the pool root [`Ctx`].
+    #[inline]
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn crate::valtron::Clock> {
+        self.inner.clock()
     }
 
     /// Fork a fresh [`Ctx`] from this engine's stable root.
@@ -3184,6 +3216,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.boxed_engine()
     }
 
+    /// The engine clock, seeded from the pool root [`Ctx`].
+    #[inline]
+    #[must_use]
+    pub(crate) fn state_clock(&self) -> Arc<dyn crate::valtron::Clock> {
+        self.state.clock()
+    }
+
     /// Fork a fresh [`Ctx`] from this engine's stable root.
     #[inline]
     #[must_use]
@@ -3277,7 +3316,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         }
         let planned = self
             .sleeper_wait()
-            .min(until.saturating_duration_since(foundation_compact::Instant::now()));
+            .min(until.saturating_duration_since(self.state.clock().now()));
         self.yielder.yield_for(planned);
         true
     }

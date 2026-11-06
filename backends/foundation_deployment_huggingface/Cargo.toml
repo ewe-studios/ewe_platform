@@ -23,9 +23,9 @@ urlencoding = "2.1"
 derive_more = {workspace = true }
 chrono = {workspace = true }
 tracing = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.13" }
+foundation_core = { path = "../foundation_core", version = "0.0.14" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.6" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.7" }
 
 [dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }

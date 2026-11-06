@@ -685,7 +685,7 @@ impl PoolGuard {
                 if let ShutdownOutcome::TimedOut {
                     abandoned_jobs,
                     busy_workers,
-                } = bg.shutdown()
+                } = bg.shutdown(&*self.registry.clock())
                 {
                     // Already logged by the registry; the pool carries on tearing
                     // down the task workers rather than hanging on stuck jobs.
@@ -733,7 +733,7 @@ impl PoolGuard {
             if let ShutdownOutcome::TimedOut {
                 abandoned_jobs,
                 busy_workers,
-            } = bg.shutdown()
+            } = bg.shutdown(&*self.registry.clock())
             {
                 tracing::warn!(
                     abandoned_jobs,
@@ -1792,6 +1792,12 @@ impl ThreadRegistry {
         self.root.fork()
     }
 
+    /// The clock of the pool's stable root, seeded by the host or the test.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn crate::valtron::Clock> {
+        self.root.clock()
+    }
+
     /// Accessor for latch.
     #[must_use]
     pub fn latch(&self) -> Arc<LockSignal> {
@@ -1853,7 +1859,8 @@ impl ThreadRegistry {
         self.kill_signal.turn_on();
         self.interrupt_all_yielders();
         self.latch.signal_all();
-        let stopped = self.waitgroup.wait_timeout(timeout);
+        let clock = self.clock();
+        let stopped = self.waitgroup.wait_timeout(timeout, &*clock);
         if stopped {
             self.join_all_threads();
         } else {
@@ -1916,7 +1923,11 @@ impl ThreadRegistry {
             self.latch.signal_all();
         }
 
-        let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
+        let clock = self.root.clock();
+        let thread_activity = match self
+            .activity_receiver
+            .recv_timeout(self.op_read_time, &*clock)
+        {
             Ok(activity) => activity,
             Err(err) => match err {
                 mpp::ReceiverError::Empty | mpp::ReceiverError::Timeout => return Some(()),

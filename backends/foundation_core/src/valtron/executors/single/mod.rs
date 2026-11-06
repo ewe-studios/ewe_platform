@@ -332,6 +332,23 @@ pub fn fork_ctx() -> Ctx {
     })
 }
 
+/// The clock of the current engine's stable root.
+///
+/// A caller that drives the engine alongside its own steps (see
+/// [`super::non_sendables::DrivenStreamIterator`]) times its waits on this
+/// clock, so a simulated clock controls them as it controls the tasks.
+///
+/// # Panics
+///
+/// Panics if the pool has not been initialized (mirrors [`fork_ctx`]).
+#[must_use]
+pub fn clock() -> std::sync::Arc<dyn crate::valtron::Clock> {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
+        Some(pool) => pool.state_clock(),
+        None => panic!("Thread pool not initialized, ensure to call initialize() first"),
+    })
+}
+
 /// `run_once` calls the `LocalExecution` queue and processes
 /// the next pending message by moving it forward just once.
 ///

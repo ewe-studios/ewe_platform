@@ -239,7 +239,7 @@ async fn read_request_envelopes(
         if let Some(chunk) = body.receive().await {
             buf.extend_from_slice(&chunk);
         } else {
-            req_tx.close();
+            let _ = req_tx.close();
             return Ok(());
         }
     }
@@ -263,11 +263,11 @@ async fn write_response_frames(
             Some(Frame::EndStream { error, trailers }) => {
                 let bytes = writer.write_end_stream(error.as_ref(), &trailers)?;
                 let _ = sink.send(Bytes::from(bytes)).await;
-                sink.close();
+                let _ = sink.close();
                 return Ok(());
             }
             None => {
-                sink.close();
+                let _ = sink.close();
                 return Ok(());
             }
         }
@@ -296,7 +296,7 @@ async fn read_connect_response(
         Ok(Some(end)) => {
             // Delivered, the consumer gone, or the call cancelled.
             let _ = race(resp_tx.send(end), cancel.cancelled()).await;
-            resp_tx.close();
+            let _ = resp_tx.close();
             Ok(())
         }
         Ok(None) => {

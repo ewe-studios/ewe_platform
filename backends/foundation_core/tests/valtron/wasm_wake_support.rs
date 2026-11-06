@@ -820,7 +820,10 @@ pub fn waitgroup_idle_wait_timeout() {
     let group = WaitGroup::new();
     let start = Instant::now();
     assert!(
-        group.wait_timeout(Duration::from_millis(500)),
+        group.wait_timeout(
+            Duration::from_millis(500),
+            &foundation_core::valtron::MonotonicClock::new()
+        ),
         "an idle group is done"
     );
     assert!(since(Instant::now(), start) < Duration::from_millis(100));

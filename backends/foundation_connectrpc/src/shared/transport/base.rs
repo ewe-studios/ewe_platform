@@ -67,7 +67,7 @@ impl SendBody for PipeSender<Bytes> {
         Box::pin(async move { self.send(item).await.map_err(|_| ()) })
     }
     fn close(&self) {
-        self.close();
+        let _ = self.close();
     }
     fn is_closed(&self) -> bool {
         self.is_closed()
@@ -85,7 +85,7 @@ where
         Box::pin(async move { self.send(item).await.map_err(|_| ()) })
     }
     fn close(&self) {
-        self.close();
+        let _ = self.close();
     }
     fn is_closed(&self) -> bool {
         self.is_closed()

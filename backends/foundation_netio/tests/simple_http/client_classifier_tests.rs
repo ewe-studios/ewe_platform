@@ -1,5 +1,6 @@
 //! Client classifier tests (moved from `src/shared/http/client_classifier.rs`).
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -17,13 +18,13 @@ fn test_classification_multipliers() {
 
 #[test]
 fn test_client_classifier_new() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
     assert_eq!(classifier.client_count(), 0);
 }
 
 #[test]
 fn test_record_normal_transfer() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // 100 KB in 1 second = 100 KB/s (normal)
     classifier.record_transfer("192.168.1.1", 100 * 1024, Duration::from_secs(1));
@@ -37,7 +38,7 @@ fn test_record_normal_transfer() {
 
 #[test]
 fn test_record_slow_transfer() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // 5 KB in 1 second = 5 KB/s (slow)
     classifier.record_transfer("192.168.1.1", 5 * 1024, Duration::from_secs(1));
@@ -51,7 +52,7 @@ fn test_record_slow_transfer() {
 
 #[test]
 fn test_record_suspicious_transfer() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // 500 bytes in 1 second = 0.5 KB/s (suspicious)
     classifier.record_transfer("192.168.1.1", 500, Duration::from_secs(1));
@@ -65,7 +66,7 @@ fn test_record_suspicious_transfer() {
 
 #[test]
 fn test_consecutive_slow_penalty() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // Multiple slow transfers
     classifier.record_transfer("192.168.1.1", 5 * 1024, Duration::from_secs(1));
@@ -79,7 +80,7 @@ fn test_consecutive_slow_penalty() {
 
 #[test]
 fn test_rehabilitation() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // Start slow
     classifier.record_transfer("192.168.1.1", 5 * 1024, Duration::from_secs(1));
@@ -101,7 +102,7 @@ fn test_rehabilitation() {
 
 #[test]
 fn test_stats_calculation() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     classifier.record_transfer("192.168.1.1", 10 * 1024, Duration::from_secs(1));
     classifier.record_transfer("192.168.1.1", 10 * 1024, Duration::from_secs(1));
@@ -114,7 +115,7 @@ fn test_stats_calculation() {
 
 #[test]
 fn test_unknown_client() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // Unknown clients are treated as Normal
     assert_eq!(classifier.classify("unknown"), ClientClassification::Normal);
@@ -123,7 +124,7 @@ fn test_unknown_client() {
 
 #[test]
 fn test_remove_client() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     classifier.record_transfer("192.168.1.1", 10240, Duration::from_secs(1));
     assert_eq!(classifier.client_count(), 1);
@@ -134,7 +135,7 @@ fn test_remove_client() {
 
 #[test]
 fn test_clear() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     classifier.record_transfer("192.168.1.1", 10240, Duration::from_secs(1));
     classifier.record_transfer("192.168.1.2", 10240, Duration::from_secs(1));
@@ -146,7 +147,7 @@ fn test_clear() {
 
 #[test]
 fn test_zero_duration() {
-    let classifier = ClientClassifier::new();
+    let classifier = ClientClassifier::new(clock());
 
     // Zero duration should be ignored
     classifier.record_transfer("192.168.1.1", 10240, Duration::ZERO);
@@ -162,7 +163,7 @@ fn test_custom_thresholds() {
         suspicious_after: 2,
         client_ttl: Duration::from_secs(3600),
     };
-    let classifier = ClientClassifier::with_thresholds(thresholds);
+    let classifier = ClientClassifier::with_thresholds(thresholds, clock());
 
     // 75 KB/s is slow with custom thresholds
     classifier.record_transfer("192.168.1.1", 75 * 1024, Duration::from_secs(1));
@@ -197,7 +198,7 @@ fn test_security_logger() {
     };
 
     let classifier =
-        ClientClassifier::with_thresholds(thresholds).with_security_logger(logger.clone());
+        ClientClassifier::with_thresholds(thresholds, clock()).with_security_logger(logger.clone());
 
     // Multiple suspicious transfers
     classifier.record_transfer("192.168.1.1", 500, Duration::from_secs(1));
@@ -206,4 +207,8 @@ fn test_security_logger() {
 
     // Should have logged at least once
     assert!(logger.call_count.load(Ordering::Relaxed) > 0);
+}
+/// A real clock: these tests only exercise ordering.
+fn clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
 }

@@ -7,6 +7,12 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_core::synca::mpp::RecvIterator;
 
 use foundation_core::synca::mpp::{bounded, unbounded, ReceiverError};
+use foundation_core::valtron::MonotonicClock;
+
+/// A real clock: this test only measures the monotonic timeout.
+fn clock() -> MonotonicClock {
+    MonotonicClock::new()
+}
 
 #[test]
 fn unbounded_channel() {
@@ -34,7 +40,7 @@ fn fail_to_receive_item_after_timeout() {
 
     assert!(
         matches!(
-            receiver.recv_timeout(Duration::from_millis(50)),
+            receiver.recv_timeout(Duration::from_millis(50), &clock()),
             Err(ReceiverError::Timeout)
         ),
         "should fail to receive item after timeout"
@@ -57,7 +63,9 @@ fn can_receive_item_after_timeout() {
     // a 2 ms margin flaked under scheduler load, where the sender thread can
     // be preempted past a ~100 ms timeout and the recv times out first.
     assert_eq!(
-        receiver.recv_timeout(Duration::from_millis(500)).unwrap(),
+        receiver
+            .recv_timeout(Duration::from_millis(500), &clock())
+            .unwrap(),
         42
     );
     join_handler.join().expect("should finish");

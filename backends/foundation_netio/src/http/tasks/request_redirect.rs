@@ -371,6 +371,17 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             .clone()
     }
 
+    /// The engine clock resolved on the first poll.
+    ///
+    /// # Panics
+    /// Panics when `next_status` has not resolved the clock yet.
+    fn engine_clock(&self) -> Arc<dyn Clock> {
+        self.1
+            .as_ref()
+            .expect("the engine clock is resolved on the first poll")
+            .clone()
+    }
+
     fn fail(&mut self, err: HttpClientError) -> Step {
         self.0 = Some(HttpRequestRedirectState::Done);
         TaskStatus::Ready(HttpRequestRedirectResponse::Error(err))
@@ -411,7 +422,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         idle: &mut IdleDeadline,
         resume: impl FnOnce(IdleDeadline) -> HttpRequestRedirectState<R>,
     ) -> Step {
-        match nonblocking::park(connection, interest, idle) {
+        let clock = self.engine_clock();
+        match nonblocking::park(connection, interest, idle, &clock) {
             Park::On(signal) => {
                 tracing::trace!(%interest, "socket not ready; parking");
                 self.0 = Some(resume(*idle));
@@ -517,14 +529,19 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         }
 
         // Blocking fallback (proxy, custom connector, non-unix, non-rustls TLS).
-        let connection =
-            match pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None) {
-                Ok(connection) => connection,
-                Err(err) => {
-                    tracing::error!("Failed to connect: {:?}", err);
-                    return self.fail(HttpClientError::ConnectionError);
-                }
-            };
+        let clock = self.engine_clock();
+        let connection = match pool.create_connection_with_proxy(
+            &descriptor.request_uri,
+            proxy_config,
+            None,
+            &*clock,
+        ) {
+            Ok(connection) => connection,
+            Err(err) => {
+                tracing::error!("Failed to connect: {:?}", err);
+                return self.fail(HttpClientError::ConnectionError);
+            }
+        };
 
         self.finish_connected(
             PendingExchange {
@@ -654,15 +671,16 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// idle, otherwise start DNS resolution (feature 36) and enter [`Resolving`].
     #[cfg(unix)]
     fn start_connecting(&mut self, exchange: PendingExchange<R>) -> Step {
-        if let Some(connection) = exchange
-            .pool
-            .checkout_connection(&exchange.host, exchange.port)
-        {
+        if let Some(connection) = exchange.pool.checkout_connection(
+            &exchange.host,
+            exchange.port,
+            self.engine_clock().as_ref(),
+        ) {
             return self.finish_connected(exchange, connection);
         }
 
         let future = exchange.pool.resolve_host(&exchange.host, exchange.port);
-        let deadline = Instant::now() + exchange.config.timeout_config().dns_timeout;
+        let deadline = self.engine_clock().now() + exchange.config.timeout_config().dns_timeout;
 
         self.0 = Some(HttpRequestRedirectState::Resolving(Some(Box::new(
             Resolving {
@@ -689,7 +707,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 
         match st.future.as_mut().poll(&mut cx) {
             Poll::Ready(Ok(addrs)) => {
-                let deadline = Instant::now() + st.exchange.config.timeout_config().connect_timeout;
+                let deadline =
+                    self.engine_clock().now() + st.exchange.config.timeout_config().connect_timeout;
                 self.0 = Some(HttpRequestRedirectState::Connecting(Some(Box::new(
                     Connecting {
                         exchange: st.exchange,
@@ -706,7 +725,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 self.fail(err)
             }
             Poll::Pending => {
-                if Instant::now() >= st.deadline {
+                if self.engine_clock().now() >= st.deadline {
                     return self.fail(HttpClientError::ConnectionTimeout(format!(
                         "DNS resolution of {}:{} timed out",
                         st.exchange.host, st.exchange.port
@@ -714,7 +733,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 }
                 let deadline = st.deadline;
                 let queue = Arc::new(st.wake_queue.readiness());
-                let signal = io_or_deadline(queue, deadline);
+                let signal = io_or_deadline(queue, deadline, self.engine_clock());
                 self.0 = Some(HttpRequestRedirectState::Resolving(Some(st)));
                 TaskStatus::Depends(signal)
             }
@@ -772,7 +791,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             }
 
             // Not writable yet: park, unless the deadline already passed.
-            if Instant::now() >= st.deadline {
+            if self.engine_clock().now() >= st.deadline {
                 return self.fail(HttpClientError::ConnectionTimeout(format!(
                     "Connection to {}:{} timed out",
                     st.exchange.host, st.exchange.port
@@ -785,7 +804,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 .expect("current was just set")
                 .as_raw_fd();
             let io = std::sync::Arc::new(SocketReadiness::new(fd, IoInterest::Writable));
-            let signal = io_or_deadline(io, st.deadline);
+            let signal = io_or_deadline(io, st.deadline, self.engine_clock());
             self.0 = Some(HttpRequestRedirectState::Connecting(Some(st)));
             return TaskStatus::Depends(signal);
         }
@@ -865,7 +884,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 self.finish_connected(st.exchange, connection)
             }
             Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
-                if Instant::now() >= st.deadline {
+                if self.engine_clock().now() >= st.deadline {
                     return self.fail(HttpClientError::ConnectionTimeout(format!(
                         "TLS handshake with {}:{} timed out",
                         st.exchange.host, st.exchange.port
@@ -877,7 +896,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                         "connection lost readiness support".to_string(),
                     ));
                 };
-                let signal = io_or_deadline(io, st.deadline);
+                let signal = io_or_deadline(io, st.deadline, self.engine_clock());
                 self.0 = Some(HttpRequestRedirectState::TlsHandshake(Some(st)));
                 TaskStatus::Depends(signal)
             }
@@ -1224,7 +1243,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             tracing::error!("[100-continue] connection lost its readiness support");
             return self.fail(HttpClientError::Timeout);
         };
-        let timer = Arc::new(DeadlineReadiness::at(st.send_body_at));
+        let timer = Arc::new(DeadlineReadiness::at(st.send_body_at, self.engine_clock()));
         self.0 = Some(HttpRequestRedirectState::AwaitingContinue(Some(st)));
         TaskStatus::Depends(Arc::new(AnyReadiness::either(io, timer)))
     }
@@ -1394,13 +1413,14 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                             // at once instead of returning an already-ready signal.
                             return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
                         }
-                        if st.idle.expired() {
+                        let clock = self.engine_clock();
+                        if st.idle.expired(&clock) {
                             tracing::error!("request body producer stalled past the idle deadline");
                             return self.fail(HttpClientError::Timeout);
                         }
-                        let deadline = st.idle.arm();
+                        let deadline = st.idle.arm(&clock);
                         self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
-                        return TaskStatus::Depends(io_or_deadline(readiness, deadline));
+                        return TaskStatus::Depends(io_or_deadline(readiness, deadline, clock));
                     }
 
                     // No pipe readiness: a one-shot renderer transition (chunked

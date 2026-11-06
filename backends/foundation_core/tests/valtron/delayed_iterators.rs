@@ -12,7 +12,12 @@ use std::{
 fn zero_duration_sleep_iterator_finishes_immediately() {
     let now = Instant::now();
     let wait = Duration::from_secs(0);
-    let mut sleeper = SleepIterator::new(now, wait, ());
+    let mut sleeper = SleepIterator::new(
+        now,
+        wait,
+        (),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     assert_eq!(sleeper.next(), Some(Delayed::Done(())));
 }
 
@@ -46,7 +51,12 @@ fn remaining_classifies_a_deadline_at_the_boundary() {
 fn can_sleep_thread_and_get_final() {
     let now = Instant::now();
     let wait = Duration::from_secs(3);
-    let mut sleeper = SleepIterator::new(now, wait, ());
+    let mut sleeper = SleepIterator::new(
+        now,
+        wait,
+        (),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     assert!(matches!(sleeper.next(), Some(Delayed::Pending(_, _, _))));
     assert!(matches!(sleeper.next(), Some(Delayed::Pending(_, _, _))));

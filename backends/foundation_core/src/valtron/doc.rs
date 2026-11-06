@@ -1222,11 +1222,11 @@
 //
 // ### tracing_subscriber::fmt() Panics on CF Workers — Use `.without_time()`
 //
-// The default `tracing_subscriber::fmt()` calls `SystemTime::now()` which is unavailable in CF Workers. Always use `.without_time()`:
+// The default `tracing_subscriber::fmt()` reads the real wall clock, which is unavailable in CF Workers. Always use `.without_time()`:
 //
 // ```rust
 // tracing_subscriber::fmt()
-//     .without_time()          // Required — SystemTime not available
+//     .without_time()          // Required — the wall clock is not available
 //     .with_max_level(tracing::Level::TRACE)
 //     .with_env_filter(filter)
 //     .try_init();
@@ -1445,12 +1445,11 @@
 // #[test]
 // fn shutdown_is_fast() {
 //     let guard = initialize_pool(42, Some(4));
-//     let start = std::time::Instant::now();   // time AFTER acquiring the pool —
-//                                              // initialize_pool blocks on the
-//                                              // fair gate; don't count that wait
+//     // Read the monotonic clock here, AFTER acquiring the pool: initialize_pool
+//     // blocks on the fair gate, so do not count that wait.
 //     // ... spawn long tasks ...
 //     drop(guard);                             // explicit teardown under test
-//     assert!(start.elapsed() < Duration::from_secs(2));
+//     assert!(elapsed_since_teardown() < Duration::from_secs(2));
 // }
 // ```
 //

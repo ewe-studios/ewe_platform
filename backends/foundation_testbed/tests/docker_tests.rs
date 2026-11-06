@@ -5,7 +5,10 @@ use foundation_testbed::docker::{TestEnvError, TestEnvironmentBuilder, port_is_o
 
 #[test]
 fn builder_container_not_found_when_not_running() {
-    let builder = TestEnvironmentBuilder::new("nonexistent_container_12345");
+    let builder = TestEnvironmentBuilder::new(
+        "nonexistent_container_12345",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
     assert!(!builder.is_running());
     match builder.connect() {
         Err(TestEnvError::ContainerNotFound(c)) => assert!(c.contains("nonexistent")),
@@ -18,13 +21,21 @@ fn builder_with_vnc_configures_correctly() {
     // `docker-compose.yaml` names the macOS container `ewe_macos`. This test
     // needs that container to run; the Platform Docker Tests workflow starts
     // it in the `macos-tests` job before it runs this file.
-    let builder = TestEnvironmentBuilder::new("ewe_macos").with_vnc(5900);
+    let builder = TestEnvironmentBuilder::new(
+        "ewe_macos",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .with_vnc(5900);
     assert!(builder.is_running()); // macOS container should be up
 }
 
 #[test]
 fn builder_with_rdp_configures_correctly() {
-    let builder = TestEnvironmentBuilder::new("ewe_windows").with_rdp(3389, "Docker", "admin");
+    let builder = TestEnvironmentBuilder::new(
+        "ewe_windows",
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    )
+    .with_rdp(3389, "Docker", "admin");
     assert!(builder.is_running()); // Windows container should be up
 }
 

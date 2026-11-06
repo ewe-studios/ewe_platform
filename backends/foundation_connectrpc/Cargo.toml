@@ -1,6 +1,6 @@
 [package]
 name = "foundation_connectrpc"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,7 +10,7 @@ description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foun
 keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.13" }
+foundation_core = { path = "../foundation_core", version = "0.0.14" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 tracing = "0.1"
@@ -35,15 +35,15 @@ brotli = { version = "8", optional = true }
 # wasm code (its `ExchangeContinuation` drops the `+ Send` bound there), which
 # no longer type-checks.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.6" }
-foundation_http = { path = "../foundation_http", version = "0.0.5" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.7" }
+foundation_http = { path = "../foundation_http", version = "0.0.6" }
 # The H2 client dials without blocking a valtron worker (feature 127):
 # `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
 socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.6", default-features = false, features = ["wasm-fetch"] }
-foundation_http = { path = "../foundation_http", version = "0.0.5", default-features = false, features = ["wasm"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.7", default-features = false, features = ["wasm-fetch"] }
+foundation_http = { path = "../foundation_http", version = "0.0.6", default-features = false, features = ["wasm"] }
 foundation_auth = { path = "../foundation_auth", version = "0.0.5", optional = true, default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]
@@ -53,6 +53,9 @@ libc = "0.2"
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 
 [dev-dependencies]
+# `test-clock` provides `SimulatedClock`, so a test can prove that a call
+# deadline follows the injected clock.
+foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_errstacks = { path = "../foundation_errstacks", features = ["to_structured"] }
 serde_json = { workspace = true }

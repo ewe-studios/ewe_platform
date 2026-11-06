@@ -134,7 +134,7 @@ where
                 Duration::from_secs(1),
                 Some(Duration::from_secs(30)),
             ),
-            start_time: Some(Instant::now()),
+            start_time: None,
             delivery_queue: None,
         })
     }
@@ -252,6 +252,9 @@ where
     // Long by design: one match over every reconnect/handshake state.
     #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        // The reconnect budget starts at the first poll and runs on the engine
+        // clock, so a simulated clock controls it.
+        let now = ctx.clock().now();
         let state = self.state.take()?;
 
         match state {
@@ -342,16 +345,15 @@ where
 
                         // Check max reconnect duration first
                         if let Some(max_duration) = self.config.max_reconnect_duration {
-                            if let Some(start) = self.start_time {
-                                if start.elapsed() > max_duration {
-                                    error!(
-                                        elapsed_secs = ?start.elapsed().as_secs(),
-                                        max_secs = ?max_duration.as_secs(),
-                                        "Max reconnect duration exceeded"
-                                    );
-                                    self.state = Some(ReconnectingWebSocketState::Exhausted);
-                                    return None;
-                                }
+                            let start = *self.start_time.get_or_insert(now);
+                            if now.saturating_duration_since(start) > max_duration {
+                                error!(
+                                    elapsed_secs = ?now.saturating_duration_since(start).as_secs(),
+                                    max_secs = ?max_duration.as_secs(),
+                                    "Max reconnect duration exceeded"
+                                );
+                                self.state = Some(ReconnectingWebSocketState::Exhausted);
+                                return None;
                             }
                         }
 

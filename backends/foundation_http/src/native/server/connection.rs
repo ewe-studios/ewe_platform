@@ -74,12 +74,12 @@ enum HandlerState {
     },
 }
 
-/// Ready once an instant has passed.
-struct DeadlinePassed(Instant);
+/// Ready once an instant has passed on the connection's clock.
+struct DeadlinePassed(Instant, Arc<dyn foundation_core::valtron::Clock>);
 
 impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        Instant::now() >= self.0
+        self.1.now() >= self.0
     }
 
     fn deadline(&self) -> Option<Instant> {
@@ -129,6 +129,8 @@ pub struct ConnectionHandler {
     idle_poll_count: u32,
     idle_since: Option<Instant>,
     total_delay_cycles: u32,
+    /// The engine clock, seeded from the pool root `Ctx`.
+    clock: Arc<dyn foundation_core::valtron::Clock>,
 }
 
 impl ConnectionHandler {
@@ -147,7 +149,12 @@ impl ConnectionHandler {
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
+        clock: Arc<dyn foundation_core::valtron::Clock>,
     ) -> Self {
+        // Store the engine clock in the app bag so a dispatched ConnectRPC
+        // server reads the same clock for its call deadlines.
+        app.context()
+            .store::<Arc<dyn foundation_core::valtron::Clock>>(clock.clone());
         let max_expect_attempts = config
             .timeout_calculator
             .config()
@@ -172,6 +179,7 @@ impl ConnectionHandler {
             idle_poll_count: 0,
             idle_since: None,
             total_delay_cycles: 0,
+            clock,
         }
     }
 
@@ -297,13 +305,13 @@ impl ConnectionHandler {
 
     fn track_idle(&mut self) {
         if self.idle_since.is_none() {
-            self.idle_since = Some(Instant::now());
+            self.idle_since = Some(self.clock.now());
         }
     }
 
     fn idle_exceeded(&self) -> bool {
         match self.idle_since {
-            Some(since) => since.elapsed() >= self.idle_timeout(),
+            Some(since) => self.clock.now().saturating_duration_since(since) >= self.idle_timeout(),
             None => false,
         }
     }
@@ -640,8 +648,9 @@ impl ConnectionHandler {
         );
 
         // If a parked overlay wait already ran past its deadline, give up now.
+        let now = self.clock.now();
         if let Some(deadline) = deadline {
-            if Instant::now() >= deadline {
+            if now >= deadline {
                 return self.send_408(attempt);
             }
         }
@@ -650,14 +659,14 @@ impl ConnectionHandler {
         // its read waker, bounded by `body_timeout`, instead of polling on fixed
         // delays. Blocking transports fall through to the countdown below.
         if let Some(signal) = armed {
-            let deadline = deadline.unwrap_or_else(|| Instant::now() + self.body_wait_timeout());
-            if Instant::now() >= deadline {
+            let deadline = deadline.unwrap_or_else(|| now + self.body_wait_timeout());
+            if now >= deadline {
                 return self.send_408(attempt);
             }
             tracing::trace!(
                 client_ip = %self.client_ip,
                 attempt = attempt,
-                remaining_ms = deadline.saturating_duration_since(Instant::now()).as_millis(),
+                remaining_ms = deadline.saturating_duration_since(now).as_millis(),
                 "WaitingForBody: no body yet; parking on the connection read waker"
             );
             self.state = Some(HandlerState::WaitingForBody {
@@ -668,7 +677,7 @@ impl ConnectionHandler {
             });
             let readiness: EventReadinessPtr = Arc::new(AnyReadiness::either(
                 Arc::new(signal),
-                Arc::new(DeadlinePassed(deadline)),
+                Arc::new(DeadlinePassed(deadline, self.clock.clone())),
             ));
             return Some(TaskStatus::Depends(readiness));
         }

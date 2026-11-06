@@ -55,6 +55,7 @@ fn an_idle_h2_connection_parks_on_its_socket() {
         Arc::new(ConnectionContext::default()),
         Arc::new(ShutdownSignal::new()),
         waits.guard(),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
 
     let mut last = None;
@@ -267,6 +268,7 @@ fn idle_h2_client() -> (TcpStream, H2Channel) {
         Arc::new(ConnectionContext::default()),
         Arc::new(ShutdownSignal::new()),
         waits.guard(),
+        Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
     foundation_core::valtron::send(handler).expect("spawn h2 handler");
 

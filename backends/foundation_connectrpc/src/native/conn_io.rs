@@ -43,7 +43,7 @@ use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll, Waker};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::timer::{self, Sleep};
@@ -124,8 +124,13 @@ impl ConnIo {
     /// Wait for the connection to become ready in `interest`'s direction (or
     /// hang up, so the next read or write sees why), or for `timeout` to pass.
     #[must_use]
-    pub(crate) fn ready(self: &Arc<Self>, interest: IoInterest, timeout: Duration) -> IoReady {
-        IoReady::new(Arc::clone(self), interest, timeout)
+    pub(crate) fn ready(
+        self: &Arc<Self>,
+        interest: IoInterest,
+        timeout: Duration,
+        clock: &dyn foundation_core::valtron::Clock,
+    ) -> IoReady {
+        IoReady::new(Arc::clone(self), interest, timeout, clock)
     }
 
     /// Wait for the peer to close or reset the connection (see the module docs
@@ -312,8 +317,13 @@ pub(crate) struct IoReady {
 }
 
 impl IoReady {
-    pub(crate) fn new(io: Arc<ConnIo>, interest: IoInterest, timeout: Duration) -> Self {
-        let deadline = Instant::now() + timeout;
+    pub(crate) fn new(
+        io: Arc<ConnIo>,
+        interest: IoInterest,
+        timeout: Duration,
+        clock: &dyn foundation_core::valtron::Clock,
+    ) -> Self {
+        let deadline = clock.now() + timeout;
         Self {
             io,
             interest,

@@ -1,9 +1,16 @@
 //! `IdleDeadline` and `PendingBytes` unit tests (moved from `src/http/tasks/nonblocking.rs`).
 
 use std::io::Write;
+use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_netio::http::nonblocking::{IdleDeadline, IoStep, PendingBytes};
+
+/// A real clock: this test only exercises the arm/expire ordering.
+fn clock() -> Arc<dyn Clock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// A writer that accepts `budget` bytes, then reports `WouldBlock`.
 struct Throttled {
@@ -47,11 +54,12 @@ fn pending_bytes_resume_exactly_where_the_socket_stopped() {
 
 #[test]
 fn idle_deadline_rearms_after_progress() {
+    let clock = clock();
     let mut idle = IdleDeadline::new(Duration::from_millis(0));
-    assert!(!idle.expired(), "not armed yet");
-    let first = idle.arm();
-    assert_eq!(idle.arm(), first, "arming is idempotent");
-    assert!(idle.expired(), "zero budget expires at once");
+    assert!(!idle.expired(&clock), "not armed yet");
+    let first = idle.arm(&clock);
+    assert_eq!(idle.arm(&clock), first, "arming is idempotent");
+    assert!(idle.expired(&clock), "zero budget expires at once");
     idle.progress();
-    assert!(!idle.expired(), "progress clears the deadline");
+    assert!(!idle.expired(&clock), "progress clears the deadline");
 }

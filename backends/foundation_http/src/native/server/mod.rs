@@ -421,7 +421,7 @@ mod connection;
 mod h2_connection;
 #[cfg(feature = "quic")]
 mod h3_server;
-mod protocol_detect;
+pub mod protocol_detect;
 
 pub use h2_connection::H2ConnectionHandler;
 #[cfg(feature = "quic")]
@@ -807,6 +807,10 @@ impl HttpServer {
                         guard,
                         keep_alive_config.clone(),
                         self.config.alt_svc_h3_port,
+                        // The accept loop is a blocking host boundary and has no
+                        // task context, so it names the real clock explicitly
+                        // (GitHub issue #102).
+                        Arc::new(foundation_core::valtron::MonotonicClock::new()),
                     );
 
                     match foundation_core::valtron::send(detector) {
@@ -870,7 +874,13 @@ impl HttpServer {
             grace_ms = shutdown_grace.as_millis(),
             "Draining in-flight connections"
         );
-        if active.wait_timeout(shutdown_grace) {
+        // The drain is a blocking host boundary that has no task context, so it
+        // names the real clock explicitly (the executor-parking rule, GitHub
+        // issue #102).
+        if active.wait_timeout(
+            shutdown_grace,
+            &foundation_core::valtron::MonotonicClock::new(),
+        ) {
             tracing::info!("All in-flight connections drained cleanly");
         } else {
             tracing::warn!(

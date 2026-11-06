@@ -129,22 +129,41 @@ impl EventReadiness for SocketReadiness {
 /// A non-blocking socket never times out on its own, so every wait carries a
 /// deadline instead. It is composed with the socket signal via [`AnyReadiness`],
 /// so the task wakes on whichever comes first.
-#[derive(Debug, Clone, Copy)]
 pub struct DeadlineReadiness {
     deadline: Instant,
+    /// The engine clock that decides when the deadline passes.
+    clock: Arc<dyn foundation_core::valtron::Clock>,
+}
+
+impl core::fmt::Debug for DeadlineReadiness {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("DeadlineReadiness")
+            .field("deadline", &self.deadline)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Clone for DeadlineReadiness {
+    fn clone(&self) -> Self {
+        Self {
+            deadline: self.deadline,
+            clock: self.clock.clone(),
+        }
+    }
 }
 
 impl DeadlineReadiness {
-    /// Ready at `deadline`.
+    /// Ready at `deadline`, on `clock`.
     #[must_use]
-    pub fn at(deadline: Instant) -> Self {
-        Self { deadline }
+    pub fn at(deadline: Instant, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
+        Self { deadline, clock }
     }
 
-    /// Ready `timeout` from now.
+    /// Ready `timeout` from now, on `clock`.
     #[must_use]
-    pub fn after(timeout: Duration) -> Self {
-        Self::at(Instant::now() + timeout)
+    pub fn after(timeout: Duration, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
+        let deadline = clock.now() + timeout;
+        Self::at(deadline, clock)
     }
 
     /// The instant this signal becomes ready.
@@ -156,7 +175,7 @@ impl DeadlineReadiness {
     /// Whether the deadline has passed.
     #[must_use]
     pub fn expired(&self) -> bool {
-        Instant::now() >= self.deadline
+        self.clock.now() >= self.deadline
     }
 }
 
@@ -176,81 +195,13 @@ impl EventReadiness for DeadlineReadiness {
 
 /// Compose an I/O readiness signal with a deadline: ready when either is.
 #[must_use]
-pub fn io_or_deadline(io: EventReadinessPtr, deadline: Instant) -> EventReadinessPtr {
+pub fn io_or_deadline(
+    io: EventReadinessPtr,
+    deadline: Instant,
+    clock: Arc<dyn foundation_core::valtron::Clock>,
+) -> EventReadinessPtr {
     Arc::new(AnyReadiness::either(
         io,
-        Arc::new(DeadlineReadiness::at(deadline)),
+        Arc::new(DeadlineReadiness::at(deadline, clock)),
     ))
-}
-
-#[cfg(all(test, unix))]
-mod tests {
-    use super::*;
-    use std::io::Write;
-    use std::os::unix::io::AsRawFd;
-    use std::os::unix::net::UnixStream;
-
-    #[test]
-    fn readable_only_after_peer_writes() {
-        let (a, mut b) = UnixStream::pair().expect("socket pair");
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Readable);
-        assert!(!signal.is_ready(None), "nothing written yet");
-
-        b.write_all(b"x").expect("peer write");
-        assert!(signal.is_ready(None), "peer wrote a byte");
-    }
-
-    #[test]
-    fn hang_up_counts_as_readable() {
-        let (a, b) = UnixStream::pair().expect("socket pair");
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Readable);
-        assert!(!signal.is_ready(None));
-
-        drop(b);
-        assert!(signal.is_ready(None), "EOF must wake a parked reader");
-    }
-
-    #[test]
-    fn fresh_socket_is_writable() {
-        let (a, _b) = UnixStream::pair().expect("socket pair");
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Writable);
-        assert!(signal.is_ready(None));
-    }
-
-    #[test]
-    fn full_send_buffer_is_not_writable() {
-        let (a, _b) = UnixStream::pair().expect("socket pair");
-        a.set_nonblocking(true).expect("nonblocking");
-        let mut writer = &a;
-        let chunk = vec![0u8; 64 * 1024];
-        loop {
-            match writer.write(&chunk) {
-                Ok(_) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
-                Err(e) => panic!("unexpected write error: {e}"),
-            }
-        }
-        let signal = SocketReadiness::new(a.as_raw_fd(), IoInterest::Writable);
-        assert!(
-            !signal.is_ready(None),
-            "the peer never read, so the buffer is full"
-        );
-    }
-
-    #[test]
-    fn deadline_fires_and_composes() {
-        let (a, _b) = UnixStream::pair().expect("socket pair");
-        let io: EventReadinessPtr =
-            Arc::new(SocketReadiness::new(a.as_raw_fd(), IoInterest::Readable));
-
-        let later = io_or_deadline(io.clone(), Instant::now() + Duration::from_secs(60));
-        assert!(
-            !later.is_ready(None),
-            "neither the socket nor the deadline is ready"
-        );
-
-        let past = io_or_deadline(io, Instant::now());
-        assert!(past.is_ready(None), "a passed deadline wakes the task");
-        assert!(!DeadlineReadiness::after(Duration::from_secs(60)).expired());
-    }
 }

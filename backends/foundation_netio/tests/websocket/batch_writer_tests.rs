@@ -14,7 +14,10 @@ fn text_frame(payload: &[u8], fin: bool) -> WebSocketFrame {
 #[test]
 fn test_batch_writer_with_defaults() {
     let mut buffer: Vec<u8> = Vec::new();
-    let mut writer = BatchFrameWriter::with_defaults(&mut buffer);
+    let mut writer = BatchFrameWriter::with_defaults(
+        &mut buffer,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let frame = text_frame(b"hello", true);
     writer.queue_frame(frame).unwrap();
@@ -38,6 +41,7 @@ fn test_batch_writer_custom_limits() {
         &mut buffer,
         1024, // 1 KiB
         std::time::Duration::from_millis(100),
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
 
     let frame = text_frame(b"test message", true);
@@ -55,6 +59,7 @@ fn test_batch_writer_auto_flush_on_size() {
         &mut buffer,
         50,                                 // Small limit for testing
         std::time::Duration::from_secs(10), // Long timeout
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     );
 
     // Queue frames until auto-flush triggers
@@ -70,7 +75,10 @@ fn test_batch_writer_auto_flush_on_size() {
 #[test]
 fn test_write_immediate() {
     let mut buffer: Vec<u8> = Vec::new();
-    let mut writer = BatchFrameWriter::with_defaults(&mut buffer);
+    let mut writer = BatchFrameWriter::with_defaults(
+        &mut buffer,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Queue a frame
     let frame1 = text_frame(b"batched", true);
@@ -90,7 +98,10 @@ fn test_write_immediate() {
 #[test]
 fn test_queue_multiple_frames() {
     let mut buffer: Vec<u8> = Vec::new();
-    let mut writer = BatchFrameWriter::with_defaults(&mut buffer);
+    let mut writer = BatchFrameWriter::with_defaults(
+        &mut buffer,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let frames = vec![
         text_frame(b"message 1", true),
@@ -109,7 +120,10 @@ fn test_queue_multiple_frames() {
 #[test]
 fn test_stats_tracking() {
     let mut buffer: Vec<u8> = Vec::new();
-    let mut writer = BatchFrameWriter::with_defaults(&mut buffer);
+    let mut writer = BatchFrameWriter::with_defaults(
+        &mut buffer,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let frame = text_frame(b"test", true);
     let frame_size = frame.encode().len();
@@ -130,7 +144,10 @@ fn test_stats_tracking() {
 #[test]
 fn test_flush_efficiency() {
     let mut buffer: Vec<u8> = Vec::new();
-    let mut writer = BatchFrameWriter::with_defaults(&mut buffer);
+    let mut writer = BatchFrameWriter::with_defaults(
+        &mut buffer,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     let frame = text_frame(b"test data", true);
 
@@ -148,7 +165,10 @@ fn test_flush_efficiency() {
 #[test]
 fn test_empty_flush_is_noop() {
     let mut buffer: Vec<u8> = Vec::new();
-    let mut writer = BatchFrameWriter::with_defaults(&mut buffer);
+    let mut writer = BatchFrameWriter::with_defaults(
+        &mut buffer,
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    );
 
     // Flushing empty buffer should be a no-op
     writer.flush().unwrap();
@@ -165,7 +185,10 @@ fn test_into_inner_flushes() {
         let frame = text_frame(b"final", true);
 
         // Create writer, queue frame, and get inner
-        let writer = BatchFrameWriter::with_defaults(&mut buffer);
+        let writer = BatchFrameWriter::with_defaults(
+            &mut buffer,
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        );
         let mut writer = writer; // Make mutable for into_inner
         writer.queue_frame(frame).unwrap();
         let _inner = writer.into_inner().unwrap();

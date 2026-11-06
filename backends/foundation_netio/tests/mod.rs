@@ -2,6 +2,7 @@ mod event_source;
 mod http2;
 mod http3;
 mod http_stream;
+mod native;
 mod netcap;
 mod read_wake_source_tests;
 mod simple_http;

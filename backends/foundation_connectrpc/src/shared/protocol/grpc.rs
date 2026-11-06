@@ -290,7 +290,7 @@ impl ProtocolHandler for GrpcHandler {
             // error when the read failed, so it cannot pass for a clean end.
             match &result {
                 Ok(()) => {
-                    request_tx.close();
+                    let _ = request_tx.close();
                 }
                 Err(e) => fail_stream(&request_tx, e, &cancel).await,
             }
@@ -557,7 +557,7 @@ async fn read_grpc_response(
                     trailers: SimpleHeaders::new(),
                 })
                 .await;
-            tx.close();
+            let _ = tx.close();
             return Ok(());
         }
         None => {
@@ -569,7 +569,7 @@ async fn read_grpc_response(
                     trailers: SimpleHeaders::new(),
                 })
                 .await;
-            tx.close();
+            let _ = tx.close();
             return Ok(());
         }
     };
@@ -584,7 +584,7 @@ async fn read_grpc_response(
                 trailers: resp_headers,
             })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -597,7 +597,7 @@ async fn read_grpc_response(
                 trailers: resp_headers,
             })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -611,7 +611,7 @@ async fn read_grpc_response(
                 trailers: SimpleHeaders::new(),
             })
             .await;
-        tx.close();
+        let _ = tx.close();
         return Ok(());
     }
 
@@ -624,7 +624,7 @@ async fn read_grpc_response(
             trailers: trls,
         })
         .await;
-    tx.close();
+    let _ = tx.close();
     Ok(())
 }
 

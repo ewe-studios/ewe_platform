@@ -17,7 +17,6 @@ use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 
-use foundation_compact::Instant;
 use foundation_nostd::comp::condvar_comp::{CondVar, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
@@ -394,10 +393,10 @@ impl BackgroundJobRegistry {
     /// Idempotent; concurrent callers each wait at most the timeout. Must not
     /// be called from inside a background job (it would wait for itself until
     /// the timeout).
-    pub fn shutdown(&self) -> ShutdownOutcome {
-        let deadline = Instant::now() + self.shutdown_timeout;
+    pub fn shutdown(&self, clock: &dyn crate::valtron::Clock) -> ShutdownOutcome {
+        let deadline = clock.now() + self.shutdown_timeout;
         self.queue.close();
-        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout);
+        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout, clock);
 
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
@@ -427,7 +426,7 @@ impl BackgroundJobRegistry {
             );
         }
         for job in leftover {
-            if drained_in_time && Instant::now() < deadline {
+            if drained_in_time && clock.now() < deadline {
                 run_job(job, "the shutdown caller");
             } else {
                 abandoned_jobs += 1;

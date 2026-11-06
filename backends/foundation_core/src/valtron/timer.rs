@@ -16,6 +16,7 @@
 //! thread cannot be started the futures still complete, by checking the clock
 //! each time they are polled.
 
+use super::{Clock, MonotonicClock};
 use foundation_compact::Instant;
 use std::collections::BTreeMap;
 use std::future::Future;
@@ -62,9 +63,13 @@ fn timers() -> &'static Timers {
 
 /// The timer thread: sleep until the earliest deadline, wake what is due.
 fn run(timers: &'static Timers) {
+    // The timer thread is the executor's parking path: it blocks on the real
+    // operating-system clock (GitHub issue #102). It reads that clock through
+    // the real `Clock` backend rather than the global.
+    let clock = MonotonicClock::new();
     let mut pending = timers.pending();
     loop {
-        let now = Instant::now();
+        let now = clock.now();
         let mut due = Vec::new();
         while let Some(entry) = pending.first_entry() {
             if entry.key().0 > now {
@@ -111,7 +116,9 @@ pub fn sleep_until(deadline: Instant) -> Sleep {
 /// A future that completes `duration` from now. See [`sleep_until`].
 #[must_use = "a timer does nothing unless awaited"]
 pub fn sleep_for(duration: Duration) -> Sleep {
-    sleep_until(Instant::now() + duration)
+    // The timer thread parks on the real clock (GitHub issue #102), so a
+    // duration-based sleep is measured on the same real backend.
+    sleep_until(MonotonicClock::new().now() + duration)
 }
 
 /// The future returned by [`sleep_until`] and [`sleep_for`].
@@ -141,7 +148,9 @@ impl Future for Sleep {
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
-        if Instant::now() >= self.key.0 {
+        // This future is woken by the real-clock timer thread (GitHub issue
+        // #102), so it checks the same real backend.
+        if MonotonicClock::new().now() >= self.key.0 {
             if self.registered {
                 self.timers.pending().remove(&self.key);
                 self.registered = false;

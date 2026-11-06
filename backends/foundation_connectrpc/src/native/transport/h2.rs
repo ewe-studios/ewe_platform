@@ -403,7 +403,6 @@ impl Transport for H2Transport {
         // [`Self::start_dial`]. Only a failure the kernel reports synchronously
         // (a bad address or an immediate refusal) is `Err` here; an in-flight
         // connect is settled by the pump's `Connecting` phase.
-        let opened = Instant::now();
         let (stream, in_flight) = self.start_dial(&host, port)?;
 
         // ── h2 handshake ───────────────────────────────────────────────────────
@@ -447,18 +446,9 @@ impl Transport for H2Transport {
         #[cfg(unix)]
         let body_queued: EventReadinessPtr = Arc::new(send_rx.readiness());
 
-        // The connect budget starts at `open`; the handshake budget starts when
-        // the connection is up. Each phase gets its own documented limit, so a
-        // slow dial cannot spend the SETTINGS budget. The handshake value set
-        // here for an in-flight dial is a placeholder; the pump overwrites it
-        // when the connection resolves.
-        let connecting_deadline = opened + self.connect_timeout;
-        let handshake_deadline = if in_flight {
-            connecting_deadline + self.handshake_timeout
-        } else {
-            opened + self.handshake_timeout
-        };
-
+        // The pump starts both budgets on its first poll, from the engine
+        // clock in its `Ctx`: the connect budget first, then the handshake
+        // budget when the connection is up.
         // ── Spawn the valtron pump ────────────────────────────────────────────
         let pump = H2Pump {
             #[cfg(unix)]
@@ -472,11 +462,14 @@ impl Transport for H2Transport {
             } else {
                 PumpPhase::Handshaking
             },
-            connecting_deadline,
-            handshake_deadline,
+            opened: None,
+            connecting_timeout: self.connect_timeout,
+            in_flight,
+            handshake_deadline: None,
             handshake_timeout: self.handshake_timeout,
             read_timeout: self.read_timeout,
-            last_progress: opened,
+            last_progress: None,
+            clock: None,
             pending_out: Vec::new(),
             send_rx,
             head_tx,
@@ -526,19 +519,20 @@ impl Transport for H2Transport {
 #[cfg(unix)]
 struct DeadlineReadiness {
     at: Instant,
+    clock: Arc<dyn foundation_core::valtron::Clock>,
 }
 
 #[cfg(unix)]
 impl DeadlineReadiness {
-    fn at(at: Instant) -> Self {
-        Self { at }
+    fn at(at: Instant, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
+        Self { at, clock }
     }
 }
 
 #[cfg(unix)]
 impl EventReadiness for DeadlineReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        Instant::now() >= self.at
+        self.clock.now() >= self.at
     }
 
     // `foundation_compact::Instant` re-exports `std::time::Instant` on native,
@@ -582,11 +576,15 @@ struct H2Pump {
     stream: H2Socket,
     channel: H2Channel,
     state: PumpPhase,
-    /// When `Connecting` gives up on the dial.
-    connecting_deadline: Instant,
+    /// The instant of the first poll, set from the engine clock.
+    opened: Option<Instant>,
+    /// How long `Connecting` may take, from the first poll.
+    connecting_timeout: Duration,
+    /// Whether the dial was still in flight when `open` returned.
+    in_flight: bool,
     /// When `Handshaking` gives up on the peer's SETTINGS. It starts when the
     /// connect resolves, not at `open`, so a slow dial cannot spend it.
-    handshake_deadline: Instant,
+    handshake_deadline: Option<Instant>,
     /// The SETTINGS budget, kept so the deadline can start when the connect
     /// resolves.
     handshake_timeout: Duration,
@@ -595,7 +593,9 @@ struct H2Pump {
     read_timeout: Duration,
     /// When the peer last sent bytes or the socket last took our bytes. The
     /// read timeout measures from here.
-    last_progress: Instant,
+    last_progress: Option<Instant>,
+    /// The engine clock, resolved on the first poll.
+    clock: Option<Arc<dyn foundation_core::valtron::Clock>>,
     /// Bytes drained from `channel` that the non-blocking socket has not taken
     /// yet. Written ahead of any later output so frames are never split or lost.
     pending_out: Vec<u8>,
@@ -680,11 +680,13 @@ impl H2Pump {
     #[cfg(unix)]
     fn next_deadline(&self) -> Option<Instant> {
         if matches!(self.state, PumpPhase::Connecting) {
-            Some(self.connecting_deadline)
+            self.opened.map(|opened| opened + self.connecting_timeout)
         } else if matches!(self.state, PumpPhase::Handshaking) {
-            Some(self.handshake_deadline)
+            self.handshake_deadline
+                .or_else(|| self.opened.map(|opened| opened + self.handshake_timeout))
         } else if !self.read_timeout.is_zero() && self.request_sent {
-            Some(self.last_progress + self.read_timeout)
+            self.last_progress
+                .map(|progress| progress + self.read_timeout)
         } else {
             None
         }
@@ -727,9 +729,22 @@ impl H2Pump {
             children.push(Arc::new(self.head_tx.closed_readiness()) as EventReadinessPtr);
         }
         if let Some(deadline) = self.next_deadline() {
-            children.push(Arc::new(DeadlineReadiness::at(deadline)) as EventReadinessPtr);
+            children.push(
+                Arc::new(DeadlineReadiness::at(deadline, self.engine_clock())) as EventReadinessPtr,
+            );
         }
         TaskStatus::Depends(Arc::new(AnyReadiness::new(children)))
+    }
+
+    /// The engine clock, resolved on the first poll.
+    ///
+    /// # Panics
+    /// Panics when `next_status` has not run yet.
+    fn engine_clock(&self) -> Arc<dyn foundation_core::valtron::Clock> {
+        self.clock
+            .as_ref()
+            .expect("the engine clock is resolved on the first poll")
+            .clone()
     }
 
     /// No reactor off unix: keep the fixed re-poll interval.
@@ -796,7 +811,7 @@ impl H2Pump {
             }
         }
         if self.response_ended {
-            self.body_tx.close();
+            let _ = self.body_tx.close();
         }
         true
     }
@@ -843,7 +858,7 @@ impl H2Pump {
                 }
                 Ok(n) => {
                     self.pending_out.drain(..n);
-                    self.last_progress = Instant::now();
+                    self.last_progress = Some(self.engine_clock().now());
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // The socket is full. Arm WRITABLE now: the drain back to
@@ -865,9 +880,9 @@ impl H2Pump {
     /// response pipes.
     fn fail_before_head(&mut self, err: TransportError) {
         let _ = self.head_tx.try_send(Err(err));
-        self.head_tx.close();
-        self.body_tx.close();
-        self.trailer_tx.close();
+        let _ = self.head_tx.close();
+        let _ = self.body_tx.close();
+        let _ = self.trailer_tx.close();
     }
 }
 
@@ -879,8 +894,20 @@ impl TaskIterator for H2Pump {
         clippy::too_many_lines,
         reason = "one poll step covers every protocol phase in order"
     )]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         self.polls.fetch_add(1, Ordering::Relaxed);
+        let now = ctx.clock().now();
+        self.clock.get_or_insert_with(|| ctx.clock());
+        let opened = *self.opened.get_or_insert(now);
+        let connecting_deadline = opened + self.connecting_timeout;
+        let handshake_deadline = self.handshake_deadline.unwrap_or_else(|| {
+            if self.in_flight {
+                connecting_deadline + self.handshake_timeout
+            } else {
+                opened + self.handshake_timeout
+            }
+        });
+        self.handshake_deadline = Some(handshake_deadline);
 
         // Re-arm the socket's edge-triggered registration once, before this
         // turn reads it. Clearing before an attempt can only cause a spurious
@@ -895,13 +922,15 @@ impl TaskIterator for H2Pump {
             // handshake phases have their own deadlines, so they are skipped.
             if !self.read_timeout.is_zero()
                 && !matches!(self.state, PumpPhase::Connecting | PumpPhase::Handshaking)
-                && self.last_progress.elapsed() >= self.read_timeout
+                && self.last_progress.is_some_and(|progress| {
+                    now.saturating_duration_since(progress) >= self.read_timeout
+                })
             {
                 if self.response_head_sent {
                     // The head is already out. End the response stream here;
                     // there is no head pipe left to publish the error on.
-                    self.body_tx.close();
-                    self.trailer_tx.close();
+                    let _ = self.body_tx.close();
+                    let _ = self.trailer_tx.close();
                     return None;
                 }
                 self.fail_before_head(TransportError::Timeout);
@@ -915,8 +944,8 @@ impl TaskIterator for H2Pump {
             if matches!(self.state, PumpPhase::Connecting) {
                 // The caller dropped the call while the dial was in flight.
                 if self.head_tx.is_closed() {
-                    self.body_tx.close();
-                    self.trailer_tx.close();
+                    let _ = self.body_tx.close();
+                    let _ = self.trailer_tx.close();
                     return None;
                 }
                 match self.stream.connect_state() {
@@ -926,12 +955,12 @@ impl TaskIterator for H2Pump {
                         self.set_writable(false);
                         // The SETTINGS exchange starts now, not at `open`. A
                         // slow dial must not spend the handshake budget.
-                        self.handshake_deadline = Instant::now() + self.handshake_timeout;
-                        self.last_progress = Instant::now();
+                        self.handshake_deadline = Some(now + self.handshake_timeout);
+                        self.last_progress = Some(now);
                         self.state = PumpPhase::Handshaking;
                     }
                     Ok(false) => {
-                        if Instant::now() >= self.connecting_deadline {
+                        if now >= connecting_deadline {
                             tracing::warn!(
                                 host = %self.host,
                                 port = self.port,
@@ -978,13 +1007,13 @@ impl TaskIterator for H2Pump {
                         },
                         "h2 pump: connection closed by peer"
                     );
-                    self.head_tx.close();
-                    self.body_tx.close();
+                    let _ = self.head_tx.close();
+                    let _ = self.body_tx.close();
                     return None;
                 }
                 Ok(n) => {
                     self.channel.feed_input(&buf[..n]);
-                    self.last_progress = Instant::now();
+                    self.last_progress = Some(now);
                     read_some = true;
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -996,8 +1025,8 @@ impl TaskIterator for H2Pump {
                 }
                 Err(e) => {
                     tracing::warn!(err = %e, "h2 pump: socket read error — exiting");
-                    self.head_tx.close();
-                    self.body_tx.close();
+                    let _ = self.head_tx.close();
+                    let _ = self.body_tx.close();
                     return None;
                 }
             }
@@ -1013,8 +1042,8 @@ impl TaskIterator for H2Pump {
                 PumpPhase::Handshaking => {
                     // The caller dropped the call before the connection was up.
                     if self.head_tx.is_closed() {
-                        self.body_tx.close();
-                        self.trailer_tx.close();
+                        let _ = self.body_tx.close();
+                        let _ = self.trailer_tx.close();
                         return None;
                     }
                     match self.channel.client_handshake_step() {
@@ -1026,7 +1055,7 @@ impl TaskIterator for H2Pump {
                                 self.fail_before_head(TransportError::Connect(Arc::new(e)));
                                 return None;
                             }
-                            if Instant::now() >= self.handshake_deadline {
+                            if now >= handshake_deadline {
                                 tracing::warn!(
                                     host = %self.host,
                                     port = self.port,
@@ -1108,8 +1137,8 @@ impl TaskIterator for H2Pump {
                                 let _ = self
                                     .head_tx
                                     .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
-                                self.head_tx.close();
-                                self.body_tx.close();
+                                let _ = self.head_tx.close();
+                                let _ = self.body_tx.close();
                                 return None;
                             }
                         }
@@ -1126,8 +1155,8 @@ impl TaskIterator for H2Pump {
                                 .send_data_frame(self.stream_id, &chunk, false)
                                 .is_err()
                             {
-                                self.head_tx.close();
-                                self.body_tx.close();
+                                let _ = self.head_tx.close();
+                                let _ = self.body_tx.close();
                                 return None;
                             }
                         }
@@ -1140,8 +1169,8 @@ impl TaskIterator for H2Pump {
                                 .send_data_frame(self.stream_id, &[], true)
                                 .is_err()
                             {
-                                self.head_tx.close();
-                                self.body_tx.close();
+                                let _ = self.head_tx.close();
+                                let _ = self.body_tx.close();
                                 return None;
                             }
                             self.request_ended = true;
@@ -1163,8 +1192,8 @@ impl TaskIterator for H2Pump {
                             let _ = self
                                 .head_tx
                                 .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
-                            self.head_tx.close();
-                            self.body_tx.close();
+                            let _ = self.head_tx.close();
+                            let _ = self.body_tx.close();
                             return None;
                         }
                     }
@@ -1189,15 +1218,15 @@ impl TaskIterator for H2Pump {
                     // socket waiting on a peer whose reader is gone.
                     if self.head_tx.is_closed() {
                         self.abort_peer_stream();
-                        self.body_tx.close();
-                        self.trailer_tx.close();
+                        let _ = self.body_tx.close();
+                        let _ = self.trailer_tx.close();
                         return None;
                     }
                     // Keep feeding the request: a bidi server may not answer until
                     // it has seen some (or all) of the request body.
                     if !self.pump_request_body() {
-                        self.head_tx.close();
-                        self.body_tx.close();
+                        let _ = self.head_tx.close();
+                        let _ = self.body_tx.close();
                         return None;
                     }
 
@@ -1225,7 +1254,7 @@ impl TaskIterator for H2Pump {
                             }
 
                             let _ = self.head_tx.try_send(Ok((status, resp_headers)));
-                            self.head_tx.close();
+                            let _ = self.head_tx.close();
                             self.response_head_sent = true;
 
                             // Queue body if present; `flush_response_body` honours
@@ -1254,16 +1283,16 @@ impl TaskIterator for H2Pump {
                             let _ = self
                                 .head_tx
                                 .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
-                            self.head_tx.close();
-                            self.body_tx.close();
+                            let _ = self.head_tx.close();
+                            let _ = self.body_tx.close();
                             return None;
                         }
                         Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                             // Need more data — flush writes, then park on the
                             // socket. Drain any bytes still in the kernel first.
                             if self.write_out().is_err() {
-                                self.head_tx.close();
-                                self.body_tx.close();
+                                let _ = self.head_tx.close();
+                                let _ = self.body_tx.close();
                                 return None;
                             }
                             if read_some {
@@ -1275,8 +1304,8 @@ impl TaskIterator for H2Pump {
                             let _ = self
                                 .head_tx
                                 .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
-                            self.head_tx.close();
-                            self.body_tx.close();
+                            let _ = self.head_tx.close();
+                            let _ = self.body_tx.close();
                             return None;
                         }
                     }
@@ -1285,7 +1314,7 @@ impl TaskIterator for H2Pump {
                 PumpPhase::Draining => {
                     // The request direction may still be open (bidi).
                     if !self.pump_request_body() {
-                        self.body_tx.close();
+                        let _ = self.body_tx.close();
                         return None;
                     }
 
@@ -1297,7 +1326,7 @@ impl TaskIterator for H2Pump {
                     // means the receiver is gone.
                     if self.body_tx.is_closed() && !self.response_ended {
                         self.abort_peer_stream();
-                        self.trailer_tx.close();
+                        let _ = self.trailer_tx.close();
                         return None;
                     }
 
@@ -1358,7 +1387,7 @@ impl TaskIterator for H2Pump {
                                 }
                             }
                             let _ = self.trailer_tx.try_send(trailers);
-                            self.trailer_tx.close();
+                            let _ = self.trailer_tx.close();
                             // Trailers carry END_STREAM, so the body is also done.
                             self.response_ended = true;
                             if !self.flush_response_body() {
@@ -1370,15 +1399,15 @@ impl TaskIterator for H2Pump {
                             }
                         }
                         Ok(None) => {
-                            self.body_tx.close();
-                            self.trailer_tx.close();
+                            let _ = self.body_tx.close();
+                            let _ = self.trailer_tx.close();
                             self.state = PumpPhase::Done;
                             return Some(TaskStatus::Pending(()));
                         }
                         Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                             if self.write_out().is_err() {
-                                self.body_tx.close();
-                                self.trailer_tx.close();
+                                let _ = self.body_tx.close();
+                                let _ = self.trailer_tx.close();
                                 return None;
                             }
                             if read_some {
@@ -1387,8 +1416,8 @@ impl TaskIterator for H2Pump {
                             return Some(self.park());
                         }
                         Err(_e) => {
-                            self.body_tx.close();
-                            self.trailer_tx.close();
+                            let _ = self.body_tx.close();
+                            let _ = self.trailer_tx.close();
                             return None;
                         }
                     }
@@ -1406,9 +1435,9 @@ impl TaskIterator for H2Pump {
                     // only yields a value, so the executor polls again, lands on
                     // `Done` again, and spins: nobody consumes this task's value
                     // (`valtron::send` is fire-and-forget), so it never ended.
-                    self.body_tx.close();
-                    self.head_tx.close();
-                    self.trailer_tx.close();
+                    let _ = self.body_tx.close();
+                    let _ = self.head_tx.close();
+                    let _ = self.trailer_tx.close();
                     return None;
                 }
             }
@@ -1423,8 +1452,8 @@ impl TaskIterator for H2Pump {
                     return Some(self.park());
                 }
                 Err(_e) => {
-                    self.head_tx.close();
-                    self.body_tx.close();
+                    let _ = self.head_tx.close();
+                    let _ = self.body_tx.close();
                     return None;
                 }
             }

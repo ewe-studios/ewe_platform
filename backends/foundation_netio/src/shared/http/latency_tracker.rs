@@ -17,7 +17,9 @@
 //! use foundation_netio::shared::http::latency_tracker::LatencyTracker;
 //! use std::time::Duration;
 //!
-//! let tracker = LatencyTracker::new();
+//! let tracker = LatencyTracker::new(std::sync::Arc::new(
+//!     foundation_core::valtron::MonotonicClock::new(),
+//! ));
 //!
 //! // Record a latency sample
 //! tracker.record("api.example.com/users", Duration::from_millis(150));
@@ -28,6 +30,7 @@
 //! }
 //! ```
 
+use foundation_core::valtron::Clock;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
@@ -42,11 +45,11 @@ pub struct LatencySample {
 }
 
 impl LatencySample {
-    /// Create a new latency sample.
+    /// Create a new latency sample stamped with `clock`.
     #[must_use]
-    pub fn new(duration: Duration) -> Self {
+    pub fn new(duration: Duration, clock: &dyn Clock) -> Self {
         Self {
-            timestamp: Instant::now(),
+            timestamp: clock.now(),
             duration,
         }
     }
@@ -66,7 +69,6 @@ pub struct LatencyStats {
 }
 
 /// Per-endpoint latency history with ring buffer.
-#[derive(Debug)]
 pub struct EndpointLatency {
     /// Ring buffer of samples (oldest at front).
     samples: VecDeque<LatencySample>,
@@ -76,17 +78,30 @@ pub struct EndpointLatency {
     cached_stats: Option<LatencyStats>,
     /// When cache was last updated.
     cache_timestamp: Instant,
+    /// The clock that measures the cache age and the sample TTL.
+    clock: Arc<dyn Clock>,
+}
+
+impl core::fmt::Debug for EndpointLatency {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("EndpointLatency")
+            .field("samples", &self.samples)
+            .field("max_samples", &self.max_samples)
+            .finish_non_exhaustive()
+    }
 }
 
 impl EndpointLatency {
     /// Create a new endpoint latency tracker.
     #[must_use]
-    pub fn new(max_samples: usize) -> Self {
+    pub fn new(max_samples: usize, clock: Arc<dyn Clock>) -> Self {
+        let cache_timestamp = clock.now();
         Self {
             samples: VecDeque::with_capacity(max_samples.min(100)),
             max_samples,
             cached_stats: None,
-            cache_timestamp: Instant::now(),
+            cache_timestamp,
+            clock,
         }
     }
 
@@ -110,7 +125,12 @@ impl EndpointLatency {
     pub fn get_stats(&mut self, max_cache_age: Duration) -> Option<LatencyStats> {
         // Return cached if fresh
         if let Some(ref stats) = self.cached_stats {
-            if self.cache_timestamp.elapsed() < max_cache_age {
+            if self
+                .clock
+                .now()
+                .saturating_duration_since(self.cache_timestamp)
+                < max_cache_age
+            {
                 return Some(*stats);
             }
         }
@@ -122,7 +142,7 @@ impl EndpointLatency {
         // Calculate percentiles
         let stats = self.calculate_percentiles();
         self.cached_stats = Some(stats);
-        self.cache_timestamp = Instant::now();
+        self.cache_timestamp = self.clock.now();
         Some(stats)
     }
 
@@ -144,13 +164,13 @@ impl EndpointLatency {
             p50: Duration::from_millis(p50),
             p99: Duration::from_millis(p99),
             sample_count: durations.len(),
-            calculated_at: Instant::now(),
+            calculated_at: self.clock.now(),
         }
     }
 
     /// Remove samples older than the given duration.
     pub fn expire_old_samples(&mut self, ttl: Duration) {
-        let now = Instant::now();
+        let now = self.clock.now();
         while let Some(sample) = self.samples.front() {
             if now.duration_since(sample.timestamp) > ttl {
                 self.samples.pop_front();
@@ -213,7 +233,7 @@ impl Default for LatencyTrackerConfig {
 ///
 /// WHY: Multiple threads may record latencies for the same endpoint.
 /// WHAT: RwLock-protected `HashMap` of endpoint -> `EndpointLatency`.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct LatencyTracker {
     /// Per-endpoint latency history.
     endpoints: Arc<RwLock<HashMap<String, EndpointLatency>>>,
@@ -221,22 +241,34 @@ pub struct LatencyTracker {
     config: LatencyTrackerConfig,
     /// Last cleanup time.
     last_cleanup: Arc<RwLock<Instant>>,
+    /// The clock that measures cleanup age, cache age and sample times.
+    clock: Arc<dyn Clock>,
+}
+
+impl core::fmt::Debug for LatencyTracker {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("LatencyTracker")
+            .field("config", &self.config)
+            .finish_non_exhaustive()
+    }
 }
 
 impl LatencyTracker {
     /// Create a new latency tracker with default config.
     #[must_use]
-    pub fn new() -> Self {
-        Self::with_config(LatencyTrackerConfig::default())
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
+        Self::with_config(LatencyTrackerConfig::default(), clock)
     }
 
     /// Create a new latency tracker with custom config.
     #[must_use]
-    pub fn with_config(config: LatencyTrackerConfig) -> Self {
+    pub fn with_config(config: LatencyTrackerConfig, clock: Arc<dyn Clock>) -> Self {
+        let last_cleanup = clock.now();
         Self {
             endpoints: Arc::new(RwLock::new(HashMap::new())),
             config,
-            last_cleanup: Arc::new(RwLock::new(Instant::now())),
+            last_cleanup: Arc::new(RwLock::new(last_cleanup)),
+            clock,
         }
     }
 
@@ -248,12 +280,12 @@ impl LatencyTracker {
     ///
     /// This function does not panic.
     pub fn record(&self, endpoint: &str, duration: Duration) {
-        let sample = LatencySample::new(duration);
+        let sample = LatencySample::new(duration, &*self.clock);
 
         let mut endpoints = self.endpoints.write().expect("poisoned lock");
-        let endpoint_latency = endpoints
-            .entry(endpoint.to_string())
-            .or_insert_with(|| EndpointLatency::new(self.config.max_samples_per_endpoint));
+        let endpoint_latency = endpoints.entry(endpoint.to_string()).or_insert_with(|| {
+            EndpointLatency::new(self.config.max_samples_per_endpoint, self.clock.clone())
+        });
 
         endpoint_latency.record(sample);
     }
@@ -329,7 +361,7 @@ impl LatencyTracker {
 
         let should_cleanup = {
             let last = self.last_cleanup.read().expect("poisoned lock");
-            last.elapsed() > self.config.cleanup_interval
+            self.clock.now().saturating_duration_since(*last) > self.config.cleanup_interval
         };
 
         if should_cleanup {
@@ -342,7 +374,7 @@ impl LatencyTracker {
             endpoints.retain(|_, ep| ep.sample_count() > 0);
 
             let mut last = self.last_cleanup.write().expect("poisoned lock");
-            *last = Instant::now();
+            *last = self.clock.now();
         }
     }
 
@@ -361,12 +393,6 @@ impl LatencyTracker {
         endpoints.retain(|_, ep| ep.sample_count() > 0);
 
         let mut last = self.last_cleanup.write().expect("poisoned lock");
-        *last = Instant::now();
-    }
-}
-
-impl Default for LatencyTracker {
-    fn default() -> Self {
-        Self::new()
+        *last = self.clock.now();
     }
 }

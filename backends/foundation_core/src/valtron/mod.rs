@@ -175,8 +175,9 @@ pub use foundation_compact::trace;
 
 /// The instant type of [`EventReadiness::deadline`].
 ///
-/// WHY: `std::time::Instant::now()` panics on `wasm32-unknown-unknown`, and a
-/// deadline the executor reads (to wake at it) is compared with the clock. This
+/// WHY: the standard library's monotonic clock read panics on
+/// `wasm32-unknown-unknown`, and a deadline the executor reads (to wake at it) is
+/// compared with the clock. This
 /// is `std::time::Instant` on every other target, and the host-clock instant on
 /// JS wasm, so one readiness source compiles and runs on both. A crate that
 /// implements `deadline` names this type, so it does not need a direct

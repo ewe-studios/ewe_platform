@@ -12,49 +12,6 @@ backends/foundation_compact/src/  # the real time backends
 # clock. It is the one place the real call stays.
 backends/foundation_core/src/valtron/ctx.rs  # MonotonicClock: the real clock
 
-backends/foundation_connectrpc/src/native/conn_io.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_connectrpc/src/native/transport/h2.rs  # phase B (engine and I/O); 6 monotonic
-backends/foundation_connectrpc/src/shared/client.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_connectrpc/src/shared/context/mod.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_connectrpc/src/shared/router/dispatch.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_core/src/synca/mpp.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_core/src/synca/sleepers.rs  # phase B (engine and I/O); 5 monotonic
-backends/foundation_core/src/synca/waitgroup.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_core/src/valtron/delayed_iterators.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_core/src/valtron/doc.rs  # phase B (engine and I/O); 1 wall, 1 monotonic
-backends/foundation_core/src/valtron/executors/background.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_core/src/valtron/executors/local.rs  # phase B (engine and I/O); 5 monotonic
-backends/foundation_core/src/valtron/executors/non_sendables.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_core/src/valtron/executors/sleep.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_core/src/valtron/executors/wrappers.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_core/src/valtron/mod.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_core/src/valtron/timer.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_http/src/native/server/connection.rs  # phase B (engine and I/O); 6 monotonic
-backends/foundation_http/src/native/server/h2_connection.rs  # phase B (engine and I/O); 1 wall, 2 monotonic
-backends/foundation_http/src/native/server/protocol_detect.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_http/src/native/writer.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_http/src/shared/handlers/rate_limit.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_http/src/shared/middleware/logger.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_netio/src/event_source/native/reconnecting_task.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_netio/src/event_source/native/task.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_netio/src/http/pool.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_netio/src/http/tasks/nonblocking.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_netio/src/http/tasks/request_redirect.rs  # phase B (engine and I/O); 5 monotonic
-backends/foundation_netio/src/native/readiness.rs  # phase B (engine and I/O); 4 monotonic
-backends/foundation_netio/src/quic/quinn_driver.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_netio/src/quic/quinn_impl.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_netio/src/shared/client/cookie.rs  # phase B (engine and I/O); 1 wall
-backends/foundation_netio/src/shared/client/dns.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_netio/src/shared/http/client_classifier.rs  # phase B (engine and I/O); 3 monotonic
-backends/foundation_netio/src/shared/http/latency_tracker.rs  # phase B (engine and I/O); 8 monotonic
-backends/foundation_netio/src/shared/http/load_tracker.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_netio/src/websocket/native/readiness.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_netio/src/websocket/native/reconnecting_task.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_netio/src/websocket/shared/batch_writer.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_testbed/src/docker.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_testbed/src/wasm/browser.rs  # phase B (engine and I/O); 2 monotonic
-backends/foundation_testbed/src/wasm/embedded_js.rs  # phase B (engine and I/O); 1 monotonic
-backends/foundation_testbed/src/wasm/wrangler.rs  # phase B (engine and I/O); 3 monotonic
 backends/foundation_ai/src/agentic/agent_loop.rs  # phase C (services); 3 wall
 backends/foundation_ai/src/agentic/embedding.rs  # phase C (services); 1 wall
 backends/foundation_ai/src/agentic/memory.rs  # phase C (services); 3 wall

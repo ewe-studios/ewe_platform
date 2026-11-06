@@ -2246,3 +2246,30 @@ time can still leave an async consumer with nothing to wake it. The old code had
   0.0.13 and 38 consumer requirements. Measure a lint fix on the public surface as an API
   change before you apply it, not after.
 
+
+- 2026-11-06 (feature 132): the executor already owns the pool root `Ctx`. A
+  deadline that the executor computes can therefore read `root.clock()` without a
+  new bundle. The only reads that cannot move are the blocking waits: the timer
+  thread, the condvar park and the accept loop. They name `MonotonicClock`
+  explicitly, so the code says "real clock here" and the gate still counts no
+  direct read. Do not hide such a read in a helper; name the backend type.
+- 2026-11-06 (feature 132): a ConnectRPC call context has its own `Ctx`, not the
+  valtron `Ctx`. The shared `ContextBag` is the seam: the HTTP server stores its
+  engine clock in the app bag before it dispatches, and `build_ctx` reads it. A
+  bag built outside an engine has no clock, so a direct dispatcher test gets an
+  explicit `MonotonicClock`. That is a host shortcut, not a global fallback.
+- 2026-11-06 (feature 132): `#[must_use]` on `PipeSender::close` and
+  `PipeReceiver::close` produced 105 warnings in dependent crates (issue #211).
+  Some `.close()` calls return `()` (a sink trait method), so a blanket
+  `let _ = x.close();` triggers `clippy::let_unit_value`. Find the exact warning
+  lines; do not rewrite every `.close();`. The clippy gate fails on the
+  `unused_must_use` warnings even with `--no-deps`, so a feature in these crates
+  cannot pass until they are fixed.
+- 2026-11-06 (feature 132): a Rust doc example is a compiled test. A changed
+  constructor in a `//!` or `///` example fails the crate's doctest target, not
+  the lib target. Update the example and keep its `//!` prefix on every line.
+- 2026-11-06 (feature 132): `SimulatedClock::now()` starts at the real instant it
+  was built plus its offset, while `wall_now` starts at the UNIX epoch. A test
+  that compares a simulated deadline with the real clock sees a difference of
+  milliseconds, not hours. That is why the old-code HTTP test failed with
+  `Some(Delayed(3ms))` and not with a large value.

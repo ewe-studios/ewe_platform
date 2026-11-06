@@ -55,7 +55,10 @@ pub struct ProtocolDetectHandler {
     keep_alive: KeepAliveConfig,
     /// When set, every H1 response carries `Alt-Svc: h3=":<port>"` (F53).
     alt_svc_h3_port: Option<u16>,
-    started: Instant,
+    /// When this detector first polled, on the engine clock.
+    started: Option<Instant>,
+    /// The engine clock, resolved on the first poll.
+    clock: Option<Arc<dyn foundation_core::valtron::Clock>>,
 }
 
 impl ProtocolDetectHandler {
@@ -73,6 +76,7 @@ impl ProtocolDetectHandler {
         drain_guard: WaitGroupGuard,
         keep_alive: KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
+        clock: Arc<dyn foundation_core::valtron::Clock>,
     ) -> Self {
         Self {
             stream,
@@ -83,8 +87,20 @@ impl ProtocolDetectHandler {
             drain_guard: Some(drain_guard),
             keep_alive,
             alt_svc_h3_port,
-            started: Instant::now(),
+            started: None,
+            clock: Some(clock),
         }
+    }
+
+    /// The engine clock resolved on the first poll.
+    ///
+    /// # Panics
+    /// Panics when `next_status` has not run yet.
+    fn clock(&self) -> Arc<dyn foundation_core::valtron::Clock> {
+        self.clock
+            .as_ref()
+            .expect("the engine clock is resolved on the first poll")
+            .clone()
     }
 }
 
@@ -92,10 +108,15 @@ impl TaskIterator for ProtocolDetectHandler {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         if self.shutdown.probe() {
             return None;
         }
+
+        // The detection deadline runs on the engine clock.
+        let now = ctx.clock().now();
+        self.clock.get_or_insert_with(|| ctx.clock());
+        let started = *self.started.get_or_insert(now);
 
         let mut buf = [0u8; H2C_PREFACE_PEEK_LEN];
         let raw_peek = self.stream.peek(&mut buf);
@@ -119,7 +140,7 @@ impl TaskIterator for ProtocolDetectHandler {
 
         match detect_protocol(&buf[..peeked]) {
             DetectedProtocol::NeedMore => {
-                if self.started.elapsed() >= DETECT_TIMEOUT {
+                if now.saturating_duration_since(started) >= DETECT_TIMEOUT {
                     tracing::debug!(client = %self.client_ip, "protocol detection timed out");
                     return None;
                 }
@@ -171,6 +192,7 @@ impl ProtocolDetectHandler {
             self.connection.clone(),
             self.shutdown.clone(),
             guard,
+            self.clock(),
         );
 
         if let Err(e) = foundation_core::valtron::send(handler) {
@@ -209,6 +231,7 @@ impl ProtocolDetectHandler {
             guard,
             &self.keep_alive,
             self.alt_svc_h3_port,
+            self.clock(),
         );
 
         match foundation_core::valtron::send(handler) {

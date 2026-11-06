@@ -1,5 +1,6 @@
 //! Rate limiter middleware — in-memory request rate limiting per IP.
 
+use foundation_core::valtron::Clock;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -20,6 +21,8 @@ pub struct RateLimiter {
     window: Duration,
     // HashMap<IP, (count, window_start)>
     trackers: Arc<Mutex<HashMap<String, (usize, Instant)>>>,
+    /// The clock that measures the rate-limit window.
+    clock: Arc<dyn Clock>,
 }
 
 impl RateLimiter {
@@ -28,11 +31,12 @@ impl RateLimiter {
     /// * `requests_per_window` — maximum requests allowed per window
     /// * `window` — duration of the rate limiting window
     #[must_use]
-    pub fn new(requests_per_window: usize, window: Duration) -> Self {
+    pub fn new(requests_per_window: usize, window: Duration, clock: Arc<dyn Clock>) -> Self {
         Self {
             requests_per_window,
             window,
             trackers: Arc::new(Mutex::new(HashMap::new())),
+            clock,
         }
     }
 
@@ -48,13 +52,13 @@ impl RequestMiddleware for RateLimiter {
     fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let ip = Self::extract_ip(req);
         let ip_owned = ip.to_string();
-        let now = Instant::now();
+        let now = self.clock.now();
 
         let mut trackers = self.trackers.lock().unwrap();
         let entry = trackers.entry(ip_owned).or_insert((0, now));
 
         // Reset window if expired
-        if now.duration_since(entry.1) > self.window {
+        if now.saturating_duration_since(entry.1) > self.window {
             entry.0 = 0;
             entry.1 = now;
         }

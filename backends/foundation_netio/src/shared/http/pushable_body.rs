@@ -69,7 +69,9 @@ impl PushableRequestBody {
     /// End the request body — the renderer then emits its final chunk and finishes.
     /// Idempotent; also happens automatically on drop.
     pub fn close(&self) {
-        self.sender.close();
+        // Idempotent: an explicit close followed by the drop's close is normal,
+        // so the "this call closed it" flag carries no caller action.
+        let _closed_by_this_call = self.sender.close();
     }
 
     /// Whether the body has been ended (by `close`, drop, or the renderer going away).

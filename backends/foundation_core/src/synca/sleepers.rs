@@ -5,6 +5,7 @@
 use std::{collections::HashMap, sync::Arc, time};
 
 use super::{Entry, EntryList};
+use crate::valtron::Clock;
 use foundation_nostd::comp::basic::RwLock;
 
 static DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::from_millis(10);
@@ -13,11 +14,22 @@ pub trait Waker {
     fn wake(&self);
 }
 
-#[derive(Debug)]
 pub struct DurationWaker<T> {
     pub handle: T,
     pub from: foundation_compact::Instant,
     pub how_long: time::Duration,
+    /// The clock that says when this waker matures.
+    clock: Arc<dyn Clock>,
+}
+
+impl<T: core::fmt::Debug> core::fmt::Debug for DurationWaker<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("DurationWaker")
+            .field("handle", &self.handle)
+            .field("from", &self.from)
+            .field("how_long", &self.how_long)
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Debug)]
@@ -181,20 +193,27 @@ impl<T: Waker> Waker for DurationWaker<T> {
 }
 
 impl<T> DurationWaker<T> {
-    pub fn new(handle: T, from: foundation_compact::Instant, how_long: time::Duration) -> Self {
+    pub fn new(
+        handle: T,
+        from: foundation_compact::Instant,
+        how_long: time::Duration,
+        clock: Arc<dyn Clock>,
+    ) -> Self {
         Self {
             handle,
             from,
             how_long,
+            clock,
         }
     }
 
-    pub fn from_now(handle: T, how_long: time::Duration) -> Self {
-        Self::new(handle, foundation_compact::Instant::now(), how_long)
+    pub fn from_now(handle: T, how_long: time::Duration, clock: Arc<dyn Clock>) -> Self {
+        let from = clock.now();
+        Self::new(handle, from, how_long, clock)
     }
 
     pub fn remaining(&self) -> Option<time::Duration> {
-        let now = foundation_compact::Instant::now();
+        let now = self.clock.now();
         // A deadline that has already passed is due NOW, not "no deadline".
         // Returning `None` here made `Sleepers::time_until_next` drop a past-due
         // timer, so a worker picked the next far deadline and slept past a task
@@ -206,7 +225,7 @@ impl<T> DurationWaker<T> {
     }
 
     pub fn try_is_ready(&self) -> Option<bool> {
-        let now = foundation_compact::Instant::now();
+        let now = self.clock.now();
         self.from
             .checked_add(self.how_long)
             .map(|when_ready| when_ready.checked_duration_since(now).is_none())
@@ -229,12 +248,25 @@ impl<T> DurationWaker<T> {
 ///
 /// The HashMap-based approach keys sleepers directly by the task's Entry,
 /// eliminating this collision issue entirely.
-#[derive(Debug)]
+#[allow(
+    clippy::struct_field_names,
+    reason = "the field names the directory that stores the sleepers"
+)]
 pub struct Sleepers<T: Waiter> {
     /// Map from task entry to sleeper data.
     sleepers: Arc<RwLock<HashMap<Entry, T>>>,
     /// max wait for readiness checks
     max_readiness_wait: std::time::Duration,
+    /// The clock that says when a sleeper matures.
+    clock: Arc<dyn Clock>,
+}
+
+impl<T: Waiter + core::fmt::Debug> core::fmt::Debug for Sleepers<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Sleepers")
+            .field("max_readiness_wait", &self.max_readiness_wait)
+            .finish_non_exhaustive()
+    }
 }
 
 pub trait Timing {
@@ -279,31 +311,34 @@ impl<T: Waiter + std::fmt::Debug> Clone for Sleepers<T> {
         Self {
             sleepers: self.sleepers.clone(),
             max_readiness_wait: self.max_readiness_wait,
+            clock: self.clock.clone(),
         }
-    }
-}
-
-impl<T: Waiter + std::fmt::Debug> Default for Sleepers<T> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
 impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(HashMap::new())),
             max_readiness_wait: DEFAULT_READINESS_WAIT,
+            clock,
         }
     }
 
     #[must_use]
-    pub fn with_max_readiness_wait(dur: std::time::Duration) -> Self {
+    pub fn with_max_readiness_wait(dur: std::time::Duration, clock: Arc<dyn Clock>) -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(HashMap::new())),
             max_readiness_wait: dur,
+            clock,
         }
+    }
+
+    /// The clock this directory reads to decide when a sleeper matures.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.clock.clone()
     }
 
     pub fn set_max_readiness_wait(&mut self, dur: std::time::Duration) {
@@ -400,10 +435,11 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         T: crate::synca::sleepers::Timeable,
     {
         let sleepers = self.sleepers.read().unwrap();
+        let now = self.clock.now();
         sleepers
             .values()
             .filter_map(Timeable::remaining_duration)
-            .map(|remaining| foundation_compact::Instant::now() + remaining)
+            .map(|remaining| now + remaining)
             .min()
     }
 
@@ -433,7 +469,7 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         T: crate::synca::sleepers::Timeable,
     {
         self.minimum_deadline().map(|deadline| {
-            let now = foundation_compact::Instant::now();
+            let now = self.clock.now();
             if deadline > now {
                 deadline - now
             } else {

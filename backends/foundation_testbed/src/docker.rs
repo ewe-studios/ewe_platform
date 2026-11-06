@@ -14,7 +14,10 @@
 
 use std::path::Path;
 use std::process::{Command, Output};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
+
+use foundation_core::valtron::Clock;
 
 // ── Error types ──────────────────────────────────────────────────────────
 
@@ -145,16 +148,32 @@ pub struct TestEnvironmentBuilder {
     container: String,
     mode: ConnectionMode,
     ready_timeout: Duration,
+    /// The clock that bounds the readiness wait. The host passes its clock; a
+    /// test passes a simulated one (AGENTS rule 11).
+    clock: Arc<dyn Clock>,
 }
 
 impl TestEnvironmentBuilder {
     #[must_use]
-    pub fn new(container: &str) -> Self {
+    pub fn new(container: &str, clock: Arc<dyn Clock>) -> Self {
         Self {
             container: container.to_string(),
             mode: ConnectionMode::Shell,
             ready_timeout: Duration::from_secs(60),
+            clock,
         }
+    }
+
+    /// The clock that bounds the readiness wait.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.clock.clone()
+    }
+
+    /// The instant `connect` gives up waiting for readiness.
+    #[must_use]
+    pub fn deadline(&self) -> Instant {
+        self.clock.now() + self.ready_timeout
     }
 
     /// Connect via VNC (macOS, Android).
@@ -218,12 +237,12 @@ impl TestEnvironmentBuilder {
             return Err(TestEnvError::ContainerNotFound(self.container.clone()));
         }
 
-        let deadline = Instant::now() + self.ready_timeout;
+        let deadline = self.deadline();
         loop {
             if self.check_ready() {
                 break;
             }
-            if Instant::now() > deadline {
+            if self.clock().now() > deadline {
                 return Err(TestEnvError::Timeout(format!(
                     "container '{}' not ready after {:?}",
                     self.container, self.ready_timeout

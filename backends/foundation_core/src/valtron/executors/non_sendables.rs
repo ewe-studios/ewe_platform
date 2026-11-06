@@ -1521,11 +1521,11 @@ where
             // the caller gets `Wait` and decides whether to poll again.
             #[cfg(not(target_family = "wasm"))]
             if pulled.is_none() && !single::has_runnable_work() {
-                let until = foundation_compact::Instant::now() + single::sleeper_budget();
+                let until = single::clock().now() + single::sleeper_budget();
                 while pulled.is_none() && single::wait_for_sleepers(until) {
                     run_until_next_state();
                     pulled = task_iterator.try_next();
-                    if pulled.is_none() && foundation_compact::Instant::now() >= until {
+                    if pulled.is_none() && single::clock().now() >= until {
                         pulled = Some(Some(Stream::Wait));
                     }
                 }
@@ -1631,12 +1631,9 @@ where
             // on the readiness quantum. Replacing the handle cancels the last one.
             self.1.timer = single::parked_wake_after().map(|after| {
                 let timer_slot = Arc::clone(&slot);
-                crate::valtron::timer::call_at(
-                    foundation_compact::Instant::now() + after,
-                    move || {
-                        timer_slot.fire();
-                    },
-                )
+                crate::valtron::timer::call_at(single::clock().now() + after, move || {
+                    timer_slot.fire();
+                })
             });
         }
         WakeResult::Successful

@@ -29,7 +29,7 @@ use std::io::{self, Write};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::timer::{self, Sleep};
@@ -99,10 +99,8 @@ impl WriterConfig {
 pub struct ResponseWriter {
     conn: SharedByteBufferStream<RawStream>,
     config: WriterConfig,
-    /// When the current write or flush last made progress. Set at the start of
-    /// each operation, never at creation, so an idle writer is not timed out.
-    idle_since: Instant,
-    /// The timer for `idle_since + send_timeout`; cleared on progress.
+    /// The timer for `send_timeout` from the last progress; cleared on every
+    /// progress, so an idle writer is not timed out.
     idle_timer: Option<Sleep>,
     /// Built on the first `WouldBlock`.
     wait: Option<WaitSource>,
@@ -122,7 +120,6 @@ impl ResponseWriter {
         Self {
             conn,
             config,
-            idle_since: Instant::now(),
             idle_timer: None,
             wait: None,
         }
@@ -193,7 +190,8 @@ impl ResponseWriter {
 
     /// The socket took at least one byte: restart the idle timer.
     fn progress(&mut self) {
-        self.idle_since = Instant::now();
+        // Re-arming from "now" on the next `WouldBlock` restarts the deadline;
+        // the timer itself runs on the valtron timer thread (GitHub issue #102).
         self.idle_timer = None;
     }
 
@@ -202,11 +200,12 @@ impl ResponseWriter {
     }
 
     fn poll_writable(&mut self, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        let deadline = self.idle_since + self.config.send_timeout;
+        let send_timeout = self.config.send_timeout;
         let timer = self
             .idle_timer
-            .get_or_insert_with(|| timer::sleep_until(deadline));
-        if Instant::now() >= deadline || Pin::new(timer).poll(cx).is_ready() {
+            .get_or_insert_with(|| timer::sleep_for(send_timeout));
+        // The timer fires at the deadline; no separate clock read is needed.
+        if Pin::new(timer).poll(cx).is_ready() {
             return Poll::Ready(Err(io::Error::new(
                 io::ErrorKind::TimedOut,
                 "the client took no byte of the response within the send timeout",

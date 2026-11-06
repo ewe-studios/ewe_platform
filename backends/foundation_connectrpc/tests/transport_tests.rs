@@ -398,7 +398,7 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
                 break;
             }
         }
-        req_pump_dst.close();
+        let _ = req_pump_dst.close();
     });
 
     let resp_pump_src = server_ends.response_rx;
@@ -409,7 +409,7 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
                 break;
             }
         }
-        resp_pump_dst.close();
+        let _ = resp_pump_dst.close();
     });
 
     run_all(vec![

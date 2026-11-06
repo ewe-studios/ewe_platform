@@ -380,7 +380,7 @@ where
     type Pending = WebSocketProgress;
 
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {
@@ -418,7 +418,10 @@ where
                 );
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) = self.pool.create_http_connection(&state.url, None) else {
+                let Ok(connection) =
+                    self.pool
+                        .create_http_connection(&state.url, None, ctx.clock().as_ref())
+                else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(WebSocketState::Closed(Some(
                         WebSocketError::ConnectionClosed,

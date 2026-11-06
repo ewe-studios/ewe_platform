@@ -27,9 +27,29 @@ pub use cancel::CancelSignal;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};
+
+/// The engine clock, as stored in a [`ContextBag`] by the host.
+pub type SharedClock = Arc<dyn Clock>;
+
+/// Read the engine clock from `bag`.
+///
+/// The HTTP server stores its engine clock in the app bag before it dispatches,
+/// so a served call reads the injected clock. A bag built without an engine
+/// (a unit test that calls the dispatcher directly, a CLI) has no clock to
+/// inject; that boundary names the real clock explicitly rather than reading a
+/// global, and a host that wants deterministic time stores its own clock in the
+/// bag first.
+#[must_use]
+pub fn clock_from_bag(bag: &ContextBag) -> Arc<dyn Clock> {
+    bag.get::<SharedClock>().map_or_else(
+        || Arc::new(MonotonicClock::new()) as Arc<dyn Clock>,
+        |clock| (*clock).clone(),
+    )
+}
 
 /// The RPC's streaming shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -121,6 +141,8 @@ pub struct RequestContext {
     /// connection's requests (Decision 04 Q13 / Decision 12 §13).
     pub connection: Arc<ConnectionContext>,
     cancel: CancelSignal,
+    /// The engine clock that measures the deadline and the remaining timeout.
+    pub clock: Arc<dyn Clock>,
 }
 
 impl RequestContext {
@@ -135,6 +157,9 @@ impl RequestContext {
             extensions: Extensions::new(),
             connection: Arc::new(ConnectionContext::default()),
             cancel: CancelSignal::new(),
+            // A base context has no server engine; the host shortcut names the
+            // real clock explicitly.
+            clock: Arc::new(MonotonicClock::new()),
         }
     }
 
@@ -152,6 +177,7 @@ impl RequestContext {
         extensions: Extensions,
         connection: Arc<ConnectionContext>,
         cancel: CancelSignal,
+        clock: Arc<dyn Clock>,
     ) -> Self {
         Self {
             spec: Arc::new(spec),
@@ -161,6 +187,7 @@ impl RequestContext {
             extensions,
             connection,
             cancel,
+            clock,
         }
     }
 
@@ -179,7 +206,7 @@ impl RequestContext {
     #[must_use]
     pub fn remaining_timeout(&self) -> Option<Duration> {
         self.deadline
-            .map(|d| d.saturating_duration_since(Instant::now()))
+            .map(|d| d.saturating_duration_since(self.clock.now()))
     }
 
     /// The call's cancel signal — the transport holds a clone and fires it on
@@ -205,19 +232,31 @@ impl Ctx {
     /// Client-side base context: app deps only, empty per-call state.
     #[must_use]
     pub fn client(bag: Arc<ContextBag>) -> Ctx {
-        Ctx {
-            bag,
-            request: RequestContext::empty(true),
-        }
+        let clock = clock_from_bag(&bag);
+        let mut request = RequestContext::empty(true);
+        request.clock = clock;
+        Ctx { bag, request }
     }
 
     /// Empty-bag base — tests, CLIs, wasm entry points.
     #[must_use]
     pub fn background() -> Ctx {
+        // A base context has no server engine; the host shortcut stores the
+        // real clock in its bag explicitly.
+        let bag = ContextBag::new();
+        bag.store::<SharedClock>(Arc::new(MonotonicClock::new()));
+        let mut request = RequestContext::empty(false);
+        request.clock = clock_from_bag(&bag);
         Ctx {
-            bag: Arc::new(ContextBag::new()),
-            request: RequestContext::empty(false),
+            bag: Arc::new(bag),
+            request,
         }
+    }
+
+    /// The engine clock carried by this call context.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.request.clock.clone()
     }
 
     // ── COW derivations: rebuild-and-move; the original is untouched ──
@@ -226,7 +265,7 @@ impl Ctx {
     /// unchanged; downstream layers receive the new context.
     #[must_use]
     pub fn with_deadline(mut self, d: Duration) -> Ctx {
-        self.request.deadline = Some(Instant::now() + d);
+        self.request.deadline = Some(self.request.clock.now() + d);
         self
     }
 
