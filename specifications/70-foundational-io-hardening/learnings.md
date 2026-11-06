@@ -2213,6 +2213,17 @@ time can still leave an async consumer with nothing to wake it. The old code had
   stream. Any non-blocking writer must track how much it wrote.
 - 2026-10-28: the shared reactor's drain thread must request an executor resume after it latches
   events, or parked tasks wait for the idle back-off (up to 100 ms).
+- 2026-11-06 (issue #187, `targeted_wake`): a test storm that busy-loops on a `Mutex` shared with
+  the executor can starve the executor on a loaded machine. The old storm could also lose its own
+  last wake: the executor can publish a new signal just after the storm's final take, and then
+  nobody sets it, so the task parks forever. Fix the hand-off with an unbounded
+  `std::sync::mpsc` channel (`send` never blocks). Park the storm on `recv_timeout`, do not spin:
+  on a host under load average 132 the spinning storm let the executor make only 54 wakes in the
+  600 ms bound, below the 100 the test needs. A strict time bound therefore cannot hold while the
+  test also requires 100 wakes. Make 600 ms a floor check that stops the storm only at 100 wakes
+  or more, and add a 5 s hard cap well below the 20 s test timeout. Keep the receiver alive until
+  the driver loop returns and set every signal that arrives after `stop`. A wall-clock floor in
+  the storm thread keeps the separate "A waits at least 600 ms" check honest.
 
 - 2026-11-06 (feature 136): the kqueue read-edge re-arm belongs in the reactor, not in
   every caller. `Reactor::register_waker` and `Reactor::register_task_waker` now call

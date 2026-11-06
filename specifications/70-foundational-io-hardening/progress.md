@@ -2371,6 +2371,20 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `tests/read_edge_rearm.rs` has three tests; the first fails on the old code on macOS. The
   backlog §5b selector entry is deleted. macOS, netio, proxy and the Linux image pass. No public
   API change, so no version bump.
+- 2026-11-06: issue #187 fixed (`targeted_wake` flake). The storm thread no longer takes a
+  `Mutex` that the executor also locks: task B sends each `ParkedSignal` through an unbounded
+  `std::sync::mpsc` channel, so `send` never blocks. The storm parks on `recv_timeout` instead
+  of spinning. It stops after `MAX_WAKES` (200) wakes, or after 600 ms once B has been woken
+  `MIN_WAKES` (100) times, with a 5 s hard cap. It drains the channel until the driver loop
+  ends, so the last wake cannot be lost. The helper `run_storm` keeps the test body below
+  clippy's line bound, and the storm holds task A parked to 600 ms so the `ms >= 600` check
+  stays valid. Baseline on this host (load average 99 to 159): 2 of 10 full `tests/mod.rs`
+  runs failed. A first fix with a strict 600 ms stop failed 1 of 5 full-suite runs at load
+  average 132 with only 54 wakes; A was checked 3 times, so no wake was lost. The 600 ms bound
+  is now a floor check. After: 20 of 20 targeted runs and 10 of 10 full
+  `cargo test --profile uat -p foundation_core --features multi` runs passed; the targeted test
+  also passes in the default tree; clippy is clean in the default, `multi` and `test-clock`
+  trees. No production code changed; no lost-wake defect in valtron was seen.
 
 - 2026-11-06: backlog migration done (`spec70/priority-followups`). Three agents audited all 73
   entries of `docs/bug-backlog.md` against the code. 11 were already fixed and are deleted:
