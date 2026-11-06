@@ -1,6 +1,6 @@
 ---
 feature: "A stream that asks for its read wake source too early can ask again"
-status: "pending"
+status: "done"
 lane: "priority follow-up (found under feature 137)"
 model: "haiku"
 branch: "spec70/priority-followups"
@@ -67,11 +67,36 @@ scripts/ci/linux.sh foundation_netio
 
 ## Done when
 
-- [ ] A negative answer is not cached; the success path still builds once.
-- [ ] The new test exists and fails on the current code.
-- [ ] The backlog §2 entry is deleted.
+- [x] A negative answer is not cached; the success path still builds once.
+- [x] The new test exists and fails on the current code.
+- [x] The backlog §2 entry is deleted.
 - [ ] CI green.
 
 ## Result
 
-2026-11-06. Plan only. Written after feature 137 landed the cache.
+2026-11-06. Implemented on `spec70/priority-followups`.
+
+Files changed:
+
+- `backends/foundation_netio/src/native/raw_stream.rs`: `RawStream::read_wake`
+  is now `OnceLock<ReadWakeSource>`. `read_wake_source` returns the cached
+  source when it exists, else builds it and stores it only on success. The doc
+  comment says why a negative answer is not cached. `RawStream` is moved
+  between threads but never shared as `&`, so no two calls build a source at
+  the same time.
+- `backends/foundation_netio/tests/read_wake_source_tests.rs`: added
+  `a_negative_answer_is_not_cached`.
+- `docs/bug-backlog.md`: deleted the §2 entry for the cached negative answer.
+
+Evidence:
+
+- The new test fails on the code from feature 137 (`39f4eedb3`): 0 passed,
+  1 failed. The first `read_wake_source` on a blocking socket returns `None`;
+  after `set_nonblocking(true)` the second call still returns `None` on the old
+  code.
+- After the change all three wake-source tests pass (3 passed).
+- `cargo fmt --all --check`: exit 0.
+- `cargo clippy --profile uat -p foundation_netio --all-targets --no-deps -- -D warnings`:
+  exit 0.
+
+CI proof is pending the push.

@@ -9,7 +9,8 @@
 //!
 //! WHAT: two loopback tests. The first asserts that two calls return the same
 //! `Arc`. The second registers a counting waker through source A, creates
-//! source B, sends bytes, and asserts that A's waker fires within 2 s.
+//! source B, sends bytes, and asserts that A's waker fires within 2 s. A third
+//! test checks that a negative answer is not cached (feature 141).
 //!
 //! On the old code the first test compares two distinct `Arc`s and the second
 //! times out because B's registration owns the fd's selector event.
@@ -104,4 +105,32 @@ fn a_waker_registered_through_the_first_source_still_fires() {
         );
         std::thread::sleep(Duration::from_millis(10));
     }
+}
+
+/// A negative answer must not be cached (feature 141).
+///
+/// A stream that is still blocking answers `None`. The caller may set it
+/// non-blocking later, and the next call must then build the source.
+#[cfg(unix)]
+#[test]
+fn a_negative_answer_is_not_cached() {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind loopback listener");
+    let addr = listener.local_addr().expect("loopback address");
+    let client = TcpStream::connect(addr).expect("connect loopback client");
+    let (_server, _) = listener.accept().expect("accept loopback client");
+    let stream = RawStream::from_tcp(client).expect("build raw stream");
+
+    assert!(
+        stream.read_wake_source().is_none(),
+        "a blocking socket has no readiness wait, so the answer is negative"
+    );
+
+    stream
+        .set_nonblocking(true)
+        .expect("put the stream in non-blocking mode");
+    assert!(
+        stream.read_wake_source().is_some(),
+        "the negative answer was cached: a stream that became non-blocking \
+         must build its source on the next call"
+    );
 }

@@ -44,12 +44,15 @@ use crate::native::ssl::native_ttls;
 /// token. A second source would replace the first one's event registration, and
 /// the first waker would stop firing (feature 137).
 pub struct RawStream {
-    /// Built by the first [`RawStream::read_wake_source`] call and shared by
-    /// every later call. `None` caches "this transport has no readiness wait".
+    /// Built by the first successful [`RawStream::read_wake_source`] call and
+    /// shared by every later call.
+    ///
+    /// A negative answer is not stored: the socket can change from blocking to
+    /// non-blocking, and a cached `None` would hide it (feature 141).
     ///
     /// Declared before `inner` so it drops first: the cached `FdReadiness`
     /// deregisters the fd while the socket is still open.
-    read_wake: OnceLock<Option<ReadWakeSource>>,
+    read_wake: OnceLock<ReadWakeSource>,
     inner: RawStreamInner,
 }
 
@@ -484,11 +487,18 @@ impl RawStream {
     /// lost wake on macOS. The kqueue selector delivers a readable edge only
     /// when the socket's byte count grows. A later, smaller frame needs the
     /// re-arm to produce a new edge.
+    ///
+    /// A negative answer is not cached: the stream may be blocking now and
+    /// non-blocking later, and a cached `None` would never recover.
     #[must_use]
     pub fn read_wake_source(&self) -> Option<ReadWakeSource> {
-        self.read_wake
-            .get_or_init(|| self.build_read_wake_source())
-            .clone()
+        if let Some(source) = self.read_wake.get() {
+            return Some(source.clone());
+        }
+        let source = self.build_read_wake_source()?;
+        // `RawStream` is moved between threads but never shared as `&`, so no
+        // two calls build a source at the same time.
+        Some(self.read_wake.get_or_init(|| source).clone())
     }
 
     /// Build the read wake source for this transport, or `None` when it has no

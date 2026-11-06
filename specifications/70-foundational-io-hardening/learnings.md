@@ -2,6 +2,20 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 141 — a negative read wake source is not cached):
+  - **Cache a success, not a snapshot of a condition that can change.** Feature
+    137 cached `Option<ReadWakeSource>`, so a `None` taken while the socket was
+    blocking was permanent even after `set_nonblocking(true)`. The fix keeps
+    `OnceLock<ReadWakeSource>` and fills it only on a successful build.
+  - **Write the test so it fails on the old code before the fix lands.** Running
+    `a_negative_answer_is_not_cached` against `39f4eedb3` gave 0 passed and 1
+    failed; that output is the proof that the test pins the defect.
+  - **`std::sync::OnceLock::get_or_init` takes `&self`.** `RawStream` is moved
+    between threads but never shared as `&`, so a `get` before `get_or_init`
+    cannot race with a second builder. A type that is shared as `&` would let
+    two callers reach the builder, and the second source takes a second reactor
+    token for the same fd.
+
 - 2026-11-06 (feature 137 — one wake source per stream):
   - **Do not cache a negative answer when the reason can change.**
     `read_wake_source` returned `None` because the socket was still blocking,

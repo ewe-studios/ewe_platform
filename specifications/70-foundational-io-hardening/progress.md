@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 141 does not cache a negative read wake source. Branch
+  `spec70/priority-followups`.
+  - Feature 137 cached `Option<ReadWakeSource>` in a `OnceLock`, so a call made
+    while the socket was still blocking stored `None` forever. A later call
+    after `set_nonblocking(true)` still returned `None`, and the reader never
+    parked on readiness.
+  - `RawStream::read_wake` is now `OnceLock<ReadWakeSource>`; the call returns
+    the cached source, else builds it and stores it only on success. The success
+    path still builds once.
+  - `a_negative_answer_is_not_cached` fails on `39f4eedb3` (0 passed, 1 failed)
+    and passes after; all three wake-source tests pass. fmt and clippy are
+    clean. The backlog section 2 entry is deleted.
+
 - 2026-11-06: feature 137 builds a stream's read wake source once. Commit
   `39f4eedb3`.
   - `RawStream::read_wake_source` built a new `FdReadiness` on every call. Each
