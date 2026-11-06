@@ -434,6 +434,14 @@ impl RawStream {
     /// timeout, not a wait), as does a completion socket (bytes come from an
     /// `io_uring` inbox, not fd readability) and a TLS backend that cannot be
     /// driven non-blocking.
+    ///
+    /// The kernel-socket source clears the latched readiness and re-arms the
+    /// read edge before it registers the waker. The caller must try the read
+    /// once more after it calls the source. This order follows the
+    /// [`FdReadiness`](foundation_reactor::FdReadiness) protocol and prevents a
+    /// lost wake on macOS. The kqueue selector delivers a readable edge only
+    /// when the socket's byte count grows. A later, smaller frame needs the
+    /// re-arm to produce a new edge.
     #[must_use]
     pub fn read_wake_source(&self) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.
@@ -481,6 +489,12 @@ impl RawStream {
             Ok(readiness) => {
                 let readiness = Arc::new(readiness);
                 Some(Arc::new(move |waker: &std::task::Waker| {
+                    // Clear the stale readiness and re-arm the read edge before
+                    // the caller reads again and parks. macOS kqueue reports a
+                    // readable edge only when the byte count grows, so without
+                    // this re-arm a later, smaller frame is never delivered
+                    // (feature 129).
+                    readiness.clear();
                     readiness.register_waker(waker)
                 }))
             }

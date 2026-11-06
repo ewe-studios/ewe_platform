@@ -222,17 +222,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   later runs of the branch were cancelled, so the failure was never retested.
   Fix: retest on the current head, then, if it recurs, trace the response-head
   path from the proxy's H1 leg to the client's H2 pump. Found in feature 121.
-- **`tests/proxy_features_tests.rs::websocket_upgrade_relays_and_tunnels_bytes`
-  fails on macOS.** The client receives the `101` and writes its frame, but
-  `read_exact` times out (`WouldBlock`) waiting for the echo (line 464). It fails
-  the same way with the feature 63 writer changes reverted for the run, and the
-  proxy's upgrade path (`forward_upgrade` + `aio::splice`) is unchanged, so it
-  predates that feature. Likely a Darwin read-wakeup or timing problem in the
-  upstream→client pump. Reproduce with
-  `cargo test -p foundation_proxy --test proxy_features_tests websocket_upgrade_relays_and_tunnels_bytes`.
-  Fix: trace the splice pumps on macOS, or gate the test to Linux until the pump
-  is fixed.
-
 ## 10. foundation_ai
 
 - **Published `foundation_ai` panics in gemm on a CPU with `fma` but no `avx2`.**
