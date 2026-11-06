@@ -2,6 +2,36 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 127 makes the H2 client dial without blocking a valtron
+  worker. Branch `spec70/priority-followups`.
+  - `H2Socket` has a `Connecting(Option<socket2::Socket>)` variant.
+    `H2Socket::connect_tcp` creates a non-blocking socket, starts `connect(2)`
+    and keeps `EINPROGRESS`/`WouldBlock` as "in flight". `socket2` 0.6 is a new
+    native dependency.
+  - `PumpPhase::Connecting` settles the dial from `SO_ERROR` before any read.
+    On success it moves to `Handshaking` and disarms WRITABLE. On failure it
+    publishes `TransportError::Connect` on the head pipe. The fd is registered
+    with the reactor before the first turn and armed WRITABLE while in flight.
+  - `open` keeps its `Transport` signature; a refused dial now reaches the
+    caller from the head, not from `open`. The shared `Client`, the three
+    `foundation_proxy` upstream legs and the buildkit client all map the two
+    paths to the same error class. No public API changed, so the crate stays
+    0.0.5.
+  - Budgets: two, one per phase. The connect budget starts at `open`; the
+    handshake budget starts when the connection is up. A shared deadline at
+    `open + connect + handshake` would double the silent-peer wait and break
+    the 200 ms parking test; the Result gives the full argument.
+  - Tests (`tests/h2_dial_tests.rs`, 3 pass): closed port (head carries
+    `Connect`, `open` in 0.32 ms), blackhole (`open` in 0.54 ms, unrelated
+    task at ~50 ms, head fails at the 300 ms budget), unix dial. With the
+    blocking dial restored, `open` took 302.29 ms for the blackhole and the
+    closed-port error came from `open`; both tests fail.
+  - The Unix path keeps the blocking `UnixStream::connect`; its limitation and
+    the missing connect timeout are the replacement entry in backlog §1.
+  - `foundation_connectrpc` 245 passed (1 ignored), `foundation_proxy` 129
+    passed (the known macOS websocket test passed this run), fmt, clippy and
+    the wasm32 check clean. CI proof is pending.
+
 - 2026-11-06: feature 126 gives a pipe a close-only readiness. Branch
   `spec70/priority-followups`.
   - New `QueueClosedReadiness<T>` (`foundation_core/src/valtron/task.rs`) is

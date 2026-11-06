@@ -2,6 +2,45 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 127, non-blocking H2 dial):
+  - **A non-blocking connect to a closed loopback port does not fail inside
+    `connect`.** On macOS it returns `EINPROGRESS` (errno 36) and reports
+    `ECONNREFUSED` (61) through `SO_ERROR` once the fd turns writable. Linux does
+    the same for TCP. The dial failure therefore always reaches the caller from
+    the pump, not from `open`; a test that expects `Err` from `open` fails.
+  - **Rust does not map `EINPROGRESS` to `WouldBlock`.** Check
+    `raw_os_error() == Some(libc::EINPROGRESS)` on unix as well as
+    `kind() == WouldBlock`. `foundation_netio`'s `PendingConnect` does the same;
+    the order is: socket, non-blocking, connect, then treat these two as in
+    flight.
+  - **`SO_ERROR == 0` does not prove the connection is up.** While the connect is
+    in flight `take_error` also returns `None`. Call `peer_addr()`: it succeeds
+    only after the connection completes and fails with `ENOTCONN` before. Use
+    both checks.
+  - **Do not read before the connect settles.** An in-flight non-blocking socket
+    answers a read with `ENOTCONN`, not `WouldBlock`, and the pump's error arm
+    would end the call. Settle the connect at the top of the turn, before the
+    read loop, and only then enter `Handshaking`.
+  - **Arm WRITABLE before the pump's first turn.** Register the fd with the
+    reactor in `open`, then call `set_writable(true)` and record
+    `watching_writes = true`. The connect-completion edge can arrive before the
+    pump first runs. Disarm it when the connect resolves.
+  - **Two budgets, one per phase, are correct here.** A single deadline at
+    `open + connect_timeout + handshake_timeout` doubles the wait for a silent
+    peer and breaks `an_idle_h2_call_does_not_busy_poll`, whose 200 ms handshake
+    timeout must fire inside a 5 s test bound. Start the connect budget at
+    `open` and the handshake budget when the connect resolves.
+  - **The closed-port test and the blackhole test fail for different reasons.**
+    On the old code the closed-port test fails because `open` returns `Err`
+    (the path changed); it is not a timing test. The blackhole test is the
+    timing proof: `open` took 302.29 ms with the blocking dial, and under 50 ms
+    with the new one.
+  - **`10.255.255.1:9` stays in flight on macOS.** The OS would wait about 75 s,
+    so the pump's 300 ms deadline is what ends the call. The unrelated task
+    finishes at about 50 ms. Record a skip when `open` returns `EACCES`,
+    `ENETUNREACH` or `EHOSTUNREACH` at once, and when the head resolves before
+    the unrelated task can run.
+
 - 2026-11-06 (feature 126, close-only pipe readiness):
   - **A spurious readiness wake is not a poll turn.** The single-threaded
     executor gates a woken sleeper on `(park.take_woken() || due) &&

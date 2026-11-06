@@ -1,6 +1,6 @@
 ---
 feature: "The H2 client dials without blocking a valtron worker"
-status: "pending"
+status: "pending (CI proof)"
 lane: "priority follow-up (found by feature 121)"
 model: "sonnet"
 branch: "spec70/f127-h2-nonblocking-dial"
@@ -126,13 +126,99 @@ Then 30 runs of `rpc_proxy_e2e_tests` in the Linux CI image with `--cpus=2`.
 
 ## Done when
 
-- [ ] `open` does not block a worker on the TCP path.
-- [ ] A dial failure still reaches the caller as a connect error, on the same path.
-- [ ] `a_blackholed_dial_does_not_block_the_worker` fails on the old code and passes.
-- [ ] The unix path is unchanged or its limitation is recorded in the backlog.
+- [x] `open` does not block a worker on the TCP path.
+- [x] A dial failure still reaches the caller as a connect error, on the same path.
+- [x] `a_blackholed_dial_does_not_block_the_worker` fails on the old code and passes.
+- [x] The unix path is unchanged or its limitation is recorded in the backlog.
 - [ ] CI green.
 
 ## Result
 
-2026-11-06. Plan only. Not started. Feature 121 found the blocking dial while it removed
-the blocking body read.
+2026-11-06. Implemented on branch `spec70/priority-followups`.
+
+What changed (`backends/foundation_connectrpc/src/native/transport/h2.rs`):
+
+- `H2Socket` gains a `Connecting(Option<socket2::Socket>)` variant. `connect_tcp` creates
+  a non-blocking `socket2` socket and starts `connect(2)`. `Ok(())` means a loopback peer
+  accepted at once; `EINPROGRESS` or `WouldBlock` keeps the `Connecting` state; any other
+  error returns `TransportError::Connect` from `open` at once. `socket2` 0.6 is added to
+  the crate's native (non-wasm) dependencies; the crate does not call `libc::socket`.
+- `H2Transport::open` calls the private `start_dial`. It parses the address, starts the
+  dial, then registers the fd with the reactor **before** the pump's first turn. While
+  the connect is in flight it arms WRITABLE and records `watching_writes = true`.
+- `PumpPhase::Connecting` comes before `Handshaking`. The pump checks `SO_ERROR` through
+  `connect_state` before any read. `None` plus a successful `peer_addr` means connected:
+  the pump replaces the variant with `Tcp`, disarms WRITABLE, and moves to `Handshaking`.
+  A `Some` error publishes `TransportError::Connect` on the head pipe and closes the body
+  and trailer pipes. Neither means still in flight: the pump parks on the socket's
+  WRITABLE readiness and `connecting_deadline`. If the caller drops the head pipe while
+  the dial is in flight, the pump stops at once.
+- A connect timeout reports `io::Error::from(ErrorKind::TimedOut)`, so the caller sees the
+  same `ConnectError` text that the old blocking `connect_timeout` produced.
+
+Entry point: `H2Transport::open` keeps its `Transport` signature and behaviour for the
+caller. No `open_nonblocking` was added, so the crate's public API does not change and the
+version stays 0.0.5. The dial failure now rides the head pipe.
+
+Callers audited:
+
+- `src/shared/client.rs`: `do_unary_round_trip`, `server_stream_inner`,
+  `client_stream_inner` and `bidi_stream_inner` each map `open` and the head through
+  `ConnectError::from(TransportError)`. Both paths produce `Code::Unavailable` with
+  `transport connect failure: ...`, so the caller sees the same error class.
+- `foundation_proxy/src/h2_proxy.rs::response_relay`: the old open error sent
+  `502`; a head error now takes the same `Some(Err(e))` branch and sends `502`.
+- `foundation_proxy/src/rpc_relay.rs::connect_unary_to_grpc` and
+  `foundation_proxy/src/health.rs`: the `GrpcClient` exchange surfaces a head error as the
+  receive error, which both callers already map to an upstream failure string.
+- `foundation_deployment_docker` (buildkit) uses the shared `Client`, so it inherits the
+  same mapping.
+- No test in `foundation_connectrpc` or `foundation_proxy` expected an `open` error for a
+  closed or blackholed port. The new tests are the only ones that dial such an address.
+
+Setup budget: two budgets, each starting with its own phase. The connect budget starts at
+`open` and ends at `opened + connect_timeout`. The handshake budget starts when the
+connect resolves and ends at `connected_at + handshake_timeout`. This is the correct
+choice: each documented limit bounds its own step, a slow dial cannot spend the SETTINGS
+budget, and the total setup is bounded by `connect_timeout + handshake_timeout`. One
+shared deadline taken at `open + connect_timeout + handshake_timeout` would let a silent
+peer hold the handshake twice as long, and it would break
+`h2_pump_parking_tests::an_idle_h2_call_does_not_busy_poll`, whose 200 ms handshake
+timeout must fire inside the test's 5 s bound.
+
+Tests (`tests/h2_dial_tests.rs`, `required-features = ["rpc_multi"]`, unix only):
+
+- `a_closed_port_fails_on_the_head_pipe`: a bound listener is dropped, then `open`. `open`
+  returns in 0.32 ms and the head yields `Err(TransportError::Connect(ConnectionRefused))`.
+  On the old code `open` returns `Err(Connect(ConnectionRefused))` after 0.01 ms and the
+  test fails at the `open` expect. Observed with the blocking dial restored: panic
+  `open starts the dial; a refused dial rides the head: Connect(Os { code: 61, kind:
+  ConnectionRefused, ... })`.
+- `a_blackholed_dial_does_not_block_the_worker`: `10.255.255.1:9` with a 300 ms connect
+  timeout. `open` returns in 0.54 ms, an unrelated valtron task finishes at about 50 ms,
+  and the head fails with `Connect` at the 300 ms budget. On the old code `open` blocks
+  for 302.29 ms and returns `Err(connect timed out)`; the test fails. Observed with the
+  blocking dial restored: `a blackhole dial must not fail inside open after 302.29ms:
+  transport connect failure: connection timed out`. The environment skip is in place for
+  `EACCES`, `ENETUNREACH` and `EHOSTUNREACH`; the local run did not skip.
+- `a_unix_socket_dial_still_connects`: a `UnixListener` accepts the dial. The test passes
+  on both the old and the new code, which is its purpose.
+
+Commands and results:
+
+| command | result |
+|---|---|
+| `cargo fmt --all --check` | clean |
+| `cargo clippy --profile uat -p foundation_connectrpc --all-targets --no-deps -- -D warnings` | clean |
+| `cargo test --profile uat -p foundation_connectrpc` | 245 passed, 0 failed, 1 ignored |
+| `cargo test --profile uat -p foundation_proxy` | 129 passed, 0 failed (the known macOS websocket test passed this run) |
+| `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectrpc --no-default-features --features rpc` | passes |
+
+Unix limitation: `H2Transport::unix` still calls the blocking `UnixStream::connect`, and
+the blocking call has no connect timeout. The crate records it in `docs/bug-backlog.md`
+§1 for the next free feature slot.
+
+No public API changed, so `foundation_connectrpc` stays 0.0.5 and no consumer requirement
+moves. `Cargo.lock` gains `socket2` under the `foundation_connectrpc` package entry.
+
+Status: `pending (CI proof)`.

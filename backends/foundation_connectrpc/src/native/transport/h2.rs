@@ -1,8 +1,9 @@
 //! Native HTTP/2 `Transport` implementation (Feature 30).
 //!
 //! WHY: `Transport` byte-level client-seam contract for HTTP/2 cleartext (h2c
-//! prior-knowledge). `open()` connects over TCP, negotiates the h2 handshake,
-//! spawns a valtron `TaskIterator` pump, and returns `TransportStream` synchronously.
+//! prior-knowledge). `open()` starts a non-blocking TCP dial and spawns a
+//! valtron `TaskIterator` pump; the pump settles the dial and negotiates the h2
+//! handshake, and `open()` returns its `TransportStream` at once.
 //!
 //! WHAT: [`H2Transport`] wraps nothing — it is a stateless factory. The pump
 //! ([`H2Pump`]) is a [`TaskIterator`] that owns a non-blocking `TcpStream` and an
@@ -21,7 +22,7 @@
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
-use std::net::TcpStream;
+use std::net::{SocketAddr, TcpStream};
 #[cfg(unix)]
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -79,16 +80,94 @@ enum H2Socket {
     Tcp(TcpStream),
     #[cfg(unix)]
     Unix(std::os::unix::net::UnixStream),
+    /// A TCP connect in flight on a non-blocking socket (feature 127).
+    ///
+    /// The pump settles it from `SO_ERROR` in [`PumpPhase::Connecting`] and
+    /// then replaces the variant with `Tcp`. The slot is `None` only for the
+    /// moment between taking the socket out and filling the `Tcp` variant.
+    Connecting(Option<socket2::Socket>),
 }
 
 impl H2Socket {
+    /// Create a non-blocking socket and start a connect to `addr`.
+    ///
+    /// Returns the socket and whether the connect is still in flight. `Ok(())`
+    /// from `connect` means a loopback peer accepted at once; an `EINPROGRESS`
+    /// (or `WouldBlock`) error means the pump must wait for write readiness.
+    /// Any other error is returned at once, so `open` still reports a refusal
+    /// that the kernel makes synchronously.
+    fn connect_tcp(addr: SocketAddr) -> io::Result<(Self, bool)> {
+        let socket = socket2::Socket::new(
+            socket2::Domain::for_address(addr),
+            socket2::Type::STREAM,
+            Some(socket2::Protocol::TCP),
+        )?;
+        socket.set_nonblocking(true)?;
+        match socket.connect(&addr.into()) {
+            Ok(()) => {
+                let stream: TcpStream = socket.into();
+                Ok((Self::Tcp(stream), false))
+            }
+            Err(err) if connect_in_progress(&err) => Ok((Self::Connecting(Some(socket)), true)),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Settle an in-flight connect from `SO_ERROR`.
+    ///
+    /// `Ok(true)` means the connection is up, `Ok(false)` means it is still in
+    /// flight, and `Err` is the dial failure. Only a `None` `SO_ERROR` plus a
+    /// successful `peer_addr` means connected: while the connect is in flight
+    /// `peer_addr` fails with `ENOTCONN`, which is not an error.
+    fn connect_state(&self) -> io::Result<bool> {
+        let Self::Connecting(Some(socket)) = self else {
+            return Ok(true);
+        };
+        if let Some(err) = socket.take_error()? {
+            return Err(err);
+        }
+        Ok(socket.peer_addr().is_ok())
+    }
+
+    /// Move a connected socket from the `Connecting` state into `Tcp`.
+    fn finish_connect(&mut self) {
+        if let Self::Connecting(slot) = self {
+            if let Some(socket) = slot.take() {
+                let stream: TcpStream = socket.into();
+                *self = Self::Tcp(stream);
+            }
+        }
+    }
+
     fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
         match self {
             Self::Tcp(s) => s.set_nonblocking(nonblocking),
             #[cfg(unix)]
             Self::Unix(s) => s.set_nonblocking(nonblocking),
+            Self::Connecting(Some(s)) => s.set_nonblocking(nonblocking),
+            Self::Connecting(None) => Ok(()),
         }
     }
+
+    /// The raw fd to register with the reactor, if the socket has one.
+    #[cfg(unix)]
+    fn raw_fd(&self) -> Option<RawFd> {
+        match self {
+            Self::Tcp(s) => Some(s.as_raw_fd()),
+            Self::Unix(s) => Some(s.as_raw_fd()),
+            Self::Connecting(Some(s)) => Some(s.as_raw_fd()),
+            Self::Connecting(None) => None,
+        }
+    }
+}
+
+/// Whether a failed `connect` means "still in flight" rather than a failure.
+fn connect_in_progress(err: &io::Error) -> bool {
+    #[cfg(unix)]
+    if err.raw_os_error() == Some(libc::EINPROGRESS) {
+        return true;
+    }
+    err.kind() == io::ErrorKind::WouldBlock
 }
 
 impl Read for H2Socket {
@@ -97,6 +176,13 @@ impl Read for H2Socket {
             Self::Tcp(s) => s.read(buf),
             #[cfg(unix)]
             Self::Unix(s) => s.read(buf),
+            // The pump settles the connect before it reads, so this arm is
+            // only reachable if that order changes. Report "try again" rather
+            // than block or panic.
+            Self::Connecting(_) => Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                "h2 socket: the connect is still in flight",
+            )),
         }
     }
 }
@@ -107,6 +193,10 @@ impl Write for H2Socket {
             Self::Tcp(s) => s.write(buf),
             #[cfg(unix)]
             Self::Unix(s) => s.write(buf),
+            Self::Connecting(_) => Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                "h2 socket: the connect is still in flight",
+            )),
         }
     }
     fn flush(&mut self) -> io::Result<()> {
@@ -114,16 +204,7 @@ impl Write for H2Socket {
             Self::Tcp(s) => s.flush(),
             #[cfg(unix)]
             Self::Unix(s) => s.flush(),
-        }
-    }
-}
-
-#[cfg(unix)]
-impl AsRawFd for H2Socket {
-    fn as_raw_fd(&self) -> RawFd {
-        match self {
-            Self::Tcp(s) => s.as_raw_fd(),
-            Self::Unix(s) => s.as_raw_fd(),
+            Self::Connecting(_) => Ok(()),
         }
     }
 }
@@ -134,7 +215,11 @@ impl AsRawFd for H2Socket {
 /// platform without a reactor); the pump then polls on [`POLL_DELAY`].
 #[cfg(unix)]
 fn register_socket_readiness(stream: &H2Socket) -> Option<Arc<FdReadiness>> {
-    match FdReadiness::register(stream.as_raw_fd()) {
+    let Some(fd) = stream.raw_fd() else {
+        tracing::debug!(poll_delay = ?POLL_DELAY, "h2 pump: socket has no fd to watch; polling instead");
+        return None;
+    };
+    match FdReadiness::register(fd) {
         Ok(readiness) => Some(Arc::new(readiness)),
         Err(e) => {
             tracing::debug!(
@@ -156,19 +241,26 @@ fn register_socket_readiness(stream: &H2Socket) -> Option<Arc<FdReadiness>> {
 /// URI's authority is then only used for the `:authority` pseudo-header
 /// (gRPC servers on Unix sockets ignore it).
 ///
-/// `open()` never waits on the peer's application: it dials, then hands the
-/// socket to the pump task, which runs the h2 handshake (preface + SETTINGS
-/// exchange) non-blocking ahead of the request. `open()` is called from async
-/// code running on a valtron worker, and the peer is often served by the same
-/// pool (an in-process server, or a proxy and its backend). A handshake that
-/// blocked the worker in `read(2)` until the peer's SETTINGS arrived could
-/// starve the very task that sends them and deadlock the pool.
+/// `open()` never waits on the peer: it starts a non-blocking TCP dial and
+/// hands the socket to the pump task, which settles the dial and runs the h2
+/// handshake (preface + SETTINGS exchange) ahead of the request. A dial
+/// failure therefore arrives as `Err(TransportError::Connect)` on the response
+/// head, not as an `Err` from `open()`. `open()` is called from async code
+/// running on a valtron worker, and the peer is often served by the same pool
+/// (an in-process server, or a proxy and its backend). A dial or a handshake
+/// that blocked the worker could starve the very task that answers it and
+/// deadlock the pool.
+///
+/// The Unix domain socket path still dials with a blocking `UnixStream::connect`
+/// (feature 127 records the limitation in `docs/bug-backlog.md` §1).
 #[derive(Clone)]
 pub struct H2Transport {
     /// When set, every `open()` dials this Unix socket instead of TCP.
     #[cfg(unix)]
     unix_path: Option<std::path::PathBuf>,
-    /// Longest `open()` waits for the TCP dial. See [`Self::with_connect_timeout`].
+    /// Longest the dial may take. `open()` returns at once; the pump enforces
+    /// this budget while the connect is in flight and reports a failure on the
+    /// response head. See [`Self::with_connect_timeout`].
     connect_timeout: Duration,
     /// Longest the call waits for the peer's h2 SETTINGS. See
     /// [`Self::with_handshake_timeout`].
@@ -225,7 +317,8 @@ impl H2Transport {
         }
     }
 
-    /// Set how long `open()` waits for the TCP (or Unix socket) dial.
+    /// Set how long the dial may take before the call fails with
+    /// [`TransportError::Connect`] on its response head. `open()` does not wait.
     /// Default [`Self::DEFAULT_CONNECT_TIMEOUT`].
     #[must_use]
     pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
@@ -252,6 +345,31 @@ impl H2Transport {
     pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
         self.read_timeout = timeout;
         self
+    }
+
+    /// Start the dial for one call without waiting for the peer.
+    ///
+    /// Returns the socket and whether the connect is still in flight. The TCP
+    /// path creates a non-blocking socket and starts `connect(2)`, so an
+    /// in-flight connect costs no worker. The Unix path keeps the blocking
+    /// `UnixStream::connect`, because it has no non-blocking form on every
+    /// platform; that limitation is in `docs/bug-backlog.md` §1.
+    fn start_dial(&self, host: &str, port: u16) -> Result<(H2Socket, bool), TransportError> {
+        #[cfg(unix)]
+        if let Some(path) = &self.unix_path {
+            let stream = H2Socket::Unix(
+                std::os::unix::net::UnixStream::connect(path)
+                    .map_err(|e| TransportError::Connect(Arc::new(e)))?,
+            );
+            stream
+                .set_nonblocking(true)
+                .map_err(|e| TransportError::Connect(Arc::new(e)))?;
+            return Ok((stream, false));
+        }
+        let addr: SocketAddr = format!("{host}:{port}")
+            .parse()
+            .map_err(|e| TransportError::Connect(Arc::new(e)))?;
+        H2Socket::connect_tcp(addr).map_err(|e| TransportError::Connect(Arc::new(e)))
     }
 }
 
@@ -281,43 +399,12 @@ impl Transport for H2Transport {
         let req_headers = request.headers.clone();
 
         // ── Connect ──────────────────────────────────────────────────────────
-        // The dial still blocks (bounded by `connect_timeout`). The kernel
-        // completes it without the peer's application, so it never waits on a
-        // task of this pool. A non-blocking dial is tracked in the bug backlog.
-        #[cfg(unix)]
-        let stream = if let Some(path) = &self.unix_path {
-            H2Socket::Unix(
-                std::os::unix::net::UnixStream::connect(path)
-                    .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-            )
-        } else {
-            let addr = format!("{host}:{port}");
-            H2Socket::Tcp(
-                TcpStream::connect_timeout(
-                    &addr
-                        .parse()
-                        .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-                    self.connect_timeout,
-                )
-                .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-            )
-        };
-        #[cfg(not(unix))]
-        let stream = {
-            let addr = format!("{host}:{port}");
-            H2Socket::Tcp(
-                TcpStream::connect_timeout(
-                    &addr
-                        .parse()
-                        .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-                    self.connect_timeout,
-                )
-                .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-            )
-        };
-        stream
-            .set_nonblocking(true)
-            .map_err(|e| TransportError::Connect(Arc::new(e)))?;
+        // The dial does not block the worker (feature 127). See
+        // [`Self::start_dial`]. Only a failure the kernel reports synchronously
+        // (a bad address or an immediate refusal) is `Err` here; an in-flight
+        // connect is settled by the pump's `Connecting` phase.
+        let opened = Instant::now();
+        let (stream, in_flight) = self.start_dial(&host, port)?;
 
         // ── h2 handshake ───────────────────────────────────────────────────────
         // Not run here. The pump runs it (`PumpPhase::Handshaking`) without
@@ -333,26 +420,63 @@ impl Transport for H2Transport {
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
 
         // ── Park signals ─────────────────────────────────────────────────────
-        // The socket is already non-blocking (set above), so the reactor can
-        // watch it now. WRITABLE starts off; `write_out` turns it on only while
-        // output is queued.
+        // Register before the pump's first turn, so a connect that completes
+        // early cannot be missed. The socket is non-blocking, so the reactor
+        // can watch it now. While the connect is in flight the fd is armed
+        // WRITABLE (its edge is the completion); the pump disarms it when the
+        // connection resolves. Otherwise WRITABLE starts off, and `write_out`
+        // turns it on only while output is queued.
         #[cfg(unix)]
         let socket = register_socket_readiness(&stream);
         #[cfg(unix)]
+        let mut watching_writes = false;
+        #[cfg(unix)]
+        if in_flight {
+            if let Some(socket) = &socket {
+                match socket.set_writable(true) {
+                    Ok(()) => watching_writes = true,
+                    Err(e) => {
+                        tracing::debug!(
+                            error = %e,
+                            "h2 pump: cannot arm the in-flight connect for write readiness"
+                        );
+                    }
+                }
+            }
+        }
+        #[cfg(unix)]
         let body_queued: EventReadinessPtr = Arc::new(send_rx.readiness());
+
+        // The connect budget starts at `open`; the handshake budget starts when
+        // the connection is up. Each phase gets its own documented limit, so a
+        // slow dial cannot spend the SETTINGS budget. The handshake value set
+        // here for an in-flight dial is a placeholder; the pump overwrites it
+        // when the connection resolves.
+        let connecting_deadline = opened + self.connect_timeout;
+        let handshake_deadline = if in_flight {
+            connecting_deadline + self.handshake_timeout
+        } else {
+            opened + self.handshake_timeout
+        };
 
         // ── Spawn the valtron pump ────────────────────────────────────────────
         let pump = H2Pump {
             #[cfg(unix)]
             socket,
             #[cfg(unix)]
-            watching_writes: false,
+            watching_writes,
             stream,
             channel,
-            state: PumpPhase::Handshaking,
-            handshake_deadline: Instant::now() + self.handshake_timeout,
+            state: if in_flight {
+                PumpPhase::Connecting
+            } else {
+                PumpPhase::Handshaking
+            },
+            connecting_deadline,
+            handshake_deadline,
+            handshake_timeout: self.handshake_timeout,
             read_timeout: self.read_timeout,
-            last_progress: Instant::now(),
+            last_progress: opened,
             pending_out: Vec::new(),
             send_rx,
             head_tx,
@@ -430,6 +554,9 @@ impl EventReadiness for DeadlineReadiness {
 }
 
 enum PumpPhase {
+    /// A non-blocking TCP connect is in flight. The pump settles it from
+    /// `SO_ERROR` before it reads or writes (feature 127).
+    Connecting,
     /// Exchanging the connection preface and SETTINGS with the peer.
     Handshaking,
     SendingRequest,
@@ -455,8 +582,14 @@ struct H2Pump {
     stream: H2Socket,
     channel: H2Channel,
     state: PumpPhase,
-    /// When `Handshaking` gives up on the peer's SETTINGS.
+    /// When `Connecting` gives up on the dial.
+    connecting_deadline: Instant,
+    /// When `Handshaking` gives up on the peer's SETTINGS. It starts when the
+    /// connect resolves, not at `open`, so a slow dial cannot spend it.
     handshake_deadline: Instant,
+    /// The SETTINGS budget, kept so the deadline can start when the connect
+    /// resolves.
+    handshake_timeout: Duration,
     /// Longest the pump waits for the next bytes from the peer once the request
     /// is out. `Duration::ZERO` disables the check.
     read_timeout: Duration,
@@ -541,11 +674,14 @@ impl H2Pump {
 
     /// The instant the pump must wake on its own, if any.
     ///
-    /// During the handshake it is the handshake deadline. Once the request is
-    /// out and a read timeout is configured, it is `last_progress + read_timeout`.
+    /// While the connect is in flight it is the connect deadline, and during
+    /// the handshake it is the handshake deadline. Once the request is out and
+    /// a read timeout is configured, it is `last_progress + read_timeout`.
     #[cfg(unix)]
     fn next_deadline(&self) -> Option<Instant> {
-        if matches!(self.state, PumpPhase::Handshaking) {
+        if matches!(self.state, PumpPhase::Connecting) {
+            Some(self.connecting_deadline)
+        } else if matches!(self.state, PumpPhase::Handshaking) {
             Some(self.handshake_deadline)
         } else if !self.read_timeout.is_zero() && self.request_sent {
             Some(self.last_progress + self.read_timeout)
@@ -755,10 +891,10 @@ impl TaskIterator for H2Pump {
             // ── Idle read timeout ──────────────────────────────────────
             // Once the request is out, the peer must keep making progress. A
             // peer that accepts the connection but then sends nothing trips this
-            // before its own (often 60 s+) idle timeout. The handshake has its
-            // own deadline, so it is skipped here.
+            // before its own (often 60 s+) idle timeout. The connect and
+            // handshake phases have their own deadlines, so they are skipped.
             if !self.read_timeout.is_zero()
-                && !matches!(self.state, PumpPhase::Handshaking)
+                && !matches!(self.state, PumpPhase::Connecting | PumpPhase::Handshaking)
                 && self.last_progress.elapsed() >= self.read_timeout
             {
                 if self.response_head_sent {
@@ -770,6 +906,52 @@ impl TaskIterator for H2Pump {
                 }
                 self.fail_before_head(TransportError::Timeout);
                 return None;
+            }
+
+            // ── Settle the non-blocking connect ─────────────────────────
+            // `open` started the dial without waiting (feature 127). Check
+            // `SO_ERROR` before any read: an in-flight socket answers a read
+            // with `ENOTCONN`, not `WouldBlock`.
+            if matches!(self.state, PumpPhase::Connecting) {
+                // The caller dropped the call while the dial was in flight.
+                if self.head_tx.is_closed() {
+                    self.body_tx.close();
+                    self.trailer_tx.close();
+                    return None;
+                }
+                match self.stream.connect_state() {
+                    Ok(true) => {
+                        self.stream.finish_connect();
+                        // A connected socket is writable at once; stop watching.
+                        self.set_writable(false);
+                        // The SETTINGS exchange starts now, not at `open`. A
+                        // slow dial must not spend the handshake budget.
+                        self.handshake_deadline = Instant::now() + self.handshake_timeout;
+                        self.last_progress = Instant::now();
+                        self.state = PumpPhase::Handshaking;
+                    }
+                    Ok(false) => {
+                        if Instant::now() >= self.connecting_deadline {
+                            tracing::warn!(
+                                host = %self.host,
+                                port = self.port,
+                                "h2 pump: peer did not accept before the connect timeout"
+                            );
+                            // Use the platform's timeout error so the call
+                            // sees the same `ConnectError` text that a
+                            // blocking `connect_timeout` produced.
+                            self.fail_before_head(TransportError::Connect(Arc::new(
+                                io::Error::from(io::ErrorKind::TimedOut),
+                            )));
+                            return None;
+                        }
+                        return Some(self.park());
+                    }
+                    Err(e) => {
+                        self.fail_before_head(TransportError::Connect(Arc::new(e)));
+                        return None;
+                    }
+                }
             }
 
             // ── Read from socket, feed to channel ──────────────────────
@@ -787,6 +969,7 @@ impl TaskIterator for H2Pump {
                     // Connection closed
                     tracing::debug!(
                         phase = match self.state {
+                            PumpPhase::Connecting => "Connecting",
                             PumpPhase::Handshaking => "Handshaking",
                             PumpPhase::SendingRequest => "SendingRequest",
                             PumpPhase::WaitingResponse => "WaitingResponse",
@@ -820,6 +1003,13 @@ impl TaskIterator for H2Pump {
             }
 
             match self.state {
+                PumpPhase::Connecting => {
+                    // The branch above resolves the dial or ends the task, so
+                    // this arm is not reached in practice. Park rather than
+                    // spin if a future change breaks that order.
+                    return Some(self.park());
+                }
+
                 PumpPhase::Handshaking => {
                     // The caller dropped the call before the connection was up.
                     if self.head_tx.is_closed() {

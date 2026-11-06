@@ -26,13 +26,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   deadline and the drop. Fix: carry the call's `CancelSignal` into the facade
   values, fire it on `Drop`, and pass it to `with_deadline_at` so a timeout
   also stops the reader and writer tasks at once. Found in feature 124.
-- **`H2Transport::open` dials with a blocking `connect_timeout`.** File
-  `src/native/transport/h2.rs`. `open()` runs on a valtron worker and calls
-  `TcpStream::connect_timeout`, which can block that worker (and every task it
-  hosts) for up to the 10 s connect budget. This is the same blocking-boundary
-  class that feature 121 removed from the response-body read. Fix: dial without
-  blocking and park on write readiness, or move the dial to a boundary thread.
-  Found in feature 121.
+- **`H2Transport::unix` dials with a blocking `UnixStream::connect`.** File
+  `src/native/transport/h2.rs` (`H2Transport::start_dial`). The TCP path now starts a
+  non-blocking connect (feature 127), but the Unix path still blocks the valtron worker
+  that calls `open()` and has no connect timeout at all, so a peer that never accepts
+  holds the worker for as long as the kernel waits. `UnixStream::connect` has no
+  non-blocking form on every platform. Fix: on unix, create the socket with `socket2`,
+  set it non-blocking, connect to the `SockAddr`, and settle it from `SO_ERROR` in
+  `PumpPhase::Connecting` exactly as the TCP path does (the reactor already watches the
+  fd). Found in feature 127.
 
 ## 2. foundation_netio
 

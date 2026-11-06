@@ -37,6 +37,9 @@ brotli = { version = "8", optional = true }
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_netio = { path = "../foundation_netio", version = "0.0.6" }
 foundation_http = { path = "../foundation_http", version = "0.0.5" }
+# The H2 client dials without blocking a valtron worker (feature 127):
+# `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
+socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_netio = { path = "../foundation_netio", version = "0.0.6", default-features = false, features = ["wasm-fetch"] }
@@ -143,6 +146,10 @@ required-features = ["rpc_multi"]
 
 [[test]]
 name = "h2_pump_parking_tests"
+required-features = ["rpc_multi"]
+
+[[test]]
+name = "h2_dial_tests"
 required-features = ["rpc_multi"]
 
 [lints]
