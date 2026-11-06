@@ -2223,3 +2223,11 @@ time can still leave an async consumer with nothing to wake it. The old code had
   after the 2 s bound. `clear` keeps its re-arm; the docs now say it serves the latched flags,
   not the edge. Clippy stayed at the recorded pedantic debt (121 before, 120 after).
 
+- 2026-11-06 (backlog migration): a written backlog rots in both directions. Of 73 entries, 11
+  described bugs that were already fixed, and 3 described code that no longer matched the text
+  (`BashTool::timeout` is read, `FileChangeEventPump` has a user, `QueueReadiness` clones `Arc`s
+  rather than duplicating state). Each entry needs a code check before it is trusted. The
+  tracker is now the issue tracker, where an entry carries the same labels as the defect and
+  closes in the fixing change. Clippy debt is one issue with a per-crate checklist, because one
+  issue per crate multiplied the noise without adding a separate action.
+

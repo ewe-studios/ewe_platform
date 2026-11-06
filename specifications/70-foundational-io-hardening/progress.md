@@ -2372,3 +2372,18 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   backlog §5b selector entry is deleted. macOS, netio, proxy and the Linux image pass. No public
   API change, so no version bump.
 
+- 2026-11-06: backlog migration done (`spec70/priority-followups`). Three agents audited all 73
+  entries of `docs/bug-backlog.md` against the code. 11 were already fixed and are deleted:
+  ptrace native amd64 CI (feature 83), proxy idle back-off (feature 75), file store torn write
+  (feature 56), timestamp units (feature 56), Turso concurrent use (feature 51), auth server
+  clippy, R2 range test, reactor publish, keychain `poll_ready`, recursion limit and nativeapis
+  clippy default. 22 entries were added to existing issues #99–#103, #106, #107, #110 and #116.
+  22 new issues were created (#189–#210), one per defect or decision, each with a `severity:`
+  label. The wireguard and reactor clippy entries became one item each, and all clippy debt is
+  one tracking issue (#200). `docs/bug-backlog.md` is now a pointer with the section-to-issue
+  map. Rule 7 of `requirements.md` and rule 9 of `CLAUDE.md` now name GitHub issues, not the
+  file.
+- 2026-11-06: the spec 70 features that are still `pending` are 117, 118, 120, 122, 132, 133,
+  134 and 135. 117 comes first because 132–134 depend on it. 118 comes before 120. 122 and 135
+  are priority follow-ups on `spec70/priority-followups`.
+

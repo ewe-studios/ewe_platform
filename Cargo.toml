@@ -94,7 +94,7 @@ fuser = { version = "0.15", default-features = false }
 # with `V3::try_new()` / `V4::try_new()` instead. See
 # specifications/70-foundational-io-hardening/learnings.md.
 # A patch applies only inside this workspace; the upstream fix is written in
-# patches/gemm-common/UPSTREAM.md and tracked in docs/bug-backlog.md section 10.
+# patches/gemm-common/UPSTREAM.md and tracked in issue #190.
 # gemm-f16 (0.19.0, pulled in by candle-core through gemm) has the same dispatch
 # fix in patches/gemm-f16. Its upstream note is in patches/gemm-common/UPSTREAM.md.
 # (boringtun is no longer patched: backends/foundation_boringtun is a published fork.)

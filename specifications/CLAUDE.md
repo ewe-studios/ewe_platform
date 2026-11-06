@@ -18,7 +18,8 @@ real services).
   the spec's rules section, branch, owned crates, report format). Do not resume one
   long-lived agent across features; resume only to finish the feature it is on.
 - The main session reviews each report against the feature's "Done when" before the next
-  feature starts, and turns every new finding into a backlog entry and a scheduled feature.
+  feature starts, and turns every new finding into a GitHub issue with a severity label.
+  Do not open a new feature for a finding (root rule 9).
 
 ## 2. Focused local checks, full CI on GitHub (owner rule 2026-11-04)
 
