@@ -226,8 +226,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.
-- **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
-  Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
 - **`tests/proxy_features_tests.rs::websocket_upgrade_relays_and_tunnels_bytes`
   fails on macOS.** The client receives the `101` and writes its frame, but
   `read_exact` times out (`WouldBlock`) waiting for the echo (line 464). It fails
