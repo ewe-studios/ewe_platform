@@ -222,14 +222,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 9. foundation_proxy
 
-- **`large_response_tests::proxy_large_response_is_byte_exact` closed a response
-  before its full body arrived, once.** One full `cargo test -p
-  foundation_proxy` run on macOS failed at
-  `tests/large_response_tests.rs:138` with `closed after N of 4194304 bytes`.
-  The same test passed alone and in two later full runs. The run used a tree
-  that also had an uncommitted `foundation_reactor` change, so the cause may be
-  that change or the §9 stall class below. Fix: reproduce under load
-  (`--cpus=2`) and trace the relay close. Found in feature 123.
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.
@@ -242,6 +234,35 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   later runs of the branch were cancelled, so the failure was never retested.
   Fix: retest on the current head, then, if it recurs, trace the response-head
   path from the proxy's H1 leg to the client's H2 pump. Found in feature 121.
+  It recurred on macOS under load. Feature 130 ran the full proxy suite 20 times
+  on 2026-11-06 with two effective CPUs (`--test-threads=2` plus eight CPU
+  burners on a 10-CPU host). Ten runs failed, each in
+  `tests/rpc_proxy_e2e_tests.rs`: `grpc_web_server_stream_via_proxy` (4),
+  `grpc_web_server_stream_via_grpc_backend_carries_status` (3),
+  `connect_server_stream_via_grpc_backend` (3),
+  `connect_client_stream_via_grpc_backend` (3) and
+  `connect_server_stream_via_h1_proxy` (1). Each hit `CALL_DEADLINE` = 5 s with
+  `[deadline_exceeded]`, after `[DEPENDS] Task Entry { id: 1, gen: 2 } returned
+  already-ready signal (violation 1/4096)`. Feature 121's 30/30 runs in the
+  Linux image stayed green, so the stall is macOS-specific or load-dependent
+  there. Fix: run feature 121's Design 2 (watchdog and reactor/registry dump) on
+  the macOS run and find the park that never wakes. The feature 136 kqueue audit
+  is a likely co-fix. Found in features 121 and 130.
+- **A panic inside a pool-driven future surfaces as a misleading panic.** File
+  `backends/foundation_core/src/valtron/executors/sendables.rs:900-907`
+  (`block_on_future` through `sync_collect_one`). When a future that the pool
+  polls panics on a worker, the task produces no `Ready`, `sync_collect_one`
+  returns `None`, and `block_on_future` panics with `the future produced no
+  result (pool not initialized or torn down early)`. The original panic and its
+  payload are lost. Feature 130's run 3 printed the real deadline panic on a
+  worker and then this second panic on the `#[valtron_test]` timeout thread
+  (`backends/foundation_macros/src/valtron_entry.rs`). The worker catches the
+  unwind in `backends/foundation_core/src/valtron/executors/multi/mod.rs:1925`
+  and sends `ThreadActivity::Panicked`, but no caller reads the payload. Fix:
+  carry the payload to the driving caller, for example as a stream item or a
+  wake of the result channel, and `resume_unwind` it in `block_on_future`. Found
+  in feature 130.
+
 ## 10. foundation_ai
 
 - **Published `foundation_ai` panics in gemm on a CPU with `fma` but no `avx2`.**
