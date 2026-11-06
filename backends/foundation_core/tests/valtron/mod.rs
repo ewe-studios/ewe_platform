@@ -81,6 +81,8 @@ mod multi_allocatable_threads;
 #[cfg(feature = "multi")]
 mod multi_workers;
 #[cfg(not(target_family = "wasm"))]
+mod pipe_closed_readiness;
+#[cfg(not(target_family = "wasm"))]
 mod pipe_mapped_tests;
 #[cfg(not(target_family = "wasm"))]
 mod pipe_primitive;

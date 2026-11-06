@@ -2,6 +2,36 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 126 gives a pipe a close-only readiness. Branch
+  `spec70/priority-followups`.
+  - New `QueueClosedReadiness<T>` (`foundation_core/src/valtron/task.rs`) is
+    ready only when the queue is closed. It has both feature-gated impls and a
+    hand-written `Clone` with no `T: Clone` bound.
+  - `EventQueueInner` gains a `closed` notifier, notified by `EventQueue::close`
+    only on the open-to-closed change. `EventQueue::closed_readiness()`,
+    `PipeSender::closed_readiness()` and `MappedSender::closed_readiness()` hand
+    it out. The plan's separate `PipeInner` field is not needed: the pipe's
+    queue is an `EventQueue` and `close_queue` closes it. The one notifier fires
+    once per close, never on a push or a pop.
+  - `H2Pump::park` uses the close-only readiness for the head and body pipes.
+    The `ReceiverGone` adapter is deleted. `client_cancel_resets_the_stream_on_the_server`
+    passes, so a cancelled call still gets `RST_STREAM`.
+  - `LocalQueue` does not exist. `NotifyQueue` has only the vacancy notifier, so
+    it did not gain the accessor.
+  - New core tests: the 3 close-only cases pass. On the old code they fail to
+    compile with `E0599: no method named closed_readiness` at 3 sites.
+  - New pump test: 3 turns with the close-only signal. The old `ReceiverGone`
+    adapter also gives 3, because the executor gates a wake on `signal.is_ready`.
+    A plain `vacancy()` park spins and fails the test with the `[DEPENDS]`
+    tripwire. Recorded in backlog §4.
+  - Version: `foundation_core` 0.0.10, 42 requirements in 38 manifests, and
+    `Cargo.lock`; `foundation_connectrpc` stays 0.0.5.
+  - `foundation_core` 867 passed, `foundation_connectrpc` 242 passed, fmt and
+    both clippy runs clean. `foundation_proxy` and the wasm32 check did not run:
+    the disk is full and the proxy link fails with `No space left on device`.
+    The multi-feature impl compiled in the proxy graph before the link failed.
+    The feature stays `pending (CI proof)`.
+
 - 2026-11-06: feature 128 makes the wasm32 rpc gate of `foundation_connectrpc`
   warning-free and denies warnings. Branch `spec70/priority-followups`.
   - `src/shared/router/dispatch.rs` gates `PipeReceiver` and `PipeSender`, and

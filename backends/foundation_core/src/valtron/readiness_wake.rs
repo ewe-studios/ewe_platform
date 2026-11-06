@@ -26,7 +26,7 @@ use std::task::{Wake, Waker};
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
 
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 
 /// The executor a [`ReadinessWaker`] wakes: the thread that parked the task.
 #[cfg(not(target_family = "wasm"))]
@@ -265,6 +265,8 @@ struct EventQueueInner<T> {
     items: Arc<ReadinessNotifier>,
     /// Woken after a pop and on close: tasks that wait for room.
     space: Arc<ReadinessNotifier>,
+    /// Woken only on close: tasks that wait for the consumer to go away.
+    closed: Arc<ReadinessNotifier>,
 }
 
 /// A queue that wakes the tasks parked on it by itself.
@@ -276,7 +278,9 @@ struct EventQueueInner<T> {
 ///
 /// WHAT: the `ConcurrentQueue` operations a task needs, where `push` wakes the
 /// tasks parked on [`Self::readiness`], `pop` wakes the tasks parked on
-/// [`Self::vacancy`], and `close` wakes both. Clones share the queue.
+/// [`Self::vacancy`], and `close` wakes both. A close also wakes the tasks
+/// parked on [`Self::closed_readiness`], which nothing else wakes. Clones share
+/// the queue.
 pub struct EventQueue<T>(Arc<EventQueueInner<T>>);
 
 impl<T> Clone for EventQueue<T> {
@@ -300,6 +304,7 @@ impl<T> EventQueue<T> {
             queue: Arc::new(queue),
             items: Arc::new(ReadinessNotifier::new()),
             space: Arc::new(ReadinessNotifier::new()),
+            closed: Arc::new(ReadinessNotifier::new()),
         }))
     }
 
@@ -348,10 +353,16 @@ impl<T> EventQueue<T> {
 
     /// Close the queue and wake every task parked on it, so each sees the end.
     /// Returns `true` if this call closed it.
+    ///
+    /// The close-only waiters ([`Self::closed_readiness`]) wake once, on the
+    /// first close. A later close of an already closed queue wakes nobody.
     pub fn close(&self) -> bool {
         let closed = self.0.queue.close();
         self.0.items.notify();
         self.0.space.notify();
+        if closed {
+            self.0.closed.notify();
+        }
         closed
     }
 
@@ -397,5 +408,13 @@ impl<T> EventQueue<T> {
     #[must_use]
     pub fn vacancy(&self) -> QueueVacancyReadiness<T> {
         QueueVacancyReadiness::with_notifier(Arc::clone(&self.0.queue), Arc::clone(&self.0.space))
+    }
+
+    /// A readiness that is ready only once the queue closes. A push or a pop
+    /// does not wake a task parked on it, so a producer that must learn "the
+    /// consumer is gone" does not wake on every item the consumer takes.
+    #[must_use]
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<T> {
+        QueueClosedReadiness::with_notifier(Arc::clone(&self.0.queue), Arc::clone(&self.0.closed))
     }
 }

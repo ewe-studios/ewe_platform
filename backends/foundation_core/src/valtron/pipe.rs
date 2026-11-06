@@ -36,7 +36,7 @@ use std::sync::Arc;
 use concurrent_queue::{PopError, PushError};
 
 use crate::compati::Mutex;
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 
 /// Shared state behind both pipe halves: the bounded queue plus the two waker
 /// stashes fired by the opposite end.
@@ -213,6 +213,21 @@ impl<T> PipeSender<T> {
         T: Send,
     {
         self.inner.queue.vacancy()
+    }
+
+    /// Producer-side readiness for "the consumer dropped the pipe", for the
+    /// valtron-task path: park with `Depends(sender.closed_readiness())`.
+    ///
+    /// WHY: [`vacancy`](Self::vacancy) is ready on "not full", which is true for
+    /// any pipe with room, so a producer that parks on it wakes on every
+    /// consumer pop. This signal is ready only once the pipe closes, and a pop
+    /// does not wake a task parked on it. A close wakes it exactly once.
+    #[must_use]
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<T>
+    where
+        T: Send,
+    {
+        self.inner.queue.closed_readiness()
     }
 
     /// Wake `waker` when an item is popped or the pipe closes. For a producer

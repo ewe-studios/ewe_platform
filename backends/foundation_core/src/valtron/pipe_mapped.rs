@@ -12,7 +12,7 @@ use core::task::{Context, Poll};
 use std::sync::Mutex;
 
 use crate::valtron::pipe::{PipeReceiver, PipeSender, SendError};
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 use concurrent_queue::{PopError, PushError};
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -96,6 +96,15 @@ where
         Inner: Send,
     {
         self.inner.vacancy()
+    }
+
+    /// Ready only once the inner pipe closes, so a task parked on it is not
+    /// woken by every consumer pop. See [`PipeSender::closed_readiness`].
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<Inner>
+    where
+        Inner: Send,
+    {
+        self.inner.closed_readiness()
     }
 }
 

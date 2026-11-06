@@ -620,6 +620,90 @@ impl<T> EventReadiness for QueueVacancyReadiness<T> {
     }
 }
 
+/// The **close-only** readiness signal for a bounded `ConcurrentQueue<T>`.
+///
+/// WHY: a producer that must learn "the consumer dropped the queue" has no
+/// exact signal. [`QueueVacancyReadiness`] reports "not full", which is true for
+/// every queue with room, so a producer parked on it wakes on each consumer pop.
+/// This signal is ready only after the queue closes, and its notifier fires only
+/// on the close.
+///
+/// WHAT: An [`EventReadiness`] that is ready when the queue **is closed**, so a
+/// producer parks on it with `TaskStatus::Depends` and runs again once the
+/// consumer goes away.
+///
+/// HOW: Wraps the same `Arc<ConcurrentQueue<T>>` the pipe owns and reports
+/// `queue.is_closed()`. The notifier is fired by the pipe's close funnel
+/// (`PipeInner::close_queue`), never by a push or a pop, and only on the first
+/// close.
+///
+/// # Example
+///
+/// ```
+/// use foundation_core::valtron::{EventReadiness, Pipe};
+///
+/// let (tx, rx) = Pipe::<u32>::with_depth(1);
+/// let closed = tx.closed_readiness();
+///
+/// // The receiver is alive: the close has not happened, even with room.
+/// assert!(!closed.is_ready(None));
+///
+/// drop(rx);
+/// assert!(closed.is_ready(None));
+/// ```
+pub struct QueueClosedReadiness<T> {
+    queue: Arc<ConcurrentQueue<T>>,
+    /// Woken only when the queue closes, never by a push or a pop.
+    notifier: Arc<ReadinessNotifier>,
+}
+
+// Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
+impl<T> Clone for QueueClosedReadiness<T> {
+    fn clone(&self) -> Self {
+        Self {
+            queue: self.queue.clone(),
+            notifier: self.notifier.clone(),
+        }
+    }
+}
+
+impl<T> QueueClosedReadiness<T> {
+    /// A readiness over a queue whose close calls `notifier`.
+    pub(crate) fn with_notifier(
+        queue: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Self { queue, notifier }
+    }
+
+    /// Get a clone of the underlying queue.
+    pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
+        self.queue.clone()
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<T: Send> EventReadiness for QueueClosedReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueClosedReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.queue.is_closed()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
 /// A composite [`EventReadiness`] that is ready when **any** child signal is ready.
 ///
 /// WHY: A parked task returns exactly one `Depends`, but real waits are often

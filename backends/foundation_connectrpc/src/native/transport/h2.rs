@@ -33,9 +33,7 @@ use foundation_core::valtron::{
     self, Ctx, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
 };
 #[cfg(unix)]
-use foundation_core::valtron::{
-    AnyReadiness, EventReadiness, EventReadinessPtr, QueueVacancyReadiness, ReadinessWaker,
-};
+use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 use foundation_netio::http2::channel::{H2Channel, H2StreamEvent};
 use foundation_netio::http2::connection::H2Request;
 use foundation_netio::shared::http::{
@@ -431,38 +429,6 @@ impl EventReadiness for DeadlineReadiness {
     }
 }
 
-/// Ready only when the pipe's receiver is gone, which means the call was
-/// cancelled (the caller dropped the response it was reading).
-///
-/// [`QueueVacancyReadiness`] reports "not full", which is true for an empty
-/// pipe; a park that includes it directly would spin. This adapter keeps its
-/// notifier — which fires on a close — but reports readiness only for the
-/// close.
-#[cfg(unix)]
-struct ReceiverGone<T> {
-    vacancy: QueueVacancyReadiness<T>,
-}
-
-#[cfg(unix)]
-impl<T: Send> ReceiverGone<T> {
-    fn of(sender: &PipeSender<T>) -> Self {
-        Self {
-            vacancy: sender.vacancy(),
-        }
-    }
-}
-
-#[cfg(unix)]
-impl<T: Send> EventReadiness for ReceiverGone<T> {
-    fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.vacancy.queue().is_closed()
-    }
-
-    fn register(&self, waker: &ReadinessWaker) -> bool {
-        self.vacancy.register(waker)
-    }
-}
-
 enum PumpPhase {
     /// Exchanging the connection preface and SETTINGS with the peer.
     Handshaking,
@@ -615,12 +581,14 @@ impl H2Pump {
             // A cancelled call drops its response receiver. Without this, a
             // parked pump never notices and never resets the peer's stream.
             // The vacancy signal already covers the close when it is present.
-            children.push(Arc::new(ReceiverGone::of(&self.body_tx)) as EventReadinessPtr);
+            // This signal is close-only, so a consumer pop does not wake the
+            // pump for nothing.
+            children.push(Arc::new(self.body_tx.closed_readiness()) as EventReadinessPtr);
         }
         // Likewise before the head arrives: the pump checks `head_tx.is_closed`
         // each turn, so a dropped head receiver must wake it.
         if !self.response_head_sent {
-            children.push(Arc::new(ReceiverGone::of(&self.head_tx)) as EventReadinessPtr);
+            children.push(Arc::new(self.head_tx.closed_readiness()) as EventReadinessPtr);
         }
         if let Some(deadline) = self.next_deadline() {
             children.push(Arc::new(DeadlineReadiness::at(deadline)) as EventReadinessPtr);

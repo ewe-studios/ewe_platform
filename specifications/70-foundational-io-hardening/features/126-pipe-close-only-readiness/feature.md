@@ -1,6 +1,6 @@
 ---
 feature: "A pipe reports a close-only readiness, so a parked producer is not woken by every pop"
-status: "pending"
+status: "pending (CI proof)"
 lane: "priority follow-up (found by feature 125)"
 model: "sonnet"
 branch: "spec70/f126-pipe-closed-readiness"
@@ -155,5 +155,118 @@ cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectr
 
 ## Result
 
-2026-11-06. Plan only. Not started. Feature 125 found the gap and recorded it in the
-backlog while it built the pump park.
+2026-11-06. Implemented in-tree on branch `spec70/priority-followups`.
+
+### What changed
+
+`foundation_core`:
+
+- New public type `QueueClosedReadiness<T>` in
+  `src/valtron/task.rs`. `is_ready` returns `queue.is_closed()`. `register`
+  forwards to its `ReadinessNotifier`. It has a hand-written `Clone` with no
+  `T: Clone` bound. It has the same `#[cfg(feature = "multi")]` (with
+  `T: Send`) and `#[cfg(not(feature = "multi"))]` impls as its siblings.
+- `EventQueueInner` in `src/valtron/readiness_wake.rs` gains a `closed`
+  notifier. `EventQueue::close` notifies it only when this call changes the
+  queue from open to closed. `EventQueue::closed_readiness()` hands it out.
+- `PipeSender::closed_readiness()` in `src/valtron/pipe.rs` forwards to the
+  pipe's `EventQueue`. `MappedSender::closed_readiness()` in
+  `src/valtron/pipe_mapped.rs` forwards to its inner sender.
+
+One correction to the design: §1 puts the notifier in `PipeInner`, and §3 says
+`PipeSender::closed_readiness()` forwards to the `EventQueue`. Both cannot hold
+without a second, unused notifier. The pipe's queue is an `EventQueue`, and
+`PipeInner::close_queue` calls `EventQueue::close`. The one notifier therefore
+lives in `EventQueueInner`. It fires only on the first close, whatever the
+number of `close_queue` calls (the sender drop and the receiver drop can both
+call it). It never fires on a push or a pop.
+
+`foundation_connectrpc`:
+
+- `H2Pump::park` uses `self.body_tx.closed_readiness()` and
+  `self.head_tx.closed_readiness()` in place of the `ReceiverGone` adapter.
+  The park list keeps its shape. The adapter and its doc comment are deleted.
+  `client_cancel_resets_the_stream_on_the_server` passes: a cancelled call
+  still makes the pump notice and send `RST_STREAM`.
+
+`LocalQueue`: no type with that name exists in the workspace, and
+`executors/local.rs` has no such queue. `NotifyQueue` has a `space_tasks`
+notifier, but it fires on every pop and on close (it is the vacancy signal).
+It has no close-only notifier, so it did not gain `closed_readiness()`.
+
+Version: `foundation_core` 0.0.9 to 0.0.10. Every consumer requirement moved
+with it: 42 requirement lines in 38 manifests, plus the crate's own version.
+`Cargo.lock` is updated. `foundation_connectrpc` keeps 0.0.5.
+
+### Tests and measurements
+
+New `backends/foundation_core/tests/valtron/pipe_closed_readiness.rs`,
+registered in `tests/valtron/mod.rs`:
+
+- `closed_readiness_is_ready_only_after_the_receiver_drops`: false on an
+  empty open pipe (where vacancy is true), false on a full open pipe, true
+  after the receiver drops.
+- `a_pop_does_not_wake_the_closed_reader`: a pop wakes the reader zero times;
+  the receiver drop wakes it once.
+- `a_closed_pipe_wakes_the_closed_reader_only_once`: two parks of one task
+  and a second close still produce one wake.
+
+On the old code these tests do not compile. The exact error is:
+
+```
+error[E0599]: no method named `closed_readiness` found for struct `PipeSender<T>` in the current scope
+  --> backends/foundation_core/tests/valtron/pipe_closed_readiness.rs:56:21
+   |
+56 |     let closed = tx.closed_readiness();
+   |                     ^^^^^^^^^^^^^^^^ method not found in `PipeSender<u32>`
+```
+
+The same error repeats at lines 80 and 99, then
+`error: could not compile `foundation_core` (test "mod") due to 3 previous errors`.
+
+New `a_response_body_pop_does_not_wake_the_pump` in
+`tests/h2_pump_parking_tests.rs`. The peer sends the head and three body
+chunks. The consumer waits `BODY_POP_DELAY` (220 ms) before each pop, so the
+chunk is buffered and the pump has parked. The count starts after the head.
+
+- Close-only signal (this change): 3 pump turns for three socket edges.
+- `ReceiverGone` adapter (the old code): 3 pump turns. The test passes on the
+  old adapter too.
+
+That second result corrects the plan. The executor gates a woken sleeper on
+`Sleepable::is_ready` (`executors/local.rs`): `(park.take_woken() || due) &&
+signal.is_ready(dur)`. The old adapter's `is_ready` is false after a pop, so
+the spurious wake never becomes a pump turn. It only interrupts the executor
+thread. The plan's "each pop adds one turn" does not hold with this executor.
+
+To prove the test still guards the dangerous regression, replace
+`closed_readiness()` with a plain `vacancy()` in the pump's park. The pipe is
+empty, so vacancy is ready, the executor re-runs the task at once, and the
+test fails after about 2 000 `[DEPENDS] ... already-ready signal` warnings with
+an executor panic (exit 101). The turn bound therefore rejects a park on the
+shared vacancy signal.
+
+The plan's 20 ms chunk spacing was also too short: the consumer pop raced the
+pump's park and woke nobody even on the old signal. The test now uses 200 ms
+between chunks and a 220 ms consumer delay. The unobservable spurious wake is
+recorded in `docs/bug-backlog.md` §4.
+
+### Commands
+
+| command | result |
+|---|---|
+| `cargo fmt --all --check` | clean |
+| `cargo clippy --profile uat -p foundation_core --all-targets --no-deps -- -D warnings` | clean |
+| `cargo clippy --profile uat -p foundation_connectrpc --all-targets --no-deps -- -D warnings` | clean |
+| `cargo test --profile uat -p foundation_core` | 867 passed, 0 failed |
+| `cargo test --profile uat -p foundation_connectrpc` | 242 passed, 0 failed, 1 ignored |
+| `cargo test --profile uat -p foundation_connectrpc --test grpc_tests client_cancel_resets_the_stream_on_the_server` | 1 passed |
+| `cargo test --profile uat -p foundation_proxy` | blocked: `ld: ... No space left on device` (link step) |
+| `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_connectrpc --no-default-features --features rpc` | not run: disk full |
+
+The default `foundation_core` feature set (no `multi`) compiled and ran its
+tests, so the `not(multi)` readiness impl is proven. The `multi` impl compiled
+in the `foundation_proxy` graph, which enables `foundation_core/multi`, before
+that build ran out of disk. The dedicated wasm check could not run. The
+`docs/bug-backlog.md` §1 close-only entry is deleted. The feature stays
+`pending (CI proof)` until the pull-request CI is green.

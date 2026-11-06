@@ -33,16 +33,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   class that feature 121 removed from the response-body read. Fix: dial without
   blocking and park on write readiness, or move the dial to a boundary thread.
   Found in feature 121.
-- **A producing `Pipe<T>` has no close-only readiness.** Files
-  `foundation_core/src/valtron/pipe.rs` and
-  `foundation_connectrpc/src/native/transport/h2.rs`. A task that produces into a
-  pipe and parks cannot wait for "the receiver was dropped" without also being
-  woken by every consumer pop: `PipeSender::vacancy` is ready on "not full",
-  which is true for any pipe with room. The H2 pump's `ReceiverGone` adapter
-  filters that readiness to the close case, so it does not spin, but each
-  consumer pop still costs it one extra poll. Fix: add
-  `PipeSender::closed_readiness()` backed by its own `ReadinessNotifier` and
-  notified by `close_queue`. Found in feature 125.
 
 ## 2. foundation_netio
 
@@ -120,6 +110,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   2 ms then failed. Likely fix: name each pool's workers after the pool (or the test), then match
   that name, or compare the two phases of one test only, as
   `worker_with_event_driven_sleeper_uses_less_cpu_than_a_polling_one` does.
+- **A spurious readiness wake costs no poll turn, so a test cannot observe
+  it.** File: `backends/foundation_core/src/valtron/executors/local.rs`
+  (`Sleepable::is_ready`) and
+  `backends/foundation_connectrpc/tests/h2_pump_parking_tests.rs`. Problem: the
+  executor gates a woken sleeper on `(park.take_woken() || due) &&
+  signal.is_ready(dur)`. A notifier that fires while its readiness stays false
+  wakes the executor thread but never re-polls the task. The H2 pump's old
+  `ReceiverGone` adapter therefore measured the same 3 pump turns as the new
+  close-only signal, and the feature's turn-count test cannot fail on the old
+  adapter. The removed cost is the thread interrupt, and no public counter
+  shows it. Likely fix: add a `#[doc(hidden)]` wake counter beside
+  `h2_pump_poll_count` (on `ReadinessNotifier` or `ExecutorWake`), then assert
+  that a pop does not wake a parked producer. Found in feature 126.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 

@@ -2,6 +2,36 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 126, close-only pipe readiness):
+  - **A spurious readiness wake is not a poll turn.** The single-threaded
+    executor gates a woken sleeper on `(park.take_woken() || due) &&
+    signal.is_ready(dur)` in `executors/local.rs`. The old `ReceiverGone` adapter
+    reports not-ready after a pop, so its notifier runs but the pump never
+    re-runs. The pump turn count is 3 on both the old adapter and the new
+    close-only signal. Do not plan a turn-count regression test for a wake that
+    leaves its signal false; the only cost is the executor-thread interrupt, and
+    no public counter observes it. A plain `vacancy()` park does fail the same
+    test, because vacancy is ready on an empty pipe and the task spins.
+  - **A pop must land while the pump is parked for the test to mean
+    anything.** With 20 ms chunk spacing the consumer popped in the window
+    between the pump's push and its park, so even the old notifier found no
+    waker. The test now sends one chunk every 200 ms and waits 220 ms before
+    each pop, which leaves at least 160 ms of parked time.
+  - **The design's `PipeInner` notifier duplicates the queue's.** The pipe's
+    queue is an `EventQueue`, and `PipeInner::close_queue` closes it. A
+    close-only notifier in `EventQueueInner` is fired once by
+    `EventQueue::close` (guarded by the open-to-closed change). A second field
+    in `PipeInner` would be unused. Both drops call `close_queue`, so the
+    open-to-closed guard is what makes the wake exactly-once.
+  - **There is no `LocalQueue` in the workspace.** The design names
+    `executors/local.rs`; the queue there is `NotifyQueue`, and its
+    `space_tasks` notifier fires on every pop. It has no close-only notifier, so
+    no accessor was added.
+  - **The disk stopped two verify commands.** `foundation_proxy` links three
+    test binaries and failed with `ld: ... No space left on device`; the wasm32
+    check was not attempted. The `foundation_core/multi` impl did compile in the
+    proxy graph before the link failed.
+
 - 2026-11-06 (feature 128, wasm deny gate):
   - **`cargo check` takes no trailing rustc arguments.** This cargo
     (`1.100.0-nightly`) rejects `cargo check ... -- -D warnings` with
