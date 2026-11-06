@@ -2422,5 +2422,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   manifests change. The change also clears the `unused_must_use` warnings that
   issue #211 names, because the clippy gate cannot pass with them; #211 is
   closed. GitHub issue #212 records the one remaining shortcut: a `ContextBag`
-  built outside an engine gets an explicit `MonotonicClock`. Next: feature 133
-  (services) and 134 (platform).
+  built outside an engine gets an explicit `MonotonicClock`. Issues #213
+  (hard-coded timeout constants) and #214 (`LoadTracker` rate always zero) record
+  the limits this feature leaves. Next: feature 133 (services) and 134
+  (platform).

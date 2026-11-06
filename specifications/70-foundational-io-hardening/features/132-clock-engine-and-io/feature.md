@@ -282,3 +282,7 @@ passes.
 - This change fixes the `unused_must_use` warnings in the three crates that
   GitHub issue #211 names, because the clippy gate cannot pass with them. Issue
   #211 is closed.
+- GitHub issue #213 records three hard-coded timeout constants in files this
+  feature touched (rule 8). They are not fixed here.
+- GitHub issue #214 records that `LoadTracker::current_rate` is always zero. The
+  feature removed its no-op clock read; the rate calculation is a separate fix.
