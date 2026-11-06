@@ -50,6 +50,10 @@ where
         None => NotifyQueue::unbounded(),
     });
     let iter = ConsumingIter::new(task, iter_chan.clone());
+    let iter = match config.panic_handler {
+        Some(handler) => iter.with_panic_handler(handler),
+        None => iter,
+    };
     dispatch(&config.engine, iter, parent)
         .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait))
 }
@@ -84,6 +88,10 @@ where
         None => NotifyQueue::unbounded(),
     });
     let iter = StreamConsumingIter::new(task, iter_chan.clone());
+    let iter = match config.panic_handler {
+        Some(handler) => iter.with_panic_handler(handler),
+        None => iter,
+    };
     dispatch(&config.engine, iter, parent)
         .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait))
 }
@@ -195,8 +203,11 @@ macro_rules! action_terminal {
                 let task = self.config.task.expect("task required");
                 let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
                     Arc::new(NotifyQueue::unbounded());
-                let action =
+                let mut action =
                     crate::valtron::InlineAction::from_parts($behaviour, task, channel.clone());
+                if let Some(handler) = self.config.panic_handler {
+                    action = action.with_panic_handler(handler);
+                }
                 let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
                 (action, receiver)
             }
@@ -234,7 +245,7 @@ where
         let Some(task) = c.task else {
             return Err(ExecutorError::TaskRequired);
         };
-        let boxed = super::local_spawn_task(task, c.resolver);
+        let boxed = super::local_spawn_task(task, c.resolver, c.panic_handler);
         match fallback {
             LocalFallback::Lift => c.engine.lift(boxed, parent),
             LocalFallback::Sequence => c
@@ -331,11 +342,14 @@ where
         let task = self.config.task.expect("task required");
         let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             Arc::new(NotifyQueue::unbounded());
-        let action = crate::valtron::InlineAction::from_parts(
+        let mut action = crate::valtron::InlineAction::from_parts(
             crate::valtron::InlineActionBehaviour::Broadcast,
             task,
             channel.clone(),
         );
+        if let Some(handler) = self.config.panic_handler {
+            action = action.with_panic_handler(handler);
+        }
         let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
         (action, receiver)
     }
