@@ -2650,3 +2650,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   full-duplex stall. 24 isolated runs of `connect_bidi_via_grpc_backend` in the
   Linux CI image passed. Two full CI runs of the branch passed every proxy
   test.
+- 2026-11-07: PR 246 carries the #239, #244 and #245 work. Every check
+  passes. GitHub reports `mergeStateStatus: BLOCKED`. The cause is the active
+  repository ruleset "Master" (id 26265763): it requires signed commits, and
+  the branch commits are unsigned. The ruleset has no required status check and
+  no required review. The Admin role has an always bypass. PR 186 merged the
+  same way.

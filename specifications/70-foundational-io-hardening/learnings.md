@@ -2488,3 +2488,12 @@ When you add a setter, add the test that fails when nothing consumes its value.
 A stale lockfile check needs full resolution. `cargo metadata --locked
 --no-deps` exits 0 for a stale lockfile, because it skips resolution. Use
 `cargo metadata --locked` without `--no-deps` in the drift check (issue #245).
+
+## A green pull request can still be blocked
+
+`mergeStateStatus: BLOCKED` does not always mean a failed check. Read the
+ruleset that covers the base branch
+(`gh api repos/{owner}/{repo}/rulesets`). Here the rule set "Master" requires
+signed commits, and local commits have no signing key, so every pull request
+is blocked until an admin uses the bypass. Check `bypass_actors` before you
+debug the workflows.
