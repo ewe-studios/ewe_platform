@@ -86,8 +86,8 @@ python3 scripts/ci/ci.py run foundation_connectrpc --profile uat
 - [x] The tests pass; the first fails on the old code.
 - [x] `foundation_proxy` tests still pass, except the known macOS test in backlog §9.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
-      proof. Record the final run ID here when the branch head passes.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 

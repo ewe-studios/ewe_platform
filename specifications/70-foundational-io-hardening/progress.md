@@ -2620,3 +2620,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   lockfiles move to the new crate versions. The `wasm_cf` lockfile is
   refreshed in a separate commit. Finding filed: #245 (three standalone
   example lockfiles are stale, low).
+- 2026-11-07: CI run `42261737548` (head `cf5ab359a`) passed every job. The ten
+  feature files and feature 117 record it. The branch closes issues #187, #212,
+  #217, #218, #221, #228, #229, #230, #231, #232, #237, #238, #240, #241, #242
+  and #243. Issues #239 (the bidi proxy flake), #244 (a panicking sub-task drops
+  its payload) and #245 (three stale example lockfiles) stay open.

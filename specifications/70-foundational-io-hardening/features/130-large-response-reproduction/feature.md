@@ -66,8 +66,8 @@ Then the loops named above, in the Linux CI image for the `--cpus=2` runs.
 - [x] The failure is reproduced or refuted with recorded counts.
 - [x] A cause is fixed, or the entry is closed with the evidence.
 - [x] The backlog §9 entry is deleted.
-- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
-      proof. Record the final run ID here when the branch head passes.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 

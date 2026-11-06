@@ -90,8 +90,8 @@ Then 30 runs of `rpc_proxy_e2e_tests` in the Linux CI image with `--cpus=2`.
 - [x] Splitting a bidi stream does not cancel it under the surviving half.
 - [x] A timeout stops the reader and writer tasks, not only the caller.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
-      proof. Record the final run ID here when the branch head passes.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 

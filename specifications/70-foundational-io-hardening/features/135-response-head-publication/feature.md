@@ -231,8 +231,8 @@ RUSTFLAGS='-D warnings' cargo check --profile uat --target wasm32-unknown-unknow
 - [x] `foundation_connectrpc` 0.0.6 and every consumer requirement follow, with
       `Cargo.lock` updated.
 - [x] The backlog §1 `response_headers` entry is deleted.
-- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is
-      not proof. Record the final run ID here when the branch head passes.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 

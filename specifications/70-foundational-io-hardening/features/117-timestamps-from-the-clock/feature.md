@@ -199,7 +199,7 @@ Each phase deletes its paths from the gate allowlist and states its new count in
 - [x] The gate passes with the allowlist that holds every remaining offender.
 - [x] Phases B, C and D are written as feature files with their scope and counts
       (features 132, 133 and 134).
-- [ ] CI green.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
 
 ## Result
 

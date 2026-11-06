@@ -81,8 +81,8 @@ cargo test --profile uat -p foundation_connectrpc
 - [x] The gate fails on a warning, so the debt cannot return.
 - [x] The native build is unchanged and its tests pass.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
-      proof. Record the final run ID here when the branch head passes.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 

@@ -162,8 +162,8 @@ Then the feature 121 loop in the Linux CI image with `--cpus=2`: 30 runs of
 - [x] `an_idle_h2_call_does_not_busy_poll` fails on the old code and passes with the park.
 - [x] `foundation_connectrpc` and `foundation_proxy` tests pass, and the 30-run loop is
       green.
-- [ ] CI green. Run `42205799516` (head `bc7e870d5`) failed 13 jobs, so it is not
-      proof. Record the final run ID here when the branch head passes.
+- [x] CI green. Run `42261737548` (head `cf5ab359a`) passed every job.
+      Commits after that head change specification text only.
 
 ## Result
 
