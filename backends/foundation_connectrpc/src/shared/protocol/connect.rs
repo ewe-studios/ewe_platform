@@ -33,15 +33,14 @@ use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::transport::{
-    fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
-    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadPublisher, HeadStream,
+    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
     open_response_stream, BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig,
     HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
-use std::sync::Mutex;
 
 /// Connect protocol constants (Decision 05).
 pub mod constants {
@@ -283,20 +282,13 @@ async fn read_connect_response(
     mut head: HeadStream,
     mut body: BodyStream,
     resp_tx: PipeSender<Frame>,
-    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    publish: HeadPublisher,
     cancel: CancelSignal,
     read_max: usize,
 ) -> ConnectResult<()> {
-    if open_response_stream(
-        &mut head,
-        &mut body,
-        &resp_tx,
-        &response_headers,
-        &cancel,
-        read_max,
-    )
-    .await
-    .is_none()
+    if open_response_stream(&mut head, &mut body, &resp_tx, &publish, &cancel, read_max)
+        .await
+        .is_none()
     {
         return Ok(());
     }
@@ -781,20 +773,28 @@ impl ProtocolClient for ConnectClient {
 
         // No compression on the client tasks here (negotiation resolves from the
         // response head in the client core, F24); identity by default.
+        let publish = ends.head_publisher();
+        let head_wake = ends.response_head_wake;
         let writer_impl = EnvelopeWriter::new(None, 0, 0);
         let writer: BoxedTask = Box::pin(write_request_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
             writer_impl,
         ));
-        let reader: BoxedTask = Box::pin(read_connect_response(
-            stream.head,
-            stream.recv_body,
-            ends.response_tx,
-            ends.response_headers,
-            config.cancel,
-            config.read_max_bytes,
-        ));
+        let reader: BoxedTask = Box::pin(async move {
+            // One sender keeps the wake pipe open until the reader ends; the
+            // publisher holds the other.
+            let _head_wake = head_wake;
+            read_connect_response(
+                stream.head,
+                stream.recv_body,
+                ends.response_tx,
+                publish,
+                config.cancel,
+                config.read_max_bytes,
+            )
+            .await
+        });
 
         Ok(ClientExchange {
             conn: Box::new(conn),

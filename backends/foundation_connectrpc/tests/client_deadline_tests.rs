@@ -295,6 +295,45 @@ fn start_stalled_peer() -> (SocketAddr, thread::JoinHandle<bool>) {
     (addr, handle)
 }
 
+/// A raw HTTP/2 peer that sends only the response head, then stalls.
+///
+/// WHY: a peer that sends a head and no body frame must still let the call
+/// setup finish. The reader publishes the head before it waits for a frame, so
+/// `server_stream` returns without a frame.
+///
+/// It returns whether the client closed the socket within two seconds of the
+/// stall. A call that never returns, or a drop that stops nothing, leaves the
+/// socket open.
+fn start_head_only_peer() -> (SocketAddr, thread::JoinHandle<bool>) {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let handle = thread::spawn(move || {
+        let (mut socket, _) = listener.accept().expect("accept");
+        socket
+            .set_read_timeout(Some(Duration::from_millis(50)))
+            .expect("read timeout");
+
+        let mut channel = H2Channel::new(true);
+        server_handshake(&mut channel, &mut socket);
+        let stream_id = read_request_stream_id(&mut channel, &mut socket);
+
+        // The response head names the Connect streaming protocol. No frame
+        // follows it.
+        let headers = vec![(
+            Bytes::from_static(b"content-type"),
+            Bytes::from_static(b"application/connect+json"),
+        )];
+        channel
+            .send_headers_response(stream_id, 200, &headers, false)
+            .expect("response head");
+        flush_frames(&mut channel, &mut socket);
+
+        // Stall until the client drops the connection or the bound passes.
+        observes_close(&mut socket, Duration::from_secs(2))
+    });
+    (addr, handle)
+}
+
 /// A raw HTTP/2 peer for a bidi call. It sends the response head at once, then
 /// waits for the test to say the sender half has dropped before it sends one
 /// message.
@@ -686,22 +725,22 @@ async fn a_bidi_receive_fails_on_the_call_deadline() {
 }
 
 /// Dropping a server stream closes the socket, even though the peer never
-/// sends another frame.
+/// sends a body frame.
 ///
-/// The peer sends the head and one message, then nothing. The first message
-/// releases `server_stream` (see the note in the feature Result about the
-/// `response_headers` race); after it, the protocol reader parks on the
-/// response body. Before feature 131 the facade carried no cancel signal: the
-/// drop closed no socket and the peer read timed out.
+/// The peer sends only the head, then nothing. The reader publishes the head
+/// before it waits for a frame, so the call setup returns without a frame.
+/// Before feature 135 `response_headers` waited for the first body frame, so
+/// `server_stream(..).await` never returned. After the setup, the drop fires
+/// the call's cancel signal, which stops the reader and closes the socket.
 #[valtron_test(timeout = 10_000)]
 async fn dropping_a_server_stream_closes_the_socket() {
-    let (addr, peer) = start_stalled_peer();
+    let (addr, peer) = start_head_only_peer();
     let client = streaming_client(&addr.to_string(), SERVER_STREAM);
 
     let stream = client
         .server_stream(Ctx::background(), Request::new(Msg::of("item")))
         .await
-        .expect("server stream");
+        .expect("a head-only peer must not stall the call setup");
     drop(stream);
     let started = Instant::now();
     while !peer.is_finished() {

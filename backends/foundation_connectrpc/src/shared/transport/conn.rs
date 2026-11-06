@@ -21,7 +21,7 @@
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use foundation_core::valtron::{PipeReceiver, PipeSender};
+use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::SimpleHeaders;
 
@@ -313,7 +313,69 @@ pub struct ClientConnEnds {
     /// Reader task pushes response frames here.
     pub response_tx: PipeSender<Frame>,
     /// Response headers the reader sets once the head arrives.
+    ///
+    /// A publisher outside this crate must call
+    /// [`ClientConnEnds::publish_response_headers`], not write this slot: the
+    /// wake pipe is the only way the receiver learns that the head is ready.
     pub response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    /// One item once the response head is published; dropped when the transport
+    /// ends without a head.
+    pub response_head_wake: PipeSender<()>,
+}
+
+impl ClientConnEnds {
+    /// Publish the response head and wake a receiver parked in
+    /// [`ClientReceiver::response_headers`].
+    ///
+    /// Safe to call more than once: the first head wins and a second item does
+    /// not block, because the pipe has depth 1 and `try_send` reports a full
+    /// pipe.
+    pub fn publish_response_headers(&self, headers: SimpleHeaders) {
+        push_response_head(&self.response_headers, &self.response_head_wake, headers);
+    }
+
+    /// The publisher the protocol readers use to publish the head.
+    pub(crate) fn head_publisher(&self) -> HeadPublisher {
+        HeadPublisher {
+            response_headers: Arc::clone(&self.response_headers),
+            response_head_wake: self.response_head_wake.clone(),
+        }
+    }
+}
+
+/// The head slot and wake sender, for a protocol reader.
+///
+/// WHY: the reader task publishes the head from inside its own future. Holding
+/// its own copy of the slot and the wake sender keeps both alive for as long as
+/// the reader runs, so the wake pipe closes exactly when the transport ends.
+///
+/// WHAT: a small `pub(crate)` handle built by
+/// [`ClientConnEnds::head_publisher`]; it is not part of the public API.
+pub(crate) struct HeadPublisher {
+    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    response_head_wake: PipeSender<()>,
+}
+
+impl HeadPublisher {
+    /// Store `headers` and wake a receiver that waits for them.
+    pub(crate) fn publish(&self, headers: SimpleHeaders) {
+        push_response_head(&self.response_headers, &self.response_head_wake, headers);
+    }
+}
+
+/// Store `headers` in `slot` and wake anything parked on `wake`.
+///
+/// A full wake pipe already holds the wake, and a closed pipe has no receiver
+/// left to wake. Both outcomes are therefore ignored.
+fn push_response_head(
+    slot: &Mutex<Option<SimpleHeaders>>,
+    wake: &PipeSender<()>,
+    headers: SimpleHeaders,
+) {
+    *slot
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers);
+    let _ = wake.try_send(());
 }
 
 /// A concrete pipe-backed [`ClientConn`].
@@ -323,6 +385,7 @@ pub struct PipeClientConn {
     req_tx: PipeSender<Frame>,
     res_rx: PipeReceiver<Frame>,
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    response_head_wake: PipeReceiver<()>,
     cancel: CancelSignal,
 }
 
@@ -338,18 +401,23 @@ impl PipeClientConn {
         let (req_tx, req_rx) = FramePipe::with_depth(depth);
         let (res_tx, res_rx) = FramePipe::with_depth(depth);
         let response_headers = Arc::new(Mutex::new(None));
+        // Depth 1: one item says "the head is published"; a second publish finds
+        // the pipe full and does not block.
+        let (response_head_tx, response_head_rx) = Pipe::<()>::with_depth(1);
         let conn = Self {
             spec,
             request_headers,
             req_tx,
             res_rx,
             response_headers: Arc::clone(&response_headers),
+            response_head_wake: response_head_rx,
             cancel,
         };
         let ends = ClientConnEnds {
             request_rx: req_rx,
             response_tx: res_tx,
             response_headers,
+            response_head_wake: response_head_tx,
         };
         (conn, ends)
     }
@@ -382,8 +450,8 @@ impl ClientConn for PipeClientConn {
         let receiver = PipeClientReceiver {
             rx: self.res_rx,
             response_headers: self.response_headers,
+            response_head_wake: self.response_head_wake,
             headers_cache: None,
-            peeked: None,
             trailers: SimpleHeaders::new(),
             cancel: self.cancel,
         };
@@ -420,27 +488,46 @@ impl ClientSender for PipeClientSender {
     }
 }
 
-// `peeked` needs three states: nothing taken, end of stream, or one frame.
-#[allow(clippy::option_option)]
 struct PipeClientReceiver {
     rx: PipeReceiver<Frame>,
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    /// One item once the reader publishes the head; it closes when the
+    /// transport ends without one.
+    response_head_wake: PipeReceiver<()>,
     headers_cache: Option<SimpleHeaders>,
-    /// The first frame (or the end of the stream), taken off the pipe while
-    /// waiting for the response head; `receive` hands it out first.
-    peeked: Option<Option<Frame>>,
     trailers: SimpleHeaders,
     cancel: CancelSignal,
+}
+
+impl PipeClientReceiver {
+    /// The published head, if the reader has stored it.
+    fn published(&self) -> Option<SimpleHeaders> {
+        self.response_headers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+
+    /// Wait until the reader publishes the head or the transport ends.
+    async fn wait_for_head(&mut self) -> ConnectResult<SimpleHeaders> {
+        loop {
+            if let Some(headers) = self.published() {
+                return Ok(headers);
+            }
+            match race(self.response_head_wake.receive(), self.cancel.cancelled()).await {
+                Either::Left(Some(())) => {}
+                // The transport ended without a head: a failed request has none.
+                Either::Left(None) => return Ok(self.published().unwrap_or_default()),
+                Either::Right(()) => return Err(canceled()),
+            }
+        }
+    }
 }
 
 impl ClientReceiver for PipeClientReceiver {
     fn receive(&mut self) -> BoxFuture<'_, ConnectResult<Option<Bytes>>> {
         Box::pin(async move {
-            let frame = match self.peeked.take() {
-                Some(frame) => frame,
-                None => next_frame(&self.rx, &self.cancel).await?,
-            };
-            match frame {
+            match next_frame(&self.rx, &self.cancel).await? {
                 Some(Frame::Message(bytes)) => Ok(Some(bytes)),
                 Some(Frame::EndStream { error, trailers }) => {
                     self.trailers = trailers;
@@ -453,29 +540,16 @@ impl ClientReceiver for PipeClientReceiver {
             }
         })
     }
-    /// Waits for the response head: the reader publishes its headers before it
-    /// sends the first frame or ends the stream, so once a frame (kept for
-    /// `receive`) or the end is in, the headers are known. A stream that ends
-    /// without a head (a failed request) has none.
+    /// Waits for the response head: the reader publishes it before it sends the
+    /// first frame or ends the stream, so the wait is on that publication, not
+    /// on a body frame. A stream that ends without a head (a failed request)
+    /// has none.
     fn response_headers(&mut self) -> BoxFuture<'_, ConnectResult<&SimpleHeaders>> {
         Box::pin(async move {
             if self.headers_cache.is_none() {
-                let published = self
-                    .response_headers
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner)
-                    .clone();
-                let headers = if let Some(headers) = published {
-                    headers
-                } else {
-                    if self.peeked.is_none() {
-                        self.peeked = Some(next_frame(&self.rx, &self.cancel).await?);
-                    }
-                    self.response_headers
-                        .lock()
-                        .unwrap_or_else(std::sync::PoisonError::into_inner)
-                        .clone()
-                        .unwrap_or_default()
+                let headers = match self.published() {
+                    Some(headers) => headers,
+                    None => self.wait_for_head().await?,
                 };
                 self.headers_cache = Some(headers);
             }

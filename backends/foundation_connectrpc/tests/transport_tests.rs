@@ -10,7 +10,8 @@ use std::task::{Context, Poll, Wake, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_netio::shared::http::{Proto, SimpleHeaders};
+use foundation_core::valtron::valtron_test;
+use foundation_netio::shared::http::{Proto, SimpleHeader, SimpleHeaders};
 
 use foundation_connectrpc::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use foundation_connectrpc::shared::transport::wasm::WASM_FETCH_CAPABILITIES;
@@ -241,6 +242,92 @@ fn parked_receive_wakes_on_cancel() {
         trace.current_context().code(),
         foundation_connectrpc::Code::Canceled
     );
+}
+
+// ── response head publication ─────────────────────────────────────────────────
+
+/// A published head resolves the wait with no response frame.
+///
+/// The reader publishes the head as soon as it arrives. A peer that sends no
+/// body frame must not keep the call setup open. Before feature 135 the wait
+/// took the next response frame instead, so this test timed out.
+#[valtron_test(timeout = 2_000)]
+async fn response_headers_resolves_when_the_head_is_published_without_a_frame() {
+    let (conn, ends) = PipeClientConn::with_defaults(
+        spec(StreamType::ServerStream),
+        SimpleHeaders::new(),
+        CancelSignal::new(),
+    );
+    let (_tx, mut rx) = Box::new(conn).split();
+
+    let mut head = SimpleHeaders::new();
+    head.insert(
+        SimpleHeader::from("x-head".to_string()),
+        vec!["published".to_string()],
+    );
+    let expected = head.clone();
+
+    // Publish after a short delay. No response frame ever arrives.
+    let publish = async move {
+        foundation_core::valtron::sleep_async(Duration::from_millis(50)).await;
+        ends.publish_response_headers(head);
+    };
+
+    let (got, ()) = futures::join!(rx.response_headers(), publish);
+    let got = got.expect("a published head must resolve the wait").clone();
+    assert_eq!(got, expected);
+}
+
+/// A transport that ends without a head yields empty headers.
+///
+/// Dropping the ends closes the wake pipe, which is the signal that no head
+/// will ever arrive. The wait must end rather than park for a frame.
+#[valtron_test(timeout = 2_000)]
+async fn response_headers_resolves_to_empty_when_the_transport_drops_without_a_head() {
+    let (conn, ends) = PipeClientConn::with_defaults(
+        spec(StreamType::ServerStream),
+        SimpleHeaders::new(),
+        CancelSignal::new(),
+    );
+    let (_tx, mut rx) = Box::new(conn).split();
+
+    // The transport ends with no head and no frame.
+    drop(ends);
+
+    let headers = rx
+        .response_headers()
+        .await
+        .expect("a failed transport must still yield a head")
+        .clone();
+    assert!(headers.is_empty(), "a failed request has no head");
+}
+
+/// Cancel ends the head wait with the call's usual error.
+#[valtron_test(timeout = 2_000)]
+async fn response_headers_stops_on_cancel() {
+    let cancel = CancelSignal::new();
+    let (conn, ends) = PipeClientConn::with_defaults(
+        spec(StreamType::ServerStream),
+        SimpleHeaders::new(),
+        cancel.clone(),
+    );
+    let (_tx, mut rx) = Box::new(conn).split();
+    // Keep the wake pipe open: it must not close as if the transport ended.
+    let _ends = ends;
+
+    let fire = async move {
+        foundation_core::valtron::sleep_async(Duration::from_millis(50)).await;
+        cancel.cancel();
+    };
+
+    let (result, ()) = futures::join!(rx.response_headers(), fire);
+    match result {
+        Ok(_) => panic!("cancel must interrupt the head wait"),
+        Err(trace) => assert_eq!(
+            trace.current_context().code(),
+            foundation_connectrpc::Code::Canceled
+        ),
+    }
 }
 
 // ── bidi deadlock stress (split halves, depth 4) ──────────────────────────────

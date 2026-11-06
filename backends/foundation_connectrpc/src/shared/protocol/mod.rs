@@ -31,12 +31,11 @@ use crate::shared::context::{CancelSignal, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::transport::{
     fail_stream, race, BodyStream, BoxFuture, ByteSink, ByteSource, ClientConn, Frame, HandlerConn,
-    HeadStream, ProtocolKind, TransportStream,
+    HeadPublisher, HeadStream, ProtocolKind, TransportStream,
 };
 use foundation_core::valtron::PipeSender;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::Status;
-use std::sync::Mutex;
 
 /// A per-call reader/writer task — an async loop the framework spawns on valtron.
 pub type BoxedTask = BoxFuture<'static, ConnectResult<()>>;
@@ -280,7 +279,7 @@ pub(crate) async fn open_response_stream(
     head: &mut HeadStream,
     body: &mut BodyStream,
     tx: &PipeSender<Frame>,
-    response_headers: &Mutex<Option<SimpleHeaders>>,
+    publish: &HeadPublisher,
     cancel: &CancelSignal,
     read_max_bytes: usize,
 ) -> Option<SimpleHeaders> {
@@ -298,9 +297,7 @@ pub(crate) async fn open_response_stream(
             return None;
         }
     };
-    *response_headers
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers.clone());
+    publish.publish(headers.clone());
     if status == Status::OK {
         return Some(headers);
     }

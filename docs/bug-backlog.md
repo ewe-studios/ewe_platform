@@ -15,20 +15,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- **`response_headers` waits for the first body frame when the head publication
-  races the call.** File `src/shared/transport/conn.rs`
-  (`PipeClientReceiver::response_headers`). Problem: `server_stream_inner`
-  awaits the response head through this method, which returns the published
-  head only when the reader task has already stored it. The call setup has no
-  yield between spawning the reader and asking for the head, so the reader
-  cannot publish first. The method then waits on the next response frame. A
-  peer that sends the head and then nothing blocks the call open until the peer
-  closes or a frame arrives. Found in feature 131 while writing its head-only
-  peer test; the test sends one message instead. Fix: publish the head through
-  a dedicated wake (a `Pipe<()>` notifier carried beside the shared head in
-  `ClientConnEnds` and `PipeClientReceiver`) and have `response_headers` await
-  that wake instead of the first frame. This adds a public field to a public
-  struct, so it needs a version bump.
 - **`H2Transport::unix` dials with a blocking `UnixStream::connect`.** File
   `src/native/transport/h2.rs` (`H2Transport::start_dial`). The TCP path now starts a
   non-blocking connect (feature 127), but the Unix path still blocks the valtron worker
