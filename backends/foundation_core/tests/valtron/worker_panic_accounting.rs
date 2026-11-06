@@ -174,3 +174,21 @@ fn block_on_future_reraises_the_task_panic_payload() {
         "the generic no-result panic masks the real failure; got: {message}"
     );
 }
+
+/// `block_on_future` returns the future's own output, including `None`.
+///
+/// WHAT: a future whose output is `Option::None` is a normal completion, not a
+/// missing result. The panic slot watches the *task* for a panic; it does not
+/// inspect the value. This test pins that a `None` output comes back as `None`
+/// and does not trip the "produced no result" branch.
+#[valtron_test(threads = 3)]
+fn block_on_future_returns_a_none_output_without_panicking() {
+    let none: Option<u32> = block_on_future(async { None });
+    assert_eq!(
+        none, None,
+        "a `None` output is a value, not a missing result"
+    );
+
+    let some: Option<u32> = block_on_future(async { Some(7) });
+    assert_eq!(some, Some(7));
+}
