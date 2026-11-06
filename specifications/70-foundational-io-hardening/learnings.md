@@ -2,6 +2,28 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 123, the client deadline):
+  - **Enforce a deadline above the transport trait, not inside each transport.**
+    `Transport::open` is synchronous and receives no `Ctx`, so a transport
+    cannot read the deadline. Put the race in the shared `Client`, which every
+    transport goes through, and a new transport inherits the bound. This is
+    stronger than a per-transport check, which a new transport can forget.
+  - **`sleep_async` is the portable timer.** On native it rides the valtron
+    timer thread; on wasm it is a valtron sleep task. Racing it against the call
+    future keeps one code path for both targets, with no thread and no OS timer.
+  - **A past deadline must be checked before the first poll.** The call future
+    dials in `transport.open` on its first poll. Return the error before polling
+    it when `remaining` is zero, or the "no request" contract breaks.
+  - **The old code does not hang forever, so assert the code and the time.** The
+    H1 client has its own timeout: the call without enforcement failed after
+    about 3 s with `Unavailable` ("transport closed without response head"),
+    while the new code returns `DeadlineExceeded` in about 200 ms. A test that
+    asserted only "an error" would pass on the old code.
+  - **Check the wasm gate's warning policy separately.** The wasm run in
+    `ci/packages.toml` does not deny warnings, while the native clippy run does.
+    A crate can be clippy-clean and still print warnings under
+    `--no-default-features --features rpc` on wasm32. Record them.
+
 - 2026-11-06 (feature 122, the fd-reuse deregistration):
   - **A number-keyed selector needs a number-to-owner map to deregister safely.**
     kqueue, epoll and io_uring identify a registration by fd number. A token is

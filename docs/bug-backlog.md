@@ -24,6 +24,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   warnings, so CI passes. Fix: gate the import and the two functions to the
   feature set that uses them, or add the missing wasm caller. Found in feature
   123.
+- **A streaming call's later receives are not deadline-bounded.** `with_deadline`
+  races the call future only up to the point where `server_stream`,
+  `client_stream` or `bidi_stream` returns. A stream that sends its response
+  head and then stalls has no timer on `ServerStream::receive`,
+  `BidiReceiver::receive` and the other facade methods, so the caller waits for
+  the transport. The unary paths and the streaming setup are bounded. Fix:
+  carry the call deadline into the stream halves and race each receive against
+  `valtron::sleep_async`, mapping the timeout to `DeadlineExceeded`. Found in
+  feature 123.
 
 ## 2. foundation_netio
 
@@ -189,6 +198,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 9. foundation_proxy
 
+- **`large_response_tests::proxy_large_response_is_byte_exact` closed a response
+  before its full body arrived, once.** One full `cargo test -p
+  foundation_proxy` run on macOS failed at
+  `tests/large_response_tests.rs:138` with `closed after N of 4194304 bytes`.
+  The same test passed alone and in two later full runs. The run used a tree
+  that also had an uncommitted `foundation_reactor` change, so the cause may be
+  that change or the §9 stall class below. Fix: reproduce under load
+  (`--cpus=2`) and trace the relay close. Found in feature 123.
 - **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
   bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
   executor loop is refactored.

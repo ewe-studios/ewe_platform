@@ -15,6 +15,7 @@
 //! (no valtron spawning). Streaming calls use `ProtocolClient::new_conn` to build
 //! the reader/writer tasks and spawn them on the valtron pool via `from_future`.
 
+use std::future::Future;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -146,6 +147,10 @@ pub struct ClientConfig {
     /// Per-call default timeout; merged with the caller's remaining deadline as
     /// `min(caller, default)`.
     pub default_timeout: Option<Duration>,
+    /// Default client-side deadline. Used only when the caller's [`Ctx`] has no
+    /// deadline: a `Ctx` deadline always wins over this value. `None` (the
+    /// default) sets no deadline of its own.
+    pub default_deadline: Option<Duration>,
     /// GET→POST fallback URL length threshold (default 8 KiB). `0` disables the
     /// preflight check (Decision 07 P14).
     pub get_url_max_bytes: usize,
@@ -173,6 +178,7 @@ impl Default for ClientConfig {
             limits: SizeLimits::default(),
             interceptors: Vec::new(),
             default_timeout: None,
+            default_deadline: None,
             get_url_max_bytes: 8192,
             get_use_fallback: true,
             preferred_http_version: None,
@@ -192,6 +198,7 @@ impl core::fmt::Debug for ClientConfig {
             .field("limits", &self.limits)
             .field("interceptors", &self.interceptors.len())
             .field("default_timeout", &self.default_timeout)
+            .field("default_deadline", &self.default_deadline)
             .field("get_url_max_bytes", &self.get_url_max_bytes)
             .field("get_use_fallback", &self.get_use_fallback)
             .field("preferred_http_version", &self.preferred_http_version)
@@ -344,6 +351,19 @@ impl ClientOptions {
     #[must_use]
     pub fn with_timeout(mut self, timeout: Duration) -> Self {
         self.config.default_timeout = Some(timeout);
+        self
+    }
+
+    /// Set a default client-side deadline for every call this client makes.
+    ///
+    /// The deadline is enforced by the client: a call that does not finish in
+    /// time is cancelled and fails with [`Code::DeadlineExceeded`]. A deadline
+    /// on the per-call [`Ctx`] **wins over** this default, and `default_timeout`
+    /// still merges with the caller's deadline as `min`. The default is `None`
+    /// (no deadline of the client's own).
+    #[must_use]
+    pub fn with_default_deadline(mut self, deadline: Duration) -> Self {
+        self.config.default_deadline = Some(deadline);
         self
     }
 
@@ -531,13 +551,21 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         ctx: Ctx,
         request: Request<Req>,
     ) -> ConnectResult<ServerStream<Res>> {
+        with_deadline(&ctx, self.server_stream_inner(&ctx, request)).await
+    }
+
+    async fn server_stream_inner(
+        &self,
+        caller: &Ctx,
+        request: Request<Req>,
+    ) -> ConnectResult<ServerStream<Res>> {
         let spec = Spec {
             stream_type: StreamType::ServerStream,
             procedure: String::new(),
             is_client: true,
             idempotency: self.idempotency,
         };
-        let call_ctx = self.derive_call_ctx(&ctx, spec);
+        let call_ctx = self.derive_call_ctx(caller, spec);
         let spec = call_ctx.spec().clone();
         let peer = call_ctx.peer().clone();
         let url = build_url(&self.config.url, &spec.procedure);
@@ -621,13 +649,21 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         ctx: Ctx,
         reqs: impl Stream<Item = Req>,
     ) -> ConnectResult<Response<Res>> {
+        with_deadline(&ctx, self.client_stream_inner(&ctx, reqs)).await
+    }
+
+    async fn client_stream_inner(
+        &self,
+        caller: &Ctx,
+        reqs: impl Stream<Item = Req>,
+    ) -> ConnectResult<Response<Res>> {
         let spec = Spec {
             stream_type: StreamType::ClientStream,
             procedure: String::new(),
             is_client: true,
             idempotency: self.idempotency,
         };
-        let call_ctx = self.derive_call_ctx(&ctx, spec);
+        let call_ctx = self.derive_call_ctx(caller, spec);
         let spec = call_ctx.spec().clone();
         let url = build_url(&self.config.url, &spec.procedure);
 
@@ -704,11 +740,19 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     ///
     /// # Errors
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
-    // The public API keeps `async` uniform across the stream kinds.
-    #[allow(clippy::unused_async, clippy::unused_async_trait_impl)]
     pub async fn bidi_stream(
         &self,
         ctx: Ctx,
+        reqs: impl Stream<Item = Req>,
+    ) -> ConnectResult<BidiStream<Req, Res>> {
+        // The async block keeps the setup lazy, so a past deadline fails before
+        // `bidi_stream_inner` opens the transport.
+        with_deadline(&ctx, async { self.bidi_stream_inner(&ctx, reqs) }).await
+    }
+
+    fn bidi_stream_inner(
+        &self,
+        caller: &Ctx,
         _reqs: impl Stream<Item = Req>,
     ) -> ConnectResult<BidiStream<Req, Res>> {
         let spec = Spec {
@@ -717,7 +761,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             is_client: true,
             idempotency: self.idempotency,
         };
-        let call_ctx = self.derive_call_ctx(&ctx, spec);
+        let call_ctx = self.derive_call_ctx(caller, spec);
         let spec = call_ctx.spec().clone();
         let peer = call_ctx.peer().clone();
         let url = build_url(&self.config.url, &spec.procedure);
@@ -779,14 +823,23 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// Derive a per-call [`Ctx`] from the caller's context (Decision 07 per-call
     /// Ctx contract table).
     fn derive_call_ctx(&self, caller: &Ctx, spec: Spec) -> Ctx {
-        let deadline = match (caller.request.deadline, self.config.default_timeout) {
-            (Some(caller_deadline), Some(default)) => {
-                let earliest = Instant::now() + default;
-                Some(caller_deadline.min(earliest))
+        let now = Instant::now();
+        let deadline = match (
+            caller.request.deadline,
+            self.config.default_timeout,
+            self.config.default_deadline,
+        ) {
+            // A caller deadline wins over the client's default deadline. The
+            // existing `default_timeout` still merges with it as `min`.
+            (Some(caller_deadline), Some(default), _) => Some(caller_deadline.min(now + default)),
+            (Some(caller_deadline), None, _) => Some(caller_deadline),
+            // No caller deadline: use the earlier of the two client defaults.
+            (None, Some(timeout), Some(default_deadline)) => {
+                Some((now + timeout).min(now + default_deadline))
             }
-            (Some(caller_deadline), None) => Some(caller_deadline),
-            (None, Some(default)) => Some(Instant::now() + default),
-            (None, None) => None,
+            (None, Some(timeout), None) => Some(now + timeout),
+            (None, None, Some(default_deadline)) => Some(now + default_deadline),
+            (None, None, None) => None,
         };
 
         let peer = Peer {
@@ -833,6 +886,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     async fn call_unary_post(
         &self,
         ctx: Ctx,
+        request: Request<Req>,
+        url: String,
+    ) -> ConnectResult<Response<Res>> {
+        with_deadline(&ctx, self.call_unary_post_inner(&ctx, request, url)).await
+    }
+
+    async fn call_unary_post_inner(
+        &self,
+        ctx: &Ctx,
         request: Request<Req>,
         url: String,
     ) -> ConnectResult<Response<Res>> {
@@ -991,11 +1053,14 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             method: SimpleMethod::GET,
         };
 
-        let result = do_unary_round_trip(
-            &*self.transport,
-            desc,
-            Bytes::new(),
-            self.config.limits.read_max_bytes,
+        let result = with_deadline(
+            &ctx,
+            do_unary_round_trip(
+                &*self.transport,
+                desc,
+                Bytes::new(),
+                self.config.limits.read_max_bytes,
+            ),
         )
         .await;
 
@@ -1404,6 +1469,55 @@ impl ClientSender for NoopClientSender {
 // ============================================================================
 // Helper functions
 // ============================================================================
+
+/// Run `call` until it finishes or the call's deadline passes.
+///
+/// WHY: `Ctx::with_deadline` only records a timestamp. A call that parks on a
+/// read must fail on its own deadline, not on the peer's idle timeout.
+///
+/// WHAT: when the call has a deadline, race `call` against a valtron sleep for
+/// the time left. If the sleep wins, fire the call's cancel signal, drop the
+/// call (and the response stream it owns) and return `DeadlineExceeded`. If the
+/// deadline already passed, fail before the call is polled, so it sends no
+/// request.
+///
+/// HOW: `foundation_core::valtron::sleep_async` is the only timer, so the same
+/// code runs on native and on wasm (no thread and no OS timer). Every client
+/// transport reaches the wire through this helper, so a new transport cannot
+/// forget the bound.
+async fn with_deadline<T>(
+    ctx: &Ctx,
+    call: impl Future<Output = ConnectResult<T>>,
+) -> ConnectResult<T> {
+    let Some(deadline) = ctx.request.deadline else {
+        return call.await;
+    };
+
+    let remaining = deadline.saturating_duration_since(Instant::now());
+    if remaining.is_zero() {
+        // Fail before the transport opens, so a call with a past deadline
+        // sends nothing to the peer.
+        ctx.cancel_signal().cancel();
+        return Err(ConnectError::deadline_exceeded(
+            "call deadline passed before the request was sent",
+        )
+        .into());
+    }
+
+    let call = Box::pin(call);
+    let sleeper = Box::pin(valtron::sleep_async(remaining));
+    match futures::future::select(call, sleeper).await {
+        futures::future::Either::Left((result, _sleeper)) => result,
+        futures::future::Either::Right(((), call)) => {
+            // Dropping the call drops the transport stream and response stream
+            // it owns; the cancel signal also stops the spawned reader/writer
+            // tasks of a streaming call.
+            drop(call);
+            ctx.cancel_signal().cancel();
+            Err(ConnectError::deadline_exceeded("call deadline exceeded").into())
+        }
+    }
+}
 
 /// Build the full procedure URL from the base URL and procedure name.
 fn build_url(base_url: &str, procedure: &str) -> String {

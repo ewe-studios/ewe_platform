@@ -130,6 +130,10 @@ name = "cancellation_tests"
 required-features = ["rpc_multi"]
 
 [[test]]
+name = "client_deadline_tests"
+required-features = ["rpc_multi"]
+
+[[test]]
 name = "h1_pool_parking_tests"
 required-features = ["rpc_multi"]
 

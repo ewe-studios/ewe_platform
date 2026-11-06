@@ -13,13 +13,13 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     and has no `Ctx`, so every transport (H1, H2, H3, wasm) gets the bound.
   - Added `ClientOptions::with_default_deadline(Duration)` (default `None`); a
     `Ctx` deadline wins over it. The wire timeout header is unchanged.
-  - New `tests/client_deadline_tests.rs`: 5 tests, all pass (H1 and H2 against a
+  - New `tests/client_deadline_tests.rs`: 6 tests, all pass (H1 and H2 against a
     listener that never answers, the client default deadline, the normal path,
-    and a past deadline that sends no request). Only the helper body was
-    reverted to `call.await` to prove the old code: the first test then failed
-    after about 3 s with `expected DeadlineExceeded, got: ... [unavailable]
-    transport closed without response head`.
-  - `foundation_connectrpc` 235 passed, 0 failed. Clippy and fmt are clean.
+    and unary and bidi calls with a past deadline that send no request). Only
+    the helper body was reverted to `call.await` to prove the old code: the
+    first test then failed after about 3 s with `expected DeadlineExceeded,
+    got: ... [unavailable] transport closed without response head`.
+  - `foundation_connectrpc` 236 passed, 0 failed. Clippy and fmt are clean.
     `foundation_proxy` passes except the known macOS
     `websocket_upgrade_relays_and_tunnels_bytes` failure in backlog §9. The
     wasm32 `--features rpc` check passes with 3 pre-existing warnings in
