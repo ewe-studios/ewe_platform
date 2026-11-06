@@ -12,11 +12,17 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     deadline. A live dump showed one worker sleeping 59,999 ms with a 10 ms H2
     pump poll pending.
   - Fixes: `send_async` callers that stream now switch the response socket back
-    to non-blocking (`forward.rs`, `h2_proxy.rs`); `body_reader::map_err` keeps
-    `WouldBlock`; `DurationWaker::remaining` saturates to zero.
+    to non-blocking (`forward.rs`, `h2_proxy.rs`, and the two sites the first
+    pass missed, `h3_proxy.rs` and `http_client_impl.rs`);
+    `body_reader::map_err` keeps `WouldBlock`; `DurationWaker::remaining`
+    saturates to zero. A `grep` finds no async `read_wake_source()` site that
+    skips the switch.
   - Two deterministic tests, both fail on the old code:
     `a_past_due_timer_is_the_next_wakeup` (foundation_core) and
     `a_would_block_body_read_parks_instead_of_failing` (foundation_netio).
+  - Test bounds name a hang: the rpc e2e context deadline is now 5 s, and
+    `h2_grpc_request` races its future against a 5 s `sleep_async`, so a stall
+    fails in about 5 s with the test name instead of at the 30 s harness cap.
   - The e2e suite dropped from 16-24 s to about 2.7 s, because pool teardown no
     longer detaches a blocked worker. `foundation_core` 744 passed,
     `foundation_netio` 1218 passed, `foundation_proxy` passed except the known

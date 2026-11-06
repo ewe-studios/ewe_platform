@@ -379,6 +379,12 @@ never sent the request HEADERS, so the proxy front waited for a request that nev
    other caller changes behaviour.
 4. `ClientRequest::send_async` now documents the blocking handoff and the requirement for an
    async streaming caller.
+5. The same non-blocking step at the two remaining async `read_wake_source()` sites, which
+   the first pass missed: `backends/foundation_proxy/src/h3_proxy.rs` (`forward_upstream`)
+   and `backends/foundation_netio/src/http/http_client_impl.rs`. Both read a
+   `send_async` response body from a valtron task, so both could freeze a worker in the
+   same way. `grep -rn 'read_wake_source()' backends` now finds no async site that skips
+   `set_nonblocking(true)`.
 
 No public API is added, so no crate version changes. No `Cargo.lock` change.
 
