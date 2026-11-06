@@ -12,8 +12,8 @@ keywords = ["database", "storage", "turso", "foundation"]
 [dependencies]
 # -- Workspace dependencies
 # Multi-threaded support is optional - enable with `multi` feature
-foundation_core = { path = "../foundation_core", version = "0.0.8", features = ["std"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.3", features = ["crypto-chacha"] }
+foundation_core = { path = "../foundation_core", version = "0.0.9", features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.4", features = ["crypto-chacha"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

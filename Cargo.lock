@@ -5366,7 +5366,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
@@ -5439,7 +5439,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "bytes",
  "concurrent-queue",

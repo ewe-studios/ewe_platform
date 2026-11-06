@@ -2,6 +2,30 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 117 phase A adds `Clock::wall_now`, the shared timestamp
+  conversions and the time-source gate. Branch `spec70/priority-followups`.
+  - `foundation_core::valtron::Clock` gains the required `wall_now` method.
+    `MonotonicClock` returns `SystemTime::now()` and is the one place the real
+    wall read stays. `SimulatedClock` gains a `wall_origin` at the UNIX epoch, a
+    wall offset, and `advance_wall`.
+  - `foundation_compact::time` has `unix_millis`, `from_unix_millis` and
+    `unix_seconds`. A pre-epoch time is negative; `unix_seconds` rounds down.
+  - `scripts/ci/check_time_sources.py` scans the first-party `src/` trees for
+    `SystemTime::now`, `Utc::now`, `Local::now`, `OffsetDateTime::now` and
+    `Instant::now`. The allowlist holds every remaining offender with the phase
+    that removes it.
+  - Measured: 452 direct reads in 180 files, all allowlisted, 0 markers, 0
+    violations. Phases B, C and D hold 110, 137 and 192 reads. The gate runs in
+    the `foundation_core` build step of `ci.py`, with 8 tests.
+  - The `foundation_boringtun` fork is skipped by name, like `check_errstacks.py`.
+  - Version: `foundation_core` 0.0.9, `foundation_compact` 0.2.4; 42 and 9
+    consumer requirements move with them, in 40 manifests.
+  - Phases B, C and D are written as features 132, 133 and 134.
+  - Open: `foundation_netio`'s test `SimClock` does not implement `wall_now`, so
+    its test target does not compile. `foundation_netio` is outside this
+    feature's scope; the fix is the first step of feature 132 and is in
+    `docs/bug-backlog.md` §2. CI proof is pending.
+
 - 2026-11-06: feature 124 bounds every streaming facade wait with the call
   deadline. Branch `spec70/priority-followups`.
   - `with_deadline` is split into

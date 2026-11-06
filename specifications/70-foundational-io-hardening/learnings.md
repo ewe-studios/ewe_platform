@@ -2,6 +2,35 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 117, timestamps from the injected clock):
+  - **A required trait method breaks every implementor, including ones outside the
+    feature's crate scope.** `Clock::wall_now` is required because a default would
+    read the real global, but `foundation_netio`'s test `SimClock` is a fourth
+    implementor. The gate and the crates compile, but the netio test target does
+    not. The plan must name every implementor before it sets the crate scope, or
+    the scope must include the implementor files.
+  - **A directory allowlist entry and a file allowlist entry are both needed.** The
+    real time backends are a whole crate subtree (`foundation_compact/src/`) plus
+    one file (`foundation_core/src/valtron/ctx.rs`). The gate supports a trailing
+    slash for the first and an exact path for the second.
+  - **Measure the tree, do not copy the plan's counts.** The plan was written on
+    2026-11-05; features 116 and 118 changed `foundation_core` afterwards. The
+    measured start is 452 reads, not 428. The phase files use the measured values.
+  - **The scan finds doc comments and the polyfill, not only calls.** Words like
+    `` `Instant::now()` `` in a doc comment match. A directory allowlist entry for
+    the real backends is simpler and more stable than a line marker per doc line.
+  - **A pre-epoch time needs a negative branch, and seconds round down.** On the
+    native and wasm `SystemTime`, `duration_since(UNIX_EPOCH)` returns an error
+    before the epoch. `unix_seconds` rounds down on the number line, so half a
+    second before the epoch is `-1`, not `0`.
+  - **A simulated wall clock must start at a fixed value.** `SimulatedClock` starts
+    its wall clock at the UNIX epoch and moves only through `advance_wall`. Reading
+    `SystemTime::now()` in the constructor would make a deterministic simulation
+    test (DST) non-deterministic.
+  - **`cargo clippy` found pre-existing debt in the crate under change.** The
+    `needless_continue` in `foundation_compact`'s getentropy backend is fixed in the
+    same change, because a zero-warning run is the rule.
+
 - 2026-11-06 (feature 124, streaming receive deadlines):
   - **A deadline test needs a peer that does not enforce the deadline.** The
     real Connect server reads `Connect-Timeout-Ms` and races the whole handler

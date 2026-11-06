@@ -410,6 +410,11 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
         # One repository-wide scan, run with the package that owns them (in the
         # enforced `build` step), and the test of the scan itself.
         plan["build"].append([sys.executable, "scripts/ci/check_executor_wake.py"])
+        # Spec 70 feature 117: a crate reads the time from the injected `Clock`,
+        # never from the global. The allowlist names every remaining offender.
+        plan["build"].append(
+            [sys.executable, "scripts/ci/check_time_sources.py", "--check"]
+        )
         plan["build"].append([sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci/tests"])
     if s.build != "off":
         # Library, binaries, tests, examples and benches: compile errors show

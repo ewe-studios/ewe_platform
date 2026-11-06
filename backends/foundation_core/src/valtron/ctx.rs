@@ -52,15 +52,14 @@ use std::sync::Arc;
 
 use crate::compati::Mutex;
 use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
-use foundation_compact::{Duration, Instant};
+use foundation_compact::{Duration, Instant, SystemTime};
 
-/// A read-only monotonic clock, seeded by the engine and shared as an
-/// `Arc<dyn Clock>`.
+/// A read-only clock, seeded by the engine and shared as an `Arc<dyn Clock>`.
 ///
-/// Tasks read the current instant or the time elapsed since the clock was
-/// seeded. The trait is object-safe so the engine can seed any implementation —
-/// the real [`MonotonicClock`] or a test mock — and swap it at init without
-/// changing [`Ctx`]'s shape.
+/// Tasks read the current monotonic instant, the time elapsed since the clock
+/// was seeded, or the current wall-clock time. The trait is object-safe so the
+/// engine can seed any implementation — the real [`MonotonicClock`] or a test
+/// mock — and swap it at init without changing [`Ctx`]'s shape.
 pub trait Clock: Send + Sync + 'static {
     /// The current instant.
     #[must_use]
@@ -69,14 +68,24 @@ pub trait Clock: Send + Sync + 'static {
     /// The time elapsed since this clock was seeded.
     #[must_use]
     fn elapsed(&self) -> Duration;
+
+    /// The current wall-clock time, as the operating system reports it.
+    ///
+    /// This is a required method. A default that read the real clock would be a
+    /// silent fallback to the global, so every implementation must choose a
+    /// value: the real time in a host backend, a fixed origin in a test backend.
+    #[must_use]
+    fn wall_now(&self) -> SystemTime;
 }
 
-/// The default [`Clock`]: a real, [`foundation_compact`]-backed monotonic clock.
+/// The default [`Clock`]: a real, [`foundation_compact`]-backed clock.
 ///
 /// On native, `Instant` is `std::time::Instant`; on wasm it is the JS-backed
 /// performance clock, so [`Clock::now`] and [`Clock::elapsed`] work across web
-/// and non-web endpoints without any platform branch here. `Copy`, no interior
-/// mutation — safe to share across threads and tasks.
+/// and non-web endpoints without any platform branch here. [`Clock::wall_now`]
+/// reads the real wall clock; this type is the one place in the engine where
+/// that read stays. `Copy`, no interior mutation — safe to share across threads
+/// and tasks.
 #[derive(Debug, Clone, Copy)]
 pub struct MonotonicClock {
     origin: Instant,
@@ -99,6 +108,10 @@ impl Clock for MonotonicClock {
 
     fn elapsed(&self) -> Duration {
         self.origin.elapsed()
+    }
+
+    fn wall_now(&self) -> SystemTime {
+        SystemTime::now()
     }
 }
 
@@ -276,33 +289,48 @@ impl Ctx {
 /// A [`Clock`] that a test moves forward by hand, behind the `test-clock`
 /// feature.
 ///
-/// The clock stores a base [`Instant`] captured when you build it and an offset
-/// that only [`SimulatedClock::advance`] changes. [`Clock::now`] returns the base
-/// plus the offset, so two reads differ by exactly the time the test advanced.
-/// The absolute value is a monotonic instant shifted by the offset, not a
-/// calendar epoch. The clock is `Send + Sync`, so a test can read it from any
-/// thread.
+/// The clock stores a base [`Instant`] captured when you build it and a
+/// monotonic offset that only [`SimulatedClock::advance`] changes.
+/// [`Clock::now`] returns the base plus the offset, so two reads differ by
+/// exactly the time the test advanced. The absolute value is a monotonic instant
+/// shifted by the offset, not a calendar epoch.
+///
+/// The wall clock starts at the UNIX epoch and moves only through
+/// [`SimulatedClock::advance_wall`]. It never reads the real wall clock, so a
+/// test is deterministic. The clock is `Send + Sync`, so a test can read it from
+/// any thread.
 #[cfg(feature = "test-clock")]
 #[derive(Debug)]
 pub struct SimulatedClock {
     base: Instant,
     offset: Mutex<Duration>,
+    wall_origin: SystemTime,
+    wall_offset: Mutex<Duration>,
 }
 
 #[cfg(feature = "test-clock")]
 impl SimulatedClock {
-    /// A clock whose offset starts at `origin`.
+    /// A clock whose monotonic offset starts at `origin` and whose wall clock
+    /// starts at the UNIX epoch.
     #[must_use]
     pub fn new(origin: Duration) -> Self {
         Self {
             base: Instant::now(),
             offset: Mutex::new(origin),
+            wall_origin: SystemTime::UNIX_EPOCH,
+            wall_offset: Mutex::new(Duration::ZERO),
         }
     }
 
-    /// Add `by` to the offset.
+    /// Add `by` to the monotonic offset.
     pub fn advance(&self, by: Duration) {
         let mut offset = self.offset.lock().expect("SimulatedClock poisoned");
+        *offset += by;
+    }
+
+    /// Add `by` to the wall-clock offset.
+    pub fn advance_wall(&self, by: Duration) {
+        let mut offset = self.wall_offset.lock().expect("SimulatedClock poisoned");
         *offset += by;
     }
 }
@@ -315,6 +343,10 @@ impl Clock for SimulatedClock {
 
     fn elapsed(&self) -> Duration {
         *self.offset.lock().expect("SimulatedClock poisoned")
+    }
+
+    fn wall_now(&self) -> SystemTime {
+        self.wall_origin + *self.wall_offset.lock().expect("SimulatedClock poisoned")
     }
 }
 

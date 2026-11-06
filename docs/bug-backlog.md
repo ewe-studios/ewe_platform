@@ -55,6 +55,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
+- **The test `SimClock` does not implement `Clock::wall_now`, so the tests do not
+  compile.** File:
+  `backends/foundation_netio/tests/simple_http/nonblocking_client_tests.rs:126`.
+  Feature 117 makes `wall_now` a required method of
+  `foundation_core::valtron::Clock`. The private `SimClock` in this test file
+  implements only `now` and `elapsed`, so `cargo test -p foundation_netio` fails
+  with `E0046` (not all trait items implemented). `foundation_netio` was outside
+  feature 117's crate scope, so that feature did not edit it. Fix: add
+  `fn wall_now(&self) -> foundation_compact::SystemTime { foundation_compact::SystemTime::now() }`
+  first, then replace the private `SimClock` with `SimulatedClock` when the test
+  needs a controlled wall clock. Found in feature 117; scheduled as the first step
+  of feature 132 (phase B).
+
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
   variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
@@ -335,6 +348,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   serve them; they need the wasm-testbed harness on the real R2 binding (feature 76 E0).
 
 ## 16. Workspace / process
+
+- **The time-source gate skips the vendored `foundation_boringtun` fork.** File:
+  `scripts/ci/check_time_sources.py` (the `SKIP_CRATES` set). The fork has 15
+  direct reads (`1` wall, `14` monotonic) in `backends/foundation_boringtun/src`.
+  The gate skips it because it is a published upstream fork, like
+  `check_errstacks.py` does for the error shape. The umbrella feature 117 goal
+  ("the allowlist holds only `foundation_compact` and `MonotonicClock`") therefore
+  does not cover the fork. Fix: decide whether the fork keeps upstream's clock
+  calls on purpose, or route them through a host hook. Found in feature 117.
 
 - **The `Free runner disk` step stalls and leaves the run `in_progress`.** The step runs
   `find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +`

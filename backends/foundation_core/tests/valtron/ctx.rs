@@ -226,6 +226,10 @@ impl Clock for MockClock {
     fn elapsed(&self) -> foundation_compact::Duration {
         self.now().saturating_duration_since(self.origin)
     }
+
+    fn wall_now(&self) -> foundation_compact::SystemTime {
+        foundation_compact::SystemTime::now()
+    }
 }
 
 #[test]
