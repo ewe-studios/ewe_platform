@@ -2,6 +2,20 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 137 — one wake source per stream):
+  - **Do not cache a negative answer when the reason can change.**
+    `read_wake_source` returned `None` because the socket was still blocking,
+    and a `OnceLock<Option<_>>` kept that answer after the caller set
+    non-blocking. Cache only a successful source; repeat the checks otherwise.
+    The backlog now schedules this as feature 141.
+  - **A public enum can become a struct without a version bump** when no
+    consumer names or constructs the variants. Prove it with a workspace grep
+    and the dependent compile checks, then say so in the Result.
+  - **A top-level test file is auto-discovered.** Registering it again in
+    `tests/mod.rs` compiles and runs the same tests in both targets. Check how
+    the crate's `tests/mod.rs` is built before adding a module entry; feature
+    136 left its file unregistered for this reason.
+
 - 2026-11-06 (feature 140 — liveness for a bridged waker):
   - **A bridged waker with no liveness state can never be pruned.**
     `ReadinessWaker::from_waker` sets `park: None`, so `is_live()` is always

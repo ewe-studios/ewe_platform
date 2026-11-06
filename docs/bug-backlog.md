@@ -27,6 +27,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
+- **A cached `None` wake source cannot recover.** File:
+  `src/native/raw_stream.rs` (`read_wake_source`). Problem: the call caches
+  `Option<ReadWakeSource>` in a `OnceLock`. A caller that asks before it sets
+  the socket non-blocking caches `None`, and a later call after
+  `set_nonblocking(true)` still returns `None`, so its body reader never parks
+  on readiness. Every current caller sets non-blocking first, so no live
+  defect. Likely fix: cache only a successful source and leave the cell empty
+  on `None`. Found in feature 137; scheduled as feature 141.
+- **The commented-out `clone_stream` block names removed variants.** File:
+  `src/native/raw_stream.rs`. Problem: the block still refers to
+  `RawStream::AsPlain` and `RawStream::AsTls` after `RawStream` became a
+  struct over a private inner enum. It is dead text with no compile effect.
+  Likely fix: delete the block. Found in feature 137.
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) the private `RawStreamInner` enum has
   only the `Plain` variant, so `if let RawStreamInner::Plain(inner, _) = &self.inner`

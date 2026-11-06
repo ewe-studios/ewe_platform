@@ -2,6 +2,28 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 137 builds a stream's read wake source once. Commit
+  `39f4eedb3`.
+  - `RawStream::read_wake_source` built a new `FdReadiness` on every call. Each
+    one took a fresh reactor token for the same fd, and the selector registers
+    per fd, so a second source replaced the first source's event registration.
+  - `RawStream` is now a struct over the private `RawStreamInner` enum plus
+    `read_wake: OnceLock<Option<ReadWakeSource>>`. The first call builds the
+    source; later calls return clones of the same `Arc`. The field is declared
+    before the transport, so it drops first and deregisters the fd while the
+    socket is open.
+  - Tests in `tests/read_wake_source_tests.rs`: two calls return the same `Arc`
+    (old code: two tokens), and a waker registered through the first source
+    still fires after a second source exists (old code: replaced, no wake in
+    2 s). Both failed on the old code; 15 consecutive macOS runs passed after.
+    The netio suite, the proxy suite and the Linux image (including the `quic`
+    run and the wasm32 fetch check) pass.
+  - `RawStream` is not `Clone`, so the cache needs no shared inner value. No
+    public signature changed; the version stays 0.0.6.
+  - New backlog entries in section 2: a cached `None` cannot recover (feature
+    141), and a stale commented-out `clone_stream` block names removed
+    variants. The duplicate-token entry is deleted.
+
 - 2026-11-06: feature 140 makes a bridged readiness waker report its liveness.
   Branch `spec70/priority-followups`.
   - `ReadinessWaker` gains `live: Option<Arc<AtomicBool>>` and
