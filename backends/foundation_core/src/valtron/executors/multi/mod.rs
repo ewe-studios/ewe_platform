@@ -1378,7 +1378,18 @@ impl<
 
         let boxed_task = match self.task {
             Some(task) => match self.resolver {
-                None => StreamConsumingIter::new(task, iter_chan.clone()),
+                None => {
+                    let mut task_iter = StreamConsumingIter::new(task, iter_chan.clone());
+                    // The stream path used to drop the builder's panic handler.
+                    // That left a caller (`block_on_future`, issue #242) with no
+                    // way to learn the payload of a panic inside the task: the
+                    // result channel closed with no value. Wire it through the
+                    // same way `schedule()` does.
+                    if let Some(panic_handler) = self.panic_handler {
+                        task_iter = task_iter.with_panic_handler(panic_handler);
+                    }
+                    task_iter
+                }
                 Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
@@ -1638,11 +1649,14 @@ fn finish_worker_stop(
                 seed,
                 err
             );
+            // Exactly ONE exit event per worker. `Panicked` performs the same
+            // accounting as `Stopped` (decrement `live_threads`, unregister,
+            // drop the handle) and then respawns. Sending `Stopped` as well
+            // made the listener decrement twice (issue #241), so
+            // `live_threads` drifted down by one per panic and could reach 0
+            // while workers were still alive.
             sender
-                .send(ThreadActivity::Panicked(sender_id.clone(), err))
-                .expect("should send event");
-            sender
-                .send(ThreadActivity::Stopped(sender_id))
+                .send(ThreadActivity::Panicked(sender_id, err))
                 .expect("should send event");
         }
     }
@@ -1891,8 +1905,43 @@ impl ThreadRegistry {
         self.kill_latch.signal_all();
     }
 
+    /// The number of worker threads this registry counts as live.
+    ///
+    /// WHY: worker-panic accounting (`live_threads`) is otherwise invisible to
+    /// callers. Tests and diagnostics need to check that it tracks the real
+    /// worker count (issue #241).
+    /// WHAT: reads the registry's live-thread counter.
+    #[must_use]
+    pub fn live_threads(&self) -> usize {
+        self.live_threads.load(atomic::Ordering::Acquire)
+    }
+
+    /// Process at most one pending worker-activity event.
+    ///
+    /// WHY: worker-panic accounting and the respawn policy run only when the
+    /// activity queue is drained, and the pool drains it only from
+    /// [`Self::block_until_done`] (which waits for every worker to stop). Tests
+    /// that check the accounting need to advance the queue one event at a time
+    /// while workers stay alive.
+    /// WHAT: returns `true` when an event was consumed, `false` when the queue
+    /// was empty for [`Self::op_read_time`].
+    /// HOW: one [`Self::listen_for_activity_tick`] pass.
+    #[doc(hidden)]
+    pub fn pump_activity(&self) -> bool {
+        matches!(self.listen_for_activity_tick(), Some(true))
+    }
+
     /// Listen for activity events from worker threads.
     fn listen_for_activity(&self) -> Option<()> {
+        self.listen_for_activity_tick().map(|_processed| ())
+    }
+
+    /// One activity-processing pass.
+    ///
+    /// Returns `None` when listening must stop, and `Some(processed)` where
+    /// `processed` is `true` when an event was consumed from the queue and
+    /// `false` when it was empty or the read timed out.
+    fn listen_for_activity_tick(&self) -> Option<bool> {
         let remaining_live = self.live_threads.load(atomic::Ordering::Acquire);
         if remaining_live == 0 {
             tracing::debug!("No more live threads, returning");
@@ -1912,7 +1961,7 @@ impl ThreadRegistry {
         {
             Ok(activity) => activity,
             Err(err) => match err {
-                mpp::ReceiverError::Empty | mpp::ReceiverError::Timeout => return Some(()),
+                mpp::ReceiverError::Empty | mpp::ReceiverError::Timeout => return Some(false),
                 mpp::ReceiverError::Closed(_) => return None,
             },
         };
@@ -1966,7 +2015,7 @@ impl ThreadRegistry {
             }
         }
 
-        Some(())
+        Some(true)
     }
 
     fn remove_thread_id(&self, thread_id: &ThreadId) {
@@ -2091,6 +2140,7 @@ impl ThreadRegistry {
             }));
             finish_worker_stop(&worker_tag, seed_clone, &sender, sender_id, result);
             Ok(())
+            // _wg dropped here → WaitGroup::done()
         }) {
             Ok(handle) => {
                 self.thread_handles

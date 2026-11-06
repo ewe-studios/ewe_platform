@@ -2420,3 +2420,42 @@ time can still leave an async consumer with nothing to wake it. The old code had
   and `foundation_core` compiles without `--features test-clock`, so the
   missing `Clock` import and the missing `# Panics` docs stayed hidden. Run
   the exact feature sets that CI uses for each crate the change touches.
+- 2026-11-06 (issue #232): a leak test that takes its baseline before the first call of
+  the path it measures counts the path's one-time setup as a leak. Name the surviving
+  threads from `/proc/self/task/*/comm` before you change the test. Here the setup was the
+  `valtron-timer` wheel and the reactor's drain thread, one per process. A warm-up call
+  before the baseline keeps the tolerance at `+1`. Widening it to `+2` would hide a real
+  per-call leak.
+- 2026-11-07 (issue #240): a `OnceLock` makes *installing* a singleton atomic, not building
+  it. Every thread that missed `get()` built its own copy and its own thread before `set()`
+  failed. Single-flight the whole check-and-build with one mutex, and join the thread you
+  started in `Drop`; a dropped `JoinHandle` only detaches it.
+
+## A worker exit sends one event, not two (issue #241)
+
+`ThreadRegistry::listen_for_activity` treats `Stopped` and `Panicked` the same
+way: it decrements `live_threads`, unregisters the thread and removes its
+handle. The `Panicked` arm also respawns. A worker that sent both events was
+therefore counted twice. Keep one exit event per worker.
+
+The listener runs only from `block_until_done`, and nothing calls that method.
+The panic-respawn path is dormant in normal pool use (issue #243). The test
+drives the queue through the doc-hidden `pump_activity` hook.
+
+## Re-raise a task panic at the sync boundary (issue #242)
+
+The worker's `catch_unwind` reports a panic and closes the result channel.
+`block_on_future` saw an empty stream and panicked with its own message, so the
+real assertion was lost. The builder's panic handler is the channel that carries
+the payload out of the worker; `stream_iter_with_config` did not wire it in, so
+the payload was dropped. Wire it in and call `resume_unwind` with the payload
+when the stream ends without a value. `resume_unwind` does not run the panic
+hook, so the caller sees the original panic message once.
+
+## Patch a worktree branch onto a moved branch with 3-way apply
+
+An agent worktree starts from the master commit, not from the feature branch
+head. Copying its files into the branch silently reverts every branch change in
+those files. Apply its diff with `git apply -3` instead, and resolve the hunks
+that the branch refactored (here, the worker exit moved into
+`finish_worker_stop`).

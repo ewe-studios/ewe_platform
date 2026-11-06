@@ -2559,3 +2559,36 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   #233-#236 from the #217/#218 work.
   Next: read the CI run for `662b169c3`, then correct the "CI green" claims in
   the feature files that cite failed runs, and update PR 186.
+- 2026-11-06: issue #232 fixed (`health_probe_tests`). The test took its baseline before
+  the first probe. The first probe starts two helper threads that live until the process
+  exits: `valtron-timer` (the `sleep_async` wheel) and `reactor-drain` (the reactor starts
+  when the H2 pump parks on fd readiness). The `+1` tolerance covered one of them, not two.
+  One warm-up probe before the baseline fixes the test; the 20 measured probes keep the
+  strict `+1` check. Linux CI image: 5 of 5 test runs pass, and the package test step
+  passes 34 of 34 targets with `EWE_REQUIRE_IO_URING=0`. Findings filed: #239 (bidi e2e
+  flake, high), #240 (reactor drain leak on a lost init race, low), #241 (`live_threads`
+  drift on panic, medium), #242 (a second panic hides a test failure, low).
+- 2026-11-06: the ten feature files that cited run `42205799516` as "CI green" now say the
+  run failed 13 jobs and that the final run ID goes in when the head passes. Feature 131
+  had the same sentence twice; the duplicate is gone.
+- 2026-11-07: issue #240 fixed (`foundation_reactor` init race). `init_with_config` checked
+  `REACTOR.get()` and then built a full reactor, so every thread that lost the `REACTOR.set`
+  race had already spawned its own `reactor-drain` thread. `Drop` set the shutdown flag but
+  did not join, so the handle was detached. A process-wide `INIT_LOCK` now covers the second
+  check and the build, and `Drop` joins the drain thread. `tests/init_race.rs` releases 16
+  threads through a barrier and asserts one build, one spawn and one live drain thread; it
+  fails on the old code with 16 builds. `foundation_reactor` 0.0.2 for the doc-hidden test
+  hooks, with the four consumer requirements moved.
+- 2026-11-07: issues #241 and #242 fixed (`foundation_core`). A worker that
+  panicked sent `ThreadActivity::Panicked` and then `ThreadActivity::Stopped`.
+  The listener does the same accounting for both arms, so `live_threads`
+  dropped twice and the counter reached 0 while workers were alive. The worker
+  now sends one exit event. `block_on_future` now captures the task panic
+  payload with the builder's panic handler and re-raises it, so a failing
+  `#[valtron_test]` body shows its own assertion instead of "the future
+  produced no result". `tests/valtron/worker_panic_accounting.rs` holds both
+  tests; each one fails on the old code. `foundation_core` 0.0.16 for the new
+  public `ThreadRegistry::live_threads` and `pump_activity` hooks, with every
+  consumer requirement moved. Findings filed: #243 (the activity listener never
+  runs, so a panicking worker is never respawned), #244 (a panic in a spawned
+  sub-task still drops its payload). Both are medium.

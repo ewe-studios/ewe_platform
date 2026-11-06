@@ -34,7 +34,7 @@ http = "1.4.0"
 regex = "1.10"
 sha2 = "0.10"
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
-foundation_core = { path = "../foundation_core", version = "0.0.15" }
+foundation_core = { path = "../foundation_core", version = "0.0.16" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.6" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
@@ -62,7 +62,7 @@ tracing-test = "0.2"
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.15"
+version = "0.0.16"
 features = ["test-clock"]
 
 [features]

@@ -53,14 +53,16 @@ match panic::catch_unwind(|| { /* worker execution */ }) {
     Ok(()) => { /* clean exit */ }
     Err(err) => {
         sender.send(ThreadActivity::Panicked(id, err)).expect("should send event");
-        sender.send(ThreadActivity::Stopped(id)).expect("should send event");
     }
 }
 ```
 
-If a worker panics, the `ThreadActivity::Panicked` event is sent, followed by
-`ThreadActivity::Stopped`. The `WaitGroup` guard (`_wg`) is dropped in both cases,
-ensuring shutdown never hangs.
+If a worker panics, exactly ONE exit event, `ThreadActivity::Panicked`, is sent.
+Its listener arm does the same accounting as the clean-exit `Stopped` event
+(decrement `live_threads`, unregister the thread, drop its handle) and then
+respawns the worker. Sending both events made the listener decrement twice, so
+`live_threads` drifted down by one per panic. The `WaitGroup` guard (`_wg`) is
+dropped on both the clean and the panic path, ensuring shutdown never hangs.
 
 ### Single-threaded executor (single/mod.rs)
 

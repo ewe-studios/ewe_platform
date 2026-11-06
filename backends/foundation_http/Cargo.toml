@@ -10,7 +10,7 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.15" }
+foundation_core = { path = "../foundation_core", version = "0.0.16" }
 # The instant type the injected clock returns. On every native target this is
 # `std::time::Instant`; on JS wasm it is the host-clock instant, so a rate-limit
 # window compiles and runs on both.
@@ -69,7 +69,7 @@ foundation_db = { path = "../foundation_db", version = "0.0.6", optional = true,
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a server
 # timeout follows the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.15", features = ["multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_testing = { path = "../foundation_testing" }
 # `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.

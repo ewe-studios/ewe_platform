@@ -32,4 +32,4 @@ foundation_testing = { path = "../foundation_testing" }
 # The benchmark tests drive `StressHarness` with the real clock.
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.15"
+version = "0.0.16"

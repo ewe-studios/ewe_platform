@@ -17,7 +17,8 @@ use crate::valtron::{
 use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 use core::future::Future;
 use core::sync::atomic::AtomicBool;
-use std::sync::Arc;
+use std::any::Any;
+use std::sync::{Arc, Mutex};
 
 use crate::valtron::DEFAULT_MAX_TURNS;
 
@@ -964,16 +965,98 @@ where
 }
 
 /// # Panics
-/// Panics if the future produced no result, which happens when the pool is not
-/// initialized or is torn down early.
+/// Re-raises the panic of the future when the future panics on a pool worker,
+/// so the caller sees the original message. Panics with its own message if the
+/// future produced no result, which happens when the pool is not initialized or
+/// is torn down early.
 pub fn block_on_future<F>(future: F) -> F::Output
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
 {
-    sync_collect_one(from_future(future)).expect(
-        "block_on_future: the future produced no result (pool not initialized or torn down early)",
-    )
+    // The pool polls the future on a worker thread. If that poll panics, the
+    // executor's `catch_unwind` keeps the worker alive, closes the result
+    // channel, and drops the payload. Without capturing the payload the caller
+    // would see the generic "produced no result" panic, which hides the real
+    // assertion failure (issue #242). Capture it and re-raise it here.
+    //
+    // WHY this design: the payload is produced on a worker and the caller waits
+    // on the result stream, so the payload needs a channel of its own. The
+    // builder's panic handler is that channel; it runs on the worker inside the
+    // same `catch_unwind` arm that closes the result queue, so by the time
+    // `collect_one` returns `None` the slot is written.
+    let panic_slot: Arc<Mutex<Option<Box<dyn Any + Send>>>> = Arc::new(Mutex::new(None));
+    let capture = Arc::clone(&panic_slot);
+
+    let stream = execute_with_panic_handler(from_future(future), None, move |payload| {
+        let mut slot = capture
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        // Keep the first payload: the first panic is the root cause.
+        if slot.is_none() {
+            *slot = Some(payload);
+        }
+    });
+
+    let output = match stream {
+        Ok(stream) => collect_one(stream),
+        // Scheduling failed. That is the genuine "pool not initialized or torn
+        // down early" case, so keep the original message and add the cause.
+        Err(err) => panic!(
+            "block_on_future: the future produced no result (pool not initialized or torn down early): {err}"
+        ),
+    };
+
+    let Some(output) = output else {
+        // The stream ended without a value. If a worker captured a panic
+        // payload, the task panicked: re-raise the original panic.
+        let payload = panic_slot
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take();
+        match payload {
+            Some(payload) => std::panic::resume_unwind(payload),
+            None => panic!(
+                "block_on_future: the future produced no result (pool not initialized or torn down early)"
+            ),
+        }
+    };
+    output
+}
+
+/// Schedule `task` on the pool with a panic handler attached.
+///
+/// WHY: [`execute`] drops the payload of a task that panics on a worker (the
+/// worker's `catch_unwind` reports the panic and closes the result channel).
+/// A caller that must re-raise the original panic — [`block_on_future`] on
+/// behalf of `#[valtron]`/`#[valtron_test]` (issue #242) — supplies this
+/// handler to receive the payload on the worker thread.
+/// WHAT: like [`execute`], but the builder's panic handler is wired into the
+/// stream consumer.
+fn execute_with_panic_handler<T, H>(
+    task: T,
+    wait_cycle: Option<std::time::Duration>,
+    panic_handler: H,
+) -> GenericResult<DrivenStreamIterator<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    H: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+{
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
+
+    let iter = multi::spawn()
+        .with_task(task)
+        .with_panic_handler(panic_handler)
+        .stream_iter_with_config(
+            wait_cycle.unwrap_or_else(|| StreamConfig::default().park_duration),
+            DEFAULT_MAX_TURNS,
+        )?;
+
+    Ok(drive_stream(iter))
 }
 
 /// WHY: Provides an ergonomic sync escape hatch for executing a single task

@@ -104,4 +104,6 @@ mod valtron_macro_tests;
 mod wakeable_stream;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
+#[cfg(feature = "multi")]
+mod worker_panic_accounting;
 mod wrappers;
