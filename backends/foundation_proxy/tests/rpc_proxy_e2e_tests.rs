@@ -272,8 +272,19 @@ fn test_timeout_ms() -> u64 {
         .unwrap_or(DEFAULT_TIMEOUT_MS)
 }
 
+/// Bound for one client call in this suite.
+///
+/// WHY: a stalled call must fail on its own deadline and name itself, not only
+/// on the 30 s harness cap above. The client enforces this `Ctx` deadline, so
+/// the failing call's `.expect("...")` message and its line number say which
+/// call stalled.
+///
+/// WHAT: 5 s. A passing call takes about 0.2 s, so this is a 25× margin, and it
+/// is far below the harness cap.
+const CALL_DEADLINE: Duration = Duration::from_secs(5);
+
 fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+    Ctx::background().with_deadline(CALL_DEADLINE)
 }
 
 /// A typed client over HTTP/1.1 speaking the Connect protocol.

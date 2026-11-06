@@ -16,7 +16,7 @@ use foundation_connectrpc::{H2Transport, Transport};
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{
-    initialize_pool, valtron_test, BlockingFutureExt, Pipe, PipeReceiver, PipeSender,
+    initialize_pool, sleep_async, valtron_test, BlockingFutureExt, Pipe, PipeReceiver, PipeSender,
 };
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -37,6 +37,7 @@ use foundation_netio::shared::http::{
 use foundation_proxy::config::ServiceConfig;
 use foundation_proxy::h2_proxy::h2_status;
 use foundation_proxy::{ProxyConfig, ProxyServer};
+use futures_util::future::{select, Either};
 use futures_util::StreamExt;
 
 // ── HTTP/1.1 echo backend (real HttpServer) ─────────────────────────────
@@ -403,9 +404,36 @@ fn grpc_proxy_config(backend_port: u16) -> ProxyConfig {
         .service(svc)
 }
 
+/// Bound for one relayed gRPC call in this suite.
+///
+/// WHY: `h2_grpc_request` drives `H2Transport` directly and takes no `Ctx`, so
+/// the client's deadline enforcement does not reach it. A call that stalls must
+/// still fail on its own bound and name itself, not only on the test harness
+/// timeout.
+///
+/// WHAT: 5 s. A passing call takes well under a second.
+const GRPC_CALL_BOUND: Duration = Duration::from_secs(5);
+
 /// Send a gRPC request through the proxy with connectrpc's `H2Transport` — the
 /// only H2 client that surfaces trailers — returning `(status, body, trailers)`.
+///
+/// Fails after [`GRPC_CALL_BOUND`] with the path in the message, so a stall
+/// names the call that hung.
 async fn h2_grpc_request(
+    proxy_port: u16,
+    path: &str,
+    payload: &[u8],
+) -> (Status, Vec<u8>, SimpleHeaders) {
+    let call = h2_grpc_request_inner(proxy_port, path, payload);
+    match select(Box::pin(call), Box::pin(sleep_async(GRPC_CALL_BOUND))).await {
+        Either::Left((result, _bound)) => result,
+        Either::Right(((), _call)) => {
+            panic!("h2_grpc_request on {path}: no response within {GRPC_CALL_BOUND:?}")
+        }
+    }
+}
+
+async fn h2_grpc_request_inner(
     proxy_port: u16,
     path: &str,
     payload: &[u8],
