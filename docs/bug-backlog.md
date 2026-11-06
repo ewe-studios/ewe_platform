@@ -15,15 +15,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- **The wasm32 `--features rpc` build reports three warnings.** File
-  `src/shared/router/dispatch.rs`. `cargo check --target wasm32-unknown-unknown
-  -p foundation_connectrpc --no-default-features --features rpc` reports the
-  unused imports `PipeReceiver` and `PipeSender` (line 46) and the dead
-  functions `run_unary` (line 625) and `grpc_status_trailers` (line 1893).
-  The native build is clean; the wasm gate in `ci/packages.toml` does not deny
-  warnings, so CI passes. Fix: gate the import and the two functions to the
-  feature set that uses them, or add the missing wasm caller. Found in feature
-  123.
 - **Dropping a stream facade does not cancel its reader task.** File
   `src/shared/client.rs`. The facade does not hold the call `CancelSignal`, so
   the deadline path passes `None` as the cancel argument. Dropping a

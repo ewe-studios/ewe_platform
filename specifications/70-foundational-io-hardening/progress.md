@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 128 makes the wasm32 rpc gate of `foundation_connectrpc`
+  warning-free and denies warnings. Branch `spec70/priority-followups`.
+  - `src/shared/router/dispatch.rs` gates `PipeReceiver` and `PipeSender`, and
+    the functions `run_unary` and `grpc_status_trailers`, with
+    `#[cfg(not(target_family = "wasm"))]`. Every item has a native caller in the
+    H2 section or in `native/h3_serve.rs`; none is deleted.
+  - `ci/packages.toml` gains `wasm-deny-warnings = true` for
+    `foundation_connectrpc`. `scripts/ci/ci.py` gains the matching `Settings`
+    field and a `PlannedCommand` (argv plus per-command environment). The runner
+    applies that environment after the package environment.
+  - The deny route is `RUSTFLAGS=-D warnings`, because this cargo rejects
+    `cargo check ... -- -D warnings` with `unexpected argument '-D'`.
+  - Proof: a planted unused import made the planned gate exit 101 with
+    `-D unused-imports`; after the revert it exits 0.
+  - New test `scripts/ci/tests/test_ci_wasm_deny.py` (3 tests); the suite has
+    24 tests. `docs/bug-backlog.md` §1 entry deleted. Native tests: 241 pass.
+  - No version bump: no public API change. CI proof is pending.
+
 - 2026-11-06: feature 117 phase A adds `Clock::wall_now`, the shared timestamp
   conversions and the time-source gate. Branch `spec70/priority-followups`.
   - `foundation_core::valtron::Clock` gains the required `wall_now` method.

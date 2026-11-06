@@ -1,6 +1,6 @@
 ---
 feature: "The wasm32 rpc build of foundation_connectrpc is warning-free and denied in CI"
-status: "pending"
+status: "pending (CI proof)"
 lane: "priority follow-up (found by feature 123)"
 model: "haiku"
 branch: "spec70/f128-connectrpc-wasm-warnings"
@@ -77,13 +77,43 @@ cargo test --profile uat -p foundation_connectrpc
 
 ## Done when
 
-- [ ] The wasm32 rpc check prints no warning.
-- [ ] The gate fails on a warning, so the debt cannot return.
-- [ ] The native build is unchanged and its tests pass.
-- [ ] The backlog §1 entry is deleted.
+- [x] The wasm32 rpc check prints no warning.
+- [x] The gate fails on a warning, so the debt cannot return.
+- [x] The native build is unchanged and its tests pass.
+- [x] The backlog §1 entry is deleted.
 - [ ] CI green.
 
 ## Result
 
-2026-11-06. Plan only. Not started. Feature 123 saw the three warnings while it ran the
-wasm check for the client deadline.
+2026-11-06. Done, on branch `spec70/priority-followups`. The wasm32 rpc gate
+prints no warning and now denies warnings.
+
+- Each item is gated with `#[cfg(not(target_family = "wasm"))]`, next to the
+  existing native-only import at line 44. `PipeReceiver` and `PipeSender` are
+  used only by the h2 functions `dispatch_h2`, `dispatch_h2_stream` and
+  `run_streaming_h2`, which all sit in the native-only H2 section. `run_unary`
+  is called from `dispatch_h2_stream` and from `native/h3_serve.rs`, and `native`
+  is compiled only off wasm. `grpc_status_trailers` is called from
+  `run_streaming_h2` and from `native/h3_serve.rs`. No function is deleted: each
+  one has a native caller.
+- No second wasm feature set: `ci/packages.toml` gives
+  `foundation_connectrpc` one entry, `--no-default-features --features rpc`.
+- The deny route is `RUSTFLAGS=-D warnings`, because this cargo
+  (`1.100.0-nightly`) rejects `cargo check ... -- -D warnings`:
+  `error: unexpected argument '-D' found`. `ci.py` now has a
+  `wasm-deny-warnings` key, a `wasm_deny_warnings` field on `Settings`, and a
+  `PlannedCommand` (argv plus per-command environment) that the runner applies
+  after the package environment. The planned gate command is:
+  `RUSTFLAGS=-D warnings cargo check --target wasm32-unknown-unknown -p foundation_connectrpc --no-default-features --features rpc`.
+- Proof the gate fails: a temporary `use std::time::Duration;` in
+  `dispatch.rs` made it exit 101 with
+  `error: unused import: `std::time::Duration`` and
+  `note: `-D unused-imports` implied by `-D warnings``. The line is reverted;
+  the gate then exits 0.
+- A new test, `scripts/ci/tests/test_ci_wasm_deny.py`, reads `ci/packages.toml`,
+  builds the plan for `foundation_connectrpc`, and checks that every wasm step
+  carries `RUSTFLAGS=-D warnings`. Two more tests check that a package without
+  the key keeps plain commands and that `[defaults]` does not set it.
+- Native build unchanged: clippy clean, and 241 tests pass. The
+  `docs/bug-backlog.md` §1 entry is deleted. Version stays 0.0.5: no public API
+  change.

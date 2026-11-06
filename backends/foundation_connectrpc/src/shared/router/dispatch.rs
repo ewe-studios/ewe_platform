@@ -43,6 +43,7 @@ use foundation_core::io::readers::Data;
 use foundation_core::valtron::Pipe;
 #[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::Stream;
+#[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_http::shared::context::ContextBag;
@@ -621,6 +622,7 @@ pub(crate) async fn run_unary_until_deadline(
 /// Unary over a request whose body is already in `request.body` (h2, h3),
 /// bounded by the call's deadline when `timer` is given. See
 /// [`run_unary_until_deadline`].
+#[cfg(not(target_family = "wasm"))]
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn run_unary(
     handler: Arc<dyn super::erased::ErasedUnaryHandler>,
@@ -1886,6 +1888,7 @@ async fn run_streaming_h2(
 
 /// gRPC trailing headers for a streaming outcome: `grpc-status: 0` on success,
 /// the error's code and percent-encoded message otherwise (gRPC spec §Responses).
+#[cfg(not(target_family = "wasm"))]
 #[allow(
     clippy::format_push_string,
     reason = "the percent-encoded trailer string is short; `format!` reads clearer"

@@ -2,6 +2,27 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 128, wasm deny gate):
+  - **`cargo check` takes no trailing rustc arguments.** This cargo
+    (`1.100.0-nightly`) rejects `cargo check ... -- -D warnings` with
+    `error: unexpected argument '-D' found`, unlike `cargo clippy` and
+    `cargo test`. The deny flag must travel in `RUSTFLAGS` for that single
+    command. Cargo caps lints on registry dependencies, so the flag does not
+    turn a third-party warning into a failure; the workspace path dependencies
+    stay uncapped and must be warning-free.
+  - **A per-command environment keeps the package environment intact.** Setting
+    `RUSTFLAGS` for the whole package would also change the native build's
+    fingerprints. A small plan value that carries argv plus its own environment
+    scopes the flag to the wasm gate.
+  - **A wasm warning can be a native-only item, not dead code.** All three
+    warnings came from functions that the H2 server and `native/h3_serve.rs`
+    call. The fix is a `cfg` gate, never a deletion. Confirm each caller first:
+    `native` is compiled only off wasm.
+  - **The test for a CI plan does not need `cargo metadata`.** Extracting
+    `settings_for(name, defaults, package)` from `load_settings` lets a unit
+    test merge the real `ci/packages.toml` table and build the real plan,
+    without the slow workspace scan or its unknown-package check.
+
 - 2026-11-06 (feature 117, timestamps from the injected clock):
   - **A required trait method breaks every implementor, including ones outside the
     feature's crate scope.** `Clock::wall_now` is required because a default would
