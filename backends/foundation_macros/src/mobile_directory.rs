@@ -31,16 +31,21 @@ pub fn mobile_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::
     let ast = syn::parse_macro_input!(item as syn::DeriveInput);
     let struct_name = &ast.ident;
 
-    if !matches!(&ast.data, syn::Data::Struct(_)) {
-        panic!("MobileDirectory must be used on a struct with a `root: PathBuf` field");
-    }
+    assert!(
+        matches!(&ast.data, syn::Data::Struct(_)),
+        "MobileDirectory must be used on a struct with a `root: PathBuf` field"
+    );
 
     let source = get_attr(&ast, "source")
         .expect("A #[source = \"...\"] attribute is required for MobileDirectory");
 
-    proc_macro::TokenStream::from(impl_mobile_directory(struct_name, &source))
+    impl_mobile_directory(struct_name, &source)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear directory-walk expansion that emits the generated impl in order"
+)]
 fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> TokenStream {
     let cargo_manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");

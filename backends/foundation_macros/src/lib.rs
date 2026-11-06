@@ -201,7 +201,7 @@ pub fn embed_file_as(item: TokenStream) -> TokenStream {
 /// Never panics. Returns compile errors for invalid usage.
 #[proc_macro_attribute]
 pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
-    platform_test::platform_test(attr, item)
+    platform_test::platform_test(&attr, item)
 }
 
 #[proc_macro_attribute]
@@ -608,7 +608,9 @@ pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
-    wasm_test::valtron_wasm_test(attr.into(), item.into()).into()
+    let attr: proc_macro2::TokenStream = attr.into();
+    let item: proc_macro2::TokenStream = item.into();
+    wasm_test::valtron_wasm_test(&attr, &item).into()
 }
 
 /// `#[valtron_bindgen]` — wasm-bindgen browser test with valtron pool (F52).
@@ -684,7 +686,8 @@ pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Also exported as `foundation_core::valtron::task`.
 #[proc_macro_attribute]
 pub fn task(attr: TokenStream, item: TokenStream) -> TokenStream {
-    state_task::task(attr.into(), item.into()).into()
+    let attr: proc_macro2::TokenStream = attr.into();
+    state_task::task(&attr, item.into()).into()
 }
 
 /// `#[serial_test]` — serialize tests that share process-global state.
@@ -710,6 +713,10 @@ pub fn serial_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// `#[timeout(ms)]` — kills the test if it exceeds the given millisecond limit.
 /// Spawns the test body in a thread and waits with `recv_timeout`. On timeout,
 /// panics with a message showing actual vs allowed duration.
+///
+/// # Panics
+///
+/// Panics when the attribute is not an integer number of milliseconds.
 ///
 /// ```ignore
 /// #[timeout(60000)]
@@ -843,7 +850,7 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
     docker_container::docker_container(attr, item)
 }
 
-/// `wireguard!` — compile-time WireGuard mesh configuration (spec-55, feature 09).
+/// `wireguard!` — compile-time `WireGuard` mesh configuration (spec-55, feature 09).
 ///
 /// Desugars a custom block syntax into a `WgConfig` builder chain.
 /// Unknown keys and missing required fields are compile errors.
@@ -878,7 +885,7 @@ pub fn wireguard(input: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
-    wireguard::wireguard_main_impl(attr, item)
+    wireguard::wireguard_main_impl(&attr, item)
 }
 
 /// `proxy!` — compile-time proxy configuration (Decision 19).
@@ -974,9 +981,9 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 // ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
 
-/// `#[service]` — code-first ConnectRPC (Decision 10 Mode 3).
+/// `#[service]` — code-first `ConnectRPC` (Decision 10 Mode 3).
 ///
-/// Transforms a Rust trait definition into a full ConnectRPC service:
+/// Transforms a Rust trait definition into a full `ConnectRPC` service:
 /// service name constant, procedure path constants (R1), the trait with
 /// default unimplemented bodies, registration fn, `UnimplementedXxxHandler`
 /// (R2), typed client (R4), and an exported descriptor macro for cross-crate
@@ -1003,7 +1010,7 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
     connectrpc_service::expand_service(attr.into(), item.into()).into()
 }
 
-/// `generate!` — cross-crate ConnectRPC artifact generation.
+/// `generate!` — cross-crate `ConnectRPC` artifact generation.
 ///
 /// Re-expands a descriptor macro exported by `#[service]` in
 /// another crate inside a new module.

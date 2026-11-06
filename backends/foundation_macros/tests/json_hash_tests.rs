@@ -193,7 +193,7 @@ fn test_struct_hash_is_stable_across_runs() {
     assert_eq!(hash2, hash3);
 
     // Hash should be non-empty
-    assert!(!hash1.is_empty());
+    assert_ne!(hash1, "");
 }
 
 #[test]
@@ -254,5 +254,5 @@ fn test_struct_hash_on_a_generic_struct() {
         success: true,
         result: "x".to_string(),
     };
-    assert!(!text.struct_hash().is_empty());
+    assert_ne!(text.struct_hash(), "");
 }

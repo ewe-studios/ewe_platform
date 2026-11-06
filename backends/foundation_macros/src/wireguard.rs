@@ -1,4 +1,4 @@
-//! `wireguard!` — compile-time WireGuard mesh configuration macro (spec-55, feature 09).
+//! `wireguard!` — compile-time `WireGuard` mesh configuration macro (spec-55, feature 09).
 //!
 //! Function-like proc macro that desugars a custom block syntax into a
 //! `WgConfig` builder chain. Unknown keys and missing required fields
@@ -193,9 +193,10 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
     // relay
     let relay_call = match &config.relay {
         Some(relay) => {
-            let advertise = match &relay.advertise {
-                Some(b) => quote! { .relay_advertise(#b) },
-                None => quote! { .relay_advertise(true) },
+            let advertise = if let Some(b) = &relay.advertise {
+                quote! { .relay_advertise(#b) }
+            } else {
+                quote! { .relay_advertise(true) }
             };
             let sessions = match &relay.max_sessions {
                 Some(n) => quote! { .relay_max_sessions(#n as u32) },
@@ -258,8 +259,8 @@ pub fn wireguard_impl(input: TokenStream) -> TokenStream {
 /// HOW: Follows the `valtron_entry` pattern: move the body into an inner fn, set up the
 /// engine + mesh around it, drop them after the body returns.
 ///
-/// Attribute args: `config = "path/to/wireguard.toml"` (optional; defaults to from_env).
-pub fn wireguard_main_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+/// Attribute args: `config = "path/to/wireguard.toml"` (optional; defaults to `from_env`).
+pub fn wireguard_main_impl(attr: &TokenStream, item: TokenStream) -> TokenStream {
     let func = match syn::parse::<syn::ItemFn>(item) {
         Ok(f) => f,
         Err(e) => return e.to_compile_error().into(),
@@ -330,7 +331,7 @@ pub fn wireguard_main_impl(attr: TokenStream, item: TokenStream) -> TokenStream 
 }
 
 /// Parse `config = "path"` from the attribute tokens, if present.
-fn parse_config_arg(attr: TokenStream) -> Option<String> {
+fn parse_config_arg(attr: &TokenStream) -> Option<String> {
     if attr.is_empty() {
         return None;
     }

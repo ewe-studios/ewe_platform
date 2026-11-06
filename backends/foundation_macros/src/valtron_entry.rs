@@ -258,8 +258,8 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
 /// call from the parsed macro args. Called at macro expansion time (not inside
 /// `quote!`), so the returned tokens are spliced directly into the test body.
 ///
-/// For `#[valtron_test]` (is_test=true): tracing is always on (defaults to "info").
-/// For `#[valtron]` (is_test=false): tracing is OFF unless explicitly requested
+/// For `#[valtron_test]` (`is_test = true`): tracing is always on (defaults to "info").
+/// For `#[valtron]` (`is_test = false`): tracing is OFF unless explicitly requested
 /// via `tracing = "debug"` or similar.
 fn expand_tracing_init(
     args: &Args,
@@ -298,9 +298,10 @@ fn expand_tracing_init(
     let files = field(&args.tracing_files, false);
     let line_numbers = field(&args.tracing_lines, false);
     let ansi = field(&args.tracing_ansi, false);
-    let writer = match args.tracing_writer {
-        Some(true) => quote! { #fc::valtron::trace::TraceWriter::Console },
-        _ => quote! { #fc::valtron::trace::TraceWriter::Stdout },
+    let writer = if let Some(true) = args.tracing_writer {
+        quote! { #fc::valtron::trace::TraceWriter::Console }
+    } else {
+        quote! { #fc::valtron::trace::TraceWriter::Stdout }
     };
 
     quote! {
@@ -321,6 +322,10 @@ fn expand_tracing_init(
 ///
 /// `is_test` controls the two differences: emitting `#[test]`, and the
 /// `Some(3)`-minimum thread default.
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear expansion that emits the runtime wrapper in order"
+)]
 fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     let args = match parse_args(attr) {
         Ok(args) => args,

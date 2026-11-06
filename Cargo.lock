@@ -5887,7 +5887,6 @@ version = "0.0.8"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
- "chrono",
  "flate2",
  "foundation_arrow",
  "foundation_connectrpc",

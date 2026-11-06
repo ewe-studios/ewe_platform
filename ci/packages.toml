@@ -147,6 +147,12 @@ wasm-expect-error = { run = "--no-default-features", contains = "foundation_core
 # feature 49 E10).
 clippy-deny-warnings = true
 
+[packages.foundation_macros]
+# At zero clippy warnings across its one feature tree (spec 70 feature 120):
+# a new warning fails CI. The crate has no features, so the default run is
+# the only tree to lint.
+clippy-deny-warnings = true
+
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path

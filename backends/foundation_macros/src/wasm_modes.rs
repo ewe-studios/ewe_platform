@@ -30,6 +30,10 @@ pub(crate) fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream 
     expand_mode("wasm_service", true, attr, item, true)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear expansion shared by the wasm worker and service modes"
+)]
 fn expand_mode(
     mode: &str,
     requires_routes: bool,

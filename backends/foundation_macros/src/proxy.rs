@@ -268,7 +268,7 @@ pub fn proxy_impl(input: TokenStream) -> TokenStream {
 
     // SSL
     let ssl_call = match &config.ssl {
-        None => quote! {},
+        None | Some(SslBlock::None) => quote! {},
         Some(SslBlock::LetsEncrypt { email }) => {
             quote! { .ssl(foundation_proxy::SslConfig::lets_encrypt(#email)) }
         }
@@ -278,7 +278,6 @@ pub fn proxy_impl(input: TokenStream) -> TokenStream {
         Some(SslBlock::StaticCert { cert, key }) => {
             quote! { .ssl(foundation_proxy::SslConfig::static_cert(#cert, #key)) }
         }
-        Some(SslBlock::None) => quote! {},
     };
 
     // Services
