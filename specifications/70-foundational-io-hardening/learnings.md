@@ -2,6 +2,29 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (feature 124, streaming receive deadlines):
+  - **A deadline test needs a peer that does not enforce the deadline.** The
+    real Connect server reads `Connect-Timeout-Ms` and races the whole handler
+    against it. A stalled server-stream against the real server still ends with
+    `DeadlineExceeded`, so the test passes on the old client code and proves
+    nothing. Use a raw HTTP/2 peer (`H2Channel`) that ignores the header when
+    the property under test is "the client enforces its own deadline". Keep the
+    real server for the no-deadline path.
+  - **Copy the absolute deadline into the facade, do not count idle time.**
+    "A call fails on its deadline" is a gRPC contract about one end time, not
+    about each wait. A stream that sends one item per minute under a 10 s
+    deadline fails on the first wait that crosses it. The unary path and the
+    facade now use the same absolute instant.
+  - **Split the helper instead of duplicating the race.** Taking the deadline
+    and an optional cancel reference keeps one implementation for setup and
+    for every facade wait. The feature 123 form keeps its own past-deadline
+    check so its message and cancel fire do not change.
+  - **Dropping a facade does not stop its reader task.** The facade holds no
+    `CancelSignal`. The reader task owns the response body, so it stays parked
+    on a silent peer after the caller drops the stream. The stalled-peer test
+    observes the socket stay open past the deadline and the drop. Recorded in
+    backlog §1.
+
 - 2026-11-06 (feature 125, the H2 client pump):
   - **Clear reactor readiness before an attempt, never after it.** The `FdReadiness`
     module doc and `foundation_http`'s h2 server (`arm_wakers`) clear at the start of a

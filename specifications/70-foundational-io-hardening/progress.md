@@ -2,6 +2,33 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: feature 124 bounds every streaming facade wait with the call
+  deadline. Branch `spec70/priority-followups`.
+  - `with_deadline` is split into
+    `with_deadline_at(deadline, cancel, call)`. The feature 123 form keeps its
+    past-deadline message and its cancel fire, then calls the new form with the
+    call `Ctx`. A facade wait passes `None` as the cancel argument.
+  - `ServerStream`, `BidiStream`, `BidiSender` and `BidiReceiver` carry one
+    private `deadline: Option<Instant>`, copied from the call `Ctx`.
+    `BidiStream::split` copies it into both halves.
+  - All 14 facade waits named in the feature table now race a
+    `valtron::sleep_async` against the wait and return
+    `ConnectError::deadline_exceeded("call deadline exceeded")`. The deadline
+    is absolute, so once it passes every later wait fails at once.
+  - Three new tests in `tests/client_deadline_tests.rs`. The two deadline
+    tests use a raw HTTP/2 peer that ignores the timeout header, because the
+    real server enforces the same header itself and would mask the client gap.
+    Both fail on the old code after about 1.57 s with `Internal` instead of
+    `DeadlineExceeded`. The no-deadline test keeps the real server.
+  - `foundation_connectrpc` 241 tests pass, 0 fail; fmt and clippy are clean.
+    The wasm32 `--features rpc` check passes with the 3 known `dispatch.rs`
+    warnings.
+  - Backlog §1: deleted the "streaming call's later receives" entry. Added an
+    entry: dropping a facade does not cancel its reader task, so a stalled
+    peer keeps the socket open until the transport or the call ends.
+  - No public signature changed, so the crate version stays 0.0.5.
+  - The feature stays `pending (CI proof)` until the pull-request CI is green.
+
 - 2026-11-06: feature 125 parks the H2 client pump on reactor readiness.
   Branch `spec70/priority-followups`.
   - `H2Pump::next_status` no longer returns `TaskStatus::Delayed(10 ms)` on its

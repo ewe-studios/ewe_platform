@@ -1,32 +1,48 @@
-//! Client-side deadline enforcement (feature 123).
+//! Client-side deadline enforcement (features 123 and 124).
 //!
 //! WHY: `Ctx::with_deadline` only records a timestamp. A call parked on a read
-//! must fail on its own deadline, not on the peer's idle timeout.
+//! must fail on its own deadline, not on the peer's idle timeout — during both
+//! setup and every later receive.
 //!
 //! WHAT: drives a typed `Client` over the real native transports:
 //! - `H1Transport` against a real `HttpServer` (the normal path completes) and
 //!   against a listener that accepts but never answers (the deadline ends it).
 //! - `H2Transport` against the same silent listener.
+//! - `H2Transport` against a raw HTTP/2 peer that sends one Connect message and
+//!   then stalls. The peer ignores the call timeout header, so only the client
+//!   can end the later receives.
+//! - `H2Transport` against a real `HttpServer` whose streaming handler resumes
+//!   after a stall (no deadline is set, so the receive waits).
 //!
 //! HOW: every test runs under `#[valtron_test]`, because the transports and the
 //! server share the process-wide valtron pool. A `SilentServer` accepts each
-//! connection and holds it open, so nothing on the peer ever answers.
+//! connection and holds it open, so nothing on the peer ever answers. The raw
+//! peer holds its socket open after the first message.
 
+use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
+use bytes::Bytes;
+use futures::StreamExt;
+
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
-use foundation_http::shared::app::HttpApp;
+use foundation_http::shared::app::{HttpApp, ServerApp};
 use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
+use foundation_netio::http2::channel::H2Channel;
+use foundation_netio::http2::frame::Kind;
 
+use foundation_connectrpc::shared::envelope::Envelope;
+use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::{
-    Client, ClientOptions, Code, ConnectRpcServe, Ctx, H1Transport, H2Transport, HandlerOptions,
-    JsonCodec, ProcedureCodecs, Request, Response, Router, Transport,
+    Client, ClientOptions, Code, ConnectRpcServe, ConnectRpcServeH2, Ctx, H1Transport, H2Transport,
+    HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, Transport,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -41,6 +57,9 @@ impl Msg {
 }
 
 const UNARY: &str = "/t.Svc/Unary";
+const SERVER_STREAM: &str = "/t.Svc/ServerStream";
+const RESUME_STREAM: &str = "/t.Svc/ResumeStream";
+const BIDI: &str = "/t.Svc/Bidi";
 
 fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
@@ -74,6 +93,181 @@ fn start_h1_server() -> (SocketAddr, Arc<ShutdownSignal>) {
     let server_shutdown = shutdown.clone();
     thread::spawn(move || server.serve_with_listener(&listener, &server_shutdown));
     (addr, shutdown)
+}
+
+/// One server-stream item, then a second item after 400 ms. Shows that a
+/// stream without a deadline still waits and later resumes.
+fn first_then_later() -> impl futures::Stream<Item = ConnectResult<Msg>> + Send {
+    let later = futures::stream::once(async {
+        foundation_core::valtron::sleep_async(Duration::from_millis(400)).await;
+        Ok::<Msg, _>(Msg::of("second"))
+    });
+    futures::stream::once(async { Ok::<Msg, _>(Msg::of("first")) }).chain(later)
+}
+
+/// A router with one procedure that answers once and resumes after 400 ms.
+fn resume_router() -> Router {
+    let mut router = Router::new();
+    router.server_stream(
+        RESUME_STREAM,
+        codecs(),
+        |_ctx: Ctx, _req: Request<Msg>| async move { Ok(first_then_later()) },
+        HandlerOptions::new(),
+    );
+    router
+}
+
+/// Start the real Connect server over HTTP/2 on `127.0.0.1:0`.
+fn start_resume_server() -> (String, Arc<ShutdownSignal>) {
+    let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(resume_router().into_handler()));
+    let mut app = HttpApp::new_h2_serve();
+    app.route_any_h2(RESUME_STREAM, rpc);
+
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let server_shutdown = shutdown.clone();
+    let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
+    thread::spawn(move || server.serve_with_listener(&listener, &server_shutdown));
+    (addr.to_string(), shutdown)
+}
+
+fn streaming_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+    let url = format!("http://{addr}{procedure}");
+    Client::new(
+        transport,
+        &url,
+        codecs(),
+        ClientOptions::new().with_codec("json"),
+    )
+    .expect("build client")
+}
+
+fn deadline_ctx() -> Ctx {
+    Ctx::background().with_deadline(Duration::from_millis(200))
+}
+
+// ── Raw HTTP/2 peer that does not enforce the deadline ──────────────────────
+
+/// Write every queued frame to the socket.
+fn flush_frames(channel: &mut H2Channel, socket: &mut TcpStream) {
+    let out = channel.drain_output();
+    if !out.is_empty() {
+        socket.write_all(&out).expect("server write");
+        socket.flush().expect("server flush");
+    }
+}
+
+/// Read the bytes the socket has ready into the channel.
+fn feed_available(channel: &mut H2Channel, socket: &mut TcpStream) {
+    let mut buf = [0u8; 8192];
+    match socket.read(&mut buf) {
+        Ok(0) => panic!("client closed the connection"),
+        Ok(n) => channel.feed_input(&buf[..n]),
+        Err(e)
+            if matches!(
+                e.kind(),
+                std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+            ) => {}
+        Err(e) => panic!("server read failed: {e}"),
+    }
+}
+
+/// Run the server side of the h2 handshake to completion.
+fn server_handshake(channel: &mut H2Channel, socket: &mut TcpStream) {
+    loop {
+        match channel.server_handshake_step() {
+            Ok(()) => {
+                flush_frames(channel, socket);
+                return;
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                flush_frames(channel, socket);
+                feed_available(channel, socket);
+            }
+            Err(e) => panic!("server handshake failed: {e}"),
+        }
+    }
+}
+
+/// Read frames until the request HEADERS arrives, and return its stream id.
+fn read_request_stream_id(channel: &mut H2Channel, socket: &mut TcpStream) -> u32 {
+    loop {
+        match channel.read_frame() {
+            Ok((head, _payload)) => {
+                flush_frames(channel, socket);
+                if head.kind == Kind::Headers {
+                    return head.stream_id;
+                }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                flush_frames(channel, socket);
+                feed_available(channel, socket);
+            }
+            Err(e) => panic!("server frame read failed: {e}"),
+        }
+    }
+}
+
+/// A raw HTTP/2 peer that sends the response head and one Connect message,
+/// then stalls.
+///
+/// WHY: the real `HttpServer` enforces the call's `Connect-Timeout-Ms` header
+/// itself, so it cannot show whether the *client* enforces its own deadline.
+/// This peer ignores the header. Only a client-side timer can end the wait.
+fn start_stalled_peer() -> (SocketAddr, thread::JoinHandle<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let handle = thread::spawn(move || {
+        let (mut socket, _) = listener.accept().expect("accept");
+        socket
+            .set_read_timeout(Some(Duration::from_millis(50)))
+            .expect("read timeout");
+
+        let mut channel = H2Channel::new(true);
+        server_handshake(&mut channel, &mut socket);
+        let stream_id = read_request_stream_id(&mut channel, &mut socket);
+
+        // The response head names the Connect streaming protocol.
+        let headers = vec![(
+            Bytes::from_static(b"content-type"),
+            Bytes::from_static(b"application/connect+json"),
+        )];
+        channel
+            .send_headers_response(stream_id, 200, &headers, false)
+            .expect("response head");
+        flush_frames(&mut channel, &mut socket);
+
+        // One enveloped `Msg { text: "first" }`, then no more frames.
+        let mut frame = Vec::new();
+        Envelope {
+            flags: 0,
+            data: Bytes::from_static(br#"{"text":"first"}"#),
+        }
+        .encode_into(&mut frame);
+        channel
+            .send_data_frame(stream_id, &frame, false)
+            .expect("first message");
+        flush_frames(&mut channel, &mut socket);
+
+        // Stall until the client drops the connection or the bound passes.
+        let bound = Instant::now() + Duration::from_millis(1500);
+        let mut buf = [0u8; 8192];
+        while Instant::now() < bound {
+            match socket.read(&mut buf) {
+                Ok(0) => break,
+                Ok(_) => {}
+                Err(e)
+                    if matches!(
+                        e.kind(),
+                        std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+                    ) => {}
+                Err(_) => break,
+            }
+        }
+    });
+    (addr, handle)
 }
 
 /// A listener that accepts every connection and never answers. Each accepted
@@ -300,4 +494,156 @@ async fn a_bidi_deadline_in_the_past_fails_without_a_request() {
             "unexpected accept error: {e}"
         ),
     }
+}
+
+/// After the first message, a stalled server-stream receive fails on the call
+/// deadline.
+///
+/// The peer ignores the call's timeout header, so only the client's own timer
+/// can end the wait. This fails on the code before feature 124: the second
+/// receive has no timer and runs to the test's own bound.
+#[valtron_test(timeout = 10_000)]
+async fn a_server_stream_receive_fails_on_the_call_deadline() {
+    let (addr, peer) = start_stalled_peer();
+    let client = streaming_client(&addr.to_string(), SERVER_STREAM);
+
+    let mut stream = client
+        .server_stream(deadline_ctx(), Request::new(Msg::of("item")))
+        .await
+        .expect("server stream");
+    let first = stream
+        .receive()
+        .await
+        .expect("the first receive must succeed")
+        .expect("the server sends one message");
+    assert_eq!(first, Msg::of("first"));
+
+    let started = Instant::now();
+    let err = stream
+        .receive()
+        .await
+        .expect_err("the second receive must fail on its deadline");
+    let elapsed = started.elapsed();
+
+    assert_eq!(
+        err.current_context().code(),
+        Code::DeadlineExceeded,
+        "expected DeadlineExceeded, got: {err}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(1),
+        "the 200 ms deadline must end the receive in under 1 s, took {elapsed:?}"
+    );
+    drop(stream);
+    peer.join().expect("peer thread");
+}
+
+/// After the first message, a stalled bidi receive fails on the call deadline,
+/// for both `BidiStream::receive` and the split `BidiReceiver::receive`.
+#[valtron_test(timeout = 10_000)]
+async fn a_bidi_receive_fails_on_the_call_deadline() {
+    // Whole stream.
+    let (addr, peer) = start_stalled_peer();
+    let client = streaming_client(&addr.to_string(), BIDI);
+    let mut stream = client
+        .bidi_stream(deadline_ctx(), futures::stream::empty::<Msg>())
+        .await
+        .expect("bidi stream");
+    let first = stream
+        .receive()
+        .await
+        .expect("the first receive must succeed")
+        .expect("the server sends one message");
+    assert_eq!(first, Msg::of("first"));
+
+    let started = Instant::now();
+    let err = stream
+        .receive()
+        .await
+        .expect_err("the second receive must fail on its deadline");
+    let elapsed = started.elapsed();
+    assert_eq!(
+        err.current_context().code(),
+        Code::DeadlineExceeded,
+        "expected DeadlineExceeded, got: {err}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(1),
+        "the 200 ms deadline must end the receive in under 1 s, took {elapsed:?}"
+    );
+    drop(stream);
+    peer.join().expect("peer thread");
+
+    // Split receive half.
+    let (addr, peer) = start_stalled_peer();
+    let client = streaming_client(&addr.to_string(), BIDI);
+    let stream = client
+        .bidi_stream(deadline_ctx(), futures::stream::empty::<Msg>())
+        .await
+        .expect("bidi stream");
+    let (_sender, mut receiver) = stream.split();
+    let first = receiver
+        .receive()
+        .await
+        .expect("the first receive must succeed")
+        .expect("the server sends one message");
+    assert_eq!(first, Msg::of("first"));
+
+    let started = Instant::now();
+    let err = receiver
+        .receive()
+        .await
+        .expect_err("the split second receive must fail on its deadline");
+    let elapsed = started.elapsed();
+    assert_eq!(
+        err.current_context().code(),
+        Code::DeadlineExceeded,
+        "expected DeadlineExceeded, got: {err}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(1),
+        "the 200 ms deadline must end the receive in under 1 s, took {elapsed:?}"
+    );
+    drop(receiver);
+    peer.join().expect("peer thread");
+}
+
+/// Without a deadline the stall is observable, and the stream still delivers
+/// its data when the server resumes.
+#[valtron_test(timeout = 10_000)]
+async fn a_receive_with_no_deadline_still_waits() {
+    let (addr, shutdown) = start_resume_server();
+    let client = streaming_client(&addr, RESUME_STREAM);
+
+    let mut stream = client
+        .server_stream(Ctx::background(), Request::new(Msg::of("item")))
+        .await
+        .expect("server stream");
+    let first = stream
+        .receive()
+        .await
+        .expect("the first receive must succeed")
+        .expect("the server sends one message");
+    assert_eq!(first, Msg::of("first"));
+
+    // The server sends the second item after 400 ms. A 150 ms bound must lose
+    // the race, which proves the client is still waiting, not failing.
+    let receive = stream.receive();
+    futures::pin_mut!(receive);
+    let sleeper = Box::pin(foundation_core::valtron::sleep_async(
+        Duration::from_millis(150),
+    ));
+    match futures::future::select(receive, sleeper).await {
+        futures::future::Either::Left((item, _)) => {
+            panic!("the second receive must still wait, got {item:?}");
+        }
+        futures::future::Either::Right(((), receive)) => {
+            let second = receive
+                .await
+                .expect("the stream must resume after the stall")
+                .expect("the server sends the second message");
+            assert_eq!(second, Msg::of("second"));
+        }
+    }
+    shutdown.turn_on();
 }

@@ -24,15 +24,17 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   warnings, so CI passes. Fix: gate the import and the two functions to the
   feature set that uses them, or add the missing wasm caller. Found in feature
   123.
-- **A streaming call's later receives are not deadline-bounded.** `with_deadline`
-  races the call future only up to the point where `server_stream`,
-  `client_stream` or `bidi_stream` returns. A stream that sends its response
-  head and then stalls has no timer on `ServerStream::receive`,
-  `BidiReceiver::receive` and the other facade methods, so the caller waits for
-  the transport. The unary paths and the streaming setup are bounded. Fix:
-  carry the call deadline into the stream halves and race each receive against
-  `valtron::sleep_async`, mapping the timeout to `DeadlineExceeded`. Found in
-  feature 123.
+- **Dropping a stream facade does not cancel its reader task.** File
+  `src/shared/client.rs`. The facade does not hold the call `CancelSignal`, so
+  the deadline path passes `None` as the cancel argument. Dropping a
+  `ServerStream`, `BidiStream`, `BidiSender` or `BidiReceiver` against a peer
+  that sends nothing leaves the spawned protocol reader parked on the response
+  body. The transport stream and its socket stay open until the peer sends
+  data, the transport idle timeout fires, or the call's cancel signal fires.
+  Feature 124's stalled-peer test observes the socket stay open after the
+  deadline and the drop. Fix: carry the call's `CancelSignal` into the facade
+  values, fire it on `Drop`, and pass it to `with_deadline_at` so a timeout
+  also stops the reader and writer tasks at once. Found in feature 124.
 - **`H2Transport::open` dials with a blocking `connect_timeout`.** File
   `src/native/transport/h2.rs`. `open()` runs on a valtron worker and calls
   `TcpStream::connect_timeout`, which can block that worker (and every task it
