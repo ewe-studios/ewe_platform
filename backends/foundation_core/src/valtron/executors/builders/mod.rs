@@ -322,6 +322,7 @@ where
 fn local_spawn_task<Done, Pending, Resolver, Task>(
     task: Task,
     resolver: Option<Resolver>,
+    panic_handler: Option<BoxedPanicHandler>,
 ) -> crate::valtron::BoxedExecutionIterator
 where
     Done: 'static,
@@ -329,9 +330,18 @@ where
     Resolver: TaskReadyResolver<Done, Pending> + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
-    match resolver {
-        Some(resolver) => OnNext::new(task, resolver).into(),
-        None => Box::new(DoNext::new(task)),
+    if let Some(resolver) = resolver {
+        let iter = OnNext::new(task, resolver);
+        match panic_handler {
+            Some(handler) => Box::new(iter.with_panic_handler(handler)),
+            None => iter.into(),
+        }
+    } else {
+        let iter = DoNext::new(task);
+        match panic_handler {
+            Some(handler) => Box::new(iter.with_panic_handler(handler)),
+            None => Box::new(iter),
+        }
     }
 }
 
@@ -351,7 +361,8 @@ where
         let Some(task) = c.task else {
             return Err(ExecutorError::TaskRequired);
         };
-        c.engine.schedule(local_spawn_task(task, c.resolver))
+        c.engine
+            .schedule(local_spawn_task(task, c.resolver, c.panic_handler))
     }
 }
 
@@ -372,7 +383,8 @@ where
         let Some(task) = c.task else {
             return Err(ExecutorError::TaskRequired);
         };
-        c.engine.lift(local_spawn_task(task, c.resolver), parent)
+        c.engine
+            .lift(local_spawn_task(task, c.resolver, c.panic_handler), parent)
     }
 }
 
@@ -397,7 +409,7 @@ where
             return Err(ExecutorError::TaskRequired);
         };
         c.engine
-            .sequenced(local_spawn_task(task, c.resolver), parent)
+            .sequenced(local_spawn_task(task, c.resolver, c.panic_handler), parent)
     }
 }
 

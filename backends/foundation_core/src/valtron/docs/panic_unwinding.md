@@ -31,6 +31,14 @@ When a task panics:
 4. The executor removes the task from its queue (unparks and takes)
 5. Remaining tasks continue executing normally
 
+### Spawn builders and inline actions
+
+`TaskSpawnConfig::with_panic_handler` installs its handler on every terminal.
+`spawn` and `broadcast` set it on `DoNext` or `OnNext`. `recv` and `stream` set
+it on `ConsumingIter` or `StreamConsumingIter`. `action()` carries it into the
+`InlineAction`, and `apply` sets it on the child iterator. Before issue #244,
+the config stored the handler and no terminal read it.
+
 ### BackgroundJobRegistry (background.rs)
 
 Worker threads wrap each job in `catch_unwind`:

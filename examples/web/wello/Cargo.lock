@@ -325,7 +325,7 @@ version = "0.0.2"
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "cfg-if",
  "foldhash",
@@ -343,7 +343,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.7"
+version = "0.0.16"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -376,16 +376,18 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.4"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "base64",
  "bytes",
  "concurrent-queue",
+ "foundation_compact",
  "foundation_core",
  "foundation_errstacks",
  "foundation_iogate",
  "foundation_netio",
+ "rand_chacha",
  "regex",
  "serde",
  "serde_json",
@@ -407,11 +409,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.7"
+version = "0.0.10"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
- "chrono",
  "flate2",
  "foundation_nostd",
  "foundation_theme",
@@ -427,9 +428,8 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.6"
+version = "0.0.9"
 dependencies = [
- "cc",
  "cfg-if",
  "concurrent-queue",
  "derive_more",
@@ -438,14 +438,13 @@ dependencies = [
  "io-uring",
  "libc",
  "serde",
- "thiserror",
  "tracing",
  "windows-sys 0.59.0",
 ]
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.5"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "base64",
@@ -484,11 +483,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.6"
+version = "0.0.7"
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_core",
  "io-uring",
@@ -710,7 +709,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -1109,26 +1108,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "thiserror"
-version = "2.0.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
-dependencies = [
- "thiserror-impl",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "2.0.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.9",
-]
-
-[[package]]
 name = "thread_local"
 version = "1.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1443,7 +1422,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

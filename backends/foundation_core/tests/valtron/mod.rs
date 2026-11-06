@@ -6,6 +6,8 @@ mod bridge_park_executor;
 mod bridged_waker_liveness;
 #[cfg(not(target_family = "wasm"))]
 mod broadcast_tests;
+#[cfg(not(target_family = "wasm"))]
+mod builder_panic_handler;
 mod builder_tests;
 mod cancellable_future;
 #[cfg(not(target_family = "wasm"))]

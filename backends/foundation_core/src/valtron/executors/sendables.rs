@@ -24,13 +24,20 @@ use crate::valtron::DEFAULT_MAX_TURNS;
 
 use super::inline_action::InlineActionBehaviour;
 use crate::valtron::executors::local::NotifyQueue;
-use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
+use crate::valtron::{
+    BoxedExecutionEngine, BoxedPanicHandler, ConsumingIter, ExecutorError, SpawnInfo,
+};
 
 /// The parts of an inline action.
+///
+/// The last field is the panic handler the action installs on the task it
+/// spawns, so a panic in that task reaches the same handler the builder was
+/// given (issue #244).
 type InlineActionParts<Done, Pending, Task> = (
     InlineActionBehaviour,
     Task,
     Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
+    Option<BoxedPanicHandler>,
 );
 
 pub struct InlineAction<Done, Pending, Task>(Option<InlineActionParts<Done, Pending, Task>>)
@@ -54,7 +61,7 @@ where
         let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             Arc::new(NotifyQueue::unbounded());
         (
-            Self(Some((behaviour, task, iter_chan.clone()))),
+            Self(Some((behaviour, task, iter_chan.clone(), None))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
                 iter_chan, wait_cycle,
             ),
@@ -66,7 +73,24 @@ where
         task: Task,
         channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     ) -> Self {
-        Self(Some((behaviour, task, channel)))
+        Self(Some((behaviour, task, channel, None)))
+    }
+
+    /// Install the handler the spawned task reports a panic to.
+    ///
+    /// The handler runs on the thread that polls the task, so it must be
+    /// `Send + Sync`. A panic in the task still evicts it and closes the result
+    /// channel; the handler only receives the payload (issue #244).
+    #[must_use]
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        let boxed: BoxedPanicHandler = Box::new(handler);
+        if let Some(parts) = self.0.as_mut() {
+            parts.3 = Some(boxed);
+        }
+        self
     }
 }
 
@@ -81,7 +105,12 @@ where
         key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<SpawnInfo> {
-        if let Some((behaviour, task, channel)) = self.0.take() {
+        if let Some((behaviour, task, channel, panic_handler)) = self.0.take() {
+            let consuming_iter = ConsumingIter::new(task, channel.clone());
+            let consuming_iter = match panic_handler {
+                Some(handler) => consuming_iter.with_panic_handler(handler),
+                None => consuming_iter,
+            };
             match behaviour {
                 InlineActionBehaviour::Sequenced => {
                     tracing::debug!("Sequence action for InlineAction");
@@ -90,7 +119,6 @@ where
                         return Err(Box::new(ExecutorError::ParentMustBeSupplied));
                     };
 
-                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .sequenced(consuming_iter.into(), parent)
                         .map_err(Into::into)
@@ -102,26 +130,22 @@ where
                         return Err(Box::new(ExecutorError::ParentMustBeSupplied));
                     };
 
-                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .lift(consuming_iter.into(), Some(parent))
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Lift => {
                     tracing::debug!("Lift action for InlineAction");
-                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .lift(consuming_iter.into(), key)
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Schedule => {
                     tracing::debug!("Schedule action for InlineAction");
-                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor.schedule(consuming_iter.into()).map_err(Into::into)
                 }
                 InlineActionBehaviour::Broadcast => {
                     tracing::debug!("Broadcast action for InlineAction");
-                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .broadcast(consuming_iter.into())
                         .map_err(Into::into)
