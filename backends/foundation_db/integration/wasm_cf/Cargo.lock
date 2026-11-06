@@ -410,7 +410,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
@@ -429,7 +429,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.7"
+version = "0.0.16"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -454,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -495,11 +495,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.7"
+version = "0.0.10"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
- "chrono",
  "flate2",
  "foundation_nostd",
  "foundation_theme",
@@ -515,7 +514,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.4"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "base64",
@@ -537,7 +536,6 @@ dependencies = [
  "regex",
  "ring",
  "rustls",
- "rustls-pemfile",
  "serde",
  "serde_json",
  "sha1",
@@ -551,11 +549,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.6"
+version = "0.0.7"
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_core",
  "libc",
@@ -961,15 +959,6 @@ dependencies = [
  "rustls-webpki",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "rustls-pemfile"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dce314e5fee3f39953d46bb63bb8a46d40c2f8fb7cc5a3b6cab2bde9721d6e50"
-dependencies = [
- "rustls-pki-types",
 ]
 
 [[package]]
