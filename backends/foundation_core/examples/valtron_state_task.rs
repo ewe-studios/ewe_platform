@@ -21,7 +21,7 @@
 use foundation_core::valtron;
 use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
 
-/// --- Enum state -----------------------------------------------------------
+// --- Enum state -----------------------------------------------------------
 
 /// The stages a house passes through on its way to completion.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,6 +40,10 @@ struct House {
 
 /// One building step per poll. The final step emits `Ready(House)` and advances
 /// to `Stage::Done`; that variant's `None` is what ends the machine.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)> {
     let _ = ctx;
@@ -51,7 +55,7 @@ fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)>
     }
 }
 
-/// --- Struct state ---------------------------------------------------------
+// --- Struct state ---------------------------------------------------------
 
 /// A struct state carrying the whole recipe's progress in its fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -68,6 +72,10 @@ struct Cake {
 
 /// Advances the struct state one field at a time. `baked` doubles as the
 /// completion marker: once it is set, the next turn returns `None`.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn bake_cake(ctx: Ctx, recipe: Recipe) -> Option<(Recipe, TaskStatus<Cake, ()>)> {
     let _ = ctx;

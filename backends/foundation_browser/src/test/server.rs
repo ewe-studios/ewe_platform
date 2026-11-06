@@ -1,4 +1,4 @@
-//! # TestServer (spec-43 phase-1 §6 + feature 01) — on `foundation_http`
+//! # `TestServer` (spec-43 phase-1 §6 + feature 01) — on `foundation_http`
 //!
 //! WHY: The page under test must be served somewhere the browser can load it,
 //! torn down with the test. We dogfood our OWN server (`foundation_http`) — its
@@ -288,6 +288,9 @@ impl TestServer {
     }
 
     /// Replace the served page (takes effect on the next navigation).
+    ///
+    /// # Panics
+    /// Panics if the page lock is poisoned.
     pub fn mount(&self, page: PageSource) {
         *self.page.page.lock().expect("page poisoned") = page;
     }

@@ -63,7 +63,7 @@ impl TaskIterator for ReadOnReady {
         let n = unsafe { libc::read(self.fd.get_ref().as_raw_fd(), buf.as_mut_ptr().cast(), 64) };
         if n > 0 {
             self.done = true;
-            Some(TaskStatus::Ready(buf[..n as usize].to_vec()))
+            Some(TaskStatus::Ready(buf[..n.cast_unsigned()].to_vec()))
         } else {
             Some(TaskStatus::Depends(Arc::clone(&self.counted)))
         }

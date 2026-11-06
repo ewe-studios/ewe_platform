@@ -13,16 +13,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - `fix/foundational-backlog`: sections 1–5 (foundation_connectrpc, netio, http, core/valtron, nostd/wasm/iogate).
 ---
 
+## 1. foundation_connectrpc
+
+- **A client-side deadline is recorded but never enforced.** `Ctx::with_deadline`
+  (`src/shared/context/mod.rs:228`) stores `now + d` in `RequestContext`; it starts no
+  timer and cancels nothing. A call that parks on a read therefore ignores its deadline
+  and waits for the transport's own idle timeout, or forever. The proxy e2e tests set a
+  15 s deadline and still hung for 30 s (feature 121). Fix: enforce the deadline in the
+  client transport, with a timer that cancels the call and returns `DeadlineExceeded`,
+  and test it against a server that never answers. Found 2026-11-06 while diagnosing
+  feature 121. Scheduled as feature 123.
+
 ## 2. foundation_netio
 
-- **`silent_server_gets_body_when_the_timer_fires` is timing-flaky under load.**
-  A full `foundation_netio` run on 2026-11-05 failed this test once while two other
-  cargo test suites built and ran on the same machine. It passed 10 of 10 solo
-  reruns. The test expects the server to wait about its 300 ms
-  `Expect: 100-continue` timer, and asserts the wait is under 2 s
-  (`tests/simple_http/nonblocking_client_tests.rs:459`). Load stretches the wait past
-  that bound. Unrelated to feature 82. Fix: drive the timer from a simulated clock, or
-  widen the bound only with a measured justification.
 - **The `read_wake_source` pattern is irrefutable without a TLS backend.** With
   `--no-default-features` (no `ssl-*` feature) `RawStream` has only the `AsPlain`
   variant, so `if let Self::AsPlain(inner, _) = self` warns as an irrefutable
@@ -49,31 +52,45 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
-- **`foundation_core` and `foundation_nostd` fail `clippy -D warnings`.** Seen on
-  `fix/io-41-50-lane-a` (2026-11-04), `cargo clippy -p foundation_core --no-deps
-  --profile dev --lib -- -D warnings`: 19 errors, none in feature 46 code. Files:
-  `executors/background.rs:283,299` and `task.rs:214` (`double_must_use`),
-  `executors/local.rs:374,375,391,392` and `future_task.rs:616` (`arc_with_non_send_sync`),
-  `future_task.rs:936`, `task_iters.rs:127,449` (`question_mark`),
-  `extensions/streams/non_sendable.rs:1296,1306` (`while_let_on_iterator`),
-  `pipe.rs:114` (`new_ret_no_self`), `pipe_mapped.rs:43,81` (`result_unit_err`,
-  `len_without_is_empty`), `io/ioutils/mod.rs:950,1542,1705`. Without `--no-deps` the run
-  stops earlier on 5 `redundant_closure_for_method_calls` errors in
-  `foundation_nostd/src/comp/fair_gate.rs:33,35,52`. Fix: clean each lint, then keep
-  the crate at zero.
-  The same run with `--all-targets` also reports warnings in the examples
-  (`examples/valtron_traffic_light.rs`, `valtron_state_task.rs`, `valtron_orchestration.rs`
-  and `valtron_streaming.rs`): `clippy::drop_non_drop` on the `PoolGuard` the
-  `#[valtron]` attribute expands to, and `clippy::needless_pass_by_value` on `Ctx`
-  parameters. Seen 2026-11-05 (feature 114). The package does not set
-  `clippy-deny-warnings`, so CI reports them and passes. Fix: the macro must not emit
-  `drop()` for its guard, and the examples take `Ctx` by reference.
-- **The bare `--no-default-features` build prints its `compile_error!` and then 24 more
-  errors.** `foundation_core` now refuses the configuration with a clear message (feature 78
-  E3), but `pub mod valtron` and its executors still compile and emit unresolved-import errors
-  for `Ctx`. The first error is the actionable one; the rest is noise. Fix: gate `pub mod
-  valtron` on `std`, or put the executors behind the same `cfg`, so only the named error
-  remains.
+- **Executor parking stays on the real monotonic clock.** Feature 115 makes the
+  clock in `Ctx` replaceable, so a task reads an injected clock from
+  `ctx.clock()`. The executor's own waits do not read that clock: the single
+  executor parks with `std::thread::park_timeout`, and the multi workers back
+  off on `thread::sleep`. A simulated clock therefore does not drive a sleep or
+  a deadline. A test that advances a simulated clock past a deadline must also
+  wake the worker (feature 108's `Expect: 100-continue` test does this with a
+  second poll). Fix: route the executor's idle wait and timer deadlines through
+  the injected `Clock`, behind a wake path that a simulated clock can trigger.
+  Found in feature 115.
+- **`#[task]` forces the transition's context by value.** The macro's generated
+  `StateTask` uses the function pointer type `fn(Ctx, T)`, and its validation
+  accepts only a bare `Ctx` type (`backends/foundation_macros/src/state_task.rs`,
+  `type_is(ctx_ty, "Ctx")`). A transition that reads the context but does not
+  consume it therefore raises `clippy::needless_pass_by_value`, and no example or
+  test can take `&Ctx`. Feature 116 marks each such transition with a
+  function-level `#[expect(clippy::needless_pass_by_value, reason = ...)]`. Fix: let
+  the macro accept `&Ctx` and generate the matching call, then remove the expects.
+  Found in feature 116.
+- **`dual!` requires an `async fn` body even when the body never awaits.** The
+  macro in `tests/valtron/async_first_api.rs` calls `$body().await` in both test
+  wrappers, so a body with no `.await` raises `clippy::unused_async`. Feature 116
+  marks those three bodies with an `#[expect]`. Fix: add a sync-body form of the
+  macro, or make the wrapper call the body without `.await` in a sync form.
+  Found in feature 116.
+- **`clippy::assert_is_empty` suggests code that does not compile for a slice.**
+  Its machine-applicable fix rewrites `assert!(!b.is_empty())` to
+  `assert_ne!(b.as_slice(), [])`, and the empty array has no element type, so the
+  test target fails with `E0282`. Feature 116 uses a typed empty slice
+  (`&[] as &[u8]`) instead. This is an upstream clippy limitation; record it so a
+  later automated fix does not reintroduce the failing suggestion.
+- **`foundation_core` hides the pedantic lint group at crate level.**
+  `src/lib.rs` starts with `#![allow(clippy::pedantic)]`,
+  `#![allow(clippy::too_many_lines)]`, `#![allow(clippy::cognitive_complexity)]`
+  and `#![allow(clippy::type_complexity)]` (commit `f6916c465`, 2026-03-26).
+  Feature 116's zero count is measured with these allows in place, so the
+  library's pedantic debt is not visible. Fix: remove the blanket allows, fix or
+  carry one `#[expect]` per remaining pedantic lint, then keep the two clippy
+  runs green. Found in feature 116. Scheduled as feature 118.
 - **The idle CPU tests measure the threads of other tests.** File:
   `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
   tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which
@@ -115,30 +132,38 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `borrow_as_ptr`, `cast_sign_loss`, `doc_markdown` and related mechanical lints. Fix: a
   clippy-cleanup pass per feature set, then set `clippy-deny-warnings = true` in
   `ci/packages.toml`. Found in feature 47.
-- **The ptrace `open`/`openat` path ignores `O_TRUNC` on an existing virtual file.**
-  `handle_open` and `handle_openat` in
-  `backends/foundation_nativeapis/src/native/vfs/ptrace/syscall_dispatch.rs` call
-  `fs.create` whenever `O_CREAT` is set. `MemoryFs::create` returns `AlreadyExists` for an
-  existing path, while `open(2)` with `O_CREAT` (without `O_EXCL`) must open that file and
-  truncate it. A traced shell redirect such as `echo x > /virtual/existing` therefore fails.
-  Fix: when `O_CREAT` is set and the file exists, open it and call `truncate(0)`. Found in
-  feature 83.
-- **The ptrace `dup2` handler does not close a real fd at the destination.** `handle_dup`
-  inserts the virtual entry at the new number and skips the kernel call. If the new number
-  held a real fd (the common case is fd 1), that kernel fd stays open, while `dup2` must
-  close it. Fix: close the real destination fd once the virtual entry owns the number, or
-  keep the kernel call and intercept the writes by table lookup. Found in feature 83 while
-  fixing the shell-redirect dispatch.
 - **The ptrace spawn tests need a native amd64 kernel.** On an Apple Silicon host that runs
   the linux/amd64 CI image with OrbStack, `PTRACE_GETREGS` returns `EIO` for every traced
   amd64 process. A minimal C program shows the same result, so the cause is the emulation,
   not the tracer. Native coverage comes from GitHub CI: the `foundation_nativeapis` `package`
   job runs on the `ubuntu-latest` x86_64 runner, inside the linux/amd64 image, which shares
   the runner kernel. Its `ptrace probe` step prints `ptrace probe: available`, and the named
-  `vfs-native,vfs-ptrace` run executes the suite (feature 83). A local
-  `scripts/ci/linux.sh foundation_nativeapis` still reports the spawn-test failures for this
-  reason; that is the recorded emulation limit, not a code defect. Found in feature 47,
-  updated in feature 83.
+  `vfs-native,vfs-ptrace` run executes the suite (feature 83). CI run 42040473182 on
+  `e01e83d80` confirms this: the `foundation_nativeapis` job is green with
+  `EWE_REQUIRE_PTRACE=1`. A local `scripts/ci/linux.sh foundation_nativeapis` still reports
+  the spawn-test failures for this reason; that is the recorded emulation limit, not a code
+  defect. Found in feature 47, updated in feature 83.
+
+## 5b. foundation_reactor
+
+- **A late `deregister` can remove another socket's registration after the file
+  descriptor number is reused.** `FdReadiness::drop`
+  (`foundation_reactor/src/fd_readiness.rs:149`) calls
+  `Reactor::deregister(fd, token)` (`reactor.rs:538`). The entries map is keyed by
+  `Token`, but the selector is changed by file descriptor number alone
+  (`Registry::deregister_fd(fd)`, `poll/mod.rs:426`; kqueue and epoll both key by
+  the number). The token argument is never compared. If a socket closes before its
+  `FdReadiness` drops, the operating system can give the same number to a new
+  socket, and the late `deregister` then deletes the new socket's selector entry.
+  The new socket never reports readiness again. The documented case
+  `FdReadiness::drop` names ("the fd may already be closed") is exactly this
+  order. Body-read wakers hold an `Arc<FdReadiness>` that outlives the stream
+  (`foundation_netio/src/native/raw_stream.rs:480`), so the late drop is common.
+  Fix: keep an fd-to-token map in the reactor and skip the selector call when the
+  live token for that number is not this one, or deregister with the token so the
+  selector can compare (epoll `data`, kqueue `udata`). Add a test that closes an
+  fd, reuses the number, then drops the old readiness. Scheduled as feature 122.
+  Likely cause of the stalled proxy test in section 9.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
@@ -186,6 +211,31 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `cargo test -p foundation_proxy --test proxy_features_tests websocket_upgrade_relays_and_tunnels_bytes`.
   Fix: trace the splice pumps on macOS, or gate the test to Linux until the pump
   is fixed.
+- **A proxy test stalls a request on Linux CI, in two different tests.** Run
+  42087629722 (commit `b7bff1de1`) failed
+  `tests/rpc_proxy_e2e_tests.rs::connect_streams_spread_across_grpc_backends`
+  with `timeout: the test took 30001 ms. Max 30000 ms.` Run 42099300473 (commit
+  `9b1138a63`) failed
+  `tests/h2_integration_tests.rs::h2_grpc_trailers_relayed` after 60.5 s with
+  `grpc-status trailer ... left: None, right: Some("0")`. In both logs the proxy
+  starts within 2 ms of the previous test's proxy stopping, and no request ever
+  reaches the handler. In run 2 the front's 60 s HTTP/2 idle timeout is the
+  bound that ends the wait. Both suites pass alone and in repeated runs on
+  macOS and in the Linux image. Both binaries run their tests in parallel over
+  one process-wide shared file descriptor reactor. Likely a lost read wake on a
+  connection after file descriptor number reuse; section 5b gives the mechanism
+  and feature 122 the fix. The accept loop is not the stalled wait: it retries
+  `accept` every 10 ms. In run 2 the stalled connection's own 60 s idle timer
+  fired, so the task and its timers ran while the read never reported readiness.
+  Fix: reproduce with the full binaries in a loop on Linux, land feature 122,
+  instrument the connection read path, and make a hung client call fail on its
+  own deadline with a useful message. Do not raise a cap as the fix. Scheduled
+  as feature 121. Reproduced on 2026-11-06 with `docker run --cpus=2`: the
+  loops failed four different tests in total, and a trace run localises
+  the stall: the proxy front accepts, parses and dispatches the request, the
+  proxy dials the backend and the backend completes its HTTP/2 handshake, then
+  the backend never reads the forwarded request while the client waits. So the
+  stalled wait is in the front-to-backend relay, after the handshake.
 
 ## 10. foundation_ai
 
@@ -275,6 +325,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
+- **The `Free runner disk` step stalls and leaves the run `in_progress`.** The step runs
+  `find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +`
+  (`.github/workflows/check.yaml:121` and `:308`). On 2026-11-05 the
+  `foundation_buildtools` job was cancelled at that step (run 42048334017), and in run
+  42040473182 the `foundation_wireguard` job stayed at it for over an hour, so the whole
+  run never completed. The step deletes whatever the runner image left at depth 2, which
+  can be a large tree. Fix: delete only the paths the job needs freed, or bound the step
+  with `timeout`, and print the size before the delete. Found on 2026-11-05.
 - **`foundation_shell` is an empty placeholder crate.** `backends/foundation_shell/src/lib.rs`
   holds only `add(left, right)`, and nothing in the workspace depends on it. It still has a CI
   package entry, so every run builds it for no benefit. Spec 59 puts the shell work in a new
@@ -422,6 +480,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 30. Proc-macro crates (foundation_macros, crates/html-macro, crates/template-macro)
 
+- **`foundation_macros` has 62 pedantic clippy diagnostics.** The workspace sets
+  `clippy::pedantic = "warn"` and the crate inherits it, but the crate is not in
+  `ci/packages.toml`, so CI never lints it. `cargo clippy -p foundation_macros
+  --all-targets --no-deps -- -D warnings` fails with 62 errors: 20 missing
+  backticks in docs, 6 single-pattern `match`, 4 wildcard matches, 4 by-value
+  arguments, 4 similar binding names, 3 `format!` inline arguments, 6
+  `too_many_lines`, and smaller groups. Four are in `valtron_entry.rs`; the rest
+  span the other macro modules. The manifest also warns that `chrono` is
+  unused. Found in feature 115, which left them in place
+  because they predate it and are outside its scope. Fix: run the per-crate
+  clippy workflow in `.agents/AGENTS.md`, then add the crate to
+  `ci/packages.toml` with `clippy-deny-warnings = true`. Scheduled as
+  feature 120.
 - **Their inline tests cannot move to `tests/` as they stand.** A
   `proc-macro = true` crate can export only macros, so integration tests can
   reach only the macros. The inline modules in `foundation_macros`
@@ -513,21 +584,6 @@ are clean. Each item needs the per-crate clippy workflow in
   the `Env` bundle in `Ctx`. Fix: read a clock trait from `Ctx`, and use a simulated clock
   in the tests.
 
-## 33. foundation_browser
-
-- **Clippy debt: 56 errors under `-D warnings` in untouched files.** Command:
-  `cargo clippy --profile uat -p foundation_browser --all-targets --no-deps -- -D warnings`.
-  Found while feature 82 changed `src/test/stream.rs`; that file is now clean. The
-  rest: `bidi/backend.rs` 11, `cdp/launch.rs` 6, `browser.rs` 6, `bidi/mod.rs` 6,
-  `lib.rs` 4, `jsonrpc/engine.rs` 4, `geometry.rs` 4, `test/server.rs` 3,
-  `supervisor.rs` 3, `backend.rs` 3, `locator.rs` 2, `jsonrpc/mod.rs` 2,
-  `test/mod.rs` 1, `test/harness.rs` 1. Kinds: missing doc backticks (36),
-  `cloned` where `copied` applies (4), `f64`-to-`i64` casts (4), needless
-  pass-by-value (3), identical match arms (2), and one each of single-pattern
-  `match`, missing `# Panics`, missing `# Errors`, doc list indentation, clamp
-  pattern, `map(...).unwrap_or(...)` on a `Result`. Fix: run the crate hygiene
-  plan/execute pass before the next feature that touches this crate.
-
 ## 35. foundation_nativeapis
 
 - **The `vfs-preload` interposers take the mode as a fixed argument.** `open`,
@@ -539,13 +595,39 @@ are clean. Each item needs the per-crate clippy workflow in
   arguments on the stack, so `O_CREAT` would read a wrong mode there. Fix:
   build the shim only for the targets above, or define the entry points with
   `c_variadic` once it is stable.
-- **Clippy debt under `-D warnings`.** `cargo clippy --profile uat
-  -p foundation_nativeapis --all-targets --no-deps -- -D warnings` reports 191
-  warnings, and the same command with `--features vfs-preload` reports 465. The
-  `vfs-preload` code accounts for the difference, mostly `non_std_lazy_statics`,
-  `doc_markdown` and raw-pointer lints. CI does not deny warnings for this
-  package, so the debt does not fail a run. Fix: a hygiene pass, then set
-  `clippy-deny-warnings = true`.
+- **The ptrace dispatch reads the `open(2)` mode from the flags argument.**
+  `flags_to_perm` in `src/native/vfs/ptrace/syscall_dispatch.rs` takes
+  `(flags >> 16) & 0o777`, but the mode is a separate syscall argument: `arg2`
+  of `open` and `arg3` of `openat`. A created file can therefore get wrong
+  permission bits. Fix: pass the mode register to the open path and delete
+  `flags_to_perm`. Found in feature 111.
+- **The ptrace `dup2`/`dup3` dispatch ignores close-on-exec.** `handle_dup`
+  copies the source entry, including its `flags`, so `O_CLOEXEC` survives a
+  `dup2`, while `dup2(2)` must clear it. `dup3(2)` must set it from its `flags`
+  argument, and the dispatch ignores that argument. Fix: clear `O_CLOEXEC` on a
+  `dup`/`dup2` copy and set it from `arg2` for `dup3`. Found in feature 111.
+- **The ptrace `dup2`/`dup3` dispatch does not validate the new fd number.**
+  `handle_dup` accepts any 64-bit `arg1`, inserts an entry at that number and
+  returns it. `dup2(2)` must return `EBADF` when the number is negative or not
+  below `RLIMIT_NOFILE`. Fix: read the tracee's `RLIMIT_NOFILE` and reject an
+  out-of-range number. Found in feature 111.
+- **The ptrace dispatch ignores `O_APPEND`.** `open_virtual_path` in
+  `src/native/vfs/ptrace/syscall_dispatch.rs` stores the open flags, but
+  `handle_vfs_write` always writes at the tracked offset. A traced `>>`
+  redirect therefore overwrites from the start of the file. Fix: when the
+  entry has `O_APPEND`, move the offset to the file size before the write.
+  Found in feature 111.
+- **The ptrace loop ignores `PTRACE_SETREGS` failures.** `ptrace_loop` in
+  `src/native/vfs/ptrace/nix_backend.rs` calls `ptrace::setregs(pid, r).ok()`
+  for `Skip` and `SkipError`. If the call fails, the tracee sees the kernel's
+  own result instead of the emulated result, and the tracer does not report it.
+  Fix: return the error, as the `CloseThenSkip` arm does. Found in feature 111.
+- **The `vfs-preload` shim `ftruncate` accepts a negative length.** In
+  `src/native/vfs/shim/mod.rs`, `ftruncate` converts `length` to `usize` with
+  `try_from(length.cast_unsigned()).unwrap_or(usize::MAX)`. A negative length
+  therefore becomes a huge size, so the shim tries a huge allocation instead of
+  returning `EINVAL`. Fix: reject `length < 0` with `EINVAL` before the resize.
+  Found in feature 113.
 
 ## Paused
 

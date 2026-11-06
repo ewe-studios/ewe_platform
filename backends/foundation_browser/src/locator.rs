@@ -2,8 +2,8 @@
 //!
 //! WHY: Tests address elements by selector and assert on them. Reads (box, text,
 //! attribute, computed style, visibility, count) run through `Page::eval`, so
-//! they are identical on CDP and BiDi; trusted input goes through the protocol
-//! [`Backend`](crate::backend::Backend) (CDP `Input.*` / BiDi
+//! they are identical on CDP and `BiDi`; trusted input goes through the protocol
+//! [`Backend`](crate::backend::Backend) (CDP `Input.*` / `BiDi`
 //! `input.performActions`).
 //!
 //! WHAT: [`Locator`] (element ops) + [`LocatorAssertions`] (retrying assertions).

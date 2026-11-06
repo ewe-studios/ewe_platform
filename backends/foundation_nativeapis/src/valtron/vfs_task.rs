@@ -1,4 +1,4 @@
-//! VfsTask — valtron task that consumes ObservableFs events via Broadcaster.
+//! `VfsTask` — valtron task that consumes `ObservableFs` events via Broadcaster.
 //!
 //! # Overview
 //!
@@ -136,9 +136,8 @@ impl TaskIterator for VfsTask {
                 self.broadcaster.broadcast(event.clone());
                 Some(TaskStatus::Ready(event))
             }
-            Err(ReceiverError::Empty) => Some(self.make_depends()),
+            Err(ReceiverError::Empty | ReceiverError::Timeout) => Some(self.make_depends()),
             Err(ReceiverError::Closed(_)) => None,
-            Err(ReceiverError::Timeout) => Some(self.make_depends()),
         }
     }
 }
@@ -172,6 +171,9 @@ impl VfsTaskBuilder {
     }
 
     /// Spawn the task into the valtron executor and return the stream.
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn build(self) -> GenericResult<DrivenStreamIterator<VfsTask>> {
         execute(self.task, None)
     }

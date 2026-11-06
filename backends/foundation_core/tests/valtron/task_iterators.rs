@@ -145,7 +145,7 @@ fn test_split_collector_map_transform_returns_none_skips() {
     assert_eq!(collected, vec![10u64]);
 }
 
-/// `split_collect_one_map` uses a depth-1 (queue_size = 1) observer queue. Since
+/// `split_collect_one_map` uses a depth-1 (`queue_size` = 1) observer queue. Since
 /// F45 Part C1 replaced `force_push` (drop-oldest) with a vacancy-park, a full
 /// queue backpressures the source instead of dropping — so the continuation and
 /// observer must be driven in lockstep, and every match is delivered (zero loss).
@@ -227,7 +227,6 @@ fn test_stream_collect() {
 
 #[test]
 fn test_map_iter_flattens_nested_iterators() {
-    let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
         items: std::vec::IntoIter<TaskStatus<Vec<u32>, String>>,
@@ -241,6 +240,7 @@ fn test_map_iter_flattens_nested_iterators() {
             self.items.next()
         }
     }
+    let ctx = Ctx::new();
 
     let items = vec![
         TaskStatus::Ready(vec![1u32, 2u32]),
@@ -284,7 +284,6 @@ fn test_map_iter_flattens_nested_iterators() {
 
 #[test]
 fn test_map_iter_passes_through_pending() {
-    let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
         items: std::vec::IntoIter<TaskStatus<Vec<u32>, String>>,
@@ -298,6 +297,7 @@ fn test_map_iter_passes_through_pending() {
             self.items.next()
         }
     }
+    let ctx = Ctx::new();
 
     let items = vec![
         TaskStatus::Ready(vec![1u32]),

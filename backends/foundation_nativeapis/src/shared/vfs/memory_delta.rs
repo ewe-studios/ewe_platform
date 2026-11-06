@@ -15,6 +15,7 @@ pub struct MemoryDelta {
 }
 
 impl MemoryDelta {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             fs: MemoryFs::new(),

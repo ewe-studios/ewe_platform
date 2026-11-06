@@ -52,7 +52,7 @@ fn can_queue_task_only() {
     spawn()
         .with_task(counter)
         .with_resolver(Box::new(FnReady::new(|item, _| {
-            tracing::info!("Received next: {:?}", item)
+            tracing::info!("Received next: {:?}", item);
         })))
         .as_scheduled()
         .spawn()
@@ -80,12 +80,7 @@ fn can_queue_and_complete_task_with_run_until() {
         .expect("should deliver task");
 
     let handle = shared_list.clone();
-    run_until(|_| {
-        if handle.borrow_mut().len() >= 5 {
-            return true;
-        }
-        false
-    });
+    run_until(|_| handle.borrow_mut().len() >= 5);
 
     assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
 }
@@ -102,7 +97,7 @@ fn can_queue_and_complete_task() {
     spawn()
         .with_task(counter)
         .with_resolver(Box::new(FnReady::new(|item, _| {
-            tracing::info!("Received next: {:?}", item)
+            tracing::info!("Received next: {:?}", item);
         })))
         .as_scheduled()
         .spawn()
@@ -163,7 +158,7 @@ fn can_queue_and_complete_stream_with_iterator() {
             Stream::Next(value) => Some(value),
             _ => None,
         })
-        .take_while(|t| t.is_some())
+        .take_while(std::option::Option::is_some)
         .map(|t| t.unwrap())
         .collect();
 

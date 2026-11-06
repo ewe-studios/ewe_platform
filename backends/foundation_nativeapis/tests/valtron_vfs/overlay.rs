@@ -1,4 +1,4 @@
-//! Integration tests: OverlayFileSystem through valtron.
+//! Integration tests: `OverlayFileSystem` through valtron.
 //!
 //! These tests verify that `SyncFs<OverlayFileSystem<MemoryFs, MemoryDelta>>`
 //! works correctly when all operations go through valtron's executor.

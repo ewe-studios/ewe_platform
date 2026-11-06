@@ -1,6 +1,6 @@
 ---
 feature: "Lane B crates use valtron's self-waking constructs (event queue, ResumeSignal) instead of raw queues with polling readiness"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "spec70/f81-lane-b-wake"
@@ -133,5 +133,7 @@ pull request's GitHub CI.
 
 ## Done when
 
-- [ ] No lane B crate uses a raw queue with polling readiness or touches the executor wake;
-  the deprecated constructors are gone; CI green.
+- [x] No lane B crate uses a raw queue with polling readiness or touches the executor wake;
+  the deprecated constructors are gone; CI green. Run 42040473182 on `e01e83d80` (PR #179):
+  the `foundation_toolings`, `foundation_ai`, `foundation_core`, `foundation_wasm` and
+  `foundation_wasm_ui` jobs pass.

@@ -989,6 +989,27 @@ impl ExecutorState {
         idler: IdleMan,
         readiness_wait: time::Duration,
     ) -> Self {
+        Self::with_root(
+            state_owner,
+            global_tasks,
+            wakeup_priority,
+            rng,
+            idler,
+            readiness_wait,
+            Ctx::new(),
+        )
+    }
+
+    /// Like [`ExecutorState::new`], but seeds the engine root with `root`.
+    fn with_root(
+        state_owner: String,
+        global_tasks: SharedTaskQueue,
+        wakeup_priority: PriorityOrder,
+        rng: ChaCha8Rng,
+        idler: IdleMan,
+        readiness_wait: time::Duration,
+        root: Ctx,
+    ) -> Self {
         Self {
             state_owner,
             wakeup_priority,
@@ -1004,7 +1025,7 @@ impl ExecutorState {
                 DEQUEUE_CAPACITY,
             ))),
             depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
-            root: Ctx::new(),
+            root,
             task_ctx: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
@@ -2750,6 +2771,35 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         activities: Option<mpp::Sender<ThreadActivity>>,
         kill_signal_check_interval: usize,
     ) -> Self {
+        Self::new_with_root(
+            state_owner,
+            tasks,
+            rng,
+            idler,
+            priority,
+            yielder,
+            no_work_yield,
+            kill_signal,
+            activities,
+            kill_signal_check_interval,
+            Ctx::new(),
+        )
+    }
+
+    /// Like [`LocalThreadExecutor::new`], but seeds the engine root with `root`.
+    fn new_with_root(
+        state_owner: String,
+        tasks: SharedTaskQueue,
+        rng: ChaCha8Rng,
+        idler: IdleMan,
+        priority: PriorityOrder,
+        yielder: T,
+        no_work_yield: time::Duration,
+        kill_signal: Option<Arc<OnSignal>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
+        kill_signal_check_interval: usize,
+        root: Ctx,
+    ) -> Self {
         Self {
             state_owner: state_owner.clone(),
             yielder,
@@ -2760,13 +2810,14 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             wait_check_interval: DEFAULT_WAIT_CHECK_INTERVAL,
             kill_signal_check_interval,
             state: ReferencedExecutorState::new(
-                rc::Rc::new(ExecutorState::new(
+                rc::Rc::new(ExecutorState::with_root(
                     state_owner,
                     tasks,
                     priority,
                     rng,
                     idler,
                     DEFAULT_READINESS_WAIT,
+                    root,
                 )),
                 activities,
             ),
@@ -2825,7 +2876,37 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         kill_signal: Option<Arc<OnSignal>>,
         activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
-        Self::new(
+        Self::from_seed_with_root(
+            seed,
+            state_owner,
+            tasks,
+            idler,
+            priority,
+            yielder,
+            no_work_yield,
+            kill_signal,
+            activities,
+            Ctx::new(),
+        )
+    }
+
+    /// [`LocalThreadExecutor::from_seed`] with an explicit engine root.
+    ///
+    /// Every task this executor drives gets a fork of `root`. A pool that must
+    /// share one clock passes its own root here.
+    pub fn from_seed_with_root(
+        seed: u64,
+        state_owner: String,
+        tasks: SharedTaskQueue,
+        idler: IdleMan,
+        priority: PriorityOrder,
+        yielder: T,
+        no_work_yield: time::Duration,
+        kill_signal: Option<Arc<OnSignal>>,
+        activities: Option<mpp::Sender<ThreadActivity>>,
+        root: Ctx,
+    ) -> Self {
+        Self::new_with_root(
             state_owner,
             tasks,
             ChaCha8Rng::seed_from_u64(seed),
@@ -2836,6 +2917,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             kill_signal,
             activities,
             DEFAULT_KILL_SIGNAL_CHECK_INTERVAL,
+            root,
         )
     }
 

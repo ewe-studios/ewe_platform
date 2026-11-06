@@ -13,6 +13,13 @@
 //! two streams racing, a task built on `from_stream` fed after it starts, and
 //! polling past the end.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -142,7 +149,7 @@ async fn values_end_when_the_queue_closes_while_parked() {
         q.close(); // no value ever pushed
     };
     let (got, ()) = zip(it.values().collect::<Vec<_>>(), producer).await;
-    assert!(got.is_empty());
+    assert_eq!(got, [] as [u32; 0]);
 }
 dual!(
     values_end_on_close_test,
@@ -219,7 +226,7 @@ dual!(
 async fn a_stream_of_only_progress_has_no_values() {
     let items: Vec<Item> = vec![Stream::Pending('a'); 1_000];
     let got: Vec<u32> = Script::new(items).values().collect().await;
-    assert!(got.is_empty());
+    assert_eq!(got, [] as [u32; 0]);
 }
 dual!(only_progress_test, a_stream_of_only_progress_has_no_values);
 
@@ -284,7 +291,7 @@ dual!(items_keep_values_test, items_keep_values_in_order);
 async fn collect_async_of_a_closed_empty_queue_is_empty() {
     let (q, it) = queue();
     q.close();
-    assert!(it.collect_async().await.is_empty());
+    assert_eq!(it.collect_async().await, [] as [u32; 0]);
 }
 dual!(
     collect_async_empty_test,
@@ -341,6 +348,7 @@ dual!(first_waits_test, first_waits_for_a_value_pushed_later);
 // TaskStatus::from_stream
 // ---------------------------------------------------------------------------
 
+#[expect(clippy::unused_async, reason = "dual! awaits the body as a future")]
 async fn from_stream_maps_every_item() {
     let mut s = Script::new(vec![
         Stream::Next(1),
@@ -390,6 +398,7 @@ async fn from_stream_maps_every_item() {
 }
 dual!(from_stream_maps_test, from_stream_maps_every_item);
 
+#[expect(clippy::unused_async, reason = "dual! awaits the body as a future")]
 async fn from_stream_parks_a_waking_stream_until_data_arrives() {
     let (q, mut it) = queue();
     let Some(TaskStatus::Depends(signal)) = TaskStatus::from_stream(&mut it) else {
@@ -457,6 +466,7 @@ dual!(
 // next_values (pure: no executor needed)
 // ---------------------------------------------------------------------------
 
+#[expect(clippy::unused_async, reason = "dual! awaits the body as a future")]
 async fn next_values_skips_control_states_lazily() {
     let script = Script::new(everything());
     let pulls = Arc::clone(&script.pulls);

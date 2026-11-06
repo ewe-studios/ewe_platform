@@ -30,7 +30,13 @@ fn remaining_classifies_a_deadline_at_the_boundary() {
     );
 
     // Deadline is in the past: done.
-    assert_eq!(remaining(Some(now - Duration::from_millis(1)), now), None);
+    assert_eq!(
+        remaining(
+            Some(now.checked_sub(Duration::from_millis(1)).unwrap()),
+            now
+        ),
+        None
+    );
 
     // Deadline overflowed: done.
     assert_eq!(remaining(None, now), None);

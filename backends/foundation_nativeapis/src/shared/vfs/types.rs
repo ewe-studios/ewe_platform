@@ -28,7 +28,13 @@ enum ChecksumSerde {
 }
 
 fn to_hex(b: &[u8]) -> String {
-    b.iter().map(|b| format!("{:02x}", b)).collect()
+    use std::fmt::Write as _;
+
+    let mut out = String::with_capacity(b.len() * 2);
+    for byte in b {
+        write!(out, "{byte:02x}").expect("writing to a String cannot fail");
+    }
+    out
 }
 
 fn from_hex(s: &str) -> [u8; 32] {
@@ -65,17 +71,18 @@ pub enum VfsEntryState {
     Pending,
 }
 
-/// Serializes SystemTime as seconds since UNIX epoch.
+/// Serializes `SystemTime` as seconds since UNIX epoch.
 mod system_time_serde {
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use std::time::SystemTime;
 
+    // Serde `with` callbacks must take `&Option<T>`; `Option<&T>` does not fit.
+    #[allow(clippy::ref_option)]
     pub fn serialize<S: Serializer>(v: &Option<SystemTime>, s: S) -> Result<S::Ok, S::Error> {
         match v {
             Some(t) => t
                 .duration_since(SystemTime::UNIX_EPOCH)
-                .map(|d| d.as_secs())
-                .unwrap_or(0)
+                .map_or(0, |d| d.as_secs())
                 .serialize(s),
             None => Option::<u64>::None.serialize(s),
         }
@@ -106,6 +113,7 @@ pub struct VfsMetadata {
 }
 
 impl VfsMetadata {
+    #[must_use]
     pub fn new_file(inode: u64, size: u64, permissions: u32) -> Self {
         let now = Some(SystemTime::now());
         Self {
@@ -123,6 +131,7 @@ impl VfsMetadata {
         }
     }
 
+    #[must_use]
     pub fn new_directory(inode: u64, permissions: u32) -> Self {
         let now = Some(SystemTime::now());
         Self {
@@ -140,6 +149,7 @@ impl VfsMetadata {
         }
     }
 
+    #[must_use]
     pub fn new_symlink(inode: u64) -> Self {
         let now = Some(SystemTime::now());
         Self {
@@ -165,6 +175,8 @@ pub struct VfsDirEntry {
     pub file_type: VfsFileType,
 }
 
+// A capability report is a set of independent flags; bools are the domain type.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VfsCapabilities {
     pub seekable: bool,

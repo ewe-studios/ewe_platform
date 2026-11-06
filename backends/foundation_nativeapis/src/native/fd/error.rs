@@ -1,7 +1,7 @@
 /// Error types for FD registration.
 use std::io;
 
-/// Error when FdRegistration fails.
+/// Error when `FdRegistration` fails.
 pub enum FdRegistrationError<T: std::os::unix::io::AsRawFd> {
     /// The fd could not be registered with the poll selector.
     Registration(io::Error),
@@ -24,10 +24,10 @@ impl<T: std::os::unix::io::AsRawFd> std::fmt::Display for FdRegistrationError<T>
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             FdRegistrationError::Registration(e) => {
-                write!(f, "failed to register fd with poll selector: {}", e)
+                write!(f, "failed to register fd with poll selector: {e}")
             }
             FdRegistrationError::Failed { error, .. } => {
-                write!(f, "failed to register fd with poll selector: {}", error)
+                write!(f, "failed to register fd with poll selector: {error}")
             }
         }
     }

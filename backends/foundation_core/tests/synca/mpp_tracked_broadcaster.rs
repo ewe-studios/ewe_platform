@@ -143,7 +143,7 @@ fn subscribe_and_broadcast_from_multiple_threads() {
     while let Ok(v) = r.recv() {
         received.push(v);
     }
-    received.sort();
+    received.sort_unstable();
     assert_eq!(received, vec![0, 1, 2, 3]);
 }
 

@@ -68,7 +68,7 @@ where
             if !drain.get(i).copied().unwrap_or(true) {
                 continue;
             }
-            while let Some(stream) = obs.next() {
+            for stream in obs.by_ref() {
                 match stream {
                     Stream::Next(v) => branches[i].push(v),
                     _ => break, // Wait (empty-open) or exhausted for now
@@ -85,7 +85,7 @@ where
 
     // Final drain after the continuation closed the branch queues.
     for (i, obs) in observers.iter_mut().enumerate() {
-        while let Some(stream) = obs.next() {
+        for stream in obs.by_ref() {
             match stream {
                 Stream::Next(v) => branches[i].push(v),
                 _ => break,
@@ -97,7 +97,7 @@ where
 }
 
 /// `broadcast` delivers every matched value to all N branches (zero loss), with
-/// slack (queue_size > 1) so no parking is required.
+/// slack (`queue_size` > 1) so no parking is required.
 #[test]
 fn test_broadcast_fans_to_all_branches() {
     let task = BroadcastTestTask::new(vec![
@@ -322,7 +322,7 @@ fn test_broadcast_zero_branches_passthrough() {
     let (forwarded, branches, parked) = drive_lockstep(cont, observers, &[]);
 
     assert_eq!(forwarded, vec![7, 8]);
-    assert!(branches.is_empty());
+    assert_eq!(branches, [] as [std::vec::Vec<u32>; 0]);
     assert!(!parked, "no branches means nothing can ever be full");
 }
 
@@ -397,7 +397,7 @@ where
             if !drain.get(i).copied().unwrap_or(true) {
                 continue;
             }
-            while let Some(stream) = obs.next() {
+            for stream in obs.by_ref() {
                 match stream {
                     Stream::Next(v) => branches[i].push(v),
                     _ => break,
@@ -413,7 +413,7 @@ where
     }
 
     for (i, obs) in observers.iter_mut().enumerate() {
-        while let Some(stream) = obs.next() {
+        for stream in obs.by_ref() {
             match stream {
                 Stream::Next(v) => branches[i].push(v),
                 _ => break,

@@ -1,4 +1,4 @@
-//! Integration tests: AsyncVfsFileSystem traits called through valtron futures.
+//! Integration tests: `AsyncVfsFileSystem` traits called through valtron futures.
 //!
 //! These tests verify that async trait implementations work correctly when
 //! executed through valtron's `execute` + `collect_one` — the same code path
@@ -55,7 +55,7 @@ fn async_memoryfs_via_valtron() {
     // stat_async
     let fs_clone = fs.clone();
     let meta = run_async(async move { fs_clone.stat_async("/src".to_string()).await }).unwrap();
-    assert!(meta.size == 0);
+    assert_eq!(meta.size, 0);
 
     // exists_async
     let fs_clone = fs.clone();

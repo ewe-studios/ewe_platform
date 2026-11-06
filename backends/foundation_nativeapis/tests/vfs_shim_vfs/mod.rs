@@ -30,7 +30,10 @@ fn find_shim_so() -> String {
         let target_dir = profile_dir();
         build_shim(&target_dir, shim_features());
         existing_shim(&target_dir).unwrap_or_else(|| {
-            panic!("shim .so not found in {target_dir:?} after building the cdylib")
+            panic!(
+                "shim .so not found in {} after building the cdylib",
+                target_dir.display()
+            )
         })
     })
     .clone()
@@ -100,10 +103,15 @@ fn profile_dir() -> PathBuf {
     exe.ancestors()
         .skip(1) // the executable itself
         .find(|dir| dir.join(".cargo-lock").is_file())
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| {
-            panic!("no target profile directory above {exe:?}: it must hold `.cargo-lock`")
-        })
+        .map_or_else(
+            || {
+                panic!(
+                    "no target profile directory above {}: it must hold `.cargo-lock`",
+                    exe.display()
+                )
+            },
+            Path::to_path_buf,
+        )
 }
 
 fn existing_shim(target_dir: &Path) -> Option<String> {
@@ -170,7 +178,7 @@ int main() {
         stdout,
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(stdout.contains("hello"), "stdout: {}", stdout);
+    assert!(stdout.contains("hello"), "stdout: {stdout}");
 
     let _ = std::fs::remove_file(&c_path);
     let _ = std::fs::remove_file(&exe_path);
@@ -188,7 +196,7 @@ fn test_shim_real_path_passthrough() {
         .output()
         .expect("command failed");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.is_empty(), "should read real file, got: {}", stdout);
+    assert!(!stdout.is_empty(), "should read real file, got: {stdout}");
 }
 
 /// The local Cloudflare emulator endpoint and database id, when reachable.

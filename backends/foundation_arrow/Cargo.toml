@@ -17,7 +17,7 @@ arrow-array = { version = "55", default-features = false }
 arrow-schema = { version = "55", default-features = false }
 arrow-ipc = { version = "59", default-features = false }
 arrow-data = { version = "55", default-features = false }
-arrow-buffer = { version = "55", default-features = false }
+arrow-buffer = { version = "59", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 serde_json = { workspace = true }
 # DomOp + the shared Row mapping + ProtocolEncoder contract (feature 05).

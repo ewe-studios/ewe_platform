@@ -231,14 +231,14 @@ impl TaskIterator for CounterTask {
     type Pending = u32;
 
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        println!("Count: {} {}", &self.current, self.ready_value);
+        println!("Count: {} {}", self.current, self.ready_value);
         if self.current < self.ready_value {
             let res = Some(TaskStatus::Pending(self.current));
             self.current += 1;
             return res;
         }
         if self.current == self.ready_value {
-            println!("Sending ready for : {} {}", &self.current, self.ready_value);
+            println!("Sending ready for : {} {}", self.current, self.ready_value);
             let res = Some(TaskStatus::Ready(self.current));
             self.current += 1;
             return res;
@@ -325,7 +325,7 @@ fn test_execute_map_all_pending_and_done() {
     let tasks = vec![CounterTask::new(1, 3), CounterTask::new(2, 4)];
 
     let mapper = |states: Vec<Stream<u32, u32>>| {
-        println!("Mapping states for : {:?}", &states);
+        println!("Mapping states for : {states:?}");
         let mut values: Vec<Stream<u32, ()>> = Vec::new();
 
         for state in states {
@@ -518,7 +518,7 @@ fn test_split_collect_one_first_match() {
     let mut observer_values = Vec::new();
     loop {
         // Free any pending slot first so a parked source can advance.
-        while let Some(stream) = observer.next() {
+        for stream in observer.by_ref() {
             match stream {
                 Stream::Next(v) => observer_values.push(v),
                 _ => break,
@@ -676,7 +676,7 @@ fn test_stream_split_collect_one_first_match() {
     let mut got_match = false;
     loop {
         // Free any pending slot first so a parked source can advance.
-        while let Some(stream_item) = observer.next() {
+        for stream_item in observer.by_ref() {
             match stream_item {
                 Stream::Next(v) => {
                     if v > 2 {

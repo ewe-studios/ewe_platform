@@ -33,10 +33,10 @@ futures-lite = { version = "2", default-features = false, features = ["alloc"] }
 http = "1.4.0"
 regex = "1.10"
 sha2 = "0.10"
-foundation_core = { path = "../foundation_core", version = "0.0.7" }
+foundation_core = { path = "../foundation_core", version = "0.0.8" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.6", features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.5" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 
 [dependencies.chrono]
 workspace = true

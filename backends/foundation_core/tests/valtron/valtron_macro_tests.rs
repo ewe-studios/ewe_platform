@@ -197,12 +197,11 @@ fn panicking_task_closes_channel_and_unblocks_caller() {
 
     std::thread::spawn(move || {
         std::thread::sleep(Duration::from_secs(10));
-        if !done_clone.load(Ordering::SeqCst) {
-            panic!(
-                "WATCHDOG: panicking task hung for 10s — \
-                 valtron may have regressed the panic-channel-close fix in task_iters.rs"
-            );
-        }
+        assert!(
+            done_clone.load(Ordering::SeqCst),
+            "WATCHDOG: panicking task hung for 10s — \
+             valtron may have regressed the panic-channel-close fix in task_iters.rs"
+        );
     });
 
     let result = sync_collect_one(PanickingTask);

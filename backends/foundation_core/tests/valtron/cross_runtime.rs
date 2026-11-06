@@ -34,6 +34,10 @@ use foundation_core::valtron::{
 // ============================================================================
 
 /// Feature 06 sync state machine: `Ignore`, `Ignore`, `Ready(1)`, end.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn count_down(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
     let _ = ctx;

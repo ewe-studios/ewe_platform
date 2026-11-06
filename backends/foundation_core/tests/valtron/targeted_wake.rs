@@ -12,6 +12,13 @@
 //! as it is published, as fast as it can. B is woken hundreds of times; A's
 //! readiness must be checked only a few times.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -91,9 +98,9 @@ impl EventReadiness for ParkedSignal {
     }
 
     fn register(&self, waker: &ReadinessWaker) -> bool {
-        let wakes = self.signal.register(waker);
+        let changed = self.signal.register(waker);
         self.registered.store(true, Ordering::SeqCst);
-        wakes
+        changed
     }
 }
 

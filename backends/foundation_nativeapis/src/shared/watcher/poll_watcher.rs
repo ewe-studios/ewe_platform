@@ -1,4 +1,4 @@
-/// PollWatcher fallback — stdlib-only metadata polling.
+/// `PollWatcher` fallback — stdlib-only metadata polling.
 ///
 /// Walks watched paths, records metadata (mtime, size, exists),
 /// and diffs on each poll call. Slow but reliable.
@@ -62,6 +62,7 @@ pub struct PollWatcher {
 }
 
 impl PollWatcher {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             watches: HashMap::new(),
@@ -107,6 +108,12 @@ impl PollWatcher {
         }
 
         events
+    }
+}
+
+impl Default for PollWatcher {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

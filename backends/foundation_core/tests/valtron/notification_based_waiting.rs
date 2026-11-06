@@ -9,6 +9,13 @@
 //! Tests that hand a `NotifyQueue` to a producer thread are `multi`-only:
 //! `NotifyQueue` is only `Send` under `multi`.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -444,6 +451,23 @@ fn test_single_threaded_executor_with_notification_tasks() {
 /// without blocking indefinitely. Uses very short wait timeouts.
 #[test]
 fn test_single_threaded_executor_pends_without_blocking() {
+    // Task that counts and returns Delayed state
+    struct CountingTask(Arc<Mutex<usize>>);
+    impl TaskIterator for CountingTask {
+        type Ready = ();
+        type Pending = Duration;
+
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+            let mut count = self.0.lock().unwrap();
+            *count += 1;
+            if *count >= 5 {
+                return None; // Done
+            }
+            // Return Delayed to test pending state handling
+            Some(TaskStatus::Delayed(Duration::from_micros(1)))
+        }
+    }
+
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let counter: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
@@ -464,23 +488,6 @@ fn test_single_threaded_executor_pends_without_blocking() {
         None,
         None,
     );
-
-    // Task that counts and returns Delayed state
-    struct CountingTask(Arc<Mutex<usize>>);
-    impl TaskIterator for CountingTask {
-        type Ready = ();
-        type Pending = Duration;
-
-        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-            let mut count = self.0.lock().unwrap();
-            *count += 1;
-            if *count >= 5 {
-                return None; // Done
-            }
-            // Return Delayed to test pending state handling
-            Some(TaskStatus::Delayed(Duration::from_micros(1)))
-        }
-    }
 
     let counter_clone = Arc::clone(&counter);
     let task = CountingTask(counter_clone);

@@ -34,7 +34,7 @@ fn median_ms(mut vals: Vec<f64>) -> f64 {
     match n {
         0 => 0.0,
         _ if n % 2 == 1 => vals[n / 2],
-        _ => (vals[n / 2 - 1] + vals[n / 2]) / 2.0,
+        _ => f64::midpoint(vals[n / 2 - 1], vals[n / 2]),
     }
 }
 

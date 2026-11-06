@@ -230,7 +230,7 @@ fn can_queue_and_complete_task() {
 // Tests for WaitGroup and PoolGuard
 // ============================================================================
 
-/// Test 1: WaitGroup add/done/wait basic functionality
+/// Test 1: `WaitGroup` add/done/wait basic functionality
 #[test]
 fn test_waitgroup_add_done_unblocks_wait() {
     let wg = WaitGroup::new();
@@ -254,7 +254,7 @@ fn test_waitgroup_add_done_unblocks_wait() {
     handle.join().expect("thread should complete");
 }
 
-/// Test 2: WaitGroup with zero count returns immediately
+/// Test 2: `WaitGroup` with zero count returns immediately
 #[test]
 fn test_waitgroup_zero_count_returns_immediately() {
     let wg = WaitGroup::new();
@@ -262,7 +262,7 @@ fn test_waitgroup_zero_count_returns_immediately() {
     wg.wait(); // Should return immediately
 }
 
-/// Test 3: WaitGroupGuard calls done() on drop
+/// Test 3: `WaitGroupGuard` calls `done()` on drop
 #[test]
 fn test_waitgroup_guard_calls_done_on_drop() {
     let wg = WaitGroup::new();
@@ -277,7 +277,7 @@ fn test_waitgroup_guard_calls_done_on_drop() {
     wg.wait(); // Should return immediately since count is 0
 }
 
-/// Test 4: WaitGroupGuard calls done() even during panic
+/// Test 4: `WaitGroupGuard` calls `done()` even during panic
 #[test]
 #[cfg_attr(
     cranelift_backend,
@@ -297,7 +297,7 @@ fn test_waitgroup_guard_calls_done_during_panic() {
     wg.wait(); // Should return immediately
 }
 
-/// Test 5: Multiple WaitGroupGuards
+/// Test 5: Multiple `WaitGroupGuards`
 #[test]
 fn test_waitgroup_multiple_guards() {
     let wg = WaitGroup::new();
@@ -316,7 +316,7 @@ fn test_waitgroup_multiple_guards() {
     wg.wait(); // Should return immediately
 }
 
-/// Test 6: PoolGuard shutdown is idempotent
+/// Test 6: `PoolGuard` shutdown is idempotent
 #[test]
 fn test_poolguard_shutdown_idempotent() {
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
@@ -332,7 +332,7 @@ fn test_poolguard_shutdown_idempotent() {
     guard.shutdown();
 }
 
-/// Test 7: PoolGuard drop triggers shutdown
+/// Test 7: `PoolGuard` drop triggers shutdown
 #[test]
 fn test_poolguard_drop_triggers_shutdown() {
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
@@ -375,7 +375,7 @@ fn private_pool_guard_drop_keeps_the_global_pool() {
         .expect("the global pool must still accept tasks");
 }
 
-/// Test 8: WaitGroup across multiple threads
+/// Test 8: `WaitGroup` across multiple threads
 #[test]
 fn test_waitgroup_multiple_threads() {
     let wg = WaitGroup::new();

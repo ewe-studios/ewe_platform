@@ -1,8 +1,8 @@
-/// Example: LD_PRELOAD VFS Shim.
+/// Example: `LD_PRELOAD` VFS Shim.
 ///
-/// This example demonstrates how to use the LD_PRELOAD VFS shim — a shared library
+/// This example demonstrates how to use the `LD_PRELOAD` VFS shim — a shared library
 /// that intercepts libc filesystem calls and redirects virtual paths through the
-/// real VFS stack (OverlayFileSystem with pluggable delta stores).
+/// real VFS stack (`OverlayFileSystem` with pluggable delta stores).
 ///
 /// The shim is built as a `cdylib` target, not a normal binary. This example
 /// compiles it, then demonstrates usage scenarios with C test programs.
@@ -34,6 +34,8 @@
 ///    content.
 use std::process::Command;
 
+// The example walks one end-to-end scenario in order; splitting it breaks the narrative.
+#[allow(clippy::too_many_lines)]
 fn main() {
     println!("=== LD_PRELOAD VFS Shim Example ===\n");
 
@@ -42,14 +44,13 @@ fn main() {
         .ok()
         .and_then(|p| {
             p.parent()
-                .map(|p| p.parent().map(|p| p.to_path_buf()))
-                .flatten()
+                .and_then(|p| p.parent().map(std::path::Path::to_path_buf))
         })
         .and_then(|target_dir| {
             // Find the .so in target/debug
             std::fs::read_dir(&target_dir).ok().and_then(|entries| {
                 entries
-                    .filter_map(|e| e.ok())
+                    .filter_map(std::result::Result::ok)
                     .find(|e| {
                         e.file_name()
                             .to_string_lossy()
@@ -60,42 +61,39 @@ fn main() {
             })
         });
 
-    let lib_path = match lib {
-        Some(p) => p,
-        None => {
-            println!("Build the shim first:");
-            println!("  cargo build -p foundation_nativeapis --features vfs-preload\n");
-            println!("The shim is: target/debug/libfoundation_nativeapis.so");
-            println!();
-            println!("Then use it like this:");
-            println!();
-            println!("  # Quick test with memory delta:");
-            println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
-            println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
-            println!("    /bin/bash");
-            println!();
-            println!("  # Persistent delta with sqlite:");
-            println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
-            println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
-            println!("    FOUNDATION_VFS_DELTA=sqlite \\");
-            println!("    FOUNDATION_VFS_DELTA_PATH=/tmp/vfs-delta.db \\");
-            println!("    /bin/bash");
-            println!();
-            println!("  # Delta stored in a real directory:");
-            println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
-            println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
-            println!("    FOUNDATION_VFS_DELTA=dir \\");
-            println!("    FOUNDATION_VFS_DELTA_PATH=/tmp/vfs-delta \\");
-            println!("    /bin/bash");
-            println!();
-            println!("  # Overlay a real directory as base:");
-            println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
-            println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
-            println!("    FOUNDATION_VFS_ROOT=/path/to/project \\");
-            println!("    FOUNDATION_VFS_DELTA=memory \\");
-            println!("    /bin/bash");
-            return;
-        }
+    let Some(lib_path) = lib else {
+        println!("Build the shim first:");
+        println!("  cargo build -p foundation_nativeapis --features vfs-preload\n");
+        println!("The shim is: target/debug/libfoundation_nativeapis.so");
+        println!();
+        println!("Then use it like this:");
+        println!();
+        println!("  # Quick test with memory delta:");
+        println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
+        println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
+        println!("    /bin/bash");
+        println!();
+        println!("  # Persistent delta with sqlite:");
+        println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
+        println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
+        println!("    FOUNDATION_VFS_DELTA=sqlite \\");
+        println!("    FOUNDATION_VFS_DELTA_PATH=/tmp/vfs-delta.db \\");
+        println!("    /bin/bash");
+        println!();
+        println!("  # Delta stored in a real directory:");
+        println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
+        println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
+        println!("    FOUNDATION_VFS_DELTA=dir \\");
+        println!("    FOUNDATION_VFS_DELTA_PATH=/tmp/vfs-delta \\");
+        println!("    /bin/bash");
+        println!();
+        println!("  # Overlay a real directory as base:");
+        println!("  LD_PRELOAD=target/debug/libfoundation_nativeapis.so \\");
+        println!("    FOUNDATION_VFS_PREFIX=/virtual \\");
+        println!("    FOUNDATION_VFS_ROOT=/path/to/project \\");
+        println!("    FOUNDATION_VFS_DELTA=memory \\");
+        println!("    /bin/bash");
+        return;
     };
 
     let lib_str = lib_path.to_string_lossy().into_owned();
@@ -274,7 +272,7 @@ int main(int argc, char *argv[]) {
                     e.file_type().ok()
                 );
                 if let Ok(content) = std::fs::read_to_string(e.path()) {
-                    println!("    {:?}", content);
+                    println!("    {content:?}");
                 }
             }
         }

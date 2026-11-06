@@ -49,6 +49,11 @@ pub mod trace;
 pub mod traits;
 pub mod type_uuid;
 pub mod url;
+// The executors and `valtron::Ctx` need `std`, so this module compiles only
+// when the feature is on. The `compile_error!` above already refuses the bare
+// build; without this gate its executors would add unresolved-import noise for
+// `Ctx` on top of that one actionable message.
+#[cfg(feature = "std")]
 pub mod valtron;
 
 /// `#[wasm_logs(stdout | console)]` — install a tracing subscriber (console.log

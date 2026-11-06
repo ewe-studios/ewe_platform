@@ -11,7 +11,7 @@ description = "Generated Cloudflare API client: routes group"
 [dependencies]
 foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.0" }
 foundation_deployment = { path = "../foundation_deployment", version = "0.0.3" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.6", default-features = false, features = ["ssl", "multi"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

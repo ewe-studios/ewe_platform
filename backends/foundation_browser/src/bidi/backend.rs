@@ -1,7 +1,7 @@
-//! BiDi implementation of [`Backend`] (Firefox).
+//! `BiDi` implementation of [`Backend`] (Firefox).
 //!
 //! Maps the operation set to `browsingContext.*` / `script.*` /
-//! `input.performActions`, and converts BiDi `RemoteValue`s back to plain JSON.
+//! `input.performActions`, and converts `BiDi` `RemoteValue`s back to plain JSON.
 
 use base64::Engine as _;
 use serde_json::{json, Map, Value};
@@ -11,7 +11,7 @@ use crate::bidi::default_context;
 use crate::error::{BrowserError, Result};
 use crate::jsonrpc::{RpcEngine, WireProtocol};
 
-/// A BiDi page backend: a borrowed engine + the target browsing-context id.
+/// A `BiDi` page backend: a borrowed engine + the target browsing-context id.
 pub(crate) struct BiDiBackend<'e> {
     engine: &'e RpcEngine,
     context: String,
@@ -28,7 +28,7 @@ impl<'e> BiDiBackend<'e> {
         self.engine.call(method, params, None)
     }
 
-    fn perform(&self, actions: Value) -> Result<()> {
+    fn perform(&self, actions: &Value) -> Result<()> {
         self.call(
             "input.performActions",
             json!({ "context": self.context, "actions": actions }),
@@ -98,8 +98,8 @@ impl Backend for BiDiBackend<'_> {
     }
 
     fn click_at(&self, x: f64, y: f64) -> Result<()> {
-        let (x, y) = (x.round() as i64, y.round() as i64);
-        self.perform(json!([{
+        let (x, y) = (wire_coord(x), wire_coord(y));
+        self.perform(&json!([{
             "type": "pointer", "id": "mouse", "parameters": { "pointerType": "mouse" },
             "actions": [
                 { "type": "pointerMove", "x": x, "y": y },
@@ -110,8 +110,8 @@ impl Backend for BiDiBackend<'_> {
     }
 
     fn hover_at(&self, x: f64, y: f64) -> Result<()> {
-        let (x, y) = (x.round() as i64, y.round() as i64);
-        self.perform(json!([{
+        let (x, y) = (wire_coord(x), wire_coord(y));
+        self.perform(&json!([{
             "type": "pointer", "id": "mouse", "parameters": { "pointerType": "mouse" },
             "actions": [ { "type": "pointerMove", "x": x, "y": y } ],
         }]))
@@ -124,12 +124,12 @@ impl Backend for BiDiBackend<'_> {
             actions.push(json!({ "type": "keyDown", "value": s }));
             actions.push(json!({ "type": "keyUp", "value": s }));
         }
-        self.perform(json!([{ "type": "key", "id": "keyboard", "actions": actions }]))
+        self.perform(&json!([{ "type": "key", "id": "keyboard", "actions": actions }]))
     }
 
     fn press_key(&self, key: &str) -> Result<()> {
         let value = bidi_key(key);
-        self.perform(json!([{
+        self.perform(&json!([{
             "type": "key", "id": "keyboard",
             "actions": [
                 { "type": "keyDown", "value": value },
@@ -139,7 +139,21 @@ impl Backend for BiDiBackend<'_> {
     }
 }
 
-/// Named keys → the WebDriver normalized key values (Unicode PUA); other inputs
+/// Round a viewport coordinate to the integer a `BiDi` pointer action takes.
+///
+/// The value comes from a bounding box in the page viewport, so it is a small
+/// CSS pixel count, far inside the `i64` range. A malformed page can still
+/// return a huge or non-finite value; `as i64` saturates such a value instead
+/// of panicking, so this conversion is safe and intentional.
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "a viewport coordinate is a CSS pixel count far inside i64; `as i64` saturates a malformed value instead of panicking"
+)]
+fn wire_coord(v: f64) -> i64 {
+    v.round() as i64
+}
+
+/// Named keys → the `WebDriver` normalized key values (Unicode PUA); other inputs
 /// pass through (single chars type literally).
 fn bidi_key(key: &str) -> String {
     let mapped = match key {
@@ -158,7 +172,7 @@ fn bidi_key(key: &str) -> String {
     mapped.to_string()
 }
 
-/// Convert a BiDi `RemoteValue` to plain JSON (the shape CDP's `returnByValue`
+/// Convert a `BiDi` `RemoteValue` to plain JSON (the shape CDP's `returnByValue`
 /// yields), so `Page::eval` is uniform across backends. Handles primitives,
 /// arrays/sets, and objects/maps (whose `value` is a list of `[key, value]`
 /// pairs). Plain objects returned by our eval snippets serialize fully (DOM
@@ -166,7 +180,6 @@ fn bidi_key(key: &str) -> String {
 fn remote_value_to_json(rv: &Value) -> Value {
     match rv.get("type").and_then(Value::as_str) {
         Some("undefined" | "null") | None => Value::Null,
-        Some("string" | "boolean") => rv.get("value").cloned().unwrap_or(Value::Null),
         Some("number") => match rv.get("value") {
             Some(n @ Value::Number(_)) => n.clone(),
             // Special doubles arrive as strings ("NaN"/"Infinity"/"-0").
@@ -207,6 +220,7 @@ fn remote_value_to_json(rv: &Value) -> Value {
             }
             Value::Object(obj)
         }
+        // String/boolean primitives carry their JSON in `value`; so does a
         // RemoteObjectReference without a serialized value, etc.
         _ => rv.get("value").cloned().unwrap_or(Value::Null),
     }

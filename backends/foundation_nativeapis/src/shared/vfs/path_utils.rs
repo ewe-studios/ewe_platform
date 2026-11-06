@@ -2,6 +2,9 @@ use foundation_errstacks::ErrorTrace;
 
 use super::error::{VfsError, VfsResult};
 
+///
+/// # Errors
+/// Returns an error if the operation fails.
 pub fn normalize_vfs_path(path: &str) -> VfsResult<String> {
     if path.is_empty() || path == "/" {
         return Ok("/".to_string());
@@ -26,6 +29,7 @@ pub fn normalize_vfs_path(path: &str) -> VfsResult<String> {
     Ok(result)
 }
 
+#[must_use]
 pub fn parent_path(path: &str) -> Option<String> {
     if path == "/" {
         return None;
@@ -37,6 +41,7 @@ pub fn parent_path(path: &str) -> Option<String> {
     }
 }
 
+#[must_use]
 pub fn file_name(path: &str) -> &str {
     match path.rfind('/') {
         Some(idx) => &path[idx + 1..],

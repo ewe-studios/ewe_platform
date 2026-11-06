@@ -222,7 +222,7 @@ fn test_split_collect_one_map() {
     let mut collected: Vec<String> = Vec::new();
     loop {
         // Free any pending slot first so a parked source can advance.
-        while let Some(item) = observer.next() {
+        for item in observer.by_ref() {
             match item {
                 Stream::Next(v) => collected.push(v),
                 _ => break,

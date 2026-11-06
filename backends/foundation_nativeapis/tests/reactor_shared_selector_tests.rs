@@ -252,9 +252,8 @@ fn open_fd_count() -> usize {
 #[test]
 #[serial_test::serial]
 fn registering_many_fds_adds_no_selector_fds() {
-    let reactor = Reactor::get().expect("shared reactor must initialise");
-
     const N: usize = 64;
+    let reactor = Reactor::get().expect("shared reactor must initialise");
     let mut pipes = Vec::with_capacity(N);
     for _ in 0..N {
         pipes.push(nonblocking_pipe().expect("pipe"));

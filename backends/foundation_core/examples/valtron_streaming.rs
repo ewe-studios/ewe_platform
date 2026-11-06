@@ -29,6 +29,10 @@ struct Download {
     index: usize,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn download(ctx: Ctx, state: Download) -> Option<(Download, TaskStatus<&'static str, ()>)> {
     let _ = ctx;

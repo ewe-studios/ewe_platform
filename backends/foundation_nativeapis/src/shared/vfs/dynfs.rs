@@ -116,24 +116,60 @@ impl<T: VfsDirectory + ?Sized> VfsDirectory for Box<T> {
 pub struct ErasedFile(pub Arc<Mutex<Box<dyn VfsFile + Send + Sync>>>);
 
 impl ErasedFile {
-    pub fn new(f: impl VfsFile + Send + Sync + 'static) -> Self {
+    pub fn new(f: impl VfsFile + 'static) -> Self {
         Self(Arc::new(Mutex::new(Box::new(f))))
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
         self.0.lock().unwrap().read_at(buf, offset)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> {
         self.0.lock().unwrap().write_at(buf, offset)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn sync_data(&self) -> VfsResult<()> {
         self.0.lock().unwrap().sync_data()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn size(&self) -> VfsResult<u64> {
         self.0.lock().unwrap().size()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn truncate(&self, size: u64) -> VfsResult<()> {
         self.0.lock().unwrap().truncate(size)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn metadata(&self) -> VfsResult<VfsMetadata> {
         self.0.lock().unwrap().metadata()
     }
@@ -146,33 +182,91 @@ impl ErasedSeekableFile {
     pub fn new(f: impl SeekableVfsFile + Send + Sync + 'static) -> Self {
         Self(Arc::new(Mutex::new(Box::new(f))))
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
         self.0.lock().unwrap().read_at(buf, offset)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> {
         self.0.lock().unwrap().write_at(buf, offset)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn sync_data(&self) -> VfsResult<()> {
         self.0.lock().unwrap().sync_data()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn size(&self) -> VfsResult<u64> {
         self.0.lock().unwrap().size()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn truncate(&self, size: u64) -> VfsResult<()> {
         self.0.lock().unwrap().truncate(size)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn metadata(&self) -> VfsResult<VfsMetadata> {
         self.0.lock().unwrap().metadata()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn read(&mut self, buf: &mut [u8]) -> VfsResult<usize> {
         self.0.lock().unwrap().read(buf)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn write(&mut self, buf: &[u8]) -> VfsResult<usize> {
         self.0.lock().unwrap().write(buf)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn seek(&mut self, pos: std::io::SeekFrom) -> VfsResult<u64> {
         self.0.lock().unwrap().seek(pos)
     }
+    #[must_use]
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn position(&self) -> u64 {
         self.0.lock().unwrap().position()
     }
@@ -184,17 +278,53 @@ pub struct ErasedDir(pub Arc<Mutex<Box<dyn ErasedDirOps>>>);
 /// Internal trait — concrete directories are adapted to this.
 pub trait ErasedDirOps: Send + Sync {
     fn path(&self) -> String;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn metadata(&self) -> VfsResult<VfsMetadata>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn list(&self) -> VfsResult<Vec<VfsDirEntry>>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn create_file(&self, name: &str, mode: u32) -> VfsResult<ErasedFile>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn create_dir(&self, name: &str) -> VfsResult<ErasedDir>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn remove_entry(&self, name: &str) -> VfsResult<()>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn open(&self, path: &str, mode: OpenMode) -> VfsResult<ErasedFile>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<ErasedSeekableFile>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn open_directory(&self, path: &str) -> VfsResult<ErasedDir>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata>;
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     fn exists(&self, path: &str) -> VfsResult<bool>;
 }
 
@@ -262,42 +392,118 @@ impl ErasedDir {
         Self(Arc::new(Mutex::new(Box::new(DirOpsAdapter(d)))))
     }
 
+    #[must_use]
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn path(&self) -> String {
         self.0.lock().unwrap().path()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn metadata(&self) -> VfsResult<VfsMetadata> {
         self.0.lock().unwrap().metadata()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn list(&self) -> VfsResult<Vec<VfsDirEntry>> {
         self.0.lock().unwrap().list()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>> {
         self.0.lock().unwrap().get_entry(name)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn create_file(&self, name: &str, mode: u32) -> VfsResult<ErasedFile> {
         self.0.lock().unwrap().create_file(name, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn create_dir(&self, name: &str) -> VfsResult<ErasedDir> {
         self.0.lock().unwrap().create_dir(name)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn remove_entry(&self, name: &str) -> VfsResult<()> {
         self.0.lock().unwrap().remove_entry(name)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()> {
         self.0.lock().unwrap().rename_entry(old_name, new_name)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn open(&self, path: &str, mode: OpenMode) -> VfsResult<ErasedFile> {
         self.0.lock().unwrap().open(path, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<ErasedSeekableFile> {
         self.0.lock().unwrap().open_seekable(path, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn open_directory(&self, path: &str) -> VfsResult<ErasedDir> {
         self.0.lock().unwrap().open_directory(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
         self.0.lock().unwrap().stat(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn exists(&self, path: &str) -> VfsResult<bool> {
         self.0.lock().unwrap().exists(path)
     }
@@ -359,57 +565,109 @@ impl DynFs {
         }
     }
 
+    #[must_use]
     pub fn capabilities(&self) -> VfsCapabilities {
         self.inner.capabilities()
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
         self.inner.stat(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn exists(&self, path: &str) -> VfsResult<bool> {
         self.inner.exists(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
         self.inner.chmod(path, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
         self.inner.symlink(target, link)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn readlink(&self, path: &str) -> VfsResult<String> {
         self.inner.readlink(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
         self.inner.rename(from, to)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn remove(&self, path: &str) -> VfsResult<()> {
         self.inner.remove(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn open_file(&self, path: &str, mode: OpenMode) -> VfsResult<ErasedFile> {
         self.inner.open_file(path, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<ErasedSeekableFile> {
         self.inner.open_seekable(path, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn open_dir(&self, path: &str) -> VfsResult<ErasedDir> {
         self.inner.open_dir(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn create(&self, path: &str, mode: u32) -> VfsResult<ErasedFile> {
         self.inner.create(path, mode)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn mkdir(&self, path: &str) -> VfsResult<()> {
         self.inner.mkdir(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
         self.inner.read_file(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
         self.inner.write_file(path, data)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn inode(&self, path: &str) -> VfsResult<u64> {
         self.inner.inode(path)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
         self.inner.path_by_inode(ino)
     }
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
         self.inner.stat_by_inode(ino)
     }

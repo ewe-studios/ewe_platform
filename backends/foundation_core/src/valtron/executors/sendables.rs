@@ -138,8 +138,21 @@ pub fn initialize_pool(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
 ) -> crate::valtron::multi::PoolGuard {
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+}
+
+/// [`initialize_pool`] with an explicit engine root.
+///
+/// Every task the pool drives gets a fork of `root`. This is the startup hook
+/// for a deterministic simulation test (DST).
+#[must_use]
+pub fn initialize_pool_with_ctx(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    root: Ctx,
+) -> crate::valtron::multi::PoolGuard {
     tracing::debug!("Starting under feature=multi");
-    multi::initialize_pool(seed_for_rng, user_thread_num)
+    multi::initialize_pool_with_ctx(seed_for_rng, user_thread_num, root)
 }
 
 /// Make the calling thread able to drive valtron work set up by
@@ -149,7 +162,15 @@ pub fn initialize_pool(
 /// it and this is a no-op. Without `multi` the engine is thread-local and the
 /// same function initializes it for the calling thread; callers use it so
 /// their code is correct in both configurations.
-pub fn initialize_current_thread(_seed_for_rng: u64) {}
+pub fn initialize_current_thread(_seed_for_rng: u64) {
+    initialize_current_thread_with_ctx(_seed_for_rng, Ctx::new());
+}
+
+/// [`initialize_current_thread`] with an explicit engine root.
+///
+/// Under `multi` this is a no-op, because the process-wide pool already holds
+/// its root.
+pub fn initialize_current_thread_with_ctx(_seed_for_rng: u64, _root: Ctx) {}
 
 /// Submit a blocking closure for execution on the appropriate background executor.
 ///
