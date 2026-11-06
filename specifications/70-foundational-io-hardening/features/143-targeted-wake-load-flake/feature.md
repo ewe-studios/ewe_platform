@@ -1,6 +1,6 @@
 ---
 feature: "The targeted wake test does not time out under a full parallel suite"
-status: "planned"
+status: "dropped"
 lane: "priority follow-up (found under feature 139)"
 model: "sonnet"
 branch: "spec70/targeted-wake-flake"
@@ -9,6 +9,10 @@ catalogue_rows: []
 ---
 
 # Feature 143: the targeted wake test is bounded by work, not by wall time
+
+**Dropped on 2026-11-06.** The owner closed new feature opening for spec 70. The item is
+now GitHub issue [#187](https://github.com/ewe-studios/ewe_platform/issues/187), severity
+`medium`. This file stays as the design record; its backlog entry is deleted.
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as
 they are. Follow [requirements.md](../../requirements.md) sections 3, 4 and 8._

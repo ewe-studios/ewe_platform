@@ -28,10 +28,13 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   - `a_negative_answer_is_not_cached` fails on `39f4eedb3` (0 passed, 1 failed)
     and passes after; all three wake-source tests pass. fmt and clippy are
     clean. The backlog section 2 entry is deleted.
-  - Next: feature 142 deletes the stale commented `clone_stream` block in the
-    same file (haiku). Feature 143 reproduces the `targeted_wake` full-suite
-    timeout before it bounds the storm by work (sonnet). Feature 144 removes
-    the unused `openssl` warning from the netio all-features check (haiku).
+  - Feature 142 deletes the stale commented `clone_stream` block in the same
+    file.
+  - Policy change on 2026-11-06: spec 70 opens no new features. Findings go to
+    GitHub issues with a severity label. Feature 143 became issue 187 and
+    feature 144 became issue 188; both feature files are marked dropped.
+    Issue 188 is fixed directly (no feature): the netio `--all-features` check
+    is warning-free.
 
 - 2026-11-06: feature 137 builds a stream's read wake source once. Commit
   `39f4eedb3`.

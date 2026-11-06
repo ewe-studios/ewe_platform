@@ -33,16 +33,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   warns as an irrefutable pattern. Keep the `if let`: the TLS feature sets add the
   other variants. Found in feature 49; the default and all-feature sets are
   warning-free.
-- **`--all-features` warns that the `openssl` dependency is unused.** Command:
-  `cargo check --profile uat -p foundation_netio --all-features`. Cargo's
-  `unused_dependencies` lint reports one warning in the manifest, because the
-  TLS import order prefers `ssl-rustls` when both `ssl-rustls` and
-  `ssl-openssl` are on, so no code names `openssl`. Each backend alone is
-  clean. Likely fix: in the TLS module, add
-  `#[cfg(all(feature = "ssl-openssl", feature = "ssl-rustls"))] use openssl as _;`
-  with a comment that rustls wins, or declare the two features mutually
-  exclusive. Found in feature 142; scheduled as feature 144.
-
 ## 3. foundation_http
 
 - **`ConnectionHandler::idle_timeout` (`native/server/connection.rs:173`) is the size-based
@@ -124,18 +114,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   shows it. Likely fix: add a `#[doc(hidden)]` wake counter beside
   `h2_pump_poll_count` (on `ReadinessNotifier` or `ExecutorWake`), then assert
   that a pop does not wake a parked producer. Found in feature 126.
-- **`targeted_wake` can time out under a full parallel suite.** File:
-  `backends/foundation_core/tests/valtron/targeted_wake.rs`
-  (`a_wake_for_another_task_does_not_make_a_parked_task_re_check`). Problem: one
-  full `cargo test -p foundation_core --features multi` run timed out the test at
-  its 20 s bound. It passed alone and in the next full run. The test races a
-  600 ms wake storm against a 20 s timeout, and a full run also leaves the
-  detached worker of `hung_body_fails_at_its_timeout_instead_of_hanging`
-  sleeping for an hour. Likely fix: bound the storm by wake count as well as
-  time, or run the test in its own binary so no detached worker or heavy
-  parallel load skews it. Found in feature 139; not reproduced. Scheduled as
-  feature 143, which reproduces first.
-
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
 - **Two `foundation_nativeapis` doc examples are `ignore`d pseudo-code.**

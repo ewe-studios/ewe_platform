@@ -24,6 +24,12 @@ pub use config::*;
 // When --all-features enables multiple backends, the primary (rustls) wins.
 // This avoids compile_error! conflicts while still allowing explicit single-backend selection.
 
+// Rustls wins when both backends are on, so the `openssl` module is not compiled and
+// cargo reports the `openssl` dependency as unused. Naming the crate in that build only
+// keeps the manifest clean; each backend alone stays clean.
+#[cfg(all(feature = "ssl-openssl", feature = "ssl-rustls"))]
+use openssl as _;
+
 #[cfg(all(feature = "ssl-openssl", not(feature = "ssl-rustls")))]
 pub mod openssl;
 
