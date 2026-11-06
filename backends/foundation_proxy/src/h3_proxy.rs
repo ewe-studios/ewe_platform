@@ -226,6 +226,16 @@ async fn forward(
         .map_err(|e| format!("send upstream request: {e}"))?;
     let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
 
+    // `send_async` hands the response socket back in blocking mode, but this leg
+    // streams the body asynchronously. Keep the socket non-blocking so the body
+    // read parks on the reactor (`read_wake_source`) instead of blocking this
+    // valtron worker and every task it hosts (spec 70 feature 121).
+    if let Some(conn) = conn.as_ref() {
+        if let Err(e) = conn.set_nonblocking(true) {
+            tracing::debug!(error = %e, "cannot set upstream response socket non-blocking");
+        }
+    }
+
     // The body is an async stream that parks on the upstream socket
     // (Content-Length, chunked, or close-delimited; the client handles all three).
     let mut chunks = AsyncSendSafeBody::from(resp_body);
