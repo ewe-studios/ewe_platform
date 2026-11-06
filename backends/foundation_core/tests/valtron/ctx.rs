@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::{Clock, Config, Ctx, MonotonicClock};
+use foundation_core::valtron::{Clock, Config, Ctx, MinimumElement, MonotonicClock};
 
 /// Compile-time assertion that a type is usable across threads (and on the
 /// single-threaded engine). Fails to compile if it stops being `Send + Sync`.
@@ -25,7 +25,7 @@ fn ctx_is_send_and_sync() {
 
 #[test]
 fn empty_ctx_has_no_entries() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     assert!(!ctx.contains::<u32>());
     assert!(ctx.get::<u32>().is_none());
     assert!(ctx.remove::<u32>().is_none());
@@ -33,7 +33,7 @@ fn empty_ctx_has_no_entries() {
 
 #[test]
 fn map_round_trip() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     assert!(ctx.insert(Arc::new(42u32)).is_none());
 
     let got = ctx
@@ -50,7 +50,7 @@ fn map_round_trip() {
 
 #[test]
 fn insert_replaces_and_returns_prior() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let prior = ctx.insert(Arc::new(1u32));
     assert!(prior.is_none(), "first insert has no prior");
 
@@ -65,7 +65,7 @@ fn insert_replaces_and_returns_prior() {
 
 #[test]
 fn get_with_wrong_type_returns_none_not_panic() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     ctx.insert(Arc::new(1u32));
     // Same key domain, different type — must be `None`, never a downcast panic.
     assert!(ctx.get::<u64>().is_none());
@@ -76,7 +76,7 @@ fn get_with_wrong_type_returns_none_not_panic() {
 
 #[test]
 fn get_or_insert_returns_live_arc_and_dedupes() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let a = ctx.get_or_insert(7u32);
     let b = ctx.get_or_insert(7u32);
     assert_eq!(*a, 7);
@@ -88,7 +88,7 @@ fn get_or_insert_returns_live_arc_and_dedupes() {
 
 #[test]
 fn clone_shares_the_map() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let shared = ctx.clone();
 
     ctx.insert(Arc::new(99u32));
@@ -102,7 +102,7 @@ fn clone_shares_the_map() {
 
 #[test]
 fn fork_isolates_the_map() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let fork = ctx.fork();
 
     ctx.insert(Arc::new(1u32));
@@ -124,7 +124,7 @@ fn fork_isolates_the_map() {
 
 #[test]
 fn fork_shares_arc_values() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let counter = Arc::new(AtomicUsize::new(0));
     ctx.insert(counter.clone());
 
@@ -143,7 +143,7 @@ fn fork_shares_arc_values() {
 
 #[test]
 fn standard_elements_are_shared_across_forks() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let fork = ctx.fork();
 
     assert!(Arc::ptr_eq(&ctx.clock(), &fork.clock()));
@@ -153,7 +153,7 @@ fn standard_elements_are_shared_across_forks() {
 
 #[test]
 fn standard_elements_are_reachable_and_rng_draws() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     // Clock reads are live (elapsed grows, or at least is a valid Duration).
     let _ = ctx.clock().now();
@@ -172,10 +172,33 @@ fn standard_elements_are_reachable_and_rng_draws() {
 }
 
 #[test]
+fn new_carries_the_given_clock() {
+    let clock: Arc<dyn Clock> = Arc::new(MockClock::new());
+    let ctx = Ctx::new(Arc::clone(&clock));
+
+    assert!(
+        Arc::ptr_eq(&ctx.clock(), &clock),
+        "Ctx::new must carry the injected clock, not build a real one"
+    );
+    ctx.assert_minimum();
+    ctx.fork().assert_minimum();
+    ctx.with_clock(Arc::new(MonotonicClock::new()))
+        .assert_minimum();
+}
+
+#[test]
+#[should_panic(expected = "config")]
+fn assert_minimum_panics_when_an_element_is_missing() {
+    // A context from a path the compiler cannot check: the config is absent.
+    let ctx = Ctx::incomplete_for_test(Arc::new(MockClock::new()), MinimumElement::Config);
+    ctx.assert_minimum();
+}
+
+#[test]
 fn fork_preserves_shared_rng_stream_state() {
     // The RNG is shared (same Arc) across a fork, so a draw through one
     // handle advances the stream seen through the other.
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let fork = ctx.fork();
 
     let a = ctx.rng().lock().expect("lock").next_u64();

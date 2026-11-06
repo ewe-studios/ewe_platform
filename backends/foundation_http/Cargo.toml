@@ -1,6 +1,6 @@
 [package]
 name = "foundation_http"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,8 +10,10 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.14" }
+foundation_core = { path = "../foundation_core", version = "0.0.15" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+# `ContextBag::rng` names the concrete `ChaCha8Rng`, as `Ctx::rng` does.
+rand_chacha = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -63,7 +65,7 @@ foundation_db = { path = "../foundation_db", version = "0.0.6", optional = true,
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a server
 # timeout follows the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.14", features = ["multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.15", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_testing = { path = "../foundation_testing" }
 # `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.

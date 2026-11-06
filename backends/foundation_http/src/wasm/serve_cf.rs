@@ -39,7 +39,7 @@ impl HttpApp<Arc<dyn CfServe>> {
     pub fn new_cf() -> Self {
         use crate::shared::router::Router;
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }

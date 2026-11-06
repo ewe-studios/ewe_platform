@@ -38,7 +38,7 @@ use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
 use foundation_core::valtron::{
-    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
+    AnyReadiness, Clock, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
     TaskIterator, TaskStatus,
 };
 use quinn_proto::{

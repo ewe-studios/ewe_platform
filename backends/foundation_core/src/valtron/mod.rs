@@ -38,6 +38,20 @@ pub use foundation_macros::{task, timeout, valtron, valtron_test};
 /// Override per test with `#[valtron_test(timeout = .., shutdown_grace = ms)]`.
 pub const DEFAULT_TEST_SHUTDOWN_GRACE: core::time::Duration = core::time::Duration::from_secs(5);
 
+/// Default `shutdown` grace for a [`PoolGuard`](crate::valtron::PoolGuard):
+/// how long the pool gets for its workers to stop before the stuck ones are
+/// detached and the process-wide lifecycle gate is released.
+///
+/// WHY: `PoolGuard` holds the lifecycle gate as a field, and Rust drops fields
+/// only after `Drop::drop` returns. A worker stuck in a task must not keep the
+/// gate shut for the rest of the process; a panic must not freeze every later
+/// pool user. 5 s: a healthy pool tears down in milliseconds, so this only ever
+/// runs out for workers that are truly stuck.
+///
+/// Override the deadline per call with
+/// [`PoolGuard::shutdown_within`](crate::valtron::PoolGuard::shutdown_within).
+pub const DEFAULT_POOL_SHUTDOWN_GRACE: core::time::Duration = core::time::Duration::from_secs(5);
+
 pub use branches::*;
 #[cfg(feature = "std")]
 pub use ctx::*;

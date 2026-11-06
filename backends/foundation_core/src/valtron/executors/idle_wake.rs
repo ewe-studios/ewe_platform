@@ -23,7 +23,7 @@
 //! wakes every handle, for the callers that have not moved to a per-task waker.
 
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex, PoisonError, Weak};
+use std::sync::{Arc, Mutex, Weak};
 
 type Interrupt = Arc<dyn Fn() + Send + Sync>;
 
@@ -65,7 +65,9 @@ impl ExecutorWake {
             sleeping: Mutex::new(None),
             listeners: Mutex::new(Vec::new()),
         });
-        let mut all = HANDLES.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut all = HANDLES
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         // Drop the entries of threads that have exited (their `Weak` no longer
         // upgrades) before adding this one. Pruning here, once per new thread,
         // keeps the list as long as the live executor threads plus those that
@@ -88,7 +90,7 @@ impl ExecutorWake {
             &mut *self
                 .listeners
                 .lock()
-                .unwrap_or_else(PoisonError::into_inner),
+                .unwrap_or_else(crate::compati::recover_poison),
         );
         for listener in listeners {
             listener();
@@ -96,7 +98,7 @@ impl ExecutorWake {
         let interrupt = self
             .sleeping
             .lock()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(crate::compati::recover_poison)
             .clone();
         if let Some(interrupt) = interrupt {
             interrupt();
@@ -118,7 +120,7 @@ impl ExecutorWake {
     pub(crate) fn on_wake(&self, cb: Box<dyn FnOnce() + Send>) {
         self.listeners
             .lock()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(crate::compati::recover_poison)
             .push(cb);
     }
 }
@@ -136,7 +138,7 @@ pub(crate) fn current() -> Arc<ExecutorWake> {
 pub fn resume_idle() {
     let handles: Vec<Arc<ExecutorWake>> = HANDLES
         .lock()
-        .unwrap_or_else(PoisonError::into_inner)
+        .unwrap_or_else(crate::compati::recover_poison)
         .iter()
         .filter_map(Weak::upgrade)
         .collect();
@@ -162,7 +164,7 @@ pub fn park_idle(interrupt: Interrupt, sleep: impl FnOnce()) {
     *handle
         .sleeping
         .lock()
-        .unwrap_or_else(PoisonError::into_inner) = Some(interrupt);
+        .unwrap_or_else(crate::compati::recover_poison) = Some(interrupt);
     // Registered: any later wake interrupts the sleep. A wake between the
     // check and the registration would be lost, so skip the sleep for it.
     if checked_at == NOT_CHECKING || handle.epoch.load(Ordering::SeqCst) == checked_at {
@@ -171,5 +173,5 @@ pub fn park_idle(interrupt: Interrupt, sleep: impl FnOnce()) {
     *handle
         .sleeping
         .lock()
-        .unwrap_or_else(PoisonError::into_inner) = None;
+        .unwrap_or_else(crate::compati::recover_poison) = None;
 }

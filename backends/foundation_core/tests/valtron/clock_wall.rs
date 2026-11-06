@@ -32,7 +32,7 @@ static WALL_CLOCK: LazyLock<Arc<SimulatedClock>> =
 #[cfg(feature = "test-clock")]
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
     let clock: Arc<dyn Clock> = clock.clone();
-    Ctx::new().with_clock(clock)
+    Ctx::new(clock)
 }
 
 #[test]

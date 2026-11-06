@@ -108,7 +108,7 @@ impl Future for WakeParkFuture {
 ///      this) and inspect the returned readiness signal.
 #[test]
 fn pending_future_parks_then_completes_on_wake() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let poll_count = Arc::new(AtomicUsize::new(0));
     let ready = Arc::new(AtomicBool::new(false));
     let waker_slot: Arc<Mutex<Option<Waker>>> = Arc::new(Mutex::new(None));
@@ -202,7 +202,7 @@ impl Future for SelfWakeOnceFuture {
 /// HOW: Stress 2000 iterations; each fresh task must complete on the second poll.
 #[test]
 fn wake_before_park_is_never_lost() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     for iteration in 0..2000 {
         let mut task = FutureTask::new(SelfWakeOnceFuture { polled: false });
 

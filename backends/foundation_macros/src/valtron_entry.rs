@@ -135,7 +135,7 @@ struct Args {
     /// this. Default 100 ms.
     slow_poll: Option<syn::Expr>,
     /// `ctx = expr` — the `Ctx` the engine starts with. Absent → the engine
-    /// uses its default `Ctx::new()`.
+    /// uses its default `Ctx::host()`.
     ctx: Option<syn::Expr>,
     /// `shutdown_grace = ms` — after a `timeout`, how long the pool gets to stop
     /// before stuck workers are detached. Default
@@ -442,7 +442,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 #seed,
                 #threads,
                 #slow_poll,
-                #fc::valtron::Ctx::new(),
+                #fc::valtron::Ctx::host(),
             )
         },
         Some(expr) => quote! {
@@ -469,7 +469,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 __valtron_seed,
                 #threads,
                 #slow_poll,
-                #fc::valtron::Ctx::new(),
+                #fc::valtron::Ctx::host(),
             )
         }
     };
@@ -486,7 +486,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             #fc::valtron::initialize_current_thread_with_slow_poll_warning(
                 __valtron_seed,
                 #slow_poll,
-                #fc::valtron::Ctx::new(),
+                #fc::valtron::Ctx::host(),
             )
         }
     };

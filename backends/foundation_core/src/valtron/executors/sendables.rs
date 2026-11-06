@@ -137,7 +137,7 @@ pub fn initialize_pool(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
 ) -> crate::valtron::multi::PoolGuard {
-    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::host())
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -150,6 +150,7 @@ pub fn initialize_pool_with_ctx(
     user_thread_num: Option<usize>,
     root: Ctx,
 ) -> crate::valtron::multi::PoolGuard {
+    root.assert_minimum();
     tracing::debug!("Starting under feature=multi");
     multi::initialize_pool_with_ctx(seed_for_rng, user_thread_num, root)
 }
@@ -168,6 +169,7 @@ pub fn initialize_pool_with_slow_poll_warning(
     slow_poll_warning: Option<std::time::Duration>,
     root: Ctx,
 ) -> crate::valtron::multi::PoolGuard {
+    root.assert_minimum();
     tracing::debug!("Starting under feature=multi");
     multi::initialize_pool_with_slow_poll_warning(
         seed_for_rng,
@@ -185,24 +187,40 @@ pub fn initialize_pool_with_slow_poll_warning(
 /// same function initializes it for the calling thread; callers use it so
 /// their code is correct in both configurations.
 pub fn initialize_current_thread(seed_for_rng: u64) {
-    initialize_current_thread_with_ctx(seed_for_rng, Ctx::new());
+    initialize_current_thread_with_ctx(seed_for_rng, Ctx::host());
 }
 
 /// [`initialize_current_thread`] with an explicit engine root.
 ///
 /// Under `multi` this is a no-op, because the process-wide pool already holds
 /// its root.
-pub fn initialize_current_thread_with_ctx(_seed_for_rng: u64, _root: Ctx) {}
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the signature matches the single-threaded build, where the root is consumed"
+)]
+pub fn initialize_current_thread_with_ctx(_seed_for_rng: u64, root: Ctx) {
+    // Under `multi` the pool is process-wide, so this is a no-op. Check the
+    // boundary anyway: the same call is the startup path in the single-threaded
+    // build.
+    root.assert_minimum();
+}
 
 /// [`initialize_current_thread_with_ctx`] with a slow-poll watchdog threshold.
 ///
 /// Under `multi` this is a no-op: the pool workers were started with the
 /// threshold already, so the calling thread has nothing to install.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the signature matches the single-threaded build, where the root is consumed"
+)]
 pub fn initialize_current_thread_with_slow_poll_warning(
     _seed_for_rng: u64,
     _slow_poll_warning: Option<std::time::Duration>,
-    _root: Ctx,
+    root: Ctx,
 ) {
+    // See `initialize_current_thread_with_ctx`: no-op under `multi`, checked
+    // boundary.
+    root.assert_minimum();
 }
 
 /// Submit a blocking closure for execution on the appropriate background executor.
@@ -1184,6 +1202,9 @@ where
     T::Pending: Send + 'static,
 {
     pub fn new(task_iterator: T, ctx: Ctx) -> Self {
+        // The task boundary: reject a context that lost an engine-minimum
+        // element on a path the compiler cannot check.
+        ctx.assert_minimum();
         Self(Some(task_iterator), ctx)
     }
 }

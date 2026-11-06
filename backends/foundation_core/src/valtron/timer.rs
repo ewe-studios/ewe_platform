@@ -22,7 +22,7 @@ use std::collections::BTreeMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
+use std::sync::{Condvar, Mutex, MutexGuard, OnceLock};
 use std::task::{Context, Poll, Wake, Waker};
 use std::time::Duration;
 
@@ -38,7 +38,9 @@ struct Timers {
 impl Timers {
     fn pending(&self) -> MutexGuard<'_, BTreeMap<(Instant, u64), Waker>> {
         // The map holds no invariant a panic could break.
-        self.pending.lock().unwrap_or_else(PoisonError::into_inner)
+        self.pending
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
     }
 }
 
@@ -91,13 +93,13 @@ fn run(timers: &'static Timers) {
                 timers
                     .changed
                     .wait_timeout(pending, wait)
-                    .unwrap_or_else(PoisonError::into_inner)
+                    .unwrap_or_else(crate::compati::recover_poison)
                     .0
             }
             None => timers
                 .changed
                 .wait(pending)
-                .unwrap_or_else(PoisonError::into_inner),
+                .unwrap_or_else(crate::compati::recover_poison),
         };
     }
 }
@@ -190,7 +192,11 @@ struct CallbackWake(Mutex<Option<Box<dyn FnOnce() + Send>>>);
 
 impl Wake for CallbackWake {
     fn wake(self: std::sync::Arc<Self>) {
-        let cb = self.0.lock().unwrap_or_else(PoisonError::into_inner).take();
+        let cb = self
+            .0
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take();
         if let Some(cb) = cb {
             cb();
         }

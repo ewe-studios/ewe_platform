@@ -58,7 +58,7 @@ fn blocking_transport_timeout_fails_once_and_terminates() {
     let mut ready_failures = 0usize;
     let mut terminated = false;
     for _ in 0..MAX_STEPS {
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             None => {
                 terminated = true;
                 break;
@@ -139,7 +139,7 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
     let mut timeouts = 0usize;
     let mut terminated = false;
     for _ in 0..MAX_STEPS {
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             None => {
                 terminated = true;
                 break;

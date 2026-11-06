@@ -27,7 +27,7 @@
 use bytes::{Buf, Bytes};
 use quinn_proto::{Dir, VarInt};
 
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Clock, Stream};
 
 use super::state::{lock, SharedConn};
 use super::traits::{

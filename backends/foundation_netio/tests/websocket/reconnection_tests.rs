@@ -68,7 +68,7 @@ fn test_reconnecting_task_progress_states() {
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1").unwrap();
 
     // First next() should return a pending state
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     assert!(status.is_some(), "Should return Some status");
 
     // Any status is acceptable here: Connecting, another Pending state, or other
@@ -160,7 +160,7 @@ fn test_connection_failure_triggers_reconnect() {
 
     while iterations < max_iterations {
         iterations += 1;
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             None => {
                 // Task exhausted - reconnection attempts used up
                 break;
@@ -205,7 +205,7 @@ fn test_max_retries_exhausts() {
 
     while iterations < max_iterations {
         iterations += 1;
-        if task.next_status(Ctx::new()).is_none() {
+        if task.next_status(Ctx::host()).is_none() {
             got_exhausted = true;
             break;
         }
@@ -240,7 +240,7 @@ fn test_max_reconnect_duration_exhausts() {
 
     while iterations < max_iterations {
         iterations += 1;
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             None => {
                 got_exhausted = true;
                 break;

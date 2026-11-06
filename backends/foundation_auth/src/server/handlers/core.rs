@@ -274,6 +274,12 @@ pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
 }
 
 impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
+    /// The injected engine clock this core reads.
+    #[must_use]
+    pub(crate) fn clock(&self) -> Arc<dyn Clock> {
+        Arc::clone(&self.clock)
+    }
+
     /// Build the handlers over a config and storage.
     ///
     /// # Panics

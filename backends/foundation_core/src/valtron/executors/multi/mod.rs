@@ -113,12 +113,12 @@ impl FairGate {
         let mut guard = self
             .inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         while self.now_serving.load(Ordering::SeqCst) != my_ticket {
             guard = self
                 .cond
                 .wait(guard)
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+                .unwrap_or_else(crate::compati::recover_poison);
         }
         FairGateGuard { gate: self }
     }
@@ -136,7 +136,7 @@ impl Drop for FairGateGuard {
             .gate
             .inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         self.gate.now_serving.fetch_add(1, Ordering::SeqCst);
         self.gate.cond.notify_all();
     }
@@ -145,12 +145,12 @@ impl Drop for FairGateGuard {
 pub(crate) fn clear_global_registries() {
     let mut reg = REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+        .unwrap_or_else(crate::compati::recover_poison);
     *reg = None;
     drop(reg);
     let mut bg = BG_REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+        .unwrap_or_else(crate::compati::recover_poison);
     *bg = None;
 }
 
@@ -228,7 +228,7 @@ impl LocalPoolHandle {
 pub fn is_pool_initialized() -> bool {
     REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .unwrap_or_else(crate::compati::recover_poison)
         .is_some()
 }
 
@@ -241,7 +241,7 @@ pub fn is_pool_initialized() -> bool {
 pub fn get_pool() -> LocalPoolHandle {
     let registry = REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .unwrap_or_else(crate::compati::recover_poison)
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     LocalPoolHandle::new(&registry)
@@ -252,7 +252,7 @@ pub fn get_pool() -> LocalPoolHandle {
 /// The multi-threaded pool owns one root [`Ctx`] (on [`ThreadRegistry`]) and forks
 /// it per task on each worker. This exposes that same root-fork to code that drives
 /// a task alongside the pool (e.g. [`super::sendables::DrivenTaskIterator`]) so it
-/// never mints an unrelated `Ctx::new()`.
+/// never mints an unrelated `Ctx::host()`.
 ///
 /// # Panics
 ///
@@ -261,7 +261,7 @@ pub fn get_pool() -> LocalPoolHandle {
 pub fn fork_ctx() -> Ctx {
     let registry = REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .unwrap_or_else(crate::compati::recover_poison)
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     registry.fork_ctx()
@@ -293,7 +293,7 @@ where
 /// The caller is responsible for signal handling via the `PoolGuard`.
 #[must_use]
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
-    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::host())
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -439,7 +439,7 @@ pub fn initialize_pool_with_config(
     user_thread_num: Option<usize>,
     config: PoolConfig,
 ) -> PoolGuard {
-    initialize_pool_with_config_and_ctx(seed_for_rng, user_thread_num, config, Ctx::new())
+    initialize_pool_with_config_and_ctx(seed_for_rng, user_thread_num, config, Ctx::host())
 }
 
 /// [`initialize_pool_with_config`] with an explicit engine root.
@@ -454,6 +454,8 @@ pub fn initialize_pool_with_config_and_ctx(
     config: PoolConfig,
     root: Ctx,
 ) -> PoolGuard {
+    // The pool start is a task boundary: every task forks this root.
+    root.assert_minimum();
     // Acquire the process-wide lifecycle gate FIRST — blocks (in FIFO order)
     // until any previous pool's PoolGuard has dropped. This serializes all pool
     // users (across test files, regardless of #[serial]) since the global
@@ -505,11 +507,11 @@ pub fn initialize_pool_with_config_and_ctx(
 
     let mut reg_guard = REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+        .unwrap_or_else(crate::compati::recover_poison);
     *reg_guard = Some(registry.clone());
     let mut bg_guard = BG_REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+        .unwrap_or_else(crate::compati::recover_poison);
     *bg_guard = Some(bg_registry.clone());
     drop(reg_guard);
     drop(bg_guard);
@@ -555,7 +557,7 @@ pub fn initialize_pool_with_slow_poll_warning(
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
     let bg_registry = BG_REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .unwrap_or_else(crate::compati::recover_poison)
         .clone()
         .expect("Background job pool not initialized, ensure to call initialize_pool first");
     bg_registry.submit(job)
@@ -665,54 +667,40 @@ impl PoolGuard {
         }
     }
 
-    /// Explicit shutdown. Idempotent — safe to call multiple times.
+    /// Explicit shutdown with the default grace. Idempotent — safe to call
+    /// multiple times.
+    ///
+    /// WHY: this is the stop call on the drop path. It must always return, or
+    /// the [`FairGateGuard`] field is never dropped and the process-wide
+    /// lifecycle gate stays shut for the rest of the process.
+    /// WHAT: calls [`Self::shutdown_within`] with
+    /// [`DEFAULT_POOL_SHUTDOWN_GRACE`](crate::valtron::DEFAULT_POOL_SHUTDOWN_GRACE).
+    /// A stuck worker is detached at the deadline instead of blocking the drop
+    /// forever.
+    ///
     /// Removes this guard's own entries from the global registries; a private
     /// guard (see [`PoolGuard::new`]) owns no global entry and leaves the live
     /// pool alone. The lifecycle lock (held until this guard drops) guarantees
     /// no other pool can be initialized concurrently.
     pub fn shutdown(&self) {
-        tracing::debug!("PoolGuard::shutdown() called - pool shutting down");
-        if self
-            .shut_down
-            .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
-            .is_ok()
-        {
-            tracing::debug!("PoolGuard::shutdown() - signaling kill to all threads");
-            // Shut down background workers first, while the task workers are
-            // still alive: queued background jobs may depend on them.
-            if let Some(ref bg) = self.bg_registry {
-                tracing::debug!("PoolGuard::shutdown() - shutting down background workers");
-                if let ShutdownOutcome::TimedOut {
-                    abandoned_jobs,
-                    busy_workers,
-                } = bg.shutdown(&*self.registry.clock())
-                {
-                    // Already logged by the registry; the pool carries on tearing
-                    // down the task workers rather than hanging on stuck jobs.
-                    tracing::warn!(
-                        abandoned_jobs,
-                        busy_workers,
-                        "PoolGuard::shutdown() - background shutdown timed out"
-                    );
-                }
-            }
-
-            self.registry.shutdown();
-            tracing::debug!("clearing the global pool registry");
-            self.clear_owned_globals();
-            tracing::debug!("cleared the global pool registry");
-        } else {
-            tracing::debug!("PoolGuard::shutdown() - already shut down, skipping");
+        tracing::debug!("PoolGuard::shutdown() called - bounded shutdown");
+        let stopped = self.shutdown_within(crate::valtron::DEFAULT_POOL_SHUTDOWN_GRACE);
+        if !stopped {
+            tracing::warn!(
+                grace_ms = crate::valtron::DEFAULT_POOL_SHUTDOWN_GRACE.as_millis(),
+                "PoolGuard::shutdown() - task workers still busy at the deadline; they were detached"
+            );
         }
     }
 
-    /// [`Self::shutdown`] with a deadline for the task workers.
+    /// [`Self::shutdown`] with an explicit deadline for the task workers.
     ///
-    /// WHY: `shutdown` waits for every worker to reach its kill check, so a
-    /// worker stuck inside a task (blocked in a syscall, or deadlocked) makes it
-    /// wait forever, and the process-wide lifecycle gate is never released. A
-    /// test harness that has already given up on a hung test needs the pool torn
-    /// down in bounded time so the next pool user can start.
+    /// WHY: a worker can be stuck inside a task (blocked in a syscall, or
+    /// deadlocked) and never reach its kill check. An unbounded wait would keep
+    /// the process-wide lifecycle gate shut for the rest of the process. A
+    /// caller with its own deadline (the `#[valtron_test(timeout = ..)]`
+    /// harness, or a host with a tighter stop budget) needs the pool torn down
+    /// in bounded time.
     ///
     /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
     /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
@@ -762,7 +750,7 @@ impl PoolGuard {
     fn clear_owned_globals(&self) {
         let mut reg = REGISTRY
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         let owns_task_slot = reg
             .as_ref()
             .is_some_and(|global| Arc::ptr_eq(global, &self.registry));
@@ -778,7 +766,7 @@ impl PoolGuard {
         };
         let mut bg_guard = BG_REGISTRY
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         let owns_bg_slot = bg_guard
             .as_ref()
             .is_some_and(|global| Arc::ptr_eq(global, bg));
@@ -1053,19 +1041,13 @@ impl SharedThreadRegistry {
 
     #[must_use]
     pub fn executor_count(&self) -> usize {
-        let registry = self
-            .0
-            .read()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let registry = self.0.read().unwrap_or_else(crate::compati::recover_poison);
         registry.threads.active_slots()
     }
 
     #[must_use]
     pub fn get_thread(&self, thread: &ThreadId) -> ThreadRef {
-        let registry = self
-            .0
-            .read()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let registry = self.0.read().unwrap_or_else(crate::compati::recover_poison);
 
         match registry.threads.get(thread.get_ref()) {
             Some(thread_ref) => thread_ref.clone(),
@@ -1083,7 +1065,7 @@ impl SharedThreadRegistry {
         let mut registry = self
             .0
             .write()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
 
         // insert thread and get thread key.
         let entry = registry.threads.insert(thread);
@@ -1108,7 +1090,7 @@ impl SharedThreadRegistry {
         let mut registry = self
             .0
             .write()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         registry.threads.vacate(thread_id.get_ref());
     }
 
@@ -1118,7 +1100,7 @@ impl SharedThreadRegistry {
         let mut registry = self
             .0
             .write()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         registry.threads.clear();
     }
 }
@@ -1713,7 +1695,7 @@ impl ThreadRegistry {
             activity_receiver,
             waitgroup: WaitGroup::new(),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
-            root: Ctx::new(),
+            root: Ctx::host(),
             max_threads: num_threads,
             live_threads: Arc::new(AtomicUsize::new(0)),
             idle_threads: Arc::new(AtomicUsize::new(0)),
@@ -1746,7 +1728,7 @@ impl ThreadRegistry {
     /// Create a `ThreadRegistry` with the given [`PoolConfig`] tunables.
     #[must_use]
     pub fn with_config(seed_from_rng: u64, num_threads: usize, config: &PoolConfig) -> Self {
-        Self::with_config_and_root(seed_from_rng, num_threads, config, Ctx::new())
+        Self::with_config_and_root(seed_from_rng, num_threads, config, Ctx::host())
     }
 
     /// [`ThreadRegistry::with_config`] with an explicit pool root.
@@ -1868,7 +1850,7 @@ impl ThreadRegistry {
                 let mut map = self
                     .thread_handles
                     .write()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner);
+                    .unwrap_or_else(crate::compati::recover_poison);
                 std::mem::take(&mut *map).len()
             };
             tracing::error!(

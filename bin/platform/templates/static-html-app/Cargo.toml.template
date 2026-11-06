@@ -11,8 +11,8 @@ keywords = ["static-html-app", "static html app"]
 [dependencies]
 
 # -- ewe platform dependencies
-foundation_http = { version = "0.0.5", features = ["multi"] }
-foundation_core = { version = "0.0.7", features = ["multi"] }
+foundation_http = { version = "0.0.7", features = ["multi"] }
+foundation_core = { version = "0.0.15", features = ["multi"] }
 
 # directory embedding
 rust-embed = "8.5.0"

@@ -25,7 +25,7 @@ use foundation_core::valtron::{
 /// Build a pool root with `clock` as its engine clock.
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
     let clock: Arc<dyn Clock> = clock.clone();
-    Ctx::new().with_clock(clock)
+    Ctx::new(clock)
 }
 
 /// The pool-root test clock: about one hour ahead of real time.
@@ -42,7 +42,7 @@ static TIMEOUT_CLOCK: LazyLock<Arc<SimulatedClock>> =
 
 #[test]
 fn with_clock_returns_the_given_clock_and_keeps_the_original() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let original = ctx.clock();
     let simulated: Arc<dyn Clock> = Arc::new(SimulatedClock::new(Duration::from_secs(5)));
 
@@ -64,7 +64,7 @@ fn with_clock_returns_the_given_clock_and_keeps_the_original() {
 
 #[test]
 fn with_clock_shares_config_and_rng() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let simulated: Arc<dyn Clock> = Arc::new(SimulatedClock::new(Duration::ZERO));
 
     let with_simulated = ctx.with_clock(simulated);
@@ -75,7 +75,7 @@ fn with_clock_shares_config_and_rng() {
 
 #[test]
 fn with_clock_copies_the_map() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     ctx.insert(Arc::new(1u32));
 
     let simulated: Arc<dyn Clock> = Arc::new(SimulatedClock::new(Duration::ZERO));

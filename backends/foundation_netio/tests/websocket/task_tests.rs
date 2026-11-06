@@ -96,7 +96,7 @@ fn test_fresh_task_pending_connecting() {
 
     // First next() should return Pending(Connecting) as it tries to connect
     // (connection will fail since port 1 is not listening)
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     assert!(status.is_some(), "should return Some status");
 
     if let Some(TaskStatus::Pending(progress)) = status {
@@ -122,7 +122,7 @@ fn test_failing_connection_eventual_closed() {
 
     while iterations < max_iterations {
         iterations += 1;
-        if task.next_status(Ctx::new()).is_none() {
+        if task.next_status(Ctx::host()).is_none() {
             got_closed = true;
             break;
         }

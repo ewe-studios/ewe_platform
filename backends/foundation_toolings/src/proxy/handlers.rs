@@ -38,14 +38,12 @@ impl ServeFactory for SseReloadHandler {
         // We need to get the inner Arc via deref
         let queue: &Arc<ConcurrentQueue<FileChange>> = &tx;
 
-        let stored = bag
-            .get::<Arc<dyn Clock>>()
-            .expect("clock in ContextBag: the host must store Arc<dyn Clock>");
-        let clock: &Arc<dyn Clock> = &stored;
+        // The bag carries the clock as a field, so `create` cannot miss it.
+        let clock = bag.clock();
 
         Self {
             reload_rx: (*queue).clone(),
-            clock: (*clock).clone(),
+            clock,
         }
     }
 }

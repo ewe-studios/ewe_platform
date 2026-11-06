@@ -215,7 +215,7 @@ async fn main() {
     assert_eq!(house, House { walls: 4 });
 
     // The transition itself stays directly callable:
-    let (next, status) = build_house(Ctx::new(), Stage::Walls).unwrap();
+    let (next, status) = build_house(Ctx::host(), Stage::Walls).unwrap();
     assert_eq!((next, status), (Stage::Roof, TaskStatus::Ignore));
 }
 ```

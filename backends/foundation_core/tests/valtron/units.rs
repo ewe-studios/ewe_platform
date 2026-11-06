@@ -456,7 +456,7 @@ impl TaskIterator for SplitTestTask {
 fn test_split_collector_observer_receives_matched_items() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Create task that produces: Ready(5), Ready(10), Ready(15)
     let task = SplitTestTask::new(vec![
         TaskStatus::Ready(5),
@@ -500,7 +500,7 @@ fn test_split_collector_observer_receives_matched_items() {
 fn test_split_collect_one_first_match() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Create task with multiple values
     let task = SplitTestTask::new(vec![
         TaskStatus::Ready(1),
@@ -548,7 +548,7 @@ fn test_split_collect_one_first_match() {
 fn test_split_collector_observer_stream_type() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SplitTestTask::new(vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(42),
@@ -583,7 +583,7 @@ fn test_split_collector_observer_stream_type() {
 fn test_split_collector_continuation_forwards_all_states() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SplitTestTask::new(vec![
         TaskStatus::Pending("wait1".to_string()),
         TaskStatus::Ready(10),

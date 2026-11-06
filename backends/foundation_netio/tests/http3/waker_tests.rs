@@ -68,8 +68,8 @@ impl TaskIterator for CountingDriver {
 }
 
 fn pump(sq: &mut QuicDriver, cq: &mut QuicDriver) {
-    let _ = sq.next_status(Ctx::new());
-    let _ = cq.next_status(Ctx::new());
+    let _ = sq.next_status(Ctx::host());
+    let _ = cq.next_status(Ctx::host());
 }
 
 macro_rules! until {
@@ -189,7 +189,7 @@ fn idle_h3_connection_uses_no_cpu() {
     // Drive the client by hand while the server driver runs on the pool.
     let deadline = Instant::now() + BUDGET;
     let server_conn = loop {
-        let _ = cq.next_status(Ctx::new());
+        let _ = cq.next_status(Ctx::host());
         if let Some(conn) = accept_queue.lock().unwrap().pop_front() {
             break conn;
         }
@@ -203,7 +203,7 @@ fn idle_h3_connection_uses_no_cpu() {
     let mut client = H3Connection::new(client_conn);
     let setup_deadline = Instant::now() + BUDGET;
     loop {
-        let _ = cq.next_status(Ctx::new());
+        let _ = cq.next_status(Ctx::host());
         let server_ready = matches!(server.poll_setup(), Stream::Next(Ok(())));
         let client_ready = matches!(client.poll_setup(), Stream::Next(Ok(())));
         if server_ready && client_ready {
@@ -241,7 +241,7 @@ fn driver_parks_on_fd_readiness_not_delayed() {
     )
     .expect("bind");
     assert!(
-        matches!(no_fd.next_status(Ctx::new()), Some(TaskStatus::Delayed(_))),
+        matches!(no_fd.next_status(Ctx::host()), Some(TaskStatus::Delayed(_))),
         "without fd readiness the idle driver should poll, not park"
     );
 
@@ -254,7 +254,7 @@ fn driver_parks_on_fd_readiness_not_delayed() {
     let fd = FdReadiness::register(sq.socket().as_raw_fd()).expect("register fd");
     let mut sq = sq.with_fd_readiness(Arc::new(fd));
     assert!(
-        matches!(sq.next_status(Ctx::new()), Some(TaskStatus::Depends(_))),
+        matches!(sq.next_status(Ctx::host()), Some(TaskStatus::Depends(_))),
         "with fd readiness the idle driver should park, not poll"
     );
 }

@@ -26,7 +26,7 @@ foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
 foundation_signals = { path = "../foundation_signals", version = "0.0.3", default-features = false, features = ["single_threaded"] }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
-foundation_macros = { path = "../foundation_macros", version = "0.0.9" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
 # Theme token model + shared CSS generator (the theme!{} macro, ThemeTokens
 # derive, and runtime Theme builder all route through it).
 foundation_theme = { path = "../foundation_theme", version = "0.0.3" }

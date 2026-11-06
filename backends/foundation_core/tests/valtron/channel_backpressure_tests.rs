@@ -321,7 +321,7 @@ impl TaskIterator for SeqTask {
 fn test_split_continuation_parks_on_full_observer_no_loss() {
     use foundation_core::valtron::{Stream, TaskIteratorExt};
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Three matched items through a depth-1 (queue_size = 1) observer queue.
     let task = SeqTask {
         items: vec![
@@ -403,7 +403,7 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 fn test_split_continuation_survives_dropped_observer() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SeqTask {
         items: vec![
             TaskStatus::Ready(1),

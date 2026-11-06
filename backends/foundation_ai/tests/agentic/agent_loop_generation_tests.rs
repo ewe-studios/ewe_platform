@@ -152,7 +152,7 @@ fn user_msg(text: &str) -> Messages {
 fn drive(h: &mut Harness) -> Vec<SessionRecord> {
     let mut records = Vec::new();
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::new()) {
+        match h.agent.next_status(Ctx::host()) {
             None => return records,
             Some(TaskStatus::Ready(record)) => records.push(record),
             Some(TaskStatus::Spread(items)) => {
@@ -249,7 +249,7 @@ fn loop_terminates_and_yields_none() {
 
     drive(&mut h);
     assert!(
-        h.agent.next_status(Ctx::new()).is_none(),
+        h.agent.next_status(Ctx::host()).is_none(),
         "a completed loop must keep yielding None"
     );
 }
@@ -1141,7 +1141,7 @@ fn a_priority_message_during_generation_discards_and_reassembles() {
     let mut saw_mid_gen_steering = false;
 
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::new()) {
+        match h.agent.next_status(Ctx::host()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 // The loop is now inside InnerGenerate. Inject here so the
@@ -1184,7 +1184,7 @@ fn mid_generation_steering_drains_the_priority_queue() {
 
     let mut injected = false;
     for _ in 0..2_000 {
-        match h.agent.next_status(Ctx::new()) {
+        match h.agent.next_status(Ctx::host()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 if !injected {

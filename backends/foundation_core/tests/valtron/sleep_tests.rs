@@ -9,7 +9,7 @@ use foundation_core::valtron::{sleep_async, valtron_test, Ctx, SleepingTask, Tas
 
 #[test]
 fn sleeping_task_elapsed_returns_none() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let mut t = SleepingTask::sleep(Duration::ZERO);
     assert!(
         t.next_status(ctx.clone()).is_none(),
@@ -19,7 +19,7 @@ fn sleeping_task_elapsed_returns_none() {
 
 #[test]
 fn sleeping_task_future_yields_delayed() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let deadline = Instant::now() + Duration::from_millis(500);
     let mut t = SleepingTask::new(deadline);
     let status = t.next_status(ctx.clone());
@@ -34,7 +34,7 @@ fn sleeping_task_future_yields_delayed() {
 
 #[test]
 fn sleeping_task_eventually_completes() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let mut t = SleepingTask::sleep(Duration::from_millis(1));
     // Drive until done — the Delayed loop should terminate
     for _ in 0..10 {

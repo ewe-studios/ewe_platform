@@ -128,12 +128,12 @@ async fn main() {
 
     // The transition functions themselves remain directly callable:
     assert_eq!(
-        build_house(Ctx::new(), Stage::Walls),
+        build_house(Ctx::host(), Stage::Walls),
         Some((Stage::Roof, TaskStatus::Ignore))
     );
     assert_eq!(
         bake_cake(
-            Ctx::new(),
+            Ctx::host(),
             Recipe {
                 mixed: false,
                 baked: false

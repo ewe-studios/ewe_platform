@@ -74,7 +74,7 @@ pub type BoxedTaskCircuit<I> = Box<
 /// #         self.0.next()
 /// #     }
 /// # }
-/// let ctx = Ctx::new();
+/// let ctx = Ctx::host();
 /// let mut task = MyTask::new(vec![
 ///     TaskStatus::Ready(5),
 ///     TaskStatus::Pending("waiting"),
@@ -174,7 +174,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let send_request_task = SendRequestTask::new(vec![
     ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
     ///     TaskStatus::Ready(RequestIntro::Pending),
@@ -249,7 +249,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let send_request_task = SendRequestTask::new(vec![
     ///     TaskStatus::Ready(RequestIntro::Pending),
     ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
@@ -402,7 +402,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let send_request_task = SendRequestTask::new(vec![
     ///     TaskStatus::Ready(RequestIntro::Pending),
     ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
@@ -516,7 +516,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let send_request_task = SendRequestTask::new(vec![
     ///     TaskStatus::Ready(RequestIntro::Pending),
     ///     TaskStatus::Ready(RequestIntro::Success { status: 200 }),
@@ -628,7 +628,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let task = ItemTask::new(vec![
     ///     TaskStatus::Ready(Item { id: 1, important: false }),
     ///     TaskStatus::Ready(Item { id: 2, important: true }),
@@ -740,7 +740,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let my_task = ResponseTask::new(vec![
     ///     TaskStatus::Ready(Response { status: 200 }),
     ///     TaskStatus::Pending("retrying".to_string()),
@@ -810,7 +810,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// #         self.0.next()
     /// #     }
     /// # }
-    /// let ctx = Ctx::new();
+    /// let ctx = Ctx::host();
     /// let task = ChunkTask::new(vec![
     ///     TaskStatus::Ready(vec![1, 2]),
     ///     TaskStatus::Ready(vec![3]),

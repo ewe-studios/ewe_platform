@@ -429,6 +429,8 @@ impl WgNode {
         let mesh_stop = Arc::clone(&stop);
         let mesh_wrapper = MeshTask::new(mesh_task, mesh_stop);
         let mesh_clock = Arc::clone(&clock);
+        // The mesh task reads the node's injected clock, not a fresh real one.
+        let mesh_ctx = Ctx::new(Arc::clone(&clock));
         let mesh_thread: JoinHandle<()> = thread::spawn(move || {
             // Drive the TaskIterator until stop is set. When the task returns
             // Depends(signal), poll the signal with 1ms reactor cache checks
@@ -436,7 +438,7 @@ impl WgNode {
             // the atomic readiness cache asynchronously.
             let mut task = mesh_wrapper;
             while !task.stop.load(Ordering::Relaxed) {
-                match task.next_status(Ctx::new()) {
+                match task.next_status(mesh_ctx.clone()) {
                     // Task completed.
                     None => break,
                     // Ready/Ready work done — re-tick immediately.

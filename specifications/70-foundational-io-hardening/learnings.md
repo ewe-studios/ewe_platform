@@ -2352,3 +2352,36 @@ time can still leave an async consumer with nothing to wake it. The old code had
   broke `foundation_nativeapis` and `foundation_wireguard` builds. Schedule a
   shared dependency (reactor, sshkit) after the agents that compile it, or
   keep the change internal so its public signatures do not move.
+- 2026-11-06 (issues #217 and #218): `Drop` runs before the fields drop. A
+  guard that holds a lifecycle gate in a field keeps the gate shut until
+  `Drop::drop` returns, so an unbounded join in `drop` can freeze the gate for
+  the whole process. The stop call must have a deadline, and `drop` must use
+  that same stop call. This is the root cause that stalled the auth suite.
+- 2026-11-06 (#217/#218): do not name `std::sync::PoisonError::into_inner` as
+  a function value. The poison type differs by target (`std` on native,
+  `foundation_nostd::primitives::PoisonError` for the wasm locks), and one
+  explicit path does not compile on both. The closure works, but clippy's
+  `redundant_closure` rejects it on native. Use one helper
+  (`compati::recover_poison`) with a trait impl for both poison types.
+- 2026-11-06 (#217/#218): an engine-minimum guard needs a context that can be
+  incomplete, or its panic path cannot be tested. `CtxInner` keeps the three
+  standard elements as `Option` fields; every public constructor fills them,
+  and `Ctx::incomplete_for_test` (doc hidden) builds the one-element-missing
+  case. `Ctx::assert_minimum` runs at the pool start and the task iterator
+  boundary.
+- 2026-11-06 (#217/#218): a `#[should_panic(expected = ...)]` string can go
+  stale when a macro message changes. Commit 63af1c798 changed the timeout
+  message but not the test, so the `--features multi` suite failed on the
+  first full run. A grep for the old message in tests would have caught it.
+- 2026-11-06 (#217/#218): the clock migration is mostly a constructor rename.
+  Replacing all 284 `Ctx::new()` calls with `Ctx::host()` first, then checking
+  the few sites that had an injected clock in hand, kept the change small.
+  `ContextBag::from_ctx(&Ctx::host())` is the host-boundary form for a bag with
+  no task context.
+- 2026-11-06 (#217/#218): a map-entry replacement needs a second grep. The
+  mechanical `ContextBag::new()` pass missed `IdpServer::http_app`, which stored
+  `self.clock` in the bag for the old `bag.get::<Arc<dyn Clock>>()` lookup.
+  After the change, `ServeAdapter::create` read `bag.clock()` and got the app
+  builder's host clock instead of the server's injected clock. Grep for
+  `store(clock)` and `store(self.clock)` as well as the constructors, and build
+  the bag with the injected clock when one is in hand.

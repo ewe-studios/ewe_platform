@@ -19,5 +19,5 @@ fn wasm_http_exchange_task_constructs() {
         body_readiness: None,
     };
     let mut task = new_http_exchange_task(request);
-    let _status = task.next_status(Ctx::new());
+    let _status = task.next_status(Ctx::host());
 }

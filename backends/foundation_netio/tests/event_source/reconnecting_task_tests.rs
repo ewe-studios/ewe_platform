@@ -68,7 +68,7 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
 
     // Drive the task until it exhausts
     let mut steps = 0;
-    while task.next_status(Ctx::new()).is_some() {
+    while task.next_status(Ctx::host()).is_some() {
         steps += 1;
         // Safety: prevent infinite loop
         assert!(steps < 100, "Task did not exhaust within 100 steps");
@@ -76,7 +76,7 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
 
     // Should be exhausted now
     assert!(
-        task.next_status(Ctx::new()).is_none(),
+        task.next_status(Ctx::host()).is_none(),
         "Task should stay exhausted"
     );
 }
@@ -96,7 +96,7 @@ fn test_reconnecting_task_attempts_reconnection_on_failure() {
     let mut saw_delayed = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let foundation_core::valtron::TaskStatus::Delayed(_) = status {
             saw_delayed = true;
         }
@@ -153,7 +153,7 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
 
     let mut states: Vec<String> = Vec::new();
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         let label = match status {
             foundation_core::valtron::TaskStatus::Init => "Init".to_string(),
             foundation_core::valtron::TaskStatus::Pending(p) => format!("Pending({p:?})"),

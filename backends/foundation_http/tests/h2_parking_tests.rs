@@ -61,7 +61,7 @@ fn an_idle_h2_connection_parks_on_its_socket() {
     let mut last = None;
     for _ in 0..50 {
         let status = handler
-            .next_status(Ctx::new())
+            .next_status(Ctx::host())
             .expect("the connection stays open");
         let parked = matches!(status, TaskStatus::Depends(_));
         assert!(

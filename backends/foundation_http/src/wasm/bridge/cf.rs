@@ -84,7 +84,7 @@ impl CfHttpApp {
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request, env: JsValue) -> Result<Response, JsError> {
         let simple_req = request_from_cf(&req).await?;
-        let bag = Arc::new(ContextBag::new());
+        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
         extract_cf_bindings(&env, &bag);
         Ok(self
             .inner
@@ -200,7 +200,7 @@ impl CfHttpAppSingleton {
         if let Some(arc) = weak.upgrade() {
             return CfHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::new());
+        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
         let app = Arc::new(builder(bag.clone()));
         let state = Arc::new(AppState { app, bag });
         *weak = Arc::downgrade(&state);
@@ -224,7 +224,7 @@ impl CfHttpAppSingleton {
         if let Some(arc) = weak.upgrade() {
             return CfHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::new());
+        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
         if let Ok(db) = D1Database::from_env(env, "DB") {
             bag.store(db);
         }

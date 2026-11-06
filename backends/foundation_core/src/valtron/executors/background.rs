@@ -70,7 +70,7 @@ impl JobQueue {
     fn lock(&self) -> MutexGuard<'_, QueueState> {
         self.state
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(crate::compati::recover_poison)
     }
 
     fn push(&self, job: BackgroundJob) -> Result<(), JobPushError> {
@@ -102,7 +102,7 @@ impl JobQueue {
             state = self
                 .available
                 .wait(state)
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+                .unwrap_or_else(crate::compati::recover_poison);
         }
     }
 
@@ -341,7 +341,7 @@ impl BackgroundJobRegistry {
         *registry
             .thread_handles
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner) = handles;
+            .unwrap_or_else(crate::compati::recover_poison) = handles;
 
         Ok(registry)
     }
@@ -401,7 +401,7 @@ impl BackgroundJobRegistry {
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(crate::compati::recover_poison)
             .drain(..)
             .collect();
         let mut busy_workers = 0;

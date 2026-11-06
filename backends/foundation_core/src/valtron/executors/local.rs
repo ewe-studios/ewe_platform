@@ -1054,7 +1054,7 @@ impl ExecutorState {
             rng,
             idler,
             readiness_wait,
-            Ctx::new(),
+            Ctx::host(),
         )
     }
 
@@ -2340,7 +2340,7 @@ impl ReferencedExecutorState {
     /// drives gets a fork of that root (see [`ExecutorState::insert_local_task`]).
     /// This exposes the same fork to code that drives a task alongside the engine
     /// (e.g. [`super::non_sendables::DrivenTaskIterator`]) so it never mints an
-    /// unrelated `Ctx::new()`.
+    /// unrelated `Ctx::host()`.
     #[inline]
     #[must_use]
     pub fn fork_ctx(&self) -> Ctx {
@@ -2952,7 +2952,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             kill_signal,
             activities,
             kill_signal_check_interval,
-            Ctx::new(),
+            Ctx::host(),
         )
     }
 
@@ -3065,7 +3065,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             no_work_yield,
             kill_signal,
             activities,
-            Ctx::new(),
+            Ctx::host(),
         )
     }
 
@@ -3085,6 +3085,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         activities: Option<mpp::Sender<ThreadActivity>>,
         root: Ctx,
     ) -> Self {
+        // The executor start is a task boundary: every task forks this root.
+        root.assert_minimum();
         Self::new_with_root(
             state_owner,
             tasks,

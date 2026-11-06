@@ -21,7 +21,7 @@
 //! their own.
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::{Arc, Mutex};
 use std::task::{Wake, Waker};
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
@@ -276,7 +276,10 @@ impl ReadinessNotifier {
     /// `true`: it is what `EventReadiness::register` returns for a readiness
     /// that calls `notify` on every change.
     pub fn register(&self, waker: &ReadinessWaker) -> bool {
-        let mut wakers = self.wakers.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut wakers = self
+            .wakers
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         wakers.retain(ReadinessWaker::is_live);
         if !wakers
             .iter()
@@ -295,7 +298,10 @@ impl ReadinessNotifier {
             return;
         }
         let wakers: Vec<ReadinessWaker> = {
-            let mut wakers = self.wakers.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut wakers = self
+                .wakers
+                .lock()
+                .unwrap_or_else(crate::compati::recover_poison);
             wakers.retain(ReadinessWaker::is_live);
             self.count.store(wakers.len(), Ordering::SeqCst);
             wakers.clone()

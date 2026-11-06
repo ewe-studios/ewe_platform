@@ -316,7 +316,7 @@ async fn observer_wakes(close: bool) -> u64 {
             .send((observer.readiness(), Instant::now()))
             .expect("send readiness");
         std::thread::sleep(Duration::from_millis(200));
-        while continuation.next_status(Ctx::new()).is_some() {}
+        while continuation.next_status(Ctx::host()).is_some() {}
         drop(continuation);
         // Keep the observer alive until the continuation is done: dropping it
         // closes the queue too.

@@ -1194,7 +1194,7 @@ impl<D: 'static, P: 'static> Iterator for TaskAsIterator<D, P> {
 /// Terminal (draining) methods for the contextual orchestrator.
 ///
 /// These drive the wrapped task to completion, always threading the `ctx` this
-/// orchestrator was seeded with — never minting a fresh `Ctx::new()`.
+/// orchestrator was seeded with — never minting a fresh `Ctx::host()`.
 impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     /// Drives the task, returning the first `Ready` value (if any).
     #[must_use]
@@ -2188,7 +2188,7 @@ where
 /// #     }
 /// # }
 /// #
-/// # let ctx = Ctx::new();
+/// # let ctx = Ctx::host();
 /// # let task = Steps {
 /// #     items: vec![
 /// #         Outcome::Ok(1),

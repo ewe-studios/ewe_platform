@@ -169,7 +169,7 @@ async fn test_store_state_task_success() {
     let mut task = store_task;
     let mut found_success = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-123");
@@ -228,7 +228,7 @@ async fn test_store_state_task_inner_failure() {
     let mut task = store_task;
     let mut found_error = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Err(_)) => {
                 found_error = true;
@@ -289,7 +289,7 @@ async fn test_store_state_identifier_task_success() {
     let mut task = store_task;
     let mut found_success = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-456");
@@ -345,7 +345,7 @@ async fn test_store_state_identifier_task_inner_failure() {
     let mut task = store_task;
     let mut found_error = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Err(_)) => {
                 found_error = true;

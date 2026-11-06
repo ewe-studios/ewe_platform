@@ -63,7 +63,7 @@ fn fd_monitor_task_invokes_callback_on_readiness() {
     }
 
     // Tick the task via TaskIterator
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     assert!(status.is_some(), "task should not terminate");
 
     // Verify callback received data
@@ -84,7 +84,7 @@ fn fd_monitor_task_no_callback() {
     let mut task = FdMonitorTask::new(registered);
 
     // Tick — should not panic, just return NotReady
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     assert!(status.is_some());
 }
 
@@ -125,7 +125,7 @@ fn fd_monitor_task_poll_interval() {
 
     // Tick when no data available
     let start = std::time::Instant::now();
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     let elapsed = start.elapsed();
 
     // next_status returns immediately (it doesn't block — blocking is handled by valtron executor)

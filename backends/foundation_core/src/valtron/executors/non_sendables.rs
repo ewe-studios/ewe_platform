@@ -164,7 +164,7 @@ pub fn initialize_pool(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
 ) -> super::single::PoolGuard {
-    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::host())
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -177,6 +177,7 @@ pub fn initialize_pool_with_ctx(
     _user_thread_num: Option<usize>,
     root: Ctx,
 ) -> super::single::PoolGuard {
+    root.assert_minimum();
     tracing::debug!("Starting under not(feature=multi), so single threaded");
     single::initialize_pool_with_ctx(seed_for_rng, root);
     single::PoolGuard
@@ -197,6 +198,7 @@ pub fn initialize_pool_with_slow_poll_warning(
     slow_poll_warning: Option<std::time::Duration>,
     root: Ctx,
 ) -> super::single::PoolGuard {
+    root.assert_minimum();
     tracing::debug!("Starting under not(feature=multi), so single threaded");
     single::initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, slow_poll_warning);
     single::PoolGuard
@@ -215,7 +217,7 @@ pub fn initialize_pool_with_slow_poll_warning(
 /// Idempotent: a thread that already has an engine keeps it. Under `multi` the
 /// same function is a no-op, because that pool is process-wide.
 pub fn initialize_current_thread(seed_for_rng: u64) {
-    initialize_current_thread_with_ctx(seed_for_rng, Ctx::new());
+    initialize_current_thread_with_ctx(seed_for_rng, Ctx::host());
 }
 
 /// [`initialize_current_thread`] with an explicit engine root.
@@ -223,6 +225,7 @@ pub fn initialize_current_thread(seed_for_rng: u64) {
 /// Idempotent like [`initialize_current_thread`]: a thread that already has an
 /// engine keeps it, and keeps the root it was built with.
 pub fn initialize_current_thread_with_ctx(seed_for_rng: u64, root: Ctx) {
+    root.assert_minimum();
     single::initialize_pool_with_ctx(seed_for_rng, root);
 }
 
@@ -235,6 +238,7 @@ pub fn initialize_current_thread_with_slow_poll_warning(
     slow_poll_warning: Option<std::time::Duration>,
     root: Ctx,
 ) {
+    root.assert_minimum();
     single::initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, slow_poll_warning);
 }
 
@@ -1443,7 +1447,7 @@ impl ConsumerSlot {
         let wake = self
             .wake
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(crate::compati::recover_poison)
             .take();
         if let Some(wake) = wake {
             wake();
@@ -1595,7 +1599,7 @@ where
         *slot
             .wake
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cb);
+            .unwrap_or_else(crate::compati::recover_poison) = Some(cb);
 
         // 1. The output queue.
         if !slot
@@ -1653,6 +1657,9 @@ where
     T::Pending: 'static,
 {
     pub fn new(task_iterator: T, ctx: Ctx) -> Self {
+        // The task boundary: reject a context that lost an engine-minimum
+        // element on a path the compiler cannot check.
+        ctx.assert_minimum();
         Self(Some(task_iterator), ctx)
     }
 }

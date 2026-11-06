@@ -173,7 +173,7 @@ async fn scheduler_runs_job_at_fire_time() {
         MissedJobPolicy::Skip,
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     // Before the first fire: parks for 15 minutes and does not run.
     let status = task.next_status(ctx.clone());
@@ -204,7 +204,7 @@ async fn scheduler_records_result() {
         MissedJobPolicy::Skip,
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     task.next_status(ctx.clone());
 
     let fire = utc(2026, 1, 1, 0, 15, 0);
@@ -239,7 +239,7 @@ async fn run_time_follows_the_injected_wall_clock() {
         MissedJobPolicy::Skip,
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     // The first poll schedules the next fire and parks one minute out.
     assert_eq!(
@@ -278,7 +278,7 @@ async fn missed_policy_skip_runs_nothing() {
         utc(2026, 1, 1, 0, 0, 0),
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let status = task.next_status(ctx.clone());
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
@@ -306,7 +306,7 @@ async fn missed_policy_catch_up_runs_once() {
         utc(2026, 1, 1, 0, 0, 0),
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let status = task.next_status(ctx.clone());
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
@@ -333,7 +333,7 @@ async fn missed_policy_run_all_runs_each_missed_fire() {
         utc(2026, 1, 1, 0, 0, 0),
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let status = task.next_status(ctx.clone());
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
@@ -363,7 +363,7 @@ async fn scheduler_parks_between_fires() {
         MissedJobPolicy::Skip,
         clock.clone(),
     );
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let status = task.next_status(ctx.clone());
     assert_eq!(

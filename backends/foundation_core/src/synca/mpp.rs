@@ -538,7 +538,7 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
         let mut inner = self
             .inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         let cap = inner.capacity;
         let idx = inner.event_index;
         let (tx, rx) = bounded(cap);
@@ -560,7 +560,7 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
         let mut inner = self
             .inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         inner.event_index += 1;
         let idx = inner.event_index;
         let max = inner.max_retries;
@@ -591,7 +591,7 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
         let inner = self
             .inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         inner.slots.len()
     }
 
@@ -600,7 +600,7 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
         let mut inner = self
             .inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+            .unwrap_or_else(crate::compati::recover_poison);
         for slot in &inner.slots {
             let _ = slot.sender.close();
         }

@@ -82,7 +82,7 @@ fn drain(task: &mut WebSocketServerTask) -> Vec<WebSocketMessage> {
     let mut progressed = false;
     let start = Instant::now();
     while start.elapsed() < deadline {
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             Some(TaskStatus::Ready(m)) => {
                 msgs.push(m);
                 progressed = true;
@@ -177,7 +177,7 @@ fn close_frame_drains_task() {
         [] as [foundation_netio::websocket::WebSocketMessage; 0]
     );
     assert!(
-        task.next_status(Ctx::new()).is_none(),
+        task.next_status(Ctx::host()).is_none(),
         "task ends after close"
     );
 }
@@ -205,5 +205,5 @@ fn unmasked_frame_triggers_close_and_drain() {
         msgs,
         [] as [foundation_netio::websocket::WebSocketMessage; 0]
     );
-    assert!(task.next_status(Ctx::new()).is_none());
+    assert!(task.next_status(Ctx::host()).is_none());
 }

@@ -71,7 +71,7 @@ pub trait WakeableStream: StreamIterator {
         self.wake(Box::new(move || {
             let cb = cell
                 .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .unwrap_or_else(crate::compati::recover_poison)
                 .take();
             if let Some(cb) = cb {
                 cb();

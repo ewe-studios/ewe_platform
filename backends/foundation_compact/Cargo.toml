@@ -13,7 +13,7 @@ keywords = ["wasm", "time", "entropy", "rng", "scru128"]
 cfg-if = "1"
 fstr = { version = "0.2.20", default-features = false }
 rand_core = { version = "0.10", default-features = false }
-rand_chacha = { version = "0.10", default-features = false }
+rand_chacha = { workspace = true }
 foldhash = { version = "0.2", default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 forkguard = { version = "0.1", optional = true }

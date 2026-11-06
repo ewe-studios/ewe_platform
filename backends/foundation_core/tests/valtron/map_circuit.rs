@@ -168,7 +168,7 @@ impl TaskIterator for CountingTaskIterator {
 
 #[test]
 fn test_task_map_circuit_continue() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = CountingTaskIterator::new(5);
     let mut circuit_iter = iter.map_circuit(|status| match status {
         TaskStatus::Ready(v) if v < 3 => TaskShortCircuit::Continue(TaskStatus::Ready(v * 2)),
@@ -192,7 +192,7 @@ fn test_task_map_circuit_continue() {
 
 #[test]
 fn test_task_map_circuit_return_and_stop() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = CountingTaskIterator::new(5);
     let mut circuit_iter = iter.map_circuit(|status| match status {
         TaskStatus::Ready(v) if v == 3 => TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(v)),
@@ -221,7 +221,7 @@ fn test_task_map_circuit_return_and_stop() {
 
 #[test]
 fn test_task_map_circuit_with_box() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = Box::new(CountingTaskIterator::new(3));
     let mut circuit_iter = iter.map_circuit(|status| match status {
         TaskStatus::Ready(v) => TaskShortCircuit::Continue(TaskStatus::Ready(v + 10)),
@@ -245,7 +245,7 @@ fn test_task_map_circuit_with_box() {
 
 #[test]
 fn test_task_map_circuit_chained_with_map_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = CountingTaskIterator::new(4);
     let mut result = iter
         .map_circuit(|status| match status {

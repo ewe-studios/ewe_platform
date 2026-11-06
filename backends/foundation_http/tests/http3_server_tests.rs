@@ -302,7 +302,7 @@ fn h3_accept_task_parks_until_a_connection_arrives() {
 
     for _ in 0..5 {
         let status = task
-            .next_status(Ctx::new())
+            .next_status(Ctx::host())
             .expect("accept task stays alive");
         assert!(
             matches!(status, TaskStatus::Depends(_)),

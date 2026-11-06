@@ -155,7 +155,7 @@ impl SingleExecutorSingleton {
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
 pub fn initialize_pool(seed_for_rng: u64) {
-    initialize_pool_with_ctx(seed_for_rng, Ctx::new());
+    initialize_pool_with_ctx(seed_for_rng, Ctx::host());
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -175,6 +175,7 @@ pub fn initialize_pool_with_ctx_and_slow_poll_warning(
     root: Ctx,
     slow_poll_warning: Option<std::time::Duration>,
 ) {
+    root.assert_minimum();
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
             // `SharedTaskQueue` is `Arc<…>` in BOTH cfgs so one alias serves the
@@ -319,7 +320,7 @@ where
 /// The single-threaded engine owns one root [`Ctx`] seeded at construction and
 /// forks it per task. This exposes that same root-fork to code that drives a
 /// task alongside the engine (e.g. [`super::non_sendables::DrivenTaskIterator`])
-/// so it never mints an unrelated `Ctx::new()`.
+/// so it never mints an unrelated `Ctx::host()`.
 ///
 /// # Panics
 ///

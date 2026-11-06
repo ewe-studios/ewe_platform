@@ -41,7 +41,6 @@ use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::frame::Kind;
 
-use foundation_connectrpc::shared::context::SharedClock;
 use foundation_connectrpc::shared::envelope::Envelope;
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::{
@@ -913,8 +912,7 @@ async fn a_simulated_clock_past_the_deadline_fails_the_call_at_once() {
     let client = client_for(Arc::new(H1Transport::default()), server.addr);
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let bag = ContextBag::new();
-    bag.store::<SharedClock>(clock.clone());
+    let bag = ContextBag::new(clock.clone());
     let ctx = Ctx::client(Arc::new(bag)).with_deadline(Duration::from_secs(5));
     clock.advance(Duration::from_secs(10));
 

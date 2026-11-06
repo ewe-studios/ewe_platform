@@ -2491,3 +2491,39 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   keeps the real monotonic clock at its kernel wait boundary (same boundary
   as #102). Findings left for GitHub issues are listed in the feature Result.
   Next: the umbrella feature 117 is complete; close it after CI.
+
+- 2026-11-06: issues #217 and #218 fixed (`spec70/priority-followups`).
+  #217: `PoolGuard::shutdown` is bounded. It calls
+  `shutdown_within(DEFAULT_POOL_SHUTDOWN_GRACE)` (documented, 5 s, placed next
+  to `DEFAULT_TEST_SHUTDOWN_GRACE`), and `Drop` calls `shutdown()`, so a stuck
+  worker can no longer keep the process-wide lifecycle gate shut. New test
+  `pool_guard_drop_is_bounded_and_releases_the_pool_gate` in
+  `tests/valtron/shutdown_mechanism_tests.rs`; on the old unbounded code it
+  hangs (process timeout, exit 124).
+  #218: `Ctx::new(clock)` requires the clock; `Ctx::host()` is the one
+  real-clock constructor; `Default for Ctx` is gone; `Ctx::assert_minimum`
+  checks clock/config/RNG at the pool start and the task iterator boundary.
+  `ContextBag` carries `clock` and `rng` fields and gains `new(clock)`,
+  `build(clock, f)`, `from_ctx`, `with_ctx`, `fork`, `clock`, `rng` and
+  `assert_minimum`; `Default` is gone. The ConnectRPC `clock_from_bag` fallback
+  is removed (#212) and `SseReloadHandler::create` uses `bag.clock()` (#221).
+  `IdpServer::http_app` builds its bag with the injected clock instead of
+  storing it. `#[valtron]`/`#[valtron_test]` emit `Ctx::host()`.
+  Versions: core 0.0.15, http 0.0.7, macros 0.0.10; 89 manifests and
+  `Cargo.lock`.
+  Tests: core default 872 passed, multi 919, test-clock 882; http default 69,
+  multi+quic 150; connectrpc 256; auth server-test 294 (244 in the integration
+  binary); toolings 22; macros 99. 0 failed in every run.
+  Also fixed a stale `#[should_panic]` expectation in
+  `valtron_macro_tests.rs` from commit 63af1c798, and the wasm-only
+  `PoisonError::into_inner` compile failure via `compati::recover_poison`.
+  Clippy: core default/multi/test-clock, http, auth, connectrpc, toolings and
+  macros; every `-D warnings` gate passes. `cargo fmt --all --check` clean. The
+  time gate reports 14 direct reads in 8 files, 13 allowlisted, 1 marked,
+  0 violations.
+  Findings filed as GitHub issues: #233 the background-job shutdown timeout
+  is its own 30 s default, not the pool grace, so a stuck background worker can
+  delay the gate release past `DEFAULT_POOL_SHUTDOWN_GRACE`; #234 `HttpApp::new*`
+  chooses the real clock at a host boundary; #235 `ContextBag::assert_minimum`
+  cannot fail by construction; #236 `Ctx::incomplete_for_test` is a doc-hidden
+  public test hook.

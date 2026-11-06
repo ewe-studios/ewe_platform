@@ -23,7 +23,7 @@ impl TaskIterator for TestTask {
 
 #[test]
 fn test_map_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(10),
@@ -44,7 +44,7 @@ fn test_map_ready() {
 
 #[test]
 fn test_map_pending() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(5),
@@ -61,7 +61,7 @@ fn test_map_pending() {
 
 #[test]
 fn test_filter_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Ready(3),
         TaskStatus::Ready(10),
@@ -83,7 +83,7 @@ fn test_filter_ready() {
 
 #[test]
 fn test_split_collector_map_sends_transformed_items() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(10),
@@ -114,7 +114,7 @@ fn test_split_collector_map_sends_transformed_items() {
 
 #[test]
 fn test_split_collector_map_transform_returns_none_skips() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![TaskStatus::Ready(10), TaskStatus::Ready(5)];
     let task = TestTask::new(items);
 
@@ -151,7 +151,7 @@ fn test_split_collector_map_transform_returns_none_skips() {
 /// observer must be driven in lockstep, and every match is delivered (zero loss).
 #[test]
 fn test_split_collect_one_map() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // TestTask pops in reverse, so this yields 20, 10, 3.
     let items = vec![
         TaskStatus::Ready(3),
@@ -190,7 +190,7 @@ fn test_split_collect_one_map() {
 
 #[test]
 fn test_stream_collect() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let items = vec![
         TaskStatus::Ready(2),
         TaskStatus::Pending("wait".to_string()),
@@ -240,7 +240,7 @@ fn test_map_iter_flattens_nested_iterators() {
             self.items.next()
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let items = vec![
         TaskStatus::Ready(vec![1u32, 2u32]),
@@ -297,7 +297,7 @@ fn test_map_iter_passes_through_pending() {
             self.items.next()
         }
     }
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
 
     let items = vec![
         TaskStatus::Ready(vec![1u32]),
@@ -354,7 +354,7 @@ fn test_map_iter_passes_through_pending() {
 fn test_split_collect_until_map_never_loses_the_closing_item() {
     use foundation_core::valtron::CollectionState;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     for round in 0..2_000u32 {
         let task = TestTask::new(vec![TaskStatus::Ready(round)]);
         let (observer, mut continuation) =

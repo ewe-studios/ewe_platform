@@ -18,7 +18,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{self, Clock, FutureTask, MonotonicClock};
+use foundation_core::valtron::{self, FutureTask, MonotonicClock};
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
 use foundation_netio::shared::http::SimpleIncomingRequest;
@@ -57,11 +57,9 @@ fn read_one_byte_per_poll(
 /// A client that reads one byte per poll receives the whole event.
 #[foundation_macros::valtron_test(seed = 822, threads = 3, timeout = 60_000)]
 fn proxy_sse_client_reading_one_byte_per_poll_receives_the_whole_event() {
-    let bag = Arc::new(ContextBag::new());
+    let bag = Arc::new(ContextBag::new(Arc::new(MonotonicClock::new())));
     let queue = Arc::new(ConcurrentQueue::unbounded());
     bag.store::<Arc<ConcurrentQueue<FileChange>>>(Arc::clone(&queue));
-    let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());
-    bag.store::<Arc<dyn Clock>>(clock);
     let handler = SseReloadHandler::create(&bag);
 
     // A reload change is already waiting when the handler starts.

@@ -234,7 +234,7 @@ fn panicking_task_closes_channel_and_unblocks_caller() {
 /// and a 200 ms shutdown grace the test must panic with the timeout message
 /// (the stuck worker is detached), not hang.
 #[valtron_test(threads = 3, timeout = 300, shutdown_grace = 200)]
-#[should_panic(expected = "timeout: the test took")]
+#[should_panic(expected = "timeout: the test did not finish within")]
 #[cfg_attr(
     cranelift_backend,
     ignore = "cranelift does not support panic unwinding: should_panic cannot be observed"

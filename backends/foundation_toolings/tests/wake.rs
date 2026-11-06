@@ -219,7 +219,7 @@ async fn builder_change_readiness_wakes_on_a_watch_event() {
     let event = watch_event();
     let _ = park_and_trigger("builder change queue", ready, move || {
         tx.send(event).expect("send watch event");
-        let _ = task.next_status(Ctx::new());
+        let _ = task.next_status(Ctx::host());
     })
     .await;
 }
@@ -232,7 +232,7 @@ async fn builder_result_readiness_wakes_on_a_build_result() {
     let event = watch_event();
     let _ = park_and_trigger("builder result queue", ready, move || {
         tx.send(event).expect("send watch event");
-        let _ = task.next_status(Ctx::new());
+        let _ = task.next_status(Ctx::host());
     })
     .await;
 }

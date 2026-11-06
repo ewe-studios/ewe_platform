@@ -32,23 +32,14 @@ use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};
 
-/// The engine clock, as stored in a [`ContextBag`] by the host.
-pub type SharedClock = Arc<dyn Clock>;
-
 /// Read the engine clock from `bag`.
 ///
-/// The HTTP server stores its engine clock in the app bag before it dispatches,
-/// so a served call reads the injected clock. A bag built without an engine
-/// (a unit test that calls the dispatcher directly, a CLI) has no clock to
-/// inject; that boundary names the real clock explicitly rather than reading a
-/// global, and a host that wants deterministic time stores its own clock in the
-/// bag first.
+/// The bag always carries the clock as a field, so a served call reads the
+/// injected clock. There is no fallback to the real clock: a host that wants
+/// the real clock passes it to [`ContextBag::new`] explicitly.
 #[must_use]
 pub fn clock_from_bag(bag: &ContextBag) -> Arc<dyn Clock> {
-    bag.get::<SharedClock>().map_or_else(
-        || Arc::new(MonotonicClock::new()) as Arc<dyn Clock>,
-        |clock| (*clock).clone(),
-    )
+    bag.clock()
 }
 
 /// The RPC's streaming shape.
@@ -241,10 +232,9 @@ impl Ctx {
     /// Empty-bag base — tests, CLIs, wasm entry points.
     #[must_use]
     pub fn background() -> Ctx {
-        // A base context has no server engine; the host shortcut stores the
-        // real clock in its bag explicitly.
-        let bag = ContextBag::new();
-        bag.store::<SharedClock>(Arc::new(MonotonicClock::new()));
+        // A base context has no server engine; the host shortcut names the real
+        // clock explicitly in the bag it builds.
+        let bag = ContextBag::new(Arc::new(MonotonicClock::new()));
         let mut request = RequestContext::empty(false);
         request.clock = clock_from_bag(&bag);
         Ctx {

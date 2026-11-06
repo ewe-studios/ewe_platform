@@ -34,7 +34,7 @@ impl TaskIterator for PendingForever {
 /// The `Ctx` for a clock that starts at the UNIX epoch.
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
     let clock: Arc<dyn foundation_core::valtron::Clock> = clock.clone();
-    Ctx::new().with_clock(clock)
+    Ctx::new(clock)
 }
 
 #[test]

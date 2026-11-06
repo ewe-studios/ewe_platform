@@ -33,7 +33,7 @@ impl<S> HttpApp<S> {
         S: Default,
     {
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }
@@ -71,7 +71,7 @@ impl HttpApp<Arc<dyn crate::shared::serve::Serve>> {
     #[must_use]
     pub fn new_serve() -> Self {
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }
@@ -117,7 +117,7 @@ impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
     #[must_use]
     pub fn new_h2_serve() -> Self {
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }
@@ -162,7 +162,7 @@ impl HttpApp<Arc<dyn crate::native::serve::H3Serve>> {
     #[must_use]
     pub fn new_h3_serve() -> Self {
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }
@@ -204,7 +204,7 @@ impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
     #[must_use]
     pub fn new_writer() -> Self {
         Self {
-            ctx: Arc::new(ContextBag::new()),
+            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             router: Router::new(),
             middleware: Vec::new(),
         }

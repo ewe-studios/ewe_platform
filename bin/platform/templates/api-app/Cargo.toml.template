@@ -30,8 +30,8 @@ bench = false
 [dependencies]
 
 # -- ewe platform dependencies
-foundation_toolings = { version = "0.0.5" }
-foundation_core = { version = "0.0.7", features = ["multi"] }
+foundation_toolings = { version = "0.0.6" }
+foundation_core = { version = "0.0.15", features = ["multi"] }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }

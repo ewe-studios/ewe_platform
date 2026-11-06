@@ -75,7 +75,9 @@ impl WasmHttpApp {
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
-        let bag = Arc::new(crate::shared::context::ContextBag::new());
+        let bag = Arc::new(crate::shared::context::ContextBag::from_ctx(
+            &foundation_core::valtron::Ctx::host(),
+        ));
         Ok(self
             .inner
             .dispatch_web(bag, simple_req)
@@ -172,7 +174,7 @@ impl WasmHttpAppSingleton {
         if let Some(arc) = weak.upgrade() {
             return WasmHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::new());
+        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
         let app = Arc::new(WasmHttpApp::from_app(builder(bag)));
         let state = Arc::new(AppState { app });
         *weak = Arc::downgrade(&state);

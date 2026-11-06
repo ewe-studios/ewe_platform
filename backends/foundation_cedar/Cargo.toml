@@ -20,7 +20,7 @@ foundation_db = { path = "../foundation_db", version = "0.0.6", optional = true,
 futures-lite = { version = "2", optional = true }
 
 [dev-dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.14" }
+foundation_core = { path = "../foundation_core", version = "0.0.15" }
 foundation_db = { path = "../foundation_db", version = "0.0.6", default-features = false, features = ["turso"] }
 tempfile = "3"
 

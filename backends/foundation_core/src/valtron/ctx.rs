@@ -23,7 +23,7 @@
 //! use foundation_core::valtron::Ctx;
 //! use std::sync::Arc;
 //!
-//! let engine_ctx = Ctx::new();
+//! let engine_ctx = Ctx::host();
 //!
 //! // Within one ExecutionIterator, the wrapper hands its ctx to the inner task
 //! // by clone() — both handles point at the same map.
@@ -141,26 +141,121 @@ impl Config {
 /// model (`clone` shares, `fork` copies).
 pub struct Ctx(Arc<CtxInner>);
 
+/// One of the engine-minimum elements that every task context must carry.
+///
+/// [`Ctx::assert_minimum`] names the missing element in its panic message. The
+/// compiler checks the [`Ctx::new`] clock argument, but a context can reach a
+/// task boundary from a path the compiler cannot check. The boundary checks the
+/// full minimum set before the task starts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum MinimumElement {
+    /// The injected [`Clock`].
+    Clock,
+    /// The engine [`Config`].
+    Config,
+    /// The shared RNG stream.
+    Rng,
+}
+
+impl MinimumElement {
+    /// The element's name, as [`Ctx::assert_minimum`] reports it.
+    #[must_use]
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Clock => "clock",
+            Self::Config => "config",
+            Self::Rng => "rng",
+        }
+    }
+}
+
 /// Interior of a [`Ctx`]. `Send + Sync` because every field is `Send + Sync`.
+///
+/// The standard elements are `Option` fields, not map entries. A public
+/// constructor always fills them; `None` exists only so
+/// [`Ctx::incomplete_for_test`] can prove that [`Ctx::assert_minimum`] rejects a
+/// context from an unchecked path.
 pub(crate) struct CtxInner {
     /// General extension point: arbitrary `Arc<T>` entries keyed by `TypeId`.
     map: Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
     /// Engine-seeded standard elements.
-    clock: Arc<dyn Clock>,
-    config: Arc<Config>,
-    rng: Arc<Mutex<ChaCha8Rng>>,
+    clock: Option<Arc<dyn Clock>>,
+    config: Option<Arc<Config>>,
+    rng: Option<Arc<Mutex<ChaCha8Rng>>>,
 }
 
 impl Ctx {
-    /// An empty context: no map entries, a fresh clock, a default config, and a
-    /// deterministic default RNG (seed `0`) that the engine may replace at init.
+    /// An empty context: no map entries, the given clock, a default config, and
+    /// a deterministic default RNG (seed `0`) that the engine may replace at
+    /// init.
+    ///
+    /// The clock is a required argument, so the compiler rejects a context with
+    /// no clock (AGENTS rule 11). A host that wants the real clock calls
+    /// [`Ctx::host`].
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(clock: Arc<dyn Clock>) -> Self {
         Ctx(Arc::new(CtxInner {
             map: Mutex::new(HashMap::new()),
-            clock: Arc::new(MonotonicClock::new()),
-            config: Arc::new(Config::new()),
-            rng: Arc::new(Mutex::new(ChaCha8Rng::seed_from_u64(0))),
+            clock: Some(clock),
+            config: Some(Arc::new(Config::new())),
+            rng: Some(Arc::new(Mutex::new(ChaCha8Rng::seed_from_u64(0)))),
+        }))
+    }
+
+    /// A context with the real [`MonotonicClock`].
+    ///
+    /// This is the one explicit host constructor. Call it only at a host entry
+    /// point, where real time is the correct source. Engine and task code must
+    /// pass the injected clock instead.
+    #[must_use]
+    pub fn host() -> Self {
+        Self::new(Arc::new(MonotonicClock::new()))
+    }
+
+    /// Panic if an engine-minimum element is missing, and name every missing
+    /// element.
+    ///
+    /// Call this at a task execute or spawn boundary, where a [`Ctx`] arrives
+    /// from a path the compiler cannot check.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the clock, the config, or the RNG is missing.
+    pub fn assert_minimum(&self) {
+        let mut missing: Vec<&'static str> = Vec::new();
+        if self.0.clock.is_none() {
+            missing.push(MinimumElement::Clock.name());
+        }
+        if self.0.config.is_none() {
+            missing.push(MinimumElement::Config.name());
+        }
+        if self.0.rng.is_none() {
+            missing.push(MinimumElement::Rng.name());
+        }
+        assert!(
+            missing.is_empty(),
+            "Ctx is missing engine-minimum element(s): {missing:?}"
+        );
+    }
+
+    /// A context that deliberately omits one engine-minimum element.
+    ///
+    /// WHY: [`Ctx::assert_minimum`] must reject a context from an unchecked
+    /// path. Tests need such a context to prove the check.
+    /// WHAT: an empty context, the given clock, and `None` for the named
+    /// element.
+    ///
+    /// Production code must not call this function.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn incomplete_for_test(clock: Arc<dyn Clock>, missing: MinimumElement) -> Self {
+        Ctx(Arc::new(CtxInner {
+            map: Mutex::new(HashMap::new()),
+            clock: (missing != MinimumElement::Clock).then_some(clock),
+            config: (missing != MinimumElement::Config).then(|| Arc::new(Config::new())),
+            rng: (missing != MinimumElement::Rng)
+                .then(|| Arc::new(Mutex::new(ChaCha8Rng::seed_from_u64(0)))),
         }))
     }
 
@@ -240,26 +335,49 @@ impl Ctx {
             .contains_key(&TypeId::of::<T>())
     }
 
-    /// The shared, read-only clock (a `dyn Clock`; the default is
-    /// [`MonotonicClock`]).
+    /// The shared, read-only clock.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the clock is missing. Every public constructor installs it;
+    /// call [`Ctx::assert_minimum`] at a boundary that accepts an unchecked
+    /// context.
     #[must_use]
     pub fn clock(&self) -> Arc<dyn Clock> {
-        self.0.clock.clone()
+        self.0.clock.clone().expect(
+            "Ctx is missing its engine-minimum clock; call Ctx::assert_minimum at the boundary",
+        )
     }
 
     /// The shared, read-only configuration.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the config is missing. Every public constructor installs it;
+    /// call [`Ctx::assert_minimum`] at a boundary that accepts an unchecked
+    /// context.
     #[must_use]
     pub fn config(&self) -> Arc<Config> {
-        self.0.config.clone()
+        self.0.config.clone().expect(
+            "Ctx is missing its engine-minimum config; call Ctx::assert_minimum at the boundary",
+        )
     }
 
     /// The single shared RNG stream. Lock it to draw: `ctx.rng().lock().next_u64()`.
     ///
     /// No method returns the guard, so a lock can never be held across an
     /// `.await`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the RNG is missing. Every public constructor installs it;
+    /// call [`Ctx::assert_minimum`] at a boundary that accepts an unchecked
+    /// context.
     #[must_use]
     pub fn rng(&self) -> Arc<Mutex<ChaCha8Rng>> {
-        self.0.rng.clone()
+        self.0.rng.clone().expect(
+            "Ctx is missing its engine-minimum rng; call Ctx::assert_minimum at the boundary",
+        )
     }
 
     /// A new handle over a *copied* map.
@@ -300,7 +418,7 @@ impl Ctx {
         let map = self.0.map.lock().expect("Ctx map poisoned").clone();
         Ctx(Arc::new(CtxInner {
             map: Mutex::new(map),
-            clock,
+            clock: Some(clock),
             config: self.0.config.clone(),
             rng: self.0.rng.clone(),
         }))
@@ -344,12 +462,20 @@ impl SimulatedClock {
     }
 
     /// Add `by` to the monotonic offset.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal offset mutex is poisoned.
     pub fn advance(&self, by: Duration) {
         let mut offset = self.offset.lock().expect("SimulatedClock poisoned");
         *offset += by;
     }
 
     /// Add `by` to the wall-clock offset.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the internal wall-offset mutex is poisoned.
     pub fn advance_wall(&self, by: Duration) {
         let mut offset = self.wall_offset.lock().expect("SimulatedClock poisoned");
         *offset += by;
@@ -375,11 +501,5 @@ impl Clone for Ctx {
     /// Shares the map: both handles point at the same `Arc<CtxInner>`.
     fn clone(&self) -> Self {
         Ctx(self.0.clone())
-    }
-}
-
-impl Default for Ctx {
-    fn default() -> Self {
-        Self::new()
     }
 }

@@ -192,7 +192,7 @@ impl Harness {
         let inbound = wire(&mut sq, &mut cq, || server_h3.poll_accept());
         let call: DispatchFuture = Box::pin(dispatch_h3(
             Arc::new(router.into_handler()),
-            Arc::new(ContextBag::default()),
+            Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
             Arc::new(ConnectionContext::default()),
             inbound,
         ));
@@ -283,8 +283,8 @@ impl Harness {
 }
 
 fn pump(sq: &mut QuicDriver, cq: &mut QuicDriver) {
-    let _ = sq.next_status(VCtx::new());
-    let _ = cq.next_status(VCtx::new());
+    let _ = sq.next_status(VCtx::host());
+    let _ = cq.next_status(VCtx::host());
 }
 
 /// Drive a connection-level step until it completes, pumping only the wire.

@@ -44,8 +44,8 @@ mod h3_conformance {
     }
 
     fn pump(sq: &mut QuicDriver, cq: &mut QuicDriver) {
-        let _ = sq.next_status(VCtx::new());
-        let _ = cq.next_status(VCtx::new());
+        let _ = sq.next_status(VCtx::host());
+        let _ = cq.next_status(VCtx::host());
     }
 
     fn quic_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection) {
@@ -157,7 +157,7 @@ mod h3_conformance {
 
         // Server accepts and dispatches.
         let inbound = until!(&mut sq, &mut cq, server.poll_accept());
-        let bag = Arc::new(ContextBag::default());
+        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
 
         let connection = Arc::new(ConnectionContext::default());
         let (result, mut sq, mut cq) =

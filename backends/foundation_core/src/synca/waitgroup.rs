@@ -60,18 +60,14 @@ impl WaitGroup {
     /// Increment the counter by n.
     pub fn add(&self, n: usize) {
         let (lock, _) = &*self.inner;
-        let mut count = lock
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         *count += n;
     }
 
     /// Decrement the counter. If it reaches 0, wake all waiters.
     pub fn done(&self) {
         let (lock, cond) = &*self.inner;
-        let mut count = lock
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         debug_assert!(*count > 0, "WaitGroup::done() called more times than add()");
         *count -= 1;
         if *count == 0 {
@@ -84,13 +80,11 @@ impl WaitGroup {
     /// Block until count reaches 0.
     pub fn wait(&self) {
         let (lock, cond) = &*self.inner;
-        let mut count = lock
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         while *count != 0 {
             count = cond
                 .wait(count)
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+                .unwrap_or_else(crate::compati::recover_poison);
         }
     }
 
@@ -110,16 +104,14 @@ impl WaitGroup {
     ) -> bool {
         let (lock, cond) = &*self.inner;
         let deadline = clock.now() + timeout;
-        let mut count = lock
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         while *count != 0 {
             let Some(remaining) = deadline.checked_duration_since(clock.now()) else {
                 return false;
             };
             let (next, res) = cond
                 .wait_timeout(count, remaining)
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+                .unwrap_or_else(crate::compati::recover_poison);
             count = next;
             if res.timed_out() && *count != 0 {
                 return false;
