@@ -136,6 +136,11 @@ cargo test --profile uat -p foundation_proxy
 python3 scripts/ci/ci.py run foundation_reactor --profile uat
 ```
 
+`foundation_reactor` is not in the `clippy-deny-warnings` set in `ci/packages.toml`, so CI
+does not run its `-D warnings` check. The crate already carries 120 `clippy::pedantic`
+errors on `master`, and this change adds none. Backlog §5b holds the entry that schedules
+the cleanup.
+
 Then run the feature 121 loop: the proxy test binaries on Linux, thirty times.
 
 ## Done when

@@ -246,6 +246,12 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   proxy dials the backend and the backend completes its HTTP/2 handshake, then
   the backend never reads the forwarded request while the client waits. So the
   stalled wait is in the front-to-backend relay, after the handshake.
+  **Feature 122 landed and did not stop the stall.** Run 1 of a fresh CI
+  container failed `connect_server_stream_via_h2_proxy` on `open server stream`
+  twice in a row; the client now fails on its own 5 s deadline (feature 121
+  test bound) and no longer waits 30 s. The remaining suspects are a lost task
+  wake in the proxy's upstream H2 client, a missed write-readiness edge after
+  `reregister`, or a front inbound exchange that never delivers its frames.
 
 ## 10. foundation_ai
 

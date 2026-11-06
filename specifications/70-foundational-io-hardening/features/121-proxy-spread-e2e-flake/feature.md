@@ -260,3 +260,45 @@ Measured while the plan was written:
 
 The failure needs the Linux CI environment, so the plan starts with the 30-run loop
 there. A loop with `--cpus=2` is running to match a loaded GitHub runner.
+
+### 2026-11-06, after features 122 and 123 landed
+
+Feature 122 (fd-reuse deregistration guard) and feature 123 (client deadline) are in the
+branch. The stall still happens.
+
+The test bound works. `ctx()` now uses `CALL_DEADLINE` = 5 s (`rpc_proxy_e2e_tests.rs`),
+and `h2_grpc_request` races its own future against `sleep_async(GRPC_CALL_BOUND)`. A
+stalled call now fails in about 5 s and names itself instead of reaching the 30 s harness
+cap. `connect_server_stream_via_h2_proxy` failed with:
+
+```text
+thread '<unnamed>' panicked at backends/foundation_proxy/tests/rpc_proxy_e2e_tests.rs:349:10:
+open server stream: Error: [deadline_exceeded] call deadline exceeded
+```
+
+`rpc_proxy_e2e_tests.rs:349` is `.expect("open server stream")` in `collect_stream`. The
+call reached no response head. Run 1 of a fresh CI container failed this way twice in a
+row (03:01:37 and 03:02:46); the earlier rate with `--cpus=2` was about 1 run in 5. Run 1
+is not special for the cause: the container starts cold and every test starts at once.
+
+So the cause is not the fd-reuse deregistration, or not only that. The next step is
+Design 2: add the watchdog and the registry dump, and find the park that never wakes.
+
+The chain to instrument, from the earlier trace:
+
+```text
+client → proxy front (received HEADERS and four DATA frames, routed the request)
+       → proxy upstream H2 client (dial + handshake complete)
+       → [stall]
+       → backend (handshake complete, "idle — waiting for frames", never reads)
+```
+
+The stall is between the proxy's upstream H2 client accepting a request frame and that
+frame reaching the backend socket. The suspects, in order:
+
+1. `request_pump` (`foundation_proxy/src/rpc_relay.rs:580`) blocks in
+   `out_send.send(bytes)` while the upstream connection task is parked and never polls
+   its queued output again. That is a lost task wake in the upstream exchange.
+2. The upstream connection task is parked on socket write readiness and misses the edge
+   that follows `Reactor::reregister` with `Interest::WRITABLE`.
+3. The front's inbound exchange delivers the frames to a reader that never runs.
