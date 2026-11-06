@@ -210,13 +210,13 @@ fn wake_before_park_is_never_lost() {
         match task.next_status(ctx.clone()) {
             Some(TaskStatus::Ignore) => {}
             other => panic!("iter {iteration}: expected Ignore, got {other:?}"),
-        };
+        }
 
         // Second poll: future returns Ready.
         match task.next_status(ctx.clone()) {
             Some(TaskStatus::Ready(1)) => {}
             other => panic!("iter {iteration}: expected Ready(1), got {other:?}"),
-        };
+        }
 
         assert!(
             task.next_status(ctx.clone()).is_none(),

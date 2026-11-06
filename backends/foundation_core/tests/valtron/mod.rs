@@ -9,6 +9,7 @@ mod builder_tests;
 mod cancellable_future;
 #[cfg(not(target_family = "wasm"))]
 mod channel_backpressure_tests;
+mod clock_injection;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
 #[cfg(feature = "std")]

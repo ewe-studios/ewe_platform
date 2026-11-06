@@ -1,4 +1,4 @@
-//! # BrowserDriver + Page (spec-43 §5)
+//! # `BrowserDriver` + Page (spec-43 §5)
 //!
 //! WHY: The public entrypoint — launch a browser, open a page, drive it from
 //! Rust. Owns the process + engine as RAII so teardown is deterministic.
@@ -8,7 +8,7 @@
 //!
 //! HOW: `launch` spawns the browser ([`crate::supervisor`]) and connects the
 //! engine ([`crate::jsonrpc`]); `new_page` builds the protocol [`Backend`] —
-//! CDP (Chromium) or BiDi (Firefox) — behind one `Page` API.
+//! CDP (Chromium) or `BiDi` (Firefox) — behind one `Page` API.
 
 use std::path::Path;
 use std::time::{Duration, Instant};
@@ -40,6 +40,10 @@ impl BrowserDriver {
     /// # Errors
     /// [`BrowserError`] if the browser is missing, the launch fails, or the
     /// CDP/BiDi socket can't be reached.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "public API takes LaunchConfig by value; a reference would break every caller"
+    )]
     pub fn launch(config: LaunchConfig) -> Result<Self> {
         let browser = config.browser;
         let process = BrowserProcess::launch(&config)?;
@@ -57,7 +61,7 @@ impl BrowserDriver {
         })
     }
 
-    /// Open a fresh page (a CDP target session, or a BiDi browsing context).
+    /// Open a fresh page (a CDP target session, or a `BiDi` browsing context).
     ///
     /// # Errors
     /// Protocol errors during session/context setup.
@@ -86,7 +90,7 @@ fn connect_with_retry(ws_url: &str, browser: Browser) -> Result<RpcEngine> {
     }
 }
 
-/// A browser page (one CDP target session or BiDi browsing context).
+/// A browser page (one CDP target session or `BiDi` browsing context).
 pub struct Page<'d> {
     backend: Box<dyn Backend + 'd>,
 }
@@ -140,7 +144,7 @@ impl Page<'_> {
     /// # Errors
     /// Protocol error from the evaluate call.
     pub fn wait_for_reactive(&self, quiet_ms: u64, timeout_ms: u64) -> Result<bool> {
-        let step = quiet_ms.min(25).max(1);
+        let step = quiet_ms.clamp(1, 25);
         let expr = format!(
             "(async () => {{ const t=()=>performance.now(); const start=t(); \
              for(;;) {{ const f=globalThis.__primalFrames; \

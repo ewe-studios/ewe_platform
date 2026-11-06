@@ -1,7 +1,7 @@
 //! # The operation-level backend seam (spec-43 phase-2)
 //!
 //! WHY: `Page`/`Locator` express browser operations (navigate, evaluate, trusted
-//! input) without caring whether the wire is CDP (Chromium) or WebDriver BiDi
+//! input) without caring whether the wire is CDP (Chromium) or `WebDriver` `BiDi`
 //! (Firefox). `WireProtocol` abstracts the JSON-RPC *transport*; [`Backend`]
 //! abstracts the *operations* on top of it, so one `Page`/`Locator` drives both.
 //!
@@ -13,7 +13,7 @@
 //! HOW: [`crate::cdp::backend::CdpBackend`] maps to `Page.*`/`Runtime.*`/`Input.*`;
 //! [`crate::bidi::backend::BiDiBackend`] maps to `browsingContext.*`/`script.*`/
 //! `input.performActions`. Both hold a borrowed `&RpcEngine` + their per-page id
-//! (CDP `sessionId` / BiDi browsing-context id).
+//! (CDP `sessionId` / `BiDi` browsing-context id).
 
 use serde_json::Value;
 

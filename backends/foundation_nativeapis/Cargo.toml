@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,7 +13,7 @@ keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.7" }
+foundation_core = { path = "../foundation_core", version = "0.0.8" }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
@@ -24,7 +24,7 @@ foundation_arrow = { path = "../foundation_arrow", version = "0.0.4", optional =
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.7", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8", optional = true }
 cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
@@ -81,7 +81,7 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.8", features = ["multi"] }
 
 # Native-only storage backends — excluded on wasm32 because the local engine
 # (turso_core) does not compile without a host filesystem.
@@ -385,7 +385,7 @@ vfs-nfs = ["vfs", "dep:nfsserve"]
 # Fjall LSM-tree + cacache CAS VFS backend
 
 # LD_PRELOAD VFS shim — produces a .so that intercepts libc calls
-vfs-preload = ["vfs-native", "dep:once_cell"]
+vfs-preload = ["vfs-native"]
 
 # WireGuard overlay data plane (spec-55, feature 00).
 # `netstack` = smoltcp userspace TCP/IP stack (cross-target, default data plane).

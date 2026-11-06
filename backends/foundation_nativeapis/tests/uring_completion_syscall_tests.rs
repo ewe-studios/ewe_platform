@@ -4,7 +4,7 @@
 //! cannot be checked by reading the code — a stray `read(2)` anywhere under
 //! `poll()` would silently reintroduce the syscall this feature exists to
 //! remove. The feature's acceptance criterion says so directly: *"Hot-path reads
-//! show zero read() syscalls under strace on a supporting kernel."*
+//! show zero `read()` syscalls under strace on a supporting kernel."*
 //!
 //! WHAT: run the completion read path under a syscall tracer and assert that no
 //! read-family syscall is ever issued against the socket, while the bytes still
@@ -16,7 +16,7 @@
 //! steps it with `PTRACE_SYSCALL`, decoding `orig_rax` (syscall number) and `rdi`
 //! (first argument, the fd) at each syscall-entry stop.
 //!
-//! x86_64 only: `PTRACE_GETREGS` and `user_regs_struct` are architecture
+//! `x86_64` only: `PTRACE_GETREGS` and `user_regs_struct` are architecture
 //! specific, and aarch64 needs `PTRACE_GETREGSET` instead.
 
 #![cfg(all(target_os = "linux", target_arch = "x86_64", feature = "uring"))]

@@ -2,6 +2,265 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-06: the proxy stall localised to the front-to-backend relay.
+  Branch `spec70/priority-followups`.
+  - Three local loops with `--cpus=2` failed four different e2e tests in
+    total. Failure rate is about 1 run in 5.
+  - A trace run (`RUST_LOG=foundation_http=trace,foundation_proxy=debug`) shows
+    the front accepts, parses and dispatches the request, the proxy dials the
+    backend, and the backend completes its HTTP/2 handshake. The backend then
+    never reads the forwarded request, and the client waits until its timeout.
+  - That shape matches feature 122: the backend connection's fd number is
+    fresh, a previous test's late deregistration can remove its selector entry,
+    its first read succeeds from the buffer, and its next park never wakes.
+  - No fix is applied. Features 121, 122 and 123 stay planned.
+
+- 2026-11-06: the audit run is green; features 115, 116 and 119 are `done`.
+  Branch `spec70/priority-followups`, commit `9b1138a63`.
+  - Audit run 42099300473 attempt 2 finished `success`. Check runs for the
+    commit: 117 success, 1 neutral (CodeQL), 3 skipped. Attempt 1 had failed
+    `foundation_proxy`; the rerun passed it.
+  - Features 115, 116 and 119 move from `pending (CI proof)` to `done`, each
+    with the run cited in its Result.
+  - Audit run 42109733327 on the later head `3cf80db3b` also finished
+    `success`: 119 success, 3 skipped. The proxy suite passed in both runs.
+  - The proxy flake is still open. Two local loops with `--cpus=2` failed three
+    different tests, so the PR passes or fails depending on load. Features 121,
+    122 and 123 carry the plan.
+
+- 2026-11-06: the second proxy failure, its mechanism, and two new features.
+  Branch `spec70/priority-followups`, commit `9b1138a63`.
+  - Audit run 42099300473 (attempt 1) failed `foundation_proxy` again, on
+    `h2_integration_tests::h2_grpc_trailers_relayed` after 60.5 s. The other
+    three jobs passed. Attempt 2 (_failed only_) ran afterwards.
+  - Five full runs of both binaries in the Linux CI image pass. Under
+    `--cpus=2` the flake reproduces: run 5 of 10 failed
+    `rpc_proxy_e2e_tests::connect_client_stream_via_grpc_backend` at line 810
+    (`client_stream`) after 29.14 s. That is a third test, in the same class.
+  - Reading `foundation_reactor` found the mechanism: `Reactor::deregister`
+    changes the selector by fd number alone, so a late drop after the number is
+    reused deletes the new socket's registration. Recorded in
+    `docs/bug-backlog.md` §5b and planned as feature 122.
+  - The accept loop is exonerated: it retries `accept` every 10 ms, so a lost
+    listener wake cannot stall it for 30 s. Feature 121 now points at a parked
+    connection task.
+  - `Ctx::with_deadline` only records a timestamp. No layer enforces it, so a
+    parked client call ignores its deadline. Recorded in `docs/bug-backlog.md`
+    §1 and planned as feature 123.
+
+- 2026-11-06: CI proof pass for features 115, 116 and 119, and the proxy e2e
+  flake. Branch `spec70/priority-followups`, commit `9b1138a63`.
+  - GitHub run 42087629722 finished `failure` with two failed jobs out of 115.
+    `foundation_macros` and `foundation_netio` are green.
+  - `foundation_core`: the `--features multi` clippy run reported two
+    `clippy::used_underscore_binding` errors in a Linux-only test module. Fixed
+    by naming `stream` instead of `_stream` in
+    `tests/valtron/readiness_deadline_tests.rs`. Both clippy runs pass in the
+    Linux CI image. The fix is commit `9b1138a63`.
+  - `foundation_proxy`: `connect_streams_spread_across_grpc_backends` hit its
+    30 s cap (suite 53.23 s). No request reaches the load balancer. Six local
+    full-suite runs pass. Recorded in `docs/bug-backlog.md` §9 and scheduled as
+    feature 121.
+  - The fix is pushed and run 42099300473 awaits a runner. Features 115, 116
+    and 119 stay `pending (CI proof)`.
+
+- 2026-11-06: feature 115, the engine clock is replaceable at startup and by
+  `Ctx::with_clock`. Branch `spec70/priority-followups`.
+  - New: `Ctx::with_clock`, `initialize_pool_with_ctx`,
+    `initialize_current_thread_with_ctx`,
+    `multi::initialize_pool_with_config_and_ctx`,
+    `ThreadRegistry::with_config_and_root`, `single::initialize_pool_with_ctx`,
+    `LocalThreadExecutor::from_seed_with_root`, `SimulatedClock` behind
+    `test-clock`, and the `ctx = expr` macro argument.
+  - Multi workers now build their local executor from the registry root. Before,
+    a task read a fresh `Ctx::new()` and missed the pool clock.
+  - Six clock tests in `tests/valtron/clock_injection.rs`; the `test-clock` run
+    of the `mod` binary has 749 tests (743 before), 0 failed. Test 4 fails on the
+    old `with_clock` behaviour (`left` real monotonic, `right` simulated).
+  - `foundation_core` and `foundation_macros` move to 0.0.8: 108 workspace
+    requirements updated, `Cargo.lock` refreshed once.
+  - `ci/packages.toml`: `[packages.foundation_core]` runs now include
+    `test-clock`.
+  - Clippy: `foundation_core` clean in the default, `multi` and `test-clock`
+    trees. `foundation_macros` has 62 pre-existing pedantic diagnostics and is
+    not a CI package; recorded in `docs/bug-backlog.md` §30.
+  - Status is `pending (CI proof)`.
+
+- 2026-11-06: feature 119, the tracing capture test gets its own binary.
+  Branch `spec70/priority-followups`.
+  - GitHub run 42072422806 failed the `foundation_core` test step on a
+    documentation-only commit. The test
+    `io::readers_tests::batch_reader_would_block_is_not_an_error_log` missed the
+    ERROR record because other test threads change the process-wide `tracing`
+    callsite interest cache.
+  - The test, its layer and its two readers moved to
+    `tests/tracing_error_capture.rs`, a binary with one test. `readers_tests.rs`
+    lost 89 lines.
+  - Default tree 743 tests in `mod` (was 744), `multi` 784 (was 785). The new
+    binary passed 20 consecutive runs. Both clippy runs and both test runs pass.
+  - Status is `pending (CI proof)`.
+
+- 2026-11-06: three priority plans written: 115, 117 and 118.
+  Branch `spec70/priority-followups`.
+  - Feature 115 (approved, next): `Ctx::with_clock(&self, Arc<dyn Clock>) -> Ctx`,
+    `initialize_pool_with_ctx` and `initialize_current_thread_with_ctx`, the
+    `ctx = expr` macro argument, and a `SimulatedClock` behind `test-clock`.
+    Bumps `foundation_core` and `foundation_macros` to 0.0.8.
+  - Feature 117 (plan, needs owner approval): every wall-clock read comes from
+    `Clock::wall_now`, with `foundation_compact::time` helpers and a CI gate
+    script. Depends on 115.
+  - Feature 118 (plan): remove the four crate-level clippy allows in
+    `foundation_core/src/lib.rs` and fix the hidden pedantic debt in slices.
+    Lane is after 115.
+
+- 2026-11-06: feature 116, `foundation_core` reaches zero clippy warnings.
+  Branch `spec70/priority-followups`.
+  - Default tree: 333 diagnostics in the test target plus 18 in five examples
+    before, 0 after. `multi` tree: 2 distinct `while_let_on_iterator`
+    diagnostics in `sendable.rs` before, 0 after. `foundation_nostd` stays at 0
+    in both directions.
+  - Bare `--no-default-features`: the named `compile_error!`, 27 errors and one
+    unused-dependency warning before; only the named error after.
+    `pub mod valtron` is gated on `std`, and `futures-core` is optional.
+  - `#[valtron]`/`#[valtron_test]`: the `PoolGuard` now lives in a block scope,
+    so it drops after the body in both feature trees and the macro no longer
+    emits `mem::drop` (89 `drop_non_drop` gone).
+  - `ci/packages.toml`: `[packages.foundation_core]` has
+    `clippy-runs = ["", "multi"]` and `clippy-deny-warnings = true`.
+  - Tests: default 861 passed, 0 failed; `multi` 904 passed, 0 failed;
+    `foundation_macros` 99 passed, 0 failed. `cargo fmt --all --check` clean.
+  - Deleted the two §4 clippy entries and added four limitation entries.
+    Feature 49 moves to `done` with E10 updated.
+  - Status is `pending (CI proof)`: the GitHub run must show the two
+    deny-warning clippy runs green.
+
+- 2026-11-05: CI proof for features 108, 109, 111 and 113.
+  Branch `spec70/priority-followups`, commit `02cbb08b5`.
+  - GitHub run
+    [42063296262](https://github.com/ewe-studios/ewe_platform/actions/runs/42063296262)
+    finished `success`: 113 jobs green, 0 failed, 3 skipped.
+  - `foundation_nativeapis` (id `127371617194`): both deny-warning clippy runs are
+    clean, and the two new ptrace spawn tests pass on the native amd64 kernel with
+    `EWE_REQUIRE_PTRACE=1`. Proves 111 and 113.
+  - `foundation_browser` (id `127371604725`): the deny-warning clippy run is clean and
+    the package test passes. Proves 109.
+  - `foundation_netio` (id `127371615978`): both `Expect: 100-continue` timer tests
+    pass. Proves 108.
+  - All four features move to `status: "done"`.
+  - The first push did not move the PR head; see `learnings.md`. Closing and
+    reopening the PR re-read the branch head.
+
+- 2026-11-05: feature 109, `foundation_browser` clippy debt reaches zero.
+  Branch `spec70/priority-followups`.
+  - `cargo clippy --profile uat -p foundation_browser --all-targets --no-deps
+    -- -D warnings` exits 0: 55 errors before, 0 after.
+  - Fixed `doc_markdown` (36), `cloned_instead_of_copied` (4),
+    `cast_possible_truncation` (4), `needless_pass_by_value` (3),
+    `match_same_arms` (2), and one each of `single_match_else`,
+    `missing_errors_doc`, `missing_panics_doc`, `doc_lazy_continuation`,
+    `manual_clamp` and `map_unwrap_or`.
+  - `ci/packages.toml`: new `[packages.foundation_browser]` with only
+    `clippy-deny-warnings = true`.
+  - The `#[expect]` attributes: the bounded `f64`-to-`i64` cast in
+    `wire_coord`, and `needless_pass_by_value` on the two public functions that
+    take their config by value.
+  - Tests: 1 passed, 0 failed. `tests/smoke.rs` needs a real browser and is
+    behind `browser-tests`, so the default run compiles it to 0 tests.
+  - Deleted backlog §33.
+  - Status is `pending (CI proof)`: the GitHub `foundation_browser` job must
+    show the new deny setting green.
+
+- 2026-11-05: feature 113, `foundation_nativeapis` clippy debt reaches zero.
+  Branch `spec70/priority-followups`.
+  - Both `-D warnings` clippy commands exit 0: the default run (245 unique
+    diagnostics before, 431 with the library test duplicate) and the
+    `vfs-preload` run (384 before, 723 with duplicates).
+  - The pass fixed `doc_markdown`, `missing_errors_doc`, `missing_panics_doc`,
+    `missing_safety_doc`, the raw-pointer lints, the cast lints,
+    `non_std_lazy_statics`, `single_match_else`, the match and map lints, and
+    the remaining one-off lints named in the feature file.
+  - `std::sync::LazyLock` replaces `once_cell::sync::Lazy` in the shim.
+    `once_cell` stays for the `ipc` feature only; `vfs-preload` no longer names
+    it.
+  - `ci/packages.toml`: `[packages.foundation_nativeapis]` now has
+    `clippy-runs = ["", "vfs-preload"]` and `clippy-deny-warnings = true`.
+  - Three narrow `#[allow]` attributes: serde `with` takes `&Option<T>`;
+    `VfsCapabilities` is a flag set; the shim example is one narrative.
+  - Measured in the Linux CI image: default tests 48 passed, 0 failed;
+    `vfs-preload` tests 224 passed, 0 failed (the shim built and
+    `vfs_shim_vfs` ran 2 tests); feature 111 dispatch tests 4 passed, 0 failed.
+    The ptrace spawn tests are skipped under amd64 emulation and left to
+    GitHub CI on a native kernel.
+  - Deleted the §35 clippy-debt entry. Added one §35 entry: a negative
+    `ftruncate` length in the shim still becomes a huge allocation.
+  - Status is `pending (CI proof)`: the GitHub `foundation_nativeapis` job must
+    show the new deny setting green.
+
+- 2026-11-05: feature 111, the ptrace VFS follows `open(2)` truncation and `dup2`
+  destination close. Branch `spec70/priority-followups`.
+  - `open_virtual_path` is the one open path for `open`, `openat` and `creat`. It opens an
+    existing file, creates only when `O_CREAT` is set and the path is missing, keeps
+    `EEXIST` for `O_CREAT|O_EXCL`, and calls `truncate(0)` when `O_TRUNC` is set.
+  - `dup2` over a real fd now closes it at once. A new
+    `SyscallAction::CloseThenSkip` makes `ptrace_loop` rewrite the call into
+    `close(new_fd)` at the entry stop (`orig_rax`, `rdi`) and report `new_fd` at the exit
+    stop. `dup3` with equal fds returns `EINVAL`.
+  - New tests: the two spawn tests the feature names, plus four dispatch tests that need no
+    traced child. The dispatch tests fail on the old code path (`EEXIST`, no truncate, no
+    close) and pass now.
+  - Measured in the Linux CI image (`linux/amd64`, `--profile uat`): 21 passed, 0 failed
+    for the non-ptrace subset of `ptrace_vfs` (13 ptrace tests filtered out).
+    `cargo fmt --all --check` is clean. `cargo clippy ... -D warnings` fails on the
+    crate-wide debt in backlog §35 (615 library warnings); the crate compiles.
+  - Left to CI: the two new spawn tests and the unchanged feature-83 spawn tests need a
+    native amd64 kernel. The GitHub `ubuntu-latest` job
+    (`vfs-native,vfs-ptrace`, `EWE_REQUIRE_PTRACE=1`) is the proof.
+  - New backlog entries in §35: the open mode is read from the flags register;
+    `dup2`/`dup3` ignore `O_CLOEXEC`; `dup2`/`dup3` do not validate the new fd number; the
+    loop ignores `PTRACE_SETREGS` failures; `O_APPEND` is ignored.
+  - `SyscallAction::CloseThenSkip` and its constructor are public API, so
+    `foundation_nativeapis` moves to 0.0.7 and all seven consumer requirements move with
+    it (iogate, toolings, ai, proxy, wireguard).
+  - Status is `pending (CI proof)`: the two spawn tests need the native amd64 job.
+
+- 2026-11-05: feature 108, the `Expect: 100-continue` timer test is deterministic.
+  Branch `spec70/priority-followups`.
+  - The `Expect: 100-continue` timer in `foundation_netio` now reads a `Clock` from the
+    `Clock` trait: the engine clock from `Ctx`, or an `Arc<dyn Clock>` that a request
+    carries in its `Extensions`. No `Instant::now()` is left in that timer path.
+  - `silent_server_gets_body_when_the_timer_fires` asserts on a simulated clock. The test
+    server moves the clock to the configured timer after the client fixes its deadline.
+    The assertion is `waited == 300 ms` in simulated time.
+  - New test `expect_continue_timer_fires_at_the_configured_deadline_and_not_before`
+    moves the clock to 449 ms, proves the client still waits, then moves it to 450 ms.
+    It uses 450 ms, not the 3 s default, so it also proves the value comes from
+    configuration.
+  - Measured: the old test failed with "body arrived 2.670018334s after the head" when
+    the process was suspended for 2.5 s mid-wait. The rewritten test passed that test and
+    20 of 20 runs under concurrent load. Full suite: 1217 passed.
+  - New backlog entry §4: a test cannot install a simulated clock in the pool's `Ctx`.
+    `Ctx::clock()` and `ThreadRegistry.root` are private. Feature 108 used the request
+    `Extensions` instead. A follow-up should add `Ctx::with_clock` or a typed `Env`
+    entry.
+
+- 2026-11-05: status close-out after the PR #179 merge. PR #179 merged as `75ca092dc`.
+  Run 42040473182 on its head commit `e01e83d80` has 111 jobs success, 0 failure and
+  3 skipped. The `foundation_wireguard` job is still `in_progress`: it stopped at the
+  `Free runner disk` step at 14:28 UTC and never ran a build step. That is a runner
+  fault, not a test result, and the same package runs in the master run.
+  - Features 47, 55, 76, 81, 110, 112 and 114 are `done`. Their only open item was a CI
+    proof, and the named job is green in that run: `foundation_nativeapis`, `foundation_codegen`,
+    `foundation_openapi`, `foundation_codegentools`, `foundation_deployment_cloudflare`,
+    `foundation_toolings`, `foundation_ai`, `foundation_core`, `foundation_wasm`,
+    `foundation_wasm_ui`, `ewe_platform` and `foundation_connectrpc`.
+  - Feature 47's native amd64 proof comes from the `vfs-native,vfs-ptrace` run with
+    `EWE_REQUIRE_PTRACE=1`. The local 20-run repeat is still impossible on the Apple
+    Silicon host, because the amd64 emulation returns `EIO` from `PTRACE_GETREGS`.
+  - Feature 49 stays `partial`: E10 is open (`foundation_core` test targets and examples
+    report 327 warnings).
+  - The next work is the follow-up list, features 108, 111, 113 and 109, on branch
+    `spec70/priority-followups` (PR #180).
+
 - 2026-11-05: PR #179 CI fix pass, fourth round. The Platform Docker Tests jobs ran Linux
   commands with `docker exec` and called the result macOS and Windows testing. Run
   42037634257 shows both jobs red.

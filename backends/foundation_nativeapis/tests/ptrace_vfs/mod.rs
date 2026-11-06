@@ -18,7 +18,9 @@ use std::sync::Arc;
 use foundation_nativeapis::native::vfs::ptrace::{
     nix_backend::NixInterceptor,
     syscall_dispatch::{on_syscall_entry, SyscallAction, SyscallArgs},
+    syscall_nr::{DUP2, DUP3, OPENAT},
     DynFs, ErasedFile, MountTable, SyscallInterceptor, VirtualFdEntry, VirtualFdTable,
+    FD_VIRTUAL_BASE,
 };
 use foundation_nativeapis::native::vfs::NativeFs;
 use foundation_nativeapis::shared::vfs::types::OpenMode;
@@ -595,6 +597,428 @@ fn the_traced_child_writes_to_the_virtual_mount() {
         fs.read_file("/virtual/written.txt").unwrap(),
         b"virtual-write\n",
         "the MemoryFs must hold what the child wrote"
+    );
+}
+
+// ── open(2) and dup2(2) rules (feature 111) ──
+
+/// Put `path` in this process's memory, NUL-terminated and padded.
+///
+/// The dispatcher reads a path argument with `process_vm_readv(pid, ...)`.
+/// When `pid` is this process, that call reads these bytes, so the open
+/// dispatch runs without a traced child.
+fn path_in_self(path: &str) -> Vec<u8> {
+    let mut bytes = vec![0u8; path.len() + 64];
+    bytes[..path.len()].copy_from_slice(path.as_bytes());
+    bytes
+}
+
+fn action_name(action: &SyscallAction) -> &'static str {
+    match action {
+        SyscallAction::Passthrough => "passthrough",
+        SyscallAction::Skip { .. } => "skip",
+        SyscallAction::SkipError { .. } => "skip error",
+        SyscallAction::CloseThenSkip { .. } => "close then skip",
+    }
+}
+
+fn skip_errno(action: &SyscallAction) -> Option<i64> {
+    match action {
+        SyscallAction::SkipError { errno } => Some(*errno),
+        _ => None,
+    }
+}
+
+/// Run `openat(2)` dispatch for `path` in this process.
+fn dispatch_openat(
+    pid: nix::unistd::Pid,
+    path: &[u8],
+    flags: i32,
+    mount_table: &MountTable,
+    fd_table: &VirtualFdTable,
+) -> SyscallAction {
+    let args = SyscallArgs {
+        nr: OPENAT,
+        arg0: libc::AT_FDCWD as u64,
+        arg1: path.as_ptr() as u64,
+        arg2: flags as u64,
+        arg3: 0o644,
+        arg4: 0,
+        arg5: 0,
+    };
+    on_syscall_entry(pid, &args, mount_table, fd_table)
+}
+
+#[test]
+fn open_dispatch_truncates_an_existing_virtual_file() {
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let fd_table = VirtualFdTable::new();
+    let pid = nix::unistd::Pid::from_raw(std::process::id() as i32);
+    let pid_raw = std::process::id();
+
+    // O_CREAT without O_EXCL opens the existing file, and O_TRUNC empties it.
+    fs.write_file("/virtual/existing.txt", b"old bytes that are longer\n")
+        .unwrap();
+    let path = path_in_self("/virtual/existing.txt");
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC,
+        &mt,
+        &fd_table,
+    );
+    match action {
+        SyscallAction::Skip { return_value } => {
+            assert!(
+                VirtualFdTable::is_virtual_fd(return_value as u64),
+                "open must return a virtual fd, got {return_value}"
+            );
+            assert!(
+                fd_table.get(pid_raw, return_value as u64).is_some(),
+                "the open must insert the virtual entry"
+            );
+        }
+        other => panic!(
+            "O_CREAT on an existing file must open it, got {}",
+            action_name(&other)
+        ),
+    }
+    assert_eq!(
+        fs.read_file("/virtual/existing.txt").unwrap(),
+        b"",
+        "O_TRUNC must empty the existing file"
+    );
+
+    // O_TRUNC without O_CREAT also opens and truncates an existing file.
+    fs.write_file("/virtual/existing.txt", b"more old bytes\n")
+        .unwrap();
+    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_TRUNC, &mt, &fd_table);
+    assert!(
+        matches!(&action, SyscallAction::Skip { .. }),
+        "O_TRUNC without O_CREAT must open the existing file, got {}",
+        action_name(&action)
+    );
+    assert_eq!(fs.read_file("/virtual/existing.txt").unwrap(), b"");
+
+    // O_CREAT without O_TRUNC keeps the content.
+    fs.write_file("/virtual/existing.txt", b"kept\n").unwrap();
+    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_CREAT, &mt, &fd_table);
+    assert!(
+        matches!(&action, SyscallAction::Skip { .. }),
+        "O_CREAT without O_TRUNC must open the existing file, got {}",
+        action_name(&action)
+    );
+    assert_eq!(fs.read_file("/virtual/existing.txt").unwrap(), b"kept\n");
+
+    // O_CREAT with O_EXCL on an existing file is EEXIST.
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL,
+        &mt,
+        &fd_table,
+    );
+    assert_eq!(
+        skip_errno(&action),
+        Some(libc::EEXIST as i64),
+        "O_CREAT|O_EXCL on an existing file must fail with EEXIST, got {}",
+        action_name(&action)
+    );
+}
+
+#[test]
+fn open_dispatch_reports_or_creates_a_missing_virtual_file() {
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let fd_table = VirtualFdTable::new();
+    let pid = nix::unistd::Pid::from_raw(std::process::id() as i32);
+
+    // O_TRUNC without O_CREAT on a missing file is ENOENT.
+    let path = path_in_self("/virtual/missing.txt");
+    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_TRUNC, &mt, &fd_table);
+    assert_eq!(
+        skip_errno(&action),
+        Some(libc::ENOENT as i64),
+        "O_TRUNC without O_CREAT on a missing file must fail with ENOENT, got {}",
+        action_name(&action)
+    );
+    assert!(!fs.exists("/virtual/missing.txt").unwrap());
+
+    // O_CREAT on a missing file creates it.
+    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_CREAT, &mt, &fd_table);
+    assert!(
+        matches!(&action, SyscallAction::Skip { .. }),
+        "O_CREAT on a missing file must create it, got {}",
+        action_name(&action)
+    );
+    assert!(fs.exists("/virtual/missing.txt").unwrap());
+}
+
+#[test]
+fn dup2_dispatch_closes_the_real_destination() {
+    use std::sync::Mutex;
+
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
+
+    let pid = 4_242u32;
+    let fd_table = VirtualFdTable::new();
+    let file = fs.open("/virtual/vfile.txt", OpenMode::Read).unwrap();
+    fd_table.insert(
+        pid,
+        10_000,
+        VirtualFdEntry::File {
+            handle: ErasedFile::new(file),
+            path: "/virtual/vfile.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::Read,
+            flags: 0,
+        },
+    );
+
+    let mount_table = MountTable::new();
+    let args = SyscallArgs {
+        nr: DUP2,
+        arg0: 10_000,
+        arg1: 1,
+        arg2: 0,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(
+        nix::unistd::Pid::from_raw(pid as i32),
+        &args,
+        &mount_table,
+        &fd_table,
+    );
+
+    match action {
+        SyscallAction::CloseThenSkip { fd, return_value } => {
+            assert_eq!(fd, 1, "the displaced real fd is the destination");
+            assert_eq!(return_value, 1, "dup2 reports the new fd");
+        }
+        other => panic!(
+            "dup2 over a real fd must run close(1) in place of the call, got {}",
+            action_name(&other)
+        ),
+    }
+    assert!(
+        fd_table.get(pid, 1).is_some(),
+        "the virtual entry must move to the new fd"
+    );
+    assert!(
+        fd_table.get(pid, 10_000).is_some(),
+        "the source virtual entry must stay open"
+    );
+}
+
+#[test]
+fn dup3_dispatch_rejects_equal_fds() {
+    use std::sync::Mutex;
+
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
+
+    let pid = 4_242u32;
+    let fd_table = VirtualFdTable::new();
+    let file = fs.open("/virtual/vfile.txt", OpenMode::Read).unwrap();
+    fd_table.insert(
+        pid,
+        10_000,
+        VirtualFdEntry::File {
+            handle: ErasedFile::new(file),
+            path: "/virtual/vfile.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::Read,
+            flags: 0,
+        },
+    );
+
+    let mount_table = MountTable::new();
+    let args = SyscallArgs {
+        nr: DUP3,
+        arg0: 10_000,
+        arg1: 10_000,
+        arg2: 0,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(
+        nix::unistd::Pid::from_raw(4_242),
+        &args,
+        &mount_table,
+        &fd_table,
+    );
+    assert_eq!(
+        skip_errno(&action),
+        Some(libc::EINVAL as i64),
+        "dup3 with equal fds must fail with EINVAL, got {}",
+        action_name(&action)
+    );
+}
+
+/// Create a pipe that the traced child inherits across `exec`.
+///
+/// `libc::pipe` sets no `O_CLOEXEC`, unlike the fds that `std` opens.
+fn pipe_raw() -> (i32, i32) {
+    let mut fds = [0i32; 2];
+    let rc = unsafe { libc::pipe(fds.as_mut_ptr()) };
+    assert_eq!(rc, 0, "pipe failed: {}", std::io::Error::last_os_error());
+    (fds[0], fds[1])
+}
+
+fn close_raw(fd: i32) {
+    let rc = unsafe { libc::close(fd) };
+    assert_eq!(
+        rc,
+        0,
+        "close({fd}) failed: {}",
+        std::io::Error::last_os_error()
+    );
+}
+
+fn read_one_byte(fd: i32) -> usize {
+    let mut byte = 0u8;
+    loop {
+        let rc = unsafe { libc::read(fd, (&mut byte as *mut u8).cast(), 1) };
+        if rc >= 0 {
+            return rc as usize;
+        }
+        let err = std::io::Error::last_os_error();
+        assert_eq!(
+            err.kind(),
+            std::io::ErrorKind::Interrupted,
+            "read({fd}) failed: {err}"
+        );
+    }
+}
+
+/// Release a child blocked in the shell `read` builtin. The builtin reads a
+/// whole line, so the byte must be a newline.
+fn write_newline(fd: i32) {
+    let rc = unsafe { libc::write(fd, b"\n".as_ptr().cast(), 1) };
+    assert_eq!(
+        rc,
+        1,
+        "write({fd}) failed: {}",
+        std::io::Error::last_os_error()
+    );
+}
+
+#[test]
+#[ntest::timeout(60_000)]
+fn the_traced_child_truncates_an_existing_virtual_file() {
+    // A shell redirect opens with O_CREAT|O_TRUNC on an existing file. The
+    // dispatch must open that file and truncate it, not report EEXIST.
+    let i = NixInterceptor::new();
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file(
+        "/virtual/existing.txt",
+        b"old bytes that must not survive\n",
+    )
+    .unwrap();
+
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", "echo new > /virtual/existing.txt"])
+        .expect("spawn failed");
+    assert_eq!(
+        h.wait().expect("wait failed"),
+        0,
+        "the redirect to an existing virtual file must succeed"
+    );
+    assert_eq!(
+        fs.read_file("/virtual/existing.txt").unwrap(),
+        b"new\n",
+        "the existing virtual file must hold only the new bytes"
+    );
+}
+
+#[test]
+#[ntest::timeout(60_000)]
+fn the_traced_child_dup2_closes_the_real_destination() {
+    // The child inherits these pipe fds across fork and exec. `dest` is a real
+    // fd that the child `dup2`s a virtual fd over; `dup2(2)` must close it
+    // before it returns. The child reports the dup2 with one byte on the
+    // notification pipe, then blocks on the control pipe while the test checks
+    // its fd table.
+    let i = NixInterceptor::new();
+    let fs = MemoryFs::new();
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
+
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+
+    let (dest, dest_peer) = pipe_raw();
+    let (note_read, note_write) = pipe_raw();
+    let (ctrl_read, ctrl_write) = pipe_raw();
+    assert!(
+        (dest as u64) < FD_VIRTUAL_BASE,
+        "the test destination {dest} must be a real fd number"
+    );
+
+    // No other fd of the test shares the slot where the virtual file lands.
+    let slot = [
+        dest, dest_peer, note_read, note_write, ctrl_read, ctrl_write,
+    ]
+    .into_iter()
+    .max()
+    .unwrap()
+        + 1;
+
+    // The shell runs each redirection as `dup2(2)`: the virtual file lands on
+    // `slot`, then on `dest`, which is the real destination.
+    let script = format!(
+        "exec {slot}</virtual/vfile.txt; exec {dest}<&{slot}; \
+         printf x >&{note_write}; read _ctrl <&{ctrl_read}"
+    );
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", &script])
+        .expect("spawn failed");
+    let pid = h.pid();
+
+    // The child holds its own copies. Close the parent copies so they do not
+    // mask a destination the child left open.
+    close_raw(dest);
+    close_raw(dest_peer);
+    close_raw(note_write);
+    close_raw(ctrl_read);
+
+    assert_eq!(
+        read_one_byte(note_read),
+        1,
+        "the traced child did not reach the dup2"
+    );
+
+    // The child is still alive and blocked on the control read. Its real
+    // destination fd must already be gone: `dup2(2)` closes it before it
+    // returns.
+    let target = format!("/proc/{pid}/fd/{dest}");
+    let destination_still_open = std::fs::symlink_metadata(&target).is_ok();
+
+    // Release the child before the assertion, so a failure leaves nothing
+    // blocked.
+    write_newline(ctrl_write);
+    close_raw(ctrl_write);
+    assert_eq!(h.wait().expect("wait failed"), 0);
+    close_raw(note_read);
+
+    assert!(
+        !destination_still_open,
+        "dup2 left the real destination fd {dest} open while the child ran"
     );
 }
 

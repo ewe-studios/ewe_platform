@@ -1,4 +1,4 @@
-//! Integration tests: VfsTask through valtron executor.
+//! Integration tests: `VfsTask` through valtron executor.
 
 #![cfg(feature = "vfs")]
 

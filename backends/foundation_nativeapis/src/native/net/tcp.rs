@@ -15,6 +15,9 @@ pub struct TcpStream {
 
 impl TcpStream {
     /// Connect to a remote address.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the operation fails.
     pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<Self> {
         let inner = net::TcpStream::connect(addr)?;
         inner.set_nonblocking(true)?;
@@ -22,6 +25,9 @@ impl TcpStream {
     }
 
     /// Register this stream with the poll selector.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the operation fails.
     pub fn register(
         &self,
         registry: &Registry,
@@ -31,7 +37,8 @@ impl TcpStream {
         registry.register(&mut SourceFd(self.inner.as_raw_fd()), token, interest)
     }
 
-    /// Get a reference to the inner TcpStream.
+    /// Get a reference to the inner `TcpStream`.
+    #[must_use]
     pub fn get_ref(&self) -> &net::TcpStream {
         &self.inner
     }
@@ -68,7 +75,10 @@ pub struct TcpListener {
 }
 
 impl TcpListener {
-    /// Create a new TcpListener bound to the given address.
+    /// Create a new `TcpListener` bound to the given address.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the operation fails.
     pub fn bind<A: ToSocketAddrs>(addr: A) -> io::Result<Self> {
         let inner = net::TcpListener::bind(addr)?;
         inner.set_nonblocking(true)?;
@@ -78,6 +88,9 @@ impl TcpListener {
     /// Accept a new incoming connection.
     ///
     /// Returns `WouldBlock` if no connections are pending.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the operation fails.
     pub fn accept(&self) -> io::Result<(TcpStream, SocketAddr)> {
         let (inner, addr) = self.inner.accept()?;
         inner.set_nonblocking(true)?;
@@ -85,6 +98,9 @@ impl TcpListener {
     }
 
     /// Register this listener with the poll selector.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the operation fails.
     pub fn register(
         &self,
         registry: &Registry,
@@ -94,7 +110,8 @@ impl TcpListener {
         registry.register(&mut SourceFd(self.inner.as_raw_fd()), token, interest)
     }
 
-    /// Get a reference to the inner TcpListener.
+    /// Get a reference to the inner `TcpListener`.
+    #[must_use]
     pub fn get_ref(&self) -> &net::TcpListener {
         &self.inner
     }

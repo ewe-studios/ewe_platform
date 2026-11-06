@@ -134,7 +134,7 @@ fn test_collect_result_skips_non_next() {
 fn test_collect_result_empty_stream() {
     let stream: Vec<Stream<u32, ()>> = vec![];
     let results = collect_result(stream.into_iter());
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [u32; 0]);
 }
 
 /// `collect_result` on a stream with no Next values returns an empty Vec.
@@ -143,7 +143,7 @@ fn test_collect_result_no_next_values() {
     let stream: Vec<Stream<u32, &str>> =
         vec![Stream::Init, Stream::Pending("waiting"), Stream::Ignore];
     let results = collect_result(stream.into_iter());
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [u32; 0]);
 }
 
 // ============================================================================
@@ -350,7 +350,7 @@ fn run_stream_iter_iterates_an_async_stream_from_sync_code() {
     let empty: Vec<u32> = run_stream_iter(futures_lite::stream::empty::<u32>())
         .expect("scheduled")
         .collect();
-    assert!(empty.is_empty());
+    assert_eq!(empty, [] as [u32; 0]);
 }
 
 /// Items that are not ready yet are waited for (the stream returns `Pending`

@@ -28,6 +28,7 @@ use nix::unistd::Pid;
 use crate::shared::vfs::error::{VfsError, VfsResult};
 
 use super::syscall_dispatch::{self, SyscallAction, SyscallArgs};
+use super::syscall_nr::CLOSE;
 use super::{InterceptorHandle, MountTable, SyscallInterceptor, VirtualFdTable};
 
 /// All ptrace options, set with `PTRACE_SETOPTIONS` after the child stops.
@@ -130,15 +131,16 @@ impl SyscallInterceptor for NixInterceptor {
 fn fork_child(command: &str, args: &[String]) -> Result<Pid, String> {
     let command_c =
         CString::new(command).map_err(|e| format!("invalid command {command:?}: {e}"))?;
-    let mut argv: Vec<CString> = Vec::with_capacity(args.len() + 1);
-    argv.push(command_c.clone());
+    let mut cstrings: Vec<CString> = Vec::with_capacity(args.len() + 1);
+    cstrings.push(command_c.clone());
     for arg in args {
-        argv.push(
+        cstrings.push(
             CString::new(arg.as_str()).map_err(|e| format!("invalid argument {arg:?}: {e}"))?,
         );
     }
-    // argv must include the program name and end with a null pointer.
-    let mut argv_ptr: Vec<*const libc::c_char> = argv.iter().map(|arg| arg.as_ptr()).collect();
+    // The argument vector must include the program name and end with a null
+    // pointer.
+    let mut argv_ptr: Vec<*const libc::c_char> = cstrings.iter().map(|arg| arg.as_ptr()).collect();
     argv_ptr.push(std::ptr::null());
 
     match unsafe { nix::unistd::fork() } {
@@ -245,6 +247,17 @@ fn ptrace_loop(
                                     r.rax = (-errno) as u64;
                                     ptrace::setregs(pid, r).ok();
                                 }
+                                SyscallAction::CloseThenSkip { return_value, .. } => {
+                                    // The replaced `close` has run. Report the
+                                    // result of the original syscall.
+                                    let mut r = regs;
+                                    r.rax = return_value as u64;
+                                    ptrace::setregs(pid, r).map_err(|e| VfsError::Backend {
+                                        message: format!(
+                                            "ptrace setregs to report {return_value} failed for {pid}: {e}"
+                                        ),
+                                    })?;
+                                }
                             }
                         }
                         ptrace::syscall(pid, None).ok();
@@ -265,6 +278,21 @@ fn ptrace_loop(
                             mount_table,
                             fd_table,
                         );
+
+                        // `CloseThenSkip` replaces the syscall with
+                        // `close(fd)`. The entry stop is where the kernel has
+                        // not run the call yet, so `orig_rax` and `rdi` decide
+                        // what it runs.
+                        if let SyscallAction::CloseThenSkip { fd, .. } = &action {
+                            let mut rewritten = regs;
+                            rewritten.orig_rax = CLOSE as u64;
+                            rewritten.rdi = *fd;
+                            ptrace::setregs(pid, rewritten).map_err(|e| VfsError::Backend {
+                                message: format!(
+                                    "ptrace setregs to run close({fd}) in place of the syscall failed for {pid}: {e}"
+                                ),
+                            })?;
+                        }
 
                         pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
                         ptrace::syscall(pid, None).ok();

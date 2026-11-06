@@ -1,6 +1,6 @@
 ---
 feature: "The templates pin the published `foundation_toolings` version"
-status: "pending (CI proof)"
+status: "done"
 lane: "after 84"
 model: "haiku"
 branch: "spec70/f110-toolings-template-pin"
@@ -60,7 +60,7 @@ cargo test --profile uat -p ewe_platform --test templates_build
 - [x] Both templates pin `foundation_toolings` 0.0.5.
 - [x] `templates_build` passes.
 - [x] The backlog §34 entry is deleted.
-- [ ] CI green (pending the run on the pushed commit).
+- [x] CI green: run 42040473182, `ewe_platform` job success on `e01e83d80` (PR #179).
 
 ## Result (2026-11-05)
 

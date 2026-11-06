@@ -31,7 +31,7 @@ pub(crate) fn deliver_signal(kind: SignalKind) {
     if ptr != 0 {
         // SAFETY: we stored an Arc<SignalBus> via into_raw, never freed
         let bus: &SignalBus = unsafe { &*(ptr as *const SignalBus) };
-        bus.deliver(SignalEvent {
+        bus.deliver(&SignalEvent {
             kind,
             timestamp: std::time::Instant::now(),
         });

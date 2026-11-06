@@ -42,7 +42,7 @@ use crate::shared::http::{
 };
 use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, Ctx, EventQueue, TaskIterator, TaskStatus, WakeToken,
+    queue_waker, AnyReadiness, Clock, Ctx, EventQueue, TaskIterator, TaskStatus, WakeToken,
 };
 use std::future::Future;
 use std::io::Write;
@@ -319,6 +319,12 @@ fn redirect_decision(
 /// from the same `GetHttpRequestStreamInner` data when needed.
 pub struct GetHttpRequestRedirectTask<R: DnsResolver + Send + 'static>(
     Option<HttpRequestRedirectState<R>>,
+    /// The clock that bounds the `Expect: 100-continue` wait.
+    ///
+    /// `next_status` reads the engine clock from `Ctx` on the first poll. A
+    /// request may carry its own `Arc<dyn Clock>` in its `Extensions`; that
+    /// clock then replaces the engine clock for the request (tests use this).
+    Option<Arc<dyn Clock>>,
 );
 
 impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
@@ -330,12 +336,39 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         config: ClientConfig,
         max_redirects: u8,
     ) -> Self {
-        Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
-            data,
-            pool,
-            config,
-            max_redirects,
-        ))))))
+        Self(
+            Some(HttpRequestRedirectState::Init(Some(Box::new((
+                data,
+                pool,
+                config,
+                max_redirects,
+            ))))),
+            None,
+        )
+    }
+
+    /// The clock that bounds this exchange's `Expect: 100-continue` wait.
+    ///
+    /// A request `Arc<dyn Clock>` in its `Extensions` wins. Otherwise the engine
+    /// clock from `Ctx` applies (AGENTS rule 11). `next_status` resolves the
+    /// engine clock on its first poll, before any state needs it.
+    ///
+    /// # Panics
+    /// Panics when the engine clock is not resolved yet. Only the task's own
+    /// `next_status` calls this helper, after it resolves the clock.
+    fn continue_clock(&self, exchange: &Exchange<R>) -> Arc<dyn Clock> {
+        if let Some(clock) = exchange
+            .data
+            .extensions
+            .as_ref()
+            .and_then(|extensions| extensions.get::<Arc<dyn Clock>>())
+        {
+            return Arc::clone(clock);
+        }
+        self.1
+            .as_ref()
+            .expect("the engine clock is resolved on the first poll")
+            .clone()
     }
 
     fn fail(&mut self, err: HttpClientError) -> Step {
@@ -1061,11 +1094,12 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                     }
                     AfterHead::AwaitContinue => {
                         let wait = exchange.config.get_expect_continue_read_timeout();
+                        let clock = self.continue_clock(&exchange);
                         let idle = IdleDeadline::new(exchange.config.response_head_timeout());
                         self.pending(HttpRequestRedirectState::AwaitingContinue(Some(Box::new(
                             AwaitingContinue {
                                 exchange,
-                                send_body_at: Instant::now() + wait,
+                                send_body_at: clock.now() + wait,
                                 intro: None,
                                 idle,
                             },
@@ -1081,7 +1115,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         if st.intro.is_none() {
             return match st.exchange.reader.next() {
                 Some(Err(ref e)) if e.is_would_block() => {
-                    if Instant::now() >= st.send_body_at {
+                    let clock = self.continue_clock(&st.exchange);
+                    if clock.now() >= st.send_body_at {
                         // RFC 9110 §10.1.1: a client that sent `Expect: 100-continue`
                         // need not wait indefinitely; it sends the body after a
                         // reasonable wait.
@@ -1401,7 +1436,11 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
     // Long by design: one match over every redirect state.
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        // Resolve the engine clock once, before any state reads the time. The
+        // `Expect: 100-continue` timer runs on this clock unless the request
+        // carries its own in its extensions.
+        let _ = self.1.get_or_insert_with(|| ctx.clock());
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {
             HttpRequestRedirectState::Init(mut inner_opt) => {

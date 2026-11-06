@@ -57,7 +57,7 @@ fn test_threaded_future_empty_iterator() {
         })
         .collect();
 
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [std::result::Result<i32, ()>; 0]);
 }
 
 #[valtron_test(seed = 42, threads = 4)]
@@ -237,9 +237,10 @@ fn thread_cpu_nanos() -> u64 {
     };
     // SAFETY: `ts` is a valid out pointer; CLOCK_THREAD_CPUTIME_ID is supported
     // on every unix target this crate tests on.
-    let rc = unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &mut ts) };
+    let rc = unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &raw mut ts) };
     assert_eq!(rc, 0, "clock_gettime(CLOCK_THREAD_CPUTIME_ID) failed");
-    ts.tv_sec as u64 * 1_000_000_000 + ts.tv_nsec as u64
+    u64::try_from(ts.tv_sec).expect("CPU time is non-negative") * 1_000_000_000
+        + u64::try_from(ts.tv_nsec).expect("nanoseconds are non-negative")
 }
 
 /// Pending for 300 ms until another thread wakes it. Records the CPU time of

@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 use foundation_errstacks::ErrorTrace;
 
 use super::memory;
-use super::{syscall_nr::*, MountTable, VirtualFdEntry, VirtualFdTable};
+use super::{syscall_nr::*, DynFs, MountTable, VirtualFdEntry, VirtualFdTable, FD_VIRTUAL_BASE};
 use crate::shared::vfs::error::VfsError;
 use crate::shared::vfs::types::OpenMode;
 
@@ -38,17 +38,33 @@ pub enum SyscallAction {
     Skip { return_value: i64 },
     /// Skip and return an error.
     SkipError { errno: i64 },
+    /// Run `close(fd)` in place of the intercepted syscall, then report
+    /// `return_value` as the result.
+    ///
+    /// `dup2(2)` must close the file descriptor at the new number before it
+    /// returns. When the duplicated descriptor is virtual, the kernel has no
+    /// `dup2` to run, so the backend rewrites the syscall into `close(fd)`.
+    /// The backend hides the close result, because `dup2(2)` ignores an error
+    /// from closing the destination.
+    CloseThenSkip { fd: u64, return_value: i64 },
 }
 
 impl SyscallAction {
+    #[must_use]
     pub fn passthrough() -> Self {
         Self::Passthrough
     }
+    #[must_use]
     pub fn skip(return_value: i64) -> Self {
         Self::Skip { return_value }
     }
+    #[must_use]
     pub fn skip_error(errno: i64) -> Self {
         Self::SkipError { errno }
+    }
+    #[must_use]
+    pub fn close_then_skip(fd: u64, return_value: i64) -> Self {
+        Self::CloseThenSkip { fd, return_value }
     }
 }
 
@@ -277,6 +293,71 @@ fn resolve_tracee_path_at(pid: nix::unistd::Pid, dirfd: i64, addr: u64) -> Optio
 
 // ── File open handlers ──
 
+/// Open a virtual path the way `open(2)` does.
+///
+/// `O_CREAT` with `O_EXCL` fails with `EEXIST` when the path exists. Without
+/// `O_EXCL`, the path opens when it exists, and the call creates it when
+/// `O_CREAT` is set and the path is missing. `O_TRUNC` truncates the opened
+/// file to zero before the dispatch returns the virtual file descriptor.
+fn open_virtual_path(
+    pid: nix::unistd::Pid,
+    fs: &DynFs,
+    path: String,
+    flags: i32,
+    perm: u32,
+    fd_table: &VirtualFdTable,
+) -> SyscallAction {
+    let mode = flags_to_open_mode(flags);
+    let create = flags & libc::O_CREAT != 0;
+
+    let file = if create && flags & libc::O_EXCL != 0 {
+        // `create` reports `AlreadyExists`, so an existing path fails either
+        // way. Check first, because `open(2)` must report `EEXIST` and not
+        // open the file.
+        match fs.exists(&path) {
+            Ok(true) => return SyscallAction::skip_error(libc::EEXIST as i64),
+            Ok(false) => {}
+            Err(e) => return SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        }
+        match fs.create(&path, perm) {
+            Ok(file) => file,
+            Err(e) => return SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        }
+    } else {
+        // Open an existing file; create it only when `O_CREAT` asks for it and
+        // the path is missing. Without `O_CREAT` a missing path stays
+        // `ENOENT`, which `open_file` reports.
+        match fs.open_file(&path, mode) {
+            Ok(file) => file,
+            Err(e) if create && is_not_found(&e) => match fs.create(&path, perm) {
+                Ok(file) => file,
+                Err(e) => return SyscallAction::skip_error(vfs_error_to_errno(&e)),
+            },
+            Err(e) => return SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        }
+    };
+
+    if flags & libc::O_TRUNC != 0 {
+        if let Err(e) = file.truncate(0) {
+            return SyscallAction::skip_error(vfs_error_to_errno(&e));
+        }
+    }
+
+    let vfd = fd_table.alloc_fd();
+    fd_table.insert(
+        pid.as_raw() as u32,
+        vfd,
+        VirtualFdEntry::File {
+            handle: file,
+            path,
+            offset: Arc::new(Mutex::new(0)),
+            mode,
+            flags,
+        },
+    );
+    SyscallAction::skip(vfd as i64)
+}
+
 fn handle_open(
     pid: nix::unistd::Pid,
     args: &SyscallArgs,
@@ -298,38 +379,7 @@ fn handle_open(
         None => return SyscallAction::passthrough(),
     };
 
-    let mode = flags_to_open_mode(flags);
-
-    if flags & libc::O_CREAT != 0 && flags & libc::O_EXCL != 0 {
-        if fs.exists(&path).unwrap_or(false) {
-            return SyscallAction::skip_error(libc::EEXIST as i64);
-        }
-    }
-
-    let result = if flags & libc::O_CREAT != 0 {
-        fs.create(&path, flags_to_perm(flags))
-    } else {
-        fs.open_file(&path, mode)
-    };
-
-    match result {
-        Ok(file) => {
-            let vfd = fd_table.alloc_fd();
-            fd_table.insert(
-                pid.as_raw() as u32,
-                vfd,
-                VirtualFdEntry::File {
-                    handle: file,
-                    path,
-                    offset: Arc::new(Mutex::new(0)),
-                    mode,
-                    flags,
-                },
-            );
-            SyscallAction::skip(vfd as i64)
-        }
-        Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-    }
+    open_virtual_path(pid, fs, path, flags, flags_to_perm(flags), fd_table)
 }
 
 fn handle_openat(
@@ -354,38 +404,7 @@ fn handle_openat(
         None => return SyscallAction::passthrough(),
     };
 
-    let mode = flags_to_open_mode(flags);
-
-    if flags & libc::O_CREAT != 0 && flags & libc::O_EXCL != 0 {
-        if fs.exists(&path).unwrap_or(false) {
-            return SyscallAction::skip_error(libc::EEXIST as i64);
-        }
-    }
-
-    let result = if flags & libc::O_CREAT != 0 {
-        fs.create(&path, flags_to_perm(flags))
-    } else {
-        fs.open_file(&path, mode)
-    };
-
-    match result {
-        Ok(file) => {
-            let vfd = fd_table.alloc_fd();
-            fd_table.insert(
-                pid.as_raw() as u32,
-                vfd,
-                VirtualFdEntry::File {
-                    handle: file,
-                    path,
-                    offset: Arc::new(Mutex::new(0)),
-                    mode,
-                    flags,
-                },
-            );
-            SyscallAction::skip(vfd as i64)
-        }
-        Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-    }
+    open_virtual_path(pid, fs, path, flags, flags_to_perm(flags), fd_table)
 }
 
 fn handle_creat(
@@ -398,7 +417,7 @@ fn handle_creat(
         Some(p) => p,
         None => return SyscallAction::passthrough(),
     };
-    let mode = args.arg1 as u32;
+    let perm = args.arg1 as u32;
 
     if !mount_table.is_virtual(&path) {
         return SyscallAction::passthrough();
@@ -409,24 +428,15 @@ fn handle_creat(
         None => return SyscallAction::passthrough(),
     };
 
-    match fs.create(&path, mode) {
-        Ok(file) => {
-            let vfd = fd_table.alloc_fd();
-            fd_table.insert(
-                pid.as_raw() as u32,
-                vfd,
-                VirtualFdEntry::File {
-                    handle: file,
-                    path,
-                    offset: Arc::new(Mutex::new(0)),
-                    mode: OpenMode::Write,
-                    flags: libc::O_CREAT | libc::O_WRONLY | libc::O_TRUNC,
-                },
-            );
-            SyscallAction::skip(vfd as i64)
-        }
-        Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-    }
+    // `creat(2)` is `open(2)` with these flags: it truncates an existing file.
+    open_virtual_path(
+        pid,
+        fs,
+        path,
+        libc::O_CREAT | libc::O_WRONLY | libc::O_TRUNC,
+        perm,
+        fd_table,
+    )
 }
 
 // ── Virtual FD handlers ──
@@ -690,7 +700,7 @@ fn handle_vfs_getdents64(
     };
 
     match entry {
-        VirtualFdEntry::Directory { handle: _, .. } => {
+        VirtualFdEntry::Directory { .. } => {
             // getdents64 is complex — it writes linux_dirent64 structs to tracee memory.
             // For now, we pass it through and let the kernel handle it.
             // A full implementation would call handle.list() and format dirent structs.
@@ -1170,8 +1180,10 @@ fn handle_dup(
     args: &SyscallArgs,
     fd_table: &VirtualFdTable,
 ) -> SyscallAction {
+    let pid_raw = pid.as_raw() as u32;
     let old_fd = args.arg0;
-    let new_fd = if args.nr == DUP2 || args.nr == DUP3 {
+    let explicit_new_fd = args.nr == DUP2 || args.nr == DUP3;
+    let new_fd = if explicit_new_fd {
         args.arg1
     } else {
         // DUP allocates a new FD
@@ -1180,18 +1192,38 @@ fn handle_dup(
 
     // The table lookup, not the fd number, decides: a previous `dup2` can move
     // a virtual entry to a low fd.
-    match fd_table.get(pid.as_raw() as u32, old_fd) {
-        Some(entry) => {
-            fd_table.insert(pid.as_raw() as u32, new_fd, entry);
+    let Some(entry) = fd_table.get(pid_raw, old_fd) else {
+        // The source is a real fd, so the kernel handles the call. It
+        // replaces whatever `new_fd` was: drop a virtual entry there, or a
+        // restored stdout would keep writing into the virtual file.
+        fd_table.remove(pid_raw, new_fd);
+        return SyscallAction::passthrough();
+    };
+
+    if explicit_new_fd && new_fd == old_fd {
+        // `dup2(2)` with equal numbers returns the number and closes nothing.
+        // `dup3(2)` rejects it.
+        return if args.nr == DUP3 {
+            SyscallAction::skip_error(libc::EINVAL as i64)
+        } else {
             SyscallAction::skip(new_fd as i64)
-        }
-        None => {
-            // The source is a real fd, so the kernel handles the call. It
-            // replaces whatever `new_fd` was: drop a virtual entry there, or a
-            // restored stdout would keep writing into the virtual file.
-            fd_table.remove(pid.as_raw() as u32, new_fd);
-            SyscallAction::passthrough()
-        }
+        };
+    }
+
+    // A number below `FD_VIRTUAL_BASE` and not in the table may hold a real
+    // kernel fd. `dup2(2)` closes whatever the new number held before it
+    // returns, so the loop runs `close(new_fd)` in place of the intercepted
+    // call and reports `new_fd`. Numbers at or above `FD_VIRTUAL_BASE` are
+    // virtual by the table's convention, and the kernel holds no fd there.
+    let replaces_kernel_fd = explicit_new_fd && new_fd < FD_VIRTUAL_BASE;
+
+    fd_table.remove(pid_raw, new_fd);
+    fd_table.insert(pid_raw, new_fd, entry);
+
+    if replaces_kernel_fd {
+        SyscallAction::close_then_skip(new_fd, new_fd as i64)
+    } else {
+        SyscallAction::skip(new_fd as i64)
     }
 }
 
@@ -1210,6 +1242,12 @@ fn flags_to_open_mode(flags: i32) -> OpenMode {
 
 fn flags_to_perm(flags: i32) -> u32 {
     ((flags >> 16) & 0o777) as u32
+}
+
+/// Whether the error is a missing path. `open(2)` with `O_CREAT` creates the
+/// file in that one case.
+fn is_not_found(e: &ErrorTrace<VfsError>) -> bool {
+    matches!(e.current_context(), VfsError::NotFound { .. })
 }
 
 fn vfs_error_to_errno(e: &ErrorTrace<VfsError>) -> i64 {

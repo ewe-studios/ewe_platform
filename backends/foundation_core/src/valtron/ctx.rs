@@ -250,6 +250,72 @@ impl Ctx {
             rng: self.0.rng.clone(),
         }))
     }
+
+    /// A new handle over a *copied* map, the same config and RNG, and `clock`.
+    ///
+    /// The map copy follows the [`Ctx::fork`] rule: this handle and `self` do not
+    /// see each other's later inserts. The `config` and `rng` `Arc`s stay
+    /// shared. `self` keeps its own clock, so a caller can build several handles
+    /// from one root.
+    ///
+    /// This is the startup hook for a deterministic simulation test (DST): the
+    /// host passes the returned handle to `initialize_pool_with_ctx`, and every
+    /// task fork reads the same clock from [`Ctx::clock`].
+    #[must_use]
+    pub fn with_clock(&self, clock: Arc<dyn Clock>) -> Ctx {
+        let map = self.0.map.lock().expect("Ctx map poisoned").clone();
+        Ctx(Arc::new(CtxInner {
+            map: Mutex::new(map),
+            clock,
+            config: self.0.config.clone(),
+            rng: self.0.rng.clone(),
+        }))
+    }
+}
+
+/// A [`Clock`] that a test moves forward by hand, behind the `test-clock`
+/// feature.
+///
+/// The clock stores a base [`Instant`] captured when you build it and an offset
+/// that only [`SimulatedClock::advance`] changes. [`Clock::now`] returns the base
+/// plus the offset, so two reads differ by exactly the time the test advanced.
+/// The absolute value is a monotonic instant shifted by the offset, not a
+/// calendar epoch. The clock is `Send + Sync`, so a test can read it from any
+/// thread.
+#[cfg(feature = "test-clock")]
+#[derive(Debug)]
+pub struct SimulatedClock {
+    base: Instant,
+    offset: Mutex<Duration>,
+}
+
+#[cfg(feature = "test-clock")]
+impl SimulatedClock {
+    /// A clock whose offset starts at `origin`.
+    #[must_use]
+    pub fn new(origin: Duration) -> Self {
+        Self {
+            base: Instant::now(),
+            offset: Mutex::new(origin),
+        }
+    }
+
+    /// Add `by` to the offset.
+    pub fn advance(&self, by: Duration) {
+        let mut offset = self.offset.lock().expect("SimulatedClock poisoned");
+        *offset += by;
+    }
+}
+
+#[cfg(feature = "test-clock")]
+impl Clock for SimulatedClock {
+    fn now(&self) -> Instant {
+        self.base + *self.offset.lock().expect("SimulatedClock poisoned")
+    }
+
+    fn elapsed(&self) -> Duration {
+        *self.offset.lock().expect("SimulatedClock poisoned")
+    }
 }
 
 impl Clone for Ctx {

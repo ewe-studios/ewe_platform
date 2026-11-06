@@ -127,6 +127,10 @@ impl Harness {
     ///
     /// # Errors
     /// [`crate::BrowserError`] if the server can't bind or the browser can't launch.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "public API takes TestConfig by value; a reference would break every caller"
+    )]
     pub fn setup(config: TestConfig) -> Result<Self> {
         let server = TestServer::start(
             &config.bind(),

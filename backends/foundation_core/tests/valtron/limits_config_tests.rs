@@ -7,6 +7,13 @@
 //! getter (or is `pub(crate)`), the test asserts the documented default and the
 //! comment says why the path cannot be observed cheaply.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::time::Duration;
 
 use foundation_core::valtron::{

@@ -75,7 +75,7 @@ fn test_concurrent_access() {
         let pool_clone = Arc::clone(&pool);
         let handle = thread::spawn(move || {
             let mut buf = pool_clone.acquire();
-            buf.extend_from_slice(format!("thread {}", i).as_bytes());
+            buf.extend_from_slice(format!("thread {i}").as_bytes());
             // Buf returned on drop
         });
         handles.push(handle);
@@ -92,7 +92,7 @@ fn test_concurrent_access() {
 
 #[test]
 /// WHY: Hit ratio should calculate correctly
-/// WHAT: hit_ratio = pool_hits / (allocations + pool_hits)
+/// WHAT: `hit_ratio` = `pool_hits` / (allocations + `pool_hits`)
 fn test_hit_ratio() {
     let pool = Arc::new(BytesPool::new(1024, 1));
 
@@ -111,7 +111,7 @@ fn test_hit_ratio() {
 
 #[test]
 /// WHY: Empty pool should have 1.0 hit ratio (no operations)
-/// WHAT: Default hit_ratio is 1.0
+/// WHAT: Default `hit_ratio` is 1.0
 fn test_hit_ratio_empty() {
     let pool = Arc::new(BytesPool::new(1024, 0));
     let stats = pool.stats();
@@ -119,7 +119,7 @@ fn test_hit_ratio_empty() {
 }
 
 #[test]
-/// WHY: PooledBuffer should deref to Vec<u8> transparently
+/// WHY: `PooledBuffer` should deref to Vec<u8> transparently
 /// WHAT: All Vec methods should work
 fn test_pooled_buffer_deref() {
     let pool = Arc::new(BytesPool::new(1024, 1));
@@ -151,7 +151,7 @@ fn test_owned_buffer() {
 }
 
 #[test]
-/// WHY: acquire_with_capacity should respect requested size
+/// WHY: `acquire_with_capacity` should respect requested size
 /// WHAT: Buffer should have at least requested capacity
 fn test_acquire_with_capacity() {
     let pool = Arc::new(BytesPool::new(1024, 1));

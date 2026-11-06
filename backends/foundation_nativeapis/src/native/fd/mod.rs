@@ -2,7 +2,7 @@ pub mod error;
 /// File descriptor management — wraps any raw fd with readiness tracking.
 ///
 /// Built for our sync, task-driven model on top of our cross-platform
-/// poll::Selector (epoll/kqueue/IOCP).
+/// `poll::Selector` (epoll/kqueue/IOCP).
 ///
 /// ## Key Types
 ///
@@ -10,7 +10,7 @@ pub mod error;
 /// - [`FdRegistration`] — tracks per-fd readiness state as an atomic bitmask
 /// - [`ReadyGuard`] — returned by `poll_readable()`/`poll_writable()`, must be
 ///   explicitly handled to clear readiness
-/// - [`Ready`] — bitmask of readiness states (READABLE, WRITABLE, READ_CLOSED, WRITE_CLOSED, ERROR)
+/// - [`Ready`] — bitmask of readiness states (READABLE, WRITABLE, `READ_CLOSED`, `WRITE_CLOSED`, ERROR)
 ///
 /// ## Parking a transport task on fd readiness (spec-41 F10 / Decision 00 L2)
 ///
@@ -89,8 +89,8 @@ pub enum PollResult<T> {
     /// The fd is not yet ready — caller should yield and retry.
     NotReady,
     /// An error occurred. This includes:
-    /// - READ_CLOSED: pipe write end closed, socket peer shutdown (EOF)
-    /// - WRITE_CLOSED: pipe read end closed, socket peer shutdown
+    /// - `READ_CLOSED`: pipe write end closed, socket peer shutdown (EOF)
+    /// - `WRITE_CLOSED`: pipe read end closed, socket peer shutdown
     /// - ERROR: epoll error condition (EPOLLERR), socket reset
     /// - Deregistered: fd was removed from the poll selector
     Error(io::Error),
@@ -109,11 +109,11 @@ impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
 /// Tracks readiness state for a registered file descriptor.
 ///
 /// # How readiness tracking works:
-/// 1. The fd is registered with the poll::Selector via FdRegistration::new()
-/// 2. poll_readable()/poll_writable() call poll() with zero timeout to check
+/// 1. The fd is registered with the `poll::Selector` via `FdRegistration::new()`
+/// 2. `poll_readable()/poll_writable()` call `poll()` with zero timeout to check
 ///    current readiness state from the selector
-/// 3. Events returned are mapped to Ready flags (READABLE, WRITABLE, READ_CLOSED, etc.)
-/// 4. The guard's try_io() or clear_ready() resets readiness by re-polling
+/// 3. Events returned are mapped to Ready flags (READABLE, WRITABLE, `READ_CLOSED`, etc.)
+/// 4. The guard's `try_io()` or `clear_ready()` resets readiness by re-polling
 ///
 /// This is the critical loop that prevents busy-wait on edge-triggered systems.
 #[allow(dead_code)]
@@ -122,7 +122,7 @@ pub struct FdRegistration {
     token: Token,
     /// Private Poll for readiness queries (legacy — unused when reactor is Some).
     poll: Option<crate::native::poll::Poll>,
-    /// Shared reactor (F40). When Some, is_ready() consults cached bits — zero syscalls.
+    /// Shared reactor (F40). When Some, `is_ready()` consults cached bits — zero syscalls.
     reactor: Option<Arc<Reactor>>,
     /// Last known readiness state — cached between poll calls.
     readiness: Mutex<Ready>,
@@ -164,17 +164,14 @@ impl FdRegistration {
             .ok()
             .filter(|reactor| registry.same_selector(reactor.registry()));
 
-        let (poll, reactor) = match shared {
-            Some(reactor) => {
-                reactor.register(fd, token, interest)?;
-                (None, Some(reactor))
-            }
-            None => {
-                registry.register_fd(fd, token, interest)?;
-                let poll = crate::native::poll::Poll::new()?;
-                poll.registry().register_fd(fd, token, interest)?;
-                (Some(poll), None)
-            }
+        let (poll, reactor) = if let Some(reactor) = shared {
+            reactor.register(fd, token, interest)?;
+            (None, Some(reactor))
+        } else {
+            registry.register_fd(fd, token, interest)?;
+            let poll = crate::native::poll::Poll::new()?;
+            poll.registry().register_fd(fd, token, interest)?;
+            (Some(poll), None)
         };
 
         Ok(Self {
@@ -635,7 +632,7 @@ impl completion::CompletionSource for FdRegistration {
     }
 }
 
-/// Wraps any type that produces a raw fd, registering it with our poll::Selector
+/// Wraps any type that produces a raw fd, registering it with our `poll::Selector`
 /// and providing readiness polling + guarded I/O operations.
 pub struct RegisteredFd<T: AsRawFd> {
     registration: FdRegistration,
@@ -674,10 +671,13 @@ impl<T: AsRawFd> completion::CompletionSource for RegisteredFd<T> {
 }
 
 impl<T: AsRawFd> RegisteredFd<T> {
-    /// Create a new RegisteredFd with default interest (readable + writable).
+    /// Create a new `RegisteredFd` with default interest (readable + writable).
     ///
-    /// The fd is immediately registered with the poll::Selector.
+    /// The fd is immediately registered with the `poll::Selector`.
     /// The fd MUST be in nonblocking mode for correct operation.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the fd cannot be registered.
     pub fn new(
         inner: T,
         registry: &crate::native::poll::Registry,
@@ -692,6 +692,9 @@ impl<T: AsRawFd> RegisteredFd<T> {
     }
 
     /// Create with specific interest.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the fd cannot be registered.
     pub fn with_interest(
         inner: T,
         registry: &crate::native::poll::Registry,
@@ -743,6 +746,10 @@ impl<T: AsRawFd> RegisteredFd<T> {
     }
 
     /// Create, returning the original inner value on failure.
+    ///
+    /// # Errors
+    /// Returns `FdRegistrationError::Failed` with the registration error and
+    /// the original inner value if the fd cannot be registered.
     pub fn try_new(
         inner: T,
         registry: &crate::native::poll::Registry,
@@ -863,16 +870,25 @@ impl<T: AsRawFd> RegisteredFd<T> {
     }
 
     /// Get a shared reference to the inner object.
+    ///
+    /// # Panics
+    /// Panics if the inner object was moved out.
     pub fn get_ref(&self) -> &T {
         self.inner.as_ref().unwrap()
     }
 
     /// Get a mutable reference to the inner object.
+    ///
+    /// # Panics
+    /// Panics if the inner object was moved out.
     pub fn get_mut(&mut self) -> &mut T {
         self.inner.as_mut().unwrap()
     }
 
     /// Deregister and return ownership of the inner object.
+    ///
+    /// # Panics
+    /// Panics if the inner object was already moved out.
     pub fn into_inner(mut self) -> T {
         let fd = self.inner.as_ref().unwrap().as_raw_fd();
         let _ = self.registration.deregister(fd);
@@ -883,10 +899,10 @@ impl<T: AsRawFd> RegisteredFd<T> {
     ///
     /// Returns immediately with:
     /// - Ready(guard) if the fd is readable
-    /// - NotReady if no data is available
+    /// - `NotReady` if no data is available
     /// - Error if the fd was deregistered or closed
     ///
-    /// The guard must be explicitly handled via try_io(), clear_ready(), or retain_ready().
+    /// The guard must be explicitly handled via `try_io()`, `clear_ready()`, or `retain_ready()`.
     pub fn poll_readable(&self) -> PollResult<ReadyGuard<'_, T>> {
         let ready = match self.registration.refresh_readiness() {
             Ok(r) => r,
@@ -895,8 +911,7 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // 1. Check for error condition FIRST
         if ready.is_error() {
-            return PollResult::Error(io::Error::new(
-                io::ErrorKind::Other,
+            return PollResult::Error(io::Error::other(
                 "file descriptor has an error condition (EPOLLERR)",
             ));
         }
@@ -926,10 +941,7 @@ impl<T: AsRawFd> RegisteredFd<T> {
         };
 
         if ready.is_error() {
-            return PollResult::Error(io::Error::new(
-                io::ErrorKind::Other,
-                "file descriptor has an error condition",
-            ));
+            return PollResult::Error(io::Error::other("file descriptor has an error condition"));
         }
 
         if ready.is_write_closed() {
@@ -958,10 +970,7 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // Check error first
         if ready.is_error() {
-            return PollResult::Error(io::Error::new(
-                io::ErrorKind::Other,
-                "file descriptor has an error condition",
-            ));
+            return PollResult::Error(io::Error::other("file descriptor has an error condition"));
         }
 
         // Check closed states

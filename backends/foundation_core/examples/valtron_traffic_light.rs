@@ -44,6 +44,10 @@ enum Phase {
     Show { light: Light, remaining: u32 },
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn traffic_light(ctx: Ctx, phase: Phase) -> Option<(Phase, TaskStatus<Light, ()>)> {
     let _ = ctx;

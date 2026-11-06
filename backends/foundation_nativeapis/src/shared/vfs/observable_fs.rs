@@ -1,4 +1,4 @@
-//! ObservableFs — decorator that wraps any AsyncVfsFileSystem and emits typed audit events.
+//! `ObservableFs` — decorator that wraps any `AsyncVfsFileSystem` and emits typed audit events.
 //!
 //! # Overview
 //!
@@ -156,12 +156,12 @@ pub struct ObservableFs<F: AsyncVfsFileSystem> {
 }
 
 impl<F: AsyncVfsFileSystem> ObservableFs<F> {
-    /// WHY: Wrap any AsyncVfsFileSystem to emit typed audit events for all operations.
+    /// WHY: Wrap any `AsyncVfsFileSystem` to emit typed audit events for all operations.
     ///
-    /// WHAT: Creates an ObservableFs around the given inner filesystem.
+    /// WHAT: Creates an `ObservableFs` around the given inner filesystem.
     ///
     /// HOW: Stores the inner fs, creates a default-capacity Broadcaster wrapped
-    /// in a Mutex for interior mutability (since VfsFileSystem trait uses &self).
+    /// in a Mutex for interior mutability (since `VfsFileSystem` trait uses &self).
     pub fn new(inner: F) -> Self {
         Self {
             inner,
@@ -173,6 +173,9 @@ impl<F: AsyncVfsFileSystem> ObservableFs<F> {
     /// Subscribe to the audit event stream.
     ///
     /// Returns a `Receiver<VfsEvent>` that receives all subsequent events.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn subscribe(&self) -> Receiver<VfsEvent> {
         self.broadcaster.lock().unwrap().subscribe()
     }
@@ -213,7 +216,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(meta)
             }
             Err(e) => {
-                self.emit_error("stat", &path, &format!("{:?}", e));
+                self.emit_error("stat", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -231,7 +234,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(exists)
             }
             Err(e) => {
-                self.emit_error("exists", &path, &format!("{:?}", e));
+                self.emit_error("exists", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -261,7 +264,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("chmod", &path, &format!("{:?}", e));
+                self.emit_error("chmod", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -279,7 +282,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("symlink", &link, &format!("{:?}", e));
+                self.emit_error("symlink", &link, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -297,7 +300,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(target)
             }
             Err(e) => {
-                self.emit_error("readlink", &path, &format!("{:?}", e));
+                self.emit_error("readlink", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -311,7 +314,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("rename", &from, &format!("{:?}", e));
+                self.emit_error("rename", &from, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -325,7 +328,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("remove", &path, &format!("{:?}", e));
+                self.emit_error("remove", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -343,7 +346,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(file)
             }
             Err(e) => {
-                self.emit_error("open", &path, &format!("{:?}", e));
+                self.emit_error("open", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -365,7 +368,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(file)
             }
             Err(e) => {
-                self.emit_error("open_seekable", &path, &format!("{:?}", e));
+                self.emit_error("open_seekable", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -379,7 +382,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(dir)
             }
             Err(e) => {
-                self.emit_error("open_directory", &path, &format!("{:?}", e));
+                self.emit_error("open_directory", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -397,7 +400,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(file)
             }
             Err(e) => {
-                self.emit_error("create", &path, &format!("{:?}", e));
+                self.emit_error("create", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -411,7 +414,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("mkdir", &path, &format!("{:?}", e));
+                self.emit_error("mkdir", &path, &format!("{e:?}"));
                 Err(e)
             }
         }

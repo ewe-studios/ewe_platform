@@ -447,7 +447,10 @@ fn test_empty_spread_done_delivers_nothing_via_iterator() {
     // Spread(vec![]) is yielded as-is; delivery point would expand to nothing
     let first = Iterator::next(&mut iter).unwrap();
     match first {
-        Stream::Spread(items) => assert!(items.is_empty()),
+        Stream::Spread(items) => assert_eq!(
+            items,
+            [] as [foundation_core::valtron::StreamSpread<i32, &str>; 0]
+        ),
         _ => panic!("expected Spread"),
     }
     assert_eq!(Iterator::next(&mut iter), Some(Stream::Next(42)));
@@ -459,7 +462,10 @@ fn test_empty_spread_pending_delivers_nothing_via_iterator() {
     let mut iter = items.into_iter();
     let first = Iterator::next(&mut iter).unwrap();
     match first {
-        Stream::Spread(items) => assert!(items.is_empty()),
+        Stream::Spread(items) => assert_eq!(
+            items,
+            [] as [foundation_core::valtron::StreamSpread<i32, &str>; 0]
+        ),
         _ => panic!("expected Spread"),
     }
     assert_eq!(Iterator::next(&mut iter), Some(Stream::Next(42)));
@@ -494,7 +500,10 @@ fn test_empty_spread_done_via_map_done() {
     let items = vec![Stream::<i32, &str>::Spread(vec![])];
     let mut mapped = items.into_iter().map_done(|x| x * 10);
     match Iterator::next(&mut mapped).unwrap() {
-        Stream::Spread(items) => assert!(items.is_empty()),
+        Stream::Spread(items) => assert_eq!(
+            items,
+            [] as [foundation_core::valtron::StreamSpread<i32, &str>; 0]
+        ),
         _ => panic!("expected empty Spread"),
     }
 }

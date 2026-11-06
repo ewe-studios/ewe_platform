@@ -1,8 +1,8 @@
-/// Integration test: FdMonitorTask with pipe and RegisteredFd.
+/// Integration test: `FdMonitorTask` with pipe and `RegisteredFd`.
 ///
 /// Tests:
-/// - Create a pipe, wrap read end in RegisteredFd
-/// - Create FdMonitorTask with callback that reads data
+/// - Create a pipe, wrap read end in `RegisteredFd`
+/// - Create `FdMonitorTask` with callback that reads data
 /// - Write to pipe's write end
 /// - Verify callback is invoked and data is read
 /// - Verify poll interval respected (callback not called before write)
@@ -31,7 +31,7 @@ fn make_pipe() -> (OwnedFd, OwnedFd) {
     (r, w)
 }
 
-/// Test: FdMonitorTask callback is invoked when fd is readable
+/// Test: `FdMonitorTask` callback is invoked when fd is readable
 #[test]
 fn fd_monitor_task_invokes_callback_on_readiness() {
     let (reader, writer) = make_pipe();
@@ -45,28 +45,21 @@ fn fd_monitor_task_invokes_callback_on_readiness() {
 
     let mut task = FdMonitorTask::new(registered).with_callback(move |fd| {
         let mut buf = [0u8; 64];
-        let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
+        let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len()) };
         if n > 0 {
             data_clone
                 .lock()
                 .unwrap()
-                .extend_from_slice(&buf[..n as usize]);
+                .extend_from_slice(&buf[..n.cast_unsigned()]);
             Ok(())
         } else {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "read returned 0",
-            ))
+            Err(std::io::Error::other("read returned 0"))
         }
     });
 
     // Write data before first tick
     unsafe {
-        libc::write(
-            writer.as_raw_fd(),
-            b"hello from pipe\0".as_ptr() as *const _,
-            16,
-        );
+        libc::write(writer.as_raw_fd(), c"hello from pipe".as_ptr().cast(), 16);
     }
 
     // Tick the task via TaskIterator
@@ -78,7 +71,7 @@ fn fd_monitor_task_invokes_callback_on_readiness() {
     assert_eq!(&received[..15], b"hello from pipe");
 }
 
-/// Test: FdMonitorTask with no callback doesn't panic
+/// Test: `FdMonitorTask` with no callback doesn't panic
 #[test]
 fn fd_monitor_task_no_callback() {
     let (reader, _writer) = make_pipe();
@@ -95,7 +88,7 @@ fn fd_monitor_task_no_callback() {
     assert!(status.is_some());
 }
 
-/// Test: FdMonitorTask terminates on fd error
+/// Test: `FdMonitorTask` terminates on fd error
 #[test]
 fn fd_monitor_task_terminates_on_error() {
     let (reader, _writer) = make_pipe();
@@ -118,7 +111,7 @@ fn fd_monitor_task_terminates_on_error() {
     std::mem::forget(registered);
 }
 
-/// Test: FdMonitorTask poll interval is respected
+/// Test: `FdMonitorTask` poll interval is respected
 #[test]
 fn fd_monitor_task_poll_interval() {
     let (reader, _writer) = make_pipe();

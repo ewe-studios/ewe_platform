@@ -3,6 +3,13 @@
 //! These tests verify that bounded channels correctly apply backpressure
 //! without losing messages using the store-and-retry pattern.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -366,7 +373,7 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
     // Finish in lockstep and prove every matched item reached the observer.
     let mut received = vec![10u32];
     loop {
-        while let Some(stream) = observer.next() {
+        for stream in observer.by_ref() {
             match stream {
                 Stream::Next(v) => received.push(v),
                 _ => break,

@@ -2,6 +2,273 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-06 (the second proxy failure):
+  - **A selector keyed by fd number can lose a live registration.** The reactor's
+    entries map is keyed by token, but kqueue, epoll and io_uring all identify a
+    registration by fd number. `Reactor::deregister` passes the number alone, so a
+    drop that runs after the socket closed can delete the entry of a *new* socket
+    that reused the number. The parked task then never wakes. Feature 122.
+  - **A bounded retry loop cannot explain a long stall.** The accept loop retries
+    `accept` every `accept_shutdown_poll` (10 ms by default) and on every reactor
+    wake. A clobbered listener registration costs one pause, not 30 s. Check
+    where the wait is bounded before blaming the accept path.
+  - **A recorded deadline is not an enforced deadline.** `Ctx::with_deadline`
+    stores `now + d` and starts no timer. A hung client call waits for the
+    transport's own idle timeout. Feature 123.
+  - **Trace logs localise a hang faster than a watchdog.** Setting
+    `RUST_LOG=foundation_http=trace,foundation_proxy=debug` and keeping the
+    failing run's log showed the exact stop point in one reproduction: the
+    proxy front parsed and dispatched the request, the backend completed its
+    handshake, and then the backend never read the request. A watchdog would
+    have needed the same number of runs plus a rebuild.
+  - **Constrain the CPUs to reproduce a load-dependent flake.** Five runs of both
+    proxy binaries in the Linux CI image on this host pass; with
+    `docker run --cpus=2` the same loop failed once in five, on a third test
+    (`connect_client_stream_via_grpc_backend`, 29.14 s). A GitHub runner has
+    about two usable cores. Always set `--cpus=2` when the flake needs load.
+  - **Record the selector backend before comparing environments.** On Linux the
+    reactor picks io_uring when its probe succeeds and epoll when not
+    (`poll/sys/unix/selector/dispatch.rs`). A local pass on a different backend
+    says nothing about CI.
+
+- 2026-11-06 (CI proof of features 115, 116 and 119):
+  - **One stalled test holds every later test of its binary.** `#[valtron_test]`
+    takes the process-wide pool on the harness thread, and the pool gate
+    serialises the tests. When `connect_streams_spread_across_grpc_backends` hit
+    its 30 s cap, six queued tests finished within 0.7 s of the kill. A hang in
+    one test looks like a slow suite, and the visible symptom is the timeout.
+  - **A single test run does not prove a suite.** That test passes alone in
+    0.11 s and in six local full-suite runs (16 s to 22 s), yet it timed out on
+    Linux CI. Recorded as `docs/bug-backlog.md` §9 and scheduled as feature 121.
+  - **Two failed jobs can have unrelated causes.** The same run failed
+    `foundation_core` on a Linux-only lint and `foundation_proxy` on a timeout.
+    After a fix, re-read every failed job; do not stop at the first.
+
+- 2026-11-06 (feature 116's Linux proof):
+  - **A platform-gated test module hides its lints from the host.** The module
+    behind `#[cfg(all(target_os = "linux", feature = "multi"))]` in
+    `tests/valtron/readiness_deadline_tests.rs` is not compiled on macOS, so a
+    local zero count is not a Linux zero count. GitHub run 42087629722 found two
+    `clippy::used_underscore_binding` errors (`mem::forget(_stream)`). Name a
+    binding you use, even in a test. To check a Linux-only module before the CI
+    round trip, run the clippy command in the CI image with
+    `docker run ... scripts/ci/linux.sh`-style mounts.
+
+- 2026-11-06 (feature 115, clock injection):
+  - **A multi-pool task did not read `ThreadRegistry.root`.** The worker's
+    `LocalThreadExecutor` had its own `Ctx::new()`, and that is what
+    `ExecutorState::root.fork()` gives a task. Injecting the registry root alone
+    changes nothing. Fix in this feature: build the worker executor with
+    `from_seed_with_root(..., self.root.clone())`.
+  - **Giving workers the pool root also shares its `config` and `rng`.** Before
+    feature 115 each worker built its own `Ctx::new()`, so its seed-0 RNG stream
+    was separate. A task now forks the pool root, so one stream serves the pool.
+    That is the deterministic simulation testing (DST) behaviour a host wants,
+    and no test depended on the separation. State such a side effect when you
+    change where a root comes from.
+  - **`std::time::Instant` is opaque, so a simulated clock cannot be rebuilt
+    from a `Duration`.** Store a base `Instant::now()` and a `Mutex<Duration>`
+    offset; `now()` is `base + offset`. Differences stay exact; the absolute
+    value is not an epoch.
+  - **A `catch_unwind` closure that owns a `Ctx` is not `UnwindSafe`.** The
+    `Arc<dyn Clock>` is not `RefUnwindSafe`. Wrap the worker closure in
+    `AssertUnwindSafe` when the closure only builds a local executor.
+  - **A macro expression used on two threads must be bound once.** In the
+    `timeout` path the same `ctx = expr` would be evaluated on the outer thread
+    and on the body thread. A local `Ctx` would move twice; bind it once and
+    clone for the outer pool.
+  - **`foundation_macros` is not a CI package and has 62 pedantic diagnostics.**
+    The feature's `-D warnings` command fails before and after the change.
+    Recorded in `docs/bug-backlog.md` §30 and scheduled as feature 120.
+
+- 2026-11-06 (feature 119, tracing capture test):
+  - **`tracing`'s interest cache is process-wide, and `rebuild_interest_cache`
+    does not close the race.** Another test thread in the same binary that
+    reaches a callsite with no subscriber caches it as `never` again, so a
+    scoped-subscriber test records nothing. Run such a test in its own
+    integration target: one test, no other thread touches the callsite.
+  - **A test failure on a docs-only commit is a flake, not a regression.**
+    Compare the failing SHA with the last green one before you look at the
+    code. Run 42072422806 failed on `680b96e45`, whose only difference from the
+    green run was Markdown.
+
+- 2026-11-06 (planning 115, 117 and 118):
+  - **A crate-level `#![allow]` outranks `-D warnings`.** `Cargo.toml` sets
+    `pedantic = "warn"`, but `foundation_core/src/lib.rs` still starts with
+    `#![allow(clippy::pedantic)]` and three others from `f6916c465`. Both clippy
+    runs and the new CI deny setting are green while the pedantic group is
+    hidden inside that crate. Read the crate root before trusting a zero count;
+    feature 118 removes the allows.
+  - **`clippy::cognitive_complexity` is a `nursery` lint.** The workspace does
+    not enable `nursery`, so allowing it changes nothing today. It is dead
+    configuration, not debt.
+  - **The executor never reads `ctx.clock()`.** A grep of the engine finds the
+    accessor only at its definition and in tests. Injecting a clock into `Ctx`
+    therefore changes no scheduling behaviour: parking stays on the real
+    monotonic clock. Feature 115 states this limit so a DST run is not expected
+    to replay time.
+
+- 2026-11-06 (feature 116, `foundation_core` clippy reaches zero):
+  - **`cargo clippy --fix` reverts the whole crate when one suggestion does
+    not compile.** It printed `errors present after applying fixes to crate
+    mod` and wrote nothing. `--broken-code` writes the suggestions so the one
+    broken fix can be repaired by hand. The broken one was
+    `assert_ne!(b.as_slice(), [])` from `clippy::assert_is_empty`; the empty
+    array has no element type (`E0282`). A typed empty (`&[] as &[u8]`) fixes it.
+  - **An `#[expect]` must be `cfg_attr`-gated when the lint fires in one feature
+    tree only.** `arc_with_non_send_sync` fires in the single-threaded tree and
+    not under `multi`. A bare `#[expect]` would be unfulfilled under `multi` and
+    fail `-D warnings`. Use
+    `#![cfg_attr(not(feature = "multi"), expect(...))]` in the test module.
+  - **A block scope is the only shape for the `#[valtron]` guard.** `mem::drop`
+    reports `drop_non_drop` in the single-threaded build, where `PoolGuard` has
+    no `Drop` impl. Moving the guard into a block drops it at the block end in
+    both trees. In the `timeout` panic arms the guard now drops during the
+    unwind; the success path is unchanged.
+  - **The bare build is clean only when `futures-core` is optional.** Gating
+    `pub mod valtron` on `std` removed the unresolved imports, but cargo then
+    reported `unused dependency futures-core`. Making the dependency optional
+    (pulled in by `alloc`/`std`) leaves the named `compile_error!` as the only
+    output.
+  - **The `#[task]` macro pins the transition type.** `state_task.rs` emits
+    `fn(Ctx, T)` and accepts only a bare `Ctx`, so an example cannot take
+    `&Ctx` to silence `needless_pass_by_value`. Use a function-level `#[expect]`
+    with a reason; the real fix is a macro API change (backlog §4).
+
+- 2026-11-05 (CI proof for features 108 to 113):
+  - **A push can leave `refs/pull/<n>/head` stale.** Push `02cbb08b5` moved
+    `refs/heads/spec70/priority-followups` at once, but `refs/pull/180/head`
+    stayed on the previous commit for more than 10 minutes. `git ls-remote`
+    shows the mismatch. No workflow runs, because the `pull_request` event
+    never fires. Fix: close and reopen the pull request. Reopening makes
+    GitHub read the branch head again and starts a run for the true commit.
+  - **A job log is unavailable until its run finishes.** `gh run view --job
+    <id> --log` answers "still in progress" and `gh api .../jobs/<id>/logs`
+    stops on terminal escape sequences. Use
+    `gh api --allow-escape-sequences .../jobs/<id>/logs` to read a finished
+    job's log while the rest of the run continues.
+  - **Read the job that owns the feature.** `foundation_nativeapis` runs the
+    ptrace spawn tests only with `EWE_REQUIRE_PTRACE=1` on a native kernel; a
+    green `foundation_netio` or `foundation_browser` job proves nothing about
+    them.
+
+- 2026-11-05 (feature 109, `foundation_browser` clippy debt):
+  - **`i64::try_from(f64)` does not exist.** Rust has no safe fallible
+    float-to-integer conversion. The checked-conversion route cannot remove
+    `cast_possible_truncation`. Use one small helper with `#[expect]` and a
+    measured reason, or `f64::to_int_unchecked` in `unsafe`.
+  - **A leading `+ ` in a doc comment is a Markdown list marker.** It makes the
+    next line a lazy continuation and raises `doc_lazy_continuation`. Reword
+    the line ("plus …") instead of adding indentation.
+  - **Do not change a public signature to fix `needless_pass_by_value`.** Rust
+    cannot add a reference to a by-value parameter without breaking every
+    caller. Put `#[expect(clippy::needless_pass_by_value, reason = "...")]` on
+    the function; the reason names the public API.
+  - **`match_same_arms` can appear across a merged arm.** After merging the
+    close/error/end arms in the reader loop, clippy then asked for nested
+    or-patterns (`Some(Ok(..) | Err(_)) | None`). Run clippy again after each
+    merge.
+  - **`tests/smoke.rs` is behind `browser-tests`.** The default test run has 0
+    smoke tests and 1 SSE test. Do not claim the browser suite ran without a
+    real Chromium.
+
+- 2026-11-05 (feature 113, `foundation_nativeapis` clippy debt):
+  - **Run `cargo clippy --fix` in the Linux image first.** One pass with
+    `--features vfs-preload --no-deps --fix --allow-dirty` applied 29 file
+    fixes and removed over half of the 384 unique diagnostics (backticks,
+    inline `format!` args, pointer casts, `map_unwrap_or`, `LazyLock`,
+    `implied_bounds_in_impls`). It needs `--allow-dirty` when the tree already
+    has edits. The bind mount means it edits the host checkout.
+  - **Only prose lints remain after `--fix`.** `missing_errors_doc`,
+    `missing_panics_doc` and `missing_safety_doc` are not machine-applicable.
+    Their JSON span points at the `fn` line, so a script can insert the
+    sections before each signature; group by `(file, line)` because one
+    function can miss two sections.
+  - **A doc comment inserted before an `extern` block function lands after
+    `#[unsafe(no_mangle)]`.** It is valid Rust but reads badly. Move the block
+    above the attribute; the lint only needs the section to exist.
+  - **`u32` has no `From<u32> for usize`.** `usize::from(signum.cast_unsigned())`
+    does not compile on macOS. Use `usize::try_from(signum).unwrap_or_default()`
+    when the value is a positive signal number.
+  - **`Path` and `PathBuf` do not implement `Display`.**
+    `unnecessary_debug_formatting` asks for `.display()`, not `{}`; writing
+    `{disk_path}` fails to compile.
+  - **Keep the cast semantics of the 64-bit shim.** `cast_signed`,
+    `cast_unsigned` and `try_from(...).unwrap_or(MAX)` keep the value for every
+    reachable input. A negative `ftruncate` length still becomes a huge
+    allocation; that is a separate bug, now in backlog §35.
+  - **`once_cell` stays for `ipc`.** The shim's `Lazy` statics moved to
+    `std::sync::LazyLock`; `src/shared/ipc/version.rs` still uses `Lazy`, so the
+    dependency and the `ipc` feature entry stay. Only `vfs-preload` drops
+    `dep:once_cell`.
+  - **`clippy-runs` lists only the trees that are at zero.** The package keeps
+    its other `runs` feature sets; adding them to `clippy-runs` without
+    measuring them would make CI fail on debt this feature did not cover.
+
+- 2026-11-05 (feature 111, ptrace `O_TRUNC` and `dup2` destination close):
+  - **A virtual fd must own a number whose kernel fd is closed.** With that invariant the
+    `dup2` destination close is exact: a real fd at the new number is closed by an injected
+    `close(new_fd)`, and a number that already holds a virtual entry needs no kernel call.
+  - **To replace a syscall, rewrite `orig_rax` and the argument registers at the entry
+    stop, then set `rax` at the exit stop.** The kernel dispatches on `orig_rax` after the
+    ptrace entry stop, so the rewrite runs at once. The old `Skip` could not do this: it
+    left the destination open.
+  - **An open dispatch test does not need a traced child.** `process_vm_readv(pid, ...)`
+    on the test's own pid reads the test's memory, so `on_syscall_entry` runs the whole
+    open path (path read, flags, VFS calls) on any Linux kernel, including the emulated
+    one.
+  - **`std` opens files with `O_CLOEXEC`; `libc::pipe` does not.** A test that hands a real
+    fd to a traced child must use a pipe or clear `FD_CLOEXEC`: a `std::fs::File` fd is
+    gone after `exec`.
+  - **The shell `read` builtin waits for a newline.** One arbitrary byte does not release
+    it, so a test that blocks a child on `read` must write `\n`.
+  - **`-D warnings` is not a gate for this crate.** The crate carries about 615 clippy
+    warnings under `vfs-native,vfs-ptrace`, tracked in backlog §35, and
+    `ci/packages.toml` does not deny warnings for it. Read the crate's CI config before
+    you treat a `-D warnings` failure as a defect of your change.
+
+- 2026-11-05 (feature 108, deterministic `Expect: 100-continue` timer test):
+  - **A timer test must assert on the clock it injects, not on `Instant::now()`.**
+    The engine `Ctx` clock reaches the task through `next_status(ctx)`, but no code
+    outside `foundation_core` can replace it: `Ctx::clock()` returns a private field and
+    `ThreadRegistry.root` is private. A request `Arc<dyn Clock>` in its `Extensions` is
+    the remaining typed seam in `foundation_netio`. The production path still reads
+    `ctx.clock()`; only the test sets the extension.
+  - **Advance the simulated clock only after the client has fixed its deadline.** The
+    client computes `send_body_at = clock.now() + timeout` in the same poll as the head
+    write. If the server advances first, the deadline moves. The test clock counts
+    reads; the server waits for the first read before it advances. This removes the
+    race in both arrival orders.
+  - **Parking on a readiness that cannot wake is re-checked on the readiness quantum.**
+    `SocketReadiness` does not implement `register`, so `AnyReadiness::register` returns
+    `false` and the task is re-polled every 1 ms. That is what lets an injected clock
+    fire before the real deadline passes.
+  - **A wall-clock failure needs a scheduling stall, not CPU load.** Eight busy CPU
+    loops did not reproduce the 2 s bound failure. `SIGSTOP` of the test process for
+    2.5 s did, on the first try. Use `kill -STOP`/`-CONT` by PID to prove a wall-clock
+    dependence.
+  - **A simulated clock still maps to a real `Instant`.** `std::time::Instant` has no
+    public constructor from an arbitrary value, so the test clock anchors at one real
+    `Instant::now()` and moves forward from it. The executor still sleeps to the mapped
+    deadline, so the test keeps the timer's real duration. Only the assertion is
+    simulated, and that is the flaky part.
+
+- 2026-11-05 (status close-out after the PR #179 merge):
+  - **Read job conclusions, not the run status.** A run stays `in_progress` while one
+    job is stuck. Run 42040473182 has 111 jobs `success`, 0 `failure` and 1 job at
+    `in_progress`: `foundation_wireguard` stopped at `Free runner disk` before any build
+    step. The run never completes, and the web page shows it as running a long time.
+    Use `gh run view <id> --json jobs` and read each `conclusion`.
+  - **A CI proof belongs to the job that runs the package.** A package job runs every
+    feature set in `runs` from `ci/packages.toml`. The `foundation_nativeapis` job green
+    proves the `vfs-native,vfs-ptrace` spawn suite only because that set is named in
+    `runs` and `EWE_REQUIRE_PTRACE=1` fails instead of skipping. Check both before you
+    accept the proof.
+  - **A host limit can block a repeat count.** Feature 47 asked for 20 runs of the
+    ptrace spawn tests. The Apple Silicon host cannot run one, because the amd64
+    emulation returns `EIO` from `PTRACE_GETREGS`. The native CI job gives one run of
+    the full suite, and the feature file records that limit in place of the count.
+
 - 2026-11-05 (PR #179 CI fix pass, fourth round):
   - **`docker exec` into a virtual machine image reaches the Linux host, not the guest.**
     Commands such as `sw_vers`, `cargo` and `cmd` run on Ubuntu. A green step proves only

@@ -34,10 +34,10 @@ fn main() {
     println!("\n--- Events received ---");
     let mut count = 0;
     while let Ok(event) = rx.recv() {
-        println!("  {:?}", event);
+        println!("  {event:?}");
         count += 1;
     }
-    println!("\nTotal events: {}", count);
+    println!("\nTotal events: {count}");
 
     println!("\n=== Done ===");
 }

@@ -38,17 +38,17 @@ enum MemoryNode {
 impl MemoryNode {
     fn metadata(&self) -> &VfsMetadata {
         match self {
-            MemoryNode::File { metadata, .. } => metadata,
-            MemoryNode::Directory { metadata } => metadata,
-            MemoryNode::Symlink { metadata, .. } => metadata,
+            MemoryNode::File { metadata, .. }
+            | MemoryNode::Directory { metadata }
+            | MemoryNode::Symlink { metadata, .. } => metadata,
         }
     }
 
     fn metadata_mut(&mut self) -> &mut VfsMetadata {
         match self {
-            MemoryNode::File { metadata, .. } => metadata,
-            MemoryNode::Directory { metadata } => metadata,
-            MemoryNode::Symlink { metadata, .. } => metadata,
+            MemoryNode::File { metadata, .. }
+            | MemoryNode::Directory { metadata }
+            | MemoryNode::Symlink { metadata, .. } => metadata,
         }
     }
 
@@ -133,6 +133,7 @@ pub struct MemoryFs {
 }
 
 impl MemoryFs {
+    #[must_use]
     pub fn new() -> Self {
         let mut nodes = HashMap::new();
         let mut ino_to_path = HashMap::new();
@@ -170,7 +171,7 @@ pub struct MemoryFile {
 impl VfsFile for MemoryFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
         let content = self.content.read().unwrap();
-        let offset = offset as usize;
+        let offset = usize::try_from(offset).unwrap_or(usize::MAX);
         if offset >= content.len() {
             return Ok(0);
         }
@@ -185,12 +186,12 @@ impl VfsFile for MemoryFile {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
         let mut content = self.content.write().unwrap();
-        let offset = offset as usize;
-        let needed = offset + buf.len();
+        let offset = usize::try_from(offset).unwrap_or(usize::MAX);
+        let needed = offset.saturating_add(buf.len());
         if needed > content.len() {
             content.resize(needed, 0);
         }
-        content[offset..offset + buf.len()].copy_from_slice(buf);
+        content[offset..needed].copy_from_slice(buf);
 
         let mut inner = self.fs.write().unwrap();
         let version = inner.next_version();
@@ -217,7 +218,7 @@ impl VfsFile for MemoryFile {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
         let mut content = self.content.write().unwrap();
-        content.resize(size as usize, 0);
+        content.resize(usize::try_from(size).unwrap_or(usize::MAX), 0);
 
         let mut inner = self.fs.write().unwrap();
         let version = inner.next_version();
@@ -290,18 +291,18 @@ impl SeekableVfsFile for SeekableMemoryFile {
     }
 
     fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64> {
-        let size = VfsFile::size(&self.inner)? as i64;
+        let size = i64::try_from(VfsFile::size(&self.inner)?).unwrap_or(i64::MAX);
         let new_pos = match pos {
-            SeekFrom::Start(n) => n as i64,
+            SeekFrom::Start(n) => i64::try_from(n).unwrap_or(i64::MAX),
             SeekFrom::End(n) => size + n,
-            SeekFrom::Current(n) => self.position as i64 + n,
+            SeekFrom::Current(n) => i64::try_from(self.position).unwrap_or(i64::MAX) + n,
         };
         if new_pos < 0 {
             return Err(ErrorTrace::new(VfsError::InvalidPath {
                 path: format!("seek to negative position: {new_pos}"),
             }));
         }
-        self.position = new_pos as u64;
+        self.position = new_pos.cast_unsigned();
         Ok(self.position)
     }
 

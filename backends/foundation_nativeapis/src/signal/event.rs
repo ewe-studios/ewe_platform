@@ -5,9 +5,9 @@ use std::time::Instant;
 /// OS signals that can be received.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SignalKind {
-    /// Ctrl+C — user interrupt (SIGINT on Unix, CTRL_C_EVENT on Windows)
+    /// Ctrl+C — user interrupt (SIGINT on Unix, `CTRL_C_EVENT` on Windows)
     Interrupt,
-    /// Termination request (SIGTERM on Unix, CTRL_CLOSE_EVENT on Windows)
+    /// Termination request (SIGTERM on Unix, `CTRL_CLOSE_EVENT` on Windows)
     Terminate,
     /// Terminal hangup — reload config (SIGHUP, Unix only)
     Hangup,

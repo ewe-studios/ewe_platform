@@ -1,6 +1,6 @@
 ---
 feature: "`foundation_connectrpc` arrow-codec tests and example compile again"
-status: "pending (CI proof)"
+status: "done"
 lane: "after 84"
 model: "haiku"
 branch: "spec70/f112-connectrpc-arrow-codec-result"
@@ -55,9 +55,9 @@ python3 scripts/ci/ci.py run foundation_connectrpc --profile uat   # in the Linu
 ## Done when
 
 - [x] The all-targets check and clippy pass.
-- [ ] The crate's tests run in CI (pending the run on the pushed commit).
+- [x] The crate's tests run in CI: run 42040473182, `foundation_connectrpc` job success.
 - [x] The backlog §1 entry is deleted.
-- [ ] CI green (pending the run on the pushed commit).
+- [x] CI green: run 42040473182 on `e01e83d80` (PR #179).
 
 ## Result (2026-11-05)
 

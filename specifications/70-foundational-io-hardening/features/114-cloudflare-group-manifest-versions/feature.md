@@ -1,6 +1,6 @@
 ---
 feature: "Generated Cloudflare group manifests read their siblings' versions"
-status: "pending (CI proof)"
+status: "done"
 lane: "now"
 model: "sonnet"
 branch: "spec70/io-hardening-final"
@@ -105,5 +105,6 @@ git status --porcelain -- backends/
 - [x] `foundation_openapi` is 0.0.5 and `foundation_codegentools` requires 0.0.5.
 - [x] The build script regenerates nothing (`git status` is clean after the build, and the
       build exits 0 in the Linux CI image).
-- [ ] The `foundation_deployment_cloudflare` job is green in CI.
+- [x] The `foundation_deployment_cloudflare` job is green: run 42040473182 success on
+      `e01e83d80` (PR #179).
 - [x] Backlog §16 is deleted.

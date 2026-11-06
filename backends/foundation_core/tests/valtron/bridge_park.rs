@@ -13,7 +13,7 @@
 //! full-enum lens returned by `into_future_stream()`) *is* covered below.
 //!
 //! `NotifyQueue::set_max_spins(1)` makes an empty `next()` return `Stream::Wait`
-//! after a single short CondVar wait, keeping the tests single-threaded,
+//! after a single short `CondVar` wait, keeping the tests single-threaded,
 //! fast, and deterministic (no producer thread is needed — the test itself
 //! pushes/closes between polls).
 
@@ -68,13 +68,16 @@ fn poll_next<S: FuturesStream + Unpin>(s: &mut S, waker: &Waker) -> Poll<Option<
     Pin::new(s).poll_next(&mut cx)
 }
 
-/// Builds a waking `NotifyQueueStreamIterator` whose empty `next()` yields
-/// `Stream::Wait` after one short CondVar wait, returning the iterator and a
-/// producer handle (a clone of the same underlying queue) for `push`/`close`.
-fn waking_iter<D, P>() -> (
+/// The iterator and a producer handle (a clone of the same underlying queue).
+type WakingIter<D, P> = (
     NotifyQueueStreamIterator<D, P>,
     Arc<NotifyQueue<Stream<D, P>>>,
-) {
+);
+
+/// Builds a waking `NotifyQueueStreamIterator` whose empty `next()` yields
+/// `Stream::Wait` after one short `CondVar` wait, returning the iterator and a
+/// producer handle (a clone of the same underlying queue) for `push`/`close`.
+fn waking_iter<D, P>() -> WakingIter<D, P> {
     let queue: Arc<NotifyQueue<Stream<D, P>>> = Arc::new(NotifyQueue::unbounded());
     queue.set_max_spins(1);
     let iterator = NotifyQueueStreamIterator::new(Arc::clone(&queue), 5, Duration::from_micros(50));
@@ -138,7 +141,7 @@ fn collect_future_parks_then_wakes_on_push() {
     queue.close();
     match poll(&mut future, &waker) {
         Poll::Ready(vec) => assert_eq!(vec, vec![7, 8], "collected both pushed items"),
-        other => panic!("expected Ready(vec![7, 8]) on close, got {other:?}"),
+        Poll::Pending => panic!("expected Ready(vec![7, 8]) on close, got Pending"),
     }
 }
 

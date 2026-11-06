@@ -20,10 +20,15 @@ pub type EventSub = Receiver<Value>;
 type Pending = Arc<Mutex<HashMap<u64, SyncSender<Result<Value>>>>>;
 type Subs = Arc<Mutex<HashMap<String, Vec<Sender<Value>>>>>;
 
-/// The protocol surface the driver programs against (CDP today; BiDi later).
+/// The protocol surface the driver programs against (CDP today; `BiDi` later).
 pub trait WireProtocol: Send + Sync {
     /// Send a command and block for its result. `session` is the CDP `sessionId`
     /// (or `None` for browser-level commands).
+    ///
+    /// # Errors
+    /// [`BrowserError::Protocol`] when the browser answers with an error,
+    /// [`BrowserError::Connect`] if the command cannot be written, and
+    /// [`BrowserError::Timeout`] when no answer arrives before the call timeout.
     fn call(&self, method: &str, params: Value, session: Option<&str>) -> Result<Value>;
     /// Subscribe to a protocol event method (e.g. `Page.loadEventFired`).
     fn subscribe(&self, method: &str) -> EventSub;
@@ -71,10 +76,12 @@ impl RpcEngine {
                             Some(Ok(WebSocketEvent::Message(WebSocketMessage::Text(txt)))) => {
                                 dispatch(&txt, &pending, &subs);
                             }
-                            Some(Ok(WebSocketEvent::Message(WebSocketMessage::Close(..)))) => break,
+                            Some(
+                                Ok(WebSocketEvent::Message(WebSocketMessage::Close(..))) | Err(_),
+                            )
+                            | None => break,
                             // Skip / ping / pong / binary — keep polling, yield a touch.
                             Some(Ok(_)) => std::thread::sleep(Duration::from_millis(1)),
-                            Some(Err(_)) | None => break,
                         }
                     }
                     tracing::debug!("cdp reader thread exiting");
@@ -157,15 +164,14 @@ impl WireProtocol for RpcEngine {
         self.delivery
             .send(WebSocketMessage::Text(frame.to_string()))
             .map_err(|e| BrowserError::Connect(e.to_string()))?;
-        match rx.recv_timeout(self.call_timeout) {
-            Ok(result) => result,
-            Err(_) => {
-                self.pending.lock().expect("pending poisoned").remove(&id);
-                Err(BrowserError::Timeout {
-                    op: method.to_string(),
-                    after_ms: u64::try_from(self.call_timeout.as_millis()).unwrap_or(u64::MAX),
-                })
-            }
+        if let Ok(result) = rx.recv_timeout(self.call_timeout) {
+            result
+        } else {
+            self.pending.lock().expect("pending poisoned").remove(&id);
+            Err(BrowserError::Timeout {
+                op: method.to_string(),
+                after_ms: u64::try_from(self.call_timeout.as_millis()).unwrap_or(u64::MAX),
+            })
         }
     }
 

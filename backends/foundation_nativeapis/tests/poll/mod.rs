@@ -29,7 +29,7 @@ fn make_pipe() -> (OwnedFd, OwnedFd) {
 
 /// Write to a raw fd.
 fn write_fd(fd: std::os::unix::io::RawFd, data: &[u8]) -> std::io::Result<()> {
-    let n = unsafe { libc::write(fd, data.as_ptr() as *const libc::c_void, data.len()) };
+    let n = unsafe { libc::write(fd, data.as_ptr().cast::<libc::c_void>(), data.len()) };
     if n < 0 {
         Err(std::io::Error::last_os_error())
     } else {
@@ -124,8 +124,7 @@ fn waker_wakes_from_another_thread() {
     let tokens: Vec<_> = events.iter().map(|e| e.token()).collect();
     assert!(
         tokens.contains(&Token(999)),
-        "expected waker event, got: {:?}",
-        tokens
+        "expected waker event, got: {tokens:?}"
     );
 
     handle.join().expect("thread panicked");
@@ -183,13 +182,12 @@ fn poll_zero_timeout_returns_immediately() {
 
     assert!(
         elapsed < Duration::from_millis(50),
-        "poll with zero timeout took too long: {:?}",
-        elapsed
+        "poll with zero timeout took too long: {elapsed:?}"
     );
     assert!(events.is_empty());
 }
 
-/// Test: Interest::WRITABLE returns writable events
+/// Test: `Interest::WRITABLE` returns writable events
 #[test]
 fn poll_writable_interest() {
     let poll = Poll::new().expect("failed to create poll");
@@ -239,8 +237,7 @@ fn waker_wakes_from_multiple_threads() {
     let tokens: Vec<_> = events.iter().map(|e| e.token()).collect();
     assert!(
         tokens.contains(&Token(999)),
-        "expected waker event, got: {:?}",
-        tokens
+        "expected waker event, got: {tokens:?}"
     );
 
     for handle in handles {
@@ -299,7 +296,7 @@ fn poll_handles_eintr() {
     );
 }
 
-/// Test: TcpStream connect/accept loopback
+/// Test: `TcpStream` connect/accept loopback
 #[test]
 fn tcp_stream_connect_accept() {
     use std::net::TcpListener as StdTcpListener;
@@ -340,7 +337,7 @@ fn tcp_stream_connect_accept() {
     assert!(stream.peer_addr().is_ok());
 }
 
-/// Test: UdpSocket send/recv loopback
+/// Test: `UdpSocket` send/recv loopback
 #[test]
 fn udp_socket_send_recv() {
     use std::net::UdpSocket as StdUdpSocket;

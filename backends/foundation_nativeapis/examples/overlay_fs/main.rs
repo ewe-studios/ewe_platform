@@ -50,7 +50,7 @@ fn main() {
 
     // Base still has lib.rs — overlay hides it
     let base_has_it = overlay.base().exists("/src/lib.rs").unwrap();
-    println!("Base still has lib.rs: {}", base_has_it);
+    println!("Base still has lib.rs: {base_has_it}");
 
     // List merged directory — base + delta entries minus whiteouts
     let dir = overlay.open_directory("/src").unwrap();

@@ -42,7 +42,7 @@ fn main() {
     // Inode queries
     let ino = fs.inode("/docs/hello.txt").unwrap();
     let path = fs.path_by_inode(ino).unwrap();
-    println!("inode {} → path {:?}", ino, path);
+    println!("inode {ino} → path {path:?}");
 
     // Directory listing
     let dir = fs.open_directory("/docs").unwrap();
@@ -63,7 +63,7 @@ fn main() {
 
     // Rename preserves inode
     let ino_after = fs.inode("/docs/greeting.txt").unwrap();
-    println!("Inode preserved after rename: {} == {}", ino, ino_after);
+    println!("Inode preserved after rename: {ino} == {ino_after}");
     assert_eq!(ino, ino_after);
 
     // Write another file, then remove it
@@ -74,7 +74,7 @@ fn main() {
     // Symlinks
     fs.symlink("/docs/greeting.txt", "/docs/link.txt").unwrap();
     let target = fs.readlink("/docs/link.txt").unwrap();
-    println!("Symlink /docs/link.txt → {}", target);
+    println!("Symlink /docs/link.txt → {target}");
     let link_data = fs.read_file("/docs/link.txt").unwrap();
     assert_eq!(link_data, fs.read_file("/docs/greeting.txt").unwrap());
     println!("Symlink read matches original");

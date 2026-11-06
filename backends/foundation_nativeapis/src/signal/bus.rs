@@ -24,6 +24,7 @@ impl Clone for SignalBus {
 }
 
 impl SignalBus {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             subscribers: Mutex::new(Vec::new()),
@@ -32,6 +33,9 @@ impl SignalBus {
     }
 
     /// Subscribe — returns a queue that receives all signal events.
+    ///
+    /// # Panics
+    /// Panics if the subscriber list lock is poisoned.
     pub fn subscribe(&self) -> Arc<ConcurrentQueue<SignalEvent>> {
         let queue = Arc::new(ConcurrentQueue::unbounded());
         self.subscribers.lock().unwrap().push(queue.clone());
@@ -50,7 +54,7 @@ impl SignalBus {
     }
 
     /// Deliver a signal event to all subscribers.
-    pub(crate) fn deliver(&self, event: SignalEvent) {
+    pub(crate) fn deliver(&self, event: &SignalEvent) {
         let subs = self.subscribers.lock().unwrap();
         for sub in subs.iter() {
             let _ = sub.push(event.clone());

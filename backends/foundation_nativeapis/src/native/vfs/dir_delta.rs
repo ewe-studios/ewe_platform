@@ -24,6 +24,9 @@ pub struct DirectoryDelta {
 }
 
 impl DirectoryDelta {
+    ///
+    /// # Errors
+    /// Returns an error if the operation fails.
     pub fn new(shadow_path: impl Into<PathBuf>) -> VfsResult<Self> {
         let shadow_path: PathBuf = shadow_path.into();
         if !shadow_path.exists() {
@@ -64,16 +67,14 @@ fn scan_whiteouts(root: &Path) -> HashMap<String, u64> {
 }
 
 fn scan_whiteouts_recursive(root: &Path, dir: &Path, whiteouts: &mut HashMap<String, u64>) {
-    let entries = match std::fs::read_dir(dir) {
-        Ok(e) => e,
-        Err(_) => return,
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
     };
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
         let path = entry.path();
 
-        if name.starts_with(WHITEOUT_PREFIX) {
-            let basename = &name[WHITEOUT_PREFIX.len()..];
+        if let Some(basename) = name.strip_prefix(WHITEOUT_PREFIX) {
             let relative_dir = dir.strip_prefix(root).unwrap_or(Path::new(""));
             let vfs_path = if relative_dir == Path::new("") {
                 format!("/{basename}")

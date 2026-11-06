@@ -10,8 +10,8 @@ description = "Development tooling server: reverse proxy, file watcher, hot relo
 keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.7" }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.8" }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.7" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.6" }
 foundation_http = { path = "../foundation_http", version = "0.0.5" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
@@ -40,8 +40,8 @@ tracing-test.workspace = true
 tracing-subscriber.workspace = true
 # The SSE reload test drives the handler's async continuation on the
 # multi-threaded valtron executor, as a serving server does.
-foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
+foundation_core = { path = "../foundation_core", version = "0.0.8", features = ["multi"] }
+foundation_macros = { path = "../foundation_macros", version = "0.0.8" }
 
 [lints]
 workspace = true

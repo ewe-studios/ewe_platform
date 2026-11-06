@@ -275,7 +275,19 @@ where
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
-    initialize_pool_with_config(seed_for_rng, user_thread_num, PoolConfig::default())
+    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::new())
+}
+
+/// [`initialize_pool`] with an explicit engine root.
+///
+/// Every task the pool drives gets a fork of `root`. This is the startup hook
+/// for a deterministic simulation test (DST).
+pub fn initialize_pool_with_ctx(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    root: Ctx,
+) -> PoolGuard {
+    initialize_pool_with_config_and_ctx(seed_for_rng, user_thread_num, PoolConfig::default(), root)
 }
 
 /// Tunables for the multi-threaded pool beyond its seed and thread count.
@@ -390,6 +402,18 @@ pub fn initialize_pool_with_config(
     user_thread_num: Option<usize>,
     config: PoolConfig,
 ) -> PoolGuard {
+    initialize_pool_with_config_and_ctx(seed_for_rng, user_thread_num, config, Ctx::new())
+}
+
+/// [`initialize_pool_with_config`] with an explicit engine root.
+///
+/// Every task the pool drives gets a fork of `root`.
+pub fn initialize_pool_with_config_and_ctx(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    config: PoolConfig,
+    root: Ctx,
+) -> PoolGuard {
     // Acquire the process-wide lifecycle gate FIRST — blocks (in FIFO order)
     // until any previous pool's PoolGuard has dropped. This serializes all pool
     // users (across test files, regardless of #[serial]) since the global
@@ -417,10 +441,11 @@ pub fn initialize_pool_with_config(
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
 
-    let registry = Arc::new(ThreadRegistry::with_config(
+    let registry = Arc::new(ThreadRegistry::with_config_and_root(
         seed_for_rng,
         task_threads,
         &config,
+        root,
     ));
 
     // Spawn task worker threads
@@ -1581,7 +1606,18 @@ impl ThreadRegistry {
     /// Create a `ThreadRegistry` with the given [`PoolConfig`] tunables.
     #[must_use]
     pub fn with_config(seed_from_rng: u64, num_threads: usize, config: &PoolConfig) -> Self {
-        Self::new(
+        Self::with_config_and_root(seed_from_rng, num_threads, config, Ctx::new())
+    }
+
+    /// [`ThreadRegistry::with_config`] with an explicit pool root.
+    #[must_use]
+    pub fn with_config_and_root(
+        seed_from_rng: u64,
+        num_threads: usize,
+        config: &PoolConfig,
+        root: Ctx,
+    ) -> Self {
+        let mut registry = Self::new(
             seed_from_rng,
             num_threads,
             PriorityOrder::Top,
@@ -1595,7 +1631,10 @@ impl ThreadRegistry {
             config.back_off_jitter,
             config.back_off_min_duration,
             config.back_off_max_duration,
-        )
+        );
+        // The registry is not shared yet, so replace the default root here.
+        registry.root = root;
+        registry
     }
 
     /// Accessor for `shared_tasks` queue.
@@ -1853,6 +1892,10 @@ impl ThreadRegistry {
         let thread_back_off_jitter = self.thread_back_off_jitter;
         let thread_back_min_duration = self.thread_back_min_duration;
         let thread_back_max_duration = self.thread_back_max_duration;
+        // Every worker's local executor forks from the pool root, so a clock
+        // injected at startup reaches each task. A clone shares the map Arc and
+        // the clock; the worker never mutates the root map.
+        let root = self.root.clone();
 
         // Get WaitGroup guard BEFORE spawning
         let wg_guard = self.waitgroup.guard();
@@ -1875,12 +1918,16 @@ impl ThreadRegistry {
             // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
 
-            match panic::catch_unwind(|| {
+            // The closure owns a `Ctx` with an injectable `dyn Clock`, which is
+            // not `RefUnwindSafe`. The closure only builds a thread-local
+            // executor from that handle, so a panic cannot leave shared state
+            // half-written; `AssertUnwindSafe` states that.
+            match panic::catch_unwind(panic::AssertUnwindSafe(|| {
                 sender
                     .send(ThreadActivity::Started(sender_id.clone()))
                     .expect("should send event");
 
-                let thread_executor = LocalThreadExecutor::from_seed(
+                let thread_executor = LocalThreadExecutor::from_seed_with_root(
                     seed_clone,
                     worker_tag.clone(),
                     task_clone,
@@ -1902,6 +1949,7 @@ impl ThreadRegistry {
                     thread_yield_wait_duration,
                     Some(thread_kill_signal),
                     Some(sender.clone()),
+                    root,
                 )
                 .with_max_yield_duration(thread_max_yield_duration);
 
@@ -1915,7 +1963,7 @@ impl ThreadRegistry {
                     &worker_tag,
                     seed_clone
                 );
-            }) {
+            })) {
                 Ok(()) => {
                     tracing::debug!(
                         "worker thread({}) {} stopped cleanly",

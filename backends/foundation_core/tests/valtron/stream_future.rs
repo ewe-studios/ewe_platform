@@ -116,7 +116,7 @@ mod sync_tests {
         match poll_once(&mut future) {
             Poll::Ready(v) => {
                 tracing::info!("empty iterator produced empty vec: {:?}", v);
-                assert!(v.is_empty());
+                assert_eq!(v, [] as [i32; 0]);
             }
             Poll::Pending => panic!("expected Ready"),
         }
@@ -275,7 +275,10 @@ mod sync_tests {
             items.push(item);
         }
         tracing::info!("collected {} items", items.len());
-        assert!(items.is_empty());
+        assert_eq!(
+            items,
+            [] as [foundation_core::valtron::Stream<i32, &str>; 0]
+        );
     }
 }
 
