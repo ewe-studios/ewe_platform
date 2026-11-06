@@ -2592,3 +2592,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   consumer requirement moved. Findings filed: #243 (the activity listener never
   runs, so a panicking worker is never respawned), #244 (a panic in a spawned
   sub-task still drops its payload). Both are medium.
+- 2026-11-07: the three `bin/platform` project templates move to
+  `foundation_core` 0.0.16. The templates build test patches the registry-style
+  requirements to the local crates, and a caret requirement on 0.0.15 does not
+  accept 0.0.16.
+- 2026-11-07: a test now pins that `block_on_future` returns a future's
+  `Option::None` output as `None`. The "produced no result" branch checks
+  whether the task yielded a value, not what the value is.
