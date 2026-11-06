@@ -2625,3 +2625,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   #217, #218, #221, #228, #229, #230, #231, #232, #237, #238, #240, #241, #242
   and #243. Issues #239 (the bidi proxy flake), #244 (a panicking sub-task drops
   its payload) and #245 (three stale example lockfiles) stay open.
+- 2026-11-07: the `CodeQL` check blocked PR 186. It reported 14 alerts in
+  files this branch touches. All 14 are open on master and predate the
+  branch; the large diff made GitHub attach them to the pull request. Eleven
+  are test-fixture passwords in `foundation_keychain/tests/`, three are log
+  lines for a session id or a user id in `examples/cf-login-app`, and one is a
+  deployment UUID log in `foundation_deployment_platform`. The owner approved a
+  dismissal: the test values as "used in tests", the log lines as "won't fix".
+  Each dismissal names the reason in its comment.
