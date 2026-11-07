@@ -744,23 +744,18 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
     /// Bidirectional streaming RPC.
     ///
+    /// The returned [`BidiStream`] is the only writer: send with
+    /// [`BidiStream::send`] (or [`BidiStream::split`] and use the sender half).
+    ///
     /// # Errors
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
-    pub async fn bidi_stream(
-        &self,
-        ctx: Ctx,
-        reqs: impl Stream<Item = Req>,
-    ) -> ConnectResult<BidiStream<Req, Res>> {
+    pub async fn bidi_stream(&self, ctx: Ctx) -> ConnectResult<BidiStream<Req, Res>> {
         // The async block keeps the setup lazy, so a past deadline fails before
         // `bidi_stream_inner` opens the transport.
-        with_deadline(&ctx, async { self.bidi_stream_inner(&ctx, reqs) }).await
+        with_deadline(&ctx, async { self.bidi_stream_inner(&ctx) }).await
     }
 
-    fn bidi_stream_inner(
-        &self,
-        caller: &Ctx,
-        _reqs: impl Stream<Item = Req>,
-    ) -> ConnectResult<BidiStream<Req, Res>> {
+    fn bidi_stream_inner(&self, caller: &Ctx) -> ConnectResult<BidiStream<Req, Res>> {
         let spec = Spec {
             stream_type: StreamType::BidiStream,
             procedure: String::new(),
@@ -887,6 +882,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             ClientExchangeConfig {
                 cancel: CancelSignal::linked(ctx.cancel_signal()),
                 read_max_bytes: self.config.limits.read_max_bytes,
+                compression: &self.config.compression,
             },
         )
     }
@@ -1013,7 +1009,12 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         // Decode response: protocol-level unwrap first, then codec unmarshal.
         // gRPC/gRPC-Web envelop their unary response; Connect returns bare bytes.
-        let wire = self.protocol.decode_unary_response(reply.frame)?;
+        let wire = self.protocol.decode_unary_response(
+            &reply.headers,
+            reply.frame,
+            &self.config.compression,
+            self.config.limits.read_max_bytes,
+        )?;
         let response_codec = self.codecs.for_response(&self.config.codec_name)?;
         let msg = response_codec.unmarshal(wire)?;
 

@@ -676,7 +676,7 @@ async fn bidi_interleaves_over_real_h3_server() {
     let (addr, shutdown) = start_h3_server(&seen);
 
     let mut stream = h3_client(addr, BIDI)
-        .bidi_stream(call_ctx(), futures::stream::iter(Vec::<Msg>::new()))
+        .bidi_stream(call_ctx())
         .await
         .expect("open bidi over h3");
     for text in ["x", "y", "z"] {

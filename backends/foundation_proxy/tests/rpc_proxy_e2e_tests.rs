@@ -891,7 +891,7 @@ async fn connect_bidi_via_grpc_backend() {
     // `bidi_stream` hands back a drive-it-yourself `BidiStream`; the request is
     // sent by explicit `send` calls, not the (ignored) input stream.
     let mut stream = client
-        .bidi_stream(ctx(), futures_util::stream::empty())
+        .bidi_stream(ctx())
         .await
         .expect("connect bidi stream through grpc backend");
 

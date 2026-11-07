@@ -32,8 +32,8 @@ use foundation_netio::shared::http::{
 };
 
 use foundation_connectrpc::{
-    CancelSignal, ClientExchange, ClientExchangeConfig, GrpcClient, H2Transport, ProtocolClient,
-    Spec, Transport,
+    CancelSignal, ClientExchange, ClientExchangeConfig, CompressionRegistry, GrpcClient,
+    H2Transport, ProtocolClient, Spec, Transport,
 };
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_util::future::{select, Either};
@@ -341,6 +341,7 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         .with_read_timeout(timeout)
         .open(out_request)
         .map_err(|e| format!("open h2 health upstream {url}: {e}"))?;
+    let compression = CompressionRegistry::new();
     let outbound = GrpcClient
         .new_conn(
             &Spec::empty(true),
@@ -349,6 +350,7 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
             ClientExchangeConfig {
                 cancel: CancelSignal::new(),
                 read_max_bytes: 0,
+                compression: &compression,
             },
         )
         .map_err(|e| format!("build grpc health exchange: {e}"))?;

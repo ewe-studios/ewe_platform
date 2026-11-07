@@ -135,10 +135,7 @@ async fn session_bidi_manual_response() {
     .unwrap();
 
     let bidi = session_client
-        .bidi_stream(
-            Ctx::background(),
-            futures::stream::pending::<BytesMessage>(),
-        )
+        .bidi_stream(Ctx::background())
         .await
         .expect("open bidi");
 
@@ -274,10 +271,7 @@ async fn session_bidi_raw_no_pump() {
 
     eprintln!("[raw] opening Session bidi (no pump)...");
     let bidi = session_client
-        .bidi_stream(
-            Ctx::background(),
-            futures::stream::pending::<BytesMessage>(),
-        )
+        .bidi_stream(Ctx::background())
         .await
         .expect("open bidi");
     eprintln!("[raw] Session bidi opened, reading first message...");
