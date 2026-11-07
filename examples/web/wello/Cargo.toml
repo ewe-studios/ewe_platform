@@ -10,7 +10,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 [dependencies]
 # -- ewe platform dependencies
-foundation_http = { path = "../../../backends/foundation_http", version = "0.0.7", features = ["multi"] }
+foundation_http = { path = "../../../backends/foundation_http", version = "0.0.8", features = ["multi"] }
 foundation_core = { path = "../../../backends/foundation_core", version = "0.0.16", features = ["multi"] }
 
 # directory embedding
