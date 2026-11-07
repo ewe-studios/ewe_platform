@@ -43,6 +43,13 @@ _Seeded at spec creation. Updated after each feature PR. See
   cheap `Arc` handle: clone it into the task.
 - An integration test cannot construct a private struct. `ClientExchangeConfig` is public,
   so every construction site (including `foundation_proxy`) takes a new required field.
+- The announced-encoding bug does not show on every call kind. `client_stream` and `bidi`
+  sent unflagged frames and the server still decoded them, because the server trusts the
+  per-frame flag. Only `server_stream` failed, because it compressed the payload first. A
+  regression test must use the path that actually corrupts data.
+- The streaming writer task result is dropped at `spawn_reader_writer`. A typed writer error
+  (`ResourceExhausted`) never reaches the caller. Test a writer limit through the writer task
+  directly (#380 tracks the missing propagation).
 
 ## Feature 09 (2026-11-07)
 

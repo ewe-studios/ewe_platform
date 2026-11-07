@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: #378 fixed on `fix/378-request-compression`, commit `124248bb5`, merged into
+  `spec73/high-severity-fixes` as `b2a9e642c`. The streaming calls compress in the envelope
+  writer, so `FLAG_COMPRESSED` is set; the client no longer pre-compresses. The writer also
+  applies `compress_min_bytes` and `send_max_bytes` to streaming frames.
+  `foundation_connectrpc` 0.0.9. Five new tests; the server-stream and compress-min tests
+  failed on `3fdfd85a1`. Filed #380 (medium: the streaming writer drops its error), #381
+  (medium: unary requests ignore both send limits), #382 (low: an unformatted proxy test)
+  and #383 (low: the `send_max_bytes` doc says body, the code applies it per message).
+
 - 2026-11-07: feature 02 implemented on `spec73/f02-connectrpc-client-correctness`, commit
   `05bef17fd`, merged into `spec73/high-severity-fixes` as `832897fba`. `bidi_stream` takes
   only `ctx`; the generators and every caller use the facade's `send`. Every client response
