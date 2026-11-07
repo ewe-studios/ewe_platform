@@ -2656,3 +2656,84 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the branch commits are unsigned. The ruleset has no required status check and
   no required review. The Admin role has an always bypass. PR 186 merged the
   same way.
+- 2026-11-07: feature 145 done on `spec70/f145-signal-async-safety` (commits
+  `215c53fd7`, `5fc1ab4fc`). The Linux and Windows signal handlers no longer
+  call the bus. They record the signal in a lock-free `AtomicU32` mask and wake
+  the poll: the eventfd write on Linux, `SetEvent` on Windows. The poll
+  (`SignalHandle::is_ready`) drains the platform edge and calls
+  `deliver_pending_signals`, so the bus lock and the allocator run only on the
+  executor thread. `SignalTask` now parks on the handle instead of its queue, so
+  the handle is polled at all: before this change nothing called `is_ready`, and
+  the macOS kqueue path never delivered. `None` now means a zero timeout on all
+  three platforms (it mapped to an infinite wait before). The Linux handler
+  tests `fd > 0`, and a failed descriptor conversion returns an error instead of
+  storing the unregistered value 0 (issue #247).
+- 2026-11-07: issue #249 fixed (`foundation_nativeapis`, severity high). On macOS
+  an `EVFILT_SIGNAL` filter reports the signal but does not stop its default
+  action. A C probe on Darwin 27.2.0 shows that `kill(getpid(), SIGTERM)` with
+  only the filter exits with code 143 and the kevent is never read. With a no-op
+  `sigaction` handler the process survives and `kevent` returns `ident = 15`.
+  `register_signals` now installs a no-op handler for the four signals, so a
+  macOS host can shut down gracefully instead of dying.
+- 2026-11-07: the delivery tests are `tests/signal_delivery_tests.rs`, a target
+  of their own because the handlers are process-global. Three tests: the handler
+  does not deliver (fails on the old code), a `None` poll returns at once (hangs
+  on the old code), and a signal sent before the park is not lost. 20 runs of
+  the target passed on macOS and in the Linux CI image.
+- 2026-11-07: issue #248 filed (severity low, open). `register_signals` never
+  closes its descriptors, and `set_global_bus` leaks one `Arc<SignalBus>` per
+  call, because nothing takes the raw pointer back.
+- 2026-11-07: issue #190 closed. The gemm fix is filed upstream: issue
+  https://github.com/sarah-quinones/gemm/issues/56 and pull request
+  https://github.com/sarah-quinones/gemm/pull/57. The repository moved from
+  `sarah-ek/gemm` to `sarah-quinones/gemm`. The two post-image blobs match the
+  values that `patches/gemm-common/UPSTREAM.md` records.
+- 2026-11-07: issues #137 and #142 closed as done, per `requirements.md`
+  section 7. No app in the #137 table uses tokio or axum any more; the one
+  remaining file, `bin/platform/src/sandbox_app/mod.rs`, is commented out of
+  `main.rs`. `TursoDelta` is rebuilt on the `turso` crate and is async-only.
+  Issue #28 is a merged pull request.
+- 2026-11-07: `foundation_ui_traits` (`platform_types.rs`) had 23 `doc_markdown`
+  and bare-URL lint errors that stop a clean `-D warnings` clippy run (commit
+  `97a748e24`). They are fixed. `foundation_arrow` still reports 19 such errors
+  when it is linted as a dependency; that debt stays with issue #200, and the
+  per-crate check uses `--no-deps`.
+- 2026-11-07: `requirements.md` section 7 checked against the tree. No
+  `#[ignore]` in `foundation_netio/tests`. No `#[cfg(test)]` module in the five
+  core crates. The sleep, yield and spin search finds two real sites, and both
+  carry a comment: the accept-loop fallback in
+  `foundation_http/src/native/server/mod.rs:855` and the blocking iterator
+  adapter `block_recv` in `foundation_core/src/synca/mpp.rs:236`. Issues #28,
+  #137 and #142 are closed.
+- 2026-11-07: issue #251 filed and fixed (severity high, blocks CI). The arrow
+  59.3.2 bump (PR #183) added a second version of every `arrow-*` crate to the
+  graph. Cargo then writes a dependency name as `"arrow-data 55.2.0"`, not
+  `"arrow-data"`, and the committed lockfiles still used the bare name. The
+  Plan job's lockfile check and the CI image's `cargo fetch --locked` both
+  failed with "cannot update the lock file". The bump also left
+  `arrow-ipc 59.3.2` pointing at the 55.2.0 arrow crates and missing
+  `arrow-select`. The merge of `origin/master` into the feature branch brought
+  the bad locks in. The fix regenerates the workspace lock and the five stale
+  standalone locks (commit `2f6786e03`). Every tracked lock now passes
+  `cargo metadata --locked`.
+- 2026-11-07: issue #252 filed and fixed (severity high, blocks CI). The arrow
+  59.3.2 bump changed `arrow-ipc` and `arrow-buffer` in
+  `foundation_arrow/Cargo.toml` but left `arrow-array`, `arrow-schema` and
+  `arrow-data` at 55. Cargo then kept both generations, and the crate did not
+  compile: 31 type errors, all a mismatch between two `arrow_schema::Schema`
+  types. The manifest now names 59 for all five crates, the lockfiles are
+  regenerated, and the arrow-55 duplicates are gone. `cargo check -p
+  foundation_arrow` passes, and the 20 `foundation_arrow` tests pass.
+- 2026-11-07: feature 145 verified on all three platforms. The Audit: Checks &
+  Tests run for head `6396aec33` (run 42331267397) passed every job: Plan, the
+  CI image, `foundation_arrow`, `foundation_nativeapis` and every other
+  package. Locally, `cargo check --target x86_64-pc-windows-gnu -p
+  foundation_nativeapis` compiles the Windows handler. Pull request
+  https://github.com/ewe-studios/ewe_platform/pull/250 is open and up to date
+  with `master`; it closes #247, #249, #251 and #252. The merge stays blocked by
+  the "Master" ruleset's signed-commit rule, as PR 246 did.
+- 2026-11-07: the docs-only head `dacdde5ae` also passes. The Audit: Checks &
+  Tests run 42334890916 reported `success`: Plan, the CI image and every
+  package job passed; the macOS build and the publish dry-run are skipped for a
+  pull request, as designed. The branch is green on its final head. The merge
+  is the only remaining step, and it is the owner's to take.

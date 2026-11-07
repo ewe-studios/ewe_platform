@@ -66,23 +66,39 @@ impl EventReadiness for SignalHandle {
         match self {
             Self::None => false,
             #[cfg(target_os = "linux")]
-            Self::Linux { epoll_fd, .. } => {
+            Self::Linux { event_fd, epoll_fd } => {
                 let mut events = [libc::epoll_event { events: 0, u64: 0 }];
-                let timeout = dur.map_or(-1, |d| i32::try_from(d.as_millis()).unwrap_or(i32::MAX));
+                // `None` checks at once and does not block, so the timeout is 0.
+                let timeout = dur.map_or(0, |d| i32::try_from(d.as_millis()).unwrap_or(i32::MAX));
                 let count = unsafe { libc::epoll_wait(*epoll_fd, events.as_mut_ptr(), 1, timeout) };
-                count > 0
+                if count <= 0 {
+                    return false;
+                }
+                // Read the counter so it resets, and the next poll does not
+                // report the same signal again.
+                let mut counter: u64 = 0;
+                unsafe {
+                    libc::read(*event_fd, (&raw mut counter).cast(), 8);
+                }
+                // The handler only recorded; deliver on this executor thread.
+                crate::signal::deliver_pending_signals();
+                true
             }
             #[cfg(target_os = "macos")]
             Self::Macos { kq_fd } => {
                 use std::mem::MaybeUninit;
                 let mut event = MaybeUninit::<libc::kevent>::uninit();
-                let timeout = dur.map(|d| libc::timespec {
-                    tv_sec: d.as_secs().cast_signed(),
-                    tv_nsec: d.subsec_nanos().into(),
-                });
-                let timeout_ptr = timeout
-                    .as_ref()
-                    .map_or(std::ptr::null(), std::ptr::from_ref);
+                // `None` checks at once and does not block: a zero timespec.
+                let timeout = dur.map_or(
+                    libc::timespec {
+                        tv_sec: 0,
+                        tv_nsec: 0,
+                    },
+                    |d| libc::timespec {
+                        tv_sec: d.as_secs().cast_signed(),
+                        tv_nsec: d.subsec_nanos().into(),
+                    },
+                );
                 let count = unsafe {
                     libc::kevent(
                         *kq_fd,
@@ -90,17 +106,16 @@ impl EventReadiness for SignalHandle {
                         0,
                         event.as_mut_ptr(),
                         1,
-                        timeout_ptr,
+                        &raw const timeout,
                     )
                 };
                 if count <= 0 {
                     return false;
                 }
 
-                // kqueue captures the signal for us (there is no handler to run),
-                // so translate the EVFILT_SIGNAL event back into a SignalKind and
-                // deliver it to the bus here — the macOS counterpart to the
-                // Linux/Windows handlers' `deliver_signal` call.
+                // kqueue carries the signal number, so translate the
+                // EVFILT_SIGNAL event back into a SignalKind and deliver it to
+                // the bus here, on the polling thread.
                 let ev = unsafe { event.assume_init() };
                 if let Some(kind) = signal_kind_from_kevent(ev) {
                     crate::signal::deliver_signal(kind);
@@ -109,10 +124,18 @@ impl EventReadiness for SignalHandle {
             }
             #[cfg(target_os = "windows")]
             Self::Windows { event } => {
-                use windows_sys::Win32::System::Threading::{WaitForSingleObject, INFINITE};
-                let timeout = dur.map(|d| d.as_millis() as u32).unwrap_or(INFINITE);
+                use windows_sys::Win32::System::Threading::WaitForSingleObject;
+                // `None` checks at once and does not block, so the timeout is 0.
+                let timeout = dur.map_or(0, |d| u32::try_from(d.as_millis()).unwrap_or(u32::MAX));
                 let result = unsafe { WaitForSingleObject(*event, timeout) };
-                result == windows_sys::Win32::Foundation::WAIT_OBJECT_0
+                if result == windows_sys::Win32::Foundation::WAIT_OBJECT_0 {
+                    // The auto-reset event cleared the wake; deliver the
+                    // signals that the console handler recorded.
+                    crate::signal::deliver_pending_signals();
+                    true
+                } else {
+                    false
+                }
             }
         }
     }

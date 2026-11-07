@@ -1,9 +1,9 @@
 // Windows signal handling — SetConsoleCtrlHandler + event object.
 
-use crate::signal::deliver_signal;
 use crate::signal::error::SignalError;
 use crate::signal::event::SignalKind;
 use crate::signal::handle::SignalHandle;
+use crate::signal::note_signal;
 
 /// Register console control handler.
 ///
@@ -51,6 +51,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 static GLOBAL_EVENT: AtomicU64 = AtomicU64::new(0);
 
 /// Console control handler.
+///
+/// The handler records the signal and wakes the readiness poll. It does not
+/// deliver to the bus, so the handler never locks or allocates.
 unsafe extern "system" fn console_handler(ctrl_type: u32) -> i32 {
     let kind = match ctrl_type {
         CTRL_C_EVENT => SignalKind::Interrupt,
@@ -59,13 +62,13 @@ unsafe extern "system" fn console_handler(ctrl_type: u32) -> i32 {
         _ => return 0,
     };
 
+    // Record first: a poll that sees the event must find a set bit.
+    note_signal(kind);
+
     let event = GLOBAL_EVENT.load(Ordering::Relaxed);
     if event != 0 {
         SetEvent(event as _);
     }
-
-    // Deliver to the bus (safe here — the console handler runs on its own thread).
-    deliver_signal(kind);
 
     1
 }

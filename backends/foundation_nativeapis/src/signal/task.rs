@@ -2,24 +2,33 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, EventQueue, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, EventQueue, EventReadinessPtr, TaskIterator, TaskStatus};
 
 use crate::signal::{SignalBus, SignalEvent, SignalHandle};
 
-#[allow(dead_code)]
+/// A valtron task that receives signals from a [`SignalBus`].
+///
+/// The task parks on the platform handle. Each readiness poll of the handle
+/// delivers the signals that the handler recorded, and the task then returns
+/// them from its queue. This task is the one in-process driver of the handle,
+/// so a signal is delivered only while an executor polls this task.
 pub struct SignalTask {
-    bus: Arc<SignalBus>,
+    /// Holds the bus for the lifetime of the task, so a caller that passes its
+    /// only `Arc` keeps a live subscriber list. The task reaches the bus
+    /// through `my_queue`, so it never reads this field.
+    _bus: Arc<SignalBus>,
     my_queue: EventQueue<SignalEvent>,
-    handle: SignalHandle,
+    readiness: EventReadinessPtr,
 }
 
 impl SignalTask {
     pub fn new(bus: Arc<SignalBus>, handle: SignalHandle) -> Self {
         let my_queue = bus.subscribe_events();
+        let readiness: EventReadinessPtr = Arc::new(handle);
         Self {
-            bus,
+            _bus: bus,
             my_queue,
-            handle,
+            readiness,
         }
     }
 }
@@ -29,14 +38,13 @@ impl TaskIterator for SignalTask {
     type Pending = ();
 
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        // Drain received signals
+        // Drain signals that a readiness poll has already delivered.
         if let Ok(event) = self.my_queue.pop() {
             return Some(TaskStatus::Ready(event));
         }
-        // Park until a signal arrives: the delivery pushes to the queue, which
-        // wakes this task. (The platform handle's eventfd is never drained, so a
-        // park on it would be ready again at once after the first signal.)
-        let _ = &self.handle;
-        Some(TaskStatus::Depends(Arc::new(self.my_queue.readiness())))
+        // Park on the platform handle. Its readiness poll delivers the signal
+        // that the handler recorded, and then wakes this task through the
+        // queue.
+        Some(TaskStatus::Depends(Arc::clone(&self.readiness)))
     }
 }

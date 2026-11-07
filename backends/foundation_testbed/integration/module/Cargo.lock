@@ -353,7 +353,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.8"
+version = "0.0.10"
 dependencies = [
  "base85rs",
  "brotli",
@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.6"
+version = "0.0.7"
 
 [[package]]
 name = "foundation_theme"
@@ -380,7 +380,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "clap",
  "concurrent-queue",

@@ -2497,3 +2497,67 @@ ruleset that covers the base branch
 signed commits, and local commits have no signing key, so every pull request
 is blocked until an admin uses the bypass. Check `bypass_actors` before you
 debug the workflows.
+
+## A handler can only record; the poll must deliver
+
+A signal handler runs on an arbitrary thread at an arbitrary point. It can
+call only async-signal-safe functions: no mutex, no allocation. The bus lock
+and the queue push move to the readiness poll, which runs on the executor
+thread. The handler writes one lock-free atomic bit and one syscall. The
+delivery contract then depends on something polling the handle; `SignalTask`
+parks on the handle, so it is that poll.
+
+The edge must be reset in the poll. Linux needs a `read` of the eventfd. A
+poll that only calls `epoll_wait` reports the first signal forever. `None` for
+the timeout means "check at once": map it to 0, not to an infinite wait,
+because the executor calls `is_ready(None)` on every `Depends`.
+
+## macOS kqueue does not stop the default action
+
+`EVFILT_SIGNAL` reports a signal. It does not stop the process-terminating
+default action. Measured on Darwin 27.2.0: filter only, then
+`kill(getpid(), SIGTERM)` exits with code 143. Filter plus a no-op `sigaction`
+handler keeps the process alive, and `kevent` returns `ident = 15`. Install the
+no-op handler, or the signal kills the process before the poll runs.
+
+A thread-directed `raise` does not reach the kqueue filter when a handler is
+installed. The test sends `SIGTERM` with `kill(getpid(), SIGTERM)` on macOS.
+
+## Check the upstream patch before you trust the copy
+
+Rebuilding the upstream diff from the vendored directories is a strong check:
+`git rev-parse HEAD:<path>` on the new commit must equal the post-image blob
+that the patch notes record (`fd37141` and `e8200e9` here). A mismatch means
+the copy and the upstream base diverged.
+
+A toolchain setting leaks into another checkout: mise exports
+`CARGO_UNSTABLE_CODEGEN_BACKEND` and `CARGO_PROFILE_*_CODEGEN_BACKEND`, and
+cargo rejects them outside this workspace. Unset them for a foreign build:
+`env -u CARGO_UNSTABLE_CODEGEN_BACKEND -u CARGO_PROFILE_DEV_CODEGEN_BACKEND -u
+CARGO_PROFILE_UAT_CODEGEN_BACKEND cargo check`.
+
+## A dependency bump must regenerate every lockfile
+
+Two versions of a crate force cargo to qualify the dependency name
+(`"arrow-data 55.2.0"`). A lockfile that still uses the bare name is stale, and
+`--locked` fails with "cannot update the lock file" even though every version
+is correct. An automated bump that edits the lock by hand can also leave a
+wrong edge: `arrow-ipc 59.3.2` still named `arrow-buffer 55.2.0`. Regenerate,
+never hand-edit. The workspace lock and every standalone example lock must
+pass `cargo metadata --locked`, and the Plan job checks three of them.
+
+## Check the merge result, not only the branch
+
+The pull request run checks out the merge of the branch and the base. A green
+branch can still fail there when the base moved. Reproduce it without a
+checkout: `git fetch origin refs/pull/<n>/merge:refs/tmp/m`, extract that tree,
+and run the failing command in it.
+
+## Dependency bumps go family-wide
+
+The arrow crates are one family: `arrow-ipc` 59 needs `arrow-array`,
+`arrow-schema`, `arrow-data` and `arrow-buffer` 59. A bump that touches one of
+them puts two generations in the graph. The compiler then reports two identical
+type names as different types (`Arc<arrow_schema::schema::Schema>` against the
+same spelling), which reads as a lie until you check `cargo tree -d`. Bump the
+whole family, then run the dependent crate's tests, not only its check.
