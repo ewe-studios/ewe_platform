@@ -1,9 +1,15 @@
 # Upstream patch for gemm-common 0.19.0
 
-Status: the upstream pull request is prepared on branch `fix-fma-without-avx2`
-in the main session's clone of https://github.com/sarah-ek/gemm/. Link pending:
-the issue and the pull request are not filed yet. When they exist, add their
-links here and in `docs/bug-backlog.md` section 10.
+Status: filed upstream on 2026-11-07.
+
+- Issue: https://github.com/sarah-quinones/gemm/issues/56
+- Pull request: https://github.com/sarah-quinones/gemm/pull/57 (branch
+  `fix-fma-without-avx2` in the fork https://github.com/influx6/gemm)
+
+The repository moved from `sarah-ek/gemm` to `sarah-quinones/gemm`; the old
+URL redirects. Remove this patch, the `gemm-f16` patch and the
+`[patch.crates-io]` entries when a release that contains the fix is on
+crates.io and candle accepts it.
 
 The patch is the `gemm-common` part of the upstream change. It is the only
 difference between this directory and the crates.io release `gemm-common`
@@ -96,4 +102,4 @@ same as gemm-common. The f16 `V3` also needs F16C. Post-image blob `e8200e9`
 matches the upstream diff. `gemm-f16` 0.19.0 is in the workspace graph through
 candle-core and `gemm`, so this patch is needed for the f16 path. The rest of the
 crate is unchanged from the crates.io release. The upstream PR is part of the
-same prepared branch, `fix-fma-without-avx2`; link pending, as above.
+same branch, `fix-fma-without-avx2`: https://github.com/sarah-quinones/gemm/pull/57
