@@ -1,6 +1,6 @@
 ---
 feature: "Install a pinned iOS SDK in the macOS platform image"
-status: "pending"
+status: "in_progress"
 priority: "high"
 depends_on: ["09-ios-wasmtime-gating"]
 crates: []
@@ -176,3 +176,18 @@ cargo check -p foundation_platform --target aarch64-apple-ios
 - Provisioning fails loudly without it.
 - The CI job builds for iOS.
 - #355 is closed by the PR.
+
+## 9. Result (2026-11-07)
+
+Commit `a8e9b73b9`. The pin is `IOS_SDK_VERSION=26.2` in `components.env`, with Xcode 26.3 as
+the one-time manual install. Xcode 26.3 is the newest Xcode that runs on the macOS 15 guest
+(the Dockerfile sets `VERSION="15"`). `provision.sh` selects Xcode, installs the platform,
+verifies `iphoneos26.2`, and writes `status/ios-sdk.txt`. The `macos-ssh` job sources the pin,
+compares it with the provisioned file, exports `DEVELOPER_DIR`, and runs the feature 09
+`cargo check`. Local checks pass: `bash -n`, PyYAML, `actionlint` (exit 0).
+
+The pin and the CI proof wait for the first `macos-ssh` run on the `apple-hardware` host. The
+issue stays open until that run.
+
+Two defects were filed from this work: #373 (medium, the macOS 15 guest caps the iOS SDK at
+Xcode 26.3) and #374 (low, the README provisioning estimate omits the 8 GB platform download).

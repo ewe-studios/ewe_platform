@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 10 implemented on `spec73/f10-macos-vm-ios-sdk`, commit `a8e9b73b9`, merged
+  into `spec73/high-severity-fixes`. Pin `IOS_SDK_VERSION=26.2` (Xcode 26.3, the newest Xcode
+  for the macOS 15 guest) in `components.env`; `provision.sh` installs and verifies it and
+  writes `status/ios-sdk.txt`; the `macos-ssh` job reads that file and runs the feature 09
+  `cargo check`. `bash -n`, PyYAML and `actionlint` pass. The VM run is the remaining proof.
+  Filed #373 (medium: the macOS 15 guest caps the iOS SDK at Xcode 26.3) and #374 (low: the
+  README provisioning estimate omits the 8 GB download).
+
 - 2026-11-07: feature 09 implemented on `spec73/f09-ios-wasmtime-gating`, commit
   `94c4da99b`. `foundation_wasmtime` is optional and target-scoped; the Wasm items are absent
   on iOS, tvOS and watchOS. `cargo tree --target aarch64-apple-ios` counts 0. The local iOS
@@ -87,7 +95,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `features/08-worktree-target-isolation/feature.md`
 - **09-ios-wasmtime-gating** — complete (#354, plus #372 fixed). Commits `94c4da99b` and
   `db320c0fe`.
-- **10-macos-vm-ios-sdk** — pending (#355). Design complete.
+- **10-macos-vm-ios-sdk** — implemented, VM proof pending (#355). Commit `a8e9b73b9`.
 
 ## Issues filed while writing the spec
 
