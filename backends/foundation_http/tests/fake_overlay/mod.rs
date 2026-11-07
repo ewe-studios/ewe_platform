@@ -19,6 +19,8 @@ use foundation_netio::netcap::{Connection, RawStream};
 pub struct FakeState {
     /// Bytes the writer queued and the client has not read.
     pub send: VecDeque<u8>,
+    /// Bytes the client sent and the reader has not read.
+    pub recv: VecDeque<u8>,
     /// The most the writer may queue before it blocks.
     pub capacity: usize,
     /// The writer's one-shot write-readiness waker.
@@ -42,8 +44,16 @@ impl std::fmt::Debug for FakeSocket {
 }
 
 impl Read for FakeSocket {
-    fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
-        Err(io::ErrorKind::WouldBlock.into())
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut state = self.state.lock().expect("fake socket lock");
+        let take = state.recv.len().min(buf.len());
+        if take == 0 {
+            return Err(io::ErrorKind::WouldBlock.into());
+        }
+        for (slot, byte) in buf.iter_mut().zip(state.recv.drain(..take)) {
+            *slot = byte;
+        }
+        Ok(take)
     }
 }
 
@@ -87,7 +97,8 @@ impl OverlayReadWrite for FakeSocket {
     }
 
     fn readable(&self) -> bool {
-        false
+        let state = self.state.lock().expect("fake socket lock");
+        !state.recv.is_empty()
     }
 
     fn writable(&self) -> bool {
@@ -102,6 +113,12 @@ pub struct FakeClient {
 }
 
 impl FakeClient {
+    /// Queue bytes for the reader (the server) to read.
+    pub fn queue_request(&self, bytes: &[u8]) {
+        let mut state = self.state.lock().expect("fake socket lock");
+        state.recv.extend(bytes);
+    }
+
     /// Fill the send buffer, as a previous response that the client has not read.
     pub fn fill(&self) {
         self.fill_with_free(0);
@@ -164,6 +181,7 @@ impl FakeClient {
 pub fn overlay_pair(capacity: usize) -> (SharedByteBufferStream<RawStream>, FakeClient) {
     let state = Arc::new(Mutex::new(FakeState {
         send: VecDeque::with_capacity(capacity),
+        recv: VecDeque::new(),
         capacity,
         write_waker: None,
         closed: false,

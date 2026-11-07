@@ -41,13 +41,18 @@ use crate::shared::serve::Serve;
 /// controls how long idle connections are kept alive and how aggressively
 /// the executor polls them.
 ///
-/// NOTE: Now uses `TimeoutCalculator` as the single source of truth for
-/// timeout values. The calculator provides dynamic timeout calculation
-/// based on context.
+/// NOTE: `TimeoutCalculator` gives the poll delay and the 100-continue
+/// timing. The idle timeout is its own field, because a size-based read
+/// timeout is not a keep-alive wait.
 #[derive(Clone)]
 pub struct KeepAliveConfig {
     /// Timeout calculator for dynamic timeout calculation.
     pub timeout_calculator: TimeoutCalculator,
+    /// How long an idle keep-alive connection waits for its next request
+    /// before it closes.
+    ///
+    /// The default is 75 s, the nginx `keepalive_timeout` default.
+    pub idle_timeout: Duration,
     /// Number of consecutive polls with no data before switching from
     /// `Pending` to `Delayed` (default: 200).
     pub escalation_threshold: u32,
@@ -62,13 +67,15 @@ impl KeepAliveConfig {
     pub fn defaults() -> Self {
         // Server-specific timeout config with longer timeouts for connections
         let timeout_config = TimeoutConfig {
-            min_read_timeout: Duration::from_secs(120), // 3 mins idle timeout
+            min_read_timeout: Duration::from_secs(120), // read floor for the calculator
             max_read_timeout: Duration::from_secs(300), // 5 mins max read
             ..TimeoutConfig::default()
         };
 
         Self {
             timeout_calculator: TimeoutCalculator::with_config(timeout_config),
+            // 75 s is the nginx `keepalive_timeout` default.
+            idle_timeout: Duration::from_secs(75),
             escalation_threshold: 50,
             max_delay_cycles: 100,
         }
@@ -81,18 +88,15 @@ impl KeepAliveConfig {
         self
     }
 
-    /// Set the idle timeout (convenience method that updates calculator config).
+    /// Set the idle timeout, the wait for the next request on an open
+    /// keep-alive connection.
     ///
-    /// WHY: Backward compatibility - users can still call `with_idle_timeout()`
-    /// but now it updates the underlying calculator.
+    /// This value is separate from the read timeout in
+    /// [`Self::timeout_calculator`]. A size-based read timeout is not a
+    /// keep-alive wait.
     #[must_use]
     pub fn with_idle_timeout(mut self, dur: Duration) -> Self {
-        // Create new config with updated idle timeout
-        let new_config = TimeoutConfig {
-            min_read_timeout: dur,
-            ..*self.timeout_calculator.config()
-        };
-        self.timeout_calculator = TimeoutCalculator::with_config(new_config);
+        self.idle_timeout = dur;
         self
     }
 
@@ -111,12 +115,10 @@ impl KeepAliveConfig {
         self.timeout_calculator.config().max_read_timeout
     }
 
-    /// Get the idle timeout from calculator.
+    /// Get the idle timeout.
     #[must_use]
     pub fn idle_timeout(&self) -> Duration {
-        // Idle timeout is the read timeout for default context
-        self.timeout_calculator
-            .calculate_read_timeout(&TimeoutContext::default())
+        self.idle_timeout
     }
 
     /// Set the 100-continue expect delay configuration.
@@ -142,6 +144,9 @@ impl KeepAliveConfig {
                 max_read_timeout: Duration::from_secs(1),
                 ..TimeoutConfig::default()
             }),
+            // A disabled keep-alive closes at once; the value stays non-zero so
+            // a caller that reads it sees a defined wait.
+            idle_timeout: Duration::from_secs(1),
             escalation_threshold: 0,
             max_delay_cycles: 0,
         }
@@ -423,6 +428,7 @@ mod h2_connection;
 mod h3_server;
 pub mod protocol_detect;
 
+pub use connection::ConnectionHandler;
 pub use h2_connection::H2ConnectionHandler;
 #[cfg(feature = "quic")]
 pub use h3_server::{serve_h3, H3AcceptTask};

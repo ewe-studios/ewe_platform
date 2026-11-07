@@ -48,7 +48,7 @@ tracing = { workspace = true }
 # HTTP client + networking — only need the client, not all of netcap/TCP
 # We explicitly enable only what HttpClientBuilder::build() requires.
 # `multi` enables NativeHttpClient; `ssl-rustls-ring` provides TLS.
-foundation_netio = { path = "../foundation_netio", version = "0.0.8", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.9", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
 
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }
