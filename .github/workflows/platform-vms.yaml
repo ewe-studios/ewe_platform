@@ -100,9 +100,26 @@ jobs:
       storage: ${{ inputs.macos-storage }}
       ssh-key-path: ${{ inputs.macos-ssh-key }}
       runner-label: ewe-macos-${{ github.run_id }}-${{ github.run_attempt }}
+      timeout-minutes: 360
       run: |
         nu ci/platform-images/scripts/link-submodules.nu
         python3 scripts/ci/ci.py run foundation_jsonschema --profile uat
+        # Install the pinned toolchain and the std libraries of the two mobile targets.
+        toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+        rustup toolchain install "$toolchain" --no-self-update
+        rustup target add --toolchain "$toolchain" aarch64-apple-ios aarch64-linux-android
+        export RUSTUP_TOOLCHAIN="$toolchain"
+        # The iOS check needs the iOS SDK. Only full Xcode has it; the Command Line Tools do not.
+        dev_dir="$(xcode-select -p)"
+        [ -d "$dev_dir/Platforms/iPhoneOS.platform" ] || dev_dir=/Applications/Xcode.app/Contents/Developer
+        [ -d "$dev_dir/Platforms/iPhoneOS.platform" ] || { echo "error: install full Xcode on the VM disk; the iOS SDK is missing" >&2; exit 1; }
+        export DEVELOPER_DIR="$dev_dir"
+        # Check the declared iOS module. LLVM is required: Cranelift cannot build ring for iOS.
+        cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
+        # Install the Android NDK that cc-rs needs, then check the declared Android module.
+        bash scripts/setup/android-ndk.sh
+        env CC_aarch64-linux-android="$PWD/scripts/android-ndk/aarch64-linux-android" \
+          cargo check -p foundation_wireguard --target aarch64-linux-android --features spec55-complete --profile uat
         cargo build --profile uat -p infrastructure_llama_cpp --examples
     secrets: inherit
 
