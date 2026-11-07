@@ -812,12 +812,7 @@ impl SessionBuilder {
             options,
         )?;
 
-        let mut bidi = session_client
-            .bidi_stream(
-                Ctx::background(),
-                futures::stream::pending::<BytesMessage>(),
-            )
-            .await?;
+        let mut bidi = session_client.bidi_stream(Ctx::background()).await?;
 
         // Check the gRPC response headers — do we have grpc-status?
         match bidi.response_headers().await {

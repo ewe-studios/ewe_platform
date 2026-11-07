@@ -101,9 +101,9 @@ pub use shared::context::{
 
 pub use shared::codec::{Codec, CodecError, CodecFor, JsonCodec, ProcedureCodecs, ProtoCodec};
 pub use shared::compression::{
-    negotiate_compression, with_worker_buffer, worker_freeze, BufferPool, CompressionError,
-    CompressionRegistry, Compressor, GzipCompressor, GzipStreamCompressor, NegotiatedCompression,
-    SizeLimits,
+    negotiate_compression, response_decompressor, with_worker_buffer, worker_freeze, BufferPool,
+    CompressionError, CompressionRegistry, Compressor, GzipCompressor, GzipStreamCompressor,
+    NegotiatedCompression, SizeLimits,
 };
 
 #[cfg(feature = "brotli")]

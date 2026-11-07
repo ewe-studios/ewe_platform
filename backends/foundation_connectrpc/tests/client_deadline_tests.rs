@@ -612,10 +612,7 @@ async fn a_bidi_deadline_in_the_past_fails_without_a_request() {
     let client = client_for(Arc::new(H2Transport::new()), addr);
 
     let result = client
-        .bidi_stream(
-            Ctx::background().with_deadline(Duration::ZERO),
-            futures::stream::empty::<Msg>(),
-        )
+        .bidi_stream(Ctx::background().with_deadline(Duration::ZERO))
         .await;
 
     let Err(err) = result else {
@@ -691,7 +688,7 @@ async fn a_bidi_receive_fails_on_the_call_deadline() {
     let (addr, peer) = start_stalled_peer();
     let client = streaming_client(&addr.to_string(), BIDI);
     let mut stream = client
-        .bidi_stream(deadline_ctx(), futures::stream::empty::<Msg>())
+        .bidi_stream(deadline_ctx())
         .await
         .expect("bidi stream");
     let first = stream
@@ -728,7 +725,7 @@ async fn a_bidi_receive_fails_on_the_call_deadline() {
     let (addr, peer) = start_stalled_peer();
     let client = streaming_client(&addr.to_string(), BIDI);
     let stream = client
-        .bidi_stream(deadline_ctx(), futures::stream::empty::<Msg>())
+        .bidi_stream(deadline_ctx())
         .await
         .expect("bidi stream");
     let (_sender, mut receiver) = stream.split();
@@ -798,7 +795,7 @@ async fn dropping_one_bidi_half_keeps_the_other_alive() {
     let client = streaming_client(&addr.to_string(), BIDI);
 
     let stream = client
-        .bidi_stream(Ctx::background(), futures::stream::empty::<Msg>())
+        .bidi_stream(Ctx::background())
         .await
         .expect("bidi stream");
     let (sender, mut receiver) = stream.split();
@@ -925,5 +922,40 @@ async fn a_simulated_clock_past_the_deadline_fails_the_call_at_once() {
         err.current_context().code(),
         Code::DeadlineExceeded,
         "expected DeadlineExceeded, got: {err}"
+    );
+}
+
+/// A local deadline cancels a call whose server never answers.
+///
+/// Pins the behaviour landed by commits `0ada43f20` and `b79503f24` (issue
+/// #260): the client races every call against its own timer instead of trusting
+/// the peer to honour the timeout header. The injected `SimulatedClock` is
+/// moved past the deadline, so the call must fail at once, without waiting on
+/// the silent server.
+#[valtron_test(timeout = 5_000)]
+async fn client_deadline_cancels_a_call_without_a_server() {
+    let server = SilentServer::start();
+    let client = client_for(Arc::new(H1Transport::default()), server.addr);
+
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let bag = ContextBag::new(clock.clone());
+    let ctx = Ctx::client(Arc::new(bag)).with_deadline(Duration::from_millis(200));
+    clock.advance(Duration::from_secs(1));
+
+    let started = Instant::now();
+    let result = client
+        .unary(ctx, Request::new(Msg::of("never answered")))
+        .await;
+    let elapsed = started.elapsed();
+
+    let err = result.expect_err("the local deadline must cancel the call");
+    assert_eq!(
+        err.current_context().code(),
+        Code::DeadlineExceeded,
+        "expected DeadlineExceeded, got: {err}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(1),
+        "the call must not wait on the silent server, took {elapsed:?}"
     );
 }

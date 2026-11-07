@@ -796,9 +796,8 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         pub async fn #method_name(
                             &self,
                             ctx: foundation_connectrpc::Ctx,
-                            reqs: impl futures::Stream<Item = #rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>> {
-                            self.#method_name.bidi_stream(ctx, reqs).await
+                            self.#method_name.bidi_stream(ctx).await
                         }
                     }
                 }
@@ -851,7 +850,6 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         async fn #method_name(
                             &self,
                             ctx: foundation_connectrpc::Ctx,
-                            reqs: impl futures::Stream<Item = #rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>>;
                     }
                 }
@@ -906,9 +904,8 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         async fn #method_name(
                             &self,
                             ctx: foundation_connectrpc::Ctx,
-                            reqs: impl futures::Stream<Item = #rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>> {
-                            self.#method_name.bidi_stream(ctx, reqs).await
+                            self.#method_name.bidi_stream(ctx).await
                         }
                     }
                 }

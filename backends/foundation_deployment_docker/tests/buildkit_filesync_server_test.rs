@@ -55,7 +55,7 @@ async fn filesync_diffcopy_serves_context_dir() {
     .unwrap();
 
     let mut bidi = client
-        .bidi_stream(Ctx::background(), futures::stream::empty::<Packet>())
+        .bidi_stream(Ctx::background())
         .await
         .expect("open DiffCopy");
 
@@ -240,10 +240,7 @@ async fn ssh_agent_proxy_forwards_bytes() {
     )
     .unwrap();
     let mut bidi = forward
-        .bidi_stream(
-            Ctx::background(),
-            futures::stream::pending::<BytesMessage>(),
-        )
+        .bidi_stream(Ctx::background())
         .await
         .expect("open ForwardAgent");
     bidi.send(&BytesMessage {

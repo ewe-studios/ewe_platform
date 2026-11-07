@@ -146,7 +146,7 @@ fn test_client_method_names() {
     assert!(code.contains(".unary(ctx, request).await"));
     assert!(code.contains(".server_stream(ctx, request).await"));
     assert!(code.contains(".client_stream(ctx, reqs).await"));
-    assert!(code.contains(".bidi_stream(ctx, reqs).await"));
+    assert!(code.contains(".bidi_stream(ctx).await"));
 }
 
 // ── Test helpers ─────────────────────────────────────────────────────

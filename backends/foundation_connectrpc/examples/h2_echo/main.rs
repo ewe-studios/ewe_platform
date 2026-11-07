@@ -192,10 +192,7 @@ async fn main() {
     // ── Bidi (interleaved) ─────────────────────────────────────────────────
 
     let client = client_for(&addr, BIDI);
-    let mut stream = client
-        .bidi_stream(ctx(), futures::stream::iter(Vec::<Msg>::new()))
-        .await
-        .expect("open bidi");
+    let mut stream = client.bidi_stream(ctx()).await.expect("open bidi");
 
     for text in ["x", "y", "z"] {
         stream.send(&Msg::of(text)).await.expect("send");

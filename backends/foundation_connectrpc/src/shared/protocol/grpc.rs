@@ -30,7 +30,9 @@ use foundation_netio::shared::http::{
 use futures::StreamExt;
 
 use crate::shared::client::code_from_http_status;
-use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
+use crate::shared::compression::{
+    negotiate_compression, response_decompressor, CompressionRegistry, Compressor,
+};
 use crate::shared::context::{Peer, Spec, StreamType};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
@@ -457,12 +459,16 @@ impl ProtocolClient for GrpcClient {
         Bytes::from(envelope)
     }
 
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
-        // gRPC unary response: single envelope frame. Strip the 5-byte header,
-        // return the payload. Compression is negotiated via grpc-encoding; if a
-        // response arrives compressed, the caller must decompress separately
-        // (or thread the CompressionRegistry through — the streaming path
-        // handles this in the reader task).
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // gRPC unary response: single envelope frame. Strip the 5-byte header
+        // and decode the payload. Compression is negotiated via grpc-encoding;
+        // the decompressor comes from the response head.
         if body.is_empty() {
             return Ok(Bytes::new());
         }
@@ -473,15 +479,8 @@ impl ProtocolClient for GrpcClient {
         let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
         let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
         let payload = body.slice(ENVELOPE_HEADER_LEN..end);
-        if flags & Envelope::FLAG_COMPRESSED != 0 {
-            return Err(ConnectError::internal(
-                "compressed gRPC unary response — decode_unary_response does not yet thread the \
-                 CompressionRegistry (streaming handles this in the reader task); \
-                 set response_compression: None on the server or add registry threading here",
-            )
-            .into());
-        }
-        Ok(payload)
+        let decompressor = response_decompressor(head, &[constants::HEADER_ENCODING], compression)?;
+        decompress_if(flags, payload, &decompressor, read_max_bytes)
     }
 
     fn new_conn(
@@ -489,13 +488,17 @@ impl ProtocolClient for GrpcClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) =
             PipeClientConn::new(spec.clone(), headers, config.cancel, DEFAULT_PIPE_DEPTH);
 
         let publish = ends.head_publisher();
         let head_wake = ends.response_head_wake;
+        // The reader task is `'static`; the registry is cloned into it rather
+        // than borrowing `config`.
+        let compression = config.compression.clone();
+        let read_max_bytes = config.read_max_bytes;
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
@@ -511,7 +514,8 @@ impl ProtocolClient for GrpcClient {
                 stream.trailers,
                 ends.response_tx,
                 publish,
-                config.read_max_bytes,
+                &compression,
+                read_max_bytes,
             )
             .await
         });
@@ -542,6 +546,7 @@ async fn read_grpc_response(
     trailers: PipeReceiver<SimpleHeaders>,
     tx: PipeSender<Frame>,
     publish: HeadPublisher,
+    compression: &CompressionRegistry,
     read_max: usize,
 ) -> ConnectResult<()> {
     // 1. Response head. Publish the headers so `response_headers()` works.
@@ -601,10 +606,27 @@ async fn read_grpc_response(
         return Ok(());
     }
 
-    // 3. Message envelopes until body EOF. A mid-stream failure (truncated
+    // 3. Select the decompressor from the response head before the first frame.
+    //    An unregistered encoding ends the stream with a typed error.
+    let decompressor =
+        match response_decompressor(&resp_headers, &[constants::HEADER_ENCODING], compression) {
+            Ok(decompressor) => decompressor,
+            Err(e) => {
+                let _ = tx
+                    .send(Frame::EndStream {
+                        error: Some(e),
+                        trailers: SimpleHeaders::new(),
+                    })
+                    .await;
+                let _ = tx.close();
+                return Ok(());
+            }
+        };
+
+    // 4. Message envelopes until body EOF. A mid-stream failure (truncated
     //    envelope, body error, oversized frame) must reach the receiver as a
     //    terminal error, not vanish into a clean-looking EOF.
-    if let Err(e) = read_frames(body, &tx, None, read_max).await {
+    if let Err(e) = read_frames(body, &tx, decompressor, read_max).await {
         let _ = tx
             .send(Frame::EndStream {
                 error: Some(e),
@@ -615,7 +637,7 @@ async fn read_grpc_response(
         return Ok(());
     }
 
-    // 4. Trailing HEADERS carry the call's outcome.
+    // 5. Trailing HEADERS carry the call's outcome.
     let trls = trailers.receive().await.unwrap_or_default();
     let error = parse_grpc_error_trailer(&trls);
     let _ = tx
