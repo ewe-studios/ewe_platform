@@ -237,7 +237,9 @@ What the numbers say:
 | T1 | `QueryStore`, `KeyValueStore` | `D1WasmStorage` | No session or consistency parameter (no `withSession`, no bookmark). `execute_batch_async` takes one raw SQL string with no parameters, so an atomic multi-row flush through `batch()` is not possible. |
 | T2 | `BlobStore` | `R2WasmStorage`, `R2Store` | Whole objects in memory (`Vec<u8>`), no range read, no conditional put, no ordered listing from a start key |
 
-The gaps are on the [bug backlog](../../../docs/bug-backlog.md), section 11.
+The gaps are tracked in issues [#192](https://github.com/ewe-studios/ewe_platform/issues/192) and
+[#193](https://github.com/ewe-studios/ewe_platform/issues/193) (section 11 of the retired bug
+backlog).
 
 A tiered store is then a composition over the three traits, plus a policy object (thresholds,
 batch sizes, retention) whose fields are config with documented defaults. The flush interface of

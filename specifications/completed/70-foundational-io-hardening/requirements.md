@@ -275,10 +275,12 @@ _The diagram shows which feature must finish before another starts._
 
 ## 7. Done for the whole spec
 
-- [ ] Every entry in the retired bug backlog, sections 1–21 (and the four branch-only bugs in
+- [x] Every entry in the retired bug backlog, sections 1–21 (and the four branch-only bugs in
       §1), is a GitHub issue with a severity label, fixed and closed, or rewritten in the
       issue with a reason and a follow-up. The file was deleted on 2026-11-07; its section map
-      is in umbrella issue #98.
+      is in umbrella issue #98. (Verified 2026-11-07: the last 66 checklist items in the
+      per-crate umbrellas became 76 issues, #253–#288 and #290–#329, each with one
+      `severity:` label; the one duplicate maps to existing #222.)
 - [x] Issues #28, #137 and #142 can be closed. (Verified 2026-11-07: #137 and #142 are closed;
       #28 was merged.)
 - [x] `rg -n 'thread::sleep|yield_now|spin_loop' backends/foundation_{core,netio,http,connectrpc,iogate}/src`

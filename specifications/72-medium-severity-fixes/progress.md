@@ -2,6 +2,11 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: the retired backlog is gone. The remaining unchecked checklists in umbrella issues
+  #99, #100, #101, #102, #103, #106, #107 and #110 became 76 individual issues, #253–#288 and
+  #290–#329, each with one `severity:` label (12 high, 39 medium, 25 low). One item duplicated
+  issue #222 and was not re-filed. `docs/bug-backlog.md` is deleted. The 12 high issues are
+  outside this spec's medium scope; they are reported to the owner and not fixed here.
 - 2026-11-07: spec written. The input is the 17 open `severity: medium` issues that spec 70
   left. No feature started yet (0/12).
 
