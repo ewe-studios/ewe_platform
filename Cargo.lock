@@ -5927,7 +5927,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "async-trait",
  "bincode 2.0.1",
