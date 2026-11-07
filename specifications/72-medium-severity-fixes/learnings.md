@@ -3,6 +3,17 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 02 (2026-11-07)
+
+- `PoolGuard` does not hold `PoolConfig`. A deadline computed at the pool guard must ask the
+  registry for its configured timeout; do not thread the config through a type that never
+  carried it.
+- A test that proves an unbounded wait needs its own deadline. The old code waits 30 s, so the
+  regression test times out on a channel instead of hanging the suite.
+- Bounding one phase is not bounding the call. `shutdown_within` now limits the background
+  registry, but the worker registry still receives the same full duration, so the total can
+  reach twice the argument (#340). An absolute deadline computed once is the correct shape.
+
 ## Feature 05 (2026-11-07)
 
 - Verify the premise of an issue before you design to it. #219 called `wasi_host.rs:41` an

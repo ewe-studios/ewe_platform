@@ -1,6 +1,6 @@
 ---
 feature: "shutdown_within bounds the background job registry"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_core"]
@@ -47,18 +47,19 @@ duration computed at the call site. Keep the existing `shutdown()` as a wrapper 
 its own deadline from the configured timeout, so a caller that does not bound it keeps today's
 behaviour.
 
-The pool path computes `let deadline = clock.now() + min(timeout, cfg.background_shutdown_timeout)`
-and passes it down. The clock comes from the injected bundle (root rule 11).
+The pool path computes `let deadline = clock.now() + min(timeout, bg.shutdown_timeout())`
+and passes it down. The clock comes from the injected bundle (root rule 11). `PoolGuard` does
+not hold `PoolConfig`; the configured value lives on the registry, which now exposes it.
 
 ## 5. Tasks
 
-- [ ] Read `multi/mod.rs::shutdown_within` and `BackgroundJobRegistry::shutdown`. Record the
+- [x] Read `multi/mod.rs::shutdown_within` and `BackgroundJobRegistry::shutdown`. Record the
       current signature and the timeout fields.
-- [ ] Add the deadline parameter and the `min` computation.
-- [ ] Keep `shutdown()` working with the configured timeout.
-- [ ] Add the regression test.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #233 in the PR body.
+- [x] Add the deadline parameter and the `min` computation.
+- [x] Keep `shutdown()` working with the configured timeout.
+- [x] Add the regression test.
+- [x] Run the verify commands. Record the results.
+- [x] Close #233 in the PR body.
 
 ## 6. Tests
 

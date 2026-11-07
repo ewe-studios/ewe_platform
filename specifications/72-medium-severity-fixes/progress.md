@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 02 (bounded background shutdown, #233) is in review as PR #339. New
+  `BackgroundJobRegistry::shutdown_until(clock, deadline)` checks the deadline between jobs;
+  `shutdown(clock)` is a wrapper that computes it from the configured timeout, and the new
+  `shutdown_timeout()` accessor exposes that value. `PoolGuard::shutdown_within` passes
+  `clock.now() + min(timeout, bg.shutdown_timeout())`. `foundation_core` is 0.0.17 with 64
+  consumer requirements updated. `shutdown_within_bounds_a_stuck_background_job` failed on
+  the old code (it waited the 30 s default) and passes now; the suite is 756 passed without
+  `multi` and 808 with it, doctests 71 and 74. The design changed because `PoolGuard` does not
+  hold `PoolConfig`. Two follow-ups filed: #340 (medium, the worker phase still gets a fresh
+  full timeout, so one call can take about 2× the argument) and #341 (low, `wait_timeout`
+  rebuilds the deadline and can drift).
+
 - 2026-11-07: feature 05 (WASI time source, #219) is in review as PR #338. `foundation_wasm`
   gains a `TimeSource` trait and a `WasiHost` environment (`new().with_time_source(..).install()`,
   `uninstall()`); a missing source is `WasiHostError::TimeSourceNotInstalled`. The clock-reading
@@ -57,7 +69,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 ## Feature status
 
 - **01-http-app-clock** — in review, PR #333 (#234)
-- **02-core-background-shutdown-deadline** — in progress (#233)
+- **02-core-background-shutdown-deadline** — in review, PR #339 (#233)
 - **03-wireguard-hole-punch** — in review, PR #332 (#223)
 - **04-docker-container-clock** — in progress (#220)
 - **05-wasm-wasi-time-source** — in review, PR #338 (#219)
