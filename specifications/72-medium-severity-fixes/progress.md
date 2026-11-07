@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 03 (wireguard hole punch, #223) is in review as PR #332. The panic is
+  gone; a failed punch with no relay returns `WgError::NoRelayForPunchedSession` and leaves the
+  session `Disconnected`. `foundation_wireguard` is 0.0.6 and
+  `foundation_deployment_platform` requires it. The regression test panicked on the old code and
+  passes now; `relay_tests` is 27/27, the crate suite 79 passed. The strict
+  `--all-targets -D warnings` clippy stops on 7 pre-existing lints in `foundation_boringtun`
+  (filed as #330, low); the crate's own lib and test targets are clean. #331 (unused test
+  imports on non-Linux) filed, low.
+
 - 2026-11-07: the retired backlog is gone. The remaining unchecked checklists in umbrella issues
   #99, #100, #101, #102, #103, #106, #107 and #110 became 76 individual issues, #253–#288 and
   #290–#329, each with one `severity:` label (12 high, 39 medium, 25 low). One item duplicated

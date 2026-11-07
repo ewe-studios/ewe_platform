@@ -1,6 +1,6 @@
 ---
 feature: "A failed hole punch with no relay returns an error, not a panic"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_wireguard"]
@@ -46,12 +46,12 @@ session, not ignore it (root rule: do not ignore a return value).
 
 ## 5. Tasks
 
-- [ ] Read `RelaySession::on_direct_failure` and the crate error enum.
-- [ ] Add the variant or reuse one. Return the error.
-- [ ] Update every caller.
-- [ ] Add the regression test.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #223 in the PR body.
+- [x] Read `RelaySession::on_direct_failure` and the crate error enum.
+- [x] Add the variant or reuse one. Return the error.
+- [x] Update every caller.
+- [x] Add the regression test.
+- [x] Run the verify commands. Record the results.
+- [x] Close #223 in the PR body.
 
 ## 6. Tests
 

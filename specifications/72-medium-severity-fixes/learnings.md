@@ -3,6 +3,14 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 03 (2026-11-07)
+
+- The panic was a bare `Option::expect` in the connectivity ladder. The clean fix is a
+  dedicated error variant plus a documented `Disconnected` fallback, not a retry loop.
+- A strict `cargo clippy -p <crate> --all-targets -D warnings` also lints workspace path
+  dependencies. Seven pre-existing lints in `foundation_boringtun` stop the command, so the
+  proof for this crate is `--no-deps` on its own targets plus the issue record (#330).
+
 ## Creation (2026-11-07)
 
 - The retired backlog lived in two places, not one. The file was a stub, but the per-crate
