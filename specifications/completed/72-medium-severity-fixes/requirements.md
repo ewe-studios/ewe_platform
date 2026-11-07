@@ -1,6 +1,6 @@
 ---
 description: "Close the 17 open medium-severity issues left after spec 70: inject the clock into the HTTP app, the Docker container config and the toolings sleeper, bound the background registry shutdown, fix the wireguard hole-punch panic, the WASI clock read, the netio load rate, six ptrace and vfs-preload dispatch defects, the keychain macOS flake, and add the two missing CI jobs. Also fixes the concurrent Turso read failure found during the keychain work, and removes a fixed sleep from that test's helper."
-status: "planned"
+status: "completed"
 priority: "high"
 created: 2026-11-07
 updated: 2026-11-07
@@ -19,10 +19,10 @@ related_specs:
   - "specifications/completed/70-foundational-io-hardening"
   - "specifications/71-durable-streams-in-valtron"
 features:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Spec 72: Medium-severity defect fixes

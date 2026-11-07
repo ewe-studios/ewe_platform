@@ -2,6 +2,12 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: spec 72 complete. All 14 features are merged (01 #333, 02 #339, 03 #332, 04 #345,
+  05 #338, 06 #337, 07 #344, 08 #363, 09 #349, 10 #359, 11 #356, 12 #352, 13 #361, 14 #362).
+  The spec is archived to `specifications/completed/72-medium-severity-fixes`. Every issue it
+  names is closed, including #194, #196, #197, #201, #203, #205–#210, #214, #219, #220, #223,
+  #233, #234, #357, #358 and #367.
+
 - 2026-11-07: feature 08 (ptrace setregs and truncate, #209, #210) merged as PR #363. All 14
   features are merged, so spec 72 is complete.
   `ptrace_loop` ignored the `PTRACE_SETREGS` error for `Skip` and `SkipError`.
