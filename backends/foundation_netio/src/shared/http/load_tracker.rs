@@ -163,8 +163,9 @@ impl LoadTracker {
     /// Start tracking a new connection.
     ///
     /// Returns a `ConnectionGuard` that decrements the counter when dropped.
+    /// The guard borrows the tracker, so it cannot outlive it.
     #[must_use]
-    pub fn track_connection(&self) -> ConnectionGuard {
+    pub fn track_connection(&self) -> ConnectionGuard<'_> {
         self.active_connections.fetch_add(1, Ordering::Relaxed);
         self.connection_count.fetch_add(1, Ordering::Relaxed);
         ConnectionGuard {
@@ -284,13 +285,18 @@ impl Clone for LoadTracker {
 }
 
 /// RAII guard for connection tracking.
+///
+/// Borrows the tracker, so the tracker cannot move or drop while a guard
+/// exists. The old design stored a raw pointer and promised `Send` and `Sync`
+/// with `unsafe impl`s; that let safe code drop the tracker and then
+/// dereference the freed pointer when the guard dropped.
 #[derive(Debug)]
-pub struct ConnectionGuard {
-    tracker: *const LoadTracker,
+pub struct ConnectionGuard<'a> {
+    tracker: &'a LoadTracker,
     completed: bool,
 }
 
-impl ConnectionGuard {
+impl ConnectionGuard<'_> {
     /// Mark the connection as complete.
     pub fn complete(mut self) {
         self.completed = true;
@@ -298,18 +304,10 @@ impl ConnectionGuard {
     }
 }
 
-impl Drop for ConnectionGuard {
+impl Drop for ConnectionGuard<'_> {
     fn drop(&mut self) {
         if !self.completed {
-            // SAFETY: tracker is always valid (owned by TimeoutCalculator)
-            unsafe {
-                (*self.tracker).release_connection();
-            }
+            self.tracker.release_connection();
         }
     }
 }
-
-// SAFETY: ConnectionGuard is Send because the tracker pointer is valid
-// for the lifetime of the program (it's owned by TimeoutCalculator)
-unsafe impl Send for ConnectionGuard {}
-unsafe impl Sync for ConnectionGuard {}
