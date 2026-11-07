@@ -123,9 +123,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Next steps
 
-1. Open one PR for `fix/high-severity-fixes` (four fixes, #334, #340, #347, #348).
-2. Verify the feature 01 and 04 reports.
-3. Start feature 02 after 01 merges (same crate), then 03. Run 05–08 verification lanes.
-4. Then 09 and 10.
+1. Merge feature 04 when its 0.0.9 bump lands. Then run the feature 05 and 06 verification lanes.
+2. Fix #378 on `fix/378-request-compression` (in progress). Merge it, then start feature 03
+   on the same crate.
+3. Verify the #378 fix and run its tests before the merge.
+4. Open the single spec 73 PR from `spec73/high-severity-fixes` when all features land.
 
 _Created: 2026-11-07_
