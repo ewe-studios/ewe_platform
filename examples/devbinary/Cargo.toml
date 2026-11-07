@@ -12,7 +12,7 @@ keywords = [
 
 [dependencies]
 # The dev server runtime (replaces the retired ewe_devserver).
-foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.7" }
+foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.8" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }

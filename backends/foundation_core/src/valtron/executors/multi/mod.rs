@@ -556,17 +556,18 @@ pub fn initialize_pool_with_slow_poll_warning(
 /// # Errors
 ///
 /// Returns an error if the background registry is not initialized or the queue is closed.
-///
-/// # Panics
-///
-/// Panics if the background job pool has not been initialized.
+/// A missing pool is a fallible state, not an invariant.
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
     let bg_registry = BG_REGISTRY
         .lock()
         .unwrap_or_else(crate::compati::recover_poison)
-        .clone()
-        .expect("Background job pool not initialized, ensure to call initialize_pool first");
-    bg_registry.submit(job)
+        .clone();
+    match bg_registry {
+        Some(bg_registry) => bg_registry.submit(job),
+        None => {
+            Err("Background job pool not initialized, ensure to call initialize_pool first".into())
+        }
+    }
 }
 
 /// [`spawn`] provides a builder which allows you to build out
