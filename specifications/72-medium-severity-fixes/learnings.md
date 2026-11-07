@@ -3,6 +3,35 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 13 (2026-11-07)
+
+- A shared read lock is not safe for every driver. Turso 0.8.3 keeps one `ConcurrentGuard`
+  per connection and every statement clones it; `execute`, `step` and `query` call
+  `try_use`. The guard is per statement, not per connection phase, so two reads collide
+  exactly like a read and a write. Read the driver before you assume that a read can share.
+- The smallest correct shape is serialization. A read takes the exclusive side and still
+  reports `LockMode::Read`, so the timeout tells the caller which side it waited on. A
+  connection pool is the parallel shape, and it is a larger change.
+- A shared test macro needs a per-driver switch, not a second copy. `$reads_share` keeps the
+  batch, rollback, timeout and ordering cases on both backends and branches only where the
+  drivers differ.
+- Two helpers that hide a sentinel from `fmt::Debug` (`AsyncQueryStream`, `AsyncListStream`)
+  cannot use `expect_err`. Use `let Err(x) = .. else { panic!(..) }`.
+- A one-connection store with serialized reads makes an 8-thread test slow, not flaky:
+  `kv_take_tests` went from a few seconds to 36 s. Keep the timeout inside the test.
+
+## CI follow-ups (2026-11-07)
+
+- A crate version bump must update the example lock files (`examples/devbinary`,
+  `examples/web/wello`, `examples/platform_android/src-tauri`) and the project templates in
+  `bin/platform/templates`, or the plan step and `templates_generate_projects_that_build`
+  fail. The templates patch crates.io to the local path, so the caret requirement must match
+  the local version exactly: `0.0.16` does not select `0.0.17`.
+- Several branches change the same template version lines. Merge one, rebase the next, and
+  keep the highest crate version.
+- A container job runs `run:` with `sh`, not bash. Name `shell: bash` before you use
+  `pipefail` or a bash array.
+
 ## Feature 10 (2026-11-07)
 
 - macOS reports an expired `SO_RCVTIMEO` as `WouldBlock`, so a helper that maps both cases to

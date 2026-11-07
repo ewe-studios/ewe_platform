@@ -2,6 +2,29 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 13 (concurrent Turso reads, #357, high) is in review as PR #361. The
+  cause is a Turso 0.8.3 rule: every statement clones the connection's `ConcurrentGuard`, and
+  `execute`, `step` and `query` call `try_use`. A second live statement on the one connection
+  returns `Misuse("concurrent use forbidden")`. `ConnGate::read_exclusive` now takes the
+  exclusive side for a read, and `TursoStorage::read` uses it. Reads wait for the previous
+  read to end and still report `LockMode::Read` on timeout; libsql keeps the shared read side.
+  The shared lock tests take a `$reads_share` flag and assert each driver's rule. The new
+  test (`tests/turso_concurrent_reads.rs`, 8 readers × 100 rounds × 200 rows) failed on the
+  old code with `concurrent use forbidden` and passed 20/20 runs now. Full `foundation_db`
+  suite passed; `foundation_keychain` passed, including `streamed_body`. Filed #360 (low,
+  libsql-only `--lib` clippy stops on `unused_self`). Choice: serialize the one connection;
+  read throughput on one store is now one statement at a time.
+
+- 2026-11-07: CI fixes for the in-review PRs. The plan step failed on stale example lock files
+  after the crate version bumps: 01 (PR #333) updated `devbinary` and `wello`; 02 (#339)
+  updated all three; 05 (#338) updated the Android example; 06 (#337) updated `devbinary` and
+  the Android example. The project templates also named old versions, so
+  `templates_generate_projects_that_build` failed: 01 set `foundation_http` 0.0.8, 02 set
+  `foundation_core` 0.0.17, 09 (#349) set `foundation_core` 0.0.18. Feature 12's free-disk
+  step ran `set -euo pipefail` and a bash array under the container's default `sh`, so it
+  stopped before deleting anything; the step now names `shell: bash`. All fixes are pushed to
+  their PR branches; CI is running.
+
 - 2026-11-07: the owner added features 13 (#357, high) and 14 (#358, low) to the spec. Both
   were found while fixing feature 10. Feature 13 is in progress; feature 14 is the last
   feature of the spec. The spec now has 14 features and 19 issues.
@@ -128,15 +151,18 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
 - **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
 - **10-keychain-macos-flake** — in review, PR #359 (#197)
-- **11-ci-mobile-target-builds** — not started (#196)
+- **11-ci-mobile-target-builds** — in review, PR #356 (#196)
 - **12-ci-free-runner-disk** — in review, PR #352 (#194)
-- **13-db-turso-concurrent-reads** — in progress (#357, high)
-- **14-keychain-start-server-sync** — not started (#358)
+- **13-db-turso-concurrent-reads** — in review, PR #361 (#357, high)
+- **14-keychain-start-server-sync** — in progress (#358)
 
 ## Next steps
 
-1. Batches of at most three agents. Done: 01, 02, 03, 04, 05, 06, 07, 09, 10. Waiting on CI:
-   11, 12. Blocked on the merge of PR #344: 08. Running: 13. Next: 14, then 08.
-2. Close each issue in the pull request that fixes it.
+1. Read CI on PRs #361 and the six fixed branches; send any remaining failure to a fresh
+   agent. Feature 14 is running. Merge order matters for the templates: 01, 02 and 09 all
+   change the same `foundation_core`/`foundation_http` lines. After a merge, rebase the other
+   branches and keep the highest crate version.
+2. Feature 08 waits on the merge of PR #344.
+3. Close each issue in the pull request that fixes it.
 
 _Created: 2026-11-07_

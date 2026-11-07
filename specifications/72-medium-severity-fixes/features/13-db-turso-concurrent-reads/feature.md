@@ -1,6 +1,6 @@
 ---
 feature: "Two concurrent Turso reads both succeed on the shared connection"
-status: "in-progress"
+status: "in-review"
 priority: "high"
 depends_on: []
 crates: ["foundation_db"]
@@ -64,13 +64,13 @@ report.
 
 ## 5. Tasks
 
-- [ ] Read `conn_gate.rs`, `turso_backend.rs` and the `LibsqlStore` equivalent. Confirm the
+- [x] Read `conn_gate.rs`, `turso_backend.rs` and the `LibsqlStore` equivalent. Confirm the
       failure with a test first.
-- [ ] Choose the shape and record the reason.
-- [ ] Implement it and keep the three invariants.
-- [ ] Add the concurrency regression test.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #357 in the PR body.
+- [x] Choose the shape and record the reason.
+- [x] Implement it and keep the three invariants.
+- [x] Add the concurrency regression test.
+- [x] Run the verify commands. Record the results.
+- [x] Close #357 in the PR body.
 
 ## 6. Tests
 
