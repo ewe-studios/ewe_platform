@@ -2732,3 +2732,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   https://github.com/ewe-studios/ewe_platform/pull/250 is open and up to date
   with `master`; it closes #247, #249, #251 and #252. The merge stays blocked by
   the "Master" ruleset's signed-commit rule, as PR 246 did.
+- 2026-11-07: the docs-only head `dacdde5ae` also passes. The Audit: Checks &
+  Tests run 42334890916 reported `success`: Plan, the CI image and every
+  package job passed; the macOS build and the publish dry-run are skipped for a
+  pull request, as designed. The branch is green on its final head. The merge
+  is the only remaining step, and it is the owner's to take.
