@@ -76,6 +76,8 @@ mod wasm_yielder_tests;
 #[cfg(not(target_family = "wasm"))]
 mod background_jobs;
 #[cfg(not(target_family = "wasm"))]
+mod background_shutdown_deadline;
+#[cfg(not(target_family = "wasm"))]
 mod delayed_iterators;
 mod drain;
 #[cfg(not(target_family = "wasm"))]
