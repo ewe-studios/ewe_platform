@@ -1427,7 +1427,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -1466,7 +1466,7 @@ version = "0.0.7"
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",

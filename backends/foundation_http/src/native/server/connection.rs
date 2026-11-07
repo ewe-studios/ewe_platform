@@ -115,6 +115,8 @@ pub struct ConnectionHandler {
     _drain_guard: WaitGroupGuard,
     /// Cloned calculator for computing expect-continue delays.
     timeout_calculator: TimeoutCalculator,
+    /// How long this idle keep-alive connection waits for its next request.
+    idle_timeout: Duration,
     max_expect_attempts: usize,
     max_continue_retries: usize,
     escalation_threshold: u32,
@@ -169,6 +171,7 @@ impl ConnectionHandler {
             shutdown,
             _drain_guard: drain_guard,
             timeout_calculator: config.timeout_calculator.clone(),
+            idle_timeout: config.idle_timeout,
             max_expect_attempts,
             max_continue_retries: 3,
             escalation_threshold: config.escalation_threshold,
@@ -189,10 +192,9 @@ impl ConnectionHandler {
         self.timeout_calculator.calculate_sleep_duration(&ctx)
     }
 
-    /// Get idle timeout from calculator.
+    /// The idle timeout, the wait for the next request on an open connection.
     fn idle_timeout(&self) -> Duration {
-        let ctx = TimeoutContext::default().streaming();
-        self.timeout_calculator.calculate_read_timeout(&ctx)
+        self.idle_timeout
     }
 
     /// Total time to wait for the body after 100 Continue when the transport can

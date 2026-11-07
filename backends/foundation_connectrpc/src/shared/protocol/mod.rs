@@ -19,6 +19,7 @@ pub mod connect;
 pub mod grpc;
 pub mod grpc_web;
 
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use bytes::Bytes;
@@ -26,7 +27,7 @@ use foundation_netio::shared::http::{
     SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
-use crate::shared::compression::CompressionRegistry;
+use crate::shared::compression::{CompressionRegistry, Compressor};
 use crate::shared::context::{CancelSignal, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::transport::{
@@ -61,6 +62,9 @@ pub struct HandlerExchange {
     pub reader_task: BoxedTask,
     /// response `FramePipe` → envelope/compress → bytes (flush per frame).
     pub writer_task: BoxedTask,
+    /// The map a handler installs with `MessageSink::set_headers`, shared with
+    /// the conn's sender. The pump merges it into the response head.
+    pub response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
 }
 
 /// The client mirror of [`HandlerExchange`].
@@ -234,10 +238,21 @@ pub trait ProtocolClient: Send + Sync {
     /// **unary** call. Protocol-specific unwrapping — Connect is the identity
     /// (bare bytes), gRPC and gRPC-Web strip the 5-byte envelope frame.
     ///
+    /// `head` is the response head, used to pick the decompressor from the
+    /// protocol's encoding header; `compression` is the registry the client
+    /// accepts. `read_max_bytes` bounds the decompressed output (`0` =
+    /// unlimited).
+    ///
     /// # Errors
     /// A trace on a malformed envelope (truncated frame, missing compression
-    /// handler).
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes>;
+    /// handler) or an unregistered response encoding.
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes>;
     /// Build the per-call exchange over a live transport stream.
     ///
     /// The reader task consumes the whole stream: the response head (its
@@ -252,13 +267,13 @@ pub trait ProtocolClient: Send + Sync {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange>;
 }
 
 /// What a protocol needs, beyond the stream, to build a client exchange
 /// ([`ProtocolClient::new_conn`]).
-pub struct ClientExchangeConfig {
+pub struct ClientExchangeConfig<'a> {
     /// Linked into the conn's sender/receiver halves so caller cancellation
     /// wakes parked pipe ops. The framework passes
     /// `CancelSignal::linked(&caller_signal)`; tests and base contexts pass
@@ -268,6 +283,18 @@ pub struct ClientExchangeConfig {
     /// whose length prefix claims more fails the stream before its payload is
     /// read. Also bounds how much of an error body is read.
     pub read_max_bytes: usize,
+    /// The compressors the client accepts, for the response head. The protocol
+    /// reader picks the decompressor from it before the first frame.
+    pub compression: &'a CompressionRegistry,
+    /// The compressor for outgoing request frames (`None` = identity). The
+    /// protocol writer applies it to each frame and sets the compressed flag.
+    pub send_compressor: Option<Arc<dyn Compressor>>,
+    /// The smallest payload the writer compresses (`0` = always compress).
+    /// Payloads below this size go out with the compressed flag clear.
+    pub compress_min_bytes: usize,
+    /// The largest request frame the writer sends, checked after compression
+    /// (`0` = unlimited). A larger frame fails with `ResourceExhausted`.
+    pub send_max_bytes: usize,
 }
 
 /// Start reading a streaming response: take its head, publish the headers for

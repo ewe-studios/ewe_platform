@@ -577,22 +577,19 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let reqs = requirements(self.config.protocol.to_kind(), StreamType::ServerStream);
         check_compatible(&reqs, &self.transport.capabilities())?;
 
-        // Marshal the request.
+        // Marshal the request. The protocol writer compresses and flags the
+        // frame; sending compressed bytes here would mark them as plain.
         let request_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let encoded = request_codec.marshal(&request.msg)?;
-        let (body, content_encoding) = compress_if(
-            &self.config.compression,
-            self.config.send_compression.as_deref(),
-            &encoded,
-        )?;
+        let body = request_codec.marshal(&request.msg)?;
 
-        // Build headers.
+        // Build headers. The header names the configured algorithm, so the peer
+        // negotiates the decompressor for the frames the writer sends.
         let mut headers = request.headers().clone();
         self.protocol.write_request_headers(
             StreamType::ServerStream,
             &mut headers,
             &self.config.codec_name,
-            content_encoding.as_deref(),
+            self.config.send_compression.as_deref(),
         );
         add_timeout_header(
             self.config.protocol,
@@ -625,7 +622,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let (mut sender, mut receiver) = exchange.conn.split();
 
         // Send the request frame and close.
-        sender.send(Bytes::from(body)).await?;
+        sender.send(body).await?;
         sender.close_send().await?;
 
         // Await the response head so the caller's `response_headers()` is sync-OK.
@@ -744,23 +741,18 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
     /// Bidirectional streaming RPC.
     ///
+    /// The returned [`BidiStream`] is the only writer: send with
+    /// [`BidiStream::send`] (or [`BidiStream::split`] and use the sender half).
+    ///
     /// # Errors
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
-    pub async fn bidi_stream(
-        &self,
-        ctx: Ctx,
-        reqs: impl Stream<Item = Req>,
-    ) -> ConnectResult<BidiStream<Req, Res>> {
+    pub async fn bidi_stream(&self, ctx: Ctx) -> ConnectResult<BidiStream<Req, Res>> {
         // The async block keeps the setup lazy, so a past deadline fails before
         // `bidi_stream_inner` opens the transport.
-        with_deadline(&ctx, async { self.bidi_stream_inner(&ctx, reqs) }).await
+        with_deadline(&ctx, async { self.bidi_stream_inner(&ctx) }).await
     }
 
-    fn bidi_stream_inner(
-        &self,
-        caller: &Ctx,
-        _reqs: impl Stream<Item = Req>,
-    ) -> ConnectResult<BidiStream<Req, Res>> {
+    fn bidi_stream_inner(&self, caller: &Ctx) -> ConnectResult<BidiStream<Req, Res>> {
         let spec = Spec {
             stream_type: StreamType::BidiStream,
             procedure: String::new(),
@@ -880,6 +872,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         stream: TransportStream,
         ctx: &Ctx,
     ) -> ConnectResult<ClientExchange> {
+        // Resolve the outgoing compressor once per call. `None` and `identity`
+        // mean that no frame is compressed. An unknown name is an internal
+        // configuration error, the same one the unary path reports.
+        let send_compressor = match self.config.send_compression.as_deref() {
+            None | Some("identity") => None,
+            Some(name) => Some(self.config.compression.get(name).cloned().ok_or_else(|| {
+                ConnectError::internal(format!("unknown compression algorithm: {name}"))
+            })?),
+        };
         self.protocol.new_conn(
             spec,
             headers,
@@ -887,6 +888,10 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             ClientExchangeConfig {
                 cancel: CancelSignal::linked(ctx.cancel_signal()),
                 read_max_bytes: self.config.limits.read_max_bytes,
+                compression: &self.config.compression,
+                send_compressor,
+                compress_min_bytes: self.config.limits.compress_min_bytes,
+                send_max_bytes: self.config.limits.send_max_bytes,
             },
         )
     }
@@ -1013,7 +1018,12 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         // Decode response: protocol-level unwrap first, then codec unmarshal.
         // gRPC/gRPC-Web envelop their unary response; Connect returns bare bytes.
-        let wire = self.protocol.decode_unary_response(reply.frame)?;
+        let wire = self.protocol.decode_unary_response(
+            &reply.headers,
+            reply.frame,
+            &self.config.compression,
+            self.config.limits.read_max_bytes,
+        )?;
         let response_codec = self.codecs.for_response(&self.config.codec_name)?;
         let msg = response_codec.unmarshal(wire)?;
 

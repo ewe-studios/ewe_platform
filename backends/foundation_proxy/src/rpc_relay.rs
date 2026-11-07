@@ -371,6 +371,7 @@ async fn connect_unary_to_grpc(
         .open(out_request)
         .map_err(|e| format!("open h2 upstream {url}: {e}"))?;
     let cancel = CancelSignal::new();
+    let compression = CompressionRegistry::new();
     let outbound = GrpcClient
         .new_conn(
             &Spec::empty(true),
@@ -379,6 +380,10 @@ async fn connect_unary_to_grpc(
             ClientExchangeConfig {
                 cancel: cancel.clone(),
                 read_max_bytes: 0,
+                compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc outbound exchange: {e}"))?;
@@ -550,6 +555,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     let stream = H2Transport::new()
         .open(out_request)
         .map_err(|e| format!("open h2 upstream {url}: {e}"))?;
+    let compression = CompressionRegistry::empty();
     let outbound = GrpcClient
         .new_conn(
             &Spec::empty(true),
@@ -558,6 +564,10 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
             ClientExchangeConfig {
                 cancel: cancel.clone(),
                 read_max_bytes: 0,
+                compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc outbound exchange: {e}"))?;
@@ -566,6 +576,8 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
         conn: inbound_conn,
         reader_task: in_reader,
         writer_task: in_writer,
+        // The relay builds the response head itself; no handler sets headers here.
+        response_headers: _,
     } = inbound;
     let ClientExchange {
         conn: outbound_conn,

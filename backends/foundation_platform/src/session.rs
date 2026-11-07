@@ -81,7 +81,7 @@ pub struct PlatformSession {
     /// Per-route responder registry. Maps `handler_id` → responder.
     /// Each `webview_app()` / `ipc_shell()` registers its own responder.
     /// `execute_decision()` looks up the handler and calls `respond()`.
-    handler_registry: RwLock<HashMap<String, Box<dyn super::route_handler::RouteResponder>>>,
+    handler_registry: RwLock<HashMap<String, Arc<dyn super::route_handler::RouteResponder>>>,
 
     /// Resolved resource directory for MobileDirectory-backed assets.
     /// Set by `PlatformBuilder` at startup. On Android this is the Tauri-extracted
@@ -125,6 +125,10 @@ pub struct PlatformSession {
 
     /// Wasmtime shell registry (F33). Named WASM modules that run in-process
     /// via wasmtime (Surface 3). Registered at setup time, built on first request.
+    #[cfg(all(
+        feature = "wasmtime",
+        not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
+    ))]
     pub(crate) wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell,
 
     /// The host clock this session and its subsystems stamp wall times from.
@@ -168,6 +172,10 @@ impl PlatformSession {
             app_isolation: crate::multi_app::AppIsolation::new(),
             workers_: crate::worker::WorkerRegistry::new(),
             window_manager: crate::window::WindowManager::new(),
+            #[cfg(all(
+                feature = "wasmtime",
+                not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
+            ))]
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
             clock,
         })
@@ -683,21 +691,22 @@ impl PlatformSession {
         self.handler_registry
             .write()
             .unwrap()
-            .insert(handler_id.to_string(), responder);
+            .insert(handler_id.to_string(), Arc::from(responder));
     }
 
-    /// Look up a responder by `handler_id`. Returns `None` if not found.
+    /// Look up a responder by `handler_id`. Returns a shared handle, or `None`
+    /// if not found. The handle stays valid when another registration replaces
+    /// the registry entry.
     ///
     /// # Panics
     ///
     /// Panics if the internal `RwLock` is poisoned.
-    pub fn get_responder(&self, handler_id: &str) -> Option<&dyn RouteResponder> {
-        // SAFETY: Extending the lifetime of the Box<dyn> inside the RwLock.
-        // The registry lives as long as the session, so this is safe.
-        let guard = self.handler_registry.read().unwrap();
-        guard
+    pub fn get_responder(&self, handler_id: &str) -> Option<Arc<dyn RouteResponder>> {
+        self.handler_registry
+            .read()
+            .unwrap()
             .get(handler_id)
-            .map(|b| unsafe { &*std::ptr::from_ref::<dyn RouteResponder>(b.as_ref()) })
+            .cloned()
     }
 }
 

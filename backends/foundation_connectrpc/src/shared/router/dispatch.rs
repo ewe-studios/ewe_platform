@@ -34,7 +34,7 @@
 
 use std::io;
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 
 use bytes::Bytes;
@@ -779,6 +779,7 @@ async fn run_streaming(
         conn,
         reader_task,
         writer_task,
+        response_headers,
     } = exchange;
 
     // Feed the request body into the protocol pipe as the reader consumes it.
@@ -799,6 +800,7 @@ async fn run_streaming(
     // The writer task compressed per this same negotiation — the peer only
     // accepts flagged envelopes when the encoding is advertised.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
+    let encoding_header = protocol_encoding_header(protocol);
     let mut head = blank_response(&request);
     head.status = Status::OK;
     head.headers
@@ -809,12 +811,18 @@ async fn run_streaming(
 
     // Forward framed response bytes to the sink as they are produced. Returns
     // whether the head went out. The pump owns `resp_rx`, so when it stops the
-    // writer task's sends fail instead of waiting on a full pipe forever.
+    // writer task's sends fail instead of waiting on a full pipe forever. The
+    // head waits for the first chunk, so a handler has time to set its headers
+    // (they precede its first message) and a failure before the first chunk can
+    // still use a real status.
+    let pump_headers = Arc::clone(&response_headers);
     let pump = async {
         let resp_rx = resp_rx;
         let mut head = Some(head);
         while let Some(chunk) = resp_rx.receive().await {
-            if let Some(head) = head.take() {
+            if let Some(mut head) = head.take() {
+                let handler = take_handler_headers(&pump_headers);
+                merge_handler_headers(&mut head.headers, handler, encoding_header);
                 sink.open(head).await?;
             }
             sink.chunk(chunk).await?;
@@ -894,6 +902,8 @@ async fn run_streaming(
         Some(e) => {
             let mut response = blank_response(&request);
             write_error(&mut response, &request, &e);
+            let handler = take_handler_headers(&response_headers);
+            merge_handler_headers(&mut response.headers, handler, encoding_header);
             sink.whole(response).await
         }
         None if opened => sink.finish().await,
@@ -907,6 +917,8 @@ async fn run_streaming(
             if let Some((name, enc)) = response_encoding {
                 response.headers.insert(SimpleHeader::from(name), vec![enc]);
             }
+            let handler = take_handler_headers(&response_headers);
+            merge_handler_headers(&mut response.headers, handler, encoding_header);
             response.body = Some(SendSafeBody::Bytes(Vec::new()));
             sink.whole(response).await
         }
@@ -1226,6 +1238,83 @@ pub(crate) fn blank_response(request: &SimpleIncomingRequest) -> SimpleOutgoingR
         headers: SimpleHeaders::new(),
         body: None,
         trailers: SimpleHeaders::new(),
+    }
+}
+
+/// Take the header map a handler installed with `MessageSink::set_headers`.
+///
+/// The slot holds one map, and one response head uses it. The call replaces the
+/// slot with `None`, so a second head cannot reuse the map. A slot with no map
+/// yields an empty map.
+pub(crate) fn take_handler_headers(slot: &Arc<Mutex<Option<SimpleHeaders>>>) -> SimpleHeaders {
+    slot.lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .take()
+        .unwrap_or_default()
+}
+
+/// The response header a protocol uses to advertise streaming compression.
+///
+/// The pump keeps this header at the protocol value: a handler value would
+/// advertise a compression the writer task did not apply.
+pub(crate) fn protocol_encoding_header(protocol: &dyn ProtocolHandler) -> &'static str {
+    match protocol.kind() {
+        ProtocolKind::Connect => {
+            crate::shared::protocol::connect::constants::HEADER_STREAMING_CONTENT_ENCODING
+        }
+        ProtocolKind::Grpc => crate::shared::protocol::grpc::constants::HEADER_ENCODING,
+        ProtocolKind::GrpcWeb => crate::shared::protocol::grpc_web::constants::HEADER_ENCODING,
+    }
+}
+
+/// Whether `name` is a framing header the protocol sets itself.
+fn is_framing_header(name: &SimpleHeader, encoding_header: &str) -> bool {
+    let wire = name.to_string();
+    wire.eq_ignore_ascii_case("content-type") || wire.eq_ignore_ascii_case(encoding_header)
+}
+
+/// Merge the handler's headers into a response head.
+///
+/// The protocol value wins for `content-type` and for the streaming encoding
+/// header. A handler value for either is logged and dropped.
+pub(crate) fn merge_handler_headers(
+    head: &mut SimpleHeaders,
+    handler: SimpleHeaders,
+    encoding_header: &str,
+) {
+    for (name, values) in handler {
+        if is_framing_header(&name, encoding_header) {
+            tracing::warn!(
+                header = %name,
+                "handler response header discarded: the protocol sets this framing header"
+            );
+            continue;
+        }
+        head.insert(name, values);
+    }
+}
+
+/// Append the handler's headers to a wire header list (h2 and h3).
+///
+/// One entry is added for each value. The same framing rule as
+/// [`merge_handler_headers`] applies.
+pub(crate) fn extend_handler_headers(
+    headers: &mut Vec<(Bytes, Bytes)>,
+    handler: SimpleHeaders,
+    encoding_header: &str,
+) {
+    for (name, values) in handler {
+        if is_framing_header(&name, encoding_header) {
+            tracing::warn!(
+                header = %name,
+                "handler response header discarded: the protocol sets this framing header"
+            );
+            continue;
+        }
+        let wire = name.to_string();
+        for value in values {
+            headers.push((Bytes::from(wire.clone()), Bytes::from(value)));
+        }
     }
 }
 
@@ -1723,6 +1812,7 @@ async fn run_streaming_h2(
         conn,
         reader_task,
         writer_task,
+        response_headers,
     } = exchange;
 
     // Forward inbound DATA frames as they arrive — no buffering of the body. A
@@ -1746,7 +1836,9 @@ async fn run_streaming_h2(
     // The writer task compressed per this same negotiation — a flagged envelope
     // is only valid when the encoding header goes out with the response HEADERS.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
+    let encoding_header = protocol_encoding_header(protocol);
     let pump_content_type = content_type.clone();
+    let pump_headers = Arc::clone(&response_headers);
     let pump = async {
         let resp_rx = resp_rx;
         let mut opened = false;
@@ -1760,6 +1852,8 @@ async fn run_streaming_h2(
                 if let Some((name, enc)) = &response_encoding {
                     headers.push((Bytes::from(name.clone()), Bytes::from(enc.clone())));
                 }
+                let handler = take_handler_headers(&pump_headers);
+                extend_handler_headers(&mut headers, handler, encoding_header);
                 tx.send(H2Frame::Headers {
                     status: 200,
                     headers,
@@ -1887,6 +1981,8 @@ async fn run_streaming_h2(
             );
         }
     }
+    let handler = take_handler_headers(&response_headers);
+    merge_handler_headers(&mut response.headers, handler, encoding_header);
     send_whole_response(tx, response).await
 }
 

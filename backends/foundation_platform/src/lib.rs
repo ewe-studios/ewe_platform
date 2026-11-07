@@ -4,6 +4,16 @@
 //! On Tauri hosts it wraps `tauri::Builder` with a session backbone, route policy engine,
 //! capability registry, cache manager, transport lanes, and `WebView` stack
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
+//!
+//! # Wasm engine gate
+//!
+//! The Wasm engine (wasmtime) compiles WebAssembly (Wasm) with a just-in-time (JIT)
+//! compiler. iOS, tvOS and watchOS refuse executable memory outside a signed code region,
+//! so wasmtime cannot work there. This crate enables the engine by default, and it keeps
+//! the engine out of those targets. An app that names `WasmtimeResponder`, `WasmtimeShell`,
+//! `wasmtime_app`, `PlatformSession::register_wasmtime` or
+//! `PlatformSession::wasmtime_shell` does not compile for them. To run Wasm on iOS, use an
+//! interpreter runtime such as `wasmi`.
 
 pub mod backend;
 mod builder;
@@ -26,6 +36,10 @@ pub mod route_handler;
 mod session;
 pub mod stack;
 mod types;
+#[cfg(all(
+    feature = "wasmtime",
+    not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
+))]
 mod wasmtime_responder;
 pub mod window;
 pub mod worker;
@@ -57,6 +71,10 @@ pub use stack::{
     PooledWebView, PreloadEntry, SlotState, StackConfig, WebViewOps, WebViewPool, WebViewSlot,
     WebViewStack, WebViewState,
 };
+#[cfg(all(
+    feature = "wasmtime",
+    not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
+))]
 pub use wasmtime_responder::{wasmtime_app, WasmtimeResponder, WasmtimeShell};
 pub use window::{NoopWindowOps, WindowManager, WindowOps};
 pub use worker::{WorkerChannel, WorkerReceiver, WorkerRegistry};

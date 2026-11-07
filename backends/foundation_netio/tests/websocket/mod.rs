@@ -5,6 +5,7 @@ mod echo_tests;
 mod error_tests;
 mod frame_tests;
 mod handshake_tests;
+mod idle_timeout_tests;
 mod message_tests;
 mod reconnecting_task_tests;
 mod reconnection_tests;

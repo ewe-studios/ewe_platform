@@ -96,7 +96,11 @@ pub trait ConnReceiver: Send {
 
 /// The send half of a [`HandlerConn`].
 pub trait ConnSender: Send {
-    /// Send response headers (idempotent until the first frame).
+    /// Install the response head. The call stores the map for the pump, which
+    /// merges it into the response head.
+    ///
+    /// The head can go out only once. A second call, or a call after the first
+    /// frame, fails with `Code::FailedPrecondition`.
     fn send_headers(&mut self, headers: SimpleHeaders) -> BoxFuture<'_, ConnectResult<()>>;
     /// Hand one already-encoded response frame to the response pipe (the writer
     /// task envelopes/compresses). Parks while the pipe is full.
@@ -241,13 +245,19 @@ struct PipeConnSender {
 impl ConnSender for PipeConnSender {
     fn send_headers(&mut self, headers: SimpleHeaders) -> BoxFuture<'_, ConnectResult<()>> {
         Box::pin(async move {
-            if !self.headers_sent {
-                *self
-                    .response_headers
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers);
-                self.headers_sent = true;
+            if self.headers_sent {
+                // The head is already fixed: the first `set_headers` call, or the
+                // first frame, went out. A later map cannot reach the wire.
+                return Err(ConnectError::failed_precondition(
+                    "response headers must be set before the first message",
+                )
+                .into());
             }
+            *self
+                .response_headers
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers);
+            self.headers_sent = true;
             Ok(())
         })
     }

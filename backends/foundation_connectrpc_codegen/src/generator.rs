@@ -527,14 +527,14 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             MethodKind::BidiStream => {
                 out.push_str("    /// Bidirectional streaming RPC.\n");
                 out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)\n"
                 ));
                 out.push_str(&format!(
                     "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
-                    "        self.{method_name}.bidi_stream(ctx, reqs).await\n"
+                    "        self.{method_name}.bidi_stream(ctx).await\n"
                 ));
                 out.push_str("    }\n\n");
             }
@@ -583,7 +583,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)\n"
                 ));
                 out.push_str(&format!(
                     "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>;\n"
@@ -644,14 +644,14 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)\n"
                 ));
                 out.push_str(&format!(
                     "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
-                    "        self.{method_name}.bidi_stream(ctx, reqs).await\n"
+                    "        self.{method_name}.bidi_stream(ctx).await\n"
                 ));
                 out.push_str("    }\n");
             }

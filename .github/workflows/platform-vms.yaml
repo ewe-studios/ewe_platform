@@ -109,13 +109,19 @@ jobs:
         rustup toolchain install "$toolchain" --no-self-update
         rustup target add --toolchain "$toolchain" aarch64-apple-ios aarch64-linux-android
         export RUSTUP_TOOLCHAIN="$toolchain"
-        # The iOS check needs the iOS SDK. Only full Xcode has it; the Command Line Tools do not.
-        dev_dir="$(xcode-select -p)"
-        [ -d "$dev_dir/Platforms/iPhoneOS.platform" ] || dev_dir=/Applications/Xcode.app/Contents/Developer
-        [ -d "$dev_dir/Platforms/iPhoneOS.platform" ] || { echo "error: install full Xcode on the VM disk; the iOS SDK is missing" >&2; exit 1; }
-        export DEVELOPER_DIR="$dev_dir"
+        # provision.sh installed the pinned iOS SDK and recorded where it is.
+        . ci/platform-images/images/macos/guest/components.env
+        [ -n "${IOS_SDK_VERSION:-}" ] || { echo "error: components.env has no IOS_SDK_VERSION" >&2; exit 1; }
+        status=/usr/local/platform-images/status/ios-sdk.txt
+        [ -f "$status" ] || { echo "error: $status is missing; provision.sh did not install the iOS SDK" >&2; exit 1; }
+        sdk_version="$(sed -n 's/^version=//p' "$status")"
+        [ "$sdk_version" = "$IOS_SDK_VERSION" ] || { echo "error: the VM has iOS SDK $sdk_version, the pin is $IOS_SDK_VERSION" >&2; exit 1; }
+        export DEVELOPER_DIR="$(sed -n 's/^developer_dir=//p' "$status")"
+        [ -n "$DEVELOPER_DIR" ] || { echo "error: $status has no developer_dir line" >&2; exit 1; }
         # Check the declared iOS module. LLVM is required: Cranelift cannot build ring for iOS.
         cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
+        # Prove the feature 09 gating: foundation_platform must build for iOS.
+        cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
         # Install the Android NDK that cc-rs needs, then check the declared Android module.
         bash scripts/setup/android-ndk.sh
         env CC_aarch64-linux-android="$PWD/scripts/android-ndk/aarch64-linux-android" \

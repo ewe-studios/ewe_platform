@@ -29,8 +29,10 @@ use foundation_netio::shared::http::{
 };
 use futures::StreamExt;
 
-use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
-use crate::shared::context::{Peer, Spec, StreamType};
+use crate::shared::compression::{
+    negotiate_compression, response_decompressor, CompressionRegistry, Compressor,
+};
+use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
@@ -531,17 +533,18 @@ async fn read_grpc_web_response(
     mut stream: TransportStream,
     tx: PipeSender<Frame>,
     publish: HeadPublisher,
-    config: ClientExchangeConfig,
+    cancel: CancelSignal,
+    compression: &CompressionRegistry,
+    read_max_bytes: usize,
     text: bool,
 ) -> ConnectResult<()> {
-    let cancel = config.cancel;
     let Some(headers) = open_response_stream(
         &mut stream.head,
         &mut stream.recv_body,
         &tx,
         &publish,
         &cancel,
-        config.read_max_bytes,
+        read_max_bytes,
     )
     .await
     else {
@@ -560,11 +563,20 @@ async fn read_grpc_web_response(
         let _ = tx.close();
         return Ok(());
     }
+    // Select the decompressor from the response head before the first frame.
+    let decompressor =
+        match response_decompressor(&headers, &[constants::HEADER_ENCODING], compression) {
+            Ok(decompressor) => decompressor,
+            Err(e) => {
+                fail_stream(&tx, &e, &cancel).await;
+                return Err(e);
+            }
+        };
     match read_frames(
         stream.recv_body,
         &tx,
-        None,
-        config.read_max_bytes,
+        decompressor,
+        read_max_bytes,
         text,
         true,
     )
@@ -734,6 +746,7 @@ impl ProtocolHandler for GrpcWebHandler {
             conn: Box::new(conn),
             reader_task: reader,
             writer_task: writer,
+            response_headers: ends.response_headers,
         })
     }
 
@@ -954,9 +967,15 @@ impl ProtocolClient for GrpcWebClient {
         Bytes::from(envelope)
     }
 
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
-        // gRPC-Web unary response: single envelope frame. Strip the header;
-        // same contract as gRPC — compressed responses are not yet handled.
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // gRPC-Web unary response: single envelope frame. Strip the header and
+        // decode the payload; the decompressor comes from `grpc-encoding`.
         if body.is_empty() {
             return Ok(Bytes::new());
         }
@@ -967,13 +986,8 @@ impl ProtocolClient for GrpcWebClient {
         let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
         let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
         let payload = body.slice(ENVELOPE_HEADER_LEN..end);
-        if flags & Envelope::FLAG_COMPRESSED != 0 {
-            return Err(ConnectError::internal(
-                "compressed gRPC-Web unary response — see gRPC decode_unary_response",
-            )
-            .into());
-        }
-        Ok(payload)
+        let decompressor = response_decompressor(head, &[constants::HEADER_ENCODING], compression)?;
+        decompress_if(flags, payload, &decompressor, read_max_bytes)
     }
 
     fn new_conn(
@@ -981,7 +995,7 @@ impl ProtocolClient for GrpcWebClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) = PipeClientConn::new(
             spec.clone(),
@@ -993,10 +1007,19 @@ impl ProtocolClient for GrpcWebClient {
         let publish = ends.head_publisher();
         let head_wake = ends.response_head_wake;
         let text = self.text;
+        // The reader task is `'static`; the registry is cloned into it rather
+        // than borrowing `config`.
+        let compression = config.compression.clone();
+        let read_max_bytes = config.read_max_bytes;
+        let cancel = config.cancel;
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
-            EnvelopeWriter::new(None, 0, 0),
+            EnvelopeWriter::new(
+                config.send_compressor,
+                config.compress_min_bytes,
+                config.send_max_bytes,
+            ),
             text,
             false,
         ));
@@ -1004,7 +1027,16 @@ impl ProtocolClient for GrpcWebClient {
             // One sender keeps the wake pipe open until the reader ends; the
             // publisher holds the other.
             let _head_wake = head_wake;
-            read_grpc_web_response(stream, ends.response_tx, publish, config, text).await
+            read_grpc_web_response(
+                stream,
+                ends.response_tx,
+                publish,
+                cancel,
+                &compression,
+                read_max_bytes,
+                text,
+            )
+            .await
         });
 
         Ok(ClientExchange {

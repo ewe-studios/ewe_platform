@@ -91,6 +91,9 @@ fn header<'a>(headers: &'a [(Bytes, Bytes)], name: &[u8]) -> Option<&'a [u8]> {
 /// The stream arrives before its HEADERS (a reserved, unknown frame goes
 /// first, RFC 9114 §7.2.8): the first polls see the stream but no HEADERS yet.
 /// The stream must still be there when they arrive.
+///
+/// This test is the regression pin for issue #273: the accepted stream stays
+/// in `pending_accept` across the polls that return `Pending`.
 #[test]
 fn a_stream_accepted_before_its_headers_is_not_lost() {
     let (mut sq, mut cq, mut server, mut client) = h3_pair();

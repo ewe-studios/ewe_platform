@@ -55,7 +55,7 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.10",
 # The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
 # compiled in. The native code is the only user.
-foundation_netio = { path = "../foundation_netio", version = "0.0.8", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.9", default-features = false }
 # Pure-Rust Noise Protocol implementation for the seed-authenticated bootstrap channel
 # (and the optional identity-pinned mTLS channel). `default-resolver` selects the
 # RustCrypto backends (x25519-dalek / ChaCha20-Poly1305 / BLAKE2s) — no C crypto, so

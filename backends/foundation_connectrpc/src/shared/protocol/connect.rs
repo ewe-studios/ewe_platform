@@ -28,7 +28,9 @@ use foundation_netio::shared::http::{
 };
 use futures::StreamExt;
 
-use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
+use crate::shared::compression::{
+    negotiate_compression, response_decompressor, CompressionRegistry, Compressor,
+};
 use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
@@ -284,15 +286,27 @@ async fn read_connect_response(
     resp_tx: PipeSender<Frame>,
     publish: HeadPublisher,
     cancel: CancelSignal,
+    compression: &CompressionRegistry,
     read_max: usize,
 ) -> ConnectResult<()> {
-    if open_response_stream(&mut head, &mut body, &resp_tx, &publish, &cancel, read_max)
-        .await
-        .is_none()
-    {
+    let Some(response_headers) =
+        open_response_stream(&mut head, &mut body, &resp_tx, &publish, &cancel, read_max).await
+    else {
         return Ok(());
-    }
-    match read_response_frames(&mut body, &resp_tx, None, read_max).await {
+    };
+    // Select the decompressor from the response head before the first frame.
+    let decompressor = match response_decompressor(
+        &response_headers,
+        &[constants::HEADER_STREAMING_CONTENT_ENCODING],
+        compression,
+    ) {
+        Ok(decompressor) => decompressor,
+        Err(e) => {
+            fail_stream(&resp_tx, &e, &cancel).await;
+            return Err(e);
+        }
+    };
+    match read_response_frames(&mut body, &resp_tx, decompressor, read_max).await {
         Ok(Some(end)) => {
             // Delivered, the consumer gone, or the call cancelled.
             let _ = race(resp_tx.send(end), cancel.cancelled()).await;
@@ -531,6 +545,7 @@ impl ProtocolHandler for ConnectHandler {
             conn: Box::new(conn),
             reader_task: reader,
             writer_task: writer,
+            response_headers: ends.response_headers,
         })
     }
 
@@ -751,10 +766,18 @@ impl ProtocolClient for ConnectClient {
         Bytes::copy_from_slice(body)
     }
 
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
-        // Connect unary: bare body. Compression handled via Content-Encoding
-        // header (already decompressed by the transport if applicable).
-        Ok(body)
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // Connect unary: bare body, compressed via `content-encoding`.
+        match response_decompressor(head, &["content-encoding"], compression)? {
+            Some(compressor) => Ok(Bytes::from(compressor.decompress(&body, read_max_bytes)?)),
+            None => Ok(body),
+        }
     }
 
     fn new_conn(
@@ -762,7 +785,7 @@ impl ProtocolClient for ConnectClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) = PipeClientConn::new(
             spec.clone(),
@@ -771,11 +794,18 @@ impl ProtocolClient for ConnectClient {
             DEFAULT_PIPE_DEPTH,
         );
 
-        // No compression on the client tasks here (negotiation resolves from the
-        // response head in the client core, F24); identity by default.
+        // The reader task is `'static`; the registry is cloned into it rather
+        // than borrowing `config`.
+        let compression = config.compression.clone();
+        let read_max_bytes = config.read_max_bytes;
+        let cancel = config.cancel;
         let publish = ends.head_publisher();
         let head_wake = ends.response_head_wake;
-        let writer_impl = EnvelopeWriter::new(None, 0, 0);
+        let writer_impl = EnvelopeWriter::new(
+            config.send_compressor,
+            config.compress_min_bytes,
+            config.send_max_bytes,
+        );
         let writer: BoxedTask = Box::pin(write_request_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
@@ -790,8 +820,9 @@ impl ProtocolClient for ConnectClient {
                 stream.recv_body,
                 ends.response_tx,
                 publish,
-                config.cancel,
-                config.read_max_bytes,
+                cancel,
+                &compression,
+                read_max_bytes,
             )
             .await
         });

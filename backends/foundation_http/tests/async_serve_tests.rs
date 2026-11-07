@@ -8,10 +8,13 @@
 
 #![cfg(feature = "multi")]
 
+use std::future::Future;
 use std::io::{Read, Write};
 use std::net::TcpStream;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
@@ -151,7 +154,161 @@ impl Serve for AsyncEndHandler {
 }
 
 // ---------------------------------------------------------------------------
+// Worker-parking handler
+
+/// A one-shot gate an async handler awaits until the test opens it.
+///
+/// `Gate::open` sets the flag and wakes every waiting task. The waiting
+/// futures park, so they hold no worker while the gate is closed. The read of
+/// the flag and the registration of a waker both happen under the lock, so a
+/// wake cannot be lost between them.
+#[derive(Default)]
+struct Gate {
+    open: AtomicBool,
+    wakers: Mutex<Vec<Waker>>,
+}
+
+impl Gate {
+    /// Open the gate and wake every task that waits on it.
+    fn open(&self) {
+        self.open.store(true, Ordering::SeqCst);
+        let wakers = std::mem::take(
+            &mut *self
+                .wakers
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner),
+        );
+        for waker in wakers {
+            waker.wake();
+        }
+    }
+}
+
+/// A future that resolves when its [`Gate`] opens.
+struct GateWait(Arc<Gate>);
+
+impl Future for GateWait {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.0.open.load(Ordering::SeqCst) {
+            return Poll::Ready(());
+        }
+        let mut wakers = self
+            .0
+            .wakers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        // Re-check under the lock: `Gate::open` may have run between the first
+        // check and the lock, in which case its wake saw no waker to wake.
+        if self.0.open.load(Ordering::SeqCst) {
+            return Poll::Ready(());
+        }
+        if !wakers.iter().any(|kept| kept.will_wake(cx.waker())) {
+            wakers.push(cx.waker().clone());
+        }
+        Poll::Pending
+    }
+}
+
+/// Counts the long RPC futures that have started and are waiting on the gate.
+type StartedCount = Arc<AtomicUsize>;
+
+/// `GET /long` returns `Async` at once and writes only after the gate opens.
+/// This is the shape of a long RPC: the connection task parks on the future.
+struct LongRpcHandler {
+    gate: Arc<Gate>,
+    started: StartedCount,
+}
+
+impl ServeFactory for LongRpcHandler {
+    fn create(bag: &ContextBag) -> Self {
+        Self {
+            gate: bag
+                .get_cloned::<Arc<Gate>>()
+                .expect("the test stores the gate in the context bag"),
+            started: bag
+                .get_cloned::<StartedCount>()
+                .expect("the test stores the started counter in the context bag"),
+        }
+    }
+}
+
+impl Serve for LongRpcHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        _req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        let gate = Arc::clone(&self.gate);
+        let started = Arc::clone(&self.started);
+        ConnectionResult::Async(Box::pin(async move {
+            started.fetch_add(1, Ordering::SeqCst);
+            GateWait(gate).await;
+            match send_text(conn, 200, "long").split() {
+                Ok(future) => future.await,
+                Err(outcome) => outcome,
+            }
+        }))
+    }
+}
+
+/// `GET /short` answers at once with a small response.
+struct ShortHandler;
+
+impl ServeFactory for ShortHandler {
+    fn create(_bag: &ContextBag) -> Self {
+        Self
+    }
+}
+
+impl Serve for ShortHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        _req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        send_text(conn, 200, "short")
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Harness
+
+/// Start a server that serves `GET /long` and `GET /short`, with the gate and
+/// the started counter in the context bag. Returns the same tuple as
+/// [`start_server`].
+fn start_gated_server(
+    gate: Arc<Gate>,
+    started: StartedCount,
+) -> (
+    std::net::SocketAddr,
+    Arc<ShutdownSignal>,
+    std::sync::mpsc::Receiver<()>,
+) {
+    let mut app = HttpApp::new_serve();
+    app.context().store(gate);
+    app.context().store(started);
+    app.route::<LongRpcHandler>(SimpleMethod::GET, "/long");
+    app.route::<ShortHandler>(SimpleMethod::GET, "/short");
+
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("local_addr");
+    let config = ServerConfig::defaults()
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
+    let server = HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), config);
+
+    let shutdown_thread = shutdown.clone();
+    let (done_tx, done_rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        server.serve_with_listener(&listener, &shutdown_thread);
+        let _ = done_tx.send(());
+    });
+    (addr, shutdown, done_rx)
+}
 
 /// Start a server with `handler` on `GET /async`; returns its address, the
 /// shutdown signal, and a receiver that fires once `serve_with_listener` returns.
@@ -183,7 +340,13 @@ fn start_server<H: ServeFactory + 'static>() -> (
 
 /// Read from `stream` until `needle` appears in the accumulated bytes.
 fn read_until(stream: &mut TcpStream, needle: &str) -> String {
-    stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
+    read_until_within(stream, needle, Duration::from_secs(5))
+}
+
+/// Read from `stream` until `needle` appears or `timeout` expires. The read
+/// timeout is the hard bound: a stalled peer returns the bytes read so far.
+fn read_until_within(stream: &mut TcpStream, needle: &str, timeout: Duration) -> String {
+    stream.set_read_timeout(Some(timeout)).ok();
     let mut acc = String::new();
     let mut buf = [0u8; 4096];
     while !acc.contains(needle) {
@@ -305,6 +468,90 @@ fn async_result_take_and_close() {
         assert!(
             closed,
             "{path} must end the connection task and close the socket"
+        );
+    }
+
+    stop(&shutdown, &done_rx);
+}
+
+/// A long RPC that returns `Async` does not hold a valtron worker: short
+/// requests are still served while the RPC waits (#254).
+///
+/// The multi-threaded valtron pool splits its threads and keeps at least two
+/// task workers, so this case fills the pool with four parked RPCs. A handler
+/// that held its worker would start only two of them and then queue the rest,
+/// including the short request. Parking starts all four and leaves the workers
+/// free, so the short request answers before the gate opens.
+///
+/// The started-counter wait and the short response read both have a hard
+/// upper bound, so a regression fails with a message instead of hanging.
+#[foundation_macros::valtron_test(seed = 633, threads = 1, timeout = 60_000)]
+fn a_long_rpc_does_not_block_a_short_request() {
+    // More parked RPCs than any task worker count this pool can have.
+    const PARKED_RPCS: usize = 4;
+
+    let gate = Arc::new(Gate::default());
+    let started: StartedCount = Arc::new(AtomicUsize::new(0));
+    let (addr, shutdown, done_rx) = start_gated_server(Arc::clone(&gate), Arc::clone(&started));
+
+    // Open every long RPC on its own connection and write its request.
+    let mut long_streams: Vec<TcpStream> = (0..PARKED_RPCS)
+        .map(|_| {
+            let mut stream = TcpStream::connect(addr).expect("connect long");
+            stream
+                .write_all(b"GET /long HTTP/1.1\r\nHost: t\r\n\r\n")
+                .expect("write long request");
+            stream
+        })
+        .collect();
+
+    // Wait until every long RPC future has started. On the defect only the
+    // task-worker count can start; the rest wait for a worker, so this bound
+    // fails with a clear message.
+    let start_deadline = Instant::now() + Duration::from_secs(5);
+    while started.load(Ordering::SeqCst) < PARKED_RPCS {
+        let running = started.load(Ordering::SeqCst);
+        assert!(
+            Instant::now() < start_deadline,
+            "only {running} of {PARKED_RPCS} long RPCs started; a parked RPC must not hold a worker"
+        );
+        std::thread::sleep(Duration::from_millis(5));
+    }
+
+    // The gate is still closed. A short request on a new connection must answer
+    // within the hard read bound.
+    let t0 = Instant::now();
+    let mut short = TcpStream::connect(addr).expect("connect short");
+    short
+        .write_all(b"GET /short HTTP/1.1\r\nHost: t\r\n\r\n")
+        .expect("write short request");
+    let response = read_until_within(&mut short, "short", Duration::from_secs(2));
+    let elapsed = t0.elapsed();
+
+    assert!(
+        response.contains("HTTP/1.1 200"),
+        "the short request should be served while the long RPCs wait: {response:?}"
+    );
+    assert!(
+        response.contains("short"),
+        "short response body: {response:?}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(2),
+        "the short request took {elapsed:?} while a long RPC waited; its future held a worker"
+    );
+    assert!(
+        started.load(Ordering::SeqCst) >= PARKED_RPCS,
+        "every long RPC must still be waiting on the gate"
+    );
+
+    // Open the gate: all long RPCs now write their response and close.
+    gate.open();
+    for stream in &mut long_streams {
+        let response = read_until(stream, "long");
+        assert!(
+            response.contains("HTTP/1.1 200"),
+            "long response: {response:?}"
         );
     }
 
