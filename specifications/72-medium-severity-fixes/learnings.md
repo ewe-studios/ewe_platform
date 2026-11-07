@@ -3,6 +3,18 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 10 (2026-11-07)
+
+- macOS reports an expired `SO_RCVTIMEO` as `WouldBlock`, so a helper that maps both cases to
+  one error cannot report a timeout. A typed `ReadError` is the only way to keep the two
+  apart, and the test needs the timeout to be visible.
+- A progress assertion needs a synchronization point. `mpsc` ready channels replace the sleep
+  and the absolute duration, and the test can then hold the slow uploads open for as long as
+  it needs.
+- The test found a real production defect: the Turso store rejects a second concurrent
+  statement with "concurrent use forbidden" (#357, high). Two keychain workers are enough to
+  hit it. The test serializes its uploads to stay green; the store still needs the fix.
+
 ## Feature 09 (2026-11-07)
 
 - `mpp::Receiver` is a plain queue receiver with no readiness. A task that parks on a queue

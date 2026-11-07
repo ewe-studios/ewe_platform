@@ -1,6 +1,6 @@
 ---
 feature: "The keychain streamed-body test reports timeouts and asserts progress"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_keychain"]
@@ -49,12 +49,12 @@ allows one use at a time, but feature 51 added the `ConnGate`.
 
 ## 5. Tasks
 
-- [ ] Read `tests/streamed_body.rs` and the helper.
-- [ ] Add the timeout error mapping.
-- [ ] Rewrite the assertion to a progress check.
-- [ ] Remove the stale comment.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #197 in the PR body.
+- [x] Read `tests/streamed_body.rs` and the helper.
+- [x] Add the timeout error mapping.
+- [x] Rewrite the assertion to a progress check.
+- [x] Remove the stale comment.
+- [x] Run the verify commands. Record the results.
+- [x] Close #197 in the PR body.
 
 ## 6. Tests
 

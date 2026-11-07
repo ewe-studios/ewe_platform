@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 10 (keychain streamed body, #197) is in review as PR #359. It is a
+  test-only change to `tests/streamed_body.rs`: `read_response` returns a typed `ReadError`
+  and maps an expired `SO_RCVTIMEO` to `Timeout` on macOS. The test holds both upload bodies
+  open with `mpsc` ready channels, asserts the third request answers before the release, and
+  releases the uploads one at a time. The stale one-use comment is gone. Twenty consecutive
+  runs pass on macOS and 20 more in the Linux CI image. The sensitivity check broke the
+  property on purpose and the test failed 3/3 at the progress assertion. Strict clippy stops
+  on #330 and #323. Filed #357 (high, two concurrent Turso reads fail with "concurrent use
+  forbidden") and #358 (low, `start_server` sleeps 150 ms instead of synchronizing).
+
 - 2026-11-07: feature 09 (toolings clock and wake, #201, #203) is in review as PR #349.
   `mpp::Receiver` had no wakeable form, so `foundation_core` gains
   `mpp::Receiver::readiness()` and its senders wake the parked task. The builder task parks on
@@ -113,7 +123,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
 - **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
 - **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
-- **10-keychain-macos-flake** — not started (#197)
+- **10-keychain-macos-flake** — in review, PR #359 (#197)
 - **11-ci-mobile-target-builds** — not started (#196)
 - **12-ci-free-runner-disk** — not started (#194)
 
