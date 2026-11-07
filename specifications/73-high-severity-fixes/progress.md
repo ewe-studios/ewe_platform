@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 03 implemented (#258 fixed; #253 verified) on
+  `spec73/f03-connectrpc-h3-trailers-and-headers`, commit `190aaf5a8`, merged as `2ca84edf5`.
+  `HandlerExchange` carries the handler header slot; the h1/POST, h2 and h3 pumps merge it
+  into the response head. A late `set_headers` is `FailedPrecondition` with a documented rule.
+  Five new tests; three failed on the old code. Counts: default 273, `--features h3` 291,
+  `foundation_proxy` 130. `foundation_connectrpc` 0.0.10. Filed #389 (medium: other framing
+  headers are not reserved) and #390, #391, #392 (low).
+
 - 2026-11-07: feature 06 verified (#273, closed) on `spec73/f06-h3-webtransport-accept`,
   commit `30dfe9bad`, merged as `1834f0fcb`. The three cases hold: pending HEADERS keeps the
   stream (`connection.rs:487`), an ordinary request returns its headers (473-480), a pending
@@ -122,7 +130,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **02-connectrpc-client-correctness** — implemented (#259, #261; #260 is fixed and closes
   with evidence). Commit `05bef17fd`, merged as `832897fba`.
   `features/02-connectrpc-client-correctness/feature.md`
-- **03-connectrpc-h3-trailers-and-headers** — pending (#258; #253 is fixed). Design complete.
+- **03-connectrpc-h3-trailers-and-headers** — complete (#258 fixed; #253 verified). Commit
+  `190aaf5a8`, merged as `2ca84edf5`.
   `features/03-connectrpc-h3-trailers-and-headers/feature.md`
 - **04-http-connection-correctness** — complete (#288; #284 confirmed fixed). Commits
   `a536471a8` and `0236e7e2a`, merged as `dec71174d`.

@@ -26,6 +26,17 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The four high fix branches (#334, #340, #347, #348) are not spec 73 features. They close
   before the spec starts so that the spec's crates start from a clean master.
 
+## Feature 03 (2026-11-07)
+
+- Three transports build their own response head. Carry the handler map to all three through
+  `HandlerExchange` and keep one merge helper. Do not copy the merge into each pump.
+- The handler map is not trusted for framing. Reserve the content type and the encoding header
+  at merge. #389 records the other framing headers that are still open.
+- A `set_headers` after the first message cannot be represented on h1. A typed
+  `FailedPrecondition` is better than a silent drop.
+- The h3 tests are gated on `--features h3`. Run that feature set for every change to the h3
+  pump, or the change is not tested.
+
 ## Feature 06 (2026-11-07)
 
 - Cargo skips a test target with `required-features` and prints no warning. A verify command

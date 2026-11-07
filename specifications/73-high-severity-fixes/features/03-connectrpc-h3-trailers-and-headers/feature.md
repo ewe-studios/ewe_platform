@@ -1,6 +1,6 @@
 ---
 feature: "Send the gRPC status over h3 and send handler streaming headers"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 crates: ["foundation_connectrpc"]
@@ -143,3 +143,37 @@ cargo test --profile uat -p foundation_connectrpc
 - A header set after the first message fails with `FailedPrecondition`.
 - `foundation_connectrpc` and every consumer are bumped for the `HandlerExchange` change.
 - #253 is closed with the master evidence; #258 is closed by the fix.
+
+## 9. Result (2026-11-07)
+
+Branch `spec73/f03-connectrpc-h3-trailers-and-headers`, commit `190aaf5a8`, merged into
+`spec73/high-severity-fixes` as `2ca84edf5`.
+
+1. **#258, handler headers.** `HandlerExchange` carries
+   `response_headers: Arc<Mutex<Option<SimpleHeaders>>>`. Every server `new_conn` fills it from
+   the `PipeHandlerConn` ends. `take_handler_headers` replaces the slot with `None`. The h1/POST,
+   h2 and h3 pumps merge the map into the head after the content type and encoding. The
+   helpers `protocol_encoding_header`, `is_framing_header`, `merge_handler_headers` and
+   `extend_handler_headers` keep the rule in one place. A handler value for a framing header is
+   dropped; the protocol value wins.
+2. **Late header.** `PipeConnSender::send_headers` returns `Code::FailedPrecondition` with
+   "response headers must be set before the first message" when `headers_sent` is true. The
+   rule is documented on `MessageSink::set_headers` and on `ConnSender::send_headers`.
+3. **#253 evidence.** `native/h3_serve.rs:573` starts `send_h3_response`; line 577 takes the
+   trailers; lines 596-598 write the trailer HEADERS frame. `tests/h3_streaming_tests.rs`
+   asserts `grpc-status` for a unary call (line 518) and a streaming call (line 540). Both
+   pass with `--features h3`. No code changed for this issue.
+4. **Tests.** Five new tests in `tests/handler_headers_tests.rs`. Old-code run: the three
+   transport tests failed (header absent) and the late-header test failed (no error).
+   `a_handler_cannot_override_content_type` passes on the old code too, because the old code
+   dropped the map.
+5. **Counts.** Default: 273 passed. `--features h3`: 291 passed. `foundation_proxy`: 130
+   passed. Clippy `-D warnings` is clean for both crates.
+6. **Version.** `foundation_connectrpc` 0.0.10; `foundation_proxy` and
+   `foundation_deployment_docker` requirements follow; the workspace lock is regenerated.
+7. **Deviations.** The h3 test is gated on `--features h3`, like the existing h3 tests. The
+   late-header test drives `MessageSink` directly, because a typed handler cannot send and then
+   call `set_headers`. A second `set_headers` before any message also fails, per design 4.3.
+8. **New defects.** Filed #389 (medium: other framing headers are not reserved), #390 (low:
+   eight unused `close` results with `--features h3`), #391 (low: the proxy relay drops the
+   slot) and #392 (low: `headers_sent` is set before the first frame is accepted).
