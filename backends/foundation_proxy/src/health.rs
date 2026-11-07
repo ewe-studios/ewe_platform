@@ -351,6 +351,9 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
                 cancel: CancelSignal::new(),
                 read_max_bytes: 0,
                 compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc health exchange: {e}"))?;

@@ -577,22 +577,19 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let reqs = requirements(self.config.protocol.to_kind(), StreamType::ServerStream);
         check_compatible(&reqs, &self.transport.capabilities())?;
 
-        // Marshal the request.
+        // Marshal the request. The protocol writer compresses and flags the
+        // frame; sending compressed bytes here would mark them as plain.
         let request_codec = self.codecs.for_request(&self.config.codec_name)?;
-        let encoded = request_codec.marshal(&request.msg)?;
-        let (body, content_encoding) = compress_if(
-            &self.config.compression,
-            self.config.send_compression.as_deref(),
-            &encoded,
-        )?;
+        let body = request_codec.marshal(&request.msg)?;
 
-        // Build headers.
+        // Build headers. The header names the configured algorithm, so the peer
+        // negotiates the decompressor for the frames the writer sends.
         let mut headers = request.headers().clone();
         self.protocol.write_request_headers(
             StreamType::ServerStream,
             &mut headers,
             &self.config.codec_name,
-            content_encoding.as_deref(),
+            self.config.send_compression.as_deref(),
         );
         add_timeout_header(
             self.config.protocol,
@@ -625,7 +622,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let (mut sender, mut receiver) = exchange.conn.split();
 
         // Send the request frame and close.
-        sender.send(Bytes::from(body)).await?;
+        sender.send(body).await?;
         sender.close_send().await?;
 
         // Await the response head so the caller's `response_headers()` is sync-OK.
@@ -875,6 +872,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         stream: TransportStream,
         ctx: &Ctx,
     ) -> ConnectResult<ClientExchange> {
+        // Resolve the outgoing compressor once per call. `None` and `identity`
+        // mean that no frame is compressed. An unknown name is an internal
+        // configuration error, the same one the unary path reports.
+        let send_compressor = match self.config.send_compression.as_deref() {
+            None | Some("identity") => None,
+            Some(name) => Some(self.config.compression.get(name).cloned().ok_or_else(|| {
+                ConnectError::internal(format!("unknown compression algorithm: {name}"))
+            })?),
+        };
         self.protocol.new_conn(
             spec,
             headers,
@@ -883,6 +889,9 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 cancel: CancelSignal::linked(ctx.cancel_signal()),
                 read_max_bytes: self.config.limits.read_max_bytes,
                 compression: &self.config.compression,
+                send_compressor,
+                compress_min_bytes: self.config.limits.compress_min_bytes,
+                send_max_bytes: self.config.limits.send_max_bytes,
             },
         )
     }
