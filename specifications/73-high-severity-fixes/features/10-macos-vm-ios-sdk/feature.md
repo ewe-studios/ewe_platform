@@ -136,13 +136,24 @@ Add:
 
 ## 5. Tasks
 
-- [ ] Verify the failure on the current image. Record the output.
-- [ ] Fill section 4.
-- [ ] Update `provision.sh`.
-- [ ] Update the workflow.
-- [ ] Update the documentation.
-- [ ] Run the provisioning steps on the image, or record the CI run.
+- [ ] Verify the failure on the current image. Record the output. (Waits for a
+  VM run: this host cannot boot the macOS VM. The old workflow failed with
+  `error: install full Xcode on the VM disk; the iOS SDK is missing`.)
+- [x] Fill section 4.
+- [x] Update `provision.sh`.
+- [x] Update the workflow.
+- [x] Update the documentation.
+- [ ] Run the provisioning steps on the image, or record the CI run. (Waits for
+  the first `macos-ssh` run on the `apple-hardware` host.)
 - [ ] Close #355 in the PR body.
+
+**Waiting for the VM run.** The pin `IOS_SDK_VERSION=26.2` matches Xcode 26.3,
+the newest Xcode that runs on the macOS 15 guest (the image sets `VERSION="15"`).
+It is unverified on the VM until the first CI run. That run also proves
+`xcodebuild -downloadPlatform`, the `iphoneos26.2` check and
+`cargo check -p foundation_platform --target aarch64-apple-ios --profile uat`.
+Local checks pass: `bash -n`, the PyYAML parse and `actionlint`; `shellcheck`
+is not installed on this host.
 
 ## 6. Tests
 
