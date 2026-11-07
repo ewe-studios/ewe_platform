@@ -2,9 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-07: merges and rebases. The owner merged 12 feature PRs: #332 (03), #333 (01),
-  #337 (06), #338 (05), #344 (07), #345 (04), #349 (09), #352 (12), #356 (11), #359 (10),
-  #361 (13) and #362 (14). Only #339 (02) is still open; it is mergeable. Each merge moved
+- 2026-11-07: merges and rebases. The owner merged all 13 feature PRs: #332 (03), #333 (01),
+  #337 (06), #338 (05), #339 (02), #344 (07), #345 (04), #349 (09), #352 (12), #356 (11),
+  #359 (10), #361 (13) and #362 (14). Each merge moved
   master and made the other branches conflict on the same lines: the version of a crate in a
   manifest, the project templates, and the example lock files. Each branch was rebased onto
   master and resolved with one rule: keep the highest version of every crate, line by line.
@@ -160,7 +160,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 ## Feature status
 
 - **01-http-app-clock** — merged, PR #333 (#234)
-- **02-core-background-shutdown-deadline** — in review, PR #339 (#233), mergeable
+- **02-core-background-shutdown-deadline** — merged, PR #339 (#233)
 - **03-wireguard-hole-punch** — merged, PR #332 (#223)
 - **04-docker-container-clock** — merged, PR #345 (#220)
 - **05-wasm-wasi-time-source** — merged, PR #338 (#219)
@@ -176,11 +176,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Next steps
 
-1. Read CI on PRs #361 and #362 and the six fixed branches; send any remaining failure to a
-   fresh agent. Merge order matters for the templates: 01, 02 and 09 all change the same
-   `foundation_core`/`foundation_http` lines. After a merge, rebase the other branches and
-   keep the highest crate version.
-2. Feature 08 waits on the merge of PR #344. It is the only feature not started.
-3. Close each issue in the pull request that fixes it.
+1. Implement feature 08 (ptrace setregs and truncate, #209, #210). It was blocked by #344,
+   which is merged. The design is complete; a snapshot of master holds it.
+2. Check that every issue the merged PRs name is closed: #194, #196, #197, #201, #203,
+   #205–#208, #214, #219, #220, #223, #233, #234, #357, #358.
+3. The owner decided that a spec gets one PR, not one PR per feature. Spec 72 keeps its
+   shape, but future specs land features on one branch.
 
 _Created: 2026-11-07_
