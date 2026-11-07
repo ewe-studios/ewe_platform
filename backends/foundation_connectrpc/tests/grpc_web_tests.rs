@@ -230,6 +230,9 @@ fn roundtrip(text: bool) {
                 cancel: CancelSignal::new(),
                 read_max_bytes: 0,
                 compression: &registry,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .expect("client exchange");

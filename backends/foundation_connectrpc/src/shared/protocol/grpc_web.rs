@@ -1014,7 +1014,11 @@ impl ProtocolClient for GrpcWebClient {
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
-            EnvelopeWriter::new(None, 0, 0),
+            EnvelopeWriter::new(
+                config.send_compressor,
+                config.compress_min_bytes,
+                config.send_max_bytes,
+            ),
             text,
             false,
         ));

@@ -381,6 +381,9 @@ async fn connect_unary_to_grpc(
                 cancel: cancel.clone(),
                 read_max_bytes: 0,
                 compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc outbound exchange: {e}"))?;
@@ -562,6 +565,9 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
                 cancel: cancel.clone(),
                 read_max_bytes: 0,
                 compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc outbound exchange: {e}"))?;

@@ -800,7 +800,11 @@ impl ProtocolClient for ConnectClient {
         let cancel = config.cancel;
         let publish = ends.head_publisher();
         let head_wake = ends.response_head_wake;
-        let writer_impl = EnvelopeWriter::new(None, 0, 0);
+        let writer_impl = EnvelopeWriter::new(
+            config.send_compressor,
+            config.compress_min_bytes,
+            config.send_max_bytes,
+        );
         let writer: BoxedTask = Box::pin(write_request_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),

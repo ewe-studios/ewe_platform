@@ -19,6 +19,7 @@ pub mod connect;
 pub mod grpc;
 pub mod grpc_web;
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
@@ -26,7 +27,7 @@ use foundation_netio::shared::http::{
     SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
-use crate::shared::compression::CompressionRegistry;
+use crate::shared::compression::{CompressionRegistry, Compressor};
 use crate::shared::context::{CancelSignal, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::transport::{
@@ -282,6 +283,15 @@ pub struct ClientExchangeConfig<'a> {
     /// The compressors the client accepts, for the response head. The protocol
     /// reader picks the decompressor from it before the first frame.
     pub compression: &'a CompressionRegistry,
+    /// The compressor for outgoing request frames (`None` = identity). The
+    /// protocol writer applies it to each frame and sets the compressed flag.
+    pub send_compressor: Option<Arc<dyn Compressor>>,
+    /// The smallest payload the writer compresses (`0` = always compress).
+    /// Payloads below this size go out with the compressed flag clear.
+    pub compress_min_bytes: usize,
+    /// The largest request frame the writer sends, checked after compression
+    /// (`0` = unlimited). A larger frame fails with `ResourceExhausted`.
+    pub send_max_bytes: usize,
 }
 
 /// Start reading a streaming response: take its head, publish the headers for
