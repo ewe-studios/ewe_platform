@@ -57,6 +57,10 @@ pub enum WgError {
     #[display("config error: {_0}")]
     #[from(ignore)]
     Config(#[error(not(source))] String),
+
+    /// A hole punch failed and the session has no relay to fall back to.
+    #[display("hole punching failed and no relay is configured")]
+    NoRelayForPunchedSession,
 }
 
 impl From<WgError> for ErrorTrace<WgError> {

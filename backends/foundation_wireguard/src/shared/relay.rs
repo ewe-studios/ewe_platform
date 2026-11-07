@@ -16,6 +16,7 @@ use std::net::SocketAddr;
 
 use serde::{Deserialize, Serialize};
 
+use super::error::{WgError, WgResult};
 use super::membership::{PeerId, PeerRecord};
 
 /// Wire version for relay frames. Must be bumped if the format changes.
@@ -367,21 +368,34 @@ impl RelaySession {
     /// WHAT: Transition from `Direct` → `HolePunching` if endpoints are available,
     /// otherwise → `Relayed`. If already `Relayed`, stay there.
     ///
-    /// # Panics
-    /// Panics when the current path is `HolePunching` and `relay` is `None`: the
-    /// ladder has no next step without a relay.
-    pub fn on_direct_failure(&mut self, relay: Option<PeerId>) {
+    /// When the current path is `HolePunching` and no relay is provided, the
+    /// ladder has no next step. The session then falls back to `Disconnected`
+    /// (its documented terminal state for this case) and the call returns
+    /// [`WgError::NoRelayForPunchedSession`]. The caller decides what happens
+    /// next, for example logging the failure and no longer using the peer.
+    ///
+    /// # Errors
+    /// Returns [`WgError::NoRelayForPunchedSession`] when the current path is
+    /// `HolePunching` and `relay` is `None`.
+    pub fn on_direct_failure(&mut self, relay: Option<PeerId>) -> WgResult<()> {
         match self.path {
             ConnectivityPath::Direct => {
                 // Try hole-punch next; if we have a relay, pre-select it.
                 self.path = ConnectivityPath::HolePunching;
                 self.relay = relay;
+                Ok(())
             }
             ConnectivityPath::HolePunching => {
-                // Hole-punch failed; fall back to relay.
-                let r = relay.expect("relay peer id required for relay fallback");
-                self.path = ConnectivityPath::Relayed(r);
-                self.relay = Some(r);
+                // Hole-punch failed; fall back to relay when one exists.
+                if let Some(r) = relay {
+                    self.path = ConnectivityPath::Relayed(r);
+                    self.relay = Some(r);
+                    Ok(())
+                } else {
+                    self.path = ConnectivityPath::Disconnected;
+                    self.relay = None;
+                    Err(WgError::NoRelayForPunchedSession.into())
+                }
             }
             ConnectivityPath::Disconnected => {
                 // Not yet connected — go straight to relay if we have one.
@@ -389,6 +403,7 @@ impl RelaySession {
                     self.path = ConnectivityPath::Relayed(r);
                     self.relay = Some(r);
                 }
+                Ok(())
             }
             ConnectivityPath::Relayed(_) => {
                 // Already relayed; update the relay if a new one is provided.
@@ -396,6 +411,7 @@ impl RelaySession {
                     self.path = ConnectivityPath::Relayed(r);
                     self.relay = Some(r);
                 }
+                Ok(())
             }
         }
     }
