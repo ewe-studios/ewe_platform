@@ -3,6 +3,19 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 05 (2026-11-07)
+
+- Verify the premise of an issue before you design to it. #219 called `wasi_host.rs:41` an
+  extern-C ABI boundary; it was a plain Rust helper. The fix is much smaller than the issue
+  implies, and the ABI-argument shape was never needed.
+- `foundation_wasm` keeps its timer state in process-global statics and has no host struct, so
+  the host environment publishes its `Arc<dyn TimeSource>` into the module's existing install
+  point. The installed source is written only by `WasiHost::install`; a missing one is a typed
+  error, not a hidden global.
+- A crate that was never clippy-clean on its own files blocks its verify command. Seven small
+  lints had to be fixed in the crate before the feature could prove green; record them in the
+  PR so they are not mistaken for scope creep.
+
 ## Feature 06 (2026-11-07)
 
 - The tracker's real API is `connection_rate() -> u64`, not `current_rate() -> f64`. Read the

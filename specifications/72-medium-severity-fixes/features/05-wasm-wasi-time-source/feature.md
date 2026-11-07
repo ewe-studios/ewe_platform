@@ -1,6 +1,6 @@
 ---
 feature: "The WASI host takes its instant from a TimeSource, not the real clock"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_wasm"]
@@ -26,10 +26,10 @@ extern-C ABI boundary. Close issue
 
 ## 2. Problem
 
-`backends/foundation_wasm/src/wasi_host.rs:41` reads `Instant::now()` directly at the WASI
-extern-C ABI boundary. It is the one read that feature 134 left, marked with `// time-source:`.
-No Rust caller can pass a clock across an extern-C ABI, so the read cannot be injected through
-the current signature.
+`backends/foundation_wasm/src/wasi_host.rs:41` reads `Instant::now()` directly, marked with
+`// time-source:`. The issue calls this an extern-C ABI boundary; the real code is a plain
+private Rust helper whose callers are ordinary Rust functions. Only the `wasi_*` exports in
+`host_runtime.rs` cross the ABI, and an embedder, not our code, calls those.
 
 ## 3. Requirements
 
@@ -56,13 +56,13 @@ The time source is a trait object owned by the host environment struct, not a st
 
 ## 5. Tasks
 
-- [ ] Read `wasi_host.rs` and the host environment struct. Record how the extern-C function
-      reaches host state.
-- [ ] Add the time source and the builder method.
-- [ ] Replace the direct read. Remove the marker.
-- [ ] Add the regression tests.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #219 in the PR body.
+- [x] Read `wasi_host.rs` and the host environment struct. Record how the clock read reaches
+      host state.
+- [x] Add the time source and the builder method.
+- [x] Replace the direct read. Remove the marker.
+- [x] Add the regression tests.
+- [x] Run the verify commands. Record the results.
+- [x] Close #219 in the PR body.
 
 ## 6. Tests
 

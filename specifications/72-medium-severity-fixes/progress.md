@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 05 (WASI time source, #219) is in review as PR #338. `foundation_wasm`
+  gains a `TimeSource` trait and a `WasiHost` environment (`new().with_time_source(..).install()`,
+  `uninstall()`); a missing source is `WasiHostError::TimeSourceNotInstalled`. The clock-reading
+  functions return `Result` and never fall back to the real clock; the `wasi_*` exports map the
+  error to documented sentinels. The marker is gone and the time-source gate reports 0
+  violations. `foundation_wasm` is 0.0.7 with 27 consumer requirements updated. The premise in
+  the issue was wrong: the read was a plain Rust helper, not an extern-C boundary. Two `wasi`
+  tests pass and both fail with the old real-clock read restored. The strict clippy needed
+  seven small pre-existing lint fixes in `foundation_wasm` files, reported in the PR. Linux CI
+  could not run in the worktree (`link-submodules.nu` needs a lock file the worktree lacks);
+  GitHub CI is the proof.
+
 - 2026-11-07: feature 06 (netio load tracker, #214) is in review as PR #337. The rate now
   comes from connections since `last_calculation` over the injected clock's elapsed time, in
   `u128` fixed-point to avoid the f64 cast lints. `LoadTracker::connection_rate() -> u64` keeps
@@ -48,7 +60,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **02-core-background-shutdown-deadline** — in progress (#233)
 - **03-wireguard-hole-punch** — in review, PR #332 (#223)
 - **04-docker-container-clock** — in progress (#220)
-- **05-wasm-wasi-time-source** — in progress (#219)
+- **05-wasm-wasi-time-source** — in review, PR #338 (#219)
 - **06-netio-load-tracker-rate** — in review, PR #337 (#214)
 - **07-nativeapi-ptrace-dispatch** — not started (#205, #206, #207, #208)
 - **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
@@ -59,7 +71,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Next steps
 
-1. Batches of at most three agents. Started: 01, 03, 06; then 02, 04, 05. Next: 07, 09, 10,
+1. Batches of at most three agents. Done: 01, 03, 05, 06. Running: 02, 04. Next: 07, 09, 10,
    then 08, 11, 12.
 2. Close each issue in the pull request that fixes it.
 
