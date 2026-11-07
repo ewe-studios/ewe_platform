@@ -369,6 +369,9 @@ fn handle_open(
         None => return SyscallAction::passthrough(),
     };
     let flags = args.arg1 as i32;
+    // `open(2)` takes the mode as its third argument. The kernel reads it
+    // only with `O_CREAT`, but pass the register through either way.
+    let perm = args.arg2 as u32;
 
     if !mount_table.is_virtual(&path) {
         return SyscallAction::passthrough();
@@ -379,7 +382,7 @@ fn handle_open(
         None => return SyscallAction::passthrough(),
     };
 
-    open_virtual_path(pid, fs, path, flags, flags_to_perm(flags), fd_table)
+    open_virtual_path(pid, fs, path, flags, perm, fd_table)
 }
 
 fn handle_openat(
@@ -394,6 +397,9 @@ fn handle_openat(
         None => return SyscallAction::passthrough(),
     };
     let flags = args.arg2 as i32;
+    // `openat(2)` takes the mode as its fourth argument, after `dirfd`,
+    // `path` and `flags`.
+    let perm = args.arg3 as u32;
 
     if !mount_table.is_virtual(&path) {
         return SyscallAction::passthrough();
@@ -404,7 +410,7 @@ fn handle_openat(
         None => return SyscallAction::passthrough(),
     };
 
-    open_virtual_path(pid, fs, path, flags, flags_to_perm(flags), fd_table)
+    open_virtual_path(pid, fs, path, flags, perm, fd_table)
 }
 
 fn handle_creat(
@@ -489,15 +495,29 @@ fn handle_vfs_write(
     };
 
     match entry {
-        VirtualFdEntry::File { handle, offset, .. } => {
+        VirtualFdEntry::File {
+            handle,
+            offset,
+            flags,
+            ..
+        } => {
             let buf = match memory::read_tracee_buf(pid, buf_addr, count) {
                 Ok(b) => b,
                 Err(_) => return SyscallAction::skip_error(libc::EFAULT as i64),
             };
-            let off = *offset.lock().unwrap();
-            match handle.write_at(&buf, off) {
+            // `O_APPEND` writes at the end of the file and moves the file
+            // offset there, as `write(2)` does.
+            let write_offset = if flags & libc::O_APPEND != 0 {
+                match handle.size() {
+                    Ok(size) => size,
+                    Err(e) => return SyscallAction::skip_error(vfs_error_to_errno(&e)),
+                }
+            } else {
+                *offset.lock().unwrap()
+            };
+            match handle.write_at(&buf, write_offset) {
                 Ok(n) => {
-                    *offset.lock().unwrap() += n as u64;
+                    *offset.lock().unwrap() = write_offset + n as u64;
                     SyscallAction::skip(n as i64)
                 }
                 Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
@@ -1192,7 +1212,27 @@ fn handle_dup(
 
     // The table lookup, not the fd number, decides: a previous `dup2` can move
     // a virtual entry to a low fd.
-    let Some(entry) = fd_table.get(pid_raw, old_fd) else {
+    let source = fd_table.get(pid_raw, old_fd);
+
+    if explicit_new_fd && new_fd == old_fd {
+        // `dup2(2)` with equal numbers returns the number and closes nothing.
+        // `dup3(2)` rejects it. A real source passes through: the kernel then
+        // reports `EBADF` for a missing source, as it does for `dup3(2)`.
+        return match source {
+            Some(_) if args.nr == DUP3 => SyscallAction::skip_error(libc::EINVAL as i64),
+            Some(_) => SyscallAction::skip(new_fd as i64),
+            None => SyscallAction::passthrough(),
+        };
+    }
+
+    // `dup2(2)` and `dup3(2)` reject a new number outside `[0, RLIMIT_NOFILE)`
+    // with `EBADF`. Check it before any table change: the real-source branch
+    // below removes the entry at `new_fd`.
+    if explicit_new_fd && !fd_number_in_range(pid, new_fd) {
+        return SyscallAction::skip_error(libc::EBADF as i64);
+    }
+
+    let Some(entry) = source else {
         // The source is a real fd, so the kernel handles the call. It
         // replaces whatever `new_fd` was: drop a virtual entry there, or a
         // restored stdout would keep writing into the virtual file.
@@ -1200,15 +1240,10 @@ fn handle_dup(
         return SyscallAction::passthrough();
     };
 
-    if explicit_new_fd && new_fd == old_fd {
-        // `dup2(2)` with equal numbers returns the number and closes nothing.
-        // `dup3(2)` rejects it.
-        return if args.nr == DUP3 {
-            SyscallAction::skip_error(libc::EINVAL as i64)
-        } else {
-            SyscallAction::skip(new_fd as i64)
-        };
-    }
+    // `dup(2)` and `dup2(2)` clear `O_CLOEXEC` on the new descriptor.
+    // `dup3(2)` sets it from its `flags` argument (`arg2`).
+    let cloexec = args.nr == DUP3 && (args.arg2 as i32 & libc::O_CLOEXEC) != 0;
+    let entry = with_cloexec(entry, cloexec);
 
     // A number below `FD_VIRTUAL_BASE` and not in the table may hold a real
     // kernel fd. `dup2(2)` closes whatever the new number held before it
@@ -1227,6 +1262,58 @@ fn handle_dup(
     }
 }
 
+/// Copy `entry` with `O_CLOEXEC` set or cleared on its open flags.
+///
+/// A `Directory` entry holds no open flags, so it cannot record `O_CLOEXEC`;
+/// it keeps its current behaviour across `exec`.
+fn with_cloexec(mut entry: VirtualFdEntry, cloexec: bool) -> VirtualFdEntry {
+    if let VirtualFdEntry::File { flags, .. } = &mut entry {
+        if cloexec {
+            *flags |= libc::O_CLOEXEC;
+        } else {
+            *flags &= !libc::O_CLOEXEC;
+        }
+    }
+    entry
+}
+
+/// Whether `fd` is in `[0, RLIMIT_NOFILE)` for the tracee.
+///
+/// A negative value (the register holds a sign-extended 64-bit number) and a
+/// value at or above the limit are outside the range. A limit that cannot be
+/// read rejects the number: the tracee is gone, so the kernel fails the call
+/// too.
+fn fd_number_in_range(pid: nix::unistd::Pid, fd: u64) -> bool {
+    if (fd as i64) < 0 {
+        return false;
+    }
+    match tracee_nofile_limit(pid) {
+        Some(limit) => fd < limit,
+        None => false,
+    }
+}
+
+/// The tracee's soft `RLIMIT_NOFILE`, read from `/proc/<pid>/limits`.
+///
+/// Read the tracee's own limit, not the tracer's: `setrlimit(2)` lets a tracee
+/// lower it, and the kernel checks `dup2(2)` against the tracee's value. The
+/// line reads `Max open files  <soft>  <hard>  files`. `None` means the file
+/// or the line is missing; `unlimited` maps to `u64::MAX`.
+fn tracee_nofile_limit(pid: nix::unistd::Pid) -> Option<u64> {
+    let limits = std::fs::read_to_string(format!("/proc/{}/limits", pid.as_raw())).ok()?;
+    let line = limits
+        .lines()
+        .find(|line| line.starts_with("Max open files"))?;
+    let soft = line
+        .strip_prefix("Max open files")?
+        .split_whitespace()
+        .next()?;
+    if soft == "unlimited" {
+        return Some(u64::MAX);
+    }
+    soft.parse().ok()
+}
+
 // ── Helpers ──
 
 fn flags_to_open_mode(flags: i32) -> OpenMode {
@@ -1238,10 +1325,6 @@ fn flags_to_open_mode(flags: i32) -> OpenMode {
     } else {
         OpenMode::ReadWrite
     }
-}
-
-fn flags_to_perm(flags: i32) -> u32 {
-    ((flags >> 16) & 0o777) as u32
 }
 
 /// Whether the error is a missing path. `open(2)` with `O_CREAT` creates the
