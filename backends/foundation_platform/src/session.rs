@@ -125,6 +125,10 @@ pub struct PlatformSession {
 
     /// Wasmtime shell registry (F33). Named WASM modules that run in-process
     /// via wasmtime (Surface 3). Registered at setup time, built on first request.
+    #[cfg(all(
+        feature = "wasmtime",
+        not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
+    ))]
     pub(crate) wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell,
 
     /// The host clock this session and its subsystems stamp wall times from.
@@ -168,6 +172,10 @@ impl PlatformSession {
             app_isolation: crate::multi_app::AppIsolation::new(),
             workers_: crate::worker::WorkerRegistry::new(),
             window_manager: crate::window::WindowManager::new(),
+            #[cfg(all(
+                feature = "wasmtime",
+                not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
+            ))]
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
             clock,
         })
