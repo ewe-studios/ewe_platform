@@ -415,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "cfg-if",
  "concurrent-queue",

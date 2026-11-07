@@ -1554,6 +1554,36 @@ fn the_traced_child_dup2_closes_the_real_destination() {
     );
 }
 
+// ── setregs failure reporting (spec 72, feature 08) ──
+
+#[test]
+fn a_failed_setregs_is_reported() {
+    use foundation_nativeapis::native::vfs::ptrace::nix_backend::report_return_value;
+    use foundation_nativeapis::shared::vfs::error::VfsError;
+
+    // No process can trace pid `i32::MAX`, so `PTRACE_SETREGS` fails.
+    let pid = nix::unistd::Pid::from_raw(i32::MAX);
+    // SAFETY: all-zero bits are valid for `user_regs_struct`, which is plain
+    // data.
+    let regs: libc::user_regs_struct = unsafe { std::mem::zeroed() };
+    let error = report_return_value(pid, regs, 0)
+        .expect_err("setregs must fail for a pid that is not traced");
+
+    match error.current_context() {
+        VfsError::Backend { message } => {
+            assert!(
+                message.contains("setregs"),
+                "the message must name setregs: {message}"
+            );
+            assert!(
+                message.contains(&i32::MAX.to_string()),
+                "the message must name the pid: {message}"
+            );
+        }
+        other => panic!("a failed setregs must be a backend error, got {other:?}"),
+    }
+}
+
 #[test]
 #[ntest::timeout(60_000)]
 fn the_traced_child_stdout_arrives_whole() {
