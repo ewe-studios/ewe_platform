@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 09 implemented on `spec73/f09-ios-wasmtime-gating`, commit
+  `94c4da99b`. `foundation_wasmtime` is optional and target-scoped; the Wasm items are absent
+  on iOS, tvOS and watchOS. `cargo tree --target aarch64-apple-ios` counts 0. The local iOS
+  `cargo check` cannot pass on this Mac: the iPhoneOS SDK is missing, and the build now stops
+  at `objc2-exception-helper`, past wasmtime. The full iOS proof stays with feature 10.
+  The feature found #372 (high, `get_responder` returns a reference its lock no longer
+  protects) and #371 (medium, `WasmtimeResponder::respond` never calls `handle_request`). The
+  #372 is fixed on the same branch in `db320c0fe`: the registry holds `Arc<dyn RouteResponder>`
+  and `get_responder` returns the `Arc`; `foundation_platform` is 0.0.4; 220 tests pass. Both
+  commits are merged into `spec73/high-severity-fixes` (`befa6597e`, `cd0384abc`).
+
 - 2026-11-07: feature 07 verified (#317) in commit `1879b9e04`, merged as `0aef12e2a`. The
   generator emits `Option<bool>` (`generator.rs:2119-2123`) and serialises `"true"`/`"false"`
   (`:2693-2697`); `extract_boolean_query_params` fills the set. An existing test covered the
@@ -74,7 +85,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `.agents/AGENTS.md:122-125`. The verification found #370: the submodule pinned an unpushed
   commit. Fixed; #370 is closed.
   `features/08-worktree-target-isolation/feature.md`
-- **09-ios-wasmtime-gating** — pending (#354). Design complete.
+- **09-ios-wasmtime-gating** — complete (#354, plus #372 fixed). Commits `94c4da99b` and
+  `db320c0fe`.
 - **10-macos-vm-ios-sdk** — pending (#355). Design complete.
 
 ## Issues filed while writing the spec

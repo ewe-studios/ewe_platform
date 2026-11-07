@@ -26,6 +26,20 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The four high fix branches (#334, #340, #347, #348) are not spec 73 features. They close
   before the spec starts so that the spec's crates start from a clean master.
 
+## Feature 09 (2026-11-07)
+
+- A default Cargo feature cannot depend on the target. To keep a dependency out of one target
+  while it stays on by default elsewhere, use both an optional feature and a target-scoped
+  dependency section, then gate the code with `all(feature = ..., not(target_os = ...))`.
+- The absence proof that works without an SDK is `cargo tree --target <target> | grep -c
+  <crate>` = 0. A `cargo check` for iOS still needs the iPhoneOS SDK for build scripts
+  (`objc2-exception-helper`, `cc-rs`), so on a host with only Command Line Tools the check
+  stops before the crate. Do not read that stop as a failure of the gate: confirm the failure
+  moved past the gated crate.
+- Returning `&dyn Trait` out of a `RwLock<HashMap<.., Box<dyn Trait>>>` is unsound as soon as
+  any code can replace the entry. Store `Arc<dyn Trait>` and return the clone. The setter can
+  keep its `Box` signature with `Arc::from`.
+
 ## Feature 08 (2026-11-07)
 
 - A submodule gitlink can name a commit the remote does not have. Nothing warns until a fresh

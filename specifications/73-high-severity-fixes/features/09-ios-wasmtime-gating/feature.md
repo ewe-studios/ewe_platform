@@ -1,6 +1,6 @@
 ---
 feature: "Gate the wasmtime dependency so iOS targets build"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 crates: ["foundation_platform", "foundation_wasmtime"]
@@ -132,8 +132,26 @@ cannot build today. No version bump.
 ### 4.6 Known limitation, not in scope
 
 `WasmtimeResponder::respond` builds the instance but does not call the module's
-`handle_request` export (the body comment says so). File a GitHub issue with a severity when
-you touch the file. Do not fix it here.
+`handle_request` export (the body comment says so). Filed as #371, severity medium. Do not fix
+it here.
+
+### 4.7 Result (2026-11-07)
+
+Commit `94c4da99b`. Cargo section and cfg conditions as in 4.1 and 4.2. Verify: fmt 0, clippy
+`-D warnings` 0, 194 tests passed and 6 ignored, `--no-default-features` check 0, and
+`cargo tree --target aarch64-apple-ios | grep -c foundation_wasmtime` prints 0. The local iOS
+`cargo check` stops at `objc2-exception-helper` because this Mac has no iPhoneOS SDK; the
+failure moved past wasmtime, which is the proof the gate removed it. Feature 10 owns the iOS
+build proof.
+
+The work found #372 (high): `PlatformSession::get_responder` returns a `&dyn RouteResponder`
+after its read guard drops, so a replacement responder frees the `Box` under it. Fixed on the
+same branch in commit `db320c0fe`: the registry holds `Arc<dyn RouteResponder>` and
+`get_responder` returns the `Arc`. `register_responder` keeps its `Box` signature and converts
+with `Arc::from`. Test `a_replaced_responder_stays_alive_through_an_old_handle`. The crate is
+0.0.4. The full suite passes 220 tests (6 ignored). The branch also adds the previously
+untracked `examples/platform_ios/src-tauri/Cargo.lock`, to match the tracked Android example
+lock.
 
 ## 5. Tasks
 
