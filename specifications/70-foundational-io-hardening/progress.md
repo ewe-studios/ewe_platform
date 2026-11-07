@@ -2705,3 +2705,14 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `foundation_http/src/native/server/mod.rs:855` and the blocking iterator
   adapter `block_recv` in `foundation_core/src/synca/mpp.rs:236`. Issues #28,
   #137 and #142 are closed.
+- 2026-11-07: issue #251 filed and fixed (severity high, blocks CI). The arrow
+  59.3.2 bump (PR #183) added a second version of every `arrow-*` crate to the
+  graph. Cargo then writes a dependency name as `"arrow-data 55.2.0"`, not
+  `"arrow-data"`, and the committed lockfiles still used the bare name. The
+  Plan job's lockfile check and the CI image's `cargo fetch --locked` both
+  failed with "cannot update the lock file". The bump also left
+  `arrow-ipc 59.3.2` pointing at the 55.2.0 arrow crates and missing
+  `arrow-select`. The merge of `origin/master` into the feature branch brought
+  the bad locks in. The fix regenerates the workspace lock and the five stale
+  standalone locks (commit `2f6786e03`). Every tracked lock now passes
+  `cargo metadata --locked`.

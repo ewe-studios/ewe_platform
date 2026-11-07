@@ -2535,3 +2535,20 @@ A toolchain setting leaks into another checkout: mise exports
 cargo rejects them outside this workspace. Unset them for a foreign build:
 `env -u CARGO_UNSTABLE_CODEGEN_BACKEND -u CARGO_PROFILE_DEV_CODEGEN_BACKEND -u
 CARGO_PROFILE_UAT_CODEGEN_BACKEND cargo check`.
+
+## A dependency bump must regenerate every lockfile
+
+Two versions of a crate force cargo to qualify the dependency name
+(`"arrow-data 55.2.0"`). A lockfile that still uses the bare name is stale, and
+`--locked` fails with "cannot update the lock file" even though every version
+is correct. An automated bump that edits the lock by hand can also leave a
+wrong edge: `arrow-ipc 59.3.2` still named `arrow-buffer 55.2.0`. Regenerate,
+never hand-edit. The workspace lock and every standalone example lock must
+pass `cargo metadata --locked`, and the Plan job checks three of them.
+
+## Check the merge result, not only the branch
+
+The pull request run checks out the merge of the branch and the base. A green
+branch can still fail there when the base moved. Reproduce it without a
+checkout: `git fetch origin refs/pull/<n>/merge:refs/tmp/m`, extract that tree,
+and run the failing command in it.
