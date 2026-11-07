@@ -12,7 +12,7 @@ use crate::core::storage_provider::{
     AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
     RateLimiterStore, SqlRow,
 };
-use crate::native::conn_gate::{is_read_only_sql, ConnGate, ReadGuard, WriteGuard};
+use crate::native::conn_gate::{is_read_only_sql, ConnGate, WriteGuard};
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::Clock;
@@ -27,8 +27,11 @@ use turso::Builder;
 /// using ChaCha20-Poly1305 before being stored in the database.
 ///
 /// The store keeps one connection and an async read/write lock (shared by
-/// clones): reads run together; a write, a raw statement or a batch (`BEGIN` to
-/// `COMMIT`/`ROLLBACK`) has the connection to itself.
+/// clones). Turso 0.8.3 forbids two live statements on one connection, so
+/// every operation — a read included — has the connection to itself. A write,
+/// a raw statement or a batch (`BEGIN` to `COMMIT`/`ROLLBACK`) still holds the
+/// write side in the same way; the difference is that reads no longer run
+/// together.
 ///
 /// Row streams hold their guard until they end or are dropped. A batch or write
 /// waits until open row streams from this store end; do not start a batch or a
@@ -237,12 +240,13 @@ impl TursoStorage {
     // Connection gate
     // ========================================================================
 
-    /// Shared guard for an operation that only reads. Waits while a write or a
-    /// batch is open. If an earlier rollback failed, the connection is checked
-    /// first.
-    async fn read(&self) -> StorageResult<ReadGuard> {
+    /// Exclusive guard for an operation that only reads. Turso 0.8.3 forbids
+    /// two live statements on one connection, so a read waits for the previous
+    /// read to end, not only for a write or a batch. If an earlier rollback
+    /// failed, the connection is checked first.
+    async fn read(&self) -> StorageResult<WriteGuard> {
         loop {
-            let guard = self.gate.read().await?;
+            let guard = self.gate.read_exclusive().await?;
             if !self.gate.needs_check() {
                 return Ok(guard);
             }
