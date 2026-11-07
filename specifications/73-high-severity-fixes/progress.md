@@ -161,10 +161,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Next steps
 
-1. Start feature 03 (h3 trailers and handler streaming headers) on
-   `spec73/f03-connectrpc-h3-trailers-and-headers`. It is the last implementation feature.
-2. Verify, merge, and close #253 with evidence and #258 by the fix.
-3. Open the single spec 73 PR from `spec73/high-severity-fixes` when all features land.
-4. After the merge, mark the requirements completed and archive spec 73.
+1. Open the single spec 73 PR from `spec73/high-severity-fixes`.
+2. Read the PR CI, including the `macos-ssh` job that is the feature 10 proof for #355.
+3. After the merge, mark the requirements completed and archive spec 73.
 
 _Created: 2026-11-07_

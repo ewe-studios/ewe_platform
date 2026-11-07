@@ -1,6 +1,6 @@
 ---
 description: "Fix the 14 open high-severity issues: gRPC status conversion, client compression, deadlines and bidi request streams, h3 trailers and handler streaming headers, HTTP connection error handling and idle timeout, an HTTP/1.1 RPC that holds a valtron worker, H3 WebTransport accept, OpenAPI boolean query parameters, worktree target isolation, iOS wasmtime gating, and the macOS VM iOS SDK. All 14 are priority work."
-status: "planned"
+status: "in_progress"
 priority: "high"
 created: 2026-11-07
 updated: 2026-11-07
@@ -18,10 +18,10 @@ related_specs:
   - "specifications/completed/72-medium-severity-fixes"
   - "specifications/completed/70-foundational-io-hardening"
 features:
-  completed: 0
-  uncompleted: 10
+  completed: 9
+  uncompleted: 1
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 90%
 ---
 
 # Spec 73: High-severity defect fixes
