@@ -6,8 +6,12 @@ use std::{
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
 
+use crate::valtron::{QueueReadiness, ReadinessNotifier};
+
 pub struct Receiver<T> {
     chan: Arc<ConcurrentQueue<T>>,
+    /// Woken after a send and on close, so a parked consumer runs again.
+    notifier: Arc<ReadinessNotifier>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, From)]
@@ -40,14 +44,27 @@ impl<T> Clone for Receiver<T> {
     fn clone(&self) -> Self {
         Self {
             chan: self.chan.clone(),
+            notifier: self.notifier.clone(),
         }
     }
 }
 
 #[allow(unused)]
 impl<T> Receiver<T> {
-    pub fn new(chan: Arc<ConcurrentQueue<T>>) -> Self {
-        Receiver { chan }
+    pub(crate) fn with_notifier(
+        chan: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Receiver { chan, notifier }
+    }
+
+    /// A readiness that is ready when the channel has an item or is closed.
+    ///
+    /// A [`Sender`] from the same [`bounded`] or [`unbounded`] call wakes the
+    /// task parked on it after a send and on close.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<T> {
+        QueueReadiness::with_notifier(Arc::clone(&self.chan), Arc::clone(&self.notifier))
     }
 
     /// Get a clone of the underlying channel Arc
@@ -316,6 +333,8 @@ impl<T> Iterator for RecvIterator<T> {
 
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
+    /// Woken after a send and on close, so a parked consumer runs again.
+    notifier: Arc<ReadinessNotifier>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -341,13 +360,17 @@ impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
         Sender {
             chan: self.chan.clone(),
+            notifier: self.notifier.clone(),
         }
     }
 }
 
 impl<T> Sender<T> {
-    pub fn new(chan: Arc<ConcurrentQueue<T>>) -> Self {
-        Sender { chan }
+    pub(crate) fn with_notifier(
+        chan: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Sender { chan, notifier }
     }
 
     #[must_use]
@@ -362,7 +385,9 @@ impl<T> Sender<T> {
 
     #[must_use]
     pub fn close(&self) -> bool {
-        self.chan.close()
+        let closed = self.chan.close();
+        self.notifier.notify();
+        closed
     }
 
     #[must_use]
@@ -382,13 +407,18 @@ impl<T> Sender<T> {
 
     /// Sends a value to the channel.
     ///
+    /// A successful send wakes the task parked on [`Receiver::readiness`].
+    ///
     /// # Errors
     /// Returns [`SenderError::Full`] when the bounded channel is full, and
     /// [`SenderError::Closed`] when the channel is closed. The error carries the
     /// value back.
     pub fn send(&self, value: T) -> Result<(), SenderError<T>> {
         match self.chan.push(value) {
-            Ok(()) => Ok(()),
+            Ok(()) => {
+                self.notifier.notify();
+                Ok(())
+            }
             Err(PushError::Full(v)) => Err(SenderError::Full(v)),
             Err(PushError::Closed(v)) => Err(SenderError::Closed(v)),
         }
@@ -401,7 +431,10 @@ impl<T> Sender<T> {
     /// carries the value back.
     pub fn force_send(&self, value: T) -> Result<Option<T>, SenderError<T>> {
         match self.chan.force_push(value) {
-            Ok(v) => Ok(v),
+            Ok(v) => {
+                self.notifier.notify();
+                Ok(v)
+            }
             Err(ForcePushError(v)) => Err(SenderError::Closed(v)),
         }
     }
@@ -411,8 +444,9 @@ impl<T> Sender<T> {
 #[must_use]
 pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::bounded(capacity));
-    let sender = Sender::new(chan.clone());
-    let receiver = Receiver::new(chan);
+    let notifier = Arc::new(ReadinessNotifier::new());
+    let sender = Sender::with_notifier(chan.clone(), notifier.clone());
+    let receiver = Receiver::with_notifier(chan, notifier);
     (sender, receiver)
 }
 
@@ -420,8 +454,9 @@ pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
 #[must_use]
 pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::unbounded());
-    let sender = Sender::new(chan.clone());
-    let receiver = Receiver::new(chan);
+    let notifier = Arc::new(ReadinessNotifier::new());
+    let sender = Sender::with_notifier(chan.clone(), notifier.clone());
+    let receiver = Receiver::with_notifier(chan, notifier);
     (sender, receiver)
 }
 

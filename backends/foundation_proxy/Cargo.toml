@@ -10,7 +10,7 @@ description = "Reverse proxy — SSL termination, zero-downtime deploys, health-
 
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["multi"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 foundation_http = { path = "../foundation_http", version = "0.0.8", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
@@ -49,7 +49,7 @@ futures-util = "0.3"
 
 [dev-dependencies]
 # The clock injection test moves a `SimulatedClock`; `test-clock` exposes it.
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["test-clock"] }
 foundation_deployment_platform = { path = "../foundation_deployment_platform" }
 # The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
 # `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.

@@ -10,7 +10,7 @@ description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foun
 keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.16" }
+foundation_core = { path = "../foundation_core", version = "0.0.18" }
 # The instant type the injected clock returns. On every native target this is
 # `std::time::Instant`; on JS wasm it is the host-clock instant, so a call
 # deadline compiles and runs on both.
@@ -59,7 +59,7 @@ foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a call
 # deadline follows the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["multi", "test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_errstacks = { path = "../foundation_errstacks", features = ["to_structured"] }
 serde_json = { workspace = true }

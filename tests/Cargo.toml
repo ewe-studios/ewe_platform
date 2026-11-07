@@ -9,7 +9,7 @@ path = "mod.rs"
 
 [dependencies]
 foundation_nostd = { path = "../backends/foundation_nostd", version = "0.0.7" }
-foundation_core = { path = "../backends/foundation_core", version = "0.0.16" }
+foundation_core = { path = "../backends/foundation_core", version = "0.0.18" }
 foundation_netio = { path = "../backends/foundation_netio", version = "0.0.7" }
 foundation_testing = { path = "../backends/foundation_testing", version = "0.0.5" }
 serde = { version = "1.0", features = ["derive"] }

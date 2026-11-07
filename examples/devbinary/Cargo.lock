@@ -330,7 +330,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -489,7 +489,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "concurrent-queue",
  "derive_more",
