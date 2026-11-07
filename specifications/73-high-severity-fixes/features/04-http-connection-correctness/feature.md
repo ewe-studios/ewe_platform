@@ -1,6 +1,6 @@
 ---
 feature: "Propagate connection errors and give keep-alive an idle timeout"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 crates: ["foundation_http", "foundation_netio"]
@@ -127,3 +127,27 @@ cargo test --profile uat -p foundation_netio
 - The WS read wait is no longer the 100 ms minimum read timeout.
 - The #284 regressions are pinned by tests that pass on master.
 - #288 is closed by the fix; #284 is closed with the commit evidence.
+
+## 9. Result (2026-11-07)
+
+Commits `a536471a8` and `0236e7e2a` (the bump). Merged into
+`spec73/high-severity-fixes` as `dec71174d`. New `KeepAliveConfig::idle_timeout` (default 75 s, nginx
+`keepalive_timeout`), `ConnectionHandler::idle_timeout`, and `WebSocketConnectInfo::idle_timeout`
+with a `WebSocketTask::with_idle_timeout` builder. `read_timeout` in
+`connect_with_delivery`/`connect_with_pool_and_delivery` now acts as the idle timeout. Tests:
+4 in `foundation_http/tests/connection_correctness_tests.rs`, 2 in
+`foundation_netio/tests/websocket/idle_timeout_tests.rs`. Both old-code failures were
+observed: the WS wait measured 101 ms against a configured 300 ms, and the h1 default was
+120 s. `foundation_http` 77 passed, `foundation_netio` 1302 passed. #284 is confirmed fixed
+(`51e61098b`) and pinned by two tests.
+
+Two design points did not hold:
+1. Design 4.2 item 3 ("wire from server config") has no call site. `foundation_http` never
+   builds a `WebSocketTask`; its upgrade path only writes the 101 and hands over. The
+   per-call `read_timeout` is the effective path.
+2. Design test 2 asked for a `SimulatedClock`. The WS wait is a kernel socket timeout
+   (`SO_RCVTIMEO`), not a timer, so the test measures real elapsed time with a bounded range.
+
+Both crates are 0.0.9 after the follow-up bump. Filed #375 (medium: `sleep_between` is still
+ignored), #376 (medium: the protocol-detect refusal drops its write result) and #377 (low:
+`KeepAliveConfig` doc comments disagree with `defaults()`).

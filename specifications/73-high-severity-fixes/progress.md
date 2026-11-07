@@ -10,12 +10,14 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   all four real defects fail on `48421e32c`. Filed #378 (high: request compression corrupts
   server-streaming requests) and #379 (low: the codegen crate fails clippy).
 
-- 2026-11-07: feature 04 implemented on `spec73/f04-http-connection-correctness`, commit
-  `a536471a8`. `KeepAliveConfig::idle_timeout` (75 s, nginx), the same field on
+- 2026-11-07: feature 04 implemented on `spec73/f04-http-connection-correctness`, commits
+  `a536471a8` and `0236e7e2a` (the bump), merged into `spec73/high-severity-fixes` as
+  `dec71174d`. `KeepAliveConfig::idle_timeout` (75 s, nginx), the same field on
   `WebSocketConnectInfo`, and `WebSocketTask::with_idle_timeout`; the ignored `read_timeout`
   now sets the idle timeout. Old-code failures seen (101 ms vs 300 ms; 120 s vs 75 s).
   `foundation_http` 77 passed, `foundation_netio` 1302 passed. #284 confirmed fixed. Filed
-  #375, #376 and #377. Both crates bump to 0.0.9 in a follow-up commit on the same branch.
+  #375, #376 and #377. Both crates are 0.0.9; 69 manifests and 8 lockfiles follow. The merge
+  kept `foundation_nativeapis` at 0.0.10 (master) instead of the branch's older 0.0.9.
 
 - 2026-11-07: feature 10 implemented on `spec73/f10-macos-vm-ios-sdk`, commit `a8e9b73b9`, merged
   into `spec73/high-severity-fixes`. Pin `IOS_SDK_VERSION=26.2` (Xcode 26.3, the newest Xcode
@@ -97,8 +99,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `features/02-connectrpc-client-correctness/feature.md`
 - **03-connectrpc-h3-trailers-and-headers** — pending (#258; #253 is fixed). Design complete.
   `features/03-connectrpc-h3-trailers-and-headers/feature.md`
-- **04-http-connection-correctness** — implemented (#288; #284 confirmed fixed). Commit
-  `a536471a8`, plus the 0.0.9 bump.
+- **04-http-connection-correctness** — complete (#288; #284 confirmed fixed). Commits
+  `a536471a8` and `0236e7e2a`, merged as `dec71174d`.
   `features/04-http-connection-correctness/feature.md`
 - **05-http1-rpc-worker-parking** — pending (#254, fixed on master). Verification plan ready.
 - **06-h3-webtransport-accept** — pending (#273, fixed on master). Verification plan ready.
