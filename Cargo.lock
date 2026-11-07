@@ -6071,7 +6071,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",
