@@ -1,6 +1,6 @@
 ---
 feature: "Signal delivery leaves the signal handler to an executor-thread poll"
-status: "pending"
+status: "done"
 lane: "priority follow-up (GitHub issue #189, severity high)"
 model: "sonnet"
 branch: "spec70/f145-signal-async-safety"

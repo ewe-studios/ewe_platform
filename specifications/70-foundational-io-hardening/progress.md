@@ -2724,3 +2724,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   types. The manifest now names 59 for all five crates, the lockfiles are
   regenerated, and the arrow-55 duplicates are gone. `cargo check -p
   foundation_arrow` passes, and the 20 `foundation_arrow` tests pass.
+- 2026-11-07: feature 145 verified on all three platforms. The Audit: Checks &
+  Tests run for head `6396aec33` (run 42331267397) passed every job: Plan, the
+  CI image, `foundation_arrow`, `foundation_nativeapis` and every other
+  package. Locally, `cargo check --target x86_64-pc-windows-gnu -p
+  foundation_nativeapis` compiles the Windows handler. Pull request
+  https://github.com/ewe-studios/ewe_platform/pull/250 is open and up to date
+  with `master`; it closes #247, #249, #251 and #252. The merge stays blocked by
+  the "Master" ruleset's signed-commit rule, as PR 246 did.
