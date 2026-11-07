@@ -2,6 +2,12 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: PR [#393](https://github.com/ewe-studios/ewe_platform/pull/393) merged to
+  master (`a774fe2b8`). The spec is archived to `specifications/completed/73-high-severity-fixes`.
+  All ten features are done. #355 stays open because GitHub Actions is unavailable, so the
+  `macos-ssh` job has not run. #259, #260, #261, #258, #254, #317, #324 and #354 needed a manual
+  close after the merge; the automatic close missed them.
+
 - 2026-11-07: the spec pull request is [#393](https://github.com/ewe-studios/ewe_platform/pull/393).
   It has ten features and closes fourteen high issues. The `macos-ssh` job is the #355 proof.
 

@@ -1,6 +1,6 @@
 ---
 feature: "Install a pinned iOS SDK in the macOS platform image"
-status: "in_progress"
+status: "completed"
 priority: "high"
 depends_on: ["09-ios-wasmtime-gating"]
 crates: []
