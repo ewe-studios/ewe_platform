@@ -38,7 +38,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 
 [dependencies.serde]
 workspace = true
