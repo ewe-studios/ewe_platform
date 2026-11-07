@@ -33,7 +33,7 @@ toml = { workspace = true }
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
 foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
-foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 # The project error standard. It is a common dependency: the error types in
 # `shared/error.rs` compile for every target, including wasm32.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }

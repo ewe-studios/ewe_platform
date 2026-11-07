@@ -28,7 +28,7 @@ version = "0.0.4"
 # Native only: nothing on wasm32 uses it.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.10"
+version = "0.0.11"
 
 # Native only: `types.rs` (errstacks) and the REST API client `client.rs` and
 # `dns_ops.rs` (netio) sit behind `cfg(not(target_family = "wasm"))`, so on wasm32

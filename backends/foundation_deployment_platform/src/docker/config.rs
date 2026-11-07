@@ -17,6 +17,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::Clock;
 
+use crate::docker::error::{DockerError, DockerResult, docker_err};
 use crate::docker::image::DockerFileConfig;
 use crate::docker::wait_for::WaitFor;
 
@@ -66,8 +67,10 @@ pub struct ContainerConfig {
     /// so the two reach each other on `localhost`. See
     /// [`ContainerConfig::share_caller_network`].
     pub share_caller_network: bool,
-    /// The host's clock that bounds the readiness wait. When absent, the wait
-    /// reads the root clock of the valtron pool the start runs on.
+    /// The clock that bounds the readiness wait. A host injects it with
+    /// [`ContainerConfig::clock`]. A start without one is a
+    /// [`DockerError::MissingClock`] error; it never falls back to the real
+    /// clock.
     pub clock: Option<Arc<dyn Clock>>,
 }
 
@@ -164,14 +167,28 @@ impl ContainerConfig {
         }
     }
 
-    /// Set the host clock that bounds the readiness wait.
+    /// Set the clock that bounds the readiness wait.
     ///
-    /// A host passes its injected clock here. A config without one reads the
-    /// root clock of the valtron pool the start runs on.
+    /// A host passes its injected clock here. `#[docker_container]` passes the
+    /// clock from its `clock = <expr>` argument, or the valtron pool's clock
+    /// when the argument is absent. A config without a clock does not start:
+    /// [`ContainerHandle::start_async`](crate::docker::ContainerHandle::start_async)
+    /// returns [`DockerError::MissingClock`].
     #[must_use]
     pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
         self.clock = Some(clock);
         self
+    }
+
+    /// The clock this config starts with.
+    ///
+    /// # Errors
+    /// Returns [`DockerError::MissingClock`] when no clock was injected. The
+    /// start must not fall back to the real clock (root rule 11).
+    pub fn resolve_clock(&self) -> DockerResult<Arc<dyn Clock>> {
+        self.clock
+            .clone()
+            .ok_or_else(|| docker_err(DockerError::MissingClock))
     }
 
     /// Build the image from `dockerfile` before starting, tagged with this

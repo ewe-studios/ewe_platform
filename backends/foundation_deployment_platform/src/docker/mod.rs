@@ -30,3 +30,25 @@ pub use group::ContainerGroup;
 pub use image::{BuildBackend, DockerFileConfig, DockerFileSource, ImageBuildResult};
 pub use network::NetworkHandle;
 pub use wait_for::{WaitFor, wait_for_port, wait_for_port_at, wait_for_stdout};
+
+/// The clock of the valtron pool the caller runs on.
+///
+/// `#[docker_container]` uses this as its default clock when the attribute
+/// gives no `clock = <expr>`. It never falls back to the real clock: a process
+/// with no multi pool gets [`DockerError::MissingClock`] instead of a panic
+/// (issue #220).
+///
+/// A host that has its own injected clock passes it with
+/// [`ContainerConfig::clock`] or the macro's `clock = <expr>` argument instead.
+///
+/// # Errors
+/// Returns [`DockerError::MissingClock`] when no valtron multi pool is
+/// initialized.
+pub fn pool_clock() -> DockerResult<std::sync::Arc<dyn foundation_core::valtron::Clock>> {
+    if !foundation_core::valtron::multi::is_pool_initialized() {
+        return Err(docker_err(DockerError::MissingClock));
+    }
+    // The check above is the typed-error guard: `fork_ctx` panics when no pool
+    // exists, and the pool is process-wide.
+    Ok(foundation_core::valtron::multi::fork_ctx().clock())
+}

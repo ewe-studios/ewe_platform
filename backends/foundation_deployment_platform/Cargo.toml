@@ -1,6 +1,6 @@
 [package]
 name = "foundation_deployment_platform"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 rust-version.workspace = true
 license.workspace = true
@@ -17,7 +17,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.16" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env

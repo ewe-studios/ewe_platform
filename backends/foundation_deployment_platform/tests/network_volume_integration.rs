@@ -25,12 +25,18 @@
 //! network_volume_integration -- --ignored` (needs a Docker daemon).
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
-use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::{MonotonicClock, initialize_pool};
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerClient, NetworkHandle, WaitFor,
 };
 use foundation_deployment_platform::testing::docker_available;
+
+/// The test thread is a host entry point, so it injects the real clock.
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// Unique-ish suffix so parallel runs never collide on a global Docker name.
 fn unique(prefix: &str) -> String {
@@ -45,6 +51,7 @@ fn client() -> DockerClient {
 /// returns its stdout. The container is removed before returning.
 async fn run_script(network: Option<&str>, script: &str) -> String {
     let mut cfg = ContainerConfig::new("alpine:3")
+        .clock(test_clock())
         .command(vec!["sh".into(), "-c".into(), script.into()])
         .stop_timeout_secs(2);
     if let Some(net) = network {
@@ -105,6 +112,7 @@ fn network_dns_resolves_container_name_and_alias() {
         let server_name = unique("ewe-f03-server");
         let server = ContainerHandle::start_async(
             ContainerConfig::new("redis:7-alpine")
+                .clock(test_clock())
                 .name(&server_name)
                 .network(&net_name)
                 .network_alias("cache-alias")
@@ -160,6 +168,7 @@ fn network_connect_attaches_running_container_with_alias() {
         // Started with no network, then attached after the fact.
         let server = ContainerHandle::start_async(
             ContainerConfig::new("redis:7-alpine")
+                .clock(test_clock())
                 .name(unique("ewe-f03-late"))
                 .port(6379)
                 .wait(WaitFor::stdout("Ready to accept connections"))
@@ -204,6 +213,7 @@ fn bind_mount_is_readable_and_read_only_is_enforced() {
         // Read-write bind: the file is visible inside the container.
         let handle = ContainerHandle::start_async(
             ContainerConfig::new("alpine:3")
+                .clock(test_clock())
                 .volume(&dir, "/data")
                 .command(vec!["sh".into(), "-c".into(), "cat /data/hello.txt".into()])
                 .stop_timeout_secs(2),
@@ -221,6 +231,7 @@ fn bind_mount_is_readable_and_read_only_is_enforced() {
         // this mount was silently writable.
         let ro = ContainerHandle::start_async(
             ContainerConfig::new("alpine:3")
+                .clock(test_clock())
                 .volume_read_only(&dir, "/data")
                 .command(vec![
                     "sh".into(),
@@ -266,6 +277,7 @@ fn named_volume_persists_data_across_containers() {
         // layer and the reader below saw nothing.
         let writer = ContainerHandle::start_async(
             ContainerConfig::new("alpine:3")
+                .clock(test_clock())
                 .named_volume(&vol, "/vol")
                 .command(vec![
                     "sh".into(),
@@ -282,6 +294,7 @@ fn named_volume_persists_data_across_containers() {
         // Reader: a *different* container mounting the same named volume.
         let reader = ContainerHandle::start_async(
             ContainerConfig::new("alpine:3")
+                .clock(test_clock())
                 .named_volume(&vol, "/vol")
                 .command(vec!["sh".into(), "-c".into(), "cat /vol/state.txt".into()])
                 .stop_timeout_secs(2),
