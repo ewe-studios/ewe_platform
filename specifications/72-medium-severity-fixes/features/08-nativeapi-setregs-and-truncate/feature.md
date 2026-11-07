@@ -1,6 +1,6 @@
 ---
 feature: "The ptrace loop reports setregs failures and truncate rejects a negative length"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: ["07-nativeapi-ptrace-dispatch"]
 crates: ["foundation_nativeapis"]

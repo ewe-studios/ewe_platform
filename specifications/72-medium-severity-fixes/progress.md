@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 08 (ptrace setregs and truncate, #209, #210) is in review as
+  PR #363. `ptrace_loop` ignored the `PTRACE_SETREGS` error for `Skip` and `SkipError`.
+  A new public `report_return_value` sets `rax`, calls `setregs`, and returns
+  `VfsError::Backend` with the value and the pid. All three emulated-return arms use
+  it. `truncate` and `ftruncate` reject `length < 0` with `EINVAL` before the path or
+  descriptor check, and the size conversion maps failure to `EINVAL`.
+  `foundation_nativeapis` is 0.0.10 and every consumer requirement moves with it; the
+  workspace and the three checked example lockfiles are regenerated. The crate suite
+  passed 217 tests with 0 failures on macOS. The two new tests are Linux only and run
+  in the GitHub CI. The Linux image stops in a worktree before the build: the
+  bind-mounted `.git` file points at the host path, so
+  `ci/platform-images/scripts/link-submodules.nu` cannot read the repository. No new
+  defect.
+
 - 2026-11-07: feature 14 (keychain start synchronization, #358) is in review as PR #362. The
   fix deletes the single `std::thread::sleep(Duration::from_millis(150));` from `start_server`
   in `backends/foundation_keychain/tests/streamed_body.rs`. No readiness channel was added:
@@ -157,7 +171,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **05-wasm-wasi-time-source** — in review, PR #338 (#219)
 - **06-netio-load-tracker-rate** — in review, PR #337 (#214)
 - **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
-- **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
+- **08-nativeapi-setregs-and-truncate** — in review, PR #363 (#209, #210)
 - **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
 - **10-keychain-macos-flake** — in review, PR #359 (#197)
 - **11-ci-mobile-target-builds** — in review, PR #356 (#196)
@@ -171,7 +185,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
    fresh agent. Merge order matters for the templates: 01, 02 and 09 all change the same
    `foundation_core`/`foundation_http` lines. After a merge, rebase the other branches and
    keep the highest crate version.
-2. Feature 08 waits on the merge of PR #344. It is the only feature not started.
+2. Feature 08 is in review as PR #363. Only features 11 and 12 have not started.
 3. Close each issue in the pull request that fixes it.
 
 _Created: 2026-11-07_
