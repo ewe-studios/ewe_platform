@@ -17,6 +17,7 @@ use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 
+use foundation_compact::Instant;
 use foundation_nostd::comp::condvar_comp::{CondVar, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
@@ -393,10 +394,38 @@ impl BackgroundJobRegistry {
     /// Idempotent; concurrent callers each wait at most the timeout. Must not
     /// be called from inside a background job (it would wait for itself until
     /// the timeout).
+    ///
+    /// This is the unbounded-budget path: it computes the deadline as
+    /// [`Self::shutdown_timeout`] from the call. A caller with its own shutdown
+    /// budget passes that deadline to [`Self::shutdown_until`] instead.
     pub fn shutdown(&self, clock: &dyn crate::valtron::Clock) -> ShutdownOutcome {
-        let deadline = clock.now() + self.shutdown_timeout;
+        self.shutdown_until(clock, clock.now() + self.shutdown_timeout)
+    }
+
+    /// Shut down the registry, waiting no later than `deadline`.
+    ///
+    /// WHY: a caller can already hold a shutdown budget of its own (for example
+    /// [`PoolGuard::shutdown_within`](crate::valtron::executors::multi::PoolGuard::shutdown_within)).
+    /// A job stuck inside a closure must not overrun that budget, so the caller
+    /// passes the effective deadline instead of letting the registry apply its
+    /// own configured timeout (issue #233).
+    /// WHAT: behaves as [`Self::shutdown`], but the deadline is the absolute
+    /// instant `deadline`, measured on `clock`. Every job that has not started
+    /// when the deadline passes is dropped.
+    /// HOW: close the queue, wait for the workers with the remaining budget, and
+    /// run leftover jobs on the caller only while `clock.now() < deadline`. The
+    /// deadline is checked between jobs, so a later job never starts after it.
+    pub fn shutdown_until(
+        &self,
+        clock: &dyn crate::valtron::Clock,
+        deadline: Instant,
+    ) -> ShutdownOutcome {
+        // The budget at entry, used for the wait and for the timeout log. A
+        // deadline that already passed gives a zero budget, so the wait below
+        // returns at once and no leftover job runs.
+        let budget = deadline.saturating_duration_since(clock.now());
         self.queue.close();
-        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout, clock);
+        let drained_in_time = self.waitgroup.wait_timeout(budget, clock);
 
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
@@ -438,7 +467,7 @@ impl BackgroundJobRegistry {
         }
         tracing::error!(
             "BackgroundJobRegistry::shutdown: timed out after {:?}; dropped {abandoned_jobs} unstarted job(s), detached {busy_workers} worker(s) still inside a job",
-            self.shutdown_timeout
+            budget
         );
         ShutdownOutcome::TimedOut {
             abandoned_jobs,
@@ -450,6 +479,18 @@ impl BackgroundJobRegistry {
     #[must_use]
     pub fn num_threads(&self) -> usize {
         self.num_threads
+    }
+
+    /// The configured deadline that [`Self::shutdown`] waits, set by
+    /// [`BackgroundJobConfig::with_shutdown_timeout`].
+    ///
+    /// WHY: a caller that bounds shutdown itself must not let this registry
+    /// overrun the caller's budget, so it computes
+    /// `min(own_timeout, shutdown_timeout())` and passes the result to
+    /// [`Self::shutdown_until`] (issue #233).
+    #[must_use]
+    pub fn shutdown_timeout(&self) -> Duration {
+        self.shutdown_timeout
     }
 }
 

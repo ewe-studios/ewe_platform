@@ -710,6 +710,9 @@ impl PoolGuard {
     ///
     /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
     /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
+    /// The background job registry is bounded too, by
+    /// `min(timeout, background_shutdown_timeout)`: a stuck background job
+    /// cannot outlast this call by more than the same budget (issue #233).
     /// Either way this guard's own global registry entries are cleared, and
     /// dropping the guard afterwards releases the lifecycle gate without waiting
     /// again. Idempotent: a second call, or a call after `shutdown`, returns
@@ -724,10 +727,16 @@ impl PoolGuard {
             return true;
         }
         if let Some(ref bg) = self.bg_registry {
+            let clock = self.registry.clock();
+            // Bound the background registry by the caller's deadline as well as
+            // the registry's own configured timeout (issue #233). Without the
+            // `min`, a stuck background job would hold the lifecycle gate for
+            // the configured 30 s default, long past this call's bound.
+            let deadline = clock.now() + timeout.min(bg.shutdown_timeout());
             if let ShutdownOutcome::TimedOut {
                 abandoned_jobs,
                 busy_workers,
-            } = bg.shutdown(&*self.registry.clock())
+            } = bg.shutdown_until(&*clock, deadline)
             {
                 tracing::warn!(
                     abandoned_jobs,
