@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 14 (keychain start synchronization, #358) is in review as PR #362. The
+  fix deletes the single `std::thread::sleep(Duration::from_millis(150));` from `start_server`
+  in `backends/foundation_keychain/tests/streamed_body.rs`. No readiness channel was added:
+  the listener is bound before the serve thread starts, so a connect succeeds into the accept
+  backlog, and the first request's 10 s read timeout waits for the loop. A response in
+  `slow_request_body_does_not_hold_worker` proves the loop runs before any timing assertion.
+  `streamed_body` passed 20 runs in a row on macOS, and the full `foundation_keychain` suite
+  passed. No new defect. Linux CI is the remaining proof.
+
 - 2026-11-07: feature 13 (concurrent Turso reads, #357, high) is in review as PR #361. The
   cause is a Turso 0.8.3 rule: every statement clones the connection's `ConcurrentGuard`, and
   `execute`, `step` and `query` call `try_use`. A second live statement on the one connection
@@ -154,15 +163,15 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **11-ci-mobile-target-builds** — in review, PR #356 (#196)
 - **12-ci-free-runner-disk** — in review, PR #352 (#194)
 - **13-db-turso-concurrent-reads** — in review, PR #361 (#357, high)
-- **14-keychain-start-server-sync** — in progress (#358)
+- **14-keychain-start-server-sync** — in review, PR #362 (#358)
 
 ## Next steps
 
-1. Read CI on PRs #361 and the six fixed branches; send any remaining failure to a fresh
-   agent. Feature 14 is running. Merge order matters for the templates: 01, 02 and 09 all
-   change the same `foundation_core`/`foundation_http` lines. After a merge, rebase the other
-   branches and keep the highest crate version.
-2. Feature 08 waits on the merge of PR #344.
+1. Read CI on PRs #361 and #362 and the six fixed branches; send any remaining failure to a
+   fresh agent. Merge order matters for the templates: 01, 02 and 09 all change the same
+   `foundation_core`/`foundation_http` lines. After a merge, rebase the other branches and
+   keep the highest crate version.
+2. Feature 08 waits on the merge of PR #344. It is the only feature not started.
 3. Close each issue in the pull request that fixes it.
 
 _Created: 2026-11-07_

@@ -1,6 +1,6 @@
 ---
 feature: "The streamed-body test helper does not sleep before its first request"
-status: "pending"
+status: "in-review"
 priority: "low"
 depends_on: []
 crates: ["foundation_keychain"]
@@ -55,10 +55,10 @@ sleep, and a fast machine wastes the wait.
 
 ## 5. Tasks
 
-- [ ] Read `start_server` and the tests that call it.
-- [ ] Remove the sleep and add a readiness signal only if an assertion needs one.
-- [ ] Run the tests 20 times in a row.
-- [ ] Close #358 in the PR body.
+- [x] Read `start_server` and the tests that call it.
+- [x] Remove the sleep and add a readiness signal only if an assertion needs one.
+- [x] Run the tests 20 times in a row.
+- [x] Close #358 in the PR body.
 
 ## 6. Tests
 

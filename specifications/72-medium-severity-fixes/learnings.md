@@ -3,6 +3,15 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 14 (2026-11-07)
+
+- Bind the listener before the serve thread starts, then connect early. The kernel accepts a
+  connect into the accept backlog, so the socket, not a timer, signals readiness. A fixed
+  sleep after the spawn adds time and still races a slow machine.
+- Not every sleep needs a readiness channel in its place. If no assertion needs to know that
+  the loop started, and the first request has its own timeout, deleting the sleep is the
+  whole fix. Add a channel only when a later assertion must observe the start.
+
 ## Feature 13 (2026-11-07)
 
 - A shared read lock is not safe for every driver. Turso 0.8.3 keeps one `ConcurrentGuard`
