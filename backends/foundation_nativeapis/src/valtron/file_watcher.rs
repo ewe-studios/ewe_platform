@@ -1,5 +1,6 @@
 /// Valtron task: `FileWatcherTask` — wraps a `NativeWatcher` and delivers file events
 /// to subscriber queues.
+use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
@@ -26,6 +27,11 @@ pub struct FileWatcherTask {
     broadcaster: EventBroadcaster<WatchEvent>,
     poll_timeout: Duration,
     stop: StopSignal,
+    /// Events from the current poll that were not yet returned.
+    ///
+    /// One poll can return many events. The task delivers one event per
+    /// `next_status` call, so the rest wait here for later calls.
+    pending: VecDeque<WatchEvent>,
 }
 
 impl FileWatcherTask {
@@ -41,6 +47,7 @@ impl FileWatcherTask {
             broadcaster: EventBroadcaster::new(64),
             poll_timeout: Duration::from_millis(50),
             stop: StopSignal::new(),
+            pending: VecDeque::new(),
         })
     }
 
@@ -51,6 +58,7 @@ impl FileWatcherTask {
             broadcaster: EventBroadcaster::new(64),
             poll_timeout: Duration::from_millis(50),
             stop: StopSignal::new(),
+            pending: VecDeque::new(),
         }
     }
 
@@ -61,6 +69,7 @@ impl FileWatcherTask {
             broadcaster: EventBroadcaster::new(64),
             poll_timeout: Duration::from_millis(50),
             stop: StopSignal::new(),
+            pending: VecDeque::new(),
         }
     }
 
@@ -118,14 +127,20 @@ impl TaskIterator for FileWatcherTask {
             return None;
         }
 
+        // Return the next event that is still waiting from an earlier poll.
+        if let Some(event) = self.pending.pop_front() {
+            return Some(TaskStatus::Ready(event));
+        }
+
         match self.watcher.poll(self.poll_timeout) {
             Ok(events) if !events.is_empty() => {
-                let (first, rest) = events.split_first().unwrap();
-                self.broadcaster.broadcast(first.clone());
-                for event in rest {
+                // Broadcast every event exactly once, then queue them all.
+                for event in &events {
                     self.broadcaster.broadcast(event.clone());
                 }
-                Some(TaskStatus::Ready(first.clone()))
+                self.pending.extend(events);
+                let first = self.pending.pop_front().unwrap();
+                Some(TaskStatus::Ready(first))
             }
             Ok(_) | Err(_) => Some(TaskStatus::Depends(Arc::new(CompositeReadiness::new(
                 Arc::new(self.watcher.clone_handle()),
