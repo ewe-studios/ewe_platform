@@ -1,6 +1,6 @@
 [package]
 name = "foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -87,6 +87,9 @@ quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"]
 libc = "0.2"
 
 [dev-dependencies]
+# `test-clock` provides `SimulatedClock`, so the load-tracker tests move the
+# rate window by hand instead of sleeping.
+foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["test-clock"] }
 # F52: wasm-bindgen browser tests via foundation_testbed (wasm32-only).
 # All wasm-bindgen ecosystem re-exported by foundation_testbed.
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }

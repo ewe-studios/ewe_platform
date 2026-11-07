@@ -444,7 +444,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "base64",

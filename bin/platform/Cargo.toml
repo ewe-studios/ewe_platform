@@ -20,7 +20,7 @@ foundation_packager = { path = "../../backends/foundation_packager", version = "
 # ewe_watchers = { workspace = true }
 foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.7" }
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.18", features = ["multi"] }
-foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
+foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.8", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.7" }
 foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.11" }
 # Referenced by the code `foundation_macros::EmbedDirectoryAs` expands to.
