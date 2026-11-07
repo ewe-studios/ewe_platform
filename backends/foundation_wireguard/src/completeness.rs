@@ -13,9 +13,9 @@
 pub fn check() {
     // Check 1: JsDevice implements smoltcp::phy::Device (F07 wasm data plane)
     {
-        fn _assert<T: smoltcp::phy::Device>(_: &T) {}
+        fn assert_device<T: smoltcp::phy::Device>(_: &T) {}
         let dev = crate::wasm::device::JsDevice::new(1420);
-        _assert(&dev);
+        assert_device(&dev);
     }
 
     // Check 2: BrowserWgNode has tick() (F07 browser peer lifecycle)
