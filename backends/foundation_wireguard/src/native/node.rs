@@ -824,8 +824,14 @@ impl WgMeshTask {
                 }
                 if driver_ips.contains(&record.tunnel_ip) {
                     client.on_direct_probe_success(record.id);
-                } else {
-                    client.on_direct_probe_failure(record.id);
+                } else if let Err(err) = client.on_direct_probe_failure(record.id) {
+                    // The hole punch failed and no relay is available, so the
+                    // peer has no path. Log it; the next tick can retry.
+                    tracing::warn!(
+                        peer = %record.id,
+                        error = %err,
+                        "connectivity ladder: hole punch failed with no relay"
+                    );
                 }
             }
         }

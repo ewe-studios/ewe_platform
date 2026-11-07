@@ -16,6 +16,7 @@ use foundation_wireguard::shared::membership::{Capabilities, MemberState, PeerId
 use foundation_wireguard::shared::relay::{
     ConnectivityPath, RelayFrame, RelaySelector, RelaySession, RelayStrategy, RELAY_MAX_PAYLOAD,
 };
+use foundation_wireguard::WgError;
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
@@ -215,10 +216,10 @@ fn session_ladder_from_direct_to_relay() {
     assert_eq!(s.path, ConnectivityPath::Direct);
 
     let relay = test_peer(99);
-    s.on_direct_failure(Some(relay));
+    assert!(s.on_direct_failure(Some(relay)).is_ok());
     assert_eq!(s.path, ConnectivityPath::HolePunching);
 
-    s.on_direct_failure(Some(relay));
+    assert!(s.on_direct_failure(Some(relay)).is_ok());
     assert!(s.is_relayed());
 }
 
@@ -228,7 +229,7 @@ fn session_upgrades_from_relay_to_direct() {
     let mut s = RelaySession::new();
     let relay = test_peer(99);
     // From Disconnected, go straight to relayed.
-    s.on_direct_failure(Some(relay));
+    assert!(s.on_direct_failure(Some(relay)).is_ok());
     assert!(s.is_relayed());
 
     s.on_direct_success();
@@ -242,11 +243,58 @@ fn session_hole_punch_success() {
     let mut s = RelaySession::new();
     // Start from Direct to get to HolePunching ladder rung.
     s.on_direct_success();
-    s.on_direct_failure(Some(test_peer(99)));
+    assert!(s.on_direct_failure(Some(test_peer(99))).is_ok());
     assert_eq!(s.path, ConnectivityPath::HolePunching);
 
     s.on_hole_punch_success();
     assert_eq!(s.path, ConnectivityPath::Direct);
+}
+
+#[traced_test]
+#[test]
+fn a_failed_punch_without_relay_returns_an_error() {
+    let mut s = RelaySession::new();
+    // Walk the ladder to HolePunching: a direct path first, then a failed probe.
+    s.on_direct_success();
+    assert!(
+        s.on_direct_failure(None).is_ok(),
+        "a failed direct probe without a relay only starts hole punching"
+    );
+    assert_eq!(s.path, ConnectivityPath::HolePunching);
+
+    // A failed punch with no relay must report an error, not panic.
+    let err = s
+        .on_direct_failure(None)
+        .expect_err("a failed punch without a relay must return an error");
+    assert!(
+        matches!(err.current_context(), WgError::NoRelayForPunchedSession),
+        "unexpected error variant: {:?}",
+        err.current_context()
+    );
+    assert!(
+        err.to_string().contains("hole punching failed"),
+        "the error must name the state: {err}"
+    );
+    // Documented fallback: the session has no path left.
+    assert_eq!(s.path, ConnectivityPath::Disconnected);
+    assert!(s.relay_peer().is_none());
+}
+
+#[traced_test]
+#[test]
+fn a_failed_punch_with_a_relay_falls_back() {
+    let mut s = RelaySession::new();
+    let relay = test_peer(99);
+    s.on_direct_success();
+    assert!(s.on_direct_failure(Some(relay)).is_ok());
+    assert_eq!(s.path, ConnectivityPath::HolePunching);
+
+    assert!(
+        s.on_direct_failure(Some(relay)).is_ok(),
+        "a failed punch with a relay falls back to that relay"
+    );
+    assert_eq!(s.path, ConnectivityPath::Relayed(relay));
+    assert_eq!(s.relay_peer(), Some(relay));
 }
 
 // ── RelayClient ──
@@ -261,7 +309,7 @@ fn client_tracks_peer_paths() {
     assert_eq!(client.peer_path(test_peer(5)), ConnectivityPath::Direct);
 
     // Direct failure with no relay → HolePunching.
-    client.on_direct_probe_failure(test_peer(5));
+    assert!(client.on_direct_probe_failure(test_peer(5)).is_ok());
     assert_eq!(
         client.peer_path(test_peer(5)),
         ConnectivityPath::HolePunching
