@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: the spec pull request is [#393](https://github.com/ewe-studios/ewe_platform/pull/393).
+  It has ten features and closes fourteen high issues. The `macos-ssh` job is the #355 proof.
+
 - 2026-11-07: feature 03 implemented (#258 fixed; #253 verified) on
   `spec73/f03-connectrpc-h3-trailers-and-headers`, commit `190aaf5a8`, merged as `2ca84edf5`.
   `HandlerExchange` carries the handler header slot; the h1/POST, h2 and h3 pumps merge it
