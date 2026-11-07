@@ -1,7 +1,9 @@
 //! The libsql and Turso stores keep one connection behind an async read/write
-//! lock: reads run together; a write or a batch (`BEGIN` .. `COMMIT`/`ROLLBACK`)
-//! has the connection to itself. These tests run the same cases on both
-//! backends.
+//! lock: a write or a batch (`BEGIN` .. `COMMIT`/`ROLLBACK`) has the connection
+//! to itself. libsql lets two read statements share the connection; Turso
+//! 0.8.3 forbids two live statements on one connection, so there a read waits
+//! for the previous read to end. These tests run the same cases on both
+//! backends and branch on the driver's rule where they differ.
 //!
 //! Without the lock, a statement run while a batch is open joins the batch's
 //! transaction: a rollback erases it, and a second batch fails with "cannot
@@ -73,7 +75,7 @@ async fn open_libsql_file(path: &str) -> foundation_db::StorageResult<foundation
 }
 
 macro_rules! lock_tests {
-    ($module:ident, $store:ty, $feature:literal, $memory:expr, $file:path) => {
+    ($module:ident, $store:ty, $feature:literal, $reads_share:literal, $memory:expr, $file:path) => {
         #[cfg(feature = $feature)]
         mod $module {
             use super::*;
@@ -173,24 +175,37 @@ macro_rules! lock_tests {
                 assert_eq!(count_rows(&store, "q").await, expected);
             }
 
-            /// Two open row streams (each holds a read guard) coexist.
+            /// Two reads on the same store follow the driver's rule: a
+            /// driver that allows two live statements runs them together;
+            /// Turso 0.8.3 forbids that, so the second read waits for the
+            /// first to end and then takes the connection.
             #[valtron_test(threads = 3, timeout = 60_000)]
-            async fn reads_run_concurrently() {
-                let store = memory_store().await;
-                let (tx, rx) = mpsc::channel();
-                let reader_store = store.clone();
-                let reader = thread::spawn(move || {
-                    futures_lite::future::block_on(async {
-                        let first = reader_store.list_keys(None).await.unwrap();
-                        // The second read starts while the first is still open.
-                        let second = reader_store.list_keys(None).await.unwrap();
-                        tx.send(()).unwrap();
-                        drop((first, second));
-                    });
-                });
-                rx.recv_timeout(Duration::from_secs(10))
-                    .expect("a second read waited for the first read");
-                reader.join().unwrap();
+            async fn two_read_streams_follow_the_driver_rule() {
+                let store = memory_store()
+                    .await
+                    .with_lock_timeout(Duration::from_millis(200));
+                let first = store.list_keys(None).await.unwrap();
+                let second = if $reads_share {
+                    Some(store.list_keys(None).await.unwrap())
+                } else {
+                    let Err(error) = store.list_keys(None).await else {
+                        panic!("the second read must wait for the first");
+                    };
+                    assert!(
+                        matches!(
+                            error,
+                            StorageError::LockTimeout {
+                                mode: LockMode::Read,
+                                ..
+                            }
+                        ),
+                        "unexpected error: {error}"
+                    );
+                    None
+                };
+                drop((first, second));
+                // The connection is free again.
+                drop(store.list_keys(None).await.unwrap());
             }
 
             /// A write waits for an open read; a read that starts while the
@@ -320,29 +335,44 @@ macro_rules! lock_tests {
                 drop(open_stream);
             }
 
-            /// Two raw SELECT streams (each holds a read guard) coexist.
+            /// Two raw SELECT streams follow the driver's rule; see
+            /// `two_read_streams_follow_the_driver_rule`.
             #[valtron_test(threads = 3, timeout = 60_000)]
-            async fn raw_select_query_takes_read_guard() {
-                let store = memory_store().await;
-                let (tx, rx) = mpsc::channel();
-                let reader_store = store.clone();
-                let reader = thread::spawn(move || {
-                    futures_lite::future::block_on(async {
-                        let first = reader_store
-                            .query("  /* note */ select key FROM lock_test", &[])
-                            .await
-                            .unwrap();
-                        let second = reader_store
+            async fn two_raw_select_streams_follow_the_driver_rule() {
+                let store = memory_store()
+                    .await
+                    .with_lock_timeout(Duration::from_millis(200));
+                let first = store
+                    .query("  /* note */ select key FROM lock_test", &[])
+                    .await
+                    .unwrap();
+                let second = if $reads_share {
+                    Some(
+                        store
                             .query("-- note\nSELECT value FROM lock_test;", &[])
                             .await
-                            .unwrap();
-                        tx.send(()).unwrap();
-                        drop((first, second));
-                    });
-                });
-                rx.recv_timeout(Duration::from_secs(10))
-                    .expect("a second raw SELECT waited for the first");
-                reader.join().unwrap();
+                            .unwrap(),
+                    )
+                } else {
+                    let Err(error) = store
+                        .query("-- note\nSELECT value FROM lock_test;", &[])
+                        .await
+                    else {
+                        panic!("the second SELECT must wait for the first");
+                    };
+                    assert!(
+                        matches!(
+                            error,
+                            StorageError::LockTimeout {
+                                mode: LockMode::Read,
+                                ..
+                            }
+                        ),
+                        "unexpected error: {error}"
+                    );
+                    None
+                };
+                drop((first, second));
             }
 
             /// A raw `INSERT ... RETURNING` stream holds the write guard: a read
@@ -428,6 +458,7 @@ lock_tests!(
     turso,
     foundation_db::TursoStorage,
     "turso",
+    false,
     foundation_db::TursoStorage::in_memory(),
     open_turso_file
 );
@@ -435,6 +466,7 @@ lock_tests!(
     libsql,
     foundation_db::LibsqlStore,
     "libsql",
+    true,
     foundation_db::LibsqlStore::in_memory(),
     open_libsql_file
 );

@@ -7,6 +7,9 @@
 //!
 //! - a single statement takes the **read** side while it uses the connection
 //!   (single statements still run together);
+//! - a driver that forbids two live statements on one connection takes the
+//!   **exclusive** side for a read too (see `ConnGate::read_exclusive`). The
+//!   Turso 0.8.3 driver does this;
 //! - a batch, or any other multi-statement sequence, takes the **write** side
 //!   from before `BEGIN` until after `COMMIT` or `ROLLBACK`;
 //! - a row stream holds the read side until it ends or is dropped.
@@ -29,7 +32,9 @@
 //! (see the `recover` method of each store) before its next operation.
 
 use crate::core::errors::{LockMode, StorageError, StorageResult};
-use async_lock::{RwLock, RwLockReadGuardArc, RwLockWriteGuardArc};
+#[cfg(feature = "libsql")]
+use async_lock::RwLockReadGuardArc;
+use async_lock::{RwLock, RwLockWriteGuardArc};
 use foundation_core::valtron::timer::sleep_for;
 use futures_lite::future::or;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -40,7 +45,9 @@ use std::time::Duration;
 /// `LockTimeout`. 30 s is the default acquire timeout of the `sqlx` pool.
 pub const DEFAULT_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Owned read guard: held while one statement, or one row stream, uses the connection.
+/// Owned read guard: held while one statement, or one row stream, uses the
+/// connection. Only a driver that allows two live read statements uses it.
+#[cfg(feature = "libsql")]
 pub(crate) type ReadGuard = RwLockReadGuardArc<()>;
 
 /// Owned write guard: held for the whole of a multi-statement sequence.
@@ -85,13 +92,44 @@ impl ConnGate {
 
     /// Wait until no multi-statement sequence is open, then share the connection.
     ///
+    /// Only for a driver that allows two live read statements on one
+    /// connection (libsql). Turso takes `ConnGate::read_exclusive`.
+    ///
     /// # Errors
     ///
     /// `LockTimeout` if the lock is not free within the wait limit.
+    #[cfg(feature = "libsql")]
     pub(crate) async fn read(&self) -> StorageResult<ReadGuard> {
         let lock = Arc::clone(&self.lock);
         or(
             async move { Ok(lock.read_arc().await) },
+            self.expire(LockMode::Read),
+        )
+        .await
+    }
+
+    /// Wait until no other statement or sequence uses the connection, then own
+    /// it, for a read.
+    ///
+    /// Turso 0.8.3 does not allow two live statements on one connection, even
+    /// when both only read: every statement clones the connection's
+    /// `ConcurrentGuard`, and `execute`, `step` and `query` call `try_use`. A
+    /// second statement that runs while the first is live returns
+    /// `TursoError::Misuse("concurrent use forbidden")`. Such a driver takes the
+    /// exclusive side for a read too, so a read waits for the previous read to
+    /// end just as it waits for a write.
+    ///
+    /// The wait is still reported as [`LockMode::Read`], because the caller is
+    /// a read.
+    ///
+    /// # Errors
+    ///
+    /// `LockTimeout` if the lock is not free within the wait limit.
+    #[cfg(feature = "turso")]
+    pub(crate) async fn read_exclusive(&self) -> StorageResult<WriteGuard> {
+        let lock = Arc::clone(&self.lock);
+        or(
+            async move { Ok(lock.write_arc().await) },
             self.expire(LockMode::Read),
         )
         .await
