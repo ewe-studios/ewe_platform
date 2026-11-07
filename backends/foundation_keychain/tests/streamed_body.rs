@@ -70,7 +70,6 @@ fn start_server(configure: impl FnOnce(KeychainServer) -> KeychainServer) -> Tes
     let server = HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), cfg);
     let sc = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &sc));
-    std::thread::sleep(Duration::from_millis(150));
 
     TestServer {
         addr,
