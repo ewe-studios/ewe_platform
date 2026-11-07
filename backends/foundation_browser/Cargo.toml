@@ -20,7 +20,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.7", features =
 # bundled localhost dev cert — for testing secure-context features.
 foundation_http = { path = "../foundation_http", version = "0.0.8", features = ["ssl-rustls-ring"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.6" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.7" }
 # embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we
 # serve <mount-stream> without a build step.
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.1", features = ["embedded-js"] }
