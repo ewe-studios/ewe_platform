@@ -6346,7 +6346,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "clap",
  "concurrent-queue",

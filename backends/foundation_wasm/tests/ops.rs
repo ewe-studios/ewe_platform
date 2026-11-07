@@ -1286,6 +1286,7 @@ fn can_encode_no_return_function_call() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn can_encode_function_registeration_and_invoke_function() {
     let mut allocator = MemoryAllocations::new();
 

@@ -17,7 +17,7 @@ path = "src/bin/ewe_wasm_bundle.rs"
 
 [dependencies]
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.6", features = ["web"] }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.7", features = ["web"] }
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
 # The reactive layer this runtime bridges to the DOM (decision 012 diagram:
 # foundation_wasm_ui depends on BOTH signals and wasm). This crate is

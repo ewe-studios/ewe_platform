@@ -6,6 +6,10 @@
 //! HOW: Register callbacks via the public API and assert length/value changes
 //! after `call()`.
 
+// The animation-frame timestamp is an f64 second count; these tests cast it to
+// a counter type on purpose.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 use std::sync::{Arc, Mutex};
 
 use foundation_wasm::{FnFrameCallback, FrameCallbackList, TickState};
