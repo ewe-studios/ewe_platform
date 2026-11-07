@@ -136,6 +136,9 @@ jobs:
         # checkout, so the job owns no other directory yet: the cargo target dir
         # and the cache are inside the checkout. A timeout fails this step.
         timeout-minutes: 10
+        # The container job's default shell is `sh`, which has no `pipefail`
+        # and no arrays. The step needs both, so it names bash.
+        shell: bash
         run: |
           set -euo pipefail
           paths=(/runner-free/dotnet /runner-free/android /runner-free/ghc /runner-free/ghcup /runner-free/boost)
@@ -330,6 +333,9 @@ jobs:
         # checkout, so the job owns no other directory yet: the cargo target dir
         # and the cache are inside the checkout. A timeout fails this step.
         timeout-minutes: 10
+        # The container job's default shell is `sh`, which has no `pipefail`
+        # and no arrays. The step needs both, so it names bash.
+        shell: bash
         run: |
           set -euo pipefail
           paths=(/runner-free/dotnet /runner-free/android /runner-free/ghc /runner-free/ghcup /runner-free/boost)
