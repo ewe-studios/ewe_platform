@@ -26,6 +26,16 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The four high fix branches (#334, #340, #347, #348) are not spec 73 features. They close
   before the spec starts so that the spec's crates start from a clean master.
 
+## Feature 06 (2026-11-07)
+
+- Cargo skips a test target with `required-features` and prints no warning. A verify command
+  that omits the feature compiles out the code under test. Name the features in the command,
+  and report both counts.
+- A pre-fix API can make a regression test impossible to run on the old code. Say so. The git
+  history (`git show <fix-commit> -- <file>`) is then the evidence, not a red test.
+- An existing test can be the pin. Three doc lines that name the field and the issue are
+  enough when the test already covers the case; do not add a duplicate.
+
 ## Feature 05 (2026-11-07)
 
 - A verification feature still needs a sensitivity proof. The fix predates the base, so the

@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 06 verified (#273, closed) on `spec73/f06-h3-webtransport-accept`,
+  commit `30dfe9bad`, merged as `1834f0fcb`. The three cases hold: pending HEADERS keeps the
+  stream (`connection.rs:487`), an ordinary request returns its headers (473-480), a pending
+  write keeps the stream (498). The existing test
+  `a_stream_accepted_before_its_headers_is_not_lost` pins it; the commit adds a doc note only.
+  1302 default tests pass, and 59 through `--features quic --test http3`. Filed #386 and #387
+  (medium: the quic code fails clippy, and the default runs skip every quic target) and #388
+  (low: the http3 suites run twice).
+
 - 2026-11-07: feature 05 verified (#254) on `spec73/f05-http1-rpc-worker-parking`, commit
   `003d11bae`, merged as `b425b17c2`. The new test
   `a_long_rpc_does_not_block_a_short_request` pins the parking path. A `TaskStatus::Ignore`
@@ -120,7 +129,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `features/04-http-connection-correctness/feature.md`
 - **05-http1-rpc-worker-parking** — verified (#254, fixed on master). Commit `003d11bae`,
   merged as `b425b17c2`.
-- **06-h3-webtransport-accept** — pending (#273, fixed on master). Verification plan ready.
+- **06-h3-webtransport-accept** — verified (#273, fixed on master and now closed). Commit
+  `30dfe9bad`, merged as `1834f0fcb`.
 - **07-openapi-boolean-generation** — verified (#317). Commit `1879b9e04`.
   `features/07-openapi-boolean-generation/feature.md`
 - **08-worktree-target-isolation** — verified (#324). The two `target_directory` values differ,
@@ -142,10 +152,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Next steps
 
-1. Merge feature 04 when its 0.0.9 bump lands. Then run the feature 05 and 06 verification lanes.
-2. Fix #378 on `fix/378-request-compression` (in progress). Merge it, then start feature 03
-   on the same crate.
-3. Verify the #378 fix and run its tests before the merge.
-4. Open the single spec 73 PR from `spec73/high-severity-fixes` when all features land.
+1. Start feature 03 (h3 trailers and handler streaming headers) on
+   `spec73/f03-connectrpc-h3-trailers-and-headers`. It is the last implementation feature.
+2. Verify, merge, and close #253 with evidence and #258 by the fix.
+3. Open the single spec 73 PR from `spec73/high-severity-fixes` when all features land.
+4. After the merge, mark the requirements completed and archive spec 73.
 
 _Created: 2026-11-07_

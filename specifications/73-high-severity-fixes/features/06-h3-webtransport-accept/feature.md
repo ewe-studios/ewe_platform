@@ -1,6 +1,6 @@
 ---
 feature: "Verify the H3 WebTransport accept keeps a pending request, then close #273"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 crates: ["foundation_netio"]
@@ -61,3 +61,35 @@ cargo test --profile uat -p foundation_netio
 - The three cases are confirmed against the code, with line numbers in the PR.
 - A test pins the pending-poll case.
 - #273 is closed with the evidence.
+
+## 6. Result (2026-11-07)
+
+Branch `spec73/f06-h3-webtransport-accept`, commit `30dfe9bad`, merged into
+`spec73/high-severity-fixes` as `1834f0fcb`. The commit adds three doc lines only. #273 is
+closed.
+
+1. **Measured path.** The field `pending_accept` is at `http3/connection.rs:180`. Line 444
+   reuses it with `as_mut()` and line 447 inserts a new stream.
+   - Case 1: the pending HEADERS arm at line 487 returns `Stream::Pending(())` and keeps the
+     stream.
+   - Case 2: lines 473-480 return `WtAccept::Request { request, headers }` for an ordinary
+     request.
+   - Case 3: the pending write arm at line 498 keeps the partial `Bytes` in
+     `pending.response`.
+2. **Pinning test.** No duplicate was added. The existing test
+   `a_stream_accepted_before_its_headers_is_not_lost` at
+   `tests/http3/webtransport_accept_tests.rs:98` sends a reserved frame before the HEADERS,
+   polls while the HEADERS are pending, then asserts the accepted request with its `:path`.
+   `an_ordinary_request_is_handed_back_with_its_headers` at line 145 pins case 2. The commit
+   names `pending_accept` and #273 in the first test's doc comment.
+3. **Old code.** The fix predates the spec (`ed492ed3c`, 2026-10-27). The pre-fix API
+   returned `Result<bool, H3Error>` and dropped the accepted stream; the test uses the
+   `WtAccept` API and cannot compile against it. The drop is visible in
+   `git show ed492ed3c -- backends/foundation_netio/src/http3/connection.rs`.
+4. **Counts.** `foundation_netio` default: 1302 passed. With `--features quic --test http3`:
+   59 passed.
+5. **Deviation.** The literal verify command has no `--features quic`, so Cargo skips the
+   `http3` target (`required-features = ["quic"]`). The target was run separately. Filed #387.
+6. **New defects.** Filed #386 (medium: the quic-gated code fails clippy with `-D warnings`,
+   74 diagnostics), #387 (medium: the default runs skip every quic, http3 and webtransport
+   target) and #388 (low: the http3 and webtransport suites run twice).
