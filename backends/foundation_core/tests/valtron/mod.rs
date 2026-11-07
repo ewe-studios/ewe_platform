@@ -94,6 +94,8 @@ mod pipe_mapped_tests;
 mod pipe_primitive;
 #[cfg(feature = "multi")]
 mod pool_config_tests;
+#[cfg(feature = "multi")]
+mod shutdown_single_deadline;
 #[cfg(not(target_family = "wasm"))]
 mod single_executor;
 #[cfg(feature = "multi")]
