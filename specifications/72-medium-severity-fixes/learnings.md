@@ -3,6 +3,19 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 09 (2026-11-07)
+
+- `mpp::Receiver` is a plain queue receiver with no readiness. A task that parks on a queue
+  must own a readiness that the sender wakes. Adding `readiness()` to the receiver, and waking
+  it in `send`/`force_send`/`close`, fixes every caller of the same shape.
+- A queue that is pushed and never popped stays ready, so the executor re-runs the task in a
+  hot loop. Drain with `try_iter` and let the readiness drop. A test that calls
+  `next_status` by hand cannot see the loop; the test must run the task as the executor does.
+- The sleeper defect was already fixed on master. Re-check a defect against master before you
+  plan the change; the remaining work here was the test, not the clock.
+- Two features that both bump `foundation_core` conflict on every version line (PR #339 sets
+  0.0.17, PR #349 sets 0.0.18). Merge one, then rebase the other.
+
 ## Feature 04 (2026-11-07)
 
 - There is no `Env` bundle and no `ContainerConfigError` in this workspace. The valtron `Ctx`

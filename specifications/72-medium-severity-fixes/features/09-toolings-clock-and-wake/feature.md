@@ -1,6 +1,6 @@
 ---
 feature: "The toolings sleeper uses the injected clock and the builder task wakes"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_toolings"]
@@ -61,15 +61,21 @@ task that never wakes and re-runs in a hot loop. Close issues
 - Check whether `mpp::Receiver` already exposes a wakeable form; if it does not, add one in
   `foundation_core` as a small public readiness, with a test, and record it in `progress.md`.
 
+**Result.** `mpp::Receiver` had no readiness, so `foundation_core` gains
+`mpp::Receiver::readiness()` (an event-driven `QueueReadiness`) and `Sender::send`,
+`force_send` and `close` wake the parked task. `ProjectBuilderTask` parks on the watch source
+and the result queue, drains with `try_iter`, and the never-popped `change_queue` is deleted.
+The sleeper already used the injected clock on master; its test moved to `SimulatedClock`.
+
 ## 5. Tasks
 
-- [ ] Read `runner/mod.rs`, `builder/mod.rs` and the dev service call site
+- [x] Read `runner/mod.rs`, `builder/mod.rs` and the dev service call site
       (`service/mod.rs:59`).
-- [ ] Move the sleeper to the injected clock.
-- [ ] Fix the wake and pop the queue.
-- [ ] Add the regression tests.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #201 and #203 in the PR body.
+- [x] Move the sleeper to the injected clock.
+- [x] Fix the wake and pop the queue.
+- [x] Add the regression tests.
+- [x] Run the verify commands. Record the results.
+- [x] Close #201 and #203 in the PR body.
 
 ## 6. Tests
 

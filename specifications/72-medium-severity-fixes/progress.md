@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 09 (toolings clock and wake, #201, #203) is in review as PR #349.
+  `mpp::Receiver` had no wakeable form, so `foundation_core` gains
+  `mpp::Receiver::readiness()` and its senders wake the parked task. The builder task parks on
+  the watch source and the result queue, drains with `try_iter`, and the never-popped
+  `change_queue` is deleted. The sleeper already used the injected clock on master; its test
+  now uses `SimulatedClock`. `foundation_core` is 0.0.18 and `foundation_toolings` 0.0.7, with
+  every requirement and lockfile updated. Four tests; all four failed on the old code (deadline
+  assertion, 2000 ms timeout, 5000 ms timeout with zero builds, "not ready after it drains")
+  and pass now. `foundation_toolings` 25 passed; the wake binary is 20/20. `foundation_core`
+  and `foundation_toolings` are clippy clean under `--no-deps`; #336 still stops the plain
+  run. Filed #347 (medium, `FileWatcherTask` returns only the first event of a poll) and #348
+  (medium, `submit_build` panics with no background pool).
+
 - 2026-11-07: feature 04 (Docker container clock, #220) is in review as PR #345. The
   `fork_ctx().clock()` fallback is gone. `ContainerConfig::resolve_clock()` returns
   `DockerError::MissingClock`, and `start_async` resolves it before any I/O. `#[docker_container]`
@@ -99,7 +112,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **06-netio-load-tracker-rate** — in review, PR #337 (#214)
 - **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
 - **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
-- **09-toolings-clock-and-wake** — not started (#201, #203)
+- **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
 - **10-keychain-macos-flake** — not started (#197)
 - **11-ci-mobile-target-builds** — not started (#196)
 - **12-ci-free-runner-disk** — not started (#194)
