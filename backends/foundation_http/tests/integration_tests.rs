@@ -1094,7 +1094,7 @@ fn test_server_config_defaults() {
     assert_eq!(config.accept_shutdown_poll, Duration::from_millis(10)); // Feature 05 shutdown poll
     assert_eq!(config.keep_alive.min_delay(), Duration::from_millis(15));
     assert_eq!(config.keep_alive.max_delay(), Duration::from_secs(300)); // max_read_timeout
-    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(120)); // min_read_timeout
+    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(75)); // nginx keepalive default
     assert_eq!(config.keep_alive.escalation_threshold, 50);
     assert_eq!(config.keep_alive.max_delay_cycles, 100);
     assert_eq!(config.max_body_bytes, 10 * 1024 * 1024);
