@@ -1,6 +1,6 @@
 ---
 feature: "LoadTracker computes its connection rate"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_netio"]
@@ -50,11 +50,12 @@ unused sentinel; feature 132 replaced its clock read with an explicit 0 and left
 
 ## 5. Tasks
 
-- [ ] Read the tracker and how `current_rate` is consumed.
-- [ ] Add the clock and the window computation.
-- [ ] Add the regression test.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #214 in the PR body.
+- [x] Read the tracker and how the rate is consumed. The real API is
+      `LoadTracker::connection_rate() -> u64`; there is no `current_rate`.
+- [x] Add the clock and the window computation.
+- [x] Add the regression test.
+- [x] Run the verify commands. Record the results.
+- [x] Close #214 in the PR body.
 
 ## 6. Tests
 

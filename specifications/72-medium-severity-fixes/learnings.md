@@ -3,6 +3,21 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 06 (2026-11-07)
+
+- The tracker's real API is `connection_rate() -> u64`, not `current_rate() -> f64`. Read the
+  type before you plan an `f64` fix.
+- `LoadTrackerConfig::calculation_interval` was dead configuration that feature 132 had
+  disabled. Reusing it as the minimum window, default `Duration::ZERO`, keeps the rule-8 shape
+  without inventing a new field.
+- Integer `u128` fixed-point math avoids the workspace's pedantic `cast_precision_loss` and
+  `cast_sign_loss` lints that an `f64` rate trips.
+- A clock-injected constructor is a breaking change even when no external crate calls it: every
+  workspace manifest's `version` requirement moves with the crate. `rg` for real call sites
+  first; the 67 manifest edits are bookkeeping.
+- The same cleanup found a real soundness bug: `ConnectionGuard` held `*const LoadTracker` with
+  `unsafe impl Send/Sync`. Borrowing the tracker removes the unsafe block.
+
 ## Feature 01 (2026-11-07)
 
 - `Ctx::host_with_clock` does not exist. `Ctx::new(Arc<dyn Clock>)` is the constructor that

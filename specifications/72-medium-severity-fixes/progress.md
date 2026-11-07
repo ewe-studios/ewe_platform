@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 06 (netio load tracker, #214) is in review as PR #337. The rate now
+  comes from connections since `last_calculation` over the injected clock's elapsed time, in
+  `u128` fixed-point to avoid the f64 cast lints. `LoadTracker::connection_rate() -> u64` keeps
+  the fraction in `connection_rate_milli`. `calculation_interval` was dead configuration and
+  is now the minimum window, default zero. The constructors take `Arc<dyn Clock>` and the
+  `Default` impl is gone, so `foundation_netio` is 0.0.8 and 67 consumer manifests, `Cargo.lock`
+  and the example lock are updated. No caller outside the crate uses the changed API. Two
+  `SimulatedClock` tests: the rate test failed on the old code with 0 and passes now; host run
+  1226 passed, Linux CI image 1227 and 1302 (`quic`) passed. The same PR fixes a soundness
+  bug: `ConnectionGuard` held a raw tracker pointer with `unsafe Send/Sync` and now borrows
+  it. Filed #336 (medium: 121/122 `foundation_reactor` clippy warnings block a dependent
+  crate's strict `-D warnings`).
+
 - 2026-11-07: feature 01 (HTTP app clock, #234) is in review as PR #333. `HttpApp` gains
   `with_ctx`, `with_context` and `with_clock`; every plain constructor routes through
   `with_ctx(Ctx::host())`, and only those host entry points call `Ctx::host()`. The wasm
