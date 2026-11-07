@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.9"
+version = "0.0.10"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -143,6 +143,11 @@ required-features = ["ipc"]
 [[test]]
 name = "vfs_shim_vfs"
 path = "tests/vfs_shim_vfs/mod.rs"
+required-features = ["vfs-preload"]
+
+[[test]]
+name = "vfs_shim_truncate"
+path = "tests/vfs_shim_truncate/mod.rs"
 required-features = ["vfs-preload"]
 
 [[test]]

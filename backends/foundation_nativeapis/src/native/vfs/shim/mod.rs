@@ -730,15 +730,22 @@ mod shim_exports {
     /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn truncate(pathname: *const c_char, length: libc::off_t) -> c_int {
+        // A negative length cannot name a file size.
+        if length < 0 {
+            set_errno(libc::EINVAL);
+            return -1;
+        }
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
             if path_matches_prefix(path) {
                 let key = strip_prefix(path);
+                let Ok(size) = usize::try_from(length) else {
+                    // Only a 32-bit target reaches this branch.
+                    set_errno(libc::EINVAL);
+                    return -1;
+                };
                 // Read existing content, truncate/pad to length
                 let mut data = VFS.fs.read_file(&key).unwrap_or_default();
-                data.resize(
-                    usize::try_from(length.cast_unsigned()).unwrap_or(usize::MAX),
-                    0u8,
-                );
+                data.resize(size, 0u8);
                 let _ = VFS.fs.write_file(&key, &data);
                 return 0;
             }
@@ -752,14 +759,21 @@ mod shim_exports {
     /// this C ABI entry point reads or writes.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn ftruncate(fd: c_int, length: libc::off_t) -> c_int {
+        // A negative length cannot name a file size.
+        if length < 0 {
+            set_errno(libc::EINVAL);
+            return -1;
+        }
         if is_virtual_fd(fd) {
             if let Some(path) = FD_TABLE.path(fd) {
                 let key = strip_prefix(&path);
+                let Ok(size) = usize::try_from(length) else {
+                    // Only a 32-bit target reaches this branch.
+                    set_errno(libc::EINVAL);
+                    return -1;
+                };
                 let mut data = VFS.fs.read_file(&key).unwrap_or_default();
-                data.resize(
-                    usize::try_from(length.cast_unsigned()).unwrap_or(usize::MAX),
-                    0u8,
-                );
+                data.resize(size, 0u8);
                 let _ = VFS.fs.write_file(&key, &data);
                 return 0;
             }

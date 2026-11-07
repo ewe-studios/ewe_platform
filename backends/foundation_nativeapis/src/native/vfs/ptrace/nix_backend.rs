@@ -67,6 +67,27 @@ fn get_regs(pid: Pid) -> Option<libc::user_regs_struct> {
     }
 }
 
+/// Report `value` as the syscall result in the tracee's return register.
+///
+/// The helper sets `rax` and calls `PTRACE_SETREGS`. A caller that ignores the
+/// failure lets the tracee see the kernel result instead of the emulated one.
+///
+/// # Errors
+///
+/// Returns `VfsError::Backend` when `PTRACE_SETREGS` fails. The message names
+/// the value and the tracee pid.
+pub fn report_return_value(
+    pid: Pid,
+    mut regs: libc::user_regs_struct,
+    value: u64,
+) -> VfsResult<()> {
+    regs.rax = value;
+    ptrace::setregs(pid, regs).map_err(|e| VfsError::Backend {
+        message: format!("ptrace setregs to report {value} failed for {pid}: {e}"),
+    })?;
+    Ok(())
+}
+
 /// nix-based raw ptrace interceptor.
 pub struct NixInterceptor;
 
@@ -238,25 +259,15 @@ fn ptrace_loop(
                             match action {
                                 SyscallAction::Passthrough => {}
                                 SyscallAction::Skip { return_value } => {
-                                    let mut r = regs;
-                                    r.rax = return_value as u64;
-                                    ptrace::setregs(pid, r).ok();
+                                    report_return_value(pid, regs, return_value as u64)?;
                                 }
                                 SyscallAction::SkipError { errno } => {
-                                    let mut r = regs;
-                                    r.rax = (-errno) as u64;
-                                    ptrace::setregs(pid, r).ok();
+                                    report_return_value(pid, regs, (-errno) as u64)?;
                                 }
                                 SyscallAction::CloseThenSkip { return_value, .. } => {
                                     // The replaced `close` has run. Report the
                                     // result of the original syscall.
-                                    let mut r = regs;
-                                    r.rax = return_value as u64;
-                                    ptrace::setregs(pid, r).map_err(|e| VfsError::Backend {
-                                        message: format!(
-                                            "ptrace setregs to report {return_value} failed for {pid}: {e}"
-                                        ),
-                                    })?;
+                                    report_return_value(pid, regs, return_value as u64)?;
                                 }
                             }
                         }
