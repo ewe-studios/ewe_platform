@@ -37,7 +37,7 @@ foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 foundation_core = { path = "../foundation_core", version = "0.0.16" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.6" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 
 [dependencies.chrono]
 workspace = true

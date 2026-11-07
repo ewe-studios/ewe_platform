@@ -22,7 +22,7 @@ foundation_toolings = { path = "../../backends/foundation_toolings", version = "
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.16", features = ["multi"] }
 foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.7", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.7" }
-foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.10" }
+foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.11" }
 # Referenced by the code `foundation_macros::EmbedDirectoryAs` expands to.
 foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.7" }
 

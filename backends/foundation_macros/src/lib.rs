@@ -813,6 +813,13 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// unless `required = true`, which makes a missing daemon a panic. A daemon
 /// that is reachable but fails a request is never skipped.
 ///
+/// Every container takes its clock from the valtron pool the function runs on
+/// (a `#[valtron_test]` provides one). `clock = <expr>` injects a specific
+/// clock instead, for a host that has one (rule 11). Without either, the
+/// function never falls back to the real clock: a plain function logs a skip,
+/// and a function returning `DockerResult<()>` returns
+/// `DockerError::MissingClock`.
+///
 /// # Examples
 ///
 /// A single container — the bare `key = value` list is shorthand:
@@ -827,6 +834,19 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// fn test_redis(containers: ContainerGroup) {
 ///     let addr = containers.container("cache").unwrap().address(6379).unwrap();
 ///     // Redis is serving at `addr` (127.0.0.1:<auto-assigned port>).
+/// }
+/// ```
+///
+/// An injected clock, for a caller outside a pool:
+///
+/// ```ignore
+/// use std::sync::Arc;
+/// use foundation_core::valtron::SimulatedClock;
+///
+/// #[docker_container(image = "redis:7", as = "cache", port = 6379,
+///                    clock = Arc::new(SimulatedClock::new(Default::default())))]
+/// fn test_redis(containers: ContainerGroup) {
+///     // ...
 /// }
 /// ```
 ///

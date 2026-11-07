@@ -11,7 +11,7 @@ keywords = ["runtimes", "embedded_runtimes"]
 
 [dependencies]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 
 # brotli 
 brotli = "8.0.2"
