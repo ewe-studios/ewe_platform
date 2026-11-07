@@ -81,7 +81,7 @@ pub struct PlatformSession {
     /// Per-route responder registry. Maps `handler_id` → responder.
     /// Each `webview_app()` / `ipc_shell()` registers its own responder.
     /// `execute_decision()` looks up the handler and calls `respond()`.
-    handler_registry: RwLock<HashMap<String, Box<dyn super::route_handler::RouteResponder>>>,
+    handler_registry: RwLock<HashMap<String, Arc<dyn super::route_handler::RouteResponder>>>,
 
     /// Resolved resource directory for MobileDirectory-backed assets.
     /// Set by `PlatformBuilder` at startup. On Android this is the Tauri-extracted
@@ -691,21 +691,22 @@ impl PlatformSession {
         self.handler_registry
             .write()
             .unwrap()
-            .insert(handler_id.to_string(), responder);
+            .insert(handler_id.to_string(), Arc::from(responder));
     }
 
-    /// Look up a responder by `handler_id`. Returns `None` if not found.
+    /// Look up a responder by `handler_id`. Returns a shared handle, or `None`
+    /// if not found. The handle stays valid when another registration replaces
+    /// the registry entry.
     ///
     /// # Panics
     ///
     /// Panics if the internal `RwLock` is poisoned.
-    pub fn get_responder(&self, handler_id: &str) -> Option<&dyn RouteResponder> {
-        // SAFETY: Extending the lifetime of the Box<dyn> inside the RwLock.
-        // The registry lives as long as the session, so this is safe.
-        let guard = self.handler_registry.read().unwrap();
-        guard
+    pub fn get_responder(&self, handler_id: &str) -> Option<Arc<dyn RouteResponder>> {
+        self.handler_registry
+            .read()
+            .unwrap()
             .get(handler_id)
-            .map(|b| unsafe { &*std::ptr::from_ref::<dyn RouteResponder>(b.as_ref()) })
+            .cloned()
     }
 }
 
