@@ -131,10 +131,17 @@ jobs:
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Free runner disk
+        # Delete the contents of the five host trees this job mounts. The find
+        # reads only these paths, not all of /runner-free. This step runs before
+        # checkout, so the job owns no other directory yet: the cargo target dir
+        # and the cache are inside the checkout. A timeout fails this step.
+        timeout-minutes: 10
         run: |
-          df -h /
-          find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +
-          df -h /
+          set -euo pipefail
+          paths=(/runner-free/dotnet /runner-free/android /runner-free/ghc /runner-free/ghcup /runner-free/boost)
+          du -sh "${paths[@]}" || true
+          timeout 480 find "${paths[@]}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          du -sh "${paths[@]}" || true
 
       - name: Checkout
         uses: actions/checkout@v4.4.0
@@ -318,10 +325,17 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Free runner disk
+        # Delete the contents of the five host trees this job mounts. The find
+        # reads only these paths, not all of /runner-free. This step runs before
+        # checkout, so the job owns no other directory yet: the cargo target dir
+        # and the cache are inside the checkout. A timeout fails this step.
+        timeout-minutes: 10
         run: |
-          df -h /
-          find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +
-          df -h /
+          set -euo pipefail
+          paths=(/runner-free/dotnet /runner-free/android /runner-free/ghc /runner-free/ghcup /runner-free/boost)
+          du -sh "${paths[@]}" || true
+          timeout 480 find "${paths[@]}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+          du -sh "${paths[@]}" || true
 
       - name: Checkout
         uses: actions/checkout@v4.4.0
