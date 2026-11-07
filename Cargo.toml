@@ -95,7 +95,7 @@ fuser = { version = "0.15", default-features = false }
 # Desktop linux/amd64 emulation used by scripts/ci/linux.sh), `V3::try_new()`
 # returns `None` and gemm-f32 panics on `.unwrap()`. The patch picks the kernel
 # with `V3::try_new()` / `V4::try_new()` instead. See
-# specifications/70-foundational-io-hardening/learnings.md.
+# specifications/completed/70-foundational-io-hardening/learnings.md.
 # A patch applies only inside this workspace; the upstream fix is written in
 # patches/gemm-common/UPSTREAM.md and tracked in issue #190.
 # gemm-f16 (0.19.0, pulled in by candle-core through gemm) has the same dispatch

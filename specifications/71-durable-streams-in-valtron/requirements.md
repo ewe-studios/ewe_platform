@@ -16,7 +16,7 @@ has_fundamentals: true
 builds_on: ""
 related_specs:
   - "specifications/65-agent-rpc-serving-system"
-  - "specifications/70-foundational-io-hardening"
+  - "specifications/completed/70-foundational-io-hardening"
   - "specifications/research/edge-data"
 features:
   completed: 0

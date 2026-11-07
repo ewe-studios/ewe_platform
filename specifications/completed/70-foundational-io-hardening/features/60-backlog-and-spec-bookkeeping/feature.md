@@ -25,7 +25,7 @@ Do this first (it is small) and again at the end.
     delete.
 - **E2 spec 70** frontmatter and features table: done by the main session when it wrote features 41–60 (check that the counts still match when lane B ends).
 - **E3** At the end of lane B: confirm every catalogue row owned by lane B is fixed or has a
-  backlog entry; write the result in `specifications/70-foundational-io-hardening/progress.md`.
+  backlog entry; write the result in `specifications/completed/70-foundational-io-hardening/progress.md`.
 
 ## Done when
 
