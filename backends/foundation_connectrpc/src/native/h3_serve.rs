@@ -45,10 +45,11 @@ use crate::shared::context::{CancelSignal, Ctx, Spec};
 use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
-    exchange_until_aborted, extract_path, grpc_status_trailers, h2_headers,
-    http_version_not_supported, method_not_allowed, request_from_header, run_unary, status_only,
-    stream_error_frame, stream_failure, unclosed_stream_error, unsupported_media_type, write_error,
-    Abort, StreamEnd, ThreadTimer,
+    exchange_until_aborted, extend_handler_headers, extract_path, grpc_status_trailers, h2_headers,
+    http_version_not_supported, merge_handler_headers, method_not_allowed,
+    protocol_encoding_header, request_from_header, run_unary, status_only, stream_error_frame,
+    stream_failure, take_handler_headers, unclosed_stream_error, unsupported_media_type,
+    write_error, Abort, StreamEnd, ThreadTimer,
 };
 use crate::shared::router::erased::ErasedStreamHandler;
 use crate::shared::router::{ConnectRpcHandler, HandlerKind};
@@ -294,6 +295,7 @@ async fn run_streaming_h3(
         conn,
         reader_task,
         writer_task,
+        response_headers,
     } = exchange;
 
     let shared = Mutex::new(req);
@@ -306,7 +308,9 @@ async fn run_streaming_h3(
     // The writer task compressed per this same negotiation — a flagged envelope
     // is only valid when the encoding header goes out with the response HEADERS.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
+    let encoding_header = protocol_encoding_header(protocol);
     let pump_content_type = content_type.clone();
+    let pump_headers = Arc::clone(&response_headers);
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
     // As over h2: the request side lives as long as the CLIENT keeps its request
@@ -356,6 +360,8 @@ async fn run_streaming_h3(
                     if let Some((name, enc)) = &response_encoding {
                         headers.push((Bytes::from(name.clone()), Bytes::from(enc.clone())));
                     }
+                    let handler = take_handler_headers(&pump_headers);
+                    extend_handler_headers(&mut headers, handler, encoding_header);
                     let mut header_frame = Req::encode_headers(&headers);
                     poll_shared(&shared, |r| r.poll_send_headers(&mut header_frame)).await?;
                 }
@@ -464,6 +470,8 @@ async fn run_streaming_h3(
             );
         }
     }
+    let handler = take_handler_headers(&response_headers);
+    merge_handler_headers(&mut response.headers, handler, encoding_header);
     send_h3_response(&mut req, response).await
 }
 

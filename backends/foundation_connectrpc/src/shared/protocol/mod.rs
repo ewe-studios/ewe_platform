@@ -19,7 +19,7 @@ pub mod connect;
 pub mod grpc;
 pub mod grpc_web;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use bytes::Bytes;
@@ -62,6 +62,9 @@ pub struct HandlerExchange {
     pub reader_task: BoxedTask,
     /// response `FramePipe` → envelope/compress → bytes (flush per frame).
     pub writer_task: BoxedTask,
+    /// The map a handler installs with `MessageSink::set_headers`, shared with
+    /// the conn's sender. The pump merges it into the response head.
+    pub response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
 }
 
 /// The client mirror of [`HandlerExchange`].
