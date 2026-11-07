@@ -2,8 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-07: feature 08 (ptrace setregs and truncate, #209, #210) is in review as
-  PR #363. `ptrace_loop` ignored the `PTRACE_SETREGS` error for `Skip` and `SkipError`.
+- 2026-11-07: spec 72 complete. All 14 features are merged (01 #333, 02 #339, 03 #332, 04 #345,
+  05 #338, 06 #337, 07 #344, 08 #363, 09 #349, 10 #359, 11 #356, 12 #352, 13 #361, 14 #362).
+  The spec is archived to `specifications/completed/72-medium-severity-fixes`. Every issue it
+  names is closed, including #194, #196, #197, #201, #203, #205–#210, #214, #219, #220, #223,
+  #233, #234, #357, #358 and #367.
+
+- 2026-11-07: feature 08 (ptrace setregs and truncate, #209, #210) merged as PR #363. All 14
+  features are merged, so spec 72 is complete.
+  `ptrace_loop` ignored the `PTRACE_SETREGS` error for `Skip` and `SkipError`.
   A new public `report_return_value` sets `rax`, calls `setregs`, and returns
   `VfsError::Backend` with the value and the pid. All three emulated-return arms use
   it. `truncate` and `ftruncate` reject `length < 0` with `EINVAL` before the path or
@@ -15,6 +22,15 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   bind-mounted `.git` file points at the host path, so
   `ci/platform-images/scripts/link-submodules.nu` cannot read the repository. No new
   defect.
+
+- 2026-11-07: merges and rebases. The owner merged all 13 feature PRs: #332 (03), #333 (01),
+  #337 (06), #338 (05), #339 (02), #344 (07), #345 (04), #349 (09), #352 (12), #356 (11),
+  #359 (10), #361 (13) and #362 (14). Each merge moved
+  master and made the other branches conflict on the same lines: the version of a crate in a
+  manifest, the project templates, and the example lock files. Each branch was rebased onto
+  master and resolved with one rule: keep the highest version of every crate, line by line.
+  The rebased branches passed `cargo metadata --locked` for the workspace and the three
+  example projects. Feature 08 is now unblocked, because #344 merged.
 
 - 2026-11-07: feature 14 (keychain start synchronization, #358) is in review as PR #362. The
   fix deletes the single `std::thread::sleep(Duration::from_millis(150));` from `start_server`
@@ -164,28 +180,27 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Feature status
 
-- **01-http-app-clock** — in review, PR #333 (#234)
-- **02-core-background-shutdown-deadline** — in review, PR #339 (#233)
-- **03-wireguard-hole-punch** — in review, PR #332 (#223)
-- **04-docker-container-clock** — in review, PR #345 (#220)
-- **05-wasm-wasi-time-source** — in review, PR #338 (#219)
-- **06-netio-load-tracker-rate** — in review, PR #337 (#214)
-- **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
-- **08-nativeapi-setregs-and-truncate** — in review, PR #363 (#209, #210)
-- **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
-- **10-keychain-macos-flake** — in review, PR #359 (#197)
-- **11-ci-mobile-target-builds** — in review, PR #356 (#196)
-- **12-ci-free-runner-disk** — in review, PR #352 (#194)
-- **13-db-turso-concurrent-reads** — in review, PR #361 (#357, high)
-- **14-keychain-start-server-sync** — in review, PR #362 (#358)
+- **01-http-app-clock** — merged, PR #333 (#234)
+- **02-core-background-shutdown-deadline** — merged, PR #339 (#233)
+- **03-wireguard-hole-punch** — merged, PR #332 (#223)
+- **04-docker-container-clock** — merged, PR #345 (#220)
+- **05-wasm-wasi-time-source** — merged, PR #338 (#219)
+- **06-netio-load-tracker-rate** — merged, PR #337 (#214)
+- **07-nativeapi-ptrace-dispatch** — merged, PR #344 (#205–#208)
+- **08-nativeapi-setregs-and-truncate** — merged, PR #363 (#209, #210)
+- **09-toolings-clock-and-wake** — merged, PR #349 (#201, #203)
+- **10-keychain-macos-flake** — merged, PR #359 (#197)
+- **11-ci-mobile-target-builds** — merged, PR #356 (#196)
+- **12-ci-free-runner-disk** — merged, PR #352 (#194)
+- **13-db-turso-concurrent-reads** — merged, PR #361 (#357, high)
+- **14-keychain-start-server-sync** — merged, PR #362 (#358)
 
 ## Next steps
 
-1. Read CI on PRs #361 and #362 and the six fixed branches; send any remaining failure to a
-   fresh agent. Merge order matters for the templates: 01, 02 and 09 all change the same
-   `foundation_core`/`foundation_http` lines. After a merge, rebase the other branches and
-   keep the highest crate version.
-2. Feature 08 is in review as PR #363. Only features 11 and 12 have not started.
-3. Close each issue in the pull request that fixes it.
+1. All 14 features are merged. The issues the merged PRs name are closed: #194, #196, #197,
+   #201, #203, #205–#208, #209, #210, #214, #219, #220, #223, #233, #234, #357, #358, #367.
+2. Archive this spec to `specifications/completed/72-medium-severity-fixes` and set its
+   requirements status to completed.
+
 
 _Created: 2026-11-07_
