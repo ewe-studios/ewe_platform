@@ -20,6 +20,10 @@ pub enum ToolingError {
     #[display("Build: {_0}")]
     #[from(ignore)]
     Build(#[error(not(source))] String),
+    /// The background job pool is missing or closed, so a build cannot start.
+    #[display("Background job unavailable: {_0}")]
+    #[from(ignore)]
+    BackgroundJob(#[error(not(source))] String),
     /// Binary spawn or kill failed.
     #[display("Run: {_0}")]
     #[from(ignore)]

@@ -556,17 +556,18 @@ pub fn initialize_pool_with_slow_poll_warning(
 /// # Errors
 ///
 /// Returns an error if the background registry is not initialized or the queue is closed.
-///
-/// # Panics
-///
-/// Panics if the background job pool has not been initialized.
+/// A missing pool is a fallible state, not an invariant.
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
     let bg_registry = BG_REGISTRY
         .lock()
         .unwrap_or_else(crate::compati::recover_poison)
-        .clone()
-        .expect("Background job pool not initialized, ensure to call initialize_pool first");
-    bg_registry.submit(job)
+        .clone();
+    match bg_registry {
+        Some(bg_registry) => bg_registry.submit(job),
+        None => {
+            Err("Background job pool not initialized, ensure to call initialize_pool first".into())
+        }
+    }
 }
 
 /// [`spawn`] provides a builder which allows you to build out
@@ -699,7 +700,7 @@ impl PoolGuard {
         }
     }
 
-    /// [`Self::shutdown`] with an explicit deadline for the task workers.
+    /// [`Self::shutdown`] with an explicit deadline.
     ///
     /// WHY: a worker can be stuck inside a task (blocked in a syscall, or
     /// deadlocked) and never reach its kill check. An unbounded wait would keep
@@ -708,15 +709,17 @@ impl PoolGuard {
     /// harness, or a host with a tighter stop budget) needs the pool torn down
     /// in bounded time.
     ///
-    /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
-    /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
-    /// The background job registry is bounded too, by
-    /// `min(timeout, background_shutdown_timeout)`: a stuck background job
-    /// cannot outlast this call by more than the same budget (issue #233).
-    /// Either way this guard's own global registry entries are cleared, and
-    /// dropping the guard afterwards releases the lifecycle gate without waiting
-    /// again. Idempotent: a second call, or a call after `shutdown`, returns
-    /// `true`.
+    /// WHAT: returns `true` if every worker stopped within `timeout` of the
+    /// call, `false` if some were detached still busy (see
+    /// [`ThreadRegistry::shutdown_within`]). One deadline covers both shutdown
+    /// phases, measured from the start of the call (issue #340). The background
+    /// job registry gets `min(deadline, background_shutdown_timeout)`, and the
+    /// task worker registry gets the budget that remains: a stuck background
+    /// job cannot outlast this call, and the two phases cannot each spend the
+    /// full `timeout` (issues #233 and #340). Either way this guard's own
+    /// global registry entries are cleared, and dropping the guard afterwards
+    /// releases the lifecycle gate without waiting again. Idempotent: a second
+    /// call, or a call after `shutdown`, returns `true`.
     #[must_use]
     pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
         if self
@@ -726,17 +729,21 @@ impl PoolGuard {
         {
             return true;
         }
+        // One absolute deadline covers both phases, measured from this call's
+        // start. Before issue #340, each phase received the full `timeout`, so
+        // one call could take about twice the budget.
+        let clock = self.registry.clock();
+        let deadline = clock.now() + timeout;
         if let Some(ref bg) = self.bg_registry {
-            let clock = self.registry.clock();
             // Bound the background registry by the caller's deadline as well as
             // the registry's own configured timeout (issue #233). Without the
             // `min`, a stuck background job would hold the lifecycle gate for
             // the configured 30 s default, long past this call's bound.
-            let deadline = clock.now() + timeout.min(bg.shutdown_timeout());
+            let bg_deadline = deadline.min(clock.now() + bg.shutdown_timeout());
             if let ShutdownOutcome::TimedOut {
                 abandoned_jobs,
                 busy_workers,
-            } = bg.shutdown_until(&*clock, deadline)
+            } = bg.shutdown_until(&*clock, bg_deadline)
             {
                 tracing::warn!(
                     abandoned_jobs,
@@ -745,7 +752,10 @@ impl PoolGuard {
                 );
             }
         }
-        let stopped = self.registry.shutdown_within(timeout);
+        // Give the task worker registry only what is left of the one deadline.
+        // A zero budget detaches busy workers at once, which is intended.
+        let remaining = deadline.saturating_duration_since(clock.now());
+        let stopped = self.registry.shutdown_within(remaining);
         self.clear_owned_globals();
         stopped
     }
