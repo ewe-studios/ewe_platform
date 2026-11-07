@@ -10,6 +10,8 @@
 //! checks the emitted args struct and the emitted request function.
 
 use foundation_openapi::unified::{AnalysisOptions, UnifiedGenerator};
+use foundation_openapi::{EndpointExtractor, OpenApiSpec};
+use std::sync::Arc;
 
 /// Generate `spec` and return every emitted module, concatenated.
 fn generate(tag: &str, spec: &serde_json::Value) -> String {
@@ -73,6 +75,29 @@ fn boolean_query_param_is_bool() {
     assert!(
         all.contains("args.verbose.map(|b| if b { \"true\" } else { \"false\" })"),
         "boolean parameter must serialise to true/false:\n{all}"
+    );
+}
+
+/// A `type: boolean` query parameter must be recorded on the endpoint. That
+/// set is what makes the generator emit `Option<bool>`; if it is empty, every
+/// parameter falls back to `Option<String>`.
+#[test]
+fn boolean_query_param_is_recorded_on_the_endpoint() {
+    let spec: OpenApiSpec = serde_json::from_value(query_spec()).expect("spec parses");
+    let endpoints = EndpointExtractor::new(Arc::new(spec)).extract_all();
+    let endpoint = endpoints
+        .iter()
+        .find(|ep| ep.operation_id == "ThingsGet")
+        .expect("ThingsGet endpoint");
+
+    assert_eq!(
+        endpoint.boolean_query_params,
+        vec!["verbose".to_string()],
+        "a type: boolean query parameter must be recorded as boolean"
+    );
+    assert!(
+        endpoint.query_params.contains(&"verbose".to_string()),
+        "the boolean parameter must still be a query parameter"
     );
 }
 
