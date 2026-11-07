@@ -24,32 +24,6 @@ fn ctx() -> Ctx {
     Ctx::new(Arc::new(MonotonicClock::new()))
 }
 
-/// Install the signal disposition that the platform needs before the test
-/// sends `SIGTERM`.
-///
-/// Linux and Windows have a handler: `register_signals` installs it, and it
-/// records the signal. macOS has no handler, and `EVFILT_SIGNAL` does not
-/// suppress a signal's default action (it only reports it), so an unhandled
-/// `SIGTERM` would terminate the test process. Install a no-op handler here.
-#[cfg(target_os = "macos")]
-fn prepare_sigterm_handler() {
-    extern "C" fn noop(_signum: libc::c_int) {}
-
-    unsafe {
-        let mut action: libc::sigaction = std::mem::zeroed();
-        action.sa_sigaction = noop as *const () as libc::sighandler_t;
-        libc::sigfillset(&raw mut action.sa_mask);
-        action.sa_flags = 0;
-        let result = libc::sigaction(libc::SIGTERM, &raw const action, std::ptr::null_mut());
-        assert_eq!(result, 0, "sigaction(SIGTERM) must succeed");
-    }
-}
-
-/// Linux and Windows install a handler during registration, so the test needs
-/// no preparation.
-#[cfg(not(target_os = "macos"))]
-fn prepare_sigterm_handler() {}
-
 /// Send `SIGTERM` to this process and prove that the kernel accepted it.
 ///
 /// On Linux a thread-directed `raise` runs the crate's handler before it
@@ -74,7 +48,6 @@ fn send_sigterm() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_signal_waits_for_the_readiness_poll() {
-    prepare_sigterm_handler();
     let (mut task, bus) = signal_task(Arc::new(MonotonicClock::new())).expect("register signals");
     let subscriber = bus.subscribe_events();
 
@@ -105,7 +78,6 @@ fn a_signal_waits_for_the_readiness_poll() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_nonblocking_poll_returns_at_once() {
-    prepare_sigterm_handler();
     let (mut task, _bus) = signal_task(Arc::new(MonotonicClock::new())).expect("register signals");
 
     let Some(TaskStatus::Depends(readiness)) = task.next_status(ctx()) else {
@@ -127,7 +99,6 @@ fn a_nonblocking_poll_returns_at_once() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_signal_sent_before_the_park_is_not_lost() {
-    prepare_sigterm_handler();
     let (mut task, _bus) = signal_task(Arc::new(MonotonicClock::new())).expect("register signals");
 
     // The signal arrives before the task ever parks. The platform edge (the
