@@ -3,6 +3,18 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 07 (2026-11-07)
+
+- The syscall dispatch file carries its own permission conversion, so a mode fix is a
+  parameter change, not a new helper. `handle_creat` already had the correct shape; copy it.
+- `RLIMIT_NOFILE` belongs to the tracee, not the tracer. Read `/proc/<pid>/limits` for the
+  tracee. A test that uses this process's pid passes while proving nothing.
+- Some dispatch tests cannot run on an arm64 host under amd64 emulation: `PTRACE_GETREGS`
+  returns `EIO` for the 13 spawn tests. Run the non-spawn subset locally and let native CI
+  prove the rest.
+- A fix can expose its own edge: `dup3` now reads `arg2`, so it must also reject flags other
+  than `O_CLOEXEC` (#342).
+
 ## Feature 02 (2026-11-07)
 
 - `PoolGuard` does not hold `PoolConfig`. A deadline computed at the pool guard must ask the

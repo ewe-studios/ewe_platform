@@ -1,6 +1,6 @@
 ---
 feature: "Ptrace open, dup and write dispatch follow the kernel rules"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_nativeapis"]
@@ -62,16 +62,19 @@ Keep the changes local to `syscall_dispatch.rs`, plus a small helper for the tra
 `RLIMIT_NOFILE` if none exists. Each fix gets its own dispatch test that feeds the same
 arguments the kernel would.
 
+The range check reads the tracee's soft limit from `/proc/<pid>/limits`. It does not guess
+the value and does not use the tracer's own limit.
+
 ## 5. Tasks
 
-- [ ] Read the four sites and the `VirtualFdEntry` flag type.
-- [ ] Fix the open mode argument.
-- [ ] Fix the close-on-exec handling.
-- [ ] Add the fd range check.
-- [ ] Add the append seek.
-- [ ] Add the four regression tests.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #205, #206, #207 and #208 in the PR body.
+- [x] Read the four sites and the `VirtualFdEntry` flag type.
+- [x] Fix the open mode argument.
+- [x] Fix the close-on-exec handling.
+- [x] Add the fd range check.
+- [x] Add the append seek.
+- [x] Add the four regression tests.
+- [x] Run the verify commands. Record the results.
+- [x] Close #205, #206, #207 and #208 in the PR body.
 
 ## 6. Tests
 

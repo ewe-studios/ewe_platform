@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 07 (ptrace dispatch, #205–#208) is in review as PR #344. `open` passes
+  `arg2` and `openat` passes `arg3` as the mode; `flags_to_perm` is deleted. `dup`/`dup2` clear
+  `O_CLOEXEC`, `dup3` reads `arg2`, and the fd range check returns `EBADF` against the tracee's
+  soft `RLIMIT_NOFILE` from `/proc/<pid>/limits`. `O_APPEND` writes seek to the file size first.
+  Two files changed and no public API change, so `foundation_nativeapis` stays 0.0.9. Five new
+  tests, and each failed with the source fix reverted. Default-feature suite 42 passed; the
+  Linux image ran 26 non-spawn ptrace tests; the 13 spawn tests fail under amd64 emulation on
+  this arm64 host, as `ci/packages.toml` documents. Strict clippy still stops on `--no-deps`
+  blockers #336 and #200. Filed #342 (low, `dup3` accepts flags other than `O_CLOEXEC`) and
+  #343 (low, a `Directory` entry cannot record `O_CLOEXEC`).
+
 - 2026-11-07: feature 02 (bounded background shutdown, #233) is in review as PR #339. New
   `BackgroundJobRegistry::shutdown_until(clock, deadline)` checks the deadline between jobs;
   `shutdown(clock)` is a wrapper that computes it from the configured timeout, and the new
@@ -74,7 +85,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **04-docker-container-clock** — in progress (#220)
 - **05-wasm-wasi-time-source** — in review, PR #338 (#219)
 - **06-netio-load-tracker-rate** — in review, PR #337 (#214)
-- **07-nativeapi-ptrace-dispatch** — not started (#205, #206, #207, #208)
+- **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
 - **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
 - **09-toolings-clock-and-wake** — not started (#201, #203)
 - **10-keychain-macos-flake** — not started (#197)
