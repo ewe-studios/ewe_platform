@@ -38,6 +38,22 @@ _Seeded at spec creation. Updated after each feature PR. See
   the local version exactly: `0.0.16` does not select `0.0.17`.
 - Several branches change the same template version lines. Merge one, rebase the next, and
   keep the highest crate version.
+- Every merge moves master and re-conflicts every branch still open. One merged crate bump
+  (macros 0.0.11, core 0.0.18) conflicts with 44 generated manifests at once, because each
+  one lists both the bumped crate and the branch's crate on adjacent lines. Check
+  `git merge-tree --write-tree origin/master origin/<branch>` after each merge; it is faster
+  and more reliable than the GitHub `mergeable` field, which reports `UNKNOWN` while it
+  recalculates.
+- Resolve these manifest conflicts by crate key, not by whole hunk: parse each conflict block,
+  key every dependency line by its crate name, and keep the line with the highest version.
+  `--ours` and `--theirs` each lose one of the two bumps.
+- A rebase can leave a requirement behind that no conflict touched: feature 06's new
+  `foundation_core` dev-dependency kept `0.0.16` while master had moved to `0.0.18`, so
+  `cargo metadata --locked` failed with "failed to select a version". Run the locked metadata
+  check on the workspace and all three example projects after every rebase; it finds the
+  stale line.
+- The owner wants one PR per spec, not one per feature. The 13 feature PRs of this spec cost
+  a rebase cycle for every merge, and a single spec PR would not have.
 - A container job runs `run:` with `sh`, not bash. Name `shell: bash` before you use
   `pipefail` or a bash array.
 

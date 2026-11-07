@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: merges and rebases. The owner merged 12 feature PRs: #332 (03), #333 (01),
+  #337 (06), #338 (05), #344 (07), #345 (04), #349 (09), #352 (12), #356 (11), #359 (10),
+  #361 (13) and #362 (14). Only #339 (02) is still open; it is mergeable. Each merge moved
+  master and made the other branches conflict on the same lines: the version of a crate in a
+  manifest, the project templates, and the example lock files. Each branch was rebased onto
+  master and resolved with one rule: keep the highest version of every crate, line by line.
+  The rebased branches passed `cargo metadata --locked` for the workspace and the three
+  example projects. Feature 08 is now unblocked, because #344 merged.
+
 - 2026-11-07: feature 14 (keychain start synchronization, #358) is in review as PR #362. The
   fix deletes the single `std::thread::sleep(Duration::from_millis(150));` from `start_server`
   in `backends/foundation_keychain/tests/streamed_body.rs`. No readiness channel was added:
@@ -150,20 +159,20 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Feature status
 
-- **01-http-app-clock** — in review, PR #333 (#234)
-- **02-core-background-shutdown-deadline** — in review, PR #339 (#233)
-- **03-wireguard-hole-punch** — in review, PR #332 (#223)
-- **04-docker-container-clock** — in review, PR #345 (#220)
-- **05-wasm-wasi-time-source** — in review, PR #338 (#219)
-- **06-netio-load-tracker-rate** — in review, PR #337 (#214)
-- **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
-- **08-nativeapi-setregs-and-truncate** — not started (#209, #210)
-- **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
-- **10-keychain-macos-flake** — in review, PR #359 (#197)
-- **11-ci-mobile-target-builds** — in review, PR #356 (#196)
-- **12-ci-free-runner-disk** — in review, PR #352 (#194)
-- **13-db-turso-concurrent-reads** — in review, PR #361 (#357, high)
-- **14-keychain-start-server-sync** — in review, PR #362 (#358)
+- **01-http-app-clock** — merged, PR #333 (#234)
+- **02-core-background-shutdown-deadline** — in review, PR #339 (#233), mergeable
+- **03-wireguard-hole-punch** — merged, PR #332 (#223)
+- **04-docker-container-clock** — merged, PR #345 (#220)
+- **05-wasm-wasi-time-source** — merged, PR #338 (#219)
+- **06-netio-load-tracker-rate** — merged, PR #337 (#214)
+- **07-nativeapi-ptrace-dispatch** — merged, PR #344 (#205–#208)
+- **08-nativeapi-setregs-and-truncate** — unblocked, not started (#209, #210)
+- **09-toolings-clock-and-wake** — merged, PR #349 (#201, #203)
+- **10-keychain-macos-flake** — merged, PR #359 (#197)
+- **11-ci-mobile-target-builds** — merged, PR #356 (#196)
+- **12-ci-free-runner-disk** — merged, PR #352 (#194)
+- **13-db-turso-concurrent-reads** — merged, PR #361 (#357, high)
+- **14-keychain-start-server-sync** — merged, PR #362 (#358)
 
 ## Next steps
 
