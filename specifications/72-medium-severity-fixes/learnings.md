@@ -3,6 +3,20 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 04 (2026-11-07)
+
+- There is no `Env` bundle and no `ContainerConfigError` in this workspace. The valtron `Ctx`
+  is the bundle and `DockerError` is the crate's error type. Check the names before you write
+  a design against them.
+- Keeping the clock as `Option` is not a fallback. The value must still be present at start,
+  and a missing one is a typed error. A required constructor argument would make that error
+  unreachable.
+- A macro that only accepts `()` functions cannot return an error. Add a `DockerResult<()>`
+  arm and keep the `()` arm as a logged skip; both must be non-panicking.
+- `is_pool_initialized()` followed by `fork_ctx()` is a check-then-use race, because the pool
+  can be dropped between the calls (#346). A non-panicking `try_fork_ctx()` is the missing
+  primitive.
+
 ## Feature 07 (2026-11-07)
 
 - The syscall dispatch file carries its own permission conversion, so a mode fix is a

@@ -1,6 +1,6 @@
 ---
 feature: "Docker ContainerConfig requires its clock and does not fall back to fork_ctx"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_deployment_platform", "foundation_macros"]
@@ -45,23 +45,24 @@ outside a pool panics instead of failing with a typed error.
 
 ## 4. Design
 
-- `ContainerConfig` gains a `clock: Arc<dyn Clock>` field, or a required constructor
-  parameter, whichever fits the existing builder.
-- The fallback reads `ctx.get::<Env>().clock()`. A missing bundle maps to
-  `ContainerConfigError::MissingClock`.
-- The macro generates `clock = <expr>` when the attribute gives it, and `ctx.clock()`
-  otherwise.
-- Audit the macro tests; add one that uses no pool and expects `MissingClock`.
+- `ContainerConfig` keeps `clock: Option<Arc<dyn Clock>>` with its existing `.clock()` builder
+  and gains `resolve_clock()`. A required constructor parameter would remove the only path
+  that produces the typed missing-clock error.
+- `start_async` resolves the clock before any I/O and returns `DockerError::MissingClock` when
+  it is absent. There is no `Env` bundle and no `ContainerConfigError`; `Ctx` is the bundle.
+- The macro generates `clock = <expr>` when the attribute gives it, and `pool_clock()`
+  otherwise. A function that returns `DockerResult<()>` receives the typed error; a plain
+  `()` function logs a skip and returns, so neither path panics.
 
 ## 5. Tasks
 
-- [ ] Read `container.rs`, the macro crate code, and every `ContainerConfig` caller.
-- [ ] Make the clock required. Remove the `fork_ctx` fallback.
-- [ ] Add the macro argument.
-- [ ] Update the callers and the macro tests.
-- [ ] Add the regression tests.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #220 in the PR body.
+- [x] Read `container.rs`, the macro crate code, and every `ContainerConfig` caller.
+- [x] Make the clock required. Remove the `fork_ctx` fallback.
+- [x] Add the macro argument.
+- [x] Update the callers and the macro tests.
+- [x] Add the regression tests.
+- [x] Run the verify commands. Record the results.
+- [x] Close #220 in the PR body.
 
 ## 6. Tests
 

@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 04 (Docker container clock, #220) is in review as PR #345. The
+  `fork_ctx().clock()` fallback is gone. `ContainerConfig::resolve_clock()` returns
+  `DockerError::MissingClock`, and `start_async` resolves it before any I/O. `#[docker_container]`
+  accepts `clock = <expr>`; without it the macro reads `pool_clock()` from the valtron pool and
+  returns the typed error, or logs a skip for a `()` function, instead of panicking. This is a
+  breaking change: `foundation_deployment_platform` is 0.1.5 and `foundation_macros` 0.0.11,
+  with every requirement and all 10 example lockfiles updated. Five tests; three failed on the
+  old code (two by compile error, one by panic) and pass now. Suites: 53 passed in
+  `foundation_deployment_platform`, 99 in `foundation_macros`; the non-ignored macro tests ran
+  against a real Docker daemon. The `#[ignore]` Docker integration tests were not run. Filed
+  #346 (low, `pool_clock` can panic when the pool drops between the check and `fork_ctx`).
+
 - 2026-11-07: feature 07 (ptrace dispatch, #205–#208) is in review as PR #344. `open` passes
   `arg2` and `openat` passes `arg3` as the mode; `flags_to_perm` is deleted. `dup`/`dup2` clear
   `O_CLOEXEC`, `dup3` reads `arg2`, and the fd range check returns `EBADF` against the tracee's
@@ -82,7 +94,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **01-http-app-clock** — in review, PR #333 (#234)
 - **02-core-background-shutdown-deadline** — in review, PR #339 (#233)
 - **03-wireguard-hole-punch** — in review, PR #332 (#223)
-- **04-docker-container-clock** — in progress (#220)
+- **04-docker-container-clock** — in review, PR #345 (#220)
 - **05-wasm-wasi-time-source** — in review, PR #338 (#219)
 - **06-netio-load-tracker-rate** — in review, PR #337 (#214)
 - **07-nativeapi-ptrace-dispatch** — in review, PR #344 (#205–#208)
