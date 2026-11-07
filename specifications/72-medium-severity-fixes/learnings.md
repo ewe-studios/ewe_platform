@@ -3,6 +3,17 @@
 _Seeded at spec creation. Updated after each feature PR. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Feature 01 (2026-11-07)
+
+- `Ctx::host_with_clock` does not exist. `Ctx::new(Arc<dyn Clock>)` is the constructor that
+  installs an injected clock and the seeded RNG.
+- A wasm per-request `ContextBag` must `fork()` the app's bag. A fresh `ContextBag` from
+  `Ctx::host()` silently loses the injected clock and every init-time binding.
+- `compati::Mutex::lock()` returns a `Result`, and `rand_core` 0.10 moves `next_u64` behind
+  the `Rng` trait. Both cost a compile round when the feature file does not say so.
+- The strict clippy command needs `--no-deps` because dev-dependencies reach
+  `foundation_boringtun` (#330). `ci/packages.toml` already uses `--no-deps`.
+
 ## Feature 03 (2026-11-07)
 
 - The panic was a bare `Option::expect` in the connectivity ladder. The clean fix is a

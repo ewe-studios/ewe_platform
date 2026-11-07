@@ -1,6 +1,6 @@
 ---
 feature: "HTTP app constructors take their context and clock from the caller"
-status: "pending"
+status: "in-review"
 priority: "medium"
 depends_on: []
 crates: ["foundation_http"]
@@ -52,8 +52,11 @@ Files: `backends/foundation_http/src/shared/app/mod.rs`,
 HttpApp::new(...)        -> HttpApp::with_ctx(Ctx::host())     // host boundary only
 HttpApp::new_web(...)    -> HttpApp::with_ctx(Ctx::host())     // host boundary only
 HttpApp::with_ctx(ctx)   -> builds ContextBag::from_ctx(&ctx)
-HttpApp::with_clock(c)   -> HttpApp::with_ctx(Ctx::host_with_clock(c))
+HttpApp::with_clock(c)   -> HttpApp::with_ctx(Ctx::new(c))
 ```
+
+- `Ctx::new(clock)` is the real constructor; it installs the seeded RNG. The sketched
+  `Ctx::host_with_clock` does not exist.
 
 - `with_clock` exists so a test does not build a whole bundle by hand.
 - A deterministic host passes its simulated clock, seeded RNG and in-memory transport through
@@ -62,12 +65,12 @@ HttpApp::with_clock(c)   -> HttpApp::with_ctx(Ctx::host_with_clock(c))
 
 ## 5. Tasks
 
-- [ ] Read the three files and the `ContextBag` constructors. Record the real signatures.
-- [ ] Add `with_ctx` and `with_clock`. Route every plain constructor through `with_ctx`.
-- [ ] Update the wasm bridges.
-- [ ] Add the regression test.
-- [ ] Run the verify commands. Record the results.
-- [ ] Close #234 in the PR body.
+- [x] Read the three files and the `ContextBag` constructors. Record the real signatures.
+- [x] Add `with_ctx` and `with_clock`. Route every plain constructor through `with_ctx`.
+- [x] Update the wasm bridges.
+- [x] Add the regression test.
+- [x] Run the verify commands. Record the results.
+- [x] Close #234 in the PR body.
 
 ## 6. Tests
 

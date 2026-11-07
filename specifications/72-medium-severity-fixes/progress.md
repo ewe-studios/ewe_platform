@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 01 (HTTP app clock, #234) is in review as PR #333. `HttpApp` gains
+  `with_ctx`, `with_context` and `with_clock`; every plain constructor routes through
+  `with_ctx(Ctx::host())`, and only those host entry points call `Ctx::host()`. The wasm
+  bridges gain ctx-taking initializers and fork the app bag per request. The real constructors
+  are `ContextBag::from_ctx(&Ctx)` and `Ctx::new(Arc<dyn Clock>)`. `foundation_http` is 0.0.8
+  and every consumer requirement is updated. Four tests in `tests/http_app_ctx_tests.rs`;
+  default run 73 passed, `multi quic` run 154 passed. Clippy needs `--no-deps` because of the
+  `foundation_boringtun` dev-dependency lints (#330). Filed #334 (medium: the web wasm
+  singleton drops its context bag) and #335 (low: unused `getrandom` optional dependency).
+
 - 2026-11-07: feature 03 (wireguard hole punch, #223) is in review as PR #332. The panic is
   gone; a failed punch with no relay returns `WgError::NoRelayForPunchedSession` and leaves the
   session `Disconnected`. `foundation_wireguard` is 0.0.6 and
