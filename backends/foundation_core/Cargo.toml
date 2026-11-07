@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -25,13 +25,13 @@ crate-type = ["rlib"]
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 
 # -- Workspace dependencies
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
 # optional: native builds no longer compile foundation_wasm and its native-only
 # CLI tooling (clap, toml_edit, foundation_codegen, ...).
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.6", optional = true }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.7", optional = true }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
 
 # -- Other dependencies

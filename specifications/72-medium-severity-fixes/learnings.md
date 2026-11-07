@@ -158,6 +158,24 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The strict clippy command needs `--no-deps` because dev-dependencies reach
   `foundation_boringtun` (#330). `ci/packages.toml` already uses `--no-deps`.
 
+## Feature 08 (2026-11-07)
+
+- The `Skip`, `SkipError` and `CloseThenSkip` arms held three copies of the same
+  setregs call. One helper removes the copies and gives all three arms the same
+  error path.
+- `ptrace::setregs` fails with `ESRCH` for a pid that is not traced. That failure
+  gives a direct test without a child process.
+- `truncate` and `ftruncate` are C entry points in the shim. The file's convention
+  is `set_errno` plus `return -1`. `return -EINVAL` is wrong there.
+- `usize::try_from(length.cast_unsigned())` hides a negative length. Check the sign
+  first, then convert without `cast_unsigned`.
+- The shim statics read the environment once. A direct test must set the variables
+  before the first shim call, and its test target must hold no other test.
+- The Linux CI script cannot run from a worktree. The bind-mounted `.git` file
+  points at the host absolute path, so `link-submodules.nu` reports
+  `fatal: not a git repository` before the build. Run the image from the main
+  checkout, or use the GitHub CI.
+
 ## Feature 03 (2026-11-07)
 
 - The panic was a bare `Option::expect` in the connectivity ladder. The clean fix is a

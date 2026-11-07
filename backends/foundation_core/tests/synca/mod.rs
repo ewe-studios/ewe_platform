@@ -5,6 +5,7 @@ mod entrylist_thread_safe;
 mod event;
 mod idleman;
 mod mpp;
+mod mpp_readiness;
 mod mpp_tracked_broadcaster;
 mod sleepers;
 mod waitgroup;

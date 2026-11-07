@@ -2,6 +2,7 @@
 
 use std::sync::{Arc, Mutex, Weak};
 
+use foundation_core::valtron::Ctx;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
@@ -64,20 +65,22 @@ pub struct WasmHttpApp {
 #[wasm_bindgen]
 impl WasmHttpApp {
     /// Create a new empty `WasmHttpApp`.
+    ///
+    /// This is a host entry point: it uses the real host clock. A
+    /// deterministic host uses [`WasmHttpApp::with_ctx`].
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            inner: Arc::new(HttpApp::new_web()),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Dispatch a `web_sys::Request` through the app and return a `web_sys::Response`.
+    ///
+    /// The per-request bag is a fork of the app's bag, so the clock and RNG
+    /// that the host injected at construction reach the handler.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
-        let bag = Arc::new(crate::shared::context::ContextBag::from_ctx(
-            &foundation_core::valtron::Ctx::host(),
-        ));
+        let bag = Arc::new(self.inner.context().fork());
         Ok(self
             .inner
             .dispatch_web(bag, simple_req)
@@ -87,6 +90,16 @@ impl WasmHttpApp {
 }
 
 impl WasmHttpApp {
+    /// Create an empty `WasmHttpApp` from an explicit valtron [`Ctx`].
+    ///
+    /// This is the deterministic-test entry point: the app and every request
+    /// it dispatches read the injected clock and RNG stream.
+    pub fn with_ctx(ctx: Ctx) -> Self {
+        Self {
+            inner: Arc::new(HttpApp::with_ctx(ctx)),
+        }
+    }
+
     /// Get the inner `HttpApp` reference for Rust-side route registration.
     pub fn app(&self) -> &HttpApp<Arc<dyn WebServe>> {
         &self.inner
@@ -167,14 +180,32 @@ impl WasmHttpAppSingleton {
     /// bindings before building the `WasmHttpApp`.
     ///
     /// If already initialized, returns the existing guard and ignores the closure.
+    ///
+    /// This is a host entry point: it uses the real host clock. A deterministic
+    /// host uses [`WasmHttpAppSingleton::get_or_init_with_ctx`].
     pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> HttpApp<Arc<dyn WebServe>>>(
+        builder: F,
+    ) -> WasmHttpAppGuard {
+        Self::get_or_init_with_ctx(Ctx::host(), builder)
+    }
+
+    /// Initialize the app from an explicit valtron [`Ctx`] if not initialized.
+    ///
+    /// The closure receives an `Arc<ContextBag>` built from `ctx`. Build the
+    /// app from that same bag with `HttpApp::with_context(bag)`, so the app
+    /// and every request it dispatches read the injected clock and RNG.
+    ///
+    /// If already initialized, returns the existing guard and ignores `ctx`
+    /// and the closure.
+    pub fn get_or_init_with_ctx<F: FnOnce(Arc<ContextBag>) -> HttpApp<Arc<dyn WebServe>>>(
+        ctx: Ctx,
         builder: F,
     ) -> WasmHttpAppGuard {
         let mut weak = STATE.lock().unwrap();
         if let Some(arc) = weak.upgrade() {
             return WasmHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+        let bag = Arc::new(ContextBag::from_ctx(&ctx));
         let app = Arc::new(WasmHttpApp::from_app(builder(bag)));
         let state = Arc::new(AppState { app });
         *weak = Arc::downgrade(&state);

@@ -10,10 +10,10 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.16" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.7", default-features = false }
+foundation_core = { path = "../foundation_core", version = "0.0.18" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.8", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.6", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.7", optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.8", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 
@@ -84,7 +84,7 @@ web-sys = { version = "0.3", features = [
 ], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.8", features = ["multi"] }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
 pbkdf2 = "0.12"
@@ -94,13 +94,13 @@ pbkdf2 = "0.12"
 # re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
 # all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.7", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.8", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"
 # `test-clock` provides `SimulatedClock`, so a test can prove that the auth
 # code reads the injected clock instead of the real wall clock.
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["test-clock"] }
 foundation_testing = { path = "../foundation_testing" }
 serial_test = { workspace = true }
 ntest = { workspace = true }

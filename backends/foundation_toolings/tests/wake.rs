@@ -21,8 +21,8 @@ use std::time::{Duration, Instant};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::synca::mpp;
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr, ReadinessWaker,
-    StreamExt, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, sleep_async, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr,
+    ReadinessWaker, StreamExt, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::shared::{WatchEvent, WatchEventKind};
 use foundation_toolings::builder::{BuildOutput, BuildResult, ProjectBuilder, ProjectBuilderTask};
@@ -214,12 +214,11 @@ async fn watcher_pump_ready_wakes_on_push() {
 #[valtron_test(threads = 2, timeout = 2_000)]
 async fn builder_change_readiness_wakes_on_a_watch_event() {
     let (tx, rx) = mpp::unbounded::<WatchEvent>();
-    let mut task = ProjectBuilderTask::new(rx, EventQueue::unbounded());
+    let task = ProjectBuilderTask::new(rx, EventQueue::unbounded());
     let ready: EventReadinessPtr = task.change_readiness();
     let event = watch_event();
-    let _ = park_and_trigger("builder change queue", ready, move || {
+    let _ = park_and_trigger("builder change source", ready, move || {
         tx.send(event).expect("send watch event");
-        let _ = task.next_status(Ctx::host());
     })
     .await;
 }
@@ -253,4 +252,97 @@ async fn runner_build_readiness_wakes_on_a_build_complete() {
         pusher.push(()).expect("push");
     })
     .await;
+}
+
+// -- The whole builder task wakes on a watch event (issue #201)
+
+/// A builder that counts its builds, so a test sees when one ran.
+#[derive(Debug)]
+struct CountingBuilder {
+    builds: Arc<AtomicUsize>,
+}
+
+impl ProjectBuilder for CountingBuilder {
+    fn name(&self) -> &'static str {
+        "counting"
+    }
+
+    fn should_build(&self, _change: &FileChange) -> bool {
+        true
+    }
+
+    fn build(&self, _change: &FileChange) -> BuildResult {
+        self.builds.fetch_add(1, Ordering::SeqCst);
+        Ok(BuildOutput::CheckPassed)
+    }
+}
+
+/// Wait until the builder ran `want` builds. Fail after about five seconds.
+async fn wait_for_builds(builds: &AtomicUsize, want: usize) {
+    for _ in 0..500 {
+        if builds.load(Ordering::SeqCst) >= want {
+            return;
+        }
+        sleep_async(Duration::from_millis(10)).await;
+    }
+    panic!(
+        "the builder ran {} builds; expected {want}",
+        builds.load(Ordering::SeqCst)
+    );
+}
+
+/// A watch event wakes the parked task once, without a poll loop. On the old
+/// code the task parked on a queue that nothing pushed, so it never ran.
+#[valtron_test(threads = 2, timeout = 2_000)]
+async fn a_watch_event_wakes_the_builder_task() {
+    let (tx, rx) = mpp::unbounded::<WatchEvent>();
+    let task = ProjectBuilderTask::new(rx, EventQueue::unbounded());
+    let ready: EventReadinessPtr = task.readiness();
+    let event = watch_event();
+    let _ = park_and_trigger("builder task", ready, move || {
+        tx.send(event).expect("send watch event");
+    })
+    .await;
+}
+
+/// Two watch events make two builds. On the old code nothing woke the task, so
+/// the first event was lost and zero builds ran.
+#[valtron_test(threads = 2, timeout = 5_000)]
+async fn two_watch_events_produce_two_builds() {
+    let (tx, rx) = mpp::unbounded::<WatchEvent>();
+    let builds = Arc::new(AtomicUsize::new(0));
+    let task = ProjectBuilderTask::new(rx, EventQueue::unbounded()).builder(CountingBuilder {
+        builds: Arc::clone(&builds),
+    });
+    let _stream = execute(task, None).expect("execute the builder task");
+
+    tx.send(watch_event()).expect("first watch event");
+    wait_for_builds(&builds, 1).await;
+
+    tx.send(watch_event()).expect("second watch event");
+    wait_for_builds(&builds, 2).await;
+
+    assert_eq!(
+        builds.load(Ordering::SeqCst),
+        2,
+        "two watch events produce exactly two builds"
+    );
+}
+
+/// The composite readiness drops after the task drains the watch queue, so the
+/// executor does not re-run it in a hot loop. On the old code the change queue
+/// kept the event and stayed ready.
+#[test]
+fn the_task_reports_not_ready_after_it_drains_the_queue() {
+    let (tx, rx) = mpp::unbounded::<WatchEvent>();
+    let mut task = ProjectBuilderTask::new(rx, EventQueue::unbounded());
+    tx.send(watch_event()).expect("send watch event");
+
+    let _ = task.next_status(Ctx::host());
+
+    let ready = task.readiness();
+    assert!(
+        !ready.is_ready(None),
+        "the task is not ready after it drains the watch event"
+    );
 }

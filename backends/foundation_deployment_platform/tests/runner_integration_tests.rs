@@ -32,6 +32,7 @@ const SSH_PORT: u16 = 2222;
 
 fn sshd_config() -> ContainerConfig {
     ContainerConfig::new("lscr.io/linuxserver/openssh-server:latest")
+        .clock(Arc::new(foundation_core::valtron::MonotonicClock::new()))
         .port(SSH_PORT)
         .env("PUID", "1000")
         .env("PGID", "1000")

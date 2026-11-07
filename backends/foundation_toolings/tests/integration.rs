@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::MonotonicClock;
+use foundation_core::valtron::SimulatedClock;
 
 // -- VecStringExt
 
@@ -114,16 +114,30 @@ fn test_tunnel_type() {
 
 // -- DurationSleeper
 
+/// The sleeper follows the injected clock, so a test drives it without a wait.
 #[test]
-fn test_duration_sleeper() {
-    let mut sleeper = DurationSleeper::new(Arc::new(MonotonicClock::new()));
-    assert!(!sleeper.is_done());
+fn the_sleeper_follows_the_simulated_clock() {
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let mut sleeper = DurationSleeper::new(clock.clone());
+    assert!(
+        !sleeper.is_done(),
+        "a sleeper that has not started is not done"
+    );
 
     sleeper.start(Duration::from_millis(50));
-    assert!(!sleeper.is_done());
+    assert!(!sleeper.is_done(), "the deadline is 50 ms away");
 
-    std::thread::sleep(Duration::from_millis(100));
-    assert!(sleeper.is_done());
+    clock.advance(Duration::from_millis(49));
+    assert!(!sleeper.is_done(), "the deadline is 1 ms away");
+
+    clock.advance(Duration::from_millis(1));
+    assert!(sleeper.is_done(), "the clock reached the deadline");
+
+    clock.advance(Duration::from_millis(1));
+    assert!(
+        sleeper.is_done(),
+        "the sleeper stays done past the deadline"
+    );
 }
 
 // -- copy_bidirectional (quick smoke)

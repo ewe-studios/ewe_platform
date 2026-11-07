@@ -21,11 +21,18 @@
 //! Run: `cargo test -p foundation_deployment_platform --test
 //! image_build_integration -- --ignored` (needs a Docker daemon).
 
-use foundation_core::valtron::initialize_pool;
+use std::sync::Arc;
+
+use foundation_core::valtron::{MonotonicClock, initialize_pool};
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerClient, DockerFileConfig,
 };
 use foundation_deployment_platform::testing::docker_available;
+
+/// The test thread is a host entry point, so it injects the real clock.
+fn test_clock() -> Arc<MonotonicClock> {
+    Arc::new(MonotonicClock::new())
+}
 
 /// Unique-ish tag so parallel runs never collide on a daemon-global image name.
 fn tag(name: &str) -> String {
@@ -69,9 +76,13 @@ fn builds_an_inline_dockerfile_into_a_runnable_image() {
 
         // The real proof: dockerd can run what we built, and the file we RUN-created
         // is in the image.
-        let handle = ContainerHandle::start_async(ContainerConfig::new(&t).stop_timeout_secs(2))
-            .await
-            .expect("the built image should run");
+        let handle = ContainerHandle::start_async(
+            ContainerConfig::new(&t)
+                .clock(test_clock())
+                .stop_timeout_secs(2),
+        )
+        .await
+        .expect("the built image should run");
         let logs = handle.wait_for_exit_async().await.expect("logs");
         assert!(
             logs.contains("built-natively"),
@@ -130,9 +141,13 @@ fn build_context_files_are_uploaded_and_build_args_apply() {
         .await
         .expect("context build should succeed");
 
-        let handle = ContainerHandle::start_async(ContainerConfig::new(&t).stop_timeout_secs(2))
-            .await
-            .expect("the built image should run");
+        let handle = ContainerHandle::start_async(
+            ContainerConfig::new(&t)
+                .clock(test_clock())
+                .stop_timeout_secs(2),
+        )
+        .await
+        .expect("the built image should run");
         let logs = handle.wait_for_exit_async().await.expect("logs");
 
         assert!(

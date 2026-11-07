@@ -18,7 +18,7 @@ use std::sync::Arc;
 use foundation_nativeapis::native::vfs::ptrace::{
     nix_backend::NixInterceptor,
     syscall_dispatch::{on_syscall_entry, SyscallAction, SyscallArgs},
-    syscall_nr::{DUP2, DUP3, OPENAT},
+    syscall_nr::{DUP, DUP2, DUP3, OPEN, OPENAT, WRITE},
     DynFs, ErasedFile, MountTable, SyscallInterceptor, VirtualFdEntry, VirtualFdTable,
     FD_VIRTUAL_BASE,
 };
@@ -652,11 +652,28 @@ fn skip_errno(action: &SyscallAction) -> Option<i64> {
     }
 }
 
+fn skip_value(action: &SyscallAction) -> Option<i64> {
+    match action {
+        SyscallAction::Skip { return_value } => Some(*return_value),
+        _ => None,
+    }
+}
+
+/// The fd a `dup` reports, whether or not it closes a real destination first.
+fn reported_value(action: &SyscallAction) -> Option<i64> {
+    match action {
+        SyscallAction::Skip { return_value }
+        | SyscallAction::CloseThenSkip { return_value, .. } => Some(*return_value),
+        _ => None,
+    }
+}
+
 /// Run `openat(2)` dispatch for `path` in this process.
 fn dispatch_openat(
     pid: nix::unistd::Pid,
     path: &[u8],
     flags: i32,
+    mode: u32,
     mount_table: &MountTable,
     fd_table: &VirtualFdTable,
 ) -> SyscallAction {
@@ -665,11 +682,91 @@ fn dispatch_openat(
         arg0: libc::AT_FDCWD as u64,
         arg1: path.as_ptr() as u64,
         arg2: flags as u64,
-        arg3: 0o644,
+        arg3: mode as u64,
         arg4: 0,
         arg5: 0,
     };
     on_syscall_entry(pid, &args, mount_table, fd_table)
+}
+
+/// Run `open(2)` dispatch for `path` in this process.
+fn dispatch_open(
+    pid: nix::unistd::Pid,
+    path: &[u8],
+    flags: i32,
+    mode: u32,
+    mount_table: &MountTable,
+    fd_table: &VirtualFdTable,
+) -> SyscallAction {
+    let args = SyscallArgs {
+        nr: OPEN,
+        arg0: path.as_ptr() as u64,
+        arg1: flags as u64,
+        arg2: mode as u64,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    on_syscall_entry(pid, &args, mount_table, fd_table)
+}
+
+/// Run `write(2)` dispatch for a virtual fd in this process.
+fn dispatch_write(
+    pid: nix::unistd::Pid,
+    fd: u64,
+    buf: &[u8],
+    mount_table: &MountTable,
+    fd_table: &VirtualFdTable,
+) -> SyscallAction {
+    let args = SyscallArgs {
+        nr: WRITE,
+        arg0: fd,
+        arg1: buf.as_ptr() as u64,
+        arg2: buf.len() as u64,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    on_syscall_entry(pid, &args, mount_table, fd_table)
+}
+
+/// Insert a virtual file entry at `fd` for `pid`.
+fn insert_virtual_file(
+    fs: &MemoryFs,
+    fd_table: &VirtualFdTable,
+    pid: u32,
+    fd: u64,
+    path: &str,
+    flags: i32,
+) {
+    let file = fs.open(path, OpenMode::ReadWrite).unwrap();
+    fd_table.insert(
+        pid,
+        fd,
+        VirtualFdEntry::File {
+            handle: ErasedFile::new(file),
+            path: path.into(),
+            offset: Arc::new(std::sync::Mutex::new(0)),
+            mode: OpenMode::ReadWrite,
+            flags,
+        },
+    );
+}
+
+/// The open flags stored on a virtual file entry.
+fn entry_flags(fd_table: &VirtualFdTable, pid: u32, fd: u64) -> Option<i32> {
+    match fd_table.get(pid, fd)? {
+        VirtualFdEntry::File { flags, .. } => Some(flags),
+        VirtualFdEntry::Directory { .. } => None,
+    }
+}
+
+/// The tracked file offset on a virtual file entry.
+fn entry_offset(fd_table: &VirtualFdTable, pid: u32, fd: u64) -> Option<u64> {
+    match fd_table.get(pid, fd)? {
+        VirtualFdEntry::File { offset, .. } => Some(*offset.lock().unwrap()),
+        VirtualFdEntry::Directory { .. } => None,
+    }
 }
 
 #[test]
@@ -692,6 +789,7 @@ fn open_dispatch_truncates_an_existing_virtual_file() {
         pid,
         &path,
         libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC,
+        0o644,
         &mt,
         &fd_table,
     );
@@ -720,7 +818,14 @@ fn open_dispatch_truncates_an_existing_virtual_file() {
     // O_TRUNC without O_CREAT also opens and truncates an existing file.
     fs.write_file("/virtual/existing.txt", b"more old bytes\n")
         .unwrap();
-    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_TRUNC, &mt, &fd_table);
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_TRUNC,
+        0o644,
+        &mt,
+        &fd_table,
+    );
     assert!(
         matches!(&action, SyscallAction::Skip { .. }),
         "O_TRUNC without O_CREAT must open the existing file, got {}",
@@ -730,7 +835,14 @@ fn open_dispatch_truncates_an_existing_virtual_file() {
 
     // O_CREAT without O_TRUNC keeps the content.
     fs.write_file("/virtual/existing.txt", b"kept\n").unwrap();
-    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_CREAT, &mt, &fd_table);
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_CREAT,
+        0o644,
+        &mt,
+        &fd_table,
+    );
     assert!(
         matches!(&action, SyscallAction::Skip { .. }),
         "O_CREAT without O_TRUNC must open the existing file, got {}",
@@ -743,6 +855,7 @@ fn open_dispatch_truncates_an_existing_virtual_file() {
         pid,
         &path,
         libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL,
+        0o644,
         &mt,
         &fd_table,
     );
@@ -767,7 +880,14 @@ fn open_dispatch_reports_or_creates_a_missing_virtual_file() {
 
     // O_TRUNC without O_CREAT on a missing file is ENOENT.
     let path = path_in_self("/virtual/missing.txt");
-    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_TRUNC, &mt, &fd_table);
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_TRUNC,
+        0o644,
+        &mt,
+        &fd_table,
+    );
     assert_eq!(
         skip_errno(&action),
         Some(libc::ENOENT as i64),
@@ -777,7 +897,14 @@ fn open_dispatch_reports_or_creates_a_missing_virtual_file() {
     assert!(!fs.exists("/virtual/missing.txt").unwrap());
 
     // O_CREAT on a missing file creates it.
-    let action = dispatch_openat(pid, &path, libc::O_WRONLY | libc::O_CREAT, &mt, &fd_table);
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_CREAT,
+        0o644,
+        &mt,
+        &fd_table,
+    );
     assert!(
         matches!(&action, SyscallAction::Skip { .. }),
         "O_CREAT on a missing file must create it, got {}",
@@ -796,7 +923,9 @@ fn dup2_dispatch_closes_the_real_destination() {
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
 
-    let pid = 4_242u32;
+    // The dup dispatch reads `RLIMIT_NOFILE` from `/proc/<pid>/limits`, so
+    // use this process's pid: it is the tracee the dispatch sees.
+    let pid = std::process::id();
     let fd_table = VirtualFdTable::new();
     let file = fs.open("/virtual/vfile.txt", OpenMode::Read).unwrap();
     fd_table.insert(
@@ -894,6 +1023,374 @@ fn dup3_dispatch_rejects_equal_fds() {
         Some(libc::EINVAL as i64),
         "dup3 with equal fds must fail with EINVAL, got {}",
         action_name(&action)
+    );
+}
+
+// ── Kernel rules for open, dup and write (spec 72, feature 07) ──
+
+#[test]
+fn open_uses_its_mode_argument() {
+    let fs = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    fs.mkdir("/virtual").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let fd_table = VirtualFdTable::new();
+    let pid = nix::unistd::Pid::from_raw(std::process::id() as i32);
+
+    // `openat(2)` takes the mode from `arg3`, after `dirfd`, `path` and `flags`.
+    let path = path_in_self("/virtual/opened-at.txt");
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL,
+        0o640,
+        &mt,
+        &fd_table,
+    );
+    assert!(
+        matches!(&action, SyscallAction::Skip { .. }),
+        "openat with O_CREAT must create the file, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        fs.stat("/virtual/opened-at.txt").unwrap().permissions & 0o777,
+        0o640,
+        "openat must create the file with its mode argument, not its flags"
+    );
+
+    // `open(2)` takes the mode from `arg2`, after `path` and `flags`.
+    let path = path_in_self("/virtual/opened.txt");
+    let action = dispatch_open(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_CREAT | libc::O_EXCL,
+        0o600,
+        &mt,
+        &fd_table,
+    );
+    assert!(
+        matches!(&action, SyscallAction::Skip { .. }),
+        "open with O_CREAT must create the file, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        fs.stat("/virtual/opened.txt").unwrap().permissions & 0o777,
+        0o600,
+        "open must create the file with its mode argument, not its flags"
+    );
+}
+
+#[test]
+fn dup_clears_close_on_exec() {
+    let fs = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let pid_raw = std::process::id();
+    let pid = nix::unistd::Pid::from_raw(pid_raw as i32);
+
+    // `dup2(2)` clears O_CLOEXEC on the new descriptor and keeps the source.
+    let fd_table = VirtualFdTable::new();
+    insert_virtual_file(
+        &fs,
+        &fd_table,
+        pid_raw,
+        10_000,
+        "/virtual/vfile.txt",
+        libc::O_CLOEXEC,
+    );
+    let args = SyscallArgs {
+        nr: DUP2,
+        arg0: 10_000,
+        arg1: 7,
+        arg2: 0,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(pid, &args, &mt, &fd_table);
+    assert_eq!(
+        reported_value(&action),
+        Some(7),
+        "dup2 must report the new fd, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        entry_flags(&fd_table, pid_raw, 7),
+        Some(0),
+        "dup2 must clear O_CLOEXEC on the copy"
+    );
+    assert_eq!(
+        entry_flags(&fd_table, pid_raw, 10_000),
+        Some(libc::O_CLOEXEC),
+        "dup2 must keep O_CLOEXEC on the source"
+    );
+
+    // `dup(2)` clears O_CLOEXEC too.
+    let fd_table = VirtualFdTable::new();
+    insert_virtual_file(
+        &fs,
+        &fd_table,
+        pid_raw,
+        10_000,
+        "/virtual/vfile.txt",
+        libc::O_CLOEXEC,
+    );
+    // Move the allocator past the entry inserted above.
+    let _ = fd_table.alloc_fd();
+    let args = SyscallArgs {
+        nr: DUP,
+        arg0: 10_000,
+        arg1: 0,
+        arg2: 0,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(pid, &args, &mt, &fd_table);
+    let new_fd = match skip_value(&action) {
+        Some(fd) if fd > 0 => fd as u64,
+        _ => panic!(
+            "dup of a virtual fd must report the new fd, got {}",
+            action_name(&action)
+        ),
+    };
+    assert_eq!(
+        entry_flags(&fd_table, pid_raw, new_fd),
+        Some(0),
+        "dup must clear O_CLOEXEC on the copy"
+    );
+}
+
+#[test]
+fn dup3_sets_close_on_exec_from_its_flags() {
+    let fs = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let pid_raw = std::process::id();
+    let pid = nix::unistd::Pid::from_raw(pid_raw as i32);
+
+    // `dup3(2)` sets O_CLOEXEC when `arg2` has it.
+    let fd_table = VirtualFdTable::new();
+    insert_virtual_file(&fs, &fd_table, pid_raw, 10_000, "/virtual/vfile.txt", 0);
+    let args = SyscallArgs {
+        nr: DUP3,
+        arg0: 10_000,
+        arg1: 7,
+        arg2: libc::O_CLOEXEC as u64,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(pid, &args, &mt, &fd_table);
+    assert_eq!(
+        reported_value(&action),
+        Some(7),
+        "dup3 must report the new fd, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        entry_flags(&fd_table, pid_raw, 7),
+        Some(libc::O_CLOEXEC),
+        "dup3 must set O_CLOEXEC from its flags argument"
+    );
+
+    // `dup3(2)` clears O_CLOEXEC when `arg2` is zero.
+    let fd_table = VirtualFdTable::new();
+    insert_virtual_file(
+        &fs,
+        &fd_table,
+        pid_raw,
+        10_000,
+        "/virtual/vfile.txt",
+        libc::O_CLOEXEC,
+    );
+    let args = SyscallArgs {
+        nr: DUP3,
+        arg0: 10_000,
+        arg1: 7,
+        arg2: 0,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(pid, &args, &mt, &fd_table);
+    assert_eq!(
+        reported_value(&action),
+        Some(7),
+        "dup3 must report the new fd, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        entry_flags(&fd_table, pid_raw, 7),
+        Some(0),
+        "dup3 must clear O_CLOEXEC when its flags argument has no O_CLOEXEC"
+    );
+}
+
+#[test]
+fn dup_rejects_an_out_of_range_fd() {
+    let fs = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let pid_raw = std::process::id();
+    let pid = nix::unistd::Pid::from_raw(pid_raw as i32);
+
+    // The dispatch reads the tracee's own `RLIMIT_NOFILE`; the test reads the
+    // same limit with `getrlimit(2)`.
+    let mut limit = libc::rlimit {
+        rlim_cur: 0,
+        rlim_max: 0,
+    };
+    let rc = unsafe { libc::getrlimit(libc::RLIMIT_NOFILE, &mut limit) };
+    assert_eq!(
+        rc,
+        0,
+        "getrlimit(RLIMIT_NOFILE) failed: {}",
+        std::io::Error::last_os_error()
+    );
+    let nofile = limit.rlim_cur as u64;
+    assert_ne!(
+        nofile,
+        libc::RLIM_INFINITY,
+        "the test needs a finite RLIMIT_NOFILE"
+    );
+
+    let fd_table = VirtualFdTable::new();
+    insert_virtual_file(&fs, &fd_table, pid_raw, 10_000, "/virtual/vfile.txt", 0);
+
+    // A negative number is `EBADF`, and the table keeps no entry for it.
+    let args = SyscallArgs {
+        nr: DUP2,
+        arg0: 10_000,
+        arg1: (-1i64) as u64,
+        arg2: 0,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
+    let action = on_syscall_entry(pid, &args, &mt, &fd_table);
+    assert_eq!(
+        skip_errno(&action),
+        Some(libc::EBADF as i64),
+        "dup2 with a negative new fd must fail with EBADF, got {}",
+        action_name(&action)
+    );
+    assert!(
+        fd_table.get(pid_raw, u64::MAX).is_none(),
+        "a rejected dup2 must not insert an entry"
+    );
+
+    // A number at `RLIMIT_NOFILE` is `EBADF` for `dup2(2)` and `dup3(2)`.
+    for nr in [DUP2, DUP3] {
+        let args = SyscallArgs {
+            nr,
+            arg0: 10_000,
+            arg1: nofile,
+            arg2: 0,
+            arg3: 0,
+            arg4: 0,
+            arg5: 0,
+        };
+        let action = on_syscall_entry(pid, &args, &mt, &fd_table);
+        assert_eq!(
+            skip_errno(&action),
+            Some(libc::EBADF as i64),
+            "dup (nr {nr}) at RLIMIT_NOFILE must fail with EBADF, got {}",
+            action_name(&action)
+        );
+        assert!(
+            fd_table.get(pid_raw, nofile).is_none(),
+            "a rejected dup must not insert an entry at RLIMIT_NOFILE"
+        );
+    }
+
+    // The source stays open after the rejected calls.
+    assert!(
+        fd_table.get(pid_raw, 10_000).is_some(),
+        "a rejected dup must keep the source entry"
+    );
+}
+
+#[test]
+fn an_append_write_goes_to_the_end() {
+    let fs = MemoryFs::new(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    fs.mkdir("/virtual").unwrap();
+    fs.write_file("/virtual/log.txt", b"head").unwrap();
+    let mut mt = MountTable::new();
+    mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
+    let fd_table = VirtualFdTable::new();
+    let pid_raw = std::process::id();
+    let pid = nix::unistd::Pid::from_raw(pid_raw as i32);
+
+    let path = path_in_self("/virtual/log.txt");
+    let action = dispatch_openat(
+        pid,
+        &path,
+        libc::O_WRONLY | libc::O_APPEND,
+        0,
+        &mt,
+        &fd_table,
+    );
+    let vfd = match skip_value(&action) {
+        Some(fd) if fd > 0 => fd as u64,
+        _ => panic!(
+            "open of a virtual file must return a virtual fd, got {}",
+            action_name(&action)
+        ),
+    };
+
+    let first = b"AAA";
+    let action = dispatch_write(pid, vfd, first, &mt, &fd_table);
+    assert_eq!(
+        skip_value(&action),
+        Some(3),
+        "the first append write must report 3 bytes, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        entry_offset(&fd_table, pid_raw, vfd),
+        Some(7),
+        "the first append write must move the offset to the end of the file"
+    );
+    assert_eq!(
+        fs.read_file("/virtual/log.txt").unwrap(),
+        b"headAAA",
+        "the first append write must keep the existing bytes"
+    );
+
+    let second = b"BB";
+    let action = dispatch_write(pid, vfd, second, &mt, &fd_table);
+    assert_eq!(
+        skip_value(&action),
+        Some(2),
+        "the second append write must report 2 bytes, got {}",
+        action_name(&action)
+    );
+    assert_eq!(
+        entry_offset(&fd_table, pid_raw, vfd),
+        Some(9),
+        "the second append write must move the offset to the new end"
+    );
+    assert_eq!(
+        fs.read_file("/virtual/log.txt").unwrap(),
+        b"headAAABB",
+        "both append writes must land at the end"
     );
 }
 
@@ -1055,6 +1552,36 @@ fn the_traced_child_dup2_closes_the_real_destination() {
         !destination_still_open,
         "dup2 left the real destination fd {dest} open while the child ran"
     );
+}
+
+// ── setregs failure reporting (spec 72, feature 08) ──
+
+#[test]
+fn a_failed_setregs_is_reported() {
+    use foundation_nativeapis::native::vfs::ptrace::nix_backend::report_return_value;
+    use foundation_nativeapis::shared::vfs::error::VfsError;
+
+    // No process can trace pid `i32::MAX`, so `PTRACE_SETREGS` fails.
+    let pid = nix::unistd::Pid::from_raw(i32::MAX);
+    // SAFETY: all-zero bits are valid for `user_regs_struct`, which is plain
+    // data.
+    let regs: libc::user_regs_struct = unsafe { std::mem::zeroed() };
+    let error = report_return_value(pid, regs, 0)
+        .expect_err("setregs must fail for a pid that is not traced");
+
+    match error.current_context() {
+        VfsError::Backend { message } => {
+            assert!(
+                message.contains("setregs"),
+                "the message must name setregs: {message}"
+            );
+            assert!(
+                message.contains(&i32::MAX.to_string()),
+                "the message must name the pid: {message}"
+            );
+        }
+        other => panic!("a failed setregs must be a backend error, got {other:?}"),
+    }
 }
 
 #[test]

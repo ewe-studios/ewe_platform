@@ -12,7 +12,7 @@ keywords = ["database", "storage", "turso", "foundation"]
 [dependencies]
 # -- Workspace dependencies
 # Multi-threaded support is optional - enable with `multi` feature
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["std"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["std"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", features = ["crypto-chacha"] }
 
 # Serialization
@@ -52,7 +52,7 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 # where `multi` would also force the single-threaded CF storage code onto
 # valtron's Send-required path.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.8", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
 foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.0" }
 async-stream = "0.3"
 # Connection gate for the single-connection SQL stores (already in the tree via foundation_netio).
@@ -78,7 +78,7 @@ libc = "0.2"
 foundation_db = { path = ".", features = ["test-hooks"] }
 # `test-clock` provides `SimulatedClock`, so a test proves that a stored row
 # carries the simulated `created_at`, not the real time.
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["std", "multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["std", "multi", "test-clock"] }
 
 [features]
 # Test-only hooks (for example `inject_rollback_failure`). Off by default; the

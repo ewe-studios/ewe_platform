@@ -31,7 +31,7 @@ use std::net::{TcpStream, UdpSocket};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{block_on_future, valtron_test};
+use foundation_core::valtron::{MonotonicClock, block_on_future, valtron_test};
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
 use foundation_deployment_platform::testing::docker_available;
 use foundation_proxy::config::HealthCheckConfig;
@@ -42,6 +42,7 @@ const ECHO_PORT: u16 = 5678;
 /// An `http-echo` container that returns `text` for every request.
 fn echo_config(text: &str) -> ContainerConfig {
     ContainerConfig::new("hashicorp/http-echo:latest")
+        .clock(std::sync::Arc::new(MonotonicClock::new()))
         .command(vec![
             format!("-text={text}"),
             format!("-listen=:{ECHO_PORT}"),
@@ -471,6 +472,7 @@ fn test_udp_passthrough_roundtrips_bytes() {
     }
     let backend = ContainerHandle::start(
         ContainerConfig::new("alpine/socat:latest")
+            .clock(std::sync::Arc::new(MonotonicClock::new()))
             .command(vec![
                 "UDP-LISTEN:9000,fork".to_string(),
                 "EXEC:cat".to_string(),

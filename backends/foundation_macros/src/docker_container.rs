@@ -8,6 +8,11 @@
 //! One invocation declares every container, so this macro knows the whole set at
 //! expansion time: it starts them in the order written, catches duplicate lookup
 //! keys as compile errors, and needs no cooperation between attributes.
+//!
+//! The clock is injected: `clock = <expr>` supplies one directly, and without
+//! it the macro reads the clock of the valtron pool the function runs on. A
+//! process with no pool gets `DockerError::MissingClock` — never a panic and
+//! never the real clock (spec 72, feature 04 — issue #220).
 
 use std::collections::HashMap;
 
@@ -104,6 +109,9 @@ struct ContainerDef {
     dockerfile: Option<String>,
     /// Share the network namespace of the process running the test.
     share_caller_network: bool,
+    /// Explicit clock expression (`clock = <expr>`). When absent, the macro
+    /// reads the clock of the valtron pool the function runs on.
+    clock: Option<Expr>,
 }
 
 impl Parse for ContainerDef {
@@ -133,6 +141,7 @@ impl Parse for ContainerDef {
         let mut required = false;
         let mut dockerfile = None;
         let mut share_caller_network = false;
+        let mut clock = None;
 
         while !input.is_empty() {
             // `as` is a keyword, so it cannot be parsed as an `Ident`.
@@ -168,6 +177,7 @@ impl Parse for ContainerDef {
                 "required" => required = parse_bool(&value)?,
                 "dockerfile" => dockerfile = Some(parse_string(&value)?),
                 "share_caller_network" => share_caller_network = parse_bool(&value)?,
+                "clock" => clock = Some(value),
                 _ => {
                     return Err(syn::Error::new(
                         key_span,
@@ -207,6 +217,7 @@ impl Parse for ContainerDef {
             required,
             dockerfile,
             share_caller_network,
+            clock,
         })
     }
 }
@@ -317,10 +328,6 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
     };
 
     let fn_name = &input.sig.ident;
-    let fn_output = &input.sig.output;
-    let is_async = input.sig.asyncness.is_some();
-    let body = &input.block;
-    let vis = &input.vis;
     let attrs = &input.attrs;
 
     let platform = foundation_deployment_platform_path();
@@ -342,19 +349,15 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
         .to_compile_error();
     }
 
-    let inputs = &input.sig.inputs;
-    // The parameter's pattern (`containers`), needed by the async arm to bind
-    // the group to the name the body expects.
-    let group_pat = match &input.sig.inputs[0] {
-        syn::FnArg::Typed(pat_type) => pat_type.pat.clone(),
-        syn::FnArg::Receiver(recv) => {
-            return syn::Error::new_spanned(
-                recv,
-                "#[docker_container] cannot be applied to a method taking `self`",
-            )
-            .to_compile_error();
-        }
-    };
+    // The parameter is the group the body receives; a method taking `self`
+    // cannot be a container test.
+    if let syn::FnArg::Receiver(recv) = &input.sig.inputs[0] {
+        return syn::Error::new_spanned(
+            recv,
+            "#[docker_container] cannot be applied to a method taking `self`",
+        )
+        .to_compile_error();
+    }
 
     // One invocation owns the whole set, so stacking is rejected rather than
     // silently half-working: a second attribute would receive an already-expanded
@@ -374,6 +377,28 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
         .to_compile_error();
     }
 
+    // A function that returns `DockerResult<()>` gets the typed start error
+    // back. Every other output keeps the existing contract: the macro returns
+    // early (a skip) when it cannot resolve a clock or Docker is absent.
+    let returns_result = returns_docker_result(&input.sig.output);
+    let missing_clock_return = if returns_result {
+        quote! { { return ::core::result::Result::Err(__docker_clock_error); } }
+    } else {
+        quote! { { return; } }
+    };
+    let skip_return = if returns_result {
+        quote! { { return ::core::result::Result::Ok(()); } }
+    } else {
+        quote! { { return; } }
+    };
+
+    // Resolve one clock per container before any I/O, so a missing clock is a
+    // typed error rather than a panic inside the pool-backed startup (issue
+    // #220). An explicit `clock = <expr>` is used as written; without it the
+    // macro reads the clock from the valtron pool it runs on.
+    let (clock_idents, clock_bindings) =
+        clock_prelude(&args.defs, &platform, &missing_clock_return);
+
     // Per-container startup, in the order written. Each block starts one
     // container and adds it to the group under its lookup key; the group is the
     // single owner, so an early return drops it and cleans up whatever already
@@ -381,7 +406,8 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
     let starts: Vec<TokenStream2> = args
         .defs
         .iter()
-        .map(|def| container_start(def, &platform))
+        .zip(&clock_idents)
+        .map(|(def, clock_ident)| container_start(def, &platform, clock_ident))
         .collect();
 
     // Starting the containers is the same async job in both arms: fill a group
@@ -400,13 +426,40 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
     // The arms differ only in what drives that job: the caller's executor for an
     // `async fn`, or valtron's pool for a sync one (the Docker client is
     // valtron-based, hence the documented pairing with `#[valtron_test]`).
-    let expanded = if is_async {
+    expand_function(&input, &startup, &clock_bindings, &skip_return, &core)
+}
+
+/// The expanded function for either arm: an `async fn` that is awaited by its
+/// caller, or a sync fn whose body runs on valtron's pool.
+fn expand_function(
+    input: &ItemFn,
+    startup: &TokenStream2,
+    clock_bindings: &[TokenStream2],
+    skip_return: &TokenStream2,
+    core: &TokenStream2,
+) -> TokenStream2 {
+    let fn_name = &input.sig.ident;
+    let fn_output = &input.sig.output;
+    let body = &input.block;
+    let vis = &input.vis;
+    let attrs = &input.attrs;
+
+    if input.sig.asyncness.is_some() {
+        // The receiver case is rejected by the caller, so the first argument is
+        // always a typed one.
+        let group_pat = match &input.sig.inputs[0] {
+            syn::FnArg::Typed(pat_type) => &pat_type.pat,
+            syn::FnArg::Receiver(_) => unreachable!("the receiver was rejected earlier"),
+        };
+
         quote! {
             #(#attrs)*
             #vis async fn #fn_name() #fn_output {
+                #(#clock_bindings)*
+
                 let __docker_group = match #startup.await {
                     ::core::option::Option::Some(g) => g,
-                    ::core::option::Option::None => return,
+                    ::core::option::Option::None => #skip_return,
                 };
 
                 // Bind the group to the name the body declared.
@@ -421,23 +474,107 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
             }
         }
     } else {
+        let inputs = &input.sig.inputs;
         let inner_fn = format_ident!("__docker_body_{fn_name}");
         quote! {
             #(#attrs)*
             #vis fn #fn_name() #fn_output {
                 fn #inner_fn(#inputs) #fn_output #body
 
+                #(#clock_bindings)*
+
                 let __docker_group = match #core::valtron::__private::block_on_future(#startup) {
                     ::core::option::Option::Some(g) => g,
-                    ::core::option::Option::None => return,
+                    ::core::option::Option::None => #skip_return,
                 };
 
                 #inner_fn(__docker_group)
             }
         }
-    };
+    }
+}
 
-    expanded
+/// The identifier the clock for container `index` is bound to.
+fn clock_ident(index: usize) -> Ident {
+    format_ident!("__docker_clock_{index}")
+}
+
+/// One clock per declared container, in declaration order: the identifiers and
+/// the statements that bind them.
+fn clock_prelude(
+    defs: &[ContainerDef],
+    platform: &TokenStream2,
+    missing_clock_return: &TokenStream2,
+) -> (Vec<Ident>, Vec<TokenStream2>) {
+    let idents: Vec<Ident> = (0..defs.len()).map(clock_ident).collect();
+    let bindings: Vec<TokenStream2> = defs
+        .iter()
+        .enumerate()
+        .map(|(index, def)| clock_binding(index, def, platform, missing_clock_return))
+        .collect();
+    (idents, bindings)
+}
+
+/// The statement that binds `__docker_clock_<index>`.
+///
+/// `clock = <expr>` evaluates the caller's expression. Without it, the macro
+/// reads the valtron pool's clock through `docker::pool_clock()`, which returns
+/// `DockerError::MissingClock` instead of panicking when no pool exists.
+fn clock_binding(
+    index: usize,
+    def: &ContainerDef,
+    platform: &TokenStream2,
+    missing_clock_return: &TokenStream2,
+) -> TokenStream2 {
+    let clock_ident = clock_ident(index);
+
+    if let Some(expr) = &def.clock {
+        quote! {
+            let #clock_ident = #expr;
+        }
+    } else {
+        quote! {
+            let #clock_ident = match #platform::docker::pool_clock() {
+                ::core::result::Result::Ok(__docker_clock) => __docker_clock,
+                ::core::result::Result::Err(__docker_clock_error) => {
+                    ::tracing::warn!(
+                        "SKIP: no clock available for the Docker container: {}",
+                        __docker_clock_error
+                    );
+                    #missing_clock_return
+                }
+            };
+        }
+    }
+}
+
+/// Whether the annotated function returns `DockerResult<()>`.
+///
+/// Only that exact shape gets the typed error back: the macro can then write
+/// `Err(error)` and `Ok(())` into the function body. Any other output keeps the
+/// existing early-return contract.
+fn returns_docker_result(output: &syn::ReturnType) -> bool {
+    use syn::{GenericArgument, PathArguments, ReturnType, Type, TypePath};
+
+    let ReturnType::Type(_, ty) = output else {
+        return false;
+    };
+    let Type::Path(TypePath { path, .. }) = &**ty else {
+        return false;
+    };
+    let Some(segment) = path.segments.last() else {
+        return false;
+    };
+    if segment.ident != "DockerResult" {
+        return false;
+    }
+    let PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+        return false;
+    };
+    matches!(
+        arguments.args.first(),
+        Some(GenericArgument::Type(Type::Tuple(tuple))) if tuple.elems.is_empty()
+    )
 }
 
 /// Generates the statements that start one container and add it to
@@ -445,8 +582,12 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
 /// always an async context, and a skip is a bare `return` — which returns from
 /// the `async fn` in the async arm, and from the `block_on_future` async block
 /// (yielding `None`) in the sync arm.
-fn container_start(def: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
-    let config = container_config(def, platform);
+fn container_start(
+    def: &ContainerDef,
+    platform: &TokenStream2,
+    clock_ident: &Ident,
+) -> TokenStream2 {
+    let config = container_config(def, platform, clock_ident);
 
     let lookup_key = if let Some(k) = &def.lookup_key {
         quote! { ::core::option::Option::Some(::std::string::String::from(#k)) }
@@ -485,7 +626,11 @@ fn container_start(def: &ContainerDef, platform: &TokenStream2) -> TokenStream2 
     clippy::too_many_lines,
     reason = "one linear builder-chain expansion, kept in field order so it matches the config"
 )]
-fn container_config(args: &ContainerDef, platform: &TokenStream2) -> TokenStream2 {
+fn container_config(
+    args: &ContainerDef,
+    platform: &TokenStream2,
+    clock_ident: &Ident,
+) -> TokenStream2 {
     let image = &args.image;
     let mut config_calls = Vec::new();
 
@@ -605,6 +750,7 @@ fn container_config(args: &ContainerDef, platform: &TokenStream2) -> TokenStream
 
     quote! {
         #platform::docker::ContainerConfig::new(#image)
+            .clock(#clock_ident)
             #(#config_calls)*
     }
 }

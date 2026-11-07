@@ -403,9 +403,12 @@ impl TimeoutCalculator {
     }
 
     /// Enable load tracking with default config.
+    ///
+    /// `clock` measures the connection-rate window. The host passes the clock
+    /// from its context bundle.
     #[must_use]
-    pub fn enable_load_tracking(mut self) -> Self {
-        self.load_tracker = Some(LoadTracker::new());
+    pub fn enable_load_tracking(mut self, clock: Arc<dyn Clock>) -> Self {
+        self.load_tracker = Some(LoadTracker::new(clock));
         self
     }
 

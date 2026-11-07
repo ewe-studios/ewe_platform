@@ -8,8 +8,9 @@
 //! `base + 60ms`, with no real wait.
 //!
 //! HOW: before this feature every timer function read the real clock and had no
-//! injection point. The host boundary keeps one real read, with a
-//! `// time-source:` marker and a backlog issue.
+//! injection point. The host-boundary read that feature 134 left is gone:
+//! issue #219 makes `WasiHost` install a `TimeSource`, and the module reads
+//! only that source (see `tests/wasi_host_time_source.rs`).
 
 #![cfg(feature = "wasi")]
 

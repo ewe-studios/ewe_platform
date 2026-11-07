@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 08 (ptrace setregs and truncate, #209, #210) merged as PR #363. All 14
+  features are merged, so spec 72 is complete.
+  `ptrace_loop` ignored the `PTRACE_SETREGS` error for `Skip` and `SkipError`.
+  A new public `report_return_value` sets `rax`, calls `setregs`, and returns
+  `VfsError::Backend` with the value and the pid. All three emulated-return arms use
+  it. `truncate` and `ftruncate` reject `length < 0` with `EINVAL` before the path or
+  descriptor check, and the size conversion maps failure to `EINVAL`.
+  `foundation_nativeapis` is 0.0.10 and every consumer requirement moves with it; the
+  workspace and the three checked example lockfiles are regenerated. The crate suite
+  passed 217 tests with 0 failures on macOS. The two new tests are Linux only and run
+  in the GitHub CI. The Linux image stops in a worktree before the build: the
+  bind-mounted `.git` file points at the host path, so
+  `ci/platform-images/scripts/link-submodules.nu` cannot read the repository. No new
+  defect.
+
 - 2026-11-07: merges and rebases. The owner merged all 13 feature PRs: #332 (03), #333 (01),
   #337 (06), #338 (05), #339 (02), #344 (07), #345 (04), #349 (09), #352 (12), #356 (11),
   #359 (10), #361 (13) and #362 (14). Each merge moved
@@ -166,7 +181,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **05-wasm-wasi-time-source** — merged, PR #338 (#219)
 - **06-netio-load-tracker-rate** — merged, PR #337 (#214)
 - **07-nativeapi-ptrace-dispatch** — merged, PR #344 (#205–#208)
-- **08-nativeapi-setregs-and-truncate** — unblocked, not started (#209, #210)
+- **08-nativeapi-setregs-and-truncate** — merged, PR #363 (#209, #210)
 - **09-toolings-clock-and-wake** — merged, PR #349 (#201, #203)
 - **10-keychain-macos-flake** — merged, PR #359 (#197)
 - **11-ci-mobile-target-builds** — merged, PR #356 (#196)
@@ -176,11 +191,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Next steps
 
-1. Implement feature 08 (ptrace setregs and truncate, #209, #210). It was blocked by #344,
-   which is merged. The design is complete; a snapshot of master holds it.
-2. Check that every issue the merged PRs name is closed: #194, #196, #197, #201, #203,
-   #205–#208, #214, #219, #220, #223, #233, #234, #357, #358.
-3. The owner decided that a spec gets one PR, not one PR per feature. Spec 72 keeps its
-   shape, but future specs land features on one branch.
+1. All 14 features are merged. The issues the merged PRs name are closed: #194, #196, #197,
+   #201, #203, #205–#208, #209, #210, #214, #219, #220, #223, #233, #234, #357, #358, #367.
+2. Archive this spec to `specifications/completed/72-medium-severity-fixes` and set its
+   requirements status to completed.
+
 
 _Created: 2026-11-07_

@@ -330,7 +330,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "base64",
@@ -396,7 +396,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -415,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "cfg-if",
  "concurrent-queue",
@@ -431,7 +431,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "base64",
@@ -489,7 +489,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "concurrent-queue",
  "derive_more",

@@ -19,6 +19,7 @@ use std::time::Instant;
 
 use foundation_core::valtron::Clock;
 
+use crate::shared::error::WgResult;
 use crate::shared::membership::PeerId;
 use crate::shared::relay::{ConnectivityPath, RelayFrame, RelaySelector, RelaySession};
 
@@ -249,9 +250,15 @@ impl RelayClient {
     }
 
     /// Direct connectivity to `peer` failed; step down the ladder.
-    pub fn on_direct_probe_failure(&mut self, peer: PeerId) {
+    ///
+    /// # Errors
+    /// Returns [`crate::shared::error::WgError::NoRelayForPunchedSession`] when
+    /// the peer's hole punch failed and the selector has no relay. The peer's
+    /// session then holds no path. The caller must log the error and stop
+    /// using the peer until connectivity returns.
+    pub fn on_direct_probe_failure(&mut self, peer: PeerId) -> WgResult<()> {
         let relay = self.selected_relay();
-        self.peers.entry(peer).or_default().on_direct_failure(relay);
+        self.peers.entry(peer).or_default().on_direct_failure(relay)
     }
 
     /// Hole-punch succeeded; upgrade to direct.

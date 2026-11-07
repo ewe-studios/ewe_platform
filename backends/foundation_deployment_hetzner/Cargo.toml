@@ -18,7 +18,7 @@ version = "0.2.4"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
@@ -30,7 +30,7 @@ version = "0.0.4"
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.10"
+version = "0.0.11"
 
 [dependencies.foundation_netio]
 features = [
@@ -38,7 +38,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 
 [dependencies.serde]
 workspace = true
@@ -58,7 +58,7 @@ path = "../foundation_testing"
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 features = ["test-clock"]
 
 [features]

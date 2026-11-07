@@ -15,7 +15,7 @@ serde_json = { version = "1", optional = true }
 libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["std"], optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["std"], optional = true }
 # Retry jitter reads the platform entropy source through foundation_compact's
 # vendored backend (rule 11), not through rand/getrandom.
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false, optional = true }
@@ -45,13 +45,13 @@ default-features = false
 # `foundation_core/multi`, which does not build for wasm32.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 features = ["multi"]
 optional = true
 
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.7"
+version = "0.0.8"
 default-features = false
 features = ["wasm-fetch"]
 optional = true
