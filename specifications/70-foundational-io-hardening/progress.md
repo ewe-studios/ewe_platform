@@ -2716,3 +2716,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the bad locks in. The fix regenerates the workspace lock and the five stale
   standalone locks (commit `2f6786e03`). Every tracked lock now passes
   `cargo metadata --locked`.
+- 2026-11-07: issue #252 filed and fixed (severity high, blocks CI). The arrow
+  59.3.2 bump changed `arrow-ipc` and `arrow-buffer` in
+  `foundation_arrow/Cargo.toml` but left `arrow-array`, `arrow-schema` and
+  `arrow-data` at 55. Cargo then kept both generations, and the crate did not
+  compile: 31 type errors, all a mismatch between two `arrow_schema::Schema`
+  types. The manifest now names 59 for all five crates, the lockfiles are
+  regenerated, and the arrow-55 duplicates are gone. `cargo check -p
+  foundation_arrow` passes, and the 20 `foundation_arrow` tests pass.

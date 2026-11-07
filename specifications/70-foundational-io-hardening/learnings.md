@@ -2552,3 +2552,12 @@ The pull request run checks out the merge of the branch and the base. A green
 branch can still fail there when the base moved. Reproduce it without a
 checkout: `git fetch origin refs/pull/<n>/merge:refs/tmp/m`, extract that tree,
 and run the failing command in it.
+
+## Dependency bumps go family-wide
+
+The arrow crates are one family: `arrow-ipc` 59 needs `arrow-array`,
+`arrow-schema`, `arrow-data` and `arrow-buffer` 59. A bump that touches one of
+them puts two generations in the graph. The compiler then reports two identical
+type names as different types (`Arc<arrow_schema::schema::Schema>` against the
+same spelling), which reads as a lie until you check `cargo tree -d`. Bump the
+whole family, then run the dependent crate's tests, not only its check.
