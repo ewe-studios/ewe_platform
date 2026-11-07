@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/70-foundational-io-hardening"
-this_file: "specifications/70-foundational-io-hardening/start.md"
+spec_directory: "specifications/completed/70-foundational-io-hardening"
+this_file: "specifications/completed/70-foundational-io-hardening/start.md"
 created: 2026-10-28
 ---
 
@@ -23,7 +23,7 @@ You implement **one feature** of this spec. The main session gave you its number
 3. [`requirements.md`](./requirements.md): sections 2 (delegation model), 3 (rules) and
    4 (verification protocol). They apply to every feature.
 4. Your feature file: `features/NN-<slug>/feature.md`. Read all of it before you change code.
-5. The backlog entries your feature names, in `docs/bug-backlog.md`.
+5. The GitHub issues your feature names, if any.
 6. [`progress.md`](./progress.md) and [`learnings.md`](./learnings.md).
 
 ## Workflow
@@ -33,7 +33,7 @@ You implement **one feature** of this spec. The main session gave you its number
    see it fail on the old code, fix, see it pass.
 3. Run the feature's verification commands exactly. Record the results.
 4. Tick the tasks in your feature file. Add a short entry to `progress.md`. Add what you learned
-   to `learnings.md`. Delete the backlog entries you fixed.
+   to `learnings.md`. Close the GitHub issues you fixed.
 5. Commit, push, open the PR. The PR body has: what changed, the before/after result of each
    regression test, the flake-check counts, the commands you ran and their results.
 6. Report to the main session. Do not merge.

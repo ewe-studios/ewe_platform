@@ -1,9 +1,9 @@
 ---
-description: "Fix every open entry in docs/bug-backlog.md (sections 1–21), foundational crates first: park on readiness instead of polling or holding threads, move hard-coded limits into configuration, make the ignored tests run, move inline tests out of source files, then the deployment, proxy, AI, database, auth, VFS, scheduler, workspace, vectors, apps and Hugging Face entries. Designed by the main session; each feature is built by a Sonnet 5.5 agent and reviewed by the main session."
-status: "in-progress"
+description: "Fix every open entry in the bug backlog (sections 1–21, now GitHub issues), foundational crates first: park on readiness instead of polling or holding threads, move hard-coded limits into configuration, make the ignored tests run, move inline tests out of source files, then the deployment, proxy, AI, database, auth, VFS, scheduler, workspace, vectors, apps and Hugging Face entries. Designed by the main session; each feature is built by a Sonnet 5.5 agent and reviewed by the main session."
+status: "completed"
 priority: "critical"
 created: 2026-10-28
-updated: 2026-11-05
+updated: 2026-11-07
 author: "Main Agent"
 metadata:
   version: "2.0"
@@ -17,11 +17,11 @@ related_specs:
   - "specifications/50-valtron-async-readiness"
   - "specifications/65-agent-rpc-serving-system"
 tasks:
-  completed: 67
-  uncompleted: 12
-  total: 81
-  dropped: 2
-  completion_percentage: 83%
+  completed: 118
+  uncompleted: 0
+  total: 122
+  dropped: 4
+  completion_percentage: 100%
 ---
 
 # Spec 70: Foundational I/O hardening
@@ -43,7 +43,7 @@ Every service in this workspace sits on five crates: `foundation_core` (valtron)
 (plus `foundation_nostd` on wasm). The owner made their open bugs **top priority**: they are
 foundational, so everything built on top inherits them.
 
-PR #160 verified every backlog entry in sections 1–5 of `docs/bug-backlog.md` against master
+PR #160 verified every entry in sections 1–5 of the bug backlog against master
 and fixed the correctness bugs. What is left is in three groups:
 
 1. **Readiness.** Code that polls on a timer, spins, or holds a worker thread while it waits
@@ -87,8 +87,7 @@ These come from `CLAUDE.md` and `.agents/AGENTS.md`. Read both before you start.
    source (nginx, Go `net/http`, Caddy, the RFC).
 6. **Stream bodies, never buffer them.**
 7. **Every bug you notice becomes a GitHub issue with a severity label** in the same change.
-   Close the issue in the change that fixes it. Do not add an entry to
-   `docs/bug-backlog.md`; that file is retired (owner rule 2026-11-06).
+   Close the issue in the change that fixes it. The GitHub issue tracker is the only backlog.
 8. **Async all the way.** Blocking only at real boundaries, behind `blocking_boundary!`.
 
 ## 4. Deterministic verification protocol
@@ -276,20 +275,28 @@ _The diagram shows which feature must finish before another starts._
 
 ## 7. Done for the whole spec
 
-- [ ] Every entry in `docs/bug-backlog.md` sections 1–21 (and the four branch-only bugs in §1)
-      is fixed and closed in its GitHub issue, or rewritten in the issue with a reason and a
-      follow-up. The file was retired on 2026-11-06; the section-to-issue map is in it.
-- [ ] Issues #28, #137 and #142 can be closed.
-- [ ] `rg -n 'thread::sleep|yield_now|spin_loop' backends/foundation_{core,netio,http,connectrpc,iogate}/src`
+- [x] Every entry in the retired bug backlog, sections 1–21 (and the four branch-only bugs in
+      §1), is a GitHub issue with a severity label, fixed and closed, or rewritten in the
+      issue with a reason and a follow-up. The file was deleted on 2026-11-07; its section map
+      is in umbrella issue #98. (Verified 2026-11-07: the last 66 checklist items in the
+      per-crate umbrellas became 76 issues, #253–#288 and #290–#329, each with one
+      `severity:` label; the one duplicate maps to existing #222.)
+- [x] Issues #28, #137 and #142 can be closed. (Verified 2026-11-07: #137 and #142 are closed;
+      #28 was merged.)
+- [x] `rg -n 'thread::sleep|yield_now|spin_loop' backends/foundation_{core,netio,http,connectrpc,iogate}/src`
       returns only waits that sit behind `blocking_boundary!` or that the feature files name as
-      allowed, each with a comment that says why.
-- [ ] No `#[ignore]` in `foundation_netio/tests` without a written reason and a backlog entry.
-- [ ] No `#[cfg(test)]` module in the source files of these crates.
-- [ ] CI green on every feature PR.
+      allowed, each with a comment that says why. (Verified 2026-11-07: only the two commented
+      sites and the HTTP accept-loop back-off, which feature 41 names as allowed.)
+- [x] No `#[ignore]` in `foundation_netio/tests` without a written reason and a backlog entry.
+      (Verified 2026-11-07: there are none.)
+- [x] No `#[cfg(test)]` module in the source files of these crates. (Verified 2026-11-07:
+      there are none.)
+- [x] CI green on every feature PR. (Verified 2026-11-07: the final head of PR #250 passed
+      every job.)
 
 ## 8. Post-merge features 41–60 (after PR #172)
 
-Spec 70 merged in PR #172. Its review found bugs that were not in `docs/bug-backlog.md`; the
+Spec 70 merged in PR #172. Its review found bugs that were not in the bug backlog; the
 backlog also kept open entries, and entries that are fixed but were never deleted. Features
 41–60 cover all of them. Source: R = PR #172 review; B = open backlog entry; S = backlog entry
 fixed in code but not deleted.
@@ -421,7 +428,7 @@ the choice.
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
   reports to the main session. (Feature 54 may change only the boringtun line of
   `foundation_wireguard/Cargo.toml`.)
-- Shared files (`Cargo.lock`, `docs/bug-backlog.md`, `progress.md`, `learnings.md`): on a
+- Shared files (`Cargo.lock`, `progress.md`, `learnings.md`): on a
   conflict keep both sides.
 - One commit or more per feature. One PR per lane at the end, base `master`.
 - Features 63 and 67 run after both lane PRs merge, each on its own branch, because they edit

@@ -16,7 +16,7 @@ _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers 
 
 Migrations still default `created_at` to milliseconds (`strftime('%s','now') * 1000` in
 `004_create_accounts.sql`, `019_create_device_codes.sql`, …). Spec 70 feature 17 E7 chose a
-unit; T0: read what it chose (`specifications/70-foundational-io-hardening/features/17-db/`)
+unit; T0: read what it chose (`specifications/completed/70-foundational-io-hardening/features/17-db/`)
 and check every table: defaults, `AsyncStorageCleanup`, and the IdP writes. If all agree,
 delete the entry. If not, finish it with a migration and the test
 `cleanup_deletes_expired_rows_by_documented_unit`.
