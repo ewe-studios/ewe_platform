@@ -2,6 +2,13 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 05 verified (#254) on `spec73/f05-http1-rpc-worker-parking`, commit
+  `003d11bae`, merged as `b425b17c2`. The new test
+  `a_long_rpc_does_not_block_a_short_request` pins the parking path. A `TaskStatus::Ignore`
+  mutation makes it fail in 5.05 s. Counts: default 77, `--features multi` 156,
+  `--features "multi quic"` 159. The agent fixed `test_server_config_defaults`, which still
+  asserted the 120 s idle default that feature 04 changed to 75 s. Filed #384 and #385 (low).
+
 - 2026-11-07: #378 fixed on `fix/378-request-compression`, commit `124248bb5`, merged into
   `spec73/high-severity-fixes` as `b2a9e642c`. The streaming calls compress in the envelope
   writer, so `FLAG_COMPRESSED` is set; the client no longer pre-compresses. The writer also
@@ -111,7 +118,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **04-http-connection-correctness** — complete (#288; #284 confirmed fixed). Commits
   `a536471a8` and `0236e7e2a`, merged as `dec71174d`.
   `features/04-http-connection-correctness/feature.md`
-- **05-http1-rpc-worker-parking** — pending (#254, fixed on master). Verification plan ready.
+- **05-http1-rpc-worker-parking** — verified (#254, fixed on master). Commit `003d11bae`,
+  merged as `b425b17c2`.
 - **06-h3-webtransport-accept** — pending (#273, fixed on master). Verification plan ready.
 - **07-openapi-boolean-generation** — verified (#317). Commit `1879b9e04`.
   `features/07-openapi-boolean-generation/feature.md`

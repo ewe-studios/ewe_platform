@@ -26,6 +26,17 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The four high fix branches (#334, #340, #347, #348) are not spec 73 features. They close
   before the spec starts so that the spec's crates start from a clean master.
 
+## Feature 05 (2026-11-07)
+
+- A verification feature still needs a sensitivity proof. The fix predates the base, so the
+  new test passes there. Break the mechanism on purpose (`TaskStatus::Ignore` in the parking
+  arm), see the test fail, then revert. Record the failure message and the time.
+- The public valtron pool API cannot make a one-worker pool: it floors the thread count at 3
+  and gives at least 2 task workers. Saturate the pool with more queued work instead.
+- A feature that changes a default breaks tests that assert the old default. Feature 04
+  changed the keep-alive idle timeout to 75 s; `integration_tests.rs` still asserted 120 s.
+  Search for the old value in tests in the same change.
+
 ## Feature 02 (2026-11-07)
 
 - A client must not compress a frame before the envelope writer. The writer sets
