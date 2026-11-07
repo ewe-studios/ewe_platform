@@ -17,7 +17,7 @@ workspace = true
 # Native only: used by `dns_ops.rs` and `types.rs`.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 
 # foundation_deployment is only used by the REST API (generated code + client.rs)
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.
@@ -346,7 +346,7 @@ zones = ["cloudflare_zones"]
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.16"
+version = "0.0.18"
 features = ["test-clock"]
 
 [lints]

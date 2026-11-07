@@ -48,8 +48,8 @@ pub trait ProjectBuilder: Send + Sync + std::fmt::Debug {
 pub struct ProjectBuilderTask {
     builders: Vec<Arc<dyn ProjectBuilder>>,
     change_rx: foundation_core::synca::mpp::Receiver<WatchEvent>,
-    /// File changes, in order. Its push wakes the parked task.
-    change_queue: EventQueue<FileChange>,
+    /// Woken when the watcher sends a watch event, so the parked task runs.
+    change_ready: QueueReadiness<WatchEvent>,
     /// Build results from the background jobs. Their push wakes the parked task.
     result_queue: EventQueue<BuildResult>,
     build_complete_queue: EventQueue<()>,
@@ -61,10 +61,11 @@ impl ProjectBuilderTask {
         change_rx: foundation_core::synca::mpp::Receiver<WatchEvent>,
         build_complete_queue: EventQueue<()>,
     ) -> Self {
+        let change_ready = change_rx.readiness();
         Self {
             builders: Vec::new(),
             change_rx,
-            change_queue: EventQueue::unbounded(),
+            change_ready,
             result_queue: EventQueue::unbounded(),
             build_complete_queue,
             stop_on_failure: false,
@@ -81,11 +82,11 @@ impl ProjectBuilderTask {
         self
     }
 
-    /// A readiness that is ready when a file change is queued. A push into the
-    /// change queue wakes the task parked on it.
+    /// A readiness that is ready when the watcher has an unprocessed event. A
+    /// send on the watcher channel wakes the task parked on it.
     #[must_use]
-    pub fn change_readiness(&self) -> Arc<QueueReadiness<FileChange>> {
-        Arc::new(self.change_queue.readiness())
+    pub fn change_readiness(&self) -> Arc<QueueReadiness<WatchEvent>> {
+        Arc::new(self.change_ready.clone())
     }
 
     /// A readiness that is ready when a build result is queued. A push from the
@@ -107,11 +108,12 @@ impl ProjectBuilderTask {
 
 impl ProjectBuilderTask {
     /// Drain watch events, dispatch to matching builders.
+    ///
+    /// `try_iter` pops each event from the watch channel, so the change
+    /// readiness drops as the events are consumed.
     fn drain_watch_events(&mut self) {
-        // Use try_iter on the mpp receiver's underlying queue
         for event in self.change_rx.try_iter() {
             let change: FileChange = (&event).into();
-            let _ = self.change_queue.push(change.clone());
             for builder in &self.builders {
                 if builder.should_build(&change) {
                     self.submit_build(builder.clone(), change.clone());

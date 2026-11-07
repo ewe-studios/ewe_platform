@@ -16,7 +16,7 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.6", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
-foundation_core = { path = "../foundation_core", version = "0.0.16" }
+foundation_core = { path = "../foundation_core", version = "0.0.18" }
 # foundation_netio is target-gated below (native vs wasm): native needs the
 # multi-threaded executor (`multi`) + TLS/compression/wire modules; wasm needs
 # only `wasm-fetch` (the browser fetch client) — matching foundation_auth.
@@ -105,7 +105,7 @@ candle-core = { version = "0.11", optional = true, features = ["metal"] }
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove a stamped model
 # call time comes from the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.16", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["test-clock"] }
 foundation_testing = { path = "../foundation_testing", features = ["huggingface"] }
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
