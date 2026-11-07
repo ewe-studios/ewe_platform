@@ -314,6 +314,7 @@ impl ProtocolHandler for GrpcHandler {
             conn: Box::new(conn),
             reader_task: reader,
             writer_task: writer,
+            response_headers: ends.response_headers,
         })
     }
 

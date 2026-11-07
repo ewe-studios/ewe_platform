@@ -576,6 +576,8 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
         conn: inbound_conn,
         reader_task: in_reader,
         writer_task: in_writer,
+        // The relay builds the response head itself; no handler sets headers here.
+        response_headers: _,
     } = inbound;
     let ClientExchange {
         conn: outbound_conn,
