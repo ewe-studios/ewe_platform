@@ -1,7 +1,7 @@
 ---
-description: "Close the 17 open medium-severity issues left after spec 70: inject the clock into the HTTP app, the Docker container config and the toolings sleeper, bound the background registry shutdown, fix the wireguard hole-punch panic, the WASI clock read, the netio load rate, six ptrace and vfs-preload dispatch defects, the keychain macOS flake, and add the two missing CI jobs."
+description: "Close the 17 open medium-severity issues left after spec 70: inject the clock into the HTTP app, the Docker container config and the toolings sleeper, bound the background registry shutdown, fix the wireguard hole-punch panic, the WASI clock read, the netio load rate, six ptrace and vfs-preload dispatch defects, the keychain macOS flake, and add the two missing CI jobs. Also fixes the concurrent Turso read failure found during the keychain work, and removes a fixed sleep from that test's helper."
 status: "planned"
-priority: "medium"
+priority: "high"
 created: 2026-11-07
 updated: 2026-11-07
 author: "Main Agent"
@@ -20,8 +20,8 @@ related_specs:
   - "specifications/71-durable-streams-in-valtron"
 features:
   completed: 0
-  uncompleted: 12
-  total: 12
+  uncompleted: 14
+  total: 14
   completion_percentage: 0%
 ---
 
@@ -53,10 +53,19 @@ The issues come from three groups:
 3. **CI and a flaky test.** Two CI jobs are missing or unbounded, and one keychain test fails
    on macOS.
 
+The owner added two features on 2026-11-07, after the spec started:
+
+- **Feature 13** fixes a `severity: high` issue found while fixing feature 10. Two concurrent
+  Turso statements on one connection fail with `concurrent use forbidden`. The owner asked
+  for it to be added and fixed at once.
+- **Feature 14** fixes an issue found in the same work. A test helper sleeps 150 ms before its
+  first request. The owner asked for it to be the last feature of the spec.
+
 ## 2. Scope
 
-The scope is the 17 open `severity: medium` issues as of 2026-11-07. Do not fix a
-low-severity issue in this spec. Do not add a feature.
+The scope was the 17 open `severity: medium` issues as of 2026-11-07. The owner then added
+#357 (high) and #358 (low) on the same day. Do not fix any other low-severity issue. Do not add
+any other feature.
 
 | Issue | Title (short) | Feature |
 | --- | --- | --- |
@@ -77,6 +86,8 @@ low-severity issue in this spec. Do not add a feature.
 | #197 | `slow_request_body_does_not_hold_worker` fails on macOS | 10 |
 | #196 | mobile targets have no CI build | 11 |
 | #194 | the "Free runner disk" step stalls jobs | 12 |
+| #357 | two concurrent Turso reads fail with `concurrent use forbidden` | 13 |
+| #358 | the streamed-body helper sleeps 150 ms instead of synchronizing | 14 |
 
 ## 3. Rules
 
@@ -92,8 +103,8 @@ three before you start.
    configured field with a documented default that names its source. Never a `const` in the
    code path.
 4. **Every bug found becomes a GitHub issue with a severity label** (root rule 9), in the same
-   change, and the issue closes in the change that fixes it. This spec adds no feature; a
-   finding outside the 17 issues is a new issue, not new spec scope.
+   change, and the issue closes in the change that fixes it. This spec adds no feature beyond
+   #357 and #358; a finding outside these 19 issues is a new issue, not new spec scope.
 5. **Stream bodies, never buffer them** (root rule 4). Check the status before you touch a
    body.
 6. **Async all the way** (root rule 6). A public API that waits is `async` or a valtron
@@ -139,9 +150,12 @@ cargo test --profile uat -p <crate>
 | 10 | [Keychain macOS flake](./features/10-keychain-macos-flake/feature.md) | #197 | foundation_keychain | sonnet |
 | 11 | [CI mobile target builds](./features/11-ci-mobile-target-builds/feature.md) | #196 | `.github/workflows` | haiku |
 | 12 | [CI free-runner-disk step](./features/12-ci-free-runner-disk/feature.md) | #194 | `.github/workflows` | haiku |
+| 13 | [Concurrent Turso reads](./features/13-db-turso-concurrent-reads/feature.md) | #357 | foundation_db | sonnet |
+| 14 | [Streamed-body start synchronization](./features/14-keychain-start-server-sync/feature.md) | #358 | foundation_keychain | haiku |
 
 Order: 01–06 and 10–12 are independent. Feature 07 runs before 08 (the same crate and the
-same test module). Feature 09 stands alone. Run at most three agents at a time.
+same test module). Feature 13 is independent and has high priority. Feature 14 is the last
+feature. Run at most three agents at a time.
 
 ## 6. Done for the whole spec
 
@@ -155,7 +169,7 @@ same test module). Feature 09 stands alone. Run at most three agents at a time.
 
 ## 7. Out of scope
 
-- Any `severity: low` issue.
+- Any `severity: low` issue other than #358.
 - New API surface beyond what a fix needs.
 - A redesign of the ptrace dispatch or the VFS shim.
 - A mobile release pipeline; feature 11 only compiles the targets.

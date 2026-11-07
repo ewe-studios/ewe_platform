@@ -2,6 +2,10 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: the owner added features 13 (#357, high) and 14 (#358, low) to the spec. Both
+  were found while fixing feature 10. Feature 13 is in progress; feature 14 is the last
+  feature of the spec. The spec now has 14 features and 19 issues.
+
 - 2026-11-07: feature 10 (keychain streamed body, #197) is in review as PR #359. It is a
   test-only change to `tests/streamed_body.rs`: `read_response` returns a typed `ReadError`
   and maps an expired `SO_RCVTIMEO` to `Timeout` on macOS. The test holds both upload bodies
@@ -125,12 +129,14 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **09-toolings-clock-and-wake** — in review, PR #349 (#201, #203)
 - **10-keychain-macos-flake** — in review, PR #359 (#197)
 - **11-ci-mobile-target-builds** — not started (#196)
-- **12-ci-free-runner-disk** — not started (#194)
+- **12-ci-free-runner-disk** — in review, PR #352 (#194)
+- **13-db-turso-concurrent-reads** — in progress (#357, high)
+- **14-keychain-start-server-sync** — not started (#358)
 
 ## Next steps
 
-1. Batches of at most three agents. Done: 01, 03, 05, 06. Running: 02, 04. Next: 07, 09, 10,
-   then 08, 11, 12.
+1. Batches of at most three agents. Done: 01, 02, 03, 04, 05, 06, 07, 09, 10. Waiting on CI:
+   11, 12. Blocked on the merge of PR #344: 08. Running: 13. Next: 14, then 08.
 2. Close each issue in the pull request that fixes it.
 
 _Created: 2026-11-07_
