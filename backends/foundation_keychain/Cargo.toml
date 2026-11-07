@@ -68,7 +68,8 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.8" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.8", default-features = false }foundation_auth = { path = "../foundation_auth", version = "0.0.6", default-features = false, features = ["server", "turso"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.8", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.6", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
 foundation_db = { path = "../foundation_db", version = "0.0.6", default-features = false, features = ["turso"] }
 # Feature 009 — SSH key provisioning (Argon2id app secrets are native-only).
