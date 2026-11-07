@@ -1,6 +1,6 @@
 ---
 feature: "ConnectRPC clients decompress responses, enforce deadlines and forward bidi requests"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-connectrpc-grpc-status-conversion"]
 crates: ["foundation_connectrpc"]
@@ -125,9 +125,49 @@ commit evidence (`0ada43f20`, `b79503f24`) in the PR and close the issue.
 - [ ] Add the deadline pin test.
 - [ ] Thread the registry into the three protocol readers and the unary decoder.
 - [ ] Add one regression test per real defect, each failing on the old code.
-- [ ] Bump `foundation_connectrpc` and every consumer requirement.
-- [ ] Run the verify commands. Record the results.
+- [x] Bump `foundation_connectrpc` and every consumer requirement.
+- [x] Run the verify commands. Record the results.
 - [ ] Close #259 and #261 in the PR body; close #260 with the commit evidence.
+
+## 9. Result (2026-11-07)
+
+Branch `spec73/f02-connectrpc-client-correctness`, commit `05bef17fd`, merged into
+`spec73/high-severity-fixes` as `832897fba`. Thirty files changed.
+
+1. **#261, one writer.** `Client::bidi_stream` takes only `ctx`. The generated wrappers in
+   `foundation_connectrpc_codegen` (three arms) and `foundation_macros` (three bodies) no
+   longer take `reqs`. The callers use `send` and `close_request` on the facade.
+2. **#259, response decompression.** `ClientExchangeConfig` carries the compression registry.
+   `response_decompressor` picks the decompressor from the response head for gRPC, gRPC-Web
+   and Connect. The unary decoder decompresses a frame with the compressed flag set.
+   An unknown name is `Code::Unimplemented` and the message names it.
+3. **#260** needs no code change. The new test
+   `client_deadline_cancels_a_call_without_a_server` passes on the old code. Close the issue
+   with the commit evidence (`0ada43f20`, `b79503f24`).
+4. **Old-code evidence** (temporary worktree at `48421e32c`):
+   - gRPC streaming: failed with "compressed frame received but no decompressor was
+     negotiated";
+   - gRPC unary: failed in `decode_unary_response`, which had no registry;
+   - Connect streaming: the same decompressor error;
+   - unknown encoding: does not compile on the old code (`ClientExchangeConfig` had no
+     `compression` field); the old reader ignored `grpc-encoding`;
+   - bidi: the old signature dropped the three messages; the receive hit the 15 s deadline.
+5. **Version.** `foundation_connectrpc` 0.0.7 to 0.0.8. The requirements in
+   `foundation_proxy` and `foundation_deployment_docker` move to 0.0.8. The workspace
+   `Cargo.lock` is regenerated. The other 11 lockfiles do not name the crate.
+   `cargo metadata --locked` passes in the workspace and in three example workspaces.
+6. **Deviations from the design:**
+   - `response_decompressor` takes the per-protocol header names as a parameter. The design
+     text named them, but its signature omitted them.
+   - `decode_unary_response` also takes `read_max_bytes`, so a compressed body cannot inflate
+     without a bound.
+   - The `'a` borrow cannot enter the `'static` reader tasks. Each protocol clones the
+     registry into its task, and `foundation_proxy` adds the field in three places.
+   - The generator and the macro also lose the `reqs` parameter from the wrapper signatures.
+     Requirement 1 forbids a client API that takes a request stream and ignores it.
+7. **New defects.** #378 (high): request compression corrupts server-streaming requests,
+   because the streaming writer never sets `FLAG_COMPRESSED`; fixed in the same spec. #379
+   (low): `foundation_connectrpc_codegen` fails clippy with `-D warnings` (78 errors).
 
 ## 6. Tests
 

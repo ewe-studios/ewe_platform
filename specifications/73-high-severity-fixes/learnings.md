@@ -26,6 +26,24 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The four high fix branches (#334, #340, #347, #348) are not spec 73 features. They close
   before the spec starts so that the spec's crates start from a clean master.
 
+## Feature 02 (2026-11-07)
+
+- A client must not compress a frame before the envelope writer. The writer sets
+  `FLAG_COMPRESSED` from its own compressor field. A pre-compressed body reaches the peer as
+  an uncompressed frame, and the peer decodes garbage. `server_stream_inner` did exactly
+  this (found as #378).
+- When the client announces compression, the write side must apply it. `client_stream` and
+  `bidi_stream` announced `send_compression` in the header but passed `None` to
+  `EnvelopeWriter`, so the setting did nothing. One writer configuration fixes all three
+  streaming calls.
+- Removing a dead parameter from `Client::bidi_stream` is a public API change twice over:
+  the generator strings and the macro bodies also carry the parameter list. Search for the
+  method name in both crates before the edit.
+- The reader tasks are `'static`, so a borrowed config cannot enter them. The registry is a
+  cheap `Arc` handle: clone it into the task.
+- An integration test cannot construct a private struct. `ClientExchangeConfig` is public,
+  so every construction site (including `foundation_proxy`) takes a new required field.
+
 ## Feature 09 (2026-11-07)
 
 - A default Cargo feature cannot depend on the target. To keep a dependency out of one target

@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 02 implemented on `spec73/f02-connectrpc-client-correctness`, commit
+  `05bef17fd`, merged into `spec73/high-severity-fixes` as `832897fba`. `bidi_stream` takes
+  only `ctx`; the generators and every caller use the facade's `send`. Every client response
+  path picks a decompressor from the response head. `foundation_connectrpc` 0.0.7 to 0.0.8;
+  `foundation_proxy` and `foundation_deployment_docker` requirements follow. The agent saw
+  all four real defects fail on `48421e32c`. Filed #378 (high: request compression corrupts
+  server-streaming requests) and #379 (low: the codegen crate fails clippy).
+
+- 2026-11-07: feature 04 implemented on `spec73/f04-http-connection-correctness`, commit
+  `a536471a8`. `KeepAliveConfig::idle_timeout` (75 s, nginx), the same field on
+  `WebSocketConnectInfo`, and `WebSocketTask::with_idle_timeout`; the ignored `read_timeout`
+  now sets the idle timeout. Old-code failures seen (101 ms vs 300 ms; 120 s vs 75 s).
+  `foundation_http` 77 passed, `foundation_netio` 1302 passed. #284 confirmed fixed. Filed
+  #375, #376 and #377. Both crates bump to 0.0.9 in a follow-up commit on the same branch.
+
 - 2026-11-07: feature 10 implemented on `spec73/f10-macos-vm-ios-sdk`, commit `a8e9b73b9`, merged
   into `spec73/high-severity-fixes`. Pin `IOS_SDK_VERSION=26.2` (Xcode 26.3, the newest Xcode
   for the macOS 15 guest) in `components.env`; `provision.sh` installs and verifies it and
@@ -77,12 +92,13 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 - **01-connectrpc-grpc-status-conversion** — complete (#265). Commit `028ca4a15`. Merged
   into the spec branch. `features/01-connectrpc-grpc-status-conversion/feature.md`
-- **02-connectrpc-client-correctness** — in progress (#259, #261; #260 is fixed and closes
-  with evidence). Agent handed off from the spec branch.
+- **02-connectrpc-client-correctness** — implemented (#259, #261; #260 is fixed and closes
+  with evidence). Commit `05bef17fd`, merged as `832897fba`.
   `features/02-connectrpc-client-correctness/feature.md`
 - **03-connectrpc-h3-trailers-and-headers** — pending (#258; #253 is fixed). Design complete.
   `features/03-connectrpc-h3-trailers-and-headers/feature.md`
-- **04-http-connection-correctness** — in progress (#288; #284 is fixed). Agent handed off.
+- **04-http-connection-correctness** — implemented (#288; #284 confirmed fixed). Commit
+  `a536471a8`, plus the 0.0.9 bump.
   `features/04-http-connection-correctness/feature.md`
 - **05-http1-rpc-worker-parking** — pending (#254, fixed on master). Verification plan ready.
 - **06-h3-webtransport-accept** — pending (#273, fixed on master). Verification plan ready.
