@@ -9,6 +9,7 @@
 
 use std::sync::Arc;
 
+use foundation_core::valtron::{Clock, Ctx};
 use foundation_netio::shared::http::SimpleMethod;
 
 use crate::shared::context::ContextBag;
@@ -26,17 +27,61 @@ pub struct HttpApp<S> {
 }
 
 impl<S> HttpApp<S> {
+    /// Build an empty `HttpApp` from an explicit valtron [`Ctx`].
+    ///
+    /// This is the deterministic-test entry point. The app's clock and RNG
+    /// stream come from `ctx`, so a simulated clock and a seeded RNG flow into
+    /// every handler that reads `app.context()`. A deterministic host passes
+    /// its own bundle here instead of replacing `app.ctx` after construction.
+    ///
+    /// The plain constructors ([`HttpApp::new`], `new_serve`, `new_h2_serve`,
+    /// `new_h3_serve`, `new_writer`, `new_web`, `new_cf`) keep their
+    /// signature. They call this method with [`Ctx::host`] and stay the host
+    /// boundary.
+    #[must_use]
+    #[allow(
+        clippy::needless_pass_by_value,
+        reason = "the constructor consumes the caller's bundle by design; a reference \
+                  would leak the temporary `Ctx` lifetime into the public signature"
+    )]
+    pub fn with_ctx(ctx: Ctx) -> Self {
+        Self::with_context(Arc::new(ContextBag::from_ctx(&ctx)))
+    }
+
+    /// Build an empty `HttpApp` from an already-built [`ContextBag`].
+    ///
+    /// Use this when the caller already holds the bag, for example a wasm
+    /// singleton whose builder receives the bag. The app shares the `Arc`, so
+    /// its clock and RNG are the ones the caller injected.
+    #[must_use]
+    pub fn with_context(bag: Arc<ContextBag>) -> Self {
+        Self {
+            ctx: bag,
+            router: Router::new(),
+            middleware: Vec::new(),
+        }
+    }
+
+    /// Build an empty `HttpApp` from the given clock.
+    ///
+    /// This is the deterministic-test entry point when only the clock must be
+    /// injected. It builds on [`HttpApp::with_ctx`] with [`Ctx::new`], so the
+    /// RNG is the deterministic seed-`0` stream and no real clock is read.
+    #[must_use]
+    pub fn with_clock(clock: Arc<dyn Clock>) -> Self {
+        Self::with_ctx(Ctx::new(clock))
+    }
+
     /// Create a new empty `HttpApp`.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic test.
     #[must_use]
     pub fn new() -> Self
     where
         S: Default,
     {
-        Self {
-            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Get a reference to the shared context bag.
@@ -68,13 +113,13 @@ impl<S> HttpApp<S> {
 #[cfg(not(target_family = "wasm"))]
 impl HttpApp<Arc<dyn crate::shared::serve::Serve>> {
     /// Create a new empty `HttpApp` for native Serve handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
+    /// test.
     #[must_use]
     pub fn new_serve() -> Self {
-        Self {
-            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Register a handler for a specific HTTP method and path.
@@ -114,13 +159,13 @@ impl HttpApp<Arc<dyn crate::shared::serve::Serve>> {
 #[cfg(not(target_family = "wasm"))]
 impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
     /// Create a new empty `HttpApp` for HTTP/2 handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
+    /// test.
     #[must_use]
     pub fn new_h2_serve() -> Self {
-        Self {
-            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Register an `H2Serve` handler for a specific method and path.
@@ -159,13 +204,13 @@ impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
 #[cfg(all(not(target_family = "wasm"), feature = "quic"))]
 impl HttpApp<Arc<dyn crate::native::serve::H3Serve>> {
     /// Create a new empty `HttpApp` for HTTP/3 handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
+    /// test.
     #[must_use]
     pub fn new_h3_serve() -> Self {
-        Self {
-            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Register an `H3Serve` handler for a specific method and path. Like
@@ -201,13 +246,13 @@ impl HttpApp<Arc<dyn crate::native::serve::H3Serve>> {
 
 impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
     /// Create a new empty `HttpApp` for `ServeWriter` handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
+    /// test.
     #[must_use]
     pub fn new_writer() -> Self {
-        Self {
-            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Register a writer handler for a specific HTTP method and path.

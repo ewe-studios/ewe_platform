@@ -18,7 +18,7 @@ foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.7", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
 # bundled localhost dev cert — for testing secure-context features.
-foundation_http = { path = "../foundation_http", version = "0.0.7", features = ["ssl-rustls-ring"] }
+foundation_http = { path = "../foundation_http", version = "0.0.8", features = ["ssl-rustls-ring"] }
 foundation_macros = { path = "../foundation_macros", version = "0.0.10" }
 foundation_wasm = { path = "../foundation_wasm", version = "0.0.6" }
 # embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we

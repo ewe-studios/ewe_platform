@@ -35,14 +35,13 @@ pub trait CfServeFactory: CfServe + Sized {
 
 impl HttpApp<Arc<dyn CfServe>> {
     /// Create a new empty `HttpApp` for CfServe handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
+    /// test.
     #[must_use]
     pub fn new_cf() -> Self {
-        use crate::shared::router::Router;
-        Self {
-            ctx: Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(foundation_core::valtron::Ctx::host())
     }
 
     /// Register a CF handler for a specific HTTP method and path.

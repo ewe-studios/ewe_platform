@@ -2,6 +2,7 @@
 
 use std::sync::{Arc, Mutex, Weak};
 
+use foundation_core::valtron::Ctx;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
@@ -73,18 +74,22 @@ pub struct CfHttpApp {
 #[wasm_bindgen]
 impl CfHttpApp {
     /// Create a new empty `CfHttpApp`.
+    ///
+    /// This is a host entry point: it uses the real host clock. A
+    /// deterministic host uses [`CfHttpApp::with_ctx`].
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            inner: Arc::new(HttpApp::new_cf()),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Dispatch a `Request` with CF `env` bindings through the app.
+    ///
+    /// The per-request bag is a fork of the app's bag, so the clock and RNG
+    /// that the host injected at construction reach the handler.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request, env: JsValue) -> Result<Response, JsError> {
         let simple_req = request_from_cf(&req).await?;
-        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+        let bag = Arc::new(self.inner.context().fork());
         extract_cf_bindings(&env, &bag);
         Ok(self
             .inner
@@ -95,6 +100,16 @@ impl CfHttpApp {
 }
 
 impl CfHttpApp {
+    /// Create an empty `CfHttpApp` from an explicit valtron [`Ctx`].
+    ///
+    /// This is the deterministic-test entry point: the app and every request
+    /// it dispatches read the injected clock and RNG stream.
+    pub fn with_ctx(ctx: Ctx) -> Self {
+        Self {
+            inner: Arc::new(HttpApp::with_ctx(ctx)),
+        }
+    }
+
     /// Create a `CfHttpApp` from an existing `HttpApp<Arc<dyn CfServe>>`.
     pub fn from_app(app: HttpApp<Arc<dyn CfServe>>) -> Self {
         Self {
@@ -195,12 +210,31 @@ impl CfHttpAppSingleton {
     /// bindings (D1, R2, KV, secrets) before building the `CfHttpApp`.
     ///
     /// If already initialized, returns the existing guard and ignores the closure.
+    ///
+    /// This is a host entry point: it uses the real host clock. A deterministic
+    /// host uses [`CfHttpAppSingleton::get_or_init_with_ctx`].
     pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(builder: F) -> CfHttpAppGuard {
+        Self::get_or_init_with_ctx(Ctx::host(), builder)
+    }
+
+    /// Initialize the app from an explicit valtron [`Ctx`] if not initialized.
+    ///
+    /// The closure receives an `Arc<ContextBag>` built from `ctx`. Build the
+    /// app from that same bag, for example
+    /// `CfHttpApp::from_app(HttpApp::with_context(bag))`, so the app and every
+    /// request it dispatches read the injected clock and RNG.
+    ///
+    /// If already initialized, returns the existing guard and ignores `ctx`
+    /// and the closure.
+    pub fn get_or_init_with_ctx<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(
+        ctx: Ctx,
+        builder: F,
+    ) -> CfHttpAppGuard {
         let mut weak = STATE.lock().unwrap();
         if let Some(arc) = weak.upgrade() {
             return CfHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+        let bag = Arc::new(ContextBag::from_ctx(&ctx));
         let app = Arc::new(builder(bag.clone()));
         let state = Arc::new(AppState { app, bag });
         *weak = Arc::downgrade(&state);
@@ -216,15 +250,34 @@ impl CfHttpAppSingleton {
     ///
     /// The closure can store additional bindings before building the app.
     /// If already initialized, returns the existing guard and ignores the closure.
+    ///
+    /// This is a host entry point: it uses the real host clock. A deterministic
+    /// host uses [`CfHttpAppSingleton::get_or_init_with_env_and_ctx`].
     pub fn get_or_init_with_env<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(
         env: &JsValue,
+        builder: F,
+    ) -> CfHttpAppGuard {
+        Self::get_or_init_with_env_and_ctx(env, Ctx::host(), builder)
+    }
+
+    /// Initialize the app from a raw CF env `JsValue` and an explicit valtron
+    /// [`Ctx`].
+    ///
+    /// Same binding extraction as [`CfHttpAppSingleton::get_or_init_with_env`],
+    /// but the bag's clock and RNG come from `ctx`.
+    ///
+    /// If already initialized, returns the existing guard and ignores `ctx`
+    /// and the closure.
+    pub fn get_or_init_with_env_and_ctx<F: FnOnce(Arc<ContextBag>) -> CfHttpApp>(
+        env: &JsValue,
+        ctx: Ctx,
         builder: F,
     ) -> CfHttpAppGuard {
         let mut weak = STATE.lock().unwrap();
         if let Some(arc) = weak.upgrade() {
             return CfHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+        let bag = Arc::new(ContextBag::from_ctx(&ctx));
         if let Ok(db) = D1Database::from_env(env, "DB") {
             bag.store(db);
         }
