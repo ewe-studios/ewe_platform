@@ -638,9 +638,13 @@ fn grpc_status_of(headers: &SimpleHeaders) -> Option<u32> {
 
 /// Parse `grpc-status`/`grpc-message` metadata into an error (`None` when the
 /// status is 0/absent). The message is percent-decoded per the gRPC spec.
-pub(crate) fn parse_grpc_error_trailer(
-    trailers: &SimpleHeaders,
-) -> Option<ErrorTrace<ConnectError>> {
+///
+/// `#[doc(hidden)]`: this is a test hook. It lets the status conversion test
+/// call the parser from `tests/`, as the parser itself stays internal to the
+/// crate.
+#[doc(hidden)]
+#[must_use]
+pub fn parse_grpc_error_trailer(trailers: &SimpleHeaders) -> Option<ErrorTrace<ConnectError>> {
     let status = grpc_status_of(trailers)?;
     if status == 0 {
         return None;
@@ -651,15 +655,9 @@ pub(crate) fn parse_grpc_error_trailer(
         .cloned()
         .unwrap_or_default();
     let decoded = percent_decode(&message);
-    // SAFETY: Code is #[repr(u32)] and its discriminants match gRPC status
-    // codes exactly (Decision 03). Out-of-range values are clamped to Unknown
-    // first, so the transmute stays within the enum's variants.
-    let status = if (1..=16).contains(&status) {
-        status
-    } else {
-        2
-    };
-    let code: Code = unsafe { std::mem::transmute(status) };
+    // Use the checked conversion. A value outside 1..=16 becomes Unknown, per
+    // the gRPC status code specification.
+    let code = Code::from_u32(status).unwrap_or(Code::Unknown);
     Some(ErrorTrace::new(ConnectError::new(code, decoded)))
 }
 
