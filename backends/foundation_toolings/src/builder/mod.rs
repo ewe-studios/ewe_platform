@@ -123,17 +123,28 @@ impl ProjectBuilderTask {
     }
 
     /// Submit a build to BackgroundJobRegistry.
-    fn submit_build(&self, builder: Arc<dyn ProjectBuilder>, _change: FileChange) {
+    ///
+    /// A missing background pool does not panic. The task queues the error as a
+    /// failed build, so `drain_results` reports it and the build is not lost.
+    fn submit_build(&self, builder: Arc<dyn ProjectBuilder>, change: FileChange) {
         let result_queue = self.result_queue.clone();
         let complete_queue = self.build_complete_queue.clone();
+        let job_result_queue = result_queue.clone();
+        let job_complete_queue = complete_queue.clone();
 
-        run_background_job(move || {
-            tracing::info!("{}: building for {:?}", builder.name(), _change);
-            let result = builder.build(&_change);
-            let _ = result_queue.push(result);
+        let submitted = run_background_job(move || {
+            tracing::info!("{}: building for {:?}", builder.name(), change);
+            let result = builder.build(&change);
+            let _ = job_result_queue.push(result);
+            let _ = job_complete_queue.push(());
+        });
+
+        if let Err(error) = submitted {
+            let error = ToolingError::BackgroundJob(error.to_string());
+            tracing::error!("build not submitted: {error}");
+            let _ = result_queue.push(Err(error.into()));
             let _ = complete_queue.push(());
-        })
-        .expect("background job pool available");
+        }
     }
 
     /// Drain build results (fire-and-forget: log, signal).
