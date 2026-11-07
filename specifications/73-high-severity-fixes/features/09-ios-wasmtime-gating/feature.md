@@ -47,27 +47,93 @@ The live dependency is `backends/foundation_platform/Cargo.toml:50`:
 
 1. An iOS target builds `foundation_platform` without `foundation_wasmtime`.
 2. The Wasm feature stays available on macOS, Linux and Windows, unchanged.
-3. Code that uses `foundation_wasmtime` is behind the same gate as the dependency. A missing
-   feature gives a typed, documented error, not a link error.
-4. Choose one gate: a `cfg(target_os = ...)` expression or an optional Cargo feature. State
-   the choice and why. An optional feature is preferable: it keeps the Wasm engine out of
-   builds that do not need it, and the gate is testable on the host.
-5. Record the alternative for readers: an interpreter runtime, for example `wasmi`, is the
+3. Code that uses `foundation_wasmtime` is behind the same gate as the dependency. On an
+   unsupported target the Wasm items do not exist, so a caller gets a compile error that names
+   them, not a link error. The crate documents this rule and the alternative.
+4. Record the alternative for readers: an interpreter runtime, for example `wasmi`, is the
    only way to run Wasm on iOS.
-6. Apply the version-bump rule for any public API change.
+5. No version bump unless an item changes on a target that builds today.
 
-## 4. Design
+## 4. Design (completed 2026-11-07)
 
-Complete before handoff:
+### 4.1 The gate
 
-1. Read the four files that use the crate. Name every public item that changes shape when the
-   gate is off.
-2. Choose the gate. Write the exact `Cargo.toml` section and the exact `#[cfg]` conditions.
-3. State the error a caller gets on iOS: a variant of the existing platform error type, with
-   the message naming the missing engine and the reason.
-4. State the CI check that proves the fix: `cargo check` for an iOS target on a virtual
-   machine, or `cargo metadata` plus a target-specific `cargo check --target
-   aarch64-apple-ios` on a macOS host when the SDK is installed.
+Use both an optional Cargo feature and a target condition. The feature keeps the engine out
+of a build that does not want it. The target condition keeps it out of an iOS build even when
+the feature is on, because a default feature cannot depend on the target.
+
+`backends/foundation_platform/Cargo.toml`:
+
+```toml
+[features]
+default = ["wasmtime"]
+wasmtime = ["dep:foundation_wasmtime"]
+
+[target.'cfg(not(any(target_os = "ios", target_os = "tvos", target_os = "watchos")))'.dependencies]
+foundation_wasmtime = { path = "../foundation_wasmtime", version = "0.1.1", optional = true }
+```
+
+Delete the plain `foundation_wasmtime` line at `Cargo.toml:50`.
+
+The one condition to repeat in code:
+
+```rust
+#[cfg(all(feature = "wasmtime", not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))))]
+```
+
+Why tvOS and watchOS: they are the same class of target. They also forbid executable memory
+after signing, so wasmtime cannot build for them for the same reason. Measure each with
+`cargo metadata --filter-platform <target>`. If a target builds today, keep it out of the
+gate and state that.
+
+### 4.2 The gated code
+
+1. `src/lib.rs:29` `mod wasmtime_responder;` and `src/lib.rs:60`
+   `pub use wasmtime_responder::{wasmtime_app, WasmtimeResponder, WasmtimeShell};` go under
+   the condition.
+2. `src/session.rs:128` field `wasmtime_shell_`, `src/session.rs:171` in the constructor,
+   `PlatformSession::register_wasmtime` and `PlatformSession::wasmtime_shell` go under the
+   same condition.
+3. `src/codegen.rs` stays unchanged. It only checks the app manifest for the string
+   `foundation_wasmtime` and writes generated code as text. It never names a wasmtime type.
+4. `src/wasmtime_responder.rs` stays as it is, behind the gate.
+
+### 4.3 The error a caller gets
+
+On iOS the items `WasmtimeResponder`, `WasmtimeShell`, `wasmtime_app`,
+`PlatformSession::register_wasmtime` and `PlatformSession::wasmtime_shell` do not exist. An
+app that names one gets a compile error at build time. This is better than a link error and
+it costs no new API. Document the rule in the `lib.rs` module doc:
+
+> The Wasm engine (wasmtime) compiles with a just-in-time compiler, which iOS, tvOS and
+> watchOS refuse. `foundation_platform` keeps the engine out of those targets. An app that
+> names the engine items does not compile for them. To run Wasm on iOS, use an interpreter
+> runtime such as `wasmi`.
+
+Do not add a runtime error type. No code path can produce it, because the entry points that
+would return it cannot be called on those targets.
+
+### 4.4 Version
+
+No public item changes on macOS, Linux or Windows. The items are absent only on targets that
+cannot build today. No version bump.
+
+### 4.5 Proof
+
+1. `cargo tree -p foundation_platform --target aarch64-apple-ios | grep -c foundation_wasmtime`
+   prints 0.
+2. `cargo check -p foundation_platform --target aarch64-apple-ios` passes when the iPhoneOS
+   SDK is installed on the host. If it is not, record that fact and leave the CI proof to
+   feature 10.
+3. `cargo check -p foundation_platform --no-default-features` passes on the host and shows the
+   gate works without the engine.
+4. The host suite still passes with the engine.
+
+### 4.6 Known limitation, not in scope
+
+`WasmtimeResponder::respond` builds the instance but does not call the module's
+`handle_request` export (the body comment says so). File a GitHub issue with a severity when
+you touch the file. Do not fix it here.
 
 ## 5. Tasks
 
@@ -84,11 +150,12 @@ Complete before handoff:
 
 ## 6. Tests
 
-1. `an_ios_target_builds_without_the_wasm_engine`: a CI step, recorded in the PR.
-2. `the_wasm_engine_is_absent_on_ios`: a `cargo metadata` check that the dependency is not in
-   the iOS target's graph.
-3. Host tests for the typed error: when the feature is off, the Wasm entry point returns the
-   error, and the message names the reason.
+1. `an_ios_target_builds_without_the_wasm_engine`: the `cargo tree` and `cargo check` commands
+   in 4.5, recorded in the PR with their exact output.
+2. `the_gate_works_without_the_engine_on_the_host`: `cargo check -p foundation_platform
+   --no-default-features` passes on macOS. This pins the feature side of the gate on any host.
+3. The host test suite stays green with the engine on. No new unit test is needed: the gate
+   removes code, it does not add behaviour.
 
 ## 7. Verify
 
@@ -103,8 +170,9 @@ cargo tree -p foundation_platform --target aarch64-apple-ios | grep -c foundatio
 
 ## 8. Done when
 
-- An iOS target builds `foundation_platform`.
-- The dependency is absent from the iOS target's graph.
-- Host builds keep the Wasm engine.
-- The iOS alternative (an interpreter runtime) is documented.
+- An iOS target builds `foundation_platform`, or the missing SDK is recorded with the CI proof
+  left to feature 10.
+- `cargo tree --target aarch64-apple-ios` shows no `foundation_wasmtime`.
+- Host builds keep the Wasm engine, and `--no-default-features` removes it.
+- The iOS alternative (an interpreter runtime) is documented in the crate and the feature.
 - #354 is closed by the PR.

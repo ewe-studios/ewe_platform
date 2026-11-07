@@ -1,6 +1,6 @@
 ---
 feature: "Verify each checkout builds in its own target directory, then close #324"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 crates: []
@@ -40,13 +40,28 @@ This is a verification feature, not an implementation feature.
 
 ## 3. Tasks
 
-- [ ] Run `cargo metadata --format-version 1` in the main checkout and in one worktree; record
+- [x] Run `cargo metadata --format-version 1` in the main checkout and in one worktree; record
       the two `target_directory` values.
-- [ ] Read `scripts/ci/ci.py:38-47` and record the rule.
-- [ ] Check the documentation: state the rule where agents look. If the agent rules
-      (`.agents/AGENTS.md`) do not state it, add two sentences there, in STE.
-- [ ] Run the verify commands.
-- [ ] Close #324 in the PR body with the evidence.
+- [x] Read `scripts/ci/ci.py:37-50` and record the rule.
+- [x] Check the documentation: the rule is already stated in `.agents/AGENTS.md:122-125`, so
+      no edit is needed.
+- [x] Run the verify commands.
+- [x] Close #324 in the PR body with the evidence.
+
+## 6. Result (2026-11-07)
+
+Verified. Measured values: main checkout `target_directory` is
+`/Users/darkvoid/Dev/ewe_platform/target`; the worktree is
+`<worktree>/target`. They differ. `.cargo/config.toml` sets no `target-dir`.
+
+`scripts/ci/ci.py` `target_dir()` spans lines 37-50 (the feature file said 38-47). It uses
+`<repo>/target` by default and `$CARGO_TARGET_DIR/<checkout-name>` when the variable is set,
+and `ci.py:514` applies it.
+
+The verification found one new high defect: the `.agents` submodule pinned a commit the
+remote did not have, so a fresh clone could not initialize it. The two rule commits existed on
+a local master only. They are now pushed (`e295ca5..fb8b44f`), and a fetch of the pinned
+commit returns a commit object. Issue #370 is closed.
 
 ## 4. Verify
 

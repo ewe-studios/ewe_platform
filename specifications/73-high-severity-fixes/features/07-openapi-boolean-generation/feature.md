@@ -1,6 +1,6 @@
 ---
 feature: "Verify OpenAPI boolean query parameters generate Option<bool>, then close #317"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 crates: ["foundation_openapi"]
@@ -39,14 +39,24 @@ This is a verification feature, not an implementation feature.
 
 ## 3. Tasks
 
-- [ ] Run the three `rg` checks in section 2 and record the lines.
-- [ ] Confirm a test covers the boolean query mapping. If none exists, add
-      `a_boolean_query_parameter_generates_option_bool` in
-      `backends/foundation_openapi/tests/` (registered in its test module): build a small
-      endpoint with one boolean query parameter, run the generator, assert
-      `Option<bool>` and the `"true"`/`"false"` serialiser.
-- [ ] Run the verify commands.
-- [ ] Close #317 in the PR body with the evidence.
+- [x] Run the `rg` checks in section 2 and record the lines. The generated sample is
+      `foundation_deployment_docker/src/generated/stats/mod.rs:183,185`.
+- [x] Confirm a test covers the boolean query mapping. `boolean_query_param_is_bool` in
+      `backends/foundation_openapi/tests/query_params.rs` already covers the emitted type and
+      serialiser. The agent added `boolean_query_param_is_recorded_on_the_endpoint`, which
+      pins the extraction step that feeds the generator.
+- [x] Run the verify commands: fmt clean, clippy `-D warnings` clean, 3 tests pass.
+- [x] Close #317 in the PR body with the evidence.
+
+## 6. Result (2026-11-07)
+
+Verified. The commit is `1879b9e04`, merged into `spec73/high-severity-fixes` as `0aef12e2a`.
+The crate has no `tests/mod.rs`; Cargo discovers `tests/query_params.rs`.
+
+The brief asked for an assertion that `?flag=true` parses to `Some(true)`. The crate is a
+client-side generator and has no query-string parser, so that assertion cannot exist here.
+The proof is the emitted type (`Option<bool>`) and the emitted serialiser
+(`map(|b| if b { "true" } else { "false" })`).
 
 ## 4. Verify
 

@@ -45,17 +45,94 @@ version the image has, if any.
    licence terms govern the download; state that a CI runner with a licensed Xcode is
    required.
 
-## 4. Design
+## 4. Design (completed 2026-11-07)
 
-Complete before handoff:
+### 4.1 Measured state
 
-1. Read `provision.sh` and `platform-vms.yaml`. Name the install step and where the iOS SDK
-   step goes.
-2. Choose the install path: a downloaded and pinned Xcode (`xip`), an already-installed Xcode
-   selected with `xcode-select`, or `xcodebuild -downloadPlatform iOS`. State why, and state
-   the licence consequence.
-3. Name the version variable and both files that read it.
-4. Name the CI job and its command.
+1. `ci/platform-images/images/macos/guest/provision.sh` installs only the Xcode Command Line
+   Tools (lines 60-74). It never installs Xcode and never installs a platform SDK.
+2. `.github/workflows/platform-vms.yaml:115-121` (`macos-ssh`) already looks for the SDK:
+   it reads `xcode-select -p`, falls back to `/Applications/Xcode.app/Contents/Developer`,
+   and exits with `error: install full Xcode on the VM disk; the iOS SDK is missing`. So the
+   defect is the image, not the workflow: the job fails on every run.
+3. `components.env` holds every pin the image uses. The file is plain `KEY=value` lines, so
+   both `provision.sh` and a workflow step can source it.
+
+### 4.2 Install path
+
+Use a full Xcode that is already on the VM disk, and install the iOS platform into it with
+Xcode's own downloader:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+xcodebuild -downloadPlatform iOS -buildVersion "$IOS_SDK_VERSION"
+```
+
+Why this path:
+- The Command Line Tools do not ship any platform SDK. A downloaded `.xip` Xcode is the only
+  other source, and it needs an Apple developer account to download. That download cannot be
+  automated. The provisioning script already assumes a one-time manual install by the admin
+  user (its header says so), so "Xcode is already on the disk" fits the image model.
+- `-downloadPlatform` takes the version as an argument, so the pin is a real pin.
+- It needs no Apple account.
+
+Licence position, to state in the docs: Apple's licence for Xcode and the iOS SDK allows use
+only on Apple-branded hardware. The CI host is Apple hardware (`apple-hardware` label). The
+same licence applies to the SDK download. State it in the macOS image README.
+
+Disk: full Xcode is about 15 GB; the iOS platform adds about 8 GB. The VM disk must reserve
+that space. State the number in the README and note the `macos-storage` input.
+
+### 4.3 The pin
+
+`components.env` gets one line:
+
+```
+IOS_SDK_VERSION=<version, measured on the image>
+```
+
+Measure it: if the image is reachable, read `xcodebuild -version` and pick the matching
+platform version. If the image is not reachable, pin the platform version of the Xcode that
+the README already names, and state that the pin is unverified until the CI run.
+
+Two readers, one value:
+1. `provision.sh` sources `components.env` already, so it reads `$IOS_SDK_VERSION`.
+2. The `macos-ssh` job sources the same file before it reads the value:
+   `. ci/platform-images/images/macos/guest/components.env`.
+
+### 4.4 The provisioning step
+
+Add a block after the Command Line Tools block:
+
+1. `[ -d /Applications/Xcode.app ] || fail "full Xcode is missing; install the pinned Xcode
+   once by hand (see the README)"`.
+2. Select it: `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
+3. Install the platform: `xcodebuild -downloadPlatform iOS -buildVersion "$IOS_SDK_VERSION"`.
+4. Verify: `xcodebuild -showsdks | grep -q "iphoneos$IOS_SDK_VERSION"` or `fail`.
+5. Add `xcodebuild -version` and `xcodebuild -showsdks` to `$STATUS/versions.txt`.
+6. Write `$STATUS/ios-sdk.txt` with the `DEVELOPER_DIR` path and the version, so the workflow
+   reads the provisioned value and not a guess.
+
+### 4.5 The workflow change
+
+In the `macos-ssh` job `run` block (`.github/workflows/platform-vms.yaml:105-125`):
+1. Replace the two-line SDK hunt with the values from `$STATUS/ios-sdk.txt`:
+   `export DEVELOPER_DIR=$(sed -n 's/^developer_dir=//p' .../ios-sdk.txt)`.
+2. Keep the existing explicit failure if the file is absent.
+3. Add the feature 09 proof after the existing iOS check:
+   `cargo check -p foundation_platform --target aarch64-apple-ios --profile uat`.
+
+### 4.6 Documentation
+
+`ci/platform-images/README.md` is the image documentation. It already has a macOS table
+under "What gets installed in the VM" (line 359-366) and a licensing section (line 460).
+Add:
+1. One row or sentence: full Xcode and the iOS platform are part of the one-time manual
+   install, and `provision.sh` installs and verifies the platform from the pinned version.
+2. In the licensing section: the iOS SDK follows the same Apple EULA rule as macOS, so it
+   stays inside the private VM disk.
+3. The disk space: Xcode about 15 GB and the iOS platform about 8 GB. Name the
+   `macos-storage` input.
 
 ## 5. Tasks
 

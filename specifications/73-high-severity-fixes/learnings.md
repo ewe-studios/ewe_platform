@@ -26,6 +26,18 @@ _Seeded at spec creation. Updated after each feature PR. See
 - The four high fix branches (#334, #340, #347, #348) are not spec 73 features. They close
   before the spec starts so that the spec's crates start from a clean master.
 
+## Feature 08 (2026-11-07)
+
+- A submodule gitlink can name a commit the remote does not have. Nothing warns until a fresh
+  clone runs `git submodule update --init`. The local `.agents` master was two commits ahead
+  of the remote, and the superproject pinned the local head. Prove a gitlink is fetchable
+  with `git fetch origin <sha>` in a scratch repository, then `git cat-file -t <sha>`.
+- Plain `cargo` already isolates worktrees: `target_directory` comes from the workspace root
+  of the `Cargo.toml` it runs in. `cargo metadata --manifest-path <other-checkout>/Cargo.toml`
+  reads another checkout from inside a worktree without a `cd`.
+- `scripts/ci/ci.py` `target_dir()` is at lines 37-50, not 38-47. Line ranges in a design
+  drift; cite the function name and check the lines at handoff.
+
 ## Feature 01 (2026-11-07)
 
 - `Code::from_u32` already exists in `shared/error/code.rs` (one match table, 1..=16) and

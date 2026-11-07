@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-07: feature 07 verified (#317) in commit `1879b9e04`, merged as `0aef12e2a`. The
+  generator emits `Option<bool>` (`generator.rs:2119-2123`) and serialises `"true"`/`"false"`
+  (`:2693-2697`); `extract_boolean_query_params` fills the set. An existing test covered the
+  mapping; the agent added one for the extraction step. The crate has no query-string parser,
+  so a `?flag=true` parse assertion is not possible here. No new defect.
+
+- 2026-11-07: feature 08 verified (#324). The main checkout resolves
+  `target_directory` to `<repo>/target`; a worktree resolves it to `<worktree>/target`. They
+  differ. `scripts/ci/ci.py:37-50` adds the same rule for CI, and `.agents/AGENTS.md:122-125`
+  states it. Verification found #370: the `.agents` gitlink pinned commit `fb8b44f`, which was
+  only on a local master, so a fresh clone could not init the submodule. Pushed
+  `e295ca5..fb8b44f`; a fetch of the pinned SHA now succeeds; #370 is closed.
+
 - 2026-11-07: PR [#368](https://github.com/ewe-studios/ewe_platform/pull/368) archives spec
   72. PR [#369](https://github.com/ewe-studios/ewe_platform/pull/369) holds the four
   high-severity fixes, rebased on master.
@@ -54,9 +67,12 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `features/04-http-connection-correctness/feature.md`
 - **05-http1-rpc-worker-parking** — pending (#254, fixed on master). Verification plan ready.
 - **06-h3-webtransport-accept** — pending (#273, fixed on master). Verification plan ready.
-- **07-openapi-boolean-generation** — pending (#317, fixed on master). Verification plan
-  ready.
-- **08-worktree-target-isolation** — in progress (#324, fixed on master). Agent handed off.
+- **07-openapi-boolean-generation** — verified (#317). Commit `1879b9e04`.
+  `features/07-openapi-boolean-generation/feature.md`
+- **08-worktree-target-isolation** — verified (#324). The two `target_directory` values differ,
+  and `ci.py:37-50` gives each checkout its own directory. The rule is already in
+  `.agents/AGENTS.md:122-125`. The verification found #370: the submodule pinned an unpushed
+  commit. Fixed; #370 is closed.
   `features/08-worktree-target-isolation/feature.md`
 - **09-ios-wasmtime-gating** — pending (#354). Design complete.
 - **10-macos-vm-ios-sdk** — pending (#355). Design complete.
