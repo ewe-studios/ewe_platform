@@ -7,25 +7,62 @@
 //! 2. `ftruncate` rejects a negative length with `EINVAL` and keeps the file.
 //!
 //! The shim reads `FOUNDATION_VFS_PREFIX` and `FOUNDATION_VFS_ROOT` once, at
-//! its first call. The test sets both variables before that call. The target
-//! holds one test, so no other test reads the environment at the same time.
+//! its first call (`CONFIG` is a `LazyLock`). The shim's exported symbols also
+//! interpose inside this test binary, so a file operation in the test body can
+//! make that first call before the variables are set. The assertions therefore
+//! run in a child process of this test binary, where the variables are in the
+//! environment from process start.
+
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use foundation_nativeapis::native::vfs::shim;
 
+/// Set in the child process; tells the test whether it is the parent or the child.
+const CHILD_MARKER: &str = "FOUNDATION_VFS_SHIM_TRUNCATE_CHILD";
+
 /// The size of a file on disk.
-fn real_size(path: &std::path::Path) -> u64 {
+fn real_size(path: &Path) -> u64 {
     std::fs::metadata(path).expect("stat file").len()
 }
 
 #[test]
 fn negative_truncate_length_is_rejected() {
-    let dir = tempfile::TempDir::new().expect("create temp dir");
-    let file = dir.path().join("file");
-    std::fs::write(&file, b"four").expect("write the real file");
+    if std::env::var_os(CHILD_MARKER).is_some() {
+        child_assertions();
+        return;
+    }
 
-    // The shim reads the configuration once, at the first call below.
-    std::env::set_var("FOUNDATION_VFS_PREFIX", "/virtual");
-    std::env::set_var("FOUNDATION_VFS_ROOT", dir.path());
+    let dir = tempfile::TempDir::new().expect("create temp dir");
+    std::fs::write(dir.path().join("file"), b"four").expect("write the real file");
+
+    // The child starts with both variables set, so its first shim call reads
+    // the configuration the test needs.
+    let exe = std::env::current_exe().expect("find the test binary");
+    let output = Command::new(exe)
+        .args([
+            "--exact",
+            "negative_truncate_length_is_rejected",
+            "--nocapture",
+        ])
+        .env("FOUNDATION_VFS_PREFIX", "/virtual")
+        .env("FOUNDATION_VFS_ROOT", dir.path())
+        .env(CHILD_MARKER, "1")
+        .output()
+        .expect("run the child test");
+    assert!(
+        output.status.success(),
+        "the child test failed ({:?})\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+/// Assertions that need the shim variables in the process environment.
+fn child_assertions() {
+    let root = std::env::var("FOUNDATION_VFS_ROOT").expect("FOUNDATION_VFS_ROOT in the child");
+    let file = PathBuf::from(root).join("file");
 
     let path = c"/virtual/file";
 

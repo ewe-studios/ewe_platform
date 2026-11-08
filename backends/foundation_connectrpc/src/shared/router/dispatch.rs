@@ -1298,6 +1298,7 @@ pub(crate) fn merge_handler_headers(
 ///
 /// One entry is added for each value. The same framing rule as
 /// [`merge_handler_headers`] applies.
+#[cfg(not(target_family = "wasm"))]
 pub(crate) fn extend_handler_headers(
     headers: &mut Vec<(Bytes, Bytes)>,
     handler: SimpleHeaders,

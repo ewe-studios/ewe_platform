@@ -366,8 +366,13 @@ jobs:
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
-      - name: cargo publish --dry-run
-        run: cargo publish --workspace --dry-run
+      - name: Package every publishable crate
+        # `cargo publish --dry-run` resolves each dependency on crates.io. The
+        # workspace versions stay ahead of crates.io until release-plz
+        # publishes them, so that command fails between releases. This step
+        # packages against a local patch table instead; the per-package build,
+        # clippy and test jobs build the same sources.
+        run: python3 scripts/ci/package_workspace.py
 
   macos:
     name: macOS build
