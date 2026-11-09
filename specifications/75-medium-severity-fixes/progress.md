@@ -4,6 +4,76 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #428, the macOS watcher compiles again
+
+`foundation_nativeapis` did not compile with `--features watcher-macos`. The error was
+`error[E0624]: method 'selector' is private` at
+`backends/foundation_nativeapis/src/native/watcher/unix.rs:76` and line 108.
+
+`KqueueWatcher` called `poll.registry().selector()` to register and deregister its
+kqueue fd. `foundation_reactor` keeps `Registry::selector` private. The public calls are
+`Registry::register_vnode` and `Registry::deregister_vnode`, and they already exist.
+
+The fix:
+
+- `add_watch_inner` calls `register_vnode(raw_fd, vnode_token)`.
+- `close_fd` calls `deregister_vnode(fd)`.
+- The unused `next_token` field and the `Registry` import are deleted.
+- The kqueue event reader converts `event.ident()` with `i32::try_from` and skips an
+  event whose fd has no path, instead of silently wrapping a value that cannot be a
+  file descriptor.
+- One event with several flags reports `Removed` before `Modified`, because a delete
+  also sets the write flag.
+- The doc comments wrap `KqueueWatcher` and the `EVFILT_*` names in backticks. The
+  `new` function documents its errors.
+
+The macOS watcher had no CI check. `.github/workflows/platform-vms.yaml` now runs
+
+```
+cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
+```
+
+in the `macos-ssh` job, next to the iOS checks of `foundation_wireguard` and
+`foundation_platform`. The check compiles the shared `watcher/unix.rs` file. Issue #432
+records that the job is `workflow_dispatch` only.
+
+Verification:
+
+| Check | Result |
+| --- | --- |
+| `cargo check --profile uat -p foundation_nativeapis --features native-macos` | Pass, no warnings |
+| `cargo check --profile uat -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos` | Pass, 3 warnings from issue #431 |
+| `cargo clippy --profile uat -p foundation_nativeapis --features watcher-macos --no-deps -- -D warnings` | Zero warnings |
+| `cargo test --profile uat -p foundation_nativeapis` | Pass |
+| `cargo fmt --check` | Pass |
+
+## 2026-11-09: issue #430, `foundation_proxy` checks the reactor results
+
+`foundation_proxy` ignored the two `#[must_use]` results of the reactor readiness
+interface. Clippy reported three `unused_must_use` warnings.
+
+| Site | Before | After |
+| --- | --- | --- |
+| `src/aio.rs:109`, `AsyncFd::poll_op` | `register_waker` result dropped, then `Poll::Pending` | A `false` result fails the poll with `BrokenPipe` |
+| `src/aio.rs:181`, `dial_tcp` | `register_waker` result dropped | A `false` result fails the connect with `BrokenPipe` |
+| `src/server.rs:547`, SSL redirect accept loop | `wait_for_events` generation dropped | The generation is bound and the comment says why the next loop turn re-reads it |
+
+A `false` from `register_waker` means the reactor no longer holds the fd. Nothing can
+wake the task after that. `poll_op` has no timeout, so it would park forever. The
+`dial_tcp` wait has the connect timeout, so a connected socket could report a timeout.
+
+The accept loop is different. It snapshots the generation again before each `accept`, so
+the value returned by `wait_for_events` has no later use. The discard is correct, and the
+comment records the reason.
+
+Verification:
+
+| Check | Result |
+| --- | --- |
+| `cargo clippy --profile uat -p foundation_proxy --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo test --profile uat -p foundation_proxy` | Pass |
+| `cargo fmt -p foundation_proxy --check` | Pass |
+
 ## 2026-11-09: issue #411, the `foundation_nativeapis` shared tree is target-agnostic again
 
 `backends/foundation_nativeapis/src/shared` claimed to be target-agnostic, but it held

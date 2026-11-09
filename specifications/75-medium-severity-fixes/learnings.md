@@ -5,6 +5,38 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, issue #428: an optional feature needs a compiled check
+
+- Code behind an optional feature is invisible to every default build. The macOS watcher
+  did not compile, and no job noticed, because no job named `watcher-macos`. A feature
+  without a check rots. Add the `cargo check` to CI in the same change that touches it.
+- The backend reached into `Registry::selector` while `Registry` already had public
+  `register_vnode` and `deregister_vnode` calls. Read the public surface before a private
+  access. A private access ties the backend to the reactor's internals.
+- `event.ident()` is a `usize`. Do not cast it to `i32`; a value that does not fit would
+  name a different fd and report the wrong path. Use `i32::try_from` and skip the event.
+- A single kqueue event can carry several flags, and a delete also sets the write flag.
+  Test `NOTE_DELETE | NOTE_RENAME | NOTE_REVOKE` first, so a delete does not report a
+  modification.
+- The signal module treats iOS as "not macOS": every kqueue gate names `target_os =
+  "macos"` alone. The whole delivery path is then dead code on iOS (issue #431). A target
+  family list belongs in one place, not in every `cfg`.
+
+## 2026-11-09, issue #430: a false registration means the wait cannot end
+
+- `FdReadiness::register_waker` returns `false` when the reactor no longer holds the fd.
+  In that state no wake can arrive. A park site that ignores the value parks forever; a
+  timeout-bounded site reports a timeout for work that finished. Map `false` to a
+  terminal `BrokenPipe` error. This is the same defect that issue #424 fixed in
+  `foundation_connectrpc`.
+- A `#[must_use]` result is not always live data. The accept loop snapshots the event
+  generation again before each `accept`, so the value from `wait_for_events` has no later
+  use. Bind it and write the reason. A silent discard leaves the reader to guess.
+- Local clippy warnings do not fail a crate unless `ci/packages.toml` sets
+  `clippy-deny-warnings` for it. `foundation_proxy` has no such entry, so three
+  `unused_must_use` warnings lived in the tree. Check the CI entry before a crate's
+  warning count is called clean.
+
 ## 2026-11-09, issue #411: the shared tree must not hold host-process code
 
 - A folder named `shared` is a promise. A `#[cfg(not(target_family = "wasm"))]` marker

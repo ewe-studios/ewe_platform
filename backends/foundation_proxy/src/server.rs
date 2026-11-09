@@ -544,7 +544,10 @@ fn ssl_redirect_loop(
                 #[cfg(unix)]
                 {
                     if let Some(readiness) = &listener_readiness {
-                        readiness.wait_for_events(
+                        // The next iteration snapshots the generation again
+                        // before `accept`, so the value returned here has no
+                        // later use. The wait is still what parks the thread.
+                        let _generation = readiness.wait_for_events(
                             gen.expect("generation snapshotted before accept"),
                             accept_poll,
                         );

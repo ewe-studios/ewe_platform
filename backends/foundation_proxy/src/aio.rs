@@ -106,9 +106,20 @@ impl<T: AsRawFd> AsyncFd<T> {
                 }
             }
             self.ready.clear();
-            self.ready.register_waker(cx.waker());
+            let registered = self.ready.register_waker(cx.waker());
             match op(&self.io) {
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Poll::Pending,
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    if !registered {
+                        // The reactor no longer holds this fd, so it can never
+                        // wake the task. Fail the poll instead of parking
+                        // forever (issue #430).
+                        return Poll::Ready(Err(io::Error::new(
+                            io::ErrorKind::BrokenPipe,
+                            "socket is no longer registered with the reactor",
+                        )));
+                    }
+                    return Poll::Pending;
+                }
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 other => return Poll::Ready(other),
             }
@@ -178,7 +189,15 @@ pub async fn dial_tcp(
     let fd = pending.as_raw_fd();
     let writable = poll_fn(|cx| {
         ready.clear();
-        ready.register_waker(cx.waker());
+        if !ready.register_waker(cx.waker()) {
+            // The reactor no longer holds this fd, so it can never wake the
+            // task. Without this check the wait could only end at the connect
+            // timeout, and a connected socket would report a timeout (#430).
+            return Poll::Ready(Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "connect socket is no longer registered with the reactor",
+            )));
+        }
         let mut pfd = libc::pollfd {
             fd,
             events: libc::POLLOUT,
@@ -187,13 +206,13 @@ pub async fn dial_tcp(
         // SAFETY: `pfd` is one valid `pollfd`; a zero timeout never blocks.
         let n = unsafe { libc::poll(&raw mut pfd, 1, 0) };
         if n != 0 {
-            Poll::Ready(())
+            Poll::Ready(Ok(()))
         } else {
             Poll::Pending
         }
     });
     match select(Box::pin(writable), Box::pin(sleep_async(connect_timeout))).await {
-        Either::Left(((), _)) => {}
+        Either::Left((done, _)) => done?,
         Either::Right(((), _)) => {
             return Err(io::Error::new(
                 io::ErrorKind::TimedOut,
