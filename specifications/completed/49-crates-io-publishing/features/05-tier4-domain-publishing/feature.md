@@ -1,7 +1,7 @@
 ---
 feature: "Tier 4 Domain Crates Publishing"
 description: "Publish 10 domain crates (auth, db, jsonschema, codegen, codegentools, packager, runtimes, shell, toolings, testbed) to crates.io"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-metadata-completion", "02-tier1-leaf-publishing", "03-tier2-core-substrate-publishing", "04-tier3-infra-publishing"]
 estimated_effort: "medium"

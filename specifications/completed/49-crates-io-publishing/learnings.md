@@ -1,5 +1,47 @@
 # Learnings — crates.io Publishing
 
+## 2026-11-09: two release failures in run 42516594075
+
+_Written in ASD-STE100 Simplified Technical English (STE)._
+
+### A versioned dev-dependency can make a publish cycle (#442)
+
+- Cargo keeps a dev-dependency in the published manifest when it has a `version`. It
+  removes a dev-dependency that has only a `path`.
+- `foundation_nostd` had `[dev-dependencies.foundation_core]` with `path` and
+  `version = "0.0.19"`. `foundation_core` depends on `foundation_nostd`. So
+  `cargo package -p foundation_nostd` had to find `foundation_core 0.0.19` on crates.io,
+  and that version cannot publish before `foundation_nostd`.
+- Root cause of the late detection: `scripts/ci/package_workspace.py` packages against a
+  `[patch.crates-io]` table that maps every workspace crate to its path. The patch
+  resolves the dependent locally, so the dry run passed.
+- Fix: remove the `version`. A test-only dependency on a crate that depends back on you
+  must be path-only. `package_workspace.py` now runs `dev_dependency_cycles` before it
+  packages and prints each cycle.
+- Check: with the fix, `cargo package -p foundation_nostd --no-verify` passes against the
+  real crates.io index, and the packaged `Cargo.toml` has no `foundation_core`.
+- A scan of the workspace found no other cycle.
+
+### release-plz loads old commits, so its cargo must read old manifests (#443)
+
+- release-plz copies the repository to a temporary directory. It runs `cargo package` at
+  the commit of each crate's last release, to compare the packages.
+- Commits before `df86d7e6` (21 October 2026) have the nightly-only `codegen-backend`
+  profile key in the root `Cargo.toml`. Stable cargo 1.98 stops with "feature
+  `codegen-backend` is required".
+- So "keep the workspace loadable on stable" is not enough for the release-PR job. That job
+  also needs a cargo that loads every past release commit.
+- Fix: the release-PR job uses the pinned nightly from `rust-toolchain.toml` and sets
+  `CARGO_UNSTABLE_CODEGEN_BACKEND=true`. It publishes nothing. The publish job stays on
+  stable, because it packages only the current commit.
+- The job can move back to stable when every crate has a release after `df86d7e6`.
+
+### crates.io state is not the same as "all crates publish"
+
+- On 2026-11-09, 44 of 104 publishable crates were not on crates.io yet, and 38 were at an
+  older version. The failed publish job stopped them. Read the crates.io API (with a
+  `User-Agent` header) against `cargo metadata --no-deps` to check the real state.
+
 ## Crate Name Availability (2026-06-16)
 
 - All 38 crate names confirmed available on crates.io

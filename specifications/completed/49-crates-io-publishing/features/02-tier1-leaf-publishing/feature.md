@@ -1,7 +1,7 @@
 ---
 feature: "Tier 1 Leaf Crates Publishing"
 description: "Publish 8 leaf crates with no internal workspace dependencies to crates.io"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-metadata-completion"]
 estimated_effort: "medium"

@@ -1,7 +1,7 @@
 ---
 feature: "Tier 3 Infrastructure Publishing"
 description: "Publish 6 infrastructure crates (core, http, netio, signals, ui_traits, theme) to crates.io"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-metadata-completion", "02-tier1-leaf-publishing", "03-tier2-core-substrate-publishing"]
 estimated_effort: "small"

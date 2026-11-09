@@ -1,7 +1,7 @@
 ---
 feature: "Tier 5 Higher-Order Crates Publishing"
 description: "Publish 11 higher-order crates (ai, arrow, browser, cedar, deployment, html, nativeapis, openapi, ui_components, wasm, wasm_ui) to crates.io"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-metadata-completion", "02-tier1-leaf-publishing", "03-tier2-core-substrate-publishing", "04-tier3-infra-publishing", "05-tier4-domain-publishing"]
 estimated_effort: "medium"

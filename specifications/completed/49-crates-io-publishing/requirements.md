@@ -1,23 +1,23 @@
 ---
 description: "Publish all 38 workspace crates to crates.io — validate names, add missing metadata, set up CI/CD publishing pipeline"
-status: "in-progress"
+status: "completed"
 priority: "high"
 created: 2026-06-16
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-06-16
+  last_updated: 2026-11-09
   estimated_effort: "large"
   tags: [publishing, crates-io, ci-cd, rust, deployment]
   skills: [rust-clean-code]
   tools: [Bash, Cargo]
 has_features: true
 has_fundamentals: false
-tasks:
-  completed: 3
-  uncompleted: 5
+features:
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 38%
+  completion_percentage: 100%
 ---
 
 # crates.io Publishing — Specification
@@ -35,13 +35,22 @@ This specification covers the end-to-end process of publishing all 38 workspace 
 | Feature | Description | Status |
 |---------|-------------|--------|
 | [00 — Crate Names & Publish Plan](features/00-crate-names-and-publish-plan/feature.md) | Validate all crate names on crates.io, confirm no conflicts, document publishing tiers and per-crate checklists | ✅ Completed |
-| [01 — Metadata Completion](features/01-metadata-completion/feature.md) | Add missing descriptions, README files, and `readme` fields to all crates | ⏳ Pending |
-| [02 — Tier 1 Leaf Crates Publishing](features/02-tier1-leaf-publishing/feature.md) | Publish 8 leaf crates with no internal dependencies (errstacks, nostd, macros, conditional, testing, rng, llama_bindings, llama_cpp) | ⏳ Pending |
-| [03 — Tier 2 Core Substrate Publishing](features/03-tier2-core-substrate-publishing/feature.md) | Publish 3 core substrate crates (compact, config, logging) | ⏳ Pending |
-| [04 — Tier 3 Infrastructure Publishing](features/04-tier3-infra-publishing/feature.md) | Publish 6 infrastructure crates (core, http, netio, signals, ui_traits, theme) | ⏳ Pending |
-| [05 — Tier 4 Domain Crates Publishing](features/05-tier4-domain-publishing/feature.md) | Publish 10 domain crates (auth, db, jsonschema, codegen, codegentools, packager, runtimes, shell, toolings, testbed) | ⏳ Pending |
-| [06 — Tier 5 Higher-Order Crates Publishing](features/06-tier5-higher-order-publishing/feature.md) | Publish 11 higher-order crates (ai, arrow, browser, cedar, deployment, html, nativeapis, openapi, ui_components, wasm, wasm_ui) | ⏳ Pending |
-| [07 — CI/CD Publishing Pipeline](features/07-ci-cd-publishing-pipeline/feature.md) | Set up GitHub Actions workflow for automated `cargo publish` on tagged releases | ⏳ Pending |
+| [01 — Metadata Completion](features/01-metadata-completion/feature.md) | Add missing descriptions, README files, and `readme` fields to all crates | ✅ Completed |
+| [02 — Tier 1 Leaf Crates Publishing](features/02-tier1-leaf-publishing/feature.md) | Publish 8 leaf crates with no internal dependencies (errstacks, nostd, macros, conditional, testing, rng, llama_bindings, llama_cpp) | ✅ Completed |
+| [03 — Tier 2 Core Substrate Publishing](features/03-tier2-core-substrate-publishing/feature.md) | Publish 3 core substrate crates (compact, config, logging) | ✅ Completed |
+| [04 — Tier 3 Infrastructure Publishing](features/04-tier3-infra-publishing/feature.md) | Publish 6 infrastructure crates (core, http, netio, signals, ui_traits, theme) | ✅ Completed |
+| [05 — Tier 4 Domain Crates Publishing](features/05-tier4-domain-publishing/feature.md) | Publish 10 domain crates (auth, db, jsonschema, codegen, codegentools, packager, runtimes, shell, toolings, testbed) | ✅ Completed |
+| [06 — Tier 5 Higher-Order Crates Publishing](features/06-tier5-higher-order-publishing/feature.md) | Publish 11 higher-order crates (ai, arrow, browser, cedar, deployment, html, nativeapis, openapi, ui_components, wasm, wasm_ui) | ✅ Completed |
+| [07 — CI/CD Publishing Pipeline](features/07-ci-cd-publishing-pipeline/feature.md) | Set up GitHub Actions workflow for automated `cargo publish` on tagged releases | ✅ Completed |
+
+## Completion (2026-11-09)
+
+The owner marked this spec complete. The workspace crates publish to crates.io through
+release-plz (`.github/workflows/release-plz.yaml`, `release-plz.toml`), not through the
+manual tier plan above. release-plz publishes the crates in dependency order, so it does
+the work of features 02 to 07. `docs/releasing.md` describes the release flow. See
+[progress.md](progress.md) for the final state and [learnings.md](learnings.md) for the
+publish-cycle and stable-cargo findings.
 
 ## Requirements Conversation Summary
 

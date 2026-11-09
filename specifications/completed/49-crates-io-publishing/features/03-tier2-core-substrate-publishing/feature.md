@@ -1,7 +1,7 @@
 ---
 feature: "Tier 2 Core Substrate Publishing"
 description: "Publish 3 core substrate crates (compact, config, logging) to crates.io"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-metadata-completion", "02-tier1-leaf-publishing"]
 estimated_effort: "small"

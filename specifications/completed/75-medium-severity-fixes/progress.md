@@ -4,6 +4,17 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: the spec is complete and archived
+
+PR [#422](https://github.com/ewe-studios/ewe_platform/pull/422) merged the batch to master
+as `2d8637f56`. The spec moved to `specifications/completed/75-medium-severity-fixes`.
+
+Open items that stay outside this spec:
+
+- #373 (medium) needs a self-hosted runner with the `apple-hardware` label. None is
+  registered, so the `macos-ssh` job cannot run. The issue has a comment with the evidence.
+- The low-severity issues in "Next" below wait for later pickup.
+
 ## 2026-11-10: the audit ran the deny default for the first time
 
 The audit on `db473140b` was the first full matrix run after the Plan job stopped failing.

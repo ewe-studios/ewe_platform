@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/49-crates-io-publishing"
-feature_directory: "specifications/49-crates-io-publishing/features/05-tier4-domain-publishing"
-this_file: "specifications/49-crates-io-publishing/features/05-tier4-domain-publishing/start.md"
+spec_directory: "specifications/completed/49-crates-io-publishing"
+feature_directory: "specifications/completed/49-crates-io-publishing/features/04-tier3-infra-publishing"
+this_file: "specifications/completed/49-crates-io-publishing/features/04-tier3-infra-publishing/start.md"
 created: 2026-06-16
 ---
 
@@ -13,7 +13,7 @@ created: 2026-06-16
 1. Read `feature.md` (detailed requirements + tasks)
 2. **Identify language stack** — Rust
 3. **Read/generate language skills** — Read `.agents/skills/rust-clean-code/skill.md`
-4. Read `../../LEARNINGS.md` (past discoveries and mistakes)
+4. Read `../../learnings.md` (past discoveries and mistakes)
 5. Read `./VERIFICATION.md` (verification requirements)
 6. Read `./PROGRESS.md` (last progress if present)
 7. Read `.agents/AGENTS.md` to identify your agent type
@@ -26,7 +26,7 @@ created: 2026-06-16
 14. Report to Main Agent when done (DO NOT commit)
 15. Wait for verification to pass
 16. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to next task
-17. **ALWAYS UPDATE ../../LEARNINGS.md** after each completed task/milestone
+17. **ALWAYS UPDATE ../../learnings.md** after each completed task/milestone
 
 ---
 
