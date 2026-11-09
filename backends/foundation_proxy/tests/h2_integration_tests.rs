@@ -18,12 +18,14 @@ use foundation_core::url::Uri;
 use foundation_core::valtron::{
     initialize_pool, sleep_async, valtron_test, BlockingFutureExt, Pipe, PipeReceiver, PipeSender,
 };
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::{BoxFuture, H2Serve};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::native::writer::send_text;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::client::H2Client;
 use foundation_netio::http2::connection::H2Request;

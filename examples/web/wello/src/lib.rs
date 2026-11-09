@@ -2,11 +2,12 @@
 
 use std::sync::Arc;
 
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::writer::{send_html, send_not_found};
 use foundation_http::shared::{
     app::HttpApp,
     context::ContextBag,
-    serve::{ConnectionResult, Serve, ServeFactory},
+    serve::ConnectionResult,
 };
 use foundation_http::{RawStream, SharedByteBufferStream, SimpleIncomingRequest, SimpleMethod};
 use rust_embed::Embed;

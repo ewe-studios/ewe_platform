@@ -5,6 +5,54 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Issue #412 (2026-11-09)
+
+### A native-only type must leave `shared/`, not gain a target gate
+
+- `Serve` names `foundation_netio::netcap::RawStream`. netio exports `RawStream` on
+  native targets only. A `#[cfg(not(target_family = "wasm"))]` marker in `shared/`
+  hides the dependency. It does not remove it.
+- Move the type to `native/`. `lib.rs` already gates the whole `native` module, so the
+  item leaves the wasm build without a second marker. `shared/` then has no target gate
+  for it.
+- An inherent `impl HttpApp<...>` can live in another module of the same crate. The
+  generic `HttpApp<S>` stays in `shared/app/mod.rs`; the native impls move to
+  `native/app.rs`.
+
+### A `pub(crate)` re-export of a native-only helper warns on wasm
+
+- `pub(crate) use health::health_body;` in `shared/handlers/mod.rs` is unused when the
+  `native` module is not compiled. The wasm check reports an unused import.
+- Make the module `pub(crate) mod health;` and import the helper by its full path from
+  `native/handlers/health.rs`. Keep `shared/` free of target gates.
+
+### A wasm test needs a target that can build it
+
+- `http_app_generic_tests` used both `CfServe` and `WebServe`. `CfServe` needs
+  `wasm-bindgen-http`. On the host, `wasm-bindgen` does not define `JsError`. On
+  wasm32, the crate's dev-dependencies (socket2 and others) do not build. So the file
+  did not compile in any run.
+- The browser `WebServe` path needs no wasm-bindgen. Its tests now live in
+  `tests/wasm_web_serve_tests.rs`. They run on the host in the default test run and
+  pass.
+- The wasm32 library check with `--features wasm-bindgen-http` is the compile proof for
+  `CfServe`. A runnable `CfServe` test needs the wasm test target from issue #364.
+
+### A template manifest pins the workspace version too
+
+- The `bin/platform/templates/*/Cargo.toml.template` files name workspace crates by
+  version. The template build test maps them to local paths with `[patch.crates-io]`.
+- For 0.0.x versions, cargo treats each patch release as incompatible: `^0.0.18` does not
+  accept 0.0.19. A stale pin fails with "failed to select a version for the requirement".
+- A crate bump must update the template requirement too. The three templates now name
+  `foundation_core` 0.0.19.
+
+### Version bumps still need the example lockfiles
+
+- The `foundation_http` bump updated the workspace lockfile. The refresh also removed a
+  stale `uuid` entry from the example lockfiles. The manifest dropped `uuid` in an
+  earlier change, but those lockfiles were not refreshed then.
+
 ## Batch 2 (2026-11-09)
 
 ### A fix with no regression test lets the tracker go stale

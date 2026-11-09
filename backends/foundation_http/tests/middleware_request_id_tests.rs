@@ -16,10 +16,7 @@ fn request() -> SimpleIncomingRequest {
         .expect("valid request")
 }
 
-fn values_for<'a>(
-    req: &'a SimpleIncomingRequest,
-    name: &str,
-) -> Option<&'a Vec<String>> {
+fn values_for<'a>(req: &'a SimpleIncomingRequest, name: &str) -> Option<&'a Vec<String>> {
     req.headers.iter().find_map(|(header, values)| {
         if format!("{header}").eq_ignore_ascii_case(name) {
             Some(values)
@@ -35,7 +32,10 @@ fn generates_a_version_4_id_when_the_client_sends_none() {
     let ctx = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
     let mut req = request();
 
-    assert!(matches!(mw.handle(&ctx, &mut req), MiddlewareResult::Continue));
+    assert!(matches!(
+        mw.handle(&ctx, &mut req),
+        MiddlewareResult::Continue
+    ));
 
     let values = values_for(&req, "x-request-id").expect("the middleware adds an ID");
     assert_eq!(values.len(), 1);
@@ -54,7 +54,10 @@ fn keeps_a_client_supplied_id() {
         .build()
         .expect("valid request");
 
-    assert!(matches!(mw.handle(&ctx, &mut req), MiddlewareResult::Continue));
+    assert!(matches!(
+        mw.handle(&ctx, &mut req),
+        MiddlewareResult::Continue
+    ));
 
     let values = values_for(&req, "x-request-id").expect("the client ID stays");
     assert_eq!(values.as_slice(), ["client-id"]);
@@ -77,7 +80,10 @@ fn matches_the_client_header_case_insensitively() {
         .build()
         .expect("valid request");
 
-    assert!(matches!(mw.handle(&ctx, &mut req), MiddlewareResult::Continue));
+    assert!(matches!(
+        mw.handle(&ctx, &mut req),
+        MiddlewareResult::Continue
+    ));
 
     let count = req
         .headers

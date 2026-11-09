@@ -19,8 +19,9 @@ use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{self, FutureTask, MonotonicClock};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_toolings::proxy::SseReloadHandler;
 use foundation_toolings::watcher::FileChange;

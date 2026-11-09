@@ -4,9 +4,9 @@ use std::time::Duration;
 use foundation_core::valtron::{execute, from_future, sleep_async, Clock};
 use foundation_http::ShutdownSignal;
 
+use foundation_http::native::serve::Serve;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::Serve;
 use foundation_http::SimpleMethod;
 
 use super::config::IdpConfig;

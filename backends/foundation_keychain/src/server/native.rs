@@ -14,10 +14,11 @@
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_http::{RawStream, SimpleIncomingRequest, SimpleMethod};
 use foundation_netio::shared::client::body_reader::{collect_bytes_bounded, AsyncSendSafeBody};
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};

@@ -15,8 +15,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_browser::test::stream::{SseTransportConfig, StreamHandler};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_wasm_ui::server::Broadcaster;
 

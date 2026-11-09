@@ -20,9 +20,10 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
 use foundation_core::valtron::{Ctx, SimulatedClock, TaskIterator, TaskStatus};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::server::protocol_detect::ProtocolDetectHandler;
 use foundation_http::native::server::KeepAliveConfig;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 

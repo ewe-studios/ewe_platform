@@ -70,7 +70,7 @@ impl TickService for Ticker {
 fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut router = Router::new();
     register_tick_service(&mut router, Arc::new(Ticker));
-    let serve: Arc<dyn foundation_http::shared::serve::Serve> =
+    let serve: Arc<dyn foundation_http::native::serve::Serve> =
         Arc::new(ConnectRpcServe::new(router.into_handler()));
 
     let mut app = HttpApp::new_serve();

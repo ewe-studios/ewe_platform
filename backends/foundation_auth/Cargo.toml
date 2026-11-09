@@ -13,7 +13,7 @@ keywords.workspace = true
 foundation_core = { path = "../foundation_core", version = "0.0.19" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.11", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.6", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.9", optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.10", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 

@@ -22,12 +22,14 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
 use foundation_core::valtron::{Clock, Ctx, SimulatedClock, TaskIterator, TaskStatus};
+use foundation_http::native::app::H1App;
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{ConnectionHandler, KeepAliveConfig};
 use foundation_http::native::writer::send_text;
-use foundation_http::shared::app::{H1App, HttpApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::{

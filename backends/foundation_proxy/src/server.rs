@@ -250,7 +250,7 @@ impl ProxyServer {
             }
         }
 
-        let server_app = foundation_http::shared::app::ServerApp::both(h1_app, h2_app);
+        let server_app = foundation_http::native::app::ServerApp::both(h1_app, h2_app);
         let server = HttpServer::from_app_with_config(server_app, &bind_addr, server_config);
 
         // Serve on a dedicated thread with the pre-bound listener.

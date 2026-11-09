@@ -21,9 +21,10 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::valtron::{sleep_async, valtron_test, PipeReceiver, PipeSender};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};

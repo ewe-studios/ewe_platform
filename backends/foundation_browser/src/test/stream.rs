@@ -33,9 +33,10 @@ use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{self, FutureTask, Pipe, PipeReceiver, PipeSender};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::upgrade::SseStream;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_wasm_ui::server::{Broadcaster, FrameTransport};

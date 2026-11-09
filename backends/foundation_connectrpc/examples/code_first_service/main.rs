@@ -90,7 +90,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     // procedure onto the router.
     let mut router = Router::new();
     register_greet_service(&mut router, Arc::new(Greeter));
-    let serve: Arc<dyn foundation_http::shared::serve::Serve> =
+    let serve: Arc<dyn foundation_http::native::serve::Serve> =
         Arc::new(ConnectRpcServe::new(router.into_handler()));
 
     let mut app = HttpApp::new_serve();

@@ -28,11 +28,12 @@ use serial_test::serial;
 use tracing_test::traced_test;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{ConnectionResult, Serve, ServeError, ServeFactory},
+        serve::{ConnectionResult, ServeError},
     },
 };
 

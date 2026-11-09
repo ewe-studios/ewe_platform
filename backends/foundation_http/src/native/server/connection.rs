@@ -32,8 +32,9 @@ use foundation_netio::shared::http::{
 };
 
 use crate::native::reader::read_next_request;
+use crate::native::serve::Serve;
 use crate::native::writer::{send_continue_100, send_not_found, send_text};
-use crate::shared::serve::{ConnectionResult, Serve, ServeFuture, ServeOutcome};
+use crate::shared::serve::{ConnectionResult, ServeFuture, ServeOutcome};
 
 // ---------------------------------------------------------------------------
 // HandlerState

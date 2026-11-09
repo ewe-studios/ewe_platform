@@ -27,10 +27,11 @@ use std::time::Duration;
 use futures::StreamExt;
 
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::shared::serve::Serve;
+use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 use foundation_netio::HttpClientBuilder;
