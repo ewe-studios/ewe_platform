@@ -12,12 +12,17 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
+#[cfg(unix)]
+use std::os::unix::io::AsRawFd;
+
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroupGuard;
 use foundation_core::valtron::{
     queue_waker, AnyReadiness, Ctx, EventQueue, EventReadiness, EventReadinessPtr, QueueReadiness,
     ReadinessWaker, ResumeSignal, TaskIterator, TaskStatus, WakeToken,
 };
+#[cfg(unix)]
+use foundation_iogate::FdReadiness as SocketReadiness;
 use foundation_iogate::ShutdownSignal;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
@@ -92,6 +97,20 @@ impl EventReadiness for DeadlinePassed {
     }
 }
 
+/// Ready once the server asks this connection to drain.
+struct ShutdownRequested(Arc<ShutdownSignal>);
+
+impl EventReadiness for ShutdownRequested {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` wakes the registered task.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.0.register_readiness(waker)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // ConnectionHandler
 
@@ -133,6 +152,14 @@ pub struct ConnectionHandler {
     total_delay_cycles: u32,
     /// The engine clock, seeded from the pool root `Ctx`.
     clock: Arc<dyn foundation_core::valtron::Clock>,
+    /// The socket watched on the shared reactor while the connection waits for
+    /// its next request. `None` until first needed, or when the transport
+    /// cannot be watched this way (the overlay, or a failed registration).
+    #[cfg(unix)]
+    socket: Option<Arc<SocketReadiness>>,
+    /// Registration on the reactor was tried (and `socket` holds its outcome).
+    #[cfg(unix)]
+    socket_tried: bool,
 }
 
 impl ConnectionHandler {
@@ -183,6 +210,10 @@ impl ConnectionHandler {
             idle_since: None,
             total_delay_cycles: 0,
             clock,
+            #[cfg(unix)]
+            socket: None,
+            #[cfg(unix)]
+            socket_tried: false,
         }
     }
 
@@ -357,6 +388,10 @@ impl ConnectionHandler {
 
         tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
 
+        // Forget readiness seen before this read and arm the socket, so an edge
+        // that arrives after the read fails stays set and wakes this task.
+        self.arm_idle_socket();
+
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(req)) => {
                 // Version gate, before the body is read and before any
@@ -398,9 +433,11 @@ impl ConnectionHandler {
             }
             Some(Err(e)) => {
                 if Self::is_transient_error(&e) {
-                    // Non-blocking transport: park on the read waker instead of
-                    // spin-delaying, so the driver unparks us when the request lands.
-                    if let Some(status) = self.park_on_read_waker() {
+                    self.idle_poll_count += 1;
+                    self.track_idle();
+                    // Non-blocking transport: park until the next request
+                    // lands, instead of spin-delaying.
+                    if let Some(status) = self.park_idle() {
                         return Some(status);
                     }
                     tracing::trace!(
@@ -409,8 +446,6 @@ impl ConnectionHandler {
                         idle_poll_count = self.idle_poll_count,
                         "Idle: transient read error, delaying"
                     );
-                    self.idle_poll_count += 1;
-                    self.track_idle();
                     Some(self.maybe_delay_idle())
                 } else {
                     tracing::warn!(
@@ -422,17 +457,17 @@ impl ConnectionHandler {
                 }
             }
             None => {
-                // Non-blocking transport: park on the read waker instead of
-                // spin-delaying, so the driver unparks us when the request lands.
-                if let Some(status) = self.park_on_read_waker() {
+                self.idle_poll_count += 1;
+                self.track_idle();
+                // Non-blocking transport: park until the next request lands,
+                // instead of spin-delaying.
+                if let Some(status) = self.park_idle() {
                     return Some(status);
                 }
                 tracing::trace!(
                     client_ip = %self.client_ip,
                     "Idle: no data available (WouldBlock)"
                 );
-                self.idle_poll_count += 1;
-                self.track_idle();
                 Some(self.maybe_delay_idle())
             }
         }
@@ -463,6 +498,77 @@ impl ConnectionHandler {
         } else {
             None
         }
+    }
+
+    /// Park until the next request arrives, the idle deadline passes, or the
+    /// server shuts down.
+    ///
+    /// The overlay transport has its own read waker; a plain or TLS socket is
+    /// watched on the shared reactor. Returns `None` only for a transport that
+    /// can be watched neither way, so the caller falls back to the delay and
+    /// timeout path.
+    fn park_idle(&mut self) -> Option<TaskStatus<(), ()>> {
+        if let Some(status) = self.park_on_read_waker() {
+            return Some(status);
+        }
+        self.park_on_socket()
+    }
+
+    /// Register the socket with the shared reactor once, then clear its latched
+    /// readiness before this turn reads from it.
+    ///
+    /// The reactor latches readiness until it is cleared, so the clear must come
+    /// before the read: an edge that arrives after a failed read then stays set
+    /// and wakes this task. Clearing after the read could erase that edge. The
+    /// overlay has no kernel file descriptor, so there is nothing to watch.
+    #[cfg(unix)]
+    fn arm_idle_socket(&mut self) {
+        if !self.socket_tried {
+            self.socket_tried = true;
+            let fd = self.conn.with_inner_ref(|raw: &RawStream| raw.as_raw_fd());
+            if fd >= 0 {
+                match SocketReadiness::register(fd) {
+                    Ok(readiness) => self.socket = Some(Arc::new(readiness)),
+                    Err(e) => tracing::debug!(
+                        client_ip = %self.client_ip,
+                        error = %e,
+                        "Idle: cannot watch the socket on the reactor; polling instead"
+                    ),
+                }
+            }
+        }
+        if let Some(socket) = self.socket.as_ref() {
+            socket.clear();
+        }
+    }
+
+    #[cfg(not(unix))]
+    fn arm_idle_socket(&mut self) {}
+
+    /// Park on the socket's read readiness, the idle deadline and shutdown.
+    /// `None` when the socket is not watched on the reactor.
+    #[cfg(unix)]
+    fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
+        let socket = self.socket.as_ref()?;
+        let mut ready = AnyReadiness::either(
+            Arc::clone(socket) as EventReadinessPtr,
+            Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),
+        );
+        // End the connection at the idle deadline even when no bytes arrive.
+        if let Some(deadline) = self.idle_since.map(|since| since + self.idle_timeout()) {
+            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.clock.clone())));
+        }
+        tracing::trace!(
+            client_ip = %self.client_ip,
+            "Idle: request not ready; parking on socket readiness"
+        );
+        self.state = Some(HandlerState::Idle);
+        Some(TaskStatus::Depends(Arc::new(ready)))
+    }
+
+    #[cfg(not(unix))]
+    fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
+        None
     }
 
     fn maybe_delay_idle(&mut self) -> TaskStatus<(), ()> {
