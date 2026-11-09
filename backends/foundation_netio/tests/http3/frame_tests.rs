@@ -20,11 +20,8 @@ fn decode_all(bytes: &[u8]) -> Vec<Frame> {
     let mut src = bytes;
     let mut frames = Vec::new();
 
-    loop {
-        match decoder.step(&mut src).expect("decode must not fail") {
-            DecodeStep::Frame(f) => frames.push(f),
-            DecodeStep::Pending => break,
-        }
+    while let DecodeStep::Frame(f) = decoder.step(&mut src).expect("decode must not fail") {
+        frames.push(f);
     }
     frames
 }
@@ -83,14 +80,14 @@ fn a_frame_split_across_every_byte_boundary_still_decodes() {
     let encoded = frame.to_bytes();
 
     let mut decoder = FrameDecoder::new();
-    let mut decoded = None;
+    let mut completed = None;
 
     for (i, chunk) in encoded.chunks(1).enumerate() {
         let mut src = chunk;
         match decoder.step(&mut src).expect("no error mid-frame") {
             DecodeStep::Frame(f) => {
                 assert_eq!(i, encoded.len() - 1, "the frame completes on the last byte");
-                decoded = Some(f);
+                completed = Some(f);
             }
             DecodeStep::Pending => {
                 assert!(
@@ -101,7 +98,7 @@ fn a_frame_split_across_every_byte_boundary_still_decodes() {
         }
     }
 
-    assert_eq!(decoded, Some(frame));
+    assert_eq!(completed, Some(frame));
     assert!(
         !decoder.has_partial(),
         "a fully consumed decoder holds nothing"

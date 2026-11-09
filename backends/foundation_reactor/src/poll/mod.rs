@@ -69,18 +69,21 @@ impl Interest {
 
     /// Returns `true` if readable interest is set.
     #[inline]
+    #[must_use]
     pub const fn is_readable(self) -> bool {
         self.bits & Self::READABLE.bits != 0
     }
 
     /// Returns `true` if writable interest is set.
     #[inline]
+    #[must_use]
     pub const fn is_writable(self) -> bool {
         self.bits & Self::WRITABLE.bits != 0
     }
 
     /// Combine interests.
     #[inline]
+    #[must_use]
     pub const fn union(self, other: Interest) -> Interest {
         Interest {
             bits: self.bits | other.bits,
@@ -119,6 +122,10 @@ impl Poll {
     /// - Linux: `epoll_create1(EPOLL_CLOEXEC)`
     /// - macOS/BSD: `kqueue()`
     /// - Windows: `CreateIoCompletionPort`
+    ///
+    /// # Errors
+    /// Returns the operating-system error when the platform selector cannot be
+    /// created.
     pub fn new() -> io::Result<Self> {
         // Construct the selector and wrap it here rather than asking the
         // selector to hand back a `Registry`: on Linux both `epoll::Selector`
@@ -162,6 +169,7 @@ impl Poll {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub fn backend(&self) -> Backend {
         #[cfg(target_os = "linux")]
         {
@@ -292,6 +300,7 @@ impl Poll {
     }
 
     /// Returns a [`Registry`] for registering/deregistering sources.
+    #[must_use]
     pub fn registry(&self) -> Registry {
         Registry {
             selector: self.selector.clone(),
@@ -369,6 +378,7 @@ impl Registry {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub fn same_selector(&self, other: &Registry) -> bool {
         Arc::ptr_eq(&self.selector, &other.selector)
     }
@@ -379,6 +389,9 @@ impl Registry {
     /// * `source` — the type to register (must implement [`event::Source`](event::Source))
     /// * `token` — identifier for this source, returned in events
     /// * `interest` — what readiness to track (READABLE, WRITABLE, or both)
+    ///
+    /// # Errors
+    /// Propagates the source's registration error.
     pub fn register(
         &self,
         source: &mut impl event::Source,
@@ -389,6 +402,9 @@ impl Registry {
     }
 
     /// Re-register a source with a new token and/or interest.
+    ///
+    /// # Errors
+    /// Propagates the source's registration error.
     pub fn reregister(
         &self,
         source: &mut impl event::Source,
@@ -399,6 +415,9 @@ impl Registry {
     }
 
     /// Deregister a source from the selector.
+    ///
+    /// # Errors
+    /// Propagates the source's deregistration error.
     pub fn deregister(&self, source: &mut impl event::Source) -> io::Result<()> {
         source.deregister(self)
     }
@@ -408,11 +427,17 @@ impl Registry {
     /// This is a convenience wrapper around `SourceFd` registration.
     /// The fd must already be in nonblocking mode.
     /// The fd is NOT closed when deregistered — ownership is not transferred.
+    ///
+    /// # Errors
+    /// Propagates the selector's registration error.
     pub fn register_fd(&self, fd: sys::RawFd, token: Token, interest: Interest) -> io::Result<()> {
         self.selector.register_fd(fd, token, interest)
     }
 
     /// Re-register a raw file descriptor with a new token and/or interest.
+    ///
+    /// # Errors
+    /// Propagates the selector's re-registration error.
     pub fn reregister_fd(
         &self,
         fd: sys::RawFd,
@@ -423,17 +448,28 @@ impl Registry {
     }
 
     /// Deregister a raw file descriptor.
+    ///
+    /// # Errors
+    /// Propagates the selector's deregistration error.
     pub fn deregister_fd(&self, fd: sys::RawFd) -> io::Result<()> {
         self.selector.deregister_fd(fd)
     }
 
-    /// Register an EVFILT_VNODE filter for file watching (macOS/BSD only).
+    /// Register an `EVFILT_VNODE` filter for file watching (macOS/BSD only).
     /// On Linux/Windows, returns Unsupported.
+    ///
+    /// # Errors
+    /// Propagates the selector's registration error, or `Unsupported` on a
+    /// platform without vnode filters.
     pub fn register_vnode(&self, fd: sys::RawFd, token: Token) -> io::Result<()> {
         self.selector.register_vnode(fd, token)
     }
 
-    /// Deregister an EVFILT_VNODE filter (macOS/BSD only).
+    /// Deregister an `EVFILT_VNODE` filter (macOS/BSD only).
+    ///
+    /// # Errors
+    /// Propagates the selector's deregistration error, or `Unsupported` on a
+    /// platform without vnode filters.
     pub fn deregister_vnode(&self, fd: sys::RawFd) -> io::Result<()> {
         self.selector.deregister_vnode(fd)
     }
@@ -457,6 +493,9 @@ pub struct Waker {
 
 impl Waker {
     /// Create a new waker associated with the given token.
+    ///
+    /// # Errors
+    /// Returns an error when the selector cannot register the user event.
     pub fn new(registry: &Registry, token: Token) -> io::Result<Self> {
         let selector = registry.selector.clone();
         selector.register_waker(token)?;
@@ -465,6 +504,10 @@ impl Waker {
 
     /// Wake the poll selector. The next `poll()` call will return
     /// immediately with an event for the waker's token.
+    ///
+    /// # Errors
+    /// Returns an error when no waker is registered or the kernel trigger
+    /// fails.
     pub fn wake(&self) -> io::Result<()> {
         self.selector.wake(self.token)
     }

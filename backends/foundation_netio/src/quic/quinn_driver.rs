@@ -105,6 +105,9 @@ pub struct QuicDriver {
     scratch: Vec<u8>,
     /// Scratch buffer for connection transmits.
     tx_buf: Vec<u8>,
+    /// Heap buffer for one inbound datagram. A stack array of the maximum
+    /// datagram size would overflow the worker's stack.
+    rx_buf: Vec<u8>,
     /// Caller-injected fd readiness. When `Some`, an idle poll returns
     /// `TaskStatus::Depends(fd)` — parking on the reactor rather than spinning.
     fd_readiness: Option<EventReadinessPtr>,
@@ -123,7 +126,7 @@ impl std::fmt::Debug for QuicDriver {
         f.debug_struct("QuicDriver")
             .field("connections", &self.conns.len())
             .field("parks_on_reactor", &self.fd_readiness.is_some())
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -137,6 +140,7 @@ impl QuicDriver {
             accept_wakers: Arc::new(Mutex::new(Vec::new())),
             scratch: Vec::with_capacity(MAX_DATAGRAM),
             tx_buf: Vec::with_capacity(MAX_DATAGRAM),
+            rx_buf: vec![0u8; MAX_DATAGRAM],
             fd_readiness: None,
             driver_woken: ResumeSignal::new(false),
             idle: IDLE_POLL,
@@ -228,6 +232,7 @@ impl QuicDriver {
     ///
     /// # Panics
     /// Never panics; a poisoned queue yields `None`.
+    #[must_use]
     pub fn take_accepted(&self) -> Option<QuinnConnection> {
         self.accepted.lock().ok()?.pop_front()
     }
@@ -237,6 +242,7 @@ impl QuicDriver {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub fn accept_queue(&self) -> Arc<Mutex<VecDeque<QuinnConnection>>> {
         Arc::clone(&self.accepted)
     }
@@ -297,8 +303,7 @@ impl QuicDriver {
 
     /// Read one datagram, if any, and route it. Returns whether work was done.
     fn pump_recv(&mut self, now: Instant) -> bool {
-        let mut buf = [0u8; MAX_DATAGRAM];
-        let (n, from) = match self.socket.recv_from(&mut buf) {
+        let (n, from) = match self.socket.recv_from(&mut self.rx_buf) {
             Ok(v) => v,
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return false,
             Err(e) => {
@@ -307,7 +312,7 @@ impl QuicDriver {
             }
         };
 
-        let data = BytesMut::from(&buf[..n]);
+        let data = BytesMut::from(&self.rx_buf[..n]);
         self.scratch.clear();
         let local_ip = self.socket.local_addr().ok().map(|a| a.ip());
 
@@ -446,7 +451,7 @@ impl QuicDriver {
                     quinn_proto::Event::DatagramReceived => {
                         // Drain all queued datagrams into ConnState's buffer.
                         while let Some(data) = guard.conn.datagrams().recv() {
-                            guard.recv_datagrams.push_back(bytes::Bytes::from(data));
+                            guard.recv_datagrams.push_back(data);
                         }
                     }
                     quinn_proto::Event::ConnectionLost { reason } => {
@@ -473,7 +478,7 @@ impl QuicDriver {
             waker.wake();
         }
         if let Ok(mut accept_wakers) = self.accept_wakers.lock() {
-            if !self.accepted.lock().map(|q| q.is_empty()).unwrap_or(true) {
+            if !self.accepted.lock().map_or(true, |q| q.is_empty()) {
                 for waker in accept_wakers.drain(..) {
                     waker.wake();
                 }

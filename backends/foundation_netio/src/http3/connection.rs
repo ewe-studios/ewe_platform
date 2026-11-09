@@ -293,7 +293,9 @@ impl<C: QuicConnection> H3Connection<C> {
             }
         }
 
-        let control = self.control.as_mut().expect("opened above");
+        let Some(control) = self.control.as_mut() else {
+            return Stream::Pending(());
+        };
 
         while self.control_preamble.has_remaining() {
             match control.send(&mut self.control_preamble) {
@@ -339,7 +341,9 @@ impl<C: QuicConnection> H3Connection<C> {
             }
         }
 
-        let control = self.peer_control.as_mut().expect("set above");
+        let Some(control) = self.peer_control.as_mut() else {
+            return Stream::Pending(());
+        };
         match control.poll_frame() {
             Stream::Next(Ok(Some(Frame::Settings(settings)))) => {
                 self.peer_settings = Some(settings);
@@ -526,7 +530,7 @@ impl<C: QuicConnection> H3Connection<C> {
         error
     }
 
-    /// Extract the underlying QUIC connection (for constructing a WtSession after
+    /// Extract the underlying QUIC connection (for constructing a `WtSession` after
     /// the Extended CONNECT handshake completes).
     pub fn into_conn(self) -> C {
         self.conn
@@ -668,7 +672,7 @@ impl<S: QuicBidiStream> H3Request<S> {
                     };
                 }
                 // RFC 9114 §9: ignore unknown frame types wherever they appear.
-                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => continue,
+                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => {}
                 Stream::Next(Ok(Some(other))) => {
                     return Stream::Next(Err(H3Error::Protocol {
                         code: error_code::H3_FRAME_UNEXPECTED,
@@ -713,7 +717,7 @@ impl<S: QuicBidiStream> H3Request<S> {
                         })),
                     };
                 }
-                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => continue,
+                Stream::Next(Ok(Some(Frame::Unknown { .. }))) => {}
                 Stream::Next(Ok(Some(other))) => {
                     return Stream::Next(Err(H3Error::Protocol {
                         code: error_code::H3_FRAME_UNEXPECTED,
@@ -793,7 +797,7 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// the peer to stop sending, or the unread bytes keep consuming the stream's
     /// and the connection's flow-control credit (RFC 9114 §4.1.1).
     ///
-    /// WHAT: abort the receive half with STOP_SENDING carrying `code`
+    /// WHAT: abort the receive half with `STOP_SENDING` carrying `code`
     /// (`H3_NO_ERROR` when the response is complete and simply does not need the
     /// rest of the request).
     pub fn stop_sending(&mut self, code: u64) {

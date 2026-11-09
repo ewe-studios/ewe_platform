@@ -39,6 +39,8 @@ pub struct FdReadiness {
 impl std::fmt::Debug for FdReadiness {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FdReadiness")
+            .field("readiness", &self.readiness)
+            .field("reactor", &self.reactor)
             .field("fd", &self.fd)
             .field("token", &self.token)
             .finish()
@@ -116,6 +118,7 @@ impl FdReadiness {
     /// before parking. The re-arm is part of this call, so a later, smaller
     /// frame can produce a new edge even without the clear. Clearing on the
     /// next read disarms the waker again.
+    #[must_use]
     pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
         self.reactor.register_waker(self.token, waker.clone())
     }
@@ -133,6 +136,7 @@ impl FdReadiness {
     /// generation advances past `since`) or `timeout` elapses; returns the
     /// generation observed on wake. A dedicated accept-loop thread uses this to
     /// park on a listener instead of a fixed sleep. See [`Reactor::wait_for_events`].
+    #[must_use]
     pub fn wait_for_events(&self, since: u64, timeout: Duration) -> u64 {
         self.reactor.wait_for_events(since, timeout)
     }

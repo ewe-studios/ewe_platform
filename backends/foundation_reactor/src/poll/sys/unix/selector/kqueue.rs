@@ -37,20 +37,32 @@ unsafe fn ev_set(
     ident: libc::uintptr_t,
     filter: i16,
     flags: u16,
-    fflags: u32,
+    filter_flags: u32,
     data: libc::intptr_t,
     udata: *mut libc::c_void,
 ) {
     ev.ident = ident;
     ev.filter = filter;
     ev.flags = flags;
-    ev.fflags = fflags;
+    ev.fflags = filter_flags;
     ev.data = data;
     ev.udata = udata;
 }
 
+/// Convert a file descriptor to the `uintptr_t` that kqueue uses as an `ident`.
+///
+/// A file descriptor is never negative. A negative value is an invalid input,
+/// so report it instead of wrapping it to a large unsigned number.
+fn fd_ident(fd: RawFd) -> io::Result<libc::uintptr_t> {
+    libc::uintptr_t::try_from(fd)
+        .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "negative file descriptor"))
+}
+
 impl Selector {
     /// Create a new kqueue selector.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `kqueue(2)` fails.
     pub fn new() -> io::Result<Self> {
         let kq_fd = unsafe {
             let fd = libc::kqueue();
@@ -68,6 +80,9 @@ impl Selector {
     }
 
     /// Create a kqueue selector wrapped in an `Arc`, with its `Registry`.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `kqueue(2)` fails.
     pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
         let selector = Arc::new(Self::new()?);
         let registry = Registry {
@@ -76,21 +91,26 @@ impl Selector {
         Ok((selector, registry))
     }
 
-    /// Register an EVFILT_VNODE filter for file watching on the given fd.
+    /// Register an `EVFILT_VNODE` filter for file watching on the given fd.
     ///
-    /// Unlike register_fd (which uses EVFILT_READ/WRITE), this registers
-    /// EVFILT_VNODE to track file system changes: write, delete, extend, rename, revoke.
+    /// Unlike `register_fd` (which uses `EVFILT_READ/WRITE`), this registers
+    /// `EVFILT_VNODE` to track file system changes: write, delete, extend, rename, revoke.
     /// Multiple filters can coexist on the same kqueue — events are distinguished
     /// by their filter field in the returned kevent.
     ///
     /// The fd must remain open for the lifetime of the watch — kqueue tracks by fd,
     /// not by path. If the fd is closed, the filter is automatically removed.
+    ///
+    /// # Errors
+    /// Returns an error if the descriptor is negative or the kernel refuses the
+    /// filter.
     pub fn register_vnode(&self, fd: RawFd, token: Token) -> io::Result<()> {
+        let ident = fd_ident(fd)?;
         let mut event: libc::kevent = unsafe { std::mem::zeroed() };
         unsafe {
             ev_set(
                 &mut event,
-                fd as libc::uintptr_t,
+                ident,
                 libc::EVFILT_VNODE,
                 libc::EV_ADD | libc::EV_CLEAR,
                 libc::NOTE_WRITE
@@ -106,7 +126,7 @@ impl Selector {
         let r = unsafe {
             libc::kevent(
                 self.kq.as_raw_fd(),
-                &event,
+                &raw const event,
                 1,
                 std::ptr::null_mut(),
                 0,
@@ -121,13 +141,18 @@ impl Selector {
         }
     }
 
-    /// Deregister an EVFILT_VNODE filter for the given fd.
+    /// Deregister an `EVFILT_VNODE` filter for the given fd.
+    ///
+    /// # Errors
+    /// Returns an error if the descriptor is negative or the kernel reports a
+    /// failure other than a missing filter.
     pub fn deregister_vnode(&self, fd: RawFd) -> io::Result<()> {
+        let ident = fd_ident(fd)?;
         let mut event: libc::kevent = unsafe { std::mem::zeroed() };
         unsafe {
             ev_set(
                 &mut event,
-                fd as libc::uintptr_t,
+                ident,
                 libc::EVFILT_VNODE,
                 libc::EV_DELETE,
                 0,
@@ -139,7 +164,7 @@ impl Selector {
         let r = unsafe {
             libc::kevent(
                 self.kq.as_raw_fd(),
-                &event,
+                &raw const event,
                 1,
                 std::ptr::null_mut(),
                 0,
@@ -159,7 +184,12 @@ impl Selector {
     }
 
     /// Register a raw file descriptor with the kqueue selector.
+    ///
+    /// # Errors
+    /// Returns an error if the descriptor is negative or the kernel refuses a
+    /// filter.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
+        let ident = fd_ident(fd)?;
         let mut events: [libc::kevent; 2] =
             [unsafe { std::mem::zeroed() }, unsafe { std::mem::zeroed() }];
         let mut count = 0;
@@ -168,7 +198,7 @@ impl Selector {
             unsafe {
                 ev_set(
                     &mut events[count],
-                    fd as libc::uintptr_t,
+                    ident,
                     libc::EVFILT_READ,
                     libc::EV_ADD | libc::EV_CLEAR, // edge-triggered
                     0,
@@ -183,7 +213,7 @@ impl Selector {
             unsafe {
                 ev_set(
                     &mut events[count],
-                    fd as libc::uintptr_t,
+                    ident,
                     libc::EVFILT_WRITE,
                     libc::EV_ADD | libc::EV_CLEAR,
                     0,
@@ -195,11 +225,13 @@ impl Selector {
         }
 
         if count > 0 {
+            let count = libc::c_int::try_from(count)
+                .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "too many kevents"))?;
             let r = unsafe {
                 libc::kevent(
                     self.kq.as_raw_fd(),
                     events.as_ptr(),
-                    count as libc::c_int,
+                    count,
                     std::ptr::null_mut(),
                     0,
                     std::ptr::null(),
@@ -214,6 +246,10 @@ impl Selector {
     }
 
     /// Re-register a raw file descriptor with new token and/or interest.
+    ///
+    /// # Errors
+    /// Returns an error if a filter cannot be deleted or the new filters cannot
+    /// be registered.
     pub fn reregister_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         // kqueue `EV_ADD` only adds or updates a filter; it never removes one.
         // A dropped interest must be `EV_DELETE`d explicitly or the filter keeps
@@ -228,11 +264,12 @@ impl Selector {
 
     /// Delete one kqueue filter, tolerating `ENOENT` (the filter is absent).
     fn delete_filter(&self, fd: RawFd, filter: i16) -> io::Result<()> {
+        let ident = fd_ident(fd)?;
         let mut event: libc::kevent = unsafe { std::mem::zeroed() };
         unsafe {
             ev_set(
                 &mut event,
-                fd as libc::uintptr_t,
+                ident,
                 filter,
                 libc::EV_DELETE,
                 0,
@@ -243,7 +280,7 @@ impl Selector {
         let r = unsafe {
             libc::kevent(
                 self.kq.as_raw_fd(),
-                &event,
+                &raw const event,
                 1,
                 std::ptr::null_mut(),
                 0,
@@ -260,7 +297,15 @@ impl Selector {
     }
 
     /// Deregister a raw file descriptor from the kqueue selector.
+    ///
+    /// # Errors
+    /// Returns an error if the descriptor is negative or the kernel reports a
+    /// failure other than a missing filter.
+    ///
+    /// # Panics
+    /// Panics if the read-edge lock is poisoned.
     pub fn deregister_fd(&self, fd: RawFd) -> io::Result<()> {
+        let ident = fd_ident(fd)?;
         let mut events: [libc::kevent; 2] =
             [unsafe { std::mem::zeroed() }, unsafe { std::mem::zeroed() }];
         let mut count = 0;
@@ -269,7 +314,7 @@ impl Selector {
         unsafe {
             ev_set(
                 &mut events[count],
-                fd as libc::uintptr_t,
+                ident,
                 libc::EVFILT_READ,
                 libc::EV_DELETE,
                 0,
@@ -282,7 +327,7 @@ impl Selector {
         unsafe {
             ev_set(
                 &mut events[count],
-                fd as libc::uintptr_t,
+                ident,
                 libc::EVFILT_WRITE,
                 libc::EV_DELETE,
                 0,
@@ -292,11 +337,13 @@ impl Selector {
         }
         count += 1;
 
+        let count = libc::c_int::try_from(count)
+            .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "too many kevents"))?;
         let r = unsafe {
             libc::kevent(
                 self.kq.as_raw_fd(),
                 events.as_ptr(),
-                count as libc::c_int,
+                count,
                 std::ptr::null_mut(),
                 0,
                 std::ptr::null(),
@@ -324,7 +371,13 @@ impl Selector {
         self.read_edges.lock().unwrap().remove(&fd);
     }
 
-    /// Register the waker (EVFILT_USER).
+    /// Register the waker (`EVFILT_USER`).
+    ///
+    /// # Errors
+    /// Returns the kernel error when the user event cannot be added.
+    ///
+    /// # Panics
+    /// Panics if the waker-token lock is poisoned.
     pub fn register_waker(&self, token: Token) -> io::Result<()> {
         let event = unsafe {
             let mut ev: libc::kevent = std::mem::zeroed();
@@ -343,7 +396,7 @@ impl Selector {
         let r = unsafe {
             libc::kevent(
                 self.kq.as_raw_fd(),
-                &event,
+                &raw const event,
                 1,
                 std::ptr::null_mut(),
                 0,
@@ -359,7 +412,14 @@ impl Selector {
         }
     }
 
-    /// Wake the poll selector by triggering the EVFILT_USER event.
+    /// Wake the poll selector by triggering the `EVFILT_USER` event.
+    ///
+    /// # Errors
+    /// Returns the kernel error when the trigger fails, or an error when no
+    /// waker is registered.
+    ///
+    /// # Panics
+    /// Panics if the waker-token lock is poisoned.
     pub fn wake(&self, _token: Token) -> io::Result<()> {
         let waker_token = self.waker_token.lock().unwrap();
         if let Some(wt) = *waker_token {
@@ -379,7 +439,7 @@ impl Selector {
             let r = unsafe {
                 libc::kevent(
                     self.kq.as_raw_fd(),
-                    &event,
+                    &raw const event,
                     1,
                     std::ptr::null_mut(),
                     0,
@@ -393,7 +453,7 @@ impl Selector {
                 Ok(())
             }
         } else {
-            Err(io::Error::new(io::ErrorKind::Other, "waker not registered"))
+            Err(io::Error::other("waker not registered"))
         }
     }
 
@@ -409,11 +469,6 @@ impl Selector {
     ///
     /// # Panics
     /// Panics if an internal lock is poisoned.
-    #[allow(
-        clippy::cast_possible_truncation,
-        clippy::cast_possible_wrap,
-        clippy::cast_sign_loss
-    )]
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         let deadline = timeout.map(|d| os_now() + d);
 
@@ -425,6 +480,8 @@ impl Selector {
 
             // Get pointer to the Vec's buffer and its capacity (not length)
             let (ptr, cap) = events.as_mut_ptr_and_cap();
+            let nchanges = libc::c_int::try_from(cap)
+                .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "too many events"))?;
 
             let n = unsafe {
                 libc::kevent(
@@ -432,7 +489,7 @@ impl Selector {
                     std::ptr::null(),
                     0,
                     ptr.cast::<libc::kevent>(),
-                    cap as libc::c_int,
+                    nchanges,
                     ts_ptr,
                 )
             };
@@ -451,7 +508,9 @@ impl Selector {
                 return Err(err);
             }
 
-            events.set_len(n as usize);
+            // `kevent` never returns a negative count here, so the conversion
+            // cannot fail.
+            events.set_len(usize::try_from(n).unwrap_or_default());
             break;
         }
 
@@ -471,16 +530,20 @@ impl Selector {
                 let ev = slice[i];
                 let plain_readable = ev.is_readable() && !ev.is_read_closed() && !ev.is_error();
                 if plain_readable {
-                    let fd = ev.ident() as RawFd;
-                    let data = ev.data() as usize;
-                    let new_edge = match edges.get(&fd) {
-                        None => true,
-                        Some(&last) => data > last,
-                    };
-                    if !new_edge {
-                        continue;
+                    // `ident` carries the registered fd. A value that does not
+                    // fit an fd is not one this selector tracks, so keep the
+                    // event and skip edge bookkeeping.
+                    if let Ok(fd) = RawFd::try_from(ev.ident()) {
+                        let data = usize::try_from(ev.data()).unwrap_or_default();
+                        let new_edge = match edges.get(&fd) {
+                            None => true,
+                            Some(&last) => data > last,
+                        };
+                        if !new_edge {
+                            continue;
+                        }
+                        edges.insert(fd, data);
                     }
-                    edges.insert(fd, data);
                 }
                 slice[keep] = ev;
                 keep += 1;
@@ -521,8 +584,6 @@ impl Selector {
 /// A zero value means "do not block", so the last round after a signal waits
 /// for whatever is left of the caller's timeout, not for the whole timeout
 /// again.
-#[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-
 /// The real monotonic clock for the kernel wait arithmetic.
 ///
 /// The selector blocks in the operating system, so the deadline it recomputes

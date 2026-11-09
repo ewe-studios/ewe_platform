@@ -45,8 +45,8 @@ const BUDGET: Duration = Duration::from_secs(5);
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) -> bool {
     let s = server.next_status(Ctx::host());
     let c = client.next_status(Ctx::host());
-    matches!(s, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
-        || matches!(c, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
+    matches!(s, Some(TaskStatus::Ready(_) | TaskStatus::Pending(())))
+        || matches!(c, Some(TaskStatus::Ready(_) | TaskStatus::Pending(())))
 }
 
 /// Drive both sides until `done` returns `Some`, or the budget expires.
@@ -117,13 +117,10 @@ fn write_all(
         if !buf.has_remaining() {
             return Some(());
         }
-        match stream.send(&mut buf) {
-            Stream::Next(Ok(_)) => {}
-            Stream::Next(Err(e)) => panic!("stream send failed: {e}"),
-            // Flow-control window full. This is the back-pressure signal, and the
-            // reason h3's `poll_ready` is unnecessary here.
-            Stream::Pending(()) => {}
-            _ => {}
+        // Written bytes, back-pressure (a full flow-control window) and a delay
+        // all mean the loop should try again on the next drive.
+        if let Stream::Next(Err(e)) = stream.send(&mut buf) {
+            panic!("stream send failed: {e}");
         }
         None
     })
@@ -452,7 +449,7 @@ fn queued_reset_wakes_a_driver_parked_on_readiness() {
     let parked = loop {
         match server.next_status(Ctx::host()) {
             Some(TaskStatus::Depends(r)) => break r,
-            Some(_) => continue,
+            Some(_) => {}
             None => panic!("server driver ended unexpectedly"),
         }
     };

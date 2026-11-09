@@ -53,7 +53,8 @@ pub enum Backend {
 }
 
 impl Backend {
-    /// Whether this backend is one of the io_uring modes.
+    /// Whether this backend is one of the `io_uring` modes.
+    #[must_use]
     pub fn is_uring(self) -> bool {
         matches!(self, Backend::UringReadiness | Backend::UringCompletion)
     }
@@ -76,9 +77,9 @@ pub enum BackendPreference {
     /// Walk the ladder and surface the choice. Never fails on a supported OS.
     #[default]
     Auto,
-    /// io_uring is a **requirement**. Probe failure is a hard error carrying
+    /// `io_uring` is a **requirement**. Probe failure is a hard error carrying
     /// the probe detail — no silent demotion to epoll. Demotion *within*
-    /// io_uring (completion → readiness on a 5.13–5.18 kernel) is fine: the
+    /// `io_uring` (completion → readiness on a 5.13–5.18 kernel) is fine: the
     /// caller asked for uring and got uring.
     Uring,
     /// epoll, with no probe run.

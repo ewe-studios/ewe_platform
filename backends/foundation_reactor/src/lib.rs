@@ -7,7 +7,7 @@
 //! `foundation_db`, which depends on `foundation_netio` — so netio could never
 //! reach it.
 //!
-//! WHAT: [`poll`] (the epoll/kqueue/io_uring selector), [`Ready`], the shared
+//! WHAT: [`poll`] (the `epoll/kqueue/io_uring` selector), [`Ready`], the shared
 //! [`Reactor`] and its [`SharedReadiness`] view, and [`FdReadiness`] (the
 //! `EventReadiness` that can also wake a `std::task::Waker`).
 //!
