@@ -5972,7 +5972,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "async-trait",
  "aws-lc-rs",

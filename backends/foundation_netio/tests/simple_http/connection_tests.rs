@@ -230,7 +230,12 @@ fn test_connection_https_local() {
     let addr = listener.local_addr().expect("addr");
     let handshake = std::thread::spawn(move || {
         let (socket, _) = listener.accept().expect("accept");
-        acceptor.accept(Connection::Tcp(socket)).map(|_| ())
+        // Drive the server side too: the client now finishes its handshake
+        // before `connect_with_tls_config` returns (issue #277).
+        let tls = acceptor
+            .accept(Connection::Tcp(socket))
+            .expect("server-side accept");
+        tls.drive_handshake().expect("server-side handshake");
     });
 
     let mut roots = rustls::RootCertStore::empty();
@@ -251,10 +256,7 @@ fn test_connection_https_local() {
     );
 
     assert!(result.is_ok(), "TLS connect failed: {:?}", result.err());
-    handshake
-        .join()
-        .expect("server thread")
-        .expect("server-side handshake");
+    handshake.join().expect("server thread");
 }
 
 /// WHY: Verify `HttpClientConnection` respects connection timeout
