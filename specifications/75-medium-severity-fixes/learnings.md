@@ -5,6 +5,27 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, issues #290 and #437: one item per poll, and a blocking handler
+
+- An edge-triggered readiness contract needs a drain loop. The driver clears the latched
+  flag before each read, so it must read until `WouldBlock`. Reading one datagram leaves
+  the rest of the queue with no edge left to report it. The same applies to a producer:
+  `poll_transmit` yields one datagram per call, so drain it too.
+- Round-robin the drain over several connections. Draining one connection to empty starves
+  the others when the congestion window is large.
+- A 1 ms sleep loop inside a future is not a neutral wait. It holds the executor thread.
+  The valtron pool shares a thread between tasks, so a handler that sleeps can stop the
+  QUIC driver that serves it. Park with `register_waker` plus `Pending` instead.
+- Prove a flake with a soak that stops at the first failure, and keep the failing run. A
+  single green run proves nothing. The pre-fix soak failed at 101 of 1000.
+- Heavy tracing can hide a timing bug. A 400-attempt soak with full reactor and executor
+  tracing passed, while the same code with driver-identity-only tracing failed. Trace the
+  least you can and keep the log small.
+- Record the thread id and the local port in each trace line. They attributed the stall to
+  one driver on one thread in one read.
+- Copy the trace to a failure file at the first failure. The log of a later run overwrites
+  the evidence.
+
 ## 2026-11-09, the first audit of the branch: a green clippy step can mean nothing
 
 - A clippy step without `-- -D warnings` passes with any number of warnings. A green

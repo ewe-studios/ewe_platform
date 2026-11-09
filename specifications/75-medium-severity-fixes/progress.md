@@ -4,6 +4,47 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issues #290 and #437, the h3 echo test flake
+
+`http3_server_echoes_a_request_over_quic` failed about once in 100 runs on macOS. A
+1000-attempt soak stopped at attempt 101. Two causes, both fixed in this branch.
+
+### #290, the driver handles one item per poll
+
+`QuicDriver::pump_recv` read one datagram per poll. The driver parks on edge-triggered
+socket readiness and clears the latched flag before each read, so a second datagram that
+arrived with the first stayed unread until the peer retransmitted. `pump_transmit` sent
+one datagram per connection per poll, so a body queued behind its headers kept the rest
+until an unrelated wake.
+
+| Fix | Commit |
+| --- | --- |
+| `pump_recv` drains to `WouldBlock`; `pump_transmit` round-robins until a round sends nothing; a failed `send_to` is logged | `c7c5e42f4` |
+| Regression test `one_poll_reads_every_queued_datagram` queues two datagrams and proves one poll routes both | same commit |
+
+### #437, the test handler blocks its executor thread
+
+`EchoH3::serve_h3` slept 1 ms between polls. The valtron pool may put the client driver on
+the same thread, so the handler stopped the driver for up to 10 s. The handler now
+registers the connection waker before each poll and returns `Pending`, which is the
+protocol `foundation_connectrpc` uses. Commit `fc71f8768`.
+
+### Soak results
+
+| Run | Handler | Trace | Result |
+| --- | --- | --- | --- |
+| 400 attempts | blocking | full reactor and executor trace | no failure (the trace changed the timing) |
+| 1000 attempts | blocking | driver identity only | failed at 101 |
+| 1000 attempts | async | driver identity only | no failure |
+| 500 attempts | async | none | no failure |
+
+After the revert of the diagnostic traces, these tests pass: `foundation_netio --features
+quic --test quic` (10), `foundation_http --features quic --test http3_server_tests` (3),
+and clippy with `-D warnings` for both crates.
+
+Next: the open medium issues outside #290 and #437 still need their fix. The clippy debt
+of the remaining packages follows issue #436.
+
 ## 2026-11-09: issue #436, every package denies clippy warnings
 
 The workspace has 110 packages and 108 run clippy. Only 15 set
