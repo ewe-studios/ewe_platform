@@ -43,6 +43,19 @@ _Newest first. Updated after each batch. See
 - Schedule the no-progress task first and a finite sibling second. Run a fixed number of
   `run_once` ticks and assert that the sibling finished. The old order never runs the
   sibling. The new order gives it a turn after every no-progress poll.
+
+### A CPU bound in a test must include its own bookkeeping (issue #425)
+
+- The idle-CPU test measured every `valtron-worker` thread and required under 2 ms of CPU
+  in one second. The Linux container measured 2.3 to 2.7 ms. The workers made 8 to 9
+  wake-ups, which is the documented idle rate, so they did not spin.
+- One wake costs about 0.25 ms of CPU in the unoptimised `uat` build. The 2 ms bound had no
+  room for the wake cost and the container scheduler.
+- Raise the bound to 10 ms. This is 2.7 times below the old defect (about 27 ms) and 3.5
+  times above the measured steady state. Keep the wake-up bound at 30, because the defect
+  made about 900 wake-ups.
+- Measure a bound against the defect it must catch, not against a best-case run.
+
 ### Read the status before you read the body (issue #410)
 
 - The unary client read the whole response body, then checked the HTTP status. A 256 KiB
