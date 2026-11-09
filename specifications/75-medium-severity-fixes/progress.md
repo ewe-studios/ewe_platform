@@ -4,6 +4,38 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: batch 2, the rpc and netio checks (branch `spec75/rpc-netio-medium`)
+
+This branch starts from commit `4ca007301` and fixes two medium-severity issues.
+
+| Issue | Crate | Fix |
+| --- | --- | --- |
+| #410 | foundation_connectrpc | A unary call checks the HTTP status first. A non-OK body gives a bounded error message. |
+| #420 | foundation_netio | `Connection::connect_unix` takes the read timeout as configuration. |
+| #390 | foundation_connectrpc | The dropped pipe `close` results now use `let _ =`. |
+| #424 | foundation_connectrpc | A deregistered socket returns an error, not a lost wake. |
+
+#424 is a new low-severity issue. It records the two `FdReadiness::register_waker` results
+that `conn_io` ignored. The same branch fixes it.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_connectrpc` | Pass, 34 test binaries |
+| `cargo test --profile uat -p foundation_connectrpc --features h3` | Pass, 37 test binaries |
+| `cargo test --profile uat -p foundation_netio` | Pass, 6 test binaries |
+| `cargo clippy --profile uat -p foundation_connectrpc --all-targets --all-features --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_netio --features quic --all-targets --no-deps -- -D warnings` | Zero warnings |
+| wasm32 check, foundation_connectrpc `--no-default-features --features rpc` | Pass |
+| wasm32 check, foundation_netio `--no-default-features --features wasm-fetch` | Pass |
+
+### Next
+
+- Batch 2 must fix these open medium-severity issues:
+  - foundation_core: #291, #293, #294, #296, #300, #303, #311, #407, #408.
+  - foundation_wasmtime: #416.
+
 ## 2026-11-09: batch 1 is complete on `fix/medium-integration`
 
 The branch collects the fixes for 29 medium-severity issues. Each fix has its own commits

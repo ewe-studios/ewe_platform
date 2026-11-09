@@ -22,7 +22,7 @@ tracing-subscriber = { version = "0.3.18" }
 
 [dev-dependencies]
 # netio client for the end-to-end route test.
-foundation_netio = { path = "../../../backends/foundation_netio", version = "0.0.10" }
+foundation_netio = { path = "../../../backends/foundation_netio", version = "0.0.11" }
 
 [features]
 default = []

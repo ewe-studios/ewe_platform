@@ -71,6 +71,17 @@ pub struct ClientConfig {
     /// this socket path. `None` (default) uses the normal TCP/TLS path.
     #[cfg(unix)]
     pub unix_socket: Option<std::path::PathBuf>,
+    /// Read timeout applied to a Unix-domain socket connection.
+    ///
+    /// WHY: Docker and `BuildKitd` close the socket after each response. A
+    /// blocking read on a dead socket hangs forever, so a read timeout turns
+    /// that read into `WouldBlock`, which the buffer layer handles.
+    ///
+    /// Default 5 s: the value `Connection::connect_unix` used hard-coded before
+    /// issue #420. A valid response that sends no bytes for more than 5 s still
+    /// ends the read; raise this for a server with longer pauses.
+    #[cfg(unix)]
+    pub unix_read_timeout: Duration,
 }
 
 impl ClientConfig {
@@ -289,6 +300,15 @@ impl ClientConfig {
         self
     }
 
+    /// Set the read timeout on a Unix-domain socket connection (default 5 s,
+    /// see [`ClientConfig::unix_read_timeout`]).
+    #[cfg(unix)]
+    #[must_use]
+    pub fn with_unix_read_timeout(mut self, timeout: Duration) -> Self {
+        self.unix_read_timeout = timeout;
+        self
+    }
+
     #[must_use]
     pub fn with_write_timeout(mut self, timeout: Duration) -> Self {
         let mut config = *self.timeout_calculator.config();
@@ -337,6 +357,8 @@ impl Default for ClientConfig {
             headers_to_add: None,
             #[cfg(unix)]
             unix_socket: None,
+            #[cfg(unix)]
+            unix_read_timeout: Duration::from_secs(5),
         }
     }
 }

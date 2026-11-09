@@ -40,13 +40,13 @@ concurrent-queue = { workspace = true }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
 # netio is target-gated so wasm never pulls its `multi` feature (native =
 # defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
-foundation_netio = { path = "../foundation_netio", version = "0.0.10" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.11" }
 
 # On wasm32, uuid takes its randomness from `crypto.getRandomValues` through
 # its `js` feature, which needs `js-sys`/`wasm-bindgen` and no `getrandom`.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.10", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.11", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { version = "0.2", optional = true }

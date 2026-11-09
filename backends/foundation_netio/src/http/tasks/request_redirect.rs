@@ -472,14 +472,17 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         if let Some(socket_path) = unix_socket {
             #[cfg(unix)]
             {
-                let connection =
-                    match pool.create_connection_unix(&descriptor.request_uri, &socket_path) {
-                        Ok(c) => c,
-                        Err(err) => {
-                            tracing::error!("Failed to connect unix: {:?}", err);
-                            return self.fail(HttpClientError::ConnectionError);
-                        }
-                    };
+                let connection = match pool.create_connection_unix(
+                    &descriptor.request_uri,
+                    &socket_path,
+                    config.unix_read_timeout,
+                ) {
+                    Ok(c) => c,
+                    Err(err) => {
+                        tracing::error!("Failed to connect unix: {:?}", err);
+                        return self.fail(HttpClientError::ConnectionError);
+                    }
+                };
                 let host = descriptor
                     .request_uri
                     .host_str()

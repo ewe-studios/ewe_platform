@@ -5,6 +5,40 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Batch 2 (2026-11-09)
+
+### Read the status before you read the body (issue #410)
+
+- The unary client read the whole response body, then checked the HTTP status. A 256 KiB
+  error body then delayed the error and used memory for data that becomes one message.
+- The fix reads the response head, then branches on the status. For a non-OK status it reads
+  only `error_body_max_bytes` (default 8 KiB) and drops the stream. The error returns at
+  once, and the body closes early.
+- The regression test writes 64 chunks of 4 KiB through a pipe. It asserts that the message
+  length is the cap and that the sender did not finish every chunk. A timer is not needed,
+  because the dropped stream is the proof.
+- The cap is a field of `SizeLimits` with a builder method. The default follows nginx's
+  error-page buffer and `foundation_db`'s error-body default.
+
+### A hard-coded socket timeout is configuration (issue #420)
+
+- `Connection::connect_unix` set a read timeout of 5 seconds and ignored the result of
+  `set_read_timeout`. A caller could not change the timeout, and a failed set was silent.
+- The timeout is now a `ClientConfig` field with a builder method. `connect_unix` takes it
+  as an argument and returns the error when the platform cannot set it.
+- The test reads the timeout back from the kernel socket option. It proves that the
+  configured value reaches the socket without a sleep.
+
+### An ignored `must_use` result can be a lost wake (issues #390, #424)
+
+- `PipeSender::close` returns a bool that only reports who closed the pipe. A dropped result
+  is correct there, and `let _ =` records that choice.
+- `FdReadiness::register_waker` is different: `false` means the reactor no longer holds the
+  fd, so the waker will never fire. Ignoring it parks the task forever. The fix returns
+  `BrokenPipe` so the poll fails instead.
+- The per-crate clippy command shows residual warnings from dependency crates. CI uses
+  `--no-deps -- -D warnings`, so only the crate's own warnings fail the run.
+
 ## Batch 1 (2026-11-09)
 
 ### One reactor registration per fd, not one per token (issue #421)
