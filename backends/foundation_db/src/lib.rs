@@ -4,7 +4,8 @@
 //!
 //! - **`core/`** — shared between native and wasm (traits, errors, memory backends,
 //!   D1/R2 HTTP backends, schema, crypto, cleanup)
-//! - **`native/`** — non-wasm only (turso, libsql, `json_file`, `rows_stream`)
+//! - **`native/`** — non-wasm targets, plus wasm with the WebAssembly System
+//!   Interface (WASI) for `json_file` (turso, libsql, `json_file`, `rows_stream`)
 //! - **`wasm/`** — wasm32 only (CF D1/R2/KV wasm-bindgen bindings)
 //!
 //! # Storage Providers
@@ -14,7 +15,7 @@
 //! - Cloudflare D1 - Edge `SQLite` for Cloudflare Workers
 //! - Cloudflare R2 - Object storage for larger blobs
 //! - In-Memory - Ephemeral storage for development/testing
-//! - JSON File - Simple JSON-on-disk key-value store (native only)
+//! - JSON File - Simple JSON-on-disk key-value store (native and WASI)
 
 // The `turso` crate's async methods nest past the default trait-solver
 // recursion limit (128). `TursoStorage::set` (an `async_trait` impl) resolves
@@ -29,8 +30,9 @@ pub mod core;
 // Central storage provider (wraps all backends)
 pub mod storage_provider;
 
-// Native — TCP/DB backends, rows streaming
-#[cfg(not(target_family = "wasm"))]
+// Native — TCP/DB backends, rows streaming. `json_file` also needs only
+// filesystem access, which a wasm target with WASI has.
+#[cfg(json_file_backend)]
 pub mod native;
 
 // Wasm — optional wasm-bindgen bridge for Cloudflare Workers (D1/R2/KV)
@@ -56,8 +58,8 @@ pub use core::storage_provider::{
     SqlRow,
 };
 
-// Native-only re-exports
-#[cfg(not(target_family = "wasm"))]
+// Native and WASI re-exports
+#[cfg(json_file_backend)]
 pub use native::*;
 
 // Wasm-bindgen storage re-exports (wasm32 only)
