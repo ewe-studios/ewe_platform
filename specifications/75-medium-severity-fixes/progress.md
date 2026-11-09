@@ -4,6 +4,97 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #257, a peer stop reaches the h3 handler
+
+A client that cancels a Connect call after its request body ends stayed invisible to
+`dispatch_h3`. The unary handler ran to completion, and the streaming exchange waited on
+a `std::future::pending()` that never resolved.
+
+Cause: `quinn-proto` frees a stream's receive state when the body reads FIN and drains.
+A `RESET_STREAM` that arrives after that point is dropped with
+`received RESET_STREAM on closed stream`. The one frame that still arrives is
+`STOP_SENDING` on our send half (RFC 9114 section 4.1.2).
+
+Changes:
+
+| Crate | Change |
+| --- | --- |
+| `foundation_netio` | `QuicSendStream::stopped()` returns the peer's `STOP_SENDING` code, default `None`. `QuinnSendStream` reads `SendStream::stopped()`; `QuinnBidiStream` delegates to its send half. `H3Request::peer_stopped()` exposes it. |
+| `foundation_connectrpc` | Unary races the handler against a probe. A stop cancels the call's `Ctx` and resets the response half with `H3_REQUEST_CANCELLED`. Streaming passes the probe as the `gone` future of `exchange_until_aborted`, and the `PeerGone` arm resets the response half. |
+
+`foundation_netio` goes from 0.0.11 to 0.0.12. Every consumer requirement and every
+committed lockfile names 0.0.12.
+
+Tests:
+
+| Test | Proves |
+| --- | --- |
+| `foundation_netio`, `peer_stop_sending_surfaces_on_the_send_half` | The backend reports the stop code and latches it |
+| `foundation_connectrpc`, `peer_stop_sending_after_unary_body_cancels_the_call` | A unary call ends when the peer stops after its body ends; the `Ctx` is cancelled |
+| `foundation_connectrpc`, `peer_stop_sending_after_request_end_cancels_a_stream` | The same for a streaming call |
+
+Both connectrpc tests were run against the old code. Each timed out while waiting for
+`dispatch_h3` to complete, so each proves the fix.
+
+Verification:
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_netio --features quic --test quic` | 9 passed |
+| `cargo test --profile uat -p foundation_connectrpc --features h3` | 308 passed |
+| `cargo test --profile uat -p foundation_http --features quic` | Pass |
+| `cargo clippy --profile uat -p foundation_connectrpc --all-targets --all-features --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_netio --all-targets --features quic --no-deps -- -D warnings` | Zero warnings |
+| `cargo fmt -p foundation_netio -p foundation_connectrpc --check` | Pass |
+
+## 2026-11-09: issue #409, the h2 server path leaves the shared router
+
+`shared/router/dispatch.rs` held nineteen `cfg(not(target_family = "wasm"))` gates. The
+HTTP/2 server path names `foundation_netio::http2` types and valtron pipes, so it is
+native-only, but it sat in the target-agnostic tree.
+
+The path now lives in `native/dispatch_h2.rs`: `run_unary`, `send_whole_response`,
+`H2Body`, `collect_h2_body`, `dispatch_h2`, `run_streaming_h2`, `grpc_status_trailers`
+and the h2 header helpers. `h3_serve.rs` imports them from there.
+`shared/router/dispatch.rs` has no wasm target gate. Three items became `pub(crate)`:
+`ConnectRpcHandler::router`, `deadline_response` and `is_framing_header`.
+
+The agent also discarded the `#[must_use]` result of `PipeSender::close` in the h3
+server and transport. The all-features lint gate rejected the eight existing discards.
+
+Verification:
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_connectrpc` | 273 passed |
+| `cargo test --profile uat -p foundation_connectrpc --features h3` | 308 passed after the merge |
+| `cargo clippy --profile uat -p foundation_connectrpc --all-targets --all-features --no-deps -- -D warnings` | Zero warnings |
+| wasm check, `--no-default-features --features rpc` | Zero warnings |
+
+## 2026-11-09: issue #290, the HTTP/3 echo test does not reproduce
+
+`http3_server_echoes_a_request_over_quic` fails about 1 to 3 times in 100 runs. The
+failure is `poll_headers` with no response headers after 15 s (`tests/http3_server_tests.rs:209`).
+
+Two soak runs:
+
+| Run | Command | Result |
+| --- | --- | --- |
+| 50 runs | `cargo test --profile uat -p foundation_http --features quic --test http3_server_tests http3_server_echoes_a_request_over_quic -- --exact` | 1 failure at run 30 |
+| 200 runs | same command, the failing output copied to `/tmp/290-fail.log` | 0 failures |
+
+The first failure is real: `error: test failed` at run 30, and run 31 passed at once. The
+soak script printed only the test result, so the panic text is lost. The second soak
+captured no panic at all.
+
+The working tree holds the #257 probe on the send half. That probe gives a future run a
+new observable: a `STOP_SENDING` that arrives while the handler waits. It does not change
+the handshake path, so it does not explain the negative result.
+
+Issue #290 stays open with this evidence. The next pickup must print the test's own
+stderr on failure, and it must record the driver state (connection, stream and packet
+counters) at the moment of the timeout.
+
 ## 2026-11-09: issue #428, the macOS watcher compiles again
 
 `foundation_nativeapis` did not compile with `--features watcher-macos`. The error was

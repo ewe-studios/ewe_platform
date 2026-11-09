@@ -792,6 +792,22 @@ impl<S: QuicBidiStream> H3Request<S> {
         QuicRecvStream::register_waker(self.framed.get_ref(), waker)
     }
 
+    /// WHY: a client that no longer wants the response sends `STOP_SENDING` for
+    /// this request's write half (RFC 9114 section 4.1.2). After the request
+    /// body ends, that frame is the only cancellation signal left: a
+    /// `RESET_STREAM` for the request stream arrives after quinn-proto has freed
+    /// its receive state, so the read half never reports it (issue #257).
+    ///
+    /// WHAT: the application error code the peer sent with `STOP_SENDING`, once
+    /// it arrives. `None` means the peer has not stopped the response.
+    ///
+    /// HOW: register a waker with [`H3Request::register_waker`] before polling
+    /// this value, so the driver wakes the caller when the stop arrives.
+    #[must_use]
+    pub fn peer_stopped(&self) -> Option<u64> {
+        QuicSendStream::stopped(self.framed.get_ref())
+    }
+
     /// WHY: a server that answers before reading the whole request (an early
     /// `413`, or a response that ends while the request is still open) must tell
     /// the peer to stop sending, or the unread bytes keep consuming the stream's

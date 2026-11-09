@@ -181,19 +181,6 @@ pub async fn dispatch_h3(
     // ── 3. Dispatch ──────────────────────────────────────────────────────
     match &entry.handler {
         HandlerKind::Unary(handler_fn) => {
-            // Known limitation (issue #257): a peer that resets the request
-            // stream after its body ends stays invisible here. HTTP/3 has no
-            // reset probe that this crate can read: `QuicRecvStream` exposes
-            // only the next body chunk, and `H3Request` has no `stopped()`
-            // wrapper. The handler therefore runs to completion and the reset
-            // shows up only as a failed response send below. Fixing it needs a
-            // reset probe in foundation_netio — see
-            // `backends/foundation_netio/src/quic/traits.rs:245`
-            // (`QuicRecvStream`) and `.../src/http3/connection.rs:698`
-            // (`poll_body`). Small requests are the common case, so a reset
-            // most often arrives before the body ends, which the read below
-            // does report.
-            //
             // Unary carries exactly one message: collect it, but never past the
             // cap — the first chunk over `read_max_bytes` ends the read.
             let read_max_bytes = entry.options.limits.read_max_bytes;
@@ -219,17 +206,46 @@ pub async fn dispatch_h3(
             // The deadline bounds the handler; the body read above is bounded
             // by the transport's own idle timeout.
             let cancel = ctx.cancel_signal().clone();
-            let response = run_unary(
-                handler_fn.clone(),
-                protocol,
-                request,
-                codec_name,
-                compression,
-                ctx,
-                read_max_bytes,
-                Some(&ThreadTimer),
-            )
-            .await;
+            // A client that cancels after its request body ends sends
+            // `STOP_SENDING` for our write half, which is the only signal left
+            // once the stream's receive state is freed (issue #257). Race it
+            // against the handler, or the handler runs to completion and its
+            // response goes to a peer that has stopped reading.
+            // The probe borrows `req` for as long as it is alive, so it lives
+            // in an inner scope that ends before the response is written.
+            let raced = {
+                let run = std::pin::pin!(run_unary(
+                    handler_fn.clone(),
+                    protocol,
+                    request,
+                    codec_name,
+                    compression,
+                    ctx,
+                    read_max_bytes,
+                    Some(&ThreadTimer),
+                ));
+                let stopped = std::pin::pin!(peer_stopped(&mut req));
+                match futures::future::select(run, stopped).await {
+                    futures::future::Either::Left((response, _stopped)) => {
+                        UnaryRace::Answered(response)
+                    }
+                    futures::future::Either::Right((code, _run)) => UnaryRace::Stopped(code),
+                }
+            };
+            let response = match raced {
+                UnaryRace::Answered(response) => response,
+                UnaryRace::Stopped(code) => {
+                    tracing::debug!(
+                        code,
+                        "h3 peer stopped the response half; cancelling the unary call"
+                    );
+                    cancel.cancel();
+                    // RFC 9114 section 4.1.2: a sender that receives
+                    // `STOP_SENDING` SHOULD reset the stream.
+                    req.reset(error_code::H3_REQUEST_CANCELLED);
+                    return Ok(());
+                }
+            };
             let sent = send_h3_response(&mut req, response).await;
             if sent.is_err() {
                 // The peer is gone; anything the handler left running stops.
@@ -389,13 +405,32 @@ async fn run_streaming_h3(
             Ok::<bool, io::Error>(opened)
         };
 
+        // A client that cancels sends `STOP_SENDING` for our write half. After
+        // the request body ends, that frame is the only cancellation left: a
+        // `RESET_STREAM` for a stream whose receive state is already freed is
+        // dropped (issue #257). A reset while the peer still streams the
+        // request is reported by the feeder instead.
+        let gone = async {
+            match poll_shared(&shared, |r| match r.peer_stopped() {
+                Some(code) => VStream::Next(Ok(code)),
+                None => VStream::Pending(()),
+            })
+            .await
+            {
+                Ok(code) => {
+                    tracing::debug!(code, "h3 peer stopped the response half; ending the stream");
+                }
+                Err(e) => {
+                    tracing::debug!(error = %e, "h3 peer-stop probe failed");
+                }
+            }
+        };
+
         let rest = std::pin::pin!(exchange_until_aborted(
             request_side,
             response_side,
             dispatch::deadline_expiry(Some(&ThreadTimer), deadline),
-            // A reset of our response half shows up as a failed send in the
-            // pump; QUIC offers no separate signal to wait on.
-            std::future::pending::<()>(),
+            gone,
             &cancel,
         ));
         let pump = std::pin::pin!(pump);
@@ -430,6 +465,9 @@ async fn run_streaming_h3(
         }
         StreamEnd::Aborted(Abort::PeerGone) => {
             cancel.cancel();
+            // RFC 9114 section 4.1.2: a sender that receives `STOP_SENDING`
+            // SHOULD reset the stream.
+            req.reset(error_code::H3_REQUEST_CANCELLED);
             return Ok(());
         }
         StreamEnd::Aborted(Abort::Deadline) => {
@@ -529,14 +567,47 @@ fn map_h3<T>(
         VStream::Next(Err(e)) => Poll::Ready(Err(io::Error::other(e.to_string()))),
         _ => {
             if !parked {
-                if !SELF_WAKE_LOGGED.swap(true, Ordering::Relaxed) {
-                    tracing::debug!("h3 request backend cannot register a waker; self-waking");
-                }
-                cx.waker().wake_by_ref();
+                self_wake(cx);
             }
             Poll::Pending
         }
     }
+}
+
+/// Wake our own task when the backend cannot register a waker, so valtron
+/// requeues it behind the driver. Logs once per process.
+fn self_wake(cx: &Context<'_>) {
+    if !SELF_WAKE_LOGGED.swap(true, Ordering::Relaxed) {
+        tracing::debug!("h3 request backend cannot register a waker; self-waking");
+    }
+    cx.waker().wake_by_ref();
+}
+
+/// Wait until the peer stops our response half (`STOP_SENDING`).
+///
+/// WHY: a client that cancels a call sends `STOP_SENDING` for the direction it
+/// will not read (RFC 9114 section 4.1.2). Once the request body has ended,
+/// quinn-proto frees the stream's receive state, and a `RESET_STREAM` that
+/// arrives later is dropped. `STOP_SENDING` is then the only cancellation that
+/// a handler can still observe (issue #257).
+///
+/// WHAT: resolves with the peer's application error code the first time the
+/// stop is set.
+///
+/// HOW: checks the send half, then parks on the connection's waker the same way
+/// [`poll_req`] does. A backend with no stop signal never resolves, so the
+/// caller's other branch decides the call.
+fn peer_stopped(req: &mut Req) -> impl Future<Output = u64> + '_ {
+    std::future::poll_fn(move |cx: &mut Context<'_>| {
+        let parked = req.register_waker(cx.waker());
+        if let Some(code) = req.peer_stopped() {
+            return Poll::Ready(code);
+        }
+        if !parked {
+            self_wake(cx);
+        }
+        Poll::Pending
+    })
 }
 
 /// Poll an `H3Request` method until it yields `Next(..)`, parking on the
@@ -568,6 +639,15 @@ fn poll_shared<'a, T>(
         };
         map_h3(cx, polled, parked)
     })
+}
+
+/// Which branch of a unary call finished first.
+enum UnaryRace {
+    /// The handler answered before the peer stopped reading.
+    Answered(SimpleOutgoingResponse),
+    /// The peer stopped reading first; the application error code it sent with
+    /// `STOP_SENDING`.
+    Stopped(u64),
 }
 
 /// The outcome of collecting a unary request body.

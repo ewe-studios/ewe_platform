@@ -348,6 +348,43 @@ fn peer_reset_surfaces_as_terminated() {
 }
 
 #[test]
+fn peer_stop_sending_surfaces_on_the_send_half() {
+    let (mut server, mut client, mut server_conn, mut client_conn) = connected_pair();
+
+    let mut client_stream = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            _ => None,
+        }
+    })
+    .expect("open_bidi");
+
+    write_all(&mut server, &mut client, &mut client_stream, b"x");
+
+    let server_stream = drive_until(&mut server, &mut client, |_, _| {
+        match server_conn.accept_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            _ => None,
+        }
+    })
+    .expect("accept_bidi");
+
+    // The client has all it wants and tells the server to stop writing. After a
+    // request body ends, this is the only cancellation signal left (issue #257).
+    QuicRecvStream::stop_sending(&mut client_stream, 77);
+
+    let code = drive_until(&mut server, &mut client, |_, _| server_stream.stopped())
+        .expect("the peer stop never reached the server");
+
+    assert_eq!(code, 77, "the STOP_SENDING error code must survive");
+    assert_eq!(
+        server_stream.stopped(),
+        Some(77),
+        "the stop must latch until the stream closes"
+    );
+}
+
+#[test]
 fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
     use foundation_core::valtron::EventReadiness;
     use std::sync::atomic::{AtomicBool, Ordering};

@@ -40,14 +40,14 @@ brotli = { version = "8", optional = true }
 # no longer type-checks.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.10" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.11" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.12" }
 # The H2 client dials without blocking a valtron worker (feature 127):
 # `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
 socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.10", default-features = false, features = ["wasm"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.11", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.12", default-features = false, features = ["wasm-fetch"] }
 foundation_auth = { path = "../foundation_auth", version = "0.0.6", optional = true, default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]

@@ -52,7 +52,7 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 # where `multi` would also force the single-threaded CF storage code onto
 # valtron's Send-required path.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.11", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.12", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
 foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.0" }
 async-stream = "0.3"
 # Connection gate for the single-connection SQL stores (already in the tree via foundation_netio).

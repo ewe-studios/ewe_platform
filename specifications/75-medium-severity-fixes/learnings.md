@@ -5,6 +5,40 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, issue #257: the reset is gone, the stop is not
+
+- `quinn-proto` frees a recv stream's state when it reads FIN and drains. A later
+  `RESET_STREAM` is dropped with "received RESET_STREAM on closed stream". Do not build
+  cancellation on a reset after the body ends. Use `SendStream::stopped()`, which reports
+  the peer's `STOP_SENDING` (RFC 9114 section 4.1.2).
+- A client that sends `STOP_SENDING` frees its own receive state too. It then reads the
+  end of its stream as an error, not as `Terminated`. A test must not demand the reset
+  code on that side; assert that no response starts.
+- `std::pin::pin!` keeps the borrow alive until the enclosing block ends, not until the
+  `match`. Put the probe in an inner block and return an owned outcome, or the later use
+  of the borrowed value fails to compile.
+- An eager `select` between a handler and a probe needs one test per dispatch path: unary
+  and streaming code are separate. Each test must time out on the old code; both did.
+
+## 2026-11-09, issue #409: the move found hidden must-use discards
+
+- A feature-gated CI lint (`--all-features`) reported eight `unused_must_use` warnings
+  that the default build never showed. Run the gate the merge target runs.
+- A worktree agent branched from master, not from the integration branch. Its three
+  merge conflicts were comments and one visibility change. Read each conflict; do not
+  take one side whole.
+
+## 2026-11-09, issue #290: a soak must keep the panic text
+
+- A flake at 2% needs about 150 runs to fail once with high probability, and it can fail
+  once in 50 and then not in 200. A negative soak is weak evidence, and only a positive
+  one proves the test can fail.
+- The first soak script kept only the `test result` line. The second kept the full
+  output but did not fail. Print the test's own stderr in every soak iteration; a lone
+  `error: test failed` wastes the whole run.
+- Never compare a soak that ran under a different load with one that did not. The h3
+  timeout is a 15 s wait, so a busy machine is part of the input.
+
 ## 2026-11-09, issue #428: an optional feature needs a compiled check
 
 - Code behind an optional feature is invisible to every default build. The macOS watcher

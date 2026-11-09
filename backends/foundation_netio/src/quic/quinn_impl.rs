@@ -378,6 +378,22 @@ impl QuicSendStream for QuinnSendStream {
         self.id
     }
 
+    fn stopped(&self) -> Option<u64> {
+        let Ok(mut guard) = lock(&self.state) else {
+            return None;
+        };
+        let Ok(qid) = quinn_proto::StreamId::try_from(self.id) else {
+            return None;
+        };
+        guard
+            .conn
+            .send_stream(qid)
+            .stopped()
+            .ok()
+            .flatten()
+            .map(quinn_proto::VarInt::into_inner)
+    }
+
     fn register_waker(&self, waker: &std::task::Waker) -> bool {
         park_on(&self.state, waker)
     }
@@ -546,6 +562,10 @@ impl QuicSendStream for QuinnBidiStream {
     }
     fn id(&self) -> StreamId {
         self.send.id()
+    }
+
+    fn stopped(&self) -> Option<u64> {
+        QuicSendStream::stopped(&self.send)
     }
 
     fn register_waker(&self, waker: &std::task::Waker) -> bool {
