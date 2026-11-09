@@ -5,11 +5,16 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
-## 2026-11-09, the first audit of the branch: a crate's job is not a full check
+## 2026-11-09, the first audit of the branch: a green clippy step can mean nothing
 
-- The CI plan runs a crate's job only when the diff touches that crate. A crate that no
-  branch touched for a long time keeps Linux-only debt hidden. This branch touched
-  `foundation_reactor`, and its job found 61 clippy errors that had never run.
+- A clippy step without `-- -D warnings` passes with any number of warnings. A green
+  audit is no proof that a crate is clean. To tell "clean" from "not checked", read the
+  package entry in `ci/packages.toml`: it must set `clippy-deny-warnings = true`.
+- `foundation_reactor` had 61 warnings on `master` and passed. This branch set the flag,
+  so the debt became an error. The file bytes were the same; only the gate changed.
+  Issue #436 lists the other 24 packages that still lack the gate.
+- Compare the file bytes on `master` against the branch before you call debt "new". A
+  name in the diff stat is not proof that the failing line changed.
 - macOS clippy does not compile `#[cfg(target_os = "linux")]` code. On a macOS host, add
   `--target x86_64-unknown-linux-gnu` to check it, because that target is installed.
   Run this for every crate that has Linux-only modules.

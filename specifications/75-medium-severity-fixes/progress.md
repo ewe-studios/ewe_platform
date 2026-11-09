@@ -21,9 +21,13 @@ Two package jobs failed:
 --all-targets --no-deps -- -D warnings` reproduces the Linux list on macOS because the
 Linux target is installed. Use it for any crate with `target_os = "linux"` code.
 
-The audit did not run the `foundation_reactor` package before this branch: the plan runs
-a crate's job only when the diff touches it. A per-target clippy job stops this class from
-hiding.
+The debt is pre-existing, not new. The four Linux-only files are byte-identical on
+`master` (`176dd9a18`) and on this branch before the fix. `master`'s audit run 42596013845
+did run the `foundation_reactor` job, and its clippy step printed the same 61 warnings but
+ended with `Finished` and conclusion `success`, because the package entry did not set
+`clippy-deny-warnings` then. This branch set it (`ci/packages.toml`, the #336 fix), so the
+next run made the debt visible as errors. Issue #436 records the same gap for the other
+24 packages that still do not set the flag.
 
 Issue #433 (low) records the `setup-nu` download: it fetches nushell from GitHub releases
 on every run with no cache, and a 504 burst fails the whole audit.
@@ -42,9 +46,9 @@ whose Linux body is empty.
 | `cargo test --profile uat -p foundation_reactor` | all pass |
 | `cargo fmt -p foundation_reactor --check` | pass |
 
-Next: the audit on head `92c99421b` is the check. If it passes, the branch is green.
-A per-target clippy job in the plan is the lasting fix for the class of defect that #434
-found.
+Next: the audit on the branch head is the check. If it passes, the branch is green.
+Turning on `clippy-deny-warnings` for the remaining packages (issue #436) is the lasting
+fix for the class of defect that #434 found.
 
 ## 2026-11-09: issue #257, a peer stop reaches the h3 handler
 
