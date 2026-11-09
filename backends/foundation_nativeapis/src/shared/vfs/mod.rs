@@ -56,9 +56,6 @@ pub use search::{
     VfsSearcher,
 };
 
-#[cfg(all(feature = "vfs-search", not(target_family = "wasm")))]
-pub use search::{native_vfs_searcher, CliSearcher, SearchConfig};
-
 #[cfg(feature = "vfs-fjall")]
 pub mod fjall_fs;
 

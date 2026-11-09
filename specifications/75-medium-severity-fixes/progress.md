@@ -4,6 +4,66 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #411, the `foundation_nativeapis` shared tree is target-agnostic again
+
+`backends/foundation_nativeapis/src/shared` claimed to be target-agnostic, but it held
+host-process code. The crate did not build for wasm and `ci/packages.toml` had no wasm
+entry for it.
+
+The native CLI searcher moved from `shared/vfs/search.rs` to a new
+`native/vfs/search.rs`:
+
+| Item | New home |
+| --- | --- |
+| `CliSearcher`, `SearchConfig`, `native_vfs_searcher` | `native::vfs::search` |
+| `FffSearcher` (feature `vfs-search-fff`) | `native::vfs::search` |
+| `detect_tool`, `probe_tool`, `run_cli_streaming`, `run_and_collect`, `parse_grep_line` | `native::vfs::search` (private) |
+
+`VfsSearcher`, `VfsSearchKind`, `VfsSearchMatch`, `InCodeVfsSearcher`,
+`CascadingVfsSearcher` and `EXCLUDED_DIRS` stay in `shared/vfs/search.rs`.
+`EXCLUDED_DIRS` is now `pub(crate)`, so the native CLI searcher can use it.
+
+All 22 dead `#[cfg(not(target_family = "wasm"))]` markers are deleted: 21 in
+`shared/vfs/search.rs` and 1 in `shared/vfs/mod.rs`. The `shared/vfs/mod.rs` re-export
+now covers the target-agnostic items only. `lib.rs` re-exports `CliSearcher`,
+`SearchConfig` and `native_vfs_searcher` from `native::vfs::search`, under `vfs-search`.
+`native::vfs` is declared for `vfs-native` or `vfs-search`, and each existing child keeps
+its `vfs-native` gate.
+
+`foundation_nativeapis` is 0.0.11. Every consumer requirement moves with it, and the
+workspace lockfile and four example lockfiles are refreshed.
+
+### Wasm verdict
+
+The crate builds for `wasm32-unknown-unknown`. `native` and `signal` are gated at the
+crate root, as `foundation_http` does.
+
+| Command | Result |
+| --- | --- |
+| `cargo check -p foundation_nativeapis --target wasm32-unknown-unknown --no-default-features` | Pass |
+| `cargo check -p foundation_nativeapis --target wasm32-unknown-unknown` | Pass |
+| `cargo check -p foundation_nativeapis --target wasm32-unknown-unknown --no-default-features --features vfs,vfs-search` | Pass |
+
+`ci/packages.toml` now sets `wasm = "enforce"` and
+`wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]`.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_nativeapis` | Pass: 42 tests |
+| `cargo test --profile uat -p foundation_nativeapis --test vfs_search --features vfs-search-fff` | Pass: 15 tests |
+| `cargo test --profile uat -p foundation_ai` | Pass: 496 tests |
+| `cargo clippy --profile uat -p foundation_nativeapis --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_nativeapis --all-targets --features vfs-search-fff --no-deps -- -D warnings` | Zero warnings |
+| `cargo fmt -p foundation_nativeapis -p foundation_ai -- --check` | Pass |
+| `cargo metadata --offline --format-version 1` | Pass |
+
+The command with `--all-features` does not run. The crate already fails on master because
+`native/watcher/unix.rs` calls the private `foundation_reactor::poll::Registry::selector`
+(#428), and several feature-gated modules have `unreadable_literal` warnings (#429). Both
+are separate defects and not caused by this change.
+
 ## 2026-11-09: issue #423, a cross-thread wake cannot run a non-`Send` callback
 
 The non-`multi` build stores a `WakeCallback` (no `Send` bound) in a
