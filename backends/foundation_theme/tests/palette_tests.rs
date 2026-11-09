@@ -3,7 +3,7 @@
 //! correct and `no_std`-safe (spec-39 theme system).
 //!
 //! WHAT: known-value HSL conversions, Bézier endpoints/easing, and the shape of
-//! the pastel/gaming/ramp/dual_theme outputs.
+//! the `pastel`/`gaming`/`ramp`/`dual_theme` outputs.
 
 use foundation_theme::curve::{cubic_bezier, ease, sample, svg_path, Point};
 use foundation_theme::palette::{dual_theme, gaming, pastel, ramp, Hsl};

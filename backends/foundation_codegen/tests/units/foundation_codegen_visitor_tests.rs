@@ -172,7 +172,11 @@ fn top_level_item_has_empty_module_path() {
     );
 
     assert_eq!(items.len(), 1);
-    assert!(items[0].inline_module_path.is_empty());
+    assert!(
+        items[0].inline_module_path.is_empty(),
+        "inline_module_path: {:?}",
+        items[0].inline_module_path
+    );
 }
 
 // -- Attribute argument parsing --

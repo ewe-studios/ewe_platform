@@ -1,4 +1,4 @@
-//! Tests for foundation_arrow IPC encode/decode.
+//! Tests for `foundation_arrow` IPC encode/decode.
 
 use arrow_array::{
     ArrayRef, BinaryArray, Float64Array, Int64Array, RecordBatch, StringArray, UInt64Array,
@@ -35,7 +35,7 @@ fn test_encode_decode_single_batch() {
     let encoded = encode_ipc(&batch).expect("encode failed");
 
     // Encoded data should be non-empty
-    assert!(!encoded.is_empty());
+    assert_ne!(encoded, [] as [u8; 0]);
 
     let decoded = decode_ipc(&encoded).expect("decode failed");
 
@@ -80,7 +80,7 @@ fn test_encode_decode_multiple_batches() {
     assert_eq!(decoded[1].schema(), batch2.schema());
 
     // Combined rows should be 6
-    let total_rows: usize = decoded.iter().map(|b| b.num_rows()).sum();
+    let total_rows: usize = decoded.iter().map(RecordBatch::num_rows).sum();
     assert_eq!(total_rows, 6);
 }
 

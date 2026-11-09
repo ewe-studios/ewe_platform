@@ -15,7 +15,6 @@
 //! `_connectrpc.rs` in the output directory.
 
 use std::path::PathBuf;
-use std::str::FromStr;
 
 use prost::Message;
 
@@ -60,7 +59,7 @@ impl Config {
     /// Override the output directory (defaults to `OUT_DIR` env var).
     #[must_use]
     pub fn out_dir(mut self, dir: &str) -> Self {
-        self.out_dir = Some(PathBuf::from_str(dir).expect("valid path"));
+        self.out_dir = Some(PathBuf::from(dir));
         self
     }
 

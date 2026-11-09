@@ -10,12 +10,12 @@
 //!
 //! | column      | type   | nullable |
 //! |-------------|--------|----------|
-//! | `op_id`     | UInt32 | no       |
-//! | `node_id`   | UInt32 | no       |
-//! | `operation` | UInt8  | no       |
-//! | `attribute` | Utf8   | yes      |
-//! | `value`     | Utf8   | yes      |
-//! | `text_val`  | Utf8   | yes      |
+//! | `op_id`     | `UInt32` | no       |
+//! | `node_id`   | `UInt32` | no       |
+//! | `operation` | `UInt8`  | no       |
+//! | `attribute` | `Utf8`   | yes      |
+//! | `value`     | `Utf8`   | yes      |
+//! | `text_val`  | `Utf8`   | yes      |
 //!
 //! HOW: Encoding maps each op through `foundation_ui_traits::Row` (THE one
 //! `DomOp` ⇄ row mapping every wire format shares) into typed Arrow arrays and

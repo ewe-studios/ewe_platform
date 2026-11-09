@@ -38,12 +38,18 @@ pub type IpcResult<T> = Result<T, ErrorTrace<ArrowIpcError>>;
 /// Encode a `RecordBatch` to an Arrow IPC file format byte vector.
 ///
 /// Uses the default IPC write options (8-byte alignment, little-endian).
+///
+/// # Errors
+/// Returns an error when the IPC writer rejects the batch.
 pub fn encode_ipc(batch: &RecordBatch) -> IpcResult<Vec<u8>> {
     encode_ipc_with_options(batch, IpcWriteOptions::default())
 }
 
 /// Encode a `RecordBatch` to an Arrow IPC file format byte vector
 /// with custom write options.
+///
+/// # Errors
+/// Returns an error when the IPC writer rejects the batch or the options.
 pub fn encode_ipc_with_options(
     batch: &RecordBatch,
     options: IpcWriteOptions,
@@ -59,6 +65,9 @@ pub fn encode_ipc_with_options(
 }
 
 /// Encode multiple `RecordBatch`es to an Arrow IPC file format byte vector.
+///
+/// # Errors
+/// Returns an error when `batches` is empty or the IPC writer rejects a batch.
 pub fn encode_ipc_batches(batches: &[RecordBatch]) -> IpcResult<Vec<u8>> {
     if batches.is_empty() {
         return Err(ArrowIpcError::from(arrow_schema::ArrowError::IpcError(
@@ -82,6 +91,10 @@ pub fn encode_ipc_batches(batches: &[RecordBatch]) -> IpcResult<Vec<u8>> {
 ///
 /// Returns an error if the IPC file contains zero or multiple batches.
 /// Use [`decode_ipc_batches`] for multi-batch files.
+///
+/// # Errors
+/// Returns an error when the bytes are not a valid IPC file, or the file
+/// contains zero or multiple batches.
 pub fn decode_ipc(data: &[u8]) -> IpcResult<RecordBatch> {
     let mut batches = decode_ipc_batches(data)?;
     match batches.len() {
@@ -100,6 +113,9 @@ pub fn decode_ipc(data: &[u8]) -> IpcResult<RecordBatch> {
 }
 
 /// Decode an Arrow IPC file format byte vector into all contained batches.
+///
+/// # Errors
+/// Returns an error when the bytes are not a valid IPC file or a batch read fails.
 pub fn decode_ipc_batches(data: &[u8]) -> IpcResult<Vec<RecordBatch>> {
     let cursor = Cursor::new(data);
     let reader = FileReaderBuilder::new()
@@ -113,6 +129,9 @@ pub fn decode_ipc_batches(data: &[u8]) -> IpcResult<Vec<RecordBatch>> {
 
 /// Decode an Arrow IPC file format byte vector and return the schema
 /// without reading any batch data.
+///
+/// # Errors
+/// Returns an error when the bytes are not a valid IPC file.
 pub fn decode_ipc_schema(data: &[u8]) -> IpcResult<SchemaRef> {
     let cursor = Cursor::new(data);
     let reader = FileReaderBuilder::new()

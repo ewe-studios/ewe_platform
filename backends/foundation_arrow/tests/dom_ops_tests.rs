@@ -16,8 +16,8 @@ use foundation_ui_traits::{
     AttrName, DecodeError, DomOp, HtmlTag, MorphAction, ProtocolEncoder, TargetSelector,
 };
 
-fn batch_of(ops: Vec<DomOp>) -> RecordBatch {
-    ArrowIpcEncoder::to_record_batch(&ops)
+fn batch_of(ops: &[DomOp]) -> RecordBatch {
+    ArrowIpcEncoder::to_record_batch(ops)
 }
 
 fn string_cell(batch: &RecordBatch, col: usize, row: usize) -> Option<String> {
@@ -33,11 +33,11 @@ fn string_cell(batch: &RecordBatch, col: usize, row: usize) -> Option<String> {
     }
 }
 
-/// Test 1 — CreateElement row shape: op=0, attribute=tag, value=class,
-/// text_val=null. Known tags ride as `id:` strings (F01 wire convention).
+/// Test 1 — `CreateElement` row shape: op=0, attribute=tag, value=class,
+/// `text_val` is null. Known tags ride as `id:` strings (F01 wire convention).
 #[test]
 fn create_element_row_shape() {
-    let batch = batch_of(vec![DomOp::CreateElement {
+    let batch = batch_of(&[DomOp::CreateElement {
         node_id: 5,
         tag: HtmlTag::from_static("div"),
         class: Cow::Borrowed("main"),
@@ -53,10 +53,10 @@ fn create_element_row_shape() {
     assert_eq!(string_cell(&batch, 5, 0), None, "text_val is a real null");
 }
 
-/// Test 2 — CreateTextNode: op=1, text_val set, attribute null.
+/// Test 2 — `CreateTextNode`: op=1, `text_val` set, attribute null.
 #[test]
 fn create_text_node_row_shape() {
-    let batch = batch_of(vec![DomOp::CreateTextNode {
+    let batch = batch_of(&[DomOp::CreateTextNode {
         node_id: 9,
         content: Cow::Borrowed("hello"),
     }]);
@@ -67,7 +67,7 @@ fn create_text_node_row_shape() {
 /// Tests 3 + 4 — secondary ids ride as decimal strings.
 #[test]
 fn secondary_ids_are_decimal_strings() {
-    let batch = batch_of(vec![
+    let batch = batch_of(&[
         DomOp::AppendChild {
             parent_id: 1,
             child_id: 42,
@@ -169,7 +169,7 @@ fn all_variants_round_trip() {
     let decoded = ArrowIpcEncoder.decode(&bytes).unwrap();
     assert_eq!(decoded, ops);
 
-    let batch = batch_of(all_nineteen());
+    let batch = batch_of(&all_nineteen());
     let operations = batch
         .column(2)
         .as_any()
@@ -180,7 +180,7 @@ fn all_variants_round_trip() {
     }
 }
 
-/// Test 6 — 1000 SetText ops, byte-exact texts.
+/// Test 6 — 1000 `SetText` ops, byte-exact texts.
 #[test]
 fn thousand_set_texts_round_trip() {
     let ops: Vec<DomOp> = (0..1000u32)
@@ -222,7 +222,7 @@ fn empty_batch_round_trips() {
     assert_eq!(ArrowIpcEncoder.decode(&bytes).unwrap(), vec![]);
 }
 
-/// The bytes are REAL Arrow IPC — the generic foundation_arrow reader (and by
+/// The bytes are REAL Arrow IPC — the generic `foundation_arrow` reader (and by
 /// extension any ecosystem implementation) consumes them.
 #[test]
 fn bytes_are_plain_arrow_ipc() {
@@ -242,7 +242,7 @@ fn protocol_identity() {
 
 // ─── Decode errors (tests 9-12) ────────────────────────────────────────────────
 
-/// Test 9 — op=99 reports UnknownOperation with the row index.
+/// Test 9 — op=99 reports `UnknownOperation` with the row index.
 #[test]
 fn unknown_operation_reports_row() {
     let schema = Arc::new(Schema::new(vec![
@@ -275,7 +275,7 @@ fn unknown_operation_reports_row() {
     );
 }
 
-/// Test 10 — wrong column count is a SchemaMismatch.
+/// Test 10 — wrong column count is a `SchemaMismatch`.
 #[test]
 fn four_column_buffer_is_schema_mismatch() {
     let schema = Arc::new(Schema::new(vec![

@@ -1,4 +1,4 @@
-//! Protoc plugin for ConnectRPC code generation (Decision 10 Mode 2).
+//! Protoc plugin for `ConnectRPC` code generation (Decision 10 Mode 2).
 //!
 //! Implements the protoc plugin protocol:
 //! 1. Reads `CodeGeneratorRequest` from stdin (protobuf binary).

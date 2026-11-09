@@ -88,7 +88,10 @@ fn returns_empty_vec_for_empty_directory() {
     fs::create_dir_all(&src).unwrap();
 
     let files = find_rust_files(&src).unwrap();
-    assert!(files.is_empty());
+    assert!(
+        files.is_empty(),
+        "expected no files from an empty directory, got {files:?}"
+    );
 }
 
 // -- Output ordering: results are sorted --

@@ -23,10 +23,16 @@
 //! Idempotency levels are extracted from proto method options (field 34 on
 //! `MethodOptions`).
 
+use std::fmt::Write as _;
+
 use prost_types::{
     method_options, FileDescriptorProto, MethodDescriptorProto, MethodOptions,
     ServiceDescriptorProto,
 };
+
+/// Message for a failed write to a `String`. A `String` write cannot fail, so
+/// this message is only a guard.
+const WRITE_ERR: &str = "writing to a String cannot fail";
 
 // ── Public entry point ───────────────────────────────────────────────────
 
@@ -55,7 +61,7 @@ fn generate_service(package: &str, service: &ServiceDescriptorProto, out: &mut S
 
     // Separator + heading
     out.push_str("// ============================================================\n");
-    out.push_str(&format!("// {svc_name}\n"));
+    writeln!(out, "// {svc_name}").expect(WRITE_ERR);
     out.push_str("// ============================================================\n\n");
 
     // 1. Service name constant (R3)
@@ -223,9 +229,11 @@ fn idempotency_suffix(expr: &str) -> String {
 fn generate_name_constant(package: &str, svc_name: &str, out: &mut String) {
     let const_name = format!("{}_NAME", svc_name.to_uppercase());
     let qualified = format!("{package}.{svc_name}");
-    out.push_str(&format!(
-        "/// Fully-qualified service name.\npub const {const_name}: &str = \"{qualified}\";\n\n"
-    ));
+    writeln!(
+        out,
+        "/// Fully-qualified service name.\npub const {const_name}: &str = \"{qualified}\";\n"
+    )
+    .expect(WRITE_ERR);
 }
 
 // ── 2. Procedure path constants (R1) ─────────────────────────────────────
@@ -241,8 +249,8 @@ fn generate_procedure_module(
     for m in methods {
         let const_name = m.snake.trim_start_matches("r#").to_uppercase();
         let path = format!("/{package}.{svc_name}/{}", m.pascal);
-        out.push_str(&format!("    /// Procedure path for \"{path}\".\n"));
-        out.push_str(&format!("    pub const {const_name}: &str = \"{path}\";\n"));
+        writeln!(out, "    /// Procedure path for \"{path}\".").expect(WRITE_ERR);
+        writeln!(out, "    pub const {const_name}: &str = \"{path}\";").expect(WRITE_ERR);
     }
     out.push_str("}\n\n");
 }
@@ -250,10 +258,8 @@ fn generate_procedure_module(
 // ── 3. Service trait ─────────────────────────────────────────────────────
 
 fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
-    out.push_str(&format!(
-        "/// Server-side implementation trait for {svc_name}.\n"
-    ));
-    out.push_str(&format!("pub trait {svc_name}: Send + Sync + 'static {{\n"));
+    writeln!(out, "/// Server-side implementation trait for {svc_name}.").expect(WRITE_ERR);
+    writeln!(out, "pub trait {svc_name}: Send + Sync + 'static {{").expect(WRITE_ERR);
 
     for m in methods {
         let ty = m.kind;
@@ -272,55 +278,31 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
         // nested `impl Trait` inside the `Output` binding is illegal (E0562).
         match ty {
             MethodKind::Unary => {
-                out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send\n"
-                ));
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
-                out.push_str(&format!(
-                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
-                ));
+                writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::ServerStream => {
-                out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send\n"
-                ));
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
-                out.push_str(&format!(
-                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
-                ));
+                writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::ClientStream => {
-                out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send\n"
-                ));
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
+                writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
-                out.push_str(&format!(
-                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
-                ));
+                writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::BidiStream => {
-                out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send\n"
-                ));
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
+                writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
-                out.push_str(&format!(
-                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
-                ));
+                writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
         }
@@ -332,13 +314,17 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
 // ── 4. Registration function ─────────────────────────────────────────────
 
 fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
-    out.push_str(&format!(
-        "/// Register a {svc_name} implementation with a ConnectRPC router.\n"
-    ));
-    out.push_str(&format!(
-        "pub fn register_{}<S: {svc_name}>(\n",
+    writeln!(
+        out,
+        "/// Register a {svc_name} implementation with a ConnectRPC router."
+    )
+    .expect(WRITE_ERR);
+    writeln!(
+        out,
+        "pub fn register_{}<S: {svc_name}>(",
         to_snake_case(svc_name)
-    ));
+    )
+    .expect(WRITE_ERR);
     out.push_str("    router: &mut foundation_connectrpc::Router,\n");
     out.push_str("    service: std::sync::Arc<S>,\n");
     out.push_str(") {\n");
@@ -360,28 +346,28 @@ fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut Strin
             MethodKind::BidiStream => "bidi_stream",
         };
 
-        out.push_str(&format!("        router.{register_call}(\n"));
-        out.push_str(&format!("            procedure::{path_const},\n"));
-        out.push_str(&format!(
-            "            foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
-        ));
+        writeln!(out, "        router.{register_call}(").expect(WRITE_ERR);
+        writeln!(out, "            procedure::{path_const},").expect(WRITE_ERR);
+        writeln!(
+            out,
+            "            foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),"
+        )
+        .expect(WRITE_ERR);
 
         match m.kind {
             MethodKind::Unary | MethodKind::ServerStream => {
-                out.push_str(&format!(
-                    "            move |ctx, req| {{ let svc = svc.clone(); async move {{ svc.{method_name}(ctx, req).await }} }},\n"
-                ));
+                writeln!(out, "            move |ctx, req| {{ let svc = svc.clone(); async move {{ svc.{method_name}(ctx, req).await }} }},").expect(WRITE_ERR);
             }
             MethodKind::ClientStream | MethodKind::BidiStream => {
-                out.push_str(&format!(
-                    "            move |ctx, reqs| {{ let svc = svc.clone(); async move {{ svc.{method_name}(ctx, reqs).await }} }},\n"
-                ));
+                writeln!(out, "            move |ctx, reqs| {{ let svc = svc.clone(); async move {{ svc.{method_name}(ctx, reqs).await }} }},").expect(WRITE_ERR);
             }
         }
 
-        out.push_str(&format!(
-            "            foundation_connectrpc::HandlerOptions::new(){idem_suffix},\n"
-        ));
+        writeln!(
+            out,
+            "            foundation_connectrpc::HandlerOptions::new(){idem_suffix},"
+        )
+        .expect(WRITE_ERR);
         out.push_str("        );\n");
         out.push_str("    }\n\n");
     }
@@ -394,12 +380,14 @@ fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut Strin
 fn generate_unimplemented_handler(svc_name: &str, out: &mut String) {
     let struct_name = format!("Unimplemented{svc_name}Handler");
 
-    out.push_str(&format!(
-        "/// An unimplemented {svc_name} handler — all methods return `unimplemented`.\n"
-    ));
-    out.push_str(&format!("pub struct {struct_name};\n\n"));
+    writeln!(
+        out,
+        "/// An unimplemented {svc_name} handler — all methods return `unimplemented`."
+    )
+    .expect(WRITE_ERR);
+    writeln!(out, "pub struct {struct_name};\n").expect(WRITE_ERR);
 
-    out.push_str(&format!("impl {svc_name} for {struct_name} {{\n"));
+    writeln!(out, "impl {svc_name} for {struct_name} {{").expect(WRITE_ERR);
     out.push_str("    // All methods use the default `unimplemented` implementations.\n");
     out.push_str("}\n\n");
 }
@@ -410,22 +398,39 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
     let client_name = format!("{svc_name}Client");
     let client_trait_name = format!("{svc_name}ClientExt");
 
-    // ── Client struct ────────────────────────────────────────────────────
-    out.push_str(&format!("/// Typed client for {svc_name}.\n"));
-    out.push_str(&format!("pub struct {client_name} {{\n"));
+    generate_client_struct(svc_name, methods, &client_name, out);
+    generate_client_constructor(methods, &client_name, out);
+    generate_client_methods(methods, out);
+    generate_client_trait(svc_name, methods, &client_trait_name, out);
+    generate_client_trait_impl(methods, &client_name, &client_trait_name, out);
+}
+
+/// Emit the client struct with one typed `Client` field per method.
+fn generate_client_struct(
+    svc_name: &str,
+    methods: &[MethodInfo],
+    client_name: &str,
+    out: &mut String,
+) {
+    writeln!(out, "/// Typed client for {svc_name}.").expect(WRITE_ERR);
+    writeln!(out, "pub struct {client_name} {{").expect(WRITE_ERR);
 
     for m in methods {
         let field_name = &m.snake;
         let req = &m.input_type;
         let res = &m.output_type;
-        out.push_str(&format!(
-            "    {field_name}: foundation_connectrpc::Client<{req}, {res}>,\n"
-        ));
+        writeln!(
+            out,
+            "    {field_name}: foundation_connectrpc::Client<{req}, {res}>,"
+        )
+        .expect(WRITE_ERR);
     }
     out.push_str("}\n\n");
+}
 
-    // ── Client constructor ───────────────────────────────────────────────
-    out.push_str(&format!("impl {client_name} {{\n"));
+/// Emit the client `new` constructor.
+fn generate_client_constructor(methods: &[MethodInfo], client_name: &str, out: &mut String) {
+    writeln!(out, "impl {client_name} {{").expect(WRITE_ERR);
 
     out.push_str("    /// Build a new typed client.\n");
     out.push_str("    pub fn new(\n");
@@ -443,39 +448,36 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         let idem_suffix = idempotency_suffix(&m.idempotency_expr);
         let is_last = i == methods.len() - 1;
 
+        writeln!(
+            out,
+            "            {field_name}: foundation_connectrpc::Client::new("
+        )
+        .expect(WRITE_ERR);
+        out.push_str("                transport.clone(),\n");
+        writeln!(
+            out,
+            "                &format!(\"{{}}{{}}\", base_url, procedure::{path_const}),"
+        )
+        .expect(WRITE_ERR);
+        writeln!(
+            out,
+            "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),"
+        )
+        .expect(WRITE_ERR);
         if is_last {
-            out.push_str(&format!(
-                "            {field_name}: foundation_connectrpc::Client::new(\n"
-            ));
-            out.push_str("                transport.clone(),\n");
-            out.push_str(&format!(
-                "                &format!(\"{{}}{{}}\", base_url, procedure::{path_const}),\n"
-            ));
-            out.push_str(&format!(
-                "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
-            ));
-            out.push_str(&format!("                options{idem_suffix},\n"));
-            out.push_str("            )?,\n");
+            writeln!(out, "                options{idem_suffix},").expect(WRITE_ERR);
         } else {
-            out.push_str(&format!(
-                "            {field_name}: foundation_connectrpc::Client::new(\n"
-            ));
-            out.push_str("                transport.clone(),\n");
-            out.push_str(&format!(
-                "                &format!(\"{{}}{{}}\", base_url, procedure::{path_const}),\n"
-            ));
-            out.push_str(&format!(
-                "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
-            ));
-            out.push_str(&format!("                options.clone(){idem_suffix},\n"));
-            out.push_str("            )?,\n");
+            writeln!(out, "                options.clone(){idem_suffix},").expect(WRITE_ERR);
         }
+        out.push_str("            )?,\n");
     }
 
     out.push_str("        })\n");
     out.push_str("    }\n\n");
+}
 
-    // ── Per-method client methods ────────────────────────────────────────
+/// Emit the per-method helpers on the client struct.
+fn generate_client_methods(methods: &[MethodInfo], out: &mut String) {
     for m in methods {
         let method_name = &m.snake;
         let req = &m.input_type;
@@ -484,72 +486,55 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         match m.kind {
             MethodKind::Unary => {
                 out.push_str("    /// Unary RPC.\n");
-                out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
-                ));
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.unary(ctx, request).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.unary(ctx, request).await").expect(WRITE_ERR);
                 out.push_str("    }\n\n");
             }
             MethodKind::ServerStream => {
                 out.push_str("    /// Server-streaming RPC.\n");
-                out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>\n"
-                ));
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.server_stream(ctx, request).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.server_stream(ctx, request).await").expect(WRITE_ERR);
                 out.push_str("    }\n\n");
             }
             MethodKind::ClientStream => {
                 out.push_str("    /// Client-streaming RPC.\n");
-                out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
-                ));
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.client_stream(ctx, reqs).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.client_stream(ctx, reqs).await").expect(WRITE_ERR);
                 out.push_str("    }\n\n");
             }
             MethodKind::BidiStream => {
                 out.push_str("    /// Bidirectional streaming RPC.\n");
-                out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>\n"
-                ));
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.bidi_stream(ctx).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.bidi_stream(ctx).await").expect(WRITE_ERR);
                 out.push_str("    }\n\n");
             }
         }
     }
 
     out.push_str("}\n\n");
+}
 
-    // ── Client trait (R4) ────────────────────────────────────────────────
-    out.push_str(&format!(
-        "/// Trait for {svc_name} client behaviour (supports mocking/testing).\n"
-    ));
-    out.push_str(&format!(
-        "pub trait {client_trait_name}: Send + Sync + 'static {{\n"
-    ));
+/// Emit the client trait declaration (`<Service>ClientExt`).
+fn generate_client_trait(
+    svc_name: &str,
+    methods: &[MethodInfo],
+    client_trait_name: &str,
+    out: &mut String,
+) {
+    writeln!(
+        out,
+        "/// Trait for {svc_name} client behaviour (supports mocking/testing)."
+    )
+    .expect(WRITE_ERR);
+    writeln!(out, "pub trait {client_trait_name}: Send + Sync + 'static {{").expect(WRITE_ERR);
 
     for m in methods {
         let method_name = &m.snake;
@@ -558,44 +543,35 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
 
         match m.kind {
             MethodKind::Unary => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;").expect(WRITE_ERR);
             }
             MethodKind::ServerStream => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>;\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>;").expect(WRITE_ERR);
             }
             MethodKind::ClientStream => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;").expect(WRITE_ERR);
             }
             MethodKind::BidiStream => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>;\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>;").expect(WRITE_ERR);
             }
         }
     }
 
     out.push_str("}\n\n");
+}
 
-    // Blanket impl of client trait for the client struct
-    out.push_str(&format!("impl {client_trait_name} for {client_name} {{\n"));
+/// Emit the blanket impl of the client trait for the client struct.
+fn generate_client_trait_impl(
+    methods: &[MethodInfo],
+    client_name: &str,
+    client_trait_name: &str,
+    out: &mut String,
+) {
+    writeln!(out, "impl {client_trait_name} for {client_name} {{").expect(WRITE_ERR);
 
     for m in methods {
         let method_name = &m.snake;
@@ -604,55 +580,31 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
 
         match m.kind {
             MethodKind::Unary => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.unary(ctx, request).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.unary(ctx, request).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
             MethodKind::ServerStream => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.server_stream(ctx, request).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.server_stream(ctx, request).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
             MethodKind::ClientStream => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.client_stream(ctx, reqs).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.client_stream(ctx, reqs).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
             MethodKind::BidiStream => {
-                out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)\n"
-                ));
-                out.push_str(&format!(
-                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>\n"
-                ));
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)").expect(WRITE_ERR);
+                writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
-                out.push_str(&format!(
-                    "        self.{method_name}.bidi_stream(ctx).await\n"
-                ));
+                writeln!(out, "        self.{method_name}.bidi_stream(ctx).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
         }

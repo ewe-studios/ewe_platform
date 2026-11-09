@@ -1,9 +1,9 @@
-//! Probe whether io_uring is available in this environment (spec 70 feature 78 E1).
+//! Probe whether `io_uring` is available in this environment (spec 70 feature 78 E1).
 //!
-//! WHY: the `foundation_iogate` io_uring tests fail when `EWE_REQUIRE_IO_URING=1`
-//! and io_uring is missing. CI sets that variable, so the job must record first
+//! WHY: the `foundation_iogate` `io_uring` tests fail when `EWE_REQUIRE_IO_URING=1`
+//! and `io_uring` is missing. CI sets that variable, so the job must record first
 //! whether the kernel and the container's seccomp profile allow `io_uring_setup`.
-//! A failure then says "the environment blocks io_uring", not "the code is
+//! A failure then says "the environment blocks `io_uring`", not "the code is
 //! broken".
 //!
 //! WHAT: start the shared reactor with `ServerIo::Completion`, which calls

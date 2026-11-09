@@ -6170,7 +6170,6 @@ version = "0.1.4"
 dependencies = [
  "cargo_toml",
  "derive_more",
- "foundation_conditional",
  "foundation_core",
  "foundation_errstacks",
  "foundation_macros",
