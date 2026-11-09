@@ -82,6 +82,15 @@ impl ExecutorWake {
         handle
     }
 
+    /// The number of wakes this executor has received so far.
+    ///
+    /// This is a test hook, read by [`super::executor_wake_count`]. It counts
+    /// the wakes of one executor thread, so a test can prove that one signal
+    /// does not wake the thread that parked another task.
+    pub(crate) fn wake_count(&self) -> u64 {
+        self.epoch.load(Ordering::SeqCst)
+    }
+
     /// Wake this executor: run the wake listeners and interrupt its sleep.
     pub(crate) fn wake(&self) {
         self.epoch.fetch_add(1, Ordering::SeqCst);

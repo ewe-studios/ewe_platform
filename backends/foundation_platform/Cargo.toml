@@ -21,7 +21,7 @@ tauri = { version = "2.11.5", features = [] }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
 
 # The injected clock every platform wall time comes from (spec 70 feature 134).
-foundation_core = { path = "../foundation_core", version = "0.0.18" }
+foundation_core = { path = "../foundation_core", version = "0.0.19" }
 # UNIX timestamp conversions from `Clock::wall_now`; no local epoch arithmetic.
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 
@@ -61,7 +61,7 @@ foundation_wasmtime = { path = "../foundation_wasmtime", version = "0.1.1", opti
 [dev-dependencies]
 tauri = { version = "2.11.5", features = [] }
 # The clock injection test moves a `SimulatedClock`; `test-clock` exposes it.
-foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["test-clock"] }
 
 [lints]
 workspace = true
