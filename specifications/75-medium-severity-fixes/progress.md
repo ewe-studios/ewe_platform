@@ -4,6 +4,24 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: `--all-features` lint debt in `foundation_boringtun` and `foundation_db`
+
+The #438 verification ran clippy with features the CI gate does not enable. That run
+found more debt of the same class. All of it is now fixed.
+
+| Crate | Errors | Change |
+| --- | --- | --- |
+| `foundation_boringtun` | 16 | 8 `unused_attributes` warnings: the `jni` module put `#[no_mangle]` next to `#[export_name]`, so the first is ignored. 8 lint errors under `device` and `ffi`: an unused `fwmark` on non-Linux targets, two same-type casts, a missing `# Safety` section, `get(..).is_some()`, `Error::new(ErrorKind::Other, ..)`, and a manual `if let` |
+| `foundation_db` | 1 | `take_injected_rollback_failure` read a field that only exists with `test-hooks`. The fix keeps the cfg arms and allows `unused_self` only when the feature is off, with a reason |
+| `foundation_deployment_cloudflare` | 1 | The same `foundation_db` error reached this crate, because it compiles the default features |
+
+Verification: `cargo clippy --profile uat --all-targets --all-features -- -D warnings` is
+clean for all three crates. `cargo test --profile uat -p foundation_boringtun` passes 10
+tests. `cargo test --profile uat -p foundation_db` passes 8 tests.
+
+This debt is the same gap that issue #440 records: no CI run compiles these feature sets.
+The finding is added to #440, not filed as a new issue.
+
 ## 2026-11-09: issue #438, the dataplane clippy debt that CI never compiled
 
 `foundation_nativeapis` failed clippy with 43 errors, all in `src/dataplane/netstack.rs`

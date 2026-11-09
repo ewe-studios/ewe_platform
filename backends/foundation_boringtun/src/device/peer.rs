@@ -104,7 +104,8 @@ impl Peer {
     pub fn connect_endpoint(
         &self,
         port: u16,
-        fwmark: Option<u32>,
+        // Only the Linux-style targets use this; the others ignore the mark.
+        _fwmark: Option<u32>,
     ) -> Result<socket2::Socket, Error> {
         let mut endpoint = self.endpoint.write();
 
@@ -129,7 +130,7 @@ impl Peer {
         udp_conn.set_nonblocking(true)?;
 
         #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
-        if let Some(fwmark) = fwmark {
+        if let Some(fwmark) = _fwmark {
             udp_conn.set_mark(fwmark)?;
         }
 

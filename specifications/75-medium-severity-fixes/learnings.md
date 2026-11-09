@@ -5,6 +5,20 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, `--all-features` debt: cargo stops at the first error batch
+
+- A clippy run reports only the first N errors, then stops. Removing the errors it showed
+  can reveal more behind them. After each fix batch, run clippy again to zero.
+- `#[no_mangle]` and `#[export_name]` on the same item are redundant. `export_name`
+  already exports the symbol, so remove `no_mangle`.
+- A field behind `#[cfg(feature = ...)]` makes a method that reads it fail to compile
+  without the feature. Keep both cfg arms. Allow `clippy::unused_self` only on the arm
+  without the feature, and give the reason.
+- An unused variable is often a `cfg`-gated use, not dead code. Rename the binding with a
+  leading underscore and keep the gated arm, instead of deleting the parameter.
+- One crate's `--all-features` error can surface in every dependent crate. Read the error
+  path before editing the crate that clippy named.
+
 ## 2026-11-09, issue #438: a green clippy gate can hide a feature-gated subtree
 
 - Reproduce a clippy report with the features the reporter used. The 43 errors of #438
