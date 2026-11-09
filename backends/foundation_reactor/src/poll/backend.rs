@@ -204,26 +204,25 @@ pub fn resolve(
     }
 }
 
-/// Selection when io_uring is not compiled into this build.
+/// Selection when `io_uring` is not compiled into this build.
 ///
 /// # Errors
-/// [`SelectionError`] if io_uring is explicitly requested, since the code is
+/// [`SelectionError`] if `io_uring` is explicitly requested, since the code is
 /// absent from the binary — reporting epoll instead would be a silent default.
 ///
 /// # Panics
 /// Never panics.
 #[cfg(all(target_os = "linux", not(feature = "uring")))]
 pub fn select(preference: BackendPreference) -> Result<Backend, SelectionError> {
-    match preference {
-        BackendPreference::Uring => Err(SelectionError {
+    if preference == BackendPreference::Uring {
+        Err(SelectionError {
             requested: preference,
             detail: "io_uring support is not compiled into this build (enable the `uring` feature)"
                 .to_string(),
-        }),
-        _ => {
-            tracing::info!(backend = %Backend::Epoll, "reactor backend selected");
-            Ok(Backend::Epoll)
-        }
+        })
+    } else {
+        tracing::info!(backend = %Backend::Epoll, "reactor backend selected");
+        Ok(Backend::Epoll)
     }
 }
 

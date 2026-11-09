@@ -1,8 +1,8 @@
-/// Platform-specific `Event` types.
-///
-/// An `Event` is returned by [`Poll::poll()`](super::Poll::poll) when a
-/// registered file descriptor becomes readable, writable, closed, or errors.
-/// The struct is platform-specific internally but exposes a uniform interface.
+//! Platform-specific `Event` types.
+//!
+//! An `Event` is returned by [`Poll::poll()`](super::Poll::poll) when a
+//! registered file descriptor becomes readable, writable, closed, or errors.
+//! The struct is platform-specific internally but exposes a uniform interface.
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 mod linux;

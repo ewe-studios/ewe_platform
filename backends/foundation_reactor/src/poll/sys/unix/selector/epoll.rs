@@ -24,12 +24,17 @@ impl std::fmt::Debug for Selector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("epoll::Selector")
             .field("epoll_fd", &self.epoll.as_raw_fd())
+            .field("waker_fd", &self.waker_fd)
+            .field("waker_token", &self.waker_token)
             .finish()
     }
 }
 
 impl Selector {
     /// Create a new epoll selector.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `epoll_create1` fails.
     pub fn new() -> io::Result<Self> {
         let epoll_fd = unsafe {
             let fd = libc::epoll_create1(libc::EPOLL_CLOEXEC);
@@ -47,14 +52,23 @@ impl Selector {
     }
 
     /// Register a raw file descriptor with the epoll selector.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `epoll_ctl` fails.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         let mut event = libc::epoll_event {
             events: epoll_events_from_interest(interest),
             u64: token.0 as u64,
         };
 
-        let r =
-            unsafe { libc::epoll_ctl(self.epoll.as_raw_fd(), libc::EPOLL_CTL_ADD, fd, &mut event) };
+        let r = unsafe {
+            libc::epoll_ctl(
+                self.epoll.as_raw_fd(),
+                libc::EPOLL_CTL_ADD,
+                fd,
+                &raw mut event,
+            )
+        };
 
         if r < 0 {
             Err(io::Error::last_os_error())
@@ -64,14 +78,23 @@ impl Selector {
     }
 
     /// Re-register a raw file descriptor with new token and/or interest.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `epoll_ctl` fails.
     pub fn reregister_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         let mut event = libc::epoll_event {
             events: epoll_events_from_interest(interest),
             u64: token.0 as u64,
         };
 
-        let r =
-            unsafe { libc::epoll_ctl(self.epoll.as_raw_fd(), libc::EPOLL_CTL_MOD, fd, &mut event) };
+        let r = unsafe {
+            libc::epoll_ctl(
+                self.epoll.as_raw_fd(),
+                libc::EPOLL_CTL_MOD,
+                fd,
+                &raw mut event,
+            )
+        };
 
         if r < 0 {
             Err(io::Error::last_os_error())
@@ -81,6 +104,9 @@ impl Selector {
     }
 
     /// Deregister a raw file descriptor from the epoll selector.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `epoll_ctl` fails.
     pub fn deregister_fd(&self, fd: RawFd) -> io::Result<()> {
         let r = unsafe {
             libc::epoll_ctl(
@@ -99,6 +125,13 @@ impl Selector {
     }
 
     /// Register the waker (eventfd).
+    ///
+    /// # Errors
+    /// Returns the operating-system error when the eventfd cannot be created
+    /// or registered.
+    ///
+    /// # Panics
+    /// Panics when a waker mutex is poisoned.
     pub fn register_waker(&self, token: Token) -> io::Result<()> {
         let efd = unsafe {
             let fd = libc::eventfd(0, libc::EFD_CLOEXEC | libc::EFD_NONBLOCK);
@@ -117,6 +150,13 @@ impl Selector {
     }
 
     /// Wake the poll selector by writing to the eventfd.
+    ///
+    /// # Errors
+    /// Returns an error when no waker is registered, or the operating-system
+    /// error when the write fails.
+    ///
+    /// # Panics
+    /// Panics when a waker mutex is poisoned.
     pub fn wake(&self, _token: Token) -> io::Result<()> {
         let waker_fd = self.waker_fd.lock().unwrap();
         if let Some(ref fd) = *waker_fd {
@@ -124,7 +164,7 @@ impl Selector {
             let r = unsafe {
                 libc::write(
                     fd.as_raw_fd(),
-                    &value as *const _ as *const libc::c_void,
+                    std::ptr::from_ref(&value).cast::<libc::c_void>(),
                     std::mem::size_of_val(&value),
                 )
             };
@@ -133,11 +173,14 @@ impl Selector {
             }
             Ok(())
         } else {
-            Err(io::Error::new(io::ErrorKind::Other, "waker not registered"))
+            Err(io::Error::other("waker not registered"))
         }
     }
 
     /// Clear the waker by reading the eventfd.
+    ///
+    /// # Panics
+    /// Panics when the waker mutex is poisoned.
     pub fn clear_waker(&self) {
         let waker_fd = self.waker_fd.lock().unwrap();
         if let Some(ref fd) = *waker_fd {
@@ -145,14 +188,17 @@ impl Selector {
             unsafe {
                 libc::read(
                     fd.as_raw_fd(),
-                    &mut value as *mut _ as *mut libc::c_void,
+                    std::ptr::from_mut(&mut value).cast::<libc::c_void>(),
                     std::mem::size_of_val(&value),
                 );
             }
         }
     }
 
-    /// EVFILT_VNODE is not supported on epoll. Returns Unsupported.
+    /// `EVFILT_VNODE` is not supported on epoll. Returns `Unsupported`.
+    ///
+    /// # Errors
+    /// Always returns `Unsupported`.
     pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
         Err(io::Error::new(
             io::ErrorKind::Unsupported,
@@ -160,7 +206,10 @@ impl Selector {
         ))
     }
 
-    /// EVFILT_VNODE deregistration — no-op on epoll.
+    /// `EVFILT_VNODE` deregistration — no-op on epoll.
+    ///
+    /// # Errors
+    /// Never returns an error.
     pub fn deregister_vnode(&self, _fd: RawFd) -> io::Result<()> {
         Ok(())
     }
@@ -171,6 +220,13 @@ impl Selector {
     /// with a handler installed interrupts `epoll_wait` with `EINTR`; the wait
     /// then resumes for the time that is left. A signal must never make the
     /// call return before the timeout the caller asked for.
+    ///
+    /// # Errors
+    /// Returns the operating-system error when `epoll_wait` fails. An
+    /// interrupted wait does not return an error.
+    ///
+    /// # Panics
+    /// Panics when the waker mutex is poisoned.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         let deadline = timeout.map(|d| os_now() + d);
 
@@ -182,11 +238,15 @@ impl Selector {
             // the buffer, and we update the length afterward.
             let (ptr, cap) = events.as_mut_ptr_and_cap();
 
+            // The capacity cannot exceed `c_int::MAX` in practice. The cap
+            // keeps the call valid if it ever did.
+            let max_events = libc::c_int::try_from(cap).unwrap_or(libc::c_int::MAX);
+
             let n = unsafe {
                 libc::epoll_wait(
                     self.epoll.as_raw_fd(),
-                    ptr as *mut libc::epoll_event,
-                    cap as libc::c_int,
+                    ptr.cast::<libc::epoll_event>(),
+                    max_events,
                     timeout_ms,
                 )
             };
@@ -205,8 +265,10 @@ impl Selector {
                 return Err(err);
             }
 
-            // set_len is safe here — n is guaranteed ≤ capacity by epoll_wait
-            events.set_len(n as usize);
+            // set_len is safe here — n is guaranteed ≤ capacity by epoll_wait.
+            // The branch above returns on a negative `n`, so the conversion
+            // cannot fail.
+            events.set_len(usize::try_from(n).unwrap_or(0));
             break;
         }
 
@@ -250,8 +312,10 @@ fn remaining_ms(deadline: Instant, now: Instant) -> libc::c_int {
 fn epoll_events_from_interest(interest: Interest) -> u32 {
     let mut events: u32 = 0;
 
-    // Use edge-triggered mode — we track readiness ourselves
-    events |= libc::EPOLLET as u32;
+    // Use edge-triggered mode — we track readiness ourselves.
+    // `EPOLLET` is bit 31. Its `c_int` form is negative, so `cast_unsigned`
+    // reinterprets the same bits as `u32`.
+    events |= libc::EPOLLET.cast_unsigned();
 
     if interest.is_readable() {
         events |= libc::EPOLLIN as u32;

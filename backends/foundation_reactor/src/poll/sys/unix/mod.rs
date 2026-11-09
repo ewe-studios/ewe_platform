@@ -1,4 +1,4 @@
-/// Unix platform selector and utilities.
+//! Unix platform selector and utilities.
 
 /// Selector implementations for this platform.
 ///

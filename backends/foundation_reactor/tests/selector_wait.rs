@@ -97,9 +97,15 @@ fn a_signal_does_not_shorten_the_wait() {
 
     // The signal must reach the thread that is parked in the wait, so send it
     // to this thread rather than to the process.
-    // SAFETY: `pthread_self()` has no preconditions. `pthread_t` is `usize`
-    // sized on every supported platform; passing it as `usize` keeps the helper
-    // thread `Send`.
+    // SAFETY: `pthread_self()` has no preconditions.
+    // Linux: `pthread_t` is an integer of the same width as `usize`, so the
+    // conversion cannot fail.
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    let polling_thread =
+        usize::try_from(unsafe { libc::pthread_self() }).expect("pthread_t fits in usize");
+    // macOS/BSD: `pthread_t` is a pointer. Store its bits so the helper thread
+    // is `Send`.
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
     let polling_thread = unsafe { libc::pthread_self() } as usize;
 
     let sender = std::thread::spawn(move || {

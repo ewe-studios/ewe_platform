@@ -6,48 +6,63 @@ pub struct Event {
 }
 
 impl Event {
+    /// The event mask as a `c_int`.
+    ///
+    /// The kernel and the `io_uring` adapter set only event bits below bit 31.
+    /// Thus the conversion cannot fail. A zero fallback keeps every predicate
+    /// false if it ever did.
+    fn mask(&self) -> libc::c_int {
+        libc::c_int::try_from(self.event.events).unwrap_or(0)
+    }
+
     /// Which token was registered for this event.
+    #[must_use]
     pub fn token(&self) -> super::super::Token {
-        super::super::Token(self.event.u64 as usize)
+        // The token is stored from a `usize` at registration, so the
+        // conversion cannot fail. The fallback is unreachable.
+        super::super::Token(usize::try_from(self.event.u64).unwrap_or(usize::MAX))
     }
 
     /// Returns `true` if the event indicates readability.
+    #[must_use]
     pub fn is_readable(&self) -> bool {
-        (self.event.events as libc::c_int & libc::EPOLLIN) != 0
-            || (self.event.events as libc::c_int & libc::EPOLLPRI) != 0
+        (self.mask() & libc::EPOLLIN) != 0 || (self.mask() & libc::EPOLLPRI) != 0
     }
 
     /// Returns `true` if the event indicates writability.
+    #[must_use]
     pub fn is_writable(&self) -> bool {
-        (self.event.events as libc::c_int & libc::EPOLLOUT) != 0
+        (self.mask() & libc::EPOLLOUT) != 0
     }
 
     /// Returns `true` if the event indicates an error condition (`EPOLLERR`).
+    #[must_use]
     pub fn is_error(&self) -> bool {
-        (self.event.events as libc::c_int & libc::EPOLLERR) != 0
+        (self.mask() & libc::EPOLLERR) != 0
     }
 
     /// Returns `true` if the read side is closed.
     /// This fires on `EPOLLHUP` or on `EPOLLIN | EPOLLRDHUP` (peer shutdown).
+    #[must_use]
     pub fn is_read_closed(&self) -> bool {
-        (self.event.events as libc::c_int & libc::EPOLLHUP) != 0
-            || ((self.event.events as libc::c_int & libc::EPOLLIN) != 0
-                && (self.event.events as libc::c_int & libc::EPOLLRDHUP) != 0)
+        (self.mask() & libc::EPOLLHUP) != 0
+            || ((self.mask() & libc::EPOLLIN) != 0 && (self.mask() & libc::EPOLLRDHUP) != 0)
     }
 
     /// Returns `true` if the write side is closed.
     /// This fires on `EPOLLHUP`, or on `EPOLLOUT | EPOLLERR`,
     /// or on `EPOLLERR` alone (pipe read end closed).
+    #[must_use]
     pub fn is_write_closed(&self) -> bool {
-        (self.event.events as libc::c_int & libc::EPOLLHUP) != 0
-            || ((self.event.events as libc::c_int & libc::EPOLLOUT) != 0
-                && (self.event.events as libc::c_int & libc::EPOLLERR) != 0)
-            || (self.event.events as libc::c_int == libc::EPOLLERR)
+        (self.mask() & libc::EPOLLHUP) != 0
+            || ((self.mask() & libc::EPOLLOUT) != 0 && (self.mask() & libc::EPOLLERR) != 0)
+            || (self.mask() == libc::EPOLLERR)
     }
 
     /// Returns `true` if the event indicates priority/out-of-band data (`EPOLLPRI`).
+    #[must_use]
     pub fn is_priority(&self) -> bool {
-        (self.event.events as libc::c_int & libc::EPOLLPRI) != 0
+        (self.mask() & libc::EPOLLPRI) != 0
     }
 }
 

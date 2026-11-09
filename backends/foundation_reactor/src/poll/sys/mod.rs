@@ -1,8 +1,8 @@
-/// Platform-specific selector implementations.
-///
-/// On Linux: epoll
-/// On macOS/BSD: kqueue
-/// On Windows: IOCP
+//! Platform-specific selector implementations.
+//!
+//! On Linux: epoll
+//! On macOS/BSD: kqueue
+//! On Windows: IOCP
 
 /// On Linux the concrete backend is chosen at runtime by the F42 probe ladder,
 /// so `Selector` is the dispatch enum rather than one of the leaf selectors.

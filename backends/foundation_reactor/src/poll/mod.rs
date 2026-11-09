@@ -136,14 +136,14 @@ impl Poll {
     }
 
     /// WHY: Decision 14 OQ#14.3 makes an explicit backend request a
-    /// *requirement*. A deployment that asks for io_uring and silently gets
+    /// *requirement*. A deployment that asks for `io_uring` and silently gets
     /// epoll discovers it from latency graphs months later.
     ///
     /// WHAT: create a `Poll` on a specific backend preference.
     ///
     /// HOW: [`BackendPreference::Auto`] walks the probe ladder
     /// (uring-completion → uring-readiness → epoll) and logs the choice.
-    /// [`BackendPreference::Uring`] fails hard if the probe says io_uring is
+    /// [`BackendPreference::Uring`] fails hard if the probe says `io_uring` is
     /// unusable. [`BackendPreference::Epoll`] skips the probe entirely.
     ///
     /// # Errors
@@ -333,6 +333,10 @@ impl Poll {
     /// Unix only: its one caller, [`crate::reactor::Reactor::clear`], is in the
     /// Unix-only reactor module. On wasm32 the method would be dead code.
     #[cfg(unix)]
+    #[allow(
+        clippy::unused_self,
+        reason = "the kqueue arm calls `self.selector`; the caller uses a `Poll`"
+    )]
     pub(crate) fn rearm_readable(&self, fd: sys::RawFd) {
         #[cfg(any(
             target_os = "macos",
