@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.10"
+version = "0.0.11"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,7 +14,6 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.19" }
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true, default-features = false, features = ["std"] }
@@ -52,6 +51,12 @@ smoltcp = { version = "0.12", default-features = false, features = [
     "socket-udp",
     "alloc",
 ], optional = true }
+
+# Native only: the reactor serves the watcher and the I/O readiness code, which
+# the `native` module holds. A wasm build has no user of it, so the manifest
+# gates it to avoid an unused-dependency warning on that target.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]

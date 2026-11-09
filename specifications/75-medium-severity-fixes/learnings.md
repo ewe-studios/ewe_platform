@@ -5,6 +5,29 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, issue #411: the shared tree must not hold host-process code
+
+- A folder named `shared` is a promise. A `#[cfg(not(target_family = "wasm"))]` marker
+  inside it hides a native dependency; it does not remove it. Move the code to `native/`,
+  and the marker becomes unnecessary.
+- A dead cfg marker survives because no supported build takes the other branch. The proof
+  of the fix is a real wasm build, not a comment in the source.
+- `native::vfs` was declared only for `vfs-native`, but the CLI searcher needs only
+  `vfs-search`. Widen the parent gate to `any(vfs-native, vfs-search)` and add
+  `vfs-native` to each existing child. The two trees then stay independent.
+- The crate root needs the gate too. `native` and `signal` call operating-system APIs.
+  Without a crate-root gate, `pub use native::...` fails on wasm even when the module is
+  absent. Gate every re-export of a gated module.
+- `--all-features` is not a build that the crate supports. It fails on master because
+  `native/watcher/unix.rs` calls the private `foundation_reactor::poll::Registry::selector`
+  (#428) and several feature-gated modules have `unreadable_literal` warnings (#429). Lint
+  the two feature trees that CI enforces instead.
+- `EXCLUDED_DIRS` is shared policy: the in-code walk and the CLI searcher must skip the
+  same directories. Keep one `pub(crate)` constant in `shared`, not a copy in `native`.
+- A crate version bump also stales every example lockfile that reaches the crate. Refresh
+  `devbinary`, `cf-agent-loop`, `cf-cloud-provider` and `web/wello` offline with
+  `cargo metadata --offline`, and check each with `--locked`.
+
 ## Issue #412 (2026-11-09)
 
 ### A native-only type must leave `shared/`, not gain a target gate

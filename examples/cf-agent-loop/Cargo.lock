@@ -1540,6 +1540,8 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "wasip2",
+ "wasip3",
  "wasm-bindgen",
  "zeroize",
 ]
@@ -1682,7 +1684,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -4874,7 +4876,16 @@ version = "1.0.4+wasi-0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b67efb37e106e55ce722a510d6b5f9c17f083e5fc79afc2badeb12cc313d9487"
 dependencies = [
- "wit-bindgen",
+ "wit-bindgen 0.57.1",
+]
+
+[[package]]
+name = "wasip3"
+version = "0.9.0+wasi-0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1d5749fdf69bb9400562eba50f8f25f5cd800ef4b74300038b6f99ae7409674"
+dependencies = [
+ "wit-bindgen 0.62.0",
 ]
 
 [[package]]
@@ -5336,6 +5347,12 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
+
+[[package]]
+name = "wit-bindgen"
+version = "0.62.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53cb4b5556c3a791e86838ea287782bdafa704d55b0e68b5b81a3a16b9ea5f4b"
 
 [[package]]
 name = "worker"

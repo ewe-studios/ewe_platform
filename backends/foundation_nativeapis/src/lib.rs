@@ -7,6 +7,8 @@
 pub mod shared;
 
 /// Platform-specific native module — feature-gated, requires OS-specific APIs.
+/// Not available on wasm: its modules call the operating system directly.
+#[cfg(not(target_family = "wasm"))]
 pub mod native;
 
 /// Valtron executor integration — shareable, platform-agnostic task adapters.
@@ -30,8 +32,9 @@ pub mod dataplane;
 pub mod ipc;
 
 /// Cross-platform signal handling (SIGINT, SIGTERM, SIGHUP, SIGQUIT).
-/// Feature-gated: requires `signal` feature (enabled by default).
-#[cfg(feature = "signal")]
+/// Feature-gated: requires `signal` feature (enabled by default). Not available
+/// on wasm: it uses operating-system signal APIs.
+#[cfg(all(feature = "signal", not(target_family = "wasm")))]
 pub mod signal;
 
 // ---------------------------------------------------------------------------
@@ -44,10 +47,10 @@ pub use shared::{
     SharedWatcher, WatchError, WatchEvent, WatchEventKind, WatcherBuilder,
 };
 
-// Poll types when the poll feature is enabled.
+// Poll types when the poll feature is enabled. The poll module is native-only.
 #[cfg(all(feature = "poll", unix))]
 pub use native::poll::SourceFd;
-#[cfg(feature = "poll")]
+#[cfg(all(feature = "poll", not(target_family = "wasm")))]
 pub use native::poll::{Events, Interest, Poll, Registry, Token, Waker};
 
 // Valtron types — always available (shareable, no native deps).
@@ -87,8 +90,10 @@ pub use shared::vfs::{
     VfsSearcher,
 };
 
+// Native VFS search backends when the vfs-search feature is enabled. They run
+// host programs, so they are absent on wasm.
 #[cfg(all(feature = "vfs-search", not(target_family = "wasm")))]
-pub use shared::vfs::{native_vfs_searcher, CliSearcher, SearchConfig};
+pub use native::vfs::search::{native_vfs_searcher, CliSearcher, SearchConfig};
 
 #[cfg(feature = "vfs-fjall")]
 pub use shared::vfs::{DurabilityWriteConfig, FjallDocumentStore};

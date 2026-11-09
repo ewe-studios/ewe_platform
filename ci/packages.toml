@@ -323,6 +323,12 @@ runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse"
 # (spec 70 feature 113): a new one fails CI.
 clippy-runs = ["", "vfs-preload"]
 clippy-deny-warnings = true
+# The crate builds for wasm32 (issue #411): the native and signal modules are
+# gated at the crate root, and only the shared VFS tree compiles. The default
+# set and the `vfs,vfs-search` set that foundation_ai's wasm build enables are
+# both checked.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
 # `uring_completion_*` and `completion_source_seam` skip on a kernel without
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a
