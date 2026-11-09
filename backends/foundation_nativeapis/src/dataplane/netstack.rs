@@ -32,7 +32,7 @@ use smoltcp::wire::{HardwareAddress, IpAddress, IpCidr, IpEndpoint, IpListenEndp
 
 use super::{DataPlane, WakeFn};
 
-/// Default MTU for the overlay link. WireGuard's own overhead is applied at the outer
+/// Default MTU for the overlay link. `WireGuard`'s own overhead is applied at the outer
 /// (UDP) boundary; this is the inner L3 MTU the netstack advertises to its sockets.
 const DEFAULT_MTU: usize = 1420;
 
@@ -192,11 +192,15 @@ struct ListenQueue {
 impl Inner {
     fn smol_now(&self, now: Instant) -> SmolInstant {
         let elapsed = now.saturating_duration_since(self.base);
-        SmolInstant::from_micros(elapsed.as_micros() as i64)
+        // smoltcp keeps time as signed microseconds. Saturate rather than wrap: an
+        // elapsed time above `i64::MAX` microseconds is far beyond any session lifetime.
+        let micros = i64::try_from(elapsed.as_micros()).unwrap_or(i64::MAX);
+        SmolInstant::from_micros(micros)
     }
 
-    fn from_smol(&self, instant: SmolInstant) -> Instant {
-        let micros = instant.total_micros().max(0) as u64;
+    fn to_instant(&self, instant: SmolInstant) -> Instant {
+        // `max(0)` removes the sign before the widening conversion, so the value fits.
+        let micros = u64::try_from(instant.total_micros().max(0)).unwrap_or(0);
         self.base + Duration::from_micros(micros)
     }
 
@@ -284,7 +288,7 @@ impl Inner {
 
 /// Configuration for a [`NetStack`]: the overlay tunnel address, link MTU and
 /// listener backlog.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct NetStackConfig {
     /// This node's overlay (tunnel) IP address.
     pub address: IpAddr,
@@ -352,7 +356,7 @@ impl std::fmt::Debug for NetStack {
 }
 
 impl NetStack {
-    /// WHY: Callers stand up one overlay stack per WireGuard interface.
+    /// WHY: Callers stand up one overlay stack per `WireGuard` interface.
     ///
     /// WHAT: Build a [`NetStack`] with the given overlay address and MTU.
     ///
@@ -362,7 +366,7 @@ impl NetStack {
     /// # Panics
     /// Never panics.
     #[must_use]
-    pub fn new(config: NetStackConfig, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(config: NetStackConfig, clock: &Arc<dyn Clock>) -> Self {
         let mut device = TunnDevice::new(config.mtu);
         let base = clock.now();
         let iface_config = Config::new(HardwareAddress::Ip);
@@ -393,6 +397,9 @@ impl NetStack {
     }
 
     /// Number of active overlay sockets. Primarily for diagnostics and tests.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn socket_count(&self) -> usize {
         self.inner
@@ -404,6 +411,9 @@ impl NetStack {
     }
 
     /// Number of outbound IP packets currently queued for encryption.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn pending_outbound(&self) -> usize {
         self.inner
@@ -470,7 +480,7 @@ impl DataPlane for NetStack {
         fire_ready_wakers(inner);
 
         let next = inner.iface.poll_at(timestamp, &inner.sockets);
-        next.map(|deadline| inner.from_smol(deadline))
+        next.map(|deadline| inner.to_instant(deadline))
     }
 
     fn drain_outbound_ip(&mut self, f: &mut dyn FnMut(&[u8])) {
@@ -516,7 +526,7 @@ impl DataPlane for NetStack {
         let socket = sockets.get_mut::<tcp::Socket>(handle);
         socket
             .connect(iface.context(), remote, local_port)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("tcp connect: {e}")))?;
+            .map_err(|e| io::Error::other(format!("tcp connect: {e}")))?;
 
         let local = SocketAddr::new(local_addr(iface), local_port);
         Ok(OverlayStream {
@@ -623,7 +633,7 @@ impl std::fmt::Debug for OverlayListener {
         f.debug_struct("OverlayListener")
             .field("id", &self.id)
             .field("local", &self.local)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -758,7 +768,7 @@ impl std::fmt::Debug for OverlayStream {
         f.debug_struct("OverlayStream")
             .field("local", &self.local)
             .field("peer", &self.peer)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -782,13 +792,16 @@ impl OverlayStream {
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when no data is available yet; other kinds on a
     /// broken connection.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<tcp::Socket>(self.handle);
         if socket.can_recv() {
             socket
                 .recv_slice(buf)
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("tcp recv: {e}")))
+                .map_err(|e| io::Error::other(format!("tcp recv: {e}")))
         } else if socket.may_recv() || still_connecting(socket.state()) {
             // `may_recv` is false until the handshake completes; a socket
             // that is still connecting has not ended, it has nothing *yet*.
@@ -808,13 +821,16 @@ impl OverlayStream {
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when the send buffer is full;
     /// [`io::ErrorKind::BrokenPipe`] when the send half is closed.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<tcp::Socket>(self.handle);
         if socket.can_send() {
             socket
                 .send_slice(buf)
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("tcp send: {e}")))
+                .map_err(|e| io::Error::other(format!("tcp send: {e}")))
         } else if socket.may_send() {
             Err(io::Error::new(
                 io::ErrorKind::WouldBlock,
@@ -831,6 +847,9 @@ impl OverlayStream {
     /// True while the connection can still exchange data in either direction. Note this
     /// is `true` during the handshake (`SYN-SENT`); use [`Self::may_send`] to test for an
     /// established, writable connection.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn is_active(&self) -> bool {
         self.inner
@@ -846,6 +865,9 @@ impl OverlayStream {
     ///
     /// A synchronous I/O driver (`conn_io`) probes this to answer "readable now"
     /// without consuming a byte (which [`Self::read`] would).
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn readable(&self) -> bool {
         let inner = self.inner.lock().expect("netstack mutex poisoned");
@@ -859,6 +881,9 @@ impl OverlayStream {
     ///
     /// The write-side twin of [`Self::readable`]: probe "writable now" without
     /// enqueuing anything.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn writable(&self) -> bool {
         let inner = self.inner.lock().expect("netstack mutex poisoned");
@@ -868,6 +893,9 @@ impl OverlayStream {
 
     /// True once the connection is established and its send half is open — i.e. the
     /// handshake completed and the socket will accept application data.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn may_send(&self) -> bool {
         self.inner
@@ -879,6 +907,9 @@ impl OverlayStream {
     }
 
     /// True while the connection's receive half is open (data may still arrive).
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     #[must_use]
     pub fn may_recv(&self) -> bool {
         self.inner
@@ -890,6 +921,9 @@ impl OverlayStream {
     }
 
     /// Begin an orderly close of the send half (FIN).
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn close(&self) {
         self.inner
             .lock()
@@ -900,6 +934,9 @@ impl OverlayStream {
     }
 
     /// Register a one-shot waker fired when the stream becomes readable.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn set_read_waker(&self, waker: WakeFn) {
         self.inner
             .lock()
@@ -909,6 +946,9 @@ impl OverlayStream {
     }
 
     /// Register a one-shot waker fired when the stream becomes writable.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn set_write_waker(&self, waker: WakeFn) {
         self.inner
             .lock()
@@ -941,7 +981,7 @@ impl std::fmt::Debug for OverlayUdp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("OverlayUdp")
             .field("local", &self.local)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -954,6 +994,9 @@ impl OverlayUdp {
     ///
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when no datagram is buffered.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<udp::Socket>(self.handle);
@@ -962,7 +1005,7 @@ impl OverlayUdp {
         }
         let (len, meta) = socket
             .recv_slice(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("udp recv: {e}")))?;
+            .map_err(|e| io::Error::other(format!("udp recv: {e}")))?;
         Ok((len, from_smol_endpoint(meta.endpoint)))
     }
 
@@ -974,6 +1017,9 @@ impl OverlayUdp {
     ///
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when the send buffer is full; other kinds on error.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize> {
         let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<udp::Socket>(self.handle);
@@ -985,11 +1031,14 @@ impl OverlayUdp {
         }
         socket
             .send_slice(buf, to_smol_endpoint(addr))
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("udp send: {e}")))?;
+            .map_err(|e| io::Error::other(format!("udp send: {e}")))?;
         Ok(buf.len())
     }
 
     /// Register a one-shot waker fired when a datagram becomes available.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn set_read_waker(&self, waker: WakeFn) {
         self.inner
             .lock()
@@ -1059,6 +1108,7 @@ fn local_addr(iface: &Interface) -> IpAddr {
     iface
         .ip_addrs()
         .first()
-        .map(|cidr| from_smol_address(cidr.address()))
-        .unwrap_or(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED))
+        .map_or(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED), |cidr| {
+            from_smol_address(cidr.address())
+        })
 }
