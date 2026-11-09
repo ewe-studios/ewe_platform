@@ -345,12 +345,18 @@ mod event_driven_cpu {
     }
 
     /// An idle pool, with its only task parked on a `ResumeSignal`, costs each of
-    /// its threads under 2 ms of CPU and under 30 wake-ups in one second.
+    /// its threads under 10 ms of CPU and under 30 wake-ups in one second.
     ///
     /// The thread that waits for the task's output (the test thread here) used to
     /// wake every millisecond (`NotifyQueue::wait_for_item` made 100 timed waits of
     /// 1 ms): about 27 ms of CPU and 900 wake-ups per second. The workers wake once
     /// per `max_yield_duration` (100 ms) at most: about 10 wake-ups per second.
+    ///
+    /// WHY 10 ms and not 2 ms (GitHub issue #425): a wake costs about 0.25 ms of
+    /// CPU in the unoptimised `uat` build inside the Linux CI container. An idle
+    /// worker makes 8 to 9 wake-ups per second, so it uses 2.3 to 2.7 ms. The old
+    /// defect used about 27 ms, so 10 ms still tells the two apart. The wake-up
+    /// count is the sharper signal: the defect made about 900 wake-ups per second.
     #[valtron_test(threads = 1, timeout = 20_000)]
     async fn idle_threads_parked_on_a_resume_signal_use_almost_no_cpu() {
         let stream = execute(
@@ -384,8 +390,8 @@ mod event_driven_cpu {
             worst_wakeups = worst_wakeups.max(wakeups);
         }
         assert!(
-            worst_cpu < Duration::from_millis(2),
-            "an idle thread used {worst_cpu:?} of CPU in one second; the bound is 2 ms"
+            worst_cpu < Duration::from_millis(10),
+            "an idle thread used {worst_cpu:?} of CPU in one second; the bound is 10 ms"
         );
         assert!(
             worst_wakeups < 30,
