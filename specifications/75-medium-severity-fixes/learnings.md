@@ -22,6 +22,20 @@ _Newest first. Updated after each batch. See
 
 ## Batch 2 (2026-11-09)
 
+### A target-gated backend needs its crate declared for that target (issue #427)
+
+- The `wasi_p2_3` backend splits on `target_env`: `p2` imports `wasip2` and `p3` imports
+  `wasip3`. Neither crate was in the manifest, so the target did not build.
+- A target-specific dependency is resolved into every lockfile that takes the crate by path,
+  even when that target is not built. Add the dependency under the same `cfg` as the code,
+  then refresh the example lockfiles.
+- `wasip2` 1.0.4 and `wasip3` 0.9 both default to `std`. Use `default-features = false` for a
+  `no_std` substrate; the `random` module needs neither `std` nor `bitflags`.
+- `wasip3` 0.9 requires Rust 1.87. That equals this workspace's minimum, so the dependency
+  stays inside the supported range.
+- A WASI check does not prove a WASI target. Install the target, then check it. The pinned
+  nightly lists `wasm32-wasip3`, and `rustup target add` installs it.
+
 ### A `macro_rules!` cannot emit a match arm; a cfg alias can carry the rule
 
 - A macro call in match-arm position is parsed as a pattern. The compiler reports "expected

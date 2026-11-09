@@ -4,6 +4,34 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #427, `foundation_compact` builds for WASI preview 2 and 3
+
+`foundation_compact` selects the `wasi_p2_3` entropy backend for every WASI target that is
+not preview 1. That backend imports `wasip2` when `target_env` is `p2`, and `wasip3` when it
+is `p3`. The manifest declared neither crate. `cargo check --target wasm32-wasip2` failed in
+this crate with `E0432: unresolved import wasip2`, so every crate in the graph stopped there.
+
+| Change | Detail |
+| --- | --- |
+| `wasip2` | `= "1.0.4"`, `default-features = false`, for `target_env = "p2"`. The version matches the lockfile entry that another crate already pulls. |
+| `wasip3` | `= "0.9"`, `default-features = false`, for `target_env = "p3"`. It requires Rust 1.87, which equals the workspace minimum. |
+| Example lockfiles | The three standalone lockfiles take `foundation_compact` by path, so they hold the new target dependencies. |
+
+The `random` module of each crate needs no `std` or `bitflags` feature, so the `no_std`
+substrate keeps its feature set.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo check --profile uat -p foundation_compact --target wasm32-wasip2 --no-default-features` | Pass |
+| `cargo check --profile uat -p foundation_compact --target wasm32-wasip3 --no-default-features` | Pass |
+| `cargo check --profile uat --target wasm32-wasip2 -p foundation_db --no-default-features --features wasm` | Pass; this is the check that failed while #413 was verified |
+| `cargo test --profile uat -p foundation_compact` | Pass, all test binaries |
+| `cargo clippy --profile uat -p foundation_compact --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo fmt -p foundation_compact -- --check` | Pass |
+| `cargo metadata --locked --offline` for the workspace and the three examples | Pass |
+
 ## 2026-11-09: #413, `JsonFile` stays on WASI, on `fix/413-jsonfile-wasi`
 
 The branch starts from `fix/medium-integration` at `8811a029f`. The issue's first text named a

@@ -29,6 +29,18 @@ uuid = { version = "1", default-features = false }
 [target.'cfg(any(target_os = "macos", target_os = "ios", target_os = "tvos", target_os = "watchos", target_os = "visionos", target_os = "emscripten", target_os = "openbsd", target_os = "vita", target_os = "android", target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "hurd", target_os = "illumos", target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix", target_os = "netbsd", target_os = "cygwin", target_os = "horizon", target_os = "solaris"))'.dependencies]
 libc = { version = "0.2", default-features = false }
 
+# WASI preview 2: the generated bindings crate that the `wasi_p2_3` entropy
+# backend calls. `default-features = false` keeps the crate `no_std`; the
+# `random` module needs no `std` or `bitflags` feature.
+[target.'cfg(all(target_family = "wasm", target_os = "wasi", target_env = "p2"))'.dependencies]
+wasip2 = { version = "1.0.4", default-features = false }
+
+# WASI preview 3: the same wiring for the preview 3 world. The bindings crate
+# is 0.9 and it is not a dependency of another crate in this workspace, so it
+# resolves as a direct dependency only for this target.
+[target.'cfg(all(target_family = "wasm", target_os = "wasi", target_env = "p3"))'.dependencies]
+wasip3 = { version = "0.9", default-features = false }
+
 # Native-only: tracing subscriber for test diagnostics (trace module)
 [target.'cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))'.dependencies]
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
