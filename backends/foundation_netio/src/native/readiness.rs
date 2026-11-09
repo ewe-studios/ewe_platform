@@ -268,7 +268,7 @@ pub fn io_or_deadline(
 /// it.
 ///
 /// HOW: the deadline comes from [`foundation_core::valtron::MonotonicClock`],
-/// not a raw `Instant::now` read in the logic below.
+/// not from the process clock in the logic below.
 ///
 /// # Errors
 /// The handshake error, `TimedOut` when the deadline passes first, or
