@@ -28,3 +28,11 @@ standard ASD-STE100.
   `Ctx` constructors.
 - About 27 direct randomness reads bypass `Ctx` (#453). That is a separate change: this
   spec moves the clock, and `ctx.rng()` is already the place those reads must use.
+- Feature 01: `SimulatedClock::new` reads `Instant::now()` for its base. That read stayed in
+  `foundation_core/src/valtron/ctx.rs`, so the time-source allowlist needs an entry for that
+  file, next to the new entry for `foundation_context/src/lib.rs`.
+- Feature 01: `cargo fmt --all` rewrites files in other crates (`foundation_connectrpc_codegen`
+  `generator.rs`, `foundation_openapi` `unified/emit.rs`). Those files were already not
+  formatted. Revert them, or format only the crate you changed.
+- Feature 01: `foundation_context` has no default features. Its wasm build compiles with no
+  time backend chosen, so each consumer must forward `wasm-bindgen` or `host-abi`.

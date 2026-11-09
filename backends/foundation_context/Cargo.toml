@@ -1,0 +1,25 @@
+[package]
+name = "foundation_context"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "The shared context: a typed map plus the injected clock, config and random number generator"
+keywords = ["context", "clock", "wasm", "deterministic"]
+
+[dependencies]
+foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false, features = ["std"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
+
+[features]
+# Each feature picks the matching wasm32 time and entropy backend of
+# foundation_compact. It has no effect on other targets.
+wasm-bindgen = ["foundation_compact/wasm-bindgen"]
+host-abi = ["foundation_compact/host-abi"]
+
+[lints]
+workspace = true

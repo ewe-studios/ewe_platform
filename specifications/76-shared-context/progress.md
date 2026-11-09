@@ -11,9 +11,14 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 - 2026-11-09: the spec, with six features. The owner chose a new crate (`foundation_context`),
   the name `RpcCtx`, and one PR per feature.
 
+- 2026-11-09: feature 01. The new crate `backends/foundation_context` owns `Clock`,
+  `MonotonicClock`, `Config`, `MinimumElement` and `Ctx`. `foundation_core::valtron`
+  re-exports them. `SimulatedClock` stays in `foundation_core`. The crate is in
+  `ci/packages.toml`, and the time-source allowlist points at the new path.
+
 ## In progress
 
-- Feature 01 (`foundation_context` crate).
+- Nothing. Feature 01 is done and waits for review.
 
 ## Next
 

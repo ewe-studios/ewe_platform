@@ -1,6 +1,6 @@
 ---
 feature: "foundation_context crate"
-status: "planned"
+status: "completed"
 priority: "high"
 model: "sonnet"
 depends_on: []

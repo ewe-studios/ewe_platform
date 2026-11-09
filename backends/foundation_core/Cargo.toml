@@ -23,6 +23,8 @@ crate-type = ["rlib"]
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false }
+# The shared context (`Ctx`, `Clock`, ...). `valtron` re-exports it.
+foundation_context = { path = "../foundation_context", version = "0.0.1" }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
 foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
@@ -90,8 +92,8 @@ test-clock = ["std"]
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 # Each also picks foundation_compact's matching wasm32 time/entropy backend.
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen"]
-js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_compact/host-abi"]
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen", "foundation_context/wasm-bindgen"]
+js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_compact/host-abi", "foundation_context/host-abi"]
 
 # default flags
 default = ["standard", "std", "alloc"]
