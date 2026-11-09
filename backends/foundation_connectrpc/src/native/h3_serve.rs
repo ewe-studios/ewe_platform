@@ -40,16 +40,19 @@ use foundation_netio::shared::http::{
 };
 use futures::StreamExt;
 
+use crate::native::dispatch_h2::{
+    extend_handler_headers, grpc_status_trailers, h2_headers, request_from_header, run_unary,
+    ThreadTimer,
+};
 use crate::shared::compression::CompressionRegistry;
 use crate::shared::context::{CancelSignal, Ctx, Spec};
 use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
-    exchange_until_aborted, extend_handler_headers, extract_path, grpc_status_trailers, h2_headers,
-    http_version_not_supported, merge_handler_headers, method_not_allowed,
-    protocol_encoding_header, request_from_header, run_unary, status_only, stream_error_frame,
-    stream_failure, take_handler_headers, unclosed_stream_error, unsupported_media_type,
-    write_error, Abort, StreamEnd, ThreadTimer,
+    exchange_until_aborted, extract_path, http_version_not_supported, merge_handler_headers,
+    method_not_allowed, protocol_encoding_header, status_only, stream_error_frame, stream_failure,
+    take_handler_headers, unclosed_stream_error, unsupported_media_type, write_error, Abort,
+    StreamEnd,
 };
 use crate::shared::router::erased::ErasedStreamHandler;
 use crate::shared::router::{ConnectRpcHandler, HandlerKind};
@@ -330,12 +333,12 @@ async fn run_streaming_h3(
                     // The protocol reader is gone and will never read the rest;
                     // the response side decides the outcome.
                     tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
-                    req_tx.close();
+                    let _ = req_tx.close();
                     return Ok(());
                 }
             }
             body_done.store(true, Ordering::Release);
-            req_tx.close();
+            let _ = req_tx.close();
             Ok::<(), io::Error>(())
         };
         let request_side =

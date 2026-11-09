@@ -378,17 +378,17 @@ impl H3Pump {
         if let Some(req) = self.req.as_mut() {
             req.reset(error_code::H3_NO_ERROR);
         }
-        self.head_tx.close();
-        self.body_tx.close();
-        self.trailer_tx.close();
+        let _ = self.head_tx.close();
+        let _ = self.body_tx.close();
+        let _ = self.trailer_tx.close();
         self.phase = Phase::Done;
     }
 
     /// Everything has been delivered; close the pipes.
     fn finish(&mut self) {
-        self.body_tx.close();
-        self.head_tx.close();
-        self.trailer_tx.close();
+        let _ = self.body_tx.close();
+        let _ = self.head_tx.close();
+        let _ = self.trailer_tx.close();
         self.conn.close(error_code::H3_NO_ERROR, b"done");
         self.phase = Phase::Done;
     }
