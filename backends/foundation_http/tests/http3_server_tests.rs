@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 use bytes::Bytes;
 use foundation_core::valtron::{initialize_pool, Ctx, Stream, TaskIterator, TaskStatus};
 use foundation_http::ShutdownSignal;
-use foundation_netio::http3::{H3Connection, H3Request};
+use foundation_netio::http3::{H3Connection, H3Error, H3Request};
 use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
 };
@@ -84,6 +84,77 @@ fn read_body(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) -> Vec
     }
 }
 
+// ── Async H3 request helpers ─────────────────────────────────────────────
+
+/// Poll one `H3Request` method until it yields a terminal value.
+///
+/// WHY: a handler future shares its executor thread with other tasks, the QUIC
+/// driver among them. Waiting with `std::thread::sleep` inside it blocks that
+/// thread and starves every other task on it (issue #437). The production
+/// handlers park the task instead.
+///
+/// HOW: register the task's waker on the connection before each poll, then let
+/// the poll return `Pending`. The driver wakes the task when the connection
+/// makes progress.
+async fn poll_h3<T>(
+    request: &mut H3Request<QuinnBidiStream>,
+    mut poll: impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()>,
+) -> Option<T> {
+    std::future::poll_fn(move |cx: &mut std::task::Context<'_>| {
+        let parked = request.register_waker(cx.waker());
+        match poll(request) {
+            Stream::Next(Ok(value)) => std::task::Poll::Ready(Some(value)),
+            Stream::Next(Err(_)) => std::task::Poll::Ready(None),
+            _ => {
+                // A backend that cannot wake falls back to a self-wake, so the
+                // task is re-queued behind the driver instead of deadlocking.
+                if !parked {
+                    cx.waker().wake_by_ref();
+                }
+                std::task::Poll::Pending
+            }
+        }
+    })
+    .await
+}
+
+/// Read the whole request body, parking between data frames.
+async fn read_body_async(request: &mut H3Request<QuinnBidiStream>) -> Vec<u8> {
+    let mut body = Vec::new();
+    loop {
+        match poll_h3(request, H3Request::poll_body).await {
+            Some(Some(chunk)) => body.extend_from_slice(&chunk),
+            _ => return body,
+        }
+    }
+}
+
+/// Send one fully-encoded frame (`pending`), parking while the stream is full.
+async fn send_frame_async(
+    request: &mut H3Request<QuinnBidiStream>,
+    mut pending: Bytes,
+    headers: bool,
+) {
+    std::future::poll_fn(|cx: &mut std::task::Context<'_>| {
+        let parked = request.register_waker(cx.waker());
+        let step = if headers {
+            request.poll_send_headers(&mut pending)
+        } else {
+            request.poll_send_data(&mut pending)
+        };
+        match step {
+            Stream::Next(Ok(()) | Err(_)) => std::task::Poll::Ready(()),
+            _ => {
+                if !parked {
+                    cx.waker().wake_by_ref();
+                }
+                std::task::Poll::Pending
+            }
+        }
+    })
+    .await;
+}
+
 // ── Echo H3 handler ──────────────────────────────────────────────────────
 
 struct EchoH3;
@@ -96,31 +167,21 @@ impl H3Serve for EchoH3 {
         mut request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, std::io::Result<()>> {
         Box::pin(async move {
-            let deadline = Instant::now() + Duration::from_secs(10);
             // Read request headers + body.
-            let _headers = drive(|| request.poll_headers(), deadline);
-            let body = read_body(&mut request, deadline);
+            let _headers = poll_h3(&mut request, H3Request::poll_headers).await;
+            let body = read_body_async(&mut request).await;
 
             // Respond 200 echoing the body.
             let resp_headers = H3Request::<QuinnBidiStream>::encode_headers(&[(
                 b":status".as_ref(),
                 b"200".as_ref(),
             )]);
-            send_frame(&mut request, resp_headers, true);
+            send_frame_async(&mut request, resp_headers, true).await;
             let data = H3Request::<QuinnBidiStream>::encode_data(Bytes::from(body));
-            send_frame(&mut request, data, false);
+            send_frame_async(&mut request, data, false).await;
 
             // Finish the send half.
-            let fin_deadline = Instant::now() + Duration::from_secs(5);
-            loop {
-                if let Stream::Next(Ok(()) | Err(_)) = request.poll_finish() {
-                    break;
-                }
-                if Instant::now() >= fin_deadline {
-                    break;
-                }
-                std::thread::sleep(ms(1));
-            }
+            let _ = poll_h3(&mut request, H3Request::poll_finish).await;
             Ok(())
         })
     }
