@@ -49,6 +49,6 @@ pub mod waker {
     mod eventfd;
 }
 
-/// SourceFd — register any raw file descriptor with the poll selector.
+/// `SourceFd` — register any raw file descriptor with the poll selector.
 pub mod sourcefd;
 pub use sourcefd::SourceFd;

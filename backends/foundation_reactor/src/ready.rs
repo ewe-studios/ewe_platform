@@ -33,41 +33,51 @@ impl Ready {
     pub const ERROR: Ready = Ready(0b10000);
     pub const EMPTY: Ready = Ready(0b00000);
 
+    #[must_use]
     pub fn is_readable(self) -> bool {
         self.0 & Self::READABLE.0 != 0
     }
+    #[must_use]
     pub fn is_writable(self) -> bool {
         self.0 & Self::WRITABLE.0 != 0
     }
+    #[must_use]
     pub fn is_read_closed(self) -> bool {
         self.0 & Self::READ_CLOSED.0 != 0
     }
+    #[must_use]
     pub fn is_write_closed(self) -> bool {
         self.0 & Self::WRITE_CLOSED.0 != 0
     }
+    #[must_use]
     pub fn is_error(self) -> bool {
         self.0 & Self::ERROR.0 != 0
     }
+    #[must_use]
     pub fn is_empty(self) -> bool {
         self.0 == 0
     }
 
     /// Combine readiness states.
+    #[must_use]
     pub fn union(self, other: Ready) -> Ready {
         Ready(self.0 | other.0)
     }
 
     /// Remove specific readiness states.
+    #[must_use]
     pub fn difference(self, other: Ready) -> Ready {
         Ready(self.0 & !other.0)
     }
 
     /// Intersection — readiness flags present in both.
+    #[must_use]
     pub fn intersection(self, other: Ready) -> Ready {
         Ready(self.0 & other.0)
     }
 
     /// Check if this readiness contains all flags in `other`.
+    #[must_use]
     pub fn contains(self, other: Ready) -> bool {
         self.0 & other.0 == other.0
     }
@@ -82,6 +92,7 @@ impl Ready {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub const fn bits(self) -> u8 {
         self.0
     }
@@ -96,6 +107,7 @@ impl Ready {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub const fn from_bits(bits: u8) -> Ready {
         Ready(bits & Self::ALL.0)
     }

@@ -270,6 +270,10 @@ wasm-runs = [
 # `quic` adds the QUIC, HTTP/3 and WebTransport suites (tests/quic, tests/http3,
 # tests/webtransport), which no run compiled before.
 runs = ["", "quic"]
+# Clippy must cover the quic-gated code, not only the default features.
+clippy-runs = ["", "quic"]
+# Both runs are at zero clippy warnings under `--all-targets`: a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
@@ -344,6 +348,9 @@ env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_reactor]
+# At zero clippy warnings under `--all-targets`: a new one fails CI. Without
+# this, a warning here blocked the clippy gate of every crate that depends on it.
+clippy-deny-warnings = true
 # The poll module compiles on wasm32 (the reactor module is Unix-only), so keep
 # it warning-free there. This is the check that caught the dead `rearm_readable`.
 wasm = "enforce"

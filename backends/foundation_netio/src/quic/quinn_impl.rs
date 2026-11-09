@@ -246,7 +246,7 @@ impl QuicConnection for QuinnConnection {
         let Ok(mut guard) = lock(&self.state) else {
             return Stream::Next(Err(QuicConnError::Internal("state poisoned".into())));
         };
-        let closed = guard.closed.as_ref().map(|e| clone_conn_error(e));
+        let closed = guard.closed.as_ref().map(clone_conn_error);
         if let Some(err) = closed {
             return Stream::Next(Err(err));
         }
@@ -279,7 +279,7 @@ impl std::fmt::Debug for QuinnSendStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("QuinnSendStream")
             .field("id", &self.id)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -350,10 +350,9 @@ impl QuicSendStream for QuinnSendStream {
         drop(guard);
 
         match result {
-            Ok(()) => Stream::Next(Ok(())),
             // Already finished: the FIN is on the wire, which is what the caller
             // asked for.
-            Err(quinn_proto::FinishError::ClosedStream) => Stream::Next(Ok(())),
+            Ok(()) | Err(quinn_proto::FinishError::ClosedStream) => Stream::Next(Ok(())),
             Err(quinn_proto::FinishError::Stopped(code)) => {
                 Stream::Next(Err(QuicStreamError::Terminated {
                     code: code.into_inner(),
@@ -398,7 +397,7 @@ impl std::fmt::Debug for QuinnRecvStream {
         f.debug_struct("QuinnRecvStream")
             .field("id", &self.id)
             .field("finished", &self.finished)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -507,7 +506,7 @@ impl std::fmt::Debug for QuinnBidiStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("QuinnBidiStream")
             .field("id", &self.send.id)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 

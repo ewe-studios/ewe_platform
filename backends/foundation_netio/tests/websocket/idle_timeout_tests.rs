@@ -50,6 +50,41 @@ fn websocket_default_idle_timeout_is_the_nginx_keepalive_timeout() {
     assert_eq!(task.idle_timeout(), Some(Duration::from_millis(300)));
 }
 
+/// A read that times out yields `Delayed` for the caller's `sleep_timeout` (the
+/// idle poll interval), not for a value computed by the timeout calculator
+/// (GitHub issue #375).
+#[test]
+#[foundation_macros::timeout(30000)]
+fn websocket_delayed_uses_the_sleep_timeout() {
+    let read_wait = Duration::from_millis(50);
+    let sleep_between = Duration::from_millis(250);
+    let server = WebSocketEchoServer::start();
+    let url = server.ws_url("/echo");
+
+    let (_delivery, rx) = MessageDelivery::new();
+    let mut task = WebSocketTask::connect_with_delivery(
+        SystemDnsResolver,
+        url,
+        None,
+        SimpleHeaders::new(),
+        rx,
+        read_wait,
+        sleep_between,
+    )
+    .expect("task with a valid URL");
+
+    let ctx = Ctx::host();
+    establish(&mut task, &ctx);
+
+    match task.next_status(ctx) {
+        Some(TaskStatus::Delayed(delay)) => assert_eq!(
+            delay, sleep_between,
+            "the idle poll interval must be the caller's sleep timeout"
+        ),
+        other => panic!("a quiet connection must yield Delayed, got {other:?}"),
+    }
+}
+
 #[test]
 #[foundation_macros::timeout(30000)]
 fn websocket_wait_uses_the_idle_timeout() {

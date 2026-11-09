@@ -13,6 +13,7 @@ pub struct Events {
 
 impl Events {
     /// Create a new `Events` container with the given capacity.
+    #[must_use]
     pub fn with_capacity(cap: usize) -> Self {
         Self {
             events: Vec::with_capacity(cap),
@@ -20,11 +21,13 @@ impl Events {
     }
 
     /// Number of events currently in the container.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.events.len()
     }
 
     /// Whether the container is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }

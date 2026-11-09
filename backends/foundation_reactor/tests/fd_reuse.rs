@@ -36,7 +36,7 @@ static TEST_LOCK: Mutex<()> = Mutex::new(());
 fn serial() -> MutexGuard<'static, ()> {
     TEST_LOCK
         .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 /// Wait until `token` reports readable on `reactor`, or fail after
@@ -64,7 +64,9 @@ fn wait_for_readiness(ready: &FdReadiness, fd: RawFd, label: &str) {
         if ready.ready().is_readable() {
             return;
         }
-        ready.wait_for_events(generation, Duration::from_millis(100));
+        // The return is the new generation; the loop re-snapshots it, so
+        // discarding it here is deliberate.
+        let _ = ready.wait_for_events(generation, Duration::from_millis(100));
     }
     panic!("{label}: fd {fd} ({ready:?}) did not report readability within {WAIT_BOUND:?}");
 }

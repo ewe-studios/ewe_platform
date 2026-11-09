@@ -111,14 +111,9 @@ impl<C: QuicConnection> WtSession<C> {
             match connect.read() {
                 Stream::Next(Ok(Some(bytes))) => {
                     self.capsules.push(&bytes);
-                    continue;
                 }
                 // A clean FIN or a reset both end the session (draft §5).
-                Stream::Next(Ok(None)) => {
-                    self.state = WtSessionState::Closed;
-                    return Stream::Next(Ok(true));
-                }
-                Stream::Next(Err(_)) => {
+                Stream::Next(Ok(None) | Err(_)) => {
                     self.state = WtSessionState::Closed;
                     return Stream::Next(Ok(true));
                 }
@@ -148,8 +143,7 @@ impl<C: QuicConnection> WtSession<C> {
                 self.state = WtSessionState::Draining;
                 true
             }
-            CapsuleType::Grease { .. } => false,
-            CapsuleType::Unknown(_, _) => false,
+            CapsuleType::Grease { .. } | CapsuleType::Unknown(_, _) => false,
         }
     }
 
@@ -179,6 +173,12 @@ impl<C: QuicConnection> WtSession<C> {
         self.peer_close.as_ref().map(|(c, r)| (*c, r.as_str()))
     }
 
+    /// Queue one datagram for transmission.
+    ///
+    /// # Errors
+    /// Returns [`WtStreamError::DatagramsNotSupported`] when the peer did not
+    /// negotiate datagrams, and [`WtStreamError::Closed`] when the session is
+    /// closed.
     pub fn queue_datagram(&mut self, data: Bytes) -> Result<(), WtStreamError> {
         if !self.datagrams_enabled {
             return Err(WtStreamError::DatagramsNotSupported);
@@ -196,7 +196,7 @@ impl<C: QuicConnection> WtSession<C> {
     pub fn flush_datagrams(&mut self) -> Stream<Result<(), QuicStreamError>, ()> {
         while let Some(data) = self.send_datagrams.pop_front() {
             match self.conn.send_datagram(&data) {
-                Stream::Next(Ok(())) => continue,
+                Stream::Next(Ok(())) => {}
                 Stream::Next(Err(e)) => return Stream::Next(Err(e)),
                 _ => {
                     self.send_datagrams.push_front(data);
@@ -208,11 +208,8 @@ impl<C: QuicConnection> WtSession<C> {
     }
 
     pub fn pump_recv_datagrams(&mut self) {
-        loop {
-            match self.conn.recv_datagram() {
-                Stream::Next(Ok(Some(data))) => self.recv_datagrams.push_back(data),
-                _ => break,
-            }
+        while let Stream::Next(Ok(Some(data))) = self.conn.recv_datagram() {
+            self.recv_datagrams.push_back(data);
         }
     }
 
@@ -231,6 +228,7 @@ impl<C: QuicConnection> WtSession<C> {
         }
     }
 
+    #[must_use]
     pub fn build_close_capsule(code: u32, reason: &str) -> Vec<u8> {
         proto::encode_close_session(code, reason)
     }
@@ -244,7 +242,7 @@ impl<C: QuicConnection> WtSession<C> {
         self.state = WtSessionState::Closed;
 
         let Some(connect) = self.connect.as_mut() else {
-            self.conn.close(code as u64, reason.as_bytes());
+            self.conn.close(u64::from(code), reason.as_bytes());
             return Stream::Next(Ok(()));
         };
 
@@ -276,6 +274,7 @@ pub struct WtAcceptor<C: QuicConnection> {
 }
 
 impl<C: QuicConnection> WtAcceptor<C> {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             accepted: VecDeque::new(),
@@ -291,11 +290,13 @@ impl<C: QuicConnection> WtAcceptor<C> {
             Stream::Pending(())
         }
     }
+    #[must_use]
     pub fn pending(&self) -> usize {
         self.accepted.len()
     }
 
     /// Build 200 response headers for Extended CONNECT (QPACK-encoded by caller).
+    #[must_use]
     pub fn build_connect_response_headers() -> Vec<(Vec<u8>, Vec<u8>)> {
         vec![
             (b":status".to_vec(), b"200".to_vec()),
@@ -347,6 +348,7 @@ impl WtConnector {
     /// These are the HTTP pseudo-headers QPACK encodes for the CONNECT
     /// request. The caller serializes them into QPACK format and sends
     /// them on an http3 bidi stream.
+    #[must_use]
     pub fn build_connect_headers(authority: &str, path: &str) -> Vec<(Vec<u8>, Vec<u8>)> {
         vec![
             (b":method".to_vec(), b"CONNECT".to_vec()),
@@ -387,6 +389,7 @@ pub struct NoIoSession {
 }
 
 impl NoIoSession {
+    #[must_use]
     pub fn new(_is_client: bool, datagrams_enabled: bool) -> Self {
         Self {
             state: WtSessionState::Connecting,
@@ -416,22 +419,30 @@ impl NoIoSession {
                 self.state = WtSessionState::Draining;
                 true
             }
-            CapsuleType::Grease { .. } => false,
-            CapsuleType::Unknown(_, _) => false,
+            CapsuleType::Grease { .. } | CapsuleType::Unknown(_, _) => false,
         }
     }
+    #[must_use]
     pub fn is_open(&self) -> bool {
         self.state == WtSessionState::Open
     }
+    #[must_use]
     pub fn is_closed(&self) -> bool {
         self.state == WtSessionState::Closed
     }
+    #[must_use]
     pub fn close_info(&self) -> Option<(u32, &str)> {
         self.peer_close.as_ref().map(|(c, r)| (*c, r.as_str()))
     }
+    #[must_use]
     pub fn datagrams_enabled(&self) -> bool {
         self.datagrams_enabled
     }
+    /// Queue one datagram for transmission.
+    ///
+    /// # Errors
+    /// Returns [`WtStreamError::DatagramsNotSupported`] when datagrams were not
+    /// negotiated, and [`WtStreamError::Closed`] when the session is closed.
     pub fn queue_datagram(&mut self, data: Bytes) -> Result<(), WtStreamError> {
         if !self.datagrams_enabled {
             return Err(WtStreamError::DatagramsNotSupported);

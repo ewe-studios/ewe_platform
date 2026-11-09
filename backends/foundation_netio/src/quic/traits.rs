@@ -59,7 +59,7 @@ use super::StreamId;
 pub enum QuicConnError {
     /// The peer (or we) closed the connection at the application layer.
     ApplicationClose {
-        /// The application error code carried by the CONNECTION_CLOSE frame.
+        /// The application error code carried by the `CONNECTION_CLOSE` frame.
         code: u64,
     },
     /// The connection idled out or handshake timed out.
