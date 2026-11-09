@@ -58,7 +58,7 @@ version = "0.0.10"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.18"
+version = "0.0.19"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"

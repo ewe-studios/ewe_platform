@@ -244,10 +244,11 @@ mod event_driven_cpu {
         }
     }
 
-    /// CPU nanoseconds used so far by the threads of this test: the test thread and
-    /// the pool workers it started, which carry its name (truncated to 15 bytes).
-    /// Other tests of the binary run beside this one, so the whole-process CPU is not
-    /// a fair measure.
+    /// CPU nanoseconds used so far by this test's pool workers: the threads
+    /// named `comm`. A worker now carries its own name, not the name of the
+    /// test thread that started it (GitHub issue #309). Other tests of the
+    /// binary run beside this one, so the whole-process CPU is not a fair
+    /// measure.
     fn own_threads_cpu(comm: &str) -> Duration {
         let mut total = 0u64;
         for entry in std::fs::read_dir("/proc/self/task")
@@ -304,8 +305,9 @@ mod event_driven_cpu {
     /// practice about half.
     #[valtron_test(threads = 1, timeout = 20_000)]
     async fn worker_with_event_driven_sleeper_uses_less_cpu_than_a_polling_one() {
-        // The test thread is named after its module path; the pool workers inherit it.
-        let comm = "valtron::readin";
+        // The task workers carry their own name (GitHub issue #309). The name
+        // is 14 bytes, under the 15-byte limit that Linux keeps in `comm`.
+        let comm = "valtron-worker";
         let event = cpu_while_parked(Arc::new(ResumeSignal::new(false)), comm);
         let polling = cpu_while_parked(Arc::new(PollingSignal), comm);
         eprintln!("event-driven {event:?}, polling {polling:?}");
@@ -365,7 +367,9 @@ mod event_driven_cpu {
         let after = thread_stats();
         std::mem::forget(stream);
 
-        let comm = "valtron::readin";
+        // The task workers carry their own name (GitHub issue #309). The name
+        // is 14 bytes, under the 15-byte limit that Linux keeps in `comm`.
+        let comm = "valtron-worker";
         let mut worst_cpu = Duration::ZERO;
         let mut worst_wakeups = 0;
         for (name, (cpu, switches)) in &after {

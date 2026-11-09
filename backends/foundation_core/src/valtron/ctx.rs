@@ -463,22 +463,41 @@ impl SimulatedClock {
 
     /// Add `by` to the monotonic offset.
     ///
+    /// WHY the wake: a parked executor blocks its thread with an operating
+    /// system wait. That wait ends on a real timeout, or when a wake arrives.
+    /// This clock never moves on its own, so the test that moves it must also
+    /// wake the parked executors. Otherwise a task that waits for a simulated
+    /// deadline sleeps on real time (GitHub issue #305). The wake goes through
+    /// the same path as a readiness signal, so the executor re-reads this clock
+    /// at once.
+    ///
     /// # Panics
     ///
     /// Panics if the internal offset mutex is poisoned.
     pub fn advance(&self, by: Duration) {
-        let mut offset = self.offset.lock().expect("SimulatedClock poisoned");
-        *offset += by;
+        {
+            let mut offset = self.offset.lock().expect("SimulatedClock poisoned");
+            *offset += by;
+        }
+        // Release the lock first: a wake listener may read this clock, and
+        // `now` takes the same lock.
+        crate::valtron::executors::request_executor_resume();
     }
 
     /// Add `by` to the wall-clock offset.
+    ///
+    /// It wakes parked executors for the same reason as [`Self::advance`]: a
+    /// caller may wait for a wall-clock deadline that this time change meets.
     ///
     /// # Panics
     ///
     /// Panics if the internal wall-offset mutex is poisoned.
     pub fn advance_wall(&self, by: Duration) {
-        let mut offset = self.wall_offset.lock().expect("SimulatedClock poisoned");
-        *offset += by;
+        {
+            let mut offset = self.wall_offset.lock().expect("SimulatedClock poisoned");
+            *offset += by;
+        }
+        crate::valtron::executors::request_executor_resume();
     }
 }
 
