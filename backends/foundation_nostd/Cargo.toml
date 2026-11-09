@@ -30,6 +30,9 @@ ntest = { workspace = true }
 foundation_testing = { path = "../foundation_testing" }
 
 # The benchmark tests drive `StressHarness` with the real clock.
+# Do not add a `version` here. `foundation_core` depends on this crate, so a
+# versioned dev-dependency makes a publish cycle: `cargo package` must find
+# `foundation_core` on crates.io before it can publish. A path-only
+# dev-dependency is removed from the published manifest.
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.19"
