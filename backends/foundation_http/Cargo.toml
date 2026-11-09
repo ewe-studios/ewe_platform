@@ -27,7 +27,6 @@ bytes = { version = "1.5" }
 sha1 = "0.10"
 base64 = "0.22"
 tracing = "0.1"
-uuid = { version = "1.6", features = ["v4"] }
 async-trait = "0.1"
 # The valtron waker→readiness bridge (`queue_waker`/`QueueReadiness`) names
 # `ConcurrentQueue` directly, so the async `Serve` continuation parks on it.
@@ -42,10 +41,10 @@ foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
 # defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
 foundation_netio = { path = "../foundation_netio", version = "0.0.10" }
 
-# On wasm32, uuid takes its randomness from `crypto.getRandomValues` through
-# its `js` feature, which needs `js-sys`/`wasm-bindgen` and no `getrandom`.
+# On wasm32 the crate uses netio's fetch client. Identifiers come from
+# `foundation_compact::uuid`, whose entropy backend the target selects, so the
+# crate needs no `uuid` randomness feature of its own.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-uuid = { version = "1.6", features = ["v4", "js"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.10", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
@@ -98,8 +97,10 @@ ssl-openssl = ["foundation_netio/ssl-openssl"]
 ssl-native-tls = ["foundation_netio/ssl-native-tls"]
 # HTTP/3 (QUIC) — gates H3Serve trait and ServerApp::Http3 (F35)
 quic = ["foundation_netio/quic"]
-# Wasm compatibility — uses browser crypto for UUID generation
-wasm = ["uuid/js"]
+# Kept for consumers that name it (foundation_connectrpc). The crate itself is
+# target-agnostic: identifiers come from foundation_compact's entropy source and
+# every native-only module sits behind a target gate, not behind this feature.
+wasm = []
 # Wasm-bindgen bridge entry points for web and Cloudflare Workers
 wasm-bindgen-http = [
     "wasm",

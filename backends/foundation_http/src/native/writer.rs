@@ -261,7 +261,14 @@ impl WaitSource {
                     if let Err(e) = fd_ready.set_writable(corrected == IoInterest::Writable) {
                         return Poll::Ready(Err(e));
                     }
-                    fd_ready.register_waker(cx.waker());
+                    if !fd_ready.register_waker(cx.waker()) {
+                        // The reactor no longer holds this registration. Parking
+                        // would then never wake, so report it instead of hanging.
+                        return Poll::Ready(Err(io::Error::new(
+                            io::ErrorKind::NotConnected,
+                            "the reactor no longer watches this connection",
+                        )));
+                    }
                 }
                 ConnReadiness::Overlay(_) => {
                     let waker = cx.waker().clone();

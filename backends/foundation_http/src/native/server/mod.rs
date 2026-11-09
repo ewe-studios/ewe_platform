@@ -853,7 +853,10 @@ impl HttpServer {
                     {
                         match &listener_readiness {
                             Some(readiness) => {
-                                readiness.wait_for_events(
+                                // The generation seen on wake is not needed: the
+                                // next loop iteration takes a fresh snapshot
+                                // before the accept, so no event can slip through.
+                                let _ = readiness.wait_for_events(
                                     gen.expect("generation snapshotted before accept"),
                                     accept_shutdown_poll,
                                 );

@@ -52,15 +52,25 @@ _Newest first. Updated after each batch. See
 - A `clippy-deny-warnings = true` entry fails CI only when a `clippy-runs` entry compiles the
   affected code. Add both the feature run and the deny entry together.
 
-### A target-only unused dependency is a stale dependency (foundation_http)
+### Identifiers come from `foundation_compact::uuid`, not from a `uuid` backend
 
-- `foundation_http` declared `getrandom` for wasm32 and enabled `getrandom/js`. `uuid` 1.20
-  takes its wasm randomness from `crypto.getRandomValues` through `js-sys`, and its
-  `getrandom` dependency is 0.3 and is target-gated off on wasm32-unknown-unknown. The
-  declared 0.2 dependency was dead.
-- A warning that appears on one target only can mean that the upstream crate moved its
-  backend or changed its major version. Read the upstream features before you keep the
-  dependency.
+- `foundation_compact` already owns the version-4 UUID path: `uuid::new_v4()` fills 16 bytes
+  from `entropy::fill` and sets the version and variant bits with `uuid`'s builder. The
+  entropy backend is selected for the target (the operating system source on native, the
+  `abi` host module on wasm32-unknown-unknown). This is the spec 70 rule 11 path.
+- `foundation_http`'s request-ID middleware called `uuid::new_v4()` directly and enabled
+  `uuid`'s `v4` and `js` features. It now calls `foundation_compact::uuid::new_v4()` and
+  warns if the entropy source fails. The `uuid` dependency is gone from the crate.
+- `uuid` 1.20 refuses to compile on wasm32-unknown-unknown unless one of `js`,
+  `rng-getrandom` or `rng-rand` is on, even when the crate only uses the value API. The old
+  `uuid`/`js` feature hid this for the whole graph. With it gone, no crate in the
+  `foundation_http` wasm graph enables `uuid`'s `v4` feature, so `uuid` compiles without its
+  `rng` module. Keep `foundation_compact`'s `uuid` dependency at
+  `default-features = false`; do not add a randomness feature to silence a compile error.
+- `#[must_use]` on `FdReadiness::register_waker` and `wait_for_events` exposed two ignored
+  return values in `foundation_http`. The writer now returns `NotConnected` when the reactor
+  no longer holds its registration (parking would hang). The accept loop names the ignored
+  generation with a comment, because the next iteration takes a fresh snapshot.
 
 ### A crate version bump must update the standalone example lockfiles
 

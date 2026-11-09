@@ -5818,7 +5818,6 @@ dependencies = [
  "sha2 0.10.9",
  "tracing",
  "tracing-test",
- "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
