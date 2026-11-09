@@ -62,6 +62,16 @@ _Newest first. Updated after each batch. See
   backend or changed its major version. Read the upstream features before you keep the
   dependency.
 
+### A crate version bump must update the standalone example lockfiles
+
+- The plan job runs `cargo metadata --locked` for `examples/devbinary`,
+  `examples/web/wello` and `examples/platform_android/src-tauri`. These manifests are outside
+  the workspace and take the crates by path, so a crate version bump makes their lockfiles
+  stale and the job fails.
+- The `foundation_wasmtime` bump to 0.2.0 updated the workspace lockfile but missed
+  `examples/platform_android/src-tauri/Cargo.lock`, which still named 0.1.1. Regenerate each
+  one with `cargo metadata --offline` and check it with `cargo metadata --locked`.
+
 ### Version lines conflict on every merge; keep the highest version
 
 - Each branch changed a crate version and its consumer requirements. The merges conflicted
