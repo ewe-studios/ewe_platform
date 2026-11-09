@@ -46,9 +46,13 @@ whose Linux body is empty.
 | `cargo test --profile uat -p foundation_reactor` | all pass |
 | `cargo fmt -p foundation_reactor --check` | pass |
 
-Next: the audit on the branch head is the check. If it passes, the branch is green.
-Turning on `clippy-deny-warnings` for the remaining packages (issue #436) is the lasting
-fix for the class of defect that #434 found.
+Result: head `608877411` is green. The `Audit: Checks & Tests` run (42606247964), the
+`Platform images (publish)` run (42606248008) and all five `CodeQL` jobs (42606242705)
+succeeded. The `foundation_core` and `foundation_reactor` jobs pass with the new
+`clippy-deny-warnings` gate on.
+
+Next: turning on `clippy-deny-warnings` for the other 24 packages (issue #436) is the
+lasting fix for the class of defect that #434 found.
 
 ## 2026-11-09: issue #257, a peer stop reaches the h3 handler
 

@@ -23,6 +23,8 @@ _Newest first. Updated after each batch. See
   comment lines.
 - Image jobs download tools from GitHub releases on every run with no cache. A burst of
   504s then fails the whole audit (issue #433). A re-run is the stopgap.
+- A push that touches only docs makes the plan select no package. The audit still runs
+  the plan and the image build, but it ends fast and does not re-check the crates.
 
 ## 2026-11-09, issue #257: the reset is gone, the stop is not
 
