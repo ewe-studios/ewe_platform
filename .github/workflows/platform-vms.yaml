@@ -122,6 +122,10 @@ jobs:
         cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
         # Prove the feature 09 gating: foundation_platform must build for iOS.
         cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
+        # The macOS watcher compiles only under `watcher-macos`, and no other job
+        # names that feature. Without this check the backend rotted against a
+        # private reactor method (issue #428).
+        cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
         # Install the Android NDK that cc-rs needs, then check the declared Android module.
         bash scripts/setup/android-ndk.sh
         env CC_aarch64-linux-android="$PWD/scripts/android-ndk/aarch64-linux-android" \
