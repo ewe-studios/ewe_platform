@@ -42,6 +42,10 @@ whose Linux body is empty.
 | `cargo test --profile uat -p foundation_reactor` | all pass |
 | `cargo fmt -p foundation_reactor --check` | pass |
 
+Next: the audit on head `92c99421b` is the check. If it passes, the branch is green.
+A per-target clippy job in the plan is the lasting fix for the class of defect that #434
+found.
+
 ## 2026-11-09: issue #257, a peer stop reaches the h3 handler
 
 A client that cancels a Connect call after its request body ends stayed invisible to
