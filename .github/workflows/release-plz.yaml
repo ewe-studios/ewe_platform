@@ -221,13 +221,22 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the stable release toolchain
-        # Releases build on stable (ci/release-rust-toolchain); the pinned
-        # nightly in rust-toolchain.toml is for development only.
+      - name: Use the pinned nightly toolchain
+        # This job uses the pinned nightly from rust-toolchain.toml, not
+        # stable. release-plz copies the repository to a temporary directory
+        # and runs `cargo package` at the commit of each crate's last
+        # release. Commits before df86d7e6 (21 October 2026) have a root
+        # Cargo.toml with the nightly-only `codegen-backend` profile key.
+        # Stable cargo refuses to load those manifests ("feature
+        # `codegen-backend` is required"). This job only computes versions
+        # and changelogs and publishes nothing, so nightly is safe here.
+        # CARGO_UNSTABLE_CODEGEN_BACKEND enables the key on nightly for an
+        # old commit. The publish job stays on stable.
         run: |
-          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+          echo "CARGO_UNSTABLE_CODEGEN_BACKEND=true" >> "$GITHUB_ENV"
 
       - name: Cache release-plz
         uses: actions/cache@v6
@@ -236,9 +245,13 @@ jobs:
           key: release-plz-${{ env.RELEASE_PLZ_VERSION }}-${{ runner.os }}
 
       - name: Install release-plz
+        # Build release-plz with stable, so the cache key stays valid when
+        # the pinned nightly changes.
         run: |
           if [ ! -x /tmp/release-plz/bin/release-plz ]; then
-            cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
+            stable=$(tr -d '[:space:]' < ci/release-rust-toolchain)
+            rustup toolchain install "$stable" --profile minimal --no-self-update
+            RUSTUP_TOOLCHAIN="$stable" cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
           fi
           echo /tmp/release-plz/bin >> "$GITHUB_PATH"
 
