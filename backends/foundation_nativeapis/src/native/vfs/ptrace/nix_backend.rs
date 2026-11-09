@@ -336,12 +336,13 @@ fn ptrace_loop(
                     libc::PTRACE_EVENT_FORK
                     | libc::PTRACE_EVENT_VFORK
                     | libc::PTRACE_EVENT_CLONE => {
-                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
-                            let new_pid = Pid::from_raw(new_pid_raw as i32);
-                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
-                            // Do not resume the new child here. Its own first
-                            // stop arrives in this loop and is consumed there.
-                        }
+                        let new_pid_raw = ptrace::getevent(pid).map_err(|e| VfsError::Backend {
+                            message: format!("ptrace getevent failed for {pid}: {e}"),
+                        })?;
+                        let new_pid = Pid::from_raw(new_pid_raw as i32);
+                        fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
+                        // Do not resume the new child here. Its own first
+                        // stop arrives in this loop and is consumed there.
                         resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_VFORK_DONE => {
