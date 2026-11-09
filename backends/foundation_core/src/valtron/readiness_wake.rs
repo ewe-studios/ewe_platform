@@ -24,6 +24,9 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Wake, Waker};
 
+#[cfg(feature = "multi")]
+use std::task::{RawWaker, RawWakerVTable};
+
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
 
 use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
@@ -125,6 +128,100 @@ impl Drop for ParkGuard {
     }
 }
 
+/// The state behind a one-shot waker built from a [`WakeCallback`].
+///
+/// WHY: the async stream bridge registers a closure, not a `Waker`, on a
+/// queue-backed stream. This adapter turns that closure into a waker that a
+/// [`ReadinessNotifier`] can hold, so the bridge parks on the queue instead of
+/// waking itself and polling again. The old behaviour burned an executor
+/// worker until the producer pushed a value (issue #329).
+///
+/// WHAT: fires the callback at most once. It sets its liveness token false when
+/// it fires or when its last clone is dropped, so the notifier prunes a
+/// registration that nobody waits on any more.
+///
+/// [`WakeCallback`]: crate::valtron::WakeCallback
+#[cfg(feature = "multi")]
+struct CallbackWakeState {
+    callback: Mutex<Option<crate::valtron::WakeCallback>>,
+    live: Arc<AtomicBool>,
+}
+
+#[cfg(feature = "multi")]
+impl CallbackWakeState {
+    fn fire(&self) {
+        let callback = self
+            .callback
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take();
+        self.live.store(false, Ordering::SeqCst);
+        if let Some(callback) = callback {
+            callback();
+        }
+    }
+}
+
+#[cfg(feature = "multi")]
+impl Drop for CallbackWakeState {
+    fn drop(&mut self) {
+        self.live.store(false, Ordering::SeqCst);
+    }
+}
+
+#[cfg(feature = "multi")]
+static CALLBACK_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
+    callback_waker_clone,
+    callback_waker_wake,
+    callback_waker_wake_by_ref,
+    callback_waker_drop,
+);
+
+/// Clone: bump the `Arc<CallbackWakeState>` strong count, reuse the pointer.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and is
+/// still live (the owning `Waker` holds a strong reference across this call).
+#[cfg(feature = "multi")]
+unsafe fn callback_waker_clone(data: *const ()) -> RawWaker {
+    Arc::increment_strong_count(data.cast::<CallbackWakeState>());
+    RawWaker::new(data, &CALLBACK_WAKER_VTABLE)
+}
+
+/// Wake (by value): fire the callback once, then drop the owned strong ref.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>`;
+/// `wake` consumes the `Waker`, so reclaiming ownership here balances the
+/// original `into_raw`.
+#[cfg(feature = "multi")]
+unsafe fn callback_waker_wake(data: *const ()) {
+    let state = Arc::from_raw(data.cast::<CallbackWakeState>());
+    state.fire();
+}
+
+/// Wake by reference: fire the callback without consuming the strong ref.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and is
+/// still live; `ManuallyDrop` prevents this borrowed reconstruction from
+/// decrementing the count owned by the caller's `Waker`.
+#[cfg(feature = "multi")]
+unsafe fn callback_waker_wake_by_ref(data: *const ()) {
+    let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<CallbackWakeState>()));
+    state.fire();
+}
+
+/// Drop: reclaim and release one `Arc<CallbackWakeState>` strong reference.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and
+/// this call balances exactly one outstanding strong reference.
+#[cfg(feature = "multi")]
+unsafe fn callback_waker_drop(data: *const ()) {
+    drop(Arc::from_raw(data.cast::<CallbackWakeState>()));
+}
+
 /// A waker for one parked task. See the module docs.
 ///
 /// A source stores it (see [`ReadinessNotifier`]) and calls [`Self::wake`] when
@@ -214,6 +311,31 @@ impl ReadinessWaker {
     /// fires.
     #[must_use]
     pub fn from_waker_with_liveness(waker: Waker, live: Arc<AtomicBool>) -> Self {
+        Self {
+            waker,
+            park: None,
+            live: Some(live),
+        }
+    }
+
+    /// A waker that runs `callback` once, for a queue-backed stream whose async
+    /// bridge registers a closure instead of a waker.
+    ///
+    /// The waker reports live until it fires or every clone is dropped, so the
+    /// notifier drops a registration that nobody waits on any more.
+    #[cfg(feature = "multi")]
+    #[must_use]
+    pub(crate) fn from_callback(callback: crate::valtron::WakeCallback) -> Self {
+        let live = Arc::new(AtomicBool::new(true));
+        let state = Arc::new(CallbackWakeState {
+            callback: Mutex::new(Some(callback)),
+            live: Arc::clone(&live),
+        });
+        let raw = RawWaker::new(Arc::into_raw(state).cast::<()>(), &CALLBACK_WAKER_VTABLE);
+        // SAFETY: `raw` is built from a fresh `Arc<CallbackWakeState>` and the
+        // vtable functions uphold the `Arc` clone/drop contract described on
+        // each one.
+        let waker = unsafe { Waker::from_raw(raw) };
         Self {
             waker,
             park: None,
