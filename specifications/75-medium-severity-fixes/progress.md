@@ -4,6 +4,40 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #438, the dataplane clippy debt that CI never compiled
+
+`foundation_nativeapis` failed clippy with 43 errors, all in `src/dataplane/netstack.rs`
+(39) and `src/dataplane/tun.rs` (4). The errors appear only with `--features netstack,tun`.
+The package entry sets `clippy-deny-warnings`, but its `clippy-runs` are `["",
+"vfs-preload"]`, so the `dataplane` module never compiled in CI.
+
+The fix is commit `85f251935`:
+
+| Area | Change |
+| --- | --- |
+| Lint debt | Doc backticks, `io::Error::other`, `# Panics` sections, `finish_non_exhaustive`, `try_from` and `from_ne_bytes`, `map_or`, a `Copy` derive, and `to_instant` as the new name of `from_smol` |
+| Buffers | `TunDevice` keeps one scratch buffer for the Darwin header; `TunDataPlane` sizes its read buffer from `TunConfig::mtu`. The two `MAX_PACKET` stack arrays are gone |
+| API | `NetStack::new` takes `&Arc<dyn Clock>` (it reads the clock once and never stores it); `TunDevice::read` takes `&mut self`. The crate goes to 0.0.12 and every consumer requirement follows |
+
+The same batch fixes a generator defect: a generated union whose first member is a
+newtype emitted `Default::default()`, which `clippy::default_trait_access` rejects.
+`foundation_cloudflare_types` could not pass `--all-features`. The template now emits
+`<Type as Default>::default()` (commit `5f8dc2e33`).
+
+Two findings became issues:
+
+- #439 (medium): `TunConfig::mtu` and `ipv6` are stored but never applied to the kernel
+  interface. The read buffer now trusts the configured MTU, so a larger real MTU would
+  truncate a packet.
+- #440 (low): CI has no run that compiles the `dataplane` features. The same gap covers
+  the macOS-only arms, which a Linux runner cannot see.
+
+Verification: `cargo clippy -p foundation_nativeapis --features netstack,tun --all-targets
+-- -D warnings` is clean. `cargo test -p foundation_nativeapis --features netstack,tun`
+passes 17 targets. `cargo test -p foundation_wireguard` passes. `cargo clippy -p
+foundation_cloudflare_types --all-features` is clean. `cargo test -p
+foundation_codegentools --features cli` passes.
+
 ## 2026-11-09: issues #290 and #437, the h3 echo test flake
 
 `http3_server_echoes_a_request_over_quic` failed about once in 100 runs on macOS. A

@@ -5,6 +5,25 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, issue #438: a green clippy gate can hide a feature-gated subtree
+
+- Reproduce a clippy report with the features the reporter used. The 43 errors of #438
+  appear only with `--features netstack,tun`. The default run is clean, so the issue's
+  own command did not reproduce it.
+- A package can set `clippy-deny-warnings` and still never compile a module. Read
+  `clippy-runs` in `ci/packages.toml`, not only the deny flag (issue #440).
+- A `#[cfg(target_os = "macos")]` arm is invisible to a Linux runner. macOS-only debt
+  needs a macOS job, as issue #432 records.
+- Delete a `const` buffer by giving the object one buffer it reuses, not by allocating a
+  `Vec` per call. `TunDevice` keeps a scratch buffer and `read` takes `&mut self`. The
+  first attempt allocated per packet, which is the defect the lint was pointing at.
+- Prefer the signature fix over `#[allow]`. `NetStack::new` took an `Arc<dyn Clock>` it
+  only read, so `&Arc<dyn Clock>` removes the lint, and a version bump pays for it.
+- When a generated `Default` impl fails a lint, fix the template and regenerate. Do not
+  edit the generated file and do not add a crate-level allow.
+- Not every generation run writes what the log says. `gen_api generate cloudflare` prints
+  the split-out crate root, but only one generated file changed. Check `git status`.
+
 ## 2026-11-09, issues #290 and #437: one item per poll, and a blocking handler
 
 - An edge-triggered readiness contract needs a drain loop. The driver clears the latched
