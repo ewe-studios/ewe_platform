@@ -100,6 +100,9 @@ mod shutdown_single_deadline;
 mod single_executor;
 #[cfg(feature = "multi")]
 mod slow_poll_warning;
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod non_sendable_split_observer_wake;
 #[cfg(not(target_family = "wasm"))]
 mod split_observer_wake;
 mod task_status;
