@@ -23,6 +23,10 @@ pub trait Source {
         -> io::Result<()>;
 
     /// Re-register `self` with a new [`Token`] and/or [`Interest`].
+    ///
+    /// # Errors
+    /// Returns an error if the new registration is refused (invalid fd,
+    /// selector failure, etc.).
     fn reregister(
         &mut self,
         registry: &Registry,
@@ -31,5 +35,8 @@ pub trait Source {
     ) -> io::Result<()>;
 
     /// Deregister `self` from the [`Registry`].
+    ///
+    /// # Errors
+    /// Returns an error if the selector cannot remove the registration.
     fn deregister(&mut self, registry: &Registry) -> io::Result<()>;
 }

@@ -20,7 +20,7 @@ foundation_errstacks = { path = "../../backends/foundation_errstacks", version =
 [dev-dependencies]
 # Valtron runtime for the tests that exercise async send/receive and the
 # hand-rolled executor.
-foundation_core = { path = "../../backends/foundation_core", version = "0.0.18", features = ["multi"] }
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.19", features = ["multi"] }
 
 # Opt out of the parent workspace — this crate is a self-contained crate
 # (the root workspace excludes `crates/*`).

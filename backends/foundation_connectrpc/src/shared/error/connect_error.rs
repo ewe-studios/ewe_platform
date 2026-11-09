@@ -36,6 +36,11 @@ pub struct ConnectError {
     /// GET-only 304 signalling sentinel (Decision 03 P15). Never on the wire as
     /// an error payload; `ErrorWriter` renders it as HTTP 304 with headers only.
     not_modified: bool,
+    /// The HTTP status that produced this error, when a transport response did.
+    ///
+    /// Internal: the client uses it to recognize a retryable 405 or 415 without
+    /// parsing the message text. It stays off the wire.
+    http_status: Option<u16>,
 }
 
 /// Generates the per-code convenience constructors (`ConnectError::not_found(..)`).
@@ -63,7 +68,19 @@ impl ConnectError {
             source: None,
             wire_error: false,
             not_modified: false,
+            http_status: None,
         }
+    }
+
+    /// Create an error that carries the HTTP status of the response.
+    ///
+    /// Internal. The GET fallback checks the status to decide whether a POST
+    /// retry is safe. Do not read the status from the message text.
+    #[must_use]
+    pub(crate) fn from_http_status(status: u16, code: Code, message: impl Into<String>) -> Self {
+        let mut e = Self::new(code, message);
+        e.http_status = Some(status);
+        e
     }
 
     /// Create an error wrapping an underlying source error. The message is the
@@ -79,6 +96,7 @@ impl ConnectError {
             source: Some(Box::new(source)),
             wire_error: false,
             not_modified: false,
+            http_status: None,
         }
     }
 
@@ -174,6 +192,14 @@ impl ConnectError {
     #[must_use]
     pub fn is_not_modified(&self) -> bool {
         self.not_modified
+    }
+
+    /// The HTTP status that produced this error, when a response did.
+    ///
+    /// Internal. The GET fallback uses it to recognize 405 and 415.
+    #[must_use]
+    pub(crate) fn http_status(&self) -> Option<u16> {
+        self.http_status
     }
 
     // ── Wire rendering ───────────────────────────────────────────────────────

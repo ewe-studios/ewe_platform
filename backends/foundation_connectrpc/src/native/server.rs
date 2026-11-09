@@ -40,8 +40,9 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_http::native::serve::Serve;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{

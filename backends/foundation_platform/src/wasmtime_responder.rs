@@ -9,13 +9,20 @@
 //! WASM module. `WasmtimeShell` is the session-side registry for named
 //! wasmtime apps.
 //!
-//! HOW: On `respond()`, the builder produces a `WasmtimeInstance`, calls
-//! `handle_request` (the WASM export), and returns the result as an HTTP
-//! response. The instance is cached in a `Mutex<Option<Instance>>`.
+//! HOW: On `respond()`, the builder produces a `WasmtimeInstance`, sends the
+//! request path to the module with `handle_request`, and returns the module
+//! body as an HTTP response. The instance is cached in a
+//! `Mutex<Option<WasmtimeInstance>>`.
+//!
+//! The request and response ABI — the exports, the packed 64-bit response,
+//! the byte order, the ownership rules, and the error cases — is defined in
+//! the `foundation_wasmtime` crate docs. The module returns only body bytes,
+//! not a content type, so every body uses `text/plain; charset=utf-8`.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
+use foundation_core::valtron::Ctx;
 use foundation_ui_traits::{NavigationIntent, RouteDecision, RouteSource};
 use tauri::http::{header, Response, StatusCode};
 
@@ -27,20 +34,25 @@ use crate::session::PlatformSession;
 /// A `RouteResponder` backed by a wasmtime WASM module (Surface 3, F33).
 ///
 /// On first request, builds the wasmtime instance. On subsequent requests,
-/// calls the running instance's exports. The WASM module receives route
-/// info through its `handle_request` export and returns a response string.
+/// calls the running instance's `handle_request` export. The export receives
+/// the request path in guest memory and returns the response bytes with the
+/// ABI defined in the `foundation_wasmtime` crate docs.
 pub struct WasmtimeResponder {
     /// The wasmtime builder. Used once to produce the instance.
     builder: foundation_wasmtime::WasmtimeBuilder,
+    /// The injected side-effect bundle for the guest's WASI clock and
+    /// randomness. The session owns it; this is a shared handle.
+    ctx: Ctx,
     /// Cached instance (built lazily on first request).
     instance: Mutex<Option<foundation_wasmtime::WasmtimeInstance>>,
 }
 
 impl WasmtimeResponder {
     #[must_use]
-    pub fn new(builder: foundation_wasmtime::WasmtimeBuilder) -> Self {
+    pub fn new(builder: foundation_wasmtime::WasmtimeBuilder, ctx: Ctx) -> Self {
         Self {
             builder,
+            ctx,
             instance: Mutex::new(None),
         }
     }
@@ -61,7 +73,7 @@ impl WasmtimeResponder {
         if guard.is_none() {
             let instance = self
                 .builder
-                .build()
+                .build(&self.ctx)
                 .map_err(|e| format!("wasmtime build: {e}"))?;
             *guard = Some(instance);
         }
@@ -80,19 +92,27 @@ impl RouteResponder for WasmtimeResponder {
         _session: &PlatformSession,
     ) -> Response<Vec<u8>> {
         let route = crate::pattern::extract_path(&intent.url);
-        // Building the instance on first use is the work here; the handler
-        // body doesn't call an export yet.
-        let body = match self.with_instance(|_instance| ()) {
-            Ok(()) => format!("wasmtime shell handled: {route}"),
-            Err(e) => format!("wasmtime error: {e}"),
-        };
+        let result = self.with_instance(|instance| instance.call_handle_request(route.as_bytes()));
 
-        Response::builder()
-            .status(StatusCode::OK)
-            .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
-            .body(body.into_bytes())
-            .unwrap()
+        match result {
+            Ok(Ok(body)) => Response::builder()
+                .status(StatusCode::OK)
+                .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
+                .body(body)
+                .unwrap(),
+            Ok(Err(e)) => error_response(format!("wasmtime error: {e}")),
+            Err(e) => error_response(format!("wasmtime error: {e}")),
+        }
     }
+}
+
+/// Build the HTTP response for a build or module error.
+fn error_response(message: String) -> Response<Vec<u8>> {
+    Response::builder()
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .header(header::CONTENT_TYPE, "text/plain; charset=utf-8")
+        .body(message.into_bytes())
+        .unwrap()
 }
 
 // ── Shell registry ───────────────────────────────────────────────────────
@@ -101,13 +121,17 @@ impl RouteResponder for WasmtimeResponder {
 /// `WasmtimeBuilder` that produces an instance on first request.
 pub struct WasmtimeShell {
     apps: RwLock<HashMap<String, Arc<WasmtimeResponder>>>,
+    /// The injected side-effect bundle that every registered app receives. The
+    /// session builds it once, so a guest never reads the host globals.
+    ctx: Ctx,
 }
 
 impl WasmtimeShell {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             apps: RwLock::new(HashMap::new()),
+            ctx,
         }
     }
 
@@ -120,7 +144,7 @@ impl WasmtimeShell {
     ///
     /// Panics if the internal `RwLock` is poisoned.
     pub fn register(&self, name: &str, builder: foundation_wasmtime::WasmtimeBuilder) {
-        let responder = Arc::new(WasmtimeResponder::new(builder));
+        let responder = Arc::new(WasmtimeResponder::new(builder, self.ctx.clone()));
         self.apps
             .write()
             .unwrap()
@@ -146,12 +170,6 @@ impl WasmtimeShell {
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.apps.read().unwrap().keys().cloned().collect()
-    }
-}
-
-impl Default for WasmtimeShell {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

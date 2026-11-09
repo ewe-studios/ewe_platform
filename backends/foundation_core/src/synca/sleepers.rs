@@ -226,9 +226,14 @@ impl<T> DurationWaker<T> {
 
     pub fn try_is_ready(&self) -> Option<bool> {
         let now = self.clock.now();
+        // `now == when_ready` is due, not early. `remaining` and
+        // `time_until_next` already treat equality as due (zero wait), so a
+        // strict "past" test here made a sleeper that a simulated clock moved
+        // exactly onto its deadline never mature: the executor then spun with a
+        // zero wait (GitHub issue #305).
         self.from
             .checked_add(self.how_long)
-            .map(|when_ready| when_ready.checked_duration_since(now).is_none())
+            .map(|when_ready| now >= when_ready)
     }
 
     /// Returns the deadline when this waker will be ready.

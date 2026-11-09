@@ -25,12 +25,13 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
+use crate::native::serve::{Serve, ServeFactory};
 use crate::native::writer::{
     log_write_failure, render_head, send_not_found, send_server_error, send_text, ResponseWriter,
     WriterConfig,
 };
 use crate::shared::context::ContextBag;
-use crate::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use crate::shared::serve::{ConnectionResult, ServeOutcome};
 
 /// MIME type detection based on file extension.
 fn mime_type(path: &Path) -> &str {

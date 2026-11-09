@@ -29,9 +29,10 @@ use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, ProcedureCodecs, Router, Transport,
 };
 use foundation_core::valtron;
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use tracing::error;
 

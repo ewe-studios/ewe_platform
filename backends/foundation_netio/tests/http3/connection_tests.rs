@@ -254,10 +254,8 @@ fn frame_over_configured_cap_is_rejected() {
     let mut bytes = Bytes::from(frame.to_bytes());
     let deadline = Instant::now() + BUDGET;
     while !bytes.is_empty() {
-        match stream.send(&mut bytes) {
-            Stream::Next(Ok(_)) => {}
-            Stream::Next(Err(e)) => panic!("{e}"),
-            _ => {}
+        if let Stream::Next(Err(e)) = stream.send(&mut bytes) {
+            panic!("{e}");
         }
         assert!(Instant::now() < deadline, "timed out sending");
         pump(&mut sq, &mut cq);
@@ -306,11 +304,9 @@ fn a_control_stream_whose_first_frame_is_not_settings_is_rejected() {
     let mut bytes = Bytes::from(preamble);
 
     let deadline = Instant::now() + BUDGET;
-    while bytes.len() > 0 {
-        match control.send(&mut bytes) {
-            Stream::Next(Ok(_)) => {}
-            Stream::Next(Err(e)) => panic!("{e}"),
-            _ => {}
+    while !bytes.is_empty() {
+        if let Stream::Next(Err(e)) = control.send(&mut bytes) {
+            panic!("{e}");
         }
         assert!(Instant::now() < deadline, "timed out sending");
         pump(&mut sq, &mut cq);

@@ -55,6 +55,12 @@ fn auth_mod(token: &str) -> impl FnOnce(&mut PreparedRequestBuilder) + '_ {
 }
 
 impl crate::client::CloudflareClient {
+    /// List the DNS records of the zone, with optional type and name filters.
+    ///
+    /// # Errors
+    /// Returns [`CloudflareError::Api`] or [`CloudflareError::Http`] when the
+    /// request fails, and [`CloudflareError::Json`] when a record cannot be
+    /// decoded.
     pub async fn list_dns_records(
         &self,
         r#type: Option<DnsRecordType>,
@@ -63,7 +69,7 @@ impl crate::client::CloudflareClient {
         let args = DnsRecordsForAZoneListDnsRecordsArgs {
             zone_id: self.zone_id().to_string(),
             r#type: r#type.map(|t| t.as_str().to_string()),
-            name: name.map(|n| n.to_string()),
+            name: name.map(std::string::ToString::to_string),
             ..Default::default()
         };
         let response = dns_records_for_a_zone_list_dns_records_request(
@@ -85,6 +91,12 @@ impl crate::client::CloudflareClient {
             .collect()
     }
 
+    /// Create or update one DNS record and return its identifier.
+    ///
+    /// # Errors
+    /// Returns [`CloudflareError::Api`] or [`CloudflareError::Http`] when the
+    /// request fails, and [`CloudflareError::Json`] when the record, or the
+    /// response, cannot be encoded or decoded.
     pub async fn upsert_dns_record(&self, record: &DnsRecord) -> Result<String, CloudflareError> {
         let input = DnsRecordInput::from(record);
         // The generated body type is a flattened JSON object; build it from our
@@ -135,6 +147,11 @@ impl crate::client::CloudflareClient {
         }
     }
 
+    /// Delete one DNS record by its identifier.
+    ///
+    /// # Errors
+    /// Returns [`CloudflareError::Api`] or [`CloudflareError::Http`] when the
+    /// request fails.
     pub async fn delete_dns_record(&self, record_id: &str) -> Result<(), CloudflareError> {
         let args = DnsRecordsForAZoneDeleteDnsRecordArgs {
             zone_id: self.zone_id().to_string(),
@@ -151,6 +168,12 @@ impl crate::client::CloudflareClient {
         Ok(())
     }
 
+    /// Delete every record of `record_type` whose name is `name`.
+    ///
+    /// # Errors
+    /// Returns the first error of the underlying list and delete calls
+    /// ([`CloudflareError::Api`], [`CloudflareError::Http`] or
+    /// [`CloudflareError::Json`]).
     pub async fn delete_dns_records_by_name(
         &self,
         name: &str,
@@ -162,6 +185,11 @@ impl crate::client::CloudflareClient {
         Ok(())
     }
 
+    /// Whether the zone in this client's configuration exists.
+    ///
+    /// # Errors
+    /// Returns [`CloudflareError::Api`] or [`CloudflareError::Http`] when the
+    /// request fails for a reason other than a 404 status.
     pub async fn find_zone(&self, _domain: &str) -> Result<bool, CloudflareError> {
         use crate::generated::zones::{zones_0_get_request, Zones0GetArgs};
         let args = Zones0GetArgs {
@@ -181,6 +209,11 @@ impl crate::client::CloudflareClient {
         }
     }
 
+    /// Point the wildcard record of the configured domain at `public_ip`.
+    ///
+    /// # Errors
+    /// Returns the error of [`Self::upsert_dns_record`] when the record cannot
+    /// be written.
     pub async fn bootstrap_domain(&self, public_ip: &str) -> Result<(), CloudflareError> {
         let wildcard = format!("*.{}", self.domain());
         let record = DnsRecord {

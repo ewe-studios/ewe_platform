@@ -19,9 +19,10 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::connection::H2Request;

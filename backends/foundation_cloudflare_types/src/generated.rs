@@ -112,7 +112,7 @@ pub enum D1BatchQuery {
 
 impl Default for D1BatchQuery {
     fn default() -> Self {
-        Self::D1SingleQuery(Default::default())
+        Self::D1SingleQuery(<D1SingleQuery as Default>::default())
     }
 }
 

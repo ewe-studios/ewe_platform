@@ -30,8 +30,10 @@
 #                             every feature tree in `wasm-runs`).
 #   clippy-deny-warnings = true  pass `--no-deps -- -D warnings` to every clippy run of this
 #                             package, so a clippy warning fails CI. Default
-#                             false. Set it only for packages at zero warnings
-#                             (with every feature tree in `clippy-runs`).
+#                             true. A package that still carries warnings sets
+#                             it to false with a `reason` until its list is
+#                             empty, and must keep every feature tree in
+#                             `clippy-runs` so the list stays complete.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   reason          = "why"   shown next to report-only failures
@@ -49,6 +51,11 @@
 fmt = "report"
 build = "enforce"
 clippy = "enforce"
+# A clippy warning fails CI for every package. Without this, a crate kept its
+# warnings for as long as nobody touched it (issue #436, and #434 for
+# `foundation_reactor`). A package that still carries warnings sets this to
+# false with a `reason` until its list is empty.
+clippy-deny-warnings = true
 test = "enforce"
 # Most crates are not wasm32 targets; only the foundation crates that must
 # compile for Cloudflare Workers opt in below.
@@ -91,11 +98,57 @@ fmt = "enforce"
 
 [packages.infrastructure_llama_bindings]
 fmt = "enforce"
+# Generated bindings and their tests still carry pedantic warnings (issue #441).
+clippy-deny-warnings = false
+reason = "52 pedantic warnings in generated bindings; clear them and delete this override (#441)"
+
+# ---------------------------------------------------------------------------
+# Packages that still carry pedantic warnings from before the deny default.
+# Clear a list, then delete its override (issue #441).
+
+[packages.foundation_deployment_digitalocean]
+clippy-deny-warnings = false
+reason = "5 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_deployment_hetzner]
+clippy-deny-warnings = false
+reason = "6 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_repl]
+clippy-deny-warnings = false
+reason = "4 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_ui_components]
+clippy-deny-warnings = false
+reason = "68 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_sshkit]
+clippy-deny-warnings = false
+reason = "17 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.infrastructure_llama_cpp]
+clippy-deny-warnings = false
+reason = "2 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_wasm_ui]
+clippy-deny-warnings = false
+reason = "20 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_ui_traits]
+clippy-deny-warnings = false
+reason = "2 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.platform_demo]
+clippy-deny-warnings = false
+reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
 # ---------------------------------------------------------------------------
 # Packages that need specific features for their tests.
 
 [packages.foundation_ai]
+# 67 pedantic warnings in test targets; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "67 pedantic warnings; clear them and delete this override (#441)"
 # Every test target needs `testing` (mocks); defaults bring llamacpp + candle.
 # The second run drops the local backends: cloud providers + the agent layer
 # only (what a wasm or cloud-only consumer builds). `testing` stays on because
@@ -154,6 +207,9 @@ clippy-deny-warnings = true
 clippy-deny-warnings = true
 
 [packages.foundation_jsonschema]
+# 14 pedantic warnings; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "14 pedantic warnings; clear them and delete this override (#441)"
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
 # (ewe-studios/ewe_platform#49).
@@ -270,6 +326,10 @@ wasm-runs = [
 # `quic` adds the QUIC, HTTP/3 and WebTransport suites (tests/quic, tests/http3,
 # tests/webtransport), which no run compiled before.
 runs = ["", "quic"]
+# Clippy must cover the quic-gated code, not only the default features.
+clippy-runs = ["", "quic"]
+# Both runs are at zero clippy warnings under `--all-targets`: a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
@@ -319,6 +379,12 @@ runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse"
 # (spec 70 feature 113): a new one fails CI.
 clippy-runs = ["", "vfs-preload"]
 clippy-deny-warnings = true
+# The crate builds for wasm32 (issue #411): the native and signal modules are
+# gated at the crate root, and only the shared VFS tree compiles. The default
+# set and the `vfs,vfs-search` set that foundation_ai's wasm build enables are
+# both checked.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
 # `uring_completion_*` and `completion_source_seam` skip on a kernel without
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a
@@ -330,6 +396,9 @@ env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_iogate]
+# 3 pedantic warnings; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "3 pedantic warnings; clear them and delete this override (#441)"
 # Its io_uring tests fail when `EWE_REQUIRE_IO_URING=1` and io_uring is missing.
 # Docker's default seccomp profile blocks `io_uring_setup`, so this job's
 # container runs with `seccomp=unconfined`. This is the io_uring exception only;
@@ -344,6 +413,9 @@ env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_reactor]
+# At zero clippy warnings under `--all-targets`: a new one fails CI. Without
+# this, a warning here blocked the clippy gate of every crate that depends on it.
+clippy-deny-warnings = true
 # The poll module compiles on wasm32 (the reactor module is Unix-only), so keep
 # it warning-free there. This is the check that caught the dead `rearm_readable`.
 wasm = "enforce"

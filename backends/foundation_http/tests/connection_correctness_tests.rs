@@ -14,19 +14,22 @@
 
 mod fake_overlay;
 
+use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
-use foundation_core::valtron::{Clock, Ctx, SimulatedClock, TaskIterator};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock, TaskIterator, TaskStatus};
+use foundation_http::native::app::H1App;
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{ConnectionHandler, KeepAliveConfig};
 use foundation_http::native::writer::send_text;
-use foundation_http::shared::app::{H1App, HttpApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::{
@@ -244,4 +247,49 @@ fn a_middleware_write_error_closes_the_connection() {
         drive_until_closed(&mut handler, &Ctx::new(clock), 200),
         "a middleware write error must close the connection"
     );
+}
+
+/// An idle keep-alive connection waits on its socket, not on a poll timer.
+///
+/// WHY: the idle path used to spin (`Pending`) and then fall back to `Delayed`
+/// for a plain TCP socket, because only the overlay transport had a read waker.
+/// The handler now parks on the socket through the shared reactor, so a parked
+/// keep-alive connection wakes as soon as the next request arrives.
+#[test]
+fn an_idle_keepalive_connection_parks_on_its_socket() {
+    let (mut client, stream) = silent_tcp_pair();
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_clock(clock.clone()));
+    let config = KeepAliveConfig::defaults();
+    let mut handler = build_handler(app, stream, &config, clock);
+
+    // No bytes yet: the handler parks on the socket readiness, never on a poll
+    // timer and never on a busy spin.
+    let ready = match handler.next_status(Ctx::host()) {
+        Some(TaskStatus::Depends(ready)) => ready,
+        Some(TaskStatus::Delayed(_)) => {
+            panic!("an idle keep-alive connection polled on a timer")
+        }
+        _ => panic!("an idle keep-alive connection did not park on readiness"),
+    };
+    assert!(!ready.is_ready(None), "readiness fired before any request");
+
+    // The next request wakes the parked task through the reactor.
+    client
+        .write_all(b"GET / HTTP/1.1\r\nHost: test\r\n\r\n")
+        .expect("client write");
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    while !ready.is_ready(None) {
+        assert!(
+            std::time::Instant::now() < deadline,
+            "the socket readiness never fired"
+        );
+        std::thread::sleep(Duration::from_millis(1));
+    }
+
+    // The task runs again and reads the request.
+    match handler.next_status(Ctx::host()) {
+        Some(TaskStatus::Pending(())) => {}
+        _ => panic!("the parked handler did not read the request"),
+    }
 }

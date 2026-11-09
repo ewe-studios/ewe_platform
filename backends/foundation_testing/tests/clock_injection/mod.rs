@@ -24,9 +24,9 @@ fn the_stress_duration_comes_from_the_injected_clock() {
     let config = StressConfig::new().threads(2).iterations(10);
     let harness = StressHarness::new(config, clock);
 
-    let counted = Arc::clone(&counter);
+    let shared_counter = Arc::clone(&counter);
     let result = harness.run(move |_thread_id, _iteration| {
-        counted.fetch_add(1, Ordering::Relaxed);
+        shared_counter.fetch_add(1, Ordering::Relaxed);
         true
     });
 

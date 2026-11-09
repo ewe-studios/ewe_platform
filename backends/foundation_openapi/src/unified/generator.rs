@@ -1665,7 +1665,7 @@ impl UnifiedGenerator {
         writeln!(lib).unwrap();
         writeln!(
             lib,
-            "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
+            "#![allow(clippy::too_many_arguments, clippy::type_complexity, clippy::too_many_lines, clippy::struct_excessive_bools)]"
         )
         .unwrap();
         writeln!(
@@ -1746,7 +1746,7 @@ impl UnifiedGenerator {
         writeln!(out, "#![cfg(feature = \"{provider_safe}\")]").unwrap();
         writeln!(
             out,
-            "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
+            "#![allow(clippy::too_many_arguments, clippy::type_complexity, clippy::too_many_lines, clippy::struct_excessive_bools)]"
         )
         .unwrap();
         writeln!(
@@ -1859,7 +1859,7 @@ impl UnifiedGenerator {
         }
         writeln!(
             out,
-            "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
+            "#![allow(clippy::too_many_arguments, clippy::type_complexity, clippy::too_many_lines, clippy::struct_excessive_bools)]"
         )?;
         writeln!(
             out,
@@ -2662,16 +2662,28 @@ impl UnifiedGenerator {
         // Build URL: base_url is the caller-supplied scheme+host+version prefix
         // (e.g. "http://localhost/v1.53"); we format the path separately then
         // join — avoids nested format!() indentation issues.
+        //
+        // A path with no parameters is a plain string literal: emitting
+        // `format!("/x")` there would trip `clippy::useless_format`. A path
+        // with parameters is one single-line `format!` call, so rustfmt adds
+        // no trailing comma on it (`clippy::unnecessary_trailing_comma`).
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        writeln!(out, "    let path = format!(\"{escaped_path}\",")?;
-        for param_name in &params_in_url_order {
-            let safe_param = escape_rust_keyword(param_name);
-            writeln!(out, "        args.{safe_param},")?;
+        if params_in_url_order.is_empty() {
+            // `escaped_path` is escaped for `format!`; a literal needs the raw
+            // braces back. `{:?}` then quotes and escapes it as a Rust string.
+            let unescaped = escaped_path.replace("{{", "{").replace("}}", "}");
+            writeln!(out, "    let path = {unescaped:?};")?;
+        } else {
+            let args = params_in_url_order
+                .iter()
+                .map(|param_name| format!("args.{}", escape_rust_keyword(param_name)))
+                .collect::<Vec<_>>()
+                .join(", ");
+            writeln!(out, "    let path = format!(\"{escaped_path}\", {args});")?;
         }
-        writeln!(out, "    );")?;
         writeln!(
             out,
-            "    let endpoint_url = format!(\"{{}}{{}}\", base_url, path);"
+            "    let endpoint_url = format!(\"{{base_url}}{{path}}\");"
         )?;
         writeln!(out)?;
 
@@ -2972,7 +2984,7 @@ impl UnifiedGenerator {
         writeln!(out, "#![cfg(feature = \"{feature_name}\")]")?;
         writeln!(
             out,
-            "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
+            "#![allow(clippy::too_many_arguments, clippy::type_complexity, clippy::too_many_lines, clippy::struct_excessive_bools)]"
         )?;
         writeln!(
             out,

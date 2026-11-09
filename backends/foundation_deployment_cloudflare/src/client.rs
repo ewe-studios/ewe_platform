@@ -1,4 +1,4 @@
-//! CloudflareClient — wraps the auto-generated async `*_request` functions
+//! `CloudflareClient` — wraps the auto-generated async `*_request` functions
 //! with auth injection and typed domain structs.
 
 use std::sync::Arc;
@@ -6,12 +6,12 @@ use std::sync::Arc;
 use foundation_core::valtron::Clock;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
-use crate::types::*;
+use crate::types::CloudflareError;
 
 /// Cloudflare's API base URL, from the spec's `servers[]`.
 ///
 /// The generated `*_request` functions take this per call rather than hardcoding
-/// it, so a test can point the client at a mock (spec-54's configurable base_url).
+/// it, so a test can point the client at a mock (spec-54's configurable `base_url`).
 pub const DEFAULT_BASE_URL: &str = "https://api.cloudflare.com/client/v4";
 
 /// Central client for Cloudflare API operations.
@@ -26,8 +26,12 @@ pub struct CloudflareClient {
 }
 
 impl CloudflareClient {
-    /// Create from env: CLOUDFLARE_API_TOKEN + CLOUDFLARE_ZONE_ID.
-    /// Optional: CLOUDFLARE_DOMAIN for bootstrap_domain().
+    /// Create from env: `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ZONE_ID`.
+    /// Optional: `CLOUDFLARE_DOMAIN` for `bootstrap_domain()`.
+    ///
+    /// # Errors
+    /// Returns [`CloudflareError::Auth`] when `CLOUDFLARE_API_TOKEN` or
+    /// `CLOUDFLARE_ZONE_ID` is absent.
     pub fn from_env(clock: Arc<dyn Clock>) -> Result<Self, CloudflareError> {
         let token = std::env::var("CLOUDFLARE_API_TOKEN")
             .map_err(|_| CloudflareError::Auth("CLOUDFLARE_API_TOKEN not set".into()))?;

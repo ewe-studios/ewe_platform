@@ -71,11 +71,14 @@ struct Entry {
 impl std::fmt::Debug for Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Entry")
+            .field("fd", &self.fd)
             .field(
                 "ready",
                 &Ready::from_bits(self.ready.load(Ordering::Acquire)),
             )
             .field("interest", &self.interest)
+            .field("waker", &self.waker)
+            .field("tasks", &self.tasks)
             .finish()
     }
 }
@@ -121,13 +124,12 @@ pub struct Reactor {
 impl std::fmt::Debug for Reactor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Reactor")
-            .field(
-                "registered",
-                &self.entries.read().map(|e| e.len()).unwrap_or(0),
-            )
+            .field("registered", &self.entries.read().map_or(0, |e| e.len()))
+            .field("fd_tokens", &self.fd_tokens)
             .field("shutdown", &self.shutdown.load(Ordering::Acquire))
+            .field("events_gen", &self.events_gen)
             .field("drain_poll_timeout", &self.drain_poll_timeout)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -277,7 +279,7 @@ impl Drop for LiveDrainGuard {
 /// asking for different backends cannot both be satisfied, and silently giving
 /// the second the first's backend defeats the point of explicit selection — a
 /// perf-critical deploy would discover from latency graphs that it never got
-/// io_uring. This error makes that failure a startup crash with both backends
+/// `io_uring`. This error makes that failure a startup crash with both backends
 /// named.
 #[derive(Debug, Clone)]
 pub struct AlreadyInitialised {
@@ -337,12 +339,14 @@ impl Default for ReactorConfig {
 impl ReactorConfig {
     /// Set the selector poll timeout for the drain thread. See
     /// [`DEFAULT_DRAIN_POLL_TIMEOUT`].
+    #[must_use]
     pub fn with_drain_poll_timeout(mut self, timeout: Duration) -> Self {
         self.drain_poll_timeout = timeout;
         self
     }
 
     /// The configured drain poll timeout.
+    #[must_use]
     pub fn drain_poll_timeout(&self) -> Duration {
         self.drain_poll_timeout
     }
@@ -379,7 +383,7 @@ impl Reactor {
     /// WHY: an operator must be able to demand a specific backend (F48 —
     /// `ServerIo::Completion` needs `Reactor::init(Uring)`), and must be told
     /// when that demand cannot be met. `get()` always auto-selects, silently
-    /// falling back to epoll on a host without io_uring. That silent fallback is
+    /// falling back to epoll on a host without `io_uring`. That silent fallback is
     /// precisely the no-silent-defaults failure mode Decision 14 OQ#14.3 calls
     /// "the worst."
     ///
@@ -387,7 +391,7 @@ impl Reactor {
     /// wins; the backend is a process-level decision.
     ///
     /// HOW: [`BackendPreference::Auto`] walks the probe ladder.
-    /// [`BackendPreference::Uring`] fails hard with the probe detail if io_uring
+    /// [`BackendPreference::Uring`] fails hard with the probe detail if `io_uring`
     /// is unavailable. [`BackendPreference::Epoll`] skips the probe. See
     /// [`AlreadyInitialised`] for the conflict case.
     ///
@@ -574,8 +578,7 @@ impl Reactor {
             return Err(io::Error::new(
                 io::ErrorKind::Unsupported,
                 format!(
-                    "backend {:?} is not available on this platform; only Auto (kqueue) is supported",
-                    preference,
+                    "backend {preference:?} is not available on this platform; only Auto (kqueue) is supported",
                 ),
             ));
         }
@@ -818,7 +821,7 @@ impl Reactor {
         !self.readiness(token).is_empty()
     }
 
-    /// WHY: `poll_readable` must distinguish READABLE from READ_CLOSED/ERROR;
+    /// WHY: `poll_readable` must distinguish READABLE from `READ_CLOSED/ERROR`;
     /// collapsing them loses EOF and error detection.
     ///
     /// WHAT: the latched readiness flags for `token`.
@@ -833,8 +836,9 @@ impl Reactor {
             .read()
             .expect("entries lock poisoned")
             .get(&token)
-            .map(|e| Ready::from_bits(e.ready.load(Ordering::Acquire)))
-            .unwrap_or(Ready::EMPTY)
+            .map_or(Ready::EMPTY, |e| {
+                Ready::from_bits(e.ready.load(Ordering::Acquire))
+            })
     }
 
     /// WHY: edge-triggered registration reports each transition once. A

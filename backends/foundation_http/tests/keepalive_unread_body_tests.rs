@@ -22,12 +22,13 @@ use foundation_netio::shared::http::{
 use serial_test::serial;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
         context::ContextBag,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{ConnectionResult, Serve, ServeFactory},
+        serve::ConnectionResult,
     },
 };
 

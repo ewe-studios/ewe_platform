@@ -186,6 +186,7 @@ impl HttpClientConnection {
                             connection,
                             &host,
                             port,
+                            timeout,
                             tls_connector,
                         );
                     }
@@ -226,8 +227,9 @@ impl HttpClientConnection {
         connection: Connection,
         host: &str,
         port: u16,
+        timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError> {
-        Self::upgrade_to_tls_with_config(connection, host, port, None)
+        Self::upgrade_to_tls_with_config(connection, host, port, timeout, None)
     }
 
     #[cfg(any(
@@ -239,6 +241,7 @@ impl HttpClientConnection {
         connection: Connection,
         host: &str,
         port: u16,
+        timeout: Option<Duration>,
         tls_connector: Option<&SSLConnector>,
     ) -> Result<Self, HttpClientError> {
         let default_connector;
@@ -248,8 +251,10 @@ impl HttpClientConnection {
             default_connector = SSLConnector::new();
             &default_connector
         };
+        // Finish the handshake here: this constructor is synchronous, and the
+        // caller reads and writes the stream next.
         let (tls_stream, _addr) = connector
-            .from_tcp_stream(host.to_string(), connection)
+            .from_tcp_stream_complete(host.to_string(), connection, timeout)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
@@ -272,7 +277,12 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
-    fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
+    fn upgrade_to_tls(
+        _connection: Connection,
+        _host: &str,
+        _port: u16,
+        _timeout: Option<Duration>,
+    ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
 
@@ -285,6 +295,7 @@ impl HttpClientConnection {
         _connection: Connection,
         _host: &str,
         _port: u16,
+        _timeout: Option<Duration>,
         _tls_connector: Option<&SSLConnector>,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
@@ -563,7 +574,7 @@ impl HttpClientConnection {
             match conn_result {
                 Ok(connection) => {
                     // Upgrade to TLS
-                    return Self::upgrade_to_tls(connection, &host, port);
+                    return Self::upgrade_to_tls(connection, &host, port, timeout);
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -807,6 +818,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                     conn,
                     &host,
                     port,
+                    timeout,
                     self.tls_connector.as_deref(),
                 );
             }
@@ -1202,9 +1214,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// `ClientConfig::unix_socket` is set, the request task routes here instead
     /// of the TCP/proxy path.
     ///
-    /// WHAT: Dials `socket_path`, wraps the stream as an `HttpClientConnection`,
-    /// carrying the URL's host (for the `Host` header). Port is reported as `0`
-    /// since Unix sockets have none.
+    /// WHAT: Dials `socket_path`, applies `read_timeout` to the socket, and
+    /// wraps the stream as an `HttpClientConnection`, carrying the URL's host
+    /// (for the `Host` header). Port is reported as `0` since Unix sockets have
+    /// none.
     ///
     /// HOW: [`Connection::connect_unix`] → [`RawStream::from_connection`] →
     /// [`SharedByteBufferStream`].
@@ -1218,9 +1231,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         &self,
         url: &Uri,
         socket_path: &std::path::Path,
+        read_timeout: Duration,
     ) -> Result<HttpClientConnection, HttpClientError> {
         let host = url.host_str().unwrap_or_else(|| "localhost".to_string());
-        let connection = Connection::connect_unix(socket_path)
+        let connection = Connection::connect_unix(socket_path, read_timeout)
             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
         let stream = SharedByteBufferStream::rwrite(
             RawStream::from_connection(connection)
@@ -1325,6 +1339,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                             tunnel_connection,
                             &target_host,
                             target_port,
+                            timeout,
                             self.tls_connector.as_deref(),
                         );
                     }

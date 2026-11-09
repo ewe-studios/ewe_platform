@@ -237,7 +237,14 @@ impl ConnIo {
                     .and_then(|r| r.poll_fd(interest))
                     .ok_or_else(Self::unsupported)?;
                 fd_ready.set_writable(corrected == IoInterest::Writable)?;
-                fd_ready.register_waker(waker);
+                if !fd_ready.register_waker(waker) {
+                    // The reactor no longer holds this fd, so it can never wake
+                    // the task. Fail the poll instead of parking forever.
+                    return Err(io::Error::new(
+                        io::ErrorKind::BrokenPipe,
+                        "socket is no longer registered with the reactor",
+                    ));
+                }
                 Ok(())
             }
             Some(ConnReadiness::Overlay(_)) => {
@@ -259,7 +266,13 @@ impl ConnIo {
     fn register_hangup(&self, waker: &Waker) -> io::Result<()> {
         match &self.fd_ready {
             Some(r) => {
-                r.register_waker(waker);
+                if !r.register_waker(waker) {
+                    // As in `register`: a deregistered fd never wakes the task.
+                    return Err(io::Error::new(
+                        io::ErrorKind::BrokenPipe,
+                        "socket is no longer registered with the reactor",
+                    ));
+                }
                 Ok(())
             }
             None => match self.fallback_fd {

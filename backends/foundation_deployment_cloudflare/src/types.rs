@@ -31,7 +31,8 @@ pub enum CloudflareError {
 
 impl std::error::Error for CloudflareError {}
 
-/// Convenience: wrap a CloudflareError in an ErrorTrace.
+/// Convenience: wrap a `CloudflareError` in an `ErrorTrace`.
+#[must_use]
 pub fn cf_err(e: CloudflareError) -> ErrorTrace<CloudflareError> {
     ErrorTrace::new(e)
 }
@@ -97,6 +98,7 @@ pub enum DnsRecordType {
 }
 
 impl DnsRecordType {
+    #[must_use]
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::A => "A",

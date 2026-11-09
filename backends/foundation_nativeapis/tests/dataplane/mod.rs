@@ -1,4 +1,4 @@
-//! Integration tests for the WireGuard overlay data plane (spec-55, feature 00).
+//! Integration tests for the `WireGuard` overlay data plane (spec-55, feature 00).
 //!
 //! WHY: Prove that two smoltcp `NetStack`s can exchange application traffic **entirely
 //! in userspace** — no kernel socket for the overlay range, no privileges — with the
@@ -27,7 +27,8 @@ const SERVER_PORT: u16 = 8080;
 fn stack(ip: &str) -> NetStack {
     NetStack::new(
         NetStackConfig::new(ip.parse().expect("ip"), 24),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        &(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+            as std::sync::Arc<dyn foundation_core::valtron::Clock>),
     )
 }
 
@@ -325,7 +326,8 @@ fn netstack_listener_queues_connections_made_before_accept() {
 fn netstack_listener_backlog_limit_refuses_then_recovers() {
     let mut server = NetStack::new(
         NetStackConfig::new(SERVER_IP.parse().expect("ip"), 24).with_listen_backlog(1),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        &(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+            as std::sync::Arc<dyn foundation_core::valtron::Clock>),
     );
     let mut client = stack(CLIENT_IP);
     let mut listener = server.tcp_listen(server_addr()).expect("listen");
@@ -371,7 +373,7 @@ fn netstack_listener_backlog_limit_refuses_then_recovers() {
 fn tun_device_opens_on_linux() {
     use foundation_nativeapis::dataplane::tun::{TunConfig, TunDevice};
 
-    let device = TunDevice::open(&TunConfig::new("ewe-test0")).expect("open tun");
+    let mut device = TunDevice::open(&TunConfig::new("ewe-test0")).expect("open tun");
     assert_eq!(device.name(), "ewe-test0");
     // A freshly opened device has nothing to read yet.
     let mut buf = [0u8; 2048];
@@ -379,6 +381,24 @@ fn tun_device_opens_on_linux() {
         Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
         other => panic!("expected WouldBlock on empty tun, got {other:?}"),
     }
+}
+
+/// The configured MTU reaches the kernel interface. The read buffer is sized from
+/// the same value, so this proves the buffer matches what the kernel delivers.
+#[cfg(all(feature = "tun", any(target_os = "linux", target_os = "macos")))]
+#[test]
+#[ignore = "requires privilege to create and configure a TUN interface"]
+fn tun_device_applies_the_configured_mtu() {
+    use foundation_nativeapis::dataplane::tun::{TunConfig, TunDevice};
+
+    let mut config = TunConfig::new("ewe-mtu-test0");
+    config.mtu = 1280;
+    let device = TunDevice::open(&config).expect("open tun");
+    assert_eq!(
+        device.mtu().expect("read mtu"),
+        1280,
+        "the kernel interface keeps the configured MTU"
+    );
 }
 
 /// WHY: a stream whose handshake has not finished has not ended. `read` used to

@@ -22,7 +22,7 @@
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
-use std::task::{Wake, Waker};
+use std::task::{RawWaker, RawWakerVTable, Wake, Waker};
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
 
@@ -125,6 +125,217 @@ impl Drop for ParkGuard {
     }
 }
 
+/// A value that any thread may own, but only its owner thread may use.
+///
+/// WHY (GitHub issue #423): a [`Waker`] is `Send` and `Sync` by type, so the
+/// data behind its vtable has to be usable from any thread. In the non-`multi`
+/// build a [`WakeCallback`](crate::valtron::WakeCallback) has no `Send` bound
+/// and may capture an `Rc`. This type makes that callback safe behind a
+/// thread-safe waker: the callback stays reachable on the thread that
+/// registered it, and no other thread can run it or drop it.
+///
+/// HOW: [`Self::get`] returns the value only on the owner thread. When the last
+/// owner drops the value on another thread, the value leaks. A leak is safe;
+/// running or dropping it there would break its thread affinity.
+///
+/// # Safety
+/// `Send` and `Sync` hold for every `T` because the value never moves between
+/// threads. A receiver of the owned value can only leak it or hand it back; a
+/// sharer can only read the owner thread id. Both are safe for any `T`.
+#[cfg(not(feature = "multi"))]
+mod confined {
+    use std::mem::ManuallyDrop;
+    use std::thread::{self, ThreadId};
+
+    pub(super) struct ThreadBound<T> {
+        owner: ThreadId,
+        value: ManuallyDrop<T>,
+    }
+
+    impl<T> ThreadBound<T> {
+        pub(super) fn new(value: T) -> Self {
+            Self {
+                owner: thread::current().id(),
+                value: ManuallyDrop::new(value),
+            }
+        }
+
+        /// The value, on the thread that made it.
+        pub(super) fn get(&self) -> Option<&T> {
+            self.is_local().then(|| &*self.value)
+        }
+
+        /// Whether the calling thread made the value.
+        pub(super) fn is_local(&self) -> bool {
+            thread::current().id() == self.owner
+        }
+    }
+
+    impl<T> Drop for ThreadBound<T> {
+        fn drop(&mut self) {
+            if self.is_local() {
+                // SAFETY: the owner thread drops the value once. No reference
+                // to it survives this drop.
+                unsafe { ManuallyDrop::drop(&mut self.value) };
+            }
+        }
+    }
+
+    // SAFETY: see the type comment. No thread other than the owner reads or
+    // drops `value`; `Drop` skips it off the owner thread.
+    unsafe impl<T> Send for ThreadBound<T> {}
+    // SAFETY: `get` yields a reference only on the owner thread, so sharing
+    // `&ThreadBound<T>` never gives another thread access to `value`.
+    unsafe impl<T> Sync for ThreadBound<T> {}
+}
+
+/// The callback slot of a bridged waker.
+///
+/// Without `multi` the callback may capture non-`Send` data (issue #423), so it
+/// lives in a [`confined::ThreadBound`]. A wake from another thread drops the
+/// wake instead of running the callback there, and the callback is dropped only
+/// on its own thread.
+#[cfg(not(feature = "multi"))]
+struct CallbackSlot(confined::ThreadBound<Mutex<Option<crate::valtron::WakeCallback>>>);
+
+#[cfg(not(feature = "multi"))]
+impl CallbackSlot {
+    fn new(callback: crate::valtron::WakeCallback) -> Self {
+        Self(confined::ThreadBound::new(Mutex::new(Some(callback))))
+    }
+
+    /// Take the callback, on its own thread. `None` on any other thread.
+    fn take(&self) -> Option<crate::valtron::WakeCallback> {
+        self.0
+            .get()?
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take()
+    }
+}
+
+/// The callback slot of a bridged waker in the `multi` build.
+///
+/// The callback is `Send` here, so any thread may take it.
+#[cfg(feature = "multi")]
+struct CallbackSlot(Mutex<Option<crate::valtron::WakeCallback>>);
+
+#[cfg(feature = "multi")]
+impl CallbackSlot {
+    fn new(callback: crate::valtron::WakeCallback) -> Self {
+        Self(Mutex::new(Some(callback)))
+    }
+
+    /// Every thread may take the callback in this build.
+    fn take(&self) -> Option<crate::valtron::WakeCallback> {
+        self.0
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take()
+    }
+}
+
+/// The state behind a one-shot waker built from a [`WakeCallback`].
+///
+/// WHY: the async stream bridge registers a closure, not a `Waker`, on a
+/// queue-backed stream. This adapter turns that closure into a waker that a
+/// [`ReadinessNotifier`] can hold, so the bridge parks on the queue instead of
+/// waking itself and polling again. The old behaviour burned an executor
+/// worker until the producer pushed a value (issue #329).
+///
+/// WHAT: fires the callback at most once. It sets its liveness token false when
+/// it fires or when its last clone is dropped, so the notifier prunes a
+/// registration that nobody waits on any more.
+///
+/// A wake that arrives on another thread does not run the callback there
+/// (GitHub issue #423). It clears the liveness token, so the registration is
+/// pruned on the next notify. The callback may capture non-`Send` data, and a
+/// `Waker` may cross threads.
+///
+/// [`WakeCallback`]: crate::valtron::WakeCallback
+struct CallbackWakeState {
+    callback: CallbackSlot,
+    live: Arc<AtomicBool>,
+}
+
+impl CallbackWakeState {
+    fn new(callback: crate::valtron::WakeCallback, live: Arc<AtomicBool>) -> Self {
+        Self {
+            callback: CallbackSlot::new(callback),
+            live,
+        }
+    }
+
+    fn fire(&self) {
+        // `None` off the callback's own thread: such a wake must not run a
+        // callback that may hold values which are not `Send`, and must not move
+        // it. Drop the wake; the registration ends now. The waiting side must
+        // not register a non-`Send` callback on a waker that it then moves to
+        // another thread.
+        let callback = self.callback.take();
+        self.live.store(false, Ordering::SeqCst);
+        if let Some(callback) = callback {
+            callback();
+        }
+    }
+}
+
+impl Drop for CallbackWakeState {
+    fn drop(&mut self) {
+        self.live.store(false, Ordering::SeqCst);
+        // The slot drops its callback here, on its own thread only (see
+        // `CallbackSlot`).
+    }
+}
+
+static CALLBACK_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
+    callback_waker_clone,
+    callback_waker_wake,
+    callback_waker_wake_by_ref,
+    callback_waker_drop,
+);
+
+/// Clone: bump the `Arc<CallbackWakeState>` strong count, reuse the pointer.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and is
+/// still live (the owning `Waker` holds a strong reference across this call).
+unsafe fn callback_waker_clone(data: *const ()) -> RawWaker {
+    Arc::increment_strong_count(data.cast::<CallbackWakeState>());
+    RawWaker::new(data, &CALLBACK_WAKER_VTABLE)
+}
+
+/// Wake (by value): fire the callback once, then drop the owned strong ref.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>`;
+/// `wake` consumes the `Waker`, so reclaiming ownership here balances the
+/// original `into_raw`.
+unsafe fn callback_waker_wake(data: *const ()) {
+    let state = Arc::from_raw(data.cast::<CallbackWakeState>());
+    state.fire();
+}
+
+/// Wake by reference: fire the callback without consuming the strong ref.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and is
+/// still live; `ManuallyDrop` prevents this borrowed reconstruction from
+/// decrementing the count owned by the caller's `Waker`.
+unsafe fn callback_waker_wake_by_ref(data: *const ()) {
+    let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<CallbackWakeState>()));
+    state.fire();
+}
+
+/// Drop: reclaim and release one `Arc<CallbackWakeState>` strong reference.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and
+/// this call balances exactly one outstanding strong reference.
+unsafe fn callback_waker_drop(data: *const ()) {
+    drop(Arc::from_raw(data.cast::<CallbackWakeState>()));
+}
+
 /// A waker for one parked task. See the module docs.
 ///
 /// A source stores it (see [`ReadinessNotifier`]) and calls [`Self::wake`] when
@@ -214,6 +425,31 @@ impl ReadinessWaker {
     /// fires.
     #[must_use]
     pub fn from_waker_with_liveness(waker: Waker, live: Arc<AtomicBool>) -> Self {
+        Self {
+            waker,
+            park: None,
+            live: Some(live),
+        }
+    }
+
+    /// A waker that runs `callback` once, for a queue-backed stream whose async
+    /// bridge registers a closure instead of a waker.
+    ///
+    /// The waker reports live until it fires or every clone is dropped, so the
+    /// notifier drops a registration that nobody waits on any more.
+    ///
+    /// The callback has no `Send` bound in the non-`multi` build. A wake from
+    /// another thread drops the wake instead of running the callback there, and
+    /// the callback is dropped only on its own thread (issue #423).
+    #[must_use]
+    pub(crate) fn from_callback(callback: crate::valtron::WakeCallback) -> Self {
+        let live = Arc::new(AtomicBool::new(true));
+        let state = Arc::new(CallbackWakeState::new(callback, Arc::clone(&live)));
+        let raw = RawWaker::new(Arc::into_raw(state).cast::<()>(), &CALLBACK_WAKER_VTABLE);
+        // SAFETY: `raw` is built from a fresh `Arc<CallbackWakeState>` and the
+        // vtable functions uphold the `Arc` clone/drop contract described on
+        // each one.
+        let waker = unsafe { Waker::from_raw(raw) };
         Self {
             waker,
             park: None,

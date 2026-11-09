@@ -2168,9 +2168,15 @@ impl ThreadRegistry {
     pub fn spawn_worker(&self) -> ThreadExecutionResult<ThreadRef> {
         let seed = self.rng.lock().unwrap().next_u64();
 
+        // Name the thread: without a name it inherits the name of the thread
+        // that started it (GitHub issue #309). A test then sees its own name on
+        // a worker, and a per-thread CPU check counts that worker as a test
+        // thread. Linux keeps only the first 15 bytes of the name, so the name
+        // stays short. The seed stays in `worker_tag`, which is used in logs.
         let b = self
             .thread_stack_size
-            .map_or_else(Builder::new, |size| Builder::new().stack_size(size));
+            .map_or_else(Builder::new, |size| Builder::new().stack_size(size))
+            .name("valtron-worker".to_string());
 
         let worker_tag = format!("worker-{seed}");
 

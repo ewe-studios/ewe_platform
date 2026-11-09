@@ -17,8 +17,11 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{Clock, MonotonicClock};
 use foundation_wireguard::native::dataplane::MeshDataPlane;
+#[cfg(target_os = "linux")]
 use foundation_wireguard::native::{WgConfig, WgNode};
-use foundation_wireguard::{DataPlaneMode, WgSeed};
+use foundation_wireguard::DataPlaneMode;
+#[cfg(target_os = "linux")]
+use foundation_wireguard::WgSeed;
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
@@ -44,7 +47,7 @@ fn netstack_plane_is_not_tun_and_exposes_netstack() {
         &DataPlaneMode::Netstack,
         overlay_ip(1),
         OVERLAY_PREFIX,
-        test_clock(),
+        &test_clock(),
     )
     .expect("netstack plane builds without privileges");
 
@@ -65,7 +68,7 @@ fn tun_plane_opens_and_reports_tun() {
         name: "ewe-wg-dp0".into(),
         mtu: 1380,
     };
-    let dp = MeshDataPlane::from_config(&mode, overlay_ip(1), OVERLAY_PREFIX, test_clock())
+    let dp = MeshDataPlane::from_config(&mode, overlay_ip(1), OVERLAY_PREFIX, &test_clock())
         .expect("TUN plane opens (needs CAP_NET_ADMIN)");
 
     assert!(dp.is_tun(), "kernel plane must report TUN mode");

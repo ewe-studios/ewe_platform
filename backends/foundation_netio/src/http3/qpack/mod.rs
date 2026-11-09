@@ -138,18 +138,20 @@ fn decode_int(src: &[u8], prefix_bits: u8) -> Result<(u64, usize), QpackError> {
 fn encode_int(value: u64, prefix_bits: u8, flags: u8, out: &mut Vec<u8>) {
     let mask = u64::from((1u16 << prefix_bits) - 1);
 
+    // A value below `mask` fits in the prefix bits. The low byte is the value.
     if value < mask {
-        out.push(flags | (value as u8));
+        out.push(flags | value.to_le_bytes()[0]);
         return;
     }
 
-    out.push(flags | (mask as u8));
+    out.push(flags | mask.to_le_bytes()[0]);
     let mut rest = value - mask;
     while rest >= 128 {
         out.push(((rest % 128) as u8) | 0x80);
         rest /= 128;
     }
-    out.push(rest as u8);
+    // The loop above leaves `rest` below 128, so its low byte is the value.
+    out.push(rest.to_le_bytes()[0]);
 }
 
 // ── String literals (RFC 9204 §4.1.2) ───────────────────────────────────────

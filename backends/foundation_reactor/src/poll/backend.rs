@@ -53,7 +53,8 @@ pub enum Backend {
 }
 
 impl Backend {
-    /// Whether this backend is one of the io_uring modes.
+    /// Whether this backend is one of the `io_uring` modes.
+    #[must_use]
     pub fn is_uring(self) -> bool {
         matches!(self, Backend::UringReadiness | Backend::UringCompletion)
     }
@@ -76,9 +77,9 @@ pub enum BackendPreference {
     /// Walk the ladder and surface the choice. Never fails on a supported OS.
     #[default]
     Auto,
-    /// io_uring is a **requirement**. Probe failure is a hard error carrying
+    /// `io_uring` is a **requirement**. Probe failure is a hard error carrying
     /// the probe detail — no silent demotion to epoll. Demotion *within*
-    /// io_uring (completion → readiness on a 5.13–5.18 kernel) is fine: the
+    /// `io_uring` (completion → readiness on a 5.13–5.18 kernel) is fine: the
     /// caller asked for uring and got uring.
     Uring,
     /// epoll, with no probe run.
@@ -203,26 +204,25 @@ pub fn resolve(
     }
 }
 
-/// Selection when io_uring is not compiled into this build.
+/// Selection when `io_uring` is not compiled into this build.
 ///
 /// # Errors
-/// [`SelectionError`] if io_uring is explicitly requested, since the code is
+/// [`SelectionError`] if `io_uring` is explicitly requested, since the code is
 /// absent from the binary — reporting epoll instead would be a silent default.
 ///
 /// # Panics
 /// Never panics.
 #[cfg(all(target_os = "linux", not(feature = "uring")))]
 pub fn select(preference: BackendPreference) -> Result<Backend, SelectionError> {
-    match preference {
-        BackendPreference::Uring => Err(SelectionError {
+    if preference == BackendPreference::Uring {
+        Err(SelectionError {
             requested: preference,
             detail: "io_uring support is not compiled into this build (enable the `uring` feature)"
                 .to_string(),
-        }),
-        _ => {
-            tracing::info!(backend = %Backend::Epoll, "reactor backend selected");
-            Ok(Backend::Epoll)
-        }
+        })
+    } else {
+        tracing::info!(backend = %Backend::Epoll, "reactor backend selected");
+        Ok(Backend::Epoll)
     }
 }
 

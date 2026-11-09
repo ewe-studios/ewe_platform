@@ -1982,8 +1982,12 @@ impl ExecutorState {
                     // tasks if CPU thread becomes free.
                     ProgressIndicator::SpinWait(inner)
                 } else {
-                    // push back to top
-                    self.processing.borrow_mut().push_front(top_entry);
+                    // No progress: treat this like other runnable work and go to
+                    // the back of the queue. Pushing it to the front let a
+                    // self-waking task that returns `Ignore` poll again before
+                    // any other runnable task, so it could starve the worker
+                    // (issue #408).
+                    self.processing.borrow_mut().push_back(top_entry);
                     ProgressIndicator::CanProgress(None)
                 };
 

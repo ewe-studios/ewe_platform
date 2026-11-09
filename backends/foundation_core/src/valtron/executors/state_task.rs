@@ -14,7 +14,7 @@
 use core::future::Future;
 use core::marker::PhantomData;
 use core::pin::Pin;
-use core::task::{Context, Poll};
+use core::task::{Context, Poll, Waker};
 use std::boxed::Box;
 use std::sync::Arc;
 
@@ -114,6 +114,12 @@ where
     transition: AsyncTransition<T, R, P>,
     future: Option<AsyncStateFuture<T, R, P>>,
     wake_queue: crate::valtron::EventQueue<WakeToken>,
+    /// The one waker this task hands to the transition's future on every poll.
+    ///
+    /// WHY: a source that keeps the waker deduplicates by waker identity. A
+    /// fresh waker per poll defeats that deduplication and grows the source's
+    /// registration list on every poll.
+    waker: Waker,
     completed: bool,
 }
 
@@ -125,11 +131,14 @@ where
 {
     /// Wrap `state` and a boxed `async` transition into a runnable state machine.
     pub fn new(state: T, transition: AsyncTransition<T, R, P>) -> Self {
+        let wake_queue = crate::valtron::EventQueue::unbounded();
+        let waker = queue_waker(wake_queue.clone(), 0);
         Self {
             state: Some(state),
             transition,
             future: None,
-            wake_queue: crate::valtron::EventQueue::unbounded(),
+            wake_queue,
+            waker,
             completed: false,
         }
     }
@@ -162,7 +171,7 @@ where
         //    the readiness ready (the wake-before-park race is harmless).
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {
@@ -215,7 +224,7 @@ where
 
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {

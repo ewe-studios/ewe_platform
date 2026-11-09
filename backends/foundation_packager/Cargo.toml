@@ -10,11 +10,10 @@ repository.workspace = true
 keywords = ["templating", "code-generation", "project-scaffolding"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.18" }
+foundation_core = { path = "../foundation_core", version = "0.0.19" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 derive_more = { workspace = true }
-foundation_conditional = { path = "../foundation_conditional", version = "0.1.2" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 cargo_toml = { version = "0.22.3" }
 toml = { version = "0.8.19" }
@@ -28,8 +27,8 @@ rand = { version = "0.9.2" }
 tracing-test = { version = "0.2.5" }
 
 [features]
-debug_block = ["foundation_conditional/debug_block"]
-trace_block = ["foundation_conditional/trace_block"]
+debug_block = []
+trace_block = []
 
 [lints]
 workspace = true

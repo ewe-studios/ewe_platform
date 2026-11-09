@@ -401,14 +401,14 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
             // Datagram sent — now try to receive on the server side.
             server_session.pump_recv_datagrams();
             match server_session.try_recv_datagram() {
-                Stream::Next(Ok(Some(data))) if data == Bytes::from("hello-quic") => {
+                Stream::Next(Ok(Some(data))) if data == "hello-quic" => {
                     // Round-trip worked! Send response back.
                     let _ = server_session.queue_datagram(Bytes::from("hello-back"));
                     if let Stream::Next(Ok(())) = server_session.flush_datagrams() {
                         // Now client receives response.
                         client_session.pump_recv_datagrams();
                         match client_session.try_recv_datagram() {
-                            Stream::Next(Ok(Some(data))) if data == Bytes::from("hello-back") => {
+                            Stream::Next(Ok(Some(data))) if data == "hello-back" => {
                                 return; // Full round-trip — success!
                             }
                             _ => {}

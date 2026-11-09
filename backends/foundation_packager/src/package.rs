@@ -191,6 +191,11 @@ pub trait PackageConfigurator {
     fn directory(&self) -> std::path::PathBuf;
     fn config(&self) -> PackageConfig;
     fn params(&self) -> serde_json::Map<String, serde_json::Value>;
+    /// Applies the final changes after package generation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the final step cannot update the project files.
     fn finalize(&self) -> std::result::Result<(), BoxedError>;
 }
 
@@ -304,6 +309,11 @@ impl RustProjectConfigurator {
     /// template in an existing rust workspace project, else assume we are generating a
     /// standalone rust project when we replicate the relevant template into the
     /// codebase.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RustProjectConfiguratorError::BadRustWorkspace`] when the workspace
+    /// manifest cannot be read.
     pub fn new(
         package_config: PackageConfig,
         rust_config: Option<RustConfig>,
@@ -333,6 +343,17 @@ impl RustProjectConfigurator {
             }
         }
         Ok(self)
+    }
+
+    fn output_directory_name(&self) -> String {
+        String::from(
+            self.package_config
+                .output_directory
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap(),
+        )
     }
 }
 
@@ -382,15 +403,7 @@ When not a workspace:
 "]
     fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut params = self.package_config.params.clone();
-
-        let output_directory_name = String::from(
-            self.package_config
-                .output_directory
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap(),
-        );
+        let output_directory_name = self.output_directory_name();
 
         params
             .entry("TEMPLATE_NAME")
@@ -409,135 +422,16 @@ When not a workspace:
         );
 
         if let Some(manifest) = &self.manifest {
-            // when its not a workspace
             if let Some(package) = &manifest.package {
-                params.entry("IS_WORKSPACE").or_insert(false.into());
-
-                params
-                    .entry("PACKAGE_DIRECTORY_NAME")
-                    .or_insert(output_directory_name.clone().into());
-
-                params
-                    .entry("ROOT_PACKAGE_DOCUMENTATION")
-                    .or_insert(package.documentation().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_NAME")
-                    .or_insert(package.name().into());
-
-                params
-                    .entry("ROOT_PACKAGE_LICENSE_FILE")
-                    .or_insert(package.license().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_EDITION")
-                    .or_insert(format!("{:?}", package.edition()).into());
-
-                params
-                    .entry("ROOT_PACKAGE_REPOSITORY")
-                    .or_insert(package.repository().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_VERSION")
-                    .or_insert(package.version().into());
-
-                params
-                    .entry("ROOT_PACKAGE_RUST_VERSION")
-                    .or_insert(package.rust_version().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_LICENSE")
-                    .or_insert(package.license().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_DESCRIPTIONS")
-                    .or_insert(package.description().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_AUTHORS")
-                    .or_insert(package.authors().into());
-
-                params
-                    .entry("ROOT_PACKAGE_KEYWORDS")
-                    .or_insert(package.keywords().into());
+                add_manifest_package_params(&mut params, package, &output_directory_name);
             }
-
-            // when its a workspace
             if let Some(workspace) = &manifest.workspace {
                 if let Some(package) = &workspace.package {
-                    params.entry("IS_WORKSPACE").or_insert(true.into());
-
-                    println!("Package name: {output_directory_name}");
-
-                    params
-                        .entry("ROOT_PACKAGE_NAME")
-                        .or_insert(output_directory_name.clone().into());
-
-                    params.entry("ROOT_PACKAGE_DOCUMENTATION").or_insert(
-                        package
-                            .documentation
-                            .clone()
-                            .unwrap_or(String::new())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_LICENSE_FILE").or_insert(
-                        package
-                            .license_file
-                            .clone()
-                            .unwrap_or(PathBuf::new())
-                            .try_into_string()
-                            .unwrap()
-                            .into(),
-                    );
-                    if let Some(edition) = package.edition {
-                        params
-                            .entry("ROOT_PACKAGE_EDITION")
-                            .or_insert(format!("{edition:?}").into());
-                    }
-                    params.entry("ROOT_PACKAGE_REPOSITORY").or_insert(
-                        package
-                            .repository
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_VERSION").or_insert(
-                        package
-                            .rust_version
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_RUST_VERSION").or_insert(
-                        package
-                            .rust_version
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_LICENSE").or_insert(
-                        package
-                            .license
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_DESCRIPTIONS").or_insert(
-                        package
-                            .description
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params
-                        .entry("ROOT_PACKAGE_AUTHORS")
-                        .or_insert(package.authors.clone().unwrap_or(vec![]).into());
-                    params
-                        .entry("ROOT_PACKAGE_KEYWORDS")
-                        .or_insert(package.keywords.clone().unwrap_or(vec![]).into());
+                    add_workspace_package_params(&mut params, package, &output_directory_name);
                 }
             }
         }
+
         params
     }
 
@@ -590,7 +484,9 @@ When not a workspace:
                     return Ok(());
                 }
 
-                manifest_package.name = self.package_config.package_name.clone();
+                manifest_package
+                    .name
+                    .clone_from(&self.package_config.package_name);
 
                 cloned_manifest.package = Some(manifest_package);
 
@@ -616,6 +512,135 @@ When not a workspace:
             Err(err) => Err(Box::new(err)),
         }
     }
+}
+
+fn add_manifest_package_params(
+    params: &mut serde_json::Map<String, serde_json::Value>,
+    package: &cargo_toml::Package,
+    output_directory_name: &str,
+) {
+    params.entry("IS_WORKSPACE").or_insert(false.into());
+
+    params
+        .entry("PACKAGE_DIRECTORY_NAME")
+        .or_insert(output_directory_name.into());
+
+    params
+        .entry("ROOT_PACKAGE_DOCUMENTATION")
+        .or_insert(package.documentation().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_NAME")
+        .or_insert(package.name().into());
+
+    params
+        .entry("ROOT_PACKAGE_LICENSE_FILE")
+        .or_insert(package.license().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_EDITION")
+        .or_insert(format!("{:?}", package.edition()).into());
+
+    params
+        .entry("ROOT_PACKAGE_REPOSITORY")
+        .or_insert(package.repository().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_VERSION")
+        .or_insert(package.version().into());
+
+    params
+        .entry("ROOT_PACKAGE_RUST_VERSION")
+        .or_insert(package.rust_version().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_LICENSE")
+        .or_insert(package.license().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_DESCRIPTIONS")
+        .or_insert(package.description().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_AUTHORS")
+        .or_insert(package.authors().into());
+
+    params
+        .entry("ROOT_PACKAGE_KEYWORDS")
+        .or_insert(package.keywords().into());
+}
+
+fn add_workspace_package_params(
+    params: &mut serde_json::Map<String, serde_json::Value>,
+    package: &cargo_toml::PackageTemplate,
+    output_directory_name: &str,
+) {
+    params.entry("IS_WORKSPACE").or_insert(true.into());
+
+    println!("Package name: {output_directory_name}");
+
+    params
+        .entry("ROOT_PACKAGE_NAME")
+        .or_insert(output_directory_name.into());
+
+    params
+        .entry("ROOT_PACKAGE_DOCUMENTATION")
+        .or_insert(package.documentation.clone().unwrap_or_default().into());
+    params.entry("ROOT_PACKAGE_LICENSE_FILE").or_insert(
+        package
+            .license_file
+            .clone()
+            .unwrap_or_default()
+            .try_into_string()
+            .unwrap()
+            .into(),
+    );
+    if let Some(edition) = package.edition {
+        params
+            .entry("ROOT_PACKAGE_EDITION")
+            .or_insert(format!("{edition:?}").into());
+    }
+    params.entry("ROOT_PACKAGE_REPOSITORY").or_insert(
+        package
+            .repository
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_VERSION").or_insert(
+        package
+            .rust_version
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_RUST_VERSION").or_insert(
+        package
+            .rust_version
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_LICENSE").or_insert(
+        package
+            .license
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_DESCRIPTIONS").or_insert(
+        package
+            .description
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params
+        .entry("ROOT_PACKAGE_AUTHORS")
+        .or_insert(package.authors.clone().unwrap_or(vec![]).into());
+    params
+        .entry("ROOT_PACKAGE_KEYWORDS")
+        .or_insert(package.keywords.clone().unwrap_or(vec![]).into());
 }
 
 pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
@@ -654,8 +679,20 @@ impl<T: PackageDirectorate + Default> Default for PackageGenerator<T> {
 }
 
 impl<T: PackageDirectorate> PackageGenerator<T> {
-    /// create will begin to setup the underlying specified project
-    /// defined in the provided configurator.
+    /// Creates the project from the template selected by the configurator.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PackageGenError::NoTemplateFound`] when the template has no files or no Jinja
+    /// environment.
+    /// Returns [`PackageGenError::Failed`] when writing a file or finalizing the project fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics when a template path is not under the template name or has no file name.
+    // The public API takes the configurator by value. Changing it to a reference
+    // would break the existing callers.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn create<S: PackageConfigurator>(&self, configurator: S) -> PackageGenResult<()> {
         let config = configurator.config();
 

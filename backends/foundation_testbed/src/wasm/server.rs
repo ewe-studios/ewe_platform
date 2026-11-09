@@ -11,8 +11,8 @@ use std::thread;
 
 use foundation_http::ShutdownSignal;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
+use foundation_http::native::serve::Serve;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
 use tracing::debug;
 
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};

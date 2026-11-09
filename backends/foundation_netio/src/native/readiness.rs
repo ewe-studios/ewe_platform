@@ -29,6 +29,8 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+#[cfg(unix)]
+use foundation_core::valtron::Clock;
 use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 
 /// Which direction of I/O a parked task is waiting for.
@@ -84,6 +86,26 @@ impl SocketReadiness {
     /// # Errors
     /// The `poll(2)` error, other than `EINTR` (which reports "not ready").
     pub fn poll_now(&self) -> std::io::Result<bool> {
+        self.poll_timeout(Some(Duration::ZERO))
+    }
+
+    /// Poll the fd once, waiting at most `timeout` for readiness.
+    ///
+    /// `None` waits without a limit. This blocks the calling thread, so only a
+    /// synchronous boundary calls it. A task parks on the `EventReadiness`
+    /// implementation instead.
+    ///
+    /// # Errors
+    /// The `poll(2)` error.
+    pub fn poll_timeout(&self, timeout: Option<Duration>) -> std::io::Result<bool> {
+        let timeout_ms = match timeout {
+            None => -1,
+            Some(dur) => {
+                // Round up: a sub-millisecond wait must still wait once.
+                let millis = dur.as_nanos().div_ceil(1_000_000).min(i32::MAX as u128);
+                i32::try_from(millis).unwrap_or(i32::MAX)
+            }
+        };
         let events = match self.interest {
             IoInterest::Readable => libc::POLLIN,
             IoInterest::Writable => libc::POLLOUT,
@@ -94,17 +116,43 @@ impl SocketReadiness {
             revents: 0,
         };
         // SAFETY: `pfd` is a valid, initialised `pollfd` and we pass a count of 1.
-        // A zero timeout makes the call return immediately.
-        let rc = unsafe { libc::poll(&raw mut pfd, 1, 0) };
+        let rc = unsafe { libc::poll(&raw mut pfd, 1, timeout_ms) };
         if rc < 0 {
-            let err = std::io::Error::last_os_error();
-            if err.kind() == std::io::ErrorKind::Interrupted {
-                return Ok(false);
-            }
-            return Err(err);
+            return Err(std::io::Error::last_os_error());
         }
         let woke = events | libc::POLLERR | libc::POLLHUP | libc::POLLNVAL;
         Ok(rc > 0 && (pfd.revents & woke) != 0)
+    }
+
+    /// Wait for readiness until `deadline` (or without a limit when it is
+    /// `None`), blocking the calling thread. Returns `false` when the deadline
+    /// passed first.
+    ///
+    /// WHY: the synchronous constructors keep their signature for sync callers
+    /// (feature 04 §2.3). They drive the same non-blocking state machine and
+    /// wait here instead of calling a blocking socket operation.
+    ///
+    /// # Errors
+    /// The `poll(2)` error.
+    pub fn wait_blocking(&self, deadline: Option<Instant>) -> std::io::Result<bool> {
+        let clock = foundation_core::valtron::MonotonicClock::new();
+        loop {
+            let remaining = match deadline {
+                None => None,
+                Some(deadline) => {
+                    let now = clock.now();
+                    if now >= deadline {
+                        return Ok(false);
+                    }
+                    Some(deadline - now)
+                }
+            };
+            match self.poll_timeout(remaining) {
+                Ok(ready) => return Ok(ready),
+                Err(err) if err.kind() == std::io::ErrorKind::Interrupted => {}
+                Err(err) => return Err(err),
+            }
+        }
     }
 }
 
@@ -113,6 +161,7 @@ impl EventReadiness for SocketReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         match self.poll_now() {
             Ok(ready) => ready,
+            Err(err) if err.kind() == std::io::ErrorKind::Interrupted => false,
             Err(err) => {
                 // An fd we cannot poll will not become pollable later. Report it
                 // ready so the task wakes, retries its I/O, and gets the real error.
@@ -204,4 +253,52 @@ pub fn io_or_deadline(
         io,
         Arc::new(DeadlineReadiness::at(deadline, clock)),
     ))
+}
+
+/// Drive a TLS handshake to completion on a non-blocking socket, blocking the
+/// calling thread until it finishes or the deadline passes.
+///
+/// WHY: the synchronous constructors keep their signatures (feature 04 §2.3),
+/// but they must not start a blocking handshake call. They start the handshake
+/// non-blocking and wait here on the same readiness signal a valtron task parks
+/// on.
+///
+/// WHAT: calls `drive` until it succeeds. A `WouldBlock` result asks
+/// `poll_target` for the fd and direction the TLS session needs, then waits for
+/// it.
+///
+/// HOW: the deadline comes from [`foundation_core::valtron::MonotonicClock`],
+/// not from the process clock in the logic below.
+///
+/// # Errors
+/// The handshake error, `TimedOut` when the deadline passes first, or
+/// `Unsupported` when the backend cannot report readiness.
+#[cfg(unix)]
+pub fn complete_handshake_blocking(
+    mut drive: impl FnMut() -> std::io::Result<()>,
+    mut poll_target: impl FnMut() -> Option<(std::os::unix::io::RawFd, IoInterest)>,
+    timeout: Option<Duration>,
+) -> std::io::Result<()> {
+    let clock = foundation_core::valtron::MonotonicClock::new();
+    let deadline = timeout.map(|timeout| clock.now() + timeout);
+    loop {
+        match drive() {
+            Ok(()) => return Ok(()),
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                let Some((fd, interest)) = poll_target() else {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Unsupported,
+                        "the TLS backend cannot report handshake readiness",
+                    ));
+                };
+                if !SocketReadiness::new(fd, interest).wait_blocking(deadline)? {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::TimedOut,
+                        "TLS handshake timed out",
+                    ));
+                }
+            }
+            Err(err) => return Err(err),
+        }
+    }
 }

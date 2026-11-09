@@ -18,10 +18,10 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::valtron::{valtron_test, Pipe, PipeReceiver, PipeSender};
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame};

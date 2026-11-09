@@ -137,7 +137,9 @@ fn wait_for_readiness(readiness: &FdReadiness, label: &str) {
         if readiness.ready().is_readable() {
             return;
         }
-        readiness.wait_for_events(generation, Duration::from_millis(100));
+        // The return is the new generation; the loop re-snapshots it, so
+        // discarding it here is deliberate.
+        let _ = readiness.wait_for_events(generation, Duration::from_millis(100));
     }
     panic!("{label}: the fd did not report readability within {WAIT_BOUND:?}");
 }

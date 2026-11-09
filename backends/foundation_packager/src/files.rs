@@ -43,10 +43,22 @@ pub enum FileContent<'a> {
 }
 
 impl FileContent<'_> {
-    pub fn run<S: Serialize>(&self, dest: path::PathBuf, value: Option<S>) -> FileResult<()> {
+    /// Writes this content to `dest`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PackagingError::Io`] when the file cannot be created or written.
+    /// Returns [`PackagingError::ContentSizeMismatch`] when the written size differs from the
+    /// content size.
+    /// Returns [`PackagingError::TemplateRender`] when the template cannot render.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the Jinja template registry has no template with the given name.
+    pub fn run<S: Serialize>(&self, dest: &path::Path, value: Option<S>) -> FileResult<()> {
         match self {
             FileContent::Text(content) => {
-                let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
+                let mut file = fs::File::create(dest).map_err(io_err)?;
                 let written = file.write(content.as_bytes()).map_err(io_err)?;
                 if written != content.len() {
                     return Err(PackagingError::ContentSizeMismatch.into_error_trace());
@@ -54,7 +66,7 @@ impl FileContent<'_> {
                 Ok(())
             }
             FileContent::Jinja(name, templater) => {
-                let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
+                let mut file = fs::File::create(dest).map_err(io_err)?;
 
                 let rendered = templater
                     .get_template(name.as_str())
@@ -69,7 +81,7 @@ impl FileContent<'_> {
                 Ok(())
             }
             FileContent::Tiny(name, templater) => {
-                let mut file = fs::File::create(dest.as_path()).map_err(io_err)?;
+                let mut file = fs::File::create(dest).map_err(io_err)?;
 
                 let rendered = templater
                     .render(name.as_str(), &value)
@@ -92,7 +104,7 @@ pub enum FileSystemCommand<'a> {
 }
 
 impl FileSystemCommand<'_> {
-    fn exec<S: Serialize + Clone>(&self, dest: path::PathBuf, value: S) -> FileResult<()> {
+    fn exec<S: Serialize + Clone>(&self, dest: &path::Path, value: S) -> FileResult<()> {
         match self {
             FileSystemCommand::DirPath(dir, commands) => {
                 if !dir.exists() {
@@ -100,19 +112,16 @@ impl FileSystemCommand<'_> {
                 }
 
                 let mut builder = fs::DirBuilder::new();
-                builder
-                    .recursive(true)
-                    .create(dir.clone())
-                    .map_err(io_err)?;
+                builder.recursive(true).create(dir).map_err(io_err)?;
 
                 for sub_command in commands {
-                    sub_command.exec(dir.clone(), value.clone())?;
+                    sub_command.exec(dir, value.clone())?;
                 }
 
                 Ok(())
             }
             FileSystemCommand::Dir(dir, commands) => {
-                let mut target_path = dest.clone();
+                let mut target_path = dest.to_path_buf();
                 target_path.push(dir);
 
                 if !target_path.exists() {
@@ -122,28 +131,28 @@ impl FileSystemCommand<'_> {
                 let mut builder = fs::DirBuilder::new();
                 builder
                     .recursive(true)
-                    .create(target_path.clone())
+                    .create(&target_path)
                     .map_err(io_err)?;
 
                 for sub_command in commands {
-                    sub_command.exec(target_path.clone(), value.clone())?;
+                    sub_command.exec(&target_path, value.clone())?;
                 }
 
                 Ok(())
             }
             FileSystemCommand::File(file_name, content) => {
-                let mut target_path = dest.clone();
+                let mut target_path = dest.to_path_buf();
                 target_path.push(file_name);
 
                 tracing::info!("Creating file: {:?}", target_path);
 
-                content.run(target_path, Some(value))?;
+                content.run(&target_path, Some(value))?;
 
                 Ok(())
             }
             FileSystemCommand::FilePath(file_name, content) => {
                 tracing::info!("Creating file: {:?}", file_name);
-                content.run(file_name.clone(), Some(value))?;
+                content.run(file_name, Some(value))?;
                 Ok(())
             }
         }
@@ -156,6 +165,11 @@ pub struct Templater<'a> {
 }
 
 impl<'a> Templater<'a> {
+    /// Creates a templater that writes under `dest`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `dest` is not a valid path string.
     #[must_use]
     pub fn new(dest: &'a str) -> Self {
         Self {
@@ -178,9 +192,14 @@ impl<'a> Templater<'a> {
         self.commands.push(command);
     }
 
+    /// Runs every command and writes the output under the destination directory.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first error from a command. See [`FileContent::run`].
     pub fn run<S: Serialize>(&mut self, value: S) -> FileResult<()> {
         for command in &self.commands {
-            command.exec(self.dest.clone(), &value)?;
+            command.exec(&self.dest, &value)?;
         }
         Ok(())
     }

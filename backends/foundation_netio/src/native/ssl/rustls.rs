@@ -3,7 +3,7 @@
 #![cfg(not(target_family = "wasm"))]
 
 use crate::native::connection::Connection;
-use crate::native::connection::{DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
+use crate::native::connection::{DataStreamAddr, Endpoint, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use rustls::crypto::CryptoProvider;
@@ -11,7 +11,9 @@ use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ALL_VERSIONS};
 use std::error::Error;
 use std::io::{Read, Write};
-use std::net::{Shutdown, TcpStream};
+use std::net::Shutdown;
+#[cfg(not(unix))]
+use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 use webpki_roots::TLS_SERVER_ROOTS;
 use zeroize::Zeroizing;
@@ -433,7 +435,10 @@ where
     }
 }
 
-impl RustlsStream<rustls::ClientConnection> {
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::DerefMut<Target = rustls::ConnectionCommon<D>>,
+{
     /// Drive the TLS handshake on the non-blocking socket until it finishes or
     /// would block.
     ///
@@ -798,28 +803,74 @@ impl RustlsConnector {
         Ok((RustlsStream(shared_stream), addr))
     }
 
+    /// Wrap a plain connection and drive the TLS handshake to completion.
+    ///
+    /// WHY: a synchronous caller (the `HttpClientConnection` constructors and
+    /// [`Self::from_endpoint`]) cannot park on a readiness signal. It still must
+    /// not start a blocking kernel call, so it drives the same non-blocking
+    /// handshake a valtron task drives, and waits on the socket readiness
+    /// ([`Self::from_tcp_stream`] leaves the handshake to the caller).
+    ///
+    /// The returned stream is blocking, as a synchronous caller expects.
+    ///
+    /// # Errors
+    /// The handshake failed or the timeout expired.
+    pub fn from_tcp_stream_complete(
+        &self,
+        sni: String,
+        plain: Connection,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let (stream, addr) = self.from_tcp_stream(sni, plain)?;
+        finish_handshake(&stream, timeout).map_err(Box::new)?;
+        stream.set_nonblocking(false)?;
+        Ok((stream, addr))
+    }
+
     ///
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    ///
+    /// The connect runs on a non-blocking socket and the handshake is driven by
+    /// readiness, so no blocking socket call runs here (issues #277 and #279).
     pub fn from_endpoint(
         &self,
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
+        let timeout = super::endpoint_timeout(endpoint);
+        let plain_stream = super::connect_plain(host_socket_addr, timeout)?;
 
-        let plain_stream = match endpoint {
-            Endpoint::WithDefault(config) | Endpoint::WithIdentity(config, _) => match config {
-                EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
-                }
-                EndpointConfig::NoTimeout(_) => TcpStream::connect(host_socket_addr),
-            },
-        }?;
-
-        self.from_tcp_stream(host, Connection::Tcp(plain_stream))
+        self.from_tcp_stream_complete(host, Connection::Tcp(plain_stream), timeout)
     }
+}
+
+/// Drive the rustls handshake on a non-blocking socket, blocking the calling
+/// thread until it finishes or the deadline passes.
+#[cfg(unix)]
+fn finish_handshake(
+    stream: &RustTlsClientStream,
+    timeout: Option<std::time::Duration>,
+) -> std::io::Result<()> {
+    let readiness = stream.conn_readiness();
+    crate::native::readiness::complete_handshake_blocking(
+        || stream.drive_handshake(),
+        || readiness.poll_fd(crate::native::readiness::IoInterest::Readable),
+        timeout,
+    )
+}
+
+/// Drive the rustls handshake on a blocking socket (non-unix platforms have no
+/// `poll(2)` readiness here).
+#[cfg(not(unix))]
+fn finish_handshake(
+    stream: &RustTlsClientStream,
+    _timeout: Option<std::time::Duration>,
+) -> std::io::Result<()> {
+    stream.set_nonblocking(false)?;
+    stream.drive_handshake()
 }
 
 impl Default for RustlsConnector {

@@ -33,9 +33,9 @@ use foundation_netio::shared::http::HTTPStreams;
 use super::connection::ConnectionHandler;
 use super::h2_connection::H2ConnectionHandler;
 use super::KeepAliveConfig;
+use crate::native::app::ServerApp;
 use crate::native::writer::send_text;
-use crate::shared::app::ServerApp;
-use crate::shared::serve::ConnectionResult;
+use crate::shared::serve::{ConnectionResult, ServeOutcome};
 
 const POLL_DELAY: Duration = Duration::from_millis(3);
 
@@ -262,9 +262,19 @@ impl ProtocolDetectHandler {
             }
             ConnectionResult::Keep | ConnectionResult::Take => return,
         };
+        let client = self.client_ip.clone();
         let task = FutureTask::new(async move {
             let _guard = guard;
-            let _ = write.await;
+            // The connection is already closing, so the outcome is not returned
+            // to a caller. It is logged with the peer, never dropped: a refusal
+            // that never reached the peer is otherwise invisible.
+            if let ServeOutcome::Close(err) = write.await {
+                tracing::debug!(
+                    client = %client,
+                    err = ?err,
+                    "refusal response write failed"
+                );
+            }
         });
         if let Err(e) = foundation_core::valtron::send(task) {
             tracing::error!(client = %self.client_ip, err = ?e, "failed to submit refusal write");

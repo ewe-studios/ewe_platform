@@ -90,6 +90,9 @@ impl ShutdownSignal {
     /// wakes threads parked in `Reactor::wait_for_events`. Best-effort: on
     /// failure the signal stays a plain flag and waiters fall back to their poll
     /// timeout. On non-unix this is a no-op that always succeeds.
+    ///
+    /// # Errors
+    /// Returns the reactor start error when the shared reactor cannot start.
     pub fn register_wake(&self) -> io::Result<()> {
         #[cfg(unix)]
         {

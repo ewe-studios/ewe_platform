@@ -21,8 +21,9 @@ use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
 use crate::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 
+use crate::native::serve::Serve;
 use crate::shared::context::ContextBag;
-use crate::shared::serve::{ConnectionResult, Serve};
+use crate::shared::serve::ConnectionResult;
 
 /// Serves a fixed in-memory asset (bytes + content type + optional headers) on
 /// the route it is registered for. Register it as an `Arc<dyn Serve>`:

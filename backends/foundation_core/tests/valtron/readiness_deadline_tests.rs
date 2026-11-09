@@ -244,10 +244,11 @@ mod event_driven_cpu {
         }
     }
 
-    /// CPU nanoseconds used so far by the threads of this test: the test thread and
-    /// the pool workers it started, which carry its name (truncated to 15 bytes).
-    /// Other tests of the binary run beside this one, so the whole-process CPU is not
-    /// a fair measure.
+    /// CPU nanoseconds used so far by this test's pool workers: the threads
+    /// named `comm`. A worker now carries its own name, not the name of the
+    /// test thread that started it (GitHub issue #309). Other tests of the
+    /// binary run beside this one, so the whole-process CPU is not a fair
+    /// measure.
     fn own_threads_cpu(comm: &str) -> Duration {
         let mut total = 0u64;
         for entry in std::fs::read_dir("/proc/self/task")
@@ -304,8 +305,9 @@ mod event_driven_cpu {
     /// practice about half.
     #[valtron_test(threads = 1, timeout = 20_000)]
     async fn worker_with_event_driven_sleeper_uses_less_cpu_than_a_polling_one() {
-        // The test thread is named after its module path; the pool workers inherit it.
-        let comm = "valtron::readin";
+        // The task workers carry their own name (GitHub issue #309). The name
+        // is 14 bytes, under the 15-byte limit that Linux keeps in `comm`.
+        let comm = "valtron-worker";
         let event = cpu_while_parked(Arc::new(ResumeSignal::new(false)), comm);
         let polling = cpu_while_parked(Arc::new(PollingSignal), comm);
         eprintln!("event-driven {event:?}, polling {polling:?}");
@@ -343,12 +345,18 @@ mod event_driven_cpu {
     }
 
     /// An idle pool, with its only task parked on a `ResumeSignal`, costs each of
-    /// its threads under 2 ms of CPU and under 30 wake-ups in one second.
+    /// its threads under 10 ms of CPU and under 30 wake-ups in one second.
     ///
     /// The thread that waits for the task's output (the test thread here) used to
     /// wake every millisecond (`NotifyQueue::wait_for_item` made 100 timed waits of
     /// 1 ms): about 27 ms of CPU and 900 wake-ups per second. The workers wake once
     /// per `max_yield_duration` (100 ms) at most: about 10 wake-ups per second.
+    ///
+    /// WHY 10 ms and not 2 ms (GitHub issue #425): a wake costs about 0.25 ms of
+    /// CPU in the unoptimised `uat` build inside the Linux CI container. An idle
+    /// worker makes 8 to 9 wake-ups per second, so it uses 2.3 to 2.7 ms. The old
+    /// defect used about 27 ms, so 10 ms still tells the two apart. The wake-up
+    /// count is the sharper signal: the defect made about 900 wake-ups per second.
     #[valtron_test(threads = 1, timeout = 20_000)]
     async fn idle_threads_parked_on_a_resume_signal_use_almost_no_cpu() {
         let stream = execute(
@@ -365,7 +373,9 @@ mod event_driven_cpu {
         let after = thread_stats();
         std::mem::forget(stream);
 
-        let comm = "valtron::readin";
+        // The task workers carry their own name (GitHub issue #309). The name
+        // is 14 bytes, under the 15-byte limit that Linux keeps in `comm`.
+        let comm = "valtron-worker";
         let mut worst_cpu = Duration::ZERO;
         let mut worst_wakeups = 0;
         for (name, (cpu, switches)) in &after {
@@ -380,8 +390,8 @@ mod event_driven_cpu {
             worst_wakeups = worst_wakeups.max(wakeups);
         }
         assert!(
-            worst_cpu < Duration::from_millis(2),
-            "an idle thread used {worst_cpu:?} of CPU in one second; the bound is 2 ms"
+            worst_cpu < Duration::from_millis(10),
+            "an idle thread used {worst_cpu:?} of CPU in one second; the bound is 10 ms"
         );
         assert!(
             worst_wakeups < 30,

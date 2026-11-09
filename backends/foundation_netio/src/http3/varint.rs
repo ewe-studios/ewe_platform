@@ -101,10 +101,18 @@ impl VarInt {
     /// # Panics
     /// Never panics.
     pub fn encode(self, out: &mut Vec<u8>) {
+        // The big-endian bytes give each output byte without a narrowing cast.
+        let bytes = self.0.to_be_bytes();
         match self.encoded_len() {
-            1 => out.push(self.0 as u8),
-            2 => out.extend_from_slice(&((self.0 as u16) | 0b01 << 14).to_be_bytes()),
-            4 => out.extend_from_slice(&((self.0 as u32) | 0b10 << 30).to_be_bytes()),
+            1 => out.push(bytes[7]),
+            2 => {
+                out.push(bytes[6] | 0b01 << 6);
+                out.push(bytes[7]);
+            }
+            4 => {
+                out.push(bytes[4] | 0b10 << 6);
+                out.extend_from_slice(&bytes[5..8]);
+            }
             _ => out.extend_from_slice(&(self.0 | 0b11 << 62).to_be_bytes()),
         }
     }

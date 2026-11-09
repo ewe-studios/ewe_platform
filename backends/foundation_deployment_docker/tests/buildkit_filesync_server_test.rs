@@ -19,9 +19,10 @@ async fn filesync_diffcopy_serves_context_dir() {
     use foundation_connectrpc::{ConnectRpcServeH2, Router};
     use foundation_deployment_docker::buildkit::services::filesync::{self, register_file_sync};
     use foundation_deployment_docker::buildkit::session::DirFileSync;
+    use foundation_http::native::app::ServerApp;
     use foundation_http::native::serve::H2Serve;
     use foundation_http::native::server::HttpServer;
-    use foundation_http::shared::app::{HttpApp, ServerApp};
+    use foundation_http::shared::app::HttpApp;
     use foundation_http::ShutdownSignal;
 
     // Context dir with a single Dockerfile.
@@ -112,7 +113,8 @@ async fn health_check_returns_serving() {
     use foundation_http::ShutdownSignal;
     use foundation_http::native::serve::H2Serve;
     use foundation_http::native::server::HttpServer;
-    use foundation_http::shared::app::{HttpApp, ServerApp};
+    use foundation_http::native::app::ServerApp;
+    use foundation_http::shared::app::HttpApp;
 
     // Serve Health service on loopback h2.
     let mut router = Router::new();
@@ -168,9 +170,10 @@ async fn ssh_agent_proxy_forwards_bytes() {
     };
     use foundation_deployment_docker::buildkit::services::ssh::{self, register_ssh};
     use foundation_deployment_docker::buildkit::session::SshAgentProxy;
+    use foundation_http::native::app::ServerApp;
     use foundation_http::native::serve::H2Serve;
     use foundation_http::native::server::HttpServer;
-    use foundation_http::shared::app::{HttpApp, ServerApp};
+    use foundation_http::shared::app::HttpApp;
     use foundation_http::ShutdownSignal;
     use std::io::{Read as _, Write as _};
 

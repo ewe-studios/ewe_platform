@@ -1,5 +1,5 @@
 //! HTTP/3 server — drives a QUIC endpoint and dispatches request streams to
-//! [`H3Serve`] handlers (F35 / spec-53 F19).
+//! [`H3Serve`](crate::native::serve::H3Serve) handlers (F35 / spec-53 F19).
 //!
 //! WHY: `foundation_netio` provides the QUIC substrate ([`QuicDriver`] — one
 //! `quinn_proto::Endpoint` per UDP socket) and the HTTP/3 mapping
@@ -35,10 +35,7 @@ use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::quic::{server_config_from_pem, QuicDriver, QuinnConnection};
 use foundation_netio::shared::http::SimpleMethod;
 
-use crate::native::serve::H3Serve;
-use crate::shared::app::HttpApp;
-
-type H3App = Arc<HttpApp<Arc<dyn H3Serve>>>;
+use crate::native::app::H3App;
 
 /// Bind a UDP socket at `bind_addr` and serve `app` over HTTP/3 (QUIC), using the
 /// PEM cert+key for the TLS handshake. Returns the actual bound address. Spawns

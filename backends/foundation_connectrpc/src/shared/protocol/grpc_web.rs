@@ -466,6 +466,71 @@ async fn read_frames(
     }
 }
 
+/// Text-mode base64 state for a streaming writer.
+///
+/// The encoder holds a partial 3-byte group between frames. The writer must
+/// flush that tail when it ends. The writer also ends by being dropped when a
+/// deadline aborts the call, and a drop cannot await: `Drop` then flushes the
+/// tail with a non-blocking send. A full pipe can lose the tail there, but the
+/// stream still ends with its error frame.
+struct TextTail {
+    encoder: Base64StreamEncoder,
+    sink: Arc<dyn SendBody>,
+    text: bool,
+    armed: bool,
+}
+
+impl TextTail {
+    fn new(sink: Arc<dyn SendBody>, text: bool) -> Self {
+        Self {
+            encoder: Base64StreamEncoder::default(),
+            sink,
+            text,
+            armed: text,
+        }
+    }
+
+    /// Base64-encode `bytes` in text mode; pass them through otherwise.
+    fn feed(&mut self, bytes: Vec<u8>) -> Vec<u8> {
+        if self.text {
+            self.encoder.feed(&bytes)
+        } else {
+            bytes
+        }
+    }
+
+    /// Flush the pending tail and disarm the drop flush.
+    async fn flush(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let tail = std::mem::take(&mut self.encoder).finish();
+        self.armed = false;
+        if !tail.is_empty() {
+            let _ = self.sink.send_async(Bytes::from(tail)).await;
+        }
+    }
+
+    /// Flush the tail without waiting for pipe room. The error path uses this
+    /// so a stalled body pipe cannot delay the error report.
+    fn flush_best_effort(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let tail = std::mem::take(&mut self.encoder).finish();
+        self.armed = false;
+        if !tail.is_empty() {
+            let _ = self.sink.try_send(Bytes::from(tail));
+        }
+    }
+}
+
+impl Drop for TextTail {
+    fn drop(&mut self) {
+        self.flush_best_effort();
+    }
+}
+
 // A trailer frame body is capped by the envelope limits, which fit in u32.
 #[allow(clippy::cast_possible_truncation)]
 async fn write_frames(
@@ -475,20 +540,39 @@ async fn write_frames(
     text: bool,
     server: bool,
 ) -> ConnectResult<()> {
-    let mut encoder = Base64StreamEncoder::default();
-    let emit = |bytes: Vec<u8>, enc: &mut Base64StreamEncoder| {
-        if text {
-            enc.feed(&bytes)
-        } else {
-            bytes
+    let mut tail = TextTail::new(sink, text);
+    let result = write_frames_loop(resp_rx, &mut tail, writer, server).await;
+    match &result {
+        Ok(()) => {
+            // Flush on a clean end, then close the body.
+            tail.flush().await;
+            tail.sink.close();
         }
-    };
+        // Flush on the `writer.write` error path too: a frame that left a
+        // partial base64 group must not lose its last bytes when the stream
+        // ends with an error. Do not wait for pipe room here, so a stalled
+        // body pipe cannot delay the error report.
+        Err(_) => tail.flush_best_effort(),
+    }
+    result
+}
+
+/// The writer loop. The caller flushes the base64 tail and closes the sink on
+/// every exit, so this loop does neither.
+#[allow(clippy::cast_possible_truncation)]
+async fn write_frames_loop(
+    resp_rx: PipeReceiver<Frame>,
+    tail: &mut TextTail,
+    writer: EnvelopeWriter,
+    server: bool,
+) -> ConnectResult<()> {
     loop {
         match resp_rx.receive().await {
             Some(Frame::Message(frame)) => {
                 let enveloped = writer.write(frame)?;
-                let out = emit(enveloped, &mut encoder);
-                if !out.is_empty() && sink.send_async(Bytes::from(out)).await.is_err() {
+                let out = tail.feed(enveloped);
+                let sent = out.is_empty() || tail.sink.send_async(Bytes::from(out)).await.is_ok();
+                if !sent {
                     return Ok(());
                 }
             }
@@ -500,26 +584,14 @@ async fn write_frames(
                     frame.push(constants::TRAILER_FLAG);
                     frame.extend_from_slice(&(body.len() as u32).to_be_bytes());
                     frame.extend_from_slice(&body);
-                    let out = emit(frame, &mut encoder);
+                    let out = tail.feed(frame);
                     if !out.is_empty() {
-                        let _ = sink.send_async(Bytes::from(out)).await;
+                        let _ = tail.sink.send_async(Bytes::from(out)).await;
                     }
                 }
-                let tail = encoder.finish();
-                if !tail.is_empty() {
-                    let _ = sink.send_async(Bytes::from(tail)).await;
-                }
-                sink.close();
                 return Ok(());
             }
-            None => {
-                let tail = encoder.finish();
-                if !tail.is_empty() {
-                    let _ = sink.send_async(Bytes::from(tail)).await;
-                }
-                sink.close();
-                return Ok(());
-            }
+            None => return Ok(()),
         }
     }
 }
@@ -1012,7 +1084,11 @@ impl ProtocolClient for GrpcWebClient {
         let compression = config.compression.clone();
         let read_max_bytes = config.read_max_bytes;
         let cancel = config.cancel;
-        let writer: BoxedTask = Box::pin(write_frames(
+        // Keep a response-pipe handle so a writer failure reaches the caller as
+        // the stream's terminal error instead of dying with the task.
+        let writer_tx = ends.response_tx.clone();
+        let writer_cancel = cancel.clone();
+        let writer_task = write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
             EnvelopeWriter::new(
@@ -1022,7 +1098,10 @@ impl ProtocolClient for GrpcWebClient {
             ),
             text,
             false,
-        ));
+        );
+        let writer: BoxedTask = Box::pin(async move {
+            super::write_or_report(writer_task, &writer_tx, &writer_cancel).await
+        });
         let reader: BoxedTask = Box::pin(async move {
             // One sender keeps the wake pipe open until the reader ends; the
             // publisher holds the other.

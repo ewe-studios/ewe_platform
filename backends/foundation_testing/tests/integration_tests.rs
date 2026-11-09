@@ -1,4 +1,4 @@
-//! Integration tests for foundation_testing crate.
+//! Integration tests for the `foundation_testing` crate.
 
 use foundation_core::valtron::MonotonicClock;
 use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};

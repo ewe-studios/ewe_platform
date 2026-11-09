@@ -29,7 +29,13 @@ impl WakerFd {
     /// Wake the epoll instance.
     pub fn wake(&self) -> std::io::Result<()> {
         let buf: u64 = 1;
-        let ret = unsafe { libc::write(self.fd.as_raw_fd(), &buf as *const u64 as *const _, 8) };
+        let ret = unsafe {
+            libc::write(
+                self.fd.as_raw_fd(),
+                std::ptr::from_ref(&buf).cast::<libc::c_void>(),
+                8,
+            )
+        };
         if ret < 0 {
             return Err(std::io::Error::last_os_error());
         }
@@ -40,7 +46,11 @@ impl WakerFd {
     pub fn clear(&self) {
         let mut buf: u64 = 0;
         unsafe {
-            libc::read(self.fd.as_raw_fd(), &mut buf as *mut u64 as *mut _, 8);
+            libc::read(
+                self.fd.as_raw_fd(),
+                std::ptr::from_mut(&mut buf).cast::<libc::c_void>(),
+                8,
+            );
         }
     }
 

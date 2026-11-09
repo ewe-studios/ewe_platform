@@ -10,6 +10,7 @@ use std::time::{Duration, Instant};
 
 use base64::Engine as _;
 use bytes::Bytes;
+use foundation_core::valtron::valtron_test;
 use foundation_core::valtron::Pipe;
 use foundation_netio::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
@@ -313,4 +314,93 @@ fn binary_streaming_roundtrip_with_status_trailer() {
 #[test]
 fn text_streaming_roundtrip_with_status_trailer() {
     roundtrip(true);
+}
+
+/// A text-mode writer that fails must still flush the pending base64 tail
+/// (issue #266).
+///
+/// The encoder holds a partial 3-byte group between messages. When the next
+/// frame broke `send_max_bytes`, the writer returned before flushing it, so the
+/// bytes captured on the wire stopped mid-group and the last characters of the
+/// previous message were lost. The test reads the wire bytes and decodes them:
+/// the first frame must be whole.
+#[valtron_test]
+async fn a_text_writer_error_flushes_the_pending_base64_tail() {
+    use foundation_connectrpc::shared::protocol::ClientExchangeConfig;
+    use foundation_connectrpc::shared::transport::{body_stream_from_pipe, head_stream_from_pipe};
+
+    let registry = CompressionRegistry::new();
+    // The transport's request body: everything the writer sends to the peer.
+    let (sink_tx, sink_rx) = Pipe::<Bytes>::with_depth(8);
+    // The reader ends at once; this test drives only the writer.
+    let (head_tx, head_rx) = Pipe::with_depth(1);
+    drop(head_tx);
+    let (resp_tx, resp_rx) = Pipe::with_depth(1);
+    drop(resp_tx);
+    let (trailer_tx, trailer_rx) = Pipe::with_depth(1);
+    drop(trailer_tx);
+
+    let exchange = GrpcWebClient { text: true }
+        .new_conn(
+            &Spec {
+                stream_type: StreamType::ServerStream,
+                procedure: "svc.Svc/Echo".to_string(),
+                is_client: true,
+                idempotency: IdempotencyLevel::Unknown,
+            },
+            SimpleHeaders::new(),
+            TransportStream {
+                send_body: Arc::new(sink_tx),
+                head: head_stream_from_pipe(head_rx),
+                recv_body: body_stream_from_pipe(resp_rx),
+                trailers: trailer_rx,
+            },
+            ClientExchangeConfig {
+                cancel: CancelSignal::new(),
+                read_max_bytes: 0,
+                compression: &registry,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 16,
+            },
+        )
+        .expect("client exchange");
+
+    let reader = exchange.reader_task;
+    let writer = exchange.writer_task;
+    let (mut sender, _receiver) = exchange.conn.split();
+
+    // Frame one: an 8-byte envelope (5-byte header + 3 bytes). Its base64 is
+    // two complete groups plus a 2-byte tail.
+    sender
+        .send(Bytes::from_static(b"abc"))
+        .await
+        .expect("small frame queued");
+    // Frame two breaks `send_max_bytes` and ends the writer.
+    sender
+        .send(Bytes::from(vec![0xAA; 100]))
+        .await
+        .expect("large frame queued");
+
+    let err = writer.await.expect_err("the writer must reject frame two");
+    assert_eq!(err.current_context().code(), Code::ResourceExhausted);
+
+    // The reader future also owns a sender clone of the transport body, so drop
+    // it before reading the pipe: this test drives only the writer.
+    drop(reader);
+    drop(sender);
+
+    // The pipe closes when the writer drops it; read everything it sent.
+    let mut wire = Vec::new();
+    while let Some(chunk) = sink_rx.receive().await {
+        wire.extend_from_slice(&chunk);
+    }
+    let decoded = base64::engine::general_purpose::STANDARD
+        .decode(&wire)
+        .expect("the captured text is complete, padded base64");
+    assert_eq!(
+        decoded,
+        vec![0u8, 0, 0, 0, 3, b'a', b'b', b'c'],
+        "the whole first envelope must reach the wire, tail included"
+    );
 }

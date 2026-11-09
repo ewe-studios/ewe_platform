@@ -20,13 +20,14 @@ use std::time::{Duration, Instant};
 use base64::Engine;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{initialize_pool, sleep_async, BlockingFutureExt};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::native::writer::{
     render_message, send_json, send_not_found, ResponseWriter, WriterConfig,
 };
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;

@@ -179,8 +179,16 @@ impl ConnGate {
         self.inject_rollback_failure.store(true, Ordering::SeqCst);
     }
 
-    /// Consume the test hook: true once after it was armed. Always false when
-    /// the `test-hooks` feature is off.
+    /// Consume the test hook: true once after it was armed. Only
+    /// `inject_rollback_failure` arms it, and that method needs the
+    /// `test-hooks` feature, so this is always false without the feature.
+    #[cfg_attr(
+        not(feature = "test-hooks"),
+        allow(
+            clippy::unused_self,
+            reason = "the hook field only exists with test-hooks"
+        )
+    )]
     pub(crate) fn take_injected_rollback_failure(&self) -> bool {
         #[cfg(feature = "test-hooks")]
         {

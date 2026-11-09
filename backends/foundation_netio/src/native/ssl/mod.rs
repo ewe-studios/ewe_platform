@@ -110,3 +110,56 @@ pub use self::native_ttls::NativeTlsStream as ClientSSLStream;
     feature = "ssl-native-tls"
 ))]
 pub use self::native_ttls::NativeTlsStream as ServerSSLStream;
+
+// ── Shared helpers for the TLS connect paths ────────────────────────────────
+
+/// Connect a plain TCP stream on a non-blocking socket and leave it
+/// non-blocking, so the TLS handshake can be driven by readiness.
+///
+/// The synchronous constructors then wait on the same readiness a valtron task
+/// parks on, instead of handing a worker to a blocking `connect(2)` (issue
+/// #277).
+///
+/// # Errors
+/// The connect failed or the timeout expired.
+#[cfg(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+))]
+pub(crate) fn connect_plain(
+    addr: core::net::SocketAddr,
+    timeout: Option<std::time::Duration>,
+) -> std::io::Result<std::net::TcpStream> {
+    #[cfg(unix)]
+    {
+        crate::native::connection::connect_tcp_nonblocking(addr, timeout)
+    }
+    #[cfg(not(unix))]
+    {
+        let stream = match timeout {
+            Some(timeout) => std::net::TcpStream::connect_timeout(&addr, timeout)?,
+            None => std::net::TcpStream::connect(addr)?,
+        };
+        stream.set_nonblocking(true)?;
+        Ok(stream)
+    }
+}
+
+/// The connect timeout an endpoint carries, if any.
+#[cfg(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+))]
+pub(crate) fn endpoint_timeout<I: Clone>(
+    endpoint: &crate::native::connection::Endpoint<I>,
+) -> Option<std::time::Duration> {
+    use crate::native::connection::{Endpoint, EndpointConfig};
+    match endpoint {
+        Endpoint::WithDefault(config) | Endpoint::WithIdentity(config, _) => match config {
+            EndpointConfig::WithTimeout(_, timeout) => Some(*timeout),
+            EndpointConfig::NoTimeout(_) => None,
+        },
+    }
+}

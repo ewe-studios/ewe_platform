@@ -11,18 +11,18 @@ keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"
 
 [dependencies]
 # Foundation crates
-foundation_core = { path = "../foundation_core", version = "0.0.18" }
+foundation_core = { path = "../foundation_core", version = "0.0.19" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.9", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.12", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
 # injection. Linking BoringSSL here clashes with libssh2/OpenSSL (foundation_sshkit).
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.6", optional = true, default-features = false }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.7", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.5", features = ["docker"] }
@@ -100,8 +100,8 @@ all-providers = ["vms", "docker"]
 tracing-subscriber = "0.3"
 # `SimulatedClock` for the clock-injection tests. The feature is additive, so
 # the normal dependency above stays as it is.
-foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["test-clock"] }
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.6", default-features = false }
+foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["test-clock"] }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.7", default-features = false }
 foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.4" }
 
 [[bin]]

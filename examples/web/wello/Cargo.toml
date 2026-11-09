@@ -10,8 +10,8 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 [dependencies]
 # -- ewe platform dependencies
-foundation_http = { path = "../../../backends/foundation_http", version = "0.0.9", features = ["multi"] }
-foundation_core = { path = "../../../backends/foundation_core", version = "0.0.18", features = ["multi"] }
+foundation_http = { path = "../../../backends/foundation_http", version = "0.0.10", features = ["multi"] }
+foundation_core = { path = "../../../backends/foundation_core", version = "0.0.19", features = ["multi"] }
 
 # directory embedding
 rust-embed = "8.5.0"
@@ -22,7 +22,7 @@ tracing-subscriber = { version = "0.3.18" }
 
 [dev-dependencies]
 # netio client for the end-to-end route test.
-foundation_netio = { path = "../../../backends/foundation_netio", version = "0.0.9" }
+foundation_netio = { path = "../../../backends/foundation_netio", version = "0.0.12" }
 
 [features]
 default = []

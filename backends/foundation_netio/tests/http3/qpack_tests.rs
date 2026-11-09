@@ -105,9 +105,10 @@ fn every_representation_round_trips() {
 fn empty_field_section_round_trips() {
     let encoded = encode_field_section::<&str, &str>(&[]);
     assert_eq!(encoded, vec![0x00, 0x00], "just the two zero prefixes");
-    assert!(decode_field_section(&encoded, NO_LIMIT)
-        .expect("decode")
-        .is_empty());
+    assert_eq!(
+        decode_field_section(&encoded, NO_LIMIT).expect("decode"),
+        [] as [(bytes::Bytes, bytes::Bytes); 0]
+    );
 }
 
 #[test]
@@ -238,7 +239,7 @@ fn a_truncated_section_is_rejected_rather_than_half_decoded() {
 fn a_decompression_bomb_is_capped() {
     // A small compressed section must not be able to expand without bound.
     // RFC 9204 §4.5.1 charges 32 bytes of overhead per field for exactly this.
-    let many: Vec<(&str, &str)> = std::iter::repeat((":path", "/")).take(200).collect();
+    let many: Vec<(&str, &str)> = std::iter::repeat_n((":path", "/"), 200).collect();
     let encoded = encode_field_section(&many);
     assert!(
         encoded.len() < 250,

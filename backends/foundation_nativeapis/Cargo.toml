@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.10"
+version = "0.0.13"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,8 +13,7 @@ keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.18" }
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
+foundation_core = { path = "../foundation_core", version = "0.0.19" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.7", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.4", optional = true, default-features = false, features = ["std"] }
@@ -53,6 +52,12 @@ smoltcp = { version = "0.12", default-features = false, features = [
     "alloc",
 ], optional = true }
 
+# Native only: the reactor serves the watcher and the I/O readiness code, which
+# the `native` module holds. A wasm build has no user of it, so the manifest
+# gates it to avoid an unused-dependency warning on that target.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.2" }
+
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -81,7 +86,7 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["multi"] }
 
 # Native-only storage backends — excluded on wasm32 because the local engine
 # (turso_core) does not compile without a host filesystem.
@@ -89,7 +94,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.18", features = 
 turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.18", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["test-clock"] }
 # The signal delivery tests measure elapsed time with the foundation_compact
 # instant type. The library dependency is optional (the `vfs` features), so the
 # test target needs its own entry.

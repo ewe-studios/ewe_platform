@@ -30,6 +30,13 @@ entry in `docs/bug-backlog.md`.
 of Cloudflare's boringtun, not first-party code. It keeps upstream's clock
 calls, like its error shape.
 
+Decision for issue #326: the fork keeps its clock calls on purpose. The reads
+are protocol-internal: handshake start and response instants, the timer state,
+the rate-limiter cookie window, and the sleepy instant. A host hook would
+diverge from upstream and make each sync of the fork a manual merge. The fork
+is not first-party code, so the ratchet does not apply to it. `foundation_wireguard`,
+the first-party crate that uses the fork, stays in scope.
+
     python3 scripts/ci/check_time_sources.py --root . --check
     python3 scripts/ci/check_time_sources.py            # per-file inventory
 

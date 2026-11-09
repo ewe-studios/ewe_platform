@@ -503,6 +503,19 @@ impl RawStream {
 
     /// Build the read wake source for this transport, or `None` when it has no
     /// readiness wait. Called once by [`Self::read_wake_source`].
+    // Without a TLS feature `Plain` is the only variant, so the pattern below is
+    // irrefutable. Keep one code path for every feature set.
+    #[cfg_attr(
+        not(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )),
+        allow(
+            irrefutable_let_patterns,
+            reason = "Plain is the only variant without TLS"
+        )
+    )]
     fn build_read_wake_source(&self) -> Option<ReadWakeSource> {
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.
         if let RawStreamInner::Plain(inner, _) = &self.inner {

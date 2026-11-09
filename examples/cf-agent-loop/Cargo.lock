@@ -1540,13 +1540,15 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "wasip2",
+ "wasip3",
  "wasm-bindgen",
  "zeroize",
 ]
 
 [[package]]
 name = "foundation_core"
-version = "0.0.18"
+version = "0.0.19"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -1610,7 +1612,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "async-trait",
  "base64",
@@ -1622,7 +1624,6 @@ dependencies = [
  "foundation_errstacks",
  "foundation_iogate",
  "foundation_netio",
- "getrandom 0.2.17",
  "js-sys",
  "rand_chacha 0.10.0",
  "regex",
@@ -1630,7 +1631,6 @@ dependencies = [
  "serde_json",
  "sha1",
  "tracing",
- "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1684,7 +1684,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.10"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -1705,7 +1705,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.9"
+version = "0.0.12"
 dependencies = [
  "async-trait",
  "base64",
@@ -4876,7 +4876,16 @@ version = "1.0.4+wasi-0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b67efb37e106e55ce722a510d6b5f9c17f083e5fc79afc2badeb12cc313d9487"
 dependencies = [
- "wit-bindgen",
+ "wit-bindgen 0.57.1",
+]
+
+[[package]]
+name = "wasip3"
+version = "0.9.0+wasi-0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1d5749fdf69bb9400562eba50f8f25f5cd800ef4b74300038b6f99ae7409674"
+dependencies = [
+ "wit-bindgen 0.62.0",
 ]
 
 [[package]]
@@ -5338,6 +5347,12 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
+
+[[package]]
+name = "wit-bindgen"
+version = "0.62.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53cb4b5556c3a791e86838ea287782bdafa704d55b0e68b5b81a3a16b9ea5f4b"
 
 [[package]]
 name = "worker"

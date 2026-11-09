@@ -27,11 +27,12 @@ use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 use serial_test::serial;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
         context::ContextBag,
-        serve::{ConnectionResult, Serve, ServeError, ServeFactory, ServeOutcome},
+        serve::{ConnectionResult, ServeError, ServeOutcome},
     },
 };
 

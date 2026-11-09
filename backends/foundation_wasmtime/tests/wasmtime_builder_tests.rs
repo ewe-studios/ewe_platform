@@ -4,6 +4,7 @@
 //! The test read the private `name` field. The builder now has a public
 //! `name` getter, and the assertion is the same.
 
+use foundation_core::valtron::Ctx;
 use foundation_wasmtime::WasmtimeBuilder;
 
 #[test]
@@ -21,6 +22,7 @@ fn builder_from_file_missing_returns_error() {
 #[test]
 fn invalid_wasm_returns_error_on_build() {
     let builder = WasmtimeBuilder::new(b"not valid wasm");
-    let result = builder.build();
+    // The clock and randomness do not matter here: the bytes never compile.
+    let result = builder.build(&Ctx::host());
     assert!(result.is_err());
 }

@@ -12,7 +12,7 @@ description = "Generated Cloudflare API client: logs group"
 foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.0" }
 foundation_deployment = { path = "../foundation_deployment", version = "0.0.4" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.9", default-features = false, features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.12", default-features = false, features = ["ssl", "multi"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 base85rs = "0.1"

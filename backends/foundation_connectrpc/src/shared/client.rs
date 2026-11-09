@@ -99,12 +99,24 @@ impl ProtocolSelection {
 /// `read_max_bytes` defaults to 4 MiB, gRPC's default maximum receive message
 /// size (grpc-go `defaultClientMaxReceiveMessageSize`), the same default the
 /// server uses ([`crate::SizeLimits`]); `0` opts out.
+///
+/// `error_body_max_bytes` defaults to 8 KiB. It bounds the body of a non-OK
+/// response that becomes an error message.
 #[derive(Debug, Clone)]
 pub struct SizeLimits {
     /// Maximum response message size (`0` = unlimited): a unary response body,
     /// or each streaming response envelope (checked against its length prefix
     /// before the payload is read).
     pub read_max_bytes: usize,
+    /// Maximum bytes of a non-OK response body read to build an error message
+    /// (`0` = read no error body). The reader stops at the cap and drops the
+    /// stream, so a large or slow error body never delays the call or uses
+    /// unbounded memory.
+    ///
+    /// Default 8 KiB: nginx's error-page buffer (`proxy_buffer_size`, one
+    /// memory page), the same default `foundation_db` uses for an error body
+    /// (`DEFAULT_MAX_ERROR_BODY`).
+    pub error_body_max_bytes: usize,
     /// Maximum request body size (`0` = unlimited).
     pub send_max_bytes: usize,
     /// Minimum payload size for compression (`0` = always compress).
@@ -116,6 +128,8 @@ impl Default for SizeLimits {
         Self {
             // 4 MiB — gRPC's default max receive message size (see above).
             read_max_bytes: 4 * 1024 * 1024,
+            // 8 KiB — nginx's error-page buffer (see above).
+            error_body_max_bytes: 8 * 1024,
             send_max_bytes: 0,
             compress_min_bytes: 0,
         }
@@ -322,6 +336,15 @@ impl ClientOptions {
     #[must_use]
     pub fn with_read_max_bytes(mut self, n: usize) -> Self {
         self.config.limits.read_max_bytes = n;
+        self
+    }
+
+    /// Maximum bytes of a non-OK response body read to build an error message
+    /// (`0` = read no error body; default 8 KiB, see [`SizeLimits`]). The reader
+    /// stops at the cap and drops the stream, so the error returns promptly.
+    #[must_use]
+    pub fn with_error_body_max_bytes(mut self, n: usize) -> Self {
+        self.config.limits.error_body_max_bytes = n;
         self
     }
 
@@ -605,7 +628,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         }
 
         // Build transport request.
-        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
+        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
         let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         // Build the ClientExchange with linked cancel.
@@ -695,7 +718,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             }
         }
 
-        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
+        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
         let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         let exchange =
@@ -789,7 +812,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             }
         }
 
-        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
+        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
         let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         let exchange =
@@ -908,20 +931,43 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         with_deadline(&ctx, self.call_unary_post_inner(&ctx, request, url)).await
     }
 
+    /// Prepare a marshaled unary request body for the wire.
+    ///
+    /// Applies the same limits as the streaming envelope writer:
+    /// `compress_min_bytes` decides whether to compress at all, and
+    /// `send_max_bytes` caps the payload after compression. Without these
+    /// checks a unary call ignored both limits.
+    fn prepare_unary_body(&self, encoded: &Bytes) -> ConnectResult<(Vec<u8>, Option<String>)> {
+        let send_compression = self.config.send_compression.as_deref();
+        let want_compress = matches!(send_compression, Some(algo) if algo != "identity")
+            && (self.config.limits.compress_min_bytes == 0
+                || encoded.len() >= self.config.limits.compress_min_bytes);
+        let (body, content_encoding) = if want_compress {
+            compress_if(&self.config.compression, send_compression, encoded)?
+        } else {
+            (encoded.to_vec(), None)
+        };
+        let send_max_bytes = self.config.limits.send_max_bytes;
+        if send_max_bytes != 0 && body.len() > send_max_bytes {
+            return Err(ConnectError::resource_exhausted(format!(
+                "message of {} bytes exceeds send_max_bytes of {send_max_bytes}",
+                body.len()
+            ))
+            .into());
+        }
+        Ok((body, content_encoding))
+    }
+
     async fn call_unary_post_inner(
         &self,
         ctx: &Ctx,
         request: Request<Req>,
         url: String,
     ) -> ConnectResult<Response<Res>> {
-        // Marshal the request.
+        // Marshal the request, then apply the send limits.
         let request_codec = self.codecs.for_request(&self.config.codec_name)?;
         let encoded = request_codec.marshal(&request.msg)?;
-        let (body, content_encoding) = compress_if(
-            &self.config.compression,
-            self.config.send_compression.as_deref(),
-            &encoded,
-        )?;
+        let (body, content_encoding) = self.prepare_unary_body(&encoded)?;
 
         // Build headers: caller's request headers + protocol headers.
         let mut headers = request.headers().clone();
@@ -963,6 +1009,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Build the inner unary function.
         let transport = Arc::clone(&self.transport);
         let read_max_bytes = self.config.limits.read_max_bytes;
+        let error_body_max_bytes = self.config.limits.error_body_max_bytes;
         let url_clone = url.clone();
         // Proto is Clone but not Copy; clone it into each closure scope.
         let proto_for_inner = proto.clone();
@@ -983,7 +1030,14 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 };
 
                 // Execute via transport.open + push + close + read.
-                do_unary_round_trip(&*transport, desc, call.frame, read_max_bytes).await
+                do_unary_round_trip(
+                    &*transport,
+                    desc,
+                    call.frame,
+                    read_max_bytes,
+                    error_body_max_bytes,
+                )
+                .await
             })
         });
 
@@ -1081,6 +1135,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 desc,
                 Bytes::new(),
                 self.config.limits.read_max_bytes,
+                self.config.limits.error_body_max_bytes,
             ),
         )
         .await;
@@ -1794,22 +1849,24 @@ fn build_url(base_url: &str, procedure: &str) -> String {
 }
 
 /// Build a [`RequestDescriptor`] for a transport `open` call.
+///
+/// `Uri::parse` accepts both an absolute URL and a path-only URL, so a parse
+/// failure is a real error: return it as `Internal` instead of panicking on a
+/// fallback.
 fn build_request_descriptor(
     url: &str,
     headers: &SimpleHeaders,
     method: SimpleMethod,
-) -> RequestDescriptor {
-    let uri = Uri::parse(url).unwrap_or_else(|_| {
-        // Fallback: construct a minimal URI from just the path portion.
-        Uri::parse(&format!("http://localhost{url}")).expect("fallback URI")
-    });
-    RequestDescriptor {
+) -> ConnectResult<RequestDescriptor> {
+    let uri = Uri::parse(url)
+        .map_err(|e| ConnectError::internal(format!("invalid request URL {url:?}: {e}")))?;
+    Ok(RequestDescriptor {
         proto: Proto::HTTP11,
         request_url: SimpleUrl::url_only(url),
         request_uri: uri,
         headers: headers.clone(),
         method,
-    }
+    })
 }
 
 /// Execute a unary round-trip: open transport, push body, close send, collect
@@ -1825,6 +1882,7 @@ async fn do_unary_round_trip(
     desc: RequestDescriptor,
     body: Bytes,
     read_max_bytes: usize,
+    error_body_max_bytes: usize,
 ) -> ConnectResult<UnaryReply> {
     let mut stream = transport.open(desc).map_err(ConnectError::from)?;
 
@@ -1844,6 +1902,32 @@ async fn do_unary_round_trip(
         .ok_or_else(|| ConnectError::unavailable("transport closed without response head"))?
         .map_err(ConnectError::from)?;
 
+    // Check the status before touching the body. A non-OK body only becomes an
+    // error message: read a bounded prefix, then drop the stream. A large or
+    // slow error body then neither uses unbounded memory nor delays the error
+    // (issue #410).
+    if status != Status::OK {
+        let mut prefix = Vec::new();
+        while prefix.len() < error_body_max_bytes {
+            let Some(chunk) = stream.recv_body.next().await else {
+                break;
+            };
+            let chunk = chunk.map_err(ConnectError::from)?;
+            let remaining = error_body_max_bytes - prefix.len();
+            let take = remaining.min(chunk.len());
+            prefix.extend_from_slice(&chunk[..take]);
+        }
+        // `stream` drops here, so the response body closes early.
+        let error_body = if prefix.is_empty() {
+            format!("HTTP {status}")
+        } else {
+            String::from_utf8_lossy(&prefix).to_string()
+        };
+        let code = code_from_http_status(&status);
+        let status_code = u16::try_from(status.into_usize()).unwrap_or_default();
+        return Err(ConnectError::from_http_status(status_code, code, error_body).into());
+    }
+
     // Collect the response body (one message), never past `read_max_bytes`.
     let mut body_buf = Vec::new();
     while let Some(chunk) = stream.recv_body.next().await {
@@ -1859,20 +1943,11 @@ async fn do_unary_round_trip(
     // Read trailers (h2 trailing HEADERS for gRPC grpc-status; empty for Connect).
     let trailers = stream.trailers.receive().await.unwrap_or_default();
 
-    if status == Status::OK {
-        Ok(UnaryReply {
-            headers: resp_headers,
-            trailers,
-            frame: Bytes::from(body_buf),
-        })
-    } else {
-        let error_body = if body_buf.is_empty() {
-            format!("HTTP {status}")
-        } else {
-            String::from_utf8_lossy(&body_buf).to_string()
-        };
-        Err(ConnectError::new(code_from_http_status(&status), error_body).into())
-    }
+    Ok(UnaryReply {
+        headers: resp_headers,
+        trailers,
+        frame: Bytes::from(body_buf),
+    })
 }
 
 /// Spawn the reader and writer tasks on the valtron pool.
@@ -1957,14 +2032,14 @@ fn add_timeout_header(
     }
 }
 
-/// Check if an error trace indicates a 405 or 415 HTTP response that can be
-/// retried as a POST (Decision 07 fallback case 2).
+/// Check if an error trace carries a 405 or 415 HTTP status that can be retried
+/// as a POST (Decision 07 fallback case 2).
+///
+/// The error keeps the status it came from, so this check does not scan the
+/// message text. A message that happens to contain "405" must not trigger a
+/// retry.
 fn is_method_not_allowed(err: &ErrorTrace<ConnectError>) -> bool {
-    let msg = err.to_string().to_lowercase();
-    msg.contains("405")
-        || msg.contains("method not allowed")
-        || msg.contains("415")
-        || msg.contains("unsupported media type")
+    matches!(err.current_context().http_status(), Some(405 | 415))
 }
 
 /// Map an HTTP status to an RPC error [`Code`] (Decision 03).

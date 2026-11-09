@@ -33,9 +33,9 @@ use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, Si
 
 use foundation_core::url::Uri;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,

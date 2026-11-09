@@ -22,26 +22,22 @@ use std::time::Instant;
 use super::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use super::DataPlane;
 
-/// Maximum IP packet we will read from the TUN device in one call.
-const MAX_PACKET: usize = 65_535;
-
 /// Configuration for opening a kernel TUN device.
 #[derive(Debug, Clone)]
 pub struct TunConfig {
     /// Desired interface name (e.g. `"wg-ewe0"`). On Darwin the kernel assigns a
     /// `utunN` name; the requested name is advisory.
     pub name: String,
-    /// Interface MTU to request.
+    /// Interface MTU. [`TunDevice::open`] applies it to the kernel interface, and
+    /// [`TunDataPlane`] uses the same value as the size of one read buffer.
     pub mtu: u32,
-    /// Whether to enable IPv6 on the interface.
-    pub ipv6: bool,
 }
 
 impl TunConfig {
     /// WHY: Callers name their tunnel interface; the MTU defaults to a WireGuard-safe
     /// value but no name default is invented (spec: no silent defaults).
     ///
-    /// WHAT: Build a config for interface `name` with a default MTU of 1420 and IPv6 on.
+    /// WHAT: Build a config for interface `name` with a default MTU of 1420.
     ///
     /// HOW: Stores the values verbatim.
     ///
@@ -52,7 +48,6 @@ impl TunConfig {
         Self {
             name: name.into(),
             mtu: 1420,
-            ipv6: true,
         }
     }
 }
@@ -66,11 +61,149 @@ impl TunConfig {
     any(target_os = "linux", target_os = "macos")
 ))]
 mod imp {
-    use super::{TunConfig, MAX_PACKET};
+    use super::TunConfig;
     use std::io;
     use std::os::unix::io::{AsRawFd, RawFd};
 
     use crate::native::poll::{Interest, Registry, SourceFd, Token};
+
+    /// Convert a byte count returned by `read` or `write` to `usize`.
+    fn count_to_usize(n: libc::ssize_t) -> io::Result<usize> {
+        usize::try_from(n).map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "kernel returned a negative byte count",
+            )
+        })
+    }
+
+    /// Build an error for a value that does not fit its target field.
+    fn out_of_range(what: &'static str) -> io::Error {
+        io::Error::new(io::ErrorKind::InvalidData, what)
+    }
+
+    /// Copy `name` into the fixed-size kernel field, rejecting an over-long name.
+    fn kernel_name(name: &str) -> io::Result<[libc::c_char; libc::IFNAMSIZ]> {
+        let bytes = name.as_bytes();
+        if bytes.len() >= libc::IFNAMSIZ {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "tun interface name too long",
+            ));
+        }
+        let mut out = [0; libc::IFNAMSIZ];
+        for (dst, &b) in out.iter_mut().zip(bytes) {
+            // C `char` keeps the byte's bits; reinterpret rather than convert.
+            *dst = libc::c_char::from_ne_bytes([b]);
+        }
+        Ok(out)
+    }
+
+    /// Read the interface name the kernel wrote back into `ifr_name`.
+    #[cfg(target_os = "linux")]
+    fn name_from_kernel(raw: &[libc::c_char]) -> io::Result<String> {
+        let bytes: Vec<u8> = raw
+            .iter()
+            .map(|c| u8::from_ne_bytes(c.to_ne_bytes()))
+            .take_while(|&b| b != 0)
+            .collect();
+        String::from_utf8(bytes)
+            .map_err(|_| out_of_range("the kernel returned a non-UTF-8 interface name"))
+    }
+
+    /// Open a close-on-exec datagram socket for interface ioctls.
+    fn control_socket() -> io::Result<RawFd> {
+        let sock = unsafe { libc::socket(libc::AF_INET, libc::SOCK_DGRAM, 0) };
+        if sock < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let flags = unsafe { libc::fcntl(sock, libc::F_GETFD) };
+        if flags < 0 || unsafe { libc::fcntl(sock, libc::F_SETFD, flags | libc::FD_CLOEXEC) } < 0 {
+            let err = io::Error::last_os_error();
+            unsafe { libc::close(sock) };
+            return Err(err);
+        }
+        Ok(sock)
+    }
+
+    /// Set the MTU of interface `name`.
+    ///
+    /// WHY: The kernel drops packets larger than the interface MTU, and
+    /// [`TunDataPlane`] sizes its read buffer from the configured value. A mismatch
+    /// truncates packets.
+    ///
+    /// WHAT: Issues `SIOCSIFMTU` with `ifr_mtu = mtu` through a control socket.
+    fn set_interface_mtu(name: &str, mtu: u32) -> io::Result<()> {
+        let mtu =
+            libc::c_int::try_from(mtu).map_err(|_| out_of_range("MTU does not fit in a C int"))?;
+        let ifr_name = kernel_name(name)?;
+        let sock = control_socket()?;
+        let mut ifr: libc::ifreq = unsafe { std::mem::zeroed() };
+        ifr.ifr_name = ifr_name;
+        ifr.ifr_ifru.ifru_mtu = mtu;
+        let rc = unsafe {
+            libc::ioctl(
+                sock,
+                libc::SIOCSIFMTU,
+                std::ptr::addr_of_mut!(ifr).cast::<libc::c_void>(),
+            )
+        };
+        let err = if rc < 0 {
+            Some(io::Error::last_os_error())
+        } else {
+            None
+        };
+        unsafe { libc::close(sock) };
+        err.map_or(Ok(()), Err)
+    }
+
+    /// Read the MTU of interface `name` back from the kernel.
+    fn read_interface_mtu(name: &str) -> io::Result<u32> {
+        let ifr_name = kernel_name(name)?;
+        let sock = control_socket()?;
+        let mut ifr: libc::ifreq = unsafe { std::mem::zeroed() };
+        ifr.ifr_name = ifr_name;
+        let rc = unsafe {
+            libc::ioctl(
+                sock,
+                libc::SIOCGIFMTU,
+                std::ptr::addr_of_mut!(ifr).cast::<libc::c_void>(),
+            )
+        };
+        if rc < 0 {
+            let err = io::Error::last_os_error();
+            unsafe { libc::close(sock) };
+            return Err(err);
+        }
+        let mtu = unsafe { ifr.ifr_ifru.ifru_mtu };
+        unsafe { libc::close(sock) };
+        u32::try_from(mtu).map_err(|_| out_of_range("the kernel returned a negative MTU"))
+    }
+
+    /// Read the `utunN` name that the kernel assigned to the control socket.
+    #[cfg(target_os = "macos")]
+    fn utun_name(fd: RawFd) -> io::Result<String> {
+        // <sys/kern_control.h>: the second option of the utun control is its name.
+        const UTUN_OPT_IFNAME: libc::c_int = 2;
+        let mut buf = [0u8; libc::IFNAMSIZ];
+        let mut len = libc::socklen_t::try_from(buf.len())
+            .map_err(|_| out_of_range("IFNAMSIZ does not fit in socklen_t"))?;
+        let rc = unsafe {
+            libc::getsockopt(
+                fd,
+                libc::SYSPROTO_CONTROL,
+                UTUN_OPT_IFNAME,
+                buf.as_mut_ptr().cast(),
+                std::ptr::addr_of_mut!(len),
+            )
+        };
+        if rc < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let end = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
+        String::from_utf8(buf[..end].to_vec())
+            .map_err(|_| out_of_range("the kernel returned a non-UTF-8 interface name"))
+    }
 
     /// An open kernel TUN device carrying raw IP packets.
     pub struct TunDevice {
@@ -78,6 +211,9 @@ mod imp {
         name: String,
         /// Darwin `utun` prepends a 4-byte address-family header on every packet.
         af_header: bool,
+        /// Reused read buffer. It holds the caller's packet plus the Darwin header,
+        /// so a steady stream of packets allocates nothing after the first read.
+        scratch: Vec<u8>,
     }
 
     impl std::fmt::Debug for TunDevice {
@@ -85,22 +221,26 @@ mod imp {
             f.debug_struct("TunDevice")
                 .field("fd", &self.fd)
                 .field("name", &self.name)
+                .field("af_header", &self.af_header)
+                .field("scratch_bytes", &self.scratch.len())
                 .finish()
         }
     }
 
     impl TunDevice {
-        /// WHY: Establish the kernel data-plane interface for a WireGuard tunnel.
+        /// WHY: Establish the kernel data-plane interface for a `WireGuard` tunnel.
         ///
-        /// WHAT: Open the TUN device described by `config` in non-blocking raw-IP mode.
+        /// WHAT: Open the TUN device described by `config` in non-blocking raw-IP mode,
+        /// and set the interface MTU to `config.mtu`.
         ///
         /// HOW: Linux opens `/dev/net/tun` and issues `TUNSETIFF` with `IFF_TUN |
         /// IFF_NO_PI`; Darwin opens a `SYSPROTO_CONTROL` socket to
-        /// `com.apple.net.utun_control`.
+        /// `com.apple.net.utun_control`. Both then issue `SIOCSIFMTU` for the name the
+        /// kernel assigned.
         ///
         /// # Errors
         /// Returns [`io::Error`] if the device cannot be opened (commonly `EPERM`
-        /// without `CAP_NET_ADMIN`/root).
+        /// without `CAP_NET_ADMIN`/root), or if the kernel rejects the MTU request.
         pub fn open(config: &TunConfig) -> io::Result<Self> {
             #[cfg(target_os = "linux")]
             {
@@ -128,18 +268,18 @@ mod imp {
             }
 
             let mut ifr: libc::ifreq = unsafe { std::mem::zeroed() };
-            let name_bytes = config.name.as_bytes();
-            if name_bytes.len() >= libc::IFNAMSIZ {
+            ifr.ifr_name = match kernel_name(&config.name) {
+                Ok(name) => name,
+                Err(err) => {
+                    unsafe { libc::close(fd) };
+                    return Err(err);
+                }
+            };
+            let Ok(flags) = libc::c_short::try_from(libc::IFF_TUN | libc::IFF_NO_PI) else {
                 unsafe { libc::close(fd) };
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "tun interface name too long",
-                ));
-            }
-            for (dst, &b) in ifr.ifr_name.iter_mut().zip(name_bytes) {
-                *dst = b as libc::c_char;
-            }
-            ifr.ifr_ifru.ifru_flags = (libc::IFF_TUN | libc::IFF_NO_PI) as libc::c_short;
+                return Err(out_of_range("TUN flags do not fit in a C short"));
+            };
+            ifr.ifr_ifru.ifru_flags = flags;
 
             let rc = unsafe { libc::ioctl(fd, TUNSETIFF, &mut ifr) };
             if rc < 0 {
@@ -148,10 +288,25 @@ mod imp {
                 return Err(err);
             }
 
+            // `TUNSETIFF` may rename the interface, so use the name the kernel
+            // reports, not the requested one.
+            let name = match name_from_kernel(&ifr.ifr_name) {
+                Ok(name) => name,
+                Err(err) => {
+                    unsafe { libc::close(fd) };
+                    return Err(err);
+                }
+            };
+            if let Err(err) = set_interface_mtu(&name, config.mtu) {
+                unsafe { libc::close(fd) };
+                return Err(err);
+            }
+
             Ok(Self {
                 fd,
-                name: config.name.clone(),
+                name,
                 af_header: false,
+                scratch: Vec::new(),
             })
         }
 
@@ -167,7 +322,8 @@ mod imp {
 
             let mut info: libc::ctl_info = unsafe { std::mem::zeroed() };
             for (dst, &b) in info.ctl_name.iter_mut().zip(UTUN_CONTROL_NAME) {
-                *dst = b as libc::c_char;
+                // C `char` keeps the byte's bits; reinterpret rather than convert.
+                *dst = libc::c_char::from_ne_bytes([b]);
             }
             if unsafe { libc::ioctl(fd, libc::CTLIOCGINFO, &mut info) } < 0 {
                 let err = io::Error::last_os_error();
@@ -183,10 +339,18 @@ mod imp {
                 .and_then(|n| n.parse::<u32>().ok())
                 .map_or(0, |n| n + 1);
 
+            let sc_len = u8::try_from(std::mem::size_of::<libc::sockaddr_ctl>())
+                .map_err(|_| out_of_range("sockaddr_ctl is too large for sc_len"))?;
+            let sc_family = u8::try_from(libc::AF_SYSTEM)
+                .map_err(|_| out_of_range("AF_SYSTEM does not fit in sc_family"))?;
+            let ss_sysaddr = u16::try_from(libc::AF_SYS_CONTROL)
+                .map_err(|_| out_of_range("AF_SYS_CONTROL does not fit in ss_sysaddr"))?;
+            let addr_len = libc::socklen_t::try_from(std::mem::size_of::<libc::sockaddr_ctl>())
+                .map_err(|_| out_of_range("sockaddr_ctl is too large for socklen_t"))?;
             let addr = libc::sockaddr_ctl {
-                sc_len: std::mem::size_of::<libc::sockaddr_ctl>() as u8,
-                sc_family: libc::AF_SYSTEM as u8,
-                ss_sysaddr: libc::AF_SYS_CONTROL as u16,
+                sc_len,
+                sc_family,
+                ss_sysaddr,
                 sc_id: info.ctl_id,
                 sc_unit: unit,
                 sc_reserved: [0; 5],
@@ -195,7 +359,7 @@ mod imp {
                 libc::connect(
                     fd,
                     std::ptr::addr_of!(addr).cast::<libc::sockaddr>(),
-                    std::mem::size_of::<libc::sockaddr_ctl>() as libc::socklen_t,
+                    addr_len,
                 )
             };
             if rc < 0 {
@@ -213,10 +377,23 @@ mod imp {
                 return Err(err);
             }
 
+            let name = match utun_name(fd) {
+                Ok(name) => name,
+                Err(err) => {
+                    unsafe { libc::close(fd) };
+                    return Err(err);
+                }
+            };
+            if let Err(err) = set_interface_mtu(&name, config.mtu) {
+                unsafe { libc::close(fd) };
+                return Err(err);
+            }
+
             Ok(Self {
                 fd,
-                name: config.name.clone(),
+                name,
                 af_header: true,
+                scratch: Vec::new(),
             })
         }
 
@@ -225,14 +402,21 @@ mod imp {
         ///
         /// # Errors
         /// Returns [`io::Error`]; kind `WouldBlock` when no packet is available.
-        pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
-            let mut raw = [0u8; MAX_PACKET + 4];
-            let want = buf.len().min(MAX_PACKET) + if self.af_header { 4 } else { 0 };
-            let n = unsafe { libc::read(self.fd, raw.as_mut_ptr().cast(), want.min(raw.len())) };
+        pub fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            // Darwin prepends a four-byte address-family header that the caller does
+            // not expect, so read into a scratch buffer with room for it. The size
+            // follows the caller's packet buffer; it has no fixed limit.
+            let header_len = if self.af_header { 4 } else { 0 };
+            let want = buf.len().saturating_add(header_len);
+            if self.scratch.len() < want {
+                self.scratch.resize(want, 0);
+            }
+            let raw = &mut self.scratch[..want];
+            let n = unsafe { libc::read(self.fd, raw.as_mut_ptr().cast(), raw.len()) };
             if n < 0 {
                 return Err(io::Error::last_os_error());
             }
-            let n = n as usize;
+            let n = count_to_usize(n)?;
             let offset = if self.af_header { 4.min(n) } else { 0 };
             let payload = &raw[offset..n];
             let len = payload.len().min(buf.len());
@@ -259,13 +443,13 @@ mod imp {
                 if n < 0 {
                     return Err(io::Error::last_os_error());
                 }
-                Ok((n as usize).saturating_sub(4))
+                Ok(count_to_usize(n)?.saturating_sub(4))
             } else {
                 let n = unsafe { libc::write(self.fd, packet.as_ptr().cast(), packet.len()) };
                 if n < 0 {
                     return Err(io::Error::last_os_error());
                 }
-                Ok(n as usize)
+                Ok(count_to_usize(n)?)
             }
         }
 
@@ -281,6 +465,14 @@ mod imp {
         #[must_use]
         pub fn name(&self) -> &str {
             &self.name
+        }
+
+        /// Read the interface MTU back from the kernel.
+        ///
+        /// # Errors
+        /// Returns [`io::Error`] if the kernel query fails.
+        pub fn mtu(&self) -> io::Result<u32> {
+            read_interface_mtu(&self.name)
         }
     }
 
@@ -303,7 +495,7 @@ mod imp {
     any(target_os = "linux", target_os = "macos")
 )))]
 mod imp {
-    use super::{TunConfig, MAX_PACKET};
+    use super::TunConfig;
     use std::io;
 
     /// Stub TUN device for platforms without a kernel TUN interface (e.g. wasm). Every
@@ -330,7 +522,6 @@ mod imp {
         /// # Errors
         /// Always returns [`io::ErrorKind::Unsupported`].
         pub fn read(&self, _buf: &mut [u8]) -> io::Result<usize> {
-            let _ = MAX_PACKET;
             Err(io::Error::new(io::ErrorKind::Unsupported, "no TUN device"))
         }
 
@@ -362,9 +553,20 @@ pub use imp::TunDevice;
 /// unavailable — applications use ordinary OS sockets. `inject_inbound_ip` writes
 /// decapsulated packets to the fd; `drain_outbound_ip` reads raw IP packets off the fd
 /// to be encrypted.
-#[derive(Debug)]
 pub struct TunDataPlane {
     device: TunDevice,
+    /// One interface MTU, reused for every read so a steady stream of outbound
+    /// packets does not allocate per packet.
+    buffer: Vec<u8>,
+}
+
+impl std::fmt::Debug for TunDataPlane {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TunDataPlane")
+            .field("device", &self.device)
+            .field("buffer_bytes", &self.buffer.len())
+            .finish_non_exhaustive()
+    }
 }
 
 impl TunDataPlane {
@@ -377,8 +579,17 @@ impl TunDataPlane {
     /// # Errors
     /// Returns [`io::Error`] if the device cannot be opened (see [`TunDevice::open`]).
     pub fn open(config: &TunConfig) -> io::Result<Self> {
+        // The interface MTU bounds the largest packet the kernel delivers, so one MTU
+        // is the read buffer size. `u32` fits in `usize` on every supported target.
+        let buffer_bytes = usize::try_from(config.mtu).map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("MTU {} does not fit in usize", config.mtu),
+            )
+        })?;
         Ok(Self {
             device: TunDevice::open(config)?,
+            buffer: vec![0u8; buffer_bytes],
         })
     }
 
@@ -405,11 +616,10 @@ impl DataPlane for TunDataPlane {
     }
 
     fn drain_outbound_ip(&mut self, f: &mut dyn FnMut(&[u8])) {
-        let mut buf = [0u8; MAX_PACKET];
         loop {
-            match self.device.read(&mut buf) {
+            match self.device.read(&mut self.buffer) {
                 Ok(0) => break,
-                Ok(n) => f(&buf[..n]),
+                Ok(n) => f(&self.buffer[..n]),
                 Err(err) if err.kind() == io::ErrorKind::WouldBlock => break,
                 Err(err) => {
                     tracing::debug!(error = %err, "tun read failed");

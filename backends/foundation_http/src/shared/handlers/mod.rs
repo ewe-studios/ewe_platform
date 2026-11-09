@@ -1,7 +1,7 @@
 //! Batteries-included handlers and middleware.
 
 mod error_middleware;
-mod health;
+pub(crate) mod health;
 mod panic_recovery;
 mod rate_limit;
 mod request_id;

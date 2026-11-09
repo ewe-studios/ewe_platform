@@ -1,7 +1,6 @@
 //! Unit tests for Cloudflare domain types.
 
 use foundation_deployment_cloudflare::*;
-use serde_json;
 
 #[test]
 fn test_dns_record_type_as_str() {

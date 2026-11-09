@@ -21,13 +21,13 @@ pub const WEBTRANSPORT_STREAM: u64 = 0x54;
 // HTTP/3 SETTINGS (draft-ietf-webtrans-http3 §7.2)
 // ---------------------------------------------------------------------------
 
-/// SETTINGS_ENABLE_WEBTRANSPORT — the peer supports WebTransport.
+/// `SETTINGS_ENABLE_WEBTRANSPORT` — the peer supports WebTransport.
 /// Value 1 = enabled, 0 = disabled.
-pub const SETTINGS_ENABLE_WEBTRANSPORT: u64 = 0x2b603742;
+pub const SETTINGS_ENABLE_WEBTRANSPORT: u64 = 0x2b60_3742;
 
 /// Maximum number of WebTransport sessions the server is willing to accept
 /// (draft-ietf-webtrans-http3 §7.2.2).
-pub const SETTINGS_WEBTRANSPORT_MAX_SESSIONS: u64 = 0x2b603743;
+pub const SETTINGS_WEBTRANSPORT_MAX_SESSIONS: u64 = 0x2b60_3743;
 
 // ---------------------------------------------------------------------------
 // Capsule types (RFC 9297, draft-ietf-webtrans-http3 §4.3)
@@ -46,7 +46,7 @@ pub mod capsule {
     pub const DATAGRAM: u64 = 0x00;
 
     /// A legacy capsule for backwards compat (not used).
-    pub const LEGACY_DATAGRAM: u64 = 0xff37a0;
+    pub const LEGACY_DATAGRAM: u64 = 0x00ff_37a0;
 }
 
 /// Check if a capsule type is a GREASE value (per draft-ietf-webtrans).
@@ -68,7 +68,7 @@ fn is_grease(ty: u64) -> Option<u64> {
 pub enum CapsuleType {
     /// An application datagram payload (RFC 9297 DATAGRAM capsule, type 0x00).
     Datagram(Vec<u8>),
-    /// Close the session with `code` and `reason` (CloseWebTransportSession, type 0x2843).
+    /// Close the session with `code` and `reason` (`CloseWebTransportSession`, type 0x2843).
     CloseWebTransportSession { code: u32, reason: String },
     /// Drain the session — stop creating new streams (type 0x2a05).
     Drain,
@@ -84,6 +84,10 @@ pub enum CapsuleType {
 ///   type: varint
 ///   length: varint
 ///   payload: [u8; length]
+///
+/// # Errors
+/// Returns [`WtProtocolError::Truncated`] when the buffer ends before the
+/// capsule header or payload is complete.
 pub fn decode_capsule(buf: &[u8]) -> Result<(CapsuleType, usize), WtProtocolError> {
     if buf.is_empty() {
         return Err(WtProtocolError::Truncated);
@@ -97,7 +101,10 @@ pub fn decode_capsule(buf: &[u8]) -> Result<(CapsuleType, usize), WtProtocolErro
 
     let (payload_len, len_len) = read_varint(rest).ok_or(WtProtocolError::Truncated)?;
     let payload_start = type_len + len_len;
-    let payload_end = payload_start + payload_len as usize;
+    let payload_len = usize::try_from(payload_len).map_err(|_| WtProtocolError::Truncated)?;
+    let payload_end = payload_start
+        .checked_add(payload_len)
+        .ok_or(WtProtocolError::Truncated)?;
 
     if buf.len() < payload_end {
         return Err(WtProtocolError::Truncated);
@@ -128,7 +135,8 @@ pub fn decode_capsule(buf: &[u8]) -> Result<(CapsuleType, usize), WtProtocolErro
     Ok((capsule, consumed))
 }
 
-/// Encode a CLOSE_WEBTRANSPORT_SESSION capsule.
+/// Encode a `CLOSE_WEBTRANSPORT_SESSION` capsule.
+#[must_use]
 pub fn encode_close_session(code: u32, reason: &str) -> Vec<u8> {
     let mut buf = Vec::new();
     write_varint(&mut buf, capsule::CLOSE_WEBTRANSPORT_SESSION);
@@ -140,6 +148,7 @@ pub fn encode_close_session(code: u32, reason: &str) -> Vec<u8> {
 }
 
 /// Encode a datagram capsule for sending over the control stream.
+#[must_use]
 pub fn encode_datagram_capsule(data: &[u8]) -> Vec<u8> {
     let mut buf = Vec::new();
     write_varint(&mut buf, capsule::DATAGRAM);
@@ -260,6 +269,10 @@ impl CapsuleDecoder {
     ///
     /// Call this repeatedly until it returns `Ok(None)`, then call `push` to
     /// feed more bytes.
+    ///
+    /// # Errors
+    /// Returns [`WtProtocolError::Truncated`] when the buffered bytes hold a
+    /// partial varint header.
     pub fn decode(&mut self) -> Result<Option<CapsuleType>, WtProtocolError> {
         loop {
             let remaining = &self.buf[self.consumed..];
@@ -281,7 +294,7 @@ impl CapsuleDecoder {
                     self.consumed += len_len;
                     if len == 0 {
                         self.state = DecoderState::Type;
-                        return self.finish_capsule(ty, &[]);
+                        return Ok(Some(self.finish_capsule(ty, &[])));
                     }
                     self.state = DecoderState::Payload { ty, remaining: len };
                 }
@@ -290,7 +303,9 @@ impl CapsuleDecoder {
                     ref mut remaining,
                 } => {
                     let buf_remaining = &self.buf[self.consumed..];
-                    let take = buf_remaining.len().min(*remaining as usize);
+                    let take = buf_remaining
+                        .len()
+                        .min(usize::try_from(*remaining).unwrap_or(usize::MAX));
                     if take == 0 {
                         return Ok(None);
                     }
@@ -300,7 +315,7 @@ impl CapsuleDecoder {
                     if *remaining == 0 {
                         self.state = DecoderState::Type;
                         let full = std::mem::take(&mut self.payload_buf);
-                        return self.finish_capsule(ty, &full);
+                        return Ok(Some(self.finish_capsule(ty, &full)));
                     }
                     return Ok(None);
                 }
@@ -308,16 +323,12 @@ impl CapsuleDecoder {
         }
     }
 
-    fn finish_capsule(
-        &mut self,
-        ty: u64,
-        payload: &[u8],
-    ) -> Result<Option<CapsuleType>, WtProtocolError> {
+    fn finish_capsule(&mut self, ty: u64, payload: &[u8]) -> CapsuleType {
         self.compact();
         // GREASE: capsule types where (ty & 0x1f) encodes a value and the
         // remaining bits follow a specific pattern (per draft-ietf-webtrans).
         if let Some(num) = is_grease(ty) {
-            return Ok(Some(CapsuleType::Grease { num }));
+            return CapsuleType::Grease { num };
         }
         let capsule = match ty {
             capsule::DATAGRAM | capsule::LEGACY_DATAGRAM => CapsuleType::Datagram(payload.to_vec()),
@@ -337,7 +348,7 @@ impl CapsuleDecoder {
             capsule::DRAIN_WEBTRANSPORT_SESSION => CapsuleType::Drain,
             other => CapsuleType::Unknown(other, payload.to_vec()),
         };
-        Ok(Some(capsule))
+        capsule
     }
 
     /// Compact the buffer by discarding consumed bytes.
@@ -371,7 +382,7 @@ fn read_varint(buf: &[u8]) -> Option<(u64, usize)> {
     }
     let first = buf[0];
     let (val, len) = match first >> 6 {
-        0 => (first as u64, 1),
+        0 => (u64::from(first), 1),
         1 => {
             if buf.len() < 2 {
                 return None;
@@ -414,24 +425,18 @@ fn read_varint(buf: &[u8]) -> Option<(u64, usize)> {
 }
 
 fn write_varint(buf: &mut Vec<u8>, value: u64) {
+    // The big-endian byte array gives each byte without a narrowing cast.
+    let bytes = value.to_be_bytes();
     if value <= 63 {
-        buf.push(value as u8);
-    } else if value <= 16383 {
-        buf.push(0x40 | ((value >> 8) as u8 & 0x3f));
-        buf.push(value as u8);
+        buf.push(bytes[7]);
+    } else if value <= 16_383 {
+        buf.push(0x40 | (bytes[6] & 0x3f));
+        buf.push(bytes[7]);
     } else if value <= 1_073_741_823 {
-        buf.push(0x80 | ((value >> 24) as u8 & 0x3f));
-        buf.push((value >> 16) as u8);
-        buf.push((value >> 8) as u8);
-        buf.push(value as u8);
+        buf.push(0x80 | (bytes[4] & 0x3f));
+        buf.extend_from_slice(&bytes[5..8]);
     } else {
-        buf.push(0xc0 | ((value >> 56) as u8 & 0x3f));
-        buf.push((value >> 48) as u8);
-        buf.push((value >> 40) as u8);
-        buf.push((value >> 32) as u8);
-        buf.push((value >> 24) as u8);
-        buf.push((value >> 16) as u8);
-        buf.push((value >> 8) as u8);
-        buf.push(value as u8);
+        buf.push(0xc0 | (bytes[0] & 0x3f));
+        buf.extend_from_slice(&bytes[1..8]);
     }
 }

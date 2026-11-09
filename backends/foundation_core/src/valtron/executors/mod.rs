@@ -66,6 +66,20 @@ pub mod multi;
 #[cfg(not(target_family = "wasm"))]
 pub(crate) mod idle_wake;
 
+/// The number of wakes the calling thread's executor has received so far.
+///
+/// `#[doc(hidden)]`: this is a test hook, not part of the stable API. It counts
+/// the wakes of one executor thread, not the process, so a test can prove that
+/// one signal does not wake the thread that parked another task. See
+/// `Sleepable::is_ready`, which re-polls a woken task only when its readiness is
+/// true (GitHub issue #310).
+#[cfg(not(target_family = "wasm"))]
+#[doc(hidden)]
+#[must_use]
+pub fn executor_wake_count() -> u64 {
+    idle_wake::current().wake_count()
+}
+
 /// Ask the executor's host to run it again because a readiness signal fired.
 ///
 /// WHY: a task parked on `TaskStatus::Depends` becomes runnable only when the

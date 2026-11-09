@@ -56,6 +56,11 @@ const BUDGET: Duration = Duration::from_secs(10);
 const UNARY: &str = "/t.Svc/Unary";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const BIDI: &str = "/t.Svc/Bidi";
+/// A unary call that runs until the call's `Ctx` is cancelled.
+const SLOW_UNARY: &str = "/t.Svc/SlowUnary";
+/// A client-stream call that answers only after its request ends and the call's
+/// `Ctx` is cancelled.
+const SLOW_CLIENT_STREAM: &str = "/t.Svc/SlowClientStream";
 
 /// Connect envelope flag marking the end-of-stream message.
 const END_STREAM_FLAG: u8 = 0x02;
@@ -131,6 +136,44 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
         codecs(),
         |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|m| m.map(|m| msg(&format!("re:{}", m.text)))))
+        },
+        HandlerOptions::new(),
+    );
+
+    // Holds the unary call open until something cancels it. A peer that stops
+    // reading after its body ends must be able to end this call (issue #257).
+    let su_seen = Arc::clone(seen);
+    router.unary(
+        SLOW_UNARY,
+        codecs(),
+        move |ctx: Ctx, _req: Request<Msg>| {
+            let seen = Arc::clone(&su_seen);
+            async move {
+                let cancel = ctx.cancel_signal().clone();
+                *seen.cancel.lock().unwrap() = Some(cancel.clone());
+                cancel.cancelled().await;
+                Ok(Response::new(msg("late")))
+            }
+        },
+        HandlerOptions::new().with_read_max_bytes(1024),
+    );
+
+    // Reads the whole request, then holds the call open until it is cancelled.
+    let scs_seen = Arc::clone(seen);
+    router.client_stream(
+        SLOW_CLIENT_STREAM,
+        codecs(),
+        move |ctx: Ctx, mut reqs: RequestStream<Msg>| {
+            let seen = Arc::clone(&scs_seen);
+            async move {
+                let cancel = ctx.cancel_signal().clone();
+                *seen.cancel.lock().unwrap() = Some(cancel.clone());
+                while let Some(m) = reqs.next().await {
+                    seen.messages.lock().unwrap().push(m?.text);
+                }
+                cancel.cancelled().await;
+                Ok(Response::new(msg("late")))
+            }
         },
         HandlerOptions::new(),
     );
@@ -604,6 +647,121 @@ fn peer_reset_mid_client_stream_cancels_the_call() {
         }
         other => panic!("expected the response stream to be reset, got {other:?}"),
     }
+}
+
+/// The request body ends, then the client stops reading the response. That
+/// `STOP_SENDING` is the only signal left — a later `RESET_STREAM` is dropped
+/// once the stream's receive state is freed — so the unary call must cancel
+/// and reset its response half (issue #257).
+#[test]
+fn peer_stop_sending_after_unary_body_cancels_the_call() {
+    let seen = Arc::new(Seen::default());
+    let mut h = Harness::open(router(&seen, 0), SLOW_UNARY, "application/json");
+
+    h.send_data(Bytes::from(serde_json::to_vec(&msg("hi")).unwrap()));
+    h.finish_request();
+
+    // Step until the handler is running: the call is now parked on its Ctx.
+    let dl = Instant::now() + BUDGET;
+    while seen.cancel_signal().is_none() {
+        h.step();
+        assert!(Instant::now() < dl, "the unary handler never started");
+    }
+
+    h.client.stop_sending(error_code::H3_REQUEST_CANCELLED);
+    h.finish_call()
+        .expect("a peer stop finishes the call instead of waiting for the handler");
+
+    let cancel = seen
+        .cancel_signal()
+        .expect("handler stored its cancel signal");
+    assert!(
+        cancel.is_canceled(),
+        "a peer stop must cancel the call's Ctx"
+    );
+
+    // The server reset its response half (RFC 9114 section 4.1.2).
+    let dl = Instant::now() + BUDGET;
+    let res = loop {
+        if let VStream::Next(res) = h.client.poll_headers() {
+            break res;
+        }
+        h.step();
+        assert!(
+            Instant::now() < dl,
+            "timed out waiting for the server reset"
+        );
+    };
+    // No response may start after the peer stopped reading. The server reset
+    // the stream; a client that already sent `STOP_SENDING` has freed its
+    // receive state, so it reads the end of the stream as an error rather than
+    // as `Terminated`.
+    assert!(
+        res.is_err(),
+        "the peer stopped reading, so no response may start; got {res:?}"
+    );
+}
+
+/// The same signal on a streaming call: after the request body ends, the
+/// handler still parks until the client stops reading the response. The
+/// `STOP_SENDING` must end the stream and cancel the call (issue #257).
+#[test]
+fn peer_stop_sending_after_request_end_cancels_a_stream() {
+    let seen = Arc::new(Seen::default());
+    let mut h = Harness::open(
+        router(&seen, 0),
+        SLOW_CLIENT_STREAM,
+        "application/connect+json",
+    );
+
+    h.send_data(envelope(&msg("a")));
+    h.finish_request();
+
+    // The handler is parked on its Ctx once it has seen the message and the
+    // close of the request stream.
+    let dl = Instant::now() + BUDGET;
+    while seen.cancel_signal().is_none() {
+        h.step();
+        assert!(Instant::now() < dl, "the stream handler never started");
+    }
+
+    h.client.stop_sending(error_code::H3_REQUEST_CANCELLED);
+    h.finish_call()
+        .expect("a peer stop finishes the stream instead of waiting for the handler");
+
+    assert_eq!(
+        seen.messages(),
+        vec!["a"],
+        "the request body still reaches the handler before the stop"
+    );
+    let cancel = seen
+        .cancel_signal()
+        .expect("handler stored its cancel signal");
+    assert!(
+        cancel.is_canceled(),
+        "a peer stop must cancel the call's Ctx"
+    );
+
+    // The server reset its response half (RFC 9114 section 4.1.2).
+    let dl = Instant::now() + BUDGET;
+    let res = loop {
+        if let VStream::Next(res) = h.client.poll_headers() {
+            break res;
+        }
+        h.step();
+        assert!(
+            Instant::now() < dl,
+            "timed out waiting for the server reset"
+        );
+    };
+    // No response may start after the peer stopped reading. The server reset
+    // the stream; a client that already sent `STOP_SENDING` has freed its
+    // receive state, so it reads the end of the stream as an error rather than
+    // as `Terminated`.
+    assert!(
+        res.is_err(),
+        "the peer stopped reading, so no response may start; got {res:?}"
+    );
 }
 
 // ── Production path: the real H3 server on the valtron pool ──────────────

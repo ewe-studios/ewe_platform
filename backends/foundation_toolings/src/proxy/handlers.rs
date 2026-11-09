@@ -5,10 +5,11 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{timer, Clock};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::{render_message, ResponseWriter, WriterConfig};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::event_source::{SseEvent, SseResponse};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
