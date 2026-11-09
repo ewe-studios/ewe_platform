@@ -203,8 +203,10 @@ impl TypeDef {
                     writeln!(out, "impl Default for {} {{", self.name)?;
                     writeln!(out, "    fn default() -> Self {{")?;
                     match &first.shape {
-                        VariantShape::Newtype(_) => {
-                            writeln!(out, "        Self::{}(Default::default())", first.name)?;
+                        VariantShape::Newtype(ty) => {
+                            // Name the type: `Default::default()` alone trips
+                            // `clippy::default_trait_access` in the generated crate.
+                            writeln!(out, "        Self::{}(<{ty} as Default>::default())", first.name)?;
                         }
                         VariantShape::Struct(fields) => {
                             writeln!(out, "        Self::{} {{", first.name)?;
