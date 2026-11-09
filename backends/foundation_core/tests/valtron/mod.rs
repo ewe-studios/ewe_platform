@@ -97,6 +97,8 @@ mod pool_config_tests;
 #[cfg(feature = "multi")]
 mod shutdown_single_deadline;
 #[cfg(not(target_family = "wasm"))]
+mod self_wake_fairness;
+#[cfg(not(target_family = "wasm"))]
 mod single_executor;
 #[cfg(feature = "multi")]
 mod slow_poll_warning;
