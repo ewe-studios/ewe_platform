@@ -3866,17 +3866,46 @@ where
 }
 
 // ============================================================================
-// WakeableStream impls (Feature 02) — stream observers default to NotSupported.
-// Their backing Pipe already bridges via RecvFuture, not the stream wake path.
+// WakeableStream impls (Feature 02) — queue-backed observers wake natively.
 // ============================================================================
 
-use crate::valtron::WakeableStream;
+use crate::valtron::{EventReadiness, ReadinessWaker, WakeCallback, WakeResult, WakeableStream};
+
+/// Register `callback` on an observer's queue and report whether it took it.
+///
+/// WHY: the async bridge (`StreamNextStream`) asks the stream for a wake when it
+/// pulls an empty, open queue. A non-sendable observer that answered
+/// `NotSupported` made the bridge wake itself and poll again. On the
+/// single-threaded executor, which runs on wasm, the spin loop blocked the only
+/// thread, so the producer never ran and the stream never got a value
+/// (issue #407).
+///
+/// WHAT: returns [`WakeResult::Successful`] after the queue's readiness keeps
+/// the callback, and `NotSupported` only if the readiness refuses it.
+fn register_observer_wake<D, P>(
+    queue: &EventQueue<Stream<D, P>>,
+    callback: WakeCallback,
+) -> WakeResult
+where
+    D: Clone + 'static,
+    P: Clone + 'static,
+{
+    let waker = ReadinessWaker::from_callback(callback);
+    if queue.readiness().register(&waker) {
+        WakeResult::Successful
+    } else {
+        WakeResult::NotSupported
+    }
+}
 
 impl<D, P> WakeableStream for CollectorStreamIterator<D, P>
 where
     D: Clone + 'static,
     P: Clone + 'static,
 {
+    fn wake(&mut self, callback: WakeCallback) -> WakeResult {
+        register_observer_wake(&self.queue, callback)
+    }
 }
 
 impl<D, P> WakeableStream for SplitUntilObserver<D, P>
@@ -3884,6 +3913,9 @@ where
     D: Clone + 'static,
     P: Clone + 'static,
 {
+    fn wake(&mut self, callback: WakeCallback) -> WakeResult {
+        register_observer_wake(&self.queue, callback)
+    }
 }
 
 impl<D, P> WakeableStream for SplitUntilObserverMap<D, P>
@@ -3891,6 +3923,9 @@ where
     D: Clone + 'static,
     P: Clone + 'static,
 {
+    fn wake(&mut self, callback: WakeCallback) -> WakeResult {
+        register_observer_wake(&self.queue, callback)
+    }
 }
 
 impl<M, P> WakeableStream for SplitCollectorMapObserver<M, P>
@@ -3898,4 +3933,7 @@ where
     M: Clone + 'static,
     P: Clone + 'static,
 {
+    fn wake(&mut self, callback: WakeCallback) -> WakeResult {
+        register_observer_wake(&self.queue, callback)
+    }
 }

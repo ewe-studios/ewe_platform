@@ -4,6 +4,47 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: batch 2, `foundation_core` fixes on `spec75/core-medium`
+
+The branch is based on `fix/medium-integration` at `4ca007301`. Seven of the nine listed
+issues were already fixed at that commit. The branch fixes the other two and adds the
+regression coverage for all nine.
+
+| Issue | State at `4ca007301` | Fix or test |
+| --- | --- | --- |
+| #291 | Fixed by `a7eeaa390` | `idle_wake` interrupts the park of an idle executor. Test: `bridge_park_executor::fast_producers_never_strand_a_consumer`. The old code timed out at 60 s. |
+| #293 | Fixed by `8849434a2` | `ThreadedIterFuture` uses a real waker and parks. Test: `threaded_future::test_threaded_future_parks_while_pending`. It counts the polls. |
+| #294 | Fixed by `8849434a2` | `push_waiting` handles `Closed` and `Full`. Test: `threaded_future::threaded_iter_future_error_reaches_consumer_when_queue_full`. |
+| #296 | Fixed by `5e14275b4` | `BackgroundJobRegistry::new` and `with_config` return `BackgroundJobError::SpawnFailed`. Test: `background_jobs::background_registry_spawn_failure_is_an_error`. |
+| #300 | Fixed by `d9f393a1e` | One acquire counts one outcome. Test: `buffer_pool_tests::bytes_pool_counts_one_outcome_per_acquire`. |
+| #303 | Fixed by `69ca21afc` | A zero-length pooled read is not EOF. Test: `stream_ext_tests::read_pooled_buffer_with_zero_max_len_is_not_eof`. |
+| #311 | Fixed by `c192c6e2d` | `block_on_future` re-raises the task panic payload. Test: `worker_panic_accounting::block_on_future_reraises_the_task_panic_payload`. |
+| #407 | Open | Fixed on this branch. The non-sendable split observers register a non-`Send` callback waker. Test: `non_sendable_split_observer_wake::a_non_sendable_split_observer_accepts_a_wake_callback_and_fires_it_on_push`. |
+| #408 | Open | Fixed on this branch. A no-progress requeue goes to the back of the queue. Test: `self_wake_fairness::a_no_progress_task_does_not_starve_a_scheduled_sibling`. |
+
+The two new tests fail when their fix is reverted. The old code returns `NotSupported` for
+#407 and re-polls the first task for #408.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_core` | Pass, 0 failed |
+| `cargo test --profile uat -p foundation_core --features multi` | Pass, 0 failed |
+| `cargo clippy --profile uat -p foundation_core --all-targets` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_core --features multi --all-targets` | Zero warnings |
+| wasm32 check, std | Pass |
+| wasm32 check, std and js-foundation-wasm | Pass |
+| wasm32 check, std and js-wasmbindgen | Pass |
+
+### Next
+
+- Close the nine issues when the branch merges. Seven already have their fix commit.
+- Issue #423 records the remaining risk: in the non-`multi` build the callback waker can
+  cross a thread, and it breaks the `Waker` contract. It is `severity: medium`.
+- Batch 2 still lists foundation_connectrpc #410, foundation_wasmtime #416 and
+  foundation_netio #420.
+
 ## 2026-11-09: batch 1 is complete on `fix/medium-integration`
 
 The branch collects the fixes for 29 medium-severity issues. Each fix has its own commits

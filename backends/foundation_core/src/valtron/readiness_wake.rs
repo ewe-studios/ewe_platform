@@ -22,10 +22,7 @@
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
-use std::task::{Wake, Waker};
-
-#[cfg(feature = "multi")]
-use std::task::{RawWaker, RawWakerVTable};
+use std::task::{RawWaker, RawWakerVTable, Wake, Waker};
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError};
 
@@ -140,14 +137,17 @@ impl Drop for ParkGuard {
 /// it fires or when its last clone is dropped, so the notifier prunes a
 /// registration that nobody waits on any more.
 ///
+/// The callback has no `Send` bound in the non-`multi` build. Its `Waker` must
+/// therefore stay on the single thread that owns the executor. Only the
+/// single-threaded executor, which runs on wasm or a thread-local native
+/// engine, makes such wakers.
+///
 /// [`WakeCallback`]: crate::valtron::WakeCallback
-#[cfg(feature = "multi")]
 struct CallbackWakeState {
     callback: Mutex<Option<crate::valtron::WakeCallback>>,
     live: Arc<AtomicBool>,
 }
 
-#[cfg(feature = "multi")]
 impl CallbackWakeState {
     fn fire(&self) {
         let callback = self
@@ -162,14 +162,12 @@ impl CallbackWakeState {
     }
 }
 
-#[cfg(feature = "multi")]
 impl Drop for CallbackWakeState {
     fn drop(&mut self) {
         self.live.store(false, Ordering::SeqCst);
     }
 }
 
-#[cfg(feature = "multi")]
 static CALLBACK_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
     callback_waker_clone,
     callback_waker_wake,
@@ -182,7 +180,6 @@ static CALLBACK_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
 /// # Safety
 /// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and is
 /// still live (the owning `Waker` holds a strong reference across this call).
-#[cfg(feature = "multi")]
 unsafe fn callback_waker_clone(data: *const ()) -> RawWaker {
     Arc::increment_strong_count(data.cast::<CallbackWakeState>());
     RawWaker::new(data, &CALLBACK_WAKER_VTABLE)
@@ -194,7 +191,6 @@ unsafe fn callback_waker_clone(data: *const ()) -> RawWaker {
 /// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>`;
 /// `wake` consumes the `Waker`, so reclaiming ownership here balances the
 /// original `into_raw`.
-#[cfg(feature = "multi")]
 unsafe fn callback_waker_wake(data: *const ()) {
     let state = Arc::from_raw(data.cast::<CallbackWakeState>());
     state.fire();
@@ -206,7 +202,6 @@ unsafe fn callback_waker_wake(data: *const ()) {
 /// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and is
 /// still live; `ManuallyDrop` prevents this borrowed reconstruction from
 /// decrementing the count owned by the caller's `Waker`.
-#[cfg(feature = "multi")]
 unsafe fn callback_waker_wake_by_ref(data: *const ()) {
     let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<CallbackWakeState>()));
     state.fire();
@@ -217,7 +212,6 @@ unsafe fn callback_waker_wake_by_ref(data: *const ()) {
 /// # Safety
 /// `data` originates from `Arc::into_raw` of an `Arc<CallbackWakeState>` and
 /// this call balances exactly one outstanding strong reference.
-#[cfg(feature = "multi")]
 unsafe fn callback_waker_drop(data: *const ()) {
     drop(Arc::from_raw(data.cast::<CallbackWakeState>()));
 }
@@ -323,7 +317,16 @@ impl ReadinessWaker {
     ///
     /// The waker reports live until it fires or every clone is dropped, so the
     /// notifier drops a registration that nobody waits on any more.
-    #[cfg(feature = "multi")]
+    ///
+    /// The callback has no `Send` bound in the non-`multi` build. Its raw waker
+    /// is used only by the single-threaded executor it was made for.
+    #[cfg_attr(
+        not(feature = "multi"),
+        expect(
+            clippy::arc_with_non_send_sync,
+            reason = "the non-Send callback stays on the single-threaded executor's thread and never crosses a thread"
+        )
+    )]
     #[must_use]
     pub(crate) fn from_callback(callback: crate::valtron::WakeCallback) -> Self {
         let live = Arc::new(AtomicBool::new(true));

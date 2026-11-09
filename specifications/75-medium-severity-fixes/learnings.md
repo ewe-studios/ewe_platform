@@ -5,6 +5,45 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Batch 2 (2026-11-09)
+
+### A fix with no regression test lets the tracker go stale
+
+- Seven of the nine issues in this batch were already fixed at `4ca007301`. The open
+  tracker did not show that. Each fix had its commit, but only some had a test that names
+  the defect.
+- Before a fix is called done, run its regression test against the code without the fix.
+  Record that result in the commit or the issue. A tracker entry then has a fact behind it.
+- #291 had no direct test at first. The bridge test that showed the defect
+  (`fast_producers_never_strand_a_consumer`) timed out at 60 s on the old code and takes
+  under 2 s with the fix. That test is the regression test.
+
+### A `Waker` built from a non-`Send` callback must stay on one thread
+
+- `Waker` is `Send` and `Sync` by type, but `Waker::from_raw` expects thread-safe data.
+  A non-`Send` callback inside the data breaks that promise if the waker crosses a thread.
+- The non-`multi` build has no `Send` bound on `WakeCallback`. The single-threaded executor
+  owns the waker, so the callback stays on that one thread. The type must not move.
+- Use `#[cfg_attr(not(feature = "multi"), expect(clippy::arc_with_non_send_sync, ...))]`
+  and state the single-thread rule in the doc comment.
+- The type cannot show the rule. `ReadinessWaker` is still `Send` and `Sync`, so safe code
+  can move it. Issue #423 records this risk and its likely fix.
+
+### A no-progress requeue is not urgent work
+
+- `TaskStatus::Ignore` maps to `State::Pending(None)`. The executor pushed that entry to the
+  front of its queue, so a task that self-wakes and makes no progress ran again before any
+  other runnable task. One such task could starve its worker.
+- A requeue with no progress goes to the back of the queue, like other runnable work. Do not
+  add a fairness counter until a real case needs one.
+
+### Test a queue-order defect with a bounded number of ticks
+
+- The no-progress task never ends, so `run_until(NoWork)` cannot drive the test.
+- Schedule the no-progress task first and a finite sibling second. Run a fixed number of
+  `run_once` ticks and assert that the sibling finished. The old order never runs the
+  sibling. The new order gives it a turn after every no-progress poll.
+
 ## Batch 1 (2026-11-09)
 
 ### One reactor registration per fd, not one per token (issue #421)
