@@ -42,10 +42,10 @@ foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
 # defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
 foundation_netio = { path = "../foundation_netio", version = "0.0.10" }
 
-# On wasm32, uuid needs a randomness source
+# On wasm32, uuid takes its randomness from `crypto.getRandomValues` through
+# its `js` feature, which needs `js-sys`/`wasm-bindgen` and no `getrandom`.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }
-getrandom = { version = "0.2", optional = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.10", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
@@ -99,7 +99,7 @@ ssl-native-tls = ["foundation_netio/ssl-native-tls"]
 # HTTP/3 (QUIC) — gates H3Serve trait and ServerApp::Http3 (F35)
 quic = ["foundation_netio/quic"]
 # Wasm compatibility — uses browser crypto for UUID generation
-wasm = ["uuid/js", "dep:getrandom", "getrandom/js"]
+wasm = ["uuid/js"]
 # Wasm-bindgen bridge entry points for web and Cloudflare Workers
 wasm-bindgen-http = [
     "wasm",
