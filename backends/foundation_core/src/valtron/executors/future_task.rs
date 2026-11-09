@@ -217,6 +217,13 @@ where
     /// Wake queue watched via [`QueueReadiness`]; the future's `Waker` pushes a
     /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
     wake_queue: crate::valtron::EventQueue<WakeToken>,
+    /// The one waker this task hands to the future on every poll.
+    ///
+    /// WHY: a source that keeps the waker (`ReadinessNotifier`) deduplicates by
+    /// waker identity. A fresh waker per poll defeats that deduplication, so the
+    /// source's registration list grows on every poll and the register and
+    /// notify cost grows with the poll count.
+    waker: Waker,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -225,19 +232,25 @@ where
     F: Future,
 {
     pub fn new(future: F) -> Self {
+        let wake_queue = crate::valtron::EventQueue::unbounded();
+        let waker = queue_waker(wake_queue.clone(), 0);
         Self {
             future: Box::pin(future),
             completed: false,
-            wake_queue: crate::valtron::EventQueue::unbounded(),
+            wake_queue,
+            waker,
         }
     }
 
     #[must_use]
     pub fn from_pinned(future: Pin<Box<F>>) -> Self {
+        let wake_queue = crate::valtron::EventQueue::unbounded();
+        let waker = queue_waker(wake_queue.clone(), 0);
         Self {
             future,
             completed: false,
-            wake_queue: crate::valtron::EventQueue::unbounded(),
+            wake_queue,
+            waker,
         }
     }
 }
@@ -262,7 +275,7 @@ where
         // wake-before-park race) stays in the queue and keeps the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().poll(&mut cx) {
@@ -319,7 +332,7 @@ where
         // the full rationale.
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().poll(&mut cx) {
@@ -358,6 +371,10 @@ where
     /// Wake queue watched via [`QueueReadiness`]; the stream's `Waker` pushes a
     /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
     wake_queue: crate::valtron::EventQueue<WakeToken>,
+    /// The one waker this task hands to the stream on every poll. It must stay
+    /// the same for every poll, for the same deduplication reason as
+    /// [`FutureTask::waker`].
+    waker: Waker,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -366,10 +383,13 @@ where
     S: futures_core::Stream,
 {
     pub fn new(stream: S) -> Self {
+        let wake_queue = crate::valtron::EventQueue::unbounded();
+        let waker = queue_waker(wake_queue.clone(), 0);
         Self {
             stream: Box::pin(stream),
             exhausted: false,
-            wake_queue: crate::valtron::EventQueue::unbounded(),
+            wake_queue,
+            waker,
         }
     }
 }
@@ -392,7 +412,7 @@ where
         // wake that arrives after this drain survives to keep the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.stream.as_mut().poll_next(&mut cx) {
@@ -431,7 +451,7 @@ where
         // wake that arrives after this drain survives to keep the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.stream.as_mut().poll_next(&mut cx) {

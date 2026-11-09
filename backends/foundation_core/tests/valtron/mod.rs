@@ -100,6 +100,8 @@ mod shutdown_single_deadline;
 mod single_executor;
 #[cfg(feature = "multi")]
 mod slow_poll_warning;
+#[cfg(not(target_family = "wasm"))]
+mod split_observer_wake;
 mod task_status;
 #[cfg(not(all(
     target_family = "wasm",
@@ -108,6 +110,8 @@ mod task_status;
 mod valtron_macro_tests;
 #[cfg(not(target_family = "wasm"))]
 mod wakeable_stream;
+#[cfg(not(target_family = "wasm"))]
+mod waker_identity;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
 #[cfg(feature = "multi")]

@@ -31,7 +31,7 @@ use std::net::{TcpStream, UdpSocket};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{MonotonicClock, block_on_future, valtron_test};
+use foundation_core::valtron::{block_on_future, valtron_test, MonotonicClock};
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
 use foundation_deployment_platform::testing::docker_available;
 use foundation_proxy::config::HealthCheckConfig;
