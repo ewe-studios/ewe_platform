@@ -504,3 +504,95 @@ fn queued_reset_wakes_a_driver_parked_on_readiness() {
         "a queued reset must make the parked driver runnable"
     );
 }
+
+/// Write `data` on one send stream and transmit it in its own datagram.
+///
+/// One client poll per write keeps each payload in a separate UDP datagram: the
+/// caller writes, transmits, then writes again, so the server's socket queues
+/// two datagrams before it polls.
+fn write_one_datagram(client: &mut QuicDriver, stream: &mut impl QuicSendStream, data: &[u8]) {
+    let mut buf = Bytes::copy_from_slice(data);
+    let deadline = Instant::now() + BUDGET;
+    while buf.has_remaining() {
+        assert!(
+            Instant::now() < deadline,
+            "the write never drained within the budget"
+        );
+        if let Stream::Next(Err(e)) = stream.send(&mut buf) {
+            panic!("stream send failed: {e}");
+        }
+        // Transmit what `send` queued before the caller writes the next payload.
+        client.next_status(Ctx::host());
+    }
+}
+
+/// Take the next byte chunk a stream has buffered, without driving the drivers.
+fn buffered_chunk(stream: &mut impl QuicRecvStream) -> Option<Bytes> {
+    match stream.read() {
+        Stream::Next(Ok(Some(bytes))) => Some(bytes),
+        Stream::Next(Err(e)) => panic!("stream read failed: {e}"),
+        _ => None,
+    }
+}
+
+#[test]
+fn one_poll_reads_every_queued_datagram() {
+    // Regression for #290. The driver read one datagram per poll and cleared the
+    // edge-triggered socket readiness first. A second datagram that arrived with
+    // the first then stayed unread until a new packet made a fresh edge. Over
+    // HTTP/3 that stalled a whole request: the headers were read, and the body
+    // waited for the peer's idle timeout.
+    let (mut server, mut client, mut server_conn, mut client_conn) = connected_pair();
+
+    let mut send_a = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_send() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_send failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("client never opened the first send stream");
+    let mut send_b = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_send() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_send failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("client never opened the second send stream");
+
+    // Two datagrams reach the server's socket before it polls.
+    write_one_datagram(&mut client, &mut send_a, b"first datagram");
+    write_one_datagram(&mut client, &mut send_b, b"second datagram");
+
+    // One server poll only.
+    let status = server.next_status(Ctx::host());
+    assert!(
+        matches!(status, Some(TaskStatus::Pending(()))),
+        "a poll that read datagrams must report progress, not park"
+    );
+
+    // Both streams arrived in that one poll: accepting and reading them must not
+    // need a second poll.
+    let Stream::Next(Ok(mut recv_a)) = server_conn.accept_recv() else {
+        panic!("the single poll did not deliver the first stream");
+    };
+    let Stream::Next(Ok(mut recv_b)) = server_conn.accept_recv() else {
+        panic!("the single poll did not deliver the second stream");
+    };
+
+    let mut got = Vec::new();
+    for chunk in [buffered_chunk(&mut recv_a), buffered_chunk(&mut recv_b)] {
+        let chunk = chunk.expect("a delivered stream must have its bytes buffered");
+        got.push(chunk);
+    }
+    got.sort();
+    assert_eq!(
+        got,
+        vec![
+            Bytes::from_static(b"first datagram"),
+            Bytes::from_static(b"second datagram")
+        ],
+        "both payloads must be readable after the single poll"
+    );
+}

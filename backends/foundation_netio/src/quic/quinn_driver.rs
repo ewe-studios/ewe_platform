@@ -301,88 +301,133 @@ impl QuicDriver {
         state
     }
 
-    /// Read one datagram, if any, and route it. Returns whether work was done.
+    /// Send one datagram and log a failure.
+    ///
+    /// WHY: a dropped `send_to` result hides a lost datagram. QUIC retransmits a
+    /// lost datagram after loss detection, so the send does not need a retry
+    /// here, but the failure must appear in the log.
+    fn send_datagram(&self, buf: &[u8], dest: SocketAddr, what: &str) {
+        if let Err(e) = self.socket.send_to(buf, dest) {
+            tracing::debug!(error = %e, %dest, kind = what, "QUIC datagram send failed");
+        }
+    }
+
+    /// Drain every datagram the socket has queued and route it. Returns whether
+    /// work was done.
+    ///
+    /// WHY: the driver parks on edge-triggered socket readiness and clears the
+    /// latched flag before each read (see `next_status`). Reading only one
+    /// datagram leaves the rest of the queue unseen: the edge is already
+    /// consumed, and the selector reports nothing more until a *new* datagram
+    /// arrives. A datagram that arrived together with another can then sit
+    /// unread until the peer retransmits (issue #290: a request body stayed
+    /// unread for the whole idle timeout behind an acknowledgement).
+    ///
+    /// WHAT: loop `recv_from` and route every datagram until it returns
+    /// `WouldBlock`.
     fn pump_recv(&mut self, now: Instant) -> bool {
-        let (n, from) = match self.socket.recv_from(&mut self.rx_buf) {
-            Ok(v) => v,
-            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return false,
-            Err(e) => {
-                tracing::debug!(error = %e, "QUIC socket recv failed");
-                return false;
-            }
-        };
+        let mut worked = false;
+        loop {
+            let (n, from) = match self.socket.recv_from(&mut self.rx_buf) {
+                Ok(v) => v,
+                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return worked,
+                Err(e) => {
+                    tracing::debug!(error = %e, "QUIC socket recv failed");
+                    return worked;
+                }
+            };
+            worked = true;
+            let data = BytesMut::from(&self.rx_buf[..n]);
+            self.scratch.clear();
+            let local_ip = self.socket.local_addr().ok().map(|a| a.ip());
 
-        let data = BytesMut::from(&self.rx_buf[..n]);
-        self.scratch.clear();
-        let local_ip = self.socket.local_addr().ok().map(|a| a.ip());
+            let Some(event) =
+                self.endpoint
+                    .handle(now, from, local_ip, None, data, &mut self.scratch)
+            else {
+                continue;
+            };
 
-        let Some(event) = self
-            .endpoint
-            .handle(now, from, local_ip, None, data, &mut self.scratch)
-        else {
-            return true;
-        };
-
-        match event {
-            DatagramEvent::ConnectionEvent(handle, event) => {
-                if let Some(state) = self.conns.get(&handle) {
-                    if let Ok(mut guard) = state.lock() {
-                        guard.conn.handle_event(event);
+            match event {
+                DatagramEvent::ConnectionEvent(handle, event) => {
+                    if let Some(state) = self.conns.get(&handle) {
+                        if let Ok(mut guard) = state.lock() {
+                            guard.conn.handle_event(event);
+                        }
                     }
                 }
-            }
-            // A stateless reply (retry / version negotiation). Send it verbatim.
-            DatagramEvent::Response(transmit) => {
-                let len = transmit.size.min(self.scratch.len());
-                let _ = self
-                    .socket
-                    .send_to(&self.scratch[..len], transmit.destination);
-            }
-            DatagramEvent::NewConnection(incoming) => {
-                self.scratch.clear();
-                match self.endpoint.accept(incoming, now, &mut self.scratch, None) {
-                    Ok((handle, conn)) => {
-                        tracing::debug!(?handle, %from, "QUIC connection accepted");
-                        self.insert_conn(handle, conn, from);
-                    }
-                    Err(err) => {
-                        // The endpoint may want to send a rejection datagram.
-                        if let Some(transmit) = err.response {
-                            let len = transmit.size.min(self.scratch.len());
-                            let _ = self
-                                .socket
-                                .send_to(&self.scratch[..len], transmit.destination);
+                // A stateless reply (retry / version negotiation). Send it verbatim.
+                DatagramEvent::Response(transmit) => {
+                    let len = transmit.size.min(self.scratch.len());
+                    self.send_datagram(
+                        &self.scratch[..len],
+                        transmit.destination,
+                        "stateless reply",
+                    );
+                }
+                DatagramEvent::NewConnection(incoming) => {
+                    self.scratch.clear();
+                    match self.endpoint.accept(incoming, now, &mut self.scratch, None) {
+                        Ok((handle, conn)) => {
+                            tracing::debug!(?handle, %from, "QUIC connection accepted");
+                            self.insert_conn(handle, conn, from);
                         }
-                        tracing::debug!(error = %err.cause, "QUIC accept rejected");
+                        Err(err) => {
+                            // The endpoint may want to send a rejection datagram.
+                            if let Some(transmit) = err.response {
+                                let len = transmit.size.min(self.scratch.len());
+                                self.send_datagram(
+                                    &self.scratch[..len],
+                                    transmit.destination,
+                                    "accept rejection",
+                                );
+                            }
+                            tracing::debug!(error = %err.cause, "QUIC accept rejected");
+                        }
                     }
                 }
             }
         }
-        true
     }
 
     /// Drain every connection's pending transmits. Returns whether work was done.
+    ///
+    /// WHY: `poll_transmit` yields one datagram per call, and a connection with
+    /// more queued than one datagram holds (a request body behind its headers)
+    /// keeps the rest until the next call. Sending one datagram and parking
+    /// leaves that data unsent until an unrelated wake (issue #290). Draining to
+    /// `None` sends it in this pass.
+    ///
+    /// WHAT: round-robin over the connections, one datagram each per round, until
+    /// a whole round sends nothing. Round-robin keeps one busy connection from
+    /// starving the others. The loop ends because `poll_transmit` returns `None`
+    /// once the send buffer or the congestion window is empty.
     fn pump_transmit(&mut self, now: Instant) -> bool {
         let mut worked = false;
-        for state in self.conns.values() {
-            let Ok(mut guard) = state.lock() else {
-                continue;
-            };
-            let peer = guard.peer;
-            // Bounded: one transmit per connection per poll keeps the task fair.
-            self.tx_buf.clear();
-            if let Some(transmit) = guard.conn.poll_transmit(now, 1, &mut self.tx_buf) {
-                let len = transmit.size.min(self.tx_buf.len());
-                let dest = if transmit.destination.port() == 0 {
-                    peer
-                } else {
-                    transmit.destination
+        loop {
+            let mut progressed = false;
+            for state in self.conns.values() {
+                let Ok(mut guard) = state.lock() else {
+                    continue;
                 };
-                let _ = self.socket.send_to(&self.tx_buf[..len], dest);
-                worked = true;
+                let peer = guard.peer;
+                self.tx_buf.clear();
+                if let Some(transmit) = guard.conn.poll_transmit(now, 1, &mut self.tx_buf) {
+                    let len = transmit.size.min(self.tx_buf.len());
+                    let dest = if transmit.destination.port() == 0 {
+                        peer
+                    } else {
+                        transmit.destination
+                    };
+                    self.send_datagram(&self.tx_buf[..len], dest, "transmit");
+                    worked = true;
+                    progressed = true;
+                }
+            }
+            if !progressed {
+                return worked;
             }
         }
-        worked
     }
 
     /// Fire any connection timers that are due. Returns whether work was done.
