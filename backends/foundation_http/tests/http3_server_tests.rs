@@ -142,14 +142,13 @@ async fn send_frame_async(
         } else {
             request.poll_send_data(&mut pending)
         };
-        match step {
-            Stream::Next(Ok(()) | Err(_)) => std::task::Poll::Ready(()),
-            _ => {
-                if !parked {
-                    cx.waker().wake_by_ref();
-                }
-                std::task::Poll::Pending
+        if let Stream::Next(Ok(()) | Err(_)) = step {
+            std::task::Poll::Ready(())
+        } else {
+            if !parked {
+                cx.waker().wake_by_ref();
             }
+            std::task::Poll::Pending
         }
     })
     .await;

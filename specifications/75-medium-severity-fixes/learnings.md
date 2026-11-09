@@ -5,6 +5,19 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-10, the deny default: a CI gate change needs a full matrix run
+
+- Changing a `[defaults]` key in `ci/packages.toml` affects every package. Do not claim
+  the gate is green from local checks of a few crates. Wait for one full audit run.
+- A gate that was blocked for several runs hides a backlog. The first full run after the
+  Plan job passed reported 266 errors in 14 packages, none of them caused by the last
+  commit.
+- Split the failures by owner. A warning in code this branch wrote is a defect: fix it.
+  Old debt in unrelated crates gets the documented `clippy-deny-warnings = false` and a
+  `reason`, plus an issue that tracks clearing the list.
+- Run clippy with the exact feature set CI uses (`multi,quic,ssl` for `foundation_http`).
+  A test file gated on `quic` is invisible to a default-feature clippy run.
+
 ## 2026-11-09, issue #439: a stored setting that nothing reads
 
 - A configuration field that no code reads is a trap. Remove it, or apply it. Do not keep

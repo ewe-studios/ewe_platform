@@ -4,6 +4,26 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-10: the audit ran the deny default for the first time
+
+The audit on `db473140b` was the first full matrix run after the Plan job stopped failing.
+It failed in 14 package jobs:
+
+| Failure | Handling |
+| --- | --- |
+| `foundation_http`: `http3_server_tests.rs` used a `match` with one real arm in `send_frame_async`, which `clippy::single_match` rejects | Fixed with `if let`. This warning came from the #437 change and was not caught before |
+| 13 packages still carry `clippy::pedantic` warnings from before #436 made `clippy-deny-warnings = true` the default | `clippy-deny-warnings = false` and a `reason` for each, as `ci/packages.toml` documents. Issue #441 tracks clearing each list and deleting its override |
+
+The 13 packages: `foundation_ai` (67), `foundation_ui_components` (68),
+`infrastructure_llama_bindings` (52), `foundation_wasm_ui` (20), `foundation_sshkit` (17),
+`foundation_jsonschema` (14), `foundation_deployment_hetzner` (6),
+`foundation_deployment_digitalocean` (5), `foundation_repl` (4), `platform_demo` (4),
+`foundation_iogate` (3), `foundation_ui_traits` (2), `infrastructure_llama_cpp` (2).
+
+Verification: `cargo clippy -p foundation_http --all-targets --features multi,quic,ssl
+--no-deps -- -D warnings` is clean; the three `http3_server_tests` pass. `ci.py list`
+shows 13 deny overrides.
+
 ## 2026-11-09: issue #439, the TUN MTU that was never applied
 
 `TunConfig::mtu` and `TunConfig::ipv6` were stored and never used. The read buffer was

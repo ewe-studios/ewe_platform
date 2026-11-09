@@ -98,11 +98,57 @@ fmt = "enforce"
 
 [packages.infrastructure_llama_bindings]
 fmt = "enforce"
+# Generated bindings and their tests still carry pedantic warnings (issue #441).
+clippy-deny-warnings = false
+reason = "52 pedantic warnings in generated bindings; clear them and delete this override (#441)"
+
+# ---------------------------------------------------------------------------
+# Packages that still carry pedantic warnings from before the deny default.
+# Clear a list, then delete its override (issue #441).
+
+[packages.foundation_deployment_digitalocean]
+clippy-deny-warnings = false
+reason = "5 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_deployment_hetzner]
+clippy-deny-warnings = false
+reason = "6 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_repl]
+clippy-deny-warnings = false
+reason = "4 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_ui_components]
+clippy-deny-warnings = false
+reason = "68 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_sshkit]
+clippy-deny-warnings = false
+reason = "17 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.infrastructure_llama_cpp]
+clippy-deny-warnings = false
+reason = "2 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_wasm_ui]
+clippy-deny-warnings = false
+reason = "20 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.foundation_ui_traits]
+clippy-deny-warnings = false
+reason = "2 pedantic warnings; clear them and delete this override (#441)"
+
+[packages.platform_demo]
+clippy-deny-warnings = false
+reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
 # ---------------------------------------------------------------------------
 # Packages that need specific features for their tests.
 
 [packages.foundation_ai]
+# 67 pedantic warnings in test targets; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "67 pedantic warnings; clear them and delete this override (#441)"
 # Every test target needs `testing` (mocks); defaults bring llamacpp + candle.
 # The second run drops the local backends: cloud providers + the agent layer
 # only (what a wasm or cloud-only consumer builds). `testing` stays on because
@@ -161,6 +207,9 @@ clippy-deny-warnings = true
 clippy-deny-warnings = true
 
 [packages.foundation_jsonschema]
+# 14 pedantic warnings; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "14 pedantic warnings; clear them and delete this override (#441)"
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
 # (ewe-studios/ewe_platform#49).
@@ -347,6 +396,9 @@ env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_iogate]
+# 3 pedantic warnings; clear them and delete this override (#441).
+clippy-deny-warnings = false
+reason = "3 pedantic warnings; clear them and delete this override (#441)"
 # Its io_uring tests fail when `EWE_REQUIRE_IO_URING=1` and io_uring is missing.
 # Docker's default seccomp profile blocks `io_uring_setup`, so this job's
 # container runs with `seccomp=unconfined`. This is the io_uring exception only;
