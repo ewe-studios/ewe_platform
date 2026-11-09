@@ -4,6 +4,45 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: #413, `JsonFile` stays on WASI, on `fix/413-jsonfile-wasi`
+
+The branch starts from `fix/medium-integration` at `8811a029f`. The issue's first text named a
+`shared/` layout defect. The issue comment of the same date corrects the scope: the file is
+`backends/foundation_db/src/storage_provider.rs` at the crate root. The defect is the bare
+`#[cfg(not(target_family = "wasm"))]` gate. That gate also removes `JsonFile` on
+`wasm32-wasip1` and `wasm32-wasip2`. The WebAssembly System Interface (WASI) gives those
+targets filesystem access through preopened directories.
+
+| Change | Detail |
+| --- | --- |
+| Capability cfg | New `backends/foundation_db/build.rs` sets `json_file_backend` when the target is not wasm, or when `target_os` is `wasi`. |
+| 22 markers | The 22 bare gates in `storage_provider.rs` use `#[cfg(json_file_backend)]`. `lib.rs` gates the `native` module and its re-export the same way. |
+| Public API | No change on non-WASI targets. `StorageBackend::JsonFile`, `StorageProvider::json_file` and `JsonFileStorage` are now present on WASI targets. |
+
+A `macro_rules!` cannot emit a match arm. A macro call in match-arm position is parsed as a
+pattern. A named cfg alias puts the rule in one place, as the issue comment asks. The
+`cranelift_backend` cfg in `foundation_buildtools` is the same pattern in this repository.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo fmt -p foundation_db --check` | Pass |
+| `cargo clippy --profile uat -p foundation_db --all-targets --no-deps -- -D warnings` | Pass, zero warnings |
+| `cargo clippy --profile uat -p foundation_db --all-targets --no-deps --no-default-features --features wasm -- -D warnings` | Pass, zero warnings |
+| `cargo test --profile uat -p foundation_db` | Pass, 210 tests in 45 binaries |
+| `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_db --no-default-features --features wasm` | Pass. The build script does not set `json_file_backend`. |
+| `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_db --no-default-features --features wasm-bindgen-storage` | Pass. |
+| `cargo check --profile uat --target wasm32-wasip1 -p foundation_db --no-default-features --features wasm` | Pass. The build script sets `json_file_backend`. |
+
+The build-script stdout at
+`target/<target>/<profile>/build/foundation_db/<hash>/run/stdout` shows the cfg that each
+target gets.
+
+No run-time test can prove a target cfg on the host. The build-script output and the cross
+checks are the proof. `wasm32-wasip2` is not verified: `foundation_compact` does not compile on
+that target. Issue #427 records that defect with `severity: medium`.
+
 ## 2026-11-09: issue #423, a cross-thread wake cannot run a non-`Send` callback
 
 The non-`multi` build stores a `WakeCallback` (no `Send` bound) in a

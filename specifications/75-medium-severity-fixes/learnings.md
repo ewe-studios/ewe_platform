@@ -22,6 +22,24 @@ _Newest first. Updated after each batch. See
 
 ## Batch 2 (2026-11-09)
 
+### A `macro_rules!` cannot emit a match arm; a cfg alias can carry the rule
+
+- A macro call in match-arm position is parsed as a pattern. The compiler reports "expected
+  pattern, found `#`" and "this macro call doesn't expand to a pattern". One macro cannot emit
+  `pattern => body` into an enclosing `match`.
+- A named cfg alias keeps one rule behind many arms. Add a `build.rs` that prints
+  `cargo::rustc-check-cfg=cfg(<name>)` and, when the rule holds, `cargo::rustc-cfg=<name>`.
+  This repository already does this for `cranelift_backend` in `foundation_buildtools`.
+- Build scripts see `CARGO_CFG_TARGET_FAMILY` and `CARGO_CFG_TARGET_OS`. `wasm32-wasip1` and
+  `wasm32-wasip2` both have `target_family = "wasm"` and `target_os = "wasi"`. WASI preopens
+  give them `std::fs`.
+- Check the build script's choice by reading
+  `target/<target>/<profile>/build/<crate>/<hash>/run/stdout`. It shows the cfg that the target
+  got.
+- `wasm32-wasip2` has `target_env = "p2"`. `foundation_compact`'s `wasi_p2_3` entropy backend
+  imports an undeclared `wasip2` crate. So a `foundation_db` wasip2 check stops in that
+  dependency (issue #427). Do not read a wasip1 pass as a wasip2 pass.
+
 ### A `Waker` is `Send` by type, so its data must be thread-safe by construction
 
 - `std::task::Waker` is `Send + Sync` whatever its vtable holds. The non-`multi`

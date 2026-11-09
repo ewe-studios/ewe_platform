@@ -1,4 +1,5 @@
-//! Native module — non-wasm only.
+//! Native module — non-wasm targets, plus wasm with the WebAssembly System
+//! Interface (WASI) for `json_file`.
 
 #[cfg(any(feature = "turso", feature = "libsql"))]
 pub(crate) mod conn_gate;
