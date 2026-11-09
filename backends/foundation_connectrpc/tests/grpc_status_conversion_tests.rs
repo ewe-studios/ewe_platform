@@ -73,3 +73,33 @@ fn grpc_status_conversion_maps_every_wire_value() {
         );
     }
 }
+
+/// Build trailers that carry a `grpc-status` and a `grpc-message`.
+fn trailers_with_message(status: u32, message: &str) -> SimpleHeaders {
+    let mut trailers = trailers_with_status(status);
+    trailers.insert(
+        SimpleHeader::from("grpc-message".to_string()),
+        vec![message.to_string()],
+    );
+    trailers
+}
+
+/// A `grpc-message` percent-escape is a byte escape, not a code-point escape.
+/// Each `%HH` names one byte; a multibyte UTF-8 character is several escapes.
+/// Pushing each decoded byte as a `char` used to garble every non-ASCII
+/// message (issue #264).
+#[test]
+fn grpc_message_percent_decoding_keeps_multibyte_utf8() {
+    let error = parse_grpc_error_trailer(&trailers_with_message(5, "caf%C3%A9 %E2%9C%93"))
+        .expect("a non-zero status is an error");
+    assert_eq!(error.current_context().message(), "café ✓");
+}
+
+/// An escape that is not two hex digits is kept literally, and a literal `%`
+/// before a short tail cannot index past the end of the value.
+#[test]
+fn grpc_message_percent_decoding_keeps_invalid_escapes() {
+    let error = parse_grpc_error_trailer(&trailers_with_message(13, "100% %zz %+A tail %4"))
+        .expect("a non-zero status is an error");
+    assert_eq!(error.current_context().message(), "100% %zz %+A tail %4");
+}

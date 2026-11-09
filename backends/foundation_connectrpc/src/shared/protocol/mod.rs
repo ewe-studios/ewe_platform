@@ -297,6 +297,29 @@ pub struct ClientExchangeConfig<'a> {
     pub send_max_bytes: usize,
 }
 
+/// Run a streaming request writer and report its failure to the response side.
+///
+/// The caller reads the call through the conn's receiver half. A writer task
+/// that fails (for example a request frame over `send_max_bytes`) used to drop
+/// its error with the task: the caller saw a clean end of stream, or the peer's
+/// empty response, and the typed `ResourceExhausted` was lost. Push the same
+/// error as the response pipe's terminal frame, so the receiver half returns it
+/// to the caller.
+///
+/// The end-of-stream frame keeps its order in the pipe. A response frame the
+/// reader pushed first still reaches the caller first.
+pub(crate) async fn write_or_report(
+    writer: impl core::future::Future<Output = ConnectResult<()>>,
+    response_tx: &PipeSender<Frame>,
+    cancel: &CancelSignal,
+) -> ConnectResult<()> {
+    let result = writer.await;
+    if let Err(ref error) = result {
+        fail_stream(response_tx, error, cancel).await;
+    }
+    result
+}
+
 /// Start reading a streaming response: take its head, publish the headers for
 /// the receiver, and return them. A failed or missing head, or a non-200
 /// status, ends the stream with the error instead (the status maps to a code

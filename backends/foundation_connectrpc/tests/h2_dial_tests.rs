@@ -6,7 +6,7 @@
 //! every task that worker hosted waited too. The h2 handshake had the same
 //! defect and feature 121 moved it into the pump; this feature moves the dial.
 //!
-//! WHAT: three tests drive a real `H2Transport`:
+//! WHAT: four tests drive a real `H2Transport`:
 //! - `a_closed_port_fails_on_the_head_pipe`: a refused dial reaches the caller
 //!   as `Err(TransportError::Connect)` on the response head, and `open` returns
 //!   at once. The old code returned the error from `open` instead.
@@ -14,8 +14,9 @@
 //!   a 300 ms connect timeout. `open` returns in under 50 ms and an unrelated
 //!   valtron task finishes while the dial is still in flight. The old code
 //!   blocks `open` for the whole 300 ms.
-//! - `a_unix_socket_dial_still_connects`: the Unix path is unchanged and still
-//!   connects.
+//! - `a_unix_socket_dial_still_connects`: the Unix path connects.
+//! - `a_unix_dial_to_a_full_listener_does_not_block`: a saturated Unix listener
+//!   does not hold the worker (issue #270).
 //!
 //! HOW: `#[valtron_test]` provides the pool the pump runs on. `initialize_pool`
 //! serializes pool users, so the tests in this binary do not run at once. A
@@ -191,7 +192,7 @@ async fn a_blackholed_dial_does_not_block_the_worker() {
     let _ = unrelated.into_collect_future().await;
 }
 
-/// The Unix domain socket path is unchanged: it still connects.
+/// The Unix domain socket path still connects.
 #[valtron_test(timeout = 5_000)]
 async fn a_unix_socket_dial_still_connects() {
     use std::os::unix::net::UnixListener;
@@ -229,5 +230,89 @@ async fn a_unix_socket_dial_still_connects() {
 
     drop(call);
     peer.join().expect("peer thread");
+    let _ = std::fs::remove_file(&path);
+}
+
+/// A Unix dial to a listener whose queue is full must not block the caller
+/// (issue #270).
+///
+/// The listener is saturated with blocking connects first. One of them is still
+/// waiting when the client dials, so the kernel cannot accept the new
+/// connection at once. A blocking `UnixStream::connect` would then hold the
+/// worker; the non-blocking dial returns from `open` at once and the pump
+/// retries the connect.
+#[valtron_test(timeout = 10_000)]
+async fn a_unix_dial_to_a_full_listener_does_not_block() {
+    use std::os::unix::net::UnixStream;
+    use std::sync::mpsc;
+
+    let pid = std::process::id();
+    let tid = std::thread::current().id();
+    let path = std::env::temp_dir().join(format!("ewe-h2-dial-full-{pid}-{tid:?}.sock"));
+    let _ = std::fs::remove_file(&path);
+
+    // A backlog of zero keeps almost nothing queued, so a burst of connects
+    // saturates the listener. The sockets stay open, so the queue stays full.
+    let listener = socket2::Socket::new(socket2::Domain::UNIX, socket2::Type::STREAM, None)
+        .expect("create the listener socket");
+    let addr = socket2::SockAddr::unix(&path).expect("socket address");
+    listener.bind(&addr).expect("bind");
+    listener.listen(0).expect("listen");
+
+    let mut fillers = Vec::new();
+    let mut results = Vec::new();
+    for _ in 0..4 {
+        let (tx, rx) = mpsc::channel::<Option<UnixStream>>();
+        let connect_path = path.clone();
+        fillers.push(thread::spawn(move || {
+            let _ = tx.send(UnixStream::connect(&connect_path).ok());
+        }));
+        results.push(rx);
+    }
+    thread::sleep(Duration::from_millis(50));
+
+    // Keep every completed connect's socket open, so its queue slot stays
+    // taken. A channel with no value yet is a connect the kernel made wait.
+    let mut held = Vec::new();
+    let mut blocked = false;
+    for rx in &results {
+        match rx.try_recv() {
+            Ok(Some(stream)) => held.push(stream),
+            Ok(None) => {}
+            Err(_) => blocked = true,
+        }
+    }
+    if !blocked {
+        drop(held);
+        drop(listener);
+        for filler in fillers {
+            let _ = filler.join();
+        }
+        let _ = std::fs::remove_file(&path);
+        eprintln!("skip: the listener accepted every connect at once");
+        return;
+    }
+
+    let transport = H2Transport::unix(&path).with_connect_timeout(Duration::from_millis(200));
+    let started = Instant::now();
+    let opened = transport.open(request_descriptor("http://localhost/t.Svc/Unary"));
+    let open_time = started.elapsed();
+    assert!(
+        open_time < MAX_OPEN_TIME,
+        "open waited {open_time:?} on a full listener (max {MAX_OPEN_TIME:?})"
+    );
+    match opened {
+        Ok(call) => drop(call),
+        // A refusal the kernel reports at once is also non-blocking.
+        Err(TransportError::Connect(_)) => {}
+        Err(other) => panic!("unexpected open error: {other:?}"),
+    }
+
+    // Release the queue, then let the blocked connects finish.
+    drop(held);
+    drop(listener);
+    for filler in fillers {
+        let _ = filler.join();
+    }
     let _ = std::fs::remove_file(&path);
 }

@@ -62,6 +62,7 @@ const CA_PEM: &[u8] = include_bytes!("../../foundation_netio/tests/fixtures/quic
 
 const HEADERS_PROC: &str = "/t.Svc/Headers";
 const OVERRIDE_PROC: &str = "/t.Svc/Override";
+const FRAMING_PROC: &str = "/t.Svc/Framing";
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 struct Msg {
@@ -115,6 +116,48 @@ fn build_router() -> Router {
         HandlerOptions::new(),
     );
 
+    // A handler that tries to set every header the transport owns, plus one
+    // header of its own. The framing values must not reach the response
+    // (issue #389).
+    router.client_stream(
+        FRAMING_PROC,
+        codecs(),
+        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+            let mut parts = Vec::new();
+            while let Some(m) = reqs.next().await {
+                parts.push(m?.text);
+            }
+            let mut reply = Response::new(msg(&parts.join("+")));
+            let headers = reply.headers_mut();
+            headers.insert(
+                SimpleHeader::from(":status".to_string()),
+                vec!["599".to_string()],
+            );
+            headers.insert(
+                SimpleHeader::from("content-length".to_string()),
+                vec!["999999".to_string()],
+            );
+            headers.insert(
+                SimpleHeader::from("transfer-encoding".to_string()),
+                vec!["handler-wins".to_string()],
+            );
+            headers.insert(
+                SimpleHeader::from("connection".to_string()),
+                vec!["handler-wins".to_string()],
+            );
+            headers.insert(
+                SimpleHeader::from("content-type".to_string()),
+                vec!["application/x-handler".to_string()],
+            );
+            headers.insert(
+                SimpleHeader::from("x-keep".to_string()),
+                vec!["yes".to_string()],
+            );
+            Ok(reply)
+        },
+        HandlerOptions::new(),
+    );
+
     router
 }
 
@@ -137,6 +180,7 @@ fn start_h1_server() -> (String, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     app.router.add_route_any(HEADERS_PROC, &rpc);
     app.router.add_route_any(OVERRIDE_PROC, &rpc);
+    app.router.add_route_any(FRAMING_PROC, &rpc);
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
@@ -195,13 +239,62 @@ async fn a_handler_cannot_override_content_type() {
     shutdown.turn_on();
 }
 
+/// The transport keeps every framing header, and the handler's own header
+/// still reaches the head.
+fn assert_framing_headers_kept(headers: &SimpleHeaders) {
+    assert_eq!(
+        header_value(headers, "x-keep").as_deref(),
+        Some("yes"),
+        "a handler header that is not a framing header reaches the head"
+    );
+    assert_ne!(
+        header_value(headers, "content-length").as_deref(),
+        Some("999999"),
+        "the handler cannot set content-length"
+    );
+    assert_ne!(
+        header_value(headers, "transfer-encoding").as_deref(),
+        Some("handler-wins"),
+        "the handler cannot set transfer-encoding"
+    );
+    assert_ne!(
+        header_value(headers, "connection").as_deref(),
+        Some("handler-wins"),
+        "the handler cannot set connection"
+    );
+    assert_ne!(
+        header_value(headers, "content-type").as_deref(),
+        Some("application/x-handler"),
+        "the handler cannot set the framing content type"
+    );
+    assert_ne!(
+        header_value(headers, ":status").as_deref(),
+        Some("599"),
+        "the handler cannot set the HTTP status"
+    );
+}
+
+#[valtron_test]
+async fn a_handler_cannot_set_framing_headers_h1() {
+    let (addr, shutdown) = start_h1_server();
+    let response = h1_client(&addr, FRAMING_PROC)
+        .client_stream(call_ctx(), futures::stream::iter(vec![msg("a")]))
+        .await
+        .expect("client stream");
+
+    assert_framing_headers_kept(response.headers());
+    assert_eq!(response.msg, msg("a"));
+    shutdown.turn_on();
+}
+
 // ── h2 ───────────────────────────────────────────────────────────────────
 
 fn start_h2_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
     let mut app = HttpApp::new_h2_serve();
     app.route_any_h2(HEADERS_PROC, rpc.clone());
-    app.route_any_h2(OVERRIDE_PROC, rpc);
+    app.route_any_h2(OVERRIDE_PROC, rpc.clone());
+    app.route_any_h2(FRAMING_PROC, rpc);
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
@@ -238,6 +331,19 @@ async fn handler_headers_reach_the_response_head_h2() {
         Some("one"),
         "the handler header is on the response head"
     );
+    assert_eq!(response.msg, msg("a"));
+    shutdown.turn_on();
+}
+
+#[valtron_test]
+async fn a_handler_cannot_set_framing_headers_h2() {
+    let (addr, shutdown) = start_h2_server();
+    let response = h2_client(&addr, FRAMING_PROC)
+        .client_stream(call_ctx(), futures::stream::iter(vec![msg("a")]))
+        .await
+        .expect("client stream");
+
+    assert_framing_headers_kept(response.headers());
     assert_eq!(response.msg, msg("a"));
     shutdown.turn_on();
 }
@@ -289,6 +395,20 @@ async fn handler_headers_reach_the_response_head_h3() {
         Some("one"),
         "the handler header is on the response head"
     );
+    assert_eq!(response.msg, msg("a"));
+    shutdown.turn_on();
+}
+
+#[cfg(feature = "h3")]
+#[valtron_test]
+async fn a_handler_cannot_set_framing_headers_h3() {
+    let (addr, shutdown) = start_h3_server();
+    let response = h3_client(addr, FRAMING_PROC)
+        .client_stream(call_ctx(), futures::stream::iter(vec![msg("a")]))
+        .await
+        .expect("client stream");
+
+    assert_framing_headers_kept(response.headers());
     assert_eq!(response.msg, msg("a"));
     shutdown.turn_on();
 }

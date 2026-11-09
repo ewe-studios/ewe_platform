@@ -13,6 +13,8 @@
 //! - A message below `compress_min_bytes` stays uncompressed and round-trips.
 //! - A compressed frame over `send_max_bytes` fails with a typed
 //!   `ResourceExhausted` writer error.
+//! - A unary message below `compress_min_bytes` goes out plain, and a unary
+//!   message over `send_max_bytes` fails with `ResourceExhausted` (issue #381).
 //!
 //! HOW: the client negotiates gzip with `with_send_gzip`. The protocol writer
 //! now applies the compressor per frame and sets the compressed flag. The
@@ -57,6 +59,7 @@ impl Msg {
 const SERVER_STREAM: &str = "/t.Svc/ServerStream";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const BIDI: &str = "/t.Svc/Bidi";
+const UNARY: &str = "/t.Svc/Unary";
 
 fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
@@ -64,6 +67,22 @@ fn codecs() -> ProcedureCodecs<Msg, Msg> {
 
 fn router() -> Router {
     let mut router = Router::new();
+    // Report the request's `grpc-encoding`, or `none` when absent. This lets a
+    // unary test prove what the client actually put on the wire (issue #381).
+    router.unary(
+        UNARY,
+        codecs(),
+        |_ctx: Ctx, req: Request<Msg>| async move {
+            let encoding = req
+                .headers()
+                .iter()
+                .find(|(header, _)| header.to_string().eq_ignore_ascii_case("grpc-encoding"))
+                .and_then(|(_, values)| values.first().cloned())
+                .unwrap_or_else(|| "none".to_string());
+            Ok(Response::new(Msg::of(encoding)))
+        },
+        HandlerOptions::new(),
+    );
     router.server_stream(
         SERVER_STREAM,
         codecs(),
@@ -107,6 +126,7 @@ fn start_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
+    app.route_any_h2(UNARY, rpc.clone());
     app.route_any_h2(SERVER_STREAM, rpc.clone());
     app.route_any_h2(CLIENT_STREAM, rpc.clone());
     app.route_any_h2(BIDI, rpc);
@@ -304,4 +324,83 @@ async fn a_frame_over_send_max_bytes_is_rejected() {
         err.to_string().contains("send_max_bytes"),
         "the error must name the limit, got: {err}"
     );
+}
+
+/// A unary request below `compress_min_bytes` goes out plain (issue #381).
+///
+/// The old unary path compressed every request whenever a send algorithm was
+/// configured, so `compress_min_bytes` did nothing for a unary call. The server
+/// reports the `grpc-encoding` header it received: `none` proves the client
+/// sent the message uncompressed.
+#[valtron_test]
+async fn a_unary_message_below_compress_min_bytes_is_not_compressed() {
+    let (addr, shutdown) = start_server();
+    let client = gzip_client(
+        &addr,
+        UNARY,
+        ClientOptions::new().with_compress_min_bytes(1024),
+    );
+
+    let response = client
+        .unary(ctx(), Request::new(Msg::of("short")))
+        .await
+        .expect("unary call");
+
+    assert_eq!(response.msg, Msg::of("none"));
+    shutdown.turn_on();
+}
+
+/// A streaming request-writer error reaches the caller (issue #380).
+///
+/// The writer task used to drop its `ResourceExhausted` with the task, and the
+/// caller saw a clean end of stream. The writer now pushes its error as the
+/// response pipe's terminal frame, so `client_stream` returns it.
+#[valtron_test]
+async fn a_client_stream_writer_error_reaches_the_caller() {
+    let (addr, shutdown) = start_server();
+    let client = gzip_client(
+        &addr,
+        CLIENT_STREAM,
+        ClientOptions::new().with_send_max_bytes(16),
+    );
+
+    let outbound = futures::stream::iter(vec![Msg::of("hello")]);
+    let err = client
+        .client_stream(ctx(), outbound)
+        .await
+        .expect_err("the caller must see the writer error");
+
+    assert_eq!(
+        err.current_context().code(),
+        Code::ResourceExhausted,
+        "expected ResourceExhausted, got: {err}"
+    );
+    shutdown.turn_on();
+}
+
+/// A unary request over `send_max_bytes` fails with a typed
+/// `ResourceExhausted` (issue #381).
+///
+/// The limit is checked after compression, as the streaming writer does. The
+/// old unary path never checked it, so an oversized request went out.
+#[valtron_test]
+async fn a_unary_message_over_send_max_bytes_is_rejected() {
+    let (addr, shutdown) = start_server();
+    let client = gzip_client(&addr, UNARY, ClientOptions::new().with_send_max_bytes(16));
+
+    let err = client
+        .unary(ctx(), Request::new(Msg::of("hello")))
+        .await
+        .expect_err("the client must reject the oversized request");
+
+    assert_eq!(
+        err.current_context().code(),
+        Code::ResourceExhausted,
+        "expected ResourceExhausted, got: {err}"
+    );
+    assert!(
+        err.to_string().contains("send_max_bytes"),
+        "the error must name the limit, got: {err}"
+    );
+    shutdown.turn_on();
 }

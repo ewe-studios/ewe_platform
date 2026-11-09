@@ -806,11 +806,15 @@ impl ProtocolClient for ConnectClient {
             config.compress_min_bytes,
             config.send_max_bytes,
         );
-        let writer: BoxedTask = Box::pin(write_request_frames(
-            ends.request_rx,
-            Arc::clone(&stream.send_body),
-            writer_impl,
-        ));
+        // Keep a response-pipe handle so a writer failure reaches the caller as
+        // the stream's terminal error instead of dying with the task.
+        let writer_tx = ends.response_tx.clone();
+        let writer_cancel = cancel.clone();
+        let writer_task =
+            write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl);
+        let writer: BoxedTask = Box::pin(async move {
+            super::write_or_report(writer_task, &writer_tx, &writer_cancel).await
+        });
         let reader: BoxedTask = Box::pin(async move {
             // One sender keeps the wake pipe open until the reader ends; the
             // publisher holds the other.
