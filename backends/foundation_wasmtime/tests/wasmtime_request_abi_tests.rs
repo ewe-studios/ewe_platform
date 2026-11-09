@@ -10,6 +10,7 @@
 //! HOW: `wat::parse_str` turns the text module into the bytes that
 //! `WasmtimeBuilder` compiles.
 
+use foundation_core::valtron::Ctx;
 use foundation_wasmtime::{WasmtimeBuilder, WasmtimeError, WasmtimeInstance};
 
 /// A module whose `handle_request` echoes the request bytes.
@@ -32,7 +33,7 @@ fn instance_with_cap(wat_source: &str, max_response_bytes: usize) -> WasmtimeIns
     let bytes = wat::parse_str(wat_source).expect("the WAT source parses");
     WasmtimeBuilder::new(bytes)
         .with_max_response_bytes(max_response_bytes)
-        .build()
+        .build(&Ctx::host())
         .expect("the module builds")
 }
 

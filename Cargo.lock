@@ -6186,7 +6186,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",
@@ -6496,9 +6496,12 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasmtime"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
+ "cap-rand",
  "derive_more",
+ "foundation_compact",
+ "foundation_core",
  "foundation_errstacks",
  "tracing",
  "wasmtime",

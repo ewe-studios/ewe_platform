@@ -18,7 +18,9 @@
 
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
+use foundation_core::valtron::{Ctx, MonotonicClock, SimulatedClock};
 use foundation_platform::*;
 use foundation_wasmtime::WasmtimeBuilder;
 use tauri::http::{header, StatusCode};
@@ -65,10 +67,14 @@ fn responder(module: &str) -> WasmtimeResponder {
 
 fn responder_with_cap(module: &str, max_response_bytes: usize) -> WasmtimeResponder {
     let bytes = wat::parse_str(module).expect("the WAT source parses");
+    // These modules read no clock and no randomness, so a plain bundle is
+    // enough. The session-path test below covers the injected values.
+    let ctx = Ctx::new(Arc::new(MonotonicClock::new()));
     WasmtimeResponder::new(
         WasmtimeBuilder::new(bytes)
             .with_name("app_shell")
             .with_max_response_bytes(max_response_bytes),
+        ctx,
     )
 }
 
@@ -126,5 +132,51 @@ fn the_builder_response_cap_applies_to_the_body() {
     assert!(
         body.contains("exceeds the maximum of 4 bytes"),
         "unexpected body: {body}"
+    );
+}
+
+/// A module whose `handle_request` returns the realtime clock in nanoseconds.
+const CLOCK_MODULE: &str = r#"
+(module
+  (import "wasi_snapshot_preview1" "clock_time_get"
+    (func $clock_time_get (param i32 i64 i32) (result i32)))
+  (memory (export "memory") 1)
+  (func (export "ewe_alloc") (param $size i32) (result i32)
+    i32.const 1024)
+  (func (export "handle_request") (param $ptr i32) (param $len i32) (result i64)
+    ;; REALTIME = 0, one nanosecond of precision, result at offset 0.
+    (drop (call $clock_time_get (i32.const 0) (i64.const 1) (i32.const 0)))
+    (i64.const 8)))
+"#;
+
+/// Regression test for issue #426 at the session boundary.
+///
+/// WHY: the session must hand its injected bundle to the wasmtime shell. If the
+/// shell built its own host bundle, the guest would read the real wall clock
+/// and this assertion would fail.
+#[test]
+fn the_session_clock_reaches_the_guest() {
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    clock.advance_wall(Duration::from_secs(1_700_000_000));
+    let session = PlatformSession::new_test(PathBuf::from("."), clock);
+
+    let bytes = wat::parse_str(CLOCK_MODULE).expect("the WAT source parses");
+    session.register_wasmtime("clock", WasmtimeBuilder::new(bytes));
+    let responder = session
+        .wasmtime_shell()
+        .get("clock")
+        .expect("the app is registered");
+
+    let response = responder.respond(
+        &intent("ewe://localhost/clock"),
+        &wasmtime_app("clock"),
+        &session,
+    );
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+        response.body().as_slice(),
+        1_700_000_000u64.saturating_mul(1_000_000_000).to_le_bytes(),
+        "the guest must read the session's clock, not the host clock"
     );
 }

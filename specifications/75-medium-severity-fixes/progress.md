@@ -4,6 +4,38 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #426, the WASI context uses the injected clock and randomness
+
+`foundation_wasmtime::WasmtimeBuilder::build` built the Preview 1 (`WASIp1`) context with
+`WasiCtxBuilder::new().build_p1()`. The context kept the crate defaults: the host wall clock,
+the host monotonic clock and the process RNG. A guest that calls `clock_time_get` or
+`random_get` then read the host globals. That breaks spec 70 rule 11, and a test cannot
+control the value.
+
+| Change | Detail |
+| --- | --- |
+| `build` | Takes `&Ctx`. It sets `wall_clock`, `monotonic_clock` and `secure_random` from `ctx.clock()` and `ctx.rng()` before `build_p1()`. The compiler now rejects a build with no bundle. |
+| Adapters | Private `InjectedWallClock`, `InjectedMonotonicClock` and `InjectedRng` implement the `wasmtime-wasi` host traits over the bundle. `InjectedRng` is a newtype because `cap-rand` and `foundation_compact` use different `rand_core` versions. |
+| Session bundle | `PlatformSession` holds a `Ctx` and gives it to `WasmtimeShell`. `PlatformSession::new` seeds the RNG from `foundation_compact::entropy::fill`, so a host guest gets unpredictable randomness. `PlatformSession::new_test` keeps the deterministic seed. |
+| Public API | `foundation_wasmtime` 0.2.0 → 0.3.0 and `foundation_platform` 0.0.4 → 0.0.5. `WasmtimeResponder::new`, `WasmtimeShell::new` and `WasmtimeBuilder::build` take the bundle. `WasmtimeShell` no longer implements `Default`: a default would be a silent host bundle. |
+| Tests | `tests/wasi_injected_env_tests.rs` has three tests: the realtime clock, the monotonic clock and the random stream. `foundation_platform` adds a session-boundary test that the session clock reaches the guest. |
+
+The three `foundation_wasmtime` tests fail on the old code. The guest returned the real wall
+clock, the real elapsed time and a different random stream. See `learnings.md` for the
+`random_get` sampling detail.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_wasmtime` | Pass, 4 test binaries |
+| `cargo test --profile uat -p foundation_wasmtime --test wasi_injected_env_tests` against the old builder | Fail, 0 passed and 3 failed; this is the regression proof |
+| `cargo test --profile uat -p foundation_platform` | Pass, 19 test binaries |
+| `cargo clippy --profile uat -p foundation_wasmtime --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_platform --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo fmt -p foundation_wasmtime -p foundation_platform -- --check` | Pass |
+| `cargo metadata --locked --offline` for the workspace, `examples/platform_ios/src-tauri` and `examples/platform_android/src-tauri` | Pass |
+
 ## 2026-11-09: issue #427, `foundation_compact` builds for WASI preview 2 and 3
 
 `foundation_compact` selects the `wasi_p2_3` entropy backend for every WASI target that is

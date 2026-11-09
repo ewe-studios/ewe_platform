@@ -5,6 +5,28 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Batch 2, issue #426: a WASI context is part of the side-effect boundary
+
+- `WasiCtxBuilder` has defaults for every side effect: the host wall clock, the host
+  monotonic clock and the process RNG. An empty standard stream, environment and argument set
+  is not an injected context. Pass `wall_clock`, `monotonic_clock` and `secure_random` from
+  the `Ctx`.
+- `HostWallClock::now` returns `std::time::Duration` since the UNIX epoch.
+  `HostMonotonicClock::now` returns nanoseconds. `Clock::wall_now` and `Clock::elapsed` are
+  the two sources.
+- `cap-rand` and `foundation_compact` use different `rand_core` versions. A newtype
+  implements `cap_rand::RngCore` over `ChaCha8Rng`; one type cannot implement both traits
+  with one set of methods.
+- `wasmtime-wasi` fills a `random_get` request with `sample_iter(Standard)`. For a byte, the
+  standard distribution takes the low byte of one `next_u32` draw. A test that expects eight
+  stream bytes fails after the first byte. Compare against eight low bytes.
+- Make the proof exact. A `SimulatedClock` with a known wall time and a fixed RNG seed gives
+  one expected value for each call. The old code fails every assertion, so the test names the
+  defect and not a side effect.
+- Seed the bundle at the host entry point. `PlatformSession::new` fills a 32-byte seed from
+  `foundation_compact::entropy::fill`; `new_test` keeps seed `0`. A test helper must not read
+  the operating system entropy source.
+
 ## Batch 2, issue #416: a `std` guest imports WASI, a `no_std` guest does not
 
 - A guest built for `wasm32-wasip1` with `std` imports functions from `wasi_snapshot_preview1`

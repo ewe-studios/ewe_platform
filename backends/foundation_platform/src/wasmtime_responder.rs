@@ -22,6 +22,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
+use foundation_core::valtron::Ctx;
 use foundation_ui_traits::{NavigationIntent, RouteDecision, RouteSource};
 use tauri::http::{header, Response, StatusCode};
 
@@ -39,15 +40,19 @@ use crate::session::PlatformSession;
 pub struct WasmtimeResponder {
     /// The wasmtime builder. Used once to produce the instance.
     builder: foundation_wasmtime::WasmtimeBuilder,
+    /// The injected side-effect bundle for the guest's WASI clock and
+    /// randomness. The session owns it; this is a shared handle.
+    ctx: Ctx,
     /// Cached instance (built lazily on first request).
     instance: Mutex<Option<foundation_wasmtime::WasmtimeInstance>>,
 }
 
 impl WasmtimeResponder {
     #[must_use]
-    pub fn new(builder: foundation_wasmtime::WasmtimeBuilder) -> Self {
+    pub fn new(builder: foundation_wasmtime::WasmtimeBuilder, ctx: Ctx) -> Self {
         Self {
             builder,
+            ctx,
             instance: Mutex::new(None),
         }
     }
@@ -68,7 +73,7 @@ impl WasmtimeResponder {
         if guard.is_none() {
             let instance = self
                 .builder
-                .build()
+                .build(&self.ctx)
                 .map_err(|e| format!("wasmtime build: {e}"))?;
             *guard = Some(instance);
         }
@@ -116,13 +121,17 @@ fn error_response(message: String) -> Response<Vec<u8>> {
 /// `WasmtimeBuilder` that produces an instance on first request.
 pub struct WasmtimeShell {
     apps: RwLock<HashMap<String, Arc<WasmtimeResponder>>>,
+    /// The injected side-effect bundle that every registered app receives. The
+    /// session builds it once, so a guest never reads the host globals.
+    ctx: Ctx,
 }
 
 impl WasmtimeShell {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             apps: RwLock::new(HashMap::new()),
+            ctx,
         }
     }
 
@@ -135,7 +144,7 @@ impl WasmtimeShell {
     ///
     /// Panics if the internal `RwLock` is poisoned.
     pub fn register(&self, name: &str, builder: foundation_wasmtime::WasmtimeBuilder) {
-        let responder = Arc::new(WasmtimeResponder::new(builder));
+        let responder = Arc::new(WasmtimeResponder::new(builder, self.ctx.clone()));
         self.apps
             .write()
             .unwrap()
@@ -161,12 +170,6 @@ impl WasmtimeShell {
     #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.apps.read().unwrap().keys().cloned().collect()
-    }
-}
-
-impl Default for WasmtimeShell {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

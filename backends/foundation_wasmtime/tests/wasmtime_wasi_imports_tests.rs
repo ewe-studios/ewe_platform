@@ -14,6 +14,7 @@
 //! HOW: `wat::parse_str` turns the text module into the bytes that
 //! `WasmtimeBuilder` compiles.
 
+use foundation_core::valtron::Ctx;
 use foundation_wasmtime::WasmtimeBuilder;
 
 /// The fixed response body.
@@ -45,9 +46,11 @@ const WASI_IMPORT_MODULE: &str = r#"
 #[test]
 fn guest_with_a_wasi_import_instantiates_and_responds() {
     let bytes = wat::parse_str(WASI_IMPORT_MODULE).expect("the WAT source parses");
+    // This test reads no clock and no randomness, so the host bundle is enough.
+    let ctx = Ctx::host();
     let mut instance = WasmtimeBuilder::new(bytes)
         .with_name("wasi-import")
-        .build()
+        .build(&ctx)
         .expect("a guest with a WASI import must link and instantiate");
 
     let body = instance

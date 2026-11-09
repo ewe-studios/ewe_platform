@@ -14,7 +14,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
-use foundation_core::valtron::Clock;
+use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
+use foundation_core::valtron::{Clock, Ctx};
 
 use crate::backend::http::HttpBackend;
 use crate::clock::wall_millis;
@@ -133,6 +134,11 @@ pub struct PlatformSession {
 
     /// The host clock this session and its subsystems stamp wall times from.
     clock: Arc<dyn Clock>,
+
+    /// The injected side-effect bundle (clock and RNG) for code that runs
+    /// outside the process, such as a wasmtime guest. Subsystems read it from
+    /// here; no subsystem reads the host globals directly.
+    ctx: Ctx,
 }
 
 // ── Construction ──────────────────────────────────────────────────────
@@ -147,6 +153,21 @@ impl PlatformSession {
         resource_root: PathBuf,
         script_injector: crate::injector::ScriptInjector,
         clock: Arc<dyn Clock>,
+    ) -> Arc<Self> {
+        let ctx = host_session_ctx(&clock);
+        Self::with_ctx(resource_root, script_injector, clock, ctx)
+    }
+
+    /// Build the session with a caller-supplied side-effect bundle.
+    ///
+    /// [`Self::new`] passes a host bundle and [`Self::new_test`] passes a
+    /// deterministic one. Nothing else calls this, so a caller cannot replace
+    /// the bundle by accident.
+    fn with_ctx(
+        resource_root: PathBuf,
+        script_injector: crate::injector::ScriptInjector,
+        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Arc<Self> {
         let session_id = SessionId(wall_millis(clock.as_ref()));
 
@@ -176,23 +197,52 @@ impl PlatformSession {
                 feature = "wasmtime",
                 not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
             ))]
-            wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(),
+            wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(ctx.clone()),
             clock,
+            ctx,
         })
     }
 }
 
 impl PlatformSession {
     /// TEST ONLY: create a session with an empty ScriptInjector and `clock`.
+    ///
+    /// The side-effect bundle keeps the deterministic default RNG (seed `0`),
+    /// so a test that reads guest randomness is repeatable.
     #[doc(hidden)]
     #[must_use]
     pub fn new_test(resource_root: PathBuf, clock: Arc<dyn Clock>) -> Arc<Self> {
-        Self::new(
+        let ctx = Ctx::new(Arc::clone(&clock));
+        Self::with_ctx(
             resource_root,
             crate::injector::ScriptInjector::new(PathBuf::from(".")),
             clock,
+            ctx,
         )
     }
+}
+
+/// Build the side-effect bundle for a host entry point.
+///
+/// The clock is the one the caller injected. The RNG is seeded from the
+/// operating system, so guest randomness is unpredictable. If the entropy
+/// source fails, the bundle keeps the deterministic default and the session
+/// logs a warning: app launch cannot fail for this, but an operator must see
+/// that guest randomness is predictable (issue #426).
+fn host_session_ctx(clock: &Arc<dyn Clock>) -> Ctx {
+    let ctx = Ctx::new(Arc::clone(clock));
+    let mut seed = [0u8; 32];
+    match foundation_compact::entropy::fill(&mut seed) {
+        Ok(()) => {
+            *ctx.rng().lock().expect("session ctx RNG mutex is poisoned") =
+                ChaCha8Rng::from_seed(seed);
+        }
+        Err(error) => tracing::warn!(
+            %error,
+            "session entropy is unavailable; guest randomness is deterministic"
+        ),
+    }
+    ctx
 }
 
 // ── Route handler registration ────────────────────────────────────────
@@ -573,6 +623,16 @@ impl PlatformSession {
     #[must_use]
     pub fn clock(&self) -> &Arc<dyn Clock> {
         &self.clock
+    }
+
+    /// The injected side-effect bundle for code that runs outside the process.
+    ///
+    /// Its clock is the same handle that [`Self::clock`] returns. A subsystem
+    /// that starts a guest passes this bundle to it, so the guest reads the
+    /// session's clock and RNG.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 
     /// The current visit counter value (before increment).

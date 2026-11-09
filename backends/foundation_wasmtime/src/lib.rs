@@ -55,12 +55,16 @@
 //! - the call traps.
 
 use std::path::Path;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration as StdDuration, UNIX_EPOCH};
 
 use derive_more::Display;
+use foundation_compact::rng::{ChaCha8Rng, Rng as CompactRng};
+use foundation_core::valtron::{Clock, Ctx};
 use foundation_errstacks::ErrorTrace;
 use wasmtime::{Engine, Instance, Linker, Memory, Module, Store};
 use wasmtime_wasi::preview1::{self, WasiP1Ctx};
-use wasmtime_wasi::WasiCtxBuilder;
+use wasmtime_wasi::{HostMonotonicClock, HostWallClock, RngCore, WasiCtxBuilder};
 
 /// Export name of the linear memory in the request/response ABI.
 const MEMORY_EXPORT: &str = "memory";
@@ -68,6 +72,99 @@ const MEMORY_EXPORT: &str = "memory";
 const ALLOC_EXPORT: &str = "ewe_alloc";
 /// Export name of the guest request handler.
 const HANDLE_REQUEST_EXPORT: &str = "handle_request";
+
+// ── Injected side-effect sources ─────────────────────────────────────────
+
+/// The guest's wall clock, taken from the injected bundle.
+///
+/// WHY: WASI `clock_time_get(REALTIME)` must read the session's clock, not the
+/// host global. A test then controls realtime too (spec 70 rule 11).
+#[derive(Clone)]
+struct InjectedWallClock {
+    clock: Arc<dyn Clock>,
+}
+
+impl HostWallClock for InjectedWallClock {
+    fn resolution(&self) -> StdDuration {
+        // The `Clock` trait reports no resolution, so declare the finest one.
+        StdDuration::from_nanos(1)
+    }
+
+    fn now(&self) -> StdDuration {
+        // A clock seeded before the UNIX epoch cannot represent a WASI
+        // timestamp. Report the epoch instead of returning a wrapped value.
+        self.clock
+            .wall_now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or(StdDuration::ZERO)
+    }
+}
+
+/// The guest's monotonic clock, taken from the injected bundle.
+///
+/// WHY: WASI `clock_time_get(MONOTONIC)` must read the session's clock, so a
+/// test with a simulated clock sees the time it advanced, not real time.
+#[derive(Clone)]
+struct InjectedMonotonicClock {
+    clock: Arc<dyn Clock>,
+}
+
+impl HostMonotonicClock for InjectedMonotonicClock {
+    fn resolution(&self) -> u64 {
+        1
+    }
+
+    fn now(&self) -> u64 {
+        // `elapsed` is monotonic by the `Clock` contract. Nanoseconds do not
+        // fit in `u64` only after about 584 years; saturate rather than wrap.
+        u64::try_from(self.clock.elapsed().as_nanos()).unwrap_or(u64::MAX)
+    }
+}
+
+/// The guest's randomness, taken from the injected bundle.
+///
+/// WHY: WASI `random_get` must draw from the session's RNG, so the host entry
+/// point can seed it from the operating system and a test can seed it with a
+/// fixed value.
+///
+/// `cap_rand::RngCore` and this crate's RNG come from different `rand_core`
+/// versions, so this newtype adapts instead of sharing a trait implementation.
+struct InjectedRng {
+    rng: Arc<Mutex<ChaCha8Rng>>,
+}
+
+impl RngCore for InjectedRng {
+    fn next_u32(&mut self) -> u32 {
+        CompactRng::next_u32(&mut *self.lock())
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        CompactRng::next_u64(&mut *self.lock())
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        CompactRng::fill_bytes(&mut *self.lock(), dest);
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> std::result::Result<(), cap_rand::Error> {
+        // `ChaCha8Rng` cannot fail to fill a buffer.
+        self.fill_bytes(dest);
+        Ok(())
+    }
+}
+
+impl InjectedRng {
+    /// Take the RNG lock.
+    ///
+    /// A poisoned lock means a thread panicked while holding it. The RNG state
+    /// is still usable, so recover it instead of panicking across the guest
+    /// call.
+    fn lock(&self) -> std::sync::MutexGuard<'_, ChaCha8Rng> {
+        self.rng
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
 
 // ── Host state ───────────────────────────────────────────────────────────
 
@@ -77,10 +174,15 @@ const HANDLE_REQUEST_EXPORT: &str = "handle_request";
 /// `wasi_snapshot_preview1`. A guest built with `std` for `wasm32-wasip1`
 /// imports such functions, even when the guest does not call them.
 ///
-/// The context is empty. It gives the guest no standard input, output or error
-/// stream, no environment variables and no arguments. A call that needs one of
-/// them fails inside the guest, as a WASI runtime error, and the host does not
-/// widen the guest's reach.
+/// The context gives the guest no standard input, output or error stream, no
+/// environment variables and no arguments. A call that needs one of them fails
+/// inside the guest, as a WASI runtime error, and the host does not widen the
+/// guest's reach.
+///
+/// The clock and the randomness are not empty: they come from the injected
+/// [`Ctx`] that [`WasmtimeBuilder::build`] takes. A guest that calls
+/// `clock_time_get` or `random_get` reads the session's clock and RNG, so a
+/// test controls them and the host never falls back to the process globals.
 struct HostState {
     /// The Preview 1 context.
     wasi: WasiP1Ctx,
@@ -211,14 +313,16 @@ impl WasmtimeBuilder {
     ///   guest built with `std` for `wasm32-wasip1` imports. A `no_std` guest
     ///   imports none of them and still links.
     ///
-    /// The WASI context is empty. The guest gets no standard streams, no
-    /// environment variables and no arguments. See the `HostState` type for
-    /// the rule.
+    /// The WASI context has no standard streams, no environment variables and
+    /// no arguments. Its clock and randomness come from `ctx`, never from the
+    /// host globals. The caller owns `ctx`: a host entry point passes a context
+    /// that it seeded from the operating system, and a test passes one with a
+    /// simulated clock and a fixed RNG.
     ///
     /// # Errors
     ///
     /// Returns an error if the module does not compile or link.
-    pub fn build(&self) -> Result<WasmtimeInstance> {
+    pub fn build(&self, ctx: &Ctx) -> Result<WasmtimeInstance> {
         let engine = Engine::default();
         let module = Module::from_binary(&engine, &self.wasm_bytes)
             .map_err(|e| ErrorTrace::new(WasmtimeError::Compile(e.to_string())))?;
@@ -230,7 +334,14 @@ impl WasmtimeBuilder {
         preview1::add_to_linker_sync(&mut linker, |state: &mut HostState| &mut state.wasi)
             .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
 
-        let wasi = WasiCtxBuilder::new().build_p1();
+        let clock = ctx.clock();
+        let mut wasi = WasiCtxBuilder::new();
+        wasi.wall_clock(InjectedWallClock {
+            clock: Arc::clone(&clock),
+        })
+        .monotonic_clock(InjectedMonotonicClock { clock })
+        .secure_random(InjectedRng { rng: ctx.rng() });
+        let wasi = wasi.build_p1();
         let mut store = Store::new(&engine, HostState { wasi });
         let instance = linker
             .instantiate(&mut store, &module)
