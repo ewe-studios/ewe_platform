@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::Ctx;
 
-fn takes_core_ctx(ctx: Ctx) -> u32 {
+fn takes_core_ctx(ctx: &Ctx) -> u32 {
     *ctx.get::<u32>().expect("the entry is present")
 }
 
@@ -13,7 +13,7 @@ fn the_re_export_is_the_same_type() {
     let ctx: foundation_context::Ctx = foundation_context::Ctx::host();
     ctx.insert(Arc::new(9u32));
 
-    assert_eq!(takes_core_ctx(ctx), 9);
+    assert_eq!(takes_core_ctx(&ctx), 9);
 }
 
 #[test]
