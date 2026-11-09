@@ -152,14 +152,6 @@ pub struct ConnectionHandler {
     total_delay_cycles: u32,
     /// The engine clock, seeded from the pool root `Ctx`.
     clock: Arc<dyn foundation_core::valtron::Clock>,
-    /// The socket watched on the shared reactor while the connection waits for
-    /// its next request. `None` until first needed, or when the transport
-    /// cannot be watched this way (the overlay, or a failed registration).
-    #[cfg(unix)]
-    socket: Option<Arc<SocketReadiness>>,
-    /// Registration on the reactor was tried (and `socket` holds its outcome).
-    #[cfg(unix)]
-    socket_tried: bool,
 }
 
 impl ConnectionHandler {
@@ -210,10 +202,6 @@ impl ConnectionHandler {
             idle_since: None,
             total_delay_cycles: 0,
             clock,
-            #[cfg(unix)]
-            socket: None,
-            #[cfg(unix)]
-            socket_tried: false,
         }
     }
 
@@ -388,10 +376,6 @@ impl ConnectionHandler {
 
         tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
 
-        // Forget readiness seen before this read and arm the socket, so an edge
-        // that arrives after the read fails stays set and wakes this task.
-        self.arm_idle_socket();
-
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(req)) => {
                 // Version gate, before the body is read and before any
@@ -514,44 +498,40 @@ impl ConnectionHandler {
         self.park_on_socket()
     }
 
-    /// Register the socket with the shared reactor once, then clear its latched
-    /// readiness before this turn reads from it.
-    ///
-    /// The reactor latches readiness until it is cleared, so the clear must come
-    /// before the read: an edge that arrives after a failed read then stays set
-    /// and wakes this task. Clearing after the read could erase that edge. The
-    /// overlay has no kernel file descriptor, so there is nothing to watch.
-    #[cfg(unix)]
-    fn arm_idle_socket(&mut self) {
-        if !self.socket_tried {
-            self.socket_tried = true;
-            let fd = self.conn.with_inner_ref(|raw: &RawStream| raw.as_raw_fd());
-            if fd >= 0 {
-                match SocketReadiness::register(fd) {
-                    Ok(readiness) => self.socket = Some(Arc::new(readiness)),
-                    Err(e) => tracing::debug!(
-                        client_ip = %self.client_ip,
-                        error = %e,
-                        "Idle: cannot watch the socket on the reactor; polling instead"
-                    ),
-                }
-            }
-        }
-        if let Some(socket) = self.socket.as_ref() {
-            socket.clear();
-        }
-    }
-
-    #[cfg(not(unix))]
-    fn arm_idle_socket(&mut self) {}
-
     /// Park on the socket's read readiness, the idle deadline and shutdown.
-    /// `None` when the socket is not watched on the reactor.
+    /// `None` when the transport has no kernel file descriptor to watch, so the
+    /// caller falls back to the delay and timeout path.
+    ///
+    /// The registration is made here, at each park, and dropped when the task
+    /// runs again. It must not be cached for the life of the connection: other
+    /// code on the same fd (the response writer, the RPC connection IO) also
+    /// registers the fd with the shared reactor and drops that registration
+    /// when it finishes. The reactor keeps one selector registration per fd, so
+    /// a drop deregisters the fd even when another token's entry still exists.
+    /// A cached registration would then wait on an fd that the selector no
+    /// longer watches, and a new request would never wake it. A fresh
+    /// registration always owns the fd at the moment this task parks, and a
+    /// stale drop elsewhere cannot cancel it (the reactor only deregisters the
+    /// live token for the fd).
     #[cfg(unix)]
     fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
-        let socket = self.socket.as_ref()?;
+        let fd = self.conn.with_inner_ref(|raw: &RawStream| raw.as_raw_fd());
+        if fd < 0 {
+            return None;
+        }
+        let socket = match SocketReadiness::register(fd) {
+            Ok(readiness) => Arc::new(readiness),
+            Err(e) => {
+                tracing::debug!(
+                    client_ip = %self.client_ip,
+                    error = %e,
+                    "Idle: cannot watch the socket on the reactor; polling instead"
+                );
+                return None;
+            }
+        };
         let mut ready = AnyReadiness::either(
-            Arc::clone(socket) as EventReadinessPtr,
+            socket as EventReadinessPtr,
             Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),
         );
         // End the connection at the idle deadline even when no bytes arrive.
