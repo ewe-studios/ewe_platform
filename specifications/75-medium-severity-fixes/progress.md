@@ -4,6 +4,20 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #436, every package denies clippy warnings
+
+The workspace has 110 packages and 108 run clippy. Only 15 set
+`clippy-deny-warnings`, so 93 could print warnings and pass. `[defaults]` now sets
+`clippy-deny-warnings = true`, so the remaining 93 enforce the gate.
+
+The change edits `ci/packages.toml`, which is a global path. The plan therefore selects
+every package, and the next audit is the full inventory of the remaining warnings. A
+package that fails keeps the gate on and gets its warnings cleared. A package that cannot
+be clean yet sets the flag to false with a `reason`.
+
+Status: the gate is on; the inventory run is in progress. The `#436` work starts when the
+run lists the failing packages.
+
 ## 2026-11-09: the branch's first full CI run, two gates and two issues
 
 The first full audit of the branch ran on 2026-11-09. The image build failed first
