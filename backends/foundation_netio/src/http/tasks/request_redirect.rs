@@ -13,23 +13,26 @@
 //! the connection plus a response reader, and any response head it already read.
 //!
 //! HOW: once connected, a connection that can report readiness (kernel TCP/Unix
-//! sockets, rustls over them, the overlay) is switched to non-blocking. Each step
-//! then moves bytes until the socket would block, and returns
+//! sockets, every TLS backend over them, the overlay) is switched to
+//! non-blocking. Each step moves bytes until the socket would block, and returns
 //! `TaskStatus::Depends` on "socket ready, or deadline passed". Writes go through
 //! [`PendingBytes`], so a partial write resumes exactly where it stopped. The
 //! 100-continue wait is a readiness wait bounded by
 //! `ClientConfig::expect_continue_read_timeout`. The body goes out when
 //! `100 Continue` arrives or the timer fires, whichever comes first (RFC 9110
-//! §10.1.1). Transports that cannot report readiness (completion sockets, the
-//! openssl and native-tls backends) keep the blocking path, with kernel read
-//! timeouts.
+//! §10.1.1). Transports that cannot report readiness (completion sockets) keep
+//! the blocking path, with kernel read timeouts.
 
 use crate::http::{HttpClientConnection, HttpConnectionPool};
 use crate::native::readiness::io_or_deadline;
 #[cfg(unix)]
 use crate::native::readiness::SocketReadiness;
 use crate::native::readiness::{DeadlineReadiness, IoInterest};
-#[cfg(feature = "ssl-rustls")]
+#[cfg(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+))]
 use crate::netcap::ssl::{ClientSSLStream, SSLConnector};
 #[cfg(unix)]
 use crate::netcap::PendingConnect;
@@ -216,7 +219,14 @@ pub struct Connecting<R: DnsResolver + Send + 'static> {
 /// handshake's wait use the body's idle deadline instead of the connect deadline.
 /// This state drives `complete_io` until the handshake finishes or the socket
 /// would block, and parks on the direction rustls asks for.
-#[cfg(all(unix, feature = "ssl-rustls"))]
+#[cfg(all(
+    unix,
+    any(
+        feature = "ssl-rustls",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls"
+    )
+))]
 pub struct TlsHandshake<R: DnsResolver + Send + 'static> {
     exchange: PendingExchange<R>,
     conn: ClientSSLStream,
@@ -234,7 +244,14 @@ pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     #[cfg(unix)]
     Connecting(Option<Box<Connecting<R>>>),
     /// Non-blocking: the TLS handshake is in flight.
-    #[cfg(all(unix, feature = "ssl-rustls"))]
+    #[cfg(all(
+        unix,
+        any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )
+    ))]
     TlsHandshake(Option<Box<TlsHandshake<R>>>),
     /// Non-blocking: writing the request head.
     SendingHead(Option<Box<SendingHead<R>>>),
@@ -507,12 +524,17 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             .is_some_and(|_| !crate::shared::client::ProxyConfig::should_bypass(&target_host));
 
         // Direct TCP (no proxy, no custom connector, no unix): non-blocking connect
-        // (feature 04). TLS needs the rustls backend to drive the handshake without
-        // blocking; other TLS backends keep the blocking path.
+        // (feature 04). Every TLS backend can drive the handshake from readiness,
+        // so a TLS target uses the same path.
         #[cfg(unix)]
         let can_nonblocking = !proxy_applies
             && pool.connector.is_none()
-            && (!use_tls || cfg!(feature = "ssl-rustls"));
+            && (!use_tls
+                || cfg!(any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )));
 
         #[cfg(unix)]
         if can_nonblocking {
@@ -528,7 +550,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             });
         }
 
-        // Blocking fallback (proxy, custom connector, non-unix, non-rustls TLS).
+        // Blocking fallback (proxy, custom connector, non-unix, or no TLS
+        // backend).
         let clock = self.engine_clock();
         let connection = match pool.create_connection_with_proxy(
             &descriptor.request_uri,
@@ -831,10 +854,14 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             return self.finish_connected(exchange, connection);
         }
 
-        // TLS target: build the rustls stream and drive the handshake (feature 04
-        // §2.2). This branch is only reached when `ssl-rustls` is enabled (see the
-        // `can_nonblocking` gate in `trying`).
-        #[cfg(feature = "ssl-rustls")]
+        // TLS target: build the TLS stream and drive the handshake (feature 04
+        // §2.2). This branch is only reached when a TLS backend is enabled (see
+        // the `can_nonblocking` gate in `trying`).
+        #[cfg(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        ))]
         {
             let connector = exchange
                 .pool
@@ -857,16 +884,28 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             ))));
             TaskStatus::Pending(HttpOperationState::Connecting)
         }
-        #[cfg(not(feature = "ssl-rustls"))]
+        #[cfg(not(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )))]
         {
             let _ = (exchange, connection, deadline);
-            unreachable!("non-blocking TLS requires the ssl-rustls backend")
+            unreachable!("non-blocking TLS requires a TLS backend")
         }
     }
 
-    /// Drive the rustls handshake on the non-blocking socket (feature 04 §2.2).
-    /// Parks on the direction rustls asks for, bounded by the connect deadline.
-    #[cfg(all(unix, feature = "ssl-rustls"))]
+    /// Drive the TLS handshake on the non-blocking socket (feature 04 §2.2).
+    /// Parks on the direction the TLS session asks for, bounded by the connect
+    /// deadline.
+    #[cfg(all(
+        unix,
+        any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )
+    ))]
     fn tls_handshake(&mut self, st: Box<TlsHandshake<R>>) -> Step {
         match st.conn.drive_handshake() {
             Ok(()) => {
@@ -1566,7 +1605,14 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                 };
                 Some(self.connecting(state))
             }
-            #[cfg(all(unix, feature = "ssl-rustls"))]
+            #[cfg(all(
+                unix,
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )
+            ))]
             HttpRequestRedirectState::TlsHandshake(inner_opt) => {
                 tracing::trace!("HttpRequestRedirectState::TlsHandshake");
                 let Some(state) = inner_opt else {

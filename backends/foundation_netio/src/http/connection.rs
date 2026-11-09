@@ -186,6 +186,7 @@ impl HttpClientConnection {
                             connection,
                             &host,
                             port,
+                            timeout,
                             tls_connector,
                         );
                     }
@@ -226,8 +227,9 @@ impl HttpClientConnection {
         connection: Connection,
         host: &str,
         port: u16,
+        timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError> {
-        Self::upgrade_to_tls_with_config(connection, host, port, None)
+        Self::upgrade_to_tls_with_config(connection, host, port, timeout, None)
     }
 
     #[cfg(any(
@@ -239,6 +241,7 @@ impl HttpClientConnection {
         connection: Connection,
         host: &str,
         port: u16,
+        timeout: Option<Duration>,
         tls_connector: Option<&SSLConnector>,
     ) -> Result<Self, HttpClientError> {
         let default_connector;
@@ -248,8 +251,10 @@ impl HttpClientConnection {
             default_connector = SSLConnector::new();
             &default_connector
         };
+        // Finish the handshake here: this constructor is synchronous, and the
+        // caller reads and writes the stream next.
         let (tls_stream, _addr) = connector
-            .from_tcp_stream(host.to_string(), connection)
+            .from_tcp_stream_complete(host.to_string(), connection, timeout)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
@@ -272,7 +277,12 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
-    fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
+    fn upgrade_to_tls(
+        _connection: Connection,
+        _host: &str,
+        _port: u16,
+        _timeout: Option<Duration>,
+    ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
 
@@ -285,6 +295,7 @@ impl HttpClientConnection {
         _connection: Connection,
         _host: &str,
         _port: u16,
+        _timeout: Option<Duration>,
         _tls_connector: Option<&SSLConnector>,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
@@ -563,7 +574,7 @@ impl HttpClientConnection {
             match conn_result {
                 Ok(connection) => {
                     // Upgrade to TLS
-                    return Self::upgrade_to_tls(connection, &host, port);
+                    return Self::upgrade_to_tls(connection, &host, port, timeout);
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -807,6 +818,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                     conn,
                     &host,
                     port,
+                    timeout,
                     self.tls_connector.as_deref(),
                 );
             }
@@ -1325,6 +1337,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                             tunnel_connection,
                             &target_host,
                             target_port,
+                            timeout,
                             self.tls_connector.as_deref(),
                         );
                     }

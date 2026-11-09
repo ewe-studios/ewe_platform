@@ -2561,3 +2561,42 @@ them puts two generations in the graph. The compiler then reports two identical
 type names as different types (`Arc<arrow_schema::schema::Schema>` against the
 same spelling), which reads as a lie until you check `cargo tree -d`. Bump the
 whole family, then run the dependent crate's tests, not only its check.
+
+## A synchronous boundary must not call `block_on_future`
+
+`block_on_future` panics when the executor pool is not initialized under the
+`multi` feature. A plain `#[test]` has no pool. A sync constructor that drives a
+non-blocking state machine must wait on readiness with `poll(2)`, not by
+starting a task and blocking on it. The constructors keep their blocking
+signature but start a non-blocking connect and handshake, then wait on the same
+socket readiness a task parks on. This keeps the stream usable from a sync
+caller and does not hand a worker to the kernel.
+
+## A lazy TLS stream can hide a missing handshake
+
+`RustlsConnector::from_tcp_stream` only builds the stream. It does not run the
+handshake. A test that asserts "connect succeeded" and then joins the server
+thread never proves that a handshake happened: the server side is lazy too.
+After `connect_with_tls_config` started completing the handshake (issue #277),
+the test failed with "unexpected end of file" because the server thread dropped
+its lazy stream at once. A TLS test must drive both sides, and it must assert
+the handshake result, not only that construction returned `Ok`.
+
+## Feature-gated backends need a build of their own
+
+TLS backend priority means only one module compiles: `ssl-rustls` wins over
+`ssl-openssl` and `ssl-native-tls`. The two non-default modules had an `impl`
+of a trait that does not exist (`ReadTimeoutInto` rather than
+`ReadTimeoutOperations`) and a missing `Debug` impl. The default build never
+compiled them, and continuous integration only runs on the default tree. A
+change to a gated module must run `cargo check` with
+`--no-default-features --features ssl-openssl` and `ssl-native-tls` alone.
+A cached artifact can report success after the source changed; clean the
+package first when the result is unclear.
+
+## A clippy gate is only as wide as its feature list
+
+`ci/packages.toml` does not set `clippy-deny-warnings` for `foundation_netio`.
+The default tree is clean, but the `quic` tree has 74 pedantic warnings in
+`quic`, `http3` and `webtransport`. `cargo clippy --features quic -- -D
+warnings` therefore fails. Issue #419 records the debt.

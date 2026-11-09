@@ -2737,3 +2737,30 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   package job passed; the macOS build and the publish dry-run are skipped for a
   pull request, as designed. The branch is green on its final head. The merge
   is the only remaining step, and it is the owner's to take.
+- 2026-11-09: issues #277 and #279 are fixed on branch
+  `fix/medium-netio-nonblocking`. Connect and the TLS handshake no longer hold
+  a worker. The changes are:
+  - A shared non-blocking TCP and Unix socket connect. The sync constructors
+    (`Connection::without_timeout`, `with_timeout`, `connect_unix`,
+    `TcpStreamWrapper`) settle the connect from readiness, then restore
+    blocking mode.
+  - A shared `complete_handshake_blocking` driver. The sync connector
+    constructors use it. It drives the handshake on a non-blocking socket and
+    waits on readiness with a deadline from `MonotonicClock`.
+  - The openssl and native-tls backends now keep the pending handshake, expose
+    `drive_handshake`, `readiness`, `conn_readiness`, `set_nonblocking` and
+    `is_nonblocking`, and join the same task path as rustls.
+  - `TlsHandshakeTask` now parks with `TaskStatus::Depends` on socket
+    readiness. It has a configurable timeout, and it no longer runs a blocking
+    handshake inside `next_status`.
+  - The HTTP redirect task accepts every TLS backend, not only rustls.
+  - New tests: four synchronous boundary and readiness tests in
+    `tests/tcp_and_tls/nonblocking_connect_tls.rs`, and an updated
+    `test_connection_https_local` that drives the server handshake.
+  - `foundation_netio` is 0.0.10. Every consumer requirement is updated.
+  - Issue #418 (severity high) is fixed here: the openssl and native-tls
+    backends did not compile. Issue #419 (severity medium) records 74 pedantic
+    clippy warnings in the quic tree. Issue #420 (severity medium) records the
+    hard-coded 5 second read timeout in `Connection::connect_unix`.
+  - Next: wait for the pull request CI run. The `quic` clippy gate stays
+    outside the required commands until #419 is fixed.

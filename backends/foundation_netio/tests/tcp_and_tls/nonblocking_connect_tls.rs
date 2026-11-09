@@ -373,3 +373,158 @@ mod tls {
         );
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Synchronous boundary and readiness
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// These tests run without a valtron pool. They pin that a synchronous caller
+/// still gets an established connection, and that the connect and handshake are
+/// settled by readiness rather than by a blocking socket call that hands a
+/// worker to the kernel.
+#[cfg(unix)]
+mod sync_boundary {
+    use super::*;
+    use foundation_netio::native::readiness::{IoInterest, SocketReadiness};
+    use foundation_netio::netcap::connection::Connection;
+    use std::io::ErrorKind;
+    use std::net::{TcpListener, TcpStream};
+    use std::os::unix::io::AsRawFd;
+    use std::os::unix::net::UnixStream;
+
+    /// The convenience constructor settles from `SO_ERROR` and restores
+    /// blocking mode. No pool is initialised, so a `block_on_future` shortcut
+    /// would panic here.
+    #[test]
+    fn convenience_connect_settles_without_a_pool() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+        let addr = listener.local_addr().expect("addr");
+        let server = std::thread::spawn(move || {
+            let (socket, _) = listener.accept().expect("accept");
+            drop(socket);
+        });
+
+        let connection = Connection::with_timeout(addr, Duration::from_secs(5))
+            .expect("the non-blocking connect settles");
+        assert!(
+            !connection.is_nonblocking().expect("read blocking mode"),
+            "the convenience constructor must return a blocking stream"
+        );
+
+        drop(connection);
+        server.join().expect("server");
+    }
+
+    /// A refused connect reports `ConnectionRefused`, not a timeout.
+    #[test]
+    fn refused_connect_keeps_its_error_kind() {
+        let port = {
+            let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+            listener.local_addr().expect("addr").port()
+        };
+        let addr: SocketAddr = format!("127.0.0.1:{port}")
+            .parse()
+            .expect("loopback address");
+
+        let err = Connection::with_timeout(addr, Duration::from_secs(5))
+            .expect_err("nothing listens on the port");
+        let io = err.downcast::<std::io::Error>().expect("an io error");
+        assert_eq!(io.kind(), ErrorKind::ConnectionRefused);
+    }
+
+    /// `wait_blocking` waits for the fd, returns `false` at the deadline, and
+    /// returns `true` once the peer makes the fd readable.
+    #[test]
+    fn socket_readiness_waits_then_wakes() {
+        let (reader, writer) = UnixStream::pair().expect("socket pair");
+        let readiness = SocketReadiness::new(reader.as_raw_fd(), IoInterest::Readable);
+
+        let started = Instant::now();
+        let ready = readiness
+            .wait_blocking(Some(Instant::now() + Duration::from_millis(50)))
+            .expect("poll");
+        assert!(!ready, "an idle socket must report no readiness");
+        assert!(
+            started.elapsed() >= Duration::from_millis(40),
+            "wait_blocking returned before the deadline"
+        );
+
+        (&writer).write_all(b"x").expect("make the socket readable");
+        assert!(
+            readiness
+                .wait_blocking(Some(Instant::now() + Duration::from_secs(2)))
+                .expect("poll"),
+            "a socket with a pending byte must report readiness"
+        );
+    }
+
+    /// The rustls handshake stalls while the server is silent, then completes
+    /// once the readiness wait says the socket turned.
+    ///
+    /// This is the same sequence a valtron task follows: `drive_handshake`,
+    /// park on readiness, drive again.
+    #[cfg(feature = "ssl-rustls")]
+    #[test]
+    fn rustls_handshake_progresses_on_readiness() {
+        use foundation_netio::netcap::ssl::SSLAcceptor;
+        use foundation_testing::http::test_tls_connector;
+        use zeroize::Zeroizing;
+
+        fn fixture(name: &str) -> Vec<u8> {
+            let path = format!(
+                "{}/tests/tcp_and_tls/fixtures/{name}",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            std::fs::read(path).expect("read TLS fixture")
+        }
+
+        let acceptor =
+            SSLAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
+                .expect("acceptor");
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+        let addr = listener.local_addr().expect("addr");
+        let server = std::thread::spawn(move || {
+            let (socket, _) = listener.accept().expect("accept");
+            std::thread::sleep(Duration::from_millis(300));
+            let mut tls = acceptor
+                .accept(Connection::Tcp(socket))
+                .expect("tls accept");
+            let mut buf = [0u8; 1024];
+            let _ = tls.read(&mut buf);
+        });
+
+        let plain = TcpStream::connect(addr).expect("connect");
+        plain.set_nonblocking(true).expect("set non-blocking");
+        let connector = test_tls_connector();
+        let (stream, _addr) = connector
+            .from_tcp_stream("localhost".to_string(), Connection::Tcp(plain))
+            .expect("start the handshake");
+
+        let first = stream.drive_handshake();
+        let err = first.expect_err("the server has not answered the ClientHello yet");
+        assert_eq!(err.kind(), ErrorKind::WouldBlock);
+
+        let (fd, interest) = stream
+            .conn_readiness()
+            .poll_fd(IoInterest::Readable)
+            .expect("the rustls stream has a socket fd");
+        let readiness = SocketReadiness::new(fd, interest);
+        let deadline = Instant::now() + Duration::from_secs(5);
+
+        loop {
+            match stream.drive_handshake() {
+                Ok(()) => break,
+                Err(err) if err.kind() == ErrorKind::WouldBlock => {
+                    assert!(
+                        readiness.wait_blocking(Some(deadline)).expect("poll"),
+                        "the handshake did not make progress before its deadline"
+                    );
+                }
+                Err(err) => panic!("the handshake failed: {err}"),
+            }
+        }
+
+        drop(stream);
+        server.join().expect("server");
+    }
+}
