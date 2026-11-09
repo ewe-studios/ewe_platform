@@ -26,6 +26,8 @@ _Newest first. Updated after each batch. See
   owns the waker, so the callback stays on that one thread. The type must not move.
 - Use `#[cfg_attr(not(feature = "multi"), expect(clippy::arc_with_non_send_sync, ...))]`
   and state the single-thread rule in the doc comment.
+- The type cannot show the rule. `ReadinessWaker` is still `Send` and `Sync`, so safe code
+  can move it. Issue #423 records this risk and its likely fix.
 
 ### A no-progress requeue is not urgent work
 

@@ -40,6 +40,8 @@ The two new tests fail when their fix is reverted. The old code returns `NotSupp
 ### Next
 
 - Close the nine issues when the branch merges. Seven already have their fix commit.
+- Issue #423 records the remaining risk: in the non-`multi` build the callback waker can
+  cross a thread, and it breaks the `Waker` contract. It is `severity: medium`.
 - Batch 2 still lists foundation_connectrpc #410, foundation_wasmtime #416 and
   foundation_netio #420.
 
