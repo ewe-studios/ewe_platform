@@ -7,6 +7,22 @@ _Newest first. Updated after each batch. See
 
 ## Batch 2 (2026-11-09)
 
+### A `Waker` is `Send` by type, so its data must be thread-safe by construction
+
+- `std::task::Waker` is `Send + Sync` whatever its vtable holds. The non-`multi`
+  build put a `WakeCallback` with no `Send` bound behind `Waker::from_raw`, so safe
+  code could run or drop the callback on another thread (issue #423).
+- Making `ReadinessWaker` `!Send` with `PhantomData<Rc<()>>` does not work here: the
+  reactor shares an `Arc<ReadinessNotifier>` with its drain thread, so the notifier
+  must stay `Send`.
+- The fix keeps the waker `Send` and confines the callback instead. `ThreadBound<T>`
+  is `Send + Sync` for every `T` because no other thread reads or drops the value:
+  its accessor returns the value only on its owner thread, and `Drop` skips the value
+  on any other thread (a leak is safe). A wake on another thread is dropped.
+- The trait bound did not change. Only the private `from_callback` path uses this.
+- Test the defect through public API: the split observer's `QueueReadiness` is `Send`
+  when its item type is `Send`, so a test can push from another thread.
+
 ### A fix with no regression test lets the tracker go stale
 
 - Seven of the nine issues in this batch were already fixed at `4ca007301`. The open

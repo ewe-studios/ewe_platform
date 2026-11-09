@@ -77,6 +77,9 @@ mod wasm_yielder_tests;
 mod background_jobs;
 #[cfg(not(target_family = "wasm"))]
 mod background_shutdown_deadline;
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod callback_waker_thread_confinement;
 #[cfg(not(target_family = "wasm"))]
 mod delayed_iterators;
 mod drain;
@@ -86,6 +89,9 @@ mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]
 mod multi_workers;
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod non_sendable_split_observer_wake;
 #[cfg(not(target_family = "wasm"))]
 mod pipe_closed_readiness;
 #[cfg(not(target_family = "wasm"))]
@@ -94,17 +100,14 @@ mod pipe_mapped_tests;
 mod pipe_primitive;
 #[cfg(feature = "multi")]
 mod pool_config_tests;
-#[cfg(feature = "multi")]
-mod shutdown_single_deadline;
 #[cfg(not(target_family = "wasm"))]
 mod self_wake_fairness;
+#[cfg(feature = "multi")]
+mod shutdown_single_deadline;
 #[cfg(not(target_family = "wasm"))]
 mod single_executor;
 #[cfg(feature = "multi")]
 mod slow_poll_warning;
-#[cfg(not(feature = "multi"))]
-#[cfg(not(target_family = "wasm"))]
-mod non_sendable_split_observer_wake;
 #[cfg(not(target_family = "wasm"))]
 mod split_observer_wake;
 mod task_status;

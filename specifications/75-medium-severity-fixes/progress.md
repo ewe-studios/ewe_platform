@@ -4,6 +4,44 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #423, a cross-thread wake cannot run a non-`Send` callback
+
+The non-`multi` build stores a `WakeCallback` (no `Send` bound) in a
+`std::task::Waker`, which is `Send` and `Sync` by type. Safe code could move the
+waker to another thread, and then a push on that thread ran the callback there.
+
+The fix confines the callback to its own thread (`confined::ThreadBound` in
+`foundation_core/src/valtron/readiness_wake.rs`):
+
+- `ThreadBound::get` returns the value only on the thread that made it. A wake
+  on any other thread takes no callback, runs nothing and clears the liveness
+  token.
+- `ThreadBound` drops the value only on its own thread. A last drop on another
+  thread leaks the value. A leak is safe; a cross-thread drop can break the
+  value's thread affinity.
+- `Send` and `Sync` for `ThreadBound<T>` are sound for every `T`, because no
+  other thread reads or drops the value.
+- The `multi` build keeps the plain `Mutex`; its callback is already `Send`.
+
+`ReadinessWaker` stays `Send + Sync`, so `ReadinessNotifier` stays `Send` and the
+reactor keeps sharing a notifier with its drain thread.
+
+Tests: `tests/valtron/callback_waker_thread_confinement.rs` (non-`multi` only).
+
+| Test | Old code | New code |
+| --- | --- | --- |
+| `a_cross_thread_wake_does_not_run_a_non_send_callback` | Fails: the callback ran on the other thread | Passes |
+| `a_cross_thread_drop_keeps_a_non_send_callback_away_from_that_thread` | Fails: the callback dropped there | Passes |
+
+| Check | Result |
+| --- | --- |
+| `cargo test --profile uat -p foundation_core --test mod` | Pass |
+| `cargo clippy -p foundation_core --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy -p foundation_core --features multi --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo fmt -p foundation_core -- --check` | Pass |
+
+The crate version does not change: no public item is added.
+
 ## 2026-11-09: batch 2, `foundation_core` fixes on `spec75/core-medium`
 
 The branch is based on `fix/medium-integration` at `4ca007301`. Seven of the nine listed
