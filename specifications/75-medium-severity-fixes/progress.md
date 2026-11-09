@@ -4,6 +4,44 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: the branch's first full CI run, two gates and two issues
+
+The first full audit of the branch ran on 2026-11-09. The image build failed first
+with `curl: (22) ... error: 504` in the `setup-nu` step, a GitHub release download.
+The Rust `Analyze` job passed. A re-run built the image and then ran the package jobs.
+
+Two package jobs failed:
+
+| Job | Cause | Action |
+| --- | --- | --- |
+| `foundation_core` | `scripts/ci/check_time_sources.py` counted a doc comment that names a clock call as a direct read (`native/readiness.rs:271`, from commit 1a774aff8) | Reworded the doc line; the guard passes; issue #435 records that the guard should skip comment lines |
+| `foundation_reactor` | 61 clippy errors in Linux-only poll code, which macOS clippy never compiles | Issue #434, fixed now |
+
+`cargo clippy --profile uat -p foundation_reactor --target x86_64-unknown-linux-gnu
+--all-targets --no-deps -- -D warnings` reproduces the Linux list on macOS because the
+Linux target is installed. Use it for any crate with `target_os = "linux"` code.
+
+The audit did not run the `foundation_reactor` package before this branch: the plan runs
+a crate's job only when the diff touches it. A per-target clippy job stops this class from
+hiding.
+
+Issue #433 (low) records the `setup-nu` download: it fetches nushell from GitHub releases
+on every run with no cache, and a 504 burst fails the whole audit.
+
+The #434 fix is commit `206f9d84a`, in `backends/foundation_reactor/` only. It replaces
+the lossy casts with `try_from`, `std::ptr::from_ref` and `.cast::<T>()`, adds the missing
+`# Errors` and `# Panics` sections and `#[must_use]` markers, and turns three module docs
+into `//!` docs. The Linux test target had one further error, which the saved log did not
+show. One new `#[allow]` carries a reason: `clippy::unused_self` on `Poll::rearm_readable`,
+whose Linux body is empty.
+
+| Check | Result |
+| --- | --- |
+| Linux-target clippy, all targets, `-D warnings` | 0 warnings |
+| macOS clippy, all targets, `-D warnings` | 0 warnings |
+| `cargo test --profile uat -p foundation_reactor` | all pass |
+| `cargo fmt -p foundation_reactor --check` | pass |
+
 ## 2026-11-09: issue #257, a peer stop reaches the h3 handler
 
 A client that cancels a Connect call after its request body ends stayed invisible to

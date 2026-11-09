@@ -5,6 +5,20 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, the first audit of the branch: a crate's job is not a full check
+
+- The CI plan runs a crate's job only when the diff touches that crate. A crate that no
+  branch touched for a long time keeps Linux-only debt hidden. This branch touched
+  `foundation_reactor`, and its job found 61 clippy errors that had never run.
+- macOS clippy does not compile `#[cfg(target_os = "linux")]` code. On a macOS host, add
+  `--target x86_64-unknown-linux-gnu` to check it, because that target is installed.
+  Run this for every crate that has Linux-only modules.
+- `scripts/ci/check_time_sources.py` reads every line, including doc comments. A doc
+  comment that names a clock call fails the guard. Issue #435 records the fix: skip
+  comment lines.
+- Image jobs download tools from GitHub releases on every run with no cache. A burst of
+  504s then fails the whole audit (issue #433). A re-run is the stopgap.
+
 ## 2026-11-09, issue #257: the reset is gone, the stop is not
 
 - `quinn-proto` frees a recv stream's state when it reads FIN and drains. A later
