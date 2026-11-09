@@ -28,9 +28,10 @@ use foundation_core::valtron::Clock;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingRequest};
 
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::writer::{render_head, send_not_found, send_text, ResponseWriter};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeOutcome};
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 
 use crate::config::BackendProtocol;
 use crate::forward::{

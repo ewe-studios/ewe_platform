@@ -1,15 +1,15 @@
-//! Serve trait — core handler abstraction.
+//! Shared serve types — outcomes, errors and buffer-writer handlers.
 //!
-//! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
-//! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
+//! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any
+//! writable stream.
 //!
-//! The HTTP/2 serve trait (`H2Serve`) is native-only (it drives the native
-//! `foundation_netio::http2` substrate) and lives at [`crate::native::serve`].
+//! The native `Serve` and `ServeFactory` traits take
+//! `SharedByteBufferStream<RawStream>` for TCP connections. They are
+//! native-only and live at [`crate::native::serve`]. The HTTP/2 and HTTP/3 serve
+//! traits are native-only too, in the same module.
 
 use std::future::Future;
 use std::pin::Pin;
-#[cfg(not(target_family = "wasm"))]
-use std::sync::Arc;
 
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
@@ -111,30 +111,6 @@ impl ConnectionResult {
             ConnectionResult::Close(err) => Err(ServeOutcome::Close(err)),
         }
     }
-}
-
-// ---------------------------------------------------------------------------
-// Serve (native-only — uses RawStream)
-
-/// Core handler trait — executed at request time (native TCP connections).
-#[cfg(not(target_family = "wasm"))]
-pub trait Serve: Send + Sync + 'static {
-    /// Handle an incoming request.
-    fn serve(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: foundation_core::io::ioutils::SharedByteBufferStream<
-            foundation_netio::netcap::RawStream,
-        >,
-    ) -> ConnectionResult;
-}
-
-/// Factory trait for creating handler instances.
-#[cfg(not(target_family = "wasm"))]
-pub trait ServeFactory: Serve + Sized {
-    /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
 }
 
 // ---------------------------------------------------------------------------

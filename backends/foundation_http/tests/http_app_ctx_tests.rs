@@ -121,7 +121,7 @@ fn with_context_shares_the_callers_bag() {
 #[test]
 fn plain_constructors_still_build() {
     let _: HttpApp<()> = HttpApp::new();
-    let serve: HttpApp<Arc<dyn foundation_http::shared::serve::Serve>> = HttpApp::new_serve();
+    let serve: HttpApp<Arc<dyn foundation_http::native::serve::Serve>> = HttpApp::new_serve();
     let writer: WriterApp = HttpApp::new_writer();
     let web: HttpApp<Arc<dyn foundation_http::shared::serve_web::WebServe>> = HttpApp::new_web();
 

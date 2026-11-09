@@ -29,8 +29,9 @@ use foundation_netio::shared::http::timeout::{
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::Connection;
 
-use crate::shared::app::{HttpApp, ServerApp};
-use crate::shared::serve::Serve;
+use crate::native::app::ServerApp;
+use crate::native::serve::Serve;
+use crate::shared::app::HttpApp;
 
 // ---------------------------------------------------------------------------
 // KeepAliveConfig

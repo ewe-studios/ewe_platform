@@ -47,9 +47,9 @@ use foundation_arrow::arrow_schema::{DataType, Field, Schema};
 use foundation_arrow::{arrow_err, ArrowSchema, FromArrow, IpcResult, ToArrow};
 
 use foundation_core::valtron::valtron;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;

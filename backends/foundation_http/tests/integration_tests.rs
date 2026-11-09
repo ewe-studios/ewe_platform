@@ -28,6 +28,7 @@ use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serial_test::serial;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::{
         server::{HttpServer, KeepAliveConfig, ServerConfig},
         upgrade::{accept_websocket, SseStream},
@@ -36,7 +37,7 @@ use foundation_http::{
         app::HttpApp,
         context::ContextBag,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{ConnectionResult, Serve, ServeError, ServeFactory, ServeOutcome},
+        serve::{ConnectionResult, ServeError, ServeOutcome},
     },
 };
 

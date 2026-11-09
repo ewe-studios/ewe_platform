@@ -32,11 +32,12 @@ use bytes::Bytes;
 use futures::StreamExt;
 
 use foundation_core::valtron::{valtron_test, SimulatedClock};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::frame::Kind;

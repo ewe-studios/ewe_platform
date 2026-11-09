@@ -18,9 +18,10 @@ use std::time::{Duration, Instant};
 
 use foundation_core::synca::WaitGroup;
 use foundation_core::valtron::{initialize_pool, Ctx, MonotonicClock, TaskIterator};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::server::protocol_detect::ProtocolDetectHandler;
 use foundation_http::native::server::KeepAliveConfig;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ConnectionContext;
 use tracing::field::{Field, Visit};

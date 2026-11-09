@@ -33,8 +33,8 @@ use foundation_netio::shared::http::HTTPStreams;
 use super::connection::ConnectionHandler;
 use super::h2_connection::H2ConnectionHandler;
 use super::KeepAliveConfig;
+use crate::native::app::ServerApp;
 use crate::native::writer::send_text;
-use crate::shared::app::ServerApp;
 use crate::shared::serve::{ConnectionResult, ServeOutcome};
 
 const POLL_DELAY: Duration = Duration::from_millis(3);

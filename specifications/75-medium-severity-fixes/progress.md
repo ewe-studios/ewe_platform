@@ -4,6 +4,49 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #412, native serving types leave `shared/`
+
+Branch `fix/412-native-serving-types`, based on `fix/medium-integration` at `8811a029f`.
+The change bumps `foundation_http` from 0.0.9 to 0.0.10 and every consumer requirement.
+
+- `Serve` and `ServeFactory` moved to `src/native/serve.rs`, next to `H2Serve`.
+- The native `HttpApp` impls, `H1App`, `H2App`, `H3App`, `ServerApp` and its impls moved
+  to `src/native/app.rs`. The generic `HttpApp<S>` and the `ServeWriter` impl stay in
+  `shared/app/mod.rs`.
+- The `Serve` and `ServeFactory` impls for `HealthHandler` moved to
+  `native/handlers/health.rs`. `HealthHandler`, `ServeWriter` and `ServeWriterFactory`
+  stay in `shared/handlers/health.rs`.
+- `shared/` has no `#[cfg(not(target_family = "wasm"))]` marker for these items.
+- All callers use `foundation_http::native::serve::{Serve, ServeFactory}` and
+  `foundation_http::native::app::{ServerApp, H1App, H2App, H3App}`.
+- `tests/wasm_web_serve_tests.rs` proves the browser `WebServe` dispatch path on the
+  host. The `CfServe` dispatch test needs a wasm test target (issue #364), so the wasm32
+  library check is its compile proof.
+- The `static-html-app` and `web-app` templates use the new public path and the
+  `foundation_http` 0.0.10 requirement. All three template manifests now name
+  `foundation_core` 0.0.19. The old 0.0.18 pin does not match the local 0.0.19 crate,
+  so the template build test failed before the refresh.
+
+Verification:
+
+| Check | Result |
+| --- | --- |
+| `cargo fmt -p foundation_http --check` | Pass |
+| `cargo clippy --profile uat -p foundation_http --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_http --all-targets --features quic --no-deps -- -D warnings` | Zero warnings |
+| `cargo test --profile uat -p foundation_http` | Pass |
+| `cargo test --profile uat -p foundation_http --features "multi quic"` | Pass |
+| `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_http --no-default-features --features wasm` | Pass, no warnings |
+| `cargo check --profile uat --target wasm32-unknown-unknown -p foundation_http --features wasm-bindgen-http` | Pass, no warnings |
+| `cargo test --profile uat -p foundation_http --test wasm_web_serve_tests` | Pass, 7 tests |
+| `cargo test --profile uat -p foundation_proxy` | Pass |
+| `cargo test --profile uat -p foundation_proxy --features quic --test h3_integration_tests` | Pass, 1 test |
+| `cargo test --profile uat -p foundation_deployment_docker --features buildkit` | Pass |
+| `cargo test --profile uat -p foundation_connectrpc` | Pass |
+| `cargo test --profile uat -p ewe_platform --test templates_build` | Pass |
+| `cargo check --profile uat -p foundation_auth --features server-test --all-targets` | Pass |
+| `cargo metadata --offline`, then `--locked`, for the workspace and each example | Pass |
+
 ## 2026-11-09: issue #426, the WASI context uses the injected clock and randomness
 
 `foundation_wasmtime::WasmtimeBuilder::build` built the Preview 1 (`WASIp1`) context with

@@ -4,8 +4,9 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::{collect_one, execute, from_future};
 use foundation_errstacks::ErrorTrace;
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeError, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, ServeError};
 use foundation_http::{RawStream, SimpleIncomingRequest};
 use foundation_netio::shared::http::{
     ChunkedData, Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleOutgoingResponse, Status,

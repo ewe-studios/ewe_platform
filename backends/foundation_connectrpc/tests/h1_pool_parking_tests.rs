@@ -34,9 +34,9 @@ use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, Si
 use bytes::{Buf, Bytes};
 
 use foundation_core::valtron::{initialize_pool, timer};
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
 use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::codec::CodecFor;

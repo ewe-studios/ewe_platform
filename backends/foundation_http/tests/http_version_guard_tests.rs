@@ -34,12 +34,9 @@ use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, ServerConfig},
-    shared::{
-        app::HttpApp,
-        context::ContextBag,
-        serve::{ConnectionResult, Serve, ServeFactory},
-    },
+    shared::{app::HttpApp, context::ContextBag, serve::ConnectionResult},
 };
 
 /// Set by `EchoHandler::serve`. If a rejected request ever reaches routing this
