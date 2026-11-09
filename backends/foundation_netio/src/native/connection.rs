@@ -884,25 +884,30 @@ impl Connection {
     /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — the primary,
     /// unprivileged, TLS-free local transport.
     ///
-    /// WHAT: Opens a `UnixStream` to `path` and wraps it as `Connection::Unix`.
+    /// WHAT: Opens a `UnixStream` to `path`, applies `read_timeout` as the
+    /// socket read timeout, and wraps it as `Connection::Unix`.
     ///
     /// HOW: The connect runs on a non-blocking socket and settles from
     /// readiness (issue #279). The returned stream is blocking, as a
-    /// synchronous caller expects.
+    /// synchronous caller expects. The read timeout is configuration, not a
+    /// constant (issue #420).
     ///
     /// # Errors
     ///
-    /// Returns an error if the socket path does not exist or the connection fails.
+    /// Returns an error if the socket path does not exist, the connection
+    /// fails, or the platform cannot set the read timeout. A failed
+    /// `set_read_timeout` is returned, never ignored.
     #[cfg(unix)]
     pub fn connect_unix(
         path: impl AsRef<std::path::Path>,
+        read_timeout: Duration,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let stream = connect_unix_nonblocking(path.as_ref(), None)?;
         stream.set_nonblocking(false)?;
         // Docker closes the connection after every response — a blocking read
-        // on a dead socket hangs forever. A short read timeout converts the
+        // on a dead socket hangs forever. A read timeout converts the
         // dead-socket read into a WouldBlock error our buffer layer handles.
-        let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
+        stream.set_read_timeout(Some(read_timeout))?;
         Ok(Self::Unix(stream))
     }
 

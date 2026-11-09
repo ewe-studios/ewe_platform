@@ -1214,9 +1214,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// `ClientConfig::unix_socket` is set, the request task routes here instead
     /// of the TCP/proxy path.
     ///
-    /// WHAT: Dials `socket_path`, wraps the stream as an `HttpClientConnection`,
-    /// carrying the URL's host (for the `Host` header). Port is reported as `0`
-    /// since Unix sockets have none.
+    /// WHAT: Dials `socket_path`, applies `read_timeout` to the socket, and
+    /// wraps the stream as an `HttpClientConnection`, carrying the URL's host
+    /// (for the `Host` header). Port is reported as `0` since Unix sockets have
+    /// none.
     ///
     /// HOW: [`Connection::connect_unix`] → [`RawStream::from_connection`] →
     /// [`SharedByteBufferStream`].
@@ -1230,9 +1231,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         &self,
         url: &Uri,
         socket_path: &std::path::Path,
+        read_timeout: Duration,
     ) -> Result<HttpClientConnection, HttpClientError> {
         let host = url.host_str().unwrap_or_else(|| "localhost".to_string());
-        let connection = Connection::connect_unix(socket_path)
+        let connection = Connection::connect_unix(socket_path, read_timeout)
             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
         let stream = SharedByteBufferStream::rwrite(
             RawStream::from_connection(connection)

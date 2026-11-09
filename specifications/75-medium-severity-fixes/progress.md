@@ -25,25 +25,46 @@ regression coverage for all nine.
 The two new tests fail when their fix is reverted. The old code returns `NotSupported` for
 #407 and re-polls the first task for #408.
 
+### The rpc and netio checks (branch `spec75/rpc-netio-medium`)
+
+This branch starts from commit `4ca007301` and fixes two medium-severity issues.
+
+| Issue | Crate | Fix |
+| --- | --- | --- |
+| #410 | foundation_connectrpc | A unary call checks the HTTP status first. A non-OK body gives a bounded error message. |
+| #420 | foundation_netio | `Connection::connect_unix` takes the read timeout as configuration. |
+| #390 | foundation_connectrpc | The dropped pipe `close` results now use `let _ =`. |
+| #424 | foundation_connectrpc | A deregistered socket returns an error, not a lost wake. |
+
+#424 is a new low-severity issue. It records the two `FdReadiness::register_waker` results
+that `conn_io` ignored. The same branch fixes it.
+
 ### Verification
 
 | Check | Result |
 | --- | --- |
 | `cargo test --profile uat -p foundation_core` | Pass, 0 failed |
-| `cargo test --profile uat -p foundation_core --features multi` | Pass, 0 failed |
+| `cargo test --profile uat -p foundation_core --features multi` | Pass after `fff848fba`. The first Linux run failed the idle-CPU test (#425) |
 | `cargo clippy --profile uat -p foundation_core --all-targets` | Zero warnings |
 | `cargo clippy --profile uat -p foundation_core --features multi --all-targets` | Zero warnings |
 | wasm32 check, std | Pass |
 | wasm32 check, std and js-foundation-wasm | Pass |
 | wasm32 check, std and js-wasmbindgen | Pass |
+| `cargo test --profile uat -p foundation_connectrpc` | Pass, 34 test binaries |
+| `cargo test --profile uat -p foundation_connectrpc --features h3` | Pass, 37 test binaries |
+| `cargo test --profile uat -p foundation_netio` | Pass, 6 test binaries |
+| `cargo clippy --profile uat -p foundation_connectrpc --all-targets --all-features --no-deps -- -D warnings` | Zero warnings |
+| `cargo clippy --profile uat -p foundation_netio --features quic --all-targets --no-deps -- -D warnings` | Zero warnings |
+| wasm32 check, foundation_connectrpc `--no-default-features --features rpc` | Pass |
+| wasm32 check, foundation_netio `--no-default-features --features wasm-fetch` | Pass |
 
 ### Next
 
-- Close the nine issues when the branch merges. Seven already have their fix commit.
+- Close the nine core issues when the branch merges. Seven already have their fix commit.
 - Issue #423 records the remaining risk: in the non-`multi` build the callback waker can
   cross a thread, and it breaks the `Waker` contract. It is `severity: medium`.
-- Batch 2 still lists foundation_connectrpc #410, foundation_wasmtime #416 and
-  foundation_netio #420.
+- Issue #425 records the idle-CPU bound. It is fixed on the branch.
+- foundation_wasmtime #416 (WASI imports) is still open.
 
 ## 2026-11-09: batch 1 is complete on `fix/medium-integration`
 

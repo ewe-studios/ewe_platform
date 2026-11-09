@@ -343,12 +343,14 @@ async fn run_streaming_h3(
                     // The protocol reader is gone and will never read the rest;
                     // the response side decides the outcome.
                     tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
-                    req_tx.close();
+                    // The bool only reports who closed the pipe; the reader
+                    // is gone, so either result ends the body.
+                    let _ = req_tx.close();
                     return Ok(());
                 }
             }
             body_done.store(true, Ordering::Release);
-            req_tx.close();
+            let _ = req_tx.close();
             Ok::<(), io::Error>(())
         };
         let request_side =

@@ -99,12 +99,24 @@ impl ProtocolSelection {
 /// `read_max_bytes` defaults to 4 MiB, gRPC's default maximum receive message
 /// size (grpc-go `defaultClientMaxReceiveMessageSize`), the same default the
 /// server uses ([`crate::SizeLimits`]); `0` opts out.
+///
+/// `error_body_max_bytes` defaults to 8 KiB. It bounds the body of a non-OK
+/// response that becomes an error message.
 #[derive(Debug, Clone)]
 pub struct SizeLimits {
     /// Maximum response message size (`0` = unlimited): a unary response body,
     /// or each streaming response envelope (checked against its length prefix
     /// before the payload is read).
     pub read_max_bytes: usize,
+    /// Maximum bytes of a non-OK response body read to build an error message
+    /// (`0` = read no error body). The reader stops at the cap and drops the
+    /// stream, so a large or slow error body never delays the call or uses
+    /// unbounded memory.
+    ///
+    /// Default 8 KiB: nginx's error-page buffer (`proxy_buffer_size`, one
+    /// memory page), the same default `foundation_db` uses for an error body
+    /// (`DEFAULT_MAX_ERROR_BODY`).
+    pub error_body_max_bytes: usize,
     /// Maximum request body size (`0` = unlimited).
     pub send_max_bytes: usize,
     /// Minimum payload size for compression (`0` = always compress).
@@ -116,6 +128,8 @@ impl Default for SizeLimits {
         Self {
             // 4 MiB — gRPC's default max receive message size (see above).
             read_max_bytes: 4 * 1024 * 1024,
+            // 8 KiB — nginx's error-page buffer (see above).
+            error_body_max_bytes: 8 * 1024,
             send_max_bytes: 0,
             compress_min_bytes: 0,
         }
@@ -322,6 +336,15 @@ impl ClientOptions {
     #[must_use]
     pub fn with_read_max_bytes(mut self, n: usize) -> Self {
         self.config.limits.read_max_bytes = n;
+        self
+    }
+
+    /// Maximum bytes of a non-OK response body read to build an error message
+    /// (`0` = read no error body; default 8 KiB, see [`SizeLimits`]). The reader
+    /// stops at the cap and drops the stream, so the error returns promptly.
+    #[must_use]
+    pub fn with_error_body_max_bytes(mut self, n: usize) -> Self {
+        self.config.limits.error_body_max_bytes = n;
         self
     }
 
@@ -986,6 +1009,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Build the inner unary function.
         let transport = Arc::clone(&self.transport);
         let read_max_bytes = self.config.limits.read_max_bytes;
+        let error_body_max_bytes = self.config.limits.error_body_max_bytes;
         let url_clone = url.clone();
         // Proto is Clone but not Copy; clone it into each closure scope.
         let proto_for_inner = proto.clone();
@@ -1006,7 +1030,14 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 };
 
                 // Execute via transport.open + push + close + read.
-                do_unary_round_trip(&*transport, desc, call.frame, read_max_bytes).await
+                do_unary_round_trip(
+                    &*transport,
+                    desc,
+                    call.frame,
+                    read_max_bytes,
+                    error_body_max_bytes,
+                )
+                .await
             })
         });
 
@@ -1104,6 +1135,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 desc,
                 Bytes::new(),
                 self.config.limits.read_max_bytes,
+                self.config.limits.error_body_max_bytes,
             ),
         )
         .await;
@@ -1850,6 +1882,7 @@ async fn do_unary_round_trip(
     desc: RequestDescriptor,
     body: Bytes,
     read_max_bytes: usize,
+    error_body_max_bytes: usize,
 ) -> ConnectResult<UnaryReply> {
     let mut stream = transport.open(desc).map_err(ConnectError::from)?;
 
@@ -1869,6 +1902,32 @@ async fn do_unary_round_trip(
         .ok_or_else(|| ConnectError::unavailable("transport closed without response head"))?
         .map_err(ConnectError::from)?;
 
+    // Check the status before touching the body. A non-OK body only becomes an
+    // error message: read a bounded prefix, then drop the stream. A large or
+    // slow error body then neither uses unbounded memory nor delays the error
+    // (issue #410).
+    if status != Status::OK {
+        let mut prefix = Vec::new();
+        while prefix.len() < error_body_max_bytes {
+            let Some(chunk) = stream.recv_body.next().await else {
+                break;
+            };
+            let chunk = chunk.map_err(ConnectError::from)?;
+            let remaining = error_body_max_bytes - prefix.len();
+            let take = remaining.min(chunk.len());
+            prefix.extend_from_slice(&chunk[..take]);
+        }
+        // `stream` drops here, so the response body closes early.
+        let error_body = if prefix.is_empty() {
+            format!("HTTP {status}")
+        } else {
+            String::from_utf8_lossy(&prefix).to_string()
+        };
+        let code = code_from_http_status(&status);
+        let status_code = u16::try_from(status.into_usize()).unwrap_or_default();
+        return Err(ConnectError::from_http_status(status_code, code, error_body).into());
+    }
+
     // Collect the response body (one message), never past `read_max_bytes`.
     let mut body_buf = Vec::new();
     while let Some(chunk) = stream.recv_body.next().await {
@@ -1884,22 +1943,11 @@ async fn do_unary_round_trip(
     // Read trailers (h2 trailing HEADERS for gRPC grpc-status; empty for Connect).
     let trailers = stream.trailers.receive().await.unwrap_or_default();
 
-    if status == Status::OK {
-        Ok(UnaryReply {
-            headers: resp_headers,
-            trailers,
-            frame: Bytes::from(body_buf),
-        })
-    } else {
-        let error_body = if body_buf.is_empty() {
-            format!("HTTP {status}")
-        } else {
-            String::from_utf8_lossy(&body_buf).to_string()
-        };
-        let code = code_from_http_status(&status);
-        let status_code = u16::try_from(status.into_usize()).unwrap_or_default();
-        Err(ConnectError::from_http_status(status_code, code, error_body).into())
-    }
+    Ok(UnaryReply {
+        headers: resp_headers,
+        trailers,
+        frame: Bytes::from(body_buf),
+    })
 }
 
 /// Spawn the reader and writer tasks on the valtron pool.

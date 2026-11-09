@@ -14,6 +14,7 @@
 //! task so the client and server run concurrently via the executor.
 
 use std::collections::VecDeque;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use bytes::Bytes;
@@ -408,6 +409,120 @@ async fn client_unary_error_status() {
             assert_eq!(e.current_context().code(), Code::NotFound);
         }
         Ok(_) => panic!("expected error for 404 status"),
+    }
+}
+
+/// A non-OK response with a body larger than the error-body cap must stop at
+/// the cap and drop the response stream (issue #410).
+///
+/// WHY: the old code buffered the whole body before it checked the status, so a
+/// large or slow error body used unbounded memory and delayed the error. The
+/// server sends `CHUNKS` chunks; the client must stop reading near the cap, so
+/// most sends fail with a closed pipe. The test asserts the message length and
+/// that the server did not finish (the stream was dropped early) — no timer.
+#[valtron_test]
+async fn a_large_error_body_is_cut_at_the_default_cap_and_the_stream_is_dropped_early() {
+    const CHUNK: usize = 4 * 1024;
+    const CHUNKS: usize = 64;
+    /// The documented default of `SizeLimits::error_body_max_bytes`.
+    const DEFAULT_ERROR_BODY_MAX_BYTES: usize = 8 * 1024;
+
+    let mock = MockTransport::full_duplex();
+    let server = mock.prepare();
+    let transport: Arc<dyn Transport> = Arc::new(mock);
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    let client = Client::new(
+        transport,
+        "http://localhost:8080",
+        codecs,
+        ClientOptions::new(),
+    )
+    .unwrap();
+
+    let sent = Arc::new(AtomicUsize::new(0));
+    let sent_by_server = Arc::clone(&sent);
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = server.read_request_body().await;
+        let _ = server
+            .head_tx
+            .send((Status::InternalServerError, SimpleHeaders::new()))
+            .await;
+        for _ in 0..CHUNKS {
+            if server
+                .resp_tx
+                .send(Bytes::from(vec![b'x'; CHUNK]))
+                .await
+                .is_err()
+            {
+                break;
+            }
+            sent_by_server.fetch_add(1, Ordering::SeqCst);
+        }
+    }));
+
+    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let request = Request::new(b"ping".to_vec());
+
+    match client.unary(ctx, request).await {
+        Err(e) => {
+            let message = e.current_context().message();
+            assert_eq!(
+                message.len(),
+                DEFAULT_ERROR_BODY_MAX_BYTES,
+                "the error message must stop at the configured cap"
+            );
+            assert!(
+                message.bytes().all(|byte| byte == b'x'),
+                "the message must carry the read prefix"
+            );
+            assert_eq!(e.current_context().code(), Code::Internal);
+        }
+        Ok(_) => panic!("expected an error for 500 Internal Server Error"),
+    }
+
+    let sent = sent.load(Ordering::SeqCst);
+    assert!(
+        sent < CHUNKS,
+        "the client must drop the error body stream at the cap; the server sent {sent} of {CHUNKS} chunks"
+    );
+}
+
+/// A custom error-body cap reaches the message builder.
+#[valtron_test]
+async fn a_configured_error_body_cap_reaches_the_error_message() {
+    const CAP: usize = 100;
+
+    let mock = MockTransport::full_duplex();
+    let server = mock.prepare();
+    let transport: Arc<dyn Transport> = Arc::new(mock);
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    let client = Client::new(
+        transport,
+        "http://localhost:8080",
+        codecs,
+        ClientOptions::new().with_error_body_max_bytes(CAP),
+    )
+    .unwrap();
+
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = server.read_request_body().await;
+        let _ = server
+            .head_tx
+            .send((Status::InternalServerError, SimpleHeaders::new()))
+            .await;
+        let _ = server.resp_tx.send(Bytes::from(vec![b'y'; 4096])).await;
+    }));
+
+    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let request = Request::new(b"ping".to_vec());
+
+    match client.unary(ctx, request).await {
+        Err(e) => {
+            let message = e.current_context().message();
+            assert_eq!(message.len(), CAP);
+            assert!(message.bytes().all(|byte| byte == b'y'));
+        }
+        Ok(_) => panic!("expected an error for 500 Internal Server Error"),
     }
 }
 
