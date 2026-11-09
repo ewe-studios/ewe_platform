@@ -22,7 +22,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
 # injection. Linking BoringSSL here clashes with libssh2/OpenSSL (foundation_sshkit).
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.6", optional = true, default-features = false }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.7", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.5", features = ["docker"] }
@@ -101,7 +101,7 @@ tracing-subscriber = "0.3"
 # `SimulatedClock` for the clock-injection tests. The feature is additive, so
 # the normal dependency above stays as it is.
 foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["test-clock"] }
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.6", default-features = false }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.7", default-features = false }
 foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.4" }
 
 [[bin]]

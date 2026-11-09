@@ -5,6 +5,21 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## 2026-11-09, issue #439: a stored setting that nothing reads
+
+- A configuration field that no code reads is a trap. Remove it, or apply it. Do not keep
+  it "for later": `TunConfig::ipv6` outlived no behavior at all.
+- Darwin assigns the `utunN` name. Read it with `getsockopt(UTUN_OPT_IFNAME)`. Do not
+  trust the requested name, and do not build a later ioctl from it.
+- `SIOCSIFMTU` needs a separate control socket, not the TUN fd. A failure must close the
+  device fd and reach the caller, because a different MTU truncates packets.
+- `cargo clippy` on the host does not compile `#[cfg(target_os = "linux")]` code on a
+  macOS host. Run `cargo check --target x86_64-unknown-linux-gnu` for platform-gated
+  modules. It found a missing struct field and a non-`mut` binding that no CI gate saw.
+- `cargo check --locked` on the standalone examples is not enough after a version bump.
+  Refresh every example lockfile with `cargo metadata --offline`, then prove each with
+  `--locked`.
+
 ## 2026-11-09, `--all-features` debt: cargo stops at the first error batch
 
 - A clippy run reports only the first N errors, then stops. Removing the errors it showed

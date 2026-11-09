@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wireguard"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -50,7 +50,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.19", features = 
 # `foundation_compact::time::unix_seconds`; no crate repeats the epoch math.
 foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.12", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.13", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
 # The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is

@@ -51,7 +51,7 @@ impl MeshDataPlane {
         mode: &DataPlaneMode,
         my_ip: IpAddr,
         prefix_len: u8,
-        clock: Arc<dyn Clock>,
+        clock: &Arc<dyn Clock>,
     ) -> crate::shared::error::WgResult<Self> {
         Ok(match mode {
             #[cfg(not(target_family = "wasm"))]
@@ -59,7 +59,6 @@ impl MeshDataPlane {
                 let tun = TunDataPlane::open(&TunConfig {
                     name: name.clone(),
                     mtu: *mtu,
-                    ipv6: false,
                 })
                 .map_err(|e| {
                     crate::shared::error::WgError::Config(format!("TUN device '{name}': {e}"))
@@ -75,7 +74,7 @@ impl MeshDataPlane {
             }
             DataPlaneMode::Netstack => Self::Stack(NetStack::new(
                 NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
-                &clock,
+                clock,
             )),
         })
     }

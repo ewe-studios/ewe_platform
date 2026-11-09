@@ -122,6 +122,11 @@ pub use self::native_ttls::NativeTlsStream as ServerSSLStream;
 ///
 /// # Errors
 /// The connect failed or the timeout expired.
+#[cfg(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+))]
 pub(crate) fn connect_plain(
     addr: core::net::SocketAddr,
     timeout: Option<std::time::Duration>,
@@ -142,6 +147,11 @@ pub(crate) fn connect_plain(
 }
 
 /// The connect timeout an endpoint carries, if any.
+#[cfg(any(
+    feature = "ssl-rustls",
+    feature = "ssl-openssl",
+    feature = "ssl-native-tls"
+))]
 pub(crate) fn endpoint_timeout<I: Clone>(
     endpoint: &crate::native::connection::Endpoint<I>,
 ) -> Option<std::time::Duration> {

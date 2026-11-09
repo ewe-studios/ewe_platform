@@ -195,7 +195,7 @@ impl WgNode {
             &self.config.dataplane.mode,
             local_ip,
             OVERLAY_PREFIX,
-            Arc::clone(&clock),
+            &clock,
         )?;
 
         let udp = UdpSocket::bind(self.config.udp_listen()).map_err(WgError::from)?;

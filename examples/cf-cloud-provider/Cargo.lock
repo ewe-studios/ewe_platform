@@ -1643,7 +1643,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "cfg-if",

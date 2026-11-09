@@ -6042,7 +6042,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "bincode 2.0.1",
@@ -6510,7 +6510,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wireguard"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "base64 0.22.1",
  "bincode 2.0.1",

@@ -4,6 +4,43 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 
 _Newest first. One entry per batch or feature PR: date, scope, result._
 
+## 2026-11-09: issue #439, the TUN MTU that was never applied
+
+`TunConfig::mtu` and `TunConfig::ipv6` were stored and never used. The read buffer was
+sized from `mtu`, so a larger real interface MTU would truncate a packet. The fix:
+
+| Platform | Change |
+| --- | --- |
+| Linux | After `TUNSETIFF`, read back the name the kernel assigned and set the MTU with `SIOCSIFMTU` through a control socket |
+| Darwin | Read the kernel-assigned `utunN` name with `getsockopt(UTUN_OPT_IFNAME)`, then set the MTU with `SIOCSIFMTU` |
+| API | `TunConfig::ipv6` is removed. Nothing read it, and the kernel address setup belongs to the caller. `TunDevice::mtu()` reads the MTU back from the kernel |
+| Error path | A failed MTU request closes the fd and returns the error. A silently different MTU is the truncation bug of #438 |
+
+A new test, `tun_device_applies_the_configured_mtu`, opens a device with MTU 1280 and
+reads it back. It is `#[ignore]` because it needs privilege.
+
+The Linux arm of `tun.rs` did not compile: it left out the `scratch` field, and the
+`tun_device_opens_on_linux` test called `read` on a non-`mut` binding. No CI run
+compiles that target with `--features tun`, so both errors were hidden. Both are fixed,
+and the Linux target now passes `cargo clippy --target x86_64-unknown-linux-gnu
+--features netstack,tun --all-targets -D warnings`.
+
+The same verification found two more feature-set gaps, recorded in #440:
+
+- `foundation_netio` without a TLS feature: an irrefutable `if let` in
+  `build_read_wake_source`, and `connect_plain`/`endpoint_timeout` unused. The helpers
+  now carry the TLS feature gate; the `if let` has a local `allow` with a reason.
+- `foundation_wireguard`: `MeshDataPlane::from_config` took `Arc<dyn Clock>` by value and
+  never consumed it. It now takes `&Arc<dyn Clock>`. The Linux-only test imports are
+  `cfg(target_os = "linux")`.
+
+Version bumps: `foundation_nativeapis` 0.0.13, `foundation_wireguard` 0.0.7. Every
+consumer requirement and every lockfile follows.
+
+Verification: clippy is clean for `foundation_nativeapis` with `netstack,tun` on macOS
+and on `x86_64-unknown-linux-gnu`, and for `foundation_wireguard`. Tests pass:
+`foundation_nativeapis` (44) and `foundation_wireguard` (all suites).
+
 ## 2026-11-09: `--all-features` lint debt in `foundation_boringtun` and `foundation_db`
 
 The #438 verification ran clippy with features the CI gate does not enable. That run
@@ -715,17 +752,19 @@ The branch also holds these changes:
 
 ### Next
 
-- The residual medium work, checked against the branch history on 2026-11-09:
-  - foundation_core: #291, #293, #294, #296, #300, #303, #311. The others in the old
-    batch-2 list (#407, #408) are fixed on the branch.
-  - foundation_nativeapis: #438, the 43 clippy errors that only macOS compiles.
+- No open `severity: medium` issue is actionable on this branch, checked on 2026-11-09.
+  - #439 is fixed in this branch: the TUN MTU reaches the kernel.
+  - #373 waits for an upstream `dockurr/macos` fix.
+- Every issue in the earlier residual list (#291, #293, #294, #296, #300, #303, #311,
+  #407, #408, #438) is fixed on the branch.
 - Issues #410, #416 and #420 are already fixed on the branch (commits `9db0fdd82`,
   `df45647a5`, `2ecb699d7`). An open issue is not proof that the fix is missing. Check
   `git log --grep "#<n>" master..HEAD` before you schedule work.
+- Low-severity CI gaps stay open for later pickup: #440 (no clippy run for every
+  feature set a crate declares) and #432 (no macOS watcher job).
 - The `shared/` layout moves are separate work. Issues #409, #411, #412 and #413 record the
   places that must move to `native/`.
 - #257 needs the reset probe in `foundation_netio`; the connectrpc change records the
   limitation only.
-- #373 waits for an upstream `dockurr/macos` fix.
-- #290 needs a flake soak of `http3_server_echoes_a_request_over_quic`. The test passed in the
-  `multi quic` run of batch 1.
+- #290 is proven by the soak: 1000 attempts passed after the fix, and 500 more in a second
+  run. The same test failed at attempt 101 before the fix.

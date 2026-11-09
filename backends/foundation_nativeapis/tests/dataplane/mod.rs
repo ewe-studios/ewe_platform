@@ -373,7 +373,7 @@ fn netstack_listener_backlog_limit_refuses_then_recovers() {
 fn tun_device_opens_on_linux() {
     use foundation_nativeapis::dataplane::tun::{TunConfig, TunDevice};
 
-    let device = TunDevice::open(&TunConfig::new("ewe-test0")).expect("open tun");
+    let mut device = TunDevice::open(&TunConfig::new("ewe-test0")).expect("open tun");
     assert_eq!(device.name(), "ewe-test0");
     // A freshly opened device has nothing to read yet.
     let mut buf = [0u8; 2048];
@@ -381,6 +381,24 @@ fn tun_device_opens_on_linux() {
         Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
         other => panic!("expected WouldBlock on empty tun, got {other:?}"),
     }
+}
+
+/// The configured MTU reaches the kernel interface. The read buffer is sized from
+/// the same value, so this proves the buffer matches what the kernel delivers.
+#[cfg(all(feature = "tun", any(target_os = "linux", target_os = "macos")))]
+#[test]
+#[ignore = "requires privilege to create and configure a TUN interface"]
+fn tun_device_applies_the_configured_mtu() {
+    use foundation_nativeapis::dataplane::tun::{TunConfig, TunDevice};
+
+    let mut config = TunConfig::new("ewe-mtu-test0");
+    config.mtu = 1280;
+    let device = TunDevice::open(&config).expect("open tun");
+    assert_eq!(
+        device.mtu().expect("read mtu"),
+        1280,
+        "the kernel interface keeps the configured MTU"
+    );
 }
 
 /// WHY: a stream whose handshake has not finished has not ended. `read` used to
