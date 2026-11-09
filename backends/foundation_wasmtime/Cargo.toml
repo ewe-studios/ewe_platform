@@ -10,6 +10,10 @@ repository.workspace = true
 
 [dependencies]
 wasmtime = { version = "26", default-features = false, features = ["cranelift", "runtime"] }
+# Preview 1 (WASIp1) imports, so a guest built with `std` can instantiate.
+# The `preview1` feature is the crate's default; it is the only feature we
+# need, and it shares wasmtime 26.0.1 with this crate.
+wasmtime-wasi = { version = "26", default-features = false, features = ["preview1"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 derive_more = { version = "2", features = ["display", "error", "from"] }
 tracing = "0.1"

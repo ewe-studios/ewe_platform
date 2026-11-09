@@ -59,6 +59,8 @@ use std::path::Path;
 use derive_more::Display;
 use foundation_errstacks::ErrorTrace;
 use wasmtime::{Engine, Instance, Linker, Memory, Module, Store};
+use wasmtime_wasi::preview1::{self, WasiP1Ctx};
+use wasmtime_wasi::WasiCtxBuilder;
 
 /// Export name of the linear memory in the request/response ABI.
 const MEMORY_EXPORT: &str = "memory";
@@ -66,6 +68,23 @@ const MEMORY_EXPORT: &str = "memory";
 const ALLOC_EXPORT: &str = "ewe_alloc";
 /// Export name of the guest request handler.
 const HANDLE_REQUEST_EXPORT: &str = "handle_request";
+
+// ── Host state ───────────────────────────────────────────────────────────
+
+/// State that the host keeps for one guest instance.
+///
+/// The state holds the Preview 1 (`WASIp1`) context that serves imports from
+/// `wasi_snapshot_preview1`. A guest built with `std` for `wasm32-wasip1`
+/// imports such functions, even when the guest does not call them.
+///
+/// The context is empty. It gives the guest no standard input, output or error
+/// stream, no environment variables and no arguments. A call that needs one of
+/// them fails inside the guest, as a WASI runtime error, and the host does not
+/// widen the guest's reach.
+struct HostState {
+    /// The Preview 1 context.
+    wasi: WasiP1Ctx,
+}
 
 // ── Error types ──────────────────────────────────────────────────────────
 
@@ -185,6 +204,17 @@ impl WasmtimeBuilder {
 
     /// Build the Engine, Module, and Instance. Ready to call exports.
     ///
+    /// The host links the two import namespaces:
+    ///
+    /// - `ewe.log`, the crate's own host import.
+    /// - `wasi_snapshot_preview1`, the Preview 1 (`WASIp1`) functions that a
+    ///   guest built with `std` for `wasm32-wasip1` imports. A `no_std` guest
+    ///   imports none of them and still links.
+    ///
+    /// The WASI context is empty. The guest gets no standard streams, no
+    /// environment variables and no arguments. See the `HostState` type for
+    /// the rule.
+    ///
     /// # Errors
     ///
     /// Returns an error if the module does not compile or link.
@@ -193,12 +223,15 @@ impl WasmtimeBuilder {
         let module = Module::from_binary(&engine, &self.wasm_bytes)
             .map_err(|e| ErrorTrace::new(WasmtimeError::Compile(e.to_string())))?;
 
-        let mut linker: Linker<()> = Linker::new(&engine);
+        let mut linker: Linker<HostState> = Linker::new(&engine);
         linker
             .func_wrap("ewe", "log", |_: i32, _: i32| {})
             .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
+        preview1::add_to_linker_sync(&mut linker, |state: &mut HostState| &mut state.wasi)
+            .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
 
-        let mut store = Store::new(&engine, ());
+        let wasi = WasiCtxBuilder::new().build_p1();
+        let mut store = Store::new(&engine, HostState { wasi });
         let instance = linker
             .instantiate(&mut store, &module)
             .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
@@ -236,7 +269,7 @@ impl WasmtimeBuilder {
 /// A running wasmtime instance. Holds the engine, store, and linked instance.
 pub struct WasmtimeInstance {
     engine: Engine,
-    store: Store<()>,
+    store: Store<HostState>,
     instance: Instance,
     name: String,
     max_response_bytes: usize,
