@@ -88,6 +88,18 @@ pub fn report_return_value(
     Ok(())
 }
 
+/// Resume a tracee with `PTRACE_SYSCALL`.
+///
+/// A failed resume leaves the tracee stopped. The tracer then waits for a stop
+/// that cannot happen. Return [`VfsError::Backend`] with the process
+/// identifier and the errno, so the caller reports the error.
+fn resume_syscall(pid: Pid, deliver: Option<Signal>) -> VfsResult<()> {
+    ptrace::syscall(pid, deliver).map_err(|e| VfsError::Backend {
+        message: format!("ptrace syscall resume failed for {pid}: {e}"),
+    })?;
+    Ok(())
+}
+
 /// nix-based raw ptrace interceptor.
 pub struct NixInterceptor;
 
@@ -198,9 +210,7 @@ fn trace_child(
     ptrace::setoptions(child, PTRACE_OPTIONS).map_err(|e| VfsError::Backend {
         message: format!("ptrace setoptions failed: {e}"),
     })?;
-    ptrace::syscall(child, None).map_err(|e| VfsError::Backend {
-        message: format!("ptrace syscall failed: {e}"),
-    })?;
+    resume_syscall(child, None)?;
 
     ptrace_loop(child, mount_table, fd_table)
 }
@@ -247,7 +257,7 @@ fn ptrace_loop(
                 } else {
                     Some(sig)
                 };
-                ptrace::syscall(pid, deliver).ok();
+                resume_syscall(pid, deliver)?;
             }
             WaitStatus::PtraceSyscall(pid) => {
                 // Syscall stop — dispatch using raw getregs.
@@ -271,7 +281,7 @@ fn ptrace_loop(
                                 }
                             }
                         }
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     } else {
                         let syscall_args = SyscallArgs {
                             nr: regs.orig_rax as i64,
@@ -306,7 +316,7 @@ fn ptrace_loop(
                         }
 
                         pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                 } else {
                     // The tracer cannot read the registers, so it cannot
@@ -326,28 +336,29 @@ fn ptrace_loop(
                     libc::PTRACE_EVENT_FORK
                     | libc::PTRACE_EVENT_VFORK
                     | libc::PTRACE_EVENT_CLONE => {
-                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
-                            let new_pid = Pid::from_raw(new_pid_raw as i32);
-                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
-                            // Do not resume the new child here. Its own first
-                            // stop arrives in this loop and is consumed there.
-                        }
-                        ptrace::syscall(pid, None).ok();
+                        let new_pid_raw = ptrace::getevent(pid).map_err(|e| VfsError::Backend {
+                            message: format!("ptrace getevent failed for {pid}: {e}"),
+                        })?;
+                        let new_pid = Pid::from_raw(new_pid_raw as i32);
+                        fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
+                        // Do not resume the new child here. Its own first
+                        // stop arrives in this loop and is consumed there.
+                        resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_VFORK_DONE => {
                         // The child has completed exec/exit and the parent is
                         // unblocked. Resume the parent with syscall tracing.
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_EXEC => {
                         fd_table.close_cloexec(pid.as_raw() as u32);
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_EXIT => {
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                     _ => {
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                 }
             }
