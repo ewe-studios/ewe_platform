@@ -5,6 +5,21 @@ _Written in ASD-STE100 Simplified Technical English (STE)._
 _Newest first. Updated after each batch. See
 `.agents/skills/specifications-management/skill.md`._
 
+## Batch 2, issue #416: a `std` guest imports WASI, a `no_std` guest does not
+
+- A guest built for `wasm32-wasip1` with `std` imports functions from `wasi_snapshot_preview1`
+  even when the application does not call them. Wasmtime resolves every import at
+  instantiation, so a host that links only its own namespace fails with a link error.
+- Add the preview 1 context through `preview1::add_to_linker_sync`. The store value becomes a
+  private `HostState` that holds `WasiP1Ctx`. `WasiCtxBuilder::new().build_p1()` gives an
+  empty context: no streams, no environment and no arguments.
+- `wasmtime-wasi` 26 lists `preview1` as its only and default feature, and it depends on the
+  same `wasmtime 26.0.1`. Build it with `default-features = false, features = ["preview1"]`
+  to keep the feature set small and the version unified.
+- Test a link defect with a WAT module. Declare the import and also call it once, then
+  discard the errno. That proves the import is served, not only named. The old code fails at
+  `Linker::instantiate`, so the test names the defect directly.
+
 ## Batch 2 (2026-11-09)
 
 ### A `Waker` is `Send` by type, so its data must be thread-safe by construction

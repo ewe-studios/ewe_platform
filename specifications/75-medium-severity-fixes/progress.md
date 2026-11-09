@@ -42,6 +42,33 @@ Tests: `tests/valtron/callback_waker_thread_confinement.rs` (non-`multi` only).
 
 The crate version does not change: no public item is added.
 
+## 2026-11-09: `foundation_wasmtime` WASI imports (issue #416), branch `fix/wasmtime-wasi-imports`
+
+The host linker now registers the Preview 1 (`wasm32-wasip1`) imports, so a guest that a
+`std` build produces can instantiate. The WASI context is empty: no standard streams, no
+environment variables and no arguments. A `no_std` guest imports nothing and still works.
+
+| Item | Change |
+| --- | --- |
+| Dependency | `wasmtime-wasi = { version = "26", default-features = false, features = ["preview1"] }`. It resolves to 26.0.1 and shares one `wasmtime` package with the crate. |
+| State | A private `HostState { wasi: WasiP1Ctx }` replaces the unit state in `Linker` and `Store`. |
+| Linker | `preview1::add_to_linker_sync` registers `wasi_snapshot_preview1`. `ewe.log` stays. |
+| Guest ABI | Unchanged: `memory`, `ewe_alloc`, `handle_request`, and every public method signature. |
+| Test | `tests/wasmtime_wasi_imports_tests.rs`: a WAT module imports `fd_write`, calls it, returns a fixed body, and asserts the response. |
+
+The new test fails on the old code with
+`failed to link WASM module: unknown import: wasi_snapshot_preview1::fd_write has not been defined`.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| `cargo fmt -p foundation_wasmtime --check` | Pass |
+| `cargo clippy --profile uat -p foundation_wasmtime --all-targets --no-deps -- -D warnings` | Zero warnings |
+| `cargo test --profile uat -p foundation_wasmtime` | Pass, 15 tests and one ignored doc test |
+| `cargo check --profile uat -p foundation_platform` | Pass |
+| `cargo tree -i wasmtime -p foundation_wasmtime` | One package: wasmtime 26.0.1 |
+
 ## 2026-11-09: batch 2, `foundation_core` fixes on `spec75/core-medium`
 
 The branch is based on `fix/medium-integration` at `4ca007301`. Seven of the nine listed
