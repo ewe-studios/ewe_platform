@@ -79,7 +79,13 @@ Rename `foundation_connectrpc::Ctx` to `RpcCtx` and change its `bag: Arc<Context
    regenerate the checked-in output.
 6. Move `foundation_http/tests/context_bag_tests.rs` to `foundation_context/tests/` as tests
    of the new `Ctx` methods. Delete the tests that only tested the `unsafe impl`.
-7. Search docs, READMEs, `.agents` and the specs for `ContextBag` and `connectrpc::Ctx`, and
+7. Fix GitHub issue #448 (medium). `Ctx::new` and `Ctx::host` seed the shared RNG with the
+   constant `0`, so every host draws the same stream (WASI `random_get` included).
+   `Ctx::host()` must seed the RNG from `foundation_compact`'s entropy backend.
+   `Ctx::new(clock)` keeps a fixed seed for tests, and a new `Ctx::with_seed(clock, seed)`
+   lets a deterministic simulation test choose the seed. `foundation_platform::host_session_ctx`
+   then uses `Ctx::host()` and drops its own reseed. Close #448 in this PR.
+8. Search docs, READMEs, `.agents` and the specs for `ContextBag` and `connectrpc::Ctx`, and
    update them (`grep -rn "ContextBag" --include=*.md .`).
 
 ## 4. Tests
@@ -91,6 +97,8 @@ Rename `foundation_connectrpc::Ctx` to `RpcCtx` and change its `bag: Arc<Context
 - The existing foundation_http, connectrpc, proxy, auth and browser tests pass with no change
   to what they assert.
 - `foundation_connectrpc_codegen/tests/generator_tests.rs` asserts `RpcCtx` in the output.
+- Two `Ctx::host()` handles draw different first values from `rng()`. Two `Ctx::with_seed`
+  handles with the same seed draw the same values. The first test fails on the old code.
 
 ## 5. Verify
 

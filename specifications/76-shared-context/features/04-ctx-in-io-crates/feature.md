@@ -37,18 +37,24 @@ were measured on 2026-11-09 (`dyn Clock` outside `tests/`):
 1. Find the sites: `grep -rn "dyn Clock" --include=*.rs backends/<crate>/src`.
 2. A function or constructor parameter `clock: Arc<dyn Clock>` becomes `ctx: Ctx`. Inside,
    read `ctx.clock()` where the clock is used.
+   A borrowed `clock: &dyn Clock` or `&Arc<dyn Clock>` becomes `ctx: &Ctx`, and an
+   `Option<Arc<dyn Clock>>` becomes `Option<Ctx>`. The review on 2026-11-09 counted 373
+   `Arc<dyn Clock>`, 208 `&dyn Clock`, 12 `&Arc<dyn Clock>` and 5 `Option<Arc<dyn Clock>>`
+   sites in all crates.
 3. A struct field `clock: Arc<dyn Clock>` becomes `ctx: Ctx`. Read `self.ctx.clock()` at each
    use. Do not cache a second clock next to the `Ctx`.
 4. A caller that has a `Ctx` passes it (`ctx.clone()`). A caller that has only a clock moves
    up one level, and so on, until it reaches the code that already has a `Ctx`: a valtron
    task, an HTTP or RPC handler, or a host entry point.
-5. A host entry point (`main`, a command-line command, a worker entry) builds `Ctx::host()`
+5. Library code that builds `MonotonicClock::new()` inline (GitHub issue #463 lists the
+   sites) takes the caller's `Ctx` instead. Close #463 when features 03 to 05 remove all of them.
+6. A host entry point (`main`, a command-line command, a worker entry) builds `Ctx::host()`
    once and passes it down. Library code never builds `Ctx::host()` or `MonotonicClock::new()`.
-6. A test that used `Arc::new(SimulatedClock::new(..))` builds
+7. A test that used `Arc::new(SimulatedClock::new(..))` builds
    `Ctx::new(clock.clone())` and keeps the `clock` handle to advance it.
-7. A trait method that took a clock takes `ctx: &Ctx` (or `Ctx` by value, if it moves into a
+8. A trait method that took a clock takes `ctx: &Ctx` (or `Ctx` by value, if it moves into a
    future). Change every implementation in the same PR.
-8. Keep `Arc<dyn Clock>` only where the requirements section 2.3 allows it. Each kept site
+9. Keep `Arc<dyn Clock>` only where the requirements section 2.3 allows it. Each kept site
    gets a one-line comment that says why.
 
 Tests: the crate's existing tests pass, and they assert the same values. Add one test per

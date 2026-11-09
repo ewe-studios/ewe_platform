@@ -27,9 +27,13 @@ Stop new `Arc<dyn Clock>` parameters and fields after features 03 to 05 remove t
    The check scans `backends/*/src`, `bin/*/src` and `apps/*/src` for `dyn Clock` and fails on
    each site that is not in the allowlist. It skips `foundation_context` and the
    `foundation_core/src/valtron` files that build or hold the clock.
+   Also fail on `MonotonicClock::new()` outside host entry points (the allowlist names them),
+   so #463 does not come back.
 2. Add a unittest, `scripts/ci/tests/test_check_clock_params.py`: one case passes, one case
    fails on a new site, and one case passes on an allowlisted site.
-3. Run the check in `.github/workflows/check.yaml` next to `check_time_sources.py`.
+3. Run the check in `.github/workflows/check.yaml`. Issue #462 says the repository guards
+   run only inside the foundation_core job. If #462 is fixed first, add the check to its
+   guards job. If not, run it where `check_time_sources.py` runs.
 4. Change root rule 11 in `CLAUDE.md` and the matching text in `.agents/AGENTS.md`. Code reads
    side effects from `foundation_context::Ctx` (`ctx.clock()`, `ctx.rng()`, `ctx.get::<T>()`),
    and it takes a `Ctx`, not a bare clock.
