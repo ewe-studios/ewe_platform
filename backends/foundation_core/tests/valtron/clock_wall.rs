@@ -4,15 +4,11 @@
 //! calendar timestamp could not read it from the injected clock. Feature 117
 //! adds `wall_now`, and a simulated clock that never reads the real wall clock.
 //!
-//! WHAT: [`MonotonicClock::wall_now`] reads the real time; [`SimulatedClock`]
-//! starts at the UNIX epoch and moves only through `advance_wall`.
+//! WHAT: [`SimulatedClock`] starts at the UNIX epoch and moves only through
+//! `advance_wall`. The `MonotonicClock::wall_now` test is in `foundation_context`.
 //!
-//! HOW: one test compares the real clock with `SystemTime::now` (the single real
-//! read in this file). The simulated tests advance the clock by hand and run a
-//! task through the engine.
-
-use foundation_compact::SystemTime;
-use foundation_core::valtron::{Clock, MonotonicClock};
+//! HOW: the simulated tests advance the clock by hand and run a task through the
+//! engine.
 
 #[cfg(feature = "test-clock")]
 use foundation_compact::Duration;
@@ -21,7 +17,7 @@ use foundation_compact::Duration;
 use std::sync::{Arc, LazyLock};
 
 #[cfg(feature = "test-clock")]
-use foundation_core::valtron::{fork_ctx, valtron_test, Ctx, SimulatedClock};
+use foundation_core::valtron::{fork_ctx, valtron_test, Clock, Ctx, SimulatedClock};
 
 /// The wall clock for the engine test: five seconds after the UNIX epoch.
 #[cfg(feature = "test-clock")]
@@ -33,19 +29,6 @@ static WALL_CLOCK: LazyLock<Arc<SimulatedClock>> =
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
     let clock: Arc<dyn Clock> = clock.clone();
     Ctx::new(clock)
-}
-
-#[test]
-fn monotonic_clock_wall_now_is_near_real_time() {
-    let clock = MonotonicClock::new();
-    let start = SystemTime::now();
-    let wall = clock.wall_now();
-    let end = SystemTime::now();
-
-    assert!(
-        wall >= start && wall <= end,
-        "the real clock's wall time must fall between the two reads around it"
-    );
 }
 
 #[cfg(feature = "test-clock")]

@@ -10,5 +10,6 @@
 backends/foundation_compact/src/  # the real time backends
 # `MonotonicClock` is the engine's real clock, and `wall_now` reads the system
 # clock. It is the one place the real call stays.
-backends/foundation_core/src/valtron/ctx.rs  # MonotonicClock: the real clock
+backends/foundation_context/src/lib.rs  # MonotonicClock: the real clock
+backends/foundation_core/src/valtron/ctx.rs  # SimulatedClock: base Instant, an opaque origin only
 

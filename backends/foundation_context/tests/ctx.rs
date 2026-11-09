@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::{Clock, Config, Ctx, MinimumElement, MonotonicClock};
+use foundation_context::{Clock, Config, Ctx, MinimumElement, MonotonicClock};
 
 /// Compile-time assertion that a type is usable across threads (and on the
 /// single-threaded engine). Fails to compile if it stops being `Send + Sync`.

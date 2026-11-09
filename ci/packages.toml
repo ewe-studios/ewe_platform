@@ -427,6 +427,15 @@ wasm = "enforce"
 # owned path's `host-abi` backend.
 wasm-runs = ["", "--no-default-features --features std,host-abi"]
 
+[packages.foundation_context]
+wasm = "enforce"
+# The plain wasm build plus both time and entropy backends of foundation_compact.
+wasm-runs = [
+  "",
+  "--no-default-features --features host-abi",
+  "--no-default-features --features wasm-bindgen",
+]
+
 [packages.foundation_arrow]
 wasm = "enforce"
 wasm-runs = [""]
