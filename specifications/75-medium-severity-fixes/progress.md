@@ -663,11 +663,13 @@ The branch also holds these changes:
 
 ### Next
 
-- Batch 2 must fix these open medium-severity issues:
-  - foundation_core: #291, #293, #294, #296, #300, #303, #311, #407, #408.
-  - foundation_connectrpc: #410.
-  - foundation_wasmtime: #416.
-  - foundation_netio: #420.
+- The residual medium work, checked against the branch history on 2026-11-09:
+  - foundation_core: #291, #293, #294, #296, #300, #303, #311. The others in the old
+    batch-2 list (#407, #408) are fixed on the branch.
+  - foundation_nativeapis: #438, the 43 clippy errors that only macOS compiles.
+- Issues #410, #416 and #420 are already fixed on the branch (commits `9db0fdd82`,
+  `df45647a5`, `2ecb699d7`). An open issue is not proof that the fix is missing. Check
+  `git log --grep "#<n>" master..HEAD` before you schedule work.
 - The `shared/` layout moves are separate work. Issues #409, #411, #412 and #413 record the
   places that must move to `native/`.
 - #257 needs the reset probe in `foundation_netio`; the connectrpc change records the
