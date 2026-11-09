@@ -197,6 +197,130 @@ fn is_hidden(e: &DirEntry) -> bool {
         .unwrap_or_default()
 }
 
+/// Top-level directory of the git checkout that holds `manifest_dir`.
+///
+/// Returns `None` when the crate is not in a git checkout, for example when
+/// cargo builds it from the registry. The caller then cannot restore a
+/// submodule.
+fn repo_root(manifest_dir: &Path) -> Option<PathBuf> {
+    let out = Command::new("git")
+        .current_dir(manifest_dir)
+        .args(["rev-parse", "--show-toplevel"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let text = String::from_utf8(out.stdout).ok()?;
+    let root = PathBuf::from(text.trim());
+    if root.as_os_str().is_empty() {
+        return None;
+    }
+    Some(root)
+}
+
+/// Git directory of the main checkout's `tools/llama.cpp` clone.
+///
+/// WHY: linked worktrees share the main checkout's `.git`. A worktree starts
+/// with an empty submodule gitlink, but the main checkout already has the
+/// submodule clone under `.git/modules/tools/llama.cpp`. That clone is a local
+/// copy, so it can fill a worktree without the network.
+///
+/// WHAT: `None` when there is no such clone.
+///
+/// HOW: `git rev-parse --git-common-dir` gives the shared `.git`, also from a
+/// linked worktree. A real clone has a `HEAD` file.
+fn local_submodule_git_dir(root: &Path) -> Option<PathBuf> {
+    let out = Command::new("git")
+        .current_dir(root)
+        .args(["rev-parse", "--git-common-dir"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let text = String::from_utf8(out.stdout).ok()?;
+    let common = PathBuf::from(text.trim());
+    // The path is relative to `root` when git prints a relative path.
+    let common = if common.is_absolute() {
+        common
+    } else {
+        root.join(common)
+    };
+    let modules = common.join("modules/tools/llama.cpp");
+    if modules.join("HEAD").exists() {
+        Some(modules)
+    } else {
+        None
+    }
+}
+
+/// Check out `tools/llama.cpp` from a local clone. Returns `true` on success.
+///
+/// WHY: a restore from the main checkout must never touch the network. A runner
+/// or a machine without the network must get the clear error from
+/// [`ensure_llama_sources`], not a connect timeout.
+///
+/// WHAT: runs `git submodule update --init` with the submodule URL set to the
+/// local clone and with only the `file` transport allowed. Git cannot reach a
+/// remote in this process.
+///
+/// HOW: `GIT_ALLOW_PROTOCOL=file` restricts every git subprocess, including the
+/// clone that `submodule update` starts. `GIT_TERMINAL_PROMPT=0` stops a
+/// prompt for credentials.
+fn restore_submodule(root: &Path, local_git_dir: &Path) -> bool {
+    Command::new("git")
+        .current_dir(root)
+        .arg("-c")
+        .arg(format!(
+            "submodule.tools/llama.cpp.url={}",
+            local_git_dir.display()
+        ))
+        .args(["submodule", "update", "--init", "tools/llama.cpp"])
+        .env("GIT_ALLOW_PROTOCOL", "file")
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+/// Make sure the llama.cpp sources exist, and name the exact fix when they do not.
+///
+/// WHY: a linked worktree starts with an empty `tools/llama.cpp` gitlink. Without
+/// this check, bindgen stops with `fatal error: 'llama.h' file not found`, which
+/// names neither the cause nor the fix (issue #328).
+///
+/// WHAT: when `include/llama.h` is absent, this restores the submodule from the
+/// main checkout's local clone. If no local clone exists, it stops with the
+/// exact command. The failure always stops the build; this function never hides
+/// a missing submodule.
+///
+/// HOW: the restore runs at the repository root with only the `file` transport
+/// (see [`restore_submodule`]), so it needs no network.
+fn ensure_llama_sources(llama_src: &Path, manifest_dir: &Path) {
+    let header = llama_src.join("include/llama.h");
+    if header.exists() {
+        return;
+    }
+
+    if let Some(root) = repo_root(manifest_dir) {
+        if let Some(local_git_dir) = local_submodule_git_dir(&root) {
+            if restore_submodule(&root, &local_git_dir) && header.exists() {
+                println!("cargo:warning=restored tools/llama.cpp from the local submodule clone");
+                return;
+            }
+        }
+    }
+
+    panic!(
+        "the llama.cpp sources are missing: {} does not exist.\n\
+         Restore the git submodule, then rebuild:\n\
+         \x20   git submodule update --init --depth 1 tools/llama.cpp\n\
+         The CI image bakes this submodule. A linked worktree starts without it.",
+        header.display()
+    );
+}
+
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
 
@@ -224,10 +348,11 @@ fn main() {
     ))
     .expect("failed to collect EMSDK_DIR path");
 
-    let llama_src = std::fs::canonicalize(Path::new(
-        &env::var("LLAMA_DIR").expect("get LLAMA_DIR environment"),
-    ))
-    .expect("failed to collect LLAMA_DIR path");
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to get CARGO_MANIFEST_DIR");
+    let llama_dir = env::var("LLAMA_DIR").expect("get LLAMA_DIR environment");
+    ensure_llama_sources(Path::new(&llama_dir), Path::new(&manifest_dir));
+    let llama_src =
+        std::fs::canonicalize(Path::new(&llama_dir)).expect("failed to collect LLAMA_DIR path");
 
     let llama_tools_directory = llama_src.join("tools");
     let llama_mtmh_directory = llama_tools_directory.join("mtmd");
@@ -262,7 +387,6 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let target_dir = get_cargo_target_dir().unwrap();
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to get CARGO_MANIFEST_DIR");
 
     let build_shared_libs = cfg!(feature = "dynamic-link");
 
