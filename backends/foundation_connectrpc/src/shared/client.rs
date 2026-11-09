@@ -605,7 +605,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         }
 
         // Build transport request.
-        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
+        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
         let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         // Build the ClientExchange with linked cancel.
@@ -695,7 +695,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             }
         }
 
-        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
+        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
         let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         let exchange =
@@ -789,7 +789,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             }
         }
 
-        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
+        let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
         let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         let exchange =
@@ -908,20 +908,43 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         with_deadline(&ctx, self.call_unary_post_inner(&ctx, request, url)).await
     }
 
+    /// Prepare a marshaled unary request body for the wire.
+    ///
+    /// Applies the same limits as the streaming envelope writer:
+    /// `compress_min_bytes` decides whether to compress at all, and
+    /// `send_max_bytes` caps the payload after compression. Without these
+    /// checks a unary call ignored both limits.
+    fn prepare_unary_body(&self, encoded: &Bytes) -> ConnectResult<(Vec<u8>, Option<String>)> {
+        let send_compression = self.config.send_compression.as_deref();
+        let want_compress = matches!(send_compression, Some(algo) if algo != "identity")
+            && (self.config.limits.compress_min_bytes == 0
+                || encoded.len() >= self.config.limits.compress_min_bytes);
+        let (body, content_encoding) = if want_compress {
+            compress_if(&self.config.compression, send_compression, encoded)?
+        } else {
+            (encoded.to_vec(), None)
+        };
+        let send_max_bytes = self.config.limits.send_max_bytes;
+        if send_max_bytes != 0 && body.len() > send_max_bytes {
+            return Err(ConnectError::resource_exhausted(format!(
+                "message of {} bytes exceeds send_max_bytes of {send_max_bytes}",
+                body.len()
+            ))
+            .into());
+        }
+        Ok((body, content_encoding))
+    }
+
     async fn call_unary_post_inner(
         &self,
         ctx: &Ctx,
         request: Request<Req>,
         url: String,
     ) -> ConnectResult<Response<Res>> {
-        // Marshal the request.
+        // Marshal the request, then apply the send limits.
         let request_codec = self.codecs.for_request(&self.config.codec_name)?;
         let encoded = request_codec.marshal(&request.msg)?;
-        let (body, content_encoding) = compress_if(
-            &self.config.compression,
-            self.config.send_compression.as_deref(),
-            &encoded,
-        )?;
+        let (body, content_encoding) = self.prepare_unary_body(&encoded)?;
 
         // Build headers: caller's request headers + protocol headers.
         let mut headers = request.headers().clone();
@@ -1794,22 +1817,24 @@ fn build_url(base_url: &str, procedure: &str) -> String {
 }
 
 /// Build a [`RequestDescriptor`] for a transport `open` call.
+///
+/// `Uri::parse` accepts both an absolute URL and a path-only URL, so a parse
+/// failure is a real error: return it as `Internal` instead of panicking on a
+/// fallback.
 fn build_request_descriptor(
     url: &str,
     headers: &SimpleHeaders,
     method: SimpleMethod,
-) -> RequestDescriptor {
-    let uri = Uri::parse(url).unwrap_or_else(|_| {
-        // Fallback: construct a minimal URI from just the path portion.
-        Uri::parse(&format!("http://localhost{url}")).expect("fallback URI")
-    });
-    RequestDescriptor {
+) -> ConnectResult<RequestDescriptor> {
+    let uri = Uri::parse(url)
+        .map_err(|e| ConnectError::internal(format!("invalid request URL {url:?}: {e}")))?;
+    Ok(RequestDescriptor {
         proto: Proto::HTTP11,
         request_url: SimpleUrl::url_only(url),
         request_uri: uri,
         headers: headers.clone(),
         method,
-    }
+    })
 }
 
 /// Execute a unary round-trip: open transport, push body, close send, collect
@@ -1871,7 +1896,9 @@ async fn do_unary_round_trip(
         } else {
             String::from_utf8_lossy(&body_buf).to_string()
         };
-        Err(ConnectError::new(code_from_http_status(&status), error_body).into())
+        let code = code_from_http_status(&status);
+        let status_code = u16::try_from(status.into_usize()).unwrap_or_default();
+        Err(ConnectError::from_http_status(status_code, code, error_body).into())
     }
 }
 
@@ -1957,14 +1984,14 @@ fn add_timeout_header(
     }
 }
 
-/// Check if an error trace indicates a 405 or 415 HTTP response that can be
-/// retried as a POST (Decision 07 fallback case 2).
+/// Check if an error trace carries a 405 or 415 HTTP status that can be retried
+/// as a POST (Decision 07 fallback case 2).
+///
+/// The error keeps the status it came from, so this check does not scan the
+/// message text. A message that happens to contain "405" must not trigger a
+/// retry.
 fn is_method_not_allowed(err: &ErrorTrace<ConnectError>) -> bool {
-    let msg = err.to_string().to_lowercase();
-    msg.contains("405")
-        || msg.contains("method not allowed")
-        || msg.contains("415")
-        || msg.contains("unsupported media type")
+    matches!(err.current_context().http_status(), Some(405 | 415))
 }
 
 /// Map an HTTP status to an RPC error [`Code`] (Decision 03).

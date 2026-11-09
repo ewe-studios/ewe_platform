@@ -1268,15 +1268,28 @@ pub(crate) fn protocol_encoding_header(protocol: &dyn ProtocolHandler) -> &'stat
 }
 
 /// Whether `name` is a framing header the protocol sets itself.
+///
+/// A handler value for one of these headers could desync the framing from the
+/// bytes on the wire. The rule covers:
+/// - the framing `content-type`;
+/// - the streaming compression encoding header;
+/// - the HTTP/1.1 message framing headers (`content-length`,
+///   `transfer-encoding`, `connection`);
+/// - any HTTP/2 or HTTP/3 pseudo-header (a name that starts with `:`).
 fn is_framing_header(name: &SimpleHeader, encoding_header: &str) -> bool {
     let wire = name.to_string();
-    wire.eq_ignore_ascii_case("content-type") || wire.eq_ignore_ascii_case(encoding_header)
+    wire.starts_with(':')
+        || wire.eq_ignore_ascii_case("content-type")
+        || wire.eq_ignore_ascii_case(encoding_header)
+        || wire.eq_ignore_ascii_case("content-length")
+        || wire.eq_ignore_ascii_case("transfer-encoding")
+        || wire.eq_ignore_ascii_case("connection")
 }
 
 /// Merge the handler's headers into a response head.
 ///
-/// The protocol value wins for `content-type` and for the streaming encoding
-/// header. A handler value for either is logged and dropped.
+/// The protocol value wins for the framing headers (see
+/// [`is_framing_header`]). A handler value for one is logged and dropped.
 pub(crate) fn merge_handler_headers(
     head: &mut SimpleHeaders,
     handler: SimpleHeaders,

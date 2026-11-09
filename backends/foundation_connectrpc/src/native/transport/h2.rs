@@ -80,12 +80,23 @@ enum H2Socket {
     Tcp(TcpStream),
     #[cfg(unix)]
     Unix(std::os::unix::net::UnixStream),
-    /// A TCP connect in flight on a non-blocking socket (feature 127).
+    /// A connect in flight on a non-blocking socket (feature 127).
     ///
     /// The pump settles it from `SO_ERROR` in [`PumpPhase::Connecting`] and
-    /// then replaces the variant with `Tcp`. The slot is `None` only for the
-    /// moment between taking the socket out and filling the `Tcp` variant.
-    Connecting(Option<socket2::Socket>),
+    /// then replaces the variant with `Tcp` or `Unix`. The slot is `None` only
+    /// for the moment between taking the socket out and filling the final
+    /// variant.
+    Connecting {
+        socket: Option<socket2::Socket>,
+        /// A Unix address to retry `connect` on. `None` for TCP, whose connect
+        /// completes in the background without a retry.
+        ///
+        /// A non-blocking connect to a Unix listener whose backlog is full
+        /// returns `EAGAIN` and does not queue the connection kernel-side, so
+        /// the pump must call `connect` again.
+        #[cfg(unix)]
+        retry_addr: Option<socket2::SockAddr>,
+    },
 }
 
 impl H2Socket {
@@ -108,45 +119,115 @@ impl H2Socket {
                 let stream: TcpStream = socket.into();
                 Ok((Self::Tcp(stream), false))
             }
-            Err(err) if connect_in_progress(&err) => Ok((Self::Connecting(Some(socket)), true)),
+            Err(err) if connect_in_progress(&err) => Ok((
+                Self::Connecting {
+                    socket: Some(socket),
+                    #[cfg(unix)]
+                    retry_addr: None,
+                },
+                true,
+            )),
             Err(err) => Err(err),
         }
     }
 
-    /// Settle an in-flight connect from `SO_ERROR`.
+    /// Create a non-blocking Unix socket and start a connect to `path`.
+    ///
+    /// The same contract as [`connect_tcp`](Self::connect_tcp): a retryable
+    /// error means the pump waits for write readiness. It never blocks the
+    /// calling worker, so a slow or backlogged listener cannot stall a valtron
+    /// worker.
+    #[cfg(unix)]
+    fn connect_unix(path: &std::path::Path) -> io::Result<(Self, bool)> {
+        use std::os::fd::OwnedFd;
+
+        let socket = socket2::Socket::new(socket2::Domain::UNIX, socket2::Type::STREAM, None)?;
+        socket.set_nonblocking(true)?;
+        let addr = socket2::SockAddr::unix(path)?;
+        match socket.connect(&addr) {
+            Ok(()) => {
+                let stream = std::os::unix::net::UnixStream::from(OwnedFd::from(socket));
+                Ok((Self::Unix(stream), false))
+            }
+            Err(err) if connect_in_progress(&err) => Ok((
+                Self::Connecting {
+                    socket: Some(socket),
+                    retry_addr: Some(addr),
+                },
+                true,
+            )),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Settle an in-flight connect.
     ///
     /// `Ok(true)` means the connection is up, `Ok(false)` means it is still in
     /// flight, and `Err` is the dial failure. Only a `None` `SO_ERROR` plus a
     /// successful `peer_addr` means connected: while the connect is in flight
     /// `peer_addr` fails with `ENOTCONN`, which is not an error.
-    fn connect_state(&self) -> io::Result<bool> {
-        let Self::Connecting(Some(socket)) = self else {
+    fn connect_state(&mut self) -> io::Result<bool> {
+        let Self::Connecting {
+            socket,
+            #[cfg(unix)]
+            retry_addr,
+        } = self
+        else {
             return Ok(true);
         };
+        let Some(socket) = socket else {
+            return Ok(true);
+        };
+        if socket.peer_addr().is_ok() {
+            return Ok(true);
+        }
         if let Some(err) = socket.take_error()? {
-            return Err(err);
+            // A Unix connect that the listener's backlog refused is retried
+            // below, not failed.
+            #[cfg(unix)]
+            let retry = retry_addr.is_some() && connect_in_progress(&err);
+            #[cfg(not(unix))]
+            let retry = false;
+            if !retry {
+                return Err(err);
+            }
+        }
+        #[cfg(unix)]
+        if let Some(addr) = retry_addr {
+            match socket.connect(addr) {
+                Ok(()) => return Ok(true),
+                Err(ref e) if connect_in_progress(e) => return Ok(false),
+                Err(ref e) if e.raw_os_error() == Some(libc::EISCONN) => return Ok(true),
+                Err(ref e) if e.raw_os_error() == Some(libc::EALREADY) => return Ok(false),
+                Err(e) => return Err(e),
+            }
         }
         Ok(socket.peer_addr().is_ok())
     }
 
-    /// Move a connected socket from the `Connecting` state into `Tcp`.
+    /// Move a connected socket from the `Connecting` state into `Tcp` or
+    /// `Unix`.
     fn finish_connect(&mut self) {
-        if let Self::Connecting(slot) = self {
-            if let Some(socket) = slot.take() {
-                let stream: TcpStream = socket.into();
-                *self = Self::Tcp(stream);
+        let Self::Connecting { socket, .. } = self else {
+            return;
+        };
+        let Some(socket) = socket.take() else {
+            return;
+        };
+        #[cfg(unix)]
+        if matches!(
+            self,
+            Self::Connecting {
+                retry_addr: Some(_),
+                ..
             }
+        ) {
+            use std::os::fd::OwnedFd;
+            *self = Self::Unix(std::os::unix::net::UnixStream::from(OwnedFd::from(socket)));
+            return;
         }
-    }
-
-    fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
-        match self {
-            Self::Tcp(s) => s.set_nonblocking(nonblocking),
-            #[cfg(unix)]
-            Self::Unix(s) => s.set_nonblocking(nonblocking),
-            Self::Connecting(Some(s)) => s.set_nonblocking(nonblocking),
-            Self::Connecting(None) => Ok(()),
-        }
+        let stream: TcpStream = socket.into();
+        *self = Self::Tcp(stream);
     }
 
     /// The raw fd to register with the reactor, if the socket has one.
@@ -155,9 +236,28 @@ impl H2Socket {
         match self {
             Self::Tcp(s) => Some(s.as_raw_fd()),
             Self::Unix(s) => Some(s.as_raw_fd()),
-            Self::Connecting(Some(s)) => Some(s.as_raw_fd()),
-            Self::Connecting(None) => None,
+            Self::Connecting {
+                socket: Some(s), ..
+            } => Some(s.as_raw_fd()),
+            Self::Connecting { socket: None, .. } => None,
         }
+    }
+
+    /// Whether a Unix connect is waiting for a retry.
+    ///
+    /// A non-blocking connect that the listener's backlog refused is not
+    /// queued kernel-side, so no readiness edge announces when the retry can
+    /// succeed. The pump then retries on [`POLL_DELAY`] instead of parking on
+    /// the socket.
+    #[cfg(unix)]
+    fn retries_connect(&self) -> bool {
+        matches!(
+            self,
+            Self::Connecting {
+                retry_addr: Some(_),
+                ..
+            }
+        )
     }
 }
 
@@ -179,7 +279,7 @@ impl Read for H2Socket {
             // The pump settles the connect before it reads, so this arm is
             // only reachable if that order changes. Report "try again" rather
             // than block or panic.
-            Self::Connecting(_) => Err(io::Error::new(
+            Self::Connecting { .. } => Err(io::Error::new(
                 io::ErrorKind::WouldBlock,
                 "h2 socket: the connect is still in flight",
             )),
@@ -193,7 +293,7 @@ impl Write for H2Socket {
             Self::Tcp(s) => s.write(buf),
             #[cfg(unix)]
             Self::Unix(s) => s.write(buf),
-            Self::Connecting(_) => Err(io::Error::new(
+            Self::Connecting { .. } => Err(io::Error::new(
                 io::ErrorKind::WouldBlock,
                 "h2 socket: the connect is still in flight",
             )),
@@ -204,7 +304,7 @@ impl Write for H2Socket {
             Self::Tcp(s) => s.flush(),
             #[cfg(unix)]
             Self::Unix(s) => s.flush(),
-            Self::Connecting(_) => Ok(()),
+            Self::Connecting { .. } => Ok(()),
         }
     }
 }
@@ -241,18 +341,15 @@ fn register_socket_readiness(stream: &H2Socket) -> Option<Arc<FdReadiness>> {
 /// URI's authority is then only used for the `:authority` pseudo-header
 /// (gRPC servers on Unix sockets ignore it).
 ///
-/// `open()` never waits on the peer: it starts a non-blocking TCP dial and
-/// hands the socket to the pump task, which settles the dial and runs the h2
-/// handshake (preface + SETTINGS exchange) ahead of the request. A dial
-/// failure therefore arrives as `Err(TransportError::Connect)` on the response
-/// head, not as an `Err` from `open()`. `open()` is called from async code
-/// running on a valtron worker, and the peer is often served by the same pool
-/// (an in-process server, or a proxy and its backend). A dial or a handshake
-/// that blocked the worker could starve the very task that answers it and
-/// deadlock the pool.
-///
-/// The Unix domain socket path still dials with a blocking `UnixStream::connect`
-/// (feature 127 records the limitation in `docs/bug-backlog.md` §1).
+/// `open()` never waits on the peer: it starts a non-blocking dial and hands
+/// the socket to the pump task, which settles the dial and runs the h2
+/// handshake (preface + SETTINGS exchange) ahead of the request. A dial failure
+/// therefore arrives as `Err(TransportError::Connect)` on the response head,
+/// not as an `Err` from `open()`. `open()` is called from async code running on
+/// a valtron worker, and the peer is often served by the same pool (an
+/// in-process server, or a proxy and its backend). A dial or a handshake that
+/// blocked the worker could starve the very task that answers it and deadlock
+/// the pool. This holds for both the TCP and the Unix domain socket paths.
 #[derive(Clone)]
 pub struct H2Transport {
     /// When set, every `open()` dials this Unix socket instead of TCP.
@@ -349,22 +446,14 @@ impl H2Transport {
 
     /// Start the dial for one call without waiting for the peer.
     ///
-    /// Returns the socket and whether the connect is still in flight. The TCP
-    /// path creates a non-blocking socket and starts `connect(2)`, so an
-    /// in-flight connect costs no worker. The Unix path keeps the blocking
-    /// `UnixStream::connect`, because it has no non-blocking form on every
-    /// platform; that limitation is in `docs/bug-backlog.md` §1.
+    /// Returns the socket and whether the connect is still in flight. Both the
+    /// TCP and the Unix path create a non-blocking socket and start
+    /// `connect(2)`, so an in-flight connect costs no worker and the pump
+    /// enforces [`Self::DEFAULT_CONNECT_TIMEOUT`].
     fn start_dial(&self, host: &str, port: u16) -> Result<(H2Socket, bool), TransportError> {
         #[cfg(unix)]
         if let Some(path) = &self.unix_path {
-            let stream = H2Socket::Unix(
-                std::os::unix::net::UnixStream::connect(path)
-                    .map_err(|e| TransportError::Connect(Arc::new(e)))?,
-            );
-            stream
-                .set_nonblocking(true)
-                .map_err(|e| TransportError::Connect(Arc::new(e)))?;
-            return Ok((stream, false));
+            return H2Socket::connect_unix(path).map_err(|e| TransportError::Connect(Arc::new(e)));
         }
         let addr: SocketAddr = format!("{host}:{port}")
             .parse()
@@ -704,6 +793,11 @@ impl H2Pump {
         let Some(socket) = &self.socket else {
             return TaskStatus::Delayed(POLL_DELAY);
         };
+        // A Unix connect the listener refused is retried on a short delay: no
+        // readiness edge announces when the backlog has room again.
+        if matches!(self.state, PumpPhase::Connecting) && self.stream.retries_connect() {
+            return TaskStatus::Delayed(POLL_DELAY);
+        }
         let mut children: Vec<EventReadinessPtr> = Vec::with_capacity(4);
         children.push(Arc::clone(socket) as EventReadinessPtr);
         // A closed queue is always ready: include it only while the request

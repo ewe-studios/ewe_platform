@@ -178,6 +178,19 @@ pub async fn dispatch_h3(
     // ── 3. Dispatch ──────────────────────────────────────────────────────
     match &entry.handler {
         HandlerKind::Unary(handler_fn) => {
+            // Known limitation (issue #257): a peer that resets the request
+            // stream after its body ends stays invisible here. HTTP/3 has no
+            // reset probe that this crate can read: `QuicRecvStream` exposes
+            // only the next body chunk, and `H3Request` has no `stopped()`
+            // wrapper. The handler therefore runs to completion and the reset
+            // shows up only as a failed response send below. Fixing it needs a
+            // reset probe in foundation_netio — see
+            // `backends/foundation_netio/src/quic/traits.rs:245`
+            // (`QuicRecvStream`) and `.../src/http3/connection.rs:698`
+            // (`poll_body`). Small requests are the common case, so a reset
+            // most often arrives before the body ends, which the read below
+            // does report.
+            //
             // Unary carries exactly one message: collect it, but never past the
             // cap — the first chunk over `read_max_bytes` ends the read.
             let read_max_bytes = entry.options.limits.read_max_bytes;

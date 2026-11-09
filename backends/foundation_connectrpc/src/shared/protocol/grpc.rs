@@ -491,6 +491,7 @@ impl ProtocolClient for GrpcClient {
         stream: TransportStream,
         config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
+        let cancel = config.cancel.clone();
         let (conn, ends) =
             PipeClientConn::new(spec.clone(), headers, config.cancel, DEFAULT_PIPE_DEPTH);
 
@@ -500,7 +501,10 @@ impl ProtocolClient for GrpcClient {
         // than borrowing `config`.
         let compression = config.compression.clone();
         let read_max_bytes = config.read_max_bytes;
-        let writer: BoxedTask = Box::pin(write_frames(
+        // Keep a response-pipe handle so a writer failure reaches the caller as
+        // the stream's terminal error instead of dying with the task.
+        let writer_tx = ends.response_tx.clone();
+        let writer_task = write_frames(
             ends.request_rx,
             Arc::clone(&stream.send_body),
             EnvelopeWriter::new(
@@ -508,7 +512,9 @@ impl ProtocolClient for GrpcClient {
                 config.compress_min_bytes,
                 config.send_max_bytes,
             ),
-        ));
+        );
+        let writer: BoxedTask =
+            Box::pin(async move { super::write_or_report(writer_task, &writer_tx, &cancel).await });
         let reader: BoxedTask = Box::pin(async move {
             // One sender keeps the wake pipe open until the reader ends; the
             // publisher holds the other.
@@ -690,23 +696,31 @@ pub fn parse_grpc_error_trailer(trailers: &SimpleHeaders) -> Option<ErrorTrace<C
 
 /// Percent-decode a `grpc-message` value (spec: space and non-ASCII are
 /// %HH-escaped).
+///
+/// The decoded bytes may hold a multibyte UTF-8 sequence. Collect bytes and
+/// decode them as UTF-8 at the end. Pushing each byte as a `char` turns a
+/// non-ASCII byte into a Latin-1 code point and garbles the message.
 fn percent_decode(message: &str) -> String {
-    let mut out = String::new();
+    let mut out = Vec::with_capacity(message.len());
     let bytes = message.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
         if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let Ok(hex) = u8::from_str_radix(&String::from_utf8_lossy(&bytes[i + 1..i + 3]), 16)
-            {
-                out.push(hex as char);
+            // Both characters must be hex digits. `u8::from_str_radix` would
+            // also accept a leading `+` or `-`, which the escape does not.
+            let high = (bytes[i + 1] as char).to_digit(16);
+            let low = (bytes[i + 2] as char).to_digit(16);
+            if let (Some(high), Some(low)) = (high, low) {
+                // Both digits are at most 15, so the byte is at most 255.
+                out.push(u8::try_from((high << 4) | low).unwrap_or_default());
                 i += 3;
                 continue;
             }
         }
-        out.push(bytes[i] as char);
+        out.push(bytes[i]);
         i += 1;
     }
-    out
+    String::from_utf8_lossy(&out).into_owned()
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────
