@@ -245,7 +245,7 @@ fn read_wrangler_log(path: &Path) -> String {
 pub fn run(
     integration_dir: &Path,
     _config_path: Option<&Path>,
-    ctx: Ctx,
+    ctx: &Ctx,
 ) -> Result<WranglerOutput> {
     run_with_config(integration_dir, &WranglerConfig::default(), ctx)
 }
@@ -259,7 +259,7 @@ pub fn run(
 pub(crate) fn run_with_config(
     integration_dir: &Path,
     config: &WranglerConfig,
-    ctx: Ctx,
+    ctx: &Ctx,
 ) -> Result<WranglerOutput> {
     let clock = ctx.clock();
     let port =

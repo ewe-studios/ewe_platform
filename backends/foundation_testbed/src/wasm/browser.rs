@@ -32,7 +32,7 @@ const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
 ///
 /// Returns an error if the browser is not supported, the page cannot be
 /// opened, or the result does not arrive before the timeout.
-pub fn run(url: &str, browser: &Browser, headless: bool, ctx: Ctx) -> Result<BrowserOutput> {
+pub fn run(url: &str, browser: &Browser, headless: bool, ctx: &Ctx) -> Result<BrowserOutput> {
     if !matches!(browser, Browser::Chrome) {
         return Err(WasmTestbedError::BrowserDriver(format!(
             "{browser:?} is not supported by the pure-Rust CDP driver yet — use Chrome"

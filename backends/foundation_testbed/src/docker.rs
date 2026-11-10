@@ -7,7 +7,7 @@
 //!
 //! WHAT: `TestEnvironmentBuilder` connects to running Docker containers via
 //! `docker exec` (shell), VNC/RDP (screenshot), and `docker cp` (file transfer).
-//! `TestEnvironment` exposes exec, copy_in, screenshot, and readiness checks.
+//! `TestEnvironment` exposes exec, `copy_in`, screenshot, and readiness checks.
 //!
 //! HOW: All operations shell out to `docker` CLI. Zero new Rust dependencies.
 //! Feature-gated behind `docker-tests`.

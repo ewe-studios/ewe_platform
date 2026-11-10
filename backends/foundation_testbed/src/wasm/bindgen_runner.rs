@@ -91,7 +91,7 @@ fn check_wasm_bindgen_version() -> Result<()> {
 /// # Errors
 /// Fails on missing tools, build failure, bindgen failure, test discovery
 /// failure, or browser timeout.
-pub fn run_bindgen(args: &BindgenArgs, ctx: Ctx) -> Result<RunOutcome> {
+pub fn run_bindgen(args: &BindgenArgs, ctx: &Ctx) -> Result<RunOutcome> {
     check_wasm_bindgen_version()?;
 
     // Inline preflight — avoids depending on `fwt_runner::preflight` which

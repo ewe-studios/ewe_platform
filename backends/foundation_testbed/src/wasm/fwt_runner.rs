@@ -188,7 +188,7 @@ pub fn run_deno(_args: &OwnedRunArgs) -> Result<RunOutcome> {
 ///
 /// # Errors
 /// Fails on build/discovery/staging errors or when the browser run fails.
-pub fn run_web(args: &OwnedRunArgs, ctx: Ctx) -> Result<RunOutcome> {
+pub fn run_web(args: &OwnedRunArgs, ctx: &Ctx) -> Result<RunOutcome> {
     preflight(&[
         ("cargo", "builds the test crate to wasm32"),
         ("node", "runs the Playwright driver script"),
