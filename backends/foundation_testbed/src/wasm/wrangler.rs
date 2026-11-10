@@ -17,7 +17,7 @@ use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use tracing::{debug, info};
 
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
@@ -245,9 +245,9 @@ fn read_wrangler_log(path: &Path) -> String {
 pub fn run(
     integration_dir: &Path,
     _config_path: Option<&Path>,
-    clock: &dyn Clock,
+    ctx: Ctx,
 ) -> Result<WranglerOutput> {
-    run_with_config(integration_dir, &WranglerConfig::default(), clock)
+    run_with_config(integration_dir, &WranglerConfig::default(), ctx)
 }
 
 /// Run a wrangler dev test with an explicit [`WranglerConfig`].
@@ -259,8 +259,9 @@ pub fn run(
 pub(crate) fn run_with_config(
     integration_dir: &Path,
     config: &WranglerConfig,
-    clock: &dyn Clock,
+    ctx: Ctx,
 ) -> Result<WranglerOutput> {
+    let clock = ctx.clock();
     let port =
         portpicker::pick_unused_port().ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
 

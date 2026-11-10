@@ -1,6 +1,6 @@
 //! Integration tests for the `foundation_testing` crate.
 
-use foundation_core::valtron::MonotonicClock;
+use foundation_core::valtron::Ctx;
 use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};
 use foundation_testing::stress::{sync::run_condvar_stress_test, StressConfig, StressHarness};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -10,7 +10,7 @@ use std::thread;
 #[test]
 fn test_stress_harness_basic() {
     let config = StressConfig::new().threads(2).iterations(10);
-    let harness = StressHarness::new(config, Arc::new(MonotonicClock::new()));
+    let harness = StressHarness::new(config, Ctx::host());
 
     let counter = Arc::new(AtomicUsize::new(0));
     let counter_clone = Arc::clone(&counter);
@@ -28,7 +28,7 @@ fn test_stress_harness_basic() {
 #[test]
 fn test_condvar_stress_test() {
     let config = StressConfig::new().threads(4).iterations(50);
-    let result = run_condvar_stress_test(config, Arc::new(MonotonicClock::new()));
+    let result = run_condvar_stress_test(config, Ctx::host());
 
     assert!(result.success_rate() > 0.99);
     assert_eq!(result.total_operations(), 200); // 4 * 50

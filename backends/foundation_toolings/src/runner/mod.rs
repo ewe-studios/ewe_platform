@@ -13,7 +13,7 @@ use crate::types::ProjectDefinition;
 
 // -- DurationSleeper: EventReadiness for time-based waits
 
-/// A deadline wait that reads the engine's injected [`Clock`].
+/// A deadline wait that reads the injected [`Ctx`] clock.
 ///
 /// `None` means the wait has not started. `start` stores the deadline, and
 /// `is_done` compares the clock to it, so a simulated clock drives the wait.
@@ -24,11 +24,11 @@ pub struct DurationSleeper {
 }
 
 impl DurationSleeper {
-    /// A sleeper that reads `clock`.
+    /// A sleeper that reads the clock carried by `ctx`.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
-            clock,
+            clock: ctx.clock(),
             deadline: Arc::new(Mutex::new(None)),
         }
     }
@@ -85,7 +85,7 @@ impl BinaryRunnerTask {
         project: ProjectDefinition,
         build_queue: EventQueue<()>,
         running_tx: Arc<ConcurrentQueue<()>>,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             project: project.clone(),
@@ -93,7 +93,7 @@ impl BinaryRunnerTask {
             running_tx,
             child: None,
             wait_before_reload: project.wait_before_reload,
-            reload_sleeper: DurationSleeper::new(clock),
+            reload_sleeper: DurationSleeper::new(ctx),
             state: RunnerState::Idle,
         }
     }

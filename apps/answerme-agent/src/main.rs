@@ -142,9 +142,7 @@ fn run_repl(session: &Session) {
         .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.")
         .goodbye("Goodbye!")
         .theme(ReplTheme::from_env("ANSWERME_THEME"))
-        .clock(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        ))
+        .ctx(foundation_core::valtron::Ctx::host())
         .build();
 
     repl.register_command("status", |_| "agent: running (gemma-4-E2B-it)".into());

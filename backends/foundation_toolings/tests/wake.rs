@@ -245,7 +245,7 @@ async fn runner_build_readiness_wakes_on_a_build_complete() {
         project_definition(),
         build_queue,
         running_tx,
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     );
     let ready: EventReadinessPtr = runner.readiness();
     let _ = park_and_trigger("runner build queue", ready, move || {
