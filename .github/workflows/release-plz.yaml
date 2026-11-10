@@ -69,7 +69,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push')
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
@@ -92,7 +92,7 @@ jobs:
   publish:
     name: Publish to crates.io
     needs: [gate, image]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     # Publishing builds every crate from its packaged tarball, llama.cpp
     # included, so it runs in the CI image with the baked submodules.
     container:
@@ -109,7 +109,7 @@ jobs:
       actions: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           ref: ${{ needs.gate.outputs.sha }}
           fetch-depth: 0 # release-plz reads tags and history
@@ -199,7 +199,7 @@ jobs:
     # reflects master; it skips only when the gate did.
     needs: [gate, image, publish]
     if: ${{ !cancelled() && needs.gate.result == 'success' && needs.image.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     # Publishing builds every crate from its packaged tarball, llama.cpp
     # included, so it runs in the CI image with the baked submodules.
     container:
@@ -232,7 +232,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           ref: ${{ needs.gate.outputs.sha }}
           fetch-depth: 0 # release-plz reads tags and history

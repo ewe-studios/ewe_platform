@@ -64,13 +64,13 @@ jobs:
     name: Plan
     # Only reads `cargo metadata`, so it runs on the runner, in parallel with
     # the image job.
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           fetch-depth: 0 # change detection diffs against the PR base
           submodules: false
@@ -112,7 +112,7 @@ jobs:
     # The usual path: the image is in the registry (it existed, or the image
     # job just pushed it).
     if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'registry'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     container:
       image: ${{ needs.image.outputs.image-ref }}
       # Empty for forks (no secrets): the runner then pulls anonymously.
@@ -152,7 +152,7 @@ jobs:
           du -sh "${paths[@]}" || true
 
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           fetch-depth: 1
           submodules: false
@@ -223,7 +223,7 @@ jobs:
     # built it as an artifact. `container:` can only pull from a registry, so
     # load the image and run the same steps in it with `docker exec`.
     if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'artifact'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
@@ -232,7 +232,7 @@ jobs:
       IMAGE: ${{ needs.image.outputs.image-ref }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           fetch-depth: 1
           submodules: false
@@ -295,7 +295,7 @@ jobs:
     name: Checks passed
     needs: [image, plan, package, package-artifact]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Evaluate
         env:
@@ -319,7 +319,7 @@ jobs:
     # Packaging the whole workspace is slow; run it where releases happen.
     # Non-PR events always have registry credentials, so the image is there.
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     container:
       image: ${{ needs.image.outputs.image-ref }}
       credentials:
@@ -354,7 +354,7 @@ jobs:
           du -sh "${paths[@]}" || true
 
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           fetch-depth: 1
           submodules: false
@@ -392,7 +392,7 @@ jobs:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
     if: github.event_name != 'pull_request'
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-15
     timeout-minutes: 120
     steps:
       - name: Checkout
