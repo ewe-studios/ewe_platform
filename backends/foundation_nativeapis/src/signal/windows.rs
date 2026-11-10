@@ -57,8 +57,7 @@ static GLOBAL_EVENT: AtomicU64 = AtomicU64::new(0);
 unsafe extern "system" fn console_handler(ctrl_type: u32) -> i32 {
     let kind = match ctrl_type {
         CTRL_C_EVENT => SignalKind::Interrupt,
-        CTRL_CLOSE_EVENT => SignalKind::Terminate,
-        CTRL_LOGOFF_EVENT | CTRL_SHUTDOWN_EVENT => SignalKind::Terminate,
+        CTRL_CLOSE_EVENT | CTRL_LOGOFF_EVENT | CTRL_SHUTDOWN_EVENT => SignalKind::Terminate,
         _ => return 0,
     };
 

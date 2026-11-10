@@ -4,7 +4,7 @@ mod tests {
 
     #[test]
     fn error_from_io() {
-        let io_err = std::io::Error::new(std::io::ErrorKind::Other, "test");
+        let io_err = std::io::Error::other("test");
         let err: Error = io_err.into();
         assert!(matches!(err, Error::IoError(_)));
     }

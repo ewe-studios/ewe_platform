@@ -18,6 +18,8 @@
 //!
 //! A native amd64 Linux kernel comes from the `ubuntu-latest` CI runner, not
 //! from a macOS runner: macOS has no Linux ptrace backend.
+// The probe calls Unix `ptrace` errors, so it builds on Unix only.
+#![cfg(unix)]
 
 /// The decision the probe must apply for one kernel result.
 #[derive(Debug, PartialEq, Eq)]

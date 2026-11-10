@@ -6,7 +6,7 @@
 /// | macOS | Mach ports | `mach_msg`, `mach_port` operations |
 /// | Windows | Named pipes | `CreateNamedPipe`, `ConnectNamedPipe` |
 use std::{
-    io, mem,
+    io,
     ops::RangeBounds,
     slice,
     sync::atomic::{AtomicU32, Ordering},
@@ -59,7 +59,7 @@ pub struct MemoryRegion {
 
 impl Drop for MemoryRegion {
     fn drop(&mut self) {
-        self.ref_count_inner(-1);
+        let _ = self.ref_count_inner(-1);
     }
 }
 
@@ -72,6 +72,13 @@ impl MemoryRegion {
     }
 
     /// Create a new shared memory region of `size` bytes.
+    ///
+    /// Returns `None` when the operating system cannot create the region.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the operating system creates the region but cannot map its header.
+    #[must_use]
     pub fn new(size: usize) -> Option<Self> {
         let real_size = Self::header_length() + size;
         let obj = Self::obj_new(real_size)?;
@@ -80,7 +87,7 @@ impl MemoryRegion {
             let mut header = MappedRegion::from_object(&obj, 0, Self::header_length())
                 .expect("MappedRegion::from_object");
 
-            let rc: &AtomicU32 = mem::transmute(header.as_slice().as_ptr());
+            let rc = header_ref_count(&header);
             rc.store(1, Ordering::SeqCst);
 
             header
@@ -99,7 +106,12 @@ impl MemoryRegion {
         }
     }
 
-    /// Reconstruct a MemoryRegion from an Object (fd/handle) passed via IPC.
+    /// Reconstruct a `MemoryRegion` from an `Object` (fd/handle) passed via IPC.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the operating system cannot map the region header.
+    #[must_use]
     pub fn from_object(obj: Object) -> Self {
         let mr = unsafe {
             let header = MappedRegion::from_object(&obj, 0, Self::header_length())
@@ -119,21 +131,30 @@ impl MemoryRegion {
                 obj,
             }
         };
-        mr.ref_count_inner(1);
+        let _ = mr.ref_count_inner(1);
         mr
     }
 
     /// Get the underlying object (fd/handle).
+    #[must_use]
     pub fn object(&self) -> &Object {
         &self.obj
     }
 
-    /// Clone this MemoryRegion (dups the underlying fd/handle, increments ref count).
-    pub fn clone(&self) -> io::Result<Self> {
-        self.object().clone().map(Self::from_object)
+    /// Duplicate this `MemoryRegion` (dups the underlying fd/handle, increments ref count).
+    ///
+    /// # Errors
+    ///
+    /// Returns the operating system error when the fd/handle cannot be duplicated.
+    pub fn duplicate(&self) -> io::Result<Self> {
+        self.object().duplicate().map(Self::from_object)
     }
 
     /// Map a range of the user data area (after the header).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the operating system cannot map the range.
     pub fn map(&mut self, range: impl RangeBounds<usize>) -> Result<&mut [u8], Error> {
         let (offset, size) = super::util::range_to_offset_size(range);
         let size = size.unwrap_or_else(|| {
@@ -144,36 +165,42 @@ impl MemoryRegion {
         let need_remap = self
             .buffer
             .as_ref()
-            .map(|buffer| real_offset != buffer.offset || size != buffer.as_slice().len())
-            .unwrap_or(true);
+            .is_none_or(|buffer| real_offset != buffer.offset || size != buffer.as_slice().len());
 
         if need_remap {
             let buffer = unsafe { MappedRegion::from_object(&self.obj, real_offset, size)? };
-            self.buffer = Some(buffer);
+            return Ok(self.buffer.insert(buffer).as_mut());
         }
 
-        Ok(self.buffer.as_mut().unwrap().as_mut())
+        match self.buffer.as_mut() {
+            Some(buffer) => Ok(buffer.as_mut()),
+            // `need_remap` is true when there is no buffer, so this arm cannot run.
+            None => Err(Error::MemoryRegionMapping),
+        }
     }
 
-    /// Get the atomic ref count.
+    /// Add `val` to the atomic ref count and return the previous count.
+    ///
+    /// A `val` of zero only reads the count.
+    #[must_use]
     pub fn ref_count_inner(&self, val: i32) -> u32 {
-        let rc: &AtomicU32 = unsafe { mem::transmute(self.header.as_slice().as_ptr()) };
+        let rc = header_ref_count(&self.header);
 
-        if val == 0 {
-            rc.load(Ordering::SeqCst)
-        } else if val > 0 {
-            rc.fetch_add(val as u32, Ordering::SeqCst)
-        } else {
-            rc.fetch_sub(-val as u32, Ordering::SeqCst)
+        match val.cmp(&0) {
+            std::cmp::Ordering::Equal => rc.load(Ordering::SeqCst),
+            std::cmp::Ordering::Greater => rc.fetch_add(val.unsigned_abs(), Ordering::SeqCst),
+            std::cmp::Ordering::Less => rc.fetch_sub(val.unsigned_abs(), Ordering::SeqCst),
         }
     }
 
     /// Get the ref count (alias for `ref_count_inner(0)`).
+    #[must_use]
     pub fn ref_count(&self) -> u32 {
         self.ref_count_inner(0)
     }
 
     /// Total size of the user-accessible buffer (excluding header).
+    #[must_use]
     pub fn buffer_size(&self) -> u64 {
         self.buffer_size
     }
@@ -181,7 +208,7 @@ impl MemoryRegion {
 
 /// A mapped portion of a shared memory object.
 ///
-/// Holds a `&'static mut [u8]` slice obtained from platform-specific mmap/vm_map.
+/// Holds a `&'static mut [u8]` slice obtained from platform-specific `mmap` or `vm_map`.
 /// On drop, unmaps the memory.
 struct MappedRegion {
     offset: usize,
@@ -204,6 +231,10 @@ impl Drop for MappedRegion {
 impl MappedRegion {
     /// Map a portion of an object at the given offset and size.
     /// The mapping is page-aligned internally.
+    ///
+    /// # Safety
+    ///
+    /// `obj` must be a valid shared memory object. It must be at least `offset + size` bytes long.
     unsafe fn from_object(obj: &Object, offset: usize, size: usize) -> Result<Self, Error> {
         let aligned_offset = trunc_page(offset);
         let adjustment_for_alignment = offset - aligned_offset;
@@ -222,6 +253,15 @@ impl MappedRegion {
     fn as_mut(&mut self) -> &mut [u8] {
         self.buffer
     }
+}
+
+/// View the reference count at the start of a region header.
+///
+/// The header is the first bytes of a page-aligned mapping, so the cast is aligned.
+/// The count lives as long as the mapping, which the returned borrow cannot outlive.
+#[allow(clippy::cast_ptr_alignment)] // The header starts at offset 0 of a page-aligned mapping.
+fn header_ref_count(header: &MappedRegion) -> &AtomicU32 {
+    unsafe { &*header.as_slice().as_ptr().cast::<AtomicU32>() }
 }
 
 /// Truncate a size to the nearest page boundary.

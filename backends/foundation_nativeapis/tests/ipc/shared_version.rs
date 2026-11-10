@@ -30,5 +30,5 @@ fn zero_vs_one() {
 #[test]
 fn version_display() {
     let v = Version::from_parts(1, 2, 3);
-    assert_eq!(format!("{}", v), "1.2.3");
+    assert_eq!(format!("{v}"), "1.2.3");
 }

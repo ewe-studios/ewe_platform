@@ -15,6 +15,8 @@ pub struct Options {
 }
 
 impl Options {
+    /// Create options for the bus named `identifier`, with no token.
+    #[must_use]
     pub fn new(identifier: impl Into<String>, label: Label) -> Self {
         Self {
             identifier: identifier.into(),
@@ -24,11 +26,15 @@ impl Options {
         }
     }
 
+    /// Set the authentication token.
+    #[must_use]
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.token = token.into();
         self
     }
 
+    /// Set whether this endpoint becomes the bus controller if none exists.
+    #[must_use]
     pub fn controller_affinity(mut self, affinity: bool) -> Self {
         self.controller_affinity = affinity;
         self

@@ -212,7 +212,12 @@ pub struct MachPort {
 }
 
 impl MachPort {
-    pub fn clone(&self) -> io::Result<Self> {
+    /// Duplicate this port by adding a send right reference.
+    ///
+    /// # Errors
+    ///
+    /// Returns the operating system error when the reference cannot be added.
+    pub fn duplicate(&self) -> io::Result<Self> {
         unsafe {
             let r = mach_sys::mach_port_mod_refs(
                 mach_sys::mach_task_self(),
@@ -339,7 +344,7 @@ pub(crate) fn look_up(
     label: Label,
     token: String,
     im: Arc<IoMultiplexing>,
-    ctx: Ctx,
+    ctx: &Ctx,
 ) -> Result<(IoHub, Remote, EndpointID), Error> {
     let identifier = CString::new(identifier).unwrap();
     let mut remote: mach_sys::mach_port_t = 0;
@@ -366,12 +371,13 @@ pub(crate) fn look_up(
                         label,
                     },
                 );
-                msg.objects.push(local.clone().map_err(|_| Error::Unknown)?);
+                msg.objects
+                    .push(local.duplicate().map_err(|_| Error::Unknown)?);
                 let mut encoded_msg = msg.into_encoded();
                 encoded_msg.send(&remote)?;
 
                 let mut io_hub: IoHub = IoHub::for_endpoint(local, im);
-                let encoded_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), &ctx)?;
+                let encoded_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), ctx)?;
                 let ack = crate::ipc::ConnectMessageAck::decode(
                     encoded_msg.selector.uuid,
                     encoded_msg.payload_data,
@@ -574,7 +580,7 @@ impl EncodedMessage {
             (*header_ptr).msgh_remote_port = remote.port.as_raw();
 
             for r in self.memory_regions.iter() {
-                r.ref_count_inner(1);
+                let _ = r.ref_count_inner(1);
             }
 
             loop {
@@ -585,7 +591,7 @@ impl EncodedMessage {
                     std::thread::sleep(Duration::from_millis(200));
                 } else {
                     for r in self.memory_regions.iter() {
-                        r.ref_count_inner(-1);
+                        let _ = r.ref_count_inner(-1);
                     }
                     break if remote.is_dead() {
                         Err(Error::Disconnect)
@@ -628,7 +634,7 @@ impl EncodedMessage {
                 .drain((objects.len() - selector.memory_region_count as usize)..)
                 .map(|obj| {
                     let r = MemoryRegion::from_object(obj);
-                    r.ref_count_inner(-1);
+                    let _ = r.ref_count_inner(-1);
                     r
                 })
                 .collect();

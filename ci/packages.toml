@@ -375,9 +375,9 @@ wasm-runs = [""]
 # backend together so a backend that only breaks under a specific feature set is
 # caught in CI.
 runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
-# At zero clippy warnings in the default build and the `vfs-preload` shim tree
-# (spec 70 feature 113): a new one fails CI.
-clippy-runs = ["", "vfs-preload"]
+# At zero clippy warnings in the default build, the `vfs-preload` shim tree
+# (spec 70 feature 113) and the `ipc` message bus (issue #487): a new one fails CI.
+clippy-runs = ["", "vfs-preload", "ipc"]
 clippy-deny-warnings = true
 # The crate builds for wasm32 (issue #411): the native and signal modules are
 # gated at the crate root, and only the shared VFS tree compiles. The default
