@@ -3,18 +3,18 @@
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use std::panic::AssertUnwindSafe;
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::serve::{ConnectionResult, ServeError};
 
 /// Wrap a `ServeWriter` handler's execution with panic recovery.
 pub fn with_panic_recovery(
     handler: &dyn crate::shared::serve::ServeWriter,
-    bag: &ContextBag,
+    ctx: &Ctx,
     req: SimpleIncomingRequest,
     conn: &mut dyn std::io::Write,
 ) -> ConnectionResult {
     let result =
-        std::panic::catch_unwind(AssertUnwindSafe(|| handler.serve_writer(bag, req, conn)));
+        std::panic::catch_unwind(AssertUnwindSafe(|| handler.serve_writer(ctx, req, conn)));
 
     match result {
         Ok(connection_result) => connection_result,

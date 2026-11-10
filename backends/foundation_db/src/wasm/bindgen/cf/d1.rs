@@ -29,7 +29,7 @@ impl D1Database {
 /// `D1Database` wraps a JS `Object` which is `!Send` by default.
 /// On wasm32 there is only one thread and no shared memory,
 /// so it is safe to mark this type `Send + Sync`. This allows
-/// it to be stored in `ContextBag` and retrieved by type.
+/// it to be stored in `Ctx` and retrieved by type.
 unsafe impl Send for D1Database {}
 unsafe impl Sync for D1Database {}
 

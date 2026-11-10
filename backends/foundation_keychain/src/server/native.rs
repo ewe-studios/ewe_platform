@@ -17,7 +17,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_http::{RawStream, SimpleIncomingRequest, SimpleMethod};
 use foundation_netio::shared::client::body_reader::{collect_bytes_bounded, AsyncSendSafeBody};
@@ -245,11 +245,13 @@ pub struct ServeAdapter {
 }
 
 impl ServeFactory for ServeAdapter {
-    fn create(bag: &ContextBag) -> Self {
-        let ctx = bag
+    fn create(app_ctx: &Ctx) -> Self {
+        let ctx = app_ctx
             .get_cloned::<KeychainContext>()
-            .expect("KeychainContext must be in ContextBag");
-        let config = bag.get_cloned::<KeychainServerConfig>().unwrap_or_default();
+            .expect("KeychainContext must be in the Ctx");
+        let config = app_ctx
+            .get_cloned::<KeychainServerConfig>()
+            .unwrap_or_default();
         Self { ctx, config }
     }
 }
@@ -257,7 +259,7 @@ impl ServeFactory for ServeAdapter {
 impl Serve for ServeAdapter {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         mut req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

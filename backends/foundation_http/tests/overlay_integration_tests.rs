@@ -32,7 +32,7 @@ use foundation_http::{
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         serve::{ConnectionResult, ServeError},
     },
 };
@@ -42,7 +42,7 @@ use foundation_http::{
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -50,7 +50,7 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

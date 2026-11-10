@@ -54,8 +54,8 @@ use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    ArrowCodec, Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport,
-    HandlerOptions, JsonCodec, ProcedureCodecs, ProtoCodec, Request, Response, Router,
+    ArrowCodec, Client, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, HandlerOptions,
+    JsonCodec, ProcedureCodecs, ProtoCodec, Request, Response, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -158,7 +158,7 @@ impl FromArrow for Sample {
 
 // ── Server: one echo handler, five codec tables ─────────────────────────────
 
-async fn echo(_ctx: Ctx, req: Request<Sample>) -> ConnectResult<Response<Sample>> {
+async fn echo(_ctx: RpcCtx, req: Request<Sample>) -> ConnectResult<Response<Sample>> {
     Ok(Response::new(req.msg))
 }
 
@@ -246,7 +246,7 @@ async fn round_trip(
         ClientOptions::new().with_codec(wire),
     )
     .expect("build client");
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let out = client
         .unary(ctx, Request::new(Sample { value }))
         .await

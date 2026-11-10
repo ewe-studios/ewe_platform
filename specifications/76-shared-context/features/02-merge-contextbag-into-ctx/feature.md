@@ -1,6 +1,6 @@
 ---
 feature: "Merge ContextBag into Ctx, rename connectrpc Ctx to RpcCtx"
-status: "planned"
+status: "completed"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-foundation-context-crate"]
@@ -45,7 +45,7 @@ Rename `foundation_connectrpc::Ctx` to `RpcCtx` and change its `bag: Arc<Context
 
 | `ContextBag` | `Ctx` |
 |---|---|
-| `ContextBag::new(clock)` | `Ctx::new(clock)` |
+| `ContextBag::new(clock)` | `Ctx::fixed(clock)` |
 | `ContextBag::build(clock, \|b\| ..)` | `Ctx::build(clock, \|c\| ..)` (new; the closure takes `&Ctx`) |
 | `ContextBag::from_ctx(&ctx)` | `ctx.with_empty_map()` (new) |
 | `bag.with_ctx(&ctx)` | `bag.rebase(&ctx)` (new: copy this map, take `ctx`'s clock, config and RNG) |
@@ -82,7 +82,7 @@ Rename `foundation_connectrpc::Ctx` to `RpcCtx` and change its `bag: Arc<Context
 7. Fix GitHub issue #448 (medium). `Ctx::new` and `Ctx::host` seed the shared RNG with the
    constant `0`, so every host draws the same stream (WASI `random_get` included).
    `Ctx::host()` must seed the RNG from `foundation_compact`'s entropy backend.
-   `Ctx::new(clock)` keeps a fixed seed for tests, and a new `Ctx::with_seed(clock, seed)`
+   `Ctx::fixed(clock)` keeps a fixed seed for tests, and a new `Ctx::with_seed(clock, seed)`
    lets a deterministic simulation test choose the seed. `foundation_platform::host_session_ctx`
    then uses `Ctx::host()` and drops its own reseed. Close #448 in this PR.
 8. Search docs, READMEs, `.agents` and the specs for `ContextBag` and `connectrpc::Ctx`, and

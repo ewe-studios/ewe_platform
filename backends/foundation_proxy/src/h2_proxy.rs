@@ -37,7 +37,7 @@ use foundation_netio::shared::http::{
 };
 
 use foundation_http::native::serve::{BoxFuture, H2Serve};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 
 use foundation_connectrpc::shared::protocol::connect::streaming_content_type as connect_streaming_content_type;
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
@@ -71,7 +71,7 @@ impl H2ProxyHandler {
 impl H2Serve for H2ProxyHandler {
     fn serve_h2(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,

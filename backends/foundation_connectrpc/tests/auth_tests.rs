@@ -433,17 +433,17 @@ fn test_jwt_authenticator_invalid_token() {
 // Test 9: AuthzInterceptor
 // ---------------------------------------------------------------------------
 
-/// WHY: `AuthzInterceptor` must check scopes in `AuthInfo` from the Ctx.
+/// WHY: `AuthzInterceptor` must check scopes in `AuthInfo` from the `RpcCtx`.
 /// WHAT: The interceptor checks scopes before allowing the RPC through.
 #[test]
 fn test_authz_interceptor_grants_access() {
-    use foundation_connectrpc::shared::context::Ctx;
+    use foundation_connectrpc::shared::context::RpcCtx;
     use foundation_netio::shared::http::Extensions;
     use std::sync::Arc;
 
     let interceptor = foundation_connectrpc::AuthzInterceptor::new(vec!["read".to_string()]);
 
-    // Build a Ctx with AuthInfo containing a token with "read" scope
+    // Build a RpcCtx with AuthInfo containing a token with "read" scope
     let mut ext = Extensions::new();
     let mut auth_ctx = AuthContext::new("/test".to_string(), None, None);
     auth_ctx.sub = Some("user-1".to_string());
@@ -456,7 +456,7 @@ fn test_authz_interceptor_grants_access() {
     });
     ext.insert(AuthInfo::new(auth_ctx));
 
-    let mut ctx = Ctx::background();
+    let mut ctx = RpcCtx::background();
     ctx.request.extensions = ext;
 
     let next_func: foundation_connectrpc::UnaryFunc = Arc::new(|_ctx, _call| {
@@ -484,7 +484,7 @@ fn test_authz_interceptor_grants_access() {
 /// WHAT: The interceptor returns `PermissionDenied` when scopes are missing.
 #[test]
 fn test_authz_interceptor_denies_insufficient_scope() {
-    use foundation_connectrpc::shared::context::Ctx;
+    use foundation_connectrpc::shared::context::RpcCtx;
     use foundation_netio::shared::http::Extensions;
     use std::sync::Arc;
 
@@ -502,7 +502,7 @@ fn test_authz_interceptor_denies_insufficient_scope() {
     });
     ext.insert(AuthInfo::new(auth_ctx));
 
-    let mut ctx = Ctx::background();
+    let mut ctx = RpcCtx::background();
     ctx.request.extensions = ext;
 
     let next_func: foundation_connectrpc::UnaryFunc = Arc::new(|_ctx, _call| {

@@ -1,10 +1,8 @@
 //! Request ID middleware — propagates or generates X-Request-Id.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// Middleware that ensures every request has an X-Request-Id header.
@@ -18,7 +16,7 @@ use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 pub struct RequestIdMiddleware;
 
 impl RequestMiddleware for RequestIdMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let has_id = req
             .headers
             .iter()

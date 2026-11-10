@@ -93,21 +93,21 @@ pub struct WasmResponse {
 
 ```rust
 // 404 Not Found
-app.app().get("/missing", |_bag, _req, writer| {
+app.app().get("/missing", |_ctx, _req, writer| {
     writer.send_status(404).unwrap();
     writer.send_body(b"Not found").unwrap();
     Ok(())
 });
 
 // 301 Redirect
-app.app().get("/old-path", |_bag, _req, writer| {
+app.app().get("/old-path", |_ctx, _req, writer| {
     writer.send_status(301).unwrap();
     writer.send_header("Location", "https://example.com/new-path").unwrap();
     Ok(())
 });
 
 // 201 Created with JSON body
-app.app().post("/api/items", |_bag, _req, writer| {
+app.app().post("/api/items", |_ctx, _req, writer| {
     writer.send_status(201).unwrap();
     writer.send_header("Content-Type", "application/json").unwrap();
     writer.send_body(br#"{"id": 1, "created": true}"#).unwrap();
@@ -149,7 +149,7 @@ use foundation_http::shared::middleware::Middleware;
 struct AuthMiddleware;
 
 impl Middleware for AuthMiddleware {
-    fn handle(&self, bag: &ContextBag, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, bag: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         if !is_authenticated(req) {
             return MiddlewareResult::Response(SimpleOutgoingResponse {
                 status: Status::UNAUTHORIZED,

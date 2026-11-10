@@ -37,8 +37,8 @@ use foundation_http::ShutdownSignal;
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, RequestStream, Response, Router, RpcCtx,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -68,7 +68,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -78,7 +78,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -91,7 +91,7 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(msg) = reqs.next().await {
                 parts.push(msg?.text);
@@ -105,7 +105,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
         HandlerOptions::new(),
@@ -152,8 +152,8 @@ fn client_for(addr: &str, procedure: &str) -> Client<Msg, Msg> {
     .expect("build client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 #[valtron_test]

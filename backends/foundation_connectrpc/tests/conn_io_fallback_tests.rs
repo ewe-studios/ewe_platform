@@ -20,13 +20,11 @@ use std::os::unix::io::{AsRawFd, RawFd};
 use std::os::unix::net::SocketAddr as UnixSocketAddr;
 use std::os::unix::net::UnixStream;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::serve::Serve;
-use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::ServeOutcome;
 use foundation_netio::netcap::{CompletionReadWrite, Connection, RawStream, SocketAddr};
 use foundation_netio::shared::http::{
@@ -203,11 +201,7 @@ fn conn_io_fallback_polls_instead_of_unsupported() {
         .expect("request");
 
     let serve = echo_serve();
-    let result = serve.serve(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-        request,
-        conn,
-    );
+    let result = serve.serve(foundation_core::valtron::Ctx::host(), request, conn);
     let result = match result.split() {
         Ok(fut) => futures::executor::block_on(fut),
         Err(outcome) => outcome,

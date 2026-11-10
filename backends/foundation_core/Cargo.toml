@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -22,19 +22,19 @@ crate-type = ["rlib"]
 # foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.4", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5", default-features = false }
 # The shared context (`Ctx`, `Clock`, ...). `valtron` re-exports it.
-foundation_context = { path = "../foundation_context", version = "0.0.1" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
 
 # -- Workspace dependencies
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
 # optional: native builds no longer compile foundation_wasm and its native-only
 # CLI tooling (clap, toml_edit, foundation_codegen, ...).
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.7", optional = true }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.8", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.8" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false, optional = true }
@@ -99,7 +99,7 @@ js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_
 default = ["standard", "std", "alloc"]
 
 [build-dependencies]
-foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.2" }
+foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.3" }
 
 [lints]
 workspace = true

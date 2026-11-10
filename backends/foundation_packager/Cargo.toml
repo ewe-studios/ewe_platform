@@ -1,6 +1,6 @@
 [package]
 name = "foundation_packager"
-version = "0.1.4"
+version = "0.1.5"
 description = "File generation and templating stack — creates projects from embedded templates with minijinja/tinytemplate support"
 edition.workspace = true
 rust-version.workspace = true
@@ -10,11 +10,11 @@ repository.workspace = true
 keywords = ["templating", "code-generation", "project-scaffolding"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.7" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.8" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
 derive_more = { workspace = true }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 cargo_toml = { version = "0.22.3" }
 toml = { version = "0.8.19" }
 tracing = { version = "0.1.40" }

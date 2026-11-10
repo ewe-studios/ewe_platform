@@ -69,7 +69,7 @@ fn responder_with_cap(module: &str, max_response_bytes: usize) -> WasmtimeRespon
     let bytes = wat::parse_str(module).expect("the WAT source parses");
     // These modules read no clock and no randomness, so a plain bundle is
     // enough. The session-path test below covers the injected values.
-    let ctx = Ctx::new(Arc::new(MonotonicClock::new()));
+    let ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
     WasmtimeResponder::new(
         WasmtimeBuilder::new(bytes)
             .with_name("app_shell")

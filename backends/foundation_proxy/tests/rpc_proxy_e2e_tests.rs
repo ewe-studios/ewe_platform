@@ -37,9 +37,9 @@ use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Ctx, Envelope,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Envelope,
     H1Transport, H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
-    Response, Router,
+    Response, Router, RpcCtx,
 };
 
 use foundation_proxy::config::ServiceConfig;
@@ -75,7 +75,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -84,7 +84,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -96,7 +96,7 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             use futures_util::StreamExt;
             let mut parts = Vec::new();
             let mut reqs = reqs;
@@ -111,7 +111,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI_STREAM,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             use futures_util::StreamExt;
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
@@ -164,7 +164,7 @@ fn build_tagged_router(tag: &str) -> Router {
     router.unary(
         UNARY,
         codecs(),
-        move |_ctx: Ctx, req: Request<Msg>| {
+        move |_ctx: RpcCtx, req: Request<Msg>| {
             let tag = tag.clone();
             async move { Ok(Response::new(Msg::of(format!("{tag}:{}", req.msg.text)))) }
         },
@@ -276,7 +276,7 @@ fn test_timeout_ms() -> u64 {
 /// Bound for one client call in this suite.
 ///
 /// WHY: a stalled call must fail on its own deadline and name itself, not only
-/// on the 30 s harness cap above. The client enforces this `Ctx` deadline, so
+/// on the 30 s harness cap above. The client enforces this `RpcCtx` deadline, so
 /// the failing call's `.expect("...")` message and its line number say which
 /// call stalled.
 ///
@@ -284,8 +284,8 @@ fn test_timeout_ms() -> u64 {
 /// is far below the harness cap.
 const CALL_DEADLINE: Duration = Duration::from_secs(5);
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(CALL_DEADLINE)
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(CALL_DEADLINE)
 }
 
 /// A typed client over HTTP/1.1 speaking the Connect protocol.

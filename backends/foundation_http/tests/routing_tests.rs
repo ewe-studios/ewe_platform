@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use foundation_http::{
     native::serve::{Serve, ServeFactory},
-    shared::{context::ContextBag, router::Router, serve::ConnectionResult},
+    shared::{context::Ctx, router::Router, serve::ConnectionResult},
     RawStream, SharedByteBufferStream, SimpleIncomingRequest, SimpleMethod,
 };
 
@@ -19,7 +19,7 @@ struct TestHandler {
 }
 
 impl ServeFactory for TestHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         panic!("TestHandler must be created with TestHandler::new()");
     }
 }
@@ -33,7 +33,7 @@ impl TestHandler {
 impl Serve for TestHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         _conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -81,7 +81,7 @@ fn test_static_route_get() {
     assert!(handler.is_some());
 
     let result = handler.unwrap().serve(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        foundation_core::valtron::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -172,7 +172,7 @@ fn test_static_precedence_over_param() {
         .dispatch(&SimpleMethod::GET, "/users/profile")
         .unwrap();
     let _ = handler.serve(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        foundation_core::valtron::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -182,7 +182,7 @@ fn test_static_precedence_over_param() {
     // Param route should match for non-static
     let handler = router.dispatch(&SimpleMethod::GET, "/users/edit").unwrap();
     let _ = handler.serve(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        foundation_core::valtron::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -208,7 +208,7 @@ fn test_multiple_methods_same_path() {
 
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
     let _ = handler.serve(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        foundation_core::valtron::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -217,7 +217,7 @@ fn test_multiple_methods_same_path() {
 
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
     let _ = handler.serve(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+        foundation_core::valtron::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );

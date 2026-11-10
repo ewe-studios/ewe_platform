@@ -8,10 +8,10 @@ publish = false
 path = "mod.rs"
 
 [dependencies]
-foundation_nostd = { path = "../backends/foundation_nostd", version = "0.0.7" }
-foundation_core = { path = "../backends/foundation_core", version = "0.0.19" }
-foundation_netio = { path = "../backends/foundation_netio", version = "0.0.12" }
-foundation_testing = { path = "../backends/foundation_testing", version = "0.0.5" }
+foundation_nostd = { path = "../backends/foundation_nostd", version = "0.0.8" }
+foundation_core = { path = "../backends/foundation_core", version = "0.0.20" }
+foundation_netio = { path = "../backends/foundation_netio", version = "0.0.13" }
+foundation_testing = { path = "../backends/foundation_testing", version = "0.0.6" }
 serde = { version = "1.0", features = ["derive"] }
 
 regex = { workspace = true}

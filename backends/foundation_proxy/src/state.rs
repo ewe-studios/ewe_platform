@@ -1,9 +1,9 @@
 //! Shared proxy runtime state.
 //!
-//! WHY: The HTTP framework constructs handlers via `ServeFactory::create(&bag)`,
+//! WHY: The HTTP framework constructs handlers via `ServeFactory::create(&context)`,
 //! so all proxy state the handler needs — the router table, backend health and
 //! load-balancer counters, and the pooled upstream client — must live in the
-//! `ContextBag`. One `Arc<ProxyState>` carries it all.
+//! `Ctx`. One `Arc<ProxyState>` carries it all.
 //!
 //! WHAT: [`ProxyState`] holds the [`Router`] and the shared [`SharedHttpClient`],
 //! plus the scheme the front end terminates (used for `X-Forwarded-Proto`).

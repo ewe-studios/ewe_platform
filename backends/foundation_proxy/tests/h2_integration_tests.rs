@@ -24,7 +24,7 @@ use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::native::writer::send_text;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::client::H2Client;
@@ -49,7 +49,7 @@ use futures_util::StreamExt;
 struct BodyEchoHandler;
 
 impl ServeFactory for BodyEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -57,7 +57,7 @@ impl ServeFactory for BodyEchoHandler {
 impl Serve for BodyEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -199,7 +199,7 @@ struct H2EchoHandler {
 impl H2Serve for H2EchoHandler {
     fn serve_h2(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
@@ -312,7 +312,7 @@ struct StreamingHandler {
 impl H2Serve for StreamingHandler {
     fn serve_h2(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
@@ -408,7 +408,7 @@ fn grpc_proxy_config(backend_port: u16) -> ProxyConfig {
 
 /// Bound for one relayed gRPC call in this suite.
 ///
-/// WHY: `h2_grpc_request` drives `H2Transport` directly and takes no `Ctx`, so
+/// WHY: `h2_grpc_request` drives `H2Transport` directly and takes no `RpcCtx`, so
 /// the client's deadline enforcement does not reach it. A call that stalls must
 /// still fail on its own bound and name itself, not only on the test harness
 /// timeout.

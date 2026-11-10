@@ -10,20 +10,18 @@
 //! `futures::executor::block_on` (no connection or valtron pool needed).
 
 use std::io::Write;
-use std::sync::Arc;
 
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use futures::StreamExt;
 
-use foundation_http::shared::context::ContextBag;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
 use foundation_connectrpc::{
-    ConnectRpcHandler, Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
-    Response, Router, SizeLimits,
+    ConnectRpcHandler, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
+    Response, Router, RpcCtx, SizeLimits,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -43,13 +41,13 @@ fn handler(options: impl Fn() -> HandlerOptions) -> ConnectRpcHandler {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move { Ok(Response::new(req.msg)) },
+        |_ctx: RpcCtx, req: Request<Msg>| async move { Ok(Response::new(req.msg)) },
         options(),
     );
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut count = 0;
             while let Some(msg) = reqs.next().await {
                 msg?;
@@ -77,10 +75,7 @@ fn request(path: &str, headers: &[(&str, &str)], body: Vec<u8>) -> SimpleIncomin
 }
 
 fn dispatch(handler: &ConnectRpcHandler, request: SimpleIncomingRequest) -> SimpleOutgoingResponse {
-    futures::executor::block_on(handler.dispatch(
-        Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
-        request,
-    ))
+    futures::executor::block_on(handler.dispatch(foundation_core::valtron::Ctx::host(), request))
 }
 
 fn body_text(response: &SimpleOutgoingResponse) -> String {

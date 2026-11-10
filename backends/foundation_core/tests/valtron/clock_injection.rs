@@ -25,7 +25,7 @@ use foundation_core::valtron::{
 /// Build a pool root with `clock` as its engine clock.
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
     let clock: Arc<dyn Clock> = clock.clone();
-    Ctx::new(clock)
+    Ctx::fixed(clock)
 }
 
 /// The pool-root test clock: about one hour ahead of real time.

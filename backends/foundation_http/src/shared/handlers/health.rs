@@ -3,7 +3,7 @@
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use serde_json::json;
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::serve::{respond_to_buffer, ConnectionResult, ServeWriter, ServeWriterFactory};
 
 /// The JSON body for a health `path`.
@@ -21,7 +21,7 @@ pub(crate) fn health_body(path: &str) -> serde_json::Value {
 pub struct HealthHandler;
 
 impl ServeWriterFactory for HealthHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -29,7 +29,7 @@ impl ServeWriterFactory for HealthHandler {
 impl ServeWriter for HealthHandler {
     fn serve_writer(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: SimpleIncomingRequest,
         mut conn: &mut dyn std::io::Write,
     ) -> ConnectionResult {

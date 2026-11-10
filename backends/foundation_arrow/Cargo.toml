@@ -1,6 +1,6 @@
 [package]
 name = "foundation_arrow"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -21,8 +21,8 @@ arrow-buffer = { version = "59", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 serde_json = { workspace = true }
 # DomOp + the shared Row mapping + ProtocolEncoder contract (feature 05).
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 derive_more.workspace = true
 
 [lints]

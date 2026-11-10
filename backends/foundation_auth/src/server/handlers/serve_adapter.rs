@@ -5,7 +5,7 @@ use foundation_core::io::readers::Data;
 use foundation_core::valtron::{collect_one, execute, from_future};
 use foundation_errstacks::ErrorTrace;
 use foundation_http::native::serve::{Serve, ServeFactory};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeError};
 use foundation_http::{RawStream, SimpleIncomingRequest};
 use foundation_netio::shared::http::{
@@ -83,7 +83,7 @@ fn status_code(code: u16) -> Status {
 
 /// Serves the `IdP` routes over the handlers in [`IdpHandlerCore`].
 ///
-/// `KV` is the cache type of the [`HandlerStorage`] the app's `ContextBag`
+/// `KV` is the cache type of the [`HandlerStorage`] the app's `Ctx`
 /// holds (as `Arc<HandlerStorage<KV>>`, which is how [`IdpServer::http_app`]
 /// stores it).
 ///
@@ -98,7 +98,7 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
     #[allow(clippy::too_many_lines)]
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         mut req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -230,26 +230,26 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
 impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
     /// # Panics
     ///
-    /// If the `ContextBag` holds no `IdpConfig` or no
+    /// If the `Ctx` holds no `IdpConfig` or no
     /// `Arc<HandlerStorage<KV>>` (a misconfigured app; serving without storage
     /// would answer every request as if the database were empty).
-    fn create(bag: &ContextBag) -> Self {
-        let config = bag
+    fn create(ctx: &Ctx) -> Self {
+        let config = ctx
             .get::<IdpConfig>()
-            .expect("IdpConfig must be in ContextBag");
-        // The bag keys values by type and wraps each in its own `Arc`, so the
+            .expect("IdpConfig must be in the Ctx");
+        // The ctx keys values by type and wraps each in its own `Arc`, so the
         // stored `Arc<HandlerStorage<KV>>` comes back as `Arc<Arc<…>>`.
-        let storage = bag
+        let storage = ctx
             .get::<Arc<HandlerStorage<KV>>>()
             .map(|stored| Arc::clone(&*stored))
-            .expect("Arc<HandlerStorage<KV>> must be in ContextBag");
-        // The bag carries the host's injected engine clock as a field, so every
+            .expect("Arc<HandlerStorage<KV>> must be in the Ctx");
+        // The ctx carries the host's injected engine clock as a field, so every
         // `IdP` read uses the clock the host chose.
-        let clock = bag.clock();
+        let clock = ctx.clock();
         // Sessions live in the shared cache with the configured key, so every
         // route sees the same sessions.
         let mut core = IdpHandlerCore::new(config, storage, clock);
-        if let Some(social) = bag.get::<Arc<MemoryAuthSessionStore>>() {
+        if let Some(social) = ctx.get::<Arc<MemoryAuthSessionStore>>() {
             core = core.with_social_login(Arc::clone(&*social));
         }
         Self {
@@ -266,9 +266,9 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
 ) -> Result<HandlerResponse, IdpError> {
     let clock = core.clock();
     let task = from_future(async move {
-        // The dispatch bag reads the same injected clock as the core.
-        let bag = ContextBag::new(clock);
-        core.dispatch(&bag, &req).await
+        // The dispatch ctx reads the same injected clock as the core.
+        let ctx = Ctx::fixed(clock);
+        core.dispatch(&ctx, &req).await
     });
     let stream = execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
     // The handler's own `IdpError` is the response; only a missing result is

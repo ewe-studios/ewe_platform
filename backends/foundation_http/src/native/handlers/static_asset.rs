@@ -22,7 +22,7 @@ use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 use crate::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 
 use crate::native::serve::Serve;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::serve::ConnectionResult;
 
 /// Serves a fixed in-memory asset (bytes + content type + optional headers) on
@@ -71,7 +71,7 @@ impl StaticAssetHandler {
 impl Serve for StaticAssetHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

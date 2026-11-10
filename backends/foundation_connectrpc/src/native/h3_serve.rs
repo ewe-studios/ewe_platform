@@ -29,7 +29,7 @@ use std::task::{Context, Poll};
 use bytes::Bytes;
 use foundation_core::valtron::{Pipe, Stream as VStream};
 use foundation_http::native::serve::{BoxFuture, H3Serve};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::http3::connection::{error_code, H3Error, H3Request};
 use foundation_netio::http3::types::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -45,7 +45,7 @@ use crate::native::dispatch_h2::{
     ThreadTimer,
 };
 use crate::shared::compression::CompressionRegistry;
-use crate::shared::context::{CancelSignal, Ctx, Spec};
+use crate::shared::context::{CancelSignal, RpcCtx, Spec};
 use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
@@ -78,12 +78,12 @@ impl ConnectRpcServeH3 {
 impl H3Serve for ConnectRpcServeH3 {
     fn serve_h3(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         connection: Arc<ConnectionContext>,
         request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, io::Result<()>> {
         let handler = self.handler.clone();
-        Box::pin(dispatch_h3(handler, bag, connection, request))
+        Box::pin(dispatch_h3(handler, app_ctx, connection, request))
     }
 }
 
@@ -97,14 +97,14 @@ impl H3Serve for ConnectRpcServeH3 {
 /// # Errors
 /// The stream failed: the peer reset it, the connection went away, or the
 /// HTTP/3 framing was invalid. A request body that fails mid-read cancels the
-/// call's [`Ctx`] and resets our response half with `H3_REQUEST_CANCELLED`.
+/// call's [`RpcCtx`] and resets our response half with `H3_REQUEST_CANCELLED`.
 #[allow(
     clippy::too_many_lines,
     reason = "the request lifecycle reads best as one ordered function"
 )]
 pub async fn dispatch_h3(
     handler: Arc<ConnectRpcHandler>,
-    bag: Arc<ContextBag>,
+    app_ctx: Ctx,
     connection: Arc<ConnectionContext>,
     mut req: H3Request<QuinnBidiStream>,
 ) -> io::Result<()> {
@@ -176,7 +176,13 @@ pub async fn dispatch_h3(
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
     let spec = entry.spec.clone();
-    let ctx = build_ctx(bag, &request, spec.clone(), protocol, CancelSignal::new());
+    let ctx = build_ctx(
+        app_ctx,
+        &request,
+        spec.clone(),
+        protocol,
+        CancelSignal::new(),
+    );
 
     // ── 3. Dispatch ──────────────────────────────────────────────────────
     match &entry.handler {
@@ -298,7 +304,7 @@ async fn run_streaming_h3(
     spec: Spec,
     codec_name: String,
     compression: &CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     pipe_depth: usize,
     read_max_bytes: usize,
     mut req: Req,

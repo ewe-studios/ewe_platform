@@ -52,7 +52,7 @@ fn test_generate_full_service() {
     // Trait methods are emitted as RPITIT `-> impl Future<…> + Send` (not
     // `async fn`) so the Router's `Send` handler bound is satisfied; streaming
     // outputs are boxed to `Pin<Box<dyn Stream + Send>>`.
-    assert!(code.contains("fn greet(&self, ctx: foundation_connectrpc::Ctx"));
+    assert!(code.contains("fn greet(&self, ctx: foundation_connectrpc::RpcCtx"));
     assert!(code.contains("-> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>> + Send"));
     assert!(code.contains("::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<ConverseResponse>> + Send>>"));
 

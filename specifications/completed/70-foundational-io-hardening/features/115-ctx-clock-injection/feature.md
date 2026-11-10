@@ -20,7 +20,7 @@ The engine clock is fixed when a pool starts, and no public call can replace it.
 - `Ctx::clock()` (`backends/foundation_core/src/valtron/ctx.rs:218`) returns
   `CtxInner.clock`, and `CtxInner` (`ctx.rs:132`) is private.
 - `Ctx::insert` (`ctx.rs:159`) writes the typed map, but `clock()` never reads the map.
-- The pool root is `Ctx::new()` at two places: `ThreadRegistry::new`
+- The pool root is `Ctx::fixed()` at two places: `ThreadRegistry::new`
   (`executors/multi/mod.rs:1552`) and `LocalThreadExecutor::from_seed`
   (`executors/local.rs:1007`).
 - `ThreadRegistry.root` and the single-threaded `root` are private.
@@ -41,7 +41,7 @@ sequenceDiagram
     participant Pool as initialize_pool_with_ctx
     participant Root as pool root Ctx
     participant Task as task Ctx (fork)
-    Host->>Host: Ctx::new().with_clock(sim)
+    Host->>Host: Ctx::fixed().with_clock(sim)
     Host->>Pool: seed, threads, root
     Pool->>Root: store the root
     Root->>Task: fork() on each step
@@ -72,17 +72,17 @@ pub fn with_clock(&self, clock: Arc<dyn Clock>) -> Ctx
 
 ### 2. Startup entry points
 
-Add a `Ctx` parameter to the pool start. The old functions stay and pass `Ctx::new()`.
+Add a `Ctx` parameter to the pool start. The old functions stay and pass `Ctx::fixed()`.
 
 | Layer | New function | Old function keeps |
 |---|---|---|
-| `foundation_core::valtron` (dispatch) | `initialize_pool_with_ctx(seed: u64, user_thread_num: Option<usize>, root: Ctx) -> PoolGuard` | `initialize_pool` calls it with `Ctx::new()` |
+| `foundation_core::valtron` (dispatch) | `initialize_pool_with_ctx(seed: u64, user_thread_num: Option<usize>, root: Ctx) -> PoolGuard` | `initialize_pool` calls it with `Ctx::fixed()` |
 | `executors/sendables.rs` (`multi`) | `initialize_pool_with_ctx(seed, user_thread_num, root)` | same |
 | `executors/non_sendables.rs` (single) | `initialize_pool_with_ctx(seed, user_thread_num, root)` | same |
-| `executors/multi/mod.rs` | `initialize_pool_with_config_and_ctx(seed, threads, config, root)`, `ThreadRegistry::with_config_and_root(seed, threads, &PoolConfig, root)` | `with_config` calls it with `Ctx::new()` |
-| `executors/single/mod.rs` | `initialize_pool_with_ctx(seed, root)` | `initialize_pool(seed)` calls it with `Ctx::new()` |
-| `executors/local.rs` | `LocalThreadExecutor::from_seed_with_root(..., root)` | `from_seed` calls it with `Ctx::new()` |
-| thread bring-up | `initialize_current_thread_with_ctx(seed, root)` | `initialize_current_thread(seed)` calls it with `Ctx::new()` and stays idempotent |
+| `executors/multi/mod.rs` | `initialize_pool_with_config_and_ctx(seed, threads, config, root)`, `ThreadRegistry::with_config_and_root(seed, threads, &PoolConfig, root)` | `with_config` calls it with `Ctx::fixed()` |
+| `executors/single/mod.rs` | `initialize_pool_with_ctx(seed, root)` | `initialize_pool(seed)` calls it with `Ctx::fixed()` |
+| `executors/local.rs` | `LocalThreadExecutor::from_seed_with_root(..., root)` | `from_seed` calls it with `Ctx::fixed()` |
+| thread bring-up | `initialize_current_thread_with_ctx(seed, root)` | `initialize_current_thread(seed)` calls it with `Ctx::fixed()` and stays idempotent |
 
 Rules for each function:
 
@@ -141,7 +141,7 @@ All tests live in `backends/foundation_core/tests/valtron/` and register in
 `tests/valtron/mod.rs`. They use only public API.
 
 1. `with_clock_returns_the_given_clock_and_keeps_the_original`: build
-   `Ctx::new().with_clock(sim)`; assert `Arc::ptr_eq(&forked.clock(), &sim)` and that the
+   `Ctx::fixed().with_clock(sim)`; assert `Arc::ptr_eq(&forked.clock(), &sim)` and that the
    original `ctx.clock()` is still the monotonic clock.
 2. `with_clock_shares_config_and_rng`: `Arc::ptr_eq` on `config()` and `rng()`.
 3. `with_clock_copies_the_map`: insert a value before the call; it is visible in the new
@@ -198,7 +198,7 @@ in the same change:
 
 - [x] `Ctx::with_clock` returns the given clock and leaves the original unchanged.
 - [x] `initialize_pool_with_ctx` and `initialize_current_thread_with_ctx` exist and the
-      old functions call them with `Ctx::new()`.
+      old functions call them with `Ctx::fixed()`.
 - [x] The `ctx` macro argument works for `#[valtron]` and `#[valtron_test]`, with and
       without `timeout`.
 - [x] `SimulatedClock` is behind the `test-clock` feature.
@@ -241,10 +241,10 @@ Measured facts:
   not an epoch.
 - The multi pool now builds each worker's `LocalThreadExecutor` from
   `LocalThreadExecutor::from_seed_with_root` with the registry root. Before this
-  change a worker task read a fresh `Ctx::new()`, so an injected root could not
+  change a worker task read a fresh `Ctx::fixed()`, so an injected root could not
   reach it. Side effect: every task now forks the pool root, so all tasks share
   the root's `config` and `rng` `Arc`s. Before, each worker had its own
-  `Ctx::new()` and its own seed-0 RNG stream. A deterministic simulation test
+  `Ctx::fixed()` and its own seed-0 RNG stream. A deterministic simulation test
   (DST) wants one stream, which is this behaviour; no test depended on the old
   separation.
 - The timeout path binds the `ctx` expression once (`__valtron_ctx`) and clones

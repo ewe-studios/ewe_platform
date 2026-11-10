@@ -16,11 +16,22 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   re-exports them. `SimulatedClock` stays in `foundation_core`. The crate is in
   `ci/packages.toml`, and the time-source allowlist points at the new path.
 
+- 2026-11-09: feature 02. `foundation_http::ContextBag` is gone. Every user takes
+  `foundation_context::Ctx`, which `foundation_http::shared::context::Ctx` re-exports. `Ctx` has the
+  new methods `build`, `store`, `get_cloned`, `with_empty_map`, `rebase`, `with_seed` and
+  `try_host`. The map lock is an `RwLock`. The connectrpc `Ctx` is now `RpcCtx { ctx, request }`.
+  Both generators emit `RpcCtx`. `Ctx::host()` seeds its RNG from the entropy backend of
+  `foundation_compact` (issue #448). The owner closes #448.
+
+- 2026-11-10: feature 02 is in PR #467. Review follow-up: `Ctx::new` is renamed `Ctx::fixed`,
+  and the valtron pool constructors and macros seed the root RNG from the pool seed
+  (`Ctx::with_seed`).
+
 ## In progress
 
-- Nothing. Feature 01 is done and waits for review.
+- Nothing. Feature 02 is done and waits for review.
 
 ## Next
 
-- Feature 02 after feature 01 is reviewed. Then features 03, 04 and 05 can run in parallel.
+- Features 03, 04 and 05 after feature 02 is reviewed. They can run in parallel.
   Feature 06 is last.

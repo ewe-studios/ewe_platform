@@ -11,7 +11,6 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
 use crate::shared::serve_web::WebServe;
 use crate::wasm::dispatch::HttpAppWebDispatch;
 
@@ -60,9 +59,9 @@ async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsErro
 #[wasm_bindgen]
 pub struct WasmHttpApp {
     inner: Arc<HttpApp<Arc<dyn WebServe>>>,
-    /// The app's context bag. Each request forks it. The singleton sets it to
-    /// its own bag, so init-time bindings survive every request.
-    bag: Arc<ContextBag>,
+    /// The app's context. Each request forks it. The singleton sets it to
+    /// its own context, so init-time bindings survive every request.
+    app_ctx: Ctx,
 }
 
 #[wasm_bindgen]
@@ -78,16 +77,16 @@ impl WasmHttpApp {
 
     /// Dispatch a `web_sys::Request` through the app and return a `web_sys::Response`.
     ///
-    /// Each request forks the app's bag. The bindings stored at init, the
+    /// Each request forks the app's context. The bindings stored at init, the
     /// injected clock and the RNG stream reach the handler. Inserts made
     /// during a request stay private to that request.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
-        let bag = Arc::new(self.bag.fork());
+        let app_ctx = self.app_ctx.fork();
         Ok(self
             .inner
-            .dispatch_web(bag, simple_req)
+            .dispatch_web(app_ctx, simple_req)
             .await
             .map_err(|e| JsError::new(&format!("dispatch failed: {e:?}")))?)
     }
@@ -99,10 +98,10 @@ impl WasmHttpApp {
     /// This is the deterministic-test entry point: the app and every request
     /// it dispatches read the injected clock and RNG stream.
     pub fn with_ctx(ctx: Ctx) -> Self {
-        let bag = Arc::new(ContextBag::from_ctx(&ctx));
+        let app_ctx = ctx.with_empty_map();
         Self {
-            inner: Arc::new(HttpApp::with_context(Arc::clone(&bag))),
-            bag,
+            inner: Arc::new(HttpApp::with_context(app_ctx.clone())),
+            app_ctx,
         }
     }
 
@@ -113,12 +112,12 @@ impl WasmHttpApp {
 
     /// Create a `WasmHttpApp` from an existing `HttpApp<Arc<dyn WebServe>>`.
     ///
-    /// The wrapper shares the app's own context bag.
+    /// The wrapper shares the app's own context.
     pub fn from_app(app: HttpApp<Arc<dyn WebServe>>) -> Self {
-        let bag = Arc::clone(app.context());
+        let app_ctx = app.context().clone();
         Self {
             inner: Arc::new(app),
-            bag,
+            app_ctx,
         }
     }
 }
@@ -186,15 +185,15 @@ impl WasmHttpAppSingleton {
 
     /// Initialize the app if not already initialized.
     ///
-    /// The closure receives an `Arc<ContextBag>`. Store typed bindings in that
-    /// bag before you build the `HttpApp`. The app uses that bag for every
+    /// The closure receives a `Ctx`. Store typed bindings in that
+    /// context before you build the `HttpApp`. The app uses that context for every
     /// request.
     ///
     /// If already initialized, returns the existing guard and ignores the closure.
     ///
     /// This is a host entry point: it uses the real host clock. A deterministic
     /// host uses [`WasmHttpAppSingleton::get_or_init_with_ctx`].
-    pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> HttpApp<Arc<dyn WebServe>>>(
+    pub fn get_or_init<F: FnOnce(Ctx) -> HttpApp<Arc<dyn WebServe>>>(
         builder: F,
     ) -> WasmHttpAppGuard {
         Self::get_or_init_with_ctx(Ctx::host(), builder)
@@ -202,15 +201,15 @@ impl WasmHttpAppSingleton {
 
     /// Initialize the app from an explicit valtron [`Ctx`] if not initialized.
     ///
-    /// The closure receives an `Arc<ContextBag>` built from `ctx`. Store typed
-    /// bindings in that bag. Build the app with `HttpApp::with_context`, so
-    /// route factories also see the bindings. The singleton gives the bag to
+    /// The closure receives a `Ctx` built from `ctx`. Store typed
+    /// bindings in that context. Build the app with `HttpApp::with_context`, so
+    /// route factories also see the bindings. The singleton gives the context to
     /// the app that the closure returns, so the bindings, the clock and the
     /// RNG reach every request.
     ///
     /// If already initialized, returns the existing guard and ignores `ctx`
     /// and the closure.
-    pub fn get_or_init_with_ctx<F: FnOnce(Arc<ContextBag>) -> HttpApp<Arc<dyn WebServe>>>(
+    pub fn get_or_init_with_ctx<F: FnOnce(Ctx) -> HttpApp<Arc<dyn WebServe>>>(
         ctx: Ctx,
         builder: F,
     ) -> WasmHttpAppGuard {
@@ -218,9 +217,9 @@ impl WasmHttpAppSingleton {
         if let Some(arc) = weak.upgrade() {
             return WasmHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::from_ctx(&ctx));
-        let mut app = builder(Arc::clone(&bag));
-        app.ctx = Arc::clone(&bag);
+        let app_ctx = ctx.with_empty_map();
+        let mut app = builder(app_ctx.clone());
+        app.ctx = app_ctx.clone();
         let app = Arc::new(WasmHttpApp::from_app(app));
         let state = Arc::new(AppState { app });
         *weak = Arc::downgrade(&state);

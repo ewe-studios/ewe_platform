@@ -35,7 +35,7 @@ use foundation_http::{
     },
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         middleware::{MiddlewareResult, RequestMiddleware},
         serve::{ConnectionResult, ServeError, ServeOutcome},
     },
@@ -47,7 +47,7 @@ use foundation_http::{
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -55,7 +55,7 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -88,7 +88,7 @@ impl Serve for EchoHandler {
 struct BodyEchoHandler;
 
 impl ServeFactory for BodyEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -96,7 +96,7 @@ impl ServeFactory for BodyEchoHandler {
 impl Serve for BodyEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -126,7 +126,7 @@ impl Serve for BodyEchoHandler {
 struct QueryHandler;
 
 impl ServeFactory for QueryHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -134,7 +134,7 @@ impl ServeFactory for QueryHandler {
 impl Serve for QueryHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -151,7 +151,7 @@ struct CounterMiddleware {
 }
 
 impl RequestMiddleware for CounterMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.count.fetch_add(1, Ordering::SeqCst);
         MiddlewareResult::Continue
     }
@@ -163,7 +163,7 @@ impl RequestMiddleware for CounterMiddleware {
 struct BlockMiddleware;
 
 impl RequestMiddleware for BlockMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(
             foundation_netio::shared::http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Forbidden)
@@ -860,7 +860,7 @@ fn test_multiple_routes_same_app() {
 struct SlowHandler;
 
 impl ServeFactory for SlowHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -868,7 +868,7 @@ impl ServeFactory for SlowHandler {
 impl Serve for SlowHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -1141,7 +1141,7 @@ fn test_context_store_multiple_types() {
 struct WsEchoHandler;
 
 impl ServeFactory for WsEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1149,7 +1149,7 @@ impl ServeFactory for WsEchoHandler {
 impl Serve for WsEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -1231,9 +1231,9 @@ struct SseCounterHandler {
 }
 
 impl ServeFactory for SseCounterHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         // Get shared counter from context
-        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = bag.get();
+        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = ctx.get();
         let count = count.unwrap_or_else(|| Arc::new(std::sync::atomic::AtomicUsize::new(0)));
         Self { count }
     }
@@ -1242,7 +1242,7 @@ impl ServeFactory for SseCounterHandler {
 impl Serve for SseCounterHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -1372,7 +1372,7 @@ fn test_sse_event_formatting() {
 struct ExpectContinueEchoHandler;
 
 impl ServeFactory for ExpectContinueEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1380,7 +1380,7 @@ impl ServeFactory for ExpectContinueEchoHandler {
 impl Serve for ExpectContinueEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -1562,7 +1562,7 @@ struct InterimMiddleware {
 }
 
 impl RequestMiddleware for InterimMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
@@ -1580,7 +1580,7 @@ struct BadInterimMiddleware {
 }
 
 impl RequestMiddleware for BadInterimMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
@@ -1597,7 +1597,7 @@ impl RequestMiddleware for BadInterimMiddleware {
 struct AfterInterimHandler;
 
 impl ServeFactory for AfterInterimHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1605,7 +1605,7 @@ impl ServeFactory for AfterInterimHandler {
 impl Serve for AfterInterimHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

@@ -21,7 +21,7 @@ use foundation_nativeapis::signal::{signal_task, SignalEvent, SignalKind};
 
 /// A context with the real monotonic clock.
 fn ctx() -> Ctx {
-    Ctx::new(Arc::new(MonotonicClock::new()))
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 /// Send `SIGTERM` to this process and prove that the kernel accepted it.

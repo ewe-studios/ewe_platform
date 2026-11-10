@@ -1,7 +1,5 @@
 //! Taken from the tiny-http project https://github.com/tiny-http/tiny-http/
 
-#![cfg(not(target_family = "wasm"))]
-
 use crate::native::connection::Connection;
 use crate::native::connection::{ConnReadiness, DataStreamAddr, Endpoint, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};

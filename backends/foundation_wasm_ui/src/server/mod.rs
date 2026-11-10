@@ -66,7 +66,7 @@ struct Inner {
 }
 
 /// Shared fan-out of server-driven UI connections. Cheap to clone (`Arc`) — the
-/// server keeps one handle and shares another into its request `ContextBag`.
+/// server keeps one handle and shares another into its request `Ctx`.
 #[derive(Clone)]
 pub struct Broadcaster {
     inner: Arc<Mutex<Inner>>,

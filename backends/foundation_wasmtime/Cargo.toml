@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wasmtime"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 # The injected `Ctx` bundle comes from foundation_core, whose minimum is the
 # workspace's. Declare the same minimum so the manifest tells the truth.
@@ -22,11 +22,11 @@ wasmtime-wasi = { version = "26", default-features = false, features = ["preview
 cap-rand = "3.4"
 # The injected side-effect bundle (clock and RNG). The guest's WASI clock and
 # randomness come from this `Ctx`, never from the host globals (spec 70 rule 11).
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
 # The RNG type that `Ctx::rng` hands out. `InjectedRng` adapts it to the
 # `cap_rand::RngCore` trait that the WASI context takes.
-foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 derive_more = { version = "2", features = ["display", "error", "from"] }
 tracing = "0.1"
 
@@ -35,7 +35,7 @@ tracing = "0.1"
 wat = "1.207"
 # `SimulatedClock` fixes the wall and monotonic time, so a test can prove that
 # the guest reads the injected clock and not the host clock.
-foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["test-clock"] }
 
 [lints]
 workspace = true

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_repl"
-version = "0.2.3"
+version = "0.2.4"
 description = "A lightweight, general-purpose REPL framework for interactive terminal sessions"
 edition.workspace = true
 rust-version.workspace = true
@@ -11,7 +11,7 @@ keywords = ["shell_repl", "repl", "tui", "terminal"]
 
 [dependencies]
 tracing = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
 unicode-width = "0.2"
 crossterm = { version = "0.29", optional = true }
 # No backend feature here: the terminal backend is pulled in by `native` and the
@@ -44,7 +44,7 @@ tracing-test = { workspace = true }
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 features = ["test-clock"]
 
 [features]

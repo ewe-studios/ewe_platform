@@ -50,7 +50,7 @@ fn the_protocol_detection_timeout_fires_on_the_injected_clock() {
         clock.clone(),
     );
 
-    let ctx = Ctx::new(clock.clone());
+    let ctx = Ctx::fixed(clock.clone());
 
     assert!(
         matches!(

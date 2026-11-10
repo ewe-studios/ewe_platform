@@ -23,7 +23,7 @@ use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
 use bytes::{Buf, Bytes};
 
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
@@ -166,8 +166,8 @@ fn header(
         .cloned()
 }
 
-fn bag() -> Arc<ContextBag> {
-    Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()))
+fn ctx() -> Ctx {
+    foundation_core::valtron::Ctx::host()
 }
 
 fn echo_router() -> Router {
@@ -193,7 +193,7 @@ fn unregistered_path_is_404() {
         Some("application/json"),
         Some(json_bytes(&TestMsg::default())),
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(response.status, Status::NotFound);
 }
 
@@ -201,7 +201,7 @@ fn unregistered_path_is_404() {
 fn wrong_method_is_405_with_allow() {
     let handler = echo_router().into_handler();
     let req = request(ECHO, SimpleMethod::PUT, Some("application/json"), None);
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(response.status, Status::MethodNotAllowed);
     let allow = header(&response, "allow").expect("Allow header present");
     assert!(allow.contains("POST"), "Allow lists POST: {allow}");
@@ -221,7 +221,7 @@ fn unknown_codec_is_415_with_accept_post() {
         Some("application/xml"),
         Some(vec![]),
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(response.status, Status::UnsupportedMediaType);
     let accept = header(&response, "accept-post").expect("Accept-Post present");
     assert!(accept.contains("application/proto"), "{accept}");
@@ -246,7 +246,7 @@ fn bidi_over_http1_is_505() {
         Some("application/connect+json"),
         Some(vec![]),
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(
         response.status,
         Status::HttpVersionNotSupported,
@@ -269,7 +269,7 @@ fn unary_post_json_roundtrips() {
         Some("application/json"),
         Some(json_bytes(&msg)),
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(response.status, Status::OK);
     let echoed: TestMsg = JsonCodec
         .unmarshal(Bytes::from(body_bytes(&response)))
@@ -292,7 +292,7 @@ fn unary_get_is_routed_and_decoded() {
         "http://t/test.EchoService/Echo?connect=v1&encoding=json&base64=1&message={message}"
     );
     let req = request(&url, SimpleMethod::GET, None, None);
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(
         response.status,
         Status::OK,
@@ -334,7 +334,7 @@ fn server_stream_emits_all_responses() {
             name: "seed".to_string(),
         })),
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(response.status, Status::OK);
     assert_eq!(
         header(&response, "content-type").as_deref(),
@@ -368,7 +368,7 @@ fn require_connect_protocol_header_is_enforced() {
         Some("application/json"),
         Some(json_bytes(&TestMsg::default())),
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(
         response.status,
         Status::BadRequest,
@@ -386,7 +386,7 @@ fn require_connect_protocol_header_is_enforced() {
         SimpleHeader::from("connect-protocol-version".to_string()),
         vec!["1".to_string()],
     );
-    let response = block_on(handler.dispatch(bag(), req));
+    let response = block_on(handler.dispatch(ctx(), req));
     assert_eq!(response.status, Status::OK);
 }
 
@@ -418,7 +418,7 @@ fn multiple_services_coexist() {
             name: "n".to_string(),
         })),
     );
-    let response = block_on(handler.dispatch(bag(), inc));
+    let response = block_on(handler.dispatch(ctx(), inc));
     let out: TestMsg = JsonCodec
         .unmarshal(Bytes::from(body_bytes(&response)))
         .expect("decode");
@@ -434,7 +434,7 @@ fn multiple_services_coexist() {
             name: "e".to_string(),
         })),
     );
-    let response = block_on(handler.dispatch(bag(), echo));
+    let response = block_on(handler.dispatch(ctx(), echo));
     assert_eq!(response.status, Status::OK);
 }
 

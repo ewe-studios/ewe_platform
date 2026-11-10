@@ -155,7 +155,7 @@ impl SingleExecutorSingleton {
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
 pub fn initialize_pool(seed_for_rng: u64) {
-    initialize_pool_with_ctx(seed_for_rng, Ctx::host());
+    initialize_pool_with_ctx(seed_for_rng, crate::valtron::ctx::seeded_root(seed_for_rng));
 }
 
 /// [`initialize_pool`] with an explicit engine root.

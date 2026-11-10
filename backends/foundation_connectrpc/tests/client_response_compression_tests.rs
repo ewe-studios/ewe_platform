@@ -30,8 +30,8 @@ use foundation_connectrpc::shared::transport::{
     body_stream_from_pipe, head_stream_from_pipe, Transport, TransportStream,
 };
 use foundation_connectrpc::{
-    Client, ClientOptions, Code, CompressionRegistry, ConnectRpcServeH2, Ctx, H2Transport,
-    HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, Code, CompressionRegistry, ConnectRpcServeH2, H2Transport,
+    HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 use foundation_core::valtron::{valtron_test, Pipe};
 use foundation_http::native::app::ServerApp;
@@ -65,7 +65,7 @@ fn router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -73,7 +73,7 @@ fn router() -> Router {
     router.unary(
         BIG_UNARY,
         codecs(),
-        |_ctx: Ctx, _req: Request<Msg>| async move {
+        |_ctx: RpcCtx, _req: Request<Msg>| async move {
             Ok(Response::new(Msg::of("a".repeat(64 * 1024))))
         },
         HandlerOptions::new(),
@@ -81,7 +81,7 @@ fn router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -126,8 +126,8 @@ fn client(addr: &str, procedure: &str, grpc: bool, extra: &[(&str, &str)]) -> Cl
     Client::new(transport, &url, codecs(), options).expect("build client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// A gzip response frame on the gRPC streaming path decodes.

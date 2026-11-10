@@ -250,7 +250,7 @@ impl H2ConnectionHandler {
         drain_guard: WaitGroupGuard,
         clock: Arc<dyn foundation_core::valtron::Clock>,
     ) -> Self {
-        // Store the engine clock in the app bag so a dispatched ConnectRPC
+        // Store the engine clock in the app context so a dispatched ConnectRPC
         // server reads the same clock for its call deadlines.
         app.context()
             .store::<Arc<dyn foundation_core::valtron::Clock>>(clock.clone());

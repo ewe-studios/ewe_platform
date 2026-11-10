@@ -27,7 +27,6 @@ use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{ConnectionHandler, KeepAliveConfig};
 use foundation_http::native::writer::send_text;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
@@ -40,7 +39,7 @@ use foundation_netio::shared::http::{
 struct SecretHandler;
 
 impl ServeFactory for SecretHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -48,7 +47,7 @@ impl ServeFactory for SecretHandler {
 impl Serve for SecretHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -60,7 +59,7 @@ impl Serve for SecretHandler {
 struct AlwaysRespond;
 
 impl RequestMiddleware for AlwaysRespond {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(
             SimpleOutgoingResponse::builder()
                 .with_status(Status::Forbidden)
@@ -127,7 +126,7 @@ fn keepalive_waits_the_default_idle_timeout() {
     );
 
     let mut handler = build_handler(app, stream, &config, clock.clone());
-    let ctx = Ctx::new(clock.clone());
+    let ctx = Ctx::fixed(clock.clone());
 
     // First poll arms the idle deadline.
     assert!(
@@ -159,7 +158,7 @@ fn keepalive_waits_the_default_idle_timeout() {
     let config = KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(2));
     let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_clock(clock.clone()));
     let mut handler = build_handler(app, stream, &config, clock.clone());
-    let ctx = Ctx::new(clock.clone());
+    let ctx = Ctx::fixed(clock.clone());
 
     assert!(handler.next_status(ctx.clone()).is_some());
     clock.advance(Duration::from_secs(1));
@@ -184,7 +183,7 @@ fn keepalive_disabled_closes_after_one_second() {
     assert_eq!(config.idle_timeout(), Duration::from_secs(1));
 
     let mut handler = build_handler(app, stream, &config, clock.clone());
-    let ctx = Ctx::new(clock.clone());
+    let ctx = Ctx::fixed(clock.clone());
 
     assert!(
         drive_until_closed(&mut handler, &ctx, 1),
@@ -214,7 +213,7 @@ fn a_404_with_a_body_does_not_desync_the_next_request() {
         &KeepAliveConfig::defaults(),
         clock.clone(),
     );
-    drive_until_closed(&mut handler, &Ctx::new(clock), 200);
+    drive_until_closed(&mut handler, &Ctx::fixed(clock), 200);
 
     let response = String::from_utf8_lossy(&client.read_available()).into_owned();
     assert!(response.contains("404"), "expected a 404, got {response:?}");
@@ -244,7 +243,7 @@ fn a_middleware_write_error_closes_the_connection() {
     );
 
     assert!(
-        drive_until_closed(&mut handler, &Ctx::new(clock), 200),
+        drive_until_closed(&mut handler, &Ctx::fixed(clock), 200),
         "a middleware write error must close the connection"
     );
 }

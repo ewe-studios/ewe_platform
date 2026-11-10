@@ -1459,7 +1459,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_arrow"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "arrow-array",
  "arrow-buffer",
@@ -1475,11 +1475,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_buildtools"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "foundation_codegen"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "custom_debug",
  "derive_more",
@@ -1497,7 +1497,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "cfg-if",
  "foldhash 0.2.0",
@@ -1517,7 +1517,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_context"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_compact",
  "foundation_nostd",
@@ -1525,7 +1525,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -1547,7 +1547,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_errstacks"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "derive_more",
  "tracing",
@@ -1555,7 +1555,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.11"
+version = "0.0.20"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -1574,7 +1574,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -1609,11 +1609,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.7"
+version = "0.0.8"
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",
@@ -1633,7 +1633,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "foundation_core",
  "libc",
@@ -1643,7 +1643,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_signals"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "foundation_ui_traits",
  "serde",
@@ -1653,15 +1653,15 @@ dependencies = [
 
 [[package]]
 name = "foundation_theme"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "foundation_ui_traits"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "clap",
  "concurrent-queue",
@@ -1675,7 +1675,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "clap",
  "foundation_arrow",
@@ -1692,7 +1692,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasmtime"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "cap-rand",
  "derive_more",

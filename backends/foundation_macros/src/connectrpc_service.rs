@@ -280,7 +280,7 @@ fn extract_response_from_connect_result(ty: &Type) -> Option<TokenStream> {
 
 /// Extract the request type from the method signature.
 ///
-/// The request parameter is the second non-self param (after `ctx: Ctx`).
+/// The request parameter is the second non-self param (after `ctx: RpcCtx`).
 /// It can be `Request<T>` (unary / server-stream) or
 /// `impl Stream<Item = ConnectResult<T>>` (client-stream / bidi).
 fn extract_req_type(sig: &syn::Signature) -> TokenStream {
@@ -290,7 +290,7 @@ fn extract_req_type(sig: &syn::Signature) -> TokenStream {
         .filter(|a| !matches!(a, FnArg::Receiver(_)))
         .collect();
 
-    // non_self[0] = ctx: Ctx, non_self[1] = request param
+    // non_self[0] = ctx: RpcCtx, non_self[1] = request param
     if non_self.len() < 2 {
         return quote!(()); // Fallback
     }
@@ -759,7 +759,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Unary RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             request: foundation_connectrpc::Request<#rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.unary(ctx, request).await
@@ -771,7 +771,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Server-streaming RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             request: foundation_connectrpc::Request<#rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<#rst>> {
                             self.#method_name.server_stream(ctx, request).await
@@ -783,7 +783,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Client-streaming RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             reqs: impl futures::Stream<Item = #rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.client_stream(ctx, reqs).await
@@ -795,7 +795,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Bidirectional streaming RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>> {
                             self.#method_name.bidi_stream(ctx).await
                         }
@@ -819,7 +819,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Unary RPC.
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             request: foundation_connectrpc::Request<#rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>>;
                     }
@@ -829,7 +829,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Server-streaming RPC.
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             request: foundation_connectrpc::Request<#rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<#rst>>;
                     }
@@ -839,7 +839,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Client-streaming RPC.
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             reqs: impl futures::Stream<Item = #rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>>;
                     }
@@ -849,7 +849,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Bidirectional streaming RPC.
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>>;
                     }
                 }
@@ -870,7 +870,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             request: foundation_connectrpc::Request<#rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.unary(ctx, request).await
@@ -881,7 +881,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             request: foundation_connectrpc::Request<#rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<#rst>> {
                             self.#method_name.server_stream(ctx, request).await
@@ -892,7 +892,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                             reqs: impl futures::Stream<Item = #rt>,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.client_stream(ctx, reqs).await
@@ -903,7 +903,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: foundation_connectrpc::Ctx,
+                            ctx: foundation_connectrpc::RpcCtx,
                         ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>> {
                             self.#method_name.bidi_stream(ctx).await
                         }
@@ -1100,7 +1100,7 @@ mod tests {
             pub trait GreetService {
                 async fn greet(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     req: foundation_connectrpc::Request<GreetRequest>,
                 ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
             }
@@ -1184,13 +1184,13 @@ mod tests {
             pub trait FullService {
                 async fn unary_method(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     req: foundation_connectrpc::Request<UnaryReq>,
                 ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<UnaryRes>>;
 
                 async fn server_stream_method(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     req: foundation_connectrpc::Request<StreamReq>,
                 ) -> foundation_connectrpc::ConnectResult<
                     impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamRes>>,
@@ -1198,13 +1198,13 @@ mod tests {
 
                 async fn client_stream_method(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     reqs: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamReq>>,
                 ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<StreamRes>>;
 
                 async fn bidi_stream_method(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     reqs: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamReq>>,
                 ) -> foundation_connectrpc::ConnectResult<
                     impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamRes>>,
@@ -1242,7 +1242,7 @@ mod tests {
             pub trait ConvTest {
                 async fn greet_group(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     req: foundation_connectrpc::Request<R>,
                 ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<Res>>;
             }
@@ -1279,7 +1279,7 @@ mod tests {
             pub trait JsonSvc {
                 async fn call(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     req: foundation_connectrpc::Request<Req>,
                 ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<Res>>;
             }
@@ -1304,7 +1304,7 @@ mod tests {
             pub trait ProtoSvc {
                 async fn call(
                     &self,
-                    ctx: foundation_connectrpc::Ctx,
+                    ctx: foundation_connectrpc::RpcCtx,
                     req: foundation_connectrpc::Request<PReq>,
                 ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<PRes>>;
             }

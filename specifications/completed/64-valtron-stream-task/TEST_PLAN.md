@@ -320,7 +320,7 @@ impl Ctx {
     pub fn fork(&self) -> Ctx;                              // copy map structure; Arc values shared
 }
 impl Clone for Ctx { /* shares the Arc<CtxInner> map */ }
-impl Default for Ctx { /* Ctx::new() */ }
+impl Default for Ctx { /* Ctx::fixed() */ }
 ```
 
 Key semantics (from the spec): `clone()` **shares** the map; `fork()` **copies**
@@ -337,7 +337,7 @@ unrelated `V` returns `None` (wrong type ≠ panic). `get_or_insert` with a valu
 returns a live `Arc` and a second call returns the same entry (no duplicate).
 
 **UCS-C2 — clone shares, fork isolates.**
-`let a = Ctx::new(); let b = a.clone(); let c = a.fork();`
+`let a = Ctx::fixed(); let b = a.clone(); let c = a.fork();`
 `a.insert(x)` is visible from `b.get::<X>()` (shared map) but **not** from
 `c.get::<X>()` (forked map). Conversely `c.insert(y)` is invisible to `a` and
 `b`. This is the sibling-ExecutionIterator-isolation invariant.
@@ -388,7 +388,7 @@ A `const`/`static` assertion that `Ctx: Send + Sync` (e.g.
 - `remove` of an absent type returns `None` without error.
 - `fork` twice → the two forks are isolated from each other AND from the parent,
   but all share `clock`/`config`/`rng`.
-- Empty `Ctx::new()` → all `get`/`remove`/`contains` return `None`/`false`;
+- Empty `Ctx::fixed()` → all `get`/`remove`/`contains` return `None`/`false`;
   `clock()`/`config()`/`rng()` still return defaults.
 - `rng().lock()` then re-lock on the same thread does not deadlock (`Mutex`, not
   re-entrant — assert no panic on a scoped single lock).

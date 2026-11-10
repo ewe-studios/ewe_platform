@@ -539,7 +539,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     `LocalThreadExecutor::from_seed_with_root`, `SimulatedClock` behind
     `test-clock`, and the `ctx = expr` macro argument.
   - Multi workers now build their local executor from the registry root. Before,
-    a task read a fresh `Ctx::new()` and missed the pool clock.
+    a task read a fresh `Ctx::fixed()` and missed the pool clock.
   - Six clock tests in `tests/valtron/clock_injection.rs`; the `test-clock` run
     of the `mod` binary has 749 tests (743 before), 0 failed. Test 4 fails on the
     old `with_clock` behaviour (`left` real monotonic, `right` simulated).
@@ -2514,7 +2514,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `pool_guard_drop_is_bounded_and_releases_the_pool_gate` in
   `tests/valtron/shutdown_mechanism_tests.rs`; on the old unbounded code it
   hangs (process timeout, exit 124).
-  #218: `Ctx::new(clock)` requires the clock; `Ctx::host()` is the one
+  #218: `Ctx::fixed(clock)` requires the clock; `Ctx::host()` is the one
   real-clock constructor; `Default for Ctx` is gone; `Ctx::assert_minimum`
   checks clock/config/RNG at the pool start and the task iterator boundary.
   `ContextBag` carries `clock` and `rng` fields and gains `new(clock)`,

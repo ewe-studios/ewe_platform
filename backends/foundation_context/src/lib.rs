@@ -60,7 +60,7 @@ use core::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::sync::Mutex;
+use crate::sync::{Mutex, RwLock};
 use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
 use foundation_compact::{Duration, Instant, SystemTime};
 
@@ -154,7 +154,7 @@ pub struct Ctx(Arc<CtxInner>);
 /// One of the engine-minimum elements that every task context must carry.
 ///
 /// [`Ctx::assert_minimum`] names the missing element in its panic message. The
-/// compiler checks the [`Ctx::new`] clock argument, but a context can reach a
+/// compiler checks the [`Ctx::fixed`] clock argument, but a context can reach a
 /// task boundary from a path the compiler cannot check. The boundary checks the
 /// full minimum set before the task starts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -188,7 +188,7 @@ impl MinimumElement {
 /// context from an unchecked path.
 pub(crate) struct CtxInner {
     /// General extension point: arbitrary `Arc<T>` entries keyed by `TypeId`.
-    map: Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
+    map: RwLock<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
     /// Engine-seeded standard elements.
     clock: Option<Arc<dyn Clock>>,
     config: Option<Arc<Config>>,
@@ -197,30 +197,79 @@ pub(crate) struct CtxInner {
 
 impl Ctx {
     /// An empty context: no map entries, the given clock, a default config, and
-    /// a deterministic default RNG (seed `0`) that the engine may replace at
-    /// init.
+    /// a deterministic RNG with the fixed seed `0`.
+    ///
+    /// The name says what it does: the seed is fixed, so every context from this
+    /// constructor draws the same stream. Use it in tests, where a run must
+    /// repeat. A host must not use it; a host calls [`Ctx::host`]. A
+    /// deterministic simulation test (DST) that chooses its seed calls
+    /// [`Ctx::with_seed`].
     ///
     /// The clock is a required argument, so the compiler rejects a context with
-    /// no clock (AGENTS rule 11). A host that wants the real clock calls
-    /// [`Ctx::host`].
+    /// no clock (AGENTS rule 11).
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn fixed(clock: Arc<dyn Clock>) -> Self {
+        Self::with_seed(clock, 0)
+    }
+
+    /// An empty context with the given clock and an RNG seeded from `seed`.
+    ///
+    /// Two contexts with the same seed draw the same values. A DST uses this to
+    /// choose the seed, so it can replay a run.
+    #[must_use]
+    pub fn with_seed(clock: Arc<dyn Clock>, seed: u64) -> Self {
+        Self::with_rng(clock, ChaCha8Rng::seed_from_u64(seed))
+    }
+
+    /// A context with the real [`MonotonicClock`] and an RNG seeded from the
+    /// entropy backend of `foundation_compact`.
+    ///
+    /// This is the one explicit host constructor. Call it only at a host entry
+    /// point, where real time and real entropy are the correct sources. Library
+    /// code must use the [`Ctx`] it is given. Two calls draw different streams.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the entropy source fails. Use [`Ctx::try_host`] to handle the
+    /// failure.
+    #[must_use]
+    pub fn host() -> Self {
+        Self::try_host().expect("the entropy source failed while Ctx::host seeded the RNG")
+    }
+
+    /// Like [`Ctx::host`], but returns the error when the entropy source fails.
+    ///
+    /// # Errors
+    ///
+    /// Returns the [`foundation_compact::entropy::Error`] of the entropy backend.
+    pub fn try_host() -> Result<Self, foundation_compact::entropy::Error> {
+        let mut seed = [0u8; 32];
+        foundation_compact::entropy::fill(&mut seed)?;
+        Ok(Self::with_rng(
+            Arc::new(MonotonicClock::new()),
+            ChaCha8Rng::from_seed(seed),
+        ))
+    }
+
+    /// An empty context with the given clock and RNG.
+    fn with_rng(clock: Arc<dyn Clock>, rng: ChaCha8Rng) -> Self {
         Ctx(Arc::new(CtxInner {
-            map: Mutex::new(HashMap::new()),
+            map: RwLock::new(HashMap::new()),
             clock: Some(clock),
             config: Some(Arc::new(Config::new())),
-            rng: Some(Arc::new(Mutex::new(ChaCha8Rng::seed_from_u64(0)))),
+            rng: Some(Arc::new(Mutex::new(rng))),
         }))
     }
 
-    /// A context with the real [`MonotonicClock`].
+    /// A context made by [`Ctx::fixed`] (fixed seed `0`) and then filled by `f`.
     ///
-    /// This is the one explicit host constructor. Call it only at a host entry
-    /// point, where real time is the correct source. Engine and task code must
-    /// pass the injected clock instead.
+    /// `f` receives the new context. Use it to store the first values in one
+    /// expression.
     #[must_use]
-    pub fn host() -> Self {
-        Self::new(Arc::new(MonotonicClock::new()))
+    pub fn build(clock: Arc<dyn Clock>, f: impl FnOnce(&Ctx)) -> Self {
+        let ctx = Self::fixed(clock);
+        f(&ctx);
+        ctx
     }
 
     /// Panic if an engine-minimum element is missing, and name every missing
@@ -261,7 +310,7 @@ impl Ctx {
     #[must_use]
     pub fn incomplete_for_test(clock: Arc<dyn Clock>, missing: MinimumElement) -> Self {
         Ctx(Arc::new(CtxInner {
-            map: Mutex::new(HashMap::new()),
+            map: RwLock::new(HashMap::new()),
             clock: (missing != MinimumElement::Clock).then_some(clock),
             config: (missing != MinimumElement::Config).then(|| Arc::new(Config::new())),
             rng: (missing != MinimumElement::Rng)
@@ -280,10 +329,33 @@ impl Ctx {
     pub fn insert<T: Any + Send + Sync>(&self, value: Arc<T>) -> Option<Arc<T>> {
         self.0
             .map
-            .lock()
+            .write()
             .expect("Ctx map poisoned")
             .insert(TypeId::of::<T>(), value)
             .and_then(|prior| prior.downcast::<T>().ok())
+    }
+
+    /// Store `value` under its type, replacing any prior entry.
+    ///
+    /// This is `insert(Arc::new(value))`. The prior entry is dropped; use
+    /// [`Ctx::get_and_store`] to get it back.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    pub fn store<T: Any + Send + Sync>(&self, value: T) {
+        drop(self.insert(Arc::new(value)));
+    }
+
+    /// Store `value` under its type and return the prior entry, if any.
+    ///
+    /// This is [`Ctx::store`] for a caller that needs the replaced value. It is
+    /// `insert(Arc::new(value))`.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    #[must_use]
+    pub fn get_and_store<T: Any + Send + Sync>(&self, value: T) -> Option<Arc<T>> {
+        self.insert(Arc::new(value))
     }
 
     /// The `Arc<T>` stored under `T`, or `None` if absent or of a different type.
@@ -294,11 +366,20 @@ impl Ctx {
     pub fn get<T: Any + Send + Sync>(&self) -> Option<Arc<T>> {
         self.0
             .map
-            .lock()
+            .read()
             .expect("Ctx map poisoned")
             .get(&TypeId::of::<T>())
             .cloned()
             .and_then(|value| value.downcast::<T>().ok())
+    }
+
+    /// A clone of the value stored under `T`, or `None` if absent.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    #[must_use]
+    pub fn get_cloned<T: Any + Clone + Send + Sync>(&self) -> Option<T> {
+        self.get::<T>().map(|value| T::clone(&value))
     }
 
     /// Insert `value` under `T` if absent; return the live `Arc<T>` either way.
@@ -307,7 +388,7 @@ impl Ctx {
     /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn get_or_insert<T: Any + Send + Sync>(&self, value: T) -> Arc<T> {
-        let mut map = self.0.map.lock().expect("Ctx map poisoned");
+        let mut map = self.0.map.write().expect("Ctx map poisoned");
         if let Some(existing) = map.get(&TypeId::of::<T>()) {
             if let Ok(existing) = existing.clone().downcast::<T>() {
                 return existing;
@@ -326,7 +407,7 @@ impl Ctx {
     pub fn remove<T: Any + Send + Sync>(&self) -> Option<Arc<T>> {
         self.0
             .map
-            .lock()
+            .write()
             .expect("Ctx map poisoned")
             .remove(&TypeId::of::<T>())
             .and_then(|value| value.downcast::<T>().ok())
@@ -340,7 +421,7 @@ impl Ctx {
     pub fn contains<T: Any + Send + Sync>(&self) -> bool {
         self.0
             .map
-            .lock()
+            .read()
             .expect("Ctx map poisoned")
             .contains_key(&TypeId::of::<T>())
     }
@@ -401,12 +482,48 @@ impl Ctx {
     /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn fork(&self) -> Ctx {
-        let map = self.0.map.lock().expect("Ctx map poisoned").clone();
+        let map = self.0.map.read().expect("Ctx map poisoned").clone();
         Ctx(Arc::new(CtxInner {
-            map: Mutex::new(map),
+            map: RwLock::new(map),
             clock: self.0.clock.clone(),
             config: self.0.config.clone(),
             rng: self.0.rng.clone(),
+        }))
+    }
+
+    /// A new handle over an *empty* map. It shares this handle's clock, config
+    /// and RNG.
+    ///
+    /// Use it when a request needs a fresh map but must read the same time and
+    /// draw from the same stream.
+    #[must_use]
+    pub fn with_empty_map(&self) -> Ctx {
+        Ctx(Arc::new(CtxInner {
+            map: RwLock::new(HashMap::new()),
+            clock: self.0.clock.clone(),
+            config: self.0.config.clone(),
+            rng: self.0.rng.clone(),
+        }))
+    }
+
+    /// A new handle over a *copied* map of this handle, with the clock, config
+    /// and RNG of `sources`.
+    ///
+    /// The map copy follows the [`Ctx::fork`] rule: later inserts into either
+    /// handle stay private, and the `Arc` values stay shared. A task uses this to
+    /// keep the values a handler stored while it takes the engine's clock and
+    /// RNG.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    #[must_use]
+    pub fn rebase(&self, sources: &Ctx) -> Ctx {
+        let map = self.0.map.read().expect("Ctx map poisoned").clone();
+        Ctx(Arc::new(CtxInner {
+            map: RwLock::new(map),
+            clock: sources.0.clock.clone(),
+            config: sources.0.config.clone(),
+            rng: sources.0.rng.clone(),
         }))
     }
 
@@ -425,9 +542,9 @@ impl Ctx {
     /// Panics if the internal map lock is poisoned.
     #[must_use]
     pub fn with_clock(&self, clock: Arc<dyn Clock>) -> Ctx {
-        let map = self.0.map.lock().expect("Ctx map poisoned").clone();
+        let map = self.0.map.read().expect("Ctx map poisoned").clone();
         Ctx(Arc::new(CtxInner {
-            map: Mutex::new(map),
+            map: RwLock::new(map),
             clock: Some(clock),
             config: self.0.config.clone(),
             rng: self.0.rng.clone(),

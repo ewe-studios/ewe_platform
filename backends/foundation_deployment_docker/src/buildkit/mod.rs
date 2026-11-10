@@ -34,7 +34,7 @@ pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request, ServerStream, Transport,
+    Client, ClientOptions, H2Transport, ProcedureCodecs, Request, RpcCtx, ServerStream, Transport,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -247,7 +247,7 @@ impl BuildKitClient {
     /// Returns a [`ConnectError`](foundation_connectrpc) trace on transport
     /// failure or non-OK gRPC status.
     pub async fn info(&self) -> Result<InfoResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let response = self
             .info
             .unary(ctx, Request::new(InfoRequest::default()))
@@ -273,7 +273,7 @@ impl BuildKitClient {
         if request.Ref.is_empty() {
             request.Ref = new_build_ref();
         }
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let response = self.solve.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
     }
@@ -291,7 +291,7 @@ impl BuildKitClient {
         &self,
         build_ref: impl Into<String>,
     ) -> Result<ServerStream<StatusResponse>, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = StatusRequest {
             Ref: build_ref.into(),
             ..Default::default()
@@ -315,7 +315,7 @@ impl BuildKitClient {
         &self,
         filters: Vec<String>,
     ) -> Result<DiskUsageResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = DiskUsageRequest {
             filter: filters,
             ..Default::default()
@@ -333,7 +333,7 @@ impl BuildKitClient {
         &self,
         filters: Vec<String>,
     ) -> Result<ListWorkersResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = ListWorkersRequest {
             filter: filters,
             ..Default::default()
@@ -357,7 +357,7 @@ impl BuildKitClient {
         keep_bytes: i64,
         filters: Vec<String>,
     ) -> Result<ServerStream<UsageRecord>, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = PruneRequest {
             all,
             reservedSpace: keep_bytes,
@@ -382,7 +382,7 @@ impl BuildKitClient {
         build_ref: impl Into<String>,
         early_exit: bool,
     ) -> Result<ServerStream<BuildHistoryEvent>, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = BuildHistoryRequest {
             Ref: build_ref.into(),
             EarlyExit: early_exit,
@@ -407,7 +407,7 @@ impl BuildKitClient {
         pinned: bool,
         delete: bool,
     ) -> Result<UpdateBuildHistoryResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let ctx = Ctx::background();
+        let ctx = RpcCtx::background();
         let request = UpdateBuildHistoryRequest {
             Ref: build_ref.into(),
             Pinned: pinned,

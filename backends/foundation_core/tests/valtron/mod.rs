@@ -14,6 +14,7 @@ mod cancellable_future;
 mod channel_backpressure_tests;
 mod clock_driven_tasks;
 mod clock_injection;
+mod pool_seed_root;
 mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;

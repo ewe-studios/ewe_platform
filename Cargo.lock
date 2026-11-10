@@ -4174,7 +4174,7 @@ dependencies = [
 
 [[package]]
 name = "ewe_platform"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "bytes",
  "clap",
@@ -4655,7 +4655,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "candle-core",
@@ -4693,7 +4693,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_arrow"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "arrow-array",
  "arrow-buffer",
@@ -4709,7 +4709,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "argon2",
  "async-trait",
@@ -4754,7 +4754,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth_ui"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "foundation_signals",
  "foundation_ui_components",
@@ -4766,7 +4766,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_boringtun"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "aead",
  "base64 0.22.1",
@@ -4798,7 +4798,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_browser"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -4818,11 +4818,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_buildtools"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "foundation_cedar"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "cedar-policy",
@@ -4837,7 +4837,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_access"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4851,7 +4851,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_accounts"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4865,7 +4865,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_ai"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4879,7 +4879,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_analytics"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4893,7 +4893,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_apps"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4907,7 +4907,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_billing"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4921,7 +4921,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_cache"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4935,7 +4935,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_certificates"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4949,7 +4949,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_data"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4963,7 +4963,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_devices"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4977,7 +4977,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_dns"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -4991,7 +4991,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_domains"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5005,7 +5005,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_email"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5019,7 +5019,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_entitlements"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5033,7 +5033,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_events"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5047,7 +5047,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_ips"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5061,7 +5061,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_load_balancers"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5075,7 +5075,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_logs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5089,7 +5089,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_magic_wan"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5103,7 +5103,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_media"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5117,7 +5117,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_migration"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5131,7 +5131,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_network"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5145,7 +5145,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_profile"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5159,7 +5159,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_queues"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5173,7 +5173,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_radar"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5187,7 +5187,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_reports"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5201,7 +5201,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_resources"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5215,7 +5215,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_routes"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5229,7 +5229,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_rules"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5243,7 +5243,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_secrets"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5257,7 +5257,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_security"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5271,7 +5271,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_security_center"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5285,7 +5285,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_shares"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5299,7 +5299,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_storage"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5313,7 +5313,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_stream"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5327,7 +5327,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_targets"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5341,7 +5341,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_tasks"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5355,7 +5355,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_tenants"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5369,7 +5369,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_tokens"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5383,7 +5383,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_tracer"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5397,7 +5397,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_types"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_macros",
@@ -5408,7 +5408,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_waiting_rooms"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5422,7 +5422,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_workers"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5436,7 +5436,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cloudflare_zones"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_cloudflare_types",
@@ -5450,7 +5450,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_codegen"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "custom_debug",
  "derive_more",
@@ -5472,7 +5472,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_codegentools"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "clap",
  "foundation_codegen",
@@ -5491,7 +5491,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
@@ -5515,11 +5515,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_conditional"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "foundation_config"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "derive_more",
  "serde",
@@ -5529,7 +5529,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.11"
+version = "0.0.12"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
@@ -5559,7 +5559,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc_codegen"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "prost 0.12.6",
  "prost-build",
@@ -5568,7 +5568,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_context"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_compact",
  "foundation_nostd",
@@ -5576,7 +5576,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -5610,7 +5610,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_cronjobs"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "async-trait",
  "chrono",
@@ -5627,7 +5627,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -5664,7 +5664,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "base85rs",
  "bytes",
@@ -5689,7 +5689,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_cloudflare"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "chrono",
  "derive_more",
@@ -5754,7 +5754,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_digitalocean"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "base85rs",
  "chrono",
@@ -5774,7 +5774,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_docker"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "base85rs",
  "buffa",
@@ -5806,7 +5806,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_hetzner"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "base85rs",
  "chrono",
@@ -5827,7 +5827,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_huggingface"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "base85rs",
  "chrono",
@@ -5849,7 +5849,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_platform"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5886,7 +5886,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_errstacks"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "derive_more",
  "futures-core",
@@ -5899,7 +5899,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_html"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "criterion 0.5.1",
  "derive_more",
@@ -5916,13 +5916,14 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bytes",
  "concurrent-queue",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
@@ -5951,7 +5952,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_iogate"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "foundation_core",
  "foundation_nativeapis",
@@ -5964,7 +5965,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_jsonschema"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "derive_more",
  "fancy-regex 0.20.0",
@@ -5982,7 +5983,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_keychain"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "age",
  "async-trait",
@@ -6017,7 +6018,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_logging"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -6025,7 +6026,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.11"
+version = "0.0.20"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -6051,7 +6052,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.13"
+version = "0.0.14"
 dependencies = [
  "async-trait",
  "bincode 2.0.1",
@@ -6096,7 +6097,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
@@ -6149,7 +6150,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "foundation_core",
  "foundation_testing",
@@ -6162,7 +6163,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_openapi"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "derive_more",
  "indexmap 2.11.4",
@@ -6175,7 +6176,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_packager"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "cargo_toml",
  "derive_more",
@@ -6194,7 +6195,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_platform"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",
@@ -6215,7 +6216,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_proxy"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -6250,7 +6251,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "foundation_core",
  "io-uring",
@@ -6261,7 +6262,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_repl"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "crossterm",
  "foundation_core",
@@ -6278,7 +6279,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_runtimes"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "brotli 8.0.4",
  "flate2",
@@ -6288,7 +6289,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_shell"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -6306,7 +6307,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_signals"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "foundation_core",
  "foundation_ui_traits",
@@ -6317,7 +6318,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_sshkit"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -6333,7 +6334,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testbed"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -6381,7 +6382,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_testing"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "base64 0.22.1",
  "criterion 0.5.1",
@@ -6401,11 +6402,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_theme"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "foundation_toolings"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "concurrent-queue",
  "derive_more",
@@ -6428,7 +6429,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_components"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "foundation_signals",
  "foundation_ui_traits",
@@ -6438,11 +6439,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_traits"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "foundation_vectors"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "cc",
@@ -6470,7 +6471,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "clap",
  "concurrent-queue",
@@ -6486,7 +6487,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasm_ui"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "clap",
  "foundation_arrow",
@@ -6504,7 +6505,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wasmtime"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "cap-rand",
  "derive_more",
@@ -6519,7 +6520,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_wireguard"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "base64 0.22.1",
  "bincode 2.0.1",
@@ -8465,7 +8466,7 @@ dependencies = [
 
 [[package]]
 name = "infrastructure_llama_bindings"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "bindgen 0.72.1",
  "cc",
@@ -8477,7 +8478,7 @@ dependencies = [
 
 [[package]]
 name = "infrastructure_llama_cpp"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "encoding_rs",
  "enumflags2",

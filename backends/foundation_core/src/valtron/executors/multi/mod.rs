@@ -293,7 +293,11 @@ where
 /// The caller is responsible for signal handling via the `PoolGuard`.
 #[must_use]
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
-    initialize_pool_with_ctx(seed_for_rng, user_thread_num, Ctx::host())
+    initialize_pool_with_ctx(
+        seed_for_rng,
+        user_thread_num,
+        crate::valtron::ctx::seeded_root(seed_for_rng),
+    )
 }
 
 /// [`initialize_pool`] with an explicit engine root.
@@ -439,7 +443,12 @@ pub fn initialize_pool_with_config(
     user_thread_num: Option<usize>,
     config: PoolConfig,
 ) -> PoolGuard {
-    initialize_pool_with_config_and_ctx(seed_for_rng, user_thread_num, config, Ctx::host())
+    initialize_pool_with_config_and_ctx(
+        seed_for_rng,
+        user_thread_num,
+        config,
+        crate::valtron::ctx::seeded_root(seed_for_rng),
+    )
 }
 
 /// [`initialize_pool_with_config`] with an explicit engine root.
@@ -1751,7 +1760,7 @@ impl ThreadRegistry {
             activity_monitor_stop: Arc::new(AtomicBool::new(false)),
             waitgroup: WaitGroup::new(),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
-            root: Ctx::host(),
+            root: crate::valtron::ctx::seeded_root(seed_for_rng),
             max_threads: num_threads,
             live_threads: Arc::new(AtomicUsize::new(0)),
             idle_threads: Arc::new(AtomicUsize::new(0)),
@@ -1784,7 +1793,12 @@ impl ThreadRegistry {
     /// Create a `ThreadRegistry` with the given [`PoolConfig`] tunables.
     #[must_use]
     pub fn with_config(seed_from_rng: u64, num_threads: usize, config: &PoolConfig) -> Self {
-        Self::with_config_and_root(seed_from_rng, num_threads, config, Ctx::host())
+        Self::with_config_and_root(
+            seed_from_rng,
+            num_threads,
+            config,
+            crate::valtron::ctx::seeded_root(seed_from_rng),
+        )
     }
 
     /// [`ThreadRegistry::with_config`] with an explicit pool root.

@@ -17,8 +17,8 @@ use futures::StreamExt;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, RequestStream, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, RequestStream, Router, RpcCtx,
 };
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::app::ServerApp;
@@ -53,7 +53,7 @@ fn start_server() -> (String, Arc<Mutex<Vec<String>>>, Arc<ShutdownSignal>) {
     router.bidi_stream(
         BIDI,
         codecs(),
-        move |_ctx: Ctx, reqs: RequestStream<Msg>| {
+        move |_ctx: RpcCtx, reqs: RequestStream<Msg>| {
             let seen = Arc::clone(&seen_in_handler);
             async move {
                 let echoed = reqs.map(move |item| {
@@ -81,8 +81,8 @@ fn start_server() -> (String, Arc<Mutex<Vec<String>>>, Arc<ShutdownSignal>) {
     (addr.to_string(), seen, shutdown)
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// Three facade sends reach the server, and `close_request` ends the stream.

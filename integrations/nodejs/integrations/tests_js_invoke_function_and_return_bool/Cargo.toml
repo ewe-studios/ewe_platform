@@ -10,8 +10,8 @@ repository.workspace = true
 keywords = ["tests", "callfunction"]
 
 [dependencies]
-foundation_nostd = { path = "../../../../backends/foundation_nostd", version = "0.0.7" }
-foundation_wasm = { path = "../../../../backends/foundation_wasm", version = "0.0.7" }
+foundation_nostd = { path = "../../../../backends/foundation_nostd", version = "0.0.8" }
+foundation_wasm = { path = "../../../../backends/foundation_wasm", version = "0.0.8" }
 
 
 [lib]

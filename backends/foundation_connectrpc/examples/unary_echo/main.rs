@@ -48,8 +48,8 @@ use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
-    IdempotencyLevel, ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, HandlerOptions,
+    IdempotencyLevel, ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -129,8 +129,8 @@ fn echo_serve() -> Arc<dyn Serve> {
         // The codec table for this procedure — `defaults()` installs the proto +
         // JSON codecs; the wire Content-Type selects which one is used.
         ProcedureCodecs::<EchoMessage, EchoMessage>::defaults(),
-        // The handler: `(Ctx, Request<Req>) -> impl Future<Output = ConnectResult<Response<Res>>>`.
-        |_ctx: Ctx, req: Request<EchoMessage>| async move { Ok(Response::new(req.msg)) },
+        // The handler: `(RpcCtx, Request<Req>) -> impl Future<Output = ConnectResult<Response<Res>>>`.
+        |_ctx: RpcCtx, req: Request<EchoMessage>| async move { Ok(Response::new(req.msg)) },
         HandlerOptions::new().with_idempotency(IdempotencyLevel::NoSideEffects),
     );
     Arc::new(ConnectRpcServe::new(router.into_handler()))
@@ -181,7 +181,7 @@ async fn main() {
     .expect("build client");
 
     // Per-call context (carries deadline + cancellation) and the request message.
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let request = Request::new(EchoMessage {
         id: 7,
         text: "hello connectrpc".into(),

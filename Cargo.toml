@@ -57,8 +57,8 @@ toml_edit = { version = "0.22" }
 
 regex = "1.12.2"
 concurrent-queue = { version = "2.5.0"}
-# The concrete RNG type that `Ctx` and `ContextBag` name. Both types re-export
-# the alias, so a consumer that names `ChaCha8Rng` uses the workspace version.
+# The concrete RNG type that `Ctx` names. The workspace pins it here, so a consumer
+# that names `ChaCha8Rng` uses the workspace version.
 rand_chacha = { version = "0.10", default-features = false }
 
 # tracing

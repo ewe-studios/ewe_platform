@@ -36,8 +36,8 @@ use foundation_connectrpc::shared::transport::{
     body_stream_from_pipe, head_stream_from_pipe, Transport, TransportStream,
 };
 use foundation_connectrpc::{
-    Client, ClientOptions, Code, CompressionRegistry, ConnectRpcServeH2, Ctx, H2Transport,
-    HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream, Response, Router,
+    Client, ClientOptions, Code, CompressionRegistry, ConnectRpcServeH2, H2Transport,
+    HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream, Response, Router, RpcCtx,
 };
 use foundation_core::valtron::{valtron_test, Pipe};
 use foundation_http::native::app::ServerApp;
@@ -73,7 +73,7 @@ fn router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let encoding = req
                 .headers()
                 .iter()
@@ -87,7 +87,7 @@ fn router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> =
                 vec![Ok(Msg::of(format!("echo:{}", req.msg.text)))];
             Ok(futures::stream::iter(items))
@@ -97,7 +97,7 @@ fn router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             let mut reqs = reqs;
             let mut parts = Vec::new();
             while let Some(item) = reqs.next().await {
@@ -110,7 +110,7 @@ fn router() -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             let echoed = reqs.map(|item| {
                 let msg = item?;
                 Ok(Msg::of(format!("re:{}", msg.text)))
@@ -155,8 +155,8 @@ fn gzip_client(addr: &str, procedure: &str, options: ClientOptions) -> Client<Ms
     .expect("build client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// A gzip server-stream request reaches the server as one message.

@@ -26,7 +26,7 @@ use foundation_http::native::writer::{
     render_message, send_json, send_not_found, ResponseWriter, WriterConfig,
 };
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
@@ -271,9 +271,9 @@ struct MockAcmeHandler {
 }
 
 impl ServeFactory for MockAcmeHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         Self {
-            state: bag.get::<MockAcme>().expect("MockAcme in bag"),
+            state: ctx.get::<MockAcme>().expect("MockAcme in ctx"),
         }
     }
 }
@@ -281,7 +281,7 @@ impl ServeFactory for MockAcmeHandler {
 impl Serve for MockAcmeHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

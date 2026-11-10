@@ -29,8 +29,8 @@ use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
-    JsonCodec, ProcedureCodecs, Request, Router,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -58,7 +58,7 @@ fn count_serve() -> Arc<dyn Serve> {
         PROCEDURE,
         // JSON-only codec table → serde-only message types, no protobuf.
         ProcedureCodecs::<CountRequest, CountItem>::of((JsonCodec,)),
-        |_ctx: Ctx, req: Request<CountRequest>| async move {
+        |_ctx: RpcCtx, req: Request<CountRequest>| async move {
             // `.max(0)` floors a negative `count` to 0 (stream nothing), rather
             // than capping — it returns the larger of `count` and `0`.
             let n = req.msg.count.max(0);
@@ -117,7 +117,7 @@ async fn main() {
     )
     .expect("build client");
 
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let mut stream = client
         .server_stream(ctx, Request::new(CountRequest { count: 3 }))
         .await

@@ -84,7 +84,7 @@ impl PasswordReset {
 impl IdpHandlerCore {
     pub async fn request_reset(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Parse JSON body
@@ -97,7 +97,7 @@ impl IdpHandlerCore {
 
     pub async fn reset_password(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Parse JSON body: {new_password, magic_link_id}

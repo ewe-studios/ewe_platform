@@ -39,7 +39,7 @@ use futures_util::future::{select, Either};
 use futures_util::{pin_mut, select, FutureExt, StreamExt};
 
 use foundation_http::native::serve::{BoxFuture, H3Serve};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 
 use crate::forward::{forward_request_headers, strip_hop_by_hop, upstream_url, SharedHttpClient};
 use crate::state::{BufferedBytesGauge, ProxyState};
@@ -63,7 +63,7 @@ impl H3ProxyHandler {
 impl H3Serve for H3ProxyHandler {
     fn serve_h3(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         connection: Arc<ConnectionContext>,
         mut request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, io::Result<()>> {

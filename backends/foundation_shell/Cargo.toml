@@ -1,6 +1,6 @@
 [package]
 name = "foundation_shell"
-version = "0.0.3"
+version = "0.0.4"
 description = "A nushell integrated library for integrating nushell as a library in any project"
 edition.workspace = true
 rust-version.workspace = true
@@ -10,7 +10,7 @@ repository.workspace = true
 keywords = ["foundation_shell", "foundation_nushell"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

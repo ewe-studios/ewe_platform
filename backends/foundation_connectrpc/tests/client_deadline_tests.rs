@@ -1,6 +1,6 @@
 //! Client-side deadline enforcement (features 123, 124 and 131).
 //!
-//! WHY: `Ctx::with_deadline` only records a timestamp. A call parked on a read
+//! WHY: `RpcCtx::with_deadline` only records a timestamp. A call parked on a read
 //! must fail on its own deadline, not on the peer's idle timeout — during both
 //! setup and every later receive. A facade that drops, or a wait that times
 //! out, must also stop the call's reader and writer tasks, not only the caller.
@@ -37,7 +37,7 @@ use foundation_http::native::serve::H2Serve;
 use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::frame::Kind;
@@ -45,8 +45,8 @@ use foundation_netio::http2::frame::Kind;
 use foundation_connectrpc::shared::envelope::Envelope;
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::{
-    Client, ClientOptions, Code, ConnectRpcServe, ConnectRpcServeH2, Ctx, H1Transport, H2Transport,
-    HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, Transport,
+    Client, ClientOptions, Code, ConnectRpcServe, ConnectRpcServeH2, H1Transport, H2Transport,
+    HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx, Transport,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -74,7 +74,7 @@ fn router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move { Ok(Response::new(req.msg)) },
+        |_ctx: RpcCtx, req: Request<Msg>| async move { Ok(Response::new(req.msg)) },
         HandlerOptions::new(),
     );
     router
@@ -115,7 +115,7 @@ fn resume_router() -> Router {
     router.server_stream(
         RESUME_STREAM,
         codecs(),
-        |_ctx: Ctx, _req: Request<Msg>| async move { Ok(first_then_later()) },
+        |_ctx: RpcCtx, _req: Request<Msg>| async move { Ok(first_then_later()) },
         HandlerOptions::new(),
     );
     router
@@ -148,8 +148,8 @@ fn streaming_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
     .expect("build client")
 }
 
-fn deadline_ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_millis(200))
+fn deadline_ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_millis(200))
 }
 
 // ── Raw HTTP/2 peer that does not enforce the deadline ──────────────────────
@@ -481,7 +481,7 @@ async fn a_call_fails_on_its_deadline_when_the_server_never_answers() {
     let started = Instant::now();
     let result = client
         .unary(
-            Ctx::background().with_deadline(Duration::from_millis(200)),
+            RpcCtx::background().with_deadline(Duration::from_millis(200)),
             Request::new(Msg::of("never answered")),
         )
         .await;
@@ -508,7 +508,7 @@ async fn an_h2_call_fails_on_its_deadline_when_the_server_never_answers() {
     let started = Instant::now();
     let result = client
         .unary(
-            Ctx::background().with_deadline(Duration::from_millis(200)),
+            RpcCtx::background().with_deadline(Duration::from_millis(200)),
             Request::new(Msg::of("never answered")),
         )
         .await;
@@ -526,7 +526,7 @@ async fn an_h2_call_fails_on_its_deadline_when_the_server_never_answers() {
     );
 }
 
-/// A client-wide default deadline ends a call that has no `Ctx` deadline.
+/// A client-wide default deadline ends a call that has no `RpcCtx` deadline.
 #[valtron_test(timeout = 5_000)]
 async fn a_client_default_deadline_ends_a_call_without_a_ctx_deadline() {
     let server = SilentServer::start();
@@ -540,7 +540,10 @@ async fn a_client_default_deadline_ends_a_call_without_a_ctx_deadline() {
 
     let started = Instant::now();
     let result = client
-        .unary(Ctx::background(), Request::new(Msg::of("never answered")))
+        .unary(
+            RpcCtx::background(),
+            Request::new(Msg::of("never answered")),
+        )
         .await;
     let elapsed = started.elapsed();
 
@@ -563,7 +566,7 @@ async fn a_call_with_no_deadline_still_completes() {
     let client = client_for(Arc::new(H1Transport::default()), addr);
 
     let response = client
-        .unary(Ctx::background(), Request::new(Msg::of("hello")))
+        .unary(RpcCtx::background(), Request::new(Msg::of("hello")))
         .await
         .expect("a call with no deadline must complete");
 
@@ -581,7 +584,7 @@ async fn a_deadline_in_the_past_fails_without_a_request() {
 
     let result = client
         .unary(
-            Ctx::background().with_deadline(Duration::ZERO),
+            RpcCtx::background().with_deadline(Duration::ZERO),
             Request::new(Msg::of("too late")),
         )
         .await;
@@ -613,7 +616,7 @@ async fn a_bidi_deadline_in_the_past_fails_without_a_request() {
     let client = client_for(Arc::new(H2Transport::new()), addr);
 
     let result = client
-        .bidi_stream(Ctx::background().with_deadline(Duration::ZERO))
+        .bidi_stream(RpcCtx::background().with_deadline(Duration::ZERO))
         .await;
 
     let Err(err) = result else {
@@ -775,7 +778,7 @@ async fn dropping_a_server_stream_closes_the_socket() {
     let client = streaming_client(&addr.to_string(), SERVER_STREAM);
 
     let stream = client
-        .server_stream(Ctx::background(), Request::new(Msg::of("item")))
+        .server_stream(RpcCtx::background(), Request::new(Msg::of("item")))
         .await
         .expect("a head-only peer must not stall the call setup");
     drop(stream);
@@ -796,7 +799,7 @@ async fn dropping_one_bidi_half_keeps_the_other_alive() {
     let client = streaming_client(&addr.to_string(), BIDI);
 
     let stream = client
-        .bidi_stream(Ctx::background())
+        .bidi_stream(RpcCtx::background())
         .await
         .expect("bidi stream");
     let (sender, mut receiver) = stream.split();
@@ -866,7 +869,7 @@ async fn a_receive_with_no_deadline_still_waits() {
     let client = streaming_client(&addr, RESUME_STREAM);
 
     let mut stream = client
-        .server_stream(Ctx::background(), Request::new(Msg::of("item")))
+        .server_stream(RpcCtx::background(), Request::new(Msg::of("item")))
         .await
         .expect("server stream");
     let first = stream
@@ -910,8 +913,8 @@ async fn a_simulated_clock_past_the_deadline_fails_the_call_at_once() {
     let client = client_for(Arc::new(H1Transport::default()), server.addr);
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let bag = ContextBag::new(clock.clone());
-    let ctx = Ctx::client(Arc::new(bag)).with_deadline(Duration::from_secs(5));
+    let app_ctx = Ctx::fixed(clock.clone());
+    let ctx = RpcCtx::client(app_ctx).with_deadline(Duration::from_secs(5));
     clock.advance(Duration::from_secs(10));
 
     let result = client
@@ -939,8 +942,8 @@ async fn client_deadline_cancels_a_call_without_a_server() {
     let client = client_for(Arc::new(H1Transport::default()), server.addr);
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let bag = ContextBag::new(clock.clone());
-    let ctx = Ctx::client(Arc::new(bag)).with_deadline(Duration::from_millis(200));
+    let app_ctx = Ctx::fixed(clock.clone());
+    let ctx = RpcCtx::client(app_ctx).with_deadline(Duration::from_millis(200));
     clock.advance(Duration::from_secs(1));
 
     let started = Instant::now();

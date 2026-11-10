@@ -14,7 +14,7 @@ use std::sync::Arc;
 use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::MiddlewareResult;
 use crate::shared::serve::ServeError;
 use crate::shared::serve_web::WebServe;
@@ -27,7 +27,7 @@ pub trait HttpAppCfDispatch {
     /// Dispatch a request through middleware and router, returning a `web_sys::Response`.
     fn dispatch_cf(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> impl std::future::Future<
         Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>,
@@ -37,7 +37,7 @@ pub trait HttpAppCfDispatch {
 impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
     async fn dispatch_cf(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
         let method = req.method.clone();
@@ -46,7 +46,7 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
         // Run middleware
         let mut req = req;
         for mw in self.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
+            match mw.handle(&ctx, &mut req) {
                 MiddlewareResult::Continue => {}
                 MiddlewareResult::Response(response) => {
                     let status_code: usize = response.status.clone().into();
@@ -84,7 +84,7 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
 
         // Execute handler (async)
         let mut conn = CfConn::new();
-        let result = handler.serve_cf(bag, req, &mut conn).await;
+        let result = handler.serve_cf(ctx, req, &mut conn).await;
 
         match result {
             CfConnectionResult::Ok => conn.into_response().map_err(|e| {
@@ -110,7 +110,7 @@ pub trait HttpAppWebDispatch {
     /// Dispatch a request through middleware and router, returning a `web_sys::Response`.
     fn dispatch_web(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> impl std::future::Future<
         Output = Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>>,
@@ -120,7 +120,7 @@ pub trait HttpAppWebDispatch {
 impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
     async fn dispatch_web(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
     ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
         let method = req.method.clone();
@@ -129,7 +129,7 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
         // Run middleware
         let mut req = req;
         for mw in self.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
+            match mw.handle(&ctx, &mut req) {
                 MiddlewareResult::Continue => {}
                 MiddlewareResult::Response(response) => {
                     let status_code: usize = response.status.clone().into();
@@ -167,7 +167,7 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
 
         // Execute handler (async)
         let mut conn = WebConn::new();
-        let result = handler.serve_web(bag, req, &mut conn).await;
+        let result = handler.serve_web(ctx, req, &mut conn).await;
 
         match result {
             WebConnectionResult::Ok => conn.into_response().map_err(|e| {

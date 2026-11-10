@@ -1,8 +1,5 @@
 //! Body limit middleware tests (moved from `src/shared/middleware/body_limit.rs`).
 
-use std::sync::Arc;
-
-use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{
     BodyLimitMiddleware, MiddlewareResult, RequestMiddleware,
 };
@@ -20,7 +17,7 @@ fn request_with_content_length(bytes: usize) -> SimpleIncomingRequest {
 #[test]
 fn test_body_limit_enforces_max_bytes() {
     let mw = BodyLimitMiddleware::new(1024);
-    let ctx = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+    let ctx = foundation_core::valtron::Ctx::host();
 
     // Exactly at the limit is allowed.
     let mut ok = request_with_content_length(1024);
@@ -40,7 +37,7 @@ fn test_body_limit_enforces_max_bytes() {
 #[test]
 fn test_body_limit_custom_message() {
     let mw = BodyLimitMiddleware::new(1024).with_message("Custom error");
-    let ctx = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+    let ctx = foundation_core::valtron::Ctx::host();
 
     let mut req = request_with_content_length(1025);
     match mw.handle(&ctx, &mut req) {

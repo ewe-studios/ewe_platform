@@ -23,8 +23,8 @@ use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
-    JsonCodec, ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -152,7 +152,7 @@ async fn overlay_rpc_parks_and_completes() {
     let unary_client = client_for(Arc::clone(&handle_a), &base, UNARY);
     let resp = unary_client
         .unary(
-            Ctx::background().with_deadline(Duration::from_secs(15)),
+            RpcCtx::background().with_deadline(Duration::from_secs(15)),
             Request::new(Msg {
                 text: "hello".to_string(),
             }),
@@ -169,7 +169,7 @@ async fn overlay_rpc_parks_and_completes() {
     let stream_client = client_for(Arc::clone(&handle_a), &base, SERVER_STREAM);
     let mut stream = stream_client
         .server_stream(
-            Ctx::background().with_deadline(Duration::from_secs(15)),
+            RpcCtx::background().with_deadline(Duration::from_secs(15)),
             Request::new(Msg {
                 text: "item".to_string(),
             }),

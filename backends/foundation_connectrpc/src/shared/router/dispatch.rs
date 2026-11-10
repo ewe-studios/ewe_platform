@@ -23,7 +23,7 @@
 //! ([`ConnectRpcHandler::dispatch_to`]); [`ConnectRpcHandler::dispatch`]
 //! collects into a [`CollectingSink`] for tests and in-process callers.
 //!
-//! Cancellation: every call's [`Ctx`] carries a [`CancelSignal`] that dispatch
+//! Cancellation: every call's [`RpcCtx`] carries a [`CancelSignal`] that dispatch
 //! fires when the call ends early — the peer reset the stream or went away
 //! (the connection owner reports that through [`CallHooks`]), the request
 //! body failed, the response could not be written, or the call's deadline
@@ -42,7 +42,7 @@ use foundation_compact::Instant;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::Pipe;
 use foundation_errstacks::ErrorTrace;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::shared::http::{
     ChunkedData, HttpReaderError, Proto, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
@@ -50,9 +50,7 @@ use foundation_netio::shared::http::{
 use futures::future::{select, Either};
 use futures::StreamExt;
 
-use crate::shared::context::{
-    clock_from_bag, CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec,
-};
+use crate::shared::context::{CancelSignal, IdempotencyLevel, Peer, RequestContext, RpcCtx, Spec};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::error_writer::ErrorWriter;
 use crate::shared::protocol::{ExchangeConfig, ProtocolHandler, UnaryOutcome};
@@ -98,7 +96,7 @@ impl ConnectRpcHandler {
     /// [`Self::dispatch_to`] with [`CallHooks::with_timer`] for that.
     pub fn dispatch(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         mut request: SimpleIncomingRequest,
     ) -> BoxFuture<'static, SimpleOutgoingResponse> {
         let router = self.router.clone();
@@ -106,8 +104,15 @@ impl ConnectRpcHandler {
             let proto = request.proto.clone();
             let body = in_memory_body(request.body.take());
             let mut sink = CollectingSink::default();
-            match dispatch_request(router, bag, request, body, &mut sink, CallHooks::default())
-                .await
+            match dispatch_request(
+                router,
+                app_ctx,
+                request,
+                body,
+                &mut sink,
+                CallHooks::default(),
+            )
+            .await
             {
                 Ok(()) => sink.into_response().unwrap_or_else(|| {
                     tracing::error!("dispatch finished without producing a response");
@@ -139,7 +144,7 @@ impl ConnectRpcHandler {
     /// peer goes away, and the timer that enforces the call's deadline.
     pub fn dispatch_to<'a>(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         request: SimpleIncomingRequest,
         body: RequestBody<'a>,
         sink: Box<dyn ResponseSink>,
@@ -148,7 +153,7 @@ impl ConnectRpcHandler {
         let router = self.router.clone();
         Box::pin(async move {
             let mut sink = sink;
-            dispatch_request(router, bag, request, body, &mut *sink, hooks).await
+            dispatch_request(router, app_ctx, request, body, &mut *sink, hooks).await
         })
     }
 }
@@ -177,7 +182,7 @@ pub struct CallHooks<'a> {
 }
 
 impl<'a> CallHooks<'a> {
-    /// Hooks around `cancel`: the call's [`Ctx`] carries this signal, so
+    /// Hooks around `cancel`: the call's [`RpcCtx`] carries this signal, so
     /// firing it cancels the call.
     #[must_use]
     pub fn new(cancel: CancelSignal) -> Self {
@@ -443,7 +448,7 @@ fn internal_error_response(proto: Proto) -> SimpleOutgoingResponse {
 
 async fn dispatch_request(
     router: Arc<Router>,
-    bag: Arc<ContextBag>,
+    app_ctx: Ctx,
     request: SimpleIncomingRequest,
     body: RequestBody<'_>,
     sink: &mut dyn ResponseSink,
@@ -503,7 +508,13 @@ async fn dispatch_request(
         .compression
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
-    let ctx = build_ctx(bag, &request, entry.spec.clone(), protocol, hooks.cancel);
+    let ctx = build_ctx(
+        app_ctx,
+        &request,
+        entry.spec.clone(),
+        protocol,
+        hooks.cancel,
+    );
     let spec = entry.spec.clone();
     let pipe_depth = entry.options.pipe_depth;
     let timer = hooks.timer;
@@ -565,7 +576,7 @@ pub(crate) async fn run_unary_until_deadline(
     body: RequestBody<'_>,
     codec_name: String,
     compression: &crate::shared::compression::CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     read_max_bytes: usize,
     timer: Option<&dyn DeadlineTimer>,
 ) -> SimpleOutgoingResponse {
@@ -615,7 +626,7 @@ async fn run_unary_body(
     mut body: RequestBody<'_>,
     codec_name: String,
     compression: &crate::shared::compression::CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     read_max_bytes: usize,
 ) -> SimpleOutgoingResponse {
     let mut response = blank_response(&request);
@@ -704,7 +715,7 @@ async fn run_streaming(
     spec: Spec,
     codec_name: String,
     compression: &crate::shared::compression::CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     pipe_depth: usize,
     read_max_bytes: usize,
     sink: &mut dyn ResponseSink,
@@ -1080,16 +1091,16 @@ pub(crate) fn capabilities_for(proto: &Proto) -> TransportCapabilities {
     }
 }
 
-/// Build the per-call [`Ctx`] the dispatcher hands the handler, around the
+/// Build the per-call [`RpcCtx`] the dispatcher hands the handler, around the
 /// call's `cancel` signal.
 pub(crate) fn build_ctx(
-    bag: Arc<ContextBag>,
+    app_ctx: Ctx,
     request: &SimpleIncomingRequest,
     spec: Spec,
     protocol: &dyn ProtocolHandler,
     cancel: CancelSignal,
-) -> Ctx {
-    let clock = clock_from_bag(&bag);
+) -> RpcCtx {
+    let clock = app_ctx.clock();
     let deadline = protocol
         .parse_timeout(&request.headers)
         .map(|d| clock.now() + d);
@@ -1112,8 +1123,8 @@ pub(crate) fn build_ctx(
         cancel,
         clock,
     );
-    Ctx {
-        bag,
+    RpcCtx {
+        ctx: app_ctx,
         request: request_context,
     }
 }

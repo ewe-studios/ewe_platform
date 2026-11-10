@@ -11,12 +11,10 @@
 
 mod fake_overlay;
 
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_browser::test::stream::{SseTransportConfig, StreamHandler};
 use foundation_http::native::serve::{Serve, ServeFactory};
-use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_wasm_ui::server::Broadcaster;
@@ -59,19 +57,19 @@ fn wait_for_connection(bc: &Broadcaster) -> bool {
 /// A slow browser receives the whole binary frame as one SSE event.
 #[foundation_macros::valtron_test(seed = 823, threads = 3, timeout = 60_000)]
 fn browser_sse_transport_delivers_the_whole_frame_to_a_slow_client() {
-    let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+    let ctx = foundation_core::valtron::Ctx::host();
     let broadcaster = Broadcaster::new();
-    bag.store(broadcaster.clone());
-    bag.store(SseTransportConfig::new().with_queue_depth(16));
+    ctx.store(broadcaster.clone());
+    ctx.store(SseTransportConfig::new().with_queue_depth(16));
 
-    let handler = StreamHandler::create(&bag);
+    let handler = StreamHandler::create(&ctx);
     let (conn, client) = fake_overlay::overlay_pair(64);
     let request = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/__primal/stream")
         .build()
         .expect("build the request");
 
-    let response = handler.serve(Arc::clone(&bag), request, conn);
+    let response = handler.serve(ctx.clone(), request, conn);
     let ConnectionResult::Async(future) = response else {
         panic!("the stream handler must upgrade asynchronously");
     };

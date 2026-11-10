@@ -50,7 +50,7 @@ static CLOCK: LazyLock<Arc<SimulatedClock>> =
 /// The pool root with the simulated clock.
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
     let clock: Arc<dyn Clock> = clock.clone();
-    Ctx::new(clock)
+    Ctx::fixed(clock)
 }
 
 /// Parks for one simulated hour, then reports:
