@@ -19,10 +19,10 @@ use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_auth::shared::session::{SessionConfig, SessionManager};
 use foundation_auth::shared::types::{AuthCredential, ConfidentialText};
 use foundation_auth::OAuthCredential;
-use foundation_core::valtron::{valtron_test, MonotonicClock};
+use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
 
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn test_config() -> AuthManagerConfig {
@@ -89,7 +89,7 @@ async fn test_init_from_store_valid_token() {
     assert!(result.is_some());
     assert!(mgr.is_authenticated());
     assert_eq!(mgr.state(), AuthState::Authenticated);
-    assert!(!result.unwrap().is_expired(test_clock().as_ref()));
+    assert!(!result.unwrap().is_expired(&test_clock()));
 }
 
 #[valtron_test]
@@ -165,7 +165,7 @@ async fn test_get_valid_token_authenticated() {
     mgr.init_from_store().await.unwrap();
 
     let token = mgr.get_valid_token().unwrap();
-    assert!(!token.is_expired(test_clock().as_ref()));
+    assert!(!token.is_expired(&test_clock()));
 }
 
 #[test]
@@ -214,7 +214,7 @@ async fn test_refresh_success() {
                 None,
                 None,
                 None,
-                test_clock().as_ref(),
+                &test_clock(),
             ))
         })
         .await;
@@ -285,7 +285,7 @@ async fn test_refresh_from_token_expired_state() {
                 None,
                 None,
                 None,
-                test_clock().as_ref(),
+                &test_clock(),
             ))
         })
         .await;

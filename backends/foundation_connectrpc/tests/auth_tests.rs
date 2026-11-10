@@ -370,7 +370,12 @@ fn test_jwt_authenticator_valid_token() {
         "aud": "test-audience",
     });
     let token = key_pair
-        .sign_claims(&claims, &foundation_core::valtron::MonotonicClock::new())
+        .sign_claims(
+            &claims,
+            &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
+        )
         .expect("valid signature");
 
     // Build request with bearer token

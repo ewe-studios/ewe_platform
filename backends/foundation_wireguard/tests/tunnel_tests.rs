@@ -13,7 +13,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack, NetStackConfig};
 use foundation_nativeapis::native::net::UdpSocket;
@@ -22,8 +22,8 @@ use foundation_wireguard::{IdentityKeypair, WgSeed, WgTunnel};
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]
@@ -80,8 +80,8 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 
     let mut driver_a = TunnelDriver::new(
         sock_a,
-        NetStack::new(NetStackConfig::new(ip_a, 24), &test_clock()),
-        test_clock(),
+        NetStack::new(NetStackConfig::new(ip_a, 24), &test_ctx()),
+        test_ctx(),
     );
     driver_a.add_peer(
         WgTunnel::new(alice.secret().clone(), bob.public(), Some(psk), Some(25), 1),
@@ -91,8 +91,8 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 
     let mut driver_b = TunnelDriver::new(
         sock_b,
-        NetStack::new(NetStackConfig::new(ip_b, 24), &test_clock()),
-        test_clock(),
+        NetStack::new(NetStackConfig::new(ip_b, 24), &test_ctx()),
+        test_ctx(),
     );
     driver_b.add_peer(
         WgTunnel::new(bob.secret().clone(), alice.public(), Some(psk), Some(25), 2),

@@ -30,8 +30,8 @@ fn native_search_file_finds_repo_content_via_cascade() {
         // Empty in-memory FS as the fallback tier; the native cascade searches
         // the REAL filesystem rooted at the crate dir (cwd during `cargo test`).
         let tool = SearchFileTool::native(
-            Arc::new(MemoryFs::new(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new(),
+            Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
             ))),
             ".".to_string(),
         );

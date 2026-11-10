@@ -14,7 +14,7 @@ use foundation_auth::server::storage::{self, HandlerStorage};
 use foundation_auth::server::{IdpConfig, IdpServer, TotpKeyRing};
 use foundation_auth::shared::auth_session::memory::MemoryAuthSessionStore;
 use foundation_auth::TOTPSecret;
-use foundation_core::valtron::{valtron_test, BlockingFutureExt, MonotonicClock};
+use foundation_core::valtron::{valtron_test, BlockingFutureExt, Ctx, MonotonicClock};
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::ShutdownSignal;
@@ -72,18 +72,14 @@ impl Reply {
     }
 }
 
-fn make_storage(clock: Arc<MonotonicClock>) -> Arc<HandlerStorage<MemoryStorage>> {
+fn make_storage(ctx: Ctx) -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("tos_gate.db");
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     // The tempdir must outlive the database for the whole test process.
     std::mem::forget(dir);
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
-    Arc::new(HandlerStorage::new(
-        query_store,
-        MemoryStorage::new(),
-        clock,
-    ))
+    Arc::new(HandlerStorage::new(query_store, MemoryStorage::new(), ctx))
 }
 
 /// A server with the test TOTP keys.
@@ -93,14 +89,14 @@ pub(crate) fn start(config: IdpConfig) -> Env {
 
 /// A server with exactly this config (dev mode on).
 pub(crate) fn start_raw(config: IdpConfig) -> Env {
-    let clock = Arc::new(MonotonicClock::new());
-    let storage = make_storage(Arc::clone(&clock));
+    let ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+    let storage = make_storage(ctx.clone());
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
     let server_config = ServerConfig::defaults()
         .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
-    let idp = IdpServer::new(config.with_dev_mode(true), Arc::clone(&storage), clock)
+    let idp = IdpServer::new(config.with_dev_mode(true), Arc::clone(&storage), ctx)
         .with_social_login(Arc::new(MemoryAuthSessionStore::new()));
     idp.start_sweeper(Arc::clone(&shutdown))
         .expect("start the cache sweeper");
@@ -242,7 +238,7 @@ impl Env {
     }
 
     pub(crate) fn seed_tos(&self, version: &str, effective_from: i64) {
-        let service = TosService::new(Arc::clone(&self.storage), Arc::clone(&self.storage.clock));
+        let service = TosService::new(Arc::clone(&self.storage), self.storage.ctx.clone());
         let version = TosVersion {
             version: version.to_string(),
             content: format!("terms {version}"),
@@ -261,7 +257,7 @@ impl Env {
         let service = MfaService::new(
             Arc::clone(&self.storage),
             test_keys(),
-            Arc::clone(&self.storage.clock),
+            self.storage.ctx.clone(),
         );
         let user_id = user_id.to_string();
         async move { service.enroll_totp(&user_id, &copy).await }
@@ -559,7 +555,7 @@ fn mfa_then_unaccepted_tos_returns_206() {
 
     let gated = env.post(
         "/auth/v1/mfa",
-        &serde_json::json!({ "challenge_id": challenge_id, "code": secret.now(env.storage.clock.as_ref()) }),
+        &serde_json::json!({ "challenge_id": challenge_id, "code": secret.now(&env.storage.ctx) }),
         None,
     );
 
@@ -595,7 +591,7 @@ fn mfa_wrong_code_gives_no_session_and_challenge_is_single_use() {
     // The challenge is spent: the right code no longer works with it.
     let retry = env.post(
         "/auth/v1/mfa",
-        &serde_json::json!({ "challenge_id": challenge_id, "code": secret.now(env.storage.clock.as_ref()) }),
+        &serde_json::json!({ "challenge_id": challenge_id, "code": secret.now(&env.storage.ctx) }),
         None,
     );
     assert_eq!(retry.status, 401, "body: {}", retry.body);
@@ -604,7 +600,7 @@ fn mfa_wrong_code_gives_no_session_and_challenge_is_single_use() {
     // An unknown challenge never authenticates (the old handler accepted any).
     let unknown = env.post(
         "/auth/v1/mfa",
-        &serde_json::json!({ "challenge_id": "nope", "code": secret.now(env.storage.clock.as_ref()) }),
+        &serde_json::json!({ "challenge_id": "nope", "code": secret.now(&env.storage.ctx) }),
         None,
     );
     assert_eq!(unknown.status, 401, "body: {}", unknown.body);

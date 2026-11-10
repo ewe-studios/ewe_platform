@@ -14,9 +14,10 @@
 
 #![cfg(feature = "vms")]
 
+use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_deployment_platform::config::get_profile;
 use foundation_deployment_platform::export::ExportManifest;
 use foundation_deployment_platform::providers::ProviderId;
@@ -27,7 +28,8 @@ const START_SECONDS: u64 = 1_767_225_600;
 
 #[test]
 fn vm_state_created_at_follows_the_injected_wall_clock() {
-    let clock = SimulatedClock::new(Duration::ZERO);
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let ctx = Ctx::fixed(clock.clone());
     clock.advance_wall(Duration::from_secs(START_SECONDS));
 
     let state = state::from_runtime(
@@ -40,7 +42,7 @@ fn vm_state_created_at_follows_the_injected_wall_clock() {
         None,
         5900,
         false,
-        &clock,
+        &ctx,
     );
     assert!(
         state.created_at.starts_with("2026-01-01T00:00:00"),
@@ -59,7 +61,7 @@ fn vm_state_created_at_follows_the_injected_wall_clock() {
         None,
         5900,
         false,
-        &clock,
+        &ctx,
     );
     assert!(
         later.created_at.starts_with("2026-01-02T00:00:00"),
@@ -70,7 +72,8 @@ fn vm_state_created_at_follows_the_injected_wall_clock() {
 
 #[test]
 fn export_manifest_created_at_follows_the_injected_wall_clock() {
-    let clock = SimulatedClock::new(Duration::ZERO);
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let ctx = Ctx::fixed(clock.clone());
     clock.advance_wall(Duration::from_secs(START_SECONDS));
 
     let profile = get_profile("linux-test").expect("linux-test profile must exist");
@@ -85,7 +88,7 @@ fn export_manifest_created_at_follows_the_injected_wall_clock() {
         std::collections::HashMap::new(),
         0,
         "clock injection",
-        &clock,
+        &ctx,
     )
     .expect("manifest must build from a readable image");
     assert_eq!(
@@ -101,7 +104,7 @@ fn export_manifest_created_at_follows_the_injected_wall_clock() {
         std::collections::HashMap::new(),
         0,
         "clock injection",
-        &clock,
+        &ctx,
     )
     .expect("manifest must build from a readable image");
     assert_eq!(

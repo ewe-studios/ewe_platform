@@ -164,10 +164,10 @@ impl ContainerHandle {
     /// Returns an error if the image cannot be pulled, the container cannot be
     /// created or started, or its readiness check fails.
     pub async fn start_async(config: ContainerConfig) -> DockerResult<Self> {
-        // The caller injects the clock (root rule 11). Resolve it before any
+        // The caller injects the context (root rule 11). Resolve it before any
         // I/O, so a config without one is a typed error and not a panic deep in
         // the readiness wait.
-        let clock = config.resolve_clock()?;
+        let ctx = config.resolve_ctx()?;
 
         let docker = DockerClient::connect_with_defaults()
             .map_err(|e| docker_err(classify_docker_client_err("connect", e)))?;
@@ -230,7 +230,7 @@ impl ContainerHandle {
         // here on must remove it by hand, or a failed start (a port conflict, a
         // readiness timeout) strands a container that keeps holding its ports and
         // makes every later run fail the same way.
-        match Self::finish_start(&docker, &container_id, &config, host_ip, clock.as_ref()).await {
+        match Self::finish_start(&docker, &container_id, &config, host_ip, &ctx).await {
             Ok(ports) => Ok(Self {
                 docker,
                 container_id,
@@ -254,7 +254,7 @@ impl ContainerHandle {
         container_id: &str,
         config: &ContainerConfig,
         host_ip: Ipv4Addr,
-        clock: &dyn foundation_core::valtron::Clock,
+        ctx: &foundation_core::valtron::Ctx,
     ) -> DockerResult<HashMap<String, u16>> {
         docker
             .start_container(container_id)
@@ -263,13 +263,13 @@ impl ContainerHandle {
 
         let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        // A wait strategy needs a deadline. The clock comes from the caller's
+        // A wait strategy needs a deadline. The context comes from the caller's
         // `ContainerConfig`; `start_async` rejects a config without one before
         // any I/O (root rule 11, issue #220).
         if config.wait.timeout().is_some() {
             config
                 .wait
-                .apply(docker, container_id, host_ip, &ports, clock)
+                .apply(docker, container_id, host_ip, &ports, ctx)
                 .await?;
         }
 

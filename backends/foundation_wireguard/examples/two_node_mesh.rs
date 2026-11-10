@@ -10,13 +10,13 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::Ctx;
 use foundation_wireguard::native::WgNode;
 use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 
-/// The real clock: this example is the host entry point that builds it.
-fn real_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+/// The host context: this example is the host entry point that builds it.
+fn host_ctx() -> Ctx {
+    Ctx::host()
 }
 
 fn main() {
@@ -27,14 +27,14 @@ fn main() {
     tracing::info!(network = %net);
 
     // ── Start node A (seed) ───────────────────────────────────────────
-    let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net), real_clock())
+    let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net), host_ctx())
         .join()
         .expect("A join");
     tracing::info!(identity=%handle_a.identity(), ip=%handle_a.overlay_ip(), "🟢 seed node A");
 
     // ── Start node B (joiner) ────────────────────────────────────────
     let a_boot = handle_a.bootstrap_addr();
-    let handle_b = WgNode::from_config(WgConfig::joiner(seed, net, vec![a_boot]), real_clock())
+    let handle_b = WgNode::from_config(WgConfig::joiner(seed, net, vec![a_boot]), host_ctx())
         .join()
         .expect("B join");
     tracing::info!(identity=%handle_b.identity(), ip=%handle_b.overlay_ip(), boot=%a_boot, "🟢 joiner node B");

@@ -813,9 +813,9 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// unless `required = true`, which makes a missing daemon a panic. A daemon
 /// that is reachable but fails a request is never skipped.
 ///
-/// Every container takes its clock from the valtron pool the function runs on
-/// (a `#[valtron_test]` provides one). `clock = <expr>` injects a specific
-/// clock instead, for a host that has one (rule 11). Without either, the
+/// Every container takes its context from the valtron pool the function runs on
+/// (a `#[valtron_test]` provides one). `ctx = <expr>` injects a specific
+/// `Ctx` instead, for a host that has one (rule 11). Without either, the
 /// function never falls back to the real clock: a plain function logs a skip,
 /// and a function returning `DockerResult<()>` returns
 /// `DockerError::MissingClock`.
@@ -837,14 +837,14 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-/// An injected clock, for a caller outside a pool:
+/// An injected context, for a caller outside a pool:
 ///
 /// ```ignore
 /// use std::sync::Arc;
-/// use foundation_core::valtron::SimulatedClock;
+/// use foundation_core::valtron::{Ctx, SimulatedClock};
 ///
 /// #[docker_container(image = "redis:7", as = "cache", port = 6379,
-///                    clock = Arc::new(SimulatedClock::new(Default::default())))]
+///                    ctx = Ctx::fixed(Arc::new(SimulatedClock::new(Default::default()))))]
 /// fn test_redis(containers: ContainerGroup) {
 ///     // ...
 /// }
@@ -883,7 +883,10 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     udp_listen: "0.0.0.0:51820",
 ///     relay: { advertise: true },
 /// };
-/// let node = foundation_wireguard::native::WgNode::from_config(config);
+/// let node = foundation_wireguard::native::WgNode::from_config(
+///     config,
+///     foundation_core::valtron::Ctx::host(),
+/// );
 /// ```
 #[proc_macro]
 pub fn wireguard(input: TokenStream) -> TokenStream {
@@ -927,7 +930,8 @@ pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///         },
 ///     },
 /// };
-/// config.start(::std::sync::Arc::new(::foundation_core::valtron::MonotonicClock::new()))?;
+/// // The host entry point builds the context once with the real clock.
+/// let server = config.start(::foundation_core::valtron::Ctx::host()).await?;
 /// ```
 #[proc_macro]
 pub fn proxy(input: TokenStream) -> TokenStream {

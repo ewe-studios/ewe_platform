@@ -105,7 +105,7 @@ pub async fn enable_authenticator(
         .await?
         .ok_or_else(|| AppError::BadRequest("call get-authenticator first".into()))?;
 
-    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, &*ctx.ctx().clock()) {
+    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, ctx.ctx()) {
         return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
 
@@ -135,7 +135,7 @@ pub async fn disable_authenticator(
     let row = store::get(ctx.db(), user_uuid)
         .await?
         .ok_or_else(|| AppError::BadRequest("two-factor is not configured".into()))?;
-    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, &*ctx.ctx().clock()) {
+    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, ctx.ctx()) {
         return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
     store::delete(ctx.db(), user_uuid).await
@@ -167,5 +167,5 @@ pub async fn verify(ctx: &KeychainContext, user_uuid: &str, code: &str) -> AppRe
     if row.recovery_code.as_deref() == Some(code) {
         return Ok(true);
     }
-    Ok(totp_from_base32(&row.secret)?.verify(code, TOLERANCE, &*ctx.ctx().clock()))
+    Ok(totp_from_base32(&row.secret)?.verify(code, TOLERANCE, ctx.ctx()))
 }

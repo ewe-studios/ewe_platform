@@ -7,9 +7,7 @@ use foundation_nativeapis::shared::vfs::{
 fn main() {
     println!("=== MemoryFs Example ===\n");
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
-    ));
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::host());
 
     // Create directories
     fs.mkdir("/docs").unwrap();

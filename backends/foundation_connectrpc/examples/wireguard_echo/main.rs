@@ -27,14 +27,14 @@ fn main() {
     // ── Two nodes, one mesh ──────────────────────────────────────────
     let a = WgNode::from_config(
         WgConfig::seed(seed.clone(), net),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .join()
     .expect("A");
     let a_boot = a.bootstrap_addr();
     let b = WgNode::from_config(
         WgConfig::joiner(seed.clone(), net, vec![a_boot]),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .join()
     .expect("B");

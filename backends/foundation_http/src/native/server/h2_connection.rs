@@ -136,8 +136,8 @@ pub struct H2ConnectionHandler {
     parker: Parker,
     /// The transport took our read waker (the overlay has no fd to watch).
     overlay_waker: bool,
-    /// The engine clock, seeded from the pool root `Ctx`.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    /// The engine context, seeded from the pool root `Ctx`.
+    ctx: Ctx,
 }
 
 /// What wakes a parked h2 connection task.
@@ -210,11 +210,11 @@ fn socket_fd(_conn: &H2Conn) -> i32 {
 }
 
 /// Ready once a deadline has passed on the connection's clock.
-struct DeadlinePassed(Instant, Arc<dyn foundation_core::valtron::Clock>);
+struct DeadlinePassed(Instant, Ctx);
 
 impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.1.now() >= self.0
+        self.1.clock().now() >= self.0
     }
 
     fn deadline(&self) -> Option<Instant> {
@@ -248,12 +248,8 @@ impl H2ConnectionHandler {
         connection: Arc<ConnectionContext>,
         shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
-        clock: Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
-        // Store the engine clock in the app context so a dispatched ConnectRPC
-        // server reads the same clock for its call deadlines.
-        app.context()
-            .store::<Arc<dyn foundation_core::valtron::Clock>>(clock.clone());
         Self {
             conn,
             app,
@@ -266,7 +262,7 @@ impl H2ConnectionHandler {
             uncredited_conn: 0,
             parker: Parker::new(),
             overlay_waker: false,
-            clock,
+            ctx,
         }
     }
 }
@@ -394,7 +390,7 @@ impl H2ConnectionHandler {
             self.idle_since = None;
             return Some(self.park_or(POLL_DELAY, None));
         }
-        let now = self.clock.now();
+        let now = self.ctx.clock().now();
         let since = *self.idle_since.get_or_insert(now);
         if now.saturating_duration_since(since) >= IDLE_TIMEOUT {
             return None;
@@ -466,7 +462,7 @@ impl H2ConnectionHandler {
             ready = ready.with(socket);
         }
         if let Some(deadline) = deadline {
-            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.clock.clone())));
+            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.ctx.clone())));
         }
         TaskStatus::Depends(Arc::new(ready))
     }

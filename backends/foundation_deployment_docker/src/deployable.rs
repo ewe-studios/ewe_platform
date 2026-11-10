@@ -131,7 +131,7 @@ impl Deployable for ContainerDeployment {
         let body = self.create_body();
         let name = self.name.clone();
         let store = self.store(&client);
-        let clock = client.clock().clone();
+        let clock = client.clock();
 
         Box::pin(async move {
             let created = docker.create_container(&body, name.as_deref()).await?;

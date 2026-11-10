@@ -3,7 +3,7 @@
 use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use super::super::models::client::hex_sha256;
 use super::super::models::OAuthClient;
@@ -32,7 +32,7 @@ pub fn create_client_record(
     grant_types: Vec<String>,
     scopes: Vec<String>,
     is_public: bool,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> (OAuthClient, String) {
     let client_id = uuid::Uuid::new_v4().to_string();
     let secret = generate_client_secret();
@@ -46,7 +46,7 @@ pub fn create_client_record(
         grant_types,
         scopes,
         is_public,
-        created_at: now_millis(clock),
+        created_at: now_millis(ctx),
     };
 
     (client, secret)

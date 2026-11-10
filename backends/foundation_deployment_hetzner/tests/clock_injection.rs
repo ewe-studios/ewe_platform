@@ -13,7 +13,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::time::unix_seconds;
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_deployment_hetzner::HetznerClient;
 
 /// 2026-01-01T00:00:00Z in unix seconds.
@@ -24,7 +24,7 @@ fn the_client_keeps_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance_wall(Duration::from_secs(SIMULATED_SECS));
 
-    let client = HetznerClient::new("token", clock.clone());
+    let client = HetznerClient::new("token", Ctx::fixed(clock.clone()));
 
     assert_eq!(
         unix_seconds(client.clock().wall_now()),

@@ -23,15 +23,15 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{MonotonicClock, initialize_pool};
+use foundation_core::valtron::{Ctx, MonotonicClock, initialize_pool};
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerClient, DockerFileConfig,
 };
 use foundation_deployment_platform::testing::docker_available;
 
 /// The test thread is a host entry point, so it injects the real clock.
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 /// Unique-ish tag so parallel runs never collide on a daemon-global image name.
@@ -78,7 +78,7 @@ fn builds_an_inline_dockerfile_into_a_runnable_image() {
         // is in the image.
         let handle = ContainerHandle::start_async(
             ContainerConfig::new(&t)
-                .clock(test_clock())
+                .ctx(test_ctx())
                 .stop_timeout_secs(2),
         )
         .await
@@ -143,7 +143,7 @@ fn build_context_files_are_uploaded_and_build_args_apply() {
 
         let handle = ContainerHandle::start_async(
             ContainerConfig::new(&t)
-                .clock(test_clock())
+                .ctx(test_ctx())
                 .stop_timeout_secs(2),
         )
         .await

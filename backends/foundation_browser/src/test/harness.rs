@@ -14,9 +14,8 @@
 //! `panic!`, or `resume_unwind`) tear everything down.
 
 use std::path::PathBuf;
-use std::sync::Arc;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::Ctx;
 
 use crate::browser::{BrowserDriver, Page};
 use crate::cdp::launch::{Browser, LaunchConfig};
@@ -53,11 +52,11 @@ pub struct TestConfig {
     /// (secure cookies, service workers, clipboard) are testable. The browser is
     /// launched trusting the cert (`--ignore-certificate-errors`).
     pub https: bool,
-    /// The clock every launch and assertion deadline reads.
+    /// The context every launch and assertion deadline reads.
     ///
-    /// The default is a real [`MonotonicClock`]: the harness is a test host, so
+    /// The default is `Ctx::host()`, which reads the real clock: the harness is a test host, so
     /// it supplies the real clock unless the test sets this field.
-    pub clock: Arc<dyn Clock>,
+    pub ctx: Ctx,
 }
 
 impl Default for TestConfig {
@@ -76,7 +75,7 @@ impl Default for TestConfig {
             headless: true,
             window_size: None,
             https: false,
-            clock: Arc::new(MonotonicClock::new()),
+            ctx: Ctx::host(),
         }
     }
 }
@@ -100,7 +99,7 @@ impl TestConfig {
             browser: self.browser,
             headless: self.headless,
             extra_args,
-            clock: Some(Arc::clone(&self.clock)),
+            ctx: Some(self.ctx.clone()),
         }
     }
 

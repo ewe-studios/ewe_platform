@@ -6,17 +6,14 @@
 
 #![cfg(feature = "browser-tests")]
 
-use std::sync::Arc;
-
 use foundation_browser::test::{Harness, TestConfig};
 use foundation_browser::{BrowserDriver, LaunchConfig};
-use foundation_core::valtron::MonotonicClock;
+use foundation_core::valtron::Ctx;
 
 #[test]
 fn launch_navigate_eval_screenshot() {
     let driver =
-        BrowserDriver::launch(LaunchConfig::chromium().clock(Arc::new(MonotonicClock::new())))
-            .expect("launch chromium");
+        BrowserDriver::launch(LaunchConfig::chromium().ctx(Ctx::host())).expect("launch chromium");
     let page = driver.new_page().expect("attach a page");
 
     page.goto("data:text/html,<h1 id='hi'>hello browser</h1>")
@@ -40,8 +37,7 @@ fn launch_navigate_eval_screenshot() {
 #[test]
 fn locator_geometry_attributes_style_and_input() {
     let driver =
-        BrowserDriver::launch(LaunchConfig::chromium().clock(Arc::new(MonotonicClock::new())))
-            .expect("launch chromium");
+        BrowserDriver::launch(LaunchConfig::chromium().ctx(Ctx::host())).expect("launch chromium");
     let page = driver.new_page().expect("attach a page");
     page.goto(
         "data:text/html,\

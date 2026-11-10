@@ -81,7 +81,7 @@ async fn port_wait_succeeds_on_open_port() {
     let mut ports = HashMap::new();
     ports.insert(format!("{port}/tcp"), port);
 
-    let clock = MonotonicClock::new();
+    let clock = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
     let start = Instant::now();
     wait_for_port(port, Duration::from_secs(5), &ports, &clock)
         .await
@@ -102,7 +102,7 @@ async fn port_wait_times_out_on_closed_port() {
     let mut ports = HashMap::new();
     ports.insert(format!("{bogus_port}/tcp"), bogus_port);
 
-    let clock = MonotonicClock::new();
+    let clock = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
     let start = Instant::now();
     let result = wait_for_port(bogus_port, Duration::from_millis(200), &ports, &clock).await;
     assert!(result.is_err(), "should time out");

@@ -1,34 +1,34 @@
 use std::sync::Arc;
 
 use foundation_auth::{BackupCodeSet, TOTPSecret, TwoFactorChallenge};
-use foundation_core::valtron::MonotonicClock;
+use foundation_core::valtron::{Ctx, MonotonicClock};
 
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]
 fn test_totp_secret_generation() {
-    let clock = test_clock();
+    let ctx = test_clock();
     let secret = TOTPSecret::generate();
-    let code = secret.now(clock.as_ref());
+    let code = secret.now(&ctx);
     assert_eq!(code.len(), 6);
     assert!(code.chars().all(char::is_numeric));
 }
 
 #[test]
 fn test_totp_verify_current_code() {
-    let clock = test_clock();
+    let ctx = test_clock();
     let secret = TOTPSecret::generate();
-    let code = secret.now(clock.as_ref());
-    assert!(secret.verify(&code, 1, clock.as_ref()));
+    let code = secret.now(&ctx);
+    assert!(secret.verify(&code, 1, &ctx));
 }
 
 #[test]
 fn test_totp_verify_wrong_code() {
-    let clock = test_clock();
+    let ctx = test_clock();
     let secret = TOTPSecret::generate();
-    assert!(!secret.verify("000000", 1, clock.as_ref()));
+    assert!(!secret.verify("000000", 1, &ctx));
 }
 
 #[test]

@@ -4,11 +4,11 @@ use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::models::client::OAuthClient;
 use foundation_auth::server::models::user::User;
 use foundation_auth::server::services::token_service::TokenService;
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn test_config() -> Arc<IdpConfig> {

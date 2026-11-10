@@ -108,3 +108,98 @@ standard ASD-STE100.
   generates calls to `PlatformSession::new_test`. A signature change in `foundation_platform`
   also changes the generated code. Search the macro crates for generated calls, not only
   for direct calls.
+
+- Wave 2: a `SimulatedClock` that never advances makes a deadline loop run forever. The
+  browser wait helpers (`wait_for_port`, `discover_ws_url` and `connect_with_retry`) read
+  their deadline from the `Ctx`, but they pause with `std::thread::sleep`. A test with a frozen
+  simulated clock would hang. The fix is to pause through the injected sleeper. Severity
+  medium. Not filed as an issue, per the coordinator.
+- Wave 2: `foundation_testbed` calls `BrowserDriver::launch_borrowed`. An API change in one
+  crate can break a caller outside it. Run `cargo check --all-targets` on each caller.
+- Wave 2: `BootstrapLogger::new` writes into the current directory (`.testbed/`). A test that
+  builds one writes files. The deployment platform clock test uses `WinRM` instead, because
+  `WinRM::new` touches no file.
+- Wave 2: clippy `doc_markdown` rejects a bare type name such as `WinRM` in a doc comment.
+  Put type names in backticks.
+- Wave 2: clippy `must_use_candidate` flags a new `pub fn new` that returns `Self`. Add
+  `#[must_use]`.
+- Wave 2: rustfmt reflows lines after an argument rename. Run rustfmt on the changed files
+  only, then check that the diff stays small.
+- Wave 2: the shell guard refused several compound commands in this worktree. One refused
+  `sed` chain did not run, so an edit was missing. Check each edit with `grep` after a
+  refused command.
+- Wave 2: `foundation_deployment_cloudflare` takes about 5 minutes for a native check at
+  `-j 1`. Run it in the background with a log file, not in the foreground.
+- Wave 2: the disk filled again during a `vms` link step. Removing `uat/build/<crate>` for each
+  finished crate freed enough space.
+
+- Wave 3: the grep `dyn Clock` misses the full path `dyn foundation_core::valtron::Clock`.
+  Use `grep -rn "dyn .*Clock"` to find every site. connectrpc had 8 short sites and more
+  full-path sites.
+- Wave 3: the connectrpc `Ctx` name is not a clash. `foundation_http::shared::context::Ctx`
+  re-exports `foundation_context::Ctx`, so it is the same type.
+- Wave 3: clippy `needless_pass_by_value` rejects a `Ctx` parameter that a function only
+  clones. Take `&Ctx` (hetzner `from_env`).
+- Wave 3: `foundation_wireguard::WgNode::join` built `Ctx::fixed(clock)` for the mesh task.
+  That reset the RNG to seed 0 in library code. It now uses the node's `Ctx`. Severity
+  medium. Fixed in `2731a10a6`.
+- Wave 3: `foundation_deployment_docker` with `--all-features` needs `protoc` for its
+  `buildkit` build script. The sandbox has no `protoc`, so that clippy set cannot run here.
+  Run it on a machine with `protoc`, or install `protoc` first.
+- Wave 3: `foundation_deployment_hetzner` tests pass `&MonotonicClock` to `store_typed`.
+  That is a `foundation_db` API (wave 7) and still takes `&dyn Clock`, so the call stays.
+- Wave 3: connectrpc `h2_dial_tests::a_blackholed_dial_does_not_block_the_worker` fails on
+  master in this sandbox (#466). It is not caused by the `Ctx` change.
+- Wave 3: `foundation_wireguard` completeness check built a `RelayServer` with a real
+  clock in library code. It now checks the constructor signature with a typed function
+  pointer, which needs no clock.
+- Wave 3: the shell guard refuses one command that combines `cd` with a heredoc or a
+  redirect. Use plain commands, or a script file run by a plain command.
+
+- Wave 4: `require_auth(ctx: AuthContext, clock)` already had a parameter named `ctx`. A
+  mechanical rename to `ctx: &Ctx` would give two parameters one name. The auth context
+  parameter is now `auth`. Before a rename, check the original file with `git grep -w ctx`.
+- Wave 4: `IdpServer::http_app`, `serve_adapter::run_sync` and the `Serve` path built
+  `Ctx::fixed(clock)` inside library code. That reset the RNG to seed 0 and broke the rule
+  that only tests use `Ctx::fixed`. Severity medium. Both now reuse the `Ctx` that the
+  server stores. The dispatch reads no map entries, so the behavior does not change.
+- Wave 4: `cargo fmt` from the workspace formats the crate with the workspace style. Running
+  `rustfmt` on `examples/cf-login-app/src/lib.rs` reordered its imports and reflowed code
+  outside the change. Revert that noise. Edit the example by hand, or format it with its own
+  toolchain setup.
+- Wave 4: `examples/cf-login-app` is a separate workspace. It does not define the `uat` profile.
+  Check it with the default dev profile and a shared `CARGO_TARGET_DIR`.
+- Wave 4: the Bash tool writes its output under `/tmp`. When the root volume is full, the tool
+  refuses to run and reports "Disk full", even for a plain `df`. The linker reported a bus
+  error first, which was a symptom of the same full disk. Check `df -h /` before each build.
+- Wave 4: removing the llama build objects (`uat/build/infrastructure_llama_bindings`) and the
+  finished auth and connectrpc build outputs freed only about 3 GB. The routine's 4 GB floor
+  was not reached. The `uat/deps` directory holds most of the space. The routine does not
+  allow removing it, so the remaining checks wait for the owner.
+
+- Wave 5 and 6: a regex that wrapped `Arc::new(MonotonicClock::new())` also matched calls that
+  already sat inside `Ctx::fixed(...)`. It also matched an `as Arc<dyn Clock>` cast. Both
+  produced a compile error. Check each rewritten call. Collapse a double `Ctx::fixed` by hand.
+- Wave 6: `SignalBus::clock()` returned a reference to the clock. It now exposes `ctx()`.
+  Callers read `ctx().clock()`. This keeps no getter that returns `dyn Clock`.
+- Wave 5: the connection handlers stored the engine clock in the app context
+  (`store::<Arc<dyn Clock>>`). No code read that entry. ConnectRPC reads `ctx.clock()`. The store
+  was a dead write, and it is removed.
+- Wave 5: `ProtocolDetectHandler` stored a clock from its constructor and also read the engine
+  clock on each poll. The `get_or_insert_with` never ran, because the constructor set the field.
+  The handler now stores the `Ctx` only.
+- Wave 6: the LD_PRELOAD shim and the C ABI function `ipmb_join` take no `Ctx` from a caller.
+  Both build `Ctx::host()` once. Review this choice. It is the only library use of `Ctx::host()`.
+- Wave 6: feature-gated tests and examples fail to compile on a plain `cargo test`. Compile each
+  set in `ci/packages.toml`. The `fjall`, `fuse`, `clock_injection` and `dataplane` targets
+  broke only under their own features.
+- Wave 6: the Windows target (`x86_64-pc-windows-gnu`) fails to compile in `ipc/platform/windows.rs`.
+  The errors are `windows_sys` 0.59 feature flags and `HANDLE` type mismatches (`usize` against
+  `*mut c_void`). They sit on lines this change did not touch. Severity high: Windows does not
+  build with `ipc`. No GitHub issue is filed in this run, because the brief forbids it. File it before the next lane.
+- Wave 6: the build fills the root volume during the combined feature set and during the
+  `foundation_ai` testing builds. Run the disk routine before each set. The volume is shared with
+  `/tmp`, so the scratch logs count too.
+- Wave 6: `rustfmt` on the changed files reflowed lines outside the change. This is the same
+  issue as wave 4. It is accepted here, because the CI formatting check needs the files formatted.
+

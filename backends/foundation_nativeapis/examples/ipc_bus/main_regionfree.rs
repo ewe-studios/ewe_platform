@@ -8,9 +8,7 @@
 fn main() {
     use foundation_nativeapis::ipc::MemoryRegistry;
 
-    let mut registry = MemoryRegistry::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
-    ));
+    let mut registry = MemoryRegistry::new(foundation_core::valtron::Ctx::host());
 
     println!("Allocating with free callback...");
     let region = registry.alloc_with_free(64, None, || {

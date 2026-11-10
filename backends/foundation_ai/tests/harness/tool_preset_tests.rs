@@ -44,8 +44,8 @@ type Hierarchy = MemoryHierarchy<Mem, Doc>;
 // ---------------------------------------------------------------------------
 
 fn fs() -> Arc<MemoryFs> {
-    Arc::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )))
 }
 

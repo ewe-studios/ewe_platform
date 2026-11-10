@@ -35,7 +35,7 @@ pub type ProgressCallback<'a> = Option<&'a dyn Fn(&str)>;
 pub fn run_interactive(winrm: &WinRM, ps_code: &str, user: &str) -> Result<()> {
     let task_name = format!(
         "FoundationTestbed_Interactive_{}",
-        crate::clock::wall_now_millis(winrm.clock()),
+        crate::clock::wall_now_millis(winrm.ctx()),
     );
     let script_path = format!("C:\\testbed-interactive-{task_name}.ps1");
 
@@ -114,7 +114,7 @@ pub fn run_elevated(
 ) -> Result<()> {
     const CHUNK_SIZE: usize = 1500;
     // Unique sentinel per invocation — avoids false positives from previous runs
-    let sentinel_id = format!("{}", crate::clock::wall_now_millis(winrm.clock()));
+    let sentinel_id = format!("{}", crate::clock::wall_now_millis(winrm.ctx()));
     let sentinel_path = format!("C:\\bootstrap-sentinel-{sentinel_id}.done");
     let heartbeat_path = "C:\\bootstrap-heartbeat.txt";
     let error_log = "C:\\bootstrap-step-error.log";

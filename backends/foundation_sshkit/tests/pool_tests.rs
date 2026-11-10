@@ -8,7 +8,9 @@ use std::time::Duration;
 fn test_pool_creates_session() {
     let pool = ConnectionPool::new(
         Duration::from_secs(30),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let host = Host::parse("github.com:22"); // github has public SSH
 
@@ -29,7 +31,9 @@ fn test_pool_creates_session() {
 fn test_pool_evict_idle() {
     let pool = ConnectionPool::new(
         Duration::from_millis(1),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     // Eviction should not panic even with empty pool
     pool.evict_idle();
@@ -39,7 +43,9 @@ fn test_pool_evict_idle() {
 fn test_pool_get_same_host_twice() {
     let pool = ConnectionPool::new(
         Duration::from_secs(30),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let host = Host::parse("github.com:22");
 

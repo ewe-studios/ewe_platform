@@ -2,11 +2,11 @@
 
 use chrono::Utc;
 use foundation_auth::server::models::token::RefreshToken;
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn hex_sha256(s: &str) -> String {
@@ -46,7 +46,7 @@ fn test_verify_wrong() {
 #[test]
 fn test_not_expired() {
     let rt = test_token("tok");
-    assert!(!rt.is_expired(test_clock().as_ref()));
+    assert!(!rt.is_expired(&test_clock()));
 }
 
 #[test]

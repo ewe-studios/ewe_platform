@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use turso::Connection;
 
 use crate::shared::vfs::async_traits::{AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile};
@@ -26,7 +26,7 @@ pub struct TursoFile {
     pub mode: OpenMode,
     pub chunk_size: usize,
     pub size: u64,
-    pub clock: Arc<dyn Clock>,
+    pub ctx: Ctx,
 }
 
 impl TursoFile {
@@ -165,7 +165,7 @@ impl AsyncVfsFile for TursoFile {
 
         let checksum =
             blake3::hash(&file_data[..usize::try_from(new_size).expect("size overflow")]);
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
 
         self.db
             .execute(
@@ -209,14 +209,7 @@ impl AsyncVfsFile for TursoFile {
     }
 
     async fn truncate_async(&self, size: u64) -> VfsResult<()> {
-        truncate_file_async(
-            &self.db,
-            self.ino,
-            size,
-            self.chunk_size,
-            self.clock.as_ref(),
-        )
-        .await
+        truncate_file_async(&self.db, self.ino, size, self.chunk_size, &self.ctx).await
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
@@ -324,7 +317,7 @@ pub struct TursoDirectory {
     pub db: Arc<Connection>,
     pub ino: i64,
     pub path: String,
-    pub clock: Arc<dyn Clock>,
+    pub ctx: Ctx,
 }
 
 #[async_trait]
@@ -414,7 +407,7 @@ impl AsyncVfsDirectory for TursoDirectory {
     }
 
     async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = super::types::next_version_id();
 
         self.db
@@ -467,7 +460,7 @@ impl AsyncVfsDirectory for TursoDirectory {
             mode: OpenMode::Write,
             chunk_size: 64 * 1024,
             size: 0,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -476,7 +469,7 @@ impl AsyncVfsDirectory for TursoDirectory {
         name: String,
     ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
     {
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = super::types::next_version_id();
 
         let new_path = if self.path == "/" {
@@ -534,7 +527,7 @@ impl AsyncVfsDirectory for TursoDirectory {
             db: Arc::clone(&self.db),
             ino,
             path: new_path,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }))
     }
 
@@ -592,7 +585,7 @@ impl AsyncVfsDirectory for TursoDirectory {
     }
 
     async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.db
             .execute(
                 "UPDATE vfs_dentry SET name = ?, updated_at = ? WHERE parent_ino = ? AND name = ?",
@@ -633,7 +626,7 @@ impl AsyncVfsDirectory for TursoDirectory {
             mode,
             chunk_size,
             size,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -683,7 +676,7 @@ impl AsyncVfsDirectory for TursoDirectory {
             db: Arc::clone(&self.db),
             ino,
             path: full_path,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }))
     }
 

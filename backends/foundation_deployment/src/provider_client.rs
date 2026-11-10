@@ -11,7 +11,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, Ctx};
 use foundation_db::core::state::traits::StateStore;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
@@ -39,11 +39,11 @@ where
     /// HTTP client for API calls. A clone is cheap (`Arc`) and shares the
     /// client's connection pool.
     pub http_client: DynNetClient,
-    /// The clock that stamps the state a deploy records.
+    /// The context whose clock stamps the state a deploy records.
     ///
-    /// The host builds the real clock once and passes it in. A test passes a
-    /// `SimulatedClock`, so a recorded `created_at` is deterministic.
-    pub clock: Arc<dyn Clock>,
+    /// The host builds the context once and passes it in. A test passes a `Ctx`
+    /// over a `SimulatedClock`, so a recorded `created_at` is deterministic.
+    pub ctx: Ctx,
 }
 
 impl<S> Clone for ProviderClient<S>
@@ -56,7 +56,7 @@ where
             project: self.project.clone(),
             stage: self.stage.clone(),
             http_client: self.http_client.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         }
     }
 }
@@ -73,14 +73,13 @@ where
     /// * `project` - Project name for state namespacing
     /// * `stage` - Stage name (dev, staging, prod)
     /// * `state_store` - State store implementation
-    /// * `clock` - The clock that stamps the state a deploy records
+    /// * `ctx` - The context whose clock stamps the state a deploy records
     ///
     /// # Example
     ///
     /// ```rust,no_run
     /// use std::path::Path;
-    /// use std::sync::Arc;
-    /// use foundation_core::valtron::MonotonicClock;
+    /// use foundation_core::valtron::Ctx;
     /// use foundation_deployment::provider_client::ProviderClient;
     /// use foundation_db::core::state::FileStateStore;
     ///
@@ -89,16 +88,16 @@ where
     ///     "my-project",
     ///     "dev",
     ///     state_store,
-    ///     Arc::new(MonotonicClock::new()),
+    ///     Ctx::host(),
     /// );
     /// ```
-    pub fn new(project: &str, stage: &str, state_store: S, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(project: &str, stage: &str, state_store: S, ctx: Ctx) -> Self {
         Self::with_client(
             HttpClientBuilder::new().build(),
             project,
             stage,
             state_store,
-            clock,
+            ctx,
         )
     }
 
@@ -109,14 +108,14 @@ where
         project: &str,
         stage: &str,
         state_store: S,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             state_store: Arc::new(state_store),
             project: project.to_string(),
             stage: stage.to_string(),
             http_client,
-            clock,
+            ctx,
         }
     }
 
@@ -146,8 +145,14 @@ where
 
     /// Get the clock that stamps recorded state.
     #[must_use]
-    pub fn clock(&self) -> &Arc<dyn Clock> {
-        &self.clock
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.ctx.clock()
+    }
+
+    /// Get the context that carries the clock.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 }
 

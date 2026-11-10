@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use async_trait::async_trait;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use super::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use super::error::VfsResult;
@@ -16,11 +16,11 @@ pub struct MemoryDelta {
 }
 
 impl MemoryDelta {
-    /// An empty delta store whose timestamps come from `clock`.
+    /// An empty delta store whose timestamps come from the clock of `ctx`.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
-            fs: MemoryFs::new(clock),
+            fs: MemoryFs::new(ctx),
             whiteouts: RwLock::new(HashMap::new()),
         }
     }

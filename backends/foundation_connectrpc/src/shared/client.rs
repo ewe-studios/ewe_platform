@@ -24,7 +24,7 @@ use bytes::Bytes;
 use foundation_compact::Instant;
 use foundation_core::url::Uri;
 use foundation_core::valtron;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
@@ -661,7 +661,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             trailers: SimpleHeaders::new(),
             got_trailers: false,
             deadline: call_ctx.request.deadline,
-            clock: call_ctx.clock(),
+            ctx: call_ctx.ctx.clone(),
             cancel: CancelGuard::new(call_ctx.cancel_signal().clone()),
         })
     }
@@ -835,7 +835,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             spec,
             peer,
             deadline: call_ctx.request.deadline,
-            clock: call_ctx.clock(),
+            ctx: call_ctx.ctx.clone(),
             cancel: CancelGuard::new(call_ctx.cancel_signal().clone()),
         })
     }
@@ -847,8 +847,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// Derive a per-call [`RpcCtx`] from the caller's context (Decision 07 per-call
     /// `RpcCtx` contract table).
     fn derive_call_ctx(&self, caller: &RpcCtx, spec: Spec) -> RpcCtx {
-        let clock = caller.clock();
-        let now = clock.now();
+        let now = caller.ctx.clock().now();
         let deadline = match (
             caller.request.deadline,
             self.config.default_timeout,
@@ -882,7 +881,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 caller.request.extensions.clone(),
                 caller.request.connection.clone(),
                 CancelSignal::linked(caller.cancel_signal()),
-                clock,
+                caller.ctx.clone(),
             ),
         }
     }
@@ -1275,8 +1274,8 @@ pub struct ServerStream<Res> {
     /// Absolute call deadline, copied from the call `RpcCtx`. Every later wait
     /// fails once it passes.
     deadline: Option<Instant>,
-    /// The engine clock that measures the remaining timeout.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock measures the remaining timeout.
+    ctx: Ctx,
     /// Call lifetime guard. It fires the call's cancel signal when this value
     /// (the last live facade of the call) drops, which stops the reader task
     /// and closes the transport stream.
@@ -1294,7 +1293,7 @@ impl<Res: Send + 'static> ServerStream<Res> {
         with_deadline_at(
             self.deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             async {
                 match self.recv.receive().await? {
                     Some(frame) => Ok(Some(self.codec.unmarshal(frame)?)),
@@ -1322,7 +1321,7 @@ impl<Res: Send + 'static> ServerStream<Res> {
             self.trailers = with_deadline_at(
                 deadline,
                 Some(self.cancel.signal()),
-                self.clock.clone(),
+                self.ctx.clone(),
                 self.recv.response_trailers(),
             )
             .await?
@@ -1424,8 +1423,8 @@ pub struct BidiStream<Req, Res> {
     /// Absolute call deadline, copied from the call `RpcCtx`. Every later wait
     /// fails once it passes.
     deadline: Option<Instant>,
-    /// The engine clock that measures the remaining timeout.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock measures the remaining timeout.
+    ctx: Ctx,
     /// Call lifetime guard, shared by both halves after [`Self::split`]. It
     /// fires the call's cancel signal when the last live facade drops.
     cancel: CancelGuard,
@@ -1446,7 +1445,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
         with_deadline_at(
             self.deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             async {
                 let frame = self.request_codec.marshal(msg)?;
                 self.send.send(frame).await
@@ -1465,7 +1464,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             self.send.flush_headers(),
         )
         .await
@@ -1482,7 +1481,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             old.close_send(),
         )
         .await
@@ -1497,7 +1496,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
         with_deadline_at(
             self.deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             async {
                 match self.recv.receive().await? {
                     Some(frame) => Ok(Some(self.response_codec.unmarshal(frame)?)),
@@ -1518,7 +1517,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             self.recv.response_headers(),
         )
         .await
@@ -1534,7 +1533,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             self.recv.response_trailers(),
         )
         .await
@@ -1550,7 +1549,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
             send: self.send,
             codec: self.request_codec,
             deadline: self.deadline,
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
             cancel: self.cancel.clone(),
         };
         let receiver = BidiReceiver {
@@ -1559,7 +1558,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
             spec: self.spec,
             peer: self.peer,
             deadline: self.deadline,
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
             cancel: self.cancel,
         };
         (sender, receiver)
@@ -1588,8 +1587,8 @@ pub struct BidiSender<Req> {
     codec: Arc<dyn CodecFor<Req>>,
     /// Absolute call deadline, copied from the call `RpcCtx`.
     deadline: Option<Instant>,
-    /// The engine clock that measures the remaining timeout.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock measures the remaining timeout.
+    ctx: Ctx,
     /// Call lifetime guard from the split stream.
     cancel: CancelGuard,
 }
@@ -1604,7 +1603,7 @@ impl<Req: Send + 'static> BidiSender<Req> {
         with_deadline_at(
             self.deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             async {
                 let frame = self.codec.marshal(msg)?;
                 self.send.send(frame).await
@@ -1623,7 +1622,7 @@ impl<Req: Send + 'static> BidiSender<Req> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             self.send.flush_headers(),
         )
         .await
@@ -1639,7 +1638,7 @@ impl<Req: Send + 'static> BidiSender<Req> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             Box::new(self.send).close_send(),
         )
         .await
@@ -1654,8 +1653,8 @@ pub struct BidiReceiver<Res> {
     peer: Peer,
     /// Absolute call deadline, copied from the call `RpcCtx`.
     deadline: Option<Instant>,
-    /// The engine clock that measures the remaining timeout.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock measures the remaining timeout.
+    ctx: Ctx,
     /// Call lifetime guard from the split stream.
     cancel: CancelGuard,
 }
@@ -1670,7 +1669,7 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
         with_deadline_at(
             self.deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             async {
                 match self.recv.receive().await? {
                     Some(frame) => Ok(Some(self.codec.unmarshal(frame)?)),
@@ -1691,7 +1690,7 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             self.recv.response_headers(),
         )
         .await
@@ -1707,7 +1706,7 @@ impl<Res: Send + 'static> BidiReceiver<Res> {
         with_deadline_at(
             deadline,
             Some(self.cancel.signal()),
-            self.clock.clone(),
+            self.ctx.clone(),
             self.recv.response_trailers(),
         )
         .await
@@ -1769,14 +1768,14 @@ impl ClientSender for NoopClientSender {
 async fn with_deadline_at<T>(
     deadline: Option<Instant>,
     cancel: Option<&CancelSignal>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
     call: impl Future<Output = ConnectResult<T>>,
 ) -> ConnectResult<T> {
     let Some(deadline) = deadline else {
         return call.await;
     };
 
-    let remaining = deadline.saturating_duration_since(clock.now());
+    let remaining = deadline.saturating_duration_since(ctx.clock().now());
     if remaining.is_zero() {
         // Fail before the call runs, so a past deadline sends nothing to the
         // peer and reads nothing from it.
@@ -1832,7 +1831,7 @@ async fn with_deadline<T>(
     with_deadline_at(
         ctx.request.deadline,
         Some(ctx.cancel_signal()),
-        ctx.clock(),
+        ctx.ctx.clone(),
         call,
     )
     .await

@@ -7,20 +7,16 @@
 //! script-writing without restarting the VM.
 
 use std::path::Path;
-use std::sync::Arc;
 
 use crate::config::get_profile;
 use crate::winrm::WinRM;
 use crate::winrm::elevated;
 use clap::ArgMatches;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
-pub fn cmd_winrm_test(
-    args: &ArgMatches,
-    clock: Arc<dyn Clock>,
-) -> std::result::Result<(), BoxedError> {
+pub fn cmd_winrm_test(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let timeout: u64 = args.get_one::<String>("timeout").unwrap().parse()?;
     let profile = get_profile(name).map_err(|e| Box::new(e) as BoxedError)?;
@@ -28,7 +24,7 @@ pub fn cmd_winrm_test(
     let port = profile
         .winrm_port
         .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
-    let winrm = WinRM::new("127.0.0.1", port, profile.user, profile.pass, clock);
+    let winrm = WinRM::new("127.0.0.1", port, profile.user, profile.pass, ctx.clone());
 
     // Verify WinRM connectivity
     println!("Connecting to WinRM on port {port}...");
@@ -135,7 +131,7 @@ Write-Output "File created"
     println!("Script: '{tiny_script}' ({} bytes)", tiny_script.len());
 
     // Manually replicate what run_elevated does (simplified version)
-    let sentinel_id = crate::clock::wall_now_millis(winrm.clock()).to_string();
+    let sentinel_id = crate::clock::wall_now_millis(winrm.ctx()).to_string();
     let sentinel_path = format!("C:\\winrm-test-sentinel-{sentinel_id}.done");
     let script_path = "C:\\winrm-test-elevated.ps1";
 

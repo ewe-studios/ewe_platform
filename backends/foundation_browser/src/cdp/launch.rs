@@ -2,9 +2,8 @@
 
 use std::borrow::Cow;
 use std::fmt;
-use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 /// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -51,11 +50,11 @@ pub struct LaunchConfig {
     pub headless: bool,
     /// Extra command-line args appended after our defaults.
     pub extra_args: Vec<Cow<'static, str>>,
-    /// The clock for launch and retry deadlines.
+    /// The context for launch and retry deadlines.
     ///
     /// [`BrowserDriver::launch`](crate::BrowserDriver::launch) panics when it is
-    /// absent. Set it with [`LaunchConfig::clock`].
-    pub clock: Option<Arc<dyn Clock>>,
+    /// absent. Set it with [`LaunchConfig::ctx`].
+    pub ctx: Option<Ctx>,
 }
 
 impl fmt::Debug for LaunchConfig {
@@ -64,7 +63,7 @@ impl fmt::Debug for LaunchConfig {
             .field("browser", &self.browser)
             .field("headless", &self.headless)
             .field("extra_args", &self.extra_args)
-            .field("clock", &self.clock.is_some())
+            .field("ctx", &self.ctx.is_some())
             .finish()
     }
 }
@@ -75,7 +74,7 @@ impl Default for LaunchConfig {
             browser: Browser::Chromium,
             headless: true,
             extra_args: Vec::new(),
-            clock: None,
+            ctx: None,
         }
     }
 }
@@ -94,14 +93,14 @@ impl LaunchConfig {
             browser: Browser::Firefox,
             headless: true,
             extra_args: Vec::new(),
-            clock: None,
+            ctx: None,
         }
     }
 
-    /// Set the clock every launch and retry deadline reads.
+    /// Set the context every launch and retry deadline reads.
     #[must_use]
-    pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.clock = Some(clock);
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
         self
     }
 

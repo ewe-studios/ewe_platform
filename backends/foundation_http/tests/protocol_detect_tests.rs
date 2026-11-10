@@ -110,7 +110,7 @@ fn a_failed_refusal_write_is_logged_with_its_peer() {
         waits.guard(),
         KeepAliveConfig::defaults(),
         None,
-        Arc::new(MonotonicClock::new()),
+        Ctx::fixed(Arc::new(MonotonicClock::new())),
     );
 
     client.queue_request(b"GET / HTTP/1.1\r\nHost: test\r\n\r\n");

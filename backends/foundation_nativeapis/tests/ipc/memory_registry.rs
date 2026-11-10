@@ -6,8 +6,8 @@ use foundation_nativeapis::ipc::memory_registry::MemoryRegistry;
 
 #[test]
 fn alloc_creates_new_region() {
-    let mut registry = MemoryRegistry::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let mut registry = MemoryRegistry::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     ));
     let region = registry.alloc(1024, None);
     assert!(region.is_some());
@@ -17,8 +17,8 @@ fn alloc_creates_new_region() {
 fn alloc_with_free_runs_callback() {
     use std::sync::atomic::{AtomicBool, Ordering};
 
-    let mut registry = MemoryRegistry::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let mut registry = MemoryRegistry::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     ));
     let freed = std::sync::Arc::new(AtomicBool::new(false));
     let freed_clone = freed.clone();

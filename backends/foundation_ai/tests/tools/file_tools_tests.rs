@@ -30,8 +30,8 @@ fn text_of(r: &foundation_ai::agentic::tool_impl::ToolCallResult) -> String {
 
 /// Seed a `MemoryFs` with a file at `path`.
 async fn fs_with(path: &str, content: &str) -> Arc<MemoryFs> {
-    let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )));
     fs.write_file_async(path.to_string(), content.as_bytes().to_vec())
         .await
@@ -71,8 +71,8 @@ fn read_line_range() {
 #[test]
 fn read_missing_file_errors() {
     futures_lite::future::block_on(async {
-        let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
         )));
         let tool = ReadTool::new(fs);
         let err = tool.execute(args(&[("path", "/nope")])).await.unwrap_err();
@@ -83,9 +83,11 @@ fn read_missing_file_errors() {
 #[test]
 fn read_missing_path_arg_errors() {
     futures_lite::future::block_on(async {
-        let tool = ReadTool::new(Arc::new(MemoryFs::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        ))));
+        let tool = ReadTool::new(Arc::new(MemoryFs::new(
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
+        )));
         let err = tool.execute(ToolArguments::new()).await.unwrap_err();
         assert!(matches!(err, ToolError::InvalidArguments { .. }));
     });
@@ -97,8 +99,8 @@ fn read_missing_path_arg_errors() {
 #[test]
 fn write_creates_then_read_back() {
     futures_lite::future::block_on(async {
-        let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
         )));
         let write = WriteTool::new(fs.clone());
         let out = write
@@ -219,8 +221,8 @@ fn edit_replace_all() {
 /// The tool `definition()` exposes the right name + category (fills its `ToolDeclarations` slot).
 #[test]
 fn tool_definitions_expose_names_and_categories() {
-    let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )));
     assert_eq!(ReadTool::new(fs.clone()).definition().name(), "read");
     assert_eq!(
@@ -311,8 +313,8 @@ fn registering_file_tools_fills_shed_slots() {
     let mgr = ToolCallManager::new(SessionId::new());
     register_file_tools(
         &mgr,
-        Arc::new(MemoryFs::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
         ))),
     );
     register_shell_tool(&mgr);
@@ -335,8 +337,8 @@ fn registered_read_tool_executes_via_manager() {
     use foundation_ai::types::SessionId;
 
     futures_lite::future::block_on(async {
-        let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
         )));
         fs.write_file_async("/x.txt".to_string(), b"via-manager".to_vec())
             .await

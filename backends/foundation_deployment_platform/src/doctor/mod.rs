@@ -3,9 +3,7 @@
 //! Validates that required system tools, KVM, disk space, and VM
 //! services are available and functioning.
 
-use std::sync::Arc;
-
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::config::{self, GuestOs, VmProfile};
 
@@ -201,7 +199,7 @@ pub fn check_host() -> HostHealth {
 
 /// Run VM-level health checks for a specific profile.
 #[must_use]
-pub fn check_vm(profile: &VmProfile, clock: Arc<dyn Clock>) -> HostHealth {
+pub fn check_vm(profile: &VmProfile, ctx: &Ctx) -> HostHealth {
     let mut checks = Vec::new();
 
     // State check
@@ -239,7 +237,7 @@ pub fn check_vm(profile: &VmProfile, clock: Arc<dyn Clock>) -> HostHealth {
 
     // WinRM (Windows only)
     if profile.os == GuestOs::Windows {
-        match crate::winrm::WinRM::from_profile(profile, Arc::clone(&clock)) {
+        match crate::winrm::WinRM::from_profile(profile, ctx.clone()) {
             Ok(winrm) => {
                 if winrm.ping() {
                     checks.push(Check {
@@ -267,7 +265,7 @@ pub fn check_vm(profile: &VmProfile, clock: Arc<dyn Clock>) -> HostHealth {
     }
 
     // Bootstrap status
-    if crate::bootstrap::is_bootstrapped(profile, clock) {
+    if crate::bootstrap::is_bootstrapped(profile, ctx) {
         checks.push(Check {
             name: "bootstrapped",
             ok: true,

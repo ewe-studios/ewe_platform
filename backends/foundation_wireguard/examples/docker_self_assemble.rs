@@ -24,16 +24,15 @@
 //! ```
 
 use std::net::SocketAddr;
-use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::Ctx;
 use foundation_wireguard::native::WgNode;
 use foundation_wireguard::WgConfig;
 
-/// The real clock: this example is the host entry point that builds it.
-fn real_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+/// The host context: this example is the host entry point that builds it.
+fn host_ctx() -> Ctx {
+    Ctx::host()
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -52,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "🚀 booting mesh node"
     );
 
-    let node = WgNode::from_config(config, real_clock());
+    let node = WgNode::from_config(config, host_ctx());
     let handle = node.join()?;
 
     tracing::info!(

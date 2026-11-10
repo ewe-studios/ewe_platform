@@ -9,7 +9,7 @@
 use std::sync::Arc;
 use std::time::{Duration, UNIX_EPOCH};
 
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_nativeapis::shared::vfs::VfsFile;
 use foundation_nativeapis::{MemoryFs, VfsFileSystem};
 
@@ -20,7 +20,7 @@ fn memory_fs_timestamps_follow_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance_wall(Duration::from_millis(ORIGIN_MILLIS));
 
-    let fs = MemoryFs::new(clock.clone());
+    let fs = MemoryFs::new(Ctx::fixed(clock.clone()));
     let file = fs.create("/hello.txt", 0o644).unwrap();
     file.write_at(b"hello", 0).unwrap();
 

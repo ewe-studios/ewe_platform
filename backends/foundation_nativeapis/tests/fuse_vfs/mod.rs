@@ -92,13 +92,15 @@ fn test_child_path() {
 
 #[test]
 fn test_fuse_mount_construction() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let debug = format!("{mount:?}");
     assert!(debug.contains("FuseMount"));
@@ -112,13 +114,15 @@ fn test_fuse_mount_custom_options() {
         auto_unmount: false,
         allow_other: true,
     };
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let mount = FuseMount::new(
         fs,
         opts,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let debug = format!("{mount:?}");
     assert!(debug.contains("FuseMount"));
@@ -126,13 +130,15 @@ fn test_fuse_mount_custom_options() {
 
 #[test]
 fn test_file_handle_allocation() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let fh1 = mount.alloc_fh();
@@ -146,20 +152,24 @@ fn test_file_handle_allocation() {
 
 #[test]
 fn test_metadata_to_attr_regular_file() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let meta = VfsMetadata::new_file(
         5,
         1024,
         0o644,
-        &*std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let attr = mount.metadata_to_attr(&meta);
 
@@ -171,19 +181,23 @@ fn test_metadata_to_attr_regular_file() {
 
 #[test]
 fn test_metadata_to_attr_directory() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let meta = VfsMetadata::new_directory(
         3,
         0o755,
-        &*std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let attr = mount.metadata_to_attr(&meta);
 
@@ -196,18 +210,18 @@ fn test_metadata_to_attr_directory() {
 
 #[test]
 fn test_memory_fs_root_has_inode_1() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let ino = fs.inode("/").unwrap();
     assert_eq!(ino, ROOT_INO);
 }
 
 #[test]
 fn test_memory_fs_inode_monotonic_allocation() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/a").unwrap();
     fs.mkdir("/b").unwrap();
     fs.write_file("/c.txt", b"data").unwrap();
@@ -223,9 +237,9 @@ fn test_memory_fs_inode_monotonic_allocation() {
 
 #[test]
 fn test_memory_fs_path_by_inode_roundtrip() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/docs").unwrap();
     fs.write_file("/docs/readme.txt", b"hello").unwrap();
 
@@ -236,9 +250,9 @@ fn test_memory_fs_path_by_inode_roundtrip() {
 
 #[test]
 fn test_memory_fs_stat_by_inode() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/test.bin", b"content").unwrap();
 
     let ino = fs.inode("/test.bin").unwrap();
@@ -251,9 +265,9 @@ fn test_memory_fs_stat_by_inode() {
 
 #[test]
 fn test_memory_fs_rename_preserves_inode() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/old.txt", b"data").unwrap();
 
     let ino_before = fs.inode("/old.txt").unwrap();
@@ -268,9 +282,9 @@ fn test_memory_fs_rename_preserves_inode() {
 
 #[test]
 fn test_memory_fs_remove_invalidates_inode() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/gone.txt", b"bye").unwrap();
 
     let ino = fs.inode("/gone.txt").unwrap();
@@ -281,9 +295,9 @@ fn test_memory_fs_remove_invalidates_inode() {
 
 #[test]
 fn test_memory_fs_stat_populates_inode() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/subdir").unwrap();
 
     let meta = fs.stat("/subdir").unwrap();
@@ -293,9 +307,9 @@ fn test_memory_fs_stat_populates_inode() {
 
 #[test]
 fn test_memory_fs_dir_entries_have_inodes() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/dir").unwrap();
     fs.write_file("/dir/a.txt", b"a").unwrap();
     fs.write_file("/dir/b.txt", b"b").unwrap();
@@ -314,9 +328,9 @@ fn test_memory_fs_dir_entries_have_inodes() {
 
 #[test]
 fn test_fuse_mount_with_populated_fs() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/docs").unwrap();
     fs.write_file("/docs/readme.txt", b"hello").unwrap();
     fs.write_file("/config.json", b"{}").unwrap();
@@ -324,7 +338,9 @@ fn test_fuse_mount_with_populated_fs() {
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let debug = format!("{mount:?}");
     assert!(debug.contains("FuseMount"));
@@ -347,9 +363,9 @@ fn test_fuse_mount_and_read_file() {
         return;
     }
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/hello.txt", b"hello from VFS").unwrap();
     fs.mkdir("/subdir").unwrap();
     fs.write_file("/subdir/nested.txt", b"nested content")
@@ -359,7 +375,9 @@ fn test_fuse_mount_and_read_file() {
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let bg = match mount.mount_background(mountpoint.path().to_str().unwrap()) {
@@ -395,16 +413,18 @@ fn test_fuse_write_through_mount() {
         return;
     }
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/existing.txt", b"original").unwrap();
 
     let mountpoint = create_temp_mountpoint();
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let bg = match mount.mount_background(mountpoint.path().to_str().unwrap()) {
@@ -432,14 +452,16 @@ fn test_fuse_unmount_cleanly() {
         return;
     }
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let mountpoint = create_temp_mountpoint();
     let mount = FuseMount::new(
         fs,
         FuseMountOptions::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let bg = match mount.mount_background(mountpoint.path().to_str().unwrap()) {

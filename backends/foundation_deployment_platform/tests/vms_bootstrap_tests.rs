@@ -49,7 +49,11 @@ fn test_logger_creates_directory() {
     use std::path::PathBuf;
     use std::sync::Arc;
 
-    let logger = BootstrapLogger::new("test-logger-tmp", Arc::new(MonotonicClock::new())).unwrap();
+    let logger = BootstrapLogger::new(
+        "test-logger-tmp",
+        foundation_core::valtron::Ctx::fixed(Arc::new(MonotonicClock::new())),
+    )
+    .unwrap();
     assert!(PathBuf::from(".testbed/test-logger-tmp").exists());
     assert!(logger.log_path().exists());
     let _ = std::fs::remove_dir_all(".testbed/test-logger-tmp");
@@ -66,7 +70,7 @@ fn test_wait_for_ssh_times_out_on_unreachable_port() {
     // Use a different port for this test
     let mut test_profile = profile.clone();
     test_profile.ssh_port = 64000;
-    let clock = MonotonicClock::new();
-    let result = wait_for_ssh(&test_profile, 1, &clock);
+    let ctx = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
+    let result = wait_for_ssh(&test_profile, 1, &ctx);
     assert!(result.is_err());
 }

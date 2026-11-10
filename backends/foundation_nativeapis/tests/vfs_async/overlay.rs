@@ -6,16 +6,16 @@ use foundation_nativeapis::shared::vfs::{
 };
 
 fn overlay_with_base_dir() -> OverlayFileSystem<MemoryFs, MemoryDelta> {
-    let base = MemoryFs::new(std::sync::Arc::new(
+    let base = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     base.mkdir_all("/src/deep").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
     OverlayFileSystem::new(
         base,
-        MemoryDelta::new(std::sync::Arc::new(
+        MemoryDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
             foundation_core::valtron::MonotonicClock::new(),
-        )),
+        ))),
     )
 }
 

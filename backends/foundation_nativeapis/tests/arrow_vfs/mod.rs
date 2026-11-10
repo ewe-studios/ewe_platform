@@ -39,7 +39,9 @@ fn test_vfs_metadata_roundtrip() {
         1,
         42,
         0o644,
-        &*std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let batch = meta.to_arrow().expect("to_arrow failed");
     let encoded = encode_ipc(&batch).expect("encode failed");

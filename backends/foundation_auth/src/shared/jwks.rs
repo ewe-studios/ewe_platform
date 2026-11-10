@@ -11,13 +11,12 @@
 //! - `find_key()` auto-fetches if cache is empty or expired
 //! - No background refresh — lazy on access only
 
-use std::sync::Arc;
 use std::time::Duration;
 
 use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_compact::Instant;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -266,7 +265,7 @@ pub struct JwksManager {
     cached_jwks: Option<(Jwks, Instant)>,
     cache_ttl: Duration,
     max_error_body: usize,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl JwksManager {
@@ -274,8 +273,8 @@ impl JwksManager {
     /// HTTP client ([`HttpClientBuilder`]: the native client, or the fetch
     /// client on wasm32).
     #[must_use]
-    pub fn new(jwks_url: String, cache_ttl: Option<Duration>, clock: Arc<dyn Clock>) -> Self {
-        Self::with_client(HttpClientBuilder::new().build(), jwks_url, cache_ttl, clock)
+    pub fn new(jwks_url: String, cache_ttl: Option<Duration>, ctx: Ctx) -> Self {
+        Self::with_client(HttpClientBuilder::new().build(), jwks_url, cache_ttl, ctx)
     }
 
     /// Create a new JWKS manager that fetches through `http` (a shared
@@ -285,7 +284,7 @@ impl JwksManager {
         http: DynNetClient,
         jwks_url: String,
         cache_ttl: Option<Duration>,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             http,
@@ -293,7 +292,7 @@ impl JwksManager {
             cached_jwks: None,
             cache_ttl: cache_ttl.unwrap_or(Duration::from_secs(3600)),
             max_error_body: DEFAULT_MAX_ERROR_BODY,
-            clock,
+            ctx,
         }
     }
 
@@ -321,7 +320,7 @@ impl JwksManager {
         if let Some(issuer) = extract_issuer_from_url(&self.jwks_url) {
             jwks.issuer = Some(issuer);
         }
-        self.cached_jwks = Some((jwks, self.clock.now()));
+        self.cached_jwks = Some((jwks, self.ctx.clock().now()));
         Ok(&self.cached_jwks.as_ref().unwrap().0)
     }
 
@@ -413,7 +412,7 @@ impl JwksManager {
     /// Check if the cache is still valid.
     fn is_cache_valid(&self) -> bool {
         self.cached_jwks.as_ref().is_some_and(|(_, fetched_at)| {
-            self.clock.now().duration_since(*fetched_at) < self.cache_ttl
+            self.ctx.clock().now().duration_since(*fetched_at) < self.cache_ttl
         })
     }
 }

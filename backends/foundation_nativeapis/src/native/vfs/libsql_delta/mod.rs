@@ -8,7 +8,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use libsql::{Connection, Database};
 
 use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
@@ -56,7 +56,7 @@ pub struct LibsqlDelta {
     replica: bool,
     conn: Arc<Connection>,
     chunk_config: ChunkConfig,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 /// Convert a [`libsql::Error`] into an [`ErrorTrace<VfsError>`].
@@ -88,14 +88,14 @@ impl LibsqlDelta {
     ///
     /// Returns [`VfsError::Io`] if parent directory creation fails, or
     /// [`VfsError::Backend`] if the path is not valid UTF-8 or the database cannot be opened.
-    pub async fn new(db_path: impl AsRef<Path>, clock: Arc<dyn Clock>) -> VfsResult<Self> {
+    pub async fn new(db_path: impl AsRef<Path>, ctx: Ctx) -> VfsResult<Self> {
         Self::with_config(
             db_path,
             LibsqlDeltaConfig {
                 chunk_config: ChunkConfig::default(),
                 turso_remote: None,
             },
-            clock,
+            ctx,
         )
         .await
     }
@@ -111,7 +111,7 @@ impl LibsqlDelta {
     pub async fn with_config(
         db_path: impl AsRef<Path>,
         config: LibsqlDeltaConfig,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let path_str = prepare_db_path(db_path.as_ref())?;
         let db = if let Some(ref remote) = config.turso_remote {
@@ -130,7 +130,7 @@ impl LibsqlDelta {
                 .map_err(err)?
         };
         let replica = config.turso_remote.is_some();
-        Self::open_db(db, config.chunk_config, true, replica, clock).await
+        Self::open_db(db, config.chunk_config, true, replica, ctx).await
     }
 
     /// Create an in-memory `libsql` database (useful for testing).
@@ -138,12 +138,12 @@ impl LibsqlDelta {
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if the database cannot be opened.
-    pub async fn in_memory(clock: Arc<dyn Clock>) -> VfsResult<Self> {
+    pub async fn in_memory(ctx: Ctx) -> VfsResult<Self> {
         let db = libsql::Builder::new_local(":memory:")
             .build()
             .await
             .map_err(err)?;
-        Self::open_db(db, ChunkConfig::default(), false, false, clock).await
+        Self::open_db(db, ChunkConfig::default(), false, false, ctx).await
     }
 
     /// Connects, creates the schema and, for a file database, sets the pragmas.
@@ -152,7 +152,7 @@ impl LibsqlDelta {
         chunk_config: ChunkConfig,
         pragmas: bool,
         replica: bool,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let conn = db.connect().map_err(err)?;
         conn.execute_batch(&schema::CREATE_ALL).await.map_err(err)?;
@@ -166,7 +166,7 @@ impl LibsqlDelta {
             replica,
             conn: Arc::new(conn),
             chunk_config,
-            clock,
+            ctx,
         })
     }
 
@@ -179,7 +179,7 @@ impl LibsqlDelta {
         local_path: impl AsRef<Path>,
         turso_url: &str,
         auth_token: &str,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let config = LibsqlDeltaConfig {
             chunk_config: ChunkConfig::default(),
@@ -188,7 +188,7 @@ impl LibsqlDelta {
                 auth_token: auth_token.to_string(),
             }),
         };
-        Self::with_config(local_path, config, clock).await
+        Self::with_config(local_path, config, ctx).await
     }
 
     /// Synchronize the local replica with the Turso remote, if configured.
@@ -250,7 +250,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
 
     async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
         let ino = resolve_path_async(self.conn.clone(), path).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.conn
             .execute(
                 "UPDATE vfs_dentry SET permissions = ?, updated_at = ? WHERE ino = ?",
@@ -263,7 +263,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
 
     async fn symlink_async(&self, target: String, link_path: String) -> VfsResult<()> {
         let (parent_ino, name) = resolve_parent_async(self.conn.clone(), link_path).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = next_version_id();
         self.conn
             .execute(
@@ -300,7 +300,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
     async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
         let ino = resolve_path_async(self.conn.clone(), from).await?;
         let (new_parent_ino, new_name) = resolve_parent_async(self.conn.clone(), to).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.conn
             .execute(
                 "UPDATE vfs_dentry SET name = ?, parent_ino = ?, updated_at = ? WHERE ino = ?",
@@ -382,7 +382,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             mode,
             chunk_size,
             size,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -420,13 +420,13 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             db: self.conn.clone(),
             ino,
             path,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
         let (parent_ino, name) = resolve_parent_async(self.conn.clone(), path.clone()).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = next_version_id();
         let chunk_size =
             i64::try_from(self.chunk_config.default_chunk_size).expect("chunk size overflow");
@@ -479,13 +479,13 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             mode: OpenMode::Write,
             chunk_size: chunk_size as usize,
             size: 0,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
     async fn mkdir_async(&self, path: String) -> VfsResult<()> {
         let (parent_ino, name) = resolve_parent_async(self.conn.clone(), path.clone()).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = next_version_id();
         self.conn
             .execute(
@@ -525,7 +525,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             ino,
             &data,
             self.chunk_config.default_chunk_size,
-            self.clock.as_ref(),
+            &self.ctx,
         )
         .await
     }
@@ -653,7 +653,7 @@ impl AsyncDeltaStore for LibsqlDelta {
     }
 
     async fn reset_async(&self) -> VfsResult<()> {
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.conn
             .execute("DELETE FROM vfs_chunks", ())
             .await
@@ -682,9 +682,9 @@ impl AsyncDeltaStore for LibsqlDelta {
     }
 }
 
-/// Current wall time in milliseconds since the Unix epoch, from `clock`.
-fn now_ms(clock: &dyn Clock) -> i64 {
-    foundation_compact::time::unix_millis(clock.wall_now())
+/// Current wall time in milliseconds since the Unix epoch, from the clock of `ctx`.
+fn now_ms(ctx: &Ctx) -> i64 {
+    foundation_compact::time::unix_millis(ctx.clock().wall_now())
 }
 
 fn whiteout_prefixes(path: &str) -> Vec<String> {

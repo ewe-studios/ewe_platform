@@ -115,7 +115,7 @@ fn mfa_login_resets_failed_attempts_only_after_the_code() {
         "/auth/v1/mfa",
         &serde_json::json!({
             "challenge_id": challenge.body["challenge_id"],
-            "code": secret.now(env.storage.clock.as_ref()),
+            "code": secret.now(&env.storage.ctx),
         }),
         None,
     );

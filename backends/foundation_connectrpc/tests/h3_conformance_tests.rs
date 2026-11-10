@@ -21,7 +21,6 @@ mod h3_conformance {
         HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx,
     };
     use foundation_core::valtron::{Ctx as VCtx, Stream as VStream, TaskIterator};
-    use foundation_http::shared::context::Ctx;
     use foundation_netio::http3::connection::{H3Connection, H3Request};
     use foundation_netio::netcap::context::ConnectionContext;
     use foundation_netio::quic::{

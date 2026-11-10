@@ -26,7 +26,7 @@ use std::io::SeekFrom;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_db::{BlobStore, StorageError};
 use foundation_errstacks::ErrorTrace;
 use futures_lite::StreamExt;
@@ -109,9 +109,9 @@ fn new_meta(
     size: u64,
     file_type: VfsFileType,
     permissions: u32,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> VfsMetadata {
-    let now = clock.wall_now();
+    let now = ctx.clock().wall_now();
     VfsMetadata {
         inode: path_hash(path),
         size,
@@ -167,7 +167,7 @@ pub struct BlobDelta<S: BlobStore + 'static> {
     store: Arc<S>,
     capabilities: VfsCapabilities,
     chunk_size: usize,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
@@ -176,7 +176,7 @@ impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
             store: Arc::clone(&self.store),
             capabilities: self.capabilities,
             chunk_size: self.chunk_size,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }
     }
 }
@@ -184,17 +184,13 @@ impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
 impl<S: BlobStore + 'static> BlobDelta<S> {
     /// A delta over `store` with the default configuration.
     #[must_use]
-    pub fn from_store(store: S, clock: Arc<dyn Clock>) -> Self {
-        Self::from_store_with_config(store, BlobDeltaConfig::default(), clock)
+    pub fn from_store(store: S, ctx: Ctx) -> Self {
+        Self::from_store_with_config(store, BlobDeltaConfig::default(), ctx)
     }
 
     /// A delta over `store` with `config`.
     #[must_use]
-    pub fn from_store_with_config(
-        store: S,
-        config: BlobDeltaConfig,
-        clock: Arc<dyn Clock>,
-    ) -> Self {
+    pub fn from_store_with_config(store: S, config: BlobDeltaConfig, ctx: Ctx) -> Self {
         Self {
             store: Arc::new(store),
             capabilities: VfsCapabilities {
@@ -205,7 +201,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
                 persistent: true,
             },
             chunk_size: config.chunk_size.max(1),
-            clock,
+            ctx,
         }
     }
 
@@ -354,9 +350,9 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         let mut meta = self
             .get_meta(path)
             .await?
-            .unwrap_or_else(|| new_meta(path, 0, VfsFileType::Regular, 0o644, self.clock.as_ref()));
+            .unwrap_or_else(|| new_meta(path, 0, VfsFileType::Regular, 0o644, &self.ctx));
         meta.size = size;
-        meta.modified = Some(self.clock.wall_now());
+        meta.modified = Some(self.ctx.clock().wall_now());
         self.store_meta(path, &meta).await
     }
 
@@ -385,7 +381,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
                 data.len() as u64,
                 VfsFileType::Regular,
                 0o644,
-                self.clock.as_ref(),
+                &self.ctx,
             )),
             None => Err(not_found(path)),
         }
@@ -416,7 +412,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         }
         self.store_meta(
             path,
-            &new_meta(path, 0, VfsFileType::Regular, mode, self.clock.as_ref()),
+            &new_meta(path, 0, VfsFileType::Regular, mode, &self.ctx),
         )
         .await?;
         // A path created again is no longer whited out.
@@ -430,7 +426,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     async fn mkdir(&self, path: &str) -> VfsResult<()> {
         self.store_meta(
             path,
-            &new_meta(path, 0, VfsFileType::Directory, 0o755, self.clock.as_ref()),
+            &new_meta(path, 0, VfsFileType::Directory, 0o755, &self.ctx),
         )
         .await?;
         self.store

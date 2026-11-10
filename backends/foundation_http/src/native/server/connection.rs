@@ -81,11 +81,11 @@ enum HandlerState {
 }
 
 /// Ready once an instant has passed on the connection's clock.
-struct DeadlinePassed(Instant, Arc<dyn foundation_core::valtron::Clock>);
+struct DeadlinePassed(Instant, Ctx);
 
 impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.1.now() >= self.0
+        self.1.clock().now() >= self.0
     }
 
     fn deadline(&self) -> Option<Instant> {
@@ -151,8 +151,8 @@ pub struct ConnectionHandler {
     idle_poll_count: u32,
     idle_since: Option<Instant>,
     total_delay_cycles: u32,
-    /// The engine clock, seeded from the pool root `Ctx`.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    /// The engine context, seeded from the pool root `Ctx`.
+    ctx: Ctx,
 }
 
 impl ConnectionHandler {
@@ -171,12 +171,8 @@ impl ConnectionHandler {
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
-        clock: Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
-        // Store the engine clock in the app context so a dispatched ConnectRPC
-        // server reads the same clock for its call deadlines.
-        app.context()
-            .store::<Arc<dyn foundation_core::valtron::Clock>>(clock.clone());
         let max_expect_attempts = config
             .timeout_calculator
             .config()
@@ -202,7 +198,7 @@ impl ConnectionHandler {
             idle_poll_count: 0,
             idle_since: None,
             total_delay_cycles: 0,
-            clock,
+            ctx,
         }
     }
 
@@ -327,13 +323,15 @@ impl ConnectionHandler {
 
     fn track_idle(&mut self) {
         if self.idle_since.is_none() {
-            self.idle_since = Some(self.clock.now());
+            self.idle_since = Some(self.ctx.clock().now());
         }
     }
 
     fn idle_exceeded(&self) -> bool {
         match self.idle_since {
-            Some(since) => self.clock.now().saturating_duration_since(since) >= self.idle_timeout(),
+            Some(since) => {
+                self.ctx.clock().now().saturating_duration_since(since) >= self.idle_timeout()
+            }
             None => false,
         }
     }
@@ -537,7 +535,7 @@ impl ConnectionHandler {
         );
         // End the connection at the idle deadline even when no bytes arrive.
         if let Some(deadline) = self.idle_since.map(|since| since + self.idle_timeout()) {
-            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.clock.clone())));
+            ready = ready.with(Arc::new(DeadlinePassed(deadline, self.ctx.clone())));
         }
         tracing::trace!(
             client_ip = %self.client_ip,
@@ -737,7 +735,7 @@ impl ConnectionHandler {
         );
 
         // If a parked overlay wait already ran past its deadline, give up now.
-        let now = self.clock.now();
+        let now = self.ctx.clock().now();
         if let Some(deadline) = deadline {
             if now >= deadline {
                 return self.send_408(attempt);
@@ -766,7 +764,7 @@ impl ConnectionHandler {
             });
             let readiness: EventReadinessPtr = Arc::new(AnyReadiness::either(
                 Arc::new(signal),
-                Arc::new(DeadlinePassed(deadline, self.clock.clone())),
+                Arc::new(DeadlinePassed(deadline, self.ctx.clone())),
             ));
             return Some(TaskStatus::Depends(readiness));
         }

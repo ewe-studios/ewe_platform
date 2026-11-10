@@ -1,5 +1,5 @@
 use foundation_compact::SystemTime;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum OpenMode {
@@ -114,10 +114,10 @@ pub struct VfsMetadata {
 }
 
 impl VfsMetadata {
-    /// A regular-file entry whose three times come from `clock`.
+    /// A regular-file entry whose three times come from the clock of `ctx`.
     #[must_use]
-    pub fn new_file(inode: u64, size: u64, permissions: u32, clock: &dyn Clock) -> Self {
-        let now = Some(clock.wall_now());
+    pub fn new_file(inode: u64, size: u64, permissions: u32, ctx: &Ctx) -> Self {
+        let now = Some(ctx.clock().wall_now());
         Self {
             inode,
             size,
@@ -133,10 +133,10 @@ impl VfsMetadata {
         }
     }
 
-    /// A directory entry whose three times come from `clock`.
+    /// A directory entry whose three times come from the clock of `ctx`.
     #[must_use]
-    pub fn new_directory(inode: u64, permissions: u32, clock: &dyn Clock) -> Self {
-        let now = Some(clock.wall_now());
+    pub fn new_directory(inode: u64, permissions: u32, ctx: &Ctx) -> Self {
+        let now = Some(ctx.clock().wall_now());
         Self {
             inode,
             size: 0,
@@ -152,10 +152,10 @@ impl VfsMetadata {
         }
     }
 
-    /// A symlink entry whose three times come from `clock`.
+    /// A symlink entry whose three times come from the clock of `ctx`.
     #[must_use]
-    pub fn new_symlink(inode: u64, clock: &dyn Clock) -> Self {
-        let now = Some(clock.wall_now());
+    pub fn new_symlink(inode: u64, ctx: &Ctx) -> Self {
+        let now = Some(ctx.clock().wall_now());
         Self {
             inode,
             size: 0,

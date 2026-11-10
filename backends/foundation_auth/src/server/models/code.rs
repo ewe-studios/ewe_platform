@@ -3,7 +3,7 @@
 use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
@@ -37,9 +37,9 @@ impl AuthorizationCode {
         scope: String,
         nonce: Option<String>,
         ttl: Duration,
-        clock: &dyn Clock,
+        ctx: &Ctx,
     ) -> Self {
-        let now = now_millis(clock);
+        let now = now_millis(ctx);
         Self {
             code: generate_random_code(64),
             user_id,
@@ -54,8 +54,8 @@ impl AuthorizationCode {
     }
 
     #[must_use]
-    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
-        now_millis(clock) >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_millis(ctx) >= self.expires_at
     }
 
     #[must_use]
@@ -84,14 +84,8 @@ pub struct DeviceCode {
 
 impl DeviceCode {
     #[must_use]
-    pub fn new(
-        client_id: String,
-        scope: String,
-        ttl: Duration,
-        interval: u32,
-        clock: &dyn Clock,
-    ) -> Self {
-        let now = now_millis(clock);
+    pub fn new(client_id: String, scope: String, ttl: Duration, interval: u32, ctx: &Ctx) -> Self {
+        let now = now_millis(ctx);
         Self {
             device_code: generate_random_code(64),
             user_code: generate_user_code(),
@@ -105,8 +99,8 @@ impl DeviceCode {
     }
 
     #[must_use]
-    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
-        now_millis(clock) >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_millis(ctx) >= self.expires_at
     }
 
     #[must_use]

@@ -3,7 +3,7 @@
 //! WHY: Both QEMU and UTM providers share a single state file format
 //! (`VmState`) with `provider_id/provider_internal_id` fields.
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::config::Result;
 use crate::state;
@@ -27,7 +27,7 @@ pub fn save_from_runtime(
     uuid: &str,
     ssh_port: u16,
     bootstrapped: bool,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> Result<()> {
     let vm_state = state::from_runtime(
         profile_name,
@@ -39,7 +39,7 @@ pub fn save_from_runtime(
         None, // rdp_port
         0,    // vnc_port (UTM uses different display)
         bootstrapped,
-        clock,
+        ctx,
     );
     state::save(&vm_state)
 }

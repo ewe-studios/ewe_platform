@@ -11,12 +11,12 @@ use foundation_auth::server::models::provider::{
     ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider,
 };
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
-use foundation_core::valtron::{valtron_test, MonotonicClock};
+use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
 use foundation_db::StorageProvider;
 use tempfile::TempDir;
 
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 /// Build a real Turso-backed query store with all migrations applied.

@@ -6,13 +6,12 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_triangle
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
-    use foundation_core::valtron::MonotonicClock;
     use foundation_macros::TypeUuid;
     use foundation_nativeapis::ipc::{
         self, Label, LabelOp, MemoryRegion, Message, Options, Selector,
     };
     use serde::{Deserialize, Serialize};
-    use std::{sync::Arc, thread, time::Duration};
+    use std::{thread, time::Duration};
 
     #[derive(Debug, Serialize, Deserialize, TypeUuid)]
     #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
@@ -41,7 +40,7 @@ fn main() {
             let (sender, mut receiver) = ipc::join::<Ping, Ping>(
                 opts,
                 Some(Duration::from_secs(5)),
-                Arc::new(MonotonicClock::new()),
+                foundation_core::valtron::Ctx::host(),
             )
             .expect("join");
 

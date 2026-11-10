@@ -1,7 +1,7 @@
 //! Chunking strategy for LibsqlDelta.
 //! File content is stored as ordered chunks in vfs_chunks.
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use libsql::Connection;
 
 use super::types;
@@ -73,7 +73,7 @@ pub async fn write_all_chunks_async(
     ino: i64,
     data: &[u8],
     chunk_size: usize,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> VfsResult<()> {
     conn.execute("DELETE FROM vfs_chunks WHERE ino = ?", [ino])
         .await
@@ -105,7 +105,7 @@ pub async fn write_all_chunks_async(
     }
 
     let checksum = blake3::hash(data);
-    let updated_at = foundation_compact::time::unix_millis(clock.wall_now());
+    let updated_at = foundation_compact::time::unix_millis(ctx.clock().wall_now());
 
     conn.execute(
         "UPDATE vfs_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
@@ -128,7 +128,7 @@ pub async fn truncate_file_async(
     ino: i64,
     new_size: u64,
     chunk_size: usize,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> VfsResult<()> {
     if new_size == 0 {
         conn.execute("DELETE FROM vfs_chunks WHERE ino = ?", [ino])
@@ -155,7 +155,7 @@ pub async fn truncate_file_async(
         }
     }
 
-    let updated_at = foundation_compact::time::unix_millis(clock.wall_now());
+    let updated_at = foundation_compact::time::unix_millis(ctx.clock().wall_now());
 
     conn.execute(
         "UPDATE vfs_dentry SET size = ?, updated_at = ? WHERE ino = ?",

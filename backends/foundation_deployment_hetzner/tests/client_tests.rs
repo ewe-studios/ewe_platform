@@ -107,9 +107,9 @@ fn from_env_without_any_variable_set_fails_rather_than_building_an_anonymous_cli
         eprintln!("SKIP: a Hetzner token is exported in this environment");
         return;
     }
-    match HetznerClient::from_env(std::sync::Arc::new(
+    match HetznerClient::from_env(&foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    )) {
+    ))) {
         Err(HetznerError::NoCredentials { looked_for }) => {
             assert_eq!(looked_for, credential_vars());
         }
@@ -126,7 +126,9 @@ fn debug_never_prints_the_token() {
     // tracing::debug! away from a token in a log — and logs get shipped.
     let client = HetznerClient::new(
         "super-secret-token-value",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let debug = format!("{client:?}");
     assert!(
@@ -186,7 +188,9 @@ fn the_api_version_is_pinned_not_passed() {
     // An API version is not a per-call decision (feature 00 §3).
     let client = HetznerClient::new(
         "t",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     assert_eq!(client.api_version(), "v1");
     assert_eq!(API_VERSION, "v1");
@@ -197,7 +201,9 @@ fn the_api_version_is_pinned_not_passed() {
 fn with_base_url_points_the_client_at_a_mock() {
     let client = HetznerClient::new(
         "t",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .with_base_url("http://127.0.0.1:8080");
     assert_eq!(client.base_url(), "http://127.0.0.1:8080");

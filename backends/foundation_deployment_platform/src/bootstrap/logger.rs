@@ -4,22 +4,22 @@
 //! output, so CLI users see progress in real time while the log captures
 //! the full record for later inspection.
 
+use foundation_compact::Instant;
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, Ctx};
 
 /// Thread-safe bootstrap logger.
 pub struct BootstrapLogger {
     vm_name: String,
     log_file: Mutex<File>,
-    /// The host's clock. Every step duration and log timestamp reads it, so a
-    /// test can control both (AGENTS rule 11).
-    clock: Arc<dyn Clock>,
-    /// The instant the logger was built, on [`Self::clock`].
+    /// The host's context. Every step duration and log timestamp reads its
+    /// clock, so a test can control both (AGENTS rule 11).
+    ctx: Ctx,
+    /// The instant the logger was built, on the clock of [`Self::ctx`].
     start: Instant,
 }
 
@@ -28,7 +28,7 @@ impl BootstrapLogger {
     ///
     /// # Errors
     /// Returns an error if the log directory or file cannot be created.
-    pub fn new(vm_name: &str, clock: Arc<dyn Clock>) -> std::io::Result<Self> {
+    pub fn new(vm_name: &str, ctx: Ctx) -> std::io::Result<Self> {
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         let log_dir = cwd.join(".testbed").join(vm_name);
         fs::create_dir_all(&log_dir)?;
@@ -37,11 +37,11 @@ impl BootstrapLogger {
             .create(true)
             .append(true)
             .open(&log_path)?;
-        let start = clock.now();
+        let start = ctx.clock().now();
         Ok(Self {
             vm_name: vm_name.to_string(),
             log_file: Mutex::new(file),
-            clock,
+            ctx,
             start,
         })
     }
@@ -49,15 +49,21 @@ impl BootstrapLogger {
     /// The injected clock that this logger and its callers read.
     #[must_use]
     pub fn clock(&self) -> Arc<dyn Clock> {
-        Arc::clone(&self.clock)
+        self.ctx.clock()
     }
 
-    /// The current monotonic instant on [`Self::clock`].
+    /// The injected context, for a client built from this logger.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
+    }
+
+    /// The current monotonic instant on the clock of [`Self::ctx`].
     fn now(&self) -> Instant {
-        self.clock.now()
+        self.ctx.clock().now()
     }
 
-    /// The time since the logger was built, on [`Self::clock`].
+    /// The time since the logger was built, on the clock of [`Self::ctx`].
     fn since_start(&self) -> std::time::Duration {
         self.now().duration_since(self.start)
     }

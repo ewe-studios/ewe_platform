@@ -8,9 +8,7 @@
 //! [`SyncFs`](crate::shared::vfs::sync_bridge::SyncFs). Storage layout: see
 //! [`blob_delta`](super::blob_delta).
 
-use std::sync::Arc;
-
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_db::R2Store;
 use foundation_errstacks::ErrorTrace;
 
@@ -38,13 +36,13 @@ impl BlobDelta<R2Store> {
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if a variable is missing.
-    pub fn from_env(clock: Arc<dyn Clock>) -> VfsResult<Self> {
+    pub fn from_env(ctx: Ctx) -> VfsResult<Self> {
         let account_id = env("CF_ACCOUNT_ID")?;
         let api_token = env("CF_API_TOKEN")?;
         let bucket = env("CF_R2_BUCKET")?;
         Ok(Self::from_store(
             R2Store::new_blob(&api_token, &account_id, &bucket, "vfs"),
-            clock,
+            ctx,
         ))
     }
 
@@ -53,13 +51,8 @@ impl BlobDelta<R2Store> {
     /// # Errors
     ///
     /// Infallible today; `Result` for parity with the other constructors.
-    pub fn new(
-        api_token: &str,
-        account_id: &str,
-        bucket: &str,
-        clock: Arc<dyn Clock>,
-    ) -> VfsResult<Self> {
-        Self::new_with_base_url(api_token, account_id, bucket, None, clock)
+    pub fn new(api_token: &str, account_id: &str, bucket: &str, ctx: Ctx) -> VfsResult<Self> {
+        Self::new_with_base_url(api_token, account_id, bucket, None, ctx)
     }
 
     /// An R2 delta against `base_url` or Cloudflare. `base_url` is the whole API
@@ -74,12 +67,12 @@ impl BlobDelta<R2Store> {
         account_id: &str,
         bucket: &str,
         base_url: Option<&str>,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let store = match base_url {
             Some(url) => R2Store::new_blob_with_base_url(api_token, account_id, bucket, "vfs", url),
             None => R2Store::new_blob(api_token, account_id, bucket, "vfs"),
         };
-        Ok(Self::from_store(store, clock))
+        Ok(Self::from_store(store, ctx))
     }
 }

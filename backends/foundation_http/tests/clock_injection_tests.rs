@@ -47,7 +47,7 @@ fn the_protocol_detection_timeout_fires_on_the_injected_clock() {
         waits.guard(),
         KeepAliveConfig::default(),
         None,
-        clock.clone(),
+        Ctx::fixed(clock.clone()),
     );
 
     let ctx = Ctx::fixed(clock.clone());

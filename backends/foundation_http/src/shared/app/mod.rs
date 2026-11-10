@@ -12,7 +12,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_core::valtron::Ctx;
 use foundation_netio::shared::http::SimpleMethod;
 
 use crate::shared::middleware::RequestMiddleware;
@@ -62,20 +62,10 @@ impl<S> HttpApp<S> {
         }
     }
 
-    /// Build an empty `HttpApp` from the given clock.
-    ///
-    /// This is the deterministic-test entry point when only the clock must be
-    /// injected. It builds on [`HttpApp::with_ctx`] with [`Ctx::fixed`], so the
-    /// RNG is the deterministic seed-`0` stream and no real clock is read.
-    #[must_use]
-    pub fn with_clock(clock: Arc<dyn Clock>) -> Self {
-        Self::with_ctx(Ctx::fixed(clock))
-    }
-
     /// Create a new empty `HttpApp`.
     ///
     /// This is a host entry point: it uses the real host clock. Use
-    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic test.
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new() -> Self
     where
@@ -114,8 +104,7 @@ impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
     /// Create a new empty `HttpApp` for `ServeWriter` handlers.
     ///
     /// This is a host entry point: it uses the real host clock. Use
-    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
-    /// test.
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_writer() -> Self {
         Self::with_ctx(Ctx::host())

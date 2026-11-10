@@ -39,7 +39,9 @@ const SSH_PORT: u16 = 2222;
 
 fn sshd_config() -> ContainerConfig {
     ContainerConfig::new("lscr.io/linuxserver/openssh-server:latest")
-        .clock(Arc::new(foundation_core::valtron::MonotonicClock::new()))
+        .ctx(foundation_core::valtron::Ctx::fixed(Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )))
         .port(SSH_PORT)
         .env("PUID", "1000")
         .env("PGID", "1000")
@@ -57,7 +59,9 @@ fn sshd_config() -> ContainerConfig {
 fn backend_and_host(host_port: u16) -> (Ssh2Backend, Host) {
     let pool = Arc::new(ConnectionPool::new(
         Duration::from_secs(30),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     ));
     let backend = Ssh2Backend::new(pool);
     let host =
@@ -211,7 +215,9 @@ fn test_execute_wrong_password_is_rejected() {
     let result = {
         let pool = Arc::new(ConnectionPool::new(
             Duration::from_secs(10),
-            Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         ));
         let backend = Ssh2Backend::new(pool);
         let host = Host::parse(&format!("{SSH_USER}@127.0.0.1:{port}"))

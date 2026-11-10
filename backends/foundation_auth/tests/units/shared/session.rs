@@ -8,11 +8,11 @@ use foundation_auth::shared::session::{
     KeyRing, Session, SessionConfig, SessionManager, SigningKey, TokenSigner,
 };
 use foundation_auth::CredentialStore;
-use foundation_core::valtron::{valtron_test, Clock, MonotonicClock};
+use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
 use std::sync::Arc;
 
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn make_manager() -> SessionManager<CredentialStorage> {
@@ -71,19 +71,19 @@ fn test_session_is_valid() {
         last_active_at: Utc::now(),
         revoked: false,
     };
-    assert!(session.is_valid(test_clock().as_ref()));
+    assert!(session.is_valid(&test_clock()));
 
     let expired = Session {
         expires_at: Utc::now() - Duration::hours(1),
         ..session.clone()
     };
-    assert!(!expired.is_valid(test_clock().as_ref()));
+    assert!(!expired.is_valid(&test_clock()));
 
     let revoked = Session {
         revoked: true,
         ..session.clone()
     };
-    assert!(!revoked.is_valid(test_clock().as_ref()));
+    assert!(!revoked.is_valid(&test_clock()));
 }
 
 #[test]

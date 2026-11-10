@@ -36,7 +36,7 @@ async fn provider_client() -> (ProviderClient<FileStateStore>, std::path::PathBu
             "ewe-test",
             "dev",
             store,
-            std::sync::Arc::new(MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
         ),
         dir,
     )

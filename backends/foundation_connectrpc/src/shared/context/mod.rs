@@ -28,7 +28,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::Instant;
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::Clock;
 use foundation_http::shared::context::Ctx;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};
@@ -123,14 +123,14 @@ pub struct RequestContext {
     /// connection's requests (Decision 04 Q13 / Decision 12 §13).
     pub connection: Arc<ConnectionContext>,
     cancel: CancelSignal,
-    /// The engine clock that measures the deadline and the remaining timeout.
-    pub clock: Arc<dyn Clock>,
+    /// The context whose clock measures the deadline and the remaining timeout.
+    pub ctx: Ctx,
 }
 
 impl RequestContext {
     /// An empty per-call state (base/background context).
     #[must_use]
-    pub fn empty(is_client: bool) -> Self {
+    pub fn empty(is_client: bool, ctx: Ctx) -> Self {
         Self {
             spec: Arc::new(Spec::empty(is_client)),
             peer: Arc::new(Peer::empty()),
@@ -139,9 +139,7 @@ impl RequestContext {
             extensions: Extensions::new(),
             connection: Arc::new(ConnectionContext::default()),
             cancel: CancelSignal::new(),
-            // A base context has no server engine; the host shortcut names the
-            // real clock explicitly.
-            clock: Arc::new(MonotonicClock::new()),
+            ctx,
         }
     }
 
@@ -159,7 +157,7 @@ impl RequestContext {
         extensions: Extensions,
         connection: Arc<ConnectionContext>,
         cancel: CancelSignal,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             spec: Arc::new(spec),
@@ -169,7 +167,7 @@ impl RequestContext {
             extensions,
             connection,
             cancel,
-            clock,
+            ctx,
         }
     }
 
@@ -188,7 +186,7 @@ impl RequestContext {
     #[must_use]
     pub fn remaining_timeout(&self) -> Option<Duration> {
         self.deadline
-            .map(|d| d.saturating_duration_since(self.clock.now()))
+            .map(|d| d.saturating_duration_since(self.ctx.clock().now()))
     }
 
     /// The call's cancel signal — the transport holds a clone and fires it on
@@ -215,8 +213,7 @@ impl RpcCtx {
     /// Client-side base context: app deps only, empty per-call state.
     #[must_use]
     pub fn client(ctx: Ctx) -> RpcCtx {
-        let mut request = RequestContext::empty(true);
-        request.clock = ctx.clock();
+        let request = RequestContext::empty(true, ctx.clone());
         RpcCtx { ctx, request }
     }
 
@@ -228,15 +225,14 @@ impl RpcCtx {
     #[must_use]
     pub fn background() -> RpcCtx {
         let ctx = Ctx::host();
-        let mut request = RequestContext::empty(false);
-        request.clock = ctx.clock();
+        let request = RequestContext::empty(false, ctx.clone());
         RpcCtx { ctx, request }
     }
 
     /// The engine clock carried by this call context.
     #[must_use]
     pub fn clock(&self) -> Arc<dyn Clock> {
-        self.request.clock.clone()
+        self.ctx.clock()
     }
 
     // ── COW derivations: rebuild-and-move; the original is untouched ──
@@ -245,7 +241,7 @@ impl RpcCtx {
     /// unchanged; downstream layers receive the new context.
     #[must_use]
     pub fn with_deadline(mut self, d: Duration) -> RpcCtx {
-        self.request.deadline = Some(self.request.clock.now() + d);
+        self.request.deadline = Some(self.ctx.clock().now() + d);
         self
     }
 

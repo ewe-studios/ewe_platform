@@ -1100,10 +1100,9 @@ pub(crate) fn build_ctx(
     protocol: &dyn ProtocolHandler,
     cancel: CancelSignal,
 ) -> RpcCtx {
-    let clock = app_ctx.clock();
     let deadline = protocol
         .parse_timeout(&request.headers)
-        .map(|d| clock.now() + d);
+        .map(|d| app_ctx.clock().now() + d);
     let peer = Peer {
         addr: request
             .connection
@@ -1121,7 +1120,7 @@ pub(crate) fn build_ctx(
         foundation_netio::shared::http::Extensions::new(),
         request.connection.clone(),
         cancel,
-        clock,
+        app_ctx.clone(),
     );
     RpcCtx {
         ctx: app_ctx,

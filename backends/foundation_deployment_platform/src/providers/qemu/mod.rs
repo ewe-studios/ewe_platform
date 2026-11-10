@@ -1,9 +1,7 @@
 //! QEMU provider — Linux host, QEMU/KVM backend.
 
+use foundation_core::valtron::Ctx;
 use std::path::PathBuf;
-use std::sync::Arc;
-
-use foundation_core::valtron::Clock;
 
 use crate::config::{DisplayMode, Result, TestbedError, VmProfile};
 use crate::providers::{Provider, ProviderId, ResolvedPorts, VmHandle, VmProvider};
@@ -11,16 +9,16 @@ use crate::providers::{Provider, ProviderId, ResolvedPorts, VmHandle, VmProvider
 /// QEMU provider — launches and manages QEMU/KVM VMs on Linux.
 pub struct QemuProvider {
     display: DisplayMode,
-    /// The host's clock for every launch and shutdown deadline.
-    clock: Arc<dyn Clock>,
+    /// The host's context, for every launch and shutdown deadline.
+    ctx: Ctx,
 }
 
 impl QemuProvider {
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         QemuProvider {
             display: DisplayMode::Headless,
-            clock,
+            ctx,
         }
     }
 
@@ -32,12 +30,8 @@ impl QemuProvider {
 
     // ── Shared helpers ──
 
-    fn launch_vm(
-        profile: &VmProfile,
-        mode: DisplayMode,
-        clock: Arc<dyn Clock>,
-    ) -> Result<VmHandle> {
-        let mut config = crate::qemu::QemuConfig::new(profile.clone(), mode, clock);
+    fn launch_vm(profile: &VmProfile, mode: DisplayMode, ctx: Ctx) -> Result<VmHandle> {
+        let mut config = crate::qemu::QemuConfig::new(profile.clone(), mode, ctx);
 
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         if let Some((host_path, guest_path, readonly, _methods)) =
@@ -98,7 +92,7 @@ impl Provider for QemuProvider {
     }
 
     fn launch(&self, config: &VmProfile) -> Result<VmHandle> {
-        Self::launch_vm(config, self.display, Arc::clone(&self.clock))
+        Self::launch_vm(config, self.display, self.ctx.clone())
     }
 
     fn stop(&self, handle: &VmHandle) -> Result<()> {

@@ -7,27 +7,27 @@ use foundation_nativeapis::shared::vfs::{
 use tracing_test::traced_test;
 
 fn setup() -> SyncFs<OverlayFileSystem<MemoryFs, MemoryDelta>> {
-    let base = MemoryFs::new(std::sync::Arc::new(
+    let base = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
-    let delta = MemoryDelta::new(std::sync::Arc::new(
+    )));
+    let delta = MemoryDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     SyncFs::new(OverlayFileSystem::new(base, delta))
 }
 
 fn setup_with_base_files() -> SyncFs<OverlayFileSystem<MemoryFs, MemoryDelta>> {
-    let base = MemoryFs::new(std::sync::Arc::new(
+    let base = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     base.mkdir("/src").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
     base.write_file("/src/lib.rs", b"pub mod lib;").unwrap();
     base.write_file("/readme.md", b"# Project").unwrap();
 
-    let delta = MemoryDelta::new(std::sync::Arc::new(
+    let delta = MemoryDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     SyncFs::new(OverlayFileSystem::new(base, delta))
 }
 
@@ -156,16 +156,16 @@ fn test_cow_preserves_metadata() {
 #[test]
 #[traced_test]
 fn test_cow_creates_parent_dirs() {
-    let base = MemoryFs::new(std::sync::Arc::new(
+    let base = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     base.mkdir("/a").unwrap();
     base.mkdir("/a/b").unwrap();
     base.write_file("/a/b/deep.txt", b"deep").unwrap();
 
-    let delta = MemoryDelta::new(std::sync::Arc::new(
+    let delta = MemoryDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     let _file = overlay.open("/a/b/deep.txt", OpenMode::Write).unwrap();
@@ -418,16 +418,16 @@ fn test_version_after_reset() {
 #[test]
 #[traced_test]
 fn test_stacked_overlay() {
-    let base = MemoryFs::new(std::sync::Arc::new(
+    let base = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     base.write_file("/base.txt", b"base data").unwrap();
 
     let inner = Arc::new(OverlayFileSystem::new(
         base,
-        MemoryDelta::new(std::sync::Arc::new(
+        MemoryDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
             foundation_core::valtron::MonotonicClock::new(),
-        )),
+        ))),
     ));
     SyncFs::from_arc(Arc::clone(&inner))
         .write_file("/inner.txt", b"inner data")
@@ -435,8 +435,8 @@ fn test_stacked_overlay() {
 
     let outer = SyncFs::new(OverlayFileSystem::from_arcs(
         inner,
-        Arc::new(MemoryDelta::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        Arc::new(MemoryDelta::new(foundation_core::valtron::Ctx::fixed(
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
         ))),
     ));
     outer.write_file("/outer.txt", b"outer data").unwrap();
@@ -449,16 +449,16 @@ fn test_stacked_overlay() {
 #[test]
 #[traced_test]
 fn test_stacked_whiteouts() {
-    let base = MemoryFs::new(std::sync::Arc::new(
+    let base = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     base.write_file("/hidden.txt", b"data").unwrap();
 
     let inner = Arc::new(OverlayFileSystem::new(
         base,
-        MemoryDelta::new(std::sync::Arc::new(
+        MemoryDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
             foundation_core::valtron::MonotonicClock::new(),
-        )),
+        ))),
     ));
     SyncFs::from_arc(Arc::clone(&inner))
         .remove("/hidden.txt")
@@ -466,8 +466,8 @@ fn test_stacked_whiteouts() {
 
     let outer = SyncFs::new(OverlayFileSystem::from_arcs(
         inner,
-        Arc::new(MemoryDelta::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        Arc::new(MemoryDelta::new(foundation_core::valtron::Ctx::fixed(
+            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
         ))),
     ));
 

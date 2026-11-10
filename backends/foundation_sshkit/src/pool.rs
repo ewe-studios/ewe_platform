@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, Ctx};
 use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 
 /// A pool of SSH sessions, keyed by (hostname, port, user).
@@ -15,23 +15,29 @@ use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 pub struct ConnectionPool {
     sessions: Mutex<HashMap<String, (Instant, ssh2::Session)>>,
     idle_timeout: Duration,
-    /// The clock that stamps a session and measures its idle age.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock stamps a session and measures its idle age.
+    ctx: Ctx,
 }
 
 impl ConnectionPool {
-    pub fn new(idle_timeout: Duration, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(idle_timeout: Duration, ctx: Ctx) -> Self {
         Self {
             sessions: Mutex::new(HashMap::new()),
             idle_timeout,
-            clock,
+            ctx,
         }
     }
 
     /// The clock that stamps a session and measures its idle age.
     #[must_use]
-    pub fn clock(&self) -> &Arc<dyn Clock> {
-        &self.clock
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.ctx.clock()
+    }
+
+    /// The context that carries the clock.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 
     fn key(host: &Host) -> String {
@@ -53,7 +59,7 @@ impl ConnectionPool {
         }
 
         let session = connect_session(host)?;
-        sessions.insert(key.clone(), (self.clock.now(), session.clone()));
+        sessions.insert(key.clone(), (self.ctx.clock().now(), session.clone()));
         Ok(session)
     }
 
@@ -61,7 +67,7 @@ impl ConnectionPool {
     pub fn evict_idle(&self) {
         if let Ok(mut sessions) = self.sessions.lock() {
             sessions.retain(|_, (ts, _)| {
-                self.clock.now().saturating_duration_since(*ts) < self.idle_timeout
+                self.ctx.clock().now().saturating_duration_since(*ts) < self.idle_timeout
             });
         }
     }

@@ -9,8 +9,8 @@
 //! expansion time: it starts them in the order written, catches duplicate lookup
 //! keys as compile errors, and needs no cooperation between attributes.
 //!
-//! The clock is injected: `clock = <expr>` supplies one directly, and without
-//! it the macro reads the clock of the valtron pool the function runs on. A
+//! The context is injected: `ctx = <expr>` supplies one directly, and without
+//! it the macro reads the context of the valtron pool the function runs on. A
 //! process with no pool gets `DockerError::MissingClock` — never a panic and
 //! never the real clock (spec 72, feature 04 — issue #220).
 
@@ -109,9 +109,9 @@ struct ContainerDef {
     dockerfile: Option<String>,
     /// Share the network namespace of the process running the test.
     share_caller_network: bool,
-    /// Explicit clock expression (`clock = <expr>`). When absent, the macro
-    /// reads the clock of the valtron pool the function runs on.
-    clock: Option<Expr>,
+    /// Explicit context expression (`ctx = <expr>`). When absent, the macro
+    /// reads the context of the valtron pool the function runs on.
+    ctx: Option<Expr>,
 }
 
 impl Parse for ContainerDef {
@@ -141,7 +141,7 @@ impl Parse for ContainerDef {
         let mut required = false;
         let mut dockerfile = None;
         let mut share_caller_network = false;
-        let mut clock = None;
+        let mut ctx = None;
 
         while !input.is_empty() {
             // `as` is a keyword, so it cannot be parsed as an `Ident`.
@@ -177,7 +177,7 @@ impl Parse for ContainerDef {
                 "required" => required = parse_bool(&value)?,
                 "dockerfile" => dockerfile = Some(parse_string(&value)?),
                 "share_caller_network" => share_caller_network = parse_bool(&value)?,
-                "clock" => clock = Some(value),
+                "ctx" => ctx = Some(value),
                 _ => {
                     return Err(syn::Error::new(
                         key_span,
@@ -217,7 +217,7 @@ impl Parse for ContainerDef {
             required,
             dockerfile,
             share_caller_network,
-            clock,
+            ctx,
         })
     }
 }
@@ -382,7 +382,7 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
     // early (a skip) when it cannot resolve a clock or Docker is absent.
     let returns_result = returns_docker_result(&input.sig.output);
     let missing_clock_return = if returns_result {
-        quote! { { return ::core::result::Result::Err(__docker_clock_error); } }
+        quote! { { return ::core::result::Result::Err(__docker_ctx_error); } }
     } else {
         quote! { { return; } }
     };
@@ -394,7 +394,7 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
 
     // Resolve one clock per container before any I/O, so a missing clock is a
     // typed error rather than a panic inside the pool-backed startup (issue
-    // #220). An explicit `clock = <expr>` is used as written; without it the
+    // #220). An explicit `ctx = <expr>` is used as written; without it the
     // macro reads the clock from the valtron pool it runs on.
     let (clock_idents, clock_bindings) =
         clock_prelude(&args.defs, &platform, &missing_clock_return);
@@ -496,7 +496,7 @@ fn expand_function(
 
 /// The identifier the clock for container `index` is bound to.
 fn clock_ident(index: usize) -> Ident {
-    format_ident!("__docker_clock_{index}")
+    format_ident!("__docker_ctx_{index}")
 }
 
 /// One clock per declared container, in declaration order: the identifiers and
@@ -515,10 +515,10 @@ fn clock_prelude(
     (idents, bindings)
 }
 
-/// The statement that binds `__docker_clock_<index>`.
+/// The statement that binds `__docker_ctx_<index>`.
 ///
-/// `clock = <expr>` evaluates the caller's expression. Without it, the macro
-/// reads the valtron pool's clock through `docker::pool_clock()`, which returns
+/// `ctx = <expr>` evaluates the caller's expression. Without it, the macro
+/// reads the valtron pool's clock through `docker::pool_ctx()`, which returns
 /// `DockerError::MissingClock` instead of panicking when no pool exists.
 fn clock_binding(
     index: usize,
@@ -528,18 +528,18 @@ fn clock_binding(
 ) -> TokenStream2 {
     let clock_ident = clock_ident(index);
 
-    if let Some(expr) = &def.clock {
+    if let Some(expr) = &def.ctx {
         quote! {
             let #clock_ident = #expr;
         }
     } else {
         quote! {
-            let #clock_ident = match #platform::docker::pool_clock() {
-                ::core::result::Result::Ok(__docker_clock) => __docker_clock,
-                ::core::result::Result::Err(__docker_clock_error) => {
+            let #clock_ident = match #platform::docker::pool_ctx() {
+                ::core::result::Result::Ok(__docker_ctx) => __docker_ctx,
+                ::core::result::Result::Err(__docker_ctx_error) => {
                     ::tracing::warn!(
                         "SKIP: no clock available for the Docker container: {}",
-                        __docker_clock_error
+                        __docker_ctx_error
                     );
                     #missing_clock_return
                 }
@@ -750,7 +750,7 @@ fn container_config(
 
     quote! {
         #platform::docker::ContainerConfig::new(#image)
-            .clock(#clock_ident)
+            .ctx(#clock_ident)
             #(#config_calls)*
     }
 }

@@ -8,7 +8,7 @@
 
 use std::process::Command;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::config::{Result, TestbedError};
 
@@ -160,7 +160,7 @@ pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Resul
 /// # Errors
 /// Returns an error if the VM list cannot be read. Returns an error if the `AppleScript`
 /// fails. Returns an error if no new VM appears within 30 seconds.
-pub fn import_bundle(bundle_path: &str, clock: &dyn Clock) -> Result<String> {
+pub fn import_bundle(bundle_path: &str, ctx: &Ctx) -> Result<String> {
     // Snapshot existing VM UUIDs so we can find the newly imported one
     let before: std::collections::HashSet<String> = super::utmctl::list_vms()?
         .into_iter()
@@ -174,8 +174,8 @@ pub fn import_bundle(bundle_path: &str, clock: &dyn Clock) -> Result<String> {
     run_applescript(&script)?;
 
     // Wait for the new VM to appear (up to 30s)
-    let start = clock.now();
-    while clock.now().duration_since(start).as_secs() < 30 {
+    let start = ctx.clock().now();
+    while ctx.clock().now().duration_since(start).as_secs() < 30 {
         std::thread::sleep(std::time::Duration::from_secs(2));
         for entry in super::utmctl::list_vms()? {
             if !before.contains(&entry.uuid) {

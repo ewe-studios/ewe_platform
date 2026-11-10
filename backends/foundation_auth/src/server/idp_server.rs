@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{execute, from_future, sleep_async, Clock};
+use foundation_core::valtron::{execute, from_future, sleep_async};
 use foundation_http::ShutdownSignal;
 
 use foundation_http::native::serve::Serve;
@@ -24,7 +24,7 @@ pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     config: IdpConfig,
     storage: Arc<HandlerStorage<KV>>,
     social: Option<Arc<MemoryAuthSessionStore>>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
@@ -36,8 +36,8 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     /// session key is too short (see [`try_new`](Self::try_new)); use
     /// `try_new` to handle those errors.
     #[must_use]
-    pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>, clock: Arc<dyn Clock>) -> Self {
-        Self::try_new(config, storage, clock).unwrap_or_else(|e| panic!("{e}"))
+    pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>, ctx: Ctx) -> Self {
+        Self::try_new(config, storage, ctx).unwrap_or_else(|e| panic!("{e}"))
     }
 
     /// Build the server over a config and storage, or refuse.
@@ -55,7 +55,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     pub fn try_new(
         config: IdpConfig,
         storage: Arc<HandlerStorage<KV>>,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Result<Self, IdpError> {
         if !storage.cache.take_is_atomic() && !config.allow_non_atomic_cache {
             return Err(IdpError::Internal(
@@ -74,7 +74,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
             config,
             storage,
             social: None,
-            clock,
+            ctx,
         })
     }
 
@@ -190,9 +190,9 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     #[must_use]
     pub fn http_app(self) -> HttpApp<Arc<dyn Serve>> {
         let mut app = HttpApp::new_serve();
-        // The app context carries this server's injected clock, so every handler
-        // reads the clock the host chose.
-        app.ctx = Ctx::fixed(Arc::clone(&self.clock));
+        // The app context carries this server's ctx, so every handler reads the
+        // clock the host chose.
+        app.ctx = self.ctx;
         let dev_mode = self.config.dev_mode;
         app.ctx.store(self.config);
         // Stored as `Arc<HandlerStorage<KV>>`; `ServeAdapter::create` looks up

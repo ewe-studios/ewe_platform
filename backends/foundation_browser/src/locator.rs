@@ -15,7 +15,7 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use serde_json::{json, Value};
 
 use crate::browser::Page;
@@ -26,19 +26,15 @@ use crate::geometry::Rect;
 pub struct Locator<'p> {
     page: &'p Page<'p>,
     selector: String,
-    clock: &'p dyn Clock,
+    ctx: &'p Ctx,
 }
 
 impl<'p> Locator<'p> {
-    pub(crate) fn new(
-        page: &'p Page<'p>,
-        selector: impl Into<String>,
-        clock: &'p dyn Clock,
-    ) -> Self {
+    pub(crate) fn new(page: &'p Page<'p>, selector: impl Into<String>, ctx: &'p Ctx) -> Self {
         Self {
             page,
             selector: selector.into(),
-            clock,
+            ctx,
         }
     }
 
@@ -229,7 +225,7 @@ impl LocatorAssertions<'_, '_> {
     where
         F: FnMut() -> Result<(bool, String)>,
     {
-        let end = self.locator.clock.now() + self.deadline;
+        let end = self.locator.ctx.clock().now() + self.deadline;
         loop {
             let actual = match probe() {
                 Ok((true, _)) => return Ok(()),
@@ -237,7 +233,7 @@ impl LocatorAssertions<'_, '_> {
                 Err(BrowserError::SelectorNotFound(_)) => "no element".into(),
                 Err(e) => return Err(e),
             };
-            if self.locator.clock.now() >= end {
+            if self.locator.ctx.clock().now() >= end {
                 return Err(BrowserError::Assertion {
                     selector: self.locator.selector.clone(),
                     expected: what.to_string(),

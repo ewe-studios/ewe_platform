@@ -12,7 +12,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
 use foundation_db::{core::KeyValueStore, StorageError, StorageProvider};
@@ -339,8 +339,8 @@ pub struct OAuthState {
 impl OAuthState {
     /// Check if the state is expired.
     #[must_use]
-    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
-        now_seconds(clock) >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_seconds(ctx) >= self.expires_at
     }
 }
 
@@ -363,17 +363,17 @@ pub struct StoredCredential<T> {
 impl<T> StoredCredential<T> {
     /// Create a new stored credential.
     #[must_use]
-    pub fn new(data: T, clock: &dyn Clock) -> Self {
+    pub fn new(data: T, ctx: &Ctx) -> Self {
         Self {
             data,
-            created_at: now_seconds(clock),
+            created_at: now_seconds(ctx),
             last_accessed_at: None,
             metadata: None,
         }
     }
 
     /// Mark the credential as accessed.
-    pub fn mark_accessed(&mut self, clock: &dyn Clock) {
-        self.last_accessed_at = Some(now_seconds(clock));
+    pub fn mark_accessed(&mut self, ctx: &Ctx) {
+        self.last_accessed_at = Some(now_seconds(ctx));
     }
 }

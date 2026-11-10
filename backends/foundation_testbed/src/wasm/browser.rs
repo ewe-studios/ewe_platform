@@ -43,9 +43,8 @@ pub fn run(url: &str, browser: &Browser, headless: bool, ctx: &Ctx) -> Result<Br
     info!("Running browser test: {url} (headless={headless})");
 
     let clock = ctx.clock();
-    let driver =
-        BrowserDriver::launch_borrowed(LaunchConfig::chromium().headless(headless), clock.as_ref())
-            .map_err(|e| WasmTestbedError::BrowserDriver(format!("launch: {e}")).trace())?;
+    let driver = BrowserDriver::launch_borrowed(LaunchConfig::chromium().headless(headless), ctx)
+        .map_err(|e| WasmTestbedError::BrowserDriver(format!("launch: {e}")).trace())?;
     let page = driver
         .new_page()
         .map_err(|e| WasmTestbedError::BrowserDriver(format!("attach page: {e}")).trace())?;

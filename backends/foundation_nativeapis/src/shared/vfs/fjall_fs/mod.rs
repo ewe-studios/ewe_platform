@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::shared::vfs::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
@@ -24,8 +24,11 @@ use crate::shared::vfs::types::{
     Checksum, OpenMode, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata,
 };
 
-fn now_ms(clock: &dyn Clock) -> u64 {
-    u64::try_from(foundation_compact::time::unix_millis(clock.wall_now())).unwrap_or(0)
+fn now_ms(ctx: &Ctx) -> u64 {
+    u64::try_from(foundation_compact::time::unix_millis(
+        ctx.clock().wall_now(),
+    ))
+    .unwrap_or(0)
 }
 
 #[derive(Clone)]
@@ -69,7 +72,7 @@ struct InodeFsInner {
 }
 
 impl InodeFsInner {
-    fn new(clock: &dyn Clock) -> Arc<Self> {
+    fn new(ctx: &Ctx) -> Arc<Self> {
         let inner = Arc::new(Self {
             inodes: RwLock::new(HashMap::new()),
             paths: RwLock::new(HashMap::new()),
@@ -87,8 +90,8 @@ impl InodeFsInner {
                 permissions: 0o755,
                 owner: (0, 0),
                 version: 0,
-                created_at: now_ms(clock),
-                updated_at: now_ms(clock),
+                created_at: now_ms(ctx),
+                updated_at: now_ms(ctx),
                 content: Vec::new(),
                 symlink_target: None,
             },
@@ -111,16 +114,16 @@ impl InodeFsInner {
 #[derive(Clone)]
 pub struct InodeFs {
     inner: Arc<InodeFsInner>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl InodeFs {
     /// Creates a new empty in-memory file system whose entry times come from
-    /// `clock`.
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    /// the clock of `ctx`.
+    pub fn new(ctx: Ctx) -> Self {
         Self {
-            inner: InodeFsInner::new(clock.as_ref()),
-            clock,
+            inner: InodeFsInner::new(&ctx),
+            ctx,
         }
     }
 }
@@ -129,7 +132,7 @@ pub struct InodeFile {
     path: String,
     mode: OpenMode,
     inner: Arc<InodeFsInner>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 pub struct SeekableInodeFile {
     file: InodeFile,
@@ -138,7 +141,7 @@ pub struct SeekableInodeFile {
 pub struct InodeDir {
     path: String,
     inner: Arc<InodeFsInner>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl SeekableInodeFile {
@@ -198,7 +201,7 @@ impl VfsFile for InodeFile {
         }
         entry.content[offset as usize..end].copy_from_slice(buf);
         entry.size = entry.content.len() as u64;
-        entry.updated_at = now_ms(self.clock.as_ref());
+        entry.updated_at = now_ms(&self.ctx);
         Ok(buf.len())
     }
     fn sync_data(&self) -> VfsResult<()> {
@@ -238,7 +241,7 @@ impl VfsFile for InodeFile {
         if let Some(entry) = entries.get_mut(&ino) {
             entry.content.truncate(size as usize);
             entry.size = entry.content.len() as u64;
-            entry.updated_at = now_ms(self.clock.as_ref());
+            entry.updated_at = now_ms(&self.ctx);
         }
         Ok(())
     }
@@ -400,8 +403,8 @@ impl VfsDirectory for InodeDir {
                 permissions: mode,
                 owner: (0, 0),
                 version: 0,
-                created_at: now_ms(self.clock.as_ref()),
-                updated_at: now_ms(self.clock.as_ref()),
+                created_at: now_ms(&self.ctx),
+                updated_at: now_ms(&self.ctx),
                 content: Vec::new(),
                 symlink_target: None,
             },
@@ -411,7 +414,7 @@ impl VfsDirectory for InodeDir {
             path,
             mode: OpenMode::ReadWrite,
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         })
     }
     fn create_dir(
@@ -434,8 +437,8 @@ impl VfsDirectory for InodeDir {
                 permissions: 0o755,
                 owner: (0, 0),
                 version: 0,
-                created_at: now_ms(self.clock.as_ref()),
-                updated_at: now_ms(self.clock.as_ref()),
+                created_at: now_ms(&self.ctx),
+                updated_at: now_ms(&self.ctx),
                 content: Vec::new(),
                 symlink_target: None,
             },
@@ -444,7 +447,7 @@ impl VfsDirectory for InodeDir {
         Ok(Box::new(InodeDir {
             path,
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         }))
     }
     fn remove_entry(&self, name: &str) -> VfsResult<()> {
@@ -476,7 +479,7 @@ impl VfsDirectory for InodeDir {
         if let Some(ino) = paths.remove(&from) {
             if let Some(e) = entries.get_mut(&ino) {
                 e.path = to.clone();
-                e.updated_at = now_ms(self.clock.as_ref());
+                e.updated_at = now_ms(&self.ctx);
             }
             paths.insert(to, ino);
         }
@@ -501,7 +504,7 @@ impl VfsDirectory for InodeDir {
             path: full,
             mode,
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         })
     }
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
@@ -527,7 +530,7 @@ impl VfsDirectory for InodeDir {
         Ok(Box::new(InodeDir {
             path: full,
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         }))
     }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
@@ -600,7 +603,7 @@ impl VfsFileSystem for InodeFs {
         })?;
         if let Some(e) = entries.get_mut(&ino) {
             e.permissions = mode;
-            e.updated_at = now_ms(self.clock.as_ref());
+            e.updated_at = now_ms(&self.ctx);
         }
         Ok(())
     }
@@ -615,8 +618,8 @@ impl VfsFileSystem for InodeFs {
                 permissions: 0o777,
                 owner: (0, 0),
                 version: 0,
-                created_at: now_ms(self.clock.as_ref()),
-                updated_at: now_ms(self.clock.as_ref()),
+                created_at: now_ms(&self.ctx),
+                updated_at: now_ms(&self.ctx),
                 content: Vec::new(),
                 symlink_target: Some(target.to_string()),
             },
@@ -652,7 +655,7 @@ impl VfsFileSystem for InodeFs {
         })?;
         if let Some(e) = entries.get_mut(&ino) {
             e.path = to.to_string();
-            e.updated_at = now_ms(self.clock.as_ref());
+            e.updated_at = now_ms(&self.ctx);
         }
         paths.insert(to.to_string(), ino);
         Ok(())
@@ -678,7 +681,7 @@ impl VfsFileSystem for InodeFs {
             path: path.to_string(),
             mode,
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         })
     }
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
@@ -706,7 +709,7 @@ impl VfsFileSystem for InodeFs {
         Ok(InodeDir {
             path: path.to_string(),
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         })
     }
     fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
@@ -730,8 +733,8 @@ impl VfsFileSystem for InodeFs {
                 permissions: mode,
                 owner: (0, 0),
                 version: 0,
-                created_at: now_ms(self.clock.as_ref()),
-                updated_at: now_ms(self.clock.as_ref()),
+                created_at: now_ms(&self.ctx),
+                updated_at: now_ms(&self.ctx),
                 content: Vec::new(),
                 symlink_target: None,
             },
@@ -745,7 +748,7 @@ impl VfsFileSystem for InodeFs {
             path: path.to_string(),
             mode: OpenMode::ReadWrite,
             inner: self.inner.clone(),
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         })
     }
     fn mkdir(&self, path: &str) -> VfsResult<()> {
@@ -759,8 +762,8 @@ impl VfsFileSystem for InodeFs {
                 permissions: 0o755,
                 owner: (0, 0),
                 version: 0,
-                created_at: now_ms(self.clock.as_ref()),
-                updated_at: now_ms(self.clock.as_ref()),
+                created_at: now_ms(&self.ctx),
+                updated_at: now_ms(&self.ctx),
                 content: Vec::new(),
                 symlink_target: None,
             },
@@ -853,10 +856,10 @@ pub struct InodeDelta {
 
 impl InodeDelta {
     /// Creates a new empty in-memory delta store whose entry times come from
-    /// `clock`.
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    /// the clock of `ctx`.
+    pub fn new(ctx: Ctx) -> Self {
         Self {
-            inner: InodeFs::new(clock),
+            inner: InodeFs::new(ctx),
             whiteouts: Arc::new(RwLock::new(HashMap::new())),
         }
     }

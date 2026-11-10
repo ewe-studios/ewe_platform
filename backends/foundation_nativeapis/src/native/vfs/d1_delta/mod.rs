@@ -10,9 +10,7 @@
 
 pub mod schema;
 
-use std::sync::Arc;
-
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_db::D1Store;
 use foundation_errstacks::ErrorTrace;
 
@@ -40,13 +38,13 @@ impl BlobDelta<D1Store> {
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if a variable is missing.
-    pub fn from_env(clock: Arc<dyn Clock>) -> VfsResult<Self> {
+    pub fn from_env(ctx: Ctx) -> VfsResult<Self> {
         let account_id = env("CF_ACCOUNT_ID")?;
         let api_token = env("CF_API_TOKEN")?;
         let database_id = env("CF_D1_DATABASE_ID")?;
         Ok(Self::from_store(
             D1Store::new_kv(&api_token, &account_id, &database_id, "vfs"),
-            clock,
+            ctx,
         ))
     }
 
@@ -55,13 +53,8 @@ impl BlobDelta<D1Store> {
     /// # Errors
     ///
     /// Infallible today; `Result` for parity with the other constructors.
-    pub fn new(
-        api_token: &str,
-        account_id: &str,
-        database_id: &str,
-        clock: Arc<dyn Clock>,
-    ) -> VfsResult<Self> {
-        Self::new_with_base_url(api_token, account_id, database_id, None, clock)
+    pub fn new(api_token: &str, account_id: &str, database_id: &str, ctx: Ctx) -> VfsResult<Self> {
+        Self::new_with_base_url(api_token, account_id, database_id, None, ctx)
     }
 
     /// A D1 delta against `base_url` or Cloudflare. `base_url` is the whole API
@@ -76,7 +69,7 @@ impl BlobDelta<D1Store> {
         account_id: &str,
         database_id: &str,
         base_url: Option<&str>,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let store = match base_url {
             Some(url) => {
@@ -84,6 +77,6 @@ impl BlobDelta<D1Store> {
             }
             None => D1Store::new_kv(api_token, account_id, database_id, "vfs"),
         };
-        Ok(Self::from_store(store, clock))
+        Ok(Self::from_store(store, ctx))
     }
 }

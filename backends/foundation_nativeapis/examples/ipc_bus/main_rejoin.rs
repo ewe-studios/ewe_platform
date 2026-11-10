@@ -6,11 +6,9 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_rejoin
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
-    use foundation_core::valtron::MonotonicClock;
     use foundation_nativeapis::ipc::{
         self, BytesMessage, Label, LabelOp, Message, Options, Selector,
     };
-    use std::sync::Arc;
     use std::time::Duration;
 
     let ts = std::time::SystemTime::now()
@@ -25,7 +23,7 @@ fn main() {
         let (_sender, _receiver) = ipc::join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            Arc::new(MonotonicClock::new()),
+            foundation_core::valtron::Ctx::host(),
         )
         .expect("first join");
         println!("  Joined. Dropping...");
@@ -38,7 +36,7 @@ fn main() {
     let (sender, mut receiver) = ipc::join::<BytesMessage, BytesMessage>(
         opts,
         Some(Duration::from_secs(5)),
-        Arc::new(MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .expect("second join");
     println!("  Joined.");

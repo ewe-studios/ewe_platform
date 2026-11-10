@@ -14,7 +14,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::time::unix_millis;
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::core::types::DeploymentResult;
 use foundation_deployment::provider_client::ProviderClient;
@@ -25,21 +25,22 @@ const SIMULATED_SECS: u64 = 1_767_225_600;
 
 #[test]
 fn deployment_record_times_follow_the_injected_wall_clock() {
-    let clock = SimulatedClock::new(Duration::ZERO);
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance_wall(Duration::from_secs(SIMULATED_SECS));
+    let ctx = Ctx::fixed(clock.clone());
     let expected = unix_millis(clock.wall_now());
     assert_eq!(expected, i64::try_from(SIMULATED_SECS * 1_000).unwrap());
 
-    let output = DeploymentOutput::new("id", "name", &clock);
+    let output = DeploymentOutput::new("id", "name", &ctx);
     assert_eq!(output.deployed_at.timestamp_millis(), expected);
 
-    let worker = WorkerDeployment::new("account", "script", "deployment", "url", &clock);
+    let worker = WorkerDeployment::new("account", "script", "deployment", "url", &ctx);
     assert_eq!(worker.deployed_at.timestamp_millis(), expected);
 
-    let dry_run = DeploymentResult::dry_run("provider", "resource", &clock);
+    let dry_run = DeploymentResult::dry_run("provider", "resource", &ctx);
     assert_eq!(dry_run.deployed_at.timestamp_millis(), expected);
 
-    let skipped = DeploymentResult::skipped("unchanged", &clock);
+    let skipped = DeploymentResult::skipped("unchanged", &ctx);
     assert_eq!(skipped.deployed_at.timestamp_millis(), expected);
 }
 
@@ -49,7 +50,7 @@ fn provider_client_carries_the_injected_clock() {
     clock.advance_wall(Duration::from_secs(SIMULATED_SECS));
     let store = FileStateStore::new(&std::env::temp_dir(), "clock-test", "dev");
 
-    let client = ProviderClient::new("clock-test", "dev", store, clock.clone());
+    let client = ProviderClient::new("clock-test", "dev", store, Ctx::fixed(clock.clone()));
 
     assert_eq!(
         unix_millis(client.clock().wall_now()),

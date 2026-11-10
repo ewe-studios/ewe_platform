@@ -8,7 +8,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use turso::{Connection, Database};
 
 use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
@@ -32,7 +32,7 @@ pub struct TursoDeltaConfig {
 pub struct TursoDelta {
     conn: Arc<Connection>,
     chunk_config: ChunkConfig,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 /// Convert a [`turso::Error`] into an [`ErrorTrace<VfsError>`].
@@ -64,13 +64,13 @@ impl TursoDelta {
     ///
     /// Returns [`VfsError::Io`] if parent directory creation fails, or
     /// [`VfsError::Backend`] if the path is not valid UTF-8 or the database cannot be opened.
-    pub async fn new(db_path: impl AsRef<Path>, clock: Arc<dyn Clock>) -> VfsResult<Self> {
+    pub async fn new(db_path: impl AsRef<Path>, ctx: Ctx) -> VfsResult<Self> {
         Self::with_config(
             db_path,
             TursoDeltaConfig {
                 chunk_config: ChunkConfig::default(),
             },
-            clock,
+            ctx,
         )
         .await
     }
@@ -84,14 +84,14 @@ impl TursoDelta {
     pub async fn with_config(
         db_path: impl AsRef<Path>,
         config: TursoDeltaConfig,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let path_str = prepare_db_path(db_path.as_ref())?;
         let db = turso::Builder::new_local(&path_str)
             .build()
             .await
             .map_err(err)?;
-        Self::open_db(db, config.chunk_config, true, clock).await
+        Self::open_db(db, config.chunk_config, true, ctx).await
     }
 
     /// Create an in-memory `turso` database (useful for testing).
@@ -99,12 +99,12 @@ impl TursoDelta {
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if the database cannot be opened.
-    pub async fn in_memory(clock: Arc<dyn Clock>) -> VfsResult<Self> {
+    pub async fn in_memory(ctx: Ctx) -> VfsResult<Self> {
         let db = turso::Builder::new_local(":memory:")
             .build()
             .await
             .map_err(err)?;
-        Self::open_db(db, ChunkConfig::default(), false, clock).await
+        Self::open_db(db, ChunkConfig::default(), false, ctx).await
     }
 
     /// Connects, creates the schema and, for a file database, sets the pragmas.
@@ -112,7 +112,7 @@ impl TursoDelta {
         db: Database,
         chunk_config: ChunkConfig,
         pragmas: bool,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> VfsResult<Self> {
         let conn = db.connect().map_err(err)?;
         conn.execute_batch(&schema::CREATE_ALL).await.map_err(err)?;
@@ -128,7 +128,7 @@ impl TursoDelta {
         Ok(Self {
             conn: Arc::new(conn),
             chunk_config,
-            clock,
+            ctx,
         })
     }
 }
@@ -177,7 +177,7 @@ impl AsyncVfsFileSystem for TursoDelta {
 
     async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
         let ino = resolve_path_async(self.conn.clone(), path).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.conn
             .execute(
                 "UPDATE vfs_dentry SET permissions = ?, updated_at = ? WHERE ino = ?",
@@ -190,7 +190,7 @@ impl AsyncVfsFileSystem for TursoDelta {
 
     async fn symlink_async(&self, target: String, link_path: String) -> VfsResult<()> {
         let (parent_ino, name) = resolve_parent_async(self.conn.clone(), link_path).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = next_version_id();
         self.conn
             .execute(
@@ -227,7 +227,7 @@ impl AsyncVfsFileSystem for TursoDelta {
     async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
         let ino = resolve_path_async(self.conn.clone(), from).await?;
         let (new_parent_ino, new_name) = resolve_parent_async(self.conn.clone(), to).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.conn
             .execute(
                 "UPDATE vfs_dentry SET name = ?, parent_ino = ?, updated_at = ? WHERE ino = ?",
@@ -309,7 +309,7 @@ impl AsyncVfsFileSystem for TursoDelta {
             mode,
             chunk_size,
             size,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -347,13 +347,13 @@ impl AsyncVfsFileSystem for TursoDelta {
             db: self.conn.clone(),
             ino,
             path,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
         let (parent_ino, name) = resolve_parent_async(self.conn.clone(), path.clone()).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = next_version_id();
         let chunk_size =
             i64::try_from(self.chunk_config.default_chunk_size).expect("chunk size overflow");
@@ -406,13 +406,13 @@ impl AsyncVfsFileSystem for TursoDelta {
             mode: OpenMode::Write,
             chunk_size: usize::try_from(chunk_size).expect("chunk size overflow"),
             size: 0,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
     async fn mkdir_async(&self, path: String) -> VfsResult<()> {
         let (parent_ino, name) = resolve_parent_async(self.conn.clone(), path.clone()).await?;
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         let version_id = next_version_id();
         self.conn
             .execute(
@@ -452,7 +452,7 @@ impl AsyncVfsFileSystem for TursoDelta {
             ino,
             &data,
             self.chunk_config.default_chunk_size,
-            self.clock.as_ref(),
+            &self.ctx,
         )
         .await
     }
@@ -584,7 +584,7 @@ impl AsyncDeltaStore for TursoDelta {
     }
 
     async fn reset_async(&self) -> VfsResult<()> {
-        let updated_at = now_ms(self.clock.as_ref());
+        let updated_at = now_ms(&self.ctx);
         self.conn
             .execute("DELETE FROM vfs_chunks", ())
             .await
@@ -613,9 +613,9 @@ impl AsyncDeltaStore for TursoDelta {
     }
 }
 
-/// Current wall time in milliseconds since the Unix epoch, from `clock`.
-fn now_ms(clock: &dyn Clock) -> i64 {
-    foundation_compact::time::unix_millis(clock.wall_now())
+/// Current wall time in milliseconds since the Unix epoch, from the clock of `ctx`.
+fn now_ms(ctx: &Ctx) -> i64 {
+    foundation_compact::time::unix_millis(ctx.clock().wall_now())
 }
 
 fn whiteout_prefixes(path: &str) -> Vec<String> {

@@ -23,7 +23,7 @@ use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
 use foundation_boringtun::x25519::{PublicKey, StaticSecret};
-use foundation_core::valtron::{Clock, Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
@@ -98,8 +98,8 @@ struct AdmissionPolicy {
     revoked: AtomicBool,
     /// Optional seed TTL (unix seconds).
     expires_at: Option<u64>,
-    /// The injected clock: the TTL check reads the wall clock from it.
-    clock: Arc<dyn Clock>,
+    /// The injected context: the TTL check reads the wall clock from its clock.
+    ctx: Ctx,
 }
 
 impl AdmissionPolicy {
@@ -108,7 +108,7 @@ impl AdmissionPolicy {
             return Admission::Reject;
         }
         if let Some(expiry) = self.expires_at {
-            if now_unix(self.clock.as_ref()) > expiry {
+            if now_unix(&self.ctx) > expiry {
                 return Admission::Reject;
             }
         }
@@ -116,20 +116,23 @@ impl AdmissionPolicy {
     }
 }
 
-/// The current wall-clock time in whole UNIX seconds, read from `clock`.
-fn now_unix(clock: &dyn Clock) -> u64 {
-    u64::try_from(foundation_compact::time::unix_seconds(clock.wall_now())).unwrap_or(0)
+/// The current wall-clock time in whole UNIX seconds, read from the clock of `ctx`.
+fn now_unix(ctx: &Ctx) -> u64 {
+    u64::try_from(foundation_compact::time::unix_seconds(
+        ctx.clock().wall_now(),
+    ))
+    .unwrap_or(0)
 }
 
 /// A configured (but not yet running) mesh node.
 pub struct WgNode {
     config: WgConfig,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for WgNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // The clock trait is not `Debug`; print the config and skip the clock.
+        // The context is not `Debug`; print the config and skip the context.
         f.debug_struct("WgNode")
             .field("config", &self.config)
             .finish_non_exhaustive()
@@ -139,14 +142,14 @@ impl std::fmt::Debug for WgNode {
 impl WgNode {
     /// WHY: Build a node from configuration before joining.
     ///
-    /// WHAT: Wrap a [`WgConfig`] with the clock every timer and timestamp reads.
+    /// WHAT: Wrap a [`WgConfig`] with the context that every timer and timestamp reads.
     ///
-    /// HOW: Stores both; all work happens in [`Self::join`]. The clock must come
-    /// from the host's `Ctx` (or a test's `SimulatedClock`); there is no fallback
+    /// HOW: Stores both; all work happens in [`Self::join`]. The context must come
+    /// from the host's `Ctx` (or a test's `Ctx::fixed`); there is no fallback
     /// to the real clock.
     #[must_use]
-    pub fn from_config(config: WgConfig, clock: Arc<dyn Clock>) -> Self {
-        Self { config, clock }
+    pub fn from_config(config: WgConfig, ctx: Ctx) -> Self {
+        Self { config, ctx }
     }
 
     /// WHY: Bring the node onto the mesh.
@@ -167,7 +170,7 @@ impl WgNode {
                   splitting it spreads the shared arcs across helpers"
     )]
     pub fn join(self) -> WgResult<WgHandle> {
-        let clock = Arc::clone(&self.clock);
+        let ctx = self.ctx.clone();
         let network_id = self.config.network_id();
         let boot = self.config.wg_seed().derive_bootstrap(&network_id);
         // Load a persisted identity if configured (F09 persistence), otherwise
@@ -195,7 +198,7 @@ impl WgNode {
             &self.config.dataplane.mode,
             local_ip,
             OVERLAY_PREFIX,
-            &clock,
+            &ctx,
         )?;
 
         let udp = UdpSocket::bind(self.config.udp_listen()).map_err(WgError::from)?;
@@ -237,7 +240,7 @@ impl WgNode {
         let policy = Arc::new(AdmissionPolicy {
             revoked: AtomicBool::new(false),
             expires_at: self.config.seed_expires_at(),
-            clock: Arc::clone(&clock),
+            ctx: ctx.clone(),
         });
 
         // Keep our own bootstrap door open (masterless — anyone can join through us).
@@ -273,9 +276,9 @@ impl WgNode {
         // listener fd with the reactor for edge-triggered wake; sleep only
         // when the reactor signals data or the poll timeout expires.
         let server_stop = Arc::clone(&stop);
-        let bootstrap_clock = Arc::clone(&clock);
+        let bootstrap_ctx = ctx.clone();
         let bootstrap_thread = thread::spawn(move || {
-            if let Err(err) = server.serve_until(&server_stop, bootstrap_clock.as_ref()) {
+            if let Err(err) = server.serve_until(&server_stop, &bootstrap_ctx) {
                 tracing::debug!(error = %err, "bootstrap server stopped");
             }
         });
@@ -296,17 +299,17 @@ impl WgNode {
                 self.config.relay.max_sessions,
                 self.config.relay.rate_limit_pps,
                 self.config.relay.idle_timeout_secs,
-                Arc::clone(&clock),
+                ctx.clone(),
             )));
             let relay_server_clone = Arc::clone(&relay_server);
             let relay_client_for_thread = Arc::clone(&relay_client);
-            let relay_clock = Arc::clone(&clock);
+            let relay_ctx = ctx.clone();
             relay_thread = Some(thread::spawn(move || {
-                let mut last_rate_reset = relay_clock.now();
+                let mut last_rate_reset = relay_ctx.clock().now();
                 let mut puncher = HolePuncher::new(30); // 30s punch timeout
                 let mut punch_buf = [0u8; 256];
                 while !relay_stop.load(Ordering::Relaxed) {
-                    let now = relay_clock.now();
+                    let now = relay_ctx.clock().now();
                     // Drain relay_out frames and forward each to the destination
                     // peer's real UDP endpoint (looked up from membership).
                     {
@@ -378,7 +381,7 @@ impl WgNode {
                     }
                     // Park until the relay UDP socket is readable or a
                     // short timeout passes — no blind sleep.
-                    wait_readable(relay_udp.as_raw_fd(), 10, relay_clock.as_ref());
+                    wait_readable(relay_udp.as_raw_fd(), 10, &relay_ctx);
                 }
             }));
         }
@@ -390,7 +393,7 @@ impl WgNode {
         //   routes through TUN), WgHandle overlay methods error (apps use
         //   OS sockets directly).
         let netstack = dp.netstack().cloned();
-        let driver = TunnelDriver::new(udp, dp, Arc::clone(&clock));
+        let driver = TunnelDriver::new(udp, dp, ctx.clone());
         let gossip = if let Some(ref ns) = netstack {
             GossipTransport::overlay(
                 ns.clone()
@@ -410,7 +413,7 @@ impl WgNode {
         };
         let mesh_task = WgMeshTask {
             driver,
-            clock: Arc::clone(&clock),
+            ctx: ctx.clone(),
             swim: Arc::clone(&swim),
             gossip,
             relay_client: Arc::clone(&relay_client),
@@ -428,9 +431,8 @@ impl WgNode {
         // WG timer deadlines. Fall back to a thread when no pool exists.
         let mesh_stop = Arc::clone(&stop);
         let mesh_wrapper = MeshTask::new(mesh_task, mesh_stop);
-        let mesh_clock = Arc::clone(&clock);
-        // The mesh task reads the node's injected clock, not a fresh real one.
-        let mesh_ctx = Ctx::fixed(Arc::clone(&clock));
+        // The mesh task runs on the node's own context, so it uses the host clock and RNG.
+        let mesh_ctx = ctx.clone();
         let mesh_thread: JoinHandle<()> = thread::spawn(move || {
             // Drive the TaskIterator until stop is set. When the task returns
             // Depends(signal), poll the signal with 1ms reactor cache checks
@@ -446,8 +448,8 @@ impl WgNode {
                     // Parked on reactor + timer. Poll the signal until it
                     // fires or a short deadline passes (WG timers).
                     Some(TaskStatus::Depends(ref signal)) => {
-                        let deadline = mesh_clock.now() + Duration::from_millis(200);
-                        while mesh_clock.now() < deadline
+                        let deadline = mesh_ctx.clock().now() + Duration::from_millis(200);
+                        while mesh_ctx.clock().now() < deadline
                             && !task.stop.load(Ordering::Relaxed)
                             && !signal.is_ready(None)
                         {
@@ -457,8 +459,10 @@ impl WgNode {
                     }
                     // Delayed fallback (no reactor).
                     Some(TaskStatus::Delayed(d)) => {
-                        let deadline = mesh_clock.now() + d.min(Duration::from_millis(200));
-                        while mesh_clock.now() < deadline && !task.stop.load(Ordering::Relaxed) {
+                        let deadline = mesh_ctx.clock().now() + d.min(Duration::from_millis(200));
+                        while mesh_ctx.clock().now() < deadline
+                            && !task.stop.load(Ordering::Relaxed)
+                        {
                             std::hint::spin_loop();
                             thread::sleep(Duration::from_millis(1));
                         }
@@ -482,7 +486,7 @@ impl WgNode {
             policy,
             stop,
             threads,
-            clock,
+            ctx,
         })
     }
 }
@@ -495,8 +499,8 @@ pub struct WgHandle {
     policy: Arc<AdmissionPolicy>,
     stop: Arc<AtomicBool>,
     threads: Vec<JoinHandle<()>>,
-    /// The injected clock the node runs on; handle-level waits read it.
-    clock: Arc<dyn Clock>,
+    /// The injected context the node runs on; handle-level waits read its clock.
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for WgHandle {
@@ -643,12 +647,12 @@ impl WgHandle {
         port: u16,
         timeout: Duration,
     ) -> std::io::Result<Connection> {
-        let deadline = self.clock.now() + timeout;
+        let deadline = self.ctx.clock().now() + timeout;
         let mut last_err = std::io::Error::new(
             std::io::ErrorKind::TimedOut,
             "overlay connect: handshake did not complete before timeout",
         );
-        while self.clock.now() < deadline {
+        while self.ctx.clock().now() < deadline {
             match self.tcp_connect(peer_ip, port) {
                 Ok(stream) => {
                     // Drive the handshake until the socket is writable (established)
@@ -657,7 +661,7 @@ impl WgHandle {
                         if stream.may_send() {
                             return Ok(Connection::Overlay(Box::new(OverlayConnection { stream })));
                         }
-                        if self.clock.now() >= deadline {
+                        if self.ctx.clock().now() >= deadline {
                             break;
                         }
                         std::thread::sleep(Duration::from_millis(10));
@@ -680,8 +684,8 @@ impl WgHandle {
     /// Never panics.
     #[must_use]
     pub fn wait_for_peer(&self, tunnel_ip: IpAddr, timeout: Duration) -> bool {
-        let deadline = self.clock.now() + timeout;
-        while self.clock.now() < deadline {
+        let deadline = self.ctx.clock().now() + timeout;
+        while self.ctx.clock().now() < deadline {
             if self
                 .members()
                 .iter()
@@ -734,8 +738,8 @@ impl Drop for WgHandle {
 /// `thread::sleep(50ms)` is the sans-I/O fallback.
 pub struct WgMeshTask {
     driver: TunnelDriver<MeshDataPlane>,
-    /// The injected clock: every mesh timer reads it, including the SWIM `now`.
-    clock: Arc<dyn Clock>,
+    /// The injected context: every mesh timer reads its clock, including the SWIM `now`.
+    ctx: Ctx,
     swim: Arc<Mutex<Swim>>,
     gossip: GossipTransport,
     relay_client: Arc<Mutex<RelayClient>>,
@@ -749,7 +753,7 @@ pub struct WgMeshTask {
 
 impl WgMeshTask {
     fn tick(&mut self) {
-        let now = self.clock.now();
+        let now = self.ctx.clock().now();
         self.driver.drive_once(now);
 
         let buf = &mut self.recv_buf;
@@ -925,12 +929,12 @@ impl TaskIterator for MeshTask {
         // wakes on either a datagram arrival (reactor latch) or the
         // fallback deadline (for WG timer + SWIM tick servicing).
         if let Some(ref readiness) = self.readiness {
-            let now = self.inner.clock.now();
+            let now = self.inner.ctx.clock().now();
             let deadline = now + Duration::from_millis(MESH_TASK_INTERVAL_MS);
             let composite = TimedReadiness {
                 fd: Arc::clone(readiness),
                 deadline,
-                clock: Arc::clone(&self.inner.clock),
+                ctx: self.inner.ctx.clone(),
             };
             Some(TaskStatus::Depends(Arc::new(composite)))
         } else {
@@ -1088,7 +1092,7 @@ fn save_membership_snapshot(path: &str, members: &[PeerRecord]) {
 /// intervals yields sub-ms wake latency with near-zero CPU when idle.
 ///
 /// Falls back to `thread::sleep(timeout_ms)` when no reactor is running.
-fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64, clock: &dyn Clock) {
+fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64, ctx: &Ctx) {
     use foundation_nativeapis::native::fd::Reactor;
     use foundation_nativeapis::native::fd::Ready;
     use foundation_nativeapis::native::poll::{Interest, Token};
@@ -1105,14 +1109,14 @@ fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64, clock: &dyn Cloc
         // for the same fd+token — subsequent calls just update interest.
         reactor.register(fd, token, Interest::READABLE).ok();
 
-        let start = clock.now();
+        let start = ctx.clock().now();
         let deadline = Duration::from_millis(timeout_ms);
         loop {
             if reactor.is_ready(token) {
                 reactor.clear(token, Ready::READABLE);
                 return;
             }
-            if clock.now().duration_since(start) >= deadline {
+            if ctx.clock().now().duration_since(start) >= deadline {
                 return;
             }
             // The reactor drain thread processes epoll/kqueue events in

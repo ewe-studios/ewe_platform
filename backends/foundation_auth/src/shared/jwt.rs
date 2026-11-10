@@ -1,10 +1,8 @@
 //! JWT management module for token lifecycle handling.
 
-use std::sync::Arc;
-
 use chrono::{DateTime, Utc};
 use foundation_compact::time;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use jwt_simple::prelude::{
     ECDSAP256KeyPairLike, ECDSAP256PublicKeyLike, EdDSAKeyPairLike, EdDSAPublicKeyLike,
     RSAKeyPairLike, RSAPublicKeyLike,
@@ -259,11 +257,7 @@ impl JwtSigningKey {
     /// # Errors
     ///
     /// Returns `JwtError::GenerationError` if signing fails.
-    pub fn sign_claims(
-        &self,
-        claims: &serde_json::Value,
-        clock: &dyn Clock,
-    ) -> Result<String, JwtError> {
+    pub fn sign_claims(&self, claims: &serde_json::Value, ctx: &Ctx) -> Result<String, JwtError> {
         use jwt_simple::prelude::{Claims, Duration};
 
         // Token lifetime: derive from an absolute `exp` (epoch seconds) when the
@@ -276,7 +270,8 @@ impl JwtSigningKey {
             .map_or_else(
                 || Duration::from_secs(3600),
                 |exp| {
-                    let now = u64::try_from(time::unix_seconds(clock.wall_now())).unwrap_or(0);
+                    let now =
+                        u64::try_from(time::unix_seconds(ctx.clock().wall_now())).unwrap_or(0);
                     Duration::from_secs(exp.saturating_sub(now).max(1))
                 },
             );
@@ -473,7 +468,7 @@ impl JwtToken {
         scope: Option<String>,
         audience: Option<String>,
         issuer: Option<String>,
-        clock: &dyn Clock,
+        ctx: &Ctx,
     ) -> Self {
         Self {
             token: ConfidentialText::new(token),
@@ -482,7 +477,7 @@ impl JwtToken {
             scope,
             audience,
             issuer,
-            created_at: now_seconds(clock),
+            created_at: now_seconds(ctx),
         }
     }
 
@@ -491,7 +486,7 @@ impl JwtToken {
     /// # Errors
     ///
     /// Returns a `JwtError` if the token cannot be parsed or is missing required claims.
-    pub fn from_token(token: String, clock: &dyn Clock) -> Result<Self, JwtError> {
+    pub fn from_token(token: String, ctx: &Ctx) -> Result<Self, JwtError> {
         // Parse the JWT payload to extract claims
         let claims = decode_claims(&token)?;
 
@@ -513,7 +508,7 @@ impl JwtToken {
                 .custom
                 .get("iss")
                 .and_then(|v| v.as_str().map(String::from)),
-            created_at: now_seconds(clock),
+            created_at: now_seconds(ctx),
         })
     }
 
@@ -526,20 +521,20 @@ impl JwtToken {
 
     /// Check if the token is expired.
     #[must_use]
-    pub fn is_expired(&self, clock: &dyn Clock) -> bool {
-        now_seconds(clock) >= self.expires_at
+    pub fn is_expired(&self, ctx: &Ctx) -> bool {
+        now_seconds(ctx) >= self.expires_at
     }
 
     /// Check if the token expires within the given buffer (in seconds).
     #[must_use]
-    pub fn expires_within(&self, buffer_seconds: i64, clock: &dyn Clock) -> bool {
-        now_seconds(clock) + buffer_seconds >= self.expires_at
+    pub fn expires_within(&self, buffer_seconds: i64, ctx: &Ctx) -> bool {
+        now_seconds(ctx) + buffer_seconds >= self.expires_at
     }
 
     /// Get seconds until expiration.
     #[must_use]
-    pub fn expires_in(&self, clock: &dyn Clock) -> i64 {
-        (self.expires_at - now_seconds(clock)).max(0)
+    pub fn expires_in(&self, ctx: &Ctx) -> i64 {
+        (self.expires_at - now_seconds(ctx)).max(0)
     }
 
     /// Get the refresh token if available.
@@ -564,18 +559,18 @@ pub struct JwtManager {
     /// Token storage key.
     storage_key: String,
     /// The injected clock every expiry check reads.
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl JwtManager {
     /// Create a new JWT manager with default settings.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             token: None,
             refresh_buffer: 300, // 5 minutes
             storage_key: String::from("jwt:token"),
-            clock,
+            ctx,
         }
     }
 
@@ -626,9 +621,7 @@ impl JwtManager {
         };
 
         // Check if token needs refresh (expired or within buffer)
-        if token.is_expired(self.clock.as_ref())
-            || token.expires_within(self.refresh_buffer, self.clock.as_ref())
-        {
+        if token.is_expired(&self.ctx) || token.expires_within(self.refresh_buffer, &self.ctx) {
             // Need to refresh
             let Some(refresh_token) = token.refresh_token() else {
                 return Err(JwtError::NoRefreshToken);
@@ -659,9 +652,7 @@ impl JwtManager {
             return Ok(false);
         };
 
-        if !token.is_expired(self.clock.as_ref())
-            && !token.expires_within(self.refresh_buffer, self.clock.as_ref())
-        {
+        if !token.is_expired(&self.ctx) && !token.expires_within(self.refresh_buffer, &self.ctx) {
             return Ok(false); // No refresh needed
         }
 
@@ -678,8 +669,7 @@ impl JwtManager {
     #[must_use]
     pub fn has_valid_token(&self) -> bool {
         self.token.as_ref().is_some_and(|t| {
-            !t.is_expired(self.clock.as_ref())
-                && !t.expires_within(self.refresh_buffer, self.clock.as_ref())
+            !t.is_expired(&self.ctx) && !t.expires_within(self.refresh_buffer, &self.ctx)
         })
     }
 

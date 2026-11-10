@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_netio::websocket::shared::frame::{Opcode, WebSocketFrame};
 use foundation_netio::websocket::shared::handshake::compute_accept_key;
 
@@ -125,7 +125,7 @@ impl RelayWsAcceptor {
     ///
     /// # Panics
     /// Panics if the relay server lock is poisoned.
-    pub fn serve(&self, stop: &AtomicBool, clock: &dyn Clock) -> io::Result<()> {
+    pub fn serve(&self, stop: &AtomicBool, ctx: &Ctx) -> io::Result<()> {
         use std::os::unix::io::AsRawFd;
         self.listener.set_nonblocking(true)?;
 
@@ -148,8 +148,8 @@ impl RelayWsAcceptor {
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                     if let Some(ref r) = reactor {
                         r.clear(token, foundation_nativeapis::native::fd::Ready::READABLE);
-                        let deadline = clock.now() + Duration::from_millis(50);
-                        while clock.now() < deadline && !stop.load(Ordering::Relaxed) {
+                        let deadline = ctx.clock().now() + Duration::from_millis(50);
+                        while ctx.clock().now() < deadline && !stop.load(Ordering::Relaxed) {
                             if r.is_ready(token) {
                                 r.clear(token, foundation_nativeapis::native::fd::Ready::READABLE);
                                 break;

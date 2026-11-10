@@ -10,7 +10,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use foundation_wireguard::native::relay::{HolePuncher, RelayClient, RelayServer};
 use foundation_wireguard::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord};
 use foundation_wireguard::shared::relay::{
@@ -20,8 +20,8 @@ use foundation_wireguard::WgError;
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn test_peer(id: u8) -> PeerId {
@@ -88,7 +88,7 @@ fn frame_rejects_wrong_version() {
 #[traced_test]
 #[test]
 fn server_attach_and_forward() {
-    let mut server = RelayServer::new(16, 1000, 60, test_clock());
+    let mut server = RelayServer::new(16, 1000, 60, test_ctx());
     let src = test_peer(10);
     let dst = test_peer(20);
 
@@ -106,7 +106,7 @@ fn server_attach_and_forward() {
 #[traced_test]
 #[test]
 fn server_rejects_unattached_sender() {
-    let mut server = RelayServer::new(16, 1000, 60, test_clock());
+    let mut server = RelayServer::new(16, 1000, 60, test_ctx());
     server.attach(test_peer(20)); // only dst
     let frame = RelayFrame::new(test_peer(20), vec![1, 2, 3]);
     assert!(server.forward(test_peer(99), &frame.encode()).is_none());
@@ -115,7 +115,7 @@ fn server_rejects_unattached_sender() {
 #[traced_test]
 #[test]
 fn server_rejects_unknown_dst() {
-    let mut server = RelayServer::new(16, 1000, 60, test_clock());
+    let mut server = RelayServer::new(16, 1000, 60, test_ctx());
     server.attach(test_peer(10)); // only src
     let frame = RelayFrame::new(test_peer(99), vec![1, 2]); // dst not attached
     assert!(server.forward(test_peer(10), &frame.encode()).is_none());
@@ -124,7 +124,7 @@ fn server_rejects_unknown_dst() {
 #[traced_test]
 #[test]
 fn server_gc_removes_stale() {
-    let mut server = RelayServer::new(16, 1000, 0, test_clock()); // 0s timeout
+    let mut server = RelayServer::new(16, 1000, 0, test_ctx()); // 0s timeout
     server.attach(test_peer(1));
     server.attach(test_peer(2));
     assert_eq!(server.session_count(), 2);
@@ -135,7 +135,7 @@ fn server_gc_removes_stale() {
 #[traced_test]
 #[test]
 fn server_detach_removes_peer() {
-    let mut server = RelayServer::new(16, 1000, 60, test_clock());
+    let mut server = RelayServer::new(16, 1000, 60, test_ctx());
     server.attach(test_peer(1));
     server.detach(&test_peer(1));
     assert!(!server.is_attached(&test_peer(1)));
@@ -393,7 +393,7 @@ fn three_node_mesh_with_relay() {
         .relay_max_sessions(128)
         .build()
         .expect("A");
-    let handle_a = WgNode::from_config(cfg_a, test_clock())
+    let handle_a = WgNode::from_config(cfg_a, test_ctx())
         .join()
         .expect("join A");
     let a_boot = handle_a.bootstrap_addr();
@@ -405,7 +405,7 @@ fn three_node_mesh_with_relay() {
         .seed_endpoint(a_boot)
         .build()
         .expect("B");
-    let handle_b = WgNode::from_config(cfg_b, test_clock())
+    let handle_b = WgNode::from_config(cfg_b, test_ctx())
         .join()
         .expect("join B");
 
@@ -416,7 +416,7 @@ fn three_node_mesh_with_relay() {
         .seed_endpoint(a_boot)
         .build()
         .expect("C");
-    let handle_c = WgNode::from_config(cfg_c, test_clock())
+    let handle_c = WgNode::from_config(cfg_c, test_ctx())
         .join()
         .expect("join C");
 
@@ -526,7 +526,7 @@ fn browser_ws_relay_frame_encoding_and_forward() {
 
     // ── Relay server forwards the frame ─────────────────────────────
     let browser_id = test_peer(99);
-    let server = Arc::new(Mutex::new(RelayServer::new(16, 1000, 60, test_clock())));
+    let server = Arc::new(Mutex::new(RelayServer::new(16, 1000, 60, test_ctx())));
     server.lock().expect("lock").attach(browser_id);
     server.lock().expect("lock").attach(test_peer(1));
 

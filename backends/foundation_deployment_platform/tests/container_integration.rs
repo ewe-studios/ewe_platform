@@ -9,13 +9,13 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
 
-use foundation_core::valtron::{MonotonicClock, valtron_test};
+use foundation_core::valtron::{Ctx, MonotonicClock, valtron_test};
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
 use foundation_deployment_platform::testing::docker_available;
 
 /// The test thread is a host entry point, so it injects the real clock.
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[valtron_test(seed = 54, threads = 4)]
@@ -27,7 +27,7 @@ fn test_start_redis_container() {
     }
 
     let config = ContainerConfig::new("redis:7-alpine")
-        .clock(test_clock())
+        .ctx(test_ctx())
         .port(6379)
         .wait(WaitFor::stdout("Ready to accept connections"))
         .stop_timeout_secs(5);
@@ -87,7 +87,7 @@ fn test_container_auto_cleanup_on_drop() {
 
     {
         let config = ContainerConfig::new("redis:7-alpine")
-            .clock(test_clock())
+            .ctx(test_ctx())
             .port(6379)
             .wait(WaitFor::stdout("Ready to accept connections"))
             .stop_timeout_secs(2);
@@ -99,7 +99,7 @@ fn test_container_auto_cleanup_on_drop() {
     // After Drop, the container should be gone
     let check_handle = ContainerHandle::start(
         ContainerConfig::new("redis:7-alpine")
-            .clock(test_clock())
+            .ctx(test_ctx())
             .port(6379)
             .stop_timeout_secs(2),
     );
@@ -118,7 +118,7 @@ fn test_docker_unavailable_returns_connection_error() {
 
     let result = ContainerHandle::start(
         ContainerConfig::new("redis:7-alpine")
-            .clock(test_clock())
+            .ctx(test_ctx())
             .port(6379),
     );
 

@@ -6,11 +6,11 @@ use foundation_auth::shared::middleware::{
     GuardResult,
 };
 use foundation_auth::shared::types::ConfidentialText;
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn test_require_auth_with_valid_token() {
         scope: Some("read".to_string()),
     });
 
-    match require_auth(ctx, test_clock().as_ref()) {
+    match require_auth(ctx, &test_clock()) {
         GuardResult::Authorized(c) => assert_eq!(c.path, "/api/data"),
         other => panic!("expected Authorized, got {other:?}"),
     }
@@ -42,7 +42,7 @@ fn test_require_auth_expired_token() {
     });
 
     assert!(matches!(
-        require_auth(ctx, test_clock().as_ref()),
+        require_auth(ctx, &test_clock()),
         GuardResult::TokenExpired
     ));
 }
@@ -51,7 +51,7 @@ fn test_require_auth_expired_token() {
 fn test_require_auth_no_token() {
     let ctx = AuthContext::new("/api/data".to_string(), None, None);
     assert!(matches!(
-        require_auth(ctx, test_clock().as_ref()),
+        require_auth(ctx, &test_clock()),
         GuardResult::Unauthorized
     ));
 }
@@ -67,7 +67,7 @@ fn test_optional_auth_strips_expired_token() {
         scope: None,
     });
 
-    if let GuardResult::Authorized(c) = optional_auth(ctx, test_clock().as_ref()) {
+    if let GuardResult::Authorized(c) = optional_auth(ctx, &test_clock()) {
         assert!(c.token.is_none());
     } else {
         panic!("optional_auth should always return Authorized");
