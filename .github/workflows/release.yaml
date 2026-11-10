@@ -72,7 +72,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
@@ -125,7 +125,7 @@ jobs:
       IMAGE: ${{ needs.image-cuda.outputs.image-ref }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false

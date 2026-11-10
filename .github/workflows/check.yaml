@@ -152,7 +152,7 @@ jobs:
           du -sh "${paths[@]}" || true
 
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
@@ -232,7 +232,7 @@ jobs:
       IMAGE: ${{ needs.image.outputs.image-ref }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
@@ -354,7 +354,7 @@ jobs:
           du -sh "${paths[@]}" || true
 
       - name: Checkout
-        uses: useblacksmith/checkout@v1
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
