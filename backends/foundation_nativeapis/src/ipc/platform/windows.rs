@@ -14,41 +14,33 @@ use std::{
 };
 
 use foundation_context::Ctx;
-use foundation_core::type_uuid::TypeUuid;
 
 use crate::ipc::{
     decode, util::Align4, version::version, version::Version, EndpointID, Error, Label, LabelOp,
-    MemoryRegion, Message, MessageBox, Selector, SelectorMode,
+    MemoryRegion, Message, MessageBox, Selector,
 };
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::{
     Foundation::{
-        self, CloseHandle, DuplicateHandle, GetLastError, DUPLICATE_SAME_ACCESS,
-        ERROR_ACCESS_DENIED, ERROR_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_IO_PENDING,
-        ERROR_MORE_DATA, ERROR_PIPE_BUSY, ERROR_PIPE_CONNECTED, ERROR_PIPE_LISTENING, HANDLE,
-        INVALID_HANDLE_VALUE, WAIT_TIMEOUT,
+        CloseHandle, DuplicateHandle, GetLastError, DUPLICATE_SAME_ACCESS, ERROR_ACCESS_DENIED,
+        ERROR_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_PIPE_BUSY, HANDLE, INVALID_HANDLE_VALUE,
     },
-    Security::{self, SECURITY_ATTRIBUTES},
     Storage::FileSystem::{
-        self, CreateFileW, ReadFile, WriteFile, FILE_FLAG_OVERLAPPED, FILE_GENERIC_WRITE,
-        OPEN_EXISTING, PIPE_ACCESS_INBOUND,
+        CreateFileW, ReadFile, WriteFile, FILE_FLAG_FIRST_PIPE_INSTANCE, FILE_FLAG_OVERLAPPED,
+        FILE_GENERIC_WRITE, OPEN_EXISTING, PIPE_ACCESS_INBOUND,
     },
     System::{
         Memory::{
             CreateFileMappingW, MapViewOfFile, UnmapViewOfFile, FILE_MAP_READ, FILE_MAP_WRITE,
-            PAGE_READWRITE,
+            MEMORY_MAPPED_VIEW_ADDRESS, PAGE_READWRITE,
         },
         Pipes::{
-            ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe, GetNamedPipeServerProcessId,
-            PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
+            CreateNamedPipeW, GetNamedPipeServerProcessId, PIPE_READMODE_MESSAGE,
+            PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
         },
         SystemInformation::GetSystemInfo,
-        Threading::{GetCurrentProcess, GetCurrentProcessId, OpenProcess, PROCESS_DUP_HANDLE},
-        IO::{
-            CreateIoCompletionPort, GetQueuedCompletionStatus, PostQueuedCompletionStatus,
-            OVERLAPPED,
-        },
+        Threading::{GetCurrentProcess, OpenProcess, PROCESS_DUP_HANDLE},
     },
 };
 
@@ -64,10 +56,10 @@ impl Handle {
     pub fn clone(&self) -> io::Result<Self> {
         #[cfg(target_os = "windows")]
         unsafe {
-            let mut dup: HANDLE = 0;
+            let mut dup: HANDLE = ptr::null_mut();
             let r = DuplicateHandle(
                 GetCurrentProcess(),
-                self.0,
+                self.0 as HANDLE,
                 GetCurrentProcess(),
                 &mut dup,
                 0,
@@ -77,7 +69,7 @@ impl Handle {
             if r == 0 {
                 return Err(io::Error::last_os_error());
             }
-            Ok(Self(dup))
+            Ok(Self(dup as isize))
         }
         #[cfg(not(target_os = "windows"))]
         Err(io::Error::new(io::ErrorKind::Unsupported, "Windows only"))
@@ -103,7 +95,7 @@ impl Drop for Handle {
     fn drop(&mut self) {
         if self.0 != 0 && self.0 != -1 {
             unsafe {
-                CloseHandle(self.0);
+                CloseHandle(self.0 as HANDLE);
             }
         }
     }
@@ -138,7 +130,13 @@ impl Remote {
         #[cfg(target_os = "windows")]
         unsafe {
             let mut written = 0u32;
-            let r = WriteFile(self.pipe.0, ptr::null(), 0, &mut written, ptr::null_mut());
+            let r = WriteFile(
+                self.pipe.0 as HANDLE,
+                ptr::null(),
+                0,
+                &mut written,
+                ptr::null_mut(),
+            );
             r == 0
         }
         #[cfg(not(target_os = "windows"))]
@@ -190,11 +188,11 @@ impl EncodedMessage {
                     .collect();
 
                 for (i, obj) in all_objects.iter().enumerate() {
-                    let mut dup: HANDLE = 0;
+                    let mut dup: HANDLE = ptr::null_mut();
                     let r = DuplicateHandle(
                         GetCurrentProcess(),
-                        obj.as_raw(),
-                        process.as_raw(),
+                        obj.as_raw() as HANDLE,
+                        process.as_raw() as HANDLE,
                         &mut dup,
                         0,
                         0,
@@ -206,13 +204,13 @@ impl EncodedMessage {
                         }
                         return Err(Error::Disconnect);
                     }
-                    *obj_ptr.add(i) = dup as u64;
+                    *obj_ptr.add(i) = dup as usize as u64;
                 }
             }
 
             let mut written = 0u32;
             let r = WriteFile(
-                remote.pipe.0,
+                remote.pipe.0 as HANDLE,
                 self.pipe_msg.as_ptr().cast(),
                 self.msg_size as u32,
                 &mut written,
@@ -239,7 +237,7 @@ impl EncodedMessage {
             let mut buf = vec![0u8; 64 << 10]; // 64KB initial
             let mut bytes_read = 0u32;
             let r = ReadFile(
-                pipe.pipe.0,
+                pipe.pipe.0 as HANDLE,
                 buf.as_mut_ptr().cast(),
                 buf.len() as u32,
                 &mut bytes_read,
@@ -530,7 +528,7 @@ pub(crate) fn look_up(
             ptr::null(),
             OPEN_EXISTING,
             0,
-            0,
+            ptr::null_mut(),
         );
         if pipe == INVALID_HANDLE_VALUE {
             return match GetLastError() {
@@ -539,16 +537,16 @@ pub(crate) fn look_up(
                 _ => Err(Error::Unknown),
             };
         }
-        let remote_pipe = Handle(pipe);
+        let remote_pipe = Handle(pipe as isize);
 
         let mut server_pid = 0u32;
         GetNamedPipeServerProcessId(pipe, &mut server_pid);
 
         let process = OpenProcess(PROCESS_DUP_HANDLE, 0, server_pid);
-        let remote_process = if process == 0 {
+        let remote_process = if process.is_null() {
             None
         } else {
-            Some(Handle(process))
+            Some(Handle(process as isize))
         };
 
         let remote = Remote {
@@ -576,7 +574,7 @@ pub(crate) fn look_up(
         if read_pipe == INVALID_HANDLE_VALUE {
             return Err(Error::Unknown);
         }
-        let read_handle = Handle(read_pipe);
+        let read_handle = Handle(read_pipe as isize);
 
         let write_pipe = CreateFileW(
             reply_name_w.as_ptr(),
@@ -585,12 +583,12 @@ pub(crate) fn look_up(
             ptr::null(),
             OPEN_EXISTING,
             0,
-            0,
+            ptr::null_mut(),
         );
         if write_pipe == INVALID_HANDLE_VALUE {
             return Err(Error::Unknown);
         }
-        let write_handle = Handle(write_pipe);
+        let write_handle = Handle(write_pipe as isize);
 
         // Send ConnectMessage with process handle + write pipe handle
         let mut msg = Message::new(
@@ -601,7 +599,7 @@ pub(crate) fn look_up(
                 label,
             },
         );
-        let cur_process = Handle(GetCurrentProcess());
+        let cur_process = Handle(GetCurrentProcess() as isize);
         msg.objects.push(Handle(cur_process.into_raw()));
         msg.objects.push(write_handle);
 
@@ -636,7 +634,7 @@ pub(crate) fn register(
         let name = pipe_name(identifier);
         let pipe = CreateNamedPipeW(
             name.as_ptr(),
-            PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | 0x00080000, // FILE_FLAG_FIRST_PIPE_INSTANCE
+            PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | FILE_FLAG_FIRST_PIPE_INSTANCE,
             PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
             PIPE_UNLIMITED_INSTANCES,
             4 << 20,
@@ -651,7 +649,7 @@ pub(crate) fn register(
                 _ => Err(Error::Unknown),
             };
         }
-        let handle = Handle(pipe);
+        let handle = Handle(pipe as isize);
         let (bus_sender, bus_receiver) = mpsc::channel();
         Ok((
             IoHub::for_bus_controller(handle, bus_receiver, im),
@@ -683,10 +681,10 @@ impl MemoryRegion {
                 size as u32,
                 ptr::null(),
             );
-            if handle == 0 {
+            if handle.is_null() {
                 return None;
             }
-            Some(Handle(handle))
+            Some(Handle(handle as isize))
         }
         #[cfg(not(target_os = "windows"))]
         None
@@ -702,7 +700,7 @@ impl crate::ipc::platform::MappedRegion {
         #[cfg(target_os = "windows")]
         unsafe {
             let ptr = MapViewOfFile(
-                obj.as_raw(),
+                obj.as_raw() as HANDLE,
                 FILE_MAP_READ | FILE_MAP_WRITE,
                 (aligned_offset >> 32) as u32,
                 aligned_offset as u32,
@@ -721,9 +719,7 @@ impl crate::ipc::platform::MappedRegion {
     pub(crate) fn unmap(addr: *mut u8, _len: usize) {
         #[cfg(target_os = "windows")]
         unsafe {
-            UnmapViewOfFile(windows_sys::Win32::System::Memory::MEMORYMAPPEDVIEW_HANDLE(
-                addr as _,
-            ));
+            UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: addr.cast() });
         }
     }
 }
