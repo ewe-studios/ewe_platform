@@ -133,13 +133,11 @@ fn send_frame(
         } else {
             request.poll_send_data(&mut pending)
         };
-        match step {
-            Stream::Next(_) => return,
-            _ => {
-                assert!(Instant::now() < deadline, "client send timed out");
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(_) = step {
+            return;
         }
+        assert!(Instant::now() < deadline, "client send timed out");
+        std::thread::sleep(ms(1));
     }
 }
 
@@ -204,13 +202,11 @@ fn h3_forward_streams_large_body() {
     ]);
     send_frame(&mut request, head, true, deadline);
     loop {
-        match request.poll_finish() {
-            Stream::Next(_) => break,
-            _ => {
-                assert!(Instant::now() < deadline, "finish timed out");
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(_) = request.poll_finish() {
+            break;
         }
+        assert!(Instant::now() < deadline, "finish timed out");
+        std::thread::sleep(ms(1));
     }
 
     let headers = drive(|| request.poll_headers(), deadline).expect("response headers");

@@ -408,6 +408,12 @@ env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_proxy]
+# `quic` adds the HTTP/3 front end (F19) and its suites (tests/h3_*). No run
+# compiled them before, so the H3 code was never built or linted in CI.
+runs = ["", "quic"]
+# Clippy covers the quic tree too, at zero warnings (clippy-deny-warnings is
+# the default), so a new H3 warning fails CI.
+clippy-runs = ["", "quic"]
 # The completion dial and splice tests need io_uring; fail instead of skipping.
 env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
