@@ -8,7 +8,7 @@
 //! entry point awaits them with valtron's `block_on_future` / `.block()`
 //! behind `blocking_boundary!`.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use futures_lite::StreamExt;
 use serde::{de::DeserializeOwned, Serialize};
 use std::pin::Pin;

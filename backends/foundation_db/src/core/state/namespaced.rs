@@ -10,7 +10,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use futures_lite::StreamExt;
 
 use super::traits::{StateStore, StateStoreStream};

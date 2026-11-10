@@ -4,7 +4,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{valtron_test, Ctx, SimulatedClock};
+use foundation_core::valtron::{valtron_test, SimulatedClock};
+
+use foundation_context::Ctx;
 use foundation_db::state::namespaced::NamespacedStore;
 use foundation_db::state::{FileStateStore, StateStore};
 

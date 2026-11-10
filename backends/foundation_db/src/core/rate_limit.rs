@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
     feature = "libsql",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 #[cfg(any(
     feature = "turso",

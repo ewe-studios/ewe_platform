@@ -4,7 +4,7 @@
 //! Uses atomic writes (temp file + rename) for crash safety and
 //! Zeroizing for secure memory handling of sensitive data.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use std::fs::{self, File};

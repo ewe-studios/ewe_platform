@@ -14,7 +14,7 @@ use crate::core::storage_provider::{
 };
 use crate::wasm::bindgen::KVNamespace;
 use foundation_compact::SendWrapper;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use js_sys::Object;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;

@@ -6,7 +6,9 @@ use std::time::Duration;
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_core::valtron::SimulatedClock;
+
+use foundation_context::Ctx;
 use foundation_db::{JsonFileStorage, KeyValueStore, QueryStore, RateLimiterStore, StorageError};
 use futures_lite::future::block_on;
 use tempfile::TempDir;

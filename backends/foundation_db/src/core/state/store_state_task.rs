@@ -24,7 +24,8 @@ use crate::core::state::hash::config_hash;
 use crate::core::state::resource_identifier::ResourceIdentifier;
 use crate::core::state::traits::StateStore;
 use crate::core::state::types::{ResourceState, StateStatus};
-use foundation_core::valtron::{Ctx, FutureTask, TaskIterator, TaskSpread, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{FutureTask, TaskIterator, TaskSpread, TaskStatus};
 use serde::Serialize;
 
 /// The store write a task awaits (`Send` natively; state store futures are
