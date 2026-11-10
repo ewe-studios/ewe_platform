@@ -558,7 +558,7 @@ impl Transport for H2Transport {
             handshake_timeout: self.handshake_timeout,
             read_timeout: self.read_timeout,
             last_progress: None,
-            clock: None,
+            ctx: None,
             pending_out: Vec::new(),
             send_rx,
             head_tx,
@@ -608,20 +608,20 @@ impl Transport for H2Transport {
 #[cfg(unix)]
 struct DeadlineReadiness {
     at: Instant,
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    ctx: Ctx,
 }
 
 #[cfg(unix)]
 impl DeadlineReadiness {
-    fn at(at: Instant, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
-        Self { at, clock }
+    fn at(at: Instant, ctx: Ctx) -> Self {
+        Self { at, ctx }
     }
 }
 
 #[cfg(unix)]
 impl EventReadiness for DeadlineReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.clock.now() >= self.at
+        self.ctx.clock().now() >= self.at
     }
 
     // `foundation_compact::Instant` re-exports `std::time::Instant` on native,
@@ -683,8 +683,8 @@ struct H2Pump {
     /// When the peer last sent bytes or the socket last took our bytes. The
     /// read timeout measures from here.
     last_progress: Option<Instant>,
-    /// The engine clock, resolved on the first poll.
-    clock: Option<Arc<dyn foundation_core::valtron::Clock>>,
+    /// The context, resolved on the first poll. Its clock is the engine clock.
+    ctx: Option<Ctx>,
     /// Bytes drained from `channel` that the non-blocking socket has not taken
     /// yet. Written ahead of any later output so frames are never split or lost.
     pending_out: Vec<u8>,
@@ -823,21 +823,21 @@ impl H2Pump {
             children.push(Arc::new(self.head_tx.closed_readiness()) as EventReadinessPtr);
         }
         if let Some(deadline) = self.next_deadline() {
-            children.push(
-                Arc::new(DeadlineReadiness::at(deadline, self.engine_clock())) as EventReadinessPtr,
-            );
+            children
+                .push(Arc::new(DeadlineReadiness::at(deadline, self.engine_ctx()))
+                    as EventReadinessPtr);
         }
         TaskStatus::Depends(Arc::new(AnyReadiness::new(children)))
     }
 
-    /// The engine clock, resolved on the first poll.
+    /// The context, resolved on the first poll.
     ///
     /// # Panics
     /// Panics when `next_status` has not run yet.
-    fn engine_clock(&self) -> Arc<dyn foundation_core::valtron::Clock> {
-        self.clock
+    fn engine_ctx(&self) -> Ctx {
+        self.ctx
             .as_ref()
-            .expect("the engine clock is resolved on the first poll")
+            .expect("the engine context is resolved on the first poll")
             .clone()
     }
 
@@ -952,7 +952,7 @@ impl H2Pump {
                 }
                 Ok(n) => {
                     self.pending_out.drain(..n);
-                    self.last_progress = Some(self.engine_clock().now());
+                    self.last_progress = Some(self.engine_ctx().clock().now());
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // The socket is full. Arm WRITABLE now: the drain back to
@@ -991,7 +991,7 @@ impl TaskIterator for H2Pump {
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         self.polls.fetch_add(1, Ordering::Relaxed);
         let now = ctx.clock().now();
-        self.clock.get_or_insert_with(|| ctx.clock());
+        self.ctx.get_or_insert_with(|| ctx.clone());
         let opened = *self.opened.get_or_insert(now);
         let connecting_deadline = opened + self.connecting_timeout;
         let handshake_deadline = self.handshake_deadline.unwrap_or_else(|| {

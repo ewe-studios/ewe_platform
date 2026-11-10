@@ -128,9 +128,9 @@ impl ConnIo {
         self: &Arc<Self>,
         interest: IoInterest,
         timeout: Duration,
-        clock: &dyn foundation_core::valtron::Clock,
+        ctx: &foundation_core::valtron::Ctx,
     ) -> IoReady {
-        IoReady::new(Arc::clone(self), interest, timeout, clock)
+        IoReady::new(Arc::clone(self), interest, timeout, ctx)
     }
 
     /// Wait for the peer to close or reset the connection (see the module docs
@@ -334,9 +334,9 @@ impl IoReady {
         io: Arc<ConnIo>,
         interest: IoInterest,
         timeout: Duration,
-        clock: &dyn foundation_core::valtron::Clock,
+        ctx: &foundation_core::valtron::Ctx,
     ) -> Self {
-        let deadline = clock.now() + timeout;
+        let deadline = ctx.clock().now() + timeout;
         Self {
             io,
             interest,

@@ -164,20 +164,19 @@ impl Serve for ConnectRpcServe {
             body,
             None | Some(SendSafeBody::None)
         )));
-        let clock = ctx.clock();
         let body: RequestBody<'static> = Box::pin(H1Body {
             reader: BodyReader::new(body),
             io: Arc::clone(&io),
             timeout: self.timeouts.body_read,
             wait: None,
             drained: Arc::clone(&drained),
-            clock: clock.clone(),
+            ctx: ctx.clone(),
         });
         let sink = H1Sink {
             conn,
             io: Arc::clone(&io),
             timeout: self.timeouts.write,
-            clock,
+            ctx: ctx.clone(),
         };
         let cancel = CancelSignal::new();
         let hooks = CallHooks::new(cancel.clone()).with_timer(&SERVE_TIMER);
@@ -238,8 +237,8 @@ struct H1Body {
     wait: Option<IoReady>,
     /// Set once the body has been read to its end.
     drained: Arc<AtomicBool>,
-    /// The engine clock that bounds each readiness wait.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    /// The context whose clock bounds each readiness wait.
+    ctx: Ctx,
 }
 
 impl futures::Stream for H1Body {
@@ -267,11 +266,7 @@ impl futures::Stream for H1Body {
                 }
                 BodyStep::Failed(e) => return Poll::Ready(Some(Err(e))),
                 BodyStep::WouldBlock => {
-                    this.wait = Some(this.io.ready(
-                        IoInterest::Readable,
-                        this.timeout,
-                        this.clock.as_ref(),
-                    ));
+                    this.wait = Some(this.io.ready(IoInterest::Readable, this.timeout, &this.ctx));
                 }
             }
         }
@@ -284,8 +279,8 @@ struct H1Sink {
     conn: SharedByteBufferStream<RawStream>,
     io: Arc<ConnIo>,
     timeout: Duration,
-    /// The engine clock that bounds each readiness wait.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    /// The context whose clock bounds each readiness wait.
+    ctx: Ctx,
 }
 
 impl H1Sink {
@@ -305,7 +300,7 @@ impl H1Sink {
                         self.io.clone(),
                         IoInterest::Writable,
                         self.timeout,
-                        self.clock.as_ref(),
+                        &self.ctx,
                     )
                     .await?;
                 }
@@ -325,7 +320,7 @@ impl H1Sink {
                         self.io.clone(),
                         IoInterest::Writable,
                         self.timeout,
-                        self.clock.as_ref(),
+                        &self.ctx,
                     )
                     .await?;
                 }
