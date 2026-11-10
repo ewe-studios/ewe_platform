@@ -5,6 +5,8 @@ use std::fmt;
 
 use foundation_context::Ctx;
 
+use crate::pause::WaitConfig;
+
 /// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Browser {
@@ -55,6 +57,8 @@ pub struct LaunchConfig {
     /// [`BrowserDriver::launch`](crate::BrowserDriver::launch) panics when it is
     /// absent. Set it with [`LaunchConfig::ctx`].
     pub ctx: Option<Ctx>,
+    /// The intervals of every launch wait loop. See [`WaitConfig`].
+    pub wait: WaitConfig,
 }
 
 impl fmt::Debug for LaunchConfig {
@@ -64,6 +68,7 @@ impl fmt::Debug for LaunchConfig {
             .field("headless", &self.headless)
             .field("extra_args", &self.extra_args)
             .field("ctx", &self.ctx.is_some())
+            .field("wait", &self.wait)
             .finish()
     }
 }
@@ -75,6 +80,7 @@ impl Default for LaunchConfig {
             headless: true,
             extra_args: Vec::new(),
             ctx: None,
+            wait: WaitConfig::default(),
         }
     }
 }
@@ -94,6 +100,7 @@ impl LaunchConfig {
             headless: true,
             extra_args: Vec::new(),
             ctx: None,
+            wait: WaitConfig::default(),
         }
     }
 
@@ -101,6 +108,13 @@ impl LaunchConfig {
     #[must_use]
     pub fn ctx(mut self, ctx: Ctx) -> Self {
         self.ctx = Some(ctx);
+        self
+    }
+
+    /// Set the intervals of the launch wait loops.
+    #[must_use]
+    pub fn wait(mut self, wait: WaitConfig) -> Self {
+        self.wait = wait;
         self
     }
 

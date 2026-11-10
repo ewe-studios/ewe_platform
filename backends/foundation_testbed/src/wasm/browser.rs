@@ -10,7 +10,8 @@
 
 use std::time::Duration;
 
-use foundation_browser::{BrowserDriver, LaunchConfig};
+use foundation_browser::pause::pause;
+use foundation_browser::{BrowserDriver, LaunchConfig, WaitConfig};
 use foundation_context::Ctx;
 use tracing::{debug, info};
 
@@ -25,6 +26,10 @@ pub struct BrowserOutput {
 }
 
 const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
+/// Clock time to wait for module scripts to finish their top-level await.
+const MODULE_SETTLE: Duration = Duration::from_secs(3);
+/// Clock time between two reads of the `#output` element.
+const RESULT_POLL: Duration = Duration::from_millis(500);
 
 /// Run a browser test and collect its output.
 ///
@@ -63,9 +68,11 @@ pub fn run(url: &str, browser: &Browser, headless: bool, ctx: &Ctx) -> Result<Br
 
     // Give module scripts time to resolve top-level await.
     // Page.loadEventFired (waited in `goto`) fires before type="module"
-    // scripts execute their async body. A brief wall-clock sleep lets the
-    // browser fetch and execute the module graph.
-    std::thread::sleep(Duration::from_secs(3));
+    // scripts execute their async body. A short pause on the injected clock
+    // lets the browser fetch and execute the module graph. A simulated clock
+    // steps this pause, so a test does not wait in real time.
+    let wait = WaitConfig::default();
+    pause(ctx, MODULE_SETTLE, &wait);
 
     let deadline = clock.now() + RESULT_TIMEOUT;
     let output = loop {
@@ -89,7 +96,7 @@ pub fn run(url: &str, browser: &Browser, headless: bool, ctx: &Ctx) -> Result<Br
             ))
             .trace());
         }
-        std::thread::sleep(Duration::from_millis(500));
+        pause(ctx, RESULT_POLL, &wait);
     };
 
     let test_result = output.lines().next().unwrap_or("").trim().to_string();

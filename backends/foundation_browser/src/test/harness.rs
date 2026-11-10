@@ -100,6 +100,7 @@ impl TestConfig {
             headless: self.headless,
             extra_args,
             ctx: Some(self.ctx.clone()),
+            wait: crate::pause::WaitConfig::default(),
         }
     }
 
