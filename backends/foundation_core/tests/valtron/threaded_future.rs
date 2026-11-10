@@ -16,7 +16,9 @@ fn test_threaded_future_basic() {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
     });
 
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
@@ -33,7 +35,9 @@ fn test_threaded_future_future_error() {
         Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
     });
 
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
     let results: Vec<Result<i32, &'static str>> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(result) => Some(result),
@@ -49,7 +53,9 @@ fn test_threaded_future_future_error() {
 fn test_threaded_future_empty_iterator() {
     let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
     let results: Vec<Result<i32, ()>> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(result) => Some(result),
@@ -69,7 +75,9 @@ fn test_threaded_future_custom_queue_size() {
         100,
     );
 
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
@@ -96,7 +104,9 @@ fn test_threaded_future_backpressure() {
         4,
     );
 
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
 
     // Collect results using the iterator directly, tolerating the `Waiting`
     // heartbeats the condvar path now yields between backpressure cycles.
@@ -135,7 +145,9 @@ fn test_threaded_future_yields_waiting_on_empty_queue() {
         }))
     });
 
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
 
     let mut values = Vec::new();
     let mut saw_waiting = false;
@@ -208,7 +220,7 @@ fn test_threaded_future_parks_while_pending() {
     });
 
     let results: Vec<i32> = threaded
-        .execute()
+        .execute(crate::valtron::real_ctx())
         .expect("should submit job")
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
@@ -308,7 +320,7 @@ fn threaded_iter_future_does_not_spin_while_pending() {
     });
 
     let results: Vec<i32> = threaded
-        .execute()
+        .execute(crate::valtron::real_ctx())
         .expect("should submit job")
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
@@ -382,7 +394,10 @@ fn threaded_iter_future_backpressure_parks_until_space() {
     );
 
     let mut got = Vec::new();
-    for value in threaded.execute().expect("should submit job") {
+    for value in threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job")
+    {
         if let ThreadedValue::Value(Ok(v)) = value {
             got.push(v);
             std::thread::sleep(std::time::Duration::from_millis(100));
@@ -411,7 +426,9 @@ fn threaded_iter_future_error_reaches_consumer_when_queue_full() {
         2,
         None,
     );
-    let iter = threaded.execute().expect("should submit job");
+    let iter = threaded
+        .execute(crate::valtron::real_ctx())
+        .expect("should submit job");
     std::thread::sleep(std::time::Duration::from_millis(300));
 
     let results: Vec<Result<i32, &'static str>> = iter

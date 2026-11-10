@@ -207,8 +207,12 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
     // Task that produces many values quickly
     let task = WrapTask::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].into_iter());
 
-    let (mut inline_action, receiver) =
-        InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_micros(50));
+    let (mut inline_action, receiver) = InlineAction::new(
+        InlineActionBehaviour::Lift,
+        task,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     let receiver = Arc::new(Mutex::new(receiver));
 
@@ -264,8 +268,12 @@ fn test_executor_ready_iter_no_message_loss() {
     // Task that produces values
     let task = WrapTask::new(vec![100, 200, 300, 400, 500].into_iter());
 
-    let (mut inline_action, receiver) =
-        InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_micros(50));
+    let (mut inline_action, receiver) = InlineAction::new(
+        InlineActionBehaviour::Lift,
+        task,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     let receiver = Arc::new(Mutex::new(receiver));
 

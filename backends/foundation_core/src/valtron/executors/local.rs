@@ -495,14 +495,14 @@ impl<T> NotifyQueue<T> {
     /// `Some(NotificationItem::None)` if queue open but empty after `max_spins`,
     /// or `None` (Option) if queue is closed — iteration should end.
     ///
+    /// The wait reads time from the clock of `ctx`, so a test that injects a
+    /// simulated clock controls the deadline. The wait ends early on a push or
+    /// a close.
+    ///
     /// # Panics
     /// Panics if the internal mutex is poisoned.
-    pub fn wait_for_item(
-        &self,
-        timeout: time::Duration,
-        clock: &dyn foundation_context::Clock,
-    ) -> Option<NotificationItem<T>> {
-        // Kept: the blocking consumer has no caller `Ctx` on this path (see report).
+    pub fn wait_for_item(&self, timeout: time::Duration, ctx: &Ctx) -> Option<NotificationItem<T>> {
+        let clock = ctx.clock();
         // First try non-blocking pop
         match self.pop() {
             Ok(item) => return Some(NotificationItem::Ready(item)),
@@ -651,22 +651,34 @@ impl<T> NotifyQueue<T> {
 /// This is the notification-aware counterpart to `RecvIter` in `mpp.rs`.
 /// Instead of spin-polling with `park_timeout`, it uses `CondVar` notification
 /// for efficient blocking when the queue is empty.
-#[derive(Debug)]
 pub struct NotifyRecvIter<T> {
     queue: Arc<NotifyQueue<T>>,
+    /// The context whose clock bounds each blocking wait.
+    ctx: Ctx,
+}
+
+impl<T> core::fmt::Debug for NotifyRecvIter<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("NotifyRecvIter")
+            .field("len", &self.queue.len())
+            .field("closed", &self.queue.is_closed())
+            .finish_non_exhaustive()
+    }
 }
 
 impl<T> Clone for NotifyRecvIter<T> {
     fn clone(&self) -> Self {
         Self {
             queue: self.queue.clone(),
+            ctx: self.ctx.clone(),
         }
     }
 }
 
 impl<T> NotifyRecvIter<T> {
-    pub fn new(queue: Arc<NotifyQueue<T>>) -> Self {
-        Self { queue }
+    /// Build a receiver on `queue`. Its waits read the clock of `ctx`.
+    pub fn new(queue: Arc<NotifyQueue<T>>, ctx: Ctx) -> Self {
+        Self { queue, ctx }
     }
 
     #[must_use]
@@ -690,10 +702,7 @@ impl<T> NotifyRecvIter<T> {
     /// or `None` (Option) if queue is closed.
     #[must_use]
     pub fn block_recv(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
-        // A blocking consumer parks on the real operating-system clock
-        // (GitHub issue #102).
-        self.queue
-            .wait_for_item(timeout, &foundation_context::MonotonicClock::new())
+        self.queue.wait_for_item(timeout, &self.ctx)
     }
 }
 
@@ -706,8 +715,10 @@ impl<T> NotifyRecvIter<T> {
 pub struct NotifyRecvIterator<T>(NotifyRecvIter<T>, time::Duration);
 
 impl<T> NotifyRecvIterator<T> {
-    pub fn from_notify_queue(item: Arc<NotifyQueue<T>>, dur: time::Duration) -> Self {
-        Self::new(NotifyRecvIter::new(item), dur)
+    /// Build an iterator on `item`. Each wait lasts up to `dur` and reads the
+    /// clock of `ctx`.
+    pub fn from_notify_queue(item: Arc<NotifyQueue<T>>, dur: time::Duration, ctx: Ctx) -> Self {
+        Self::new(NotifyRecvIter::new(item, ctx), dur)
     }
 
     #[must_use]
@@ -756,14 +767,27 @@ use crate::valtron::iterators::Stream;
 ///
 /// The iterator polls the queue up to `max_turns` times, yielding `Stream::Wait` if no
 /// value is available. Between polls, it efficiently waits using `CondVar` notification.
-#[derive(Debug)]
 pub struct NotifyQueueStreamIterator<D, P> {
     chan: Arc<NotifyQueue<Stream<D, P>>>,
     max_turns: usize,
     park_duration: time::Duration,
+    /// The context whose clock bounds each blocking wait.
+    ctx: Ctx,
     /// Set once a consumer registers a wake callback: it parks on the wake
     /// instead of blocking, so `next` must not wait on an empty queue.
     woken_consumer: bool,
+}
+
+impl<D, P> core::fmt::Debug for NotifyQueueStreamIterator<D, P> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("NotifyQueueStreamIterator")
+            .field("len", &self.chan.len())
+            .field("closed", &self.chan.is_closed())
+            .field("max_turns", &self.max_turns)
+            .field("park_duration", &self.park_duration)
+            .field("woken_consumer", &self.woken_consumer)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<D, P> NotifyQueueStreamIterator<D, P> {
@@ -774,6 +798,7 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
     /// * `chan` - The notification queue to poll
     /// * `max_turns` - Number of poll attempts before yielding `Stream::Ignore`
     /// * `park_duration` - Duration to wait between polls (used as timeout for `wait_for_item`)
+    /// * `ctx` - The context whose clock bounds each blocking wait
     ///
     /// ## Panics
     ///
@@ -782,12 +807,14 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
         chan: Arc<NotifyQueue<Stream<D, P>>>,
         max_turns: usize,
         park_duration: time::Duration,
+        ctx: Ctx,
     ) -> Self {
         assert!(max_turns > 0, "max_turns must be greater than 0");
         Self {
             chan,
             max_turns,
             park_duration,
+            ctx,
             woken_consumer: false,
         }
     }
@@ -862,11 +889,8 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
         }
 
         // Queue is empty - block efficiently until item is available. The
-        // blocking consumer parks on the real clock (GitHub issue #102).
-        match self.chan.wait_for_item(
-            self.park_duration,
-            &foundation_context::MonotonicClock::new(),
-        ) {
+        // wait reads the clock of the consumer's `Ctx`.
+        match self.chan.wait_for_item(self.park_duration, &self.ctx) {
             Some(NotificationItem::Ready(value)) => Some(value),
             Some(NotificationItem::None) => {
                 // Queue open but empty after max_spins — signal executor to yield
@@ -2529,6 +2553,10 @@ impl ExecutionEngine for Box<&LocalExecutionEngine> {
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         (**self).rng()
     }
+
+    fn fork_ctx(&self) -> Ctx {
+        (**self).fork_ctx()
+    }
 }
 
 impl ExecutionEngine for Box<LocalExecutionEngine> {
@@ -2566,6 +2594,10 @@ impl ExecutionEngine for Box<LocalExecutionEngine> {
 
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         (**self).rng()
+    }
+
+    fn fork_ctx(&self) -> Ctx {
+        (**self).fork_ctx()
     }
 }
 
@@ -2616,6 +2648,11 @@ impl ExecutionEngine for LocalExecutionEngine {
     /// rng returns the local executor random number generator.
     fn rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
+    }
+
+    /// Fork a [`Ctx`] from the engine root.
+    fn fork_ctx(&self) -> Ctx {
+        self.inner.root.fork()
     }
 }
 
@@ -3194,7 +3231,12 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// // The configured executor still schedules and runs a task to completion.
     /// let task = WrapTask::new(vec![1u8, 2, 3].into_iter());
     /// let (mut action, receiver) =
-    ///     InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_millis(10));
+    ///     InlineAction::new(
+    ///         InlineActionBehaviour::Lift,
+    ///         task,
+    ///         Duration::from_millis(10),
+    ///         executor.fork_ctx(),
+    ///     );
     /// action
     ///     .apply(None, executor.boxed_engine())
     ///     .expect("schedule the task");
