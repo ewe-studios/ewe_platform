@@ -23,7 +23,8 @@ use foundation_ai::agentic::memory_store::KvMemoryStore;
 use foundation_ai::agentic::token_ledger::TokenLedger;
 use foundation_ai::types::{ObservationEntry, ObservationKind, SessionId, SessionRecord};
 use foundation_compact::SystemTime;
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use futures_lite::future::block_on;
 
@@ -62,7 +63,7 @@ fn observation_timestamp_follows_the_injected_clock() {
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
-        foundation_core::valtron::Ctx::fixed(clock.clone()),
+        foundation_context::Ctx::fixed(clock.clone()),
     );
 
     block_on(hierarchy.persist_observation(vec![observation("first")], 10))

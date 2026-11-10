@@ -20,10 +20,12 @@ use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use futures_core::Stream as FuturesStream;
 
 use foundation_core::valtron::{
-    collect_one, collect_result, execute, valtron_test, Ctx, Stream, StreamCollectFuture,
+    collect_one, collect_result, execute, valtron_test, Stream, StreamCollectFuture,
     StreamIteratorExt, StreamSpread, TaskIterator, TaskSpread, TaskStatus, WakeCallback,
     WakeResult, WakeableStream,
 };
+
+use foundation_context::Ctx;
 
 // ============================================================================
 // No-op waker for sync polling

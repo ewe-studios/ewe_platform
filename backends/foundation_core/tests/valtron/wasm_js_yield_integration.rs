@@ -22,8 +22,10 @@ use std::time::Duration;
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
     wasm::{JSThreadYielder, WaitStatus},
-    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
+    FnReady, ProcessController, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::wasm_bindgen_test;
 

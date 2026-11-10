@@ -20,7 +20,8 @@ mod h3_conformance {
     use foundation_connectrpc::{
         HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx,
     };
-    use foundation_core::valtron::{Ctx as VCtx, Stream as VStream, TaskIterator};
+    use foundation_context::Ctx as VCtx;
+    use foundation_core::valtron::{Stream as VStream, TaskIterator};
     use foundation_netio::http3::connection::{H3Connection, H3Request};
     use foundation_netio::netcap::context::ConnectionContext;
     use foundation_netio::quic::{
@@ -52,7 +53,15 @@ mod h3_conformance {
         let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
         let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
         let addr = sq.local_addr().expect("addr");
-        let (mut cq, cc) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        let (mut cq, cc) = QuicDriver::connect(
+            addr,
+            client_cfg,
+            "localhost",
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("connect");
         let dl = Instant::now() + BUDGET;
         let sc = loop {
             if let Some(c) = QuicDriver::take_accepted(&sq) {
@@ -156,7 +165,7 @@ mod h3_conformance {
 
         // Server accepts and dispatches.
         let inbound = until!(&mut sq, &mut cq, server.poll_accept());
-        let ctx = foundation_core::valtron::Ctx::host();
+        let ctx = foundation_context::Ctx::host();
 
         let connection = Arc::new(ConnectionContext::default());
         let (result, mut sq, mut cq) =

@@ -29,8 +29,8 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 #[cfg(unix)]
-use foundation_core::valtron::Clock;
 use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 
 /// Which direction of I/O a parked task is waiting for.
@@ -134,13 +134,12 @@ impl SocketReadiness {
     ///
     /// # Errors
     /// The `poll(2)` error.
-    pub fn wait_blocking(&self, deadline: Option<Instant>) -> std::io::Result<bool> {
-        let clock = foundation_core::valtron::MonotonicClock::new();
+    pub fn wait_blocking(&self, deadline: Option<Instant>, ctx: &Ctx) -> std::io::Result<bool> {
         loop {
             let remaining = match deadline {
                 None => None,
                 Some(deadline) => {
-                    let now = clock.now();
+                    let now = ctx.clock().now();
                     if now >= deadline {
                         return Ok(false);
                     }
@@ -181,7 +180,7 @@ impl EventReadiness for SocketReadiness {
 pub struct DeadlineReadiness {
     deadline: Instant,
     /// The engine clock that decides when the deadline passes.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    ctx: Ctx,
 }
 
 impl core::fmt::Debug for DeadlineReadiness {
@@ -196,23 +195,23 @@ impl Clone for DeadlineReadiness {
     fn clone(&self) -> Self {
         Self {
             deadline: self.deadline,
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         }
     }
 }
 
 impl DeadlineReadiness {
-    /// Ready at `deadline`, on `clock`.
+    /// Ready at `deadline`, on the clock of `ctx`.
     #[must_use]
-    pub fn at(deadline: Instant, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
-        Self { deadline, clock }
+    pub fn at(deadline: Instant, ctx: Ctx) -> Self {
+        Self { deadline, ctx }
     }
 
-    /// Ready `timeout` from now, on `clock`.
+    /// Ready `timeout` from now, on the clock of `ctx`.
     #[must_use]
-    pub fn after(timeout: Duration, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
-        let deadline = clock.now() + timeout;
-        Self::at(deadline, clock)
+    pub fn after(timeout: Duration, ctx: Ctx) -> Self {
+        let deadline = ctx.clock().now() + timeout;
+        Self::at(deadline, ctx)
     }
 
     /// The instant this signal becomes ready.
@@ -224,7 +223,7 @@ impl DeadlineReadiness {
     /// Whether the deadline has passed.
     #[must_use]
     pub fn expired(&self) -> bool {
-        self.clock.now() >= self.deadline
+        self.ctx.clock().now() >= self.deadline
     }
 }
 
@@ -244,14 +243,10 @@ impl EventReadiness for DeadlineReadiness {
 
 /// Compose an I/O readiness signal with a deadline: ready when either is.
 #[must_use]
-pub fn io_or_deadline(
-    io: EventReadinessPtr,
-    deadline: Instant,
-    clock: Arc<dyn foundation_core::valtron::Clock>,
-) -> EventReadinessPtr {
+pub fn io_or_deadline(io: EventReadinessPtr, deadline: Instant, ctx: Ctx) -> EventReadinessPtr {
     Arc::new(AnyReadiness::either(
         io,
-        Arc::new(DeadlineReadiness::at(deadline, clock)),
+        Arc::new(DeadlineReadiness::at(deadline, ctx)),
     ))
 }
 
@@ -267,8 +262,8 @@ pub fn io_or_deadline(
 /// `poll_target` for the fd and direction the TLS session needs, then waits for
 /// it.
 ///
-/// HOW: the deadline comes from [`foundation_core::valtron::MonotonicClock`],
-/// not from the process clock in the logic below.
+/// HOW: the deadline comes from the clock of the caller's `ctx`, not from the
+/// process clock in the logic below.
 ///
 /// # Errors
 /// The handshake error, `TimedOut` when the deadline passes first, or
@@ -278,9 +273,9 @@ pub fn complete_handshake_blocking(
     mut drive: impl FnMut() -> std::io::Result<()>,
     mut poll_target: impl FnMut() -> Option<(std::os::unix::io::RawFd, IoInterest)>,
     timeout: Option<Duration>,
+    ctx: &Ctx,
 ) -> std::io::Result<()> {
-    let clock = foundation_core::valtron::MonotonicClock::new();
-    let deadline = timeout.map(|timeout| clock.now() + timeout);
+    let deadline = timeout.map(|timeout| ctx.clock().now() + timeout);
     loop {
         match drive() {
             Ok(()) => return Ok(()),
@@ -291,7 +286,7 @@ pub fn complete_handshake_blocking(
                         "the TLS backend cannot report handshake readiness",
                     ));
                 };
-                if !SocketReadiness::new(fd, interest).wait_blocking(deadline)? {
+                if !SocketReadiness::new(fd, interest).wait_blocking(deadline, ctx)? {
                     return Err(std::io::Error::new(
                         std::io::ErrorKind::TimedOut,
                         "TLS handshake timed out",

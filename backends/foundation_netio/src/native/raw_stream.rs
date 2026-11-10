@@ -1,5 +1,6 @@
 #![allow(clippy::missing_errors_doc)]
 
+use foundation_context::Ctx;
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 use std::{net::TcpStream, time};
@@ -612,20 +613,21 @@ pub enum ClientEndpoint {
 impl RawStream {
     pub fn from_endpoint(
         endpoint: &ClientEndpoint,
+        ctx: &Ctx,
     ) -> crate::shared::errors::DataStreamResult<Self> {
         match endpoint {
-            ClientEndpoint::Plain(endpoint) => Self::client_from_endpoint(endpoint),
+            ClientEndpoint::Plain(endpoint) => Self::client_from_endpoint(endpoint, ctx),
             #[cfg(feature = "ssl-rustls")]
             ClientEndpoint::Tls(endpoint) => {
                 let (connection, addr) =
-                    rustls::RustlsConnector::client_tls_from_endpoint(endpoint)?;
+                    rustls::RustlsConnector::client_tls_from_endpoint(endpoint, ctx)?;
                 let reader = BufferedReader::new(BufferedWriter::new(connection));
                 Ok(Self::from_inner(RawStreamInner::ClientTls(reader, addr)))
             }
             #[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
             ClientEndpoint::Tls(endpoint) => {
                 let (connection, addr) =
-                    openssl::OpenSslConnector::client_tls_from_endpoint(endpoint)?;
+                    openssl::OpenSslConnector::client_tls_from_endpoint(endpoint, ctx)?;
                 let reader = BufferedReader::new(BufferedWriter::new(connection));
                 Ok(Self::from_inner(RawStreamInner::ClientTls(reader, addr)))
             }
@@ -636,7 +638,7 @@ impl RawStream {
             ))]
             ClientEndpoint::Tls(endpoint) => {
                 let (connection, addr) =
-                    native_ttls::NativeTlsConnector::client_tls_from_endpoint(endpoint)?;
+                    native_ttls::NativeTlsConnector::client_tls_from_endpoint(endpoint, ctx)?;
                 let reader = BufferedReader::new(BufferedWriter::new(connection));
                 Ok(Self::from_inner(RawStreamInner::ClientTls(reader, addr)))
             }
@@ -645,6 +647,7 @@ impl RawStream {
 
     pub fn client_from_endpoint(
         endpoint: &Endpoint<()>,
+        ctx: &Ctx,
     ) -> crate::shared::errors::DataStreamResult<Self> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
@@ -652,9 +655,9 @@ impl RawStream {
         let plain_stream = if let Endpoint::WithDefault(config) = endpoint {
             match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
-                    Connection::with_timeout(host_socket_addr, *timeout)
+                    Connection::with_timeout(host_socket_addr, *timeout, ctx)
                 }
-                EndpointConfig::NoTimeout(_) => Connection::without_timeout(host_socket_addr),
+                EndpointConfig::NoTimeout(_) => Connection::without_timeout(host_socket_addr, ctx),
             }
         } else {
             unreachable!("Should not attempt creating tls connection in this method")

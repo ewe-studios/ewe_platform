@@ -43,9 +43,10 @@ use crate::shared::http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor,
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, Clock, Ctx, EventQueue, TaskIterator, TaskStatus, WakeToken,
+    queue_waker, AnyReadiness, EventQueue, TaskIterator, TaskStatus, WakeToken,
 };
 use std::future::Future;
 use std::io::Write;
@@ -339,9 +340,9 @@ pub struct GetHttpRequestRedirectTask<R: DnsResolver + Send + 'static>(
     /// The clock that bounds the `Expect: 100-continue` wait.
     ///
     /// `next_status` reads the engine clock from `Ctx` on the first poll. A
-    /// request may carry its own `Arc<dyn Clock>` in its `Extensions`; that
+    /// request may carry its own `Ctx` in its `Extensions`; that
     /// clock then replaces the engine clock for the request (tests use this).
-    Option<Arc<dyn Clock>>,
+    Option<Ctx>,
 );
 
 impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
@@ -366,21 +367,21 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 
     /// The clock that bounds this exchange's `Expect: 100-continue` wait.
     ///
-    /// A request `Arc<dyn Clock>` in its `Extensions` wins. Otherwise the engine
+    /// A request `Ctx` in its `Extensions` wins. Otherwise the engine
     /// clock from `Ctx` applies (AGENTS rule 11). `next_status` resolves the
     /// engine clock on its first poll, before any state needs it.
     ///
     /// # Panics
     /// Panics when the engine clock is not resolved yet. Only the task's own
     /// `next_status` calls this helper, after it resolves the clock.
-    fn continue_clock(&self, exchange: &Exchange<R>) -> Arc<dyn Clock> {
-        if let Some(clock) = exchange
+    fn continue_ctx(&self, exchange: &Exchange<R>) -> Ctx {
+        if let Some(ctx) = exchange
             .data
             .extensions
             .as_ref()
-            .and_then(|extensions| extensions.get::<Arc<dyn Clock>>())
+            .and_then(|extensions| extensions.get::<Ctx>())
         {
-            return Arc::clone(clock);
+            return ctx.clone();
         }
         self.1
             .as_ref()
@@ -392,7 +393,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     ///
     /// # Panics
     /// Panics when `next_status` has not resolved the clock yet.
-    fn engine_clock(&self) -> Arc<dyn Clock> {
+    fn engine_ctx(&self) -> Ctx {
         self.1
             .as_ref()
             .expect("the engine clock is resolved on the first poll")
@@ -439,8 +440,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         idle: &mut IdleDeadline,
         resume: impl FnOnce(IdleDeadline) -> HttpRequestRedirectState<R>,
     ) -> Step {
-        let clock = self.engine_clock();
-        match nonblocking::park(connection, interest, idle, &clock) {
+        let ctx = self.engine_ctx();
+        match nonblocking::park(connection, interest, idle, &ctx) {
             Park::On(signal) => {
                 tracing::trace!(%interest, "socket not ready; parking");
                 self.0 = Some(resume(*idle));
@@ -476,6 +477,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                     &descriptor.request_uri,
                     &socket_path,
                     config.unix_read_timeout,
+                    &self.engine_ctx(),
                 ) {
                     Ok(c) => c,
                     Err(err) => {
@@ -555,12 +557,12 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 
         // Blocking fallback (proxy, custom connector, non-unix, or no TLS
         // backend).
-        let clock = self.engine_clock();
+        let ctx = self.engine_ctx();
         let connection = match pool.create_connection_with_proxy(
             &descriptor.request_uri,
             proxy_config,
             None,
-            &*clock,
+            &ctx,
         ) {
             Ok(connection) => connection,
             Err(err) => {
@@ -697,16 +699,17 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// idle, otherwise start DNS resolution (feature 36) and enter [`Resolving`].
     #[cfg(unix)]
     fn start_connecting(&mut self, exchange: PendingExchange<R>) -> Step {
-        if let Some(connection) = exchange.pool.checkout_connection(
-            &exchange.host,
-            exchange.port,
-            self.engine_clock().as_ref(),
-        ) {
+        if let Some(connection) =
+            exchange
+                .pool
+                .checkout_connection(&exchange.host, exchange.port, &self.engine_ctx())
+        {
             return self.finish_connected(exchange, connection);
         }
 
         let future = exchange.pool.resolve_host(&exchange.host, exchange.port);
-        let deadline = self.engine_clock().now() + exchange.config.timeout_config().dns_timeout;
+        let deadline =
+            self.engine_ctx().clock().now() + exchange.config.timeout_config().dns_timeout;
 
         self.0 = Some(HttpRequestRedirectState::Resolving(Some(Box::new(
             Resolving {
@@ -733,8 +736,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 
         match st.future.as_mut().poll(&mut cx) {
             Poll::Ready(Ok(addrs)) => {
-                let deadline =
-                    self.engine_clock().now() + st.exchange.config.timeout_config().connect_timeout;
+                let deadline = self.engine_ctx().clock().now()
+                    + st.exchange.config.timeout_config().connect_timeout;
                 self.0 = Some(HttpRequestRedirectState::Connecting(Some(Box::new(
                     Connecting {
                         exchange: st.exchange,
@@ -751,7 +754,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 self.fail(err)
             }
             Poll::Pending => {
-                if self.engine_clock().now() >= st.deadline {
+                if self.engine_ctx().clock().now() >= st.deadline {
                     return self.fail(HttpClientError::ConnectionTimeout(format!(
                         "DNS resolution of {}:{} timed out",
                         st.exchange.host, st.exchange.port
@@ -759,7 +762,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 }
                 let deadline = st.deadline;
                 let queue = Arc::new(st.wake_queue.readiness());
-                let signal = io_or_deadline(queue, deadline, self.engine_clock());
+                let signal = io_or_deadline(queue, deadline, self.engine_ctx());
                 self.0 = Some(HttpRequestRedirectState::Resolving(Some(st)));
                 TaskStatus::Depends(signal)
             }
@@ -817,7 +820,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             }
 
             // Not writable yet: park, unless the deadline already passed.
-            if self.engine_clock().now() >= st.deadline {
+            if self.engine_ctx().clock().now() >= st.deadline {
                 return self.fail(HttpClientError::ConnectionTimeout(format!(
                     "Connection to {}:{} timed out",
                     st.exchange.host, st.exchange.port
@@ -830,7 +833,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 .expect("current was just set")
                 .as_raw_fd();
             let io = std::sync::Arc::new(SocketReadiness::new(fd, IoInterest::Writable));
-            let signal = io_or_deadline(io, st.deadline, self.engine_clock());
+            let signal = io_or_deadline(io, st.deadline, self.engine_ctx());
             self.0 = Some(HttpRequestRedirectState::Connecting(Some(st)));
             return TaskStatus::Depends(signal);
         }
@@ -926,7 +929,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 self.finish_connected(st.exchange, connection)
             }
             Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
-                if self.engine_clock().now() >= st.deadline {
+                if self.engine_ctx().clock().now() >= st.deadline {
                     return self.fail(HttpClientError::ConnectionTimeout(format!(
                         "TLS handshake with {}:{} timed out",
                         st.exchange.host, st.exchange.port
@@ -938,7 +941,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                         "connection lost readiness support".to_string(),
                     ));
                 };
-                let signal = io_or_deadline(io, st.deadline, self.engine_clock());
+                let signal = io_or_deadline(io, st.deadline, self.engine_ctx());
                 self.0 = Some(HttpRequestRedirectState::TlsHandshake(Some(st)));
                 TaskStatus::Depends(signal)
             }
@@ -1155,12 +1158,12 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                     }
                     AfterHead::AwaitContinue => {
                         let wait = exchange.config.get_expect_continue_read_timeout();
-                        let clock = self.continue_clock(&exchange);
+                        let ctx = self.continue_ctx(&exchange);
                         let idle = IdleDeadline::new(exchange.config.response_head_timeout());
                         self.pending(HttpRequestRedirectState::AwaitingContinue(Some(Box::new(
                             AwaitingContinue {
                                 exchange,
-                                send_body_at: clock.now() + wait,
+                                send_body_at: ctx.clock().now() + wait,
                                 intro: None,
                                 idle,
                             },
@@ -1176,8 +1179,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         if st.intro.is_none() {
             return match st.exchange.reader.next() {
                 Some(Err(ref e)) if e.is_would_block() => {
-                    let clock = self.continue_clock(&st.exchange);
-                    if clock.now() >= st.send_body_at {
+                    let ctx = self.continue_ctx(&st.exchange);
+                    if ctx.clock().now() >= st.send_body_at {
                         // RFC 9110 §10.1.1: a client that sent `Expect: 100-continue`
                         // need not wait indefinitely; it sends the body after a
                         // reasonable wait.
@@ -1285,7 +1288,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             tracing::error!("[100-continue] connection lost its readiness support");
             return self.fail(HttpClientError::Timeout);
         };
-        let timer = Arc::new(DeadlineReadiness::at(st.send_body_at, self.engine_clock()));
+        let timer = Arc::new(DeadlineReadiness::at(st.send_body_at, self.engine_ctx()));
         self.0 = Some(HttpRequestRedirectState::AwaitingContinue(Some(st)));
         TaskStatus::Depends(Arc::new(AnyReadiness::either(io, timer)))
     }
@@ -1455,14 +1458,14 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                             // at once instead of returning an already-ready signal.
                             return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
                         }
-                        let clock = self.engine_clock();
-                        if st.idle.expired(&clock) {
+                        let ctx = self.engine_ctx();
+                        if st.idle.expired(&ctx) {
                             tracing::error!("request body producer stalled past the idle deadline");
                             return self.fail(HttpClientError::Timeout);
                         }
-                        let deadline = st.idle.arm(&clock);
+                        let deadline = st.idle.arm(&ctx);
                         self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
-                        return TaskStatus::Depends(io_or_deadline(readiness, deadline, clock));
+                        return TaskStatus::Depends(io_or_deadline(readiness, deadline, ctx));
                     }
 
                     // No pipe readiness: a one-shot renderer transition (chunked
@@ -1502,7 +1505,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
         // Resolve the engine clock once, before any state reads the time. The
         // `Expect: 100-continue` timer runs on this clock unless the request
         // carries its own in its extensions.
-        let _ = self.1.get_or_insert_with(|| ctx.clock());
+        let _ = self.1.get_or_insert_with(|| ctx.clone());
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {
             HttpRequestRedirectState::Init(mut inner_opt) => {

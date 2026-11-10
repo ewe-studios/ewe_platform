@@ -15,7 +15,7 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_context::Ctx;
 
 use crate::core::backends::{unix_now_millis, unix_now_secs};
 use crate::core::errors::{StorageError, StorageResult};
@@ -243,7 +243,7 @@ pub trait StorageCleanup: QueryStore {
 
     /// Run every cleanup with the retention periods in `config`.
     ///
-    /// The current time comes from `clock`, so a deterministic simulation test
+    /// The current time comes from the `Ctx` clock, so a deterministic simulation test
     /// controls it.
     ///
     /// # Errors
@@ -253,11 +253,11 @@ pub trait StorageCleanup: QueryStore {
     async fn run_full_cleanup(
         &self,
         config: &CleanupConfig,
-        clock: &dyn Clock,
+        ctx: &Ctx,
     ) -> StorageResult<CleanupStats> {
-        let now_ms = i64::try_from(unix_now_millis(clock)?)
+        let now_ms = i64::try_from(unix_now_millis(ctx)?)
             .map_err(|_| StorageError::Backend("clock out of range".into()))?;
-        let now_secs = i64::try_from(unix_now_secs(clock)?)
+        let now_secs = i64::try_from(unix_now_secs(ctx)?)
             .map_err(|_| StorageError::Backend("clock out of range".into()))?;
         Ok(CleanupStats {
             sessions_deleted: self

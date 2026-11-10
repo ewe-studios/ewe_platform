@@ -15,7 +15,7 @@ use crate::ssh;
 use crate::state;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::ProgressCallback;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 

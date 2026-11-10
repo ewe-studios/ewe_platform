@@ -2,8 +2,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use foundation_core::valtron::{
-    CancelOutcome, CancellableFutureTask, Ctx, Stream, TaskIterator, TaskStatus,
+    CancelOutcome, CancellableFutureTask, Stream, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 // ============================================================================
 // Raw TaskIterator-level tests (no executor involved)

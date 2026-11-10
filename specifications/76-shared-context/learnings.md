@@ -203,3 +203,34 @@ standard ASD-STE100.
 - Wave 6: `rustfmt` on the changed files reflowed lines outside the change. This is the same
   issue as wave 4. It is accepted here, because the CI formatting check needs the files formatted.
 
+- Wave 8: the sandbox refuses the blackhole address `10.255.255.1:9` at once with
+  `ECONNREFUSED`. The test `connect_to_blackhole_does_not_hold_a_worker` expects a timeout, so it
+  fails here. A probe run outside the tests shows the same refusal. The failing path is not the
+  path this change touched. It is not confirmed on master. Run it on a host where the address
+  is dropped.
+- Wave 8: the sync client has no caller `Ctx`. `FinalizedResponse` must return the connection
+  to the pool on drop, and that needs a clock. The fix uses the single or multi engine root through
+  `valtron::{single,multi}::fork_ctx()`. Open item: the sync client API should take a `Ctx`.
+- Wave 8: the first mechanical pass renamed a local `clock` to `ctx.clock()` where the local was
+  really a clock. Check each rewritten line. A tuple-struct field and a struct-literal field
+  name are easy to miss. The compiler finds both.
+- Wave 8: `cfg(unix)` imports can hide a `Ctx` that the non-unix code needs. Check the
+  Windows-only branches by reading them. The Windows target did not build here.
+- Wave 9: a `Ctx` cannot be built in library code (`Ctx::fixed` is for tests). The blocking consumers
+  have no caller `Ctx`: `NotifyQueue::block_recv`, `NotifyRecvIterator`, `NotifyQueueStreamIterator`,
+  the inline `InlineAction` builders, the mpp `RecvIterator`, and `valtron::timer` (a global
+  thread on the real clock, with a public `sleep_for(duration)`). Threading a `Ctx` through
+  them changes public executor and channel APIs. It is an open design decision. See the report.
+- Wave 9: `ExecutionEngine` could expose `fork_ctx` so a builder gets the engine root. The builders
+  that make the inline pairs (`InlineAction` and `NotifyRecvIterator`) have no engine, so the change
+  was reverted. Only the stream iterator (`NotifyQueueStreamIterator`) had an engine.
+- Wave 9: `DurationWaker`, `Sleepers` and `SleepIterator` store the `Ctx` in a field. The
+  `Sleepers::clock()` getter returns `self.ctx.clock()`. It stays as a kept getter.
+- Wave 9: `cargo check` on the default feature set did not compile the `multi` call sites in
+  `executors/multi/mod.rs`. Check each feature set of `ci/packages.toml`, not only the default.
+- Wave 9: `cargo fmt` split several one-line `sed` replacements across lines. Use a pattern
+  that allows line breaks, or replace by the compiler's line numbers.
+- Coordinator change (2026-11-10): callers in other crates move to branch
+  `claude/friendly-ritchie-7acn6p`. This branch does not edit them. Its callers do not compile
+  here until that work lands.
+

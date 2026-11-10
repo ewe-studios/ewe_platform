@@ -3,7 +3,7 @@
 //! Validates that required system tools, KVM, disk space, and VM
 //! services are available and functioning.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::config::{self, GuestOs, VmProfile};
 

@@ -32,7 +32,7 @@ pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let ctx = foundation_core::valtron::Ctx::try_host()?;
+    let ctx = foundation_context::Ctx::try_host()?;
     let result = foundation_ai::models::generator::generate_model_descriptors(&ctx)?;
 
     let providers_dir = PathBuf::from("backends/foundation_ai/src/models/providers");

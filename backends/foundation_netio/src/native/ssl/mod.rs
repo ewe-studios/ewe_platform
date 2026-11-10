@@ -128,13 +128,15 @@ pub use self::native_ttls::NativeTlsStream as ServerSSLStream;
 pub(crate) fn connect_plain(
     addr: core::net::SocketAddr,
     timeout: Option<std::time::Duration>,
+    ctx: &foundation_context::Ctx,
 ) -> std::io::Result<std::net::TcpStream> {
     #[cfg(unix)]
     {
-        crate::native::connection::connect_tcp_nonblocking(addr, timeout)
+        crate::native::connection::connect_tcp_nonblocking(addr, timeout, ctx)
     }
     #[cfg(not(unix))]
     {
+        let _ = ctx;
         let stream = match timeout {
             Some(timeout) => std::net::TcpStream::connect_timeout(&addr, timeout)?,
             None => std::net::TcpStream::connect(addr)?,

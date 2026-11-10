@@ -15,6 +15,7 @@
 //! state — leaving the waiter parked forever. Surfaced as intermittent
 //! "test running for over 60 seconds" hangs under contention.
 
+use foundation_context::Ctx;
 use std::sync::{Arc, Condvar, Mutex};
 
 /// Tracks N outstanding work items. `wait()` blocks until count reaches 0.
@@ -97,16 +98,12 @@ impl WaitGroup {
     /// spurious condvar wakeups shorten the remaining wait rather than resetting
     /// it.
     #[must_use]
-    pub fn wait_timeout(
-        &self,
-        timeout: std::time::Duration,
-        clock: &dyn crate::valtron::Clock,
-    ) -> bool {
+    pub fn wait_timeout(&self, timeout: std::time::Duration, ctx: &Ctx) -> bool {
         let (lock, cond) = &*self.inner;
-        let deadline = clock.now() + timeout;
+        let deadline = ctx.clock().now() + timeout;
         let mut count = lock.lock().unwrap_or_else(crate::compati::recover_poison);
         while *count != 0 {
-            let Some(remaining) = deadline.checked_duration_since(clock.now()) else {
+            let Some(remaining) = deadline.checked_duration_since(ctx.clock().now()) else {
                 return false;
             };
             let (next, res) = cond

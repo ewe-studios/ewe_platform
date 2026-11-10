@@ -15,7 +15,7 @@
 use std::net::{IpAddr, Ipv4Addr};
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_wireguard::native::dataplane::MeshDataPlane;
 #[cfg(target_os = "linux")]
 use foundation_wireguard::native::{WgConfig, WgNode};

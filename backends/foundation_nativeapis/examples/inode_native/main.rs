@@ -3,7 +3,7 @@ use foundation_nativeapis::shared::vfs::{MemoryFs, VfsDirectory, VfsFile, VfsFil
 fn main() {
     println!("=== Inode-Native VFS Example ===\n");
 
-    let fs = MemoryFs::new(foundation_core::valtron::Ctx::host());
+    let fs = MemoryFs::new(foundation_context::Ctx::host());
 
     // Root directory always has inode 1
     let root_ino = fs.inode("/").unwrap();

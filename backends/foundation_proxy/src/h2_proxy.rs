@@ -245,6 +245,7 @@ async fn forward_upstream(
             }
         };
 
+        let call_ctx = response.ctx().cloned();
         let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
 
         // `send_async` hands the response socket back in blocking mode, but this
@@ -311,9 +312,9 @@ async fn forward_upstream(
 
         // Return the upstream socket to the pool for reuse (drain residue first),
         // mirroring the H1 forward path.
-        if let (Some(pool), Some(mut stream)) = (pool, conn) {
+        if let (Some(pool), Some(mut stream), Some(call_ctx)) = (pool, conn, call_ctx) {
             stream.drain_stream();
-            pool.return_to_pool(stream);
+            pool.return_to_pool(stream, &call_ctx);
         }
     };
 

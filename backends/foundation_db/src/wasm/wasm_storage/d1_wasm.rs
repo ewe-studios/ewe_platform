@@ -16,7 +16,7 @@ use crate::core::storage_provider::{
 use crate::wasm::bindgen::{D1Database, D1PreparedStatement};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_compact::SendWrapper;
-use foundation_core::valtron::Clock;
+use foundation_context::Ctx;
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -464,14 +464,14 @@ impl QueryStore for D1WasmStorage {
 impl RateLimiterStore for D1WasmStorage {
     async fn check_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(rate_limit::sql_check(
             self,
-            clock,
+            ctx,
             key,
             max_count,
             window_seconds,
@@ -481,17 +481,12 @@ impl RateLimiterStore for D1WasmStorage {
 
     async fn record_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(rate_limit::sql_record(
-            self,
-            clock,
-            key,
-            window_seconds,
-        ))
-        .await
+        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, ctx, key, window_seconds))
+            .await
     }
 
     async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {

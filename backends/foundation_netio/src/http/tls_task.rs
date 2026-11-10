@@ -23,8 +23,9 @@
 use crate::native::readiness::{io_or_deadline, IoInterest};
 use crate::netcap::ssl::SSLConnector;
 use crate::netcap::{Connection, RawStream};
+use foundation_context::Ctx;
 use foundation_core::synca::mpp::Sender;
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use std::time::{Duration, Instant};
 
 /// TLS handshake processing states.
@@ -240,7 +241,7 @@ impl TaskIterator for TlsHandshakeTask {
                                 );
                             };
                             let readiness = match self.deadline {
-                                Some(deadline) => io_or_deadline(readiness, deadline, ctx.clock()),
+                                Some(deadline) => io_or_deadline(readiness, deadline, ctx.clone()),
                                 None => readiness,
                             };
                             Some(TaskStatus::Depends(readiness))

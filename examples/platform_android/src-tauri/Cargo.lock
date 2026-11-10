@@ -1617,6 +1617,7 @@ version = "0.0.6"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_netio",
  "foundation_nostd",
@@ -1635,6 +1636,7 @@ dependencies = [
 name = "foundation_reactor"
 version = "0.0.3"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "libc",
  "tracing",
@@ -1697,7 +1699,7 @@ dependencies = [
  "cap-rand",
  "derive_more",
  "foundation_compact",
- "foundation_core",
+ "foundation_context",
  "foundation_errstacks",
  "tracing",
  "wasmtime",
@@ -3315,6 +3317,7 @@ checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
 name = "platform_android"
 version = "0.1.0"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "foundation_macros",
  "foundation_nostd",

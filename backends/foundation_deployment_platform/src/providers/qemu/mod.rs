@@ -1,6 +1,6 @@
 //! QEMU provider — Linux host, QEMU/KVM backend.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::path::PathBuf;
 
 use crate::config::{DisplayMode, Result, TestbedError, VmProfile};

@@ -15,8 +15,8 @@ fn init_pool() -> PoolGuard {
 /// Create a `SyncFs<TursoDelta>` over an in-memory database.
 fn make_sync_turso() -> SyncFs<TursoDelta> {
     let delta = exec_async(async move {
-        TursoDelta::in_memory(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        TursoDelta::in_memory(foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )))
         .await
     })
@@ -140,8 +140,8 @@ fn syncfs_turso_file_persistence() {
         let delta = exec_async(async move {
             TursoDelta::new(
                 db_path,
-                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                    foundation_core::valtron::MonotonicClock::new(),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
                 )),
             )
             .await
@@ -158,8 +158,8 @@ fn syncfs_turso_file_persistence() {
         let delta = exec_async(async move {
             TursoDelta::new(
                 db_path,
-                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                    foundation_core::valtron::MonotonicClock::new(),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
                 )),
             )
             .await

@@ -13,7 +13,9 @@ use std::net::TcpListener;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{self, valtron_test, Ctx, Stream, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
+
+use foundation_context::Ctx;
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::network_client::HttpClientBuilder;
 use foundation_netio::shared::client::http_client::HttpClient;

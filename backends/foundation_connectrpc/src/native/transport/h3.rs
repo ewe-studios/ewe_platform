@@ -34,8 +34,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    self, Ctx, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator, TaskStatus,
+    self, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator, TaskStatus,
     TryRecvError, TrySendError,
 };
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
@@ -59,6 +60,8 @@ pub struct H3Transport {
     client_config: ClientConfig,
     /// The name the server certificate is validated against.
     server_name: Option<String>,
+    /// The context whose clock each QUIC connection reads.
+    ctx: Ctx,
 }
 
 impl H3Transport {
@@ -66,14 +69,16 @@ impl H3Transport {
     /// `H2Transport` this cannot be constructed without a TLS configuration.
     ///
     /// WHAT: an HTTP/3 transport using `client_config` for every connection.
+    /// Each connection reads the time from the clock of `ctx`.
     ///
     /// HOW: pair with [`foundation_netio::quic::client_config_trusting_pem`] for a
     /// pinned certificate.
     #[must_use]
-    pub fn new(client_config: ClientConfig) -> Self {
+    pub fn new(client_config: ClientConfig, ctx: Ctx) -> Self {
         Self {
             client_config,
             server_name: None,
+            ctx,
         }
     }
 
@@ -127,7 +132,7 @@ impl Transport for H3Transport {
 
         let server_name = self.server_name.clone().unwrap_or_else(|| host.clone());
         let (driver, quic_conn) =
-            QuicDriver::connect(addr, self.client_config.clone(), &server_name)
+            QuicDriver::connect(addr, self.client_config.clone(), &server_name, &self.ctx)
                 .map_err(|e| TransportError::Connect(Arc::new(e)))?;
 
         let (send_tx, send_rx) = Pipe::<Bytes>::new();

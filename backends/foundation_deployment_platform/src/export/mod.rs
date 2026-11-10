@@ -17,7 +17,7 @@ pub use store_upload::upload_to_store;
 
 use std::path::{Path, PathBuf};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::config::{self, ImageStore, Result, TestbedError, VmProfile, get_profile};
 use crate::ssh;

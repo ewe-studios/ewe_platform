@@ -14,6 +14,7 @@ keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
 # `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
 # (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
 foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["multi"] }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.13", features = ["multi"] }
 # ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a

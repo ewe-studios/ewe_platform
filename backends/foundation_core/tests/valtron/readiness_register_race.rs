@@ -18,9 +18,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::Instant;
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker,
-    StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, EventReadiness, EventReadinessPtr, ReadinessWaker, StreamIteratorExt,
+    TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 

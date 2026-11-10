@@ -12,7 +12,8 @@ use foundation_auth::shared::credential_store::{
     CredentialStorage, CredentialStore, OAuthTokenStore, StoredCredential,
 };
 use foundation_auth::shared::oauth_token::OAuthToken;
-use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::valtron_test;
 use foundation_db::{StorageBackend, StorageProvider};
 
 fn test_clock() -> Ctx {

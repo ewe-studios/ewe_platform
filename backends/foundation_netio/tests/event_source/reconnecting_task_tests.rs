@@ -3,7 +3,9 @@
 //! Tests reconnection logic, backoff, Last-Event-ID tracking, and max retries.
 //! Uses `MockDnsResolver` — no real network connections.
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::shared::client::MockDnsResolver;
 use foundation_netio::shared::http::DnsError;

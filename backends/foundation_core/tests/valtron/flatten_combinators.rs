@@ -10,8 +10,10 @@
 //! 3. Pass-through of non-target states unchanged
 
 use foundation_core::valtron::{
-    Ctx, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+    Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use std::time::Duration;
 
 // ============================================================================

@@ -2,9 +2,10 @@ use std::{any::Any, marker::PhantomData};
 
 use crate::synca::Entry;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, Ctx, ExecutionAction,
+    BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, ExecutionAction,
     ExecutionIterator, State, TaskIterator, TaskStatus,
 };
+use foundation_context::Ctx;
 // Only the `multi`-gated `Into<BoxedSendExecutionIterator>` uses this alias.
 #[cfg(feature = "multi")]
 use crate::valtron::BoxedSendExecutionIterator;

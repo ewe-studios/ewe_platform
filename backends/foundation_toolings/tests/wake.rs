@@ -19,9 +19,10 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
+use foundation_context::Ctx;
 use foundation_core::synca::mpp;
 use foundation_core::valtron::{
-    execute, sleep_async, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr,
+    execute, sleep_async, valtron_test, EventQueue, EventReadiness, EventReadinessPtr,
     ReadinessWaker, StreamExt, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::shared::{WatchEvent, WatchEventKind};
@@ -245,7 +246,7 @@ async fn runner_build_readiness_wakes_on_a_build_complete() {
         project_definition(),
         build_queue,
         running_tx,
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     );
     let ready: EventReadinessPtr = runner.readiness();
     let _ = park_and_trigger("runner build queue", ready, move || {

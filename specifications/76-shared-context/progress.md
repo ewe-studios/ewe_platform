@@ -155,6 +155,37 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 - Merge: `7be9ea7ab` (fix for the `vms` test callers in `foundation_deployment_platform`) is merged
   into `spec76/w5` as `3629637df`, as the parent session asked.
 
+- Wave 7: `foundation_db`: commit `08f6ee72d` (Ctx migration) and `b4fdcd933` (imports from
+  `foundation_context`). `src` has 0 `dyn Clock` sites (it had 28). The deployment callers
+  `foundation_deployment_hetzner` and `foundation_deployment_docker` pass `client.ctx()` to
+  `store_typed`. Results:
+  - Test sets run and pass: default, `libsql`. The new test `ctx_clock_tests` passes.
+  - clippy `-D warnings` is clean for the default and `libsql` sets.
+  - wasm `check` passes for `wasm` and `wasm-bindgen-storage`.
+  - `foundation_deployment_hetzner` and `foundation_deployment_docker` (default, `docker` and
+    `docker,integration-tests`) pass their tests or compile them. Their clippy is clean.
+- Wave 8: `foundation_netio`: midpoint commit `b9beffa62` (the crate compiles, default tests pass),
+  then `d5ea739ce` (imports from `foundation_context`). `src` has 0 `dyn Clock` sites (it had 65).
+  Results:
+  - Test sets run and pass: default (one sandbox-only failure, see learnings) and `quic`.
+    The new test `ctx_clock_tests` passes.
+  - clippy `-D warnings` is clean for default and `quic`.
+  - wasm `check` passes for `wasm-fetch`.
+  - The Windows target could not be checked. The MinGW toolchain is missing here.
+- Wave 9: `foundation_core`: commit `7ce02f7b7`. It is the only core commit; the tests and clippy below ran on this state. `src` has
+  7 `dyn Clock` sites. All seven are kept, and each has a comment that says why (see report).
+  Results:
+  - Test sets run and pass: default (874), `multi` (930), `test-clock` (885).
+  - clippy `-D warnings` is clean for default, `multi` and `test-clock`.
+- Callers in other crates are NOT updated on this branch. The coordinator moved them to
+  `claude/friendly-ritchie-7acn6p`. Crates that call the changed netio and core APIs will not
+  compile here until that work lands. The affected crates include `foundation_proxy`,
+  `foundation_connectrpc`, `foundation_http`, `foundation_wireguard`, `foundation_keychain` and
+  `foundation_ai`.
+- Import rule (coordinator review, 2026-11-10): `Ctx`, `Clock`, `MonotonicClock` and
+  `MinimumElement` come from `foundation_context` in `db`, `netio` and `core`. `SimulatedClock`
+  stays in `foundation_core`. Commits `b4fdcd933`, `d5ea739ce`, `995cea7ec` (Cargo.lock).
+
 ## In progress
 
 - Wave 2: the `WinRM` and `BootstrapLogger` `clock()` getters still return `Arc<dyn Clock>`.

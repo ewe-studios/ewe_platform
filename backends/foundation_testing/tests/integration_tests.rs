@@ -1,6 +1,6 @@
 //! Integration tests for the `foundation_testing` crate.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};
 use foundation_testing::stress::{sync::run_condvar_stress_test, StressConfig, StressHarness};
 use std::sync::atomic::{AtomicUsize, Ordering};

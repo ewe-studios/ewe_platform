@@ -362,12 +362,9 @@ async fn collect_stream(client: &Client<Msg, Msg>, seed: &str) -> Vec<String> {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_h1_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, UNARY);
@@ -391,12 +388,9 @@ async fn connect_unary_via_h1_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_h1_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h1_client(&addr, SERVER_STREAM);
@@ -422,12 +416,9 @@ async fn connect_server_stream_via_h1_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_h2_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -451,12 +442,9 @@ async fn connect_unary_via_h2_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_h2_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, SERVER_STREAM);
@@ -484,12 +472,9 @@ async fn connect_server_stream_via_h2_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_unary_via_proxy_carries_status() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_client(&addr, UNARY);
@@ -516,12 +501,9 @@ async fn grpc_unary_via_proxy_carries_status() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_server_stream_via_proxy_carries_status() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_client(&addr, SERVER_STREAM);
@@ -560,12 +542,9 @@ async fn grpc_server_stream_via_proxy_carries_status() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_unary_via_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_web_client(&addr, UNARY);
@@ -590,12 +569,9 @@ async fn grpc_web_unary_via_proxy() {
 #[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_server_stream_via_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
-    let proxy = ProxyServer::start(
-        proxy_config(backend_port),
-        foundation_core::valtron::Ctx::host(),
-    )
-    .await
-    .expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port), foundation_context::Ctx::host())
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = grpc_web_client(&addr, SERVER_STREAM);
@@ -626,7 +602,7 @@ async fn grpc_web_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -657,7 +633,7 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -708,7 +684,7 @@ async fn grpc_web_text_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -789,7 +765,7 @@ async fn connect_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -819,7 +795,7 @@ async fn connect_server_stream_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -850,7 +826,7 @@ async fn connect_client_stream_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -882,7 +858,7 @@ async fn connect_bidi_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -925,7 +901,7 @@ async fn connect_unary_via_grpc_backend_h2() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -961,7 +937,7 @@ async fn connect_streams_spread_across_grpc_backends() {
     let (port_b, shutdown_b) = start_backend_grpc_only_tagged("B");
     let proxy = ProxyServer::start(
         proxy_config_grpc_multi(&[port_a, port_b]),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");

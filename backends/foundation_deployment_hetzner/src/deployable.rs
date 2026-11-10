@@ -343,7 +343,7 @@ impl Deployable for HetznerServer {
         // `&self`/`&client` — and moved into the future).
         let hetzner = self.client.clone();
         let store = self.store(&client);
-        let clock = client.clock();
+        let ctx = client.ctx().clone();
         let request = CreateServerRequest {
             name: self.name.clone(),
             server_type: self.server_type.clone(),
@@ -447,12 +447,9 @@ impl Deployable for HetznerServer {
                     );
                     let settled = hetzner.await_running(existing.id).await?;
                     let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
-                    store
-                        .store_typed(&key, &output, clock.as_ref())
-                        .await
-                        .map_err(|e| {
-                            HetznerError::Transport(format!("persist deploy state: {e}"))
-                        })?;
+                    store.store_typed(&key, &output, &ctx).await.map_err(|e| {
+                        HetznerError::Transport(format!("persist deploy state: {e}"))
+                    })?;
                     return Ok(output);
                 }
             }
@@ -519,7 +516,7 @@ impl Deployable for HetznerServer {
                 let settled = hetzner.await_running(created_id).await?;
                 let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
                 store
-                    .store_typed(&key, &output, clock.as_ref())
+                    .store_typed(&key, &output, &ctx)
                     .await
                     .map_err(|e| HetznerError::Transport(format!("persist deploy state: {e}")))?;
                 Ok::<_, HetznerError>(output)

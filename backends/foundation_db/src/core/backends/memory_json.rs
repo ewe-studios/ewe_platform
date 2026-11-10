@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use foundation_core::valtron::Clock;
+use foundation_context::Ctx;
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::unix_now_secs;
@@ -166,12 +166,12 @@ impl BlobStore for MemoryJsonStore {
 impl RateLimiterStore for MemoryJsonStore {
     async fn check_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        let now = unix_now_secs(clock)?;
+        let now = unix_now_secs(ctx)?;
         let data = self.lock()?;
         match data.get(&format!("_rate_limit:{key}")) {
             Some(json) => {
@@ -185,11 +185,11 @@ impl RateLimiterStore for MemoryJsonStore {
 
     async fn record_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> StorageResult<u32> {
-        let now = unix_now_secs(clock)?;
+        let now = unix_now_secs(ctx)?;
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self.lock()?;
         let previous = data

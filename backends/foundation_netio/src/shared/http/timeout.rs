@@ -20,8 +20,7 @@
 use crate::shared::http::client_classifier::ClientClassifier;
 use crate::shared::http::latency_tracker::LatencyTracker;
 use crate::shared::http::load_tracker::LoadTracker;
-use foundation_core::valtron::Clock;
-use std::sync::Arc;
+use foundation_context::Ctx;
 use std::time::Duration;
 
 /// A duration's millisecond count as `f64`. Timeouts are far below 2^52 ms
@@ -397,8 +396,8 @@ impl TimeoutCalculator {
 
     /// Enable latency tracking with default config.
     #[must_use]
-    pub fn enable_latency_tracking(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.latency_tracker = Some(LatencyTracker::new(clock));
+    pub fn enable_latency_tracking(mut self, ctx: Ctx) -> Self {
+        self.latency_tracker = Some(LatencyTracker::new(ctx));
         self
     }
 
@@ -407,8 +406,8 @@ impl TimeoutCalculator {
     /// `clock` measures the connection-rate window. The host passes the clock
     /// from its context bundle.
     #[must_use]
-    pub fn enable_load_tracking(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.load_tracker = Some(LoadTracker::new(clock));
+    pub fn enable_load_tracking(mut self, ctx: Ctx) -> Self {
+        self.load_tracker = Some(LoadTracker::new(ctx));
         self
     }
 
@@ -421,8 +420,8 @@ impl TimeoutCalculator {
 
     /// Enable client classification with default config.
     #[must_use]
-    pub fn enable_client_classification(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.client_classifier = Some(ClientClassifier::new(clock));
+    pub fn enable_client_classification(mut self, ctx: Ctx) -> Self {
+        self.client_classifier = Some(ClientClassifier::new(ctx));
         self
     }
 

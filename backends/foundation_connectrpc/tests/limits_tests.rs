@@ -75,7 +75,7 @@ fn request(path: &str, headers: &[(&str, &str)], body: Vec<u8>) -> SimpleIncomin
 }
 
 fn dispatch(handler: &ConnectRpcHandler, request: SimpleIncomingRequest) -> SimpleOutgoingResponse {
-    futures::executor::block_on(handler.dispatch(foundation_core::valtron::Ctx::host(), request))
+    futures::executor::block_on(handler.dispatch(foundation_context::Ctx::host(), request))
 }
 
 fn body_text(response: &SimpleOutgoingResponse) -> String {

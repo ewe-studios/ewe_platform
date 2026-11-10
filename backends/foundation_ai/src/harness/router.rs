@@ -34,7 +34,7 @@
 //! model id to that name, and remembers which role the model fills. `build()`
 //! folds everything into a [`ProviderRouter`] via its builder.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_db::traits::DocumentStore;
 
 use crate::agentic::{AgentSession, AgentSessionBuilder, MemoryStore};

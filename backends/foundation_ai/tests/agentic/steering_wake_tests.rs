@@ -18,8 +18,9 @@ use std::time::{Duration, Instant};
 
 use foundation_ai::agentic::internals::SteeringQueues;
 use foundation_ai::types::{base_types::TextContent, MessageRole, Messages, UserModelContent};
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, StreamExt,
+    execute, valtron_test, EventReadiness, EventReadinessPtr, ReadinessWaker, StreamExt,
     StreamIteratorExt, TaskIterator, TaskStatus,
 };
 

@@ -16,8 +16,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    Ctx, SimulatedClock, SleepingTask, TaskIterator, TaskStatus, TimeoutTask,
+    SimulatedClock, SleepingTask, TaskIterator, TaskStatus, TimeoutTask,
 };
+
+use foundation_context::Ctx;
 
 /// A task that never completes, so only the wrapper's timeout can end it.
 struct PendingForever;
@@ -33,7 +35,7 @@ impl TaskIterator for PendingForever {
 
 /// The `Ctx` for a clock that starts at the UNIX epoch.
 fn ctx_with(clock: &Arc<SimulatedClock>) -> Ctx {
-    let clock: Arc<dyn foundation_core::valtron::Clock> = clock.clone();
+    let clock: Arc<dyn foundation_context::Clock> = clock.clone();
     Ctx::fixed(clock)
 }
 

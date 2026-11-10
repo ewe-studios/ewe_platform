@@ -11,6 +11,7 @@ keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.14" }
 foundation_http = { path = "../foundation_http", version = "0.0.11" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.13" }

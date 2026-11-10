@@ -90,7 +90,7 @@ fn main() {
 /// `q4_k_m`, 4096-token context, one thread per CPU). The preset's model is
 /// the session's model. `main` is the sync boundary that waits on it.
 async fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None, ctx.clone())?;
     AgentSession::builder(preset, ctx)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
@@ -139,7 +139,7 @@ fn run_repl(session: &Session) {
         .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.")
         .goodbye("Goodbye!")
         .theme(ReplTheme::from_env("ANSWERME_THEME"))
-        .ctx(foundation_core::valtron::Ctx::host())
+        .ctx(foundation_context::Ctx::host())
         .build();
 
     repl.register_command("status", |_| "agent: running (gemma-4-E2B-it)".into());

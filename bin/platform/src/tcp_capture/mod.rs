@@ -116,8 +116,11 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
         .next()
         .ok_or_else(|| format!("Could not resolve {}", addr))?;
 
-    // Connect using foundation_core's Connection
-    let connection = Connection::with_timeout(socket_addr, timeout)
+    // This command is a host entry point, so it builds the host context.
+    let ctx = foundation_context::Ctx::try_host()?;
+
+    // Connect using foundation_netio's Connection
+    let connection = Connection::with_timeout(socket_addr, timeout, &ctx)
         .map_err(|e| format!("Connection failed: {}", e))?;
 
     info!(

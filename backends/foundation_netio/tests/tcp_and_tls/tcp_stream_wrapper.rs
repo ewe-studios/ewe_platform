@@ -14,7 +14,7 @@ fn wrapper_standard() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let addr = listener.local_addr().unwrap();
 
-    let mut wrapper = TcpStreamWrapper::connect(addr).unwrap();
+    let mut wrapper = TcpStreamWrapper::connect(addr, &ctx()).unwrap();
 
     wrapper.write_all(b"test").unwrap();
     wrapper.flush().unwrap();
@@ -44,7 +44,7 @@ fn wrapper_standard() {
 #[test]
 fn connect_timeout() {
     let addr = "127.0.0.1:54321".parse().expect("generate addrs");
-    let result = TcpStreamWrapper::connect_timeout(&addr, Duration::from_millis(100));
+    let result = TcpStreamWrapper::connect_timeout(&addr, Duration::from_millis(100), &ctx());
     assert!(result.is_err());
 }
 
@@ -55,7 +55,7 @@ fn wrapper_nightly() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let addr = listener.local_addr().unwrap();
 
-    let mut wrapper = TcpStreamWrapper::connect(addr).unwrap();
+    let mut wrapper = TcpStreamWrapper::connect(addr, &ctx()).unwrap();
 
     wrapper.set_linger(Some(Duration::from_secs(1))).unwrap();
     assert_eq!(wrapper.linger().unwrap(), Some(Duration::from_secs(1)));
@@ -65,4 +65,10 @@ fn wrapper_nightly() {
 
     wrapper.set_reuse_address(true).unwrap();
     assert!(wrapper.reuse_address().unwrap());
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

@@ -4,7 +4,7 @@
 //! # Quick start
 //!
 //! ```no_run
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_repl::Repl;
 //!
 //! let repl = Repl::new(Ctx::host());
@@ -67,7 +67,7 @@
 //! piece at a time:
 //!
 //! ```no_run
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_repl::Repl;
 //!
 //! let repl = Repl::new(Ctx::host());
@@ -98,7 +98,7 @@
 //! Use [`Repl::builder()`] to change prompts, banners and the theme:
 //!
 //! ```no_run
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_repl::{BorderKind, Repl, ReplColor, ReplPadding, ReplTheme};
 //!
 //! let repl = Repl::builder()
@@ -141,7 +141,7 @@
 //! greyscale this crate used to default to).
 //!
 //! ```
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_repl::{Repl, ReplTheme};
 //!
 //! let repl = Repl::builder()

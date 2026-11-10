@@ -78,6 +78,7 @@ libc = "0.2"
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.5", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"

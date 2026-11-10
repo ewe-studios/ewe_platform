@@ -141,8 +141,8 @@ fn client_for(server: &TestHttpServer) -> HetznerClient {
     // these tests run threaded (decision 02 §5).
     HetznerClient::new(
         "test-token",
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .with_base_url(server.base_url().to_string())

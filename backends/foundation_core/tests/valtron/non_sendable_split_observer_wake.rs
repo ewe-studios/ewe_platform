@@ -16,9 +16,10 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use foundation_core::valtron::{
-    CollectionState, Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus, WakeResult,
-    WakeableStream,
+    CollectionState, Stream, TaskIterator, TaskIteratorExt, TaskStatus, WakeResult, WakeableStream,
 };
+
+use foundation_context::Ctx;
 
 /// A task that yields its items once, in reverse order.
 struct TestTask {

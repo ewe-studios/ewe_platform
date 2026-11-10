@@ -19,7 +19,7 @@ use std::time::Duration;
 use crate::shared::clock::now_millis;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use sha2::{Digest, Sha256};
 
 use super::super::models::{PendingLogin, TosAcceptance, TosCodeRecord, TosVersion};

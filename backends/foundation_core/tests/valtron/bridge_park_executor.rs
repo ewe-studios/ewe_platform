@@ -17,8 +17,10 @@ use std::pin::Pin;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, StreamIteratorExt, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// One status a producer emits.

@@ -372,8 +372,8 @@ fn test_jwt_authenticator_valid_token() {
     let token = key_pair
         .sign_claims(
             &claims,
-            &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new(),
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
             )),
         )
         .expect("valid signature");

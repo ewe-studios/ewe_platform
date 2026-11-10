@@ -669,6 +669,7 @@ dependencies = [
  "async-trait",
  "console_error_panic_hook",
  "foundation_ai",
+ "foundation_context",
  "foundation_core",
  "foundation_http",
  "foundation_netio",
@@ -1449,6 +1450,7 @@ dependencies = [
  "foundation_arrow",
  "foundation_auth",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
@@ -1494,6 +1496,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_netio",
@@ -1702,6 +1705,7 @@ dependencies = [
  "derive_more",
  "fff-search",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_errstacks",
  "foundation_reactor",
@@ -1760,6 +1764,7 @@ version = "0.0.8"
 name = "foundation_reactor"
 version = "0.0.3"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "io-uring",
  "libc",

@@ -17,7 +17,7 @@ use crate::generated::zones::{
 use crate::types::{CloudflareError, DnsRecord, DnsRecordInput, DnsRecordType};
 
 /// The current wall time as a UTC date and time, from the injected clock.
-fn wall_now_utc(ctx: &foundation_core::valtron::Ctx) -> chrono::DateTime<chrono::Utc> {
+fn wall_now_utc(ctx: &foundation_context::Ctx) -> chrono::DateTime<chrono::Utc> {
     chrono::DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(
         ctx.clock().wall_now(),
     ))

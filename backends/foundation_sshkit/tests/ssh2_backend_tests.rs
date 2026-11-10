@@ -18,9 +18,7 @@ use foundation_sshkit::{Command, ConnectionPool, Host, Ssh2Backend};
 fn test_execute_connection_refused_returns_error() {
     let pool = Arc::new(ConnectionPool::new(
         Duration::from_secs(2),
-        foundation_core::valtron::Ctx::fixed(Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        )),
+        foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
     ));
     let backend = Ssh2Backend::new(pool);
     let host = Host::parse("root@127.0.0.1:1");

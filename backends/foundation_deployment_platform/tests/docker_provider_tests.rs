@@ -23,8 +23,8 @@ fn docker_provider_launch_run_and_stop() {
     assert_eq!(provider.name(), "docker");
 
     let config = ContainerConfig::new("redis:7-alpine")
-        .ctx(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        .ctx(foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )))
         .port(6379)
         .wait(WaitFor::stdout("Ready to accept connections"))

@@ -141,7 +141,7 @@ pub fn normalize_provider(
     spec: &ProviderSpec,
     workspace_root: &Path,
     out_dir: &Path,
-    clock: &dyn foundation_core::valtron::Clock,
+    clock: &dyn foundation_context::Clock,
 ) -> Result<NormalizeReport, BoxedError> {
     let raw_path = workspace_root.join(spec.raw);
     let raw = std::fs::read_to_string(&raw_path).map_err(|e| -> BoxedError {
@@ -252,7 +252,7 @@ fn write_manifest(
     report: &NormalizeReport,
     raw: &str,
     canonical: &str,
-    clock: &dyn foundation_core::valtron::Clock,
+    clock: &dyn foundation_context::Clock,
 ) -> Result<(), BoxedError> {
     let manifest = serde_json::json!({
         "provider": spec.name,
@@ -292,7 +292,7 @@ fn inline_count(doc: &Value) -> usize {
     })
 }
 
-fn now_unix_seconds(clock: &dyn foundation_core::valtron::Clock) -> String {
+fn now_unix_seconds(clock: &dyn foundation_context::Clock) -> String {
     // Seconds since the epoch is enough provenance.
     foundation_compact::time::unix_seconds(clock.wall_now()).to_string()
 }
@@ -338,7 +338,7 @@ pub fn command() -> clap::Command {
 /// [`normalize_provider`].
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     // The CLI is the host entry point: build the one real clock here.
-    let clock = foundation_core::valtron::MonotonicClock::new();
+    let clock = foundation_context::MonotonicClock::new();
     let provider = matches
         .get_one::<String>("provider")
         .map_or("all", String::as_str);

@@ -556,8 +556,8 @@ fn presentation_recorded_in_session() {
     // Verify session.record_presentation updates the WebViewStack for each mode.
     let session = foundation_platform::PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

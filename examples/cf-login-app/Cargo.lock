@@ -375,6 +375,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "foundation_auth",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "js-sys",
@@ -894,6 +895,7 @@ dependencies = [
  "chrono",
  "derive_more",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_netio",
@@ -1075,6 +1077,7 @@ version = "0.0.8"
 name = "foundation_reactor"
 version = "0.0.3"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "libc",
  "tracing",

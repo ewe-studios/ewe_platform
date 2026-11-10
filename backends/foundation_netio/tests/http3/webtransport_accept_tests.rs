@@ -9,7 +9,9 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator};
+
+use foundation_context::Ctx;
 use foundation_netio::http3::connection::{H3Connection, H3Request};
 use foundation_netio::http3::WtAccept;
 use foundation_netio::quic::{
@@ -51,7 +53,7 @@ fn h3_pair() -> (
     let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = sq.local_addr().expect("addr");
     let (mut cq, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     let deadline = Instant::now() + BUDGET;
     let server_conn = loop {
@@ -277,4 +279,10 @@ fn closing_connect_stream_ends_session() {
     let ended = until!(sq, cq, session.poll_connect());
     assert!(ended, "a FIN on the CONNECT stream must end the session");
     assert!(session.is_closed());
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

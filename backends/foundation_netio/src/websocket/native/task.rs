@@ -20,9 +20,10 @@ use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutCont
 use crate::shared::http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, PipeReceiver, TaskIterator, TaskStatus};
+use foundation_core::valtron::{PipeReceiver, TaskIterator, TaskStatus};
 
 use std::io::Write;
 use std::sync::Arc;
@@ -487,9 +488,7 @@ where
                 );
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) =
-                    self.pool
-                        .create_http_connection(&state.url, None, ctx.clock().as_ref())
+                let Ok(connection) = self.pool.create_http_connection(&state.url, None, &ctx)
                 else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(WebSocketState::Closed(Some(

@@ -11,7 +11,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_context::{Clock, Ctx};
 use foundation_db::core::state::traits::StateStore;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
@@ -79,7 +79,7 @@ where
     ///
     /// ```rust,no_run
     /// use std::path::Path;
-    /// use foundation_core::valtron::Ctx;
+    /// use foundation_context::Ctx;
     /// use foundation_deployment::provider_client::ProviderClient;
     /// use foundation_db::core::state::FileStateStore;
     ///

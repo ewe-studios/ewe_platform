@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_platform::*;
 
 /// The host context. An entropy failure keeps the app running with a

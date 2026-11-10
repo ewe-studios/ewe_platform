@@ -26,7 +26,7 @@ fn values_for<'a>(req: &'a SimpleIncomingRequest, name: &str) -> Option<&'a Vec<
 #[test]
 fn generates_a_version_4_id_when_the_client_sends_none() {
     let mw = RequestIdMiddleware;
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let mut req = request();
 
     assert!(matches!(
@@ -43,7 +43,7 @@ fn generates_a_version_4_id_when_the_client_sends_none() {
 #[test]
 fn keeps_a_client_supplied_id() {
     let mw = RequestIdMiddleware;
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let mut req = SimpleIncomingRequest::builder()
         .with_plain_url("/")
         .with_method(SimpleMethod::GET)
@@ -69,7 +69,7 @@ fn keeps_a_client_supplied_id() {
 #[test]
 fn matches_the_client_header_case_insensitively() {
     let mw = RequestIdMiddleware;
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let mut req = SimpleIncomingRequest::builder()
         .with_plain_url("/")
         .with_method(SimpleMethod::GET)

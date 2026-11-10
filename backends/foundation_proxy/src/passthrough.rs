@@ -21,8 +21,9 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{from_future, send, sleep_async, Ctx};
+use foundation_core::valtron::{from_future, send, sleep_async};
 use foundation_http::native::writer::WriterConfig;
 use foundation_iogate::ServerIo;
 use foundation_netio::shared::client::{DnsResolver, SystemDnsResolver};

@@ -68,7 +68,8 @@ fn test_timeout_composite_sums() {
 
 // ── Live readiness loops (exercises valtron sleep_async via wait_for_port) ──
 
-use foundation_core::valtron::{MonotonicClock, valtron_test};
+use foundation_context::MonotonicClock;
+use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::wait_for_port;
 
 /// `wait_for_port` succeeds immediately when the port is already listening.
@@ -81,7 +82,7 @@ async fn port_wait_succeeds_on_open_port() {
     let mut ports = HashMap::new();
     ports.insert(format!("{port}/tcp"), port);
 
-    let clock = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
+    let clock = foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
     let start = Instant::now();
     wait_for_port(port, Duration::from_secs(5), &ports, &clock)
         .await
@@ -102,7 +103,7 @@ async fn port_wait_times_out_on_closed_port() {
     let mut ports = HashMap::new();
     ports.insert(format!("{bogus_port}/tcp"), bogus_port);
 
-    let clock = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
+    let clock = foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new()));
     let start = Instant::now();
     let result = wait_for_port(bogus_port, Duration::from_millis(200), &ports, &clock).await;
     assert!(result.is_err(), "should time out");

@@ -60,6 +60,10 @@ version = "0.0.12"
 path = "../foundation_core"
 version = "0.0.20"
 
+[dependencies.foundation_context]
+path = "../foundation_context"
+version = "0.0.2"
+
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
 version = "0.0.5"

@@ -35,7 +35,7 @@ fn control_socket_does_not_spawn_threads() {
             .bind("127.0.0.1:0")
             .control_socket(&sock)
             .service(ServiceConfig::new("echo", "test.local").backend("http://127.0.0.1:19101")),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .block()
     .expect("start proxy");

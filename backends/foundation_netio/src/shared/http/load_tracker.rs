@@ -16,7 +16,7 @@
 //! use foundation_netio::shared::http::load_tracker::LoadTracker;
 //! use std::sync::Arc;
 //!
-//! let tracker = LoadTracker::new(Arc::new(foundation_core::valtron::MonotonicClock::new()));
+//! let tracker = LoadTracker::new(foundation_context::Ctx::host());
 //!
 //! // Track active connections
 //! let guard = tracker.track_connection();
@@ -26,9 +26,8 @@
 //! println!("Timeout factor: {}", factor);
 //! ```
 
-use foundation_core::valtron::Clock;
+use foundation_context::Ctx;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use std::sync::Arc;
 use std::time::Duration;
 
 /// Load level classification.
@@ -113,7 +112,7 @@ pub struct LoadTracker {
     config: LoadTrackerConfig,
     /// The clock that measures the rate window. Injected, never read from a
     /// global.
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl core::fmt::Debug for LoadTracker {
@@ -142,21 +141,21 @@ impl LoadTracker {
     /// `clock` measures the rate window. The host passes the clock from its
     /// context bundle, so a test can move time by hand.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
-        Self::with_config(LoadTrackerConfig::default(), clock)
+    pub fn new(ctx: Ctx) -> Self {
+        Self::with_config(LoadTrackerConfig::default(), ctx)
     }
 
     /// Create a new load tracker with custom config.
     #[must_use]
-    pub fn with_config(config: LoadTrackerConfig, clock: Arc<dyn Clock>) -> Self {
-        let last_calculation = Self::clock_nanos(&*clock);
+    pub fn with_config(config: LoadTrackerConfig, ctx: Ctx) -> Self {
+        let last_calculation = Self::clock_nanos(&ctx);
         Self {
             active_connections: AtomicUsize::new(0),
             connection_count: AtomicU64::new(0),
             connection_rate_milli: AtomicU64::new(0),
             last_calculation: AtomicU64::new(last_calculation),
             config,
-            clock,
+            ctx,
         }
     }
 
@@ -217,7 +216,7 @@ impl LoadTracker {
     /// winner stores, so the count and the elapsed time always describe the
     /// same window.
     fn update_rate(&self) {
-        let now = Self::clock_nanos(&*self.clock);
+        let now = Self::clock_nanos(&self.ctx);
         let last = self.last_calculation.load(Ordering::Relaxed);
         let elapsed_nanos = now.saturating_sub(last);
         let min_window_nanos =
@@ -250,8 +249,8 @@ impl LoadTracker {
     }
 
     /// The clock's elapsed time in nanoseconds, saturated to `u64`.
-    fn clock_nanos(clock: &dyn Clock) -> u64 {
-        u64::try_from(clock.elapsed().as_nanos()).unwrap_or(u64::MAX)
+    fn clock_nanos(ctx: &Ctx) -> u64 {
+        u64::try_from(ctx.clock().elapsed().as_nanos()).unwrap_or(u64::MAX)
     }
 
     /// Decrement active connection count.
@@ -265,7 +264,7 @@ impl LoadTracker {
         self.connection_count.store(0, Ordering::Relaxed);
         self.connection_rate_milli.store(0, Ordering::Relaxed);
         self.last_calculation
-            .store(Self::clock_nanos(&*self.clock), Ordering::Relaxed);
+            .store(Self::clock_nanos(&self.ctx), Ordering::Relaxed);
     }
 }
 
@@ -279,7 +278,7 @@ impl Clone for LoadTracker {
             ),
             last_calculation: AtomicU64::new(self.last_calculation.load(Ordering::Relaxed)),
             config: self.config,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }
     }
 }

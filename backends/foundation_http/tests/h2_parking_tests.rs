@@ -17,11 +17,12 @@ use std::time::Duration;
 
 #[cfg(feature = "multi")]
 use bytes::Bytes;
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
 #[cfg(feature = "multi")]
 use foundation_core::valtron::initialize_pool;
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_http::native::server::H2ConnectionHandler;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
@@ -55,7 +56,7 @@ fn an_idle_h2_connection_parks_on_its_socket() {
         Arc::new(ConnectionContext::default()),
         Arc::new(ShutdownSignal::new()),
         waits.guard(),
-        Ctx::fixed(Arc::new(foundation_core::valtron::MonotonicClock::new())),
+        Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
     );
 
     let mut last = None;
@@ -268,7 +269,7 @@ fn idle_h2_client() -> (TcpStream, H2Channel) {
         Arc::new(ConnectionContext::default()),
         Arc::new(ShutdownSignal::new()),
         waits.guard(),
-        Ctx::fixed(Arc::new(foundation_core::valtron::MonotonicClock::new())),
+        Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
     );
     foundation_core::valtron::send(handler).expect("spawn h2 handler");
 

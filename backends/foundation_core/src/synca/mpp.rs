@@ -1,3 +1,4 @@
+use foundation_context::Ctx;
 use std::{
     sync::Arc,
     time::{self, Duration},
@@ -139,12 +140,8 @@ impl<T> Receiver<T> {
     /// # Errors
     /// Returns [`ReceiverError::Timeout`] when the duration expires, and
     /// [`ReceiverError::Closed`] when the channel is closed.
-    pub fn recv_timeout(
-        &self,
-        dur: std::time::Duration,
-        clock: &dyn crate::valtron::Clock,
-    ) -> Result<T, ReceiverError> {
-        let started = clock.now();
+    pub fn recv_timeout(&self, dur: std::time::Duration, ctx: &Ctx) -> Result<T, ReceiverError> {
+        let started = ctx.clock().now();
 
         let mut remaining_timeout = dur;
         loop {
@@ -154,7 +151,7 @@ impl<T> Receiver<T> {
                 Err(err) => match err {
                     PopError::Empty => {
                         // check the state and see if we've crossed that threshold.
-                        let elapsed = clock.now().saturating_duration_since(started);
+                        let elapsed = ctx.clock().now().saturating_duration_since(started);
                         if elapsed >= remaining_timeout {
                             return Err(ReceiverError::Timeout);
                         }

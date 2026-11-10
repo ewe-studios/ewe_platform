@@ -20,7 +20,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
 use foundation_compact::time::unix_millis;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};

@@ -5,7 +5,7 @@
 //! waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_toolings::harness::Miniflare;
 //!
 //! let mf = Miniflare::builder()
@@ -30,7 +30,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 /// The last lines a child wrote to one of its pipes, capped at `cap` lines.
 #[derive(Clone)]

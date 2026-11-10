@@ -16,7 +16,9 @@ fn zero_duration_sleep_iterator_finishes_immediately() {
         now,
         wait,
         (),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
     assert_eq!(sleeper.next(), Some(Delayed::Done(())));
 }
@@ -55,7 +57,9 @@ fn can_sleep_thread_and_get_final() {
         now,
         wait,
         (),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     assert!(matches!(sleeper.next(), Some(Delayed::Pending(_, _, _))));

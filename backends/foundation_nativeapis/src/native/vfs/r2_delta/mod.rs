@@ -8,7 +8,7 @@
 //! [`SyncFs`](crate::shared::vfs::sync_bridge::SyncFs). Storage layout: see
 //! [`blob_delta`](super::blob_delta).
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_db::R2Store;
 use foundation_errstacks::ErrorTrace;
 

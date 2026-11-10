@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::Serialize;
 
 use crate::config::{GuestOs, Result, TestbedError, VmProfile};

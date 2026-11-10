@@ -67,7 +67,9 @@ fn test_caching_resolver_caches_results() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     // First resolution - cache miss
@@ -91,7 +93,9 @@ fn test_caching_resolver_expires_entries() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_millis(100),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     // First resolution
@@ -116,7 +120,9 @@ fn test_caching_resolver_clear_cache() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     // Populate cache
@@ -139,7 +145,9 @@ fn test_caching_resolver_differentiates_by_port() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     // Resolve with different ports (cache keys include port)
@@ -289,7 +297,9 @@ fn test_caching_resolver_propagates_errors() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     let result = resolve_blocking(&resolver, "error.com", 80);

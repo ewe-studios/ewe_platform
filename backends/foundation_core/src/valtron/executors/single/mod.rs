@@ -11,9 +11,11 @@ use crate::valtron::{
         DEFAULT_BACK_OFF_THREAD_FACTOR, DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT,
         MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
+    LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
     TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
+
+use foundation_context::Ctx;
 
 use crate::{
     retries::ExponentialBackoffDecider,
@@ -342,8 +344,9 @@ pub fn fork_ctx() -> Ctx {
 /// # Panics
 ///
 /// Panics if the pool has not been initialized (mirrors [`fork_ctx`]).
+/// Kept: executor root plumbing; it returns the clock of the engine root `Ctx`.
 #[must_use]
-pub fn clock() -> std::sync::Arc<dyn crate::valtron::Clock> {
+pub fn clock() -> std::sync::Arc<dyn foundation_context::Clock> {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.state_clock(),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),

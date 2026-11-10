@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use clap::ArgMatches;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::bootstrap::BootstrapLogger;
 use crate::config::{DisplayMode, GuestOs, get_profile};

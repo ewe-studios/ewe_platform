@@ -13,6 +13,7 @@
 //! `shutdown()` closes the queue: workers finish every job that was accepted
 //! before the close, then exit.
 
+use foundation_context::Ctx;
 use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
@@ -398,8 +399,8 @@ impl BackgroundJobRegistry {
     /// This is the unbounded-budget path: it computes the deadline as
     /// [`Self::shutdown_timeout`] from the call. A caller with its own shutdown
     /// budget passes that deadline to [`Self::shutdown_until`] instead.
-    pub fn shutdown(&self, clock: &dyn crate::valtron::Clock) -> ShutdownOutcome {
-        self.shutdown_until(clock, clock.now() + self.shutdown_timeout)
+    pub fn shutdown(&self, ctx: &Ctx) -> ShutdownOutcome {
+        self.shutdown_until(ctx, ctx.clock().now() + self.shutdown_timeout)
     }
 
     /// Shut down the registry, waiting no later than `deadline`.
@@ -415,17 +416,13 @@ impl BackgroundJobRegistry {
     /// HOW: close the queue, wait for the workers with the remaining budget, and
     /// run leftover jobs on the caller only while `clock.now() < deadline`. The
     /// deadline is checked between jobs, so a later job never starts after it.
-    pub fn shutdown_until(
-        &self,
-        clock: &dyn crate::valtron::Clock,
-        deadline: Instant,
-    ) -> ShutdownOutcome {
+    pub fn shutdown_until(&self, ctx: &Ctx, deadline: Instant) -> ShutdownOutcome {
         // The budget at entry, used for the wait and for the timeout log. A
         // deadline that already passed gives a zero budget, so the wait below
         // returns at once and no leftover job runs.
-        let budget = deadline.saturating_duration_since(clock.now());
+        let budget = deadline.saturating_duration_since(ctx.clock().now());
         self.queue.close();
-        let drained_in_time = self.waitgroup.wait_timeout(budget, clock);
+        let drained_in_time = self.waitgroup.wait_timeout(budget, ctx);
 
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
@@ -455,7 +452,7 @@ impl BackgroundJobRegistry {
             );
         }
         for job in leftover {
-            if drained_in_time && clock.now() < deadline {
+            if drained_in_time && ctx.clock().now() < deadline {
                 run_job(job, "the shutdown caller");
             } else {
                 abandoned_jobs += 1;

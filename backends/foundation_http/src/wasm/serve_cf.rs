@@ -40,7 +40,7 @@ impl HttpApp<Arc<dyn CfServe>> {
     /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_cf() -> Self {
-        Self::with_ctx(foundation_core::valtron::Ctx::host())
+        Self::with_ctx(foundation_context::Ctx::host())
     }
 
     /// Register a CF handler for a specific HTTP method and path.

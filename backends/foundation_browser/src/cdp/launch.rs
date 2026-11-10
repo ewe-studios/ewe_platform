@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 use std::fmt;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 /// Which browser to drive: Chromium over CDP, or Firefox over `WebDriver` `BiDi`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

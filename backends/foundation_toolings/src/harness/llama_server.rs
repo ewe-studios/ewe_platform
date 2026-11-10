@@ -4,7 +4,7 @@
 //! endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_toolings::harness::LlamaServer;
 //!
 //! let server = LlamaServer::builder()
@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 fn project_root() -> PathBuf {
     let manifest_dir =

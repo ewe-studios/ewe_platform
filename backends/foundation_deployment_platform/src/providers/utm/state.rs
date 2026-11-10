@@ -3,7 +3,7 @@
 //! WHY: Both QEMU and UTM providers share a single state file format
 //! (`VmState`) with `provider_id/provider_internal_id` fields.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::config::Result;
 use crate::state;

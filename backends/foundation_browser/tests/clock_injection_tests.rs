@@ -9,7 +9,8 @@ use std::time::Duration;
 use foundation_browser::supervisor::unique_profile_dir;
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 
 /// The `pid-<millis>-` segment a profile name must carry.
 fn segment(millis: i64) -> String {

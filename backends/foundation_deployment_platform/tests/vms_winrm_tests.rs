@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_deployment_platform::winrm::{
     WinRM, generate_message_id, parse_command_id, parse_receive_response, parse_shell_id,
 };

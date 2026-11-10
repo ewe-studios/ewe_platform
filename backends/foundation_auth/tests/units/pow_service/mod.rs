@@ -1,7 +1,7 @@
 //! `PowService` tests (async, over the in-memory store).
 
 use foundation_auth::server::services::pow_service::{PowService, PowSolution};
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_db::MemoryStorage;
 use futures_lite::future::block_on;
 use sha2::{Digest, Sha256};

@@ -25,7 +25,8 @@ use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
 use bytes::{Buf, Bytes};
-use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
 
 use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicBidiStream, QuicConnection, QuicDriver,
@@ -75,7 +76,7 @@ fn connected_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection
     let addr: SocketAddr = server.local_addr().expect("local addr");
 
     let (mut client, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     // The server's connection appears only once its handshake completes — that is
     // the accept point.
@@ -455,7 +456,7 @@ fn queued_reset_wakes_a_driver_parked_on_readiness() {
         .with_fd_readiness(readiness);
     let addr: SocketAddr = server.local_addr().expect("local addr");
     let (mut client, mut client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     let mut server_conn = drive_until(&mut server, &mut client, |s, _| s.take_accepted())
         .expect("server never accepted the connection");
@@ -595,4 +596,10 @@ fn one_poll_reads_every_queued_datagram() {
         ],
         "both payloads must be readable after the single poll"
     );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

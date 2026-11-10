@@ -10,7 +10,8 @@ use crate::backends::candle::{
 };
 use crate::errors::{ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
-use foundation_core::valtron::{block_on_future, Ctx, Stream};
+use foundation_context::Ctx;
+use foundation_core::valtron::{block_on_future, Stream};
 use foundation_deployment_huggingface::repository;
 use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,

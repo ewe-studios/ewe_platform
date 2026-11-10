@@ -11,7 +11,7 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::config::{Result, TestbedError, VmProfile};
 use crate::providers::http;

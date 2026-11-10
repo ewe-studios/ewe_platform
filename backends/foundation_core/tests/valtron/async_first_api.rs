@@ -432,10 +432,7 @@ impl foundation_core::valtron::TaskIterator for Doubler {
     type Ready = u32;
     type Pending = char;
 
-    fn next_status(
-        &mut self,
-        _ctx: foundation_core::valtron::Ctx,
-    ) -> Option<TaskStatus<u32, char>> {
+    fn next_status(&mut self, _ctx: foundation_context::Ctx) -> Option<TaskStatus<u32, char>> {
         match TaskStatus::from_stream(&mut self.input)? {
             TaskStatus::Ready(v) => Some(TaskStatus::Ready(v * 2)),
             other => Some(other),

@@ -1660,6 +1660,7 @@ version = "0.0.6"
 dependencies = [
  "concurrent-queue",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_netio",
  "foundation_nostd",
@@ -1678,6 +1679,7 @@ dependencies = [
 name = "foundation_reactor"
 version = "0.0.3"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "libc",
  "tracing",
@@ -1740,7 +1742,7 @@ dependencies = [
  "cap-rand",
  "derive_more",
  "foundation_compact",
- "foundation_core",
+ "foundation_context",
  "foundation_errstacks",
  "tracing",
  "wasmtime",
@@ -3430,6 +3432,7 @@ checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
 name = "platform_ios"
 version = "0.1.0"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "foundation_macros",
  "foundation_nostd",

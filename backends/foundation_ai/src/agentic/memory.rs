@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use crate::agentic::memory_coordinator::MemoryCoordinator;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::types::{MemoryFact, ModelId, SessionId, SessionRecord};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 

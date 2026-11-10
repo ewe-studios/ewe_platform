@@ -3,7 +3,8 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, Stream};
+use foundation_context::Ctx;
+use foundation_core::valtron::Stream;
 use foundation_netio::quic::{
     QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
     StreamId,
@@ -373,7 +374,7 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
         QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = srv_driver.local_addr().expect("addr");
     let (mut cli_driver, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     let server_conn = drive_until(&mut srv_driver, &mut cli_driver, QuicDriver::take_accepted)
         .expect("server accepted connection");
@@ -427,4 +428,10 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
         server_session.is_open() || client_session.is_open(),
         "sessions should be open; QUIC may need more pump ticks"
     );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

@@ -60,8 +60,8 @@ impl PlatformCapability for GreetCap {
 fn session_bootstraps_with_all_subsystems() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -82,8 +82,8 @@ fn session_bootstraps_with_all_subsystems() {
 fn route_through_handler_chain_with_protocol_selection() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -120,8 +120,8 @@ fn route_through_handler_chain_with_protocol_selection() {
 fn cache_serves_cached_content_with_correct_policy() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -167,8 +167,8 @@ fn cache_serves_cached_content_with_correct_policy() {
 fn cache_is_profile_scoped() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -199,8 +199,8 @@ fn cache_is_profile_scoped() {
 fn capability_invocation_through_registry() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -234,8 +234,8 @@ fn capability_invocation_through_registry() {
 fn mutation_queue_enqueue_and_replay() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -323,8 +323,8 @@ fn webview_stack_navigation_flow() {
 fn session_events_notify_listeners() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     let fired = Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -344,8 +344,8 @@ fn session_events_notify_listeners() {
 fn full_execution_contract_walking_skeleton() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

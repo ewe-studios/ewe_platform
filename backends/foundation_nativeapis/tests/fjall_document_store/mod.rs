@@ -14,15 +14,15 @@ use foundation_core::valtron::valtron_test;
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
 
-fn test_ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn test_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }
 
 fn make_store() -> FjallDocumentStore<MemoryFs> {
-    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
@@ -31,8 +31,8 @@ fn make_store() -> FjallDocumentStore<MemoryFs> {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ))
     .unwrap()
@@ -527,8 +527,8 @@ async fn scan_all_empty_collection_returns_empty() {
 
 #[valtron_test]
 async fn batched_durability_accumulates_then_flushes() {
-    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig {
@@ -540,8 +540,8 @@ async fn batched_durability_accumulates_then_flushes() {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .await
@@ -584,8 +584,8 @@ async fn batched_durability_accumulates_then_flushes() {
 
 #[valtron_test]
 async fn tail_rebuild_recovers_unindexed_records() {
-    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
@@ -597,8 +597,8 @@ async fn tail_rebuild_recovers_unindexed_records() {
             "/data".to_string(),
             tmpdir.path(),
             durability.clone(),
-            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new(),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
             )),
         )
         .await
@@ -646,8 +646,8 @@ async fn tail_rebuild_recovers_unindexed_records() {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .await
@@ -809,8 +809,8 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingFs<F> {
 
 #[valtron_test]
 async fn fjall_scan_yields_before_reading_all() {
-    let (fs, opens) = CountingFs::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    let (fs, opens) = CountingFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
     )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
@@ -819,8 +819,8 @@ async fn fjall_scan_yields_before_reading_all() {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .await

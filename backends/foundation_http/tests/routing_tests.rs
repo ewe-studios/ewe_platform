@@ -81,7 +81,7 @@ fn test_static_route_get() {
     assert!(handler.is_some());
 
     let result = handler.unwrap().serve(
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -172,7 +172,7 @@ fn test_static_precedence_over_param() {
         .dispatch(&SimpleMethod::GET, "/users/profile")
         .unwrap();
     let _ = handler.serve(
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -182,7 +182,7 @@ fn test_static_precedence_over_param() {
     // Param route should match for non-static
     let handler = router.dispatch(&SimpleMethod::GET, "/users/edit").unwrap();
     let _ = handler.serve(
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -208,7 +208,7 @@ fn test_multiple_methods_same_path() {
 
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
     let _ = handler.serve(
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );
@@ -217,7 +217,7 @@ fn test_multiple_methods_same_path() {
 
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
     let _ = handler.serve(
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
         dummy_request(),
         dummy_conn(),
     );

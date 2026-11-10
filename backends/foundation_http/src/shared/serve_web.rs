@@ -40,7 +40,7 @@ impl HttpApp<Arc<dyn WebServe>> {
     /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_web() -> Self {
-        Self::with_ctx(foundation_core::valtron::Ctx::host())
+        Self::with_ctx(foundation_context::Ctx::host())
     }
 
     /// Register a web handler for a specific HTTP method and path.

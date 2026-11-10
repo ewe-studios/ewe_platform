@@ -10,7 +10,7 @@
 use core::time::Duration;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::sync::Arc;
 use std::thread;
 
@@ -108,7 +108,7 @@ impl StressHarness {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::valtron::Ctx;
+    /// use foundation_context::Ctx;
     /// use foundation_testing::stress::{StressConfig, StressHarness};
     /// use std::sync::atomic::{AtomicUsize, Ordering};
     /// use std::sync::Arc;

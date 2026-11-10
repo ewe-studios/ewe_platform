@@ -52,8 +52,8 @@ fn ota_manifest_deserialize() {
 
 #[test]
 fn chrono_now_produces_iso8601() {
-    let ctx = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ));
     let ts = chrono_now(&ctx);
     assert!(ts.contains('T'));

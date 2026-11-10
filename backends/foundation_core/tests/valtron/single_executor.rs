@@ -11,8 +11,10 @@ use foundation_compact::rng::Rng;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until, run_until_complete, spawn},
-    valtron_test, Ctx, FnReady, NotificationItem, Stream, TaskIterator, TaskStatus,
+    valtron_test, FnReady, NotificationItem, Stream, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 struct Counter(usize, Rc<RefCell<Vec<usize>>>);
 

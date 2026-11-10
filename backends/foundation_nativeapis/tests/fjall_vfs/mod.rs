@@ -11,8 +11,8 @@ use foundation_nativeapis::shared::vfs::{
 
 #[test]
 fn test_fjall_create_and_read_file() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/hello.txt", 0o644).unwrap();
     file.write_at(b"hello world", 0).unwrap();
@@ -24,8 +24,8 @@ fn test_fjall_create_and_read_file() {
 
 #[test]
 fn test_fjall_create_file_in_nonexistent_dir() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let result = fs.create("/no/such/dir/file.txt", 0o644);
     assert!(result.is_err());
@@ -33,8 +33,8 @@ fn test_fjall_create_file_in_nonexistent_dir() {
 
 #[test]
 fn test_fjall_open_nonexistent_file() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let result = fs.open("/nope.txt", OpenMode::Read);
     assert!(result.is_err());
@@ -42,8 +42,8 @@ fn test_fjall_open_nonexistent_file() {
 
 #[test]
 fn test_fjall_write_to_read_only_file() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/readonly.txt", 0o644).unwrap();
     file.write_at(b"initial", 0).unwrap();
@@ -54,8 +54,8 @@ fn test_fjall_write_to_read_only_file() {
 
 #[test]
 fn test_fjall_file_read_at_offset() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/data.bin", 0o644).unwrap();
     file.write_at(b"ABCDEFGHIJ", 0).unwrap();
@@ -67,8 +67,8 @@ fn test_fjall_file_read_at_offset() {
 
 #[test]
 fn test_fjall_file_write_at_offset() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/sparse.bin", 0o644).unwrap();
     file.write_at(b"XYZ", 10).unwrap();
@@ -81,8 +81,8 @@ fn test_fjall_file_write_at_offset() {
 
 #[test]
 fn test_fjall_file_truncate() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/trunc.txt", 0o644).unwrap();
     file.write_at(b"123456789", 0).unwrap();
@@ -95,8 +95,8 @@ fn test_fjall_file_truncate() {
 
 #[test]
 fn test_fjall_seekable_sequential_read() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/seq.txt", 0o644).unwrap();
     file.write_at(b"ABCDEFGHIJ", 0).unwrap();
@@ -109,8 +109,8 @@ fn test_fjall_seekable_sequential_read() {
 
 #[test]
 fn test_fjall_seekable_seek_and_read() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/seek.txt", 0o644).unwrap();
     file.write_at(b"ABCDEFGHIJ", 0).unwrap();
@@ -125,8 +125,8 @@ fn test_fjall_seekable_seek_and_read() {
 
 #[test]
 fn test_fjall_mkdir_and_list() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir("/src").unwrap();
     fs.create("/src/main.rs", 0o644).unwrap();
@@ -137,8 +137,8 @@ fn test_fjall_mkdir_and_list() {
 
 #[test]
 fn test_fjall_mkdir_nested() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir("/a/b/c").unwrap();
     assert!(fs.exists("/a/b/c").unwrap());
@@ -146,8 +146,8 @@ fn test_fjall_mkdir_nested() {
 
 #[test]
 fn test_fjall_remove_empty_dir() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir("/empty").unwrap();
     fs.remove("/empty").unwrap();
@@ -156,8 +156,8 @@ fn test_fjall_remove_empty_dir() {
 
 #[test]
 fn test_fjall_readdir_mixed() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir("/dir").unwrap();
     fs.create("/dir/file.txt", 0o644).unwrap();
@@ -169,8 +169,8 @@ fn test_fjall_readdir_mixed() {
 
 #[test]
 fn test_fjall_stat_returns_correct_metadata() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/stat.txt", 0o644).unwrap();
     file.write_at(b"hello", 0).unwrap();
@@ -181,8 +181,8 @@ fn test_fjall_stat_returns_correct_metadata() {
 
 #[test]
 fn test_fjall_chmod_updates_permissions() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.create("/perm.txt", 0o644).unwrap();
     fs.chmod("/perm.txt", 0o755).unwrap();
@@ -192,8 +192,8 @@ fn test_fjall_chmod_updates_permissions() {
 
 #[test]
 fn test_fjall_symlink_create_and_readlink() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.symlink("/target", "/link").unwrap();
     let target = fs.readlink("/link").unwrap();
@@ -204,8 +204,8 @@ fn test_fjall_symlink_create_and_readlink() {
 
 #[test]
 fn test_fjall_read_file_convenience() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     let file = fs.create("/rf.txt", 0o644).unwrap();
     file.write_at(b"data", 0).unwrap();
@@ -215,8 +215,8 @@ fn test_fjall_read_file_convenience() {
 
 #[test]
 fn test_fjall_write_file_convenience() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.create("/wf.txt", 0o644).unwrap();
     fs.write_file("/wf.txt", b"written").unwrap();
@@ -226,8 +226,8 @@ fn test_fjall_write_file_convenience() {
 
 #[test]
 fn test_fjall_mkdir_all() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir_all("/a/b/c/d").unwrap();
     assert!(fs.exists("/a/b/c/d").unwrap());
@@ -235,8 +235,8 @@ fn test_fjall_mkdir_all() {
 
 #[test]
 fn test_fjall_remove_all() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir_all("/parent/child").unwrap();
     fs.create("/parent/child/file.txt", 0o644).unwrap();
@@ -248,8 +248,8 @@ fn test_fjall_remove_all() {
 
 #[test]
 fn test_fjall_whiteout_add_and_check() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     delta.add_whiteout("/hidden.txt", 1).unwrap();
     assert!(delta.is_whiteout("/hidden.txt").unwrap().is_some());
@@ -257,8 +257,8 @@ fn test_fjall_whiteout_add_and_check() {
 
 #[test]
 fn test_fjall_whiteout_remove() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     delta.add_whiteout("/gone.txt", 1).unwrap();
     delta.remove_whiteout("/gone.txt").unwrap();
@@ -267,8 +267,8 @@ fn test_fjall_whiteout_remove() {
 
 #[test]
 fn test_fjall_whiteout_list() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     delta.add_whiteout("/dir/a.txt", 1).unwrap();
     delta.add_whiteout("/dir/b.txt", 2).unwrap();
@@ -279,8 +279,8 @@ fn test_fjall_whiteout_list() {
 
 #[test]
 fn test_fjall_whiteout_reset_clears_all() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     delta.add_whiteout("/a.txt", 1).unwrap();
     delta.add_whiteout("/b.txt", 2).unwrap();
@@ -290,8 +290,8 @@ fn test_fjall_whiteout_reset_clears_all() {
 
 #[test]
 fn test_fjall_delta_create_and_read() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     delta.create("/delta.txt", 0o644).unwrap();
     let file = delta.open("/delta.txt", OpenMode::Write).unwrap();
@@ -302,8 +302,8 @@ fn test_fjall_delta_create_and_read() {
 
 #[test]
 fn test_fjall_delta_exists_respects_whiteout() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     delta.create("/visible.txt", 0o644).unwrap();
     assert!(delta.exists("/visible.txt").unwrap());
@@ -315,8 +315,8 @@ fn test_fjall_delta_exists_respects_whiteout() {
 
 #[test]
 fn test_fjall_inode() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.create("/inode.txt", 0o644).unwrap();
     fs.write_file("/inode.txt", b"data").unwrap();
@@ -326,8 +326,8 @@ fn test_fjall_inode() {
 
 #[test]
 fn test_fjall_path_by_inode() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.create("/path_lookup.txt", 0o644).unwrap();
     fs.write_file("/path_lookup.txt", b"data").unwrap();
@@ -338,8 +338,8 @@ fn test_fjall_path_by_inode() {
 
 #[test]
 fn test_fjall_stat_by_inode() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.create("/stat_ino.txt", 0o644).unwrap();
     fs.write_file("/stat_ino.txt", b"data").unwrap();
@@ -352,8 +352,8 @@ fn test_fjall_stat_by_inode() {
 
 #[valtron_test]
 async fn async_inodefs_mkdir_stat_exists() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
 
     fs.mkdir_async("/src".to_string()).await.unwrap();
@@ -364,8 +364,8 @@ async fn async_inodefs_mkdir_stat_exists() {
 
 #[valtron_test]
 async fn async_inodefs_create_write_read() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
 
     let file = fs
@@ -379,8 +379,8 @@ async fn async_inodefs_create_write_read() {
 
 #[valtron_test]
 async fn async_inodefs_open_read() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
 
     fs.write_file_async("/open.txt".to_string(), b"open me".to_vec())
@@ -396,8 +396,8 @@ async fn async_inodefs_open_read() {
 
 #[valtron_test]
 async fn async_inodefs_directory_list() {
-    let fs = InodeFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = InodeFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
 
     fs.mkdir_async("/dir".to_string()).await.unwrap();
@@ -415,8 +415,8 @@ async fn async_inodefs_directory_list() {
 
 #[valtron_test]
 async fn async_inodedelta_whiteouts() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
 
     delta
@@ -446,8 +446,8 @@ async fn async_inodedelta_whiteouts() {
 
 #[valtron_test]
 async fn async_inodedelta_flush_and_reset() {
-    let delta = InodeDelta::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let delta = InodeDelta::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
 
     delta

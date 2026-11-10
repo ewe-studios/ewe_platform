@@ -18,7 +18,7 @@
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use tracing::info;
 
 use crate::wasm::cli::OwnedRunArgs;

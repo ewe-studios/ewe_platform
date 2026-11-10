@@ -884,7 +884,7 @@ impl HttpServer {
             "Draining in-flight connections"
         );
         // The drain waits on the clock of the server's `Ctx`.
-        if active.wait_timeout(shutdown_grace, &*self.app.context().clock()) {
+        if active.wait_timeout(shutdown_grace, self.app.context()) {
             tracing::info!("All in-flight connections drained cleanly");
         } else {
             tracing::warn!(

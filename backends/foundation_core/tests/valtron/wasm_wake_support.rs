@@ -38,10 +38,11 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use foundation_compact::Instant;
+use foundation_context::Ctx;
 use foundation_core::synca::WaitGroup;
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
-    AnyReadiness, Ctx, EventQueue, EventReadiness, EventReadinessPtr, FnReady, ReadinessWaker,
+    AnyReadiness, EventQueue, EventReadiness, EventReadinessPtr, FnReady, ReadinessWaker,
     ResumeSignal, SleepingTask, TaskIterator, TaskStatus, TimeoutTask,
 };
 
@@ -822,7 +823,9 @@ pub fn waitgroup_idle_wait_timeout() {
     assert!(
         group.wait_timeout(
             Duration::from_millis(500),
-            &foundation_core::valtron::MonotonicClock::new()
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new()
+            ))
         ),
         "an idle group is done"
     );

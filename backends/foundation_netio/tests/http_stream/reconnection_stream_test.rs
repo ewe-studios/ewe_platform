@@ -24,7 +24,9 @@ fn successfully_connects_on_first_try() {
         endpoint,
         std::time::Duration::from_millis(500),
         SameBackoffDecider::new(std::time::Duration::from_millis(200)),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     let collected: Option<Result<ReconnectionStatus, ReconnectionError>> = stream.next();
@@ -46,7 +48,9 @@ fn fails_reconnection_after_max_retries() {
         endpoint,
         std::time::Duration::from_millis(50),
         SameBackoffDecider::new(std::time::Duration::from_millis(200)),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     let collected: Vec<Result<ReconnectionStatus, ReconnectionError>> = stream

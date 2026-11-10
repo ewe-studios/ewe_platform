@@ -22,8 +22,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    sync_collect_one, sync_one, valtron, valtron_test, Ctx, TaskIterator, TaskStatus,
+    sync_collect_one, sync_one, valtron, valtron_test, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 /// Produces `max` ready values, one per executor iteration.
 struct CountingTask {

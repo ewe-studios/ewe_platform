@@ -10,7 +10,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 use foundation_http::shared::handlers::RateLimiter;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::{SimpleIncomingRequest, SimpleMethod};

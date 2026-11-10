@@ -1,7 +1,6 @@
 //! Tests for `WaitGroup` and `WaitGroupGuard`.
 
 use foundation_core::synca::WaitGroup;
-use foundation_core::valtron::MonotonicClock;
 use std::{sync::Arc, thread, time::Duration};
 
 #[test]
@@ -14,7 +13,12 @@ fn test_waitgroup_wait_timeout_reaches_zero() {
         wg2.done();
     });
     // Generous window: the worker finishes well before the deadline.
-    assert!(wg.wait_timeout(Duration::from_secs(5), &MonotonicClock::new()));
+    assert!(wg.wait_timeout(
+        Duration::from_secs(5),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))
+    ));
 }
 
 #[test]
@@ -22,14 +26,24 @@ fn test_waitgroup_wait_timeout_times_out() {
     let wg = WaitGroup::new();
     wg.add(1); // never completed
     let start = std::time::Instant::now();
-    assert!(!wg.wait_timeout(Duration::from_millis(100), &MonotonicClock::new()));
+    assert!(!wg.wait_timeout(
+        Duration::from_millis(100),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))
+    ));
     assert!(start.elapsed() >= Duration::from_millis(100));
 }
 
 #[test]
 fn test_waitgroup_wait_timeout_zero_count_returns_immediately() {
     let wg = WaitGroup::new();
-    assert!(wg.wait_timeout(Duration::from_secs(5), &MonotonicClock::new()));
+    assert!(wg.wait_timeout(
+        Duration::from_secs(5),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new()
+        ))
+    ));
 }
 
 #[test]

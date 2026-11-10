@@ -20,6 +20,7 @@ use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::valtron::{
     self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
     Stream, StreamIteratorExt, TaskIteratorExt,
@@ -64,10 +65,31 @@ impl core::fmt::Debug for ClientRequestState {
     }
 }
 
+/// The root context of the executor that runs the request task.
+///
+/// WHY: a synchronous send has no caller `Ctx`. The task that the executor
+/// runs reads its clock from that executor's root, so the response takes a
+/// fork of the same root. The fork shares the clock. The executor starts before
+/// this call, on the calling thread.
+#[cfg(feature = "multi")]
+fn engine_ctx() -> Ctx {
+    foundation_core::valtron::multi::fork_ctx()
+}
+
+/// The root context of the single-threaded executor that runs the request task.
+///
+/// See the `multi` variant for the reason.
+#[cfg(not(feature = "multi"))]
+fn engine_ctx() -> Ctx {
+    foundation_core::valtron::single::fork_ctx()
+}
+
 pub struct FinalizedResponse<T, R: DnsResolver + 'static>(
     Option<SimpleResponse<T>>,
     Option<Arc<HttpConnectionPool<R>>>,
     Option<HttpClientConnection>,
+    /// The context whose clock stamps the connection when it returns to the pool.
+    Option<Ctx>,
 );
 
 /// The parts returned by [`FinalizedResponse::into_parts`]: status, headers,
@@ -103,8 +125,9 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
         response: SimpleResponse<T>,
         conn: HttpClientConnection,
         pool: Arc<HttpConnectionPool<R>>,
+        ctx: Ctx,
     ) -> Self {
-        Self(Some(response), Some(pool), Some(conn))
+        Self(Some(response), Some(pool), Some(conn), Some(ctx))
     }
 
     /// Check if the response status is successful (2xx).
@@ -184,6 +207,16 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_body_mut()
     }
 
+    /// The context of the call that made this response.
+    ///
+    /// A caller that takes the parts with [`Self::into_parts`] passes this
+    /// context to [`HttpConnectionPool::return_to_pool`]. The pool then stamps
+    /// the connection with the clock of the call. `None` after `into_parts`.
+    #[must_use]
+    pub fn ctx(&self) -> Option<&Ctx> {
+        self.3.as_ref()
+    }
+
     ///
     /// # Panics
     ///
@@ -207,14 +240,16 @@ impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
             .and_then(|resp| resp.get_headers_ref().get(&SimpleHeader::CONNECTION))
             .is_some_and(|vals| vals.iter().any(|v| v.eq_ignore_ascii_case("close")));
 
-        if let (Some(pool), Some(mut stream)) = (self.1.take(), self.2.take()) {
+        if let (Some(pool), Some(mut stream), Some(ctx)) =
+            (self.1.take(), self.2.take(), self.3.take())
+        {
             if connection_close {
                 tracing::debug!("[pool] Connection: close header found, dropping connection");
                 return;
             }
             tracing::debug!("[pool] draining stream and returning to pool");
             stream.drain_stream();
-            pool.return_to_pool(stream);
+            pool.return_to_pool(stream, &ctx);
         }
         let _ = self.0.take();
     }
@@ -400,7 +435,12 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let (conn, body) = response_body.expect("should have body");
         let response = SimpleResponse::new(intro.status, headers, body);
 
-        Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
+        Ok(FinalizedResponse::new(
+            response,
+            conn,
+            self.pool.clone(),
+            engine_ctx(),
+        ))
     }
 
     /// Internal helper to start request execution.
@@ -557,6 +597,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         let response = SimpleResponse::new(intro.status, headers, body);
 
-        Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
+        Ok(FinalizedResponse::new(
+            response,
+            conn,
+            self.pool.clone(),
+            engine_ctx(),
+        ))
     }
 }

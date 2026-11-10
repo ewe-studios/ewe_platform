@@ -25,7 +25,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread::JoinHandle;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::shared::theme::ActivityStyle;
 use crate::shared::traits::SharedDisplay;
@@ -86,7 +86,7 @@ struct ActivityState {
 /// Streaming a reply as it is generated:
 ///
 /// ```no_run
-/// use foundation_core::valtron::Ctx;
+/// use foundation_context::Ctx;
 /// use foundation_repl::Repl;
 ///
 /// let repl = Repl::new(Ctx::host());
@@ -103,7 +103,7 @@ struct ActivityState {
 /// Reporting real progress turns the spinner into a bar:
 ///
 /// ```no_run
-/// use foundation_core::valtron::Ctx;
+/// use foundation_context::Ctx;
 /// use foundation_repl::Repl;
 ///
 /// let repl = Repl::new(Ctx::host());

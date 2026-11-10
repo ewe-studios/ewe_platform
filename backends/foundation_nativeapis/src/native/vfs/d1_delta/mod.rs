@@ -10,7 +10,7 @@
 
 pub mod schema;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_db::D1Store;
 use foundation_errstacks::ErrorTrace;
 

@@ -5,10 +5,10 @@ use std::{
     thread,
 };
 
+use foundation_context::Ctx;
 use foundation_core::synca::mpp;
 use foundation_core::valtron::{
-    block_on, get_pool, valtron_test, Ctx, FnReady, NotificationItem, Stream, TaskIterator,
-    TaskStatus,
+    block_on, get_pool, valtron_test, FnReady, NotificationItem, Stream, TaskIterator, TaskStatus,
 };
 
 use foundation_core::synca::WaitGroup;
@@ -205,7 +205,9 @@ fn can_queue_and_complete_task() {
             receiver
                 .recv_timeout(
                     Duration::from_secs(2),
-                    &foundation_core::valtron::MonotonicClock::new(),
+                    &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                        foundation_context::MonotonicClock::new(),
+                    )),
                 )
                 .expect("receive signal");
             tracing::debug!("Got kill signal");

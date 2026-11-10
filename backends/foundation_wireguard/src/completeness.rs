@@ -29,7 +29,7 @@ pub fn check() {
     // Check 3: RelayServer + RelayClient constructors exist (F05 relay)
     {
         use crate::shared::relay::{RelaySelector, RelayStrategy};
-        use foundation_core::valtron::Ctx;
+        use foundation_context::Ctx;
         // A typed function pointer checks the constructor signature. It builds no
         // clock and no context, so library code never reads the real clock here.
         let _new_server: fn(u32, u32, u64, Ctx) -> crate::native::relay::RelayServer =

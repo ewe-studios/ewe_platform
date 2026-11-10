@@ -4,9 +4,10 @@ use std::net::TcpListener;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{valtron_test, Ctx, EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{valtron_test, EventReadiness, TaskIterator, TaskStatus};
 use foundation_netio::http::{GetRequestIntroTask, HttpClientConnection, RequestIntro};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{HttpClientError, HttpReaderError};
@@ -46,6 +47,7 @@ fn blocking_transport_timeout_fails_once_and_terminates() {
         &uri,
         &SystemDnsResolver::new(),
         Some(Duration::from_secs(5)),
+        &ctx(),
     )
     .expect("connect to silent peer");
     conn.stream_mut()
@@ -128,6 +130,7 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
         &uri,
         &SystemDnsResolver::new(),
         Some(Duration::from_secs(5)),
+        &ctx(),
     )
     .expect("connect to silent peer");
     conn.set_nonblocking(true).expect("non-blocking");
@@ -188,4 +191,10 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
         elapsed >= head_timeout && elapsed < Duration::from_secs(5),
         "task took {elapsed:?}; expected about the {head_timeout:?} head deadline"
     );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

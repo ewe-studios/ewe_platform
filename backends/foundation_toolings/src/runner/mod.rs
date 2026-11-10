@@ -7,7 +7,8 @@ use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_compact::Instant;
-use foundation_core::valtron::{Ctx, EventQueue, EventReadiness, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventQueue, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::types::ProjectDefinition;
 

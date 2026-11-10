@@ -13,7 +13,7 @@
 //! [`init::write_template_to`] / [`init::write_bindgen_runjs_to`],
 //! [`server::start_serving`], and [`browser::run`] (the pure-Rust CDP driver).
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use tracing::info;
 
 use crate::wasm::cli::BindgenArgs;

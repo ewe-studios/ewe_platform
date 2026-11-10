@@ -17,6 +17,7 @@ serde_json = { version = "1.0.114", default-features = false, features = ["alloc
 tracing = { version = "0.1", default-features = false }
 
 foundation_core = { path = "../foundation_core", version = "0.0.20", optional = true }
+foundation_context = { path = "../foundation_context", version = "0.0.2", optional = true }
 
 [features]
 default = ["std", "single_threaded"]
@@ -31,7 +32,7 @@ std = ["serde/std", "serde_json/std", "tracing/std"]
 # Feature 18: cross-thread signal access over the SignalHub actor (native
 # only — the hub module is cfg'd off wasm32). The hub and foundation_core
 # both need std.
-valtron = ["std", "dep:foundation_core"]
+valtron = ["std", "dep:foundation_core", "dep:foundation_context"]
 
 [lints]
 workspace = true

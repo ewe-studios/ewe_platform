@@ -1,8 +1,8 @@
-//! Proves that `foundation_core::valtron::Ctx` is the `foundation_context::Ctx` type.
+//! Proves that `foundation_context::Ctx` is the `foundation_context::Ctx` type.
 
 use std::sync::Arc;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 fn takes_core_ctx(ctx: &Ctx) -> u32 {
     *ctx.get::<u32>().expect("the entry is present")
@@ -18,7 +18,7 @@ fn the_re_export_is_the_same_type() {
 
 #[test]
 fn the_re_exported_clock_is_the_same_trait() {
-    let clock: Arc<dyn foundation_core::valtron::Clock> =
+    let clock: Arc<dyn foundation_context::Clock> =
         Arc::new(foundation_context::MonotonicClock::new());
     let ctx = Ctx::fixed(clock);
     ctx.assert_minimum();

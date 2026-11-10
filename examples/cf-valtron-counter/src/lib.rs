@@ -7,9 +7,8 @@
 //! - GET / — serves a static HTML page that fetches /counter
 //! - GET /counter — streams valtron counter ticks via ReadableStream
 
-use foundation_core::valtron::{
-    execute, initialize_pool, Ctx, PoolGuard, Stream, StreamIteratorExt, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{execute, initialize_pool, PoolGuard, Stream, StreamIteratorExt, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
 
 use std::cell::RefCell;
 use std::rc::Rc;

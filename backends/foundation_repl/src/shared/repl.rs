@@ -8,7 +8,7 @@
 use std::cell::{Cell, RefCell};
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::shared::activity::Activity;
 use crate::shared::commands::{CommandRegistry, CommandResult};
@@ -122,7 +122,7 @@ impl Repl {
     /// # Examples
     ///
     /// ```no_run
-    /// use foundation_core::valtron::Ctx;
+    /// use foundation_context::Ctx;
     /// use foundation_repl::Repl;
     ///
     /// let repl = Repl::new(Ctx::host());

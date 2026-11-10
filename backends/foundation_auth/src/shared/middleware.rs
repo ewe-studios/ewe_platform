@@ -8,7 +8,7 @@
 //! middleware — provides composable guard functions instead.
 
 use crate::shared::auth_token::AuthToken;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 /// Request context carrying authentication info.
 #[derive(Debug, Clone)]

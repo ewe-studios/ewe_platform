@@ -5,8 +5,9 @@
 use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    Ctx, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt, StreamPendingFuture,
+    Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt, StreamPendingFuture,
     StreamReadyFuture, StreamSpread, TaskIterator, TaskIteratorExt, TaskSpread, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;

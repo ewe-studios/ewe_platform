@@ -1,10 +1,11 @@
 //! Tests for the `TaskIterator` wrappers: `TimeoutTask`, `PollLimitTask`,
 //! `BackoffStrategy` and `AlwaysRetry`.
 
+use foundation_context::Ctx;
 #[cfg(feature = "std")]
 use foundation_core::valtron::TimeoutTask;
 use foundation_core::valtron::{
-    AlwaysRetry, BackoffStrategy, Ctx, PollLimitTask, RetryDecider, TaskIterator, TaskStatus,
+    AlwaysRetry, BackoffStrategy, PollLimitTask, RetryDecider, TaskIterator, TaskStatus,
 };
 use std::time::Duration;
 

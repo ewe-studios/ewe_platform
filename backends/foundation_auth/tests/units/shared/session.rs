@@ -8,7 +8,8 @@ use foundation_auth::shared::session::{
     KeyRing, Session, SessionConfig, SessionManager, SigningKey, TokenSigner,
 };
 use foundation_auth::CredentialStore;
-use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::valtron_test;
 use std::sync::Arc;
 
 fn test_clock() -> Ctx {

@@ -2,7 +2,7 @@
 
 #![cfg(feature = "vms")]
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_deployment_platform::state::{VmState, from_qemu, is_process_alive, state_dir};
 use std::sync::Arc;
 

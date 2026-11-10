@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_context::{Clock, Ctx};
 use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 
 /// A pool of SSH sessions, keyed by (hostname, port, user).

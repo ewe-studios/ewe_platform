@@ -244,7 +244,8 @@ fn idle_pump_is_a_noop() {
 #[cfg(feature = "valtron")]
 #[test]
 fn valtron_stream_and_driver_integration() {
-    use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+    use foundation_context::Ctx;
+    use foundation_core::valtron::{TaskIterator, TaskStatus};
     use foundation_signals::HubDriver;
 
     let (_runtime, ctx, hub) = setup();

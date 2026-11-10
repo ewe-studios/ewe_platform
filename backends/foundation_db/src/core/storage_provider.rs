@@ -8,7 +8,7 @@
 //! entry point awaits them with valtron's `block_on_future` / `.block()`
 //! behind `blocking_boundary!`.
 
-use foundation_core::valtron::Clock;
+use foundation_context::Ctx;
 use futures_lite::StreamExt;
 use serde::{de::DeserializeOwned, Serialize};
 use std::pin::Pin;
@@ -537,7 +537,7 @@ pub trait BlobStore: Send + Sync {
 ///
 /// A window lasts `window_seconds`, which the caller takes from its own
 /// configuration and passes to both `check_rate_limit` and
-/// `record_rate_limit`. The window's time comes from the `clock` the caller
+/// `record_rate_limit`. The window's time comes from the `Ctx` clock that the caller
 /// passes in, never from a global clock. Once a key's window has elapsed
 /// (`now - window_start >= window_seconds`) a check allows it again and the
 /// next record starts a new window; inside the window, a record increments
@@ -548,7 +548,7 @@ pub trait RateLimiterStore: Send + Sync {
     /// has had fewer than `max_count` hits in the current one.
     async fn check_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
@@ -558,7 +558,7 @@ pub trait RateLimiterStore: Send + Sync {
     /// (1 when this hit starts a new window).
     async fn record_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> StorageResult<u32>;

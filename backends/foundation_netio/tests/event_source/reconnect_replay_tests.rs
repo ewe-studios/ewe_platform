@@ -7,7 +7,9 @@
 //! WHAT: the reconnecting task yields `Event::Reconnect` when the new connection
 //! starts, before any replayed event, so a consumer can discard what it holds.
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::event_source::Event;
 use foundation_netio::shared::client::StaticSocketAddr;

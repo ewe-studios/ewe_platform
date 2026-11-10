@@ -26,7 +26,7 @@ fn main() {
     let (sender, mut receiver) = ipc::join::<TimedMessage, TimedMessage>(
         opts,
         Some(Duration::from_secs(5)),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .expect("join failed");
 

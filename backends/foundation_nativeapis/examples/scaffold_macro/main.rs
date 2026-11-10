@@ -11,7 +11,7 @@ struct LoggingFs {
 impl LoggingFs {
     fn new(label: &str) -> Self {
         Self {
-            inner: MemoryFs::new(foundation_core::valtron::Ctx::host()),
+            inner: MemoryFs::new(foundation_context::Ctx::host()),
             label: label.to_string(),
         }
     }

@@ -60,7 +60,7 @@ use std::time::{Duration as StdDuration, UNIX_EPOCH};
 
 use derive_more::Display;
 use foundation_compact::rng::{ChaCha8Rng, Rng as CompactRng};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use wasmtime::{Engine, Instance, Linker, Memory, Module, Store};
 use wasmtime_wasi::preview1::{self, WasiP1Ctx};

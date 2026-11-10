@@ -19,9 +19,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{
-    self, valtron_test, Ctx, Pipe, PipeReceiver, PipeSender, Stream, TaskIterator, TaskStatus,
+    self, valtron_test, Pipe, PipeReceiver, PipeSender, Stream, TaskIterator, TaskStatus,
 };
 use foundation_netio::http::{ConnectionPool, HttpConnectionPool, HttpExchangeTask};
 use foundation_netio::shared::client::request_task::{HttpExchange, HttpExchangePending};

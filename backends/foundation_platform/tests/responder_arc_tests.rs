@@ -33,8 +33,8 @@ impl RouteResponder for FixedResponder {
 fn session() -> Arc<PlatformSession> {
     PlatformSession::new_test(
         PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
 }

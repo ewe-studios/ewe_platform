@@ -33,7 +33,7 @@ fn concurrent_backend_saves_keep_every_update() {
     let store = Arc::new(ProxyStateStore::new(
         &dir,
         "test.example",
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     ));
 
     let mut threads = Vec::new();

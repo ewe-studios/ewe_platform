@@ -34,7 +34,7 @@
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use std::path::PathBuf;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use foundation_errstacks::ErrorTrace;
 

@@ -20,7 +20,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, MonotonicClock, SimulatedClock};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::SimulatedClock;
 use foundation_platform::*;
 use foundation_wasmtime::WasmtimeBuilder;
 use tauri::http::{header, StatusCode};
@@ -48,8 +49,8 @@ const NO_HANDLER_MODULE: &str = r#"
 fn session() -> Arc<PlatformSession> {
     PlatformSession::new_test(
         PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
 }

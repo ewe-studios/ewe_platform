@@ -6,7 +6,7 @@
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use indicatif::ProgressBar;
 
 use crate::config::{GuestOs, Result, TestbedError, VmProfile};

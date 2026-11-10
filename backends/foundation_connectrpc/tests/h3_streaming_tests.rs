@@ -25,7 +25,8 @@ use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::valtron::{valtron_test, Ctx as VCtx, Stream as VStream, TaskIterator};
+use foundation_context::Ctx as VCtx;
+use foundation_core::valtron::{valtron_test, Stream as VStream, TaskIterator};
 use foundation_http::native::serve::H3Serve;
 use foundation_http::native::server::serve_h3;
 use foundation_http::shared::app::HttpApp;
@@ -202,8 +203,15 @@ impl Harness {
         let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
         let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
         let addr = sq.local_addr().expect("addr");
-        let (mut cq, client_conn) =
-            QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        let (mut cq, client_conn) = QuicDriver::connect(
+            addr,
+            client_cfg,
+            "localhost",
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("connect");
         let dl = Instant::now() + BUDGET;
         let server_conn = loop {
             if let Some(c) = QuicDriver::take_accepted(&sq) {
@@ -234,7 +242,7 @@ impl Harness {
         let inbound = wire(&mut sq, &mut cq, || server_h3.poll_accept());
         let call: DispatchFuture = Box::pin(dispatch_h3(
             Arc::new(router.into_handler()),
-            foundation_core::valtron::Ctx::host(),
+            foundation_context::Ctx::host(),
             Arc::new(ConnectionContext::default()),
             inbound,
         ));
@@ -786,8 +794,15 @@ fn start_h3_server(seen: &Arc<Seen>) -> (std::net::SocketAddr, Arc<ShutdownSigna
 
 fn h3_client(addr: std::net::SocketAddr, procedure: &str) -> Client<Msg, Msg> {
     let cfg = client_config_trusting_pem(CA_PEM).expect("client config");
-    let transport: Arc<dyn Transport> =
-        Arc::new(H3Transport::new(cfg).with_server_name("localhost"));
+    let transport: Arc<dyn Transport> = Arc::new(
+        H3Transport::new(
+            cfg,
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .with_server_name("localhost"),
+    );
     Client::new(
         transport,
         &format!("https://{addr}{procedure}"),

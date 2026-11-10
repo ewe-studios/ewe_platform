@@ -19,7 +19,9 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator};
+
+use foundation_context::Ctx;
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -67,7 +69,7 @@ fn quic_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection) {
     let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = server.local_addr().expect("addr");
     let (mut client, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     let server_conn =
         drive_until(&mut server, &mut client, QuicDriver::take_accepted).expect("server accepted");
@@ -383,4 +385,10 @@ fn a_trailing_headers_frame_is_surfaced_as_trailers() {
             .any(|(n, v)| &n[..] == b"grpc-status" && &v[..] == b"0"),
         "gRPC's status lives in the trailers: {trailers:?}"
     );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

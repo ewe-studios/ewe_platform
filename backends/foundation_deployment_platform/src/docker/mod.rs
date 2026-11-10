@@ -44,7 +44,7 @@ pub use wait_for::{WaitFor, wait_for_port, wait_for_port_at, wait_for_stdout};
 /// # Errors
 /// Returns [`DockerError::MissingClock`] when no valtron multi pool is
 /// initialized.
-pub fn pool_ctx() -> DockerResult<foundation_core::valtron::Ctx> {
+pub fn pool_ctx() -> DockerResult<foundation_context::Ctx> {
     if !foundation_core::valtron::multi::is_pool_initialized() {
         return Err(docker_err(DockerError::MissingClock));
     }

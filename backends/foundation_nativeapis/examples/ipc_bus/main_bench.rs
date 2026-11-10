@@ -23,7 +23,7 @@ fn main() {
     let (sender, mut receiver) = ipc::join::<BytesMessage, BytesMessage>(
         opts,
         Some(Duration::from_secs(5)),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .expect("join");
 

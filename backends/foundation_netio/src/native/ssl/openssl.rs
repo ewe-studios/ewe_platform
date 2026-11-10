@@ -493,9 +493,10 @@ impl OpenSslConnector {
 
     pub fn client_tls_from_endpoint(
         endpoint: &Endpoint<Arc<openssl::ssl::SslConnector>>,
+        ctx: &Ctx,
     ) -> Result<(SplitOpenSslStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let connector = Self::create(endpoint);
-        connector.from_endpoint(endpoint)
+        connector.from_endpoint(endpoint, ctx)
     }
 
     /// Wrap a plain connection and start the TLS handshake.
@@ -576,9 +577,10 @@ impl OpenSslConnector {
         sni: String,
         plain: Connection,
         timeout: Option<std::time::Duration>,
+        ctx: &Ctx,
     ) -> Result<(SplitOpenSslStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let (stream, addr) = self.from_tcp_stream(sni, plain)?;
-        finish_handshake(&stream, timeout)
+        finish_handshake(&stream, timeout, ctx)
             .map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)?;
         stream.set_nonblocking(false)?;
         Ok((stream, addr))
@@ -595,13 +597,14 @@ impl OpenSslConnector {
     pub fn from_endpoint(
         &self,
         endpoint: &Endpoint<Arc<openssl::ssl::SslConnector>>,
+        ctx: &Ctx,
     ) -> Result<(SplitOpenSslStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
         let timeout = super::endpoint_timeout(endpoint);
 
-        let plain_stream = super::connect_plain(host_socket_addr, timeout)?;
-        self.from_tcp_stream_complete(host, Connection::Tcp(plain_stream), timeout)
+        let plain_stream = super::connect_plain(host_socket_addr, timeout, ctx)?;
+        self.from_tcp_stream_complete(host, Connection::Tcp(plain_stream), timeout, ctx)
     }
 }
 
@@ -614,11 +617,13 @@ const DEFAULT_WANT: crate::native::readiness::IoInterest =
 fn finish_handshake(
     stream: &SplitOpenSslStream,
     timeout: Option<std::time::Duration>,
+    ctx: &Ctx,
 ) -> std::io::Result<()> {
     crate::native::readiness::complete_handshake_blocking(
         || stream.drive_handshake(),
         || stream.handshake_poll_target(),
         timeout,
+        ctx,
     )
 }
 
@@ -628,6 +633,7 @@ fn finish_handshake(
 fn finish_handshake(
     stream: &SplitOpenSslStream,
     _timeout: Option<std::time::Duration>,
+    _ctx: &Ctx,
 ) -> std::io::Result<()> {
     stream.set_nonblocking(false)?;
     stream.drive_handshake()

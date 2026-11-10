@@ -2,7 +2,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use libsql::Connection;
 
 use crate::shared::vfs::async_traits::{AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile};

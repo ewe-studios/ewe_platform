@@ -30,7 +30,7 @@ pub use task::SignalTask;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 use std::sync::atomic::AtomicU32;

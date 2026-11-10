@@ -21,6 +21,7 @@ path = "tests/config/mod.rs"
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 tracing = { workspace = true }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls.

@@ -7,9 +7,11 @@
 //! 4. Combinators work correctly with boxed and mutex-wrapped iterators
 
 use foundation_core::valtron::{
-    Ctx, ShortCircuit, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskShortCircuit,
+    ShortCircuit, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskShortCircuit,
     TaskStatus,
 };
+
+use foundation_context::Ctx;
 use std::sync::{Arc, Mutex};
 
 // ============================================================================

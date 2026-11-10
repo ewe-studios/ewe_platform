@@ -1,5 +1,5 @@
+use foundation_context::Ctx;
 use foundation_core::type_uuid::TypeUuid;
-use foundation_core::valtron::Ctx;
 /// macOS IPC transport — Mach ports with mach_msg, kqueue IO multiplexing.
 ///
 /// Uses mach ports for communication and bootstrap_register/bootstrap_look_up for bus discovery.

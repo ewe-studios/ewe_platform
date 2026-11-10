@@ -1,4 +1,5 @@
 use core::time;
+use foundation_context::Ctx;
 use foundation_nostd::comp::basic::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
@@ -41,15 +42,12 @@ pub struct ReconnectingStream {
     connection_timeout: time::Duration,
     decider: Box<dyn CReconnectionDecider>,
     /// The clock that measures the reconnect backoff.
-    clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
+    ctx: Ctx,
 }
 
 impl ReconnectingStream {
     #[must_use]
-    pub fn from_endpoint(
-        endpoint: ClientEndpoint,
-        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
-    ) -> Self {
+    pub fn from_endpoint(endpoint: ClientEndpoint, ctx: Ctx) -> Self {
         static CONNECTION_TIMEOUT: time::Duration = time::Duration::from_millis(600);
 
         Self::new(
@@ -57,7 +55,7 @@ impl ReconnectingStream {
             endpoint,
             CONNECTION_TIMEOUT,
             ExponentialBackoffDecider::default(),
-            clock,
+            ctx,
         )
     }
 
@@ -65,14 +63,14 @@ impl ReconnectingStream {
     pub fn with_connection_timeout(
         endpoint: ClientEndpoint,
         connection_timeout: time::Duration,
-        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self::new(
             DEFAULT_MAX_RETRIES,
             endpoint,
             connection_timeout,
             ExponentialBackoffDecider::default(),
-            clock,
+            ctx,
         )
     }
 
@@ -82,14 +80,14 @@ impl ReconnectingStream {
         connection_timeout: time::Duration,
         min_duration: time::Duration,
         max_duration: impl Into<Option<time::Duration>>,
-        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self::new(
             max_retries,
             endpoint,
             connection_timeout,
             ExponentialBackoffDecider::from_duration(min_duration, max_duration),
-            clock,
+            ctx,
         )
     }
 
@@ -98,14 +96,14 @@ impl ReconnectingStream {
         endpoint: ClientEndpoint,
         connection_timeout: time::Duration,
         decider: impl RetryDecider + Clone + 'static,
-        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             max_retries,
             connection_timeout,
             decider: Box::new(decider),
             state: Arc::new(Mutex::new(ConnectionState::Todo(endpoint))),
-            clock,
+            ctx,
         }
     }
 }
@@ -117,7 +115,7 @@ impl Clone for ReconnectingStream {
             max_retries: self.max_retries,
             decider: self.decider.clone_box(),
             connection_timeout: self.connection_timeout,
-            clock: self.clock.clone(),
+            ctx: self.ctx.clone(),
         }
     }
 }
@@ -190,7 +188,7 @@ impl Iterator for ReconnectingStream {
                     wait: None,
                 });
 
-                match RawStream::from_endpoint(endpoint) {
+                match RawStream::from_endpoint(endpoint, &self.ctx) {
                     Ok(connected_stream) => {
                         *current_state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(Box::new(connected_stream))))
@@ -199,11 +197,8 @@ impl Iterator for ReconnectingStream {
                         if let Some(rstate) = reconnection_state_option {
                             let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
-                            let sleeper = SleepIterator::until(
-                                duration,
-                                endpoint.clone(),
-                                self.clock.clone(),
-                            );
+                            let sleeper =
+                                SleepIterator::until(duration, endpoint.clone(), self.ctx.clone());
                             *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         } else {
@@ -218,7 +213,7 @@ impl Iterator for ReconnectingStream {
                 // means reconnection is required.
                 let reconnection_state_option = self.decider.decide(last_state.clone());
 
-                match RawStream::from_endpoint(endpoint) {
+                match RawStream::from_endpoint(endpoint, &self.ctx) {
                     Ok(connected_stream) => {
                         *current_state = ConnectionState::Established(endpoint.clone());
                         Some(Ok(ReconnectionStatus::Ready(Box::new(connected_stream))))
@@ -227,11 +222,8 @@ impl Iterator for ReconnectingStream {
                         if let Some(rstate) = reconnection_state_option {
                             let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
-                            let sleeper = SleepIterator::until(
-                                duration,
-                                endpoint.clone(),
-                                self.clock.clone(),
-                            );
+                            let sleeper =
+                                SleepIterator::until(duration, endpoint.clone(), self.ctx.clone());
                             *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         } else {
@@ -257,7 +249,7 @@ impl Iterator for ReconnectingStream {
                     };
 
                     let sleeper =
-                        SleepIterator::until(duration, endpoint.clone(), self.clock.clone());
+                        SleepIterator::until(duration, endpoint.clone(), self.ctx.clone());
                     *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                     Some(Ok(ReconnectionStatus::Waiting(duration)))
                 } else {

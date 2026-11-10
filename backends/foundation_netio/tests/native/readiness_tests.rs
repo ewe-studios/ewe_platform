@@ -8,14 +8,16 @@ use std::os::unix::net::UnixStream;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, EventReadiness, EventReadinessPtr, MonotonicClock};
+use foundation_core::valtron::{EventReadiness, EventReadinessPtr};
+
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_netio::native::readiness::{
     io_or_deadline, DeadlineReadiness, IoInterest, SocketReadiness,
 };
 
 /// A real clock: these signals only test monotonic ordering.
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]

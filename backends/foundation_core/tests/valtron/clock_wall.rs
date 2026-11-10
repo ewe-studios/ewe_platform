@@ -17,7 +17,9 @@ use foundation_compact::Duration;
 use std::sync::{Arc, LazyLock};
 
 #[cfg(feature = "test-clock")]
-use foundation_core::valtron::{fork_ctx, valtron_test, Clock, Ctx, SimulatedClock};
+use foundation_context::{Clock, Ctx};
+#[cfg(feature = "test-clock")]
+use foundation_core::valtron::{fork_ctx, valtron_test, SimulatedClock};
 
 /// The wall clock for the engine test: five seconds after the UNIX epoch.
 #[cfg(feature = "test-clock")]

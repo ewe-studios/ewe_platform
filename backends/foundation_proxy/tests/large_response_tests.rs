@@ -156,7 +156,7 @@ fn proxy_large_response_is_byte_exact() {
         ProxyConfig::new("app.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(service),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .block()
     .expect("start proxy");

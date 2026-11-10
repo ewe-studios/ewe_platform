@@ -13,10 +13,9 @@
 
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{
-    execute, task, valtron, Ctx, StreamExt, StreamIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{execute, task, valtron, StreamExt, StreamIteratorExt, TaskStatus};
 
 /// An enum state: the light currently showing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

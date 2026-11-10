@@ -201,7 +201,7 @@ fn conn_io_fallback_polls_instead_of_unsupported() {
         .expect("request");
 
     let serve = echo_serve();
-    let result = serve.serve(foundation_core::valtron::Ctx::host(), request, conn);
+    let result = serve.serve(foundation_context::Ctx::host(), request, conn);
     let result = match result.split() {
         Ok(fut) => futures::executor::block_on(fut),
         Err(outcome) => outcome,

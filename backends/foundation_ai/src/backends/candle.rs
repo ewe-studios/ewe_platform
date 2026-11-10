@@ -15,7 +15,8 @@ use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::llama as candle_llama;
 use tokenizers::Tokenizer;
 
-use foundation_core::valtron::{Ctx, Stream};
+use foundation_context::Ctx;
+use foundation_core::valtron::Stream;
 
 use crate::backends::backend_utils::flatten_tools;
 use crate::costing::CostAccumulator;

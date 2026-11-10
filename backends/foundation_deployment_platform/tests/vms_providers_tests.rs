@@ -32,9 +32,9 @@ fn test_vm_handle_pid_parsing() {
 
 #[test]
 fn test_qemu_provider_creation() {
-    use foundation_core::valtron::MonotonicClock;
+    use foundation_context::MonotonicClock;
     use foundation_deployment_platform::providers::qemu::QemuProvider;
-    let provider = QemuProvider::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+    let provider = QemuProvider::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
         MonotonicClock::new(),
     )));
     assert_eq!(provider.name(), "qemu");
@@ -43,10 +43,10 @@ fn test_qemu_provider_creation() {
 
 #[test]
 fn test_qemu_provider_host_health() {
-    use foundation_core::valtron::MonotonicClock;
+    use foundation_context::MonotonicClock;
     use foundation_deployment_platform::providers::Provider;
     use foundation_deployment_platform::providers::qemu::QemuProvider;
-    let provider = QemuProvider::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+    let provider = QemuProvider::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
         MonotonicClock::new(),
     )));
     let health = provider.host_health();
@@ -115,8 +115,8 @@ fn test_save_from_runtime_creates_valid_state() {
         "test-uuid",
         2222,
         false,
-        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .expect("saving UTM runtime state must succeed");

@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use super::MemoryRegion;
 

@@ -9,7 +9,7 @@ pub(crate) use encoded_message::EncodedMessage;
 pub(crate) use fd::{Fd, Local, Remote};
 pub(crate) use io_mul::IoMultiplexing;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::ipc::{
     util::Align4, util::EndpointID, version::version, Error, Label, LabelOp, MemoryRegion, Message,

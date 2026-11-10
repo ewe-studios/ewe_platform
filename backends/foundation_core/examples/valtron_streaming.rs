@@ -17,10 +17,9 @@
 //! terminal, the chunks stream out one at a time until the machine returns
 //! `None` (body fully delivered).
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{
-    execute, task, valtron, Ctx, StreamExt, StreamIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{execute, task, valtron, StreamExt, StreamIteratorExt, TaskStatus};
 
 /// A response body split into chunks, streamed out one at a time.
 #[derive(Debug, Clone)]

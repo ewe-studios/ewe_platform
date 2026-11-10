@@ -18,7 +18,9 @@
 //! HOW: Delegates to [`WebSocketClient::connect_with_config`] for the client
 //! and [`WebSocketClient::connect_parts`] for the task path.
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskSpread, TaskStatus};
+
+use foundation_context::Ctx;
 
 use crate::http::NativeHttpClient;
 use crate::shared::client::DnsResolver;

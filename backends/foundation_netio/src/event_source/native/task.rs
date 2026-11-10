@@ -27,9 +27,10 @@ use crate::shared::http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
@@ -434,10 +435,7 @@ where
                 debug!(state = "Connecting", host = %url.host_str().unwrap_or_else(|| "unknown".to_string()), "Establishing connection via pool");
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) =
-                    self.pool
-                        .create_http_connection(&url, None, ctx.clock().as_ref())
-                else {
+                let Ok(connection) = self.pool.create_http_connection(&url, None, &ctx) else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(EventSourceState::Closed(
                         EventSourceCloseReason::ConnectionError,

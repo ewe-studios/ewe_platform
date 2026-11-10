@@ -10,7 +10,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_wireguard::native::relay::{HolePuncher, RelayClient, RelayServer};
 use foundation_wireguard::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord};
 use foundation_wireguard::shared::relay::{

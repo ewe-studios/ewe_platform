@@ -84,7 +84,7 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
     let cred_storage = CredentialStorage::new(provider);
 
     // The worker entry point builds the host context once.
-    let ctx = foundation_core::valtron::Ctx::try_host()
+    let ctx = foundation_context::Ctx::try_host()
         .map_err(|e| format!("host context failed: {e:?}"))?;
     let session_mgr = SessionManager::new(cred_storage, Default::default(), SIGNING_KEY, ctx)
         .map_err(|e| format!("session manager init failed: {e:?}"))?;

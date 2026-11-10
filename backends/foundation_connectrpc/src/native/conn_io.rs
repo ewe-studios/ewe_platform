@@ -128,7 +128,7 @@ impl ConnIo {
         self: &Arc<Self>,
         interest: IoInterest,
         timeout: Duration,
-        ctx: &foundation_core::valtron::Ctx,
+        ctx: &foundation_context::Ctx,
     ) -> IoReady {
         IoReady::new(Arc::clone(self), interest, timeout, ctx)
     }
@@ -334,7 +334,7 @@ impl IoReady {
         io: Arc<ConnIo>,
         interest: IoInterest,
         timeout: Duration,
-        ctx: &foundation_core::valtron::Ctx,
+        ctx: &foundation_context::Ctx,
     ) -> Self {
         let deadline = ctx.clock().now() + timeout;
         Self {

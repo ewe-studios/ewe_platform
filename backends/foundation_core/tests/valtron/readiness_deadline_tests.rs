@@ -26,9 +26,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    execute, valtron_test, AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker,
+    execute, valtron_test, AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker,
     ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// Ready once its instant has passed. Nothing else signals it, so it needs no

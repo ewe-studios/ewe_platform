@@ -16,7 +16,7 @@ use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::shared::error::WgResult;
 use crate::shared::membership::PeerId;

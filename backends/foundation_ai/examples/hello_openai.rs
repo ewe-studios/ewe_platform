@@ -9,7 +9,8 @@
 use foundation_ai::agentic::Answer;
 use foundation_ai::harness::RouterPreset;
 
-use foundation_core::valtron::{valtron, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

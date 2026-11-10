@@ -45,7 +45,7 @@
 //! let agent = AgentSession::builder(preset).build()?;
 //! ```
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 
 use crate::agentic::AgenticError;

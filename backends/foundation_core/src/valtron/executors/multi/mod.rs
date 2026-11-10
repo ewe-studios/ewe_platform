@@ -15,12 +15,14 @@ use std::{
     time::{self},
 };
 
-use crate::valtron::{Ctx, Stream};
+use crate::valtron::Stream;
+
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use foundation_compact::rng::ChaCha8Rng;
 use foundation_compact::rng::Rng;
 use foundation_compact::rng::SeedableRng;
+use foundation_context::Ctx;
 use std::str::FromStr;
 
 use crate::{
@@ -741,18 +743,18 @@ impl PoolGuard {
         // One absolute deadline covers both phases, measured from this call's
         // start. Before issue #340, each phase received the full `timeout`, so
         // one call could take about twice the budget.
-        let clock = self.registry.clock();
-        let deadline = clock.now() + timeout;
+        let ctx = self.registry.fork_ctx();
+        let deadline = ctx.clock().now() + timeout;
         if let Some(ref bg) = self.bg_registry {
             // Bound the background registry by the caller's deadline as well as
             // the registry's own configured timeout (issue #233). Without the
             // `min`, a stuck background job would hold the lifecycle gate for
             // the configured 30 s default, long past this call's bound.
-            let bg_deadline = deadline.min(clock.now() + bg.shutdown_timeout());
+            let bg_deadline = deadline.min(ctx.clock().now() + bg.shutdown_timeout());
             if let ShutdownOutcome::TimedOut {
                 abandoned_jobs,
                 busy_workers,
-            } = bg.shutdown_until(&*clock, bg_deadline)
+            } = bg.shutdown_until(&ctx, bg_deadline)
             {
                 tracing::warn!(
                     abandoned_jobs,
@@ -763,7 +765,7 @@ impl PoolGuard {
         }
         // Give the task worker registry only what is left of the one deadline.
         // A zero budget detaches busy workers at once, which is intended.
-        let remaining = deadline.saturating_duration_since(clock.now());
+        let remaining = deadline.saturating_duration_since(ctx.clock().now());
         let stopped = self.registry.shutdown_within(remaining);
         self.clear_owned_globals();
         stopped
@@ -1845,8 +1847,9 @@ impl ThreadRegistry {
     }
 
     /// The clock of the pool's stable root, seeded by the host or the test.
+    /// Kept: executor root plumbing; it returns the clock of the root `Ctx`.
     #[must_use]
-    pub fn clock(&self) -> Arc<dyn crate::valtron::Clock> {
+    pub fn clock(&self) -> Arc<dyn foundation_context::Clock> {
         self.root.clock()
     }
 
@@ -1921,8 +1924,8 @@ impl ThreadRegistry {
         self.stop_activity_monitor();
         self.interrupt_all_yielders();
         self.latch.signal_all();
-        let clock = self.clock();
-        let stopped = self.waitgroup.wait_timeout(timeout, &*clock);
+        let ctx = self.fork_ctx();
+        let stopped = self.waitgroup.wait_timeout(timeout, &ctx);
         if stopped {
             self.join_all_threads();
         } else {
@@ -2103,11 +2106,8 @@ impl ThreadRegistry {
             self.latch.signal_all();
         }
 
-        let clock = self.root.clock();
-        let thread_activity = match self
-            .activity_receiver
-            .recv_timeout(self.op_read_time, &*clock)
-        {
+        let ctx = self.root.fork();
+        let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time, &ctx) {
             Ok(activity) => activity,
             Err(err) => match err {
                 mpp::ReceiverError::Empty | mpp::ReceiverError::Timeout => return Some(false),

@@ -465,6 +465,7 @@ async fn exchange(
         ForwardError::before_response(format!("send upstream request to {url}: {e}"))
     })?;
 
+    let call_ctx = response.ctx().cloned();
     let (status, headers, body, pool, upstream_conn) = response.into_parts();
     // `send_async` hands the response socket back in blocking mode, but this leg
     // streams the body asynchronously. Keep the socket non-blocking so the body
@@ -499,9 +500,9 @@ async fn exchange(
     // is still alive (streaming requests). For non-streaming requests the
     // upstream was told to close, so dropping `upstream_conn` closes the socket.
     if reuse {
-        if let (Some(pool), Some(mut stream)) = (pool, upstream_conn) {
+        if let (Some(pool), Some(mut stream), Some(call_ctx)) = (pool, upstream_conn, call_ctx) {
             stream.drain_stream();
-            pool.return_to_pool(stream);
+            pool.return_to_pool(stream, &call_ctx);
         }
     }
     Ok(())

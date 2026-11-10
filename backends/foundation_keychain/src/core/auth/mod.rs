@@ -10,7 +10,7 @@
 //! token response adapter builds the full `LoginResponse`.
 
 use foundation_compact::time;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 

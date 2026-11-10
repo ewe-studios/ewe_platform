@@ -167,7 +167,8 @@ impl ProjectBuilderTask {
 
 // -- TaskIterator impl
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 
 impl TaskIterator for ProjectBuilderTask {
     type Ready = BuildResult;

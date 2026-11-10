@@ -10,7 +10,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_wireguard::native::WgNode;
 use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 

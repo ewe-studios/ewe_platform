@@ -39,8 +39,8 @@ fn test_vfs_metadata_roundtrip() {
         1,
         42,
         0o644,
-        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     let batch = meta.to_arrow().expect("to_arrow failed");

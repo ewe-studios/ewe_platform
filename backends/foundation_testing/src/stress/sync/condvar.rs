@@ -1,7 +1,7 @@
 //! `CondVar` stress tests.
 
 use crate::stress::{StressConfig, StressHarness, StressResult};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_nostd::primitives::{CondVar, CondVarMutex};
 use std::sync::Arc;
 use std::time::Duration;
@@ -17,7 +17,7 @@ use std::time::Duration;
 /// # Examples
 ///
 /// ```
-/// use foundation_core::valtron::Ctx;
+/// use foundation_context::Ctx;
 /// use foundation_testing::stress::{StressConfig, sync::run_condvar_stress_test};
 ///
 /// let config = StressConfig::new().threads(10).iterations(100);
@@ -68,7 +68,7 @@ pub fn run_condvar_stress_test(config: StressConfig, ctx: Ctx) -> StressResult {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::valtron::Ctx;
+/// use foundation_context::Ctx;
 /// use foundation_testing::stress::{StressConfig, sync::run_condvar_producer_consumer_stress};
 ///
 /// let config = StressConfig::new().threads(8).iterations(500);

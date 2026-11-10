@@ -22,10 +22,11 @@ use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{
-    drive_receiver, inlined_task, Ctx, DrivenRecvIterator, InlineAction, TaskIterator, TaskStatus,
+    drive_receiver, inlined_task, DrivenRecvIterator, InlineAction, TaskIterator, TaskStatus,
 };
 use std::io::Write;
 use std::sync::Arc;

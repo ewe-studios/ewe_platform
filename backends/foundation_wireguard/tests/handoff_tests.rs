@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_wireguard::native::{WgConfig, WgNode};
 use foundation_wireguard::{IdentityKeypair, WgSeed};
 use tracing_test::traced_test;

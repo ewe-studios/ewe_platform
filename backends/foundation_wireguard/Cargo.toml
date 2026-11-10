@@ -13,6 +13,8 @@ keywords = ["wireguard", "mesh", "userspace", "boringtun", "smoltcp"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
+# The shared context (Ctx, Clock) on every target.
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 # Seed -> key derivation (decision 03: HKDF-BLAKE2s).
 hkdf = "0.12"
 blake2 = "0.10"

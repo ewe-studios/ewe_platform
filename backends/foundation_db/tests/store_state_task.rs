@@ -1,6 +1,8 @@
 //! Integration tests for `StoreStateTask` and `StoreStateIdentifierTask`.
 
-use foundation_core::valtron::{valtron_test, Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{valtron_test, TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_db::core::state::file::FileStateStore;
 use foundation_db::core::state::resource_identifier::ResourceIdentifier;
 use foundation_db::core::state::store_state_task::{StoreStateIdentifierTask, StoreStateTask};

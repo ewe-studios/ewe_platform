@@ -119,7 +119,7 @@ fn start_proxy(backend: &str) -> ProxyServer {
         ProxyConfig::new("tunnel.local", "127.0.0.1")
             .bind("127.0.0.1:0")
             .service(ServiceConfig::new("t", "t.local").backend(backend)),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .block()
     .expect("start proxy")

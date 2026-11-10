@@ -14,9 +14,10 @@ use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
 use crate::shared::http::SimpleHeaders;
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{
-    execute, Ctx, DrivenStreamIterator, Stream, StreamSpread, TaskIterator, TaskSpread, TaskStatus,
+    execute, DrivenStreamIterator, Stream, StreamSpread, TaskIterator, TaskSpread, TaskStatus,
 };
 use std::sync::Arc;
 use std::time::Duration;
@@ -63,11 +64,8 @@ impl WebSocketConnection {
     /// WHY: After successful handshake, user needs a connection object.
     /// WHAT: Wraps the stream for frame-based communication.
     #[must_use]
-    pub fn new(
-        stream: SharedByteBufferStream<RawStream>,
-        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
-    ) -> Self {
-        let writer = BatchFrameWriter::with_defaults(stream.clone(), clock);
+    pub fn new(stream: SharedByteBufferStream<RawStream>, ctx: Ctx) -> Self {
+        let writer = BatchFrameWriter::with_defaults(stream.clone(), ctx);
         Self {
             stream,
             writer,

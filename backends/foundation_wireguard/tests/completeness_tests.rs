@@ -5,7 +5,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_wireguard::native::WgNode;
 use foundation_wireguard::{wireguard, NetworkId, SeedBits, WgConfig, WgSeed};
 use tracing_test::traced_test;

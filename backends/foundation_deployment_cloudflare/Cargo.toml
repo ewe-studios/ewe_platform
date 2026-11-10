@@ -19,8 +19,13 @@ workspace = true
 path = "../foundation_core"
 version = "0.0.20"
 
+[target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_context]
+path = "../foundation_context"
+version = "0.0.2"
+
 # foundation_deployment is only used by the REST API (generated code + client.rs)
 # — not by the workers module. Gate to native to avoid pulling netio/multi on wasm.
+
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_deployment]
 path = "../foundation_deployment"
 version = "0.0.5"

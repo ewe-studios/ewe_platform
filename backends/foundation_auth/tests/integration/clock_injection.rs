@@ -20,7 +20,8 @@ use foundation_auth::shared::jwt::{JwtManager, JwtToken};
 use foundation_auth::shared::session::Session;
 use foundation_auth::shared::types::ConfidentialText;
 use foundation_compact::time::unix_seconds;
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 
 #[test]
 fn token_and_session_expiry_follow_the_injected_clock() {

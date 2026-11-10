@@ -51,8 +51,8 @@ fn make_sync_r2() -> Option<SyncFs<R2Delta>> {
         "test-account",
         &bucket,
         Some(&base),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .ok()?;
@@ -67,8 +67,8 @@ fn test_r2_delta_new_with_credentials() {
         "test-token",
         "test-account",
         "test-bucket",
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     assert!(result.is_ok());
@@ -76,8 +76,8 @@ fn test_r2_delta_new_with_credentials() {
 
 #[test]
 fn test_r2_delta_from_env_no_creds() {
-    let result = R2Delta::from_env(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let result = R2Delta::from_env(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     assert!(result.is_err());
 }
