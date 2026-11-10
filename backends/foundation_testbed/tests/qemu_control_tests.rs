@@ -1,4 +1,5 @@
 //! QEMU monitor control tests (moved from `src/qemu_control.rs`).
+#![cfg(unix)]
 
 use std::path::Path;
 

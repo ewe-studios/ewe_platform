@@ -116,6 +116,7 @@ fn serve_silent() -> SocketAddr {
 
 /// A `Stream` wrapper that counts `poll_next` calls and records the polling
 /// thread's CPU at the first and last poll, and delegates to the body.
+#[cfg(unix)]
 struct CountingBody {
     inner: AsyncSendSafeBody,
     polls: Arc<AtomicUsize>,
@@ -123,6 +124,7 @@ struct CountingBody {
     cpu_last: Arc<AtomicU64>,
 }
 
+#[cfg(unix)]
 impl FuturesStream for CountingBody {
     type Item = Result<Vec<u8>, SendableBoxedError>;
 
@@ -142,6 +144,7 @@ impl FuturesStream for CountingBody {
 
 /// Read a `CountingBody` to the end, returning the bytes, the poll count, and
 /// the polling thread's CPU at the first and last poll.
+#[cfg(unix)]
 async fn collect_counted(
     body: CountingBody,
 ) -> (Vec<u8>, Arc<AtomicUsize>, Arc<AtomicU64>, Arc<AtomicU64>) {
