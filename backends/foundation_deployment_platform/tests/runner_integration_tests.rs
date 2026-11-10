@@ -55,7 +55,9 @@ fn sshd_config() -> ContainerConfig {
 fn run_all_strategies(port: u16) -> Result<(), String> {
     let pool = Arc::new(ConnectionPool::new(
         Duration::from_secs(30),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     ));
     let backend = Ssh2Backend::new(pool);
     let hosts: Vec<Host> = (0..3)
