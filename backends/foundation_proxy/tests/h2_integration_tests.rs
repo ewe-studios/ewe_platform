@@ -494,7 +494,7 @@ fn h2_echo_roundtrip() {
     let (backend_port, _backend) = start_echo_backend();
     let proxy = ProxyServer::start(
         proxy_config(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .block()
     .expect("start proxy");
@@ -522,7 +522,7 @@ fn h2_404_on_unknown_host() {
     let (backend_port, _backend) = start_echo_backend();
     let proxy = ProxyServer::start(
         proxy_config(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .block()
     .expect("start proxy");
@@ -545,7 +545,7 @@ async fn h2_grpc_forward_no_downgrade() {
     let (backend_port, observed, backend_shutdown) = start_h2_backend(false);
     let proxy = ProxyServer::start(
         grpc_proxy_config(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -597,7 +597,7 @@ async fn h2_grpc_trailers_relayed() {
     let (backend_port, _observed, backend_shutdown) = start_h2_backend(true);
     let proxy = ProxyServer::start(
         grpc_proxy_config(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -636,7 +636,7 @@ async fn h2_grpc_streams_without_buffering() {
     let (backend_port, backend_shutdown, release_tx) = start_streaming_backend();
     let proxy = ProxyServer::start(
         grpc_proxy_config(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .await
     .expect("start proxy");

@@ -24,7 +24,6 @@
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::Clock;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingRequest};
 
@@ -44,8 +43,8 @@ use crate::state::ProxyState;
 /// Reverse-proxy handler backed by the shared [`ProxyState`].
 pub struct ProxyHandler {
     state: Arc<ProxyState>,
-    /// The host clock the access log duration is measured on.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock the access log duration is measured on.
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for ProxyHandler {
@@ -67,8 +66,8 @@ impl ServeFactory for ProxyHandler {
         let state = app_ctx
             .get::<ProxyState>()
             .expect("ProxyState must be stored in the Ctx before routing");
-        let clock = state.clock().clone();
-        Self { state, clock }
+        let ctx = state.ctx().clone();
+        Self { state, ctx }
     }
 }
 
@@ -157,8 +156,8 @@ impl Serve for ProxyHandler {
         }
 
         // Access log: method, host, path, status (filled by relay), duration.
-        let log_start = self.clock.now();
-        let log_clock = Arc::clone(&self.clock);
+        let log_start = self.ctx.clock().now();
+        let log_ctx = self.ctx.clone();
         let log_host = host.clone();
         let log_path = path.clone();
         let log_method = method.clone();
@@ -171,7 +170,7 @@ impl Serve for ProxyHandler {
                 path = %log_path,
                 client_ip = %log_ip,
                 user_agent = %log_ua,
-                duration_ms = log_clock.now().duration_since(log_start).as_millis(),
+                duration_ms = log_ctx.clock().now().duration_since(log_start).as_millis(),
                 "access"
             );
         };

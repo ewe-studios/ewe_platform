@@ -21,7 +21,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_proxy::persistence::ProxyStateStore;
 
 /// A counter that makes each test run's temporary directory unique, without a
@@ -66,8 +66,8 @@ fn the_state_lock_timeout_follows_the_injected_clock() {
     let _held = hold_lock(&lock_path(&dir, "clock.example"));
 
     let simulated = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let clock: Arc<dyn Clock> = simulated.clone();
-    let store = ProxyStateStore::new(&dir, "clock.example", clock)
+    let ctx = Ctx::fixed(simulated.clone());
+    let store = ProxyStateStore::new(&dir, "clock.example", ctx)
         .with_lock_timeout(Duration::from_secs(2))
         .with_lock_retry_interval(Duration::from_millis(1));
 
@@ -93,6 +93,40 @@ fn the_state_lock_timeout_follows_the_injected_clock() {
     assert!(
         elapsed < Duration::from_secs(1),
         "the state lock timeout must follow the injected clock, but it waited {elapsed:?}"
+    );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// The store stamps the certificate time from the clock of the `Ctx` it is
+/// given. A simulated wall-clock move shows in the next saved value.
+#[test]
+fn the_stored_cert_time_follows_the_ctx_clock() {
+    let dir = temp_state_dir();
+    let simulated = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let store = ProxyStateStore::new(&dir, "ctx.example", Ctx::fixed(simulated.clone()));
+
+    futures_lite::future::block_on(store.save_tls_cert("cert-pem", "key-pem")).expect("first save");
+    let first = futures_lite::future::block_on(store.load())
+        .expect("load after first save")
+        .and_then(|state| state.cert_renewed_at)
+        .expect("first renewal time");
+
+    simulated.advance_wall(Duration::from_secs(3600));
+    futures_lite::future::block_on(store.save_tls_cert("cert-pem", "key-pem"))
+        .expect("second save");
+    let second = futures_lite::future::block_on(store.load())
+        .expect("load after second save")
+        .and_then(|state| state.cert_renewed_at)
+        .expect("second renewal time");
+
+    assert_eq!(
+        first, 0,
+        "the simulated wall clock starts at the UNIX epoch"
+    );
+    assert_eq!(
+        second, 3600,
+        "the stored time must follow the advanced clock"
     );
 
     let _ = std::fs::remove_dir_all(&dir);

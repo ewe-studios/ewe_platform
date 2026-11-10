@@ -114,10 +114,7 @@ fn parse_response(raw: &[u8]) -> RawResponse {
 fn start_proxy(services: Vec<ServiceConfig>) -> ProxyServer {
     let mut config = ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0");
     config.services = services;
-    block_on_future(config.start(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
-    )))
-    .expect("start proxy")
+    block_on_future(config.start(foundation_core::valtron::Ctx::host())).expect("start proxy")
 }
 
 fn backend_url(handle: &ContainerHandle, container_port: u16) -> String {
@@ -488,7 +485,7 @@ fn test_udp_passthrough_roundtrips_bytes() {
     let passthrough = UdpPassthrough::start(
         "127.0.0.1:0",
         &authority,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .expect("start passthrough");
     let addr = passthrough.local_addr();

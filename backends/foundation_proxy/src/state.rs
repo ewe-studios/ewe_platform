@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_http::native::writer::WriterConfig;
 use foundation_iogate::ServerIo;
 
@@ -47,9 +47,9 @@ pub struct ProxyState {
     /// Response body bytes the H3 relay holds in memory (see
     /// [`BufferedBytesGauge`]).
     h3_body_gauge: BufferedBytesGauge,
-    /// The host clock every proxy timeout and timestamp reads. Set once at
-    /// startup; there is no fallback to the real clock.
-    clock: Arc<dyn Clock>,
+    /// The context every proxy timeout and timestamp reads its clock from. Set
+    /// once at startup; there is no fallback to the real clock.
+    ctx: Ctx,
 }
 
 /// A gauge of body bytes a relay holds in memory at once.
@@ -116,15 +116,15 @@ impl ProxyState {
     /// Build proxy state from a router and pooled client.
     ///
     /// `scheme` is what the front end speaks to clients (`http` in stage 1); it
-    /// becomes the `X-Forwarded-Proto` value sent upstream. `clock` supplies
-    /// every timeout and timestamp the proxy reads.
+    /// becomes the `X-Forwarded-Proto` value sent upstream. `ctx` supplies the
+    /// clock every timeout and timestamp the proxy reads.
     #[must_use]
     pub fn new(
         router: Arc<Router>,
         client: SharedHttpClient,
         scheme: impl Into<String>,
         io_mode: ServerIo,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             router,
@@ -138,14 +138,14 @@ impl ProxyState {
             connect_timeout: Duration::from_secs(60),
             client_read_timeout: Duration::from_secs(60),
             h3_body_gauge: BufferedBytesGauge::default(),
-            clock,
+            ctx,
         }
     }
 
-    /// The host clock every proxy timeout and timestamp reads.
+    /// The context every proxy timeout and timestamp reads its clock from.
     #[must_use]
-    pub fn clock(&self) -> &Arc<dyn Clock> {
-        &self.clock
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 
     /// Set the largest relayed request body in bytes (0 = no limit). Default

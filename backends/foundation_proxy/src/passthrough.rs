@@ -22,7 +22,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{from_future, send, sleep_async, Clock};
+use foundation_core::valtron::{from_future, send, sleep_async, Ctx};
 use foundation_http::native::writer::WriterConfig;
 use foundation_iogate::ServerIo;
 use foundation_netio::shared::client::{DnsResolver, SystemDnsResolver};
@@ -278,7 +278,7 @@ pub struct UdpPassthrough {
 
 impl UdpPassthrough {
     /// Bind `listen_addr` and relay every datagram to `backend_authority`, with
-    /// the default [`PassthroughConfig`]. `clock` times the response wait.
+    /// the default [`PassthroughConfig`]. The clock of `ctx` times the response wait.
     ///
     /// Returns immediately with a handle; the relay runs as a future until
     /// [`UdpPassthrough::shutdown`] (or drop).
@@ -286,16 +286,12 @@ impl UdpPassthrough {
     /// # Errors
     /// Returns the bind error if `listen_addr` cannot be bound, or an error if
     /// the loop cannot be started on the pool.
-    pub fn start(
-        listen_addr: &str,
-        backend_authority: &str,
-        clock: Arc<dyn Clock>,
-    ) -> std::io::Result<Self> {
+    pub fn start(listen_addr: &str, backend_authority: &str, ctx: Ctx) -> std::io::Result<Self> {
         Self::start_with(
             listen_addr,
             backend_authority,
             PassthroughConfig::default(),
-            clock,
+            ctx,
         )
     }
 
@@ -307,7 +303,7 @@ impl UdpPassthrough {
         listen_addr: &str,
         backend_authority: &str,
         config: PassthroughConfig,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> std::io::Result<Self> {
         let socket = UdpSocket::bind(listen_addr)?;
         socket.set_nonblocking(true)?;
@@ -318,7 +314,7 @@ impl UdpPassthrough {
         let (done_tx, done_rx) = std::sync::mpsc::channel();
 
         spawn_loop(
-            relay_udp(socket, backend, Arc::clone(&shutdown), config, clock),
+            relay_udp(socket, backend, Arc::clone(&shutdown), config, ctx),
             done_tx,
         )?;
 
@@ -353,8 +349,9 @@ async fn relay_udp(
     backend_authority: String,
     shutdown: Arc<OnSignal>,
     config: PassthroughConfig,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 ) {
+    let clock = ctx.clock();
     let Some(backend) = resolve_first(&backend_authority).await else {
         tracing::error!(backend_addr = %backend_authority, "UDP relay: cannot resolve backend address");
         return;

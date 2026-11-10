@@ -50,12 +50,9 @@ fn backend_drain_survives_restart() {
 
     // ── Run 1: drain one backend, then shut down. ──
     {
-        let proxy = ProxyServer::start(
-            build_config(),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
-        )
-        .block()
-        .expect("start proxy 1");
+        let proxy = ProxyServer::start(build_config(), foundation_core::valtron::Ctx::host())
+            .block()
+            .expect("start proxy 1");
         std::thread::sleep(Duration::from_millis(200));
 
         let resp = rpc(&sock, r#"{"command":"status"}"#);
@@ -74,12 +71,9 @@ fn backend_drain_survives_restart() {
 
     // ── Run 2: fresh proxy, same state dir — the drain must be restored. ──
     {
-        let proxy = ProxyServer::start(
-            build_config(),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
-        )
-        .block()
-        .expect("start proxy 2");
+        let proxy = ProxyServer::start(build_config(), foundation_core::valtron::Ctx::host())
+            .block()
+            .expect("start proxy 2");
         std::thread::sleep(Duration::from_millis(200));
 
         let resp = rpc(&sock, r#"{"command":"status"}"#);
