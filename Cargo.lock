@@ -5923,6 +5923,7 @@ dependencies = [
  "bytes",
  "concurrent-queue",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",

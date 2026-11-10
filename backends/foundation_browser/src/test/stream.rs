@@ -29,13 +29,11 @@
 //! `Content-Length`, correct now that the response builder no longer auto-adds
 //! `Content-Length: 0` for an absent body.)
 
-use std::sync::Arc;
-
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{self, FutureTask, Pipe, PipeReceiver, PipeSender};
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::upgrade::SseStream;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
@@ -138,9 +136,9 @@ pub struct StreamHandler {
 }
 
 impl ServeFactory for StreamHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         Self {
-            config: bag
+            config: ctx
                 .get::<SseTransportConfig>()
                 .map(|config| *config)
                 .unwrap_or_default(),
@@ -151,7 +149,7 @@ impl ServeFactory for StreamHandler {
 impl Serve for StreamHandler {
     fn serve(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -163,7 +161,7 @@ impl Serve for StreamHandler {
         // driver is a separate valtron task because the broadcaster pushes
         // synchronously (spec 70 feature 82).
         ConnectionResult::Async(Box::pin(async move {
-            let Some(bc) = bag.get::<Broadcaster>() else {
+            let Some(bc) = ctx.get::<Broadcaster>() else {
                 return ServeOutcome::Close(None);
             };
             let sse = match SseStream::new(&conn).await {

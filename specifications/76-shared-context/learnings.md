@@ -36,3 +36,17 @@ standard ASD-STE100.
   formatted. Revert them, or format only the crate you changed.
 - Feature 01: `foundation_context` has no default features. Its wasm build compiles with no
   time backend chosen, so each consumer must forward `wasm-bindgen` or `host-abi`.
+- Feature 02: a text replace of `Ctx` is not safe in the connectrpc, proxy and docker crates.
+  They name both the RPC `Ctx` and the valtron `Ctx` (for example `use
+  foundation_core::valtron::{self, Ctx, ..}` in `transport/h2.rs` and `h3.rs`). Rename the RPC
+  type first, then check each valtron import by hand.
+- Feature 02: `cargo fix` removes `use std::sync::Arc;` when no code uses it in the checked
+  feature set. `foundation_http/src/native/serve.rs` needs `Arc` only with the `quic` feature, so
+  that import now has a `cfg`. Check each crate with `--all-features` after `cargo fix`.
+- Feature 02: `cargo clippy -p <crate> -- -D warnings` also lints workspace dependencies. Today
+  `foundation_reactor` fails it, so read only the warnings that name the changed crate.
+- Feature 02: `Ctx::host()` now reads entropy. It panics if the entropy source fails. A host that
+  must not panic calls `Ctx::try_host()`. `PlatformSession` does this and keeps its warning.
+- Feature 02: `Ctx` has no pointer-equality method. A test that proved "the app stores the
+  caller's context" with `Arc::ptr_eq` now stores a value through one handle and reads it from the
+  other, because a `Ctx` clone shares the map.

@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request, Transport,
+    Client, ClientOptions, H2Transport, ProcedureCodecs, Request, RpcCtx, Transport,
 };
 use foundation_core::valtron::valtron_test;
 
@@ -56,7 +56,7 @@ async fn filesync_diffcopy_serves_context_dir() {
     .unwrap();
 
     let mut bidi = client
-        .bidi_stream(Ctx::background())
+        .bidi_stream(RpcCtx::background())
         .await
         .expect("open DiffCopy");
 
@@ -142,7 +142,7 @@ async fn health_check_returns_serving() {
 
     let resp = client
         .unary(
-            Ctx::background(),
+            RpcCtx::background(),
             Request::new(HealthCheckRequest::default()),
         )
         .await
@@ -228,7 +228,7 @@ async fn ssh_agent_proxy_forwards_bytes() {
     .unwrap();
     check
         .unary(
-            Ctx::background(),
+            RpcCtx::background(),
             Request::new(CheckAgentRequest::default()),
         )
         .await
@@ -243,7 +243,7 @@ async fn ssh_agent_proxy_forwards_bytes() {
     )
     .unwrap();
     let mut bidi = forward
-        .bidi_stream(Ctx::background())
+        .bidi_stream(RpcCtx::background())
         .await
         .expect("open ForwardAgent");
     bidi.send(&BytesMessage {

@@ -1,6 +1,6 @@
 //! `HttpApp` takes its clock and RNG from the caller (spec 72 feature 01, issue #234).
 //!
-//! WHY: the plain constructors called `ContextBag::from_ctx(&Ctx::host())`, so a
+//! WHY: the plain constructors called `Ctx::host()`, so a
 //! deterministic host could not inject its clock or its seeded RNG. The host had
 //! to replace `app.ctx` after construction, and a forgotten step failed
 //! silently.
@@ -18,11 +18,10 @@ use std::time::Duration;
 
 use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::ServeWriter;
 use rand_chacha::rand_core::Rng;
 
-/// A writer app is enough to prove the constructor: the bag is built before any
+/// A writer app is enough to prove the constructor: the context is built before any
 /// handler is registered.
 type WriterApp = HttpApp<Arc<dyn ServeWriter>>;
 
@@ -51,7 +50,7 @@ fn with_ctx_keeps_the_injected_rng() {
     let ctx = Ctx::new(Arc::new(SimulatedClock::new(Duration::ZERO)));
 
     // Move the shared stream off seed 0, then snapshot it. A fresh
-    // `ContextBag` starts at seed 0, so this value proves the app read the
+    // `Ctx` starts at seed 0, so this value proves the app read the
     // injected state.
     let _ = ctx.rng().lock().expect("RNG mutex poisoned").next_u64();
     let expected = ctx
@@ -102,14 +101,16 @@ fn with_ctx_keeps_the_injected_rng() {
 }
 
 #[test]
-fn with_context_shares_the_callers_bag() {
+fn with_context_shares_the_callers_ctx() {
     let clock = Arc::new(SimulatedClock::new(Duration::from_secs(7)));
-    let bag = Arc::new(ContextBag::new(clock));
-    let app: WriterApp = HttpApp::with_context(bag.clone());
+    let ctx = Ctx::new(clock);
+    let app: WriterApp = HttpApp::with_context(ctx.clone());
 
-    assert!(
-        Arc::ptr_eq(app.context(), &bag),
-        "the app must store the caller's bag, not a copy"
+    ctx.store(11u32);
+    assert_eq!(
+        app.context().get_cloned::<u32>(),
+        Some(11),
+        "the app must share the caller's context map, not a copy"
     );
     assert_eq!(
         app.context().clock().elapsed(),

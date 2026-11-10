@@ -62,8 +62,8 @@ router.unary(
 Arc::new(ConnectRpcServe::new(router.into_handler()))
 ```
 
-The handler is a plain async closure `Fn(Ctx, Request<Req>) -> ConnectResult<Response<Res>>`.
-`Ctx` is passed **by value** (owned, cheap-`Clone`), and the signature returns
+The handler is a plain async closure `Fn(RpcCtx, Request<Req>) -> ConnectResult<Response<Res>>`.
+`RpcCtx` is passed **by value** (owned, cheap-`Clone`), and the signature returns
 `ConnectResult<T>`.
 
 The `HttpServer` runs its blocking accept loop on its own OS thread. That
@@ -82,7 +82,7 @@ let client: Client<EchoMessage, EchoMessage> = Client::new(
     ClientOptions::new(),                             // default protocol = Connect, default codec = proto
 )?;
 
-let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
 let resp = client.unary(ctx, Request::new(EchoMessage { id: 7, text: "hello connectrpc".into() })).await?;
 ```
 

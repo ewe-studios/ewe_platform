@@ -21,7 +21,7 @@ use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::native::writer::{send_bytes, send_text};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
@@ -93,7 +93,7 @@ struct Observing {
 impl Serve for Observing {
     fn serve(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -103,7 +103,7 @@ impl Serve for Observing {
             s.finished_at = Some(Instant::now());
             s.closed = matches!(outcome, ServeOutcome::Close(_));
         };
-        match self.inner.serve(bag, req, conn).split() {
+        match self.inner.serve(ctx, req, conn).split() {
             Ok(fut) => ConnectionResult::Async(Box::pin(async move {
                 let outcome = fut.await;
                 record(&outcome);
@@ -180,7 +180,7 @@ struct Ping;
 impl Serve for Ping {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -471,7 +471,7 @@ struct BigBody(Vec<u8>);
 impl Serve for BigBody {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

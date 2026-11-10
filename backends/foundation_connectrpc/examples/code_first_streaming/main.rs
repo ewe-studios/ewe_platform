@@ -26,7 +26,7 @@ use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    service, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Router,
+    service, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, Request, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -45,7 +45,7 @@ pub struct Tick {
 pub trait TickService {
     async fn subscribe(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _req: Request<TickRequest>,
     ) -> ConnectResult<impl futures::Stream<Item = ConnectResult<Tick>>>;
 }
@@ -58,7 +58,7 @@ impl TickService for Ticker {
     #[allow(clippy::unused_async_trait_impl)]
     async fn subscribe(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         req: Request<TickRequest>,
     ) -> ConnectResult<Pin<Box<dyn Stream<Item = ConnectResult<Tick>> + Send>>> {
         let n = req.msg.count.max(0);
@@ -106,7 +106,7 @@ async fn main() {
     )
     .expect("build client");
 
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let mut stream = client
         .subscribe(ctx, Request::new(TickRequest { count: 3 }))
         .await

@@ -29,8 +29,8 @@ use foundation_netio::http2::connection::H2Request;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 
 use foundation_proxy::config::ServiceConfig;
@@ -61,7 +61,7 @@ fn build_deadline_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |ctx: Ctx, _req: Request<Msg>| async move {
+        |ctx: RpcCtx, _req: Request<Msg>| async move {
             let ms = ctx.remaining_timeout().map_or(0, |d| d.as_millis());
             Ok(Response::new(Msg::of(ms.to_string())))
         },
@@ -70,18 +70,18 @@ fn build_deadline_router() -> Router {
     router
 }
 
-/// Where a handler leaves its `Ctx` for the test to watch (mirrors
+/// Where a handler leaves its `RpcCtx` for the test to watch (mirrors
 /// `foundation_connectrpc`'s `cancellation_tests`).
 #[derive(Clone, Default)]
-struct Slot(Arc<Mutex<Option<Ctx>>>);
+struct Slot(Arc<Mutex<Option<RpcCtx>>>);
 
 impl Slot {
-    fn put(&self, ctx: &Ctx) {
+    fn put(&self, ctx: &RpcCtx) {
         *self.0.lock().unwrap() = Some(ctx.clone());
     }
 
-    /// Wait until a handler parked its `Ctx`.
-    fn wait_entered(&self) -> Ctx {
+    /// Wait until a handler parked its `RpcCtx`.
+    fn wait_entered(&self) -> RpcCtx {
         let start = Instant::now();
         loop {
             if let Some(ctx) = self.0.lock().unwrap().clone() {
@@ -97,12 +97,12 @@ impl Slot {
 }
 
 /// Wait until `ctx` is cancelled; panics after `limit`.
-fn assert_cancelled_within(ctx: &Ctx, limit: Duration) {
+fn assert_cancelled_within(ctx: &RpcCtx, limit: Duration) {
     let start = Instant::now();
     while !ctx.is_canceled() {
         assert!(
             start.elapsed() < limit,
-            "the handler's Ctx was not cancelled within {limit:?}"
+            "the handler's RpcCtx was not cancelled within {limit:?}"
         );
         std::thread::sleep(Duration::from_millis(5));
     }
@@ -110,13 +110,13 @@ fn assert_cancelled_within(ctx: &Ctx, limit: Duration) {
 
 /// A server-stream handler that yields one item (which flushes the response head,
 /// withheld until the first frame) and then parks until the call is cancelled.
-/// It leaves its `Ctx` in `slot` so the test can watch `is_canceled()` flip.
+/// It leaves its `RpcCtx` in `slot` so the test can watch `is_canceled()` flip.
 fn build_cancel_router(slot: Slot) -> Router {
     let mut router = Router::new();
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let slot = slot.clone();
             async move {
                 slot.put(&ctx);
@@ -126,7 +126,7 @@ fn build_cancel_router(slot: Slot) -> Router {
                     if state == 0 {
                         return Some((Ok(Msg::of("first")), 1u8));
                     }
-                    // Then park forever; the test watches the parked `Ctx`
+                    // Then park forever; the test watches the parked `RpcCtx`
                     // (not the stream) for cancellation.
                     futures_util::future::pending::<()>().await;
                     None
@@ -199,7 +199,7 @@ async fn connect_deadline_is_observed_at_grpc_backend() {
 
     let client = connect_h2_client(&addr, UNARY);
     let deadline = Duration::from_secs(3);
-    let ctx = Ctx::background().with_deadline(deadline);
+    let ctx = RpcCtx::background().with_deadline(deadline);
     let resp = client
         .unary(ctx, Request::new(Msg::of("deadline")))
         .await
@@ -335,7 +335,7 @@ fn drive_raw_h2_cancel(
         }
     }
 
-    // The stream is flowing; the test waits for the handler's `Ctx` before
+    // The stream is flowing; the test waits for the handler's `RpcCtx` before
     // granting the reset so it can assert the call is still live.
     let _ = flowing.send(true);
     if reset.recv_timeout(Duration::from_secs(10)).is_err() {
@@ -376,7 +376,7 @@ async fn cancelled_connect_stream_tears_down_grpc_backend() {
         .unwrap_or(false);
     assert!(flowing, "the stream must flow before the reset");
 
-    // The handler parked its `Ctx` before yielding the first item; the call is
+    // The handler parked its `RpcCtx` before yielding the first item; the call is
     // still live (the reset has not been granted yet).
     let ctx = slot.wait_entered();
     assert!(

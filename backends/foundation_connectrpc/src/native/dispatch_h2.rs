@@ -19,7 +19,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender, Stream};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
 use foundation_netio::shared::client::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
@@ -31,7 +31,7 @@ use foundation_netio::shared::http::{
 use futures::future::{select, Either};
 
 use crate::shared::compression::CompressionRegistry;
-use crate::shared::context::{CancelSignal, Ctx, Spec};
+use crate::shared::context::{CancelSignal, RpcCtx, Spec};
 use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     allowed_methods, blank_response, build_ctx, cancel_and_settle, capabilities_for,
@@ -60,7 +60,7 @@ pub(crate) async fn run_unary(
     mut request: SimpleIncomingRequest,
     codec_name: String,
     compression: &CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     read_max_bytes: usize,
     timer: Option<&dyn DeadlineTimer>,
 ) -> SimpleOutgoingResponse {
@@ -301,18 +301,18 @@ impl ConnectRpcHandler {
     /// pushed into `tx` as the handler produces them, and request DATA frames
     /// are forwarded into the protocol's byte pipe as they arrive.
     ///
-    /// The call is cancelled — its `Ctx` fires and the handler is dropped — when
+    /// The call is cancelled — its `RpcCtx` fires and the handler is dropped — when
     /// the peer resets the stream, the connection drops it (`tx` closes), or
     /// the call's deadline passes (answered with `deadline_exceeded`).
     pub fn dispatch_h2(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
     ) -> BoxFuture<'static, io::Result<()>> {
         let router = self.router.clone();
-        Box::pin(dispatch_h2_stream(router, bag, header, body, tx))
+        Box::pin(dispatch_h2_stream(router, app_ctx, header, body, tx))
     }
 }
 
@@ -322,7 +322,7 @@ impl ConnectRpcHandler {
 )]
 async fn dispatch_h2_stream(
     router: Arc<Router>,
-    bag: Arc<ContextBag>,
+    app_ctx: Ctx,
     header: SimpleIncomingRequestHeader,
     body: PipeReceiver<H2IncomingFrame>,
     tx: PipeSender<H2Frame>,
@@ -377,7 +377,7 @@ async fn dispatch_h2_stream(
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
     let ctx = build_ctx(
-        bag,
+        app_ctx,
         &request,
         entry.spec.clone(),
         protocol,
@@ -492,7 +492,7 @@ async fn run_streaming_h2(
     spec: Spec,
     codec_name: String,
     compression: &CompressionRegistry,
-    ctx: Ctx,
+    ctx: RpcCtx,
     pipe_depth: usize,
     read_max_bytes: usize,
     body: PipeReceiver<H2IncomingFrame>,

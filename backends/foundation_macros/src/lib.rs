@@ -1016,11 +1016,11 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// # Example
 ///
 /// ```ignore
-/// use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+/// use foundation_connectrpc::{service, RpcCtx, Request, Response, ConnectResult};
 ///
 /// #[service(package = "my.api.v1")]
 /// trait MyService {
-///     async fn unary(&self, ctx: Ctx, req: Request<MyReq>)
+///     async fn unary(&self, ctx: RpcCtx, req: Request<MyReq>)
 ///         -> ConnectResult<Response<MyRes>>;
 /// }
 /// ```

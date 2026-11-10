@@ -6,7 +6,7 @@ use foundation_http::ShutdownSignal;
 
 use foundation_http::native::serve::Serve;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::SimpleMethod;
 
 use super::config::IdpConfig;
@@ -190,9 +190,9 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     #[must_use]
     pub fn http_app(self) -> HttpApp<Arc<dyn Serve>> {
         let mut app = HttpApp::new_serve();
-        // The app bag carries this server's injected clock, so every handler
+        // The app context carries this server's injected clock, so every handler
         // reads the clock the host chose.
-        app.ctx = Arc::new(ContextBag::new(Arc::clone(&self.clock)));
+        app.ctx = Ctx::new(Arc::clone(&self.clock));
         let dev_mode = self.config.dev_mode;
         app.ctx.store(self.config);
         // Stored as `Arc<HandlerStorage<KV>>`; `ServeAdapter::create` looks up

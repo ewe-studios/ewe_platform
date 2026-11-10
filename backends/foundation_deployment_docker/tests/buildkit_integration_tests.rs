@@ -106,7 +106,7 @@ async fn solve_probe_reports_what_buildkit_needs() {
 #[valtron_test(tracing = "debug")]
 async fn session_bidi_manual_response() {
     use foundation_connectrpc::{
-        Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Transport,
+        Client, ClientOptions, H2Transport, ProcedureCodecs, RpcCtx, Transport,
     };
 
     let Some(addr) = buildkitd_addr() else { return };
@@ -135,7 +135,7 @@ async fn session_bidi_manual_response() {
     .unwrap();
 
     let bidi = session_client
-        .bidi_stream(Ctx::background())
+        .bidi_stream(RpcCtx::background())
         .await
         .expect("open bidi");
 
@@ -241,7 +241,7 @@ async fn session_bidi_manual_response() {
 #[valtron_test(tracing = "debug")]
 async fn session_bidi_raw_no_pump() {
     use foundation_connectrpc::{
-        Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Transport,
+        Client, ClientOptions, H2Transport, ProcedureCodecs, RpcCtx, Transport,
     };
 
     let Some(addr) = buildkitd_addr() else { return };
@@ -271,7 +271,7 @@ async fn session_bidi_raw_no_pump() {
 
     eprintln!("[raw] opening Session bidi (no pump)...");
     let bidi = session_client
-        .bidi_stream(Ctx::background())
+        .bidi_stream(RpcCtx::background())
         .await
         .expect("open bidi");
     eprintln!("[raw] Session bidi opened, reading first message...");
@@ -630,7 +630,7 @@ async fn build_history_lists_completed_builds() {
 
 #[valtron_test]
 async fn gateway_build_ping_resolve_and_return() {
-    use foundation_connectrpc::{Ctx, Request};
+    use foundation_connectrpc::{Request, RpcCtx};
     use foundation_deployment_docker::buildkit::generated::google::rpc::Status as GoogleStatus;
     use foundation_deployment_docker::buildkit::generated::moby::buildkit::v1::frontend::{
         PingRequest, ResolveImageConfigRequest, ReturnRequest,
@@ -666,7 +666,7 @@ async fn gateway_build_ping_resolve_and_return() {
     let frontend_fut = async {
         // Ping proves routing; buildkitd fills in its frontend API caps.
         let pong = gateway
-            .ping(Ctx::background(), Request::new(PingRequest::default()))
+            .ping(RpcCtx::background(), Request::new(PingRequest::default()))
             .await
             .expect("gateway Ping");
         // Resolve a public image ref through the running build.
@@ -675,7 +675,7 @@ async fn gateway_build_ping_resolve_and_return() {
             ..Default::default()
         };
         let resolved = gateway
-            .resolve_image_config(Ctx::background(), Request::new(resolve))
+            .resolve_image_config(RpcCtx::background(), Request::new(resolve))
             .await
             .expect("gateway ResolveImageConfig");
         // Return an ERROR result to cleanly abort the build. (Buildkitd
@@ -690,7 +690,7 @@ async fn gateway_build_ping_resolve_and_return() {
             ..Default::default()
         };
         gateway
-            .r#return(Ctx::background(), Request::new(ret))
+            .r#return(RpcCtx::background(), Request::new(ret))
             .await
             .expect("gateway Return");
         (pong.msg.FrontendAPICaps.len(), resolved.msg.Digest)

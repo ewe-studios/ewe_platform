@@ -11,7 +11,7 @@ use foundation_netio::shared::http::{
 };
 
 use crate::shared::client_ip::ClientIp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// In-memory rate limiter.
@@ -50,7 +50,7 @@ impl RateLimiter {
 }
 
 impl RequestMiddleware for RateLimiter {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let ip = Self::extract_ip(req);
         let ip_owned = ip.to_string();
         let now = self.clock.now();

@@ -38,9 +38,9 @@ use foundation_netio::HttpClientBuilder;
 
 use foundation_connectrpc::shared::transport::{PipeHandlerConn, DEFAULT_PIPE_DEPTH};
 use foundation_connectrpc::{
-    CancelSignal, Client, ClientOptions, Code, CodecFor, ConnectRpcServe, ConnectRpcServeH2, Ctx,
+    CancelSignal, Client, ClientOptions, Code, CodecFor, ConnectRpcServe, ConnectRpcServeH2,
     H1Transport, H2Transport, HandlerConn, HandlerOptions, JsonCodec, MessageSink, Peer,
-    ProcedureCodecs, RequestStream, Response, Router, Spec, Transport,
+    ProcedureCodecs, RequestStream, Response, Router, RpcCtx, Spec, Transport,
 };
 
 #[cfg(feature = "h3")]
@@ -84,7 +84,7 @@ fn build_router() -> Router {
     router.client_stream(
         HEADERS_PROC,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(m) = reqs.next().await {
                 parts.push(m?.text);
@@ -102,7 +102,7 @@ fn build_router() -> Router {
     router.client_stream(
         OVERRIDE_PROC,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(m) = reqs.next().await {
                 parts.push(m?.text);
@@ -123,7 +123,7 @@ fn build_router() -> Router {
     router.client_stream(
         FRAMING_PROC,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(m) = reqs.next().await {
                 parts.push(m?.text);
@@ -170,8 +170,8 @@ fn header_value(headers: &SimpleHeaders, name: &str) -> Option<String> {
         .and_then(|(_, values)| values.first().cloned())
 }
 
-fn call_ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn call_ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 // ── h1 ───────────────────────────────────────────────────────────────────

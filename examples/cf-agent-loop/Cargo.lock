@@ -1547,6 +1547,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_context"
+version = "0.0.1"
+dependencies = [
+ "foundation_compact",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "foundation_core"
 version = "0.0.19"
 dependencies = [
@@ -1556,6 +1564,7 @@ dependencies = [
  "fastrand",
  "foundation_buildtools",
  "foundation_compact",
+ "foundation_context",
  "foundation_macros",
  "foundation_nostd",
  "futures-core",
@@ -1619,6 +1628,7 @@ dependencies = [
  "bytes",
  "concurrent-queue",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",

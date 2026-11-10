@@ -25,15 +25,15 @@ use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
 use futures_util::FutureExt;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 
 use foundation_proxy::config::{HealthCheckConfig, ServiceConfig};
@@ -63,7 +63,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -71,8 +71,8 @@ fn build_router() -> Router {
     router
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// A backend that answers `grpc.health.v1.Health/Check` with a flippable verdict
@@ -88,7 +88,7 @@ impl H2Serve for HealthGatedBackend {
     #[allow(clippy::cast_possible_truncation)]
     fn serve_h2(
         &self,
-        bag: Arc<ContextBag>,
+        app_ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
@@ -137,7 +137,7 @@ impl H2Serve for HealthGatedBackend {
             }
             .boxed()
         } else {
-            self.inner.serve_h2(bag, header, body, tx)
+            self.inner.serve_h2(app_ctx, header, body, tx)
         }
     }
 }

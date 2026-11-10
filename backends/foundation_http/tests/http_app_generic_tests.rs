@@ -16,7 +16,7 @@
 use std::sync::Arc;
 
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 // -----------------------------------------------------------------------
@@ -25,7 +25,7 @@ use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 struct TestCfHandler;
 
 impl foundation_http::wasm::serve_cf::CfServeFactory for TestCfHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         TestCfHandler
     }
 }
@@ -34,7 +34,7 @@ impl foundation_http::wasm::serve_cf::CfServeFactory for TestCfHandler {
 impl foundation_http::wasm::serve_cf::CfServe for TestCfHandler {
     async fn serve_cf(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: &mut foundation_http::wasm::cf_conn::CfConn,
     ) -> foundation_http::wasm::cf_conn::CfConnectionResult {
@@ -119,7 +119,7 @@ struct PassThroughMiddleware;
 impl foundation_http::shared::middleware::RequestMiddleware for PassThroughMiddleware {
     fn handle(
         &self,
-        _ctx: &Arc<ContextBag>,
+        _ctx: &Ctx,
         _req: &mut SimpleIncomingRequest,
     ) -> foundation_http::shared::middleware::MiddlewareResult {
         foundation_http::shared::middleware::MiddlewareResult::Continue

@@ -26,7 +26,7 @@ use foundation_http::{
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         middleware::{MiddlewareResult, RequestMiddleware},
         serve::ConnectionResult,
     },
@@ -35,7 +35,7 @@ use foundation_http::{
 struct SecretHandler;
 
 impl ServeFactory for SecretHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -43,7 +43,7 @@ impl ServeFactory for SecretHandler {
 impl Serve for SecretHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -55,7 +55,7 @@ impl Serve for SecretHandler {
 struct RejectPosts;
 
 impl RequestMiddleware for RejectPosts {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         if req.method != SimpleMethod::POST {
             return MiddlewareResult::Continue;
         }

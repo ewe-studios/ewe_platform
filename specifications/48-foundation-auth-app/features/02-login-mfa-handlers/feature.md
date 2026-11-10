@@ -54,7 +54,7 @@ This endpoint handles the rauthy multi-step login flow:
 impl IdpHandlerCore {
     pub async fn login(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<HandlerResponse, IdpError> {
         // 1. Parse JSON body: {email, password?, client_id, redirect_uri, ...}
@@ -97,7 +97,7 @@ Response status codes (matching spec 42 UI expectations):
 impl IdpHandlerCore {
     pub async fn mfa(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<HandlerResponse, IdpError> {
         // 1. Parse JSON body: {challenge_id, code}
@@ -116,7 +116,7 @@ impl IdpHandlerCore {
 impl IdpHandlerCore {
     pub async fn logout(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<HandlerResponse, IdpError> {
         // 1. Extract session cookie

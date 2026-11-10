@@ -1,6 +1,6 @@
 ---
 feature: "Merge ContextBag into Ctx, rename connectrpc Ctx to RpcCtx"
-status: "planned"
+status: "completed"
 priority: "high"
 model: "sonnet"
 depends_on: ["01-foundation-context-crate"]

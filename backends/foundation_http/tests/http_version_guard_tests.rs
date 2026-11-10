@@ -36,7 +36,7 @@ use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 use foundation_http::{
     native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, ServerConfig},
-    shared::{app::HttpApp, context::ContextBag, serve::ConnectionResult},
+    shared::{app::HttpApp, context::Ctx, serve::ConnectionResult},
 };
 
 /// Set by `EchoHandler::serve`. If a rejected request ever reaches routing this
@@ -46,7 +46,7 @@ static HANDLER_CALLED: AtomicBool = AtomicBool::new(false);
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -54,7 +54,7 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

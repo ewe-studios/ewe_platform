@@ -278,28 +278,28 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
         // nested `impl Trait` inside the `Output` binding is illegal (E0562).
         match ty {
             MethodKind::Unary => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::ServerStream => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::ClientStream => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
                 out.push_str("        }\n    }\n\n");
             }
             MethodKind::BidiStream => {
-                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
+                writeln!(out, "    fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)").expect(WRITE_ERR);
                 writeln!(out, "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send").expect(WRITE_ERR);
                 out.push_str("    {\n        async move {\n");
                 writeln!(out, "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())").expect(WRITE_ERR);
@@ -486,7 +486,7 @@ fn generate_client_methods(methods: &[MethodInfo], out: &mut String) {
         match m.kind {
             MethodKind::Unary => {
                 out.push_str("    /// Unary RPC.\n");
-                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.unary(ctx, request).await").expect(WRITE_ERR);
@@ -494,7 +494,7 @@ fn generate_client_methods(methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::ServerStream => {
                 out.push_str("    /// Server-streaming RPC.\n");
-                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.server_stream(ctx, request).await").expect(WRITE_ERR);
@@ -502,7 +502,7 @@ fn generate_client_methods(methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::ClientStream => {
                 out.push_str("    /// Client-streaming RPC.\n");
-                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.client_stream(ctx, reqs).await").expect(WRITE_ERR);
@@ -510,7 +510,7 @@ fn generate_client_methods(methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::BidiStream => {
                 out.push_str("    /// Bidirectional streaming RPC.\n");
-                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)").expect(WRITE_ERR);
+                writeln!(out, "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.bidi_stream(ctx).await").expect(WRITE_ERR);
@@ -543,19 +543,19 @@ fn generate_client_trait(
 
         match m.kind {
             MethodKind::Unary => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;").expect(WRITE_ERR);
             }
             MethodKind::ServerStream => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>;").expect(WRITE_ERR);
             }
             MethodKind::ClientStream => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;").expect(WRITE_ERR);
             }
             MethodKind::BidiStream => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>;").expect(WRITE_ERR);
             }
         }
@@ -580,28 +580,28 @@ fn generate_client_trait_impl(
 
         match m.kind {
             MethodKind::Unary => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.unary(ctx, request).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
             MethodKind::ServerStream => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, request: foundation_connectrpc::Request<{req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.server_stream(ctx, request).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
             MethodKind::ClientStream => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx, reqs: impl futures::Stream<Item = {req}>)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.client_stream(ctx, reqs).await").expect(WRITE_ERR);
                 out.push_str("    }\n");
             }
             MethodKind::BidiStream => {
-                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx)").expect(WRITE_ERR);
+                writeln!(out, "    async fn {method_name}(&self, ctx: foundation_connectrpc::RpcCtx)").expect(WRITE_ERR);
                 writeln!(out, "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>").expect(WRITE_ERR);
                 out.push_str("    {\n");
                 writeln!(out, "        self.{method_name}.bidi_stream(ctx).await").expect(WRITE_ERR);

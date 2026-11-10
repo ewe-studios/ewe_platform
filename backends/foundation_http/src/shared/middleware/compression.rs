@@ -7,11 +7,9 @@
 //! response wrapping, which is complex. This version validates Accept-Encoding and
 //! could be extended to compress response bodies.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::SimpleIncomingRequest;
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// Compression algorithm.
@@ -267,7 +265,7 @@ pub struct CompressionPreference {
 }
 
 impl RequestMiddleware for CompressionMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Parse Accept-Encoding header
         let algorithm =
             Self::extract_accept_encoding(req).and_then(|enc| self.select_algorithm(&enc));

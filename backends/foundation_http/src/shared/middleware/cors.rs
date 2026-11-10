@@ -5,13 +5,11 @@
 //!
 //! WHAT: Configurable CORS middleware with origin, method, header, and credential support.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// CORS middleware configuration.
@@ -230,7 +228,7 @@ impl CorsMiddleware {
 }
 
 impl RequestMiddleware for CorsMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Handle OPTIONS preflight requests
         if matches!(req.method, SimpleMethod::OPTIONS) {
             let origin = Self::extract_origin(req);

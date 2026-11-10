@@ -17,7 +17,7 @@ use foundation_netio::shared::http::{
     Status,
 };
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 
 // ---------------------------------------------------------------------------
 // ServeError
@@ -124,7 +124,7 @@ pub trait ServeWriter: Send + Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
     fn serve_writer(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: SimpleIncomingRequest,
         conn: &mut dyn std::io::Write,
     ) -> ConnectionResult;
@@ -133,7 +133,7 @@ pub trait ServeWriter: Send + Sync + 'static {
 /// Factory trait for creating `ServeWriter` handler instances.
 pub trait ServeWriterFactory: ServeWriter + Sized {
     /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
+    fn create(ctx: &Ctx) -> Self;
 }
 
 // ---------------------------------------------------------------------------

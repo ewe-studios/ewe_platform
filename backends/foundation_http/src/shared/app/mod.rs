@@ -15,14 +15,13 @@ use std::sync::Arc;
 use foundation_core::valtron::{Clock, Ctx};
 use foundation_netio::shared::http::SimpleMethod;
 
-use crate::shared::context::ContextBag;
 use crate::shared::middleware::RequestMiddleware;
 use crate::shared::router::Router;
 use crate::shared::serve::ServeWriterFactory;
 
 /// Top-level HTTP application builder, generic over handler type `S`.
 pub struct HttpApp<S> {
-    pub ctx: Arc<ContextBag>,
+    pub ctx: Ctx,
     pub router: Router<S>,
     pub middleware: Vec<Box<dyn RequestMiddleware>>,
 }
@@ -46,18 +45,18 @@ impl<S> HttpApp<S> {
                   would leak the temporary `Ctx` lifetime into the public signature"
     )]
     pub fn with_ctx(ctx: Ctx) -> Self {
-        Self::with_context(Arc::new(ContextBag::from_ctx(&ctx)))
+        Self::with_context(ctx.with_empty_map())
     }
 
-    /// Build an empty `HttpApp` from an already-built [`ContextBag`].
+    /// Build an empty `HttpApp` from an already-built [`Ctx`].
     ///
-    /// Use this when the caller already holds the bag, for example a wasm
-    /// singleton whose builder receives the bag. The app shares the `Arc`, so
+    /// Use this when the caller already holds the context, for example a wasm
+    /// singleton whose builder receives the context. The app shares the `Arc`, so
     /// its clock and RNG are the ones the caller injected.
     #[must_use]
-    pub fn with_context(bag: Arc<ContextBag>) -> Self {
+    pub fn with_context(ctx: Ctx) -> Self {
         Self {
-            ctx: bag,
+            ctx,
             router: Router::new(),
             middleware: Vec::new(),
         }
@@ -85,9 +84,9 @@ impl<S> HttpApp<S> {
         Self::with_ctx(Ctx::host())
     }
 
-    /// Get a reference to the shared context bag.
+    /// Get a reference to the shared context.
     #[must_use]
-    pub fn context(&self) -> &Arc<ContextBag> {
+    pub fn context(&self) -> &Ctx {
         &self.ctx
     }
 

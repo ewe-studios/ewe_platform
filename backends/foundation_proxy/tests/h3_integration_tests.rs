@@ -17,7 +17,7 @@ use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::native::writer::send_text;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http3::{H3Connection, H3Request};
@@ -41,7 +41,7 @@ fn ms(n: u64) -> Duration {
 struct BodyEchoHandler;
 
 impl ServeFactory for BodyEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -49,7 +49,7 @@ impl ServeFactory for BodyEchoHandler {
 impl Serve for BodyEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

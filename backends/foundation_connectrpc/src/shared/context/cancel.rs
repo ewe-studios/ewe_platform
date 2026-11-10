@@ -1,7 +1,7 @@
 //! `CancelSignal` — the one cross-clone mutable object in a call's context
 //! (Decision 04 Q4).
 //!
-//! WHY: A `Ctx` is owned + cheap-`Clone` with otherwise-immutable Arc'd
+//! WHY: A `RpcCtx` is owned + cheap-`Clone` with otherwise-immutable Arc'd
 //! internals; the single shared *mutable* surface is cancellation. A clone
 //! **shares** the call's signal (a clone IS the same call). Propagation is never
 //! implicit: derived work that must not be cancelled with the call detaches with

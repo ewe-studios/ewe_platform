@@ -8,7 +8,7 @@ use foundation_core::valtron::{timer, Clock};
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::{render_message, ResponseWriter, WriterConfig};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::event_source::{SseEvent, SseResponse};
 use foundation_netio::netcap::RawStream;
@@ -28,19 +28,19 @@ pub struct SseReloadHandler {
 impl ServeFactory for SseReloadHandler {
     /// # Panics
     ///
-    /// Panics when the bag has no reload queue or no clock. The host that
-    /// builds the bag must store both; a missing clock is a design fault, not
+    /// Panics when the ctx has no reload queue or no clock. The host that
+    /// builds the ctx must store both; a missing clock is a design fault, not
     /// a reason to fall back to the real clock.
-    fn create(bag: &ContextBag) -> Self {
-        let tx = bag
+    fn create(ctx: &Ctx) -> Self {
+        let tx = ctx
             .get::<Arc<ConcurrentQueue<FileChange>>>()
-            .expect("reload queue in ContextBag");
-        // bag.get() returns Arc<T>, T is already Arc<ConcurrentQueue>
+            .expect("reload queue in the Ctx");
+        // ctx.get() returns Arc<T>, T is already Arc<ConcurrentQueue>
         // We need to get the inner Arc via deref
         let queue: &Arc<ConcurrentQueue<FileChange>> = &tx;
 
-        // The bag carries the clock as a field, so `create` cannot miss it.
-        let clock = bag.clock();
+        // The ctx carries the clock as a field, so `create` cannot miss it.
+        let clock = ctx.clock();
 
         Self {
             reload_rx: (*queue).clone(),
@@ -52,7 +52,7 @@ impl ServeFactory for SseReloadHandler {
 impl Serve for SseReloadHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

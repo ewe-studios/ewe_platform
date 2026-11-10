@@ -96,7 +96,7 @@ pub use shared::envelope::{
 };
 
 pub use shared::context::{
-    CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec, StreamType,
+    CancelSignal, IdempotencyLevel, Peer, RequestContext, RpcCtx, Spec, StreamType,
 };
 
 pub use shared::codec::{Codec, CodecError, CodecFor, JsonCodec, ProcedureCodecs, ProtoCodec};

@@ -10,7 +10,7 @@ use std::task::{Context, Poll, Wake, Waker};
 use bytes::Bytes;
 use foundation_netio::shared::http::SimpleHeaders;
 
-use foundation_connectrpc::shared::context::{CancelSignal, Ctx, Peer, Spec};
+use foundation_connectrpc::shared::context::{CancelSignal, Peer, RpcCtx, Spec};
 use foundation_connectrpc::shared::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, UnaryCall, UnaryFunc, UnaryReply,
 };
@@ -43,8 +43,8 @@ fn spec() -> Spec {
     Spec::empty(false)
 }
 
-fn ctx() -> Ctx {
-    Ctx::background()
+fn ctx() -> RpcCtx {
+    RpcCtx::background()
 }
 
 // ── chain composition (reverse order) + per-call codec name ───────────────────
@@ -254,7 +254,7 @@ fn panic_in_handler_becomes_internal_via_recover() {
     });
 
     let recover = RecoverInterceptor::new(
-        |_ctx: &Ctx,
+        |_ctx: &RpcCtx,
          _spec: &Spec,
          _headers: &SimpleHeaders,
          payload: Box<dyn std::any::Any + Send>| {

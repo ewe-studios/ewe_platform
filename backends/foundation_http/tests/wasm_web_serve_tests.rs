@@ -9,7 +9,7 @@
 use std::sync::Arc;
 
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory};
 use foundation_http::shared::serve_web::{WebServe, WebServeFactory};
@@ -25,7 +25,7 @@ use foundation_netio::shared::http::{
 struct TestWebHandler;
 
 impl WebServeFactory for TestWebHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         TestWebHandler
     }
 }
@@ -34,7 +34,7 @@ impl WebServeFactory for TestWebHandler {
 impl WebServe for TestWebHandler {
     async fn serve_web(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: &mut WebConn,
     ) -> WebConnectionResult {
@@ -49,14 +49,14 @@ impl WebServe for TestWebHandler {
 
 struct PassThroughMiddleware;
 impl RequestMiddleware for PassThroughMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Continue
     }
 }
 
 struct RejectMiddleware;
 impl RequestMiddleware for RejectMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(SimpleOutgoingResponse {
             proto: Proto::HTTP11,
             status: Status::Unauthorized,
@@ -73,7 +73,7 @@ impl RequestMiddleware for RejectMiddleware {
 struct TestWriterHandler;
 
 impl ServeWriterFactory for TestWriterHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         TestWriterHandler
     }
 }
@@ -81,7 +81,7 @@ impl ServeWriterFactory for TestWriterHandler {
 impl ServeWriter for TestWriterHandler {
     fn serve_writer(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: SimpleIncomingRequest,
         _conn: &mut dyn std::io::Write,
     ) -> ConnectionResult {

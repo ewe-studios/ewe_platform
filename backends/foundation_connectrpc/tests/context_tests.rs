@@ -1,11 +1,11 @@
-//! Ctx / `RequestContext` / `CancelSignal` tests (spec-41 F16 / Decision 04):
+//! `RpcCtx` / `RequestContext` / `CancelSignal` tests (spec-41 F16 / Decision 04):
 //! downstream-only extension visibility, cancel shared across clones, opt-in
 //! one-way linking, and the awaitable cancel path.
 
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_connectrpc::{CancelSignal, Ctx};
+use foundation_connectrpc::{CancelSignal, RpcCtx};
 
 // A minimal std block_on so we can exercise `cancelled().await` without a runtime.
 fn block_on<F: std::future::Future>(fut: F) -> F::Output {
@@ -34,7 +34,7 @@ fn block_on<F: std::future::Future>(fut: F) -> F::Output {
 
 #[test]
 fn with_extension_is_downstream_only() {
-    let upstream = Ctx::background();
+    let upstream = RpcCtx::background();
     // A layer keeps its own clone, then hands a derived context downstream.
     let upstream_view = upstream.clone();
     let downstream = upstream.with_extension(99u32);
@@ -49,7 +49,7 @@ fn with_extension_is_downstream_only() {
 
 #[test]
 fn with_extension_rebuilds_and_moves() {
-    let base = Ctx::background();
+    let base = RpcCtx::background();
     let derived = base
         .clone()
         .with_extension(1u32)
@@ -64,7 +64,7 @@ fn with_extension_rebuilds_and_moves() {
 
 #[test]
 fn cancel_fires_across_clones() {
-    let ctx = Ctx::background();
+    let ctx = RpcCtx::background();
     let clone = ctx.clone();
     assert!(!ctx.is_canceled());
     assert!(!clone.is_canceled());
@@ -77,7 +77,7 @@ fn cancel_fires_across_clones() {
 
 #[test]
 fn with_cancellation_detaches() {
-    let ctx = Ctx::background();
+    let ctx = RpcCtx::background();
     let detached = ctx.clone().with_cancellation(CancelSignal::new());
     ctx.cancel_signal().cancel();
     assert!(ctx.is_canceled());
@@ -250,7 +250,7 @@ fn two_live_cancel_waits_of_one_task_stay_registered() {
 
 #[test]
 fn with_deadline_sets_remaining_timeout() {
-    let ctx = Ctx::background();
+    let ctx = RpcCtx::background();
     assert!(ctx.remaining_timeout().is_none());
     let timed = ctx.with_deadline(Duration::from_secs(30));
     let remaining = timed.remaining_timeout().expect("deadline set");

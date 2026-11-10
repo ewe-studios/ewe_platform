@@ -173,7 +173,7 @@ impl ConnectionHandler {
         alt_svc_h3_port: Option<u16>,
         clock: Arc<dyn foundation_core::valtron::Clock>,
     ) -> Self {
-        // Store the engine clock in the app bag so a dispatched ConnectRPC
+        // Store the engine clock in the app context so a dispatched ConnectRPC
         // server reads the same clock for its call deadlines.
         app.context()
             .store::<Arc<dyn foundation_core::valtron::Clock>>(clock.clone());
@@ -837,12 +837,12 @@ impl ConnectionHandler {
             "Processing: entering middleware chain"
         );
 
-        let bag = self.app.context().clone();
+        let ctx = self.app.context().clone();
 
         // Run middleware chain.
         let mut middleware_response: Option<SimpleOutgoingResponse> = None;
         for mw in self.app.middleware_chain() {
-            match mw.handle(&bag, &mut req) {
+            match mw.handle(&ctx, &mut req) {
                 crate::shared::middleware::MiddlewareResult::Continue => {}
                 crate::shared::middleware::MiddlewareResult::Response(resp) => {
                     tracing::trace!(
@@ -953,7 +953,7 @@ impl ConnectionHandler {
         );
 
         if let Some(handler) = self.app.router().dispatch(method, path) {
-            let result = handler.serve(bag, req, self.conn.clone());
+            let result = handler.serve(ctx, req, self.conn.clone());
             match result {
                 ConnectionResult::Take => {
                     tracing::trace!(client_ip = %self.client_ip, "Processing: handler took connection (e.g. WebSocket upgrade)");

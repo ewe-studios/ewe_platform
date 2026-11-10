@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use foundation_core::valtron::Clock;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::SimpleIncomingRequest;
 
 use crate::shared::clock::now_millis;
@@ -379,7 +379,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn discovery(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let doc = OidcDiscoveryDocument::from_config(&self.config, "/idp");
@@ -394,7 +394,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn jwks(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let public_pem = self
@@ -414,7 +414,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn authorize(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let url = &req.request_url.url;
@@ -464,7 +464,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn token(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -644,7 +644,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn userinfo(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let auth_header = req
@@ -681,7 +681,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn introspect(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -726,7 +726,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn device_authorize(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -773,7 +773,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn login(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -942,7 +942,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn mfa(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1112,7 +1112,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// storage or service call fails.
     pub async fn totp_enroll_start(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let user = self.enrollment_user(req).await?;
@@ -1174,7 +1174,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// storage or service call fails.
     pub async fn totp_enroll_confirm(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let user = self.enrollment_user(req).await?;
@@ -1209,7 +1209,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if a storage or service call fails.
     pub async fn logout(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let cookie_name = self.session_service.token_cookie_name();
@@ -1248,7 +1248,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn register(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1323,13 +1323,13 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// or service call fails.
     pub async fn dev_register(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         if !self.config.dev_mode {
             return Err(IdpError::NotFound("not found".into()));
         }
-        self.register(bag, req).await
+        self.register(ctx, req).await
     }
 
     // ─── F04: Password Reset ────────────────────────────────────────────────────
@@ -1342,7 +1342,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn request_password_reset(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1373,7 +1373,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn set_password(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1414,7 +1414,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn pow_challenge(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let challenge = self
@@ -1434,7 +1434,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn pow_solve(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1461,7 +1461,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn template_config(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -1483,7 +1483,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn password_policy(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -1504,7 +1504,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn get_user(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
@@ -1532,7 +1532,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn update_user(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
@@ -1565,7 +1565,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn change_password(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
@@ -1631,7 +1631,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub fn list_sessions(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
@@ -1651,7 +1651,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn revoke_user(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
@@ -1679,7 +1679,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_register_start(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1710,7 +1710,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_register_finish(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1735,7 +1735,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_auth_start(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1762,7 +1762,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_auth_finish(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1785,7 +1785,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn passkey_login_start(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1811,7 +1811,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn passkey_login_finish(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -1834,7 +1834,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn delete_passkey(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let passkey_id = extract_path_param(&req.request_url.url, "/auth/v1/webauthn/")
@@ -1856,7 +1856,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn rename_passkey(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let passkey_id = extract_path_param(&req.request_url.url, "/auth/v1/webauthn/")
@@ -1888,7 +1888,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn tos_latest(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         match self.tos_service.get_latest().await? {
@@ -1928,7 +1928,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn tos_accept(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(req.body.as_ref());
@@ -2016,7 +2016,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn social_authorize(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let Some(session_store) = self.session_store.as_ref() else {
@@ -2106,7 +2106,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn social_callback(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let Some(session_store) = self.session_store.as_ref() else {
@@ -2181,7 +2181,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn dispatch(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         let path = req.request_url.url.as_str();
@@ -2189,49 +2189,49 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let route = route_for(&req.method, path)
             .ok_or_else(|| IdpError::NotFound(format!("Unknown endpoint: {path}")))?;
         match route {
-            Route::Discovery => self.discovery(bag, req),
-            Route::Jwks => self.jwks(bag, req),
+            Route::Discovery => self.discovery(ctx, req),
+            Route::Jwks => self.jwks(ctx, req),
             // F011: social login starts at /authorize?provider=X
             Route::Authorize if has_query_param("provider", req) => {
-                self.social_authorize(bag, req).await
+                self.social_authorize(ctx, req).await
             }
-            Route::Authorize => self.authorize(bag, req).await,
+            Route::Authorize => self.authorize(ctx, req).await,
             Route::Callback if has_query_param("provider", req) => {
-                self.social_callback(bag, req).await
+                self.social_callback(ctx, req).await
             }
             Route::Callback => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
-            Route::Token => self.token(bag, req).await,
-            Route::Userinfo => self.userinfo(bag, req),
-            Route::Introspect => self.introspect(bag, req),
-            Route::DeviceAuthorize => self.device_authorize(bag, req).await,
-            Route::Login => self.login(bag, req).await,
-            Route::Mfa => self.mfa(bag, req).await,
-            Route::TotpEnrollStart => self.totp_enroll_start(bag, req).await,
-            Route::TotpEnrollConfirm => self.totp_enroll_confirm(bag, req).await,
-            Route::Logout => self.logout(bag, req).await,
-            Route::Register => self.register(bag, req).await,
-            Route::DevRegister => self.dev_register(bag, req).await,
-            Route::RequestPasswordReset => self.request_password_reset(bag, req).await,
-            Route::SetPassword => self.set_password(bag, req),
-            Route::PowChallenge => self.pow_challenge(bag, req).await,
-            Route::PowSolve => self.pow_solve(bag, req).await,
-            Route::TemplateConfig => self.template_config(bag, req),
-            Route::PasswordPolicy => self.password_policy(bag, req),
-            Route::GetUser => self.get_user(bag, req).await,
-            Route::UpdateUser => self.update_user(bag, req).await,
-            Route::ChangePassword => self.change_password(bag, req).await,
-            Route::ListSessions => self.list_sessions(bag, req),
-            Route::RevokeUser => self.revoke_user(bag, req).await,
-            Route::WebauthnRegisterStart => self.webauthn_register_start(bag, req).await,
-            Route::WebauthnRegisterFinish => self.webauthn_register_finish(bag, req).await,
-            Route::WebauthnAuthStart => self.webauthn_auth_start(bag, req).await,
-            Route::WebauthnAuthFinish => self.webauthn_auth_finish(bag, req).await,
-            Route::DeletePasskey => self.delete_passkey(bag, req).await,
-            Route::RenamePasskey => self.rename_passkey(bag, req).await,
-            Route::PasskeyLoginStart => self.passkey_login_start(bag, req).await,
-            Route::PasskeyLoginFinish => self.passkey_login_finish(bag, req).await,
-            Route::TosLatest => self.tos_latest(bag, req).await,
-            Route::TosAccept => self.tos_accept(bag, req).await,
+            Route::Token => self.token(ctx, req).await,
+            Route::Userinfo => self.userinfo(ctx, req),
+            Route::Introspect => self.introspect(ctx, req),
+            Route::DeviceAuthorize => self.device_authorize(ctx, req).await,
+            Route::Login => self.login(ctx, req).await,
+            Route::Mfa => self.mfa(ctx, req).await,
+            Route::TotpEnrollStart => self.totp_enroll_start(ctx, req).await,
+            Route::TotpEnrollConfirm => self.totp_enroll_confirm(ctx, req).await,
+            Route::Logout => self.logout(ctx, req).await,
+            Route::Register => self.register(ctx, req).await,
+            Route::DevRegister => self.dev_register(ctx, req).await,
+            Route::RequestPasswordReset => self.request_password_reset(ctx, req).await,
+            Route::SetPassword => self.set_password(ctx, req),
+            Route::PowChallenge => self.pow_challenge(ctx, req).await,
+            Route::PowSolve => self.pow_solve(ctx, req).await,
+            Route::TemplateConfig => self.template_config(ctx, req),
+            Route::PasswordPolicy => self.password_policy(ctx, req),
+            Route::GetUser => self.get_user(ctx, req).await,
+            Route::UpdateUser => self.update_user(ctx, req).await,
+            Route::ChangePassword => self.change_password(ctx, req).await,
+            Route::ListSessions => self.list_sessions(ctx, req),
+            Route::RevokeUser => self.revoke_user(ctx, req).await,
+            Route::WebauthnRegisterStart => self.webauthn_register_start(ctx, req).await,
+            Route::WebauthnRegisterFinish => self.webauthn_register_finish(ctx, req).await,
+            Route::WebauthnAuthStart => self.webauthn_auth_start(ctx, req).await,
+            Route::WebauthnAuthFinish => self.webauthn_auth_finish(ctx, req).await,
+            Route::DeletePasskey => self.delete_passkey(ctx, req).await,
+            Route::RenamePasskey => self.rename_passkey(ctx, req).await,
+            Route::PasskeyLoginStart => self.passkey_login_start(ctx, req).await,
+            Route::PasskeyLoginFinish => self.passkey_login_finish(ctx, req).await,
+            Route::TosLatest => self.tos_latest(ctx, req).await,
+            Route::TosAccept => self.tos_accept(ctx, req).await,
         }
     }
 }

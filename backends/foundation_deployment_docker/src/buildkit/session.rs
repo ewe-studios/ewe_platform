@@ -26,7 +26,8 @@ use std::sync::Arc;
 use std::thread::JoinHandle;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, ProcedureCodecs, Router, Transport,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, ProcedureCodecs, Router, RpcCtx,
+    Transport,
 };
 use foundation_core::valtron;
 use foundation_http::native::app::ServerApp;
@@ -261,7 +262,7 @@ impl DirFileSync {
 impl FileSync for DirFileSync {
     fn diff_copy(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>>
             + Send
             + 'static,
@@ -280,7 +281,7 @@ impl FileSync for DirFileSync {
 
     fn tar_stream(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>>
             + Send
             + 'static,
@@ -310,7 +311,7 @@ impl Health for HealthService {
     #[allow(clippy::unused_async_trait_impl)]
     async fn check(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _request: Request<HealthCheckRequest>,
     ) -> ConnectResult<Response<HealthCheckResponse>> {
         Ok(Response::new(HealthCheckResponse {
@@ -370,7 +371,7 @@ impl StaticRegistryAuth {
 impl Auth for StaticRegistryAuth {
     fn credentials(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         request: Request<CredentialsRequest>,
     ) -> impl core::future::Future<Output = ConnectResult<Response<CredentialsResponse>>> + Send
     {
@@ -421,7 +422,7 @@ impl StaticSecrets {
 impl Secrets for StaticSecrets {
     fn get_secret(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         request: Request<GetSecretRequest>,
     ) -> impl core::future::Future<Output = ConnectResult<Response<GetSecretResponse>>> + Send {
         let result = match self.secrets.get(&request.msg.ID) {
@@ -466,7 +467,7 @@ impl SshAgentProxy {
 impl Ssh for SshAgentProxy {
     fn check_agent(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _request: Request<CheckAgentRequest>,
     ) -> impl core::future::Future<Output = ConnectResult<Response<CheckAgentResponse>>> + Send
     {
@@ -483,7 +484,7 @@ impl Ssh for SshAgentProxy {
 
     fn forward_agent(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         requests: impl futures::Stream<Item = ConnectResult<SshBytesMessage>> + Send + 'static,
     ) -> impl core::future::Future<
         Output = ConnectResult<
@@ -598,7 +599,7 @@ impl FileExportSink {
 impl FileSend for FileExportSink {
     fn diff_copy(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         requests: impl futures::Stream<Item = ConnectResult<FsBytesMessage>> + Send + 'static,
     ) -> impl core::future::Future<
         Output = ConnectResult<
@@ -813,7 +814,7 @@ impl SessionBuilder {
             options,
         )?;
 
-        let mut bidi = session_client.bidi_stream(Ctx::background()).await?;
+        let mut bidi = session_client.bidi_stream(RpcCtx::background()).await?;
 
         // Check the gRPC response headers — do we have grpc-status?
         match bidi.response_headers().await {

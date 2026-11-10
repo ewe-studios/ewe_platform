@@ -18,10 +18,10 @@ mod h3_conformance {
     use bytes::Bytes;
     use foundation_connectrpc::native::h3_serve::dispatch_h3;
     use foundation_connectrpc::{
-        Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router,
+        HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx,
     };
     use foundation_core::valtron::{Ctx as VCtx, Stream as VStream, TaskIterator};
-    use foundation_http::shared::context::ContextBag;
+    use foundation_http::shared::context::Ctx;
     use foundation_netio::http3::connection::{H3Connection, H3Request};
     use foundation_netio::netcap::context::ConnectionContext;
     use foundation_netio::quic::{
@@ -120,7 +120,7 @@ mod h3_conformance {
         router.unary(
             "/echo.EchoService/Echo",
             codecs(),
-            |_ctx: Ctx, req: Request<EchoMsg>| async move { Ok(Response::new(req.into_message())) },
+            |_ctx: RpcCtx, req: Request<EchoMsg>| async move { Ok(Response::new(req.into_message())) },
             HandlerOptions::new(),
         );
         let handler = Arc::new(router.into_handler());
@@ -157,11 +157,11 @@ mod h3_conformance {
 
         // Server accepts and dispatches.
         let inbound = until!(&mut sq, &mut cq, server.poll_accept());
-        let bag = Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()));
+        let ctx = foundation_core::valtron::Ctx::host();
 
         let connection = Arc::new(ConnectionContext::default());
         let (result, mut sq, mut cq) =
-            drive_dispatch(sq, cq, dispatch_h3(handler, bag, connection, inbound));
+            drive_dispatch(sq, cq, dispatch_h3(handler, ctx, connection, inbound));
         result.expect("dispatch_h3 failed");
 
         // Client reads response.

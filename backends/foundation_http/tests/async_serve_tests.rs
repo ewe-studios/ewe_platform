@@ -31,7 +31,7 @@ use foundation_http::{
     native::server::{HttpServer, KeepAliveConfig, ServerConfig},
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         serve::{ConnectionResult, ServeError, ServeOutcome},
     },
 };
@@ -43,7 +43,7 @@ use foundation_http::{
 struct AsyncKeepHandler;
 
 impl ServeFactory for AsyncKeepHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -59,7 +59,7 @@ async fn write_or_close(response: ConnectionResult) -> ServeOutcome {
 impl Serve for AsyncKeepHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -91,7 +91,7 @@ impl Drop for DropFlag {
 struct PendingDropHandler;
 
 impl ServeFactory for PendingDropHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -99,7 +99,7 @@ impl ServeFactory for PendingDropHandler {
 impl Serve for PendingDropHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -124,7 +124,7 @@ impl Serve for PendingDropHandler {
 struct AsyncEndHandler;
 
 impl ServeFactory for AsyncEndHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -132,7 +132,7 @@ impl ServeFactory for AsyncEndHandler {
 impl Serve for AsyncEndHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -223,14 +223,14 @@ struct LongRpcHandler {
 }
 
 impl ServeFactory for LongRpcHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         Self {
-            gate: bag
+            gate: ctx
                 .get_cloned::<Arc<Gate>>()
-                .expect("the test stores the gate in the context bag"),
-            started: bag
+                .expect("the test stores the gate in the context ctx"),
+            started: ctx
                 .get_cloned::<StartedCount>()
-                .expect("the test stores the started counter in the context bag"),
+                .expect("the test stores the started counter in the context ctx"),
         }
     }
 }
@@ -238,7 +238,7 @@ impl ServeFactory for LongRpcHandler {
 impl Serve for LongRpcHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -259,7 +259,7 @@ impl Serve for LongRpcHandler {
 struct ShortHandler;
 
 impl ServeFactory for ShortHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -267,7 +267,7 @@ impl ServeFactory for ShortHandler {
 impl Serve for ShortHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -279,7 +279,7 @@ impl Serve for ShortHandler {
 // Harness
 
 /// Start a server that serves `GET /long` and `GET /short`, with the gate and
-/// the started counter in the context bag. Returns the same tuple as
+/// the started counter in the context ctx. Returns the same tuple as
 /// [`start_server`].
 fn start_gated_server(
     gate: Arc<Gate>,

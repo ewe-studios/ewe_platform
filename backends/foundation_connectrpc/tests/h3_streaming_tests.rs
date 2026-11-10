@@ -29,7 +29,6 @@ use foundation_core::valtron::{valtron_test, Ctx as VCtx, Stream as VStream, Tas
 use foundation_http::native::serve::H3Serve;
 use foundation_http::native::server::serve_h3;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Connection, H3Error, H3Request};
@@ -43,8 +42,8 @@ use foundation_connectrpc::native::h3_serve::{dispatch_h3, ConnectRpcServeH3};
 use foundation_connectrpc::shared::context::CancelSignal;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H3Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request,
-    RequestStream, Response, Router,
+    Client, ClientOptions, H3Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request,
+    RequestStream, Response, Router, RpcCtx,
 };
 use futures::StreamExt;
 
@@ -56,10 +55,10 @@ const BUDGET: Duration = Duration::from_secs(10);
 const UNARY: &str = "/t.Svc/Unary";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const BIDI: &str = "/t.Svc/Bidi";
-/// A unary call that runs until the call's `Ctx` is cancelled.
+/// A unary call that runs until the call's `RpcCtx` is cancelled.
 const SLOW_UNARY: &str = "/t.Svc/SlowUnary";
 /// A client-stream call that answers only after its request ends and the call's
-/// `Ctx` is cancelled.
+/// `RpcCtx` is cancelled.
 const SLOW_CLIENT_STREAM: &str = "/t.Svc/SlowClientStream";
 
 /// Connect envelope flag marking the end-of-stream message.
@@ -104,7 +103,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(msg(&format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new().with_read_max_bytes(unary_read_max_bytes),
@@ -115,7 +114,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        move |ctx: Ctx, mut reqs: RequestStream<Msg>| {
+        move |ctx: RpcCtx, mut reqs: RequestStream<Msg>| {
             let seen = Arc::clone(&cs_seen);
             async move {
                 *seen.cancel.lock().unwrap() = Some(ctx.cancel_signal().clone());
@@ -134,7 +133,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|m| m.map(|m| msg(&format!("re:{}", m.text)))))
         },
         HandlerOptions::new(),
@@ -146,7 +145,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.unary(
         SLOW_UNARY,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let seen = Arc::clone(&su_seen);
             async move {
                 let cancel = ctx.cancel_signal().clone();
@@ -163,7 +162,7 @@ fn router(seen: &Arc<Seen>, unary_read_max_bytes: usize) -> Router {
     router.client_stream(
         SLOW_CLIENT_STREAM,
         codecs(),
-        move |ctx: Ctx, mut reqs: RequestStream<Msg>| {
+        move |ctx: RpcCtx, mut reqs: RequestStream<Msg>| {
             let seen = Arc::clone(&scs_seen);
             async move {
                 let cancel = ctx.cancel_signal().clone();
@@ -235,7 +234,7 @@ impl Harness {
         let inbound = wire(&mut sq, &mut cq, || server_h3.poll_accept());
         let call: DispatchFuture = Box::pin(dispatch_h3(
             Arc::new(router.into_handler()),
-            Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+            foundation_core::valtron::Ctx::host(),
             Arc::new(ConnectionContext::default()),
             inbound,
         ));
@@ -625,7 +624,7 @@ fn peer_reset_mid_client_stream_cancels_the_call() {
         .expect("handler stored its cancel signal");
     assert!(
         cancel.is_canceled(),
-        "the call's Ctx is cancelled on a peer reset"
+        "the call's RpcCtx is cancelled on a peer reset"
     );
 
     // The server reset its response half: the client sees an error, never a
@@ -661,7 +660,7 @@ fn peer_stop_sending_after_unary_body_cancels_the_call() {
     h.send_data(Bytes::from(serde_json::to_vec(&msg("hi")).unwrap()));
     h.finish_request();
 
-    // Step until the handler is running: the call is now parked on its Ctx.
+    // Step until the handler is running: the call is now parked on its RpcCtx.
     let dl = Instant::now() + BUDGET;
     while seen.cancel_signal().is_none() {
         h.step();
@@ -677,7 +676,7 @@ fn peer_stop_sending_after_unary_body_cancels_the_call() {
         .expect("handler stored its cancel signal");
     assert!(
         cancel.is_canceled(),
-        "a peer stop must cancel the call's Ctx"
+        "a peer stop must cancel the call's RpcCtx"
     );
 
     // The server reset its response half (RFC 9114 section 4.1.2).
@@ -717,7 +716,7 @@ fn peer_stop_sending_after_request_end_cancels_a_stream() {
     h.send_data(envelope(&msg("a")));
     h.finish_request();
 
-    // The handler is parked on its Ctx once it has seen the message and the
+    // The handler is parked on its RpcCtx once it has seen the message and the
     // close of the request stream.
     let dl = Instant::now() + BUDGET;
     while seen.cancel_signal().is_none() {
@@ -739,7 +738,7 @@ fn peer_stop_sending_after_request_end_cancels_a_stream() {
         .expect("handler stored its cancel signal");
     assert!(
         cancel.is_canceled(),
-        "a peer stop must cancel the call's Ctx"
+        "a peer stop must cancel the call's RpcCtx"
     );
 
     // The server reset its response half (RFC 9114 section 4.1.2).
@@ -798,8 +797,8 @@ fn h3_client(addr: std::net::SocketAddr, procedure: &str) -> Client<Msg, Msg> {
     .expect("build client")
 }
 
-fn call_ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn call_ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 /// Unary and client-stream through the production server. `dispatch_h3` runs

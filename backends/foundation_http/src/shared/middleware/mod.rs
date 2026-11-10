@@ -1,10 +1,8 @@
 //! `RequestMiddleware` — synchronous middleware trait and result type.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleOutgoingResponse};
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 
 /// Result of middleware execution.
 pub enum MiddlewareResult {
@@ -26,7 +24,7 @@ pub trait RequestMiddleware: Send + Sync + 'static {
     ///
     /// Called in registration order. Returning `MiddlewareResult::Response`
     /// short-circuits the chain and renders the response immediately.
-    fn handle(&self, ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult;
+    fn handle(&self, ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult;
 }
 
 // Built-in middleware modules

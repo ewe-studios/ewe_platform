@@ -47,8 +47,8 @@ use foundation_http::ShutdownSignal;
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, RequestStream, Response, Router, RpcCtx,
 };
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
@@ -74,8 +74,8 @@ const BIDI: &str = "/t.Svc/Bidi";
 /// Sends one message, then nothing until the call is cancelled.
 const ENDLESS: &str = "/t.Svc/Endless";
 
-/// The server-side `Ctx` of the last `ENDLESS` call.
-static ENDLESS_CTX: std::sync::Mutex<Option<Ctx>> = std::sync::Mutex::new(None);
+/// The server-side `RpcCtx` of the last `ENDLESS` call.
+static ENDLESS_CTX: std::sync::Mutex<Option<RpcCtx>> = std::sync::Mutex::new(None);
 
 fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
@@ -87,7 +87,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -96,7 +96,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -108,7 +108,7 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(msg) = reqs.next().await {
                 parts.push(msg?.text);
@@ -121,7 +121,7 @@ fn build_router() -> Router {
     router.server_stream(
         ENDLESS,
         codecs(),
-        |ctx: Ctx, _req: Request<Msg>| async move {
+        |ctx: RpcCtx, _req: Request<Msg>| async move {
             *ENDLESS_CTX.lock().unwrap() = Some(ctx);
             let first: Vec<ConnectResult<Msg>> = vec![Ok(Msg::of("first"))];
             Ok(futures::stream::iter(first).chain(futures::stream::pending()))
@@ -132,7 +132,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
         HandlerOptions::new(),
@@ -166,8 +166,8 @@ fn start_h2_server() -> (String, Arc<ShutdownSignal>) {
     (addr.to_string(), shutdown)
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 // ── gRPC envelope helpers ────────────────────────────────────────────────────
@@ -508,7 +508,7 @@ async fn grpc_handler_error_returns_http_200() {
     router.unary(
         ERR_PATH,
         codecs(),
-        |_ctx: Ctx, _req: Request<Msg>| async move {
+        |_ctx: RpcCtx, _req: Request<Msg>| async move {
             Err(
                 foundation_connectrpc::shared::error::ConnectError::permission_denied(
                     "not allowed",
@@ -724,7 +724,7 @@ async fn grpc_error_trailers_readable_from_response() {
     router.unary(
         ERR_PATH,
         codecs(),
-        |_ctx: Ctx, _req: Request<Msg>| async move {
+        |_ctx: RpcCtx, _req: Request<Msg>| async move {
             Err(
                 foundation_connectrpc::shared::error::ConnectError::permission_denied(
                     "not allowed",
@@ -773,9 +773,9 @@ async fn grpc_error_trailers_readable_from_response() {
     shutdown.turn_on();
 }
 
-/// Cancelling a call's `Ctx` on the client tells the server: the client's
+/// Cancelling a call's `RpcCtx` on the client tells the server: the client's
 /// stream tasks end, the transport resets the h2 stream, and the server
-/// cancels the handler's `Ctx`. Before, `cancel()` only stopped the local
+/// cancels the handler's `RpcCtx`. Before, `cancel()` only stopped the local
 /// receiver and kept the stream open, so the server streamed on into a peer
 /// that had given up, until the caller dropped the stream.
 #[valtron_test]

@@ -6,7 +6,12 @@
 //! Feature flag: `hetzner_servers `
 
 #![cfg(feature = "hetzner_servers")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -1134,8 +1139,8 @@ pub async fn list_servers_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/servers",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = "/servers";
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1189,8 +1194,8 @@ pub async fn create_server_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/servers",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = "/servers";
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1237,8 +1242,8 @@ pub async fn get_server_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/servers/{}", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/servers/{}", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1281,8 +1286,8 @@ pub async fn delete_server_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/servers/{}", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/servers/{}", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

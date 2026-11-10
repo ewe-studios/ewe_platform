@@ -49,20 +49,20 @@ HTTP wire bytes directly to a `SharedByteBufferStream<RawStream>`.
 ```rust
 use std::sync::Arc;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{Serve, ServeFactory, ConnectionResult};
 use foundation_http::{SimpleIncomingRequest, SimpleMethod};
 
 struct HomeHandler;
 
 impl ServeFactory for HomeHandler {
-    fn create(_bag: &ContextBag) -> Self { HomeHandler }
+    fn create(_ctx: &Ctx) -> Self { HomeHandler }
 }
 
 impl Serve for HomeHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Arc<Ctx>,
         _req: SimpleIncomingRequest,
         conn: foundation_http::SharedByteBufferStream<foundation_http::RawStream>,
     ) -> ConnectionResult {
@@ -94,20 +94,20 @@ to any writable stream.
 ```rust
 use std::sync::Arc;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ServeWriter, ServeWriterFactory, ConnectionResult};
 use foundation_http::SimpleIncomingRequest;
 
 struct JsonHandler;
 
 impl ServeWriterFactory for JsonHandler {
-    fn create(_bag: &ContextBag) -> Self { JsonHandler }
+    fn create(_ctx: &Ctx) -> Self { JsonHandler }
 }
 
 impl ServeWriter for JsonHandler {
     fn serve_writer(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: SimpleIncomingRequest,
         conn: &mut dyn std::io::Write,
     ) -> ConnectionResult {
@@ -136,7 +136,7 @@ no HTTP wire bytes. The dispatcher converts to `web_sys::Response`.
 ```rust
 use std::sync::Arc;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::wasm::serve_cf::{CfServe, CfServeFactory};
 use foundation_http::wasm::cf_conn::{CfConn, CfConnectionResult};
 use foundation_http::SimpleIncomingRequest;
@@ -144,13 +144,13 @@ use foundation_http::SimpleIncomingRequest;
 struct GreetingHandler;
 
 impl CfServeFactory for GreetingHandler {
-    fn create(_bag: &ContextBag) -> Self { GreetingHandler }
+    fn create(_ctx: &Ctx) -> Self { GreetingHandler }
 }
 
 impl CfServe for GreetingHandler {
     fn serve_cf(
         &self,
-        bag: Arc<ContextBag>,
+        bag: Arc<Ctx>,
         req: SimpleIncomingRequest,
         conn: &mut CfConn,
     ) -> CfConnectionResult {
@@ -193,7 +193,7 @@ Same structured pattern as `CfServe`, but for generic browser environments.
 ```rust
 use std::sync::Arc;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::wasm::serve_web::{WebServe, WebServeFactory};
 use foundation_http::wasm::web_conn::{WebConn, WebConnectionResult};
 use foundation_http::SimpleIncomingRequest;
@@ -201,13 +201,13 @@ use foundation_http::SimpleIncomingRequest;
 struct StaticHandler;
 
 impl WebServeFactory for StaticHandler {
-    fn create(_bag: &ContextBag) -> Self { StaticHandler }
+    fn create(_ctx: &Ctx) -> Self { StaticHandler }
 }
 
 impl WebServe for StaticHandler {
     fn serve_web(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Arc<Ctx>,
         _req: SimpleIncomingRequest,
         conn: &mut WebConn,
     ) -> WebConnectionResult {
@@ -244,7 +244,7 @@ Middleware works identically regardless of serve type. Register on any `HttpApp<
 ```rust
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::middleware::{RequestMiddleware, MiddlewareResult};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::SimpleIncomingRequest;
 use foundation_http::wasm::serve_cf::CfServe;
 use std::sync::Arc;
@@ -254,7 +254,7 @@ struct LoggerMiddleware;
 impl RequestMiddleware for LoggerMiddleware {
     fn handle(
         &self,
-        _ctx: &Arc<ContextBag>,
+        _ctx: &Arc<Ctx>,
         req: &mut SimpleIncomingRequest,
     ) -> MiddlewareResult {
         eprintln!("{} {}", req.method, req.request_url.url);
@@ -277,7 +277,7 @@ struct AuthMiddleware;
 impl RequestMiddleware for AuthMiddleware {
     fn handle(
         &self,
-        _ctx: &Arc<ContextBag>,
+        _ctx: &Arc<Ctx>,
         req: &mut SimpleIncomingRequest,
     ) -> MiddlewareResult {
         let auth = req.headers.get(&SimpleHeader::AUTHORIZATION);

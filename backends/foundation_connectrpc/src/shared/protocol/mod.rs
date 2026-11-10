@@ -82,7 +82,7 @@ pub struct ClientExchange {
 pub struct ExchangeConfig<'a> {
     /// The compressors to negotiate the call's compression from.
     pub compression: &'a CompressionRegistry,
-    /// The call's cancel signal (the handler's `Ctx` carries the same one).
+    /// The call's cancel signal (the handler's `RpcCtx` carries the same one).
     /// The seam's parked receives and sends wake on it, so a cancelled call
     /// stops a handler that is waiting on its request or response stream.
     pub cancel: CancelSignal,

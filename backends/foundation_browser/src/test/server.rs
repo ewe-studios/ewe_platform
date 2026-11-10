@@ -11,7 +11,7 @@
 //! the channel-A stream at [`STREAM_PATH`](crate::test::stream::STREAM_PATH);
 //! `broadcaster()` pushes frames; RAII `Drop` stops the server.
 //!
-//! HOW: A `PageHandler` (`Serve`) reads the page + headers from the `ContextBag`
+//! HOW: A `PageHandler` (`Serve`) reads the page + headers from the `Ctx`
 //! and writes them; `StaticFileHandler` serves a directory; [`StreamHandler`]
 //! upgrades the owned connection to SSE and registers it with the
 //! [`Broadcaster`]. Served via `serve_with_listener` on an ephemeral
@@ -28,7 +28,7 @@ use foundation_http::native::handlers::static_file::StaticFileHandler;
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::ServerConfig;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
@@ -141,7 +141,7 @@ pub struct StaticMount {
     pub dir: PathBuf,
 }
 
-/// The mountable page + response headers, parked in the `ContextBag`.
+/// The mountable page + response headers, parked in the `Ctx`.
 struct PageState {
     page: Mutex<PageSource>,
     headers: Vec<(String, String)>,
@@ -151,7 +151,7 @@ struct PageState {
 struct PageHandler;
 
 impl ServeFactory for PageHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         PageHandler
     }
 }
@@ -159,11 +159,11 @@ impl ServeFactory for PageHandler {
 impl Serve for PageHandler {
     fn serve(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         _req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let Some(state) = bag.get::<SharedState>() else {
+        let Some(state) = ctx.get::<SharedState>() else {
             return ConnectionResult::Close(None);
         };
         let html = state.page.lock().expect("page poisoned").render();
@@ -220,7 +220,7 @@ impl TestServer {
         let broadcaster = Broadcaster::new();
 
         let mut app = HttpApp::new_serve();
-        // PageState + Broadcaster are read out of the bag by the handlers; the
+        // PageState + Broadcaster are read out of the ctx by the handlers; the
         // Arc/clone share the same state the TestServer holds.
         app.context().store(SharedState(page_state.clone()));
         app.context().store(broadcaster.clone());
@@ -335,10 +335,10 @@ impl TestServer {
     }
 }
 
-/// Newtype so `PageState` (which itself isn't the bag key) stores cleanly.
+/// Newtype so `PageState` (which itself isn't the ctx key) stores cleanly.
 struct SharedState(Arc<PageState>);
 
-// The bag stores `SharedState`; `PageHandler` looks up `PageState` via it.
+// The ctx stores `SharedState`; `PageHandler` looks up `PageState` via it.
 impl core::ops::Deref for SharedState {
     type Target = PageState;
     fn deref(&self) -> &PageState {

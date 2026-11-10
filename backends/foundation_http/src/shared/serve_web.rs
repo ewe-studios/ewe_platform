@@ -8,7 +8,7 @@ use std::sync::Arc;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::web_conn::{WebConn, WebConnectionResult};
 
 /// Web/browser handler — receives a typed `WebConn` for building
@@ -18,7 +18,7 @@ pub trait WebServe: Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
     async fn serve_web(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: &mut WebConn,
     ) -> WebConnectionResult;
@@ -27,7 +27,7 @@ pub trait WebServe: Sync + 'static {
 /// Factory trait for creating `WebServe` handler instances.
 pub trait WebServeFactory: WebServe + Sized {
     /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
+    fn create(ctx: &Ctx) -> Self;
 }
 
 // ---------------------------------------------------------------------------

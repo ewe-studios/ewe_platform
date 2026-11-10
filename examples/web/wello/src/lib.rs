@@ -6,7 +6,7 @@ use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::writer::{send_html, send_not_found};
 use foundation_http::shared::{
     app::HttpApp,
-    context::ContextBag,
+    context::Ctx,
     serve::ConnectionResult,
 };
 use foundation_http::{RawStream, SharedByteBufferStream, SimpleIncomingRequest, SimpleMethod};
@@ -21,7 +21,7 @@ struct Assets;
 pub struct IndexHandler;
 
 impl ServeFactory for IndexHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -29,7 +29,7 @@ impl ServeFactory for IndexHandler {
 impl Serve for IndexHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

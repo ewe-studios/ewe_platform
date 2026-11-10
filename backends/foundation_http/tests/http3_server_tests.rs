@@ -18,7 +18,6 @@ use foundation_netio::quic::{
 use foundation_http::native::serve::{BoxFuture, H3Serve};
 use foundation_http::native::server::{serve_h3, H3AcceptTask};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
 
 const CERT: &[u8] = include_bytes!("fixtures/quic_cert.pem");
@@ -161,7 +160,7 @@ struct EchoH3;
 impl H3Serve for EchoH3 {
     fn serve_h3(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _connection: Arc<ConnectionContext>,
         mut request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, std::io::Result<()>> {

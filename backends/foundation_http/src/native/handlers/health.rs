@@ -5,14 +5,12 @@
 //! which takes a `SharedByteBufferStream<RawStream>` and exists only on native
 //! targets because `foundation_netio::netcap::RawStream` is native-only.
 
-use std::sync::Arc;
-
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
 
 use crate::native::serve::{Serve, ServeFactory};
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::handlers::health::health_body;
 use crate::shared::handlers::HealthHandler;
 use crate::shared::serve::{ConnectionResult, ServeWriterFactory};
@@ -21,11 +19,11 @@ use crate::shared::serve::{ConnectionResult, ServeWriterFactory};
 impl Serve for HealthHandler {
     fn serve(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let _ = bag;
+        let _ = ctx;
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or("/");
         crate::native::writer::send_json(conn, 200, &health_body(path))
@@ -33,7 +31,7 @@ impl Serve for HealthHandler {
 }
 
 impl ServeFactory for HealthHandler {
-    fn create(bag: &ContextBag) -> Self {
-        <Self as ServeWriterFactory>::create(bag)
+    fn create(ctx: &Ctx) -> Self {
+        <Self as ServeWriterFactory>::create(ctx)
     }
 }

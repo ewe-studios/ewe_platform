@@ -1,9 +1,9 @@
-//! Client core (F24): typed `Client<Req,Res>`, `ClientOptions`, per-call `Ctx`,
+//! Client core (F24): typed `Client<Req,Res>`, `ClientOptions`, per-call `RpcCtx`,
 //! and the four stream facades (Decision 07).
 //!
 //! WHY: Every RPC invocation flows through the Client's typed surface. The Client
 //! owns the transport, protocol, codecs, and configuration, and derives a per-call
-//! Ctx for every invocation (deadline merge, linked cancel, spec/peer overwritten).
+//! `RpcCtx` for every invocation (deadline merge, linked cancel, spec/peer overwritten).
 //! The stream facades (`ServerStream`, `ClientStream`, `BidiStream`) wrap the
 //! conn's split halves with typed encode/decode, so callers never touch raw bytes
 //! or frames.
@@ -34,7 +34,7 @@ use futures::{Stream, StreamExt};
 use crate::shared::codec::{CodecFor, ProcedureCodecs};
 use crate::shared::compression::{CompressionRegistry, Compressor};
 use crate::shared::context::{
-    CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec, StreamType,
+    CancelSignal, IdempotencyLevel, Peer, RequestContext, RpcCtx, Spec, StreamType,
 };
 use crate::shared::envelope::encode_grpc_timeout;
 use crate::shared::error::{Code, ConnectError, ConnectResult};
@@ -164,8 +164,8 @@ pub struct ClientConfig {
     /// Per-call default timeout; merged with the caller's remaining deadline as
     /// `min(caller, default)`.
     pub default_timeout: Option<Duration>,
-    /// Default client-side deadline. Used only when the caller's [`Ctx`] has no
-    /// deadline: a `Ctx` deadline always wins over this value. `None` (the
+    /// Default client-side deadline. Used only when the caller's [`RpcCtx`] has no
+    /// deadline: a `RpcCtx` deadline always wins over this value. `None` (the
     /// default) sets no deadline of its own.
     pub default_deadline: Option<Duration>,
     /// GET→POST fallback URL length threshold (default 8 KiB). `0` disables the
@@ -384,7 +384,7 @@ impl ClientOptions {
     ///
     /// The deadline is enforced by the client: a call that does not finish in
     /// time is cancelled and fails with [`Code::DeadlineExceeded`]. A deadline
-    /// on the per-call [`Ctx`] **wins over** this default, and `default_timeout`
+    /// on the per-call [`RpcCtx`] **wins over** this default, and `default_timeout`
     /// still merges with the caller's deadline as `min`. The default is `None`
     /// (no deadline of the client's own).
     #[must_use]
@@ -457,7 +457,7 @@ impl Default for ClientOptions {
 /// WHY: One generic struct covers all four RPC shapes (unary, server-streaming,
 /// client-streaming, bidi) with a single codec table, transport, and protocol.
 /// The constructor validates codec name + protocol-vs-transport compatibility;
-/// every RPC invocation derives a fresh per-call [`Ctx`] (deadline merge, linked
+/// every RPC invocation derives a fresh per-call [`RpcCtx`] (deadline merge, linked
 /// cancel, spec/peer overwrite).
 pub struct Client<Req, Res> {
     /// The byte-level transport.
@@ -544,7 +544,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     ///
     /// # Errors
     /// A trace on transport failure, codec failure, timeout, or an error response.
-    pub async fn unary(&self, ctx: Ctx, request: Request<Req>) -> ConnectResult<Response<Res>> {
+    pub async fn unary(&self, ctx: RpcCtx, request: Request<Req>) -> ConnectResult<Response<Res>> {
         let idempotency = self.idempotency;
         let spec = Spec {
             stream_type: StreamType::Unary,
@@ -574,7 +574,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
     pub async fn server_stream(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         request: Request<Req>,
     ) -> ConnectResult<ServerStream<Res>> {
         with_deadline(&ctx, self.server_stream_inner(&ctx, request)).await
@@ -582,7 +582,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
     async fn server_stream_inner(
         &self,
-        caller: &Ctx,
+        caller: &RpcCtx,
         request: Request<Req>,
     ) -> ConnectResult<ServerStream<Res>> {
         let spec = Spec {
@@ -672,7 +672,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
     pub async fn client_stream(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         reqs: impl Stream<Item = Req>,
     ) -> ConnectResult<Response<Res>> {
         with_deadline(&ctx, self.client_stream_inner(&ctx, reqs)).await
@@ -680,7 +680,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
     async fn client_stream_inner(
         &self,
-        caller: &Ctx,
+        caller: &RpcCtx,
         reqs: impl Stream<Item = Req>,
     ) -> ConnectResult<Response<Res>> {
         let spec = Spec {
@@ -769,13 +769,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     ///
     /// # Errors
     /// A trace on transport failure, capability mismatch, or protocol setup failure.
-    pub async fn bidi_stream(&self, ctx: Ctx) -> ConnectResult<BidiStream<Req, Res>> {
+    pub async fn bidi_stream(&self, ctx: RpcCtx) -> ConnectResult<BidiStream<Req, Res>> {
         // The async block keeps the setup lazy, so a past deadline fails before
         // `bidi_stream_inner` opens the transport.
         with_deadline(&ctx, async { self.bidi_stream_inner(&ctx) }).await
     }
 
-    fn bidi_stream_inner(&self, caller: &Ctx) -> ConnectResult<BidiStream<Req, Res>> {
+    fn bidi_stream_inner(&self, caller: &RpcCtx) -> ConnectResult<BidiStream<Req, Res>> {
         let spec = Spec {
             stream_type: StreamType::BidiStream,
             procedure: String::new(),
@@ -844,9 +844,9 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     // Internal helpers
     // ════════════════════════════════════════════════════════════════════════
 
-    /// Derive a per-call [`Ctx`] from the caller's context (Decision 07 per-call
-    /// Ctx contract table).
-    fn derive_call_ctx(&self, caller: &Ctx, spec: Spec) -> Ctx {
+    /// Derive a per-call [`RpcCtx`] from the caller's context (Decision 07 per-call
+    /// `RpcCtx` contract table).
+    fn derive_call_ctx(&self, caller: &RpcCtx, spec: Spec) -> RpcCtx {
         let clock = caller.clock();
         let now = clock.now();
         let deadline = match (
@@ -872,8 +872,8 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             protocol: self.config.protocol.peer_protocol_name().to_string(),
         };
 
-        Ctx {
-            bag: caller.bag.clone(),
+        RpcCtx {
+            ctx: caller.ctx.clone(),
             request: RequestContext::for_dispatch(
                 spec,
                 peer,
@@ -893,7 +893,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        ctx: &Ctx,
+        ctx: &RpcCtx,
     ) -> ConnectResult<ClientExchange> {
         // Resolve the outgoing compressor once per call. `None` and `identity`
         // mean that no frame is compressed. An unknown name is an internal
@@ -924,7 +924,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// POST-based unary call implementation.
     async fn call_unary_post(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         request: Request<Req>,
         url: String,
     ) -> ConnectResult<Response<Res>> {
@@ -960,7 +960,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
     async fn call_unary_post_inner(
         &self,
-        ctx: &Ctx,
+        ctx: &RpcCtx,
         request: Request<Req>,
         url: String,
     ) -> ConnectResult<Response<Res>> {
@@ -1014,7 +1014,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Proto is Clone but not Copy; clone it into each closure scope.
         let proto_for_inner = proto.clone();
 
-        let inner: UnaryFunc = Arc::new(move |_ctx: Ctx, call: UnaryCall| {
+        let inner: UnaryFunc = Arc::new(move |_ctx: RpcCtx, call: UnaryCall| {
             let transport = Arc::clone(&transport);
             let url = url_clone.clone();
             let proto = proto_for_inner.clone();
@@ -1105,7 +1105,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
     /// Transport errors are NOT retried (the GET may have executed).
     async fn call_unary_get_or_fallback(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         request: Request<Req>,
         url: String,
     ) -> ConnectResult<Response<Res>> {
@@ -1272,7 +1272,7 @@ pub struct ServerStream<Res> {
     response_headers: SimpleHeaders,
     trailers: SimpleHeaders,
     got_trailers: bool,
-    /// Absolute call deadline, copied from the call `Ctx`. Every later wait
+    /// Absolute call deadline, copied from the call `RpcCtx`. Every later wait
     /// fails once it passes.
     deadline: Option<Instant>,
     /// The engine clock that measures the remaining timeout.
@@ -1421,7 +1421,7 @@ pub struct BidiStream<Req, Res> {
     response_codec: Arc<dyn CodecFor<Res>>,
     spec: Spec,
     peer: Peer,
-    /// Absolute call deadline, copied from the call `Ctx`. Every later wait
+    /// Absolute call deadline, copied from the call `RpcCtx`. Every later wait
     /// fails once it passes.
     deadline: Option<Instant>,
     /// The engine clock that measures the remaining timeout.
@@ -1586,7 +1586,7 @@ impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
 pub struct BidiSender<Req> {
     send: Box<dyn ClientSender>,
     codec: Arc<dyn CodecFor<Req>>,
-    /// Absolute call deadline, copied from the call `Ctx`.
+    /// Absolute call deadline, copied from the call `RpcCtx`.
     deadline: Option<Instant>,
     /// The engine clock that measures the remaining timeout.
     clock: Arc<dyn Clock>,
@@ -1652,7 +1652,7 @@ pub struct BidiReceiver<Res> {
     codec: Arc<dyn CodecFor<Res>>,
     spec: Spec,
     peer: Peer,
-    /// Absolute call deadline, copied from the call `Ctx`.
+    /// Absolute call deadline, copied from the call `RpcCtx`.
     deadline: Option<Instant>,
     /// The engine clock that measures the remaining timeout.
     clock: Arc<dyn Clock>,
@@ -1753,7 +1753,7 @@ impl ClientSender for NoopClientSender {
 
 /// Run `call` until it finishes or `deadline` passes.
 ///
-/// WHY: `Ctx::with_deadline` only records a timestamp. A wait that parks on a
+/// WHY: `RpcCtx::with_deadline` only records a timestamp. A wait that parks on a
 /// read must fail on its own deadline, not on the peer's idle timeout.
 ///
 /// WHAT: when `deadline` is `Some`, race `call` against a valtron sleep for the
@@ -1805,14 +1805,14 @@ async fn with_deadline_at<T>(
 
 /// Run `call` until it finishes or the call's deadline passes.
 ///
-/// WHY: the call setup owns the caller's `Ctx`, so the deadline and the cancel
+/// WHY: the call setup owns the caller's `RpcCtx`, so the deadline and the cancel
 /// signal stay together here. A past deadline must fail before the transport
 /// opens and keep the distinct "sent nothing" message from feature 123.
 ///
 /// WHAT: reject a past deadline first, then race `call` with
 /// [`with_deadline_at`].
 async fn with_deadline<T>(
-    ctx: &Ctx,
+    ctx: &RpcCtx,
     call: impl Future<Output = ConnectResult<T>>,
 ) -> ConnectResult<T> {
     let past = ctx.request.deadline.is_some_and(|deadline| {

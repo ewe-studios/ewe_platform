@@ -5,7 +5,7 @@
 //! the raw connection. The handler routes by host+path, load-balances to a
 //! backend, and relays the exchange.
 //!
-//! WHAT: [`ProxyHandler`], created from the `ContextBag` (which carries the
+//! WHAT: [`ProxyHandler`], created from the `Ctx` (which carries the
 //! shared [`ProxyState`]). Matching failures answer `404`; no available backend
 //! answers `503`; otherwise the exchange is relayed to the backend.
 //!
@@ -30,7 +30,7 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingR
 
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::writer::{render_head, send_not_found, send_text, ResponseWriter};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 
 use crate::config::BackendProtocol;
@@ -58,15 +58,15 @@ impl std::fmt::Debug for ProxyHandler {
 }
 
 impl ServeFactory for ProxyHandler {
-    /// Pull the shared proxy state out of the context bag.
+    /// Pull the shared proxy state out of the context.
     ///
     /// # Panics
-    /// Panics if [`ProxyState`] was not stored in the bag before routing — a
+    /// Panics if [`ProxyState`] was not stored in the context before routing — a
     /// wiring bug in `ProxyServer::start`, not a runtime condition.
-    fn create(bag: &ContextBag) -> Self {
-        let state = bag
+    fn create(app_ctx: &Ctx) -> Self {
+        let state = app_ctx
             .get::<ProxyState>()
-            .expect("ProxyState must be stored in the ContextBag before routing");
+            .expect("ProxyState must be stored in the Ctx before routing");
         let clock = state.clock().clone();
         Self { state, clock }
     }
@@ -92,7 +92,7 @@ impl Serve for ProxyHandler {
     )]
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

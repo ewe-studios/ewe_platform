@@ -3,12 +3,10 @@
 //! WHY: Request logging is essential for debugging, monitoring, and analytics.
 //! WHAT: Logs request method, path, client IP, and duration at configurable levels.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::SimpleIncomingRequest;
 
 use crate::shared::client_ip::ClientIp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// Log level for request logging.
@@ -161,7 +159,7 @@ impl Default for LoggerMiddleware {
 }
 
 impl RequestMiddleware for LoggerMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let method = format!("{}", req.method);
         let path = &req.request_url.url;
 

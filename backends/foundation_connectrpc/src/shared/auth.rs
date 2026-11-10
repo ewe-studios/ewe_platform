@@ -36,7 +36,7 @@ use foundation_netio::shared::http::{
     SimpleOutgoingResponse, SimpleUrl,
 };
 
-use crate::shared::context::Ctx;
+use crate::shared::context::RpcCtx;
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::error_writer::{status_from_code, ErrorWriter};
 use crate::shared::interceptor::{
@@ -78,12 +78,12 @@ impl AuthInfo {
     }
 }
 
-/// Retrieve the [`AuthInfo`] from a per-call [`Ctx`].
+/// Retrieve the [`AuthInfo`] from a per-call [`RpcCtx`].
 ///
 /// Returns `None` if no auth info has been inserted into the context's
 /// extensions (i.e. the request is not authenticated).
 #[must_use]
-pub fn get_auth_info(ctx: &Ctx) -> Option<&AuthInfo> {
+pub fn get_auth_info(ctx: &RpcCtx) -> Option<&AuthInfo> {
     ctx.request.extensions.get::<AuthInfo>()
 }
 
@@ -91,7 +91,7 @@ pub fn get_auth_info(ctx: &Ctx) -> Option<&AuthInfo> {
 ///
 /// Returns `None` if no auth info is present or the artifact type is not stored.
 #[must_use]
-pub fn get_auth_artifact<T: 'static>(ctx: &Ctx) -> Option<&T> {
+pub fn get_auth_artifact<T: 'static>(ctx: &RpcCtx) -> Option<&T> {
     get_auth_info(ctx)?.artifacts.get::<T>()
 }
 

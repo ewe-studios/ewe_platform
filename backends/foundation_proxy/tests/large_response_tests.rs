@@ -23,7 +23,7 @@ use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::native::writer::send_bytes;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
@@ -60,9 +60,9 @@ struct BigBodyHandler {
 }
 
 impl ServeFactory for BigBodyHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         Self {
-            body: bag.get::<Vec<u8>>().expect("big body in the context bag"),
+            body: ctx.get::<Vec<u8>>().expect("big body in the context"),
         }
     }
 }
@@ -70,7 +70,7 @@ impl ServeFactory for BigBodyHandler {
 impl Serve for BigBodyHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

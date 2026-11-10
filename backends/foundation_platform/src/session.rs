@@ -14,7 +14,6 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
-use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
 use foundation_core::valtron::{Clock, Ctx};
 
 use crate::backend::http::HttpBackend;
@@ -224,25 +223,23 @@ impl PlatformSession {
 
 /// Build the side-effect bundle for a host entry point.
 ///
-/// The clock is the one the caller injected. The RNG is seeded from the
-/// operating system, so guest randomness is unpredictable. If the entropy
-/// source fails, the bundle keeps the deterministic default and the session
-/// logs a warning: app launch cannot fail for this, but an operator must see
-/// that guest randomness is predictable (issue #426).
+/// The clock is the one the caller injected. The RNG comes from
+/// [`Ctx::try_host`], so the entropy backend seeds it and guest randomness is
+/// unpredictable. If the entropy source fails, the bundle keeps the
+/// deterministic default and the session logs a warning: app launch cannot fail
+/// for this, but an operator must see that guest randomness is predictable
+/// (issue #426).
 fn host_session_ctx(clock: &Arc<dyn Clock>) -> Ctx {
-    let ctx = Ctx::new(Arc::clone(clock));
-    let mut seed = [0u8; 32];
-    match foundation_compact::entropy::fill(&mut seed) {
-        Ok(()) => {
-            *ctx.rng().lock().expect("session ctx RNG mutex is poisoned") =
-                ChaCha8Rng::from_seed(seed);
+    match Ctx::try_host() {
+        Ok(host) => host.with_clock(Arc::clone(clock)),
+        Err(error) => {
+            tracing::warn!(
+                %error,
+                "session entropy is unavailable; guest randomness is deterministic"
+            );
+            Ctx::new(Arc::clone(clock))
         }
-        Err(error) => tracing::warn!(
-            %error,
-            "session entropy is unavailable; guest randomness is deterministic"
-        ),
     }
-    ctx
 }
 
 // ── Route handler registration ────────────────────────────────────────

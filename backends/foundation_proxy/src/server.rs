@@ -143,10 +143,10 @@ impl ProxyServer {
             .map_err(|e| ProxyError::Startup(format!("local_addr: {e}")))?;
 
         // Build the HTTP/1.1 handler app: store proxy state, register catch-all.
-        // The `ContextBag` wraps the stored value in its own `Arc` and keys it by
+        // The `Ctx` wraps the stored value in its own `Arc` and keys it by
         // `TypeId::of::<ProxyState>()`, which is exactly what `ProxyHandler::create`
         // looks up via `get::<ProxyState>()`. Store the value (not a pre-made
-        // `Arc`), then pull the single shared `Arc<ProxyState>` back out of the bag
+        // `Arc`), then pull the single shared `Arc<ProxyState>` back out of the context
         // so the H2 handler, health probes, and this handle all reference the same
         // instance (shared drain flag and in-flight counts).
         // State persistence (Decision 21, F14): restore backend drain/pause state
@@ -182,7 +182,7 @@ impl ProxyServer {
         let proxy_state = h1_app
             .context()
             .get::<ProxyState>()
-            .expect("ProxyState was just stored in the context bag");
+            .expect("ProxyState was just stored in the context");
         h1_app.route_any::<ProxyHandler>("/*");
 
         // Build the HTTP/2 handler app: share the same ProxyState.

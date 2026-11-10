@@ -28,8 +28,8 @@ use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    service, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Response,
-    Router,
+    service, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, Request, Response, Router,
+    RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -61,7 +61,7 @@ pub trait GreetService {
     // (`unimplemented`) body ignores them; an implementor names them freely.
     async fn greet(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>>;
 }
@@ -74,7 +74,7 @@ impl GreetService for Greeter {
     #[allow(clippy::unused_async_trait_impl)]
     async fn greet(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>> {
         Ok(Response::new(GreetResponse {
@@ -128,7 +128,7 @@ async fn main() {
     )
     .expect("build client");
 
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let resp = client
         .greet(
             ctx,

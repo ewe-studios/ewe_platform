@@ -28,14 +28,14 @@ use serial_test::serial;
 use foundation_http::{
     native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, ServerConfig},
-    shared::{app::HttpApp, context::ContextBag, serve::ConnectionResult},
+    shared::{app::HttpApp, context::Ctx, serve::ConnectionResult},
 };
 
 /// Immediately answers `200 OK` and keeps the connection alive.
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -43,7 +43,7 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -57,7 +57,7 @@ static SLOW_SLEEP_MS: AtomicU64 = AtomicU64::new(0);
 struct SlowHandler;
 
 impl ServeFactory for SlowHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -65,7 +65,7 @@ impl ServeFactory for SlowHandler {
 impl Serve for SlowHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

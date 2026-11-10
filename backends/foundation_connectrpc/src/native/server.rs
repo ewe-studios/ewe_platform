@@ -26,7 +26,7 @@
 //! terminating chunk.
 //!
 //! The driver also watches the socket for the client going away and enforces
-//! the call's deadline: either cancels the call's `Ctx`. A client that closes
+//! the call's deadline: either cancels the call's `RpcCtx`. A client that closes
 //! (or half-closes) the connection mid-call gets the call cancelled and
 //! dropped and the connection closed, as nginx and Go's `net/http` do.
 
@@ -41,7 +41,7 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::serve::Serve;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
@@ -148,7 +148,7 @@ static SERVE_TIMER: ThreadTimer = ThreadTimer;
 impl Serve for ConnectRpcServe {
     fn serve(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         mut req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -164,7 +164,7 @@ impl Serve for ConnectRpcServe {
             body,
             None | Some(SendSafeBody::None)
         )));
-        let clock = crate::shared::context::clock_from_bag(&bag);
+        let clock = ctx.clock();
         let body: RequestBody<'static> = Box::pin(H1Body {
             reader: BodyReader::new(body),
             io: Arc::clone(&io),
@@ -184,7 +184,7 @@ impl Serve for ConnectRpcServe {
         let handler = Arc::clone(&self.handler);
 
         let fut = async move {
-            let dispatch = handler.dispatch_to(bag, req, body, Box::new(sink), hooks);
+            let dispatch = handler.dispatch_to(ctx, req, body, Box::new(sink), hooks);
             // Watch for the client going away while the call runs: nothing else
             // reads the socket once the body is in, so without this a handler
             // waiting on something other than the peer never learns of it.

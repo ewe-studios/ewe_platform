@@ -6,7 +6,7 @@
     clippy::cast_sign_loss
 )]
 
-//! Client-core tests (F24): `Client<Req,Res>`, `ClientOptions`, per-call `Ctx`
+//! Client-core tests (F24): `Client<Req,Res>`, `ClientOptions`, per-call `RpcCtx`
 //! derivation, and the four stream facades (Decision 07).
 //!
 //! HOW: A `MockTransport` that pre-wires valtron pipes lets the test drive the
@@ -26,7 +26,7 @@ use foundation_netio::shared::http::{
 
 use foundation_connectrpc::shared::client::{Client, ClientOptions, ProtocolSelection};
 use foundation_connectrpc::shared::codec::{Codec, CodecError, CodecFor, ProcedureCodecs};
-use foundation_connectrpc::shared::context::{Ctx, IdempotencyLevel};
+use foundation_connectrpc::shared::context::{IdempotencyLevel, RpcCtx};
 use foundation_connectrpc::shared::error::Code;
 use foundation_connectrpc::shared::message::Request;
 use foundation_connectrpc::shared::transport::{
@@ -369,7 +369,7 @@ async fn client_unary_connect_round_trip() {
 
     spawn_unary_server(server, b"ping".to_vec(), b"pong".to_vec());
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     let response = client.unary(ctx, request).await.unwrap();
@@ -401,7 +401,7 @@ async fn client_unary_error_status() {
         let _ = server.resp_tx.send(Bytes::from_static(b"not found")).await;
     }));
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     match client.unary(ctx, request).await {
@@ -460,7 +460,7 @@ async fn a_large_error_body_is_cut_at_the_default_cap_and_the_stream_is_dropped_
         }
     }));
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     match client.unary(ctx, request).await {
@@ -513,7 +513,7 @@ async fn a_configured_error_body_cap_reaches_the_error_message() {
         let _ = server.resp_tx.send(Bytes::from(vec![b'y'; 4096])).await;
     }));
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     match client.unary(ctx, request).await {
@@ -555,7 +555,7 @@ async fn client_unary_with_grpc_web() {
     let resp_envelope = grpc_envelope(b"pong");
     spawn_unary_server(server, req_envelope, resp_envelope);
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     // The client unwraps the response envelope; the caller sees b"pong".
@@ -605,7 +605,7 @@ async fn a_typed_405_triggers_the_post_fallback() {
     )
     .unwrap();
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let response = client
         .unary(ctx, Request::new(b"ping".to_vec()))
         .await
@@ -648,7 +648,7 @@ async fn a_404_body_that_names_405_does_not_trigger_the_fallback() {
     )
     .unwrap();
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let err = client
         .unary(ctx, Request::new(b"ping".to_vec()))
         .await
@@ -679,7 +679,7 @@ async fn an_invalid_request_url_fails_typed() {
     )
     .expect("Client::new does not parse the URL");
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     // The streaming paths build the descriptor with `build_request_descriptor`.
     let Err(err) = client
         .server_stream(ctx, Request::new(b"ping".to_vec()))

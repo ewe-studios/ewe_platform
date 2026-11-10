@@ -639,7 +639,7 @@ fn e2e_custom_prefix_routes_work() {
     ));
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
-    // The routes' handlers need the storage in the bag (as `IdpServer` stores it).
+    // The routes' handlers need the storage in the context (as `IdpServer` stores it).
     app.ctx.store(storage);
     IdpServer::<MemoryStorage>::register_routes(&mut app, "/auth/v1");
 

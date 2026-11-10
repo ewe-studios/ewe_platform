@@ -3,10 +3,10 @@
 //! WHY: a handler waiting on `ctx.cancelled()` must stop when the call is over
 //! for its peer: an h2 `RST_STREAM`, a stream the connection drops, an HTTP/1.1
 //! client that closes its connection, or the call's deadline passing. Nothing
-//! fired the `Ctx` cancel signal before, and an h2 reset read like a clean end
+//! fired the `RpcCtx` cancel signal before, and an h2 reset read like a clean end
 //! of the request body.
 //!
-//! HOW: each handler parks its `Ctx` in a [`Slot`] and awaits `cancelled()`.
+//! HOW: each handler parks its `RpcCtx` in a [`Slot`] and awaits `cancelled()`.
 //! The h2 tests drive `ConnectRpcHandler::dispatch_h2` directly over its frame
 //! pipes, standing in for the h2 connection; the HTTP/1.1 tests use a real
 //! `HttpServer` over a loopback socket.
@@ -21,15 +21,14 @@ use foundation_core::valtron::{valtron_test, Pipe, PipeReceiver, PipeSender};
 use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame};
 use foundation_netio::netcap::ConnectionContext;
 
 use foundation_connectrpc::{
-    ConnectError, ConnectRpcHandler, ConnectRpcServe, Ctx, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    ConnectError, ConnectRpcHandler, ConnectRpcServe, HandlerOptions, JsonCodec, ProcedureCodecs,
+    Request, RequestStream, Response, Router, RpcCtx,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -41,17 +40,17 @@ const UNARY: &str = "/t.Svc/Unary";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const SERVER_STREAM: &str = "/t.Svc/ServerStream";
 
-/// Where a handler leaves its `Ctx` for the test to watch.
+/// Where a handler leaves its `RpcCtx` for the test to watch.
 #[derive(Clone, Default)]
-struct Slot(Arc<Mutex<Option<Ctx>>>);
+struct Slot(Arc<Mutex<Option<RpcCtx>>>);
 
 impl Slot {
-    fn put(&self, ctx: &Ctx) {
+    fn put(&self, ctx: &RpcCtx) {
         *self.0.lock().unwrap() = Some(ctx.clone());
     }
 
-    /// Wait until a handler parked its `Ctx`.
-    fn wait_entered(&self) -> Ctx {
+    /// Wait until a handler parked its `RpcCtx`.
+    fn wait_entered(&self) -> RpcCtx {
         let start = Instant::now();
         loop {
             if let Some(ctx) = self.0.lock().unwrap().clone() {
@@ -67,12 +66,12 @@ impl Slot {
 }
 
 /// Wait until `ctx` is cancelled; panics after `limit`.
-fn assert_cancelled_within(ctx: &Ctx, limit: Duration) {
+fn assert_cancelled_within(ctx: &RpcCtx, limit: Duration) {
     let start = Instant::now();
     while !ctx.is_canceled() {
         assert!(
             start.elapsed() < limit,
-            "the handler's Ctx was not cancelled within {limit:?}"
+            "the handler's RpcCtx was not cancelled within {limit:?}"
         );
         std::thread::sleep(Duration::from_millis(5));
     }
@@ -82,14 +81,14 @@ fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
 }
 
-/// Every procedure parks its `Ctx` in `slot` and waits to be cancelled.
+/// Every procedure parks its `RpcCtx` in `slot` and waits to be cancelled.
 fn router(slot: &Slot) -> Router {
     let mut router = Router::new();
     let s = slot.clone();
     router.unary(
         UNARY,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let s = s.clone();
             async move {
                 s.put(&ctx);
@@ -103,7 +102,7 @@ fn router(slot: &Slot) -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        move |ctx: Ctx, _reqs: RequestStream<Msg>| {
+        move |ctx: RpcCtx, _reqs: RequestStream<Msg>| {
             let s = s.clone();
             async move {
                 s.put(&ctx);
@@ -117,7 +116,7 @@ fn router(slot: &Slot) -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let s = s.clone();
             async move {
                 s.put(&ctx);
@@ -170,7 +169,7 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
     let (done_tx, done) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
         let fut = handler.dispatch_h2(
-            Arc::new(ContextBag::from_ctx(&foundation_core::valtron::Ctx::host())),
+            foundation_core::valtron::Ctx::host(),
             header,
             body_rx,
             resp_tx,
@@ -186,7 +185,7 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
 
 const STREAMING_JSON: (&str, &str) = ("content-type", "application/connect+json");
 
-/// A peer `RST_STREAM` mid-request cancels the handler's `Ctx` instead of reading
+/// A peer `RST_STREAM` mid-request cancels the handler's `RpcCtx` instead of reading
 /// as a clean end of the request stream.
 #[test]
 fn h2_reset_cancels_the_handlers_ctx() {
@@ -234,7 +233,7 @@ fn h2_reset_lets_a_streaming_handler_observe_its_cancellation() {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        move |ctx: Ctx, _reqs: RequestStream<Msg>| {
+        move |ctx: RpcCtx, _reqs: RequestStream<Msg>| {
             let (seen, slot) = (Arc::clone(&seen), slot.clone());
             async move {
                 slot.put(&ctx);
@@ -319,7 +318,7 @@ fn h2_dropped_unary_stream_cancels_the_call() {
     assert_cancelled_within(&ctx, Duration::from_secs(5));
 }
 
-/// A `connect-timeout-ms` deadline is enforced: the handler's `Ctx` is
+/// A `connect-timeout-ms` deadline is enforced: the handler's `RpcCtx` is
 /// cancelled when it passes and the call is answered `deadline_exceeded`.
 #[test]
 fn h2_deadline_cancels_and_answers_deadline_exceeded() {

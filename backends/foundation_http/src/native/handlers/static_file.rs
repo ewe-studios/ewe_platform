@@ -18,7 +18,6 @@
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
@@ -30,7 +29,7 @@ use crate::native::writer::{
     log_write_failure, render_head, send_not_found, send_server_error, send_text, ResponseWriter,
     WriterConfig,
 };
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::serve::{ConnectionResult, ServeOutcome};
 
 /// MIME type detection based on file extension.
@@ -238,7 +237,7 @@ impl StaticFileHandler {
 }
 
 impl ServeFactory for StaticFileHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         panic!("StaticFileHandler requires a root directory — use StaticFileHandler::new() and register manually");
     }
 }
@@ -246,7 +245,7 @@ impl ServeFactory for StaticFileHandler {
 impl Serve for StaticFileHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {

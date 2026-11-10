@@ -28,7 +28,7 @@ use std::collections::HashMap;
 
 use crate::shared::codec::ProcedureCodecs;
 use crate::shared::compression::{CompressionRegistry, Compressor, SizeLimits};
-use crate::shared::context::{Ctx, IdempotencyLevel, Spec, StreamType};
+use crate::shared::context::{IdempotencyLevel, RpcCtx, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamingHandlerFunc, UnaryFunc,
@@ -149,7 +149,7 @@ impl HandlerOptions {
     #[must_use]
     pub fn with_recover<F>(mut self, handler: F) -> Self
     where
-        F: Fn(&Ctx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError
+        F: Fn(&RpcCtx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError
             + Clone
             + Send
             + Sync
@@ -232,7 +232,7 @@ impl Router {
     ) where
         Req: Send + 'static,
         Res: Send + 'static,
-        F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, Request<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
@@ -259,7 +259,7 @@ impl Router {
         Req: Send + 'static,
         Res: Send + 'static,
         S: futures::Stream<Item = ConnectResult<Res>> + Send + 'static,
-        F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, Request<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<S>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
@@ -285,7 +285,7 @@ impl Router {
     ) where
         Req: Send + 'static,
         Res: Send + 'static,
-        F: Fn(Ctx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);
@@ -312,7 +312,7 @@ impl Router {
         Req: Send + 'static,
         Res: Send + 'static,
         S: futures::Stream<Item = ConnectResult<Res>> + Send + 'static,
-        F: Fn(Ctx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
+        F: Fn(RpcCtx, RequestStream<Req>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ConnectResult<S>> + Send + 'static,
     {
         let codecs = Arc::new(codecs);

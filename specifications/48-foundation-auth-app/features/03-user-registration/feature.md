@@ -61,7 +61,7 @@ Simplified registration without PoW. Only available when `IS_DEV` is true.
 impl IdpHandlerCore {
     pub async fn register(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Parse JSON body

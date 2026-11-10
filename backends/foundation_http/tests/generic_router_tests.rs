@@ -3,7 +3,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::router::Router;
 use foundation_http::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory};
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -18,7 +18,7 @@ struct TestWriter {
 }
 
 impl ServeWriterFactory for TestWriter {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         panic!("TestWriter must be created with new()");
     }
 }
@@ -32,7 +32,7 @@ impl TestWriter {
 impl ServeWriter for TestWriter {
     fn serve_writer(
         &self,
-        _bag: &ContextBag,
+        _ctx: &Ctx,
         _req: SimpleIncomingRequest,
         conn: &mut dyn std::io::Write,
     ) -> ConnectionResult {
@@ -68,7 +68,7 @@ fn test_router_writer_dispatch() {
 
     let mut buf = Vec::new();
     let result = handler.unwrap().serve_writer(
-        &ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()),
+        &foundation_core::valtron::Ctx::host(),
         dummy_request(),
         &mut buf,
     );
@@ -150,7 +150,7 @@ fn test_router_multiple_writers_same_path() {
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
     let mut buf = Vec::new();
     let _ = handler.serve_writer(
-        &ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()),
+        &foundation_core::valtron::Ctx::host(),
         dummy_request(),
         &mut buf,
     );
@@ -160,7 +160,7 @@ fn test_router_multiple_writers_same_path() {
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
     let mut buf = Vec::new();
     let _ = handler.serve_writer(
-        &ContextBag::from_ctx(&foundation_core::valtron::Ctx::host()),
+        &foundation_core::valtron::Ctx::host(),
         dummy_request(),
         &mut buf,
     );

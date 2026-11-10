@@ -62,7 +62,7 @@ CodecFor<Res>`), keeping every element's type. `only(c)` is sugar for `of((c,))`
 ### Server: one handler, five tables
 
 ```rust
-async fn echo(_ctx: Ctx, req: Request<Sample>) -> ConnectResult<Response<Sample>> {
+async fn echo(_ctx: RpcCtx, req: Request<Sample>) -> ConnectResult<Response<Sample>> {
     Ok(Response::new(req.msg))
 }
 

@@ -3,13 +3,11 @@
 //! WHY: Prevents denial of service via large request bodies.
 //! WHAT: Checks Content-Length header and rejects requests exceeding the limit.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// Body limit middleware.
@@ -62,7 +60,7 @@ impl BodyLimitMiddleware {
 }
 
 impl RequestMiddleware for BodyLimitMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Check Content-Length header
         if let Some(content_length) = Self::extract_content_length(req) {
             if content_length > self.max_bytes {

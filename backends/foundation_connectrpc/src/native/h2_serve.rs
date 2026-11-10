@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_http::native::serve::{BoxFuture, H2Serve};
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
 
 use crate::shared::router::ConnectRpcHandler;
@@ -37,11 +37,11 @@ impl ConnectRpcServeH2 {
 impl H2Serve for ConnectRpcServeH2 {
     fn serve_h2(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
     ) -> BoxFuture<'static, io::Result<()>> {
-        self.handler.dispatch_h2(bag, header, body, tx)
+        self.handler.dispatch_h2(ctx, header, body, tx)
     }
 }

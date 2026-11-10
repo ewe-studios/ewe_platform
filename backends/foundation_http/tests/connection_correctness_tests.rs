@@ -27,7 +27,6 @@ use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{ConnectionHandler, KeepAliveConfig};
 use foundation_http::native::writer::send_text;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_http::ShutdownSignal;
@@ -40,7 +39,7 @@ use foundation_netio::shared::http::{
 struct SecretHandler;
 
 impl ServeFactory for SecretHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -48,7 +47,7 @@ impl ServeFactory for SecretHandler {
 impl Serve for SecretHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -60,7 +59,7 @@ impl Serve for SecretHandler {
 struct AlwaysRespond;
 
 impl RequestMiddleware for AlwaysRespond {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(
             SimpleOutgoingResponse::builder()
                 .with_status(Status::Forbidden)
