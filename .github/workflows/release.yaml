@@ -82,6 +82,9 @@ jobs:
 
       - name: Build
         id: build
+        # A container job runs steps with sh by default. This script needs bash
+        # (pipefail, arrays and ${var//a/b}).
+        shell: bash
         env:
           PACKAGES: ${{ inputs.packages || env.DEFAULT_PACKAGES }}
         run: |
