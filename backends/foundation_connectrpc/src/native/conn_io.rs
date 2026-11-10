@@ -324,6 +324,8 @@ pub(crate) struct IoReady {
     timeout: Duration,
     /// The valtron timer that wakes this future at the deadline.
     timer: Option<Sleep>,
+    /// The context whose clock measures the timers of this future.
+    ctx: foundation_context::Ctx,
     /// The valtron timer that re-polls a poll-fallback transport at
     /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
     fallback: Option<Sleep>,
@@ -341,7 +343,8 @@ impl IoReady {
             io,
             interest,
             timeout,
-            timer: Some(timer::sleep_until(deadline)),
+            timer: Some(timer::sleep_until(deadline, ctx)),
+            ctx: ctx.clone(),
             fallback: None,
         }
     }
@@ -370,7 +373,10 @@ impl Future for IoReady {
             // paced at the configured interval; the wake is a timer wake, never
             // a spin.
             if this.fallback.is_none() {
-                this.fallback = Some(timer::sleep_for(this.io.poll_fallback_interval()));
+                this.fallback = Some(timer::sleep_for(
+                    this.io.poll_fallback_interval(),
+                    &this.ctx,
+                ));
             }
             if let Some(fallback) = this.fallback.as_mut() {
                 if Pin::new(fallback).poll(cx).is_ready() {
@@ -397,11 +403,18 @@ pub(crate) struct Hangup {
     /// The valtron timer that re-polls a poll-fallback transport's fd at
     /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
     fallback: Option<Sleep>,
+    /// The engine root context: it has no caller context, so the poll-fallback
+    /// timer reads the clock of the engine that runs the connection.
+    ctx: foundation_context::Ctx,
 }
 
 impl Hangup {
     pub(crate) fn new(io: Arc<ConnIo>) -> Self {
-        Self { io, fallback: None }
+        Self {
+            io,
+            fallback: None,
+            ctx: foundation_core::valtron::fork_ctx(),
+        }
     }
 }
 
@@ -418,7 +431,10 @@ impl Future for Hangup {
                     // then re-probe `gone_now`. The wake is a timer wake, never
                     // a spin.
                     if this.fallback.is_none() {
-                        this.fallback = Some(timer::sleep_for(this.io.poll_fallback_interval()));
+                        this.fallback = Some(timer::sleep_for(
+                            this.io.poll_fallback_interval(),
+                            &this.ctx,
+                        ));
                     }
                     if let Some(fallback) = this.fallback.as_mut() {
                         if Pin::new(fallback).poll(cx).is_ready() {

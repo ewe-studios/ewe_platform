@@ -67,7 +67,11 @@ impl Serve for AsyncKeepHandler {
             if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, "first")).await {
                 return ServeOutcome::Close(err);
             }
-            timer::sleep_for(Duration::from_millis(50)).await;
+            timer::sleep_for(
+                Duration::from_millis(50),
+                &foundation_core::valtron::Ctx::host(),
+            )
+            .await;
             ServeOutcome::Keep
         }))
     }

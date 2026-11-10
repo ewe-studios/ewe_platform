@@ -1786,7 +1786,7 @@ async fn with_deadline_at<T>(
     }
 
     let call = Box::pin(call);
-    let sleeper = Box::pin(valtron::sleep_async(remaining));
+    let sleeper = Box::pin(valtron::sleep_async(remaining, &valtron::fork_ctx()));
     match futures::future::select(call, sleeper).await {
         futures::future::Either::Left((result, _sleeper)) => result,
         futures::future::Either::Right(((), call)) => {

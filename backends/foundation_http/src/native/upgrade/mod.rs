@@ -91,7 +91,11 @@ pub async fn accept_websocket(
             return false;
         }
     };
-    let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default());
+    let mut writer = ResponseWriter::new(
+        conn.clone(),
+        WriterConfig::default(),
+        foundation_core::valtron::fork_ctx(),
+    );
     let result = async {
         writer.write_all(&head).await?;
         writer.flush().await
@@ -137,7 +141,7 @@ impl SseWriter {
     #[must_use]
     pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig) -> Self {
         Self {
-            writer: ResponseWriter::new(conn, config),
+            writer: ResponseWriter::new(conn, config, foundation_core::valtron::fork_ctx()),
         }
     }
 
@@ -247,7 +251,11 @@ impl SseStream {
 
         let head = render_message(response).map_err(UpgradeError::WriteError)?;
 
-        let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default());
+        let mut writer = ResponseWriter::new(
+            conn.clone(),
+            WriterConfig::default(),
+            foundation_core::valtron::fork_ctx(),
+        );
         writer
             .write_all(&head)
             .await

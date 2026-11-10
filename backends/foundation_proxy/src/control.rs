@@ -218,7 +218,10 @@ async fn accept_loop(
     while !shutdown.probe() {
         let accepted = match select(
             Box::pin(listener.read_with(std::os::unix::net::UnixListener::accept)),
-            Box::pin(sleep_async(config.shutdown_poll)),
+            Box::pin(sleep_async(
+                config.shutdown_poll,
+                &foundation_core::valtron::fork_ctx(),
+            )),
         )
         .await
         {
@@ -297,7 +300,15 @@ async fn read_request_line(
         }
         String::from_utf8(line).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
     };
-    match select(Box::pin(read), Box::pin(sleep_async(config.read_timeout))).await {
+    match select(
+        Box::pin(read),
+        Box::pin(sleep_async(
+            config.read_timeout,
+            &foundation_core::valtron::fork_ctx(),
+        )),
+    )
+    .await
+    {
         Either::Left((line, _)) => line,
         Either::Right(((), _)) => Err(std::io::ErrorKind::TimedOut.into()),
     }

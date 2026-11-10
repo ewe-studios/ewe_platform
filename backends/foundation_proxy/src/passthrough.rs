@@ -106,7 +106,12 @@ impl PassthroughConfig {
 
 /// Wait for `fut`, or give up after `tick`: `None` means the tick came first.
 async fn or_tick<T>(fut: impl std::future::Future<Output = T>, tick: Duration) -> Option<T> {
-    match select(Box::pin(fut), Box::pin(sleep_async(tick))).await {
+    match select(
+        Box::pin(fut),
+        Box::pin(sleep_async(tick, &foundation_core::valtron::fork_ctx())),
+    )
+    .await
+    {
         Either::Left((value, _)) => Some(value),
         Either::Right(((), _)) => None,
     }
@@ -239,7 +244,7 @@ async fn accept_loop(
             Some(Err(e)) => {
                 tracing::error!("tcp passthrough accept error: {e}");
                 // Back off one poll so a persistent error does not spin.
-                sleep_async(config.shutdown_poll).await;
+                sleep_async(config.shutdown_poll, &foundation_core::valtron::fork_ctx()).await;
             }
         }
     }

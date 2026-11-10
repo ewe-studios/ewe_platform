@@ -284,7 +284,11 @@ async fn wait_for_builds(builds: &AtomicUsize, want: usize) {
         if builds.load(Ordering::SeqCst) >= want {
             return;
         }
-        sleep_async(Duration::from_millis(10)).await;
+        sleep_async(
+            Duration::from_millis(10),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     panic!(
         "the builder ran {} builds; expected {want}",

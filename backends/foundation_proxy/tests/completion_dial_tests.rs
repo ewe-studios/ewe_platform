@@ -154,7 +154,11 @@ async fn completion_dial_does_not_hold_worker() {
     let stuck_clients: Vec<TcpStream> = (0..STUCK_DIALS)
         .map(|_| TcpStream::connect(stuck.local_addr()).expect("connect stuck"))
         .collect();
-    sleep_async(Duration::from_millis(500)).await;
+    sleep_async(
+        Duration::from_millis(500),
+        &foundation_core::valtron::Ctx::host(),
+    )
+    .await;
 
     // While that dial is open, a second client must be answered.
     let good_addr = good.local_addr();
@@ -172,7 +176,11 @@ async fn completion_dial_does_not_hold_worker() {
         if let Ok(v) = rx.try_recv() {
             break v;
         }
-        sleep_async(Duration::from_millis(20)).await;
+        sleep_async(
+            Duration::from_millis(20),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     };
     assert_eq!(answer.0, b"ping", "the second request was not echoed");
     assert!(
@@ -208,7 +216,11 @@ async fn completion_dial_does_not_hold_worker() {
         if let Ok(v) = rx.try_recv() {
             break v;
         }
-        sleep_async(Duration::from_millis(20)).await;
+        sleep_async(
+            Duration::from_millis(20),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     };
     assert_eq!(
         closed, STUCK_DIALS,

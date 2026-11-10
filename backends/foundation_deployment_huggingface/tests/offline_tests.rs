@@ -130,7 +130,11 @@ async fn hub_whoami_awaits_without_blocking() {
     let whoami = client::whoami(&hf);
     let ticker = async move {
         for _ in 0..50 {
-            foundation_core::valtron::timer::sleep_for(Duration::from_millis(10)).await;
+            foundation_core::valtron::timer::sleep_for(
+                Duration::from_millis(10),
+                &foundation_core::valtron::Ctx::host(),
+            )
+            .await;
             ticks_for_ticker.fetch_add(1, Ordering::SeqCst);
         }
     };

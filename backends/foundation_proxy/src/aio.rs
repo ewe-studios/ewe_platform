@@ -211,7 +211,15 @@ pub async fn dial_tcp(
             Poll::Pending
         }
     });
-    match select(Box::pin(writable), Box::pin(sleep_async(connect_timeout))).await {
+    match select(
+        Box::pin(writable),
+        Box::pin(sleep_async(
+            connect_timeout,
+            &foundation_core::valtron::fork_ctx(),
+        )),
+    )
+    .await
+    {
         Either::Left((done, _)) => done?,
         Either::Right(((), _)) => {
             return Err(io::Error::new(
@@ -246,7 +254,7 @@ async fn read_some(
             Err(e) => return Err(e),
         }
         let Some(wake) = wake else {
-            sleep_async(fallback).await;
+            sleep_async(fallback, &foundation_core::valtron::fork_ctx()).await;
             continue;
         };
         // Arm the waker, then read once more before parking, so no wake is lost.
@@ -286,7 +294,8 @@ async fn pump(
         }
         // A fresh writer per chunk: its send timeout counts from this write, not
         // from the last time this direction moved a byte (a tunnel can idle).
-        let mut writer = ResponseWriter::new(dst.clone(), config);
+        let mut writer =
+            ResponseWriter::new(dst.clone(), config, foundation_core::valtron::fork_ctx());
         writer.write_all(&buf[..n]).await?;
         writer.flush().await?;
     }

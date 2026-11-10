@@ -65,6 +65,10 @@ struct BodyStream {
 /// Generic over the DNS resolver `R` so the exchange inherits whatever resolver
 /// the client stack was built with — the pump never pins a concrete resolver.
 enum State<R: DnsResolver + Send + 'static> {
+    /// The child task is built but not yet spawned. The first `next_status`
+    /// call spawns it with the `Ctx` of the engine that drives this task, so
+    /// the receiver reads that engine's clock.
+    Init(Box<SendRequestTask<R>>),
     /// Awaiting the next result from the spawned `SendRequestTask` child.
     Polling(ChildReceiver<R>),
     /// Head received; draining the body from the `HttpResponseReader`.
@@ -83,8 +87,6 @@ enum State<R: DnsResolver + Send + 'static> {
 /// built with a custom resolver keeps it end-to-end — the exchange pins nothing.
 pub struct HttpExchangeTask<R: DnsResolver + Send + 'static = SystemDnsResolver> {
     state: State<R>,
-    /// The spawn action, returned once on the first `next_status()` call.
-    spawn: Option<BoxedSendExecutionAction>,
     /// Pool reference for returning the connection when the exchange completes.
     pool: Arc<HttpConnectionPool<R>>,
     /// Inactivity bound while streaming the response body on a non-blocking socket.
@@ -107,14 +109,8 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
         // for a synchronous reader.
         let child =
             SendRequestTask::new(request, max_redirects, pool, config).with_nonblocking_handoff();
-        let (action, receiver) = inlined_task(
-            InlineActionBehaviour::LiftWithParent,
-            child,
-            std::time::Duration::from_millis(0),
-        );
         Self {
-            state: State::Polling(receiver),
-            spawn: Some(Box::new(action)),
+            state: State::Init(Box::new(child)),
             pool: pool_for_conn,
             body_idle_timeout,
         }
@@ -346,12 +342,25 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     type Pending = HttpExchangePending;
 
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        // First call — emit the Spawn so the executor runs the child.
-        if let Some(action) = self.spawn.take() {
+        // First call — emit the Spawn so the executor runs the child. The
+        // inline pair is built here, with the `Ctx` of the driving engine.
+        if matches!(self.state, State::Init(_)) {
+            let State::Init(child) = std::mem::replace(&mut self.state, State::Done) else {
+                unreachable!("the state was Init")
+            };
+            let (action, receiver) = inlined_task(
+                InlineActionBehaviour::LiftWithParent,
+                *child,
+                std::time::Duration::from_millis(0),
+                ctx,
+            );
+            self.state = State::Polling(receiver);
+            let action: BoxedSendExecutionAction = Box::new(action);
             return Some(TaskStatus::Spawn(action));
         }
 
         match self.state {
+            State::Init(_) => None,
             State::Polling(_) => Some(self.poll_child(&ctx)),
             State::StreamingBody(_) => Some(self.stream_body(&ctx)),
             State::Done => None,

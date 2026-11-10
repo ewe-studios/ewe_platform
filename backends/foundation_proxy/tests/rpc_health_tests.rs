@@ -208,7 +208,11 @@ where
         if cond().await {
             return true;
         }
-        sleep_async(Duration::from_millis(50)).await;
+        sleep_async(
+            Duration::from_millis(50),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     false
 }

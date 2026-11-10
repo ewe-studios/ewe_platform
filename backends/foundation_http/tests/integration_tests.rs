@@ -1274,7 +1274,11 @@ impl Serve for SseCounterHandler {
                 }
 
                 // Small delay between events
-                foundation_core::valtron::timer::sleep_for(Duration::from_millis(10)).await;
+                foundation_core::valtron::timer::sleep_for(
+                    Duration::from_millis(10),
+                    &foundation_core::valtron::Ctx::host(),
+                )
+                .await;
             }
 
             ServeOutcome::Take

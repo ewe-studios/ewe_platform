@@ -409,7 +409,7 @@ impl foundation_ai::types::Model for DelayedEmbeddingModel {
     ) -> foundation_ai::errors::GenerationResult<Vec<foundation_ai::types::Messages>> {
         // The async path parks on a timer instead of blocking the worker, so a
         // ticker on the same thread keeps ticking while the embed "waits for I/O".
-        sleep_async(self.wait).await;
+        sleep_async(self.wait, &foundation_core::valtron::Ctx::host()).await;
         Ok(vec![embedding_message(self.dims, self.values.clone())])
     }
 
@@ -493,7 +493,11 @@ async fn embedding_search_does_not_block_worker() {
         async move {
             for _ in 0..200 {
                 ticks.fetch_add(1, Ordering::SeqCst);
-                sleep_async(Duration::from_millis(5)).await;
+                sleep_async(
+                    Duration::from_millis(5),
+                    &foundation_core::valtron::Ctx::host(),
+                )
+                .await;
             }
         }
     };

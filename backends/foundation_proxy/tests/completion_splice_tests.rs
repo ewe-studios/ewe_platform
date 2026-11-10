@@ -88,7 +88,10 @@ async fn completion_splice_relays_bytes_both_directions() {
         completion_stream(d, 3),
         WriterConfig::default(),
     ));
-    let deadline = Box::pin(sleep_async(Duration::from_secs(30)));
+    let deadline = Box::pin(sleep_async(
+        Duration::from_secs(30),
+        &foundation_core::valtron::Ctx::host(),
+    ));
     match select(relay, deadline).await {
         Either::Left(_) => {}
         Either::Right(_) => panic!("splice did not end after both peers closed"),

@@ -269,7 +269,11 @@ async fn response_headers_resolves_when_the_head_is_published_without_a_frame() 
 
     // Publish after a short delay. No response frame ever arrives.
     let publish = async move {
-        foundation_core::valtron::sleep_async(Duration::from_millis(50)).await;
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(50),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
         ends.publish_response_headers(head);
     };
 
@@ -316,7 +320,11 @@ async fn response_headers_stops_on_cancel() {
     let _ends = ends;
 
     let fire = async move {
-        foundation_core::valtron::sleep_async(Duration::from_millis(50)).await;
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(50),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
         cancel.cancel();
     };
 

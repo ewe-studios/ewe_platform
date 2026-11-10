@@ -329,7 +329,8 @@ impl TurboPufferVectorStore {
             // The next request is fresh; no message is kept from this one.
             drop(body);
             let delay = self.retry_delay(&headers, attempt);
-            foundation_core::valtron::sleep_async(delay).await;
+            foundation_core::valtron::sleep_async(delay, &foundation_core::valtron::fork_ctx())
+                .await;
         }
     }
 

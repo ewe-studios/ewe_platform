@@ -399,7 +399,11 @@ async fn generate_async_retries_with_async_backoff() {
         async move {
             for _ in 0..200 {
                 ticks.fetch_add(1, Ordering::SeqCst);
-                sleep_async(Duration::from_millis(5)).await;
+                sleep_async(
+                    Duration::from_millis(5),
+                    &foundation_core::valtron::Ctx::host(),
+                )
+                .await;
             }
         }
     };

@@ -413,7 +413,8 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         writer_task.map(|_| ()).boxed(),
     ])
     .boxed();
-    let timer = async move { sleep_async(timeout).await }.boxed();
+    let timer =
+        async move { sleep_async(timeout, &foundation_core::valtron::fork_ctx()).await }.boxed();
 
     match select(work, timer).await {
         Either::Left(_) => result

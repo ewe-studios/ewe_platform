@@ -515,5 +515,9 @@ fn non_empty(value: &str) -> Option<String> {
 
 /// Sleep without pulling in a runtime — the crate is executor-agnostic.
 async fn sleep_secs(secs: u64) {
-    foundation_core::valtron::sleep_async(std::time::Duration::from_secs(secs)).await;
+    foundation_core::valtron::sleep_async(
+        std::time::Duration::from_secs(secs),
+        &foundation_core::valtron::fork_ctx(),
+    )
+    .await;
 }

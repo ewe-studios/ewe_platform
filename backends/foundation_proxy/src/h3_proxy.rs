@@ -490,9 +490,23 @@ async fn park_op<T>(
                 _ => Poll::Ready(None),
             }
         });
-        match select(Box::pin(attempt), Box::pin(sleep_async(remaining))).await {
+        match select(
+            Box::pin(attempt),
+            Box::pin(sleep_async(
+                remaining,
+                &foundation_core::valtron::fork_ctx(),
+            )),
+        )
+        .await
+        {
             Either::Left((Some(result), _)) => return Some(result),
-            Either::Left((None, _)) => sleep_async(POLL_BACKOFF.min(remaining)).await,
+            Either::Left((None, _)) => {
+                sleep_async(
+                    POLL_BACKOFF.min(remaining),
+                    &foundation_core::valtron::fork_ctx(),
+                )
+                .await
+            }
             Either::Right(_) => return None,
         }
     }

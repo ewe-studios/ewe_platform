@@ -224,7 +224,11 @@ impl StaticFileHandler {
             }
         };
 
-        let writer = ResponseWriter::new(conn, self.config.writer_config());
+        let writer = ResponseWriter::new(
+            conn,
+            self.config.writer_config(),
+            foundation_core::valtron::fork_ctx(),
+        );
         let job = SendFile {
             writer,
             head,

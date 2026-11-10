@@ -498,6 +498,14 @@ impl LibsqlStore {
         self
     }
 
+    /// Set the context whose clock measures the lock wait limit. Without it,
+    /// the wait uses the root context of the valtron engine that runs the call.
+    #[must_use]
+    pub fn with_ctx(mut self, ctx: Ctx) -> Self {
+        self.gate = self.gate.with_ctx(ctx);
+        self
+    }
+
     // ========== Connection gate ==========
 
     /// Shared guard for an operation that only reads. Waits while a write or a

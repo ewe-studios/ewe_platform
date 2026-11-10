@@ -175,7 +175,7 @@ async fn a_blackholed_dial_does_not_block_the_worker() {
     let task_ran_at = Arc::clone(&ran_at);
     let unrelated = execute(
         from_future(async move {
-            sleep_async(UNRELATED_TASK_DELAY).await;
+            sleep_async(UNRELATED_TASK_DELAY, &foundation_core::valtron::Ctx::host()).await;
             *task_ran_at.lock().expect("task lock") = Some(Instant::now());
         }),
         None,
@@ -253,7 +253,11 @@ async fn a_unix_socket_dial_still_connects() {
             accepted = true;
             break;
         }
-        sleep_async(Duration::from_millis(5)).await;
+        sleep_async(
+            Duration::from_millis(5),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     assert!(accepted, "the peer accepted the unix dial");
 

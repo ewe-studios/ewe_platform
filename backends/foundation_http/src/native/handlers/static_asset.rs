@@ -87,7 +87,11 @@ impl Serve for StaticAssetHandler {
                 return ConnectionResult::Close(None);
             }
         };
-        let writer = ResponseWriter::new(conn, self.writer_config);
+        let writer = ResponseWriter::new(
+            conn,
+            self.writer_config,
+            foundation_core::valtron::fork_ctx(),
+        );
         ConnectionResult::Async(Box::pin(write_response(
             writer,
             head,

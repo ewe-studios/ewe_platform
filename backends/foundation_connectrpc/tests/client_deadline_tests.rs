@@ -103,7 +103,11 @@ fn start_h1_server() -> (SocketAddr, Arc<ShutdownSignal>) {
 /// stream without a deadline still waits and later resumes.
 fn first_then_later() -> impl futures::Stream<Item = ConnectResult<Msg>> + Send {
     let later = futures::stream::once(async {
-        foundation_core::valtron::sleep_async(Duration::from_millis(400)).await;
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(400),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
         Ok::<Msg, _>(Msg::of("second"))
     });
     futures::stream::once(async { Ok::<Msg, _>(Msg::of("first")) }).chain(later)
@@ -265,7 +269,11 @@ async fn join_within<T: Send + 'static>(
     let started = Instant::now();
     while !handle.is_finished() {
         assert!(started.elapsed() < bound, "{message}");
-        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(10),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     handle.join().expect("peer thread")
 }
@@ -885,6 +893,7 @@ async fn a_receive_with_no_deadline_still_waits() {
     futures::pin_mut!(receive);
     let sleeper = Box::pin(foundation_core::valtron::sleep_async(
         Duration::from_millis(150),
+        &foundation_core::valtron::Ctx::host(),
     ));
     match futures::future::select(receive, sleeper).await {
         futures::future::Either::Left((item, _)) => {

@@ -395,7 +395,11 @@ async fn write_json(
     }
     match render_head(status, &headers, bytes.len()) {
         Ok(head) => {
-            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            let writer = ResponseWriter::new(
+                conn,
+                WriterConfig::default(),
+                foundation_core::valtron::fork_ctx(),
+            );
             write_response(writer, head, bytes).await
         }
         Err(e) => {

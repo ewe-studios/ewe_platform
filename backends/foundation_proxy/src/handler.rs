@@ -205,14 +205,19 @@ impl Serve for ProxyHandler {
                 .await;
                 if let Err(e) = outcome {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed, sending 502: {e}");
-                    let mut writer = ResponseWriter::new(conn, writer_config);
+                    let mut writer = ResponseWriter::new(
+                        conn,
+                        writer_config,
+                        foundation_core::valtron::fork_ctx(),
+                    );
                     let _ = write_error_page(&mut writer, 502).await;
                 }
             } else if matches!(protocol, BackendProtocol::Grpc) && is_grpc_web {
                 // D leg (spec 63): a `grpc://` backend speaks native gRPC over
                 // H2. An inbound gRPC-Web request (H1) is translated at the
                 // frame level.
-                let mut writer = ResponseWriter::new(conn, writer_config);
+                let mut writer =
+                    ResponseWriter::new(conn, writer_config, foundation_core::valtron::fork_ctx());
                 let ctx = RpcContext {
                     client_ip: &client_ip,
                     scheme: &scheme,
@@ -225,7 +230,8 @@ impl Serve for ProxyHandler {
                         .await;
                 finish_relay(&mut writer, &backend, result, "grpc-web").await;
             } else if matches!(protocol, BackendProtocol::Grpc) && is_connect {
-                let mut writer = ResponseWriter::new(conn, writer_config);
+                let mut writer =
+                    ResponseWriter::new(conn, writer_config, foundation_core::valtron::fork_ctx());
                 let ctx = RpcContext {
                     client_ip: &client_ip,
                     scheme: &scheme,
@@ -237,7 +243,8 @@ impl Serve for ProxyHandler {
                     crate::rpc_relay::relay_connect_to_grpc(&mut writer, &backend, req, &ctx).await;
                 finish_relay(&mut writer, &backend, result, "connect").await;
             } else {
-                let mut writer = ResponseWriter::new(conn, writer_config);
+                let mut writer =
+                    ResponseWriter::new(conn, writer_config, foundation_core::valtron::fork_ctx());
                 let ctx = ForwardContext {
                     client_ip: &client_ip,
                     scheme: &scheme,
@@ -272,7 +279,8 @@ async fn relay_tcp_tunnel(
         Err(e) => {
             // The connection is untouched: answer so the client sees a response.
             tracing::warn!(url = %backend.url(), "tcp tunnel failed, sending 502: {e}");
-            let mut writer = ResponseWriter::new(conn, writer_config);
+            let mut writer =
+                ResponseWriter::new(conn, writer_config, foundation_core::valtron::fork_ctx());
             let _ = write_error_page(&mut writer, 502).await;
         }
     }

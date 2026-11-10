@@ -655,7 +655,11 @@ pub async fn forward_upgrade(
 
     let request_bytes =
         serialize_request_head(&req.method.to_string(), &req.request_url.url, &headers);
-    let mut writer = ResponseWriter::new(upstream.clone(), writer_config);
+    let mut writer = ResponseWriter::new(
+        upstream.clone(),
+        writer_config,
+        foundation_core::valtron::fork_ctx(),
+    );
     writer
         .write_all(request_bytes.as_bytes())
         .await

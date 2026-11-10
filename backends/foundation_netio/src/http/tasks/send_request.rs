@@ -180,7 +180,7 @@ where
     type Pending = HttpRequestPending;
 
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.0.take()? {
             SendRequestState::Init(mut inner) => match inner.take() {
                 Some(boxed_req) => {
@@ -235,6 +235,7 @@ where
                             send_request.remaining_redirects,
                         ),
                         self.1.inline_processing_timeout,
+                        ctx.clone(),
                     );
 
                     self.0 = Some(SendRequestState::Connecting(get_stream_receiver));
@@ -477,6 +478,7 @@ where
                                             .with_body_config(self.1.into_simple_http_body())
                                             .with_head_timeout(self.1.response_head_timeout()),
                                         self.1.inline_processing_timeout,
+                                        ctx.clone(),
                                     );
 
                                 self.0 = Some(SendRequestState::Reading(drive_receiver(
@@ -501,6 +503,7 @@ where
                                             .with_body_config(self.1.into_simple_http_body())
                                             .with_head_timeout(self.1.response_head_timeout()),
                                         self.1.inline_processing_timeout,
+                                        ctx.clone(),
                                     );
 
                                 self.0 = Some(SendRequestState::Reading(drive_receiver(
@@ -730,6 +733,7 @@ where
                                                             remaining_redirects,
                                                         ),
                                                         self.1.inline_processing_timeout,
+                                                        ctx.clone(),
                                                     );
 
                                                 self.0 = Some(SendRequestState::Connecting(

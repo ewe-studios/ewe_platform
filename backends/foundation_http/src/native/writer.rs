@@ -31,6 +31,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::timer::{self, Sleep};
 use foundation_iogate::FdReadiness;
@@ -99,6 +100,8 @@ impl WriterConfig {
 pub struct ResponseWriter {
     conn: SharedByteBufferStream<RawStream>,
     config: WriterConfig,
+    /// The context whose clock measures the send timeout and the retry interval.
+    ctx: Ctx,
     /// The timer for `send_timeout` from the last progress; cleared on every
     /// progress, so an idle writer is not timed out.
     idle_timer: Option<Sleep>,
@@ -114,12 +117,13 @@ struct WaitSource {
 }
 
 impl ResponseWriter {
-    /// A writer for `conn` with the given limits.
+    /// A writer for `conn` with the given limits. Its timers read the clock of `ctx`.
     #[must_use]
-    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig) -> Self {
+    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig, ctx: Ctx) -> Self {
         Self {
             conn,
             config,
+            ctx,
             idle_timer: None,
             wait: None,
         }
@@ -203,7 +207,7 @@ impl ResponseWriter {
         let send_timeout = self.config.send_timeout;
         let timer = self
             .idle_timer
-            .get_or_insert_with(|| timer::sleep_for(send_timeout));
+            .get_or_insert_with(|| timer::sleep_for(send_timeout, &self.ctx));
         // The timer fires at the deadline; no separate clock read is needed.
         if Pin::new(timer).poll(cx).is_ready() {
             return Poll::Ready(Err(io::Error::new(
@@ -213,7 +217,7 @@ impl ResponseWriter {
         }
         let conn = &self.conn;
         let wait = self.wait.get_or_insert_with(|| WaitSource::new(conn));
-        wait.poll(cx, self.config.poll_fallback_interval)
+        wait.poll(cx, self.config.poll_fallback_interval, &self.ctx)
     }
 }
 
@@ -243,7 +247,12 @@ impl WaitSource {
         }
     }
 
-    fn poll(&mut self, cx: &mut Context<'_>, fallback_interval: Duration) -> Poll<io::Result<()>> {
+    fn poll(
+        &mut self,
+        cx: &mut Context<'_>,
+        fallback_interval: Duration,
+        ctx: &Ctx,
+    ) -> Poll<io::Result<()>> {
         if let Some(readiness) = &self.readiness {
             // Register before the readiness probe, so an edge between the two
             // still wakes this task.
@@ -286,7 +295,7 @@ impl WaitSource {
             // let the caller retry its write.
             let fallback = self
                 .fallback
-                .get_or_insert_with(|| timer::sleep_for(fallback_interval));
+                .get_or_insert_with(|| timer::sleep_for(fallback_interval, ctx));
             if Pin::new(fallback).poll(cx).is_ready() {
                 self.fallback = None;
                 Poll::Ready(Ok(()))
@@ -400,7 +409,11 @@ pub fn send_bytes<B: AsRef<[u8]> + Send + Sync + 'static>(
     ];
     match render_head(status, &headers, body.as_ref().len()) {
         Ok(head) => {
-            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            let writer = ResponseWriter::new(
+                conn,
+                WriterConfig::default(),
+                foundation_core::valtron::fork_ctx(),
+            );
             ConnectionResult::Async(Box::pin(write_response(writer, head, body)))
         }
         Err(e) => {
@@ -481,7 +494,11 @@ pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>) -> ConnectionR
     };
     match render_message(response) {
         Ok(head) => {
-            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            let writer = ResponseWriter::new(
+                conn,
+                WriterConfig::default(),
+                foundation_core::valtron::fork_ctx(),
+            );
             ConnectionResult::Async(Box::pin(write_response(writer, head, [])))
         }
         Err(e) => {

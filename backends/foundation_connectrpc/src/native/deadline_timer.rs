@@ -20,6 +20,8 @@ pub(crate) struct ThreadTimer;
 
 impl DeadlineTimer for ThreadTimer {
     fn sleep_until(&self, deadline: Instant) -> BoxFuture<'_, ()> {
-        Box::pin(foundation_core::valtron::timer::sleep_until(deadline))
+        // The engine root clock times the deadline, as the dispatcher's does.
+        let ctx = foundation_core::valtron::fork_ctx();
+        Box::pin(foundation_core::valtron::timer::sleep_until(deadline, &ctx))
     }
 }

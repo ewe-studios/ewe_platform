@@ -111,7 +111,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
                 }
                 let mut waited = Duration::ZERO;
                 while waited < interval && !shutdown.probe() {
-                    sleep_async(slice).await;
+                    sleep_async(slice, &foundation_core::valtron::fork_ctx()).await;
                     waited += slice;
                 }
             }

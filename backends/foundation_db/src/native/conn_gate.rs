@@ -35,6 +35,7 @@ use crate::core::errors::{LockMode, StorageError, StorageResult};
 #[cfg(feature = "libsql")]
 use async_lock::RwLockReadGuardArc;
 use async_lock::{RwLock, RwLockWriteGuardArc};
+use foundation_context::Ctx;
 use foundation_core::valtron::timer::sleep_for;
 use futures_lite::future::or;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -59,6 +60,9 @@ pub(crate) struct ConnGate {
     lock: Arc<RwLock<()>>,
     /// How long a call waits for the lock.
     timeout: Duration,
+    /// The context whose clock measures `timeout`. A gate with no context
+    /// uses the root context of the valtron engine that runs the call.
+    ctx: Option<Ctx>,
     /// Set when a `ROLLBACK` failed: the connection may still be in a transaction.
     needs_check: Arc<AtomicBool>,
     /// Test hook: the next rollback is not run and counts as failed.
@@ -71,6 +75,7 @@ impl Default for ConnGate {
         Self {
             lock: Arc::default(),
             timeout: DEFAULT_LOCK_TIMEOUT,
+            ctx: None,
             needs_check: Arc::default(),
             #[cfg(feature = "test-hooks")]
             inject_rollback_failure: Arc::default(),
@@ -87,6 +92,12 @@ impl ConnGate {
     /// The same lock and flags, with a different wait limit.
     pub(crate) fn with_timeout(mut self, timeout: Duration) -> Self {
         self.timeout = timeout;
+        self
+    }
+
+    /// The same lock and flags, with the context that measures the wait limit.
+    pub(crate) fn with_ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
         self
     }
 
@@ -151,7 +162,12 @@ impl ConnGate {
 
     /// Completes with `LockTimeout` once the wait limit has passed.
     async fn expire<G>(&self, mode: LockMode) -> StorageResult<G> {
-        sleep_for(self.timeout).await;
+        // No context set: use the clock of the engine that runs this call.
+        let ctx = self
+            .ctx
+            .clone()
+            .unwrap_or_else(foundation_core::valtron::fork_ctx);
+        sleep_for(self.timeout, &ctx).await;
         Err(StorageError::LockTimeout {
             mode,
             waited: self.timeout,

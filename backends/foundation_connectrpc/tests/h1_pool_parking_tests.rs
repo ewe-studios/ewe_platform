@@ -125,7 +125,11 @@ fn pool_router() -> Router {
                 if i > 0 {
                     // Park between frames, without blocking a thread, so a
                     // stream that only held its worker would keep it busy here.
-                    timer::sleep_for(Duration::from_secs(1)).await;
+                    timer::sleep_for(
+                        Duration::from_secs(1),
+                        &foundation_core::valtron::Ctx::host(),
+                    )
+                    .await;
                 }
                 Some((
                     Ok(TestMsg {

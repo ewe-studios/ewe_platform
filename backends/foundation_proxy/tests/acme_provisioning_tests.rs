@@ -193,7 +193,11 @@ async fn render_acme(
         tracing::error!("mock ACME: response render failed");
         return;
     };
-    let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default());
+    let mut writer = ResponseWriter::new(
+        conn.clone(),
+        WriterConfig::default(),
+        foundation_core::valtron::Ctx::host(),
+    );
     let result = async {
         writer.write_all(&head).await?;
         writer.flush().await
@@ -692,7 +696,11 @@ fn acme_challenge_wait_does_not_block_the_executor() {
 
     let heartbeat = async {
         for _ in 0..20 {
-            sleep_async(Duration::from_millis(100)).await;
+            sleep_async(
+                Duration::from_millis(100),
+                &foundation_core::valtron::Ctx::host(),
+            )
+            .await;
         }
     };
 

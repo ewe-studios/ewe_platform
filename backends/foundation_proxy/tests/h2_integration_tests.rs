@@ -427,7 +427,15 @@ async fn h2_grpc_request(
     payload: &[u8],
 ) -> (Status, Vec<u8>, SimpleHeaders) {
     let call = h2_grpc_request_inner(proxy_port, path, payload);
-    match select(Box::pin(call), Box::pin(sleep_async(GRPC_CALL_BOUND))).await {
+    match select(
+        Box::pin(call),
+        Box::pin(sleep_async(
+            GRPC_CALL_BOUND,
+            &foundation_core::valtron::Ctx::host(),
+        )),
+    )
+    .await
+    {
         Either::Left((result, _bound)) => result,
         Either::Right(((), _call)) => {
             panic!("h2_grpc_request on {path}: no response within {GRPC_CALL_BOUND:?}")
