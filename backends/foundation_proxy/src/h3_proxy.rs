@@ -327,7 +327,7 @@ async fn relay_response(
     }
     if let (Some(pool), Some(mut stream)) = (pool, conn) {
         stream.drain_stream();
-        pool.return_to_pool(stream);
+        pool.return_to_pool(stream, ctx);
     }
 }
 
