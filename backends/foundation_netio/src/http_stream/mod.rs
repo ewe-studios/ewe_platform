@@ -198,7 +198,7 @@ impl Iterator for ReconnectingStream {
                             let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
                             let sleeper =
-                                SleepIterator::until(duration, endpoint.clone(), self.ctx.clock());
+                                SleepIterator::until(duration, endpoint.clone(), self.ctx.clone());
                             *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         } else {
@@ -223,7 +223,7 @@ impl Iterator for ReconnectingStream {
                             let duration = rstate.wait.unwrap_or(Duration::from_secs(0));
 
                             let sleeper =
-                                SleepIterator::until(duration, endpoint.clone(), self.ctx.clock());
+                                SleepIterator::until(duration, endpoint.clone(), self.ctx.clone());
                             *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                             Some(Ok(ReconnectionStatus::Waiting(duration)))
                         } else {
@@ -249,7 +249,7 @@ impl Iterator for ReconnectingStream {
                     };
 
                     let sleeper =
-                        SleepIterator::until(duration, endpoint.clone(), self.ctx.clock());
+                        SleepIterator::until(duration, endpoint.clone(), self.ctx.clone());
                     *current_state = ConnectionState::Reconnect(rstate, Some(sleeper));
                     Some(Ok(ReconnectionStatus::Waiting(duration)))
                 } else {
