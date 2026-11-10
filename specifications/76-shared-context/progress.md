@@ -27,6 +27,9 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   and the valtron pool constructors and macros seed the root RNG from the pool seed
   (`Ctx::with_seed`).
 
+- 2026-11-10: the migration order for features 03 to 05 is top-down waves (requirements
+  section 3.1). Wave 1 starts: three lanes on haiku.
+
 ## In progress
 
 - Nothing. Feature 02 is done and waits for review.

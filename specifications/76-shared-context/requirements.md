@@ -188,6 +188,32 @@ _Caption: features 03, 04 and 05 can run in parallel after feature 02._
 | 05 | [Ctx in the remaining crates](features/05-ctx-in-remaining-crates/feature.md) | haiku | The same, for every other crate. |
 | 06 | [Clock parameter guard](features/06-clock-parameter-guard/feature.md) | haiku | CI fails on a new `Arc<dyn Clock>` parameter outside the allowlist. |
 
+### 3.1 Migration order: top-down waves (owner decision 2026-11-10)
+
+Features 03, 04 and 05 run in dependency waves, from the top of the graph down. A crate in
+a wave takes `Ctx` in its own API. It still calls the crates below it with `ctx.clock()`,
+because they migrate in a later wave. When a lower crate migrates, it changes those calls to
+pass the `Ctx` (`ctx.clone()` or `&ctx`). The higher crates are already merged then, so two
+lanes never edit the same file at the same time. Crates in one wave do not depend on each
+other, so their lanes run in parallel.
+
+| Wave | Crates (`dyn Clock` sites, 2026-11-10) |
+|---|---|
+| 1 | foundation_ai (124); foundation_platform (21), foundation_proxy (32), foundation_keychain (8); foundation_toolings (18), foundation_repl (8), foundation_testbed (6), foundation_testing (6), foundation_cronjobs (5) |
+| 2 | foundation_deployment_platform (81), foundation_browser (19), foundation_deployment_cloudflare (5), foundation_wasmtime (2) |
+| 3 | foundation_wireguard (17), foundation_deployment (11), foundation_connectrpc (9), foundation_sshkit (3) |
+| 4 | foundation_auth (80) |
+| 5 | foundation_http (8) |
+| 6 | foundation_nativeapis (73) |
+| 7 | foundation_db (28) |
+| 8 | foundation_netio (28) |
+| 9 | foundation_core (13) |
+
+_Caption: each wave depends only on the waves after it, so a wave edits no file that a parallel lane owns._
+
+The lanes share one cargo target directory (`CARGO_TARGET_DIR`), so the third-party crates
+compile once (specifications rule 4). Cargo locks the directory, so the builds take turns.
+
 Each feature is one PR, and CI must be green on each one. No feature leaves a stub or a
 deprecated shim behind: feature 02 removes `ContextBag` in the same PR that replaces it.
 
