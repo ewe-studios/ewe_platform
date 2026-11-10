@@ -26,7 +26,7 @@ impl Default for PasswordPolicy {
             require_number: true,
             require_special: true,
             max_failed_attempts: 5,
-            lockout_duration: Duration::from_secs(900),
+            lockout_duration: Duration::from_mins(15),
         }
     }
 }
@@ -174,8 +174,8 @@ impl IdpConfig {
         Self {
             issuer_url,
             signing_key: JwtSigningKey::generate_ed25519(),
-            access_token_ttl: Duration::from_secs(900),
-            refresh_token_ttl: Duration::from_secs(604_800),
+            access_token_ttl: Duration::from_mins(15),
+            refresh_token_ttl: Duration::from_hours(168),
             session_ttl: Duration::from_secs(28_800),
             auth_code_ttl: Duration::from_secs(600),
             device_code_ttl: Duration::from_secs(600),

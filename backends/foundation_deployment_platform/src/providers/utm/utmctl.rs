@@ -228,10 +228,10 @@ pub fn get_vm_name(bundle_path: &std::path::Path) -> Result<String> {
 /// after 3 attempts.
 pub fn start_vm(name: &str) -> Result<()> {
     // Already running?
-    if let Some(e) = list_vms()?.into_iter().find(|e| e.name == name) {
-        if e.status == "started" {
-            return Ok(());
-        }
+    if let Some(e) = list_vms()?.into_iter().find(|e| e.name == name)
+        && e.status == "started"
+    {
+        return Ok(());
     }
 
     for attempt in 1..=3 {
@@ -333,10 +333,10 @@ pub fn wait_for_vm(uuid: &str, timeout_secs: u64, ctx: &Ctx) -> Result<bool> {
         if ctx.clock().now().duration_since(start).as_secs() > timeout_secs {
             return Ok(false);
         }
-        if let Ok(vms) = list_vms() {
-            if vms.iter().any(|vm| vm.uuid == uuid) {
-                return Ok(true);
-            }
+        if let Ok(vms) = list_vms()
+            && vms.iter().any(|vm| vm.uuid == uuid)
+        {
+            return Ok(true);
         }
         thread::sleep(Duration::from_secs(1));
     }

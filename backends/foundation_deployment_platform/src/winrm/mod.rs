@@ -261,9 +261,9 @@ impl WinRM {
     /// Delete a `WinRM` shell.
     fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) {
         let msg_id = uuid_simple(&self.ctx);
-        let command_selector = command_id
-            .map(|id| format!("<rsp:Signal CommandId=\"{id}\"><w:Code>0</w:Code></rsp:Signal>"))
-            .unwrap_or_default();
+        let command_selector = command_id.map_or_default(|id| {
+            format!("<rsp:Signal CommandId=\"{id}\"><w:Code>0</w:Code></rsp:Signal>")
+        });
 
         let body = format!(
             r#"<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:w="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"><env:Header><a:Action>http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete</a:Action><a:MessageID>uuid:{}</a:MessageID><a:To>http://{}:{}/wsman</a:To><a:ReplyTo><a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address></a:ReplyTo><w:ResourceURI>http://schemas.microsoft.com/wbem/wsman/1/windows/shell/cmd</w:ResourceURI><w:SelectorSet><w:Selector Name="ShellId">{}</w:Selector></w:SelectorSet></env:Header><env:Body>{}</env:Body></env:Envelope>"#,

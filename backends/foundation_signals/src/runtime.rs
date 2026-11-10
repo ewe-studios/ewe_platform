@@ -431,8 +431,7 @@ impl Runtime {
                     let observers = graph
                         .nodes
                         .get(id)
-                        .map(|n| n.observers().to_vec())
-                        .unwrap_or_default();
+                        .map_or_default(|n| n.observers().to_vec());
                     for observer in observers {
                         let state = match graph.nodes.get(observer) {
                             Some(Node::Computed(_)) => ThreeState::Check,

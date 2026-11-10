@@ -279,85 +279,78 @@ impl ApiCatalog {
     /// Get mutating endpoints (operations that require state tracking) for an API.
     #[must_use]
     pub fn mutating_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| ep.operation_type.requires_state_tracking())
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| ep.operation_type.requires_state_tracking())
+                .collect()
+        })
     }
 
     /// Get read-only endpoints (operations that don't modify state) for an API.
     #[must_use]
     pub fn read_only_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| !ep.operation_type.requires_state_tracking())
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| !ep.operation_type.requires_state_tracking())
+                .collect()
+        })
     }
 
     /// Get create endpoints for an API.
     #[must_use]
     pub fn create_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| matches!(ep.operation_type, OperationType::Create))
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| matches!(ep.operation_type, OperationType::Create))
+                .collect()
+        })
     }
 
     /// Get read endpoints for an API.
     #[must_use]
     pub fn read_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| matches!(ep.operation_type, OperationType::Read))
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| matches!(ep.operation_type, OperationType::Read))
+                .collect()
+        })
     }
 
     /// Get update endpoints for an API.
     #[must_use]
     pub fn update_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| matches!(ep.operation_type, OperationType::Update))
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| matches!(ep.operation_type, OperationType::Update))
+                .collect()
+        })
     }
 
     /// Get delete endpoints for an API.
     #[must_use]
     pub fn delete_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| matches!(ep.operation_type, OperationType::Delete))
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| matches!(ep.operation_type, OperationType::Delete))
+                .collect()
+        })
     }
 
     /// Get action endpoints for an API.
     #[must_use]
     pub fn action_endpoints(&self, api_name: &str) -> Vec<&EndpointInfo> {
-        self.get_api(api_name)
-            .map_or_default(|api| {
-                api.endpoints
-                    .iter()
-                    .filter(|ep| matches!(ep.operation_type, OperationType::Action(_)))
-                    .collect()
-            })
+        self.get_api(api_name).map_or_default(|api| {
+            api.endpoints
+                .iter()
+                .filter(|ep| matches!(ep.operation_type, OperationType::Action(_)))
+                .collect()
+        })
     }
 }
 

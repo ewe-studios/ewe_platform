@@ -205,31 +205,28 @@ impl SpecProcessor {
         };
 
         // Extract properties
-        let properties = schema
-            .properties
-            .as_ref()
-            .map_or_default(|props| {
-                props
-                    .iter()
-                    .map(|(name, prop_schema)| {
-                        let ty = prop_schema
-                            .ref_path
-                            .as_ref()
-                            .map(|ref_path| {
-                                let n = ref_path.trim_start_matches("#/components/schemas/");
-                                TypeResolver::to_pascal_case(n)
-                            })
-                            .or_else(|| prop_schema.schema_type.clone())
-                            .unwrap_or_else(|| "unknown".to_string());
+        let properties = schema.properties.as_ref().map_or_default(|props| {
+            props
+                .iter()
+                .map(|(name, prop_schema)| {
+                    let ty = prop_schema
+                        .ref_path
+                        .as_ref()
+                        .map(|ref_path| {
+                            let n = ref_path.trim_start_matches("#/components/schemas/");
+                            TypeResolver::to_pascal_case(n)
+                        })
+                        .or_else(|| prop_schema.schema_type.clone())
+                        .unwrap_or_else(|| "unknown".to_string());
 
-                        PropertyDefinition {
-                            name: name.clone(),
-                            ty,
-                            required: schema.required.contains(name),
-                        }
-                    })
-                    .collect()
-            });
+                    PropertyDefinition {
+                        name: name.clone(),
+                        ty,
+                        required: schema.required.contains(name),
+                    }
+                })
+                .collect()
+        });
 
         TypeDefinition {
             name: TypeResolver::rename_if_keyword(TypeResolver::to_pascal_case(name)),
@@ -296,11 +293,7 @@ impl SpecProcessor {
                     .info
                     .as_ref()
                     .map_or_default(|i| i.version.clone()),
-                api_title: self
-                    .spec
-                    .info
-                    .as_ref()
-                    .map_or_default(|i| i.title.clone()),
+                api_title: self.spec.info.as_ref().map_or_default(|i| i.title.clone()),
             },
         }
     }

@@ -110,14 +110,12 @@ impl MemoryDocumentStore {
         limit: Option<usize>,
     ) -> StorageResult<Vec<Row>> {
         let docs = self.lock()?;
-        let mut rows: Vec<Row> = docs
-            .get(key)
-            .map_or_default(|v| {
-                v.iter()
-                    .filter(|r| from_id.is_none_or(|f| r.doc_id.as_str() >= f))
-                    .cloned()
-                    .collect()
-            });
+        let mut rows: Vec<Row> = docs.get(key).map_or_default(|v| {
+            v.iter()
+                .filter(|r| from_id.is_none_or(|f| r.doc_id.as_str() >= f))
+                .cloned()
+                .collect()
+        });
         drop(docs);
 
         if newest_first {

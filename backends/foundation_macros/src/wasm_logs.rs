@@ -90,10 +90,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
                 ))
             }
             syn::Meta::NameValue(pair) => {
-                let name = pair
-                    .path
-                    .get_ident()
-                    .map_or_default(ToString::to_string);
+                let name = pair.path.get_ident().map_or_default(ToString::to_string);
                 match name.as_str() {
                     "tracing" => args.tracing = Some(pair.value),
                     "tracing_targets" => args.tracing_targets = Some(pair.value),

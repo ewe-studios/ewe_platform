@@ -527,12 +527,11 @@ pub fn state_dir() -> std::path::PathBuf {
 #[must_use]
 pub fn monitor_dir(profile_name: &str) -> std::path::PathBuf {
     // Check if user config specifies a custom state directory for this VM
-    if let Some(config) = load_user_config() {
-        if let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name) {
-            if let Some(ref custom_dir) = entry.profile.state_directory {
-                return std::path::PathBuf::from(custom_dir);
-            }
-        }
+    if let Some(config) = load_user_config()
+        && let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name)
+        && let Some(ref custom_dir) = entry.profile.state_directory
+    {
+        return std::path::PathBuf::from(custom_dir);
     }
     // Default: $PWD/.testbed/[vm-name]/state/
     work_dir(profile_name).join("state")
@@ -546,12 +545,11 @@ pub fn workspace_root() -> std::path::PathBuf {
 
     loop {
         let cargo_toml = path.join("Cargo.toml");
-        if cargo_toml.exists() {
-            if let Ok(content) = std::fs::read_to_string(&cargo_toml) {
-                if content.contains("[workspace]") {
-                    return path;
-                }
-            }
+        if cargo_toml.exists()
+            && let Ok(content) = std::fs::read_to_string(&cargo_toml)
+            && content.contains("[workspace]")
+        {
+            return path;
         }
         if !path.pop() {
             break;
@@ -611,25 +609,24 @@ pub fn home_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
 /// Returns the first matching path, or `None` if not found.
 pub fn resolve_artifact(profile_name: &str, filename: &str) -> Option<std::path::PathBuf> {
     // 1. Check config-defined override
-    if let Some(config) = load_user_config() {
-        if let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name) {
-            if let Some(path) = entry.profile.artefacts.get(filename) {
-                let p = std::path::PathBuf::from(path);
-                if p.exists() {
-                    debug!(
-                        "Using config-defined artifact: {} → {}",
-                        filename,
-                        p.display()
-                    );
-                    return Some(p);
-                }
-                debug!(
-                    "Config-defined artifact {} at {} does not exist",
-                    filename,
-                    p.display()
-                );
-            }
+    if let Some(config) = load_user_config()
+        && let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name)
+        && let Some(path) = entry.profile.artefacts.get(filename)
+    {
+        let p = std::path::PathBuf::from(path);
+        if p.exists() {
+            debug!(
+                "Using config-defined artifact: {} → {}",
+                filename,
+                p.display()
+            );
+            return Some(p);
         }
+        debug!(
+            "Config-defined artifact {} at {} does not exist",
+            filename,
+            p.display()
+        );
     }
 
     // 2. Project-local artifact dir

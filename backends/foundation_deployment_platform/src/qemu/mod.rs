@@ -177,10 +177,10 @@ impl QemuConfig {
 
         // For Windows guests, attach virtio-win ISO if available (for driver installation)
         let mut config = self;
-        if config.profile.os == GuestOs::Windows {
-            if let Ok(iso_path) = crate::import::ensure_virtio_iso() {
-                config = config.with_cdrom(iso_path);
-            }
+        if config.profile.os == GuestOs::Windows
+            && let Ok(iso_path) = crate::import::ensure_virtio_iso()
+        {
+            config = config.with_cdrom(iso_path);
         }
 
         // For macOS guests, ensure the full image set exists (BaseSystem + OpenCore + data disk)
@@ -211,19 +211,19 @@ impl QemuConfig {
         let actual_disk = macos_boot_disk.as_ref().unwrap_or(&disk_path);
 
         // Spawn virtiofsd daemon for Windows guests with project mount
-        if config.profile.os == GuestOs::Windows {
-            if let Some(host_path) = &config.project_mount {
-                let socket_path =
-                    monitor_path.with_file_name(format!("{}.virtiofsd.sock", config.profile.name));
-                let _ = std::fs::remove_file(&socket_path);
-                let (_, daemon_config) = mount::virtiofs_args(
-                    host_path,
-                    mount::DEFAULT_TAG,
-                    &socket_path,
-                    config.project_mount_readonly,
-                );
-                spawn_virtiofsd(&daemon_config, &config.ctx)?;
-            }
+        if config.profile.os == GuestOs::Windows
+            && let Some(host_path) = &config.project_mount
+        {
+            let socket_path =
+                monitor_path.with_file_name(format!("{}.virtiofsd.sock", config.profile.name));
+            let _ = std::fs::remove_file(&socket_path);
+            let (_, daemon_config) = mount::virtiofs_args(
+                host_path,
+                mount::DEFAULT_TAG,
+                &socket_path,
+                config.project_mount_readonly,
+            );
+            spawn_virtiofsd(&daemon_config, &config.ctx)?;
         }
 
         cmd.args(build_qemu_args(
@@ -793,10 +793,11 @@ pub fn build_qemu_args(
         let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{p}-:3389");
     }
     // Enable built-in SMB server for Windows guests with project mount
-    if profile.os == GuestOs::Windows && project_mount.is_some() {
-        if let Some(host_path) = project_mount {
-            let _ = write!(netdev, ",smb={}", host_path.display());
-        }
+    if profile.os == GuestOs::Windows
+        && project_mount.is_some()
+        && let Some(host_path) = project_mount
+    {
+        let _ = write!(netdev, ",smb={}", host_path.display());
     }
     args.push("-netdev".to_string());
     args.push(netdev);

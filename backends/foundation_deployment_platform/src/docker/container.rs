@@ -579,9 +579,10 @@ impl ContainerHandle {
         // `/` is a registry port.
         let last_segment = image.rsplit('/').next().unwrap_or(image);
         if last_segment.contains(':')
-            && let Some((repo, tag)) = image.rsplit_once(':') {
-                return (repo.to_string(), Some(tag.to_string()));
-            }
+            && let Some((repo, tag)) = image.rsplit_once(':')
+        {
+            return (repo.to_string(), Some(tag.to_string()));
+        }
         (image.to_string(), None)
     }
 
@@ -762,25 +763,27 @@ impl ContainerHandle {
         let mut ports = HashMap::new();
 
         if let Some(ns) = &info.network_settings
-            && let Some(bindings) = &ns.ports {
-                for pm in &config.ports {
-                    let key = format!(
-                        "{}/{}",
-                        pm.container_port,
-                        match pm.protocol {
-                            crate::docker::config::PortProtocol::Tcp => "tcp",
-                            crate::docker::config::PortProtocol::Udp => "udp",
-                        }
-                    );
-                    if let Some(binding) = bindings.get(&key)
-                        && let Some(arr) = binding.as_array()
-                            && let Some(first) = arr.first()
-                                && let Some(hp) = first.get("HostPort").and_then(|v| v.as_str())
-                                    && let Ok(port) = hp.parse::<u16>() {
-                                        ports.insert(key, port);
-                                    }
+            && let Some(bindings) = &ns.ports
+        {
+            for pm in &config.ports {
+                let key = format!(
+                    "{}/{}",
+                    pm.container_port,
+                    match pm.protocol {
+                        crate::docker::config::PortProtocol::Tcp => "tcp",
+                        crate::docker::config::PortProtocol::Udp => "udp",
+                    }
+                );
+                if let Some(binding) = bindings.get(&key)
+                    && let Some(arr) = binding.as_array()
+                    && let Some(first) = arr.first()
+                    && let Some(hp) = first.get("HostPort").and_then(|v| v.as_str())
+                    && let Ok(port) = hp.parse::<u16>()
+                {
+                    ports.insert(key, port);
                 }
             }
+        }
 
         Ok(ports)
     }

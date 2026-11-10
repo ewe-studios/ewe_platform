@@ -51,7 +51,7 @@ fn vm_state_created_at_follows_the_injected_wall_clock() {
         state.created_at
     );
 
-    clock.advance_wall(Duration::from_secs(86_400));
+    clock.advance_wall(Duration::from_hours(24));
     let later = state::from_runtime(
         "clock-test",
         std::path::Path::new("/tmp/clock-test.qcow2"),
@@ -97,7 +97,7 @@ fn export_manifest_created_at_follows_the_injected_wall_clock() {
         "manifest time must be the simulated wall time"
     );
 
-    clock.advance_wall(Duration::from_secs(86_400));
+    clock.advance_wall(Duration::from_hours(24));
     let later = ExportManifest::new(
         profile,
         &image_path,

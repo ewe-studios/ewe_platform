@@ -176,10 +176,7 @@ async fn scheduler_runs_job_at_fire_time() {
 
     // Before the first fire: parks for 15 minutes and does not run.
     let status = task.next_status(ctx.clone());
-    assert_eq!(
-        status,
-        Some(TaskStatus::Delayed(Duration::from_mins(15)))
-    );
+    assert_eq!(status, Some(TaskStatus::Delayed(Duration::from_mins(15))));
     assert_eq!(runs.load(Ordering::SeqCst), 0);
 
     // At the fire time: runs once and parks for the next fire.
@@ -365,10 +362,7 @@ async fn scheduler_parks_between_fires() {
     let ctx = Ctx::host();
 
     let status = task.next_status(ctx.clone());
-    assert_eq!(
-        status,
-        Some(TaskStatus::Delayed(Duration::from_hours(24)))
-    );
+    assert_eq!(status, Some(TaskStatus::Delayed(Duration::from_hours(24))));
     assert_eq!(runs.load(Ordering::SeqCst), 0);
 
     // Polling again without moving the clock parks again and never runs.

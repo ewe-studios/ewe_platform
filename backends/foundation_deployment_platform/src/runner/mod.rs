@@ -63,8 +63,7 @@ fn run_linux(session: &mut VmSession, binary: &str) -> Result<()> {
     // Kill any prior instances
     let bin_name = Path::new(binary)
         .file_name()
-        .map(|n| n.to_string_lossy())
-        .unwrap_or_default();
+        .map_or_default(|n| n.to_string_lossy());
 
     crate::ssh::exec(
         session,

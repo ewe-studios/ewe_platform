@@ -261,8 +261,7 @@ pub fn parse_status_trailers(trailers: &SimpleHeaders) -> Option<ErrorTrace<Conn
     if status == 0 {
         return None;
     }
-    let message = get(constants::TRAILER_MESSAGE)
-        .map_or_default(|m| percent_decode_message(&m));
+    let message = get(constants::TRAILER_MESSAGE).map_or_default(|m| percent_decode_message(&m));
     let code = Code::from_u32(status).unwrap_or(Code::Unknown);
     Some(ConnectError::wire(code, message).into())
 }

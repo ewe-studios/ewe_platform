@@ -117,10 +117,7 @@ fn parse_attribute_args(attr: &syn::Attribute) -> HashMap<String, AttributeValue
     let mut map = HashMap::new();
 
     let _ = attr.parse_nested_meta(|meta| {
-        let key = meta
-            .path
-            .get_ident()
-            .map_or_default(ToString::to_string);
+        let key = meta.path.get_ident().map_or_default(ToString::to_string);
 
         if meta.input.peek(syn::Token![=]) {
             // Key = Value form

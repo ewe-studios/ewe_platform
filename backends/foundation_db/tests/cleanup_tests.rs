@@ -135,8 +135,7 @@ async fn run_full_cleanup_honours_the_configured_retention() {
     assert_eq!(stats.jwt_tokens_deleted, 0);
 
     // A 1-day retention removes only the one that expired 2 days ago.
-    let config =
-        CleanupConfig::default().with_jwt_token_retention(Duration::from_hours(24));
+    let config = CleanupConfig::default().with_jwt_token_retention(Duration::from_hours(24));
     let stats = store.run_full_cleanup(&config, &ctx).await.unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 1);
     assert_eq!(jwt_ids(&store).await, vec!["recent".to_string()]);

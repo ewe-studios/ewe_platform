@@ -35,9 +35,7 @@ pub fn ensure_utm_bundle(profile: &VmProfile, ctx: &Ctx) -> Result<PathBuf> {
     {
         return Ok(
             find_existing_bundle_by_name(profile.name).unwrap_or_else(|| {
-                utm_cache_dir()
-                    .map(|d| d.join(format!("{}.utm", profile.name)))
-                    .unwrap_or_default()
+                utm_cache_dir().map_or_default(|d| d.join(format!("{}.utm", profile.name)))
             }),
         );
     }
@@ -330,10 +328,10 @@ fn find_utm_bundle(dir: &Path) -> Result<PathBuf> {
         if path.is_dir() && path.extension().is_some_and(|e| e == "utm") {
             return Ok(path);
         }
-        if path.is_dir() {
-            if let Ok(inner) = find_utm_bundle(&path) {
-                return Ok(inner);
-            }
+        if path.is_dir()
+            && let Ok(inner) = find_utm_bundle(&path)
+        {
+            return Ok(inner);
         }
     }
     Err(TestbedError::Qcow2Error {

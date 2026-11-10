@@ -440,9 +440,9 @@ fn extract_calls(
                 let is_member_call = func.kind() == "selector_expression";
                 let callee_name = if is_member_call {
                     // Go selector: `pkg.Func()` or `receiver.Method()`
-                    func.child_by_field_name("field")
-                        .map(|f| f.utf8_text(source.as_bytes()).unwrap_or("").to_string())
-                        .unwrap_or_default()
+                    func.child_by_field_name("field").map_or_default(|f| {
+                        f.utf8_text(source.as_bytes()).unwrap_or("").to_string()
+                    })
                 } else {
                     let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
                     text.split('.').next_back().unwrap_or(&text).to_string()

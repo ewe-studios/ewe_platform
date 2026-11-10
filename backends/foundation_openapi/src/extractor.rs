@@ -283,10 +283,8 @@ impl EndpointExtractor {
             .unwrap_or_else(|| method.flat_path.as_deref().unwrap_or(""));
 
         // Extract parameters
-        let params: BTreeMap<String, GcpParameter> = method
-            .parameters
-            .as_ref()
-            .map_or_default(|p| {
+        let params: BTreeMap<String, GcpParameter> =
+            method.parameters.as_ref().map_or_default(|p| {
                 p.iter()
                     .map(|(k, v)| {
                         (
