@@ -67,7 +67,7 @@ pub async fn collect(
             .date
             .as_deref()
             .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
-            .map_or_else(|| wall_now_utc(ctx.clock()), |d| d.with_timezone(&Utc));
+            .map_or_else(|| wall_now_utc(ctx.ctx()), |d| d.with_timezone(&Utc));
         store::insert(
             ctx.db(),
             &EventRow {
@@ -77,7 +77,7 @@ pub async fn collect(
                 cipher_uuid: event.cipher_id,
                 event_date: date,
             },
-            ctx.clock(),
+            ctx.ctx(),
         )
         .await?;
     }

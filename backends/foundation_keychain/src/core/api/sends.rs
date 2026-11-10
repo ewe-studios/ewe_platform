@@ -98,7 +98,7 @@ pub async fn create(
     if req.name.trim().is_empty() {
         return Err(AppError::BadRequest("send name is required".into()).into());
     }
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let deletion_date = match req.deletion_date.as_deref() {
         Some(s) => parse_date(s)?,
         None => now + Duration::days(DEFAULT_DELETION_DAYS),
@@ -175,7 +175,7 @@ pub async fn update(
     if let Some(hide_email) = req.hide_email {
         row.hide_email = hide_email;
     }
-    row.updated_at = wall_now_utc(ctx.clock());
+    row.updated_at = wall_now_utc(ctx.ctx());
     store::update(ctx.db(), &row).await?;
     Ok(to_send(&row))
 }
@@ -204,7 +204,7 @@ pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> 
         .await?
         .ok_or_else(|| AppError::NotFound("send not found".into()))?;
 
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let gone = row.disabled
         || row.deletion_date <= now
         || row.expiration_date.is_some_and(|e| e <= now)

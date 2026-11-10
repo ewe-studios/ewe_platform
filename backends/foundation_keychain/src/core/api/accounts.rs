@@ -123,7 +123,7 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
     )
     .await?;
 
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let kdf = req.kdf.unwrap_or(KdfType::Pbkdf2Sha256);
     let row = UserRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
@@ -184,7 +184,7 @@ pub async fn update_profile(
     let mut user = store::find_by_uuid(ctx.db(), user_uuid)
         .await?
         .ok_or(AppError::Unauthorized)?;
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     if req.name.is_some() {
         user.name = req.name;
     }

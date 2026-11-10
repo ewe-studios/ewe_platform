@@ -74,7 +74,7 @@ pub async fn register(
     // Secret embeds the uuid so it resolves the app on later calls.
     let secret = format!("{uuid}.{}", crypto::random_key()?);
     let salt = crypto::random_salt()?;
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
 
     let row = AppRow {
         uuid: uuid.clone(),
