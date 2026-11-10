@@ -22,7 +22,9 @@ fn open_sync(path: &std::path::Path) -> SyncFs<LibsqlDelta> {
         exec_async(async move {
             LibsqlDelta::new(
                 path,
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                    foundation_core::valtron::MonotonicClock::new(),
+                )),
             )
             .await
         })

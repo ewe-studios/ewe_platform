@@ -69,7 +69,9 @@ fn make_sync_d1() -> Option<SyncFs<D1Delta>> {
         "test-account",
         &db_id,
         Some(&base),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .ok()?;
     Some(SyncFs::new(delta))
@@ -83,16 +85,18 @@ fn test_d1_delta_new_with_credentials() {
         "test-token",
         "test-account",
         "test-db",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_d1_delta_from_env_no_creds() {
-    let result = D1Delta::from_env(std::sync::Arc::new(
+    let result = D1Delta::from_env(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     assert!(result.is_err());
 }
 

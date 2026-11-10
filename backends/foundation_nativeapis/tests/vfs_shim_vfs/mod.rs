@@ -314,7 +314,9 @@ int main(int argc, char **argv) {
         "test-account",
         &db_id,
         Some(&base),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .expect("D1Delta::new_with_base_url");
     let read = SyncFs::new(delta)

@@ -9,7 +9,7 @@ pub(crate) use encoded_message::EncodedMessage;
 pub(crate) use fd::{Fd, Local, Remote};
 pub(crate) use io_mul::IoMultiplexing;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::ipc::{
     util::Align4, util::EndpointID, version::version, Error, Label, LabelOp, MemoryRegion, Message,
@@ -62,7 +62,7 @@ pub(crate) fn look_up(
     label: Label,
     token: String,
     im: Arc<IoMultiplexing>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 ) -> Result<(IoHub, Remote, EndpointID), Error> {
     unsafe {
         // Create socket
@@ -149,8 +149,7 @@ pub(crate) fn look_up(
 
         // Wait for ack on socketpair read fd
         let mut io_hub: IoHub = IoHub::for_endpoint(Local(read_fd), im);
-        let encoded_msg =
-            io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), clock.as_ref())?;
+        let encoded_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), &ctx)?;
         let ack = crate::ipc::ConnectMessageAck::decode(
             encoded_msg.selector.uuid,
             encoded_msg.payload_data,
@@ -299,7 +298,7 @@ impl IoHub {
         &mut self,
         timeout: Option<Duration>,
         remote: Option<&Remote>,
-        _clock: &dyn Clock,
+        _ctx: &Ctx,
     ) -> Result<EncodedMessage, Error> {
         let _ = remote;
 

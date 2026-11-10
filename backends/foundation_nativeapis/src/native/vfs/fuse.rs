@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use fuser::{
     BackgroundSession, FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyCreate,
     ReplyData, ReplyDirectory, ReplyEmpty, ReplyEntry, ReplyOpen, ReplyStatfs, ReplyWrite, Request,
@@ -135,7 +135,7 @@ pub struct FuseMount<F: VfsFileSystem> {
     file_handles: RwLock<HashMap<u64, OpenFileHandle>>,
     dir_handles: RwLock<HashMap<u64, OpenDirHandle>>,
     next_fh: AtomicU64,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl<F: VfsFileSystem> std::fmt::Debug for FuseMount<F> {
@@ -148,15 +148,15 @@ impl<F: VfsFileSystem> std::fmt::Debug for FuseMount<F> {
 }
 
 impl<F: VfsFileSystem + 'static> FuseMount<F> {
-    /// A mount of `fs` whose attribute fallback times come from `clock`.
-    pub fn new(fs: F, options: FuseMountOptions, clock: Arc<dyn Clock>) -> Self {
+    /// A mount of `fs` whose attribute fallback times come from the clock of `ctx`.
+    pub fn new(fs: F, options: FuseMountOptions, ctx: Ctx) -> Self {
         Self {
             fs: Arc::new(fs),
             options,
             file_handles: RwLock::new(HashMap::new()),
             dir_handles: RwLock::new(HashMap::new()),
             next_fh: AtomicU64::new(1),
-            clock,
+            ctx,
         }
     }
 
@@ -208,7 +208,7 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
             VfsFileType::Directory => FileType::Directory,
             VfsFileType::Symlink => FileType::Symlink,
         };
-        let now = self.clock.wall_now();
+        let now = self.ctx.clock().wall_now();
         FileAttr {
             ino: meta.inode,
             size: meta.size,

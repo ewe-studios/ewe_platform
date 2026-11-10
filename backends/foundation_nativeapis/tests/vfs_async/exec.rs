@@ -9,8 +9,8 @@ use foundation_nativeapis::shared::vfs::{MemoryFs, SyncFs, VfsFileSystem};
 fn ready_futures_need_no_pool() {
     assert_eq!(exec_async(async { Ok(7) }).unwrap(), 7);
 
-    let fs = SyncFs::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = SyncFs::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )));
     fs.write_file("/a.txt", b"x").unwrap();
     assert_eq!(fs.read_file("/a.txt").unwrap(), b"x");

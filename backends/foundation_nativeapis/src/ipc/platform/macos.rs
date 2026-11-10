@@ -1,5 +1,5 @@
 use foundation_core::type_uuid::TypeUuid;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 /// macOS IPC transport — Mach ports with mach_msg, kqueue IO multiplexing.
 ///
 /// Uses mach ports for communication and bootstrap_register/bootstrap_look_up for bus discovery.
@@ -339,7 +339,7 @@ pub(crate) fn look_up(
     label: Label,
     token: String,
     im: Arc<IoMultiplexing>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 ) -> Result<(IoHub, Remote, EndpointID), Error> {
     let identifier = CString::new(identifier).unwrap();
     let mut remote: mach_sys::mach_port_t = 0;
@@ -371,8 +371,7 @@ pub(crate) fn look_up(
                 encoded_msg.send(&remote)?;
 
                 let mut io_hub: IoHub = IoHub::for_endpoint(local, im);
-                let encoded_msg =
-                    io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), clock.as_ref())?;
+                let encoded_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote), &ctx)?;
                 let ack = crate::ipc::ConnectMessageAck::decode(
                     encoded_msg.selector.uuid,
                     encoded_msg.payload_data,
@@ -792,9 +791,9 @@ impl IoHub {
         &mut self,
         timeout: Option<Duration>,
         remote: Option<&Remote>,
-        clock: &dyn Clock,
+        ctx: &Ctx,
     ) -> Result<EncodedMessage, Error> {
-        let end = timeout.map(|timeout| clock.now() + timeout);
+        let end = timeout.map(|timeout| ctx.clock().now() + timeout);
         loop {
             if let Some(bus_receiver) = &self.bus_receiver {
                 match bus_receiver.try_recv() {
@@ -832,7 +831,7 @@ impl IoHub {
 
             if self.in_buffer.is_empty() {
                 if let Some(end) = end {
-                    if clock.now() > end {
+                    if ctx.clock().now() > end {
                         break Err(Error::Timeout);
                     }
                 }

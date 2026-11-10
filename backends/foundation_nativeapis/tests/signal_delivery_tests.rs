@@ -12,16 +12,17 @@
 
 #![cfg(unix)]
 
-use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::Instant;
-use foundation_core::valtron::{Ctx, MonotonicClock, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_nativeapis::signal::{signal_task, SignalEvent, SignalKind};
 
 /// A context with the real monotonic clock.
 fn ctx() -> Ctx {
-    Ctx::fixed(Arc::new(MonotonicClock::new()))
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }
 
 /// Send `SIGTERM` to this process and prove that the kernel accepted it.
@@ -48,7 +49,10 @@ fn send_sigterm() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_signal_waits_for_the_readiness_poll() {
-    let (mut task, bus) = signal_task(Arc::new(MonotonicClock::new())).expect("register signals");
+    let (mut task, bus) = signal_task(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )))
+    .expect("register signals");
     let subscriber = bus.subscribe_events();
 
     send_sigterm();
@@ -78,7 +82,10 @@ fn a_signal_waits_for_the_readiness_poll() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_nonblocking_poll_returns_at_once() {
-    let (mut task, _bus) = signal_task(Arc::new(MonotonicClock::new())).expect("register signals");
+    let (mut task, _bus) = signal_task(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )))
+    .expect("register signals");
 
     let Some(TaskStatus::Depends(readiness)) = task.next_status(ctx()) else {
         panic!("the unpolled task must park with Depends");
@@ -99,7 +106,10 @@ fn a_nonblocking_poll_returns_at_once() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_signal_sent_before_the_park_is_not_lost() {
-    let (mut task, _bus) = signal_task(Arc::new(MonotonicClock::new())).expect("register signals");
+    let (mut task, _bus) = signal_task(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    )))
+    .expect("register signals");
 
     // The signal arrives before the task ever parks. The platform edge (the
     // eventfd counter on Linux, the kqueue event on macOS) holds it.

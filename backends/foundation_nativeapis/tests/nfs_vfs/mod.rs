@@ -36,18 +36,18 @@ where
 
 #[test]
 fn test_nfs_root_dir() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = VfsNfs::new(fs);
     assert_eq!(nfs.root_dir(), 1);
 }
 
 #[test]
 fn test_nfs_capabilities() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = VfsNfs::new(fs);
     assert!(matches!(
         nfs.capabilities(),
@@ -57,9 +57,9 @@ fn test_nfs_capabilities() {
 
 #[test]
 fn test_nfs_id_to_fh_to_id() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = VfsNfs::new(fs);
 
     let id: nfsserve::nfs::fileid3 = 42;
@@ -76,9 +76,9 @@ fn test_nfs_id_to_fh_to_id() {
 #[tracing_test::traced_test]
 fn test_nfs_getattr_root() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let attr = run_nfs_async({
@@ -95,9 +95,9 @@ fn test_nfs_getattr_root() {
 #[tracing_test::traced_test]
 fn test_nfs_fsinfo() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let info = run_nfs_async({
@@ -115,9 +115,9 @@ fn test_nfs_fsinfo() {
 #[tracing_test::traced_test]
 fn test_nfs_create_and_write() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let (id, _) = run_nfs_async({
@@ -152,9 +152,9 @@ fn test_nfs_create_and_write() {
 #[tracing_test::traced_test]
 fn test_nfs_path_to_id() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let result = run_nfs_async({
@@ -176,9 +176,9 @@ fn test_nfs_path_to_id() {
 #[tracing_test::traced_test]
 fn test_nfs_readdir_root() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/subdir1").unwrap();
     fs.mkdir("/subdir2").unwrap();
     fs.create("/file1.txt", 0o644).unwrap();
@@ -204,9 +204,9 @@ fn test_nfs_readdir_root() {
 #[tracing_test::traced_test]
 fn test_nfs_symlink() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/target").unwrap();
     let nfs = Arc::new(VfsNfs::new(fs));
 
@@ -231,9 +231,9 @@ fn test_nfs_symlink() {
 #[tracing_test::traced_test]
 fn test_nfs_remove_file() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     run_nfs_async({
@@ -258,9 +258,11 @@ fn test_nfs_remove_file() {
 #[serial_test::serial]
 fn test_nfs_remove_and_rename_in_subdirectory() {
     let _guard = init_pool();
-    let nfs = Arc::new(VfsNfs::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
-    ))));
+    let nfs = Arc::new(VfsNfs::new(MemoryFs::new(
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
+    )));
 
     let n = Arc::clone(&nfs);
     let (sub, _) = run_nfs_async(async move { n.mkdir(1, &ns("sub")).await }).unwrap();
@@ -310,9 +312,9 @@ fn test_nfs_remove_and_rename_in_subdirectory() {
 #[tracing_test::traced_test]
 fn nfs_readdir_pages_without_repeats() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/dir").unwrap();
     for i in 0..1000 {
         fs.create(&format!("/dir/file_{i:04}"), 0o644).unwrap();
@@ -355,9 +357,9 @@ fn nfs_readdir_pages_without_repeats() {
 #[tracing_test::traced_test]
 fn nfs_attrs_have_mtime() {
     let _guard = init_pool();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.create("/file.txt", 0o644).unwrap();
     fs.write_file("/file.txt", b"data").unwrap();
 

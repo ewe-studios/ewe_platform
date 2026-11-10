@@ -47,7 +47,9 @@ mod tests {
         let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("join failed");
 
@@ -77,7 +79,9 @@ mod tests {
             let (_sender, mut receiver) = join::<BytesMessage, BytesMessage>(
                 opts,
                 Some(Duration::from_secs(5)),
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                    foundation_core::valtron::MonotonicClock::new(),
+                )),
             )
             .expect("controller join");
 
@@ -93,7 +97,9 @@ mod tests {
         let (sender, _receiver) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("client join");
 
@@ -120,7 +126,9 @@ mod tests {
         let (sender, mut receiver) = join::<TestEvent, TestEvent>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("join failed");
 
@@ -151,7 +159,9 @@ mod tests {
             let (_sender, mut receiver) = join::<BytesMessage, BytesMessage>(
                 opts,
                 Some(Duration::from_secs(5)),
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                    foundation_core::valtron::MonotonicClock::new(),
+                )),
             )
             .expect("b join");
             receiver
@@ -165,7 +175,9 @@ mod tests {
         let (sender, mut receiver_a) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("a join");
 
@@ -199,7 +211,9 @@ mod tests {
             let (_s, mut r) = join::<BytesMessage, BytesMessage>(
                 opts,
                 Some(Duration::from_secs(5)),
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                    foundation_core::valtron::MonotonicClock::new(),
+                )),
             )
             .expect("target join");
             r.recv(Some(Duration::from_secs(5)))
@@ -216,7 +230,9 @@ mod tests {
             let (_s, mut r) = join::<BytesMessage, BytesMessage>(
                 opts,
                 Some(Duration::from_secs(5)),
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                    foundation_core::valtron::MonotonicClock::new(),
+                )),
             )
             .expect("other join");
             r.recv(Some(Duration::from_millis(500)))
@@ -228,7 +244,9 @@ mod tests {
         let (sender, _r) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("sender join");
 
@@ -260,7 +278,9 @@ mod tests {
         let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("join failed");
 
@@ -304,7 +324,9 @@ mod tests {
             let (_s, mut r) = join::<BytesMessage, BytesMessage>(
                 opts,
                 Some(Duration::from_secs(5)),
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+                foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                    foundation_core::valtron::MonotonicClock::new(),
+                )),
             )
             .expect("ctrl join");
             let _ = r.recv(Some(Duration::from_secs(3)));
@@ -318,7 +340,9 @@ mod tests {
         let result = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(2)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         );
 
         assert!(result.is_err(), "join with wrong token should fail");
@@ -333,7 +357,9 @@ mod tests {
         let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("join");
 
@@ -364,7 +390,9 @@ mod tests {
         let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("join");
 
@@ -425,7 +453,9 @@ mod tests {
         let (sender, mut receiver) = join::<AppMessage, AppMessage>(
             opts,
             Some(Duration::from_secs(5)),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .expect("join");
 

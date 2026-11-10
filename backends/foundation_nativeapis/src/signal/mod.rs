@@ -30,7 +30,7 @@ pub use task::SignalTask;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 use std::sync::atomic::AtomicU32;
@@ -78,7 +78,7 @@ pub(crate) fn deliver_signal(kind: SignalKind) {
         let bus: &SignalBus = unsafe { &*(ptr as *const SignalBus) };
         bus.deliver(&SignalEvent {
             kind,
-            timestamp: bus.clock().now(),
+            timestamp: bus.ctx().clock().now(),
         });
     }
 }
@@ -113,10 +113,8 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
 ///
 /// # Errors
 /// Returns an error if signal registration fails (unsupported platform, OS error).
-pub fn signal_task(
-    clock: Arc<dyn Clock>,
-) -> Result<(SignalTask, std::sync::Arc<SignalBus>), SignalError> {
-    let bus = std::sync::Arc::new(SignalBus::new(clock));
+pub fn signal_task(ctx: Ctx) -> Result<(SignalTask, std::sync::Arc<SignalBus>), SignalError> {
+    let bus = std::sync::Arc::new(SignalBus::new(ctx));
     set_global_bus(bus.clone());
     let handle = register_signals()?;
     let task = SignalTask::new(bus.clone(), handle);

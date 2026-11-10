@@ -428,9 +428,9 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingAsyncFs<F> {
 fn vfs_copy_streams_in_chunks() {
     let content: Vec<u8> = (0..1000u16).map(|b| (b % 251) as u8).collect();
 
-    let inner = MemoryFs::new(std::sync::Arc::new(
+    let inner = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     inner.write_file("/src", &content).unwrap();
 
     let (fs, reads) = CountingFs::new(inner);
@@ -461,9 +461,9 @@ fn vfs_copy_streams_in_chunks() {
 async fn vfs_copy_async_streams_in_chunks() {
     let content: Vec<u8> = (0..1000u16).map(|b| (b % 251) as u8).collect();
 
-    let inner = MemoryFs::new(std::sync::Arc::new(
+    let inner = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     inner
         .write_file_async("/src".to_string(), content.clone())
         .await

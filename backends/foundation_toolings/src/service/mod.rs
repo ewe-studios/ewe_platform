@@ -84,7 +84,7 @@ impl DevService {
         // Under multi, pool threads drive the task. We just wait on the bus
         // subscriber queue, whose pop() blocks until a signal event is delivered.
         let (sig_task, bus) =
-            signal_task(ctx.clock()).map_err(|e| ToolingError::Watch(e.to_string()))?;
+            signal_task(ctx.clone()).map_err(|e| ToolingError::Watch(e.to_string()))?;
         valtron::send(sig_task).map_err(|e| ToolingError::Watch(e.to_string()))?;
 
         // Block on the bus subscriber — ConcurrentQueue::pop() blocks via

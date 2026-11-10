@@ -14,14 +14,16 @@ use foundation_core::valtron::valtron_test;
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
 
-fn test_clock() -> Arc<dyn foundation_core::valtron::Clock> {
-    Arc::new(foundation_core::valtron::MonotonicClock::new())
+fn test_ctx() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }
 
 fn make_store() -> FjallDocumentStore<MemoryFs> {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
     futures_lite::future::block_on(FjallDocumentStore::open(
@@ -29,7 +31,9 @@ fn make_store() -> FjallDocumentStore<MemoryFs> {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     ))
     .unwrap()
 }
@@ -523,9 +527,9 @@ async fn scan_all_empty_collection_returns_empty() {
 
 #[valtron_test]
 async fn batched_durability_accumulates_then_flushes() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig {
         batch_size_bytes: 1024,
@@ -536,7 +540,9 @@ async fn batched_durability_accumulates_then_flushes() {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .await
     .unwrap();
@@ -578,9 +584,9 @@ async fn batched_durability_accumulates_then_flushes() {
 
 #[valtron_test]
 async fn tail_rebuild_recovers_unindexed_records() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
 
@@ -591,7 +597,9 @@ async fn tail_rebuild_recovers_unindexed_records() {
             "/data".to_string(),
             tmpdir.path(),
             durability.clone(),
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .await
         .unwrap();
@@ -638,7 +646,9 @@ async fn tail_rebuild_recovers_unindexed_records() {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .await
     .unwrap();
@@ -683,7 +693,7 @@ async fn ordering_is_chronological_by_scru128() {
 
 #[valtron_test]
 async fn default_store_is_usable_and_starts_empty() {
-    let store = FjallDocumentStore::new(MemoryFs::new(test_clock()), test_clock());
+    let store = FjallDocumentStore::new(MemoryFs::new(test_ctx()), test_ctx());
     store
         .append(
             "col",
@@ -704,7 +714,7 @@ async fn default_store_is_usable_and_starts_empty() {
     );
 
     // A second default store gets its own index, so it doesn't see the first's data.
-    let other = FjallDocumentStore::new(MemoryFs::new(test_clock()), test_clock());
+    let other = FjallDocumentStore::new(MemoryFs::new(test_ctx()), test_ctx());
     let other_docs = collect_stream(other.scan_all::<TestRecord>("col").await.unwrap()).await;
     assert_eq!(other_docs, Vec::<TestRecord>::new());
 }
@@ -799,8 +809,8 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingFs<F> {
 
 #[valtron_test]
 async fn fjall_scan_yields_before_reading_all() {
-    let (fs, opens) = CountingFs::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let (fs, opens) = CountingFs::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )));
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
@@ -809,7 +819,9 @@ async fn fjall_scan_yields_before_reading_all() {
         "/data".to_string(),
         tmpdir.path(),
         durability,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .await
     .unwrap();

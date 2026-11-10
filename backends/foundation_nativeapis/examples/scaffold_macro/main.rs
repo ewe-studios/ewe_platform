@@ -11,9 +11,7 @@ struct LoggingFs {
 impl LoggingFs {
     fn new(label: &str) -> Self {
         Self {
-            inner: MemoryFs::new(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new(),
-            )),
+            inner: MemoryFs::new(foundation_core::valtron::Ctx::host()),
             label: label.to_string(),
         }
     }

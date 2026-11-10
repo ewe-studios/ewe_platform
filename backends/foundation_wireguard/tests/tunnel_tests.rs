@@ -80,7 +80,7 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 
     let mut driver_a = TunnelDriver::new(
         sock_a,
-        NetStack::new(NetStackConfig::new(ip_a, 24), &test_ctx().clock()),
+        NetStack::new(NetStackConfig::new(ip_a, 24), &test_ctx()),
         test_ctx(),
     );
     driver_a.add_peer(
@@ -91,7 +91,7 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 
     let mut driver_b = TunnelDriver::new(
         sock_b,
-        NetStack::new(NetStackConfig::new(ip_b, 24), &test_ctx().clock()),
+        NetStack::new(NetStackConfig::new(ip_b, 24), &test_ctx()),
         test_ctx(),
     );
     driver_b.add_peer(

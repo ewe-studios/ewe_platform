@@ -8,7 +8,7 @@ use std::{
     time::Duration,
 };
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::ipc::{
     platform::{look_up, register, EncodedMessage, IoHub, IoMultiplexing, Remote},
@@ -19,13 +19,13 @@ use crate::ipc::{
 
 /// Join a message bus.
 ///
-/// The join timeout and every later receive deadline read `clock`.
+/// The join timeout and every later receive deadline read the clock of `ctx`.
 pub fn join<T: MessageBox, R: MessageBox>(
     options: Options,
     timeout: Option<Duration>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 ) -> Result<(EndpointSender<T>, EndpointReceiver<R>), JoinError> {
-    let joined = Rule::join(options, 0, Arc::new(IoMultiplexing::new()), timeout, clock)?;
+    let joined = Rule::join(options, 0, Arc::new(IoMultiplexing::new()), timeout, ctx)?;
     tracing::debug!(endpoint_id = ?joined.endpoint_id(), "ipc endpoint joined the bus");
     let rule = Arc::new(RwLock::new(joined));
 
@@ -65,12 +65,9 @@ impl<T: MessageBox> EndpointSender<T> {
             let rule = self.rule.read().unwrap();
             match &*rule {
                 Rule::Client {
-                    remote,
-                    epoch,
-                    clock,
-                    ..
+                    remote, epoch, ctx, ..
                 } => {
-                    let clock = Arc::clone(clock);
+                    let ctx = ctx.clone();
                     match msg.send(remote) {
                         Err(Error::Disconnect) => {
                             let epoch = *epoch;
@@ -95,7 +92,7 @@ impl<T: MessageBox> EndpointSender<T> {
                                             epoch.overflowing_add(1).0,
                                             im.clone(),
                                             None,
-                                            clock,
+                                            ctx,
                                         )?;
 
                                         if reader_closed_val {
@@ -144,10 +141,10 @@ impl<R: MessageBox> EndpointReceiver<R> {
                     io_hub,
                     reader_closed,
                     epoch,
-                    clock,
+                    ctx,
                     ..
                 } => {
-                    let clock = Arc::clone(clock);
+                    let ctx = ctx.clone();
                     if !*reader_closed && io_hub.is_none() {
                         let epoch_val = *epoch;
                         drop(rule);
@@ -170,7 +167,7 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                         epoch_val.overflowing_add(1).0,
                                         im.clone(),
                                         timeout,
-                                        Arc::clone(&clock),
+                                        ctx.clone(),
                                     )?;
                                     if rc {
                                         rule.reader_close();
@@ -184,7 +181,7 @@ impl<R: MessageBox> EndpointReceiver<R> {
 
                     let mut io_hub_guard = io_hub.as_ref().expect("reader closed").lock().unwrap();
 
-                    match io_hub_guard.recv(timeout, Some(remote), clock.as_ref()) {
+                    match io_hub_guard.recv(timeout, Some(remote), &ctx) {
                         Ok(encoded_msg) => {
                             if encoded_msg.selector.label_op.validate(&options.label) {
                                 match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data)
@@ -230,7 +227,7 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                             epoch_val.overflowing_add(1).0,
                                             im.clone(),
                                             timeout,
-                                            Arc::clone(&clock),
+                                            ctx.clone(),
                                         )?;
                                         if rc {
                                             rule.reader_close();
@@ -304,7 +301,7 @@ enum Rule {
         reader_closed: bool,
         im: Arc<IoMultiplexing>,
         epoch: u32,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     },
     Server {
         endpoint_id: EndpointID,
@@ -330,15 +327,15 @@ impl Rule {
         epoch: u32,
         im: Arc<IoMultiplexing>,
         timeout: Option<Duration>,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Result<Self, JoinError> {
-        let end = timeout.map(|t| clock.now() + t);
+        let end = timeout.map(|t| ctx.clock().now() + t);
 
         macro_rules! wait {
             () => {
                 let mut w = Duration::from_secs(2);
                 if let Some(end) = end {
-                    let remain = end.saturating_duration_since(clock.now());
+                    let remain = end.saturating_duration_since(ctx.clock().now());
                     if remain.is_zero() {
                         return Err(JoinError::Timeout);
                     }
@@ -357,7 +354,7 @@ impl Rule {
                 options.label.clone(),
                 options.token.clone(),
                 im.clone(),
-                Arc::clone(&clock),
+                ctx.clone(),
             );
 
             match r {
@@ -370,7 +367,7 @@ impl Rule {
                         reader_closed: false,
                         im,
                         epoch,
-                        clock: Arc::clone(&clock),
+                        ctx: ctx.clone(),
                     };
                 }
                 Err(Error::IdentifierNotInUse) => {
@@ -391,7 +388,7 @@ impl Rule {
                                 options.token,
                                 tx,
                                 io_hub,
-                                Arc::clone(&clock),
+                                ctx.clone(),
                             );
                             ctrl.run();
 

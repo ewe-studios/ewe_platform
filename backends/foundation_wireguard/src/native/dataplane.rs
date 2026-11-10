@@ -68,7 +68,7 @@ impl MeshDataPlane {
             }
             DataPlaneMode::Netstack => Self::Stack(NetStack::new(
                 NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
-                &ctx.clock(),
+                ctx,
             )),
         })
     }

@@ -3,7 +3,7 @@
 use std::sync::{Arc, Mutex};
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Clock, EventQueue};
+use foundation_core::valtron::{Ctx, EventQueue};
 
 use crate::signal::event::SignalEvent;
 
@@ -12,7 +12,7 @@ pub struct SignalBus {
     /// Subscribers that are valtron tasks: a delivered event wakes the task
     /// parked on the queue's readiness.
     event_subscribers: std::sync::Mutex<Vec<EventQueue<SignalEvent>>>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl Clone for SignalBus {
@@ -20,25 +20,25 @@ impl Clone for SignalBus {
         Self {
             subscribers: std::sync::Mutex::new(Vec::new()),
             event_subscribers: std::sync::Mutex::new(Vec::new()),
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }
     }
 }
 
 impl SignalBus {
-    /// A bus whose event timestamps read `clock`.
+    /// A bus whose event timestamps read the clock of `ctx`.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             subscribers: Mutex::new(Vec::new()),
             event_subscribers: Mutex::new(Vec::new()),
-            clock,
+            ctx,
         }
     }
 
-    /// The clock that stamps every delivered event.
-    pub(crate) fn clock(&self) -> &Arc<dyn Clock> {
-        &self.clock
+    /// The context that stamps every delivered event.
+    pub(crate) fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 
     /// Subscribe — returns a queue that receives all signal events.

@@ -22,7 +22,9 @@ use foundation_nativeapis::shared::vfs::{DeltaStore, OpenMode, VfsFileSystem, Vf
 fn delta() -> BlobDelta<MemoryStorage> {
     BlobDelta::from_store(
         MemoryStorage::new(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
 }
 
@@ -260,7 +262,9 @@ async fn blob_delta_small_writes_touch_one_chunk() {
     let d = BlobDelta::from_store_with_config(
         store,
         config,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let f = d.create_async("/big".into(), 0o644).await.unwrap();
 

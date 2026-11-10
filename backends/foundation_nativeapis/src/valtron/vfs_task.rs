@@ -13,7 +13,7 @@
 //! use foundation_nativeapis::valtron::VfsTask;
 //! use foundation_core::valtron::execute;
 //!
-//! let mut fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())));
+//! let mut fs = ObservableFs::new(MemoryFs::new(foundation_core::valtron::Ctx::host()));
 //! let mut task = VfsTask::from_observable(&mut fs);
 //! let stop = task.stop_signal();
 //! let stream = execute(task, None)?;
@@ -151,7 +151,7 @@ impl TaskIterator for VfsTask {
 /// use foundation_nativeapis::valtron::VfsTaskBuilder;
 /// use foundation_core::valtron::collect_one;
 ///
-/// let mut fs = ObservableFs::new(MemoryFs::new(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())));
+/// let mut fs = ObservableFs::new(MemoryFs::new(foundation_core::valtron::Ctx::host()));
 /// let stream = VfsTaskBuilder::from_observable(&mut fs).build()?;
 ///
 /// if let Some(event) = collect_one(stream) {

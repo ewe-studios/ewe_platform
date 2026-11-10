@@ -4,12 +4,12 @@
 /// re-exported per-platform from the parent module.
 use std::{
     mem,
-    sync::{mpsc::Sender, Arc},
+    sync::mpsc::Sender,
     thread,
     time::{Duration, Instant},
 };
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use super::{EncodedMessage, IoHub, Remote};
 use crate::ipc::{
@@ -41,7 +41,7 @@ pub(crate) struct BusController {
     message_buffer_swap: Vec<(Instant, EncodedMessage)>,
     io_hub: IoHub,
     last_detect_reachable: Instant,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl BusController {
@@ -51,7 +51,7 @@ impl BusController {
         token: String,
         sender: Sender<EncodedMessage>,
         io_hub: IoHub,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             endpoint_id,
@@ -62,8 +62,8 @@ impl BusController {
             message_buffer: Default::default(),
             message_buffer_swap: Default::default(),
             io_hub,
-            last_detect_reachable: clock.now(),
-            clock,
+            last_detect_reachable: ctx.clock().now(),
+            ctx,
         }
     }
 
@@ -71,7 +71,7 @@ impl BusController {
         thread::Builder::new()
             .name(String::from("ipmb bus controller"))
             .spawn(move || loop {
-                let msg = match self.io_hub.recv(None, None, self.clock.as_ref()) {
+                let msg = match self.io_hub.recv(None, None, &self.ctx) {
                     Ok(msg) => msg,
                     Err(Error::VersionMismatch(_, _)) => {
                         // Can't send back version mismatch reply without a remote reference
@@ -80,7 +80,7 @@ impl BusController {
                     _ => continue,
                 };
 
-                let now = self.clock.now();
+                let now = self.ctx.clock().now();
 
                 let (remain, endpoint_connected) = self.handle_message(msg);
 

@@ -165,19 +165,21 @@ fn test_mount_table_resolve() {
 #[test]
 fn test_mount_table_default_fs() {
     let mut mt = MountTable::new();
-    mt.set_default(DynFs::new(Arc::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
-    )))));
+    mt.set_default(DynFs::new(Arc::new(MemoryFs::new(
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
+    ))));
     assert!(mt.resolve("/anything").is_some());
 }
 
 #[test]
 fn test_mount_table_first_prefix_wins() {
-    let fs_a = Arc::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs_a = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )));
-    let fs_b = Arc::new(MemoryFs::new(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs_b = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
+        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
     )));
     let mut mt = MountTable::new();
     mt.mount("/a", DynFs::new(Arc::clone(&fs_a)));
@@ -193,9 +195,11 @@ fn test_mount_table_prefix_normalize() {
     let mut mt = MountTable::new();
     mt.mount(
         "virtual/",
-        DynFs::new(Arc::new(MemoryFs::new(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        )))),
+        DynFs::new(Arc::new(MemoryFs::new(
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
+        ))),
     );
     assert!(mt.is_virtual("/virtual/file.txt"));
 }
@@ -237,9 +241,9 @@ fn test_is_virtual_fd() {
 fn test_virtual_fd_insert_and_read() {
     use std::sync::Mutex;
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/hello.txt", b"virtual content").unwrap();
 
     let fd_table = VirtualFdTable::new();
@@ -273,9 +277,9 @@ fn test_virtual_fd_insert_and_read() {
 fn test_virtual_fd_write_and_readback() {
     use std::sync::Mutex;
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/dir").unwrap();
     fs.write_file("/dir/out.txt", b"").unwrap();
 
@@ -327,9 +331,9 @@ fn test_virtual_fd_range_no_collision() {
 fn test_fork_inherits_virtual_fds() {
     use std::sync::Mutex;
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/shared.txt", b"inherited data").unwrap();
 
     let fd_table = VirtualFdTable::new();
@@ -382,9 +386,9 @@ fn test_fork_inherits_virtual_fds() {
 fn test_fork_cloexec_not_inherited_on_exec() {
     use std::sync::Mutex;
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.write_file("/cloexec.txt", b"temp").unwrap();
     fs.write_file("/persist.txt", b"keep").unwrap();
 
@@ -562,9 +566,9 @@ fn the_traced_child_reads_the_virtual_mount() {
     // The child's `cat` must get its bytes from the MemoryFs, not from the
     // real filesystem: without the syscall loop /virtual does not exist.
     let i = NixInterceptor::new();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/hello.txt", b"virtual mount content\n")
         .unwrap();
@@ -596,9 +600,9 @@ fn the_traced_child_writes_to_the_virtual_mount() {
     // A shell redirect opens the path and then `dup2`s the virtual fd to
     // stdout, so dispatch must follow the entry, not the fd number.
     let i = NixInterceptor::new();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
 
     let mut mt = MountTable::new();
@@ -771,9 +775,9 @@ fn entry_offset(fd_table: &VirtualFdTable, pid: u32, fd: u64) -> Option<u64> {
 
 #[test]
 fn open_dispatch_truncates_an_existing_virtual_file() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     let mut mt = MountTable::new();
     mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
@@ -869,9 +873,9 @@ fn open_dispatch_truncates_an_existing_virtual_file() {
 
 #[test]
 fn open_dispatch_reports_or_creates_a_missing_virtual_file() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     let mut mt = MountTable::new();
     mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
@@ -917,9 +921,9 @@ fn open_dispatch_reports_or_creates_a_missing_virtual_file() {
 fn dup2_dispatch_closes_the_real_destination() {
     use std::sync::Mutex;
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
 
@@ -981,9 +985,9 @@ fn dup2_dispatch_closes_the_real_destination() {
 fn dup3_dispatch_rejects_equal_fds() {
     use std::sync::Mutex;
 
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
 
@@ -1030,9 +1034,9 @@ fn dup3_dispatch_rejects_equal_fds() {
 
 #[test]
 fn open_uses_its_mode_argument() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     let mut mt = MountTable::new();
     mt.mount("/virtual", DynFs::new(Arc::new(fs.clone())));
@@ -1084,9 +1088,9 @@ fn open_uses_its_mode_argument() {
 
 #[test]
 fn dup_clears_close_on_exec() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
     let mut mt = MountTable::new();
@@ -1169,9 +1173,9 @@ fn dup_clears_close_on_exec() {
 
 #[test]
 fn dup3_sets_close_on_exec_from_its_flags() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
     let mut mt = MountTable::new();
@@ -1239,9 +1243,9 @@ fn dup3_sets_close_on_exec_from_its_flags() {
 
 #[test]
 fn dup_rejects_an_out_of_range_fd() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
     let mut mt = MountTable::new();
@@ -1327,9 +1331,9 @@ fn dup_rejects_an_out_of_range_fd() {
 
 #[test]
 fn an_append_write_goes_to_the_end() {
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/log.txt", b"head").unwrap();
     let mut mt = MountTable::new();
@@ -1448,9 +1452,9 @@ fn the_traced_child_truncates_an_existing_virtual_file() {
     // A shell redirect opens with O_CREAT|O_TRUNC on an existing file. The
     // dispatch must open that file and truncate it, not report EEXIST.
     let i = NixInterceptor::new();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file(
         "/virtual/existing.txt",
@@ -1485,9 +1489,9 @@ fn the_traced_child_dup2_closes_the_real_destination() {
     // notification pipe, then blocks on the control pipe while the test checks
     // its fd table.
     let i = NixInterceptor::new();
-    let fs = MemoryFs::new(std::sync::Arc::new(
+    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ));
+    )));
     fs.mkdir("/virtual").unwrap();
     fs.write_file("/virtual/vfile.txt", b"virtual\n").unwrap();
 

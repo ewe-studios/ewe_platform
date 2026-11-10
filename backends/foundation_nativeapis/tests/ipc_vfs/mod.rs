@@ -345,7 +345,9 @@ async fn ipc_request_awaits_without_blocking() {
     let config = test_config("await");
     let mut server = DaemonTransport::serve_with_config(
         config.clone(),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .unwrap();
     let handle = std::thread::spawn(move || {
@@ -368,7 +370,9 @@ async fn ipc_request_awaits_without_blocking() {
     let transport = ClientTransport::connect_with_config(
         config,
         None,
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .unwrap();
 
@@ -431,7 +435,9 @@ async fn ipc_out_of_order_responses_match_by_id() {
     let config = test_config("ooo");
     let mut server = DaemonTransport::serve_with_config(
         config.clone(),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .unwrap();
     let handle = std::thread::spawn(move || {
@@ -470,7 +476,9 @@ async fn ipc_out_of_order_responses_match_by_id() {
     let transport = ClientTransport::connect_with_config(
         config,
         None,
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .unwrap();
     let (a, b) = zip(
@@ -507,7 +515,9 @@ async fn ipc_concurrent_requests() {
     let running = Arc::new(AtomicBool::new(true));
     let mut server = DaemonTransport::serve_with_config(
         config.clone(),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
     .unwrap();
     let (server_daemon, server_running) = (Arc::clone(&daemon), Arc::clone(&running));
@@ -519,7 +529,9 @@ async fn ipc_concurrent_requests() {
         ClientTransport::connect_with_config(
             config,
             None,
-            Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .unwrap(),
     );
