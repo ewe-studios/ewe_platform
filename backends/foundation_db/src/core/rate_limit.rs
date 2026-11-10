@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
     feature = "libsql",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 #[cfg(any(
     feature = "turso",
@@ -147,13 +147,13 @@ impl RateLimitEntry {
 ))]
 pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
     store: &Q,
-    clock: &dyn Clock,
+    ctx: &Ctx,
     key: &str,
     max_count: u32,
     window_seconds: u64,
 ) -> StorageResult<bool> {
     store.execute_batch(CREATE_TABLE_SQL).await?;
-    let now = unix_now_secs(clock)?;
+    let now = unix_now_secs(ctx)?;
     match sql_entry(store, key).await? {
         Some(entry) => Ok(entry.allows(max_count, now, window_seconds)),
         None => Ok(true),
@@ -175,12 +175,12 @@ pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
 ))]
 pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
     store: &Q,
-    clock: &dyn Clock,
+    ctx: &Ctx,
     key: &str,
     window_seconds: u64,
 ) -> StorageResult<u32> {
     store.execute_batch(CREATE_TABLE_SQL).await?;
-    let now = unix_now_secs(clock)?;
+    let now = unix_now_secs(ctx)?;
     let cutoff = to_i64(window_cutoff(now, window_seconds))?;
     let window_end = to_i64(now.saturating_add(window_seconds))?;
     let now = to_i64(now)?;

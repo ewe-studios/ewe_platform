@@ -20,7 +20,7 @@ use std::sync::Arc;
 
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -1245,20 +1245,20 @@ impl QueryStore for LibsqlStore {
 impl RateLimiterStore for LibsqlStore {
     async fn check_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        rate_limit::sql_check(self, clock, key, max_count, window_seconds).await
+        rate_limit::sql_check(self, ctx, key, max_count, window_seconds).await
     }
     async fn record_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> StorageResult<u32> {
-        rate_limit::sql_record(self, clock, key, window_seconds).await
+        rate_limit::sql_record(self, ctx, key, window_seconds).await
     }
     async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         rate_limit::sql_reset(self, key).await

@@ -14,7 +14,7 @@ use crate::core::storage_provider::{
 };
 use crate::wasm::bindgen::KVNamespace;
 use foundation_compact::SendWrapper;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use js_sys::Object;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -252,12 +252,12 @@ impl KVWasmStorage {
     /// Check if a rate limit key is allowed (see [`RateLimiterStore`]).
     async fn check_rate_limit_async(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> Result<bool, StorageError> {
-        let now = unix_now_secs(clock)?;
+        let now = unix_now_secs(ctx)?;
         Ok(self
             .rate_limit_entry(&format!("_rate_limit:{key}"))
             .await?
@@ -272,12 +272,12 @@ impl KVWasmStorage {
     /// Durable Object) where the limit must be exact.
     async fn record_rate_limit_async(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> Result<u32, StorageError> {
         let rate_key = format!("_rate_limit:{key}");
-        let now = unix_now_secs(clock)?;
+        let now = unix_now_secs(ctx)?;
         let previous = self.rate_limit_entry(&rate_key).await?;
         let entry = RateLimitEntry::record(previous, now, window_seconds);
         let json = serde_json::to_string(&entry)
@@ -310,13 +310,13 @@ impl KVWasmStorage {
 impl RateLimiterStore for KVWasmStorage {
     async fn check_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move {
-            self.check_rate_limit_async(clock, key, max_count, window_seconds)
+            self.check_rate_limit_async(ctx, key, max_count, window_seconds)
                 .await
         })
         .await
@@ -324,13 +324,12 @@ impl RateLimiterStore for KVWasmStorage {
 
     async fn record_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> StorageResult<u32> {
         foundation_compact::SendWrapper::new(async move {
-            self.record_rate_limit_async(clock, key, window_seconds)
-                .await
+            self.record_rate_limit_async(ctx, key, window_seconds).await
         })
         .await
     }

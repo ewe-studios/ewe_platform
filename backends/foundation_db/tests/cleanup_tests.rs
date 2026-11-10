@@ -2,7 +2,9 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::{valtron_test, SimulatedClock};
+use std::sync::Arc;
+
+use foundation_core::valtron::{valtron_test, Ctx, SimulatedClock};
 use foundation_db::{
     CleanupConfig, CleanupStats, DataValue, MemoryStorage, QueryStore, StorageCleanup, TursoStorage,
 };
@@ -10,11 +12,11 @@ use foundation_db::{
 /// A fixed simulated wall time: 2026-01-01T00:00:00Z, in unix seconds.
 const FIXED_NOW_SECS: u64 = 1_767_225_600;
 
-/// A simulated clock parked at [`FIXED_NOW_SECS`].
-fn fixed_clock() -> SimulatedClock {
+/// A context over a simulated clock parked at [`FIXED_NOW_SECS`].
+fn fixed_ctx() -> Ctx {
     let clock = SimulatedClock::new(Duration::ZERO);
     clock.advance_wall(Duration::from_secs(FIXED_NOW_SECS));
-    clock
+    Ctx::fixed(Arc::new(clock))
 }
 
 /// A migrated Turso store in a temp dir (the auth tables cleanup targets).
@@ -99,7 +101,7 @@ async fn test_run_full_cleanup_without_the_tables_is_an_error() {
     // The in-memory store has no auth tables, so the cleanup queries fail.
     let storage = MemoryStorage::new();
     assert!(storage
-        .run_full_cleanup(&CleanupConfig::default(), &fixed_clock())
+        .run_full_cleanup(&CleanupConfig::default(), &fixed_ctx())
         .await
         .is_err());
 }
@@ -117,7 +119,7 @@ async fn cleanup_expired_jwt_tokens_removes_only_expired_rows() {
 #[valtron_test]
 async fn run_full_cleanup_honours_the_configured_retention() {
     let (store, _dir) = turso().await;
-    let clock = fixed_clock();
+    let ctx = fixed_ctx();
     let now = i64::try_from(FIXED_NOW_SECS * 1_000).unwrap();
     // Expired 2 hours ago, and expired 2 days ago (both in milliseconds).
     insert_jwt(&store, "recent", now - 2 * 60 * 60 * 1000).await;
@@ -125,7 +127,7 @@ async fn run_full_cleanup_honours_the_configured_retention() {
 
     // Default retention (30 days) keeps both.
     let stats = store
-        .run_full_cleanup(&CleanupConfig::default(), &clock)
+        .run_full_cleanup(&CleanupConfig::default(), &ctx)
         .await
         .unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 0);
@@ -133,7 +135,7 @@ async fn run_full_cleanup_honours_the_configured_retention() {
     // A 1-day retention removes only the one that expired 2 days ago.
     let config =
         CleanupConfig::default().with_jwt_token_retention(Duration::from_secs(24 * 60 * 60));
-    let stats = store.run_full_cleanup(&config, &clock).await.unwrap();
+    let stats = store.run_full_cleanup(&config, &ctx).await.unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 1);
     assert_eq!(jwt_ids(&store).await, vec!["recent".to_string()]);
 }

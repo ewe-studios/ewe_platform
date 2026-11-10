@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::time::unix_millis;
-use foundation_core::valtron::{valtron_test, Clock, SimulatedClock};
+use foundation_core::valtron::{valtron_test, Clock, Ctx, SimulatedClock};
 use foundation_db::state::namespaced::NamespacedStore;
 use foundation_db::state::{FileStateStore, StateStore};
 
@@ -20,12 +20,13 @@ async fn store_typed_uses_the_injected_wall_clock() {
     let ns = NamespacedStore::new(Arc::new(store), "clock-test");
 
     // A simulated clock parked at a known wall time.
-    let clock = SimulatedClock::new(Duration::ZERO);
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance_wall(Duration::from_secs(SIMULATED_SECS));
+    let ctx = Ctx::fixed(clock.clone());
     let expected_ms = unix_millis(clock.wall_now());
     assert_eq!(expected_ms, i64::try_from(SIMULATED_SECS * 1_000).unwrap());
 
-    ns.store_typed("resource", &42, &clock)
+    ns.store_typed("resource", &42, &ctx)
         .await
         .expect("store a typed value");
     let state = ns

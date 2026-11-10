@@ -4,7 +4,9 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::SimulatedClock;
+use std::sync::Arc;
+
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_db::{JsonFileStorage, KeyValueStore, QueryStore, RateLimiterStore, StorageError};
 use futures_lite::future::block_on;
 use tempfile::TempDir;
@@ -108,13 +110,13 @@ fn test_json_file_storage_rate_limit_is_unsupported() {
     let storage = JsonFileStorage::new(temp_dir.path().join("store.json")).unwrap();
 
     block_on(async {
-        let clock = SimulatedClock::new(Duration::ZERO);
+        let ctx = Ctx::fixed(Arc::new(SimulatedClock::new(Duration::ZERO)));
         assert!(matches!(
-            storage.check_rate_limit(&clock, "k", 5, 60).await,
+            storage.check_rate_limit(&ctx, "k", 5, 60).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(
-            storage.record_rate_limit(&clock, "k", 60).await,
+            storage.record_rate_limit(&ctx, "k", 60).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(

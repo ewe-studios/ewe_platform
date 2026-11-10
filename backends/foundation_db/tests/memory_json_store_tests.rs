@@ -4,7 +4,9 @@
 
 use std::time::Duration;
 
-use foundation_core::valtron::SimulatedClock;
+use std::sync::Arc;
+
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_db::traits::{BlobStore, KeyValueStore, QueryStore, RateLimiterStore};
 use foundation_db::{MemoryJsonStore, StorageBackend, StorageError, StorageProvider};
 use futures_lite::future::block_on;
@@ -131,16 +133,16 @@ fn test_memory_json_struct_value() {
 fn test_memory_json_rate_limit_basic() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        let clock = sim_clock();
+        let ctx = Ctx::fixed(Arc::new(sim_clock()));
 
-        let allowed: bool = store.check_rate_limit(&clock, "api", 3, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit(&ctx, "api", 3, 60).await.unwrap();
         assert!(allowed);
 
-        store.record_rate_limit(&clock, "api", 60).await.unwrap();
-        store.record_rate_limit(&clock, "api", 60).await.unwrap();
-        store.record_rate_limit(&clock, "api", 60).await.unwrap();
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
 
-        let allowed: bool = store.check_rate_limit(&clock, "api", 3, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit(&ctx, "api", 3, 60).await.unwrap();
         assert!(!allowed);
     });
 }
@@ -149,10 +151,10 @@ fn test_memory_json_rate_limit_basic() {
 fn test_memory_json_rate_limit_reset() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        let clock = sim_clock();
-        store.record_rate_limit(&clock, "api", 60).await.unwrap();
+        let ctx = Ctx::fixed(Arc::new(sim_clock()));
+        store.record_rate_limit(&ctx, "api", 60).await.unwrap();
         store.reset_rate_limit("api").await.unwrap();
-        let allowed: bool = store.check_rate_limit(&clock, "api", 1, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit(&ctx, "api", 1, 60).await.unwrap();
         assert!(allowed);
     });
 }

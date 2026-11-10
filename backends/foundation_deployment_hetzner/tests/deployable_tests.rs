@@ -229,7 +229,9 @@ async fn a_dying_server_does_not_count_as_alive() {
                     },
                 ),
             },
-            &foundation_context::MonotonicClock::new(),
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
         )
         .await
         .expect("seeds state");

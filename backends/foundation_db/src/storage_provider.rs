@@ -4,7 +4,7 @@
 //! backends behind feature gates and implements the `Async*` storage traits
 //! over whichever one is selected.
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use serde::{de::DeserializeOwned, Serialize};
 
 // Core backends (shared — both targets)
@@ -563,7 +563,7 @@ impl QueryStore for StorageProvider {
 impl RateLimiterStore for StorageProvider {
     async fn check_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
@@ -572,13 +572,13 @@ impl RateLimiterStore for StorageProvider {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
             #[cfg(json_file_backend)]
@@ -587,18 +587,18 @@ impl RateLimiterStore for StorageProvider {
             )),
             StorageProviderInner::Memory(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
             StorageProviderInner::MemoryJson(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
@@ -608,7 +608,7 @@ impl RateLimiterStore for StorageProvider {
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
@@ -618,7 +618,7 @@ impl RateLimiterStore for StorageProvider {
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => {
                 storage
-                    .check_rate_limit(clock, key, max_count, window_seconds)
+                    .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
         }
@@ -626,32 +626,32 @@ impl RateLimiterStore for StorageProvider {
 
     async fn record_rate_limit(
         &self,
-        clock: &dyn Clock,
+        ctx: &Ctx,
         key: &str,
         window_seconds: u64,
     ) -> StorageResult<u32> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
             StorageProviderInner::MemoryJson(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
@@ -659,7 +659,7 @@ impl RateLimiterStore for StorageProvider {
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
@@ -667,7 +667,7 @@ impl RateLimiterStore for StorageProvider {
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => {
-                storage.record_rate_limit(clock, key, window_seconds).await
+                storage.record_rate_limit(ctx, key, window_seconds).await
             }
         }
     }
