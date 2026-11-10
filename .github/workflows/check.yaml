@@ -297,11 +297,64 @@ jobs:
       - name: wasm
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
 
+  windows:
+    name: Windows check
+    needs: plan
+    # The Windows branches of foundation_netio and foundation_nativeapis are
+    # compiled nowhere else on a pull request: the Linux image cannot build
+    # them, and the Windows virtual machine run is nightly only (issue #484).
+    # The job runs when the plan selected either package. Master, nightly and
+    # manual runs select every package, so it always runs there.
+    # The matrix JSON holds each name in quotes, so this match is exact.
+    if: >-
+      needs.plan.result == 'success' &&
+      (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
+      contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
+    runs-on: windows-latest
+    # Limit, not a measurement: a cold build of both packages takes about 15 to
+    # 20 minutes on this runner, and a warm cache cuts that to a few minutes.
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Same pin as the other jobs. The environment variable also stops
+        # rustup from installing every target and component that
+        # rust-toolchain.toml lists. rustfmt is here because the build scripts
+        # of some generated crates run it.
+        shell: bash
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: windows-check
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Check foundation_netio
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_netio
+
+      - name: Check foundation_netio with QUIC
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_netio --features quic
+
+      - name: Check foundation_nativeapis with IPC
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_nativeapis --features ipc
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact]
+    needs: [image, plan, package, package-artifact, windows]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -311,10 +364,11 @@ jobs:
           PLAN: ${{ needs.plan.result }}
           PACKAGES: ${{ needs.package.result }}
           PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
+          WINDOWS: ${{ needs.windows.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;
