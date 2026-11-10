@@ -7,14 +7,14 @@
 
 use chrono::{DateTime, Utc};
 use foundation_compact::time;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 /// The current wall time as a UTC date and time.
 ///
 /// A value outside the `chrono` range (never produced by a real clock) maps to
 /// the UNIX epoch.
 #[must_use]
-pub fn wall_now_utc(clock: &dyn Clock) -> DateTime<Utc> {
-    DateTime::from_timestamp_millis(time::unix_millis(clock.wall_now()))
+pub fn wall_now_utc(ctx: &Ctx) -> DateTime<Utc> {
+    DateTime::from_timestamp_millis(time::unix_millis(ctx.clock().wall_now()))
         .unwrap_or(DateTime::UNIX_EPOCH)
 }

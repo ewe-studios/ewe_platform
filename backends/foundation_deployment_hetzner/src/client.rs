@@ -84,8 +84,8 @@ pub struct HetznerClient {
     http: DynNetClient,
     token: String,
     base_url: String,
-    /// The clock that measures rate-limit resets and poll deadlines.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    /// The context whose clock measures rate-limit resets and poll deadlines.
+    ctx: foundation_core::valtron::Ctx,
 }
 
 impl std::fmt::Debug for HetznerClient {
@@ -115,11 +115,11 @@ impl HetznerClient {
     /// `export HCLOUD_TOKEN=` is a mistake, and an anonymous client that fails at
     /// the first request would report it as a 401 — blaming the token rather than
     /// the setup (decision 02 §2).
-    pub fn from_env(clock: Arc<dyn foundation_core::valtron::Clock>) -> Result<Self, HetznerError> {
+    pub fn from_env(ctx: &foundation_core::valtron::Ctx) -> Result<Self, HetznerError> {
         let vars = credential_vars();
         for name in &vars {
             match std::env::var(name) {
-                Ok(token) if !token.trim().is_empty() => return Ok(Self::new(token, clock)),
+                Ok(token) if !token.trim().is_empty() => return Ok(Self::new(token, ctx.clone())),
                 _ => {}
             }
         }
@@ -128,12 +128,12 @@ impl HetznerClient {
 
     /// Build with an explicit token.
     #[must_use]
-    pub fn new(token: impl Into<String>, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
+    pub fn new(token: impl Into<String>, ctx: foundation_core::valtron::Ctx) -> Self {
         Self {
             http: HttpClientBuilder::new().build(),
             token: token.into(),
             base_url: DEFAULT_BASE_URL.to_string(),
-            clock,
+            ctx,
         }
     }
 
@@ -146,20 +146,26 @@ impl HetznerClient {
     pub fn with_client(
         http: DynNetClient,
         token: impl Into<String>,
-        clock: Arc<dyn foundation_core::valtron::Clock>,
+        ctx: foundation_core::valtron::Ctx,
     ) -> Self {
         Self {
             http,
             token: token.into(),
             base_url: DEFAULT_BASE_URL.to_string(),
-            clock,
+            ctx,
         }
     }
 
     /// The clock that measures rate-limit resets and poll deadlines.
     #[must_use]
-    pub fn clock(&self) -> &Arc<dyn foundation_core::valtron::Clock> {
-        &self.clock
+    pub fn clock(&self) -> Arc<dyn foundation_core::valtron::Clock> {
+        self.ctx.clock()
+    }
+
+    /// The context that carries the clock.
+    #[must_use]
+    pub fn ctx(&self) -> &foundation_core::valtron::Ctx {
+        &self.ctx
     }
 
     /// Point the client at a different base URL — a mock server, in practice.

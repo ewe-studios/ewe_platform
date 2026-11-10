@@ -132,7 +132,7 @@ async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore
         "ewe-test",
         "dev",
         store,
-        std::sync::Arc::new(MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
     )
 }
 
@@ -173,7 +173,9 @@ fn server_for(mock: &TestHttpServer, name: &str) -> HetznerServer {
     HetznerServer::new(
         HetznerClient::new(
             "test-token",
-            std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         )
         .with_base_url(mock.base_url().to_string()),
         name,

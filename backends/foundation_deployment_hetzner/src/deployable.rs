@@ -343,7 +343,7 @@ impl Deployable for HetznerServer {
         // `&self`/`&client` — and moved into the future).
         let hetzner = self.client.clone();
         let store = self.store(&client);
-        let clock = client.clock().clone();
+        let clock = client.clock();
         let request = CreateServerRequest {
             name: self.name.clone(),
             server_type: self.server_type.clone(),
