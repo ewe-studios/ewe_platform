@@ -18,7 +18,7 @@ use std::time::Instant;
 
 use std::net::IpAddr;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_nativeapis::dataplane::netstack::{
     NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp,
 };

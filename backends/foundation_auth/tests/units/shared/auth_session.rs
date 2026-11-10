@@ -4,7 +4,7 @@ use foundation_auth::shared::auth_session::memory::MemoryAuthSessionStore;
 use foundation_auth::shared::auth_session::{
     AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore,
 };
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
 fn test_clock() -> Ctx {

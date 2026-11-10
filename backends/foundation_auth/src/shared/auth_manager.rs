@@ -4,7 +4,7 @@
 //! into a single coherent interface. Handles authentication, token refresh,
 //! persistence, and logout.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::shared::clock::now_seconds;
 use crate::shared::credential_store::{CredentialStorage, CredentialStoreError, OAuthTokenStore};

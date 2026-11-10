@@ -4,7 +4,7 @@
 //! The test read the private `name` field. The builder now has a public
 //! `name` getter, and the assertion is the same.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_wasmtime::WasmtimeBuilder;
 
 #[test]

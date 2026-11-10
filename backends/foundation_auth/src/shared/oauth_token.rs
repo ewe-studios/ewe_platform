@@ -1,6 +1,6 @@
 //! OAuth token data type (pure data, no native deps).
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 
 use crate::shared::clock::now_seconds;

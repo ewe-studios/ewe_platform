@@ -16,7 +16,8 @@ use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
 
-use foundation_core::valtron::{valtron, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::valtron;
 
 /// Build a `ProviderRouter` that talks to `OpenRouter`.
 /// No harness helpers — explicit provider creation, boxing, and routing rules.

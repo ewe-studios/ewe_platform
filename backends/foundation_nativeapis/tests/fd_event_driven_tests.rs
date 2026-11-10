@@ -16,8 +16,9 @@ use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    collect_result, execute, initialize_pool, Ctx, EventReadiness, EventReadinessPtr, PoolGuard,
+    collect_result, execute, initialize_pool, EventReadiness, EventReadinessPtr, PoolGuard,
     ReadinessWaker, TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::native::fd::{Reactor, RegisteredFd};

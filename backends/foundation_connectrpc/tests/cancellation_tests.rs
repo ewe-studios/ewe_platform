@@ -168,12 +168,7 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
     let (resp_tx, resp_rx) = Pipe::<H2Frame>::with_depth(8);
     let (done_tx, done) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
-        let fut = handler.dispatch_h2(
-            foundation_core::valtron::Ctx::host(),
-            header,
-            body_rx,
-            resp_tx,
-        );
+        let fut = handler.dispatch_h2(foundation_context::Ctx::host(), header, body_rx, resp_tx);
         let _ = done_tx.send(futures::executor::block_on(fut));
     });
     H2Stream {

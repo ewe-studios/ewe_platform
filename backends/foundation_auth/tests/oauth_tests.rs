@@ -5,7 +5,7 @@ use std::sync::Arc;
 use foundation_auth::native::oauth::NativeOAuth;
 use foundation_auth::shared::oauth::{OAuthConfig, OAuthManager, PkceChallenge};
 use foundation_auth::shared::oauth_token::OAuthToken;
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 
 fn test_clock() -> Ctx {
     Ctx::fixed(Arc::new(MonotonicClock::new()))

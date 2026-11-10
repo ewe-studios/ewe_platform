@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use foundation_auth::{BackupCodeSet, TOTPSecret, TwoFactorChallenge};
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 
 fn test_clock() -> Ctx {
     Ctx::fixed(Arc::new(MonotonicClock::new()))

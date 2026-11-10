@@ -9,7 +9,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use super::{EncodedMessage, IoHub, Remote};
 use crate::ipc::{

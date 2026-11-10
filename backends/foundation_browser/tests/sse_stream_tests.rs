@@ -57,7 +57,7 @@ fn wait_for_connection(bc: &Broadcaster) -> bool {
 /// A slow browser receives the whole binary frame as one SSE event.
 #[foundation_macros::valtron_test(seed = 823, threads = 3, timeout = 60_000)]
 fn browser_sse_transport_delivers_the_whole_frame_to_a_slow_client() {
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let broadcaster = Broadcaster::new();
     ctx.store(broadcaster.clone());
     ctx.store(SseTransportConfig::new().with_queue_depth(16));

@@ -41,7 +41,7 @@ fn test_auth_config_with_bearer() {
 #[test]
 fn test_auth_middleware_bearer_valid_token() {
     let mw = AuthMiddleware::bearer(|token| token == "valid-token");
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let mut req = bearer_request("valid-token");
     assert!(matches!(
         mw.handle(&ctx, &mut req),
@@ -52,7 +52,7 @@ fn test_auth_middleware_bearer_valid_token() {
 #[test]
 fn test_auth_middleware_bearer_invalid_token() {
     let mw = AuthMiddleware::bearer(|token| token == "valid-token");
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let mut req = bearer_request("wrong-token");
     assert!(matches!(
         mw.handle(&ctx, &mut req),
@@ -63,7 +63,7 @@ fn test_auth_middleware_bearer_invalid_token() {
 #[test]
 fn test_auth_middleware_basic_valid_credentials() {
     let mw = AuthMiddleware::basic(|user, pass| user == "user" && pass == "pass");
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     // "dXNlcjpwYXNz" decodes to "user:pass".
     let mut req = basic_request("dXNlcjpwYXNz");
     assert!(matches!(
@@ -75,7 +75,7 @@ fn test_auth_middleware_basic_valid_credentials() {
 #[test]
 fn test_auth_middleware_basic_invalid_base64() {
     let mw = AuthMiddleware::basic(|user, pass| user == "user" && pass == "pass");
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     let mut req = basic_request("!!!not-base64!!!");
     assert!(matches!(
         mw.handle(&ctx, &mut req),
@@ -86,7 +86,7 @@ fn test_auth_middleware_basic_invalid_base64() {
 #[test]
 fn test_auth_middleware_basic_wrong_credentials() {
     let mw = AuthMiddleware::basic(|user, pass| user == "admin" && pass == "secret");
-    let ctx = foundation_core::valtron::Ctx::host();
+    let ctx = foundation_context::Ctx::host();
     // Decodes to "user:pass", which fails the admin/secret validator.
     let mut req = basic_request("dXNlcjpwYXNz");
     assert!(matches!(

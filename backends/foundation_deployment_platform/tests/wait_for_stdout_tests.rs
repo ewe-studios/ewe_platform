@@ -182,8 +182,8 @@ async fn wait_for_stdout_matches_across_frames() {
         "abc123",
         "hello world",
         Duration::from_secs(5),
-        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .await
@@ -214,8 +214,8 @@ async fn wait_for_stdout_ignores_stderr() {
         "abc123",
         "hello world",
         Duration::from_secs(5),
-        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .await;
@@ -251,8 +251,8 @@ async fn wait_for_stdout_reads_each_byte_once() {
         "abc123",
         "world",
         Duration::from_secs(5),
-        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )
     .await

@@ -35,6 +35,7 @@ regex = "1.10"
 sha2 = "0.10"
 foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.13", features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.7" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.20" }

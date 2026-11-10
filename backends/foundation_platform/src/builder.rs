@@ -2,7 +2,7 @@ use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 use tauri::{App, Context, Manager, Runtime};
 

@@ -19,7 +19,8 @@ use foundation_ai::agentic::{
 use foundation_ai::harness::RouterPreset;
 use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
 
-use foundation_core::valtron::{valtron, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::valtron;
 use foundation_jsonschema::scheme;
 use futures_lite::StreamExt;
 

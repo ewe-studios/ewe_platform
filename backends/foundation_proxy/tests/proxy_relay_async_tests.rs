@@ -144,7 +144,7 @@ fn start_proxy_with_limit(services: Vec<ServiceConfig>, limit: usize) -> ProxySe
     for svc in services {
         config = config.service(svc);
     }
-    ProxyServer::start(config, foundation_core::valtron::Ctx::host())
+    ProxyServer::start(config, foundation_context::Ctx::host())
         .block()
         .expect("start proxy")
 }

@@ -30,7 +30,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_toolings::harness::Miniflare;
 
 /// The answer every mock streams, one word per SSE event.

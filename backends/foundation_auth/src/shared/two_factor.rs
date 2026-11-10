@@ -7,7 +7,7 @@
 
 use foundation_compact::rng::Rng;
 use foundation_compact::time;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};
 use sha1::Sha1;

@@ -2,7 +2,7 @@
 //!
 //! These tests verify complex multi-threaded scenarios and edge cases.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};
 use foundation_testing::stress::{StressConfig, StressHarness};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};

@@ -27,7 +27,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::shared::tunnel::{WgOutcome, WgTunnel};
-use foundation_core::valtron::{Ctx, EventReadiness, ReadinessWaker, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventReadiness, ReadinessWaker, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;

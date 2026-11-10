@@ -45,7 +45,7 @@ fn control_socket_status_and_drain() {
         .bind("127.0.0.1:0")
         .control_socket(&sock)
         .service(svc);
-    let proxy = ProxyServer::start(config, foundation_core::valtron::Ctx::host())
+    let proxy = ProxyServer::start(config, foundation_context::Ctx::host())
         .block()
         .expect("start proxy");
 

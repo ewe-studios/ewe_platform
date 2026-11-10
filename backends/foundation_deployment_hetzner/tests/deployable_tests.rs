@@ -28,7 +28,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
-use foundation_core::valtron::{valtron_test, MonotonicClock};
+use foundation_context::MonotonicClock;
+use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
@@ -132,7 +133,7 @@ async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore
         "ewe-test",
         "dev",
         store,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
     )
 }
 
@@ -173,8 +174,8 @@ fn server_for(mock: &TestHttpServer, name: &str) -> HetznerServer {
     HetznerServer::new(
         HetznerClient::new(
             "test-token",
-            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new(),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
             )),
         )
         .with_base_url(mock.base_url().to_string()),
@@ -228,7 +229,7 @@ async fn a_dying_server_does_not_count_as_alive() {
                     },
                 ),
             },
-            &foundation_core::valtron::MonotonicClock::new(),
+            &foundation_context::MonotonicClock::new(),
         )
         .await
         .expect("seeds state");

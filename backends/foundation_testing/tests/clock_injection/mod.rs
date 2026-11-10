@@ -14,7 +14,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 use foundation_testing::stress::{StressConfig, StressHarness};
 
 #[test]

@@ -5,7 +5,7 @@ use std::path::Path;
 
 use crate::config::{DisplayMode, get_profile};
 use clap::ArgMatches;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 

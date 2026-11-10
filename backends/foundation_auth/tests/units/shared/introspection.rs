@@ -1,7 +1,7 @@
 //! Shared introspection tests.
 
 use foundation_auth::shared::introspection::IntrospectionResult;
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
 fn test_clock() -> Ctx {

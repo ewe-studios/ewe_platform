@@ -184,7 +184,7 @@ fn h3_proxy_forwards_to_http1_backend() {
         .h3_bind("127.0.0.1:0")
         .service(svc);
 
-    let proxy = ProxyServer::start(config, foundation_core::valtron::Ctx::host())
+    let proxy = ProxyServer::start(config, foundation_context::Ctx::host())
         .block()
         .expect("start proxy with H3");
     let h3_addr = proxy.h3_local_addr().expect("H3 front end bound");

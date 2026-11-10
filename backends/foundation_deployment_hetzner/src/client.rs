@@ -85,7 +85,7 @@ pub struct HetznerClient {
     token: String,
     base_url: String,
     /// The context whose clock measures rate-limit resets and poll deadlines.
-    ctx: foundation_core::valtron::Ctx,
+    ctx: foundation_context::Ctx,
 }
 
 impl std::fmt::Debug for HetznerClient {
@@ -115,7 +115,7 @@ impl HetznerClient {
     /// `export HCLOUD_TOKEN=` is a mistake, and an anonymous client that fails at
     /// the first request would report it as a 401 — blaming the token rather than
     /// the setup (decision 02 §2).
-    pub fn from_env(ctx: &foundation_core::valtron::Ctx) -> Result<Self, HetznerError> {
+    pub fn from_env(ctx: &foundation_context::Ctx) -> Result<Self, HetznerError> {
         let vars = credential_vars();
         for name in &vars {
             match std::env::var(name) {
@@ -128,7 +128,7 @@ impl HetznerClient {
 
     /// Build with an explicit token.
     #[must_use]
-    pub fn new(token: impl Into<String>, ctx: foundation_core::valtron::Ctx) -> Self {
+    pub fn new(token: impl Into<String>, ctx: foundation_context::Ctx) -> Self {
         Self {
             http: HttpClientBuilder::new().build(),
             token: token.into(),
@@ -146,7 +146,7 @@ impl HetznerClient {
     pub fn with_client(
         http: DynNetClient,
         token: impl Into<String>,
-        ctx: foundation_core::valtron::Ctx,
+        ctx: foundation_context::Ctx,
     ) -> Self {
         Self {
             http,
@@ -158,13 +158,13 @@ impl HetznerClient {
 
     /// The clock that measures rate-limit resets and poll deadlines.
     #[must_use]
-    pub fn clock(&self) -> Arc<dyn foundation_core::valtron::Clock> {
+    pub fn clock(&self) -> Arc<dyn foundation_context::Clock> {
         self.ctx.clock()
     }
 
     /// The context that carries the clock.
     #[must_use]
-    pub fn ctx(&self) -> &foundation_core::valtron::Ctx {
+    pub fn ctx(&self) -> &foundation_context::Ctx {
         &self.ctx
     }
 

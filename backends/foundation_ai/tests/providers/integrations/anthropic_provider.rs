@@ -65,9 +65,9 @@ fn setup_llama_server_provider() -> impl Model {
 }
 
 /// The explicit real clock backend for tests.
-fn test_clock() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }
 

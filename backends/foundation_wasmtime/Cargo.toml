@@ -23,6 +23,7 @@ cap-rand = "3.4"
 # The injected side-effect bundle (clock and RNG). The guest's WASI clock and
 # randomness come from this `Ctx`, never from the host globals (spec 70 rule 11).
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 # The RNG type that `Ctx::rng` hands out. `InjectedRng` adapts it to the
 # `cap_rand::RngCore` trait that the WASI context takes.
 foundation_compact = { path = "../foundation_compact", version = "0.2.5" }

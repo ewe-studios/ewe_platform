@@ -24,8 +24,8 @@ fn setup() -> Arc<Hierarchy> {
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ))
 }

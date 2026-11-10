@@ -6,7 +6,7 @@ use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::ipc::{
     BytesMessage, EndpointReceiver, EndpointSender, Label, LabelOp, Message, Options, Selector,

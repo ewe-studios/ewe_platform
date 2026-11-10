@@ -27,7 +27,8 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, MonotonicClock, initialize_pool};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerClient, NetworkHandle, WaitFor,
 };

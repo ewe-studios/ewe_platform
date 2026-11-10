@@ -3,7 +3,7 @@
 use chrono::Utc;
 use foundation_auth::shared::auth_token::AuthToken;
 use foundation_auth::shared::types::ConfidentialText;
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
 fn test_clock() -> Ctx {

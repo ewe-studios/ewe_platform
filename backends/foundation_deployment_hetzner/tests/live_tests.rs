@@ -19,7 +19,8 @@
 //! Everything here is **read-only**. Creating a server bills real money, so that
 //! is a separate, explicitly-named test below.
 
-use foundation_core::valtron::{valtron_test, MonotonicClock};
+use foundation_context::MonotonicClock;
+use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
@@ -30,8 +31,8 @@ use foundation_deployment_hetzner::{
 
 /// A client from the environment, or `None` when nobody exported a token.
 fn live_client() -> Option<HetznerClient> {
-    match HetznerClient::from_env(&foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    match HetznerClient::from_env(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))) {
         Ok(client) => Some(client),
         Err(HetznerError::NoCredentials { looked_for }) => {
@@ -113,8 +114,8 @@ async fn a_bad_token_is_unauthorized_against_the_real_api() {
     }
     let client = HetznerClient::new(
         "definitely-not-a-real-token",
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     let err = client
@@ -198,7 +199,7 @@ async fn the_server_lifecycle_against_the_real_api() {
         "ewe-live",
         "test",
         store,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
     );
 
     let deployable = HetznerServer::new(client.clone(), &name)

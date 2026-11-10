@@ -19,7 +19,8 @@ use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_auth::shared::session::{SessionConfig, SessionManager};
 use foundation_auth::shared::types::{AuthCredential, ConfidentialText};
 use foundation_auth::OAuthCredential;
-use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::valtron_test;
 
 fn test_clock() -> Ctx {
     Ctx::fixed(Arc::new(MonotonicClock::new()))

@@ -8,7 +8,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{sleep_async, Ctx, Stream, StreamSpread};
+use foundation_context::Ctx;
+use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},

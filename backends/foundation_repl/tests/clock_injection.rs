@@ -13,7 +13,8 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 use foundation_repl::{
     Activity, ActivityStyle, ActivityView, InputView, ReplDisplay, SharedDisplay,
 };

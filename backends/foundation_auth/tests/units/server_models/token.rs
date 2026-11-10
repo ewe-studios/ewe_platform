@@ -2,7 +2,7 @@
 
 use chrono::Utc;
 use foundation_auth::server::models::token::RefreshToken;
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
 fn test_clock() -> Ctx {

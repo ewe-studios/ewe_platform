@@ -12,6 +12,7 @@ keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"
 [dependencies]
 # Foundation crates
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
 foundation_compact = { path = "../foundation_compact", version = "0.2.5" }

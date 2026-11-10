@@ -67,11 +67,10 @@ fn test_router_writer_dispatch() {
     assert!(handler.is_some());
 
     let mut buf = Vec::new();
-    let result = handler.unwrap().serve_writer(
-        &foundation_core::valtron::Ctx::host(),
-        dummy_request(),
-        &mut buf,
-    );
+    let result =
+        handler
+            .unwrap()
+            .serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert!(matches!(result, ConnectionResult::Keep));
     assert_eq!(count.load(Ordering::SeqCst), 1);
     assert_eq!(buf, b"writer response");
@@ -149,20 +148,12 @@ fn test_router_multiple_writers_same_path() {
 
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
     let mut buf = Vec::new();
-    let _ = handler.serve_writer(
-        &foundation_core::valtron::Ctx::host(),
-        dummy_request(),
-        &mut buf,
-    );
+    let _ = handler.serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert_eq!(get_count.load(Ordering::SeqCst), 1);
     assert_eq!(post_count.load(Ordering::SeqCst), 0);
 
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
     let mut buf = Vec::new();
-    let _ = handler.serve_writer(
-        &foundation_core::valtron::Ctx::host(),
-        dummy_request(),
-        &mut buf,
-    );
+    let _ = handler.serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert_eq!(post_count.load(Ordering::SeqCst), 1);
 }

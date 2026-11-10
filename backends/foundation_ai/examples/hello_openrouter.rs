@@ -16,7 +16,8 @@ use foundation_ai::agentic::AgentConfig;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::harness::{RouterMix, RouterPreset};
 
-use foundation_core::valtron::{valtron, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::valtron;
 
 /// Build a router preset that talks to `OpenRouter` with the given model as primary.
 fn openrouter_router(

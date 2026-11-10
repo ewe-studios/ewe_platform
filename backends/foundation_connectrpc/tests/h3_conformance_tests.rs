@@ -20,7 +20,8 @@ mod h3_conformance {
     use foundation_connectrpc::{
         HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx,
     };
-    use foundation_core::valtron::{Ctx as VCtx, Stream as VStream, TaskIterator};
+    use foundation_context::Ctx as VCtx;
+    use foundation_core::valtron::{Stream as VStream, TaskIterator};
     use foundation_netio::http3::connection::{H3Connection, H3Request};
     use foundation_netio::netcap::context::ConnectionContext;
     use foundation_netio::quic::{
@@ -156,7 +157,7 @@ mod h3_conformance {
 
         // Server accepts and dispatches.
         let inbound = until!(&mut sq, &mut cq, server.poll_accept());
-        let ctx = foundation_core::valtron::Ctx::host();
+        let ctx = foundation_context::Ctx::host();
 
         let connection = Arc::new(ConnectionContext::default());
         let (result, mut sq, mut cq) =

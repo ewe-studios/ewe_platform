@@ -20,6 +20,7 @@ foundation_core = {
     default-features = false,
     features = ["js-wasmbindgen", "std"]
 }
+foundation_context = { path = "../../backends/foundation_context" }
 
 
 wasm-bindgen = "0.2"

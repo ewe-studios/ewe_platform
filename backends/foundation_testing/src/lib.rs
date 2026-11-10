@@ -21,7 +21,7 @@
 //! ## Stress Testing
 //!
 //! ```rust
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_testing::stress::{StressConfig, StressHarness};
 //! use std::sync::atomic::{AtomicUsize, Ordering};
 //! use std::sync::Arc;

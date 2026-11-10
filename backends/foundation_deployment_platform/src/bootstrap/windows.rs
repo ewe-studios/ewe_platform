@@ -9,7 +9,7 @@ use std::thread;
 use std::time::Duration;
 use tracing::{debug, warn};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::bootstrap::BootstrapLogger;
 use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};

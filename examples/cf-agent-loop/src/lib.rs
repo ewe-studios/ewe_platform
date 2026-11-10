@@ -94,7 +94,7 @@ async fn get_or_build_session() -> Result<AgentSession, String> {
     if let Some(base_url) = creds.base_url {
         config = config.with_base_url(base_url);
     }
-    let ctx = foundation_core::valtron::Ctx::try_host().map_err(|e| e.to_string())?;
+    let ctx = foundation_context::Ctx::try_host().map_err(|e| e.to_string())?;
     let provider = WorkersAiProvider::with_http_client(
         HttpClientBuilder::new().build(),
         ctx.clone(),

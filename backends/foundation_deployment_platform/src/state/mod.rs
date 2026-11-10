@@ -7,7 +7,7 @@
 
 use std::path::PathBuf;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 
 use crate::config::{Result, TestbedError};

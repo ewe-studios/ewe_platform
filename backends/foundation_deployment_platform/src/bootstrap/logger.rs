@@ -10,7 +10,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_context::{Clock, Ctx};
 
 /// Thread-safe bootstrap logger.
 pub struct BootstrapLogger {

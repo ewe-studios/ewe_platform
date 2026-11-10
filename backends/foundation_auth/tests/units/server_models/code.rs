@@ -2,7 +2,7 @@
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_auth::server::models::code::{AuthorizationCode, DeviceCode};
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use std::time::Duration;

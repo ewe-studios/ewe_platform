@@ -25,9 +25,8 @@ use foundation_auth::{
     DiscoveryClient, IntrospectionClient, JwksManager, ProviderMapping, ProviderType,
     UpstreamClientError, UpstreamOidcClient, UpstreamProvider, UserInfoClient,
 };
-use foundation_core::valtron::{
-    collect_one, execute, from_future, valtron_test, Ctx, MonotonicClock,
-};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::{collect_one, execute, from_future, valtron_test};
 use foundation_netio::HttpClientBuilder;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 

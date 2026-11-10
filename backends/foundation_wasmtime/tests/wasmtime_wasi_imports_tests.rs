@@ -14,7 +14,7 @@
 //! HOW: `wat::parse_str` turns the text module into the bytes that
 //! `WasmtimeBuilder` compiles.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_wasmtime::WasmtimeBuilder;
 
 /// The fixed response body.

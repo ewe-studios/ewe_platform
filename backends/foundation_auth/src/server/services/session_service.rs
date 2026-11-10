@@ -2,7 +2,7 @@
 
 use crate::shared::credential_store::{CredentialStorage, CredentialStore};
 use crate::shared::session::{Session, SessionError, SessionManager};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_netio::shared::client::Cookie;
 use std::sync::Arc;
 

@@ -4,7 +4,7 @@ use std::sync::{Mutex, RwLock};
 
 use serde::{Deserialize, Serialize};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::errors::GenerationError;
 use crate::types::{

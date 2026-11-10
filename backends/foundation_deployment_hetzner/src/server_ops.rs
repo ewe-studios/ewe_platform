@@ -55,7 +55,7 @@ fn auth_mod(token: &str) -> impl FnOnce(&mut PreparedRequestBuilder) {
 /// This is where decision 02 §3 lands: 401 and 429 get their own variants, and
 /// everything else carries Hetzner's `error.code` — a stable string like
 /// `invalid_input` — rather than only a number.
-pub(crate) fn map_api_error(err: ApiError, ctx: &foundation_core::valtron::Ctx) -> HetznerError {
+pub(crate) fn map_api_error(err: ApiError, ctx: &foundation_context::Ctx) -> HetznerError {
     match err {
         ApiError::HttpStatus {
             code,
@@ -116,10 +116,7 @@ fn parse_error_body(body: Option<&str>) -> (String, String) {
 ///
 /// `None` when the header is missing or unparseable: a made-up backoff would be
 /// worse than letting the caller choose its own.
-fn rate_limit_reset_in(
-    headers: &SimpleHeaders,
-    ctx: &foundation_core::valtron::Ctx,
-) -> Option<u64> {
+fn rate_limit_reset_in(headers: &SimpleHeaders, ctx: &foundation_context::Ctx) -> Option<u64> {
     let reset = headers
         .get(&SimpleHeader::Custom("RateLimit-Reset".to_string()))
         .or_else(|| headers.get(&SimpleHeader::Custom("ratelimit-reset".to_string())))?
@@ -129,7 +126,7 @@ fn rate_limit_reset_in(
     Some(reset.saturating_sub(now_secs(ctx)))
 }
 
-fn now_secs(ctx: &foundation_core::valtron::Ctx) -> u64 {
+fn now_secs(ctx: &foundation_context::Ctx) -> u64 {
     u64::try_from(foundation_compact::time::unix_seconds(
         ctx.clock().wall_now(),
     ))

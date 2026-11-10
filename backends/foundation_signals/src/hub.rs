@@ -406,7 +406,8 @@ impl<T> SignalStream<T> {
 
 #[cfg(feature = "valtron")]
 mod valtron_impls {
-    use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+    use foundation_context::Ctx;
+    use foundation_core::valtron::{TaskIterator, TaskStatus};
 
     use super::{PumpReport, SignalHub, SignalStream, TryRecvError};
 

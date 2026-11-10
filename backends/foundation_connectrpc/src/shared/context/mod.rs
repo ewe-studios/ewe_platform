@@ -28,7 +28,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::Instant;
-use foundation_core::valtron::Clock;
+use foundation_context::Clock;
 use foundation_http::shared::context::Ctx;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};

@@ -293,8 +293,8 @@ impl Selector {
 /// simulated clock would break the real block. This is the same boundary as
 /// the executor's blocking waits (GitHub issue #102).
 fn os_now() -> Instant {
-    use foundation_core::valtron::Clock as _;
-    foundation_core::valtron::MonotonicClock::new().now()
+    use foundation_context::Clock as _;
+    foundation_context::MonotonicClock::new().now()
 }
 
 /// Milliseconds left until `deadline`, for `epoll_wait`'s timeout argument.

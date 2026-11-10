@@ -140,15 +140,12 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     let store: Arc<dyn QueryStore> = Arc::new(p);
     let sdb = Arc::clone(&store);
     block_on_future(async move { apply_schema(sdb.as_ref()).await }).expect("schema");
-    let srv = KeychainServer::new(KeychainContext::new(
-        store,
-        foundation_core::valtron::Ctx::host(),
-    ))
-    .http_app()
-    .server_with_config(
-        &addr.to_string(),
-        foundation_http::native::server::ServerConfig::defaults(),
-    );
+    let srv = KeychainServer::new(KeychainContext::new(store, foundation_context::Ctx::host()))
+        .http_app()
+        .server_with_config(
+            &addr.to_string(),
+            foundation_http::native::server::ServerConfig::defaults(),
+        );
     let sh = Arc::new(foundation_http::ShutdownSignal::new());
     std::thread::spawn(move || {
         srv.serve_with_listener(&listener, &sh);

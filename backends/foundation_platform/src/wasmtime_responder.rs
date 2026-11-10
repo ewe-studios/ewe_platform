@@ -22,7 +22,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_ui_traits::{NavigationIntent, RouteDecision, RouteSource};
 use tauri::http::{header, Response, StatusCode};
 

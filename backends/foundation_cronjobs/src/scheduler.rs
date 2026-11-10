@@ -14,7 +14,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use foundation_core::valtron::{AsyncStateTask, AsyncTransition, Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{AsyncStateTask, AsyncTransition, TaskIterator, TaskStatus};
 use foundation_db::{DataValue, QueryStore, SqlRow, StorageError};
 use futures_lite::StreamExt;
 use saffron::Cron;
@@ -104,7 +105,7 @@ impl CronJob {
     /// `now` is a wall-clock UTC time. A cron expression needs calendar time
     /// (weekday, month, leap day), which valtron's monotonic instant cannot
     /// provide, so the caller passes a wall-clock time derived from the
-    /// injected [`foundation_core::valtron::Clock::wall_now`]. This method is pure, so a test can move
+    /// injected [`foundation_context::Clock::wall_now`]. This method is pure, so a test can move
     /// the time without a live clock.
     #[must_use]
     pub fn next_fire(&self, now: DateTime<Utc>) -> Option<DateTime<Utc>> {

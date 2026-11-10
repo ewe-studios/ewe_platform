@@ -1,7 +1,7 @@
 //! User entity for the `IdP` server.
 
 use crate::shared::clock::now_millis;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 

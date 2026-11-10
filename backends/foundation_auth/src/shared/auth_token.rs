@@ -8,7 +8,7 @@
 
 use crate::shared::clock::now_seconds;
 use crate::{AuthCredential, ConfidentialText, JwtCredential, OAuthCredential, SessionCredential};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_netio::shared::client::Cookie;
 
 /// Unified authentication token representation.

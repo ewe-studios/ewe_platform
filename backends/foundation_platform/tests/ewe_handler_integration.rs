@@ -12,8 +12,8 @@ use foundation_platform::*;
 fn full_ewe_pipeline_webview_app() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     session.route("/app/*", webview_app().with_profile(Profile::App));
@@ -54,8 +54,8 @@ fn full_ewe_pipeline_webview_app() {
 fn full_ewe_pipeline_remote_server() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     session.route(
@@ -90,8 +90,8 @@ fn full_ewe_pipeline_remote_server() {
 fn full_ewe_pipeline_ipc_shell_with_target() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     // Route that explicitly targets a wasm_app
@@ -116,8 +116,8 @@ fn full_ewe_pipeline_ipc_shell_with_target() {
 fn cache_intercepts_before_backend_query() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     session.route(
@@ -159,8 +159,8 @@ fn cache_intercepts_before_backend_query() {
 fn capability_gating_in_full_pipeline() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     session.route(
@@ -185,8 +185,8 @@ fn capability_gating_in_full_pipeline() {
 fn offline_route_fails_with_online_only() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     session.route(
@@ -219,8 +219,8 @@ fn offline_route_fails_with_online_only() {
 fn mutation_queue_integrates_with_connectivity() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

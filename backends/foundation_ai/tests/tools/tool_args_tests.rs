@@ -30,9 +30,9 @@ fn reason(err: ToolError) -> String {
 }
 
 /// The explicit real clock backend for tests.
-fn test_clock() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }
 
@@ -174,8 +174,8 @@ fn edit_accepts_replace_all_in_either_spelling() {
             serde_json::json!(true),
             serde_json::Value::String("true".into()),
         ] {
-            let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
-                std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            let fs = Arc::new(MemoryFs::new(foundation_context::Ctx::fixed(
+                std::sync::Arc::new(foundation_context::MonotonicClock::new()),
             )));
             fs.write_file_async("f.txt".into(), b"a a a".to_vec())
                 .await

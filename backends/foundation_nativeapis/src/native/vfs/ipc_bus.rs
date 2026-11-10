@@ -10,7 +10,8 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use foundation_core::valtron::{Ctx, Pipe, PipeSender};
+use foundation_context::Ctx;
+use foundation_core::valtron::{Pipe, PipeSender};
 use foundation_errstacks::ErrorTrace;
 
 use crate::ipc::{self, join, Message, Options, Selector};

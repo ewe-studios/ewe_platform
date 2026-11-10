@@ -10,7 +10,7 @@
 //! factory methods for dry-run and skipped scenarios.
 
 use chrono::{DateTime, Utc};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 
 use crate::clock::wall_now_utc;

@@ -15,7 +15,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::ServeWriter;
 use rand_chacha::rand_core::Rng;

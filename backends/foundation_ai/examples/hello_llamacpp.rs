@@ -20,7 +20,8 @@
 
 use foundation_ai::agentic::TurnEvent;
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::{valtron, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::valtron;
 use futures_lite::StreamExt;
 
 #[valtron]

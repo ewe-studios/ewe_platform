@@ -16,7 +16,8 @@
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::harness::{CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O};
 
-use foundation_core::valtron::{valtron, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

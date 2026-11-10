@@ -1,7 +1,7 @@
 //! Chunking strategy for LibsqlDelta.
 //! File content is stored as ordered chunks in vfs_chunks.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use libsql::Connection;
 
 use super::types;

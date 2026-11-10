@@ -86,7 +86,9 @@ fn overlay_connector_http_round_trip() {
 
     let handle_a = WgNode::from_config(
         WgConfig::seed(seed.clone(), net),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     )
     .join()
     .expect("A join");
@@ -94,7 +96,9 @@ fn overlay_connector_http_round_trip() {
 
     let handle_b = WgNode::from_config(
         WgConfig::joiner(seed.clone(), net, vec![a_boot]),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     )
     .join()
     .expect("B join");

@@ -22,6 +22,7 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.8" }
 
 # The injected clock every platform wall time comes from (spec 70 feature 134).
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 # UNIX timestamp conversions from `Clock::wall_now`; no local epoch arithmetic.
 foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
 

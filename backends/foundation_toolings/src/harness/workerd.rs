@@ -4,7 +4,7 @@
 //! file, waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use foundation_core::valtron::Ctx;
+//! use foundation_context::Ctx;
 //! use foundation_toolings::harness::Workerd;
 //!
 //! let wd = Workerd::builder()
@@ -23,7 +23,7 @@ use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 pub struct Workerd {
     child: Option<Child>,

@@ -9,7 +9,7 @@
 //! The conversions are the `foundation_compact::time` functions; no module
 //! repeats the epoch arithmetic.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 /// The current wall time as whole seconds since the UNIX epoch.
 ///

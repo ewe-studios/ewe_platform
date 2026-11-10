@@ -2,7 +2,7 @@
 
 use chrono::Utc;
 use foundation_auth::server::models::user::User;
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use std::sync::Arc;
 use std::time::Duration;
 

@@ -9,7 +9,8 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, MonotonicClock, valtron_test};
+use foundation_context::{Ctx, MonotonicClock};
+use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
 use foundation_deployment_platform::testing::docker_available;
 

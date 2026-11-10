@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_netio::websocket::shared::frame::{Opcode, WebSocketFrame};
 use foundation_netio::websocket::shared::handshake::compute_accept_key;
 

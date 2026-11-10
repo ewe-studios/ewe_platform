@@ -19,7 +19,7 @@ use sha2::{Digest, Sha256};
 
 use crate::shared::clock::now_seconds;
 use crate::shared::credential_store::CredentialStore;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 const COOKIE_NAME: &str = "session";
 const DEFAULT_SESSION_DURATION_SECS: i64 = 86_400;

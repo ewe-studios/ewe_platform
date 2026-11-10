@@ -23,17 +23,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== FUSE Mount Example ===\n");
 
     // Build a MemoryFs as the base with some initial content
-    let base = MemoryFs::new(foundation_core::valtron::Ctx::host());
+    let base = MemoryFs::new(foundation_context::Ctx::host());
     base.write_file("/hello.txt", b"Hello from FUSE!\n")?;
     base.write_file("/readme.md", b"This is a FUSE-mounted MemoryFs.\n")?;
     base.mkdir_all("/src")?;
     base.write_file("/src/main.rs", b"fn main() { println!(\"Hello\"); }")?;
 
     // Create a writable overlay with MemoryDelta
-    let overlay: OverlayFileSystem<MemoryFs, MemoryDelta> = OverlayFileSystem::new(
-        base,
-        MemoryDelta::new(foundation_core::valtron::Ctx::host()),
-    );
+    let overlay: OverlayFileSystem<MemoryFs, MemoryDelta> =
+        OverlayFileSystem::new(base, MemoryDelta::new(foundation_context::Ctx::host()));
 
     println!("Virtual filesystem ready:");
     println!("  /hello.txt     (42 bytes)");
@@ -56,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let fuse = FuseMount::new(
             SyncFs::new(overlay),
             FuseMountOptions::default(),
-            foundation_core::valtron::Ctx::host(),
+            foundation_context::Ctx::host(),
         );
         // In a real scenario this would block until unmount:
         // fuse.mount(&mount_point)?;

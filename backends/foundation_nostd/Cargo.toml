@@ -36,3 +36,6 @@ foundation_testing = { path = "../foundation_testing" }
 # dev-dependency is removed from the published manifest.
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
+
+[dev-dependencies.foundation_context]
+path = "../foundation_context"

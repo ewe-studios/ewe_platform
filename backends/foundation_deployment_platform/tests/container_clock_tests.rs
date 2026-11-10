@@ -19,7 +19,8 @@ use std::net::{Ipv4Addr, TcpListener};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
+use foundation_context::{Clock, Ctx};
+use foundation_core::valtron::SimulatedClock;
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerError, WaitFor, wait_for_port_at,
 };

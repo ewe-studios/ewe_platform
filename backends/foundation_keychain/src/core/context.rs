@@ -23,7 +23,7 @@ use std::sync::Arc;
 use foundation_auth::shared::jwt::{
     JwtAlgorithm, JwtSigningKey, JwtVerifier, JwtVerifierConfig, PublicKeySource,
 };
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_db::core::storage_provider::QueryStore;
 
 use crate::core::auth::ISSUER;

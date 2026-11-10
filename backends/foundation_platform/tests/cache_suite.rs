@@ -3,8 +3,8 @@
 use foundation_platform::*;
 
 fn cache() -> CacheManager {
-    CacheManager::in_memory(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    CacheManager::in_memory(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )))
 }
 

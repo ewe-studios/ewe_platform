@@ -3,8 +3,8 @@ use foundation_nativeapis::{MemoryFs, ObservableFs, SyncFs, VfsEvent, VfsFileSys
 
 fn make_observable() -> (SyncFs<ObservableFs<MemoryFs>>, Receiver<VfsEvent>) {
     let fs = SyncFs::new(ObservableFs::new(MemoryFs::new(
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )));
     let rx = fs.subscribe();
@@ -230,8 +230,8 @@ fn test_error_emits_operation_failed() {
 #[test]
 fn test_multiple_subscribers() {
     let fs = SyncFs::new(ObservableFs::new(MemoryFs::new(
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     )));
     let rx1 = fs.subscribe();

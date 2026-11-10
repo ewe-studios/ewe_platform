@@ -16,10 +16,8 @@ fn main() {
     // boundary: it waits for the async constructor through `exec_async`.
     let path = db_path.clone();
     let async_delta =
-        exec_async(
-            async move { LibsqlDelta::new(path, foundation_core::valtron::Ctx::host()).await },
-        )
-        .unwrap();
+        exec_async(async move { LibsqlDelta::new(path, foundation_context::Ctx::host()).await })
+            .unwrap();
     println!("Created LibsqlDelta at {:?}", db_path);
 
     // Wrap in SyncFs for the sync API

@@ -15,13 +15,14 @@
 use std::time::Duration;
 
 use foundation_compact::Instant;
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_nativeapis::signal::{signal_task, SignalEvent, SignalKind};
 
 /// A context with the real monotonic clock.
 fn ctx() -> Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }
 
@@ -49,8 +50,8 @@ fn send_sigterm() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_signal_waits_for_the_readiness_poll() {
-    let (mut task, bus) = signal_task(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let (mut task, bus) = signal_task(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )))
     .expect("register signals");
     let subscriber = bus.subscribe_events();
@@ -82,8 +83,8 @@ fn a_signal_waits_for_the_readiness_poll() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_nonblocking_poll_returns_at_once() {
-    let (mut task, _bus) = signal_task(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let (mut task, _bus) = signal_task(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )))
     .expect("register signals");
 
@@ -106,8 +107,8 @@ fn a_nonblocking_poll_returns_at_once() {
 #[foundation_macros::timeout(30_000)]
 #[serial_test::serial]
 fn a_signal_sent_before_the_park_is_not_lost() {
-    let (mut task, _bus) = signal_task(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let (mut task, _bus) = signal_task(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )))
     .expect("register signals");
 

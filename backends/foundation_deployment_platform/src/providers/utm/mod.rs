@@ -8,7 +8,7 @@
 
 use std::path::PathBuf;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 use crate::config::{DisplayMode, Result, TestbedError, VmProfile};
 use crate::providers::{Provider, ProviderId, ResolvedPorts, VmHandle, VmProvider};

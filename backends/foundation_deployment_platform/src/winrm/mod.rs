@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 use tracing::{debug, trace};
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_context::{Clock, Ctx};
 
 use crate::config::{Result, TestbedError, VmProfile};
 

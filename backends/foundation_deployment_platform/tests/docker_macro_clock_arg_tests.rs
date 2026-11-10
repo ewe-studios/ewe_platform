@@ -15,7 +15,8 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, SimulatedClock, block_on_future, initialize_pool};
+use foundation_context::Ctx;
+use foundation_core::valtron::{SimulatedClock, block_on_future, initialize_pool};
 use foundation_deployment_platform::docker::ContainerGroup;
 use foundation_deployment_platform::docker_container;
 

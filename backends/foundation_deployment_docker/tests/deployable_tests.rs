@@ -13,7 +13,8 @@
 
 mod common;
 
-use foundation_core::valtron::{valtron_test, MonotonicClock};
+use foundation_context::MonotonicClock;
+use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
@@ -36,7 +37,7 @@ async fn provider_client() -> (ProviderClient<FileStateStore>, std::path::PathBu
             "ewe-test",
             "dev",
             store,
-            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(MonotonicClock::new())),
         ),
         dir,
     )

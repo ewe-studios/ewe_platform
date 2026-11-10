@@ -25,7 +25,8 @@ use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::valtron::{valtron_test, Ctx as VCtx, Stream as VStream, TaskIterator};
+use foundation_context::Ctx as VCtx;
+use foundation_core::valtron::{valtron_test, Stream as VStream, TaskIterator};
 use foundation_http::native::serve::H3Serve;
 use foundation_http::native::server::serve_h3;
 use foundation_http::shared::app::HttpApp;
@@ -234,7 +235,7 @@ impl Harness {
         let inbound = wire(&mut sq, &mut cq, || server_h3.poll_accept());
         let call: DispatchFuture = Box::pin(dispatch_h3(
             Arc::new(router.into_handler()),
-            foundation_core::valtron::Ctx::host(),
+            foundation_context::Ctx::host(),
             Arc::new(ConnectionContext::default()),
             inbound,
         ));

@@ -14,7 +14,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
+use foundation_context::{Clock, Ctx};
+use foundation_core::valtron::SimulatedClock;
 use foundation_sshkit::ConnectionPool;
 
 #[test]

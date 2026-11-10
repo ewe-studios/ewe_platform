@@ -3,7 +3,8 @@
 use std::sync::{Arc, Mutex};
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, EventQueue};
+use foundation_context::Ctx;
+use foundation_core::valtron::EventQueue;
 
 use crate::signal::event::SignalEvent;
 

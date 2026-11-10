@@ -13,7 +13,7 @@
 //! use foundation_nativeapis::valtron::VfsTask;
 //! use foundation_core::valtron::execute;
 //!
-//! let mut fs = ObservableFs::new(MemoryFs::new(foundation_core::valtron::Ctx::host()));
+//! let mut fs = ObservableFs::new(MemoryFs::new(foundation_context::Ctx::host()));
 //! let mut task = VfsTask::from_observable(&mut fs);
 //! let stop = task.stop_signal();
 //! let stream = execute(task, None)?;
@@ -25,8 +25,9 @@
 
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_core::synca::mpp::{Receiver, ReceiverError};
-use foundation_core::valtron::{execute, Ctx, GenericResult};
+use foundation_core::valtron::{execute, GenericResult};
 use foundation_core::valtron::{DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::shared::vfs::{AsyncVfsFileSystem, ObservableFs, VfsEvent};
@@ -151,7 +152,7 @@ impl TaskIterator for VfsTask {
 /// use foundation_nativeapis::valtron::VfsTaskBuilder;
 /// use foundation_core::valtron::collect_one;
 ///
-/// let mut fs = ObservableFs::new(MemoryFs::new(foundation_core::valtron::Ctx::host()));
+/// let mut fs = ObservableFs::new(MemoryFs::new(foundation_context::Ctx::host()));
 /// let stream = VfsTaskBuilder::from_observable(&mut fs).build()?;
 ///
 /// if let Some(event) = collect_one(stream) {

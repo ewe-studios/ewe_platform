@@ -27,7 +27,8 @@ use std::num::NonZeroU32;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, OnceLock};
 
-use foundation_core::valtron::{Ctx, Stream};
+use foundation_context::Ctx;
+use foundation_core::valtron::Stream;
 
 use crate::backends::llamacpp_helpers::build_sampler_chain;
 use crate::costing::{calculate_cost, CostAccumulator};

@@ -234,7 +234,7 @@ fn open_request(tag: &str, max_request_body: usize, path: &str, send_head: bool)
         .h3_bind("127.0.0.1:0")
         .max_request_body(max_request_body)
         .service(svc);
-    let proxy = ProxyServer::start(config, foundation_core::valtron::Ctx::host())
+    let proxy = ProxyServer::start(config, foundation_context::Ctx::host())
         .block()
         .expect("start proxy");
     let h3_addr = proxy.h3_local_addr().expect("H3 front end bound");

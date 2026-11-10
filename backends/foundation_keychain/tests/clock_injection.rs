@@ -23,8 +23,9 @@ use std::time::Duration as StdDuration;
 
 use chrono::DateTime;
 use foundation_compact::time::unix_seconds;
+use foundation_context::{Clock, Ctx};
 use foundation_core::valtron::{
-    collect_one, execute, from_future, valtron_test, BlockingFutureExt, Clock, Ctx, SimulatedClock,
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt, SimulatedClock,
 };
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};

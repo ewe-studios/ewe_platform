@@ -29,7 +29,8 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, ToolArguments, UserModelContent,
 };
-use foundation_core::valtron::{Ctx, EventQueue, TaskIterator, TaskSpread, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventQueue, TaskIterator, TaskSpread, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestMemStore = KvMemoryStore<MemoryStorage>;
@@ -101,8 +102,8 @@ fn harness_with_models(
         ),
         ledger.clone(),
         MemoryConfig::default(),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

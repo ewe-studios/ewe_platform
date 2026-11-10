@@ -8,7 +8,7 @@ use crate::config::{DisplayMode, Result, VmProfile};
 #[cfg(feature = "vms")]
 use crate::doctor::HostHealth;
 #[cfg(feature = "vms")]
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 #[cfg(feature = "vms")]
 use std::path::PathBuf;
 

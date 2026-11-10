@@ -10,7 +10,8 @@ use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, TaskIterator};
+use foundation_context::Ctx;
+use foundation_core::valtron::TaskIterator;
 use foundation_nativeapis::native::fd::RegisteredFd;
 use foundation_nativeapis::FdMonitorTask;
 use foundation_nativeapis::{Poll, Token};

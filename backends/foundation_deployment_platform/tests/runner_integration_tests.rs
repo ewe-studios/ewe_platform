@@ -32,8 +32,8 @@ const SSH_PORT: u16 = 2222;
 
 fn sshd_config() -> ContainerConfig {
     ContainerConfig::new("lscr.io/linuxserver/openssh-server:latest")
-        .ctx(foundation_core::valtron::Ctx::fixed(Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        .ctx(foundation_context::Ctx::fixed(Arc::new(
+            foundation_context::MonotonicClock::new(),
         )))
         .port(SSH_PORT)
         .env("PUID", "1000")
@@ -55,9 +55,7 @@ fn sshd_config() -> ContainerConfig {
 fn run_all_strategies(port: u16) -> Result<(), String> {
     let pool = Arc::new(ConnectionPool::new(
         Duration::from_secs(30),
-        foundation_core::valtron::Ctx::fixed(Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        )),
+        foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
     ));
     let backend = Ssh2Backend::new(pool);
     let hosts: Vec<Host> = (0..3)

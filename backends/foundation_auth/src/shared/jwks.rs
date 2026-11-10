@@ -16,7 +16,7 @@ use std::time::Duration;
 use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_compact::Instant;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};

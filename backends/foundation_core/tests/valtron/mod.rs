@@ -14,7 +14,6 @@ mod cancellable_future;
 mod channel_backpressure_tests;
 mod clock_driven_tasks;
 mod clock_injection;
-mod pool_seed_root;
 mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
@@ -29,6 +28,7 @@ mod map_circuit;
 #[cfg(not(target_family = "wasm"))]
 mod notification_based_waiting;
 mod park_busy_loop;
+mod pool_seed_root;
 mod readiness_deadline_tests;
 mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]

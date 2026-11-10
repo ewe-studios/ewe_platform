@@ -1,7 +1,7 @@
 //! `ClientService` tests.
 
 use foundation_auth::server::services::client_service::create_client_record;
-use foundation_core::valtron::{Ctx, MonotonicClock};
+use foundation_context::{Ctx, MonotonicClock};
 use std::sync::Arc;
 
 fn test_clock() -> Ctx {

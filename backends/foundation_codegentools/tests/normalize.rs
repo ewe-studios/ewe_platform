@@ -12,7 +12,7 @@
 use foundation_codegentools::cli::normalize::{
     normalize_provider, provider_spec, Normalizer, ProviderSpec, PROVIDER_SPECS,
 };
-use foundation_core::valtron::MonotonicClock;
+use foundation_context::MonotonicClock;
 use serde_json::json;
 
 fn tmpdir(name: &str) -> std::path::PathBuf {

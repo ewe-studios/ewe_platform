@@ -37,12 +37,12 @@ fn two_stores_on_one_backend_do_not_lose_updates() {
         Arc::new(ProxyStateStore::new(
             &dir,
             "two.example",
-            foundation_core::valtron::Ctx::host(),
+            foundation_context::Ctx::host(),
         )),
         Arc::new(ProxyStateStore::new(
             &dir,
             "two.example",
-            foundation_core::valtron::Ctx::host(),
+            foundation_context::Ctx::host(),
         )),
     ];
     let start = Arc::new(Barrier::new(2));

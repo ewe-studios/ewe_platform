@@ -14,7 +14,7 @@
 //! consumed (one-time use).
 
 use foundation_compact::time;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------
@@ -191,7 +191,7 @@ pub const DEFAULT_AUTH_SESSION_TTL_SECS: u64 = 600;
 
 pub mod memory {
     use super::{AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore};
-    use foundation_core::valtron::Ctx;
+    use foundation_context::Ctx;
     use std::collections::HashMap;
     use std::sync::Mutex;
 

@@ -17,7 +17,7 @@ use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use tracing::{debug, info};
 
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};

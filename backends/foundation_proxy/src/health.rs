@@ -24,8 +24,9 @@ use std::thread::JoinHandle;
 use std::time::Duration;
 
 use bytes::Bytes;
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{block_on_future, sleep_async, Ctx};
+use foundation_core::valtron::{block_on_future, sleep_async};
 use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl,

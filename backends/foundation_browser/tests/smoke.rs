@@ -8,7 +8,7 @@
 
 use foundation_browser::test::{Harness, TestConfig};
 use foundation_browser::{BrowserDriver, LaunchConfig};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 
 #[test]
 fn launch_navigate_eval_screenshot() {

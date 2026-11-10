@@ -51,8 +51,8 @@ impl PlatformCapability for Cam {
 fn full_system_bootstrap() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -72,8 +72,8 @@ fn full_system_bootstrap() {
 fn multi_handler_route_resolution() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -115,8 +115,8 @@ fn multi_handler_route_resolution() {
 fn cache_connectivity_lifecycle() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -150,8 +150,8 @@ fn cache_connectivity_lifecycle() {
 fn offline_mutation_replay_on_reconnect() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -181,8 +181,8 @@ fn offline_mutation_replay_on_reconnect() {
 fn capability_invocation_with_profile_gating() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -271,8 +271,8 @@ fn webview_stack_navigation_cycle() {
 fn session_lifecycle_events() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     let events = Arc::new(std::sync::Mutex::new(Vec::new()));
@@ -299,8 +299,8 @@ fn session_lifecycle_events() {
 fn pattern_router_in_session_chain() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -375,8 +375,8 @@ fn protocol_selection_integration() {
     // Priority: decision hint → query param → content detection → default
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     session.route("/api/*", remote_fetch());
@@ -438,8 +438,8 @@ impl RouteResponder for TestResponder {
 fn presentation_push_creates_new_stack_slot() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -473,8 +473,8 @@ fn presentation_push_creates_new_stack_slot() {
 fn presentation_morph_does_not_create_new_slot() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -517,8 +517,8 @@ fn presentation_morph_does_not_create_new_slot() {
 fn presentation_replace_swaps_content_in_place() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -570,8 +570,8 @@ fn presentation_replace_swaps_content_in_place() {
 fn presentation_root_clears_the_whole_stack() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -634,8 +634,8 @@ fn presentation_root_clears_the_whole_stack() {
 fn presentation_external_does_not_affect_stack() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -678,8 +678,8 @@ fn presentation_external_does_not_affect_stack() {
 fn all_six_presentation_modes_execute_decision_pipeline() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -781,8 +781,8 @@ fn all_six_presentation_modes_execute_decision_pipeline() {
 fn presentation_modal_adds_slot_and_pool_label_like_push() {
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -831,8 +831,8 @@ fn presentation_decisions_flow_through_handler_chain_correctly() {
     // the handler chain has multiple entries and the matching is by pattern.
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -900,8 +900,8 @@ fn record_presentation_directly_works_for_all_modes() {
     // Bypass the handler chain entirely — test record_presentation directly.
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

@@ -11,8 +11,8 @@ fn invoke_unknown_capability_returns_error() {
     let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ));
     session.record_navigation("/app");
@@ -35,8 +35,8 @@ fn invoke_with_correct_capability_succeeds() {
     let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ));
     let route = remote_fetch()
@@ -63,8 +63,8 @@ fn profile_too_low_denies_capability() {
     let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ));
     let route = remote_fetch().with_profile(Profile::UntrustedRemote);
@@ -89,8 +89,8 @@ fn per_route_allowlist_blocks_unlisted_capability() {
     let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ));
     let route = webview_app().with_allowed_capabilities(&[CapabilityId("microphone".into())]);
@@ -115,8 +115,8 @@ fn stale_page_guard_rejects_old_request() {
     let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ));
 

@@ -12,6 +12,7 @@ keywords.workspace = true
 [dependencies]
 foundation_db = { path = "../foundation_db", version = "0.0.7" }
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
 async-trait = "0.1"
 futures-lite = "2"

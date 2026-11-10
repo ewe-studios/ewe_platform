@@ -20,7 +20,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::rng::{ChaCha8Rng, Rng, SeedableRng};
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 use foundation_wasmtime::WasmtimeBuilder;
 
 /// A module that reports the injected clock or randomness. The request byte

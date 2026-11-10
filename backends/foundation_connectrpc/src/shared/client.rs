@@ -22,9 +22,9 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_compact::Instant;
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
 use foundation_core::valtron;
-use foundation_core::valtron::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,

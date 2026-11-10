@@ -17,7 +17,7 @@ use std::process::{Command, Output};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_context::{Clock, Ctx};
 
 // ── Error types ──────────────────────────────────────────────────────────
 

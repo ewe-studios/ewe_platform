@@ -1,7 +1,7 @@
 //! `CloudflareClient` — wraps the auto-generated async `*_request` functions
 //! with auth injection and typed domain structs.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 use crate::types::CloudflareError;

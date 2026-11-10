@@ -12,8 +12,8 @@ use foundation_nativeapis::{
 };
 
 fn make_fs() -> Arc<MemoryFs> {
-    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir_all("/src").unwrap();
     fs.write_file("/hello.txt", b"hello world\ngoodbye world\n")
@@ -131,8 +131,8 @@ async fn multigrep_behaves_like_grep() {
 
 #[valtron_test]
 async fn excluded_dirs_are_skipped() {
-    let fs = MemoryFs::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     fs.mkdir_all("/src").unwrap();
     fs.mkdir_all("/target/debug").unwrap();
@@ -180,8 +180,8 @@ fn search_match_fields_accessible() {
 
 #[valtron_test]
 async fn empty_fs_grep_returns_empty() {
-    let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    let fs = Arc::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
     )));
     let searcher = InCodeVfsSearcher::new(fs);
     let matches = searcher
@@ -193,8 +193,8 @@ async fn empty_fs_grep_returns_empty() {
 
 #[valtron_test]
 async fn empty_fs_find_returns_empty() {
-    let fs = Arc::new(MemoryFs::new(foundation_core::valtron::Ctx::fixed(
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+    let fs = Arc::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
     )));
     let searcher = InCodeVfsSearcher::new(fs);
     let matches = searcher

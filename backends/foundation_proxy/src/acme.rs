@@ -13,7 +13,8 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::{sleep_async, Ctx};
+use foundation_context::Ctx;
+use foundation_core::valtron::sleep_async;
 use foundation_netio::shared::client::body_reader::{collect_bytes_async, AsyncSendSafeBody};
 use foundation_netio::shared::client::request::PreparedRequest;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};

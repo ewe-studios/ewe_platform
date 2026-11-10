@@ -10,7 +10,7 @@
 //! HOW: `wat::parse_str` turns the text module into the bytes that
 //! `WasmtimeBuilder` compiles.
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_wasmtime::{WasmtimeBuilder, WasmtimeError, WasmtimeInstance};
 
 /// A module whose `handle_request` echoes the request bytes.

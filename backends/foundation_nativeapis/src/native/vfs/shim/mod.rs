@@ -28,9 +28,10 @@ mod shim_exports {
 
     use tracing;
 
+    use foundation_context::Ctx;
     #[cfg(any(feature = "vfs-sqlite", feature = "vfs-turso"))]
     use foundation_core::valtron::initialize_pool;
-    use foundation_core::valtron::{Ctx, PoolGuard};
+    use foundation_core::valtron::PoolGuard;
 
     #[cfg(feature = "vfs-sqlite")]
     use crate::native::vfs::libsql_delta::LibsqlDelta;

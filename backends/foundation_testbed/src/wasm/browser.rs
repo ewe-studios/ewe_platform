@@ -11,7 +11,7 @@
 use std::time::Duration;
 
 use foundation_browser::{BrowserDriver, LaunchConfig};
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use tracing::{debug, info};
 
 use crate::wasm::cli::Browser;

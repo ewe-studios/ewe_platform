@@ -50,7 +50,7 @@ fn backend_drain_survives_restart() {
 
     // ── Run 1: drain one backend, then shut down. ──
     {
-        let proxy = ProxyServer::start(build_config(), foundation_core::valtron::Ctx::host())
+        let proxy = ProxyServer::start(build_config(), foundation_context::Ctx::host())
             .block()
             .expect("start proxy 1");
         std::thread::sleep(Duration::from_millis(200));
@@ -71,7 +71,7 @@ fn backend_drain_survives_restart() {
 
     // ── Run 2: fresh proxy, same state dir — the drain must be restored. ──
     {
-        let proxy = ProxyServer::start(build_config(), foundation_core::valtron::Ctx::host())
+        let proxy = ProxyServer::start(build_config(), foundation_context::Ctx::host())
             .block()
             .expect("start proxy 2");
         std::thread::sleep(Duration::from_millis(200));

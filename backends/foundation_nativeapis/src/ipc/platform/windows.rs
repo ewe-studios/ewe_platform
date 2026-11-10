@@ -13,8 +13,8 @@ use std::{
     time::Duration,
 };
 
+use foundation_context::Ctx;
 use foundation_core::type_uuid::TypeUuid;
-use foundation_core::valtron::Ctx;
 
 use crate::ipc::{
     decode, util::Align4, version::version, version::Version, EndpointID, Error, Label, LabelOp,

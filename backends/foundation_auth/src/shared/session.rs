@@ -12,7 +12,7 @@ use std::time::Duration as StdDuration;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use foundation_netio::shared::client::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Serialize};

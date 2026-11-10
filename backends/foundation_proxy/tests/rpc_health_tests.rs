@@ -222,7 +222,7 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
     let (backend_port, backend_shutdown) = start_health_gated_backend(Arc::clone(&serving));
     let proxy = ProxyServer::start(
         proxy_config_grpc_health(backend_port),
-        foundation_core::valtron::Ctx::host(),
+        foundation_context::Ctx::host(),
     )
     .await
     .expect("start proxy");
