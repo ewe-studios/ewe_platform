@@ -176,3 +176,30 @@ standard ASD-STE100.
   finished auth and connectrpc build outputs freed only about 3 GB. The routine's 4 GB floor
   was not reached. The `uat/deps` directory holds most of the space. The routine does not
   allow removing it, so the remaining checks wait for the owner.
+
+- Wave 5 and 6: a regex that wrapped `Arc::new(MonotonicClock::new())` also matched calls that
+  already sat inside `Ctx::fixed(...)`. It also matched an `as Arc<dyn Clock>` cast. Both
+  produced a compile error. Check each rewritten call. Collapse a double `Ctx::fixed` by hand.
+- Wave 6: `SignalBus::clock()` returned a reference to the clock. It now exposes `ctx()`.
+  Callers read `ctx().clock()`. This keeps no getter that returns `dyn Clock`.
+- Wave 5: the connection handlers stored the engine clock in the app context
+  (`store::<Arc<dyn Clock>>`). No code read that entry. ConnectRPC reads `ctx.clock()`. The store
+  was a dead write, and it is removed.
+- Wave 5: `ProtocolDetectHandler` stored a clock from its constructor and also read the engine
+  clock on each poll. The `get_or_insert_with` never ran, because the constructor set the field.
+  The handler now stores the `Ctx` only.
+- Wave 6: the LD_PRELOAD shim and the C ABI function `ipmb_join` take no `Ctx` from a caller.
+  Both build `Ctx::host()` once. Review this choice. It is the only library use of `Ctx::host()`.
+- Wave 6: feature-gated tests and examples fail to compile on a plain `cargo test`. Compile each
+  set in `ci/packages.toml`. The `fjall`, `fuse`, `clock_injection` and `dataplane` targets
+  broke only under their own features.
+- Wave 6: the Windows target (`x86_64-pc-windows-gnu`) fails to compile in `ipc/platform/windows.rs`.
+  The errors are `windows_sys` 0.59 feature flags and `HANDLE` type mismatches (`usize` against
+  `*mut c_void`). They sit on lines this change did not touch. Severity high: Windows does not
+  build with `ipc`. No GitHub issue is filed in this run, because the brief forbids it. File it before the next lane.
+- Wave 6: the build fills the root volume during the combined feature set and during the
+  `foundation_ai` testing builds. Run the disk routine before each set. The volume is shared with
+  `/tmp`, so the scratch logs count too.
+- Wave 6: `rustfmt` on the changed files reflowed lines outside the change. This is the same
+  issue as wave 4. It is accepted here, because the CI formatting check needs the files formatted.
+

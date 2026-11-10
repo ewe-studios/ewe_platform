@@ -128,6 +128,33 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   - `foundation_connectrpc --features auth` passes `cargo check --all-targets`.
   - The CI guards `check_time_sources.py` and `check_executor_wake.py` pass.
 
+- Wave 5: `foundation_http`: commit `a5a7eeeb2`, format fix `ce6d49ec0`. `src` has 0 `dyn Clock`
+  sites (it had 14). `HttpApp::with_clock` is removed. Use `HttpApp::with_ctx(Ctx::fixed(clock))`.
+  `RateLimiter`, `ProtocolDetectHandler`, `ConnectionHandler` and `H2ConnectionHandler` take a `Ctx`.
+  The accept loop passes `ServerApp::context()` to each connection, in place of an inline
+  `MonotonicClock::new()`. Results:
+  - Default and `multi quic` test sets pass (79 and 161 tests), with one new test
+    `rate_limit_ctx_tests.rs`.
+  - clippy `-D warnings` is clean for the default and `multi quic ssl` sets.
+  - wasm `check` for the `wasm` feature passes.
+- Wave 6: `foundation_nativeapis`: commit `6fed1f660`. `src` has 0 `dyn Clock` sites (it had 76).
+  Callers in `foundation_toolings`, `foundation_wireguard` and `foundation_ai` follow in the same
+  commit. Results:
+  - Test sets run and pass: default (51), `netstack` (58), `vfs-native,vfs-d1,vfs-r2` (259).
+    The D1 and R2 suites skip without the local emulator.
+  - Test sets compiled only: `fd`, `fd,uring`, `vfs-fuse`, `vfs-preload`, `vfs-native,vfs-ptrace`,
+    and the full combined set.
+  - clippy `-D warnings` is clean for the default and `vfs-preload` sets.
+  - wasm `check` passes for the default set and for `vfs,vfs-search`.
+  - `ipc` lib check passes on linux and on macOS (`aarch64-apple-darwin`). The Windows target
+    fails. See learnings.
+  - `foundation_toolings`, `foundation_wireguard`, `foundation_iogate`, `foundation_reactor` and
+    `foundation_proxy` compile their tests. `foundation_ai` compiles its `testing` and
+    `--no-default-features --features testing` sets.
+  - `check_time_sources.py` and `check_executor_wake.py` pass.
+- Merge: `7be9ea7ab` (fix for the `vms` test callers in `foundation_deployment_platform`) is merged
+  into `spec76/w5` as `3629637df`, as the parent session asked.
+
 ## In progress
 
 - Wave 2: the `WinRM` and `BootstrapLogger` `clock()` getters still return `Arc<dyn Clock>`.
