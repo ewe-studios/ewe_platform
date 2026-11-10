@@ -3,8 +3,8 @@
 use crate::native::connection::Connection;
 use crate::native::connection::{DataStreamAddr, Endpoint, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
-use foundation_core::valtron::Ctx;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ALL_VERSIONS};

@@ -15,8 +15,8 @@
 //!   added in a later phase.
 //!
 use crate::netcap::RawStream;
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::Ctx;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};

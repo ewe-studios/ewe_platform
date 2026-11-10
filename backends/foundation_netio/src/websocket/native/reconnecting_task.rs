@@ -16,8 +16,9 @@
 use crate::shared::client::DnsResolver;
 use crate::shared::http::{SimpleHeader, SimpleHeaders};
 use concurrent_queue::ConcurrentQueue;
+use foundation_context::Ctx;
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskSpread, TaskStatus};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace};

@@ -16,7 +16,7 @@
 //! use foundation_netio::shared::http::load_tracker::LoadTracker;
 //! use std::sync::Arc;
 //!
-//! let tracker = LoadTracker::new(foundation_core::valtron::Ctx::host());
+//! let tracker = LoadTracker::new(foundation_context::Ctx::host());
 //!
 //! // Track active connections
 //! let guard = tracker.track_connection();
@@ -26,7 +26,7 @@
 //! println!("Timeout factor: {}", factor);
 //! ```
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::time::Duration;
 

@@ -31,7 +31,8 @@ use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody,
 };
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///

@@ -4,9 +4,10 @@ use std::net::TcpListener;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{valtron_test, Ctx, EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{valtron_test, EventReadiness, TaskIterator, TaskStatus};
 use foundation_netio::http::{GetRequestIntroTask, HttpClientConnection, RequestIntro};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{HttpClientError, HttpReaderError};
@@ -192,8 +193,8 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
     );
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

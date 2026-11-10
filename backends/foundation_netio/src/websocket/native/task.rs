@@ -20,9 +20,10 @@ use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutCont
 use crate::shared::http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, PipeReceiver, TaskIterator, TaskStatus};
+use foundation_core::valtron::{PipeReceiver, TaskIterator, TaskStatus};
 
 use std::io::Write;
 use std::sync::Arc;

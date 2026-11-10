@@ -12,7 +12,9 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Ctx, EventReadiness, ReadinessWaker};
+use foundation_core::valtron::{EventReadiness, ReadinessWaker};
+
+use foundation_context::Ctx;
 
 /// A wall-clock `EventReadiness` fallback for when no kernel reactor is available.
 ///

@@ -3,7 +3,8 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, Stream};
+use foundation_context::Ctx;
+use foundation_core::valtron::Stream;
 use foundation_netio::quic::{
     QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
     StreamId,
@@ -429,8 +430,8 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
     );
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

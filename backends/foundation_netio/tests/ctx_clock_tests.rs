@@ -4,7 +4,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, SimulatedClock};
+use foundation_core::valtron::SimulatedClock;
+
+use foundation_context::Ctx;
 use foundation_netio::native::readiness::DeadlineReadiness;
 
 #[test]
@@ -19,5 +21,8 @@ fn a_deadline_on_a_ctx_expires_when_the_simulated_clock_advances() {
     assert!(!deadline.expired(), "four seconds of five have passed");
 
     clock.advance(Duration::from_secs(1));
-    assert!(deadline.expired(), "the simulated clock reached the deadline");
+    assert!(
+        deadline.expired(),
+        "the simulated clock reached the deadline"
+    );
 }

@@ -20,7 +20,7 @@
 use crate::shared::http::client_classifier::ClientClassifier;
 use crate::shared::http::latency_tracker::LatencyTracker;
 use crate::shared::http::load_tracker::LoadTracker;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::time::Duration;
 
 /// A duration's millisecond count as `f64`. Timeouts are far below 2^52 ms

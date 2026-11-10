@@ -13,7 +13,9 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_netio::http3::connection::{H3Connection, H3Request};
 use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicDriver, QuicEvent, QuinnBidiStream,
@@ -259,8 +261,8 @@ fn driver_parks_on_fd_readiness_not_delayed() {
     );
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

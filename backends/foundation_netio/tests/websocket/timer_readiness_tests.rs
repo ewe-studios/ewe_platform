@@ -13,8 +13,8 @@ use foundation_netio::websocket::TimerReadiness;
 fn timer_readiness_fires_after_interval() {
     let timer = TimerReadiness::new(
         Duration::from_millis(50),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     // First call: last_ready is now(), elapsed ≈ 0. Not ready yet.
@@ -32,8 +32,8 @@ fn timer_readiness_fires_after_interval() {
 fn timer_readiness_implements_event_readiness() {
     let timer = Arc::new(TimerReadiness::new(
         Duration::from_millis(0),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     ));
     // 0ms interval — always fires immediately.

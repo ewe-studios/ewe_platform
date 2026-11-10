@@ -16,8 +16,8 @@ fn test_batch_writer_with_defaults() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::with_defaults(
         &mut buffer,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -43,8 +43,8 @@ fn test_batch_writer_custom_limits() {
         &mut buffer,
         1024, // 1 KiB
         std::time::Duration::from_millis(100),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -63,8 +63,8 @@ fn test_batch_writer_auto_flush_on_size() {
         &mut buffer,
         50,                                 // Small limit for testing
         std::time::Duration::from_secs(10), // Long timeout
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -83,8 +83,8 @@ fn test_write_immediate() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::with_defaults(
         &mut buffer,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -108,8 +108,8 @@ fn test_queue_multiple_frames() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::with_defaults(
         &mut buffer,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -132,8 +132,8 @@ fn test_stats_tracking() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::with_defaults(
         &mut buffer,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -158,8 +158,8 @@ fn test_flush_efficiency() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::with_defaults(
         &mut buffer,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -181,8 +181,8 @@ fn test_empty_flush_is_noop() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::with_defaults(
         &mut buffer,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -203,8 +203,8 @@ fn test_into_inner_flushes() {
         // Create writer, queue frame, and get inner
         let writer = BatchFrameWriter::with_defaults(
             &mut buffer,
-            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new(),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
             )),
         );
         let mut writer = writer; // Make mutable for into_inner

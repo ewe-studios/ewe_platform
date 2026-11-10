@@ -5,7 +5,7 @@
 use crate::http::pool::ConnectionPool;
 use crate::native::connection::Connector;
 use crate::shared::client::SystemDnsResolver;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
@@ -1300,11 +1300,11 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// let url = Uri::parse("http://example.com").unwrap();
     ///
     /// // Direct connection (no proxy).
-    /// let _conn = pool.create_connection_with_proxy(&url, None, None, &foundation_core::valtron::Ctx::host());
+    /// let _conn = pool.create_connection_with_proxy(&url, None, None, &foundation_context::Ctx::host());
     ///
     /// // Through an HTTP proxy.
     /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080").unwrap();
-    /// let _conn = pool.create_connection_with_proxy(&url, Some(&proxy), None, &foundation_core::valtron::Ctx::host());
+    /// let _conn = pool.create_connection_with_proxy(&url, Some(&proxy), None, &foundation_context::Ctx::host());
     /// ```
     pub fn create_connection_with_proxy(
         &self,

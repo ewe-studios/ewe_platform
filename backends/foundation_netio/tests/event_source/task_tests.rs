@@ -3,7 +3,9 @@
 //! Tests `EventSourceTask` `TaskIterator` implementation.
 //! These tests use `MockDnsResolver` and never make real network connections.
 
-use foundation_core::valtron::{Ctx, TaskIterator};
+use foundation_core::valtron::TaskIterator;
+
+use foundation_context::Ctx;
 use foundation_netio::event_source::native::EventSourceTask;
 use foundation_netio::shared::client::MockDnsResolver;
 use foundation_netio::shared::http::{DnsError, SimpleHeader};

@@ -27,9 +27,10 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime};
 
 use bytes::Bytes;
+use foundation_context::{Clock, Ctx};
 use foundation_core::url::Uri;
 use foundation_core::valtron::{
-    self, valtron_test, Clock, Ctx, Stream, StreamIteratorExt, TaskIterator, TaskStatus,
+    self, valtron_test, Stream, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use foundation_netio::http::{HttpConnectionPool, HttpExchangeTask};
 use foundation_netio::shared::client::request_task::HttpExchange;
@@ -422,7 +423,7 @@ fn post_with_clock(
     let mut request = post(url, body, length);
     request
         .extensions
-        .insert::<foundation_core::valtron::Ctx>(foundation_core::valtron::Ctx::fixed(clock));
+        .insert::<foundation_context::Ctx>(foundation_context::Ctx::fixed(clock));
     request
 }
 

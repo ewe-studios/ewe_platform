@@ -25,7 +25,8 @@ use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
 use bytes::{Buf, Bytes};
-use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
 
 use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicBidiStream, QuicConnection, QuicDriver,
@@ -597,8 +598,8 @@ fn one_poll_reads_every_queued_datagram() {
     );
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

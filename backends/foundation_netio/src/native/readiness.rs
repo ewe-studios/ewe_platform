@@ -29,7 +29,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 #[cfg(unix)]
 use foundation_core::valtron::{AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker};
 

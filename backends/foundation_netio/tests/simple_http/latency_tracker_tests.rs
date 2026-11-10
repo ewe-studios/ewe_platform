@@ -3,7 +3,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, Ctx, MonotonicClock};
+use foundation_context::{Clock, Ctx, MonotonicClock};
 use foundation_netio::shared::http::latency_tracker::{
     percentile, EndpointLatency, LatencySample, LatencyTracker,
 };

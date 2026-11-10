@@ -4,7 +4,7 @@ use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, Ctx, MonotonicClock};
+use foundation_context::{Clock, Ctx, MonotonicClock};
 use foundation_netio::http::nonblocking::{IdleDeadline, IoStep, PendingBytes};
 
 /// A real clock: this test only exercises the arm/expire ordering.

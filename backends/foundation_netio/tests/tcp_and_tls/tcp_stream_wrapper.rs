@@ -67,8 +67,8 @@ fn wrapper_nightly() {
     assert!(wrapper.reuse_address().unwrap());
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

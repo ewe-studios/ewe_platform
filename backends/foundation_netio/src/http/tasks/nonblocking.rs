@@ -20,7 +20,9 @@
 use std::io::Write;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Ctx, EventReadinessPtr};
+use foundation_core::valtron::EventReadinessPtr;
+
+use foundation_context::Ctx;
 
 use crate::http::HttpClientConnection;
 use crate::native::readiness::{io_or_deadline, IoInterest};

@@ -19,8 +19,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{self, valtron_test, Ctx, Stream, TaskIterator, TaskStatus};
+use foundation_core::valtron::{self, valtron_test, Stream, TaskIterator, TaskStatus};
 use foundation_netio::http::{ConnectionPool, HttpConnectionPool, HttpExchangeTask};
 use foundation_netio::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use foundation_netio::shared::client::{ClientConfig, MockDnsResolver, PreparedRequest};
@@ -531,8 +532,8 @@ mod sync_boundary {
     }
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

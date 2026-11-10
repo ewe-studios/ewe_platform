@@ -23,7 +23,8 @@ use std::sync::{Arc, Mutex};
 use std::task::Waker;
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, ResumeSignal};
+use foundation_context::Ctx;
+use foundation_core::valtron::ResumeSignal;
 use quinn_proto::{ConnectionHandle, Dir};
 
 use super::traits::QuicConnError;

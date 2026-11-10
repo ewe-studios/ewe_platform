@@ -18,7 +18,8 @@
 use crate::http::HttpConnectionPool;
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::shared::http::{Http11, HttpClientError, RenderHttp};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 

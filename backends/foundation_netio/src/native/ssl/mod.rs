@@ -128,7 +128,7 @@ pub use self::native_ttls::NativeTlsStream as ServerSSLStream;
 pub(crate) fn connect_plain(
     addr: core::net::SocketAddr,
     timeout: Option<std::time::Duration>,
-    ctx: &foundation_core::valtron::Ctx,
+    ctx: &foundation_context::Ctx,
 ) -> std::io::Result<std::net::TcpStream> {
     #[cfg(unix)]
     {

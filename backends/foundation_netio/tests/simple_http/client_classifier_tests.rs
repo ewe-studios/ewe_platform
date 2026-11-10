@@ -1,6 +1,6 @@
 //! Client classifier tests (moved from `src/shared/http/client_classifier.rs`).
 
-use foundation_core::valtron::{Clock, Ctx, MonotonicClock};
+use foundation_context::{Clock, Ctx, MonotonicClock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;

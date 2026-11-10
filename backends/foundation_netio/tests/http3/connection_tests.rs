@@ -19,7 +19,9 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator};
+
+use foundation_context::Ctx;
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -385,8 +387,8 @@ fn a_trailing_headers_frame_is_surfaced_as_trailers() {
     );
 }
 
-fn ctx() -> foundation_core::valtron::Ctx {
-    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     ))
 }

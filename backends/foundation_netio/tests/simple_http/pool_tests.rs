@@ -22,15 +22,15 @@ fn test_connection_pool_basic_sanity() {
         .checkout(
             "example.com",
             80,
-            &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new()
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new()
             ))
         )
         .is_none());
 
     // Maintenance helpers should be callable and not panic
-    pool.cleanup_stale(&foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     pool.clear();
 }
@@ -44,11 +44,11 @@ fn test_cleanup_and_clear_idempotent() {
     let pool = ConnectionPool::new(2, std::time::Duration::from_secs(0));
 
     // Call multiple times to ensure no panics and stable behavior
-    pool.cleanup_stale(&foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
-    pool.cleanup_stale(&foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     pool.clear();
     pool.clear();
@@ -58,8 +58,8 @@ fn test_cleanup_and_clear_idempotent() {
         .checkout(
             "localhost",
             8080,
-            &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-                foundation_core::valtron::MonotonicClock::new()
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new()
             ))
         )
         .is_none());
@@ -80,8 +80,8 @@ fn test_connection_pool_checkout_empty() {
     let result = pool.checkout(
         "example.com",
         80,
-        &foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
     assert!(result.is_none());
@@ -96,8 +96,8 @@ fn test_connection_pool_checkout_empty() {
 #[test]
 fn test_cleanup_and_clear_no_panic() {
     let pool = ConnectionPool::new(2, std::time::Duration::from_secs(0));
-    pool.cleanup_stale(&foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-        foundation_core::valtron::MonotonicClock::new(),
+    pool.cleanup_stale(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
     )));
     pool.clear();
 }

@@ -4,7 +4,9 @@
 //! - `TestHttpServer` (request-response) — verifies initial connection sends body/headers
 //! - `SseTestServer` (streaming) — verifies reconnection behavior with controlled close
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};

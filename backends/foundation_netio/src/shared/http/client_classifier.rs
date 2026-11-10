@@ -19,7 +19,7 @@
 //! use foundation_netio::shared::http::client_classifier::ClientClassifier;
 //! use std::time::Duration;
 //!
-//! let classifier = ClientClassifier::new(foundation_core::valtron::Ctx::host());
+//! let classifier = ClientClassifier::new(foundation_context::Ctx::host());
 //!
 //! // Record a transfer
 //! classifier.record_transfer("192.168.1.1", 10240, Duration::from_secs(1));
@@ -29,7 +29,7 @@
 //! println!("Classification: {:?}", classification);
 //! ```
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;

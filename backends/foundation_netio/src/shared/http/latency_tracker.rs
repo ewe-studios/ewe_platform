@@ -17,7 +17,7 @@
 //! use foundation_netio::shared::http::latency_tracker::LatencyTracker;
 //! use std::time::Duration;
 //!
-//! let tracker = LatencyTracker::new(foundation_core::valtron::Ctx::host());
+//! let tracker = LatencyTracker::new(foundation_context::Ctx::host());
 //!
 //! // Record a latency sample
 //! tracker.record("api.example.com/users", Duration::from_millis(150));
@@ -28,7 +28,7 @@
 //! }
 //! ```
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;

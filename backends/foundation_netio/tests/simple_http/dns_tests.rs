@@ -67,8 +67,8 @@ fn test_caching_resolver_caches_results() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -93,8 +93,8 @@ fn test_caching_resolver_expires_entries() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_millis(100),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -120,8 +120,8 @@ fn test_caching_resolver_clear_cache() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -145,8 +145,8 @@ fn test_caching_resolver_differentiates_by_port() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -297,8 +297,8 @@ fn test_caching_resolver_propagates_errors() {
     let resolver = CachingDnsResolver::new(
         mock,
         std::time::Duration::from_secs(60),
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

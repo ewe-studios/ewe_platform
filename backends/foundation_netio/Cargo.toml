@@ -17,6 +17,7 @@ workspace = true
 # -- Workspace dependencies
 
 foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.8" }
 # RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
 # → wasm-clean). std is followed from this crate's `std` feature.

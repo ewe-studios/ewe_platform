@@ -5,8 +5,9 @@
 //! [`WebSocketServerTask`] over a localhost TCP pair, so the incremental frame
 //! decoder reads from a real (non-blocking) stream rather than a byte buffer.
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{Ctx, Pipe, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Pipe, TaskIterator, TaskStatus};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::websocket::{WebSocketMessage, WebSocketServerTask, WsServerConfig};
 use std::io::Write;
@@ -122,8 +123,8 @@ fn masked_text_message_delivers_via_incremental_decoder() {
         WsServerConfig::default(),
         tx,
         None,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -145,8 +146,8 @@ fn ping_triggers_pong_output() {
         WsServerConfig::default(),
         tx,
         None,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -172,8 +173,8 @@ fn close_frame_drains_task() {
         WsServerConfig::default(),
         tx,
         None,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 
@@ -202,8 +203,8 @@ fn unmasked_frame_triggers_close_and_drain() {
         WsServerConfig::default(),
         tx,
         None,
-        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
         )),
     );
 

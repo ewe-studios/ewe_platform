@@ -1,6 +1,6 @@
 #![allow(clippy::missing_errors_doc)]
 
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 use std::{net::TcpStream, time};

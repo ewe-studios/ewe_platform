@@ -15,7 +15,7 @@
 
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::WebSocketFrame;
-use foundation_core::valtron::Ctx;
+use foundation_context::Ctx;
 use std::io::Write;
 use std::time::Duration;
 
@@ -52,7 +52,7 @@ const DEFAULT_FLUSH_TIMEOUT: Duration = Duration::from_millis(10);
 /// use foundation_netio::websocket::{BatchFrameWriter, Opcode, WebSocketFrame};
 /// use std::time::Duration;
 ///
-/// let mut writer = BatchFrameWriter::new(Vec::new(), 16 * 1024, Duration::from_millis(10), foundation_core::valtron::Ctx::host());
+/// let mut writer = BatchFrameWriter::new(Vec::new(), 16 * 1024, Duration::from_millis(10), foundation_context::Ctx::host());
 ///
 /// let frame = WebSocketFrame {
 ///     fin: true,
@@ -104,7 +104,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let mut writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_core::valtron::Ctx::host());
+    /// let mut writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// ```
     pub fn with_defaults(inner: W, ctx: Ctx) -> Self {
         Self {
@@ -135,7 +135,7 @@ where
     /// use foundation_netio::websocket::BatchFrameWriter;
     /// use std::time::Duration;
     ///
-    /// let writer = BatchFrameWriter::new(Vec::new(), 32 * 1024, Duration::from_millis(5), foundation_core::valtron::Ctx::host());
+    /// let writer = BatchFrameWriter::new(Vec::new(), 32 * 1024, Duration::from_millis(5), foundation_context::Ctx::host());
     /// ```
     pub fn new(inner: W, max_batch_size: usize, flush_timeout: Duration, ctx: Ctx) -> Self {
         Self {
@@ -332,7 +332,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_core::valtron::Ctx::host());
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// assert_eq!(writer.queued_frame_count(), 0);
     /// ```
     #[must_use]
@@ -347,7 +347,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_core::valtron::Ctx::host());
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// assert_eq!(writer.buffered_bytes(), 0);
     /// ```
     #[must_use]
@@ -362,7 +362,7 @@ where
     /// ```rust
     /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_core::valtron::Ctx::host());
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// let stats = writer.stats();
     /// assert_eq!(stats.frames, 0);
     /// assert_eq!(stats.flushes, 0);

@@ -1,8 +1,9 @@
 //! Wasm HTTP exchange task construction smoke test (moved from
 //! `src/wasm/client/tasks/http_exchange_task.rs`).
 
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, TaskIterator};
+use foundation_core::valtron::TaskIterator;
 use foundation_netio::shared::client::PreparedRequest;
 use foundation_netio::shared::http::{Extensions, SendSafeBody, SimpleHeaders, SimpleMethod};
 use foundation_netio::wasm::client::tasks::new_http_exchange_task;
