@@ -70,8 +70,7 @@ fn spec() -> Value {
 fn schemas(spec: &Value) -> Vec<String> {
     spec.pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|m| m.keys().cloned().collect())
-        .unwrap_or_default()
+        .map_or_default(|m| m.keys().cloned().collect())
 }
 
 #[test]

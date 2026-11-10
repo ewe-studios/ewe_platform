@@ -120,8 +120,7 @@ fn parse_attribute_args(attr: &syn::Attribute) -> HashMap<String, AttributeValue
         let key = meta
             .path
             .get_ident()
-            .map(ToString::to_string)
-            .unwrap_or_default();
+            .map_or_default(ToString::to_string);
 
         if meta.input.peek(syn::Token![=]) {
             // Key = Value form

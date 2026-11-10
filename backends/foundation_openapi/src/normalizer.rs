@@ -208,7 +208,7 @@ impl SpecProcessor {
         let properties = schema
             .properties
             .as_ref()
-            .map(|props| {
+            .map_or_default(|props| {
                 props
                     .iter()
                     .map(|(name, prop_schema)| {
@@ -229,8 +229,7 @@ impl SpecProcessor {
                         }
                     })
                     .collect()
-            })
-            .unwrap_or_default();
+            });
 
         TypeDefinition {
             name: TypeResolver::rename_if_keyword(TypeResolver::to_pascal_case(name)),
@@ -296,14 +295,12 @@ impl SpecProcessor {
                     .spec
                     .info
                     .as_ref()
-                    .map(|i| i.version.clone())
-                    .unwrap_or_default(),
+                    .map_or_default(|i| i.version.clone()),
                 api_title: self
                     .spec
                     .info
                     .as_ref()
-                    .map(|i| i.title.clone())
-                    .unwrap_or_default(),
+                    .map_or_default(|i| i.title.clone()),
             },
         }
     }

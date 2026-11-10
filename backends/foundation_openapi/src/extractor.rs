@@ -146,14 +146,12 @@ impl EndpointExtractor {
         let array_query_params = operation
             .parameters
             .as_deref()
-            .map(EndpointInfo::extract_array_query_params)
-            .unwrap_or_default();
+            .map_or_default(EndpointInfo::extract_array_query_params);
 
         let boolean_query_params = operation
             .parameters
             .as_deref()
-            .map(EndpointInfo::extract_boolean_query_params)
-            .unwrap_or_default();
+            .map_or_default(EndpointInfo::extract_boolean_query_params);
 
         // Use path template params if parameter array didn't provide path params
         if param_path.is_empty() && !path_params.is_empty() {
@@ -288,7 +286,7 @@ impl EndpointExtractor {
         let params: BTreeMap<String, GcpParameter> = method
             .parameters
             .as_ref()
-            .map(|p| {
+            .map_or_default(|p| {
                 p.iter()
                     .map(|(k, v)| {
                         (
@@ -303,8 +301,7 @@ impl EndpointExtractor {
                         )
                     })
                     .collect()
-            })
-            .unwrap_or_default();
+            });
 
         // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder}).
         // GCP v2 uses resource expansion prefix {+name} — strip the `+`.

@@ -48,7 +48,7 @@ impl SeedableRng for Xoshiro128PlusPlus {
     fn seed_from_u64(mut state: u64) -> Self {
         const PHI: u64 = 0x9e37_79b9_7f4a_7c15;
         let mut s = [0; 4];
-        for i in s.chunks_exact_mut(2) {
+        for i in s.as_chunks_mut::<2>().0 {
             state = state.wrapping_add(PHI);
             let mut z = state;
             z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);

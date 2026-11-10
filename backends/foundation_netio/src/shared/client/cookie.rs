@@ -492,8 +492,7 @@ impl CookieJar {
     pub fn get_for_url(&self, uri: &Uri) -> Vec<&Cookie> {
         let host = uri
             .authority()
-            .map(|a| a.host().to_string_for_display())
-            .unwrap_or_default();
+            .map_or_default(|a| a.host().to_string_for_display());
         let path = uri.path();
         let is_https = uri.scheme().as_str() == "https";
 

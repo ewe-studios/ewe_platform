@@ -30,8 +30,7 @@ pub fn resolve_location(base: &Uri, location: &str) -> Result<Uri, HttpClientErr
     // Helper to get authority string (host[:port])
     let authority_str = base
         .authority()
-        .map(ToString::to_string)
-        .unwrap_or_default();
+        .map_or_default(ToString::to_string);
 
     // If location starts with '/', treat as absolute path on same authority
     if location.starts_with('/') {

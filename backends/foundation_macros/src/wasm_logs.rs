@@ -93,8 +93,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
                 let name = pair
                     .path
                     .get_ident()
-                    .map(ToString::to_string)
-                    .unwrap_or_default();
+                    .map_or_default(ToString::to_string);
                 match name.as_str() {
                     "tracing" => args.tracing = Some(pair.value),
                     "tracing_targets" => args.tracing_targets = Some(pair.value),

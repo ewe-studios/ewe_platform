@@ -178,13 +178,12 @@ pub fn forward_request_headers(
     let xff = SimpleHeader::custom("x-forwarded-for");
     let mut chain: Vec<String> = headers
         .get(&xff)
-        .map(|vals| {
+        .map_or_default(|vals| {
             vals.iter()
                 .flat_map(|v| v.split(','))
                 .map(|s| s.trim().to_string())
                 .collect()
-        })
-        .unwrap_or_default();
+        });
     chain.push(client_ip.to_string());
     headers.insert(xff, vec![chain.join(", ")]);
 

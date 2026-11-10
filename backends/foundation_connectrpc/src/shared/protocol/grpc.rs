@@ -262,8 +262,7 @@ impl ProtocolHandler for GrpcHandler {
                 .connection
                 .peer_addr
                 .as_ref()
-                .map(|a| format!("{a:?}"))
-                .unwrap_or_default(),
+                .map_or_default(|a| format!("{a:?}")),
             protocol: "grpc".to_string(),
         };
 

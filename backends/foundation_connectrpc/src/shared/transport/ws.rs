@@ -69,7 +69,7 @@ impl WsTransport {
             "ws"
         };
         let host = uri.host_str().unwrap_or_else(|| "localhost".to_string());
-        let port = uri.port().map(|p| format!(":{p}")).unwrap_or_default();
+        let port = uri.port().map_or_default(|p| format!(":{p}"));
         let path = uri.path_and_query().to_string();
         Ok(format!("{ws_scheme}://{host}{port}{path}"))
     }

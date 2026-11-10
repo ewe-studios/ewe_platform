@@ -43,8 +43,7 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
             let key = nv
                 .path
                 .get_ident()
-                .map(ToString::to_string)
-                .unwrap_or_default();
+                .map_or_default(ToString::to_string);
             let value: &Expr = &nv.value;
             match key.as_str() {
                 "port" => field_inits.push(quote! { port: #value }),

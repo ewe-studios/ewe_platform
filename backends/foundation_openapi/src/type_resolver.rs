@@ -290,8 +290,7 @@ impl TypeResolver {
                 let mut chars = part.chars();
                 chars
                     .next()
-                    .map(|c| c.to_uppercase().collect::<String>())
-                    .unwrap_or_default()
+                    .map_or_default(|c| c.to_uppercase().collect::<String>())
                     + chars.as_str()
             })
             .collect()

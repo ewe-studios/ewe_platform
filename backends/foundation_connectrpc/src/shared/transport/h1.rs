@@ -187,8 +187,7 @@ fn request_url_string(req: &RequestDescriptor) -> String {
     let query = req
         .request_uri
         .query()
-        .map(|q| format!("?{q}"))
-        .unwrap_or_default();
+        .map_or_default(|q| format!("?{q}"));
     format!(
         "http://{}:{}{}{}",
         req.request_uri

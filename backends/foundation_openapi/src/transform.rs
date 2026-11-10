@@ -466,13 +466,12 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     let reserved: BTreeSet<String> = spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|schemas| {
+        .map_or_default(|schemas| {
             schemas
                 .keys()
                 .map(|k| crate::api_catalog::to_pascal_case_from_any(k))
                 .collect()
-        })
-        .unwrap_or_default();
+        });
 
     let Some(paths) = spec.get_mut("paths").and_then(Value::as_object_mut) else {
         return stats;
@@ -833,12 +832,11 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     let reserved: BTreeSet<String> = spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|s| {
+        .map_or_default(|s| {
             s.keys()
                 .map(|k| crate::api_catalog::to_pascal_case_from_any(k))
                 .collect()
-        })
-        .unwrap_or_default();
+        });
 
     let mut hoisted: Map<String, Value> = Map::new();
     if let Some(responses) = spec

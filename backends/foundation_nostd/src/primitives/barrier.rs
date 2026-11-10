@@ -73,7 +73,7 @@ impl SpinBarrier {
     pub fn new(n: usize) -> Self {
         assert!(n > 0, "barrier count must be > 0");
         // Bits needed to store any arrival count in `0..n`.
-        let count_bits = usize::BITS - n.leading_zeros();
+        let count_bits = n.bit_width();
         assert!(
             count_bits < usize::BITS,
             "barrier count must leave room for a generation counter"

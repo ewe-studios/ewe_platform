@@ -87,8 +87,7 @@ impl FileStateStore {
         let dir = path.parent().unwrap_or_else(|| Path::new("."));
         let name = path
             .file_name()
-            .map(|n| n.to_string_lossy().into_owned())
-            .unwrap_or_default();
+            .map_or_default(|n| n.to_string_lossy().into_owned());
         let temp = dir.join(format!(
             ".{name}.{}.{}.tmp",
             std::process::id(),
