@@ -61,7 +61,7 @@ fn start_server() -> TestServer {
 
     let app = KeychainServer::new(KeychainContext::new(
         db,
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     ))
     .http_app();
 

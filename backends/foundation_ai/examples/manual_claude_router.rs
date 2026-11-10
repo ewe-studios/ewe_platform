@@ -15,9 +15,8 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -26,12 +25,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // --- Step 1: Create providers ---
     // (`api_key(..)` is `with_config(AnthropicConfig::api_key(..))`, i.e. an
     // `AuthCredential::SecretOnly` credential.)
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let main_provider = AnthropicMessagesProvider::api_key(api_key.clone(), Arc::clone(&clock));
-    let memory_provider = AnthropicMessagesProvider::with_config(
-        AnthropicConfig::api_key(api_key),
-        Arc::clone(&clock),
-    );
+    let ctx = Ctx::host();
+    let main_provider = AnthropicMessagesProvider::api_key(api_key.clone(), ctx.clone());
+    let memory_provider =
+        AnthropicMessagesProvider::with_config(AnthropicConfig::api_key(api_key), ctx.clone());
 
     // --- Step 2: Box with explicit routing identities ---
     // name = model id string (must be distinct per role)
@@ -65,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .build();
 
     // --- Step 4: Build the session ---
-    let agent = AgentSession::builder(router, clock)
+    let agent = AgentSession::builder(router, ctx)
         .with_model("claude-opus-4-8")
         .with_memory_model("claude-sonnet-4-6")
         .with_config(AgentConfig {

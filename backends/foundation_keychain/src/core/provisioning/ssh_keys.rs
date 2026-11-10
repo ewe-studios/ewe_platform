@@ -78,7 +78,7 @@ pub async fn create(
     let comment = req.comment.clone().unwrap_or_default();
     let generated = keygen::generate(req.key_type.as_deref().unwrap_or("ed25519"), &comment)?;
 
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let expires_at = req
         .ttl_hours
         .filter(|h| *h > 0)

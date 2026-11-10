@@ -45,12 +45,9 @@ fn control_socket_status_and_drain() {
         .bind("127.0.0.1:0")
         .control_socket(&sock)
         .service(svc);
-    let proxy = ProxyServer::start(
-        config,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
-    )
-    .block()
-    .expect("start proxy");
+    let proxy = ProxyServer::start(config, foundation_core::valtron::Ctx::host())
+        .block()
+        .expect("start proxy");
 
     // Give the control thread a moment to bind and start accepting.
     std::thread::sleep(Duration::from_millis(200));

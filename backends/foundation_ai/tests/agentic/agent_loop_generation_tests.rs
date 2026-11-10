@@ -101,7 +101,9 @@ fn harness_with_models(
         ),
         ledger.clone(),
         MemoryConfig::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let tool_manager = ToolCallManager::new(session_id.clone());

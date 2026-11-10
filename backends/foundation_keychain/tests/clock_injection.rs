@@ -24,7 +24,7 @@ use std::time::Duration as StdDuration;
 use chrono::DateTime;
 use foundation_compact::time::unix_seconds;
 use foundation_core::valtron::{
-    collect_one, execute, from_future, valtron_test, BlockingFutureExt, Clock, SimulatedClock,
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt, Clock, Ctx, SimulatedClock,
 };
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
@@ -62,7 +62,7 @@ fn fresh_context(clock: Arc<SimulatedClock>) -> (KeychainContext, TempDir) {
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db, clock), dir)
+    (KeychainContext::new(db, Ctx::fixed(clock)), dir)
 }
 
 fn send_request(expiration_date: Option<String>) -> SendCreateRequest {
@@ -129,4 +129,20 @@ fn send_dates_and_expiry_follow_the_injected_clock() {
         matches!(gone, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))),
         "the send must be gone after the injected clock passes its expiry"
     );
+}
+
+/// A keychain context reads its clock through the `Ctx` it was built from. An
+/// advance of the simulated clock shows through the context's own `ctx()`.
+#[valtron_test]
+fn the_keychain_context_reads_its_clock_through_the_ctx_it_holds() {
+    let clock = Arc::new(SimulatedClock::new(StdDuration::ZERO));
+    clock.advance_wall(StdDuration::from_secs(SIMULATED_SECS));
+    let (ctx, _dir) = fresh_context(Arc::clone(&clock));
+
+    let before = unix_seconds(ctx.ctx().clock().wall_now());
+    assert_eq!(before, i64::try_from(SIMULATED_SECS).unwrap());
+
+    clock.advance_wall(StdDuration::from_secs(90));
+    let after = unix_seconds(ctx.ctx().clock().wall_now());
+    assert_eq!(after - before, 90, "the context must see the advance");
 }

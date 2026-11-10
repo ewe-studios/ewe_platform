@@ -120,7 +120,7 @@ pub async fn create(
     if req.name.trim().is_empty() {
         return Err(AppError::BadRequest("organization name is required".into()).into());
     }
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let org = OrgRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
         name: req.name,
@@ -232,7 +232,7 @@ pub async fn create_collection(
     if req.name.trim().is_empty() {
         return Err(AppError::BadRequest("collection name is required".into()).into());
     }
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let row = CollectionRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
         org_uuid: org_id.to_string(),
@@ -299,7 +299,7 @@ pub async fn invite_member(
     if email.is_empty() || !email.contains('@') {
         return Err(AppError::BadRequest("a valid email is required".into()).into());
     }
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let row = MembershipRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
         org_uuid: org_id.to_string(),
@@ -338,7 +338,7 @@ pub async fn confirm_member(
     if req.key.is_some() {
         m.akey = req.key;
     }
-    m.updated_at = wall_now_utc(ctx.clock());
+    m.updated_at = wall_now_utc(ctx.ctx());
     store::update_membership(ctx.db(), &m).await
 }
 

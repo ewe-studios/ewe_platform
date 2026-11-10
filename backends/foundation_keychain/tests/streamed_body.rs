@@ -58,7 +58,7 @@ fn start_server(configure: impl FnOnce(KeychainServer) -> KeychainServer) -> Tes
 
     let app = configure(KeychainServer::new(KeychainContext::new(
         db,
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )))
     .http_app();
 

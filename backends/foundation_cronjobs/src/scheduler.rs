@@ -14,9 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use foundation_core::valtron::{
-    AsyncStateTask, AsyncTransition, Clock, Ctx, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{AsyncStateTask, AsyncTransition, Ctx, TaskIterator, TaskStatus};
 use foundation_db::{DataValue, QueryStore, SqlRow, StorageError};
 use futures_lite::StreamExt;
 use saffron::Cron;
@@ -106,22 +104,18 @@ impl CronJob {
     /// `now` is a wall-clock UTC time. A cron expression needs calendar time
     /// (weekday, month, leap day), which valtron's monotonic instant cannot
     /// provide, so the caller passes a wall-clock time derived from the
-    /// injected [`Clock::wall_now`]. This method is pure, so a test can move
+    /// injected [`foundation_core::valtron::Clock::wall_now`]. This method is pure, so a test can move
     /// the time without a live clock.
     #[must_use]
     pub fn next_fire(&self, now: DateTime<Utc>) -> Option<DateTime<Utc>> {
         self.cron.next_after(now)
     }
 
-    /// Turn this job into a runnable valtron task with the given wall clock.
+    /// Turn this job into a runnable valtron task that reads its wall clock
+    /// from `ctx`.
     #[must_use]
-    pub fn into_run_task(
-        self,
-        job: Arc<dyn Job>,
-        policy: MissedJobPolicy,
-        clock: Arc<dyn Clock>,
-    ) -> JobRunTask {
-        JobRunTask::new(self.config, self.cron, self.state, job, policy, clock)
+    pub fn into_run_task(self, job: Arc<dyn Job>, policy: MissedJobPolicy, ctx: Ctx) -> JobRunTask {
+        JobRunTask::new(self.config, self.cron, self.state, job, policy, ctx)
     }
 }
 
@@ -174,7 +168,7 @@ struct JobRunState {
     job: Arc<dyn Job>,
     state: JobState,
     policy: MissedJobPolicy,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
     initialized: bool,
     results: Vec<JobRunResult>,
 }
@@ -191,7 +185,7 @@ pub struct JobRunTask {
 }
 
 impl JobRunTask {
-    /// Build a run task for one job, with the wall clock it must use.
+    /// Build a run task for one job. Its wall clock comes from `ctx`.
     #[must_use]
     pub fn new(
         config: JobConfig,
@@ -199,7 +193,7 @@ impl JobRunTask {
         state: JobState,
         job: Arc<dyn Job>,
         policy: MissedJobPolicy,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         let shared = Arc::new(Mutex::new(JobRunState {
             config,
@@ -207,7 +201,7 @@ impl JobRunTask {
             job,
             state,
             policy,
-            clock,
+            ctx,
             initialized: false,
             results: Vec::new(),
         }));
@@ -271,7 +265,7 @@ async fn job_transition(
     loop {
         let now = {
             let s = shared.lock().expect("job run state poisoned");
-            wall_now_utc(s.clock.as_ref())
+            wall_now_utc(&s.ctx)
         };
         let plan = {
             let mut s = shared.lock().expect("job run state poisoned");
@@ -284,7 +278,7 @@ async fn job_transition(
                 let job = shared.lock().expect("job run state poisoned").job.clone();
                 let result = job.run(ctx.clone()).await;
                 let mut s = shared.lock().expect("job run state poisoned");
-                let now = wall_now_utc(s.clock.as_ref());
+                let now = wall_now_utc(&s.ctx);
                 record_run(&mut s, now, &result);
                 s.state.next_run = next_fire_unix(&s.cron, now);
             }
@@ -298,7 +292,7 @@ async fn job_transition(
                 loop {
                     let result = job.run(ctx.clone()).await;
                     let mut s = shared.lock().expect("job run state poisoned");
-                    let now = wall_now_utc(s.clock.as_ref());
+                    let now = wall_now_utc(&s.ctx);
                     record_run(&mut s, now, &result);
                     let next = next_fire_unix_from(&s.cron, dt_from_unix(cursor));
                     if next == 0 || next > now.timestamp() {
@@ -392,11 +386,13 @@ fn dt_from_unix(secs: i64) -> DateTime<Utc> {
     DateTime::from_timestamp(secs, 0).unwrap_or(DateTime::UNIX_EPOCH)
 }
 
-/// The wall-clock UTC time on `clock`; the epoch when the value is out of
-/// range.
-fn wall_now_utc(clock: &dyn Clock) -> DateTime<Utc> {
-    DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(clock.wall_now()))
-        .unwrap_or(DateTime::UNIX_EPOCH)
+/// The wall-clock UTC time on the `ctx` clock; the epoch when the value is out
+/// of range.
+fn wall_now_utc(ctx: &Ctx) -> DateTime<Utc> {
+    DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(
+        ctx.clock().wall_now(),
+    ))
+    .unwrap_or(DateTime::UNIX_EPOCH)
 }
 
 // ── Scheduler ───────────────────────────────────────────────────────────
@@ -444,20 +440,19 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
     /// Consume the scheduler and turn every registered job into a run task.
     ///
     /// `jobs` maps a job id to its runner; every registered id must have one.
-    /// `clock` is the wall clock every run task uses; there is no fallback.
+    /// The clock of `ctx` is the wall clock every run task uses; there is no fallback.
     ///
     /// # Errors
     ///
     /// Returns [`CronError::MissingJob`] when a registered job has no runner.
-    // The scheduler takes the clock by value so the signature states that one
-    // task per job gets a shared handle. It clones the `Arc` for every task
-    // because the caller usually keeps its own handle to move the clock.
+    // The scheduler takes the context by value so the signature states that one
+    // task per job gets a shared handle. It clones the `Ctx` for every task.
     #[allow(clippy::needless_pass_by_value)]
     pub fn into_run_tasks(
         self,
         jobs: &[Arc<dyn Job>],
         policy: MissedJobPolicy,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Result<Vec<JobRunTask>, CronError> {
         let runners: HashMap<&str, Arc<dyn Job>> =
             jobs.iter().map(|j| (j.id(), Arc::clone(j))).collect();
@@ -469,7 +464,7 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
                     .get(id.as_str())
                     .cloned()
                     .ok_or(CronError::MissingJob(id))?;
-                Ok(job.into_run_task(runner, policy, Arc::clone(&clock)))
+                Ok(job.into_run_task(runner, policy, ctx.clone()))
             })
             .collect()
     }

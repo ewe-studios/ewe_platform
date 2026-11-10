@@ -33,7 +33,7 @@ fn concurrent_backend_saves_keep_every_update() {
     let store = Arc::new(ProxyStateStore::new(
         &dir,
         "test.example",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     ));
 
     let mut threads = Vec::new();

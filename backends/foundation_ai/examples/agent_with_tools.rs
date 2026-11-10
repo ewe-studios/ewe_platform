@@ -18,9 +18,8 @@ use foundation_ai::agentic::{
 };
 use foundation_ai::harness::RouterPreset;
 use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 use foundation_jsonschema::scheme;
 use futures_lite::StreamExt;
 
@@ -83,9 +82,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // 1. Build the model preset (Claude Opus main + Sonnet memory) and the
     //    session with its tools. The ToolShed is the one list of what the
     //    agent can call (add ToolPreset::files(fs) etc. the same way).
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let agent = RouterPreset::claude(&api_key, Arc::clone(&clock))?
-        .into_agent_builder(clock)
+    let ctx = Ctx::host();
+    let agent = RouterPreset::claude(&api_key, ctx.clone())?
+        .into_agent_builder(ctx)
         .with_system_prompt("You are a helpful assistant with a few custom tools.")
         .with_toolshed(ToolShed::new().tool(GreetTool).tool(count_letters))
         .build()

@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 
 // -- VecStringExt
 
@@ -118,7 +118,7 @@ fn test_tunnel_type() {
 #[test]
 fn the_sleeper_follows_the_simulated_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let mut sleeper = DurationSleeper::new(clock.clone());
+    let mut sleeper = DurationSleeper::new(Ctx::fixed(clock.clone()));
     assert!(
         !sleeper.is_done(),
         "a sleeper that has not started is not done"

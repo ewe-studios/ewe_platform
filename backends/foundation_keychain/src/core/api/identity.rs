@@ -101,17 +101,12 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         return Err(invalid_grant("username or password is incorrect").into());
     }
 
-    let access_token =
-        mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.clock())?;
-    let refresh_token = mint_refresh_token(
-        ctx.signing_key(),
-        &user.uuid,
-        &device_identifier,
-        ctx.clock(),
-    )?;
+    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.ctx())?;
+    let refresh_token =
+        mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier, ctx.ctx())?;
 
     // Upsert the device with the freshly-minted refresh token.
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     match devices::find(ctx.db(), &user.uuid, &device_identifier).await? {
         Some(existing) => {
             devices::update_refresh_token(ctx.db(), &existing.uuid, &refresh_token, now).await?;
@@ -161,19 +156,14 @@ async fn refresh_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<Lo
         .await?
         .ok_or_else(|| invalid_grant("user no longer exists"))?;
 
-    let access_token =
-        mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.clock())?;
-    let new_refresh = mint_refresh_token(
-        ctx.signing_key(),
-        &user.uuid,
-        &device_identifier,
-        ctx.clock(),
-    )?;
+    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.ctx())?;
+    let new_refresh =
+        mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier, ctx.ctx())?;
     devices::update_refresh_token(
         ctx.db(),
         &device.uuid,
         &new_refresh,
-        wall_now_utc(ctx.clock()),
+        wall_now_utc(ctx.ctx()),
     )
     .await?;
 

@@ -7,7 +7,7 @@
 //!
 //! WHAT: `TestEnvironmentBuilder` connects to running Docker containers via
 //! `docker exec` (shell), VNC/RDP (screenshot), and `docker cp` (file transfer).
-//! `TestEnvironment` exposes exec, copy_in, screenshot, and readiness checks.
+//! `TestEnvironment` exposes exec, `copy_in`, screenshot, and readiness checks.
 //!
 //! HOW: All operations shell out to `docker` CLI. Zero new Rust dependencies.
 //! Feature-gated behind `docker-tests`.
@@ -17,7 +17,7 @@ use std::process::{Command, Output};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, Ctx};
 
 // ── Error types ──────────────────────────────────────────────────────────
 
@@ -148,32 +148,32 @@ pub struct TestEnvironmentBuilder {
     container: String,
     mode: ConnectionMode,
     ready_timeout: Duration,
-    /// The clock that bounds the readiness wait. The host passes its clock; a
-    /// test passes a simulated one (AGENTS rule 11).
-    clock: Arc<dyn Clock>,
+    /// The context whose clock bounds the readiness wait. The host passes its
+    /// context; a test passes one with a simulated clock (AGENTS rule 11).
+    ctx: Ctx,
 }
 
 impl TestEnvironmentBuilder {
     #[must_use]
-    pub fn new(container: &str, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(container: &str, ctx: Ctx) -> Self {
         Self {
             container: container.to_string(),
             mode: ConnectionMode::Shell,
             ready_timeout: Duration::from_secs(60),
-            clock,
+            ctx,
         }
     }
 
     /// The clock that bounds the readiness wait.
     #[must_use]
     pub fn clock(&self) -> Arc<dyn Clock> {
-        self.clock.clone()
+        self.ctx.clock()
     }
 
     /// The instant `connect` gives up waiting for readiness.
     #[must_use]
     pub fn deadline(&self) -> Instant {
-        self.clock.now() + self.ready_timeout
+        self.ctx.clock().now() + self.ready_timeout
     }
 
     /// Connect via VNC (macOS, Android).

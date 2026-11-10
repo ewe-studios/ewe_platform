@@ -8,7 +8,7 @@
 use std::cell::{Cell, RefCell};
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::shared::activity::Activity;
 use crate::shared::commands::{CommandRegistry, CommandResult};
@@ -33,20 +33,20 @@ pub struct Repl {
     commands: RefCell<CommandRegistry>,
     history: RefCell<ReplHistory>,
     exited: Cell<bool>,
-    /// The clock the activity indicator measures elapsed time on.
-    clock: Arc<dyn Clock>,
+    /// The context the activity indicator reads its clock from.
+    ctx: Ctx,
 }
 
 impl Repl {
     /// Create a new REPL with default config, using the platform-native backend.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
-        Self::with_config(ReplConfig::default(), clock)
+    pub fn new(ctx: Ctx) -> Self {
+        Self::with_config(ReplConfig::default(), ctx)
     }
 
-    /// Create a new REPL with custom config and the injected clock.
+    /// Create a new REPL with custom config and the injected context.
     #[must_use]
-    pub fn with_config(config: ReplConfig, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_config(config: ReplConfig, ctx: Ctx) -> Self {
         let (input, display) = Self::make_backend(config.theme.clone());
         Self {
             config,
@@ -55,7 +55,7 @@ impl Repl {
             commands: RefCell::new(CommandRegistry::new()),
             history: RefCell::new(ReplHistory::new(1000)),
             exited: Cell::new(false),
-            clock,
+            ctx,
         }
     }
 
@@ -122,11 +122,10 @@ impl Repl {
     /// # Examples
     ///
     /// ```no_run
-    /// use foundation_core::valtron::MonotonicClock;
+    /// use foundation_core::valtron::Ctx;
     /// use foundation_repl::Repl;
-    /// use std::sync::Arc;
     ///
-    /// let repl = Repl::new(Arc::new(MonotonicClock::new()));
+    /// let repl = Repl::new(Ctx::host());
     /// for input in repl.messages() {
     ///     let stream = repl.animation("thinking");
     ///     for chunk in answer(&input) {
@@ -142,7 +141,7 @@ impl Repl {
             Arc::clone(&self.display),
             self.config.theme.activity.clone(),
             label.into(),
-            Arc::clone(&self.clock),
+            self.ctx.clone(),
         )
     }
 
@@ -281,16 +280,16 @@ impl Iterator for ReplMessageIter<'_> {
 #[derive(Default)]
 pub struct ReplBuilder {
     config: ReplConfig,
-    clock: Option<Arc<dyn Clock>>,
+    ctx: Option<Ctx>,
 }
 
 impl ReplBuilder {
-    /// Set the clock the activity indicator measures elapsed time on.
+    /// Set the context the activity indicator reads its clock from.
     ///
     /// Required: there is no fallback to the real clock.
     #[must_use]
-    pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.clock = Some(clock);
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
         self
     }
 
@@ -339,13 +338,13 @@ impl ReplBuilder {
     /// Build the REPL.
     ///
     /// # Panics
-    /// Panics when [`ReplBuilder::clock`] was not called. A REPL without an
-    /// injected clock is a design fault, and a fallback would read the global.
+    /// Panics when [`ReplBuilder::ctx`] was not called. A REPL without an
+    /// injected context is a design fault, and a fallback would read the global.
     #[must_use]
     pub fn build(self) -> Repl {
-        let clock = self
-            .clock
-            .expect("ReplBuilder::build needs the injected clock; call .clock(clock)");
-        Repl::with_config(self.config, clock)
+        let ctx = self
+            .ctx
+            .expect("ReplBuilder::build needs the injected context; call .ctx(ctx)");
+        Repl::with_config(self.config, ctx)
     }
 }

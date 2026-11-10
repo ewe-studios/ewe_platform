@@ -541,7 +541,7 @@ fn test_acme_client(directory: &str) -> AcmeClient {
     AcmeClient::with_directory(
         test_client(),
         directory,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .with_jwk(serde_json::json!({
         "kty": "EC",
@@ -590,7 +590,7 @@ fn acme_cert_manager_provisions_a_usable_cert() {
         directory,
         test_client(),
         noop_dns_setter(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     );
 
     let pair = manager
@@ -630,12 +630,9 @@ fn proxy_server_starts_with_acme_letsencrypt_provider() {
         .acme(noop_dns_setter(), Some(directory))
         .service(svc);
 
-    let proxy = ProxyServer::start(
-        config,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
-    )
-    .block()
-    .expect("proxy must start with ACME-provisioned TLS");
+    let proxy = ProxyServer::start(config, foundation_core::valtron::Ctx::host())
+        .block()
+        .expect("proxy must start with ACME-provisioned TLS");
     assert!(proxy.local_addr().port() > 0, "TLS front end bound");
     proxy.shutdown();
 

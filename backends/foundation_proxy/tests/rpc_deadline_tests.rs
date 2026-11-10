@@ -191,7 +191,7 @@ async fn connect_deadline_is_observed_at_grpc_backend() {
     let (backend_port, backend_shutdown) = start_grpc_backend(build_deadline_router());
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .await
     .expect("start proxy");
@@ -358,7 +358,7 @@ async fn cancelled_connect_stream_tears_down_grpc_backend() {
     let (backend_port, backend_shutdown) = start_grpc_backend(build_cancel_router(slot.clone()));
     let proxy = ProxyServer::start(
         proxy_config_grpc(backend_port),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     )
     .await
     .expect("start proxy");

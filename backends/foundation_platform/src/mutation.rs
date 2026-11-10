@@ -8,9 +8,9 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Mutex, RwLock};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::clock::wall_millis;
 
@@ -18,9 +18,9 @@ use crate::clock::wall_millis;
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
-fn generate_id(clock: &dyn Clock) -> String {
+fn generate_id(ctx: &Ctx) -> String {
     let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    let ts = wall_millis(clock);
+    let ts = wall_millis(ctx);
     format!("{ts:x}-{id:x}")
 }
 
@@ -161,31 +161,31 @@ impl QueueStorage for MemoryQueueStorage {
 /// Offline mutation queue with LWW conflict resolution.
 pub struct MutationQueue {
     storage: Box<dyn QueueStorage>,
-    /// The clock every mutation id and timestamp comes from; set by the host.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock every mutation id and timestamp reads; set by the host.
+    ctx: Ctx,
 }
 
 impl MutationQueue {
-    /// A queue over `storage` that stamps mutations with `clock`.
-    pub fn new(storage: impl QueueStorage, clock: Arc<dyn Clock>) -> Self {
+    /// A queue over `storage` that stamps mutations with the clock of `ctx`.
+    pub fn new(storage: impl QueueStorage, ctx: Ctx) -> Self {
         Self {
             storage: Box::new(storage),
-            clock,
+            ctx,
         }
     }
 
-    /// An in-memory queue that stamps mutations with `clock`.
+    /// An in-memory queue that stamps mutations with the clock of `ctx`.
     #[must_use]
-    pub fn in_memory(clock: Arc<dyn Clock>) -> Self {
-        Self::new(MemoryQueueStorage::new(), clock)
+    pub fn in_memory(ctx: Ctx) -> Self {
+        Self::new(MemoryQueueStorage::new(), ctx)
     }
 
     /// Enqueue a mutation. Generates a UUID and timestamp.
     /// Validates the mutation locally before enqueuing.
     #[must_use]
     pub fn enqueue(&self, mutation_type: &str, payload: serde_json::Value) -> String {
-        let id = generate_id(self.clock.as_ref());
-        let created_at = wall_millis(self.clock.as_ref());
+        let id = generate_id(&self.ctx);
+        let created_at = wall_millis(&self.ctx);
 
         let mutation = Mutation {
             id,

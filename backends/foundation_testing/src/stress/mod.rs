@@ -10,7 +10,7 @@
 use core::time::Duration;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use std::sync::Arc;
 use std::thread;
 
@@ -85,16 +85,16 @@ impl StressResult {
 /// until the test completes (based on iteration count or duration).
 pub struct StressHarness {
     config: StressConfig,
-    /// The clock that measures the run. The caller injects it, so a test can
-    /// measure a deterministic duration.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock measures the run. The caller injects it, so a
+    /// test can measure a deterministic duration.
+    ctx: Ctx,
 }
 
 impl StressHarness {
-    /// Creates a new stress test harness with the given configuration and clock.
+    /// Creates a new stress test harness with the given configuration and context.
     #[must_use]
-    pub fn new(config: StressConfig, clock: Arc<dyn Clock>) -> Self {
-        Self { config, clock }
+    pub fn new(config: StressConfig, ctx: Ctx) -> Self {
+        Self { config, ctx }
     }
 
     /// Runs a stress test with the given operation closure.
@@ -108,14 +108,14 @@ impl StressHarness {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::valtron::MonotonicClock;
+    /// use foundation_core::valtron::Ctx;
     /// use foundation_testing::stress::{StressConfig, StressHarness};
     /// use std::sync::atomic::{AtomicUsize, Ordering};
     /// use std::sync::Arc;
     ///
     /// let counter = Arc::new(AtomicUsize::new(0));
     /// let config = StressConfig::new().threads(4).iterations(100);
-    /// let harness = StressHarness::new(config, Arc::new(MonotonicClock::new()));
+    /// let harness = StressHarness::new(config, Ctx::host());
     ///
     /// let counter_clone = Arc::clone(&counter);
     /// let result = harness.run(move |_thread_id, _iteration| {
@@ -134,7 +134,7 @@ impl StressHarness {
     where
         F: Fn(usize, usize) -> bool + Send + Sync + 'static,
     {
-        let start = self.clock.now();
+        let start = self.ctx.clock().now();
         let operation = Arc::new(operation);
 
         let successes = Arc::new(AtomicUsize::new(0));
@@ -184,7 +184,7 @@ impl StressHarness {
             handle.join().expect("Thread panicked during stress test");
         }
 
-        let duration = self.clock.now().saturating_duration_since(start);
+        let duration = self.ctx.clock().now().saturating_duration_since(start);
 
         StressResult::new(
             successes.load(Ordering::Relaxed),

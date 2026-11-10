@@ -48,7 +48,9 @@ const NO_HANDLER_MODULE: &str = r#"
 fn session() -> Arc<PlatformSession> {
     PlatformSession::new_test(
         PathBuf::from("."),
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
 }
 
@@ -158,7 +160,7 @@ const CLOCK_MODULE: &str = r#"
 fn the_session_clock_reaches_the_guest() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance_wall(Duration::from_secs(1_700_000_000));
-    let session = PlatformSession::new_test(PathBuf::from("."), clock);
+    let session = PlatformSession::new_test(PathBuf::from("."), Ctx::fixed(clock));
 
     let bytes = wat::parse_str(CLOCK_MODULE).expect("the WAT source parses");
     session.register_wasmtime("clock", WasmtimeBuilder::new(bytes));

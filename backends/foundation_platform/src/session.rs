@@ -14,7 +14,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_core::valtron::Ctx;
 
 use crate::backend::http::HttpBackend;
 use crate::clock::wall_millis;
@@ -131,9 +131,6 @@ pub struct PlatformSession {
     ))]
     pub(crate) wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell,
 
-    /// The host clock this session and its subsystems stamp wall times from.
-    clock: Arc<dyn Clock>,
-
     /// The injected side-effect bundle (clock and RNG) for code that runs
     /// outside the process, such as a wasmtime guest. Subsystems read it from
     /// here; no subsystem reads the host globals directly.
@@ -144,37 +141,35 @@ pub struct PlatformSession {
 
 impl PlatformSession {
     /// Initialize the session with the resolved resource root directory, a
-    /// pre-configured [`ScriptInjector`] (F24) and the host's clock.
-    /// Called once at app launch.
+    /// pre-configured [`ScriptInjector`] (F24) and the host's side-effect bundle.
+    /// Called once at app launch. The host builds `ctx` with [`Ctx::try_host`].
     /// Returns `Arc<Self>` — subsystems clone the Arc to share ownership.
     #[must_use]
     pub fn new(
         resource_root: PathBuf,
         script_injector: crate::injector::ScriptInjector,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Arc<Self> {
-        let ctx = host_session_ctx(&clock);
-        Self::with_ctx(resource_root, script_injector, clock, ctx)
+        Self::with_ctx(resource_root, script_injector, ctx)
     }
 
     /// Build the session with a caller-supplied side-effect bundle.
     ///
-    /// [`Self::new`] passes a host bundle and [`Self::new_test`] passes a
+    /// [`Self::new`] passes the host bundle and [`Self::new_test`] passes a
     /// deterministic one. Nothing else calls this, so a caller cannot replace
     /// the bundle by accident.
     fn with_ctx(
         resource_root: PathBuf,
         script_injector: crate::injector::ScriptInjector,
-        clock: Arc<dyn Clock>,
         ctx: Ctx,
     ) -> Arc<Self> {
-        let session_id = SessionId(wall_millis(clock.as_ref()));
+        let session_id = SessionId(wall_millis(&ctx));
 
         Arc::new(Self {
             route_handlers: RwLock::new(Vec::new()),
             capability_registry: crate::capability::CapabilityRegistry::new(),
-            cache: crate::cache::CacheManager::in_memory(Arc::clone(&clock)),
-            mutation_queue: crate::mutation::MutationQueue::in_memory(Arc::clone(&clock)),
+            cache: crate::cache::CacheManager::in_memory(ctx.clone()),
+            mutation_queue: crate::mutation::MutationQueue::in_memory(ctx.clone()),
             session_id,
             visit_counter: AtomicU64::new(0),
             active_page: RwLock::new(None),
@@ -197,48 +192,23 @@ impl PlatformSession {
                 not(any(target_os = "ios", target_os = "tvos", target_os = "watchos"))
             ))]
             wasmtime_shell_: crate::wasmtime_responder::WasmtimeShell::new(ctx.clone()),
-            clock,
             ctx,
         })
     }
 }
 
 impl PlatformSession {
-    /// TEST ONLY: create a session with an empty ScriptInjector and `clock`.
+    /// TEST ONLY: create a session with an empty ScriptInjector and `ctx`.
     ///
-    /// The side-effect bundle keeps the deterministic default RNG (seed `0`),
-    /// so a test that reads guest randomness is repeatable.
+    /// A test builds `ctx` with [`Ctx::fixed`], so its RNG is repeatable.
     #[doc(hidden)]
     #[must_use]
-    pub fn new_test(resource_root: PathBuf, clock: Arc<dyn Clock>) -> Arc<Self> {
-        let ctx = Ctx::fixed(Arc::clone(&clock));
+    pub fn new_test(resource_root: PathBuf, ctx: Ctx) -> Arc<Self> {
         Self::with_ctx(
             resource_root,
             crate::injector::ScriptInjector::new(PathBuf::from(".")),
-            clock,
             ctx,
         )
-    }
-}
-
-/// Build the side-effect bundle for a host entry point.
-///
-/// The clock is the one the caller injected. The RNG comes from
-/// [`Ctx::try_host`], so the entropy backend seeds it and guest randomness is
-/// unpredictable. If the entropy source fails, the bundle keeps the
-/// deterministic default and the session logs a warning: app launch cannot fail
-/// for this, but an operator must see that guest randomness is predictable
-/// (issue #426).
-fn host_session_ctx(clock: &Arc<dyn Clock>) -> Ctx {
-    match Ctx::try_host() {
-        Ok(host) => host.with_clock(Arc::clone(clock)),
-        Err(error) => {
-            tracing::warn!(
-                %error,
-                "session entropy is unavailable; guest randomness is deterministic"
-            );
-            Ctx::fixed(Arc::clone(clock))
-        }
     }
 }
 
@@ -616,17 +586,10 @@ impl PlatformSession {
         self.session_id
     }
 
-    /// The host clock this session stamps wall times from.
-    #[must_use]
-    pub fn clock(&self) -> &Arc<dyn Clock> {
-        &self.clock
-    }
-
     /// The injected side-effect bundle for code that runs outside the process.
     ///
-    /// Its clock is the same handle that [`Self::clock`] returns. A subsystem
-    /// that starts a guest passes this bundle to it, so the guest reads the
-    /// session's clock and RNG.
+    /// A subsystem that starts a guest passes this bundle to it, so the guest
+    /// reads the session's clock and RNG.
     #[must_use]
     pub fn ctx(&self) -> &Ctx {
         &self.ctx

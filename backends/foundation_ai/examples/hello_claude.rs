@@ -7,17 +7,16 @@
 //! ```
 
 use foundation_ai::harness::RouterPreset;
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // One-call: Claude Opus (main) + Claude Sonnet (memory) wired for you.
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let builder = RouterPreset::claude(&api_key, Arc::clone(&clock))?.into_agent_builder(clock);
+    let ctx = Ctx::host();
+    let builder = RouterPreset::claude(&api_key, ctx.clone())?.into_agent_builder(ctx);
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

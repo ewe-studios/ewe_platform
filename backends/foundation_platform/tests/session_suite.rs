@@ -8,7 +8,9 @@ use foundation_platform::*;
 fn session() -> Arc<PlatformSession> {
     PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     )
 }
 

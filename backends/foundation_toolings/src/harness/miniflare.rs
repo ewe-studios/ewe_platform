@@ -5,16 +5,14 @@
 //! waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use std::sync::Arc;
-//!
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_toolings::harness::Miniflare;
 //!
 //! let mf = Miniflare::builder()
 //!     .worker_dir("examples/cf-login-app")
 //!     .d1_database("DB")
 //!     .r2_bucket("STORAGE")
-//!     .build(Arc::new(MonotonicClock::new()))
+//!     .build(Ctx::host())
 //!     .expect("failed to start miniflare");
 //!
 //! println!("Worker at {}", mf.base_url());
@@ -32,7 +30,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 /// The last lines a child wrote to one of its pipes, capped at `cap` lines.
 #[derive(Clone)]
@@ -95,14 +93,11 @@ pub struct Miniflare {
 }
 
 impl Miniflare {
-    pub fn start(clock: Arc<dyn Clock>) -> Result<Self, MiniflareError> {
-        Self::start_with(MiniflareConfig::default(), clock)
+    pub fn start(ctx: Ctx) -> Result<Self, MiniflareError> {
+        Self::start_with(MiniflareConfig::default(), ctx)
     }
 
-    pub fn start_with(
-        config: MiniflareConfig,
-        clock: Arc<dyn Clock>,
-    ) -> Result<Self, MiniflareError> {
+    pub fn start_with(config: MiniflareConfig, ctx: Ctx) -> Result<Self, MiniflareError> {
         if let Some(ref dir) = config.worker_dir {
             if !dir.exists() {
                 return Err(MiniflareError::WorkerDirNotFound(dir.display().to_string()));
@@ -177,7 +172,7 @@ impl Miniflare {
             drains,
         };
 
-        if !wait_for_ready(port, config.startup_timeout, clock.as_ref()) {
+        if !wait_for_ready(port, config.startup_timeout, &ctx) {
             let stderr = server.collect_stderr();
             server.stop();
             return Err(MiniflareError::ReadyTimeout {
@@ -390,8 +385,8 @@ impl MiniflareConfig {
         self
     }
 
-    pub fn build(self, clock: Arc<dyn Clock>) -> Result<Miniflare, MiniflareError> {
-        Miniflare::start_with(self, clock)
+    pub fn build(self, ctx: Ctx) -> Result<Miniflare, MiniflareError> {
+        Miniflare::start_with(self, ctx)
     }
 }
 
@@ -483,7 +478,8 @@ fn build_args(config: &MiniflareConfig, tool_path: &Path, port: u16) -> Vec<Stri
     args
 }
 
-fn wait_for_ready(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
+fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
     let deadline = clock.now() + timeout;
     while clock.now() < deadline {
         if http_get("127.0.0.1", port, "/").is_ok() {

@@ -10,7 +10,7 @@ use crate::backends::candle::{
 };
 use crate::errors::{ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
-use foundation_core::valtron::{block_on_future, Clock, Stream};
+use foundation_core::valtron::{block_on_future, Ctx, Stream};
 use foundation_deployment_huggingface::repository;
 use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,
@@ -174,10 +174,7 @@ impl HuggingFaceCandleProvider {
     /// Initialises the HF client and underlying [`CandleBackend`] (CPU).
     /// # Errors
     /// Returns [`GenerationError`] if the model cannot be loaded.
-    pub fn new(
-        config: HuggingFaceCandleConfig,
-        clock: std::sync::Arc<dyn Clock>,
-    ) -> ModelProviderResult<Self> {
+    pub fn new(config: HuggingFaceCandleConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
             .token(
                 config
@@ -210,7 +207,7 @@ impl HuggingFaceCandleProvider {
             .cache_dir(&config.cache_dir)
             .build();
 
-        let backend = CandleBackend::cpu(clock).create(Some(backend_config))?;
+        let backend = CandleBackend::cpu(ctx).create(Some(backend_config))?;
 
         Ok(Self {
             hf_client,
@@ -433,7 +430,7 @@ impl ModelProvider for HuggingFaceCandleProvider {
         Self: Sized,
     {
         if let Some(config) = config {
-            HuggingFaceCandleProvider::new(config, self.backend.clock())
+            HuggingFaceCandleProvider::new(config, self.backend.ctx())
         } else {
             Ok(self)
         }

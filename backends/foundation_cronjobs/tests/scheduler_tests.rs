@@ -87,7 +87,7 @@ fn scheduler_task(
     let mut s = CronScheduler::new(Arc::new(MemoryStorage::new()));
     s.register(config).expect("valid expression");
     let mut tasks = s
-        .into_run_tasks(&[job], policy, clock)
+        .into_run_tasks(&[job], policy, Ctx::fixed(clock))
         .expect("runner registered");
     tasks.pop().expect("one task")
 }
@@ -103,7 +103,7 @@ fn seeded_task(
 ) -> foundation_cronjobs::JobRunTask {
     let mut cron_job = CronJob::new(config).expect("valid expression");
     cron_job.state.next_run = next_run.timestamp();
-    cron_job.into_run_task(job, policy, clock)
+    cron_job.into_run_task(job, policy, Ctx::fixed(clock))
 }
 
 // ── E1: next fire follows the expression ────────────────────────────────

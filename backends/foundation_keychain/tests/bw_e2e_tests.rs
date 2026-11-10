@@ -142,7 +142,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     block_on_future(async move { apply_schema(sdb.as_ref()).await }).expect("schema");
     let srv = KeychainServer::new(KeychainContext::new(
         store,
-        Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     ))
     .http_app()
     .server_with_config(

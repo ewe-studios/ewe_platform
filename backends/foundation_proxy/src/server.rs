@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 #[cfg(unix)]
 use foundation_iogate::FdReadiness;
 
@@ -60,8 +60,8 @@ pub struct ProxyServer {
     h3_local_addr: Option<SocketAddr>,
     /// The bound address of the plain-HTTP → HTTPS redirect listener (F12).
     redirect_local_addr: Option<SocketAddr>,
-    /// The host clock the drain deadline reads.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock the drain deadline reads.
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for ProxyServer {
@@ -77,8 +77,8 @@ impl std::fmt::Debug for ProxyServer {
 impl ProxyServer {
     /// Start the proxy from a validated configuration.
     ///
-    /// `clock` is the host clock: every proxy timeout, drain wait and stored
-    /// timestamp reads it.
+    /// `ctx` is the host context: every proxy timeout, drain wait and stored
+    /// timestamp reads its clock.
     /// The listeners and control socket run on their own threads, so the
     /// returned handle is ready to serve. A sync caller (a `main`, a sync test)
     /// waits with `.block()` / `block_on_future`.
@@ -92,7 +92,7 @@ impl ProxyServer {
     /// caller; without it the front end cannot submit connections.)
     // `services`, `svc` and `server` are distinct names in one startup flow.
     #[allow(clippy::similar_names)]
-    pub async fn start(config: ProxyConfig, clock: Arc<dyn Clock>) -> ProxyResult<Self> {
+    pub async fn start(config: ProxyConfig, ctx: Ctx) -> ProxyResult<Self> {
         tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
         // Validate: no duplicate routes. A route is a (host, path_prefix) pair —
@@ -156,7 +156,7 @@ impl ProxyServer {
             Arc::new(ProxyStateStore::new(
                 std::path::Path::new(dir),
                 &config.domain,
-                Arc::clone(&clock),
+                ctx.clone(),
             ))
         });
         if let Some(store) = &store {
@@ -164,17 +164,14 @@ impl ProxyServer {
         }
 
         let mut h1_app = HttpApp::new_serve();
-        let mut proxy_state_value = ProxyState::new(
-            router,
-            client.clone(),
-            "http",
-            config.io_mode,
-            Arc::clone(&clock),
-        )
-        .with_writer_config(WriterConfig::default().with_send_timeout(config.relay_send_timeout))
-        .with_max_request_body(config.max_request_body)
-        .with_connect_timeout(config.connect_timeout)
-        .with_client_read_timeout(config.client_read_timeout);
+        let mut proxy_state_value =
+            ProxyState::new(router, client.clone(), "http", config.io_mode, ctx.clone())
+                .with_writer_config(
+                    WriterConfig::default().with_send_timeout(config.relay_send_timeout),
+                )
+                .with_max_request_body(config.max_request_body)
+                .with_connect_timeout(config.connect_timeout)
+                .with_client_read_timeout(config.client_read_timeout);
         if let Some(store) = &store {
             proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
         }
@@ -206,7 +203,7 @@ impl ProxyServer {
         let mut redirect_local_addr: Option<SocketAddr> = None;
         if use_tls {
             let cert_manager =
-                tls::build_cert_manager(&config, Arc::new(client.clone()), Arc::clone(&clock))?;
+                tls::build_cert_manager(&config, Arc::new(client.clone()), ctx.clone())?;
             let cert_pair = cert_manager.get_cert()?;
             let acceptor = tls::acceptor_from_pair(&cert_pair)?;
             server_config = server_config.with_tls(acceptor);
@@ -268,7 +265,7 @@ impl ProxyServer {
         // Spawn health probes for every service that configured one.
         let health: Vec<HealthMonitor> = services
             .iter()
-            .map(|svc| spawn_service_probes(svc, shutdown.clone(), Arc::clone(&clock)))
+            .map(|svc| spawn_service_probes(svc, shutdown.clone(), ctx.clone()))
             .collect();
 
         // Unix-domain admin socket (Decision 20), if the config enabled it. It
@@ -289,7 +286,7 @@ impl ProxyServer {
             control,
             h3_local_addr,
             redirect_local_addr,
-            clock,
+            ctx,
         })
     }
 
@@ -335,13 +332,13 @@ impl ProxyServer {
     /// Poll until all in-flight requests have drained, or `timeout` elapses.
     /// Returns `true` if drain completed (inflight == 0), `false` on timeout.
     pub fn drain_complete(&self, timeout: Duration) -> bool {
-        let start = self.clock.now();
+        let start = self.ctx.clock().now();
         loop {
             let inflight = self.state.inflight_total();
             if inflight == 0 {
                 return true;
             }
-            if self.clock.now().duration_since(start) >= timeout {
+            if self.ctx.clock().now().duration_since(start) >= timeout {
                 tracing::warn!(inflight, "drain timed out after {:?}", timeout);
                 return false;
             }

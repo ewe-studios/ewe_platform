@@ -9,10 +9,9 @@
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{sleep_async, Clock};
+use foundation_core::valtron::{sleep_async, Ctx};
 
 use foundation_db::core::errors::StorageError;
 use foundation_db::core::state::types::ResourceState;
@@ -62,8 +61,8 @@ pub struct ProxyStateStore {
     lock_path: PathBuf,
     lock_timeout: Duration,
     lock_retry_interval: Duration,
-    /// The host clock: the lock deadline and every stored timestamp read it.
-    clock: Arc<dyn Clock>,
+    /// The context: the lock deadline and every stored timestamp read its clock.
+    ctx: Ctx,
 }
 
 /// An advisory lock on the state directory. The lock ends when this value is
@@ -100,9 +99,10 @@ fn try_flock(file: &File, shared: bool) -> std::io::Result<bool> {
 }
 
 impl ProxyStateStore {
-    /// A store in `state_dir` for `domain` that stamps saved state with `clock`.
+    /// A store in `state_dir` for `domain` that stamps saved state with the
+    /// clock of `ctx`.
     #[must_use]
-    pub fn new(state_dir: &Path, domain: &str, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(state_dir: &Path, domain: &str, ctx: Ctx) -> Self {
         let store = FileStateStore::new(state_dir, "foundation_proxy", domain);
         let lock_path = state_dir
             .join(".deployment")
@@ -115,7 +115,7 @@ impl ProxyStateStore {
             lock_path,
             lock_timeout: DEFAULT_LOCK_TIMEOUT,
             lock_retry_interval: DEFAULT_LOCK_RETRY_INTERVAL,
-            clock,
+            ctx,
         }
     }
 
@@ -161,12 +161,12 @@ impl ProxyStateStore {
             .map_err(|e| {
                 StorageError::Backend(format!("open {}: {e}", self.lock_path.display()))
             })?;
-        let deadline = self.clock.now() + self.lock_timeout;
+        let deadline = self.ctx.clock().now() + self.lock_timeout;
         loop {
             match try_flock(&file, shared) {
                 Ok(true) => return Ok(StateFileLock { _file: file }),
                 Ok(false) => {
-                    if self.clock.now() >= deadline {
+                    if self.ctx.clock().now() >= deadline {
                         return Err(StorageError::Backend(format!(
                             "another proxy holds the state lock {} (waited {:?})",
                             self.lock_path.display(),
@@ -224,8 +224,8 @@ impl ProxyStateStore {
             config_hash: String::new(),
             output: data,
             config_snapshot: serde_json::Value::Null,
-            created_at: wall_now_utc(self.clock.as_ref()),
-            updated_at: wall_now_utc(self.clock.as_ref()),
+            created_at: wall_now_utc(&self.ctx),
+            updated_at: wall_now_utc(&self.ctx),
         };
         self.store.set(PROXY_STATE_ID, &resource).await
     }
@@ -279,7 +279,7 @@ impl ProxyStateStore {
         let mut state = self.load_unlocked().await?.unwrap_or_default();
         state.cert_pem = Some(cert_pem.to_string());
         state.key_pem = Some(key_pem.to_string());
-        state.cert_renewed_at = Some(wall_seconds(self.clock.as_ref()));
+        state.cert_renewed_at = Some(wall_seconds(&self.ctx));
         self.save(&state).await
     }
 }

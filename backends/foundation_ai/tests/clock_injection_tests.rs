@@ -23,7 +23,7 @@ use foundation_ai::agentic::memory_store::KvMemoryStore;
 use foundation_ai::agentic::token_ledger::TokenLedger;
 use foundation_ai::types::{ObservationEntry, ObservationKind, SessionId, SessionRecord};
 use foundation_compact::SystemTime;
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use futures_lite::future::block_on;
 
@@ -62,7 +62,7 @@ fn observation_timestamp_follows_the_injected_clock() {
         coordinator,
         TokenLedger::new(),
         MemoryConfig::default(),
-        clock.clone(),
+        foundation_core::valtron::Ctx::fixed(clock.clone()),
     );
 
     block_on(hierarchy.persist_observation(vec![observation("first")], 10))
@@ -82,5 +82,39 @@ fn observation_timestamp_follows_the_injected_clock() {
         stored_observation_timestamp(&hierarchy, &session_id),
         SystemTime::UNIX_EPOCH + Duration::from_secs(3_600),
         "the record timestamp follows advance_wall on the injected clock"
+    );
+}
+
+/// The hierarchy hands out the `Ctx` it was built with. Reading the clock
+/// through that handle must show the same `advance_wall` the test made on
+/// its own clock handle.
+#[test]
+fn hierarchy_ctx_exposes_the_same_simulated_clock() {
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let ctx = Ctx::fixed(clock.clone());
+    let coordinator = MemoryCoordinator::new(
+        KvMemoryStore::new(MemoryStorage::new()),
+        MemoryDocumentStore::new(),
+    );
+    let hierarchy = MemoryHierarchy::new(
+        SessionId::new(),
+        coordinator,
+        TokenLedger::new(),
+        MemoryConfig::default(),
+        ctx,
+    );
+
+    assert_eq!(
+        hierarchy.ctx().clock().wall_now(),
+        SystemTime::UNIX_EPOCH,
+        "the handle starts at the simulated wall origin"
+    );
+
+    clock.advance_wall(Duration::from_secs(60));
+
+    assert_eq!(
+        hierarchy.ctx().clock().wall_now(),
+        SystemTime::UNIX_EPOCH + Duration::from_secs(60),
+        "the handle sees advance_wall made on the shared clock"
     );
 }
