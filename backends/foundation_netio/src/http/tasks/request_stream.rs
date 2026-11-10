@@ -116,6 +116,7 @@ where
                             &request.url,
                             &socket_path,
                             self.1.config.unix_read_timeout,
+                            &ctx,
                         )
                     }
                     #[cfg(not(unix))]
@@ -136,12 +137,9 @@ where
                     let proxy_config = env_proxy.as_ref().or(self.1.config.proxy.as_ref());
 
                     // Try to get connection from pool or create new one (with proxy support).
-                    self.1.pool.create_connection_with_proxy(
-                        &request.url,
-                        proxy_config,
-                        None,
-                        ctx.clock().as_ref(),
-                    )
+                    self.1
+                        .pool
+                        .create_connection_with_proxy(&request.url, proxy_config, None, &ctx)
                 };
 
                 match stream {

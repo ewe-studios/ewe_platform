@@ -18,10 +18,9 @@
 //! passes, whichever comes first.
 
 use std::io::Write;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::EventReadinessPtr;
+use foundation_core::valtron::{Ctx, EventReadinessPtr};
 
 use crate::http::HttpClientConnection;
 use crate::native::readiness::{io_or_deadline, IoInterest};
@@ -47,10 +46,10 @@ impl IdleDeadline {
     }
 
     /// Arm the deadline if it is not armed yet, and return it.
-    pub fn arm(&mut self, clock: &Arc<dyn foundation_core::valtron::Clock>) -> Instant {
+    pub fn arm(&mut self, ctx: &Ctx) -> Instant {
         *self
             .deadline
-            .get_or_insert_with(|| clock.now() + self.timeout)
+            .get_or_insert_with(|| ctx.clock().now() + self.timeout)
     }
 
     /// Bytes moved: the next wait gets a fresh budget.
@@ -60,8 +59,8 @@ impl IdleDeadline {
 
     /// Whether an armed deadline has passed.
     #[must_use]
-    pub fn expired(&self, clock: &Arc<dyn foundation_core::valtron::Clock>) -> bool {
-        self.deadline.is_some_and(|d| clock.now() >= d)
+    pub fn expired(&self, ctx: &Ctx) -> bool {
+        self.deadline.is_some_and(|d| ctx.clock().now() >= d)
     }
 
     /// The configured inactivity budget.
@@ -89,13 +88,13 @@ pub fn park(
     conn: &HttpClientConnection,
     interest: IoInterest,
     idle: &mut IdleDeadline,
-    clock: &Arc<dyn foundation_core::valtron::Clock>,
+    ctx: &Ctx,
 ) -> Park {
-    if idle.expired(clock) {
+    if idle.expired(ctx) {
         return Park::Expired;
     }
     match conn.park_readiness(interest) {
-        Some(io) => Park::On(io_or_deadline(io, idle.arm(clock), Arc::clone(clock))),
+        Some(io) => Park::On(io_or_deadline(io, idle.arm(ctx), ctx.clone())),
         None => Park::Unsupported,
     }
 }

@@ -487,9 +487,7 @@ where
                 );
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) =
-                    self.pool
-                        .create_http_connection(&state.url, None, ctx.clock().as_ref())
+                let Ok(connection) = self.pool.create_http_connection(&state.url, None, &ctx)
                 else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(WebSocketState::Closed(Some(

@@ -1,6 +1,6 @@
 //! Client classifier tests (moved from `src/shared/http/client_classifier.rs`).
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Clock, Ctx, MonotonicClock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -209,6 +209,6 @@ fn test_security_logger() {
     assert!(logger.call_count.load(Ordering::Relaxed) > 0);
 }
 /// A real clock: these tests only exercise ordering.
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }

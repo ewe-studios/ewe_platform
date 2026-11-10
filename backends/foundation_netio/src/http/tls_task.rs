@@ -240,7 +240,7 @@ impl TaskIterator for TlsHandshakeTask {
                                 );
                             };
                             let readiness = match self.deadline {
-                                Some(deadline) => io_or_deadline(readiness, deadline, ctx.clock()),
+                                Some(deadline) => io_or_deadline(readiness, deadline, ctx.clone()),
                                 None => readiness,
                             };
                             Some(TaskStatus::Depends(readiness))

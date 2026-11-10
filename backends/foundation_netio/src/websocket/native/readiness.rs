@@ -9,10 +9,10 @@
 //! timer. The task returns `TaskStatus::Depends(timer)` which parks the task
 //! until the next tick. No epoll, no fd, no kernel — just a Mutex<Instant>.
 
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Clock, EventReadiness, ReadinessWaker};
+use foundation_core::valtron::{Ctx, EventReadiness, ReadinessWaker};
 
 /// A wall-clock `EventReadiness` fallback for when no kernel reactor is available.
 ///
@@ -24,7 +24,7 @@ pub struct TimerReadiness {
     interval: Duration,
     last_ready: Mutex<Instant>,
     /// The engine clock that decides when the interval has passed.
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl core::fmt::Debug for TimerReadiness {
@@ -38,12 +38,12 @@ impl core::fmt::Debug for TimerReadiness {
 impl TimerReadiness {
     /// Create a timer that returns `true` every `interval`, measured on `clock`.
     #[must_use]
-    pub fn new(interval: Duration, clock: Arc<dyn Clock>) -> Self {
-        let now = clock.now();
+    pub fn new(interval: Duration, ctx: Ctx) -> Self {
+        let now = ctx.clock().now();
         Self {
             interval,
             last_ready: Mutex::new(now),
-            clock,
+            ctx,
         }
     }
 }
@@ -51,7 +51,7 @@ impl TimerReadiness {
 impl EventReadiness for TimerReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         let mut last = self.last_ready.lock().unwrap();
-        let now = self.clock.now();
+        let now = self.ctx.clock().now();
         if now.saturating_duration_since(*last) >= self.interval {
             *last = now;
             true

@@ -12,6 +12,7 @@ use crate::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::valtron::Ctx;
 
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::error::WebSocketError;
@@ -196,11 +197,8 @@ impl WebSocketServerConnection {
     ///
     /// * `stream` - The shared byte buffer stream after successful handshake
     #[must_use]
-    pub fn new(
-        stream: SharedByteBufferStream<RawStream>,
-        clock: std::sync::Arc<dyn foundation_core::valtron::Clock>,
-    ) -> Self {
-        let writer = BatchFrameWriter::with_defaults(stream.clone(), clock);
+    pub fn new(stream: SharedByteBufferStream<RawStream>, ctx: Ctx) -> Self {
+        let writer = BatchFrameWriter::with_defaults(stream.clone(), ctx);
         Self {
             stream,
             writer,

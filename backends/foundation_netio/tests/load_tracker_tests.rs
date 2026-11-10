@@ -8,13 +8,15 @@ mod tests {
 
     /// A tracker on a real clock, for the tests that do not care about time.
     fn tracker() -> LoadTracker {
-        LoadTracker::new(Arc::new(foundation_core::valtron::MonotonicClock::new()))
+        LoadTracker::new(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )))
     }
 
     #[test]
     fn the_connection_rate_is_not_always_zero() {
         let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-        let tracker = LoadTracker::new(clock.clone());
+        let tracker = LoadTracker::new(foundation_core::valtron::Ctx::fixed(clock.clone()));
 
         let _g1 = tracker.track_connection();
         let _g2 = tracker.track_connection();
@@ -27,7 +29,7 @@ mod tests {
     #[test]
     fn a_zero_elapsed_window_returns_the_previous_rate() {
         let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-        let tracker = LoadTracker::new(clock.clone());
+        let tracker = LoadTracker::new(foundation_core::valtron::Ctx::fixed(clock.clone()));
 
         // A fresh tracker with no elapsed time keeps its initial rate.
         assert_eq!(tracker.connection_rate(), 0);
@@ -110,7 +112,9 @@ mod tests {
         };
         let tracker = LoadTracker::with_config(
             config,
-            Arc::new(foundation_core::valtron::MonotonicClock::new()),
+            foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+                foundation_core::valtron::MonotonicClock::new(),
+            )),
         );
 
         // Initially should be low

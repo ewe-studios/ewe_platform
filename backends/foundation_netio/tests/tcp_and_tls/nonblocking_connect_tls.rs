@@ -404,7 +404,7 @@ mod sync_boundary {
             drop(socket);
         });
 
-        let connection = Connection::with_timeout(addr, Duration::from_secs(5))
+        let connection = Connection::with_timeout(addr, Duration::from_secs(5), &ctx())
             .expect("the non-blocking connect settles");
         assert!(
             !connection.is_nonblocking().expect("read blocking mode"),
@@ -426,7 +426,7 @@ mod sync_boundary {
             .parse()
             .expect("loopback address");
 
-        let err = Connection::with_timeout(addr, Duration::from_secs(5))
+        let err = Connection::with_timeout(addr, Duration::from_secs(5), &ctx())
             .expect_err("nothing listens on the port");
         let io = err.downcast::<std::io::Error>().expect("an io error");
         assert_eq!(io.kind(), ErrorKind::ConnectionRefused);
@@ -441,7 +441,7 @@ mod sync_boundary {
 
         let started = Instant::now();
         let ready = readiness
-            .wait_blocking(Some(Instant::now() + Duration::from_millis(50)))
+            .wait_blocking(Some(Instant::now() + Duration::from_millis(50)), &ctx())
             .expect("poll");
         assert!(!ready, "an idle socket must report no readiness");
         assert!(
@@ -452,7 +452,7 @@ mod sync_boundary {
         (&writer).write_all(b"x").expect("make the socket readable");
         assert!(
             readiness
-                .wait_blocking(Some(Instant::now() + Duration::from_secs(2)))
+                .wait_blocking(Some(Instant::now() + Duration::from_secs(2)), &ctx())
                 .expect("poll"),
             "a socket with a pending byte must report readiness"
         );
@@ -516,7 +516,9 @@ mod sync_boundary {
                 Ok(()) => break,
                 Err(err) if err.kind() == ErrorKind::WouldBlock => {
                     assert!(
-                        readiness.wait_blocking(Some(deadline)).expect("poll"),
+                        readiness
+                            .wait_blocking(Some(deadline), &ctx())
+                            .expect("poll"),
                         "the handshake did not make progress before its deadline"
                     );
                 }
@@ -527,4 +529,10 @@ mod sync_boundary {
         drop(stream);
         server.join().expect("server");
     }
+}
+
+fn ctx() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }

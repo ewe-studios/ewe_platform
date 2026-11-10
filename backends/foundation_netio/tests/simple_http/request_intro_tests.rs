@@ -46,6 +46,7 @@ fn blocking_transport_timeout_fails_once_and_terminates() {
         &uri,
         &SystemDnsResolver::new(),
         Some(Duration::from_secs(5)),
+        &ctx(),
     )
     .expect("connect to silent peer");
     conn.stream_mut()
@@ -128,6 +129,7 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
         &uri,
         &SystemDnsResolver::new(),
         Some(Duration::from_secs(5)),
+        &ctx(),
     )
     .expect("connect to silent peer");
     conn.set_nonblocking(true).expect("non-blocking");
@@ -188,4 +190,10 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
         elapsed >= head_timeout && elapsed < Duration::from_secs(5),
         "task took {elapsed:?}; expected about the {head_timeout:?} head deadline"
     );
+}
+
+fn ctx() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }

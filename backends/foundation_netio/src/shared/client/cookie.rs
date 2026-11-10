@@ -12,8 +12,8 @@
 //! Domain and path matching follow RFC 6265 rules.
 
 use foundation_core::url::Uri;
+use foundation_core::valtron::Ctx;
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_compact::SystemTime;
@@ -403,7 +403,7 @@ struct CookieKey {
 pub struct CookieJar {
     cookies: HashMap<CookieKey, Cookie>,
     /// The wall clock that decides whether a cookie has expired.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    ctx: Ctx,
 }
 
 impl core::fmt::Debug for CookieJar {
@@ -424,10 +424,10 @@ impl CookieJar {
     /// # Panics
     /// Never panics.
     #[must_use]
-    pub fn new(clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             cookies: HashMap::new(),
-            clock,
+            ctx,
         }
     }
 
@@ -512,7 +512,7 @@ impl CookieJar {
                 let secure_ok = !cookie.secure || is_https;
 
                 // Check expiration
-                let not_expired = !Self::is_expired(cookie, &*self.clock);
+                let not_expired = !Self::is_expired(cookie, &self.ctx);
 
                 domain_ok && path_ok && secure_ok && not_expired
             })
@@ -572,7 +572,7 @@ impl CookieJar {
     ///
     /// # Panics
     /// Never panics.
-    fn is_expired(cookie: &Cookie, clock: &dyn foundation_core::valtron::Clock) -> bool {
+    fn is_expired(cookie: &Cookie, ctx: &Ctx) -> bool {
         // Max-Age takes precedence over Expires
         if let Some(_max_age) = cookie.max_age {
             // For now, we don't track creation time, so we can't check max_age
@@ -582,7 +582,7 @@ impl CookieJar {
         }
 
         if let Some(expires) = cookie.expires {
-            let now = clock.wall_now();
+            let now = ctx.clock().wall_now();
             if let Ok(exp) = expires.duration_since(SystemTime::UNIX_EPOCH) {
                 return now
                     .duration_since(SystemTime::UNIX_EPOCH)
@@ -632,7 +632,7 @@ impl CookieJar {
     /// Never panics.
     pub fn clear_expired(&mut self) {
         self.cookies
-            .retain(|_, cookie| !Self::is_expired(cookie, &*self.clock));
+            .retain(|_, cookie| !Self::is_expired(cookie, &self.ctx));
     }
 
     /// Gets all cookies for a specific domain.

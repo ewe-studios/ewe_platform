@@ -34,7 +34,7 @@ fn connect_unix_applies_the_configured_read_timeout() {
     let configured = Duration::from_millis(1500);
     let config = ClientConfig::default().with_unix_read_timeout(configured);
 
-    let connection = Connection::connect_unix(&path, config.unix_read_timeout)
+    let connection = Connection::connect_unix(&path, config.unix_read_timeout, &ctx())
         .expect("connect to the Unix socket");
     let observed = connection
         .read_timeout()
@@ -49,4 +49,10 @@ fn connect_unix_applies_the_configured_read_timeout() {
     drop(connection);
     drop(listener);
     let _ = std::fs::remove_file(&path);
+}
+
+fn ctx() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }

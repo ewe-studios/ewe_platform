@@ -131,7 +131,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
         pool: &HttpConnectionPool<R>,
         mut conn: HttpClientConnection,
         nonblocking: bool,
-        clock: &dyn foundation_core::valtron::Clock,
+        ctx: &Ctx,
     ) {
         conn.drain_stream();
         if nonblocking {
@@ -140,25 +140,25 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 return;
             }
         }
-        pool.return_to_pool_with_clock(conn, clock);
+        pool.return_to_pool(conn, ctx);
     }
 
     fn fail(
         &mut self,
         err: SendableBoxedError,
         conn: Option<(HttpClientConnection, bool)>,
-        clock: &Arc<dyn foundation_core::valtron::Clock>,
+        ctx: &Ctx,
     ) -> ExchangeStatus {
         self.state = State::Failed(Some(err));
         if let Some((c, nonblocking)) = conn {
-            Self::release(&self.pool, c, nonblocking, clock.as_ref());
+            Self::release(&self.pool, c, nonblocking, ctx);
         }
         TaskStatus::Pending(HttpExchangePending::Waiting)
     }
 
     fn start_body(
         &mut self,
-        clock: &Arc<dyn foundation_core::valtron::Clock>,
+        ctx: &Ctx,
         stream: Box<
             crate::shared::http::HttpResponseReader<
                 crate::shared::http::SimpleHttpBody,
@@ -173,7 +173,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
             Ok(nb) => nb,
             Err(err) => {
                 tracing::error!(?err, "cannot read the socket mode");
-                return self.fail(Box::new(HttpClientError::IoError(err)), None, clock);
+                return self.fail(Box::new(HttpClientError::IoError(err)), None, ctx);
             }
         };
         // On a non-blocking socket every `WouldBlock` parks until readiness and
@@ -201,7 +201,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
         })
     }
 
-    fn poll_child(&mut self, clock: &Arc<dyn foundation_core::valtron::Clock>) -> ExchangeStatus {
+    fn poll_child(&mut self, ctx: &Ctx) -> ExchangeStatus {
         let State::Polling(ref mut rx) = self.state else {
             unreachable!("poll_child is only called while polling");
         };
@@ -211,12 +211,12 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 headers,
                 conn,
                 stream,
-            })) => self.start_body(clock, stream, conn, intro, headers),
+            })) => self.start_body(ctx, stream, conn, intro, headers),
             Some(TaskStatus::Ready(RequestIntro::Failed(e))) => {
                 // Carry the concrete `HttpClientError` object — it is
                 // `Send + Sync`, so it goes straight into the boxed error
                 // with its type and source chain intact.
-                self.fail(Box::new(e), None, clock)
+                self.fail(Box::new(e), None, ctx)
             }
             Some(TaskStatus::Spawn(action)) => TaskStatus::Spawn(action),
             // Intermediate states (including a child that parked itself on
@@ -235,22 +235,19 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
     }
 
     /// Park the body stream on readability after a `WouldBlock`.
-    fn park_body(
-        &mut self,
-        clock: &std::sync::Arc<dyn foundation_core::valtron::Clock>,
-    ) -> ExchangeStatus {
+    fn park_body(&mut self, ctx: &Ctx) -> ExchangeStatus {
         let State::StreamingBody(ref mut body) = self.state else {
             unreachable!("park_body is only called while streaming");
         };
         let Some(conn) = body.conn.as_ref() else {
             unreachable!("the connection is held until the body ends");
         };
-        match nonblocking::park(conn, IoInterest::Readable, &mut body.idle, clock) {
+        match nonblocking::park(conn, IoInterest::Readable, &mut body.idle, ctx) {
             Park::On(signal) => TaskStatus::Depends(signal),
             Park::Expired => {
                 tracing::error!(timeout = ?body.idle.timeout(), "response body stalled past the idle deadline");
                 let conn = body.conn.take().map(|c| (c, body.nonblocking));
-                self.fail(Box::new(HttpClientError::Timeout), conn, clock)
+                self.fail(Box::new(HttpClientError::Timeout), conn, ctx)
             }
             Park::Unsupported => {
                 let conn = body.conn.take().map(|c| (c, body.nonblocking));
@@ -259,14 +256,14 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                         crate::shared::http::HttpReaderError::WouldBlock,
                     )),
                     conn,
-                    clock,
+                    ctx,
                 )
             }
         }
     }
 
     #[allow(clippy::too_many_lines)]
-    fn stream_body(&mut self, clock: &Arc<dyn foundation_core::valtron::Clock>) -> ExchangeStatus {
+    fn stream_body(&mut self, ctx: &Ctx) -> ExchangeStatus {
         let State::StreamingBody(ref mut body) = self.state else {
             unreachable!("stream_body is only called while streaming");
         };
@@ -284,7 +281,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 Some(Stream::Wait) if body.nonblocking => {
                     // The socket has nothing yet (any body kind): park and
                     // call again when readable.
-                    return self.park_body(clock);
+                    return self.park_body(ctx);
                 }
                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                     // Unlike the other failure arms, this error cannot be carried
@@ -295,7 +292,7 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                     // an `io::Error`.
                     let se: SendableBoxedError = Box::new(std::io::Error::other(e.to_string()));
                     let conn = body.conn.take().map(|c| (c, body.nonblocking));
-                    return self.fail(se, conn, clock);
+                    return self.fail(se, conn, ctx);
                 }
                 Some(Stream::Ignore) => {
                     // A non-data item (chunk end marker, trailers, a skipped
@@ -326,16 +323,16 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 | IncomingResponseParts::Headers(..)
                 | IncomingResponseParts::SKIP,
             )) => TaskStatus::Pending(HttpExchangePending::Waiting),
-            Some(Err(e)) if body.nonblocking && e.is_would_block() => self.park_body(clock),
+            Some(Err(e)) if body.nonblocking && e.is_would_block() => self.park_body(ctx),
             Some(Err(e)) => {
                 // `HttpReaderError` is `Send + Sync` — carry it intact.
                 let conn = body.conn.take().map(|c| (c, body.nonblocking));
-                self.fail(Box::new(e), conn, clock)
+                self.fail(Box::new(e), conn, ctx)
             }
             Some(Ok(IncomingResponseParts::NoBody)) | None => {
                 if let Some(c) = body.conn.take() {
                     let nonblocking = body.nonblocking;
-                    Self::release(&self.pool, c, nonblocking, clock.as_ref());
+                    Self::release(&self.pool, c, nonblocking, ctx);
                 }
                 self.state = State::Done;
                 TaskStatus::Pending(HttpExchangePending::Waiting)
@@ -349,15 +346,14 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     type Pending = HttpExchangePending;
 
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        let clock = ctx.clock();
         // First call — emit the Spawn so the executor runs the child.
         if let Some(action) = self.spawn.take() {
             return Some(TaskStatus::Spawn(action));
         }
 
         match self.state {
-            State::Polling(_) => Some(self.poll_child(&clock)),
-            State::StreamingBody(_) => Some(self.stream_body(&clock)),
+            State::Polling(_) => Some(self.poll_child(&ctx)),
+            State::StreamingBody(_) => Some(self.stream_body(&ctx)),
             State::Done => None,
             State::Failed(ref mut opt) => {
                 let err = opt.take();

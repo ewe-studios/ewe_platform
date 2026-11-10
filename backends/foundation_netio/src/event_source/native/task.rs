@@ -434,10 +434,7 @@ where
                 debug!(state = "Connecting", host = %url.host_str().unwrap_or_else(|| "unknown".to_string()), "Establishing connection via pool");
 
                 // Use HttpConnectionPool to establish connection (handles DNS + TLS)
-                let Ok(connection) =
-                    self.pool
-                        .create_http_connection(&url, None, ctx.clock().as_ref())
-                else {
+                let Ok(connection) = self.pool.create_http_connection(&url, None, &ctx) else {
                     error!("Failed to establish HTTP connection");
                     self.state = Some(EventSourceState::Closed(
                         EventSourceCloseReason::ConnectionError,

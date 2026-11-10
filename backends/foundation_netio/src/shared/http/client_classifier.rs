@@ -19,9 +19,7 @@
 //! use foundation_netio::shared::http::client_classifier::ClientClassifier;
 //! use std::time::Duration;
 //!
-//! let classifier = ClientClassifier::new(std::sync::Arc::new(
-//!     foundation_core::valtron::MonotonicClock::new(),
-//! ));
+//! let classifier = ClientClassifier::new(foundation_core::valtron::Ctx::host());
 //!
 //! // Record a transfer
 //! classifier.record_transfer("192.168.1.1", 10240, Duration::from_secs(1));
@@ -31,7 +29,7 @@
 //! println!("Classification: {:?}", classification);
 //! ```
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -115,13 +113,13 @@ pub struct ClientStats {
 impl ClientStats {
     /// Create new stats with initial classification.
     #[must_use]
-    pub fn new(classification: ClientClassification, clock: &dyn Clock) -> Self {
+    pub fn new(classification: ClientClassification, ctx: &Ctx) -> Self {
         Self {
             classification,
             total_bytes: 0,
             total_duration: Duration::ZERO,
             consecutive_slow: 0,
-            last_transfer: clock.now(),
+            last_transfer: ctx.clock().now(),
             transfer_count: 0,
         }
     }
@@ -156,7 +154,7 @@ pub struct ClientClassifier {
     /// Security logger (optional).
     security_logger: Option<Arc<dyn SecurityLogger>>,
     /// The clock that stamps a transfer and measures the client TTL.
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl std::fmt::Debug for ClientClassifier {
@@ -172,18 +170,18 @@ impl std::fmt::Debug for ClientClassifier {
 impl ClientClassifier {
     /// Create a new client classifier with default thresholds.
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
-        Self::with_thresholds(ClassificationThresholds::default(), clock)
+    pub fn new(ctx: Ctx) -> Self {
+        Self::with_thresholds(ClassificationThresholds::default(), ctx)
     }
 
     /// Create a new classifier with custom thresholds.
     #[must_use]
-    pub fn with_thresholds(thresholds: ClassificationThresholds, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_thresholds(thresholds: ClassificationThresholds, ctx: Ctx) -> Self {
         Self {
             clients: Arc::new(RwLock::new(HashMap::new())),
             thresholds,
             security_logger: None,
-            clock,
+            ctx,
         }
     }
 
@@ -213,13 +211,13 @@ impl ClientClassifier {
         let mut clients = self.clients.write().expect("poisoned lock");
         let stats = clients
             .entry(client_ip.to_string())
-            .or_insert_with(|| ClientStats::new(classification, &*self.clock));
+            .or_insert_with(|| ClientStats::new(classification, &self.ctx));
 
         // Update stats
         stats.total_bytes += bytes;
         stats.total_duration += duration;
         stats.transfer_count += 1;
-        stats.last_transfer = self.clock.now();
+        stats.last_transfer = self.ctx.clock().now();
 
         // Handle progressive penalties
         match classification {
@@ -323,7 +321,7 @@ impl ClientClassifier {
     ///
     /// This function does not panic.
     pub fn cleanup(&self) {
-        let now = self.clock.now();
+        let now = self.ctx.clock().now();
         let mut clients = self.clients.write().expect("poisoned lock");
         clients.retain(|_, stats| {
             now.saturating_duration_since(stats.last_transfer) < self.thresholds.client_ttl

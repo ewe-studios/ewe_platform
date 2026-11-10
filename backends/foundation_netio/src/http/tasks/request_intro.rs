@@ -180,9 +180,9 @@ impl GetRequestIntroTask {
         &mut self,
         conn: &HttpClientConnection,
         resume: GetRequestIntroState,
-        clock: &std::sync::Arc<dyn foundation_core::valtron::Clock>,
+        ctx: &Ctx,
     ) -> TaskStatus<RequestIntro, ()> {
-        match nonblocking::park(conn, IoInterest::Readable, &mut self.idle, clock) {
+        match nonblocking::park(conn, IoInterest::Readable, &mut self.idle, ctx) {
             Park::On(signal) => {
                 tracing::trace!("[INTRO] response not ready; parking on socket readiness");
                 self.state = Some(resume);
@@ -216,7 +216,6 @@ impl TaskIterator for GetRequestIntroTask {
     // Long by design: one match over every request-intro state.
     #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        let clock = ctx.clock();
         match self.state.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {
@@ -252,7 +251,7 @@ impl TaskIterator for GetRequestIntroTask {
                     Err(HttpReaderError::WouldBlock) => {
                         let waker_conn = stream.clone();
                         let resume = GetRequestIntroState::IntroReading(Box::new((reader, stream)));
-                        return Some(self.park_on_would_block(&waker_conn, resume, &clock));
+                        return Some(self.park_on_would_block(&waker_conn, resume, &ctx));
                     }
                     Err(err) => {
                         tracing::error!("Get intro from stream - error: {:?}", err);
@@ -329,7 +328,7 @@ impl TaskIterator for GetRequestIntroTask {
                             let waker_conn = stream.clone();
                             let resume =
                                 GetRequestIntroState::DrainingInterim(Box::new((reader, stream)));
-                            return Some(self.park_on_would_block(&waker_conn, resume, &clock));
+                            return Some(self.park_on_would_block(&waker_conn, resume, &ctx));
                         }
                         Some(Err(err)) => {
                             tracing::error!("[INTRO] failed to drain interim (1xx): {:?}", err);
@@ -359,7 +358,7 @@ impl TaskIterator for GetRequestIntroTask {
                             let resume = GetRequestIntroState::WithIntro(Box::new(Some((
                                 reader, intro, conn,
                             ))));
-                            return Some(self.park_on_would_block(&waker_conn, resume, &clock));
+                            return Some(self.park_on_would_block(&waker_conn, resume, &ctx));
                         }
                         Err(err) => {
                             return Some(TaskStatus::Ready(RequestIntro::Failed(err.into())))

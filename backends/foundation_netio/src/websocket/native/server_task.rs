@@ -98,9 +98,9 @@ impl WebSocketServerTask {
         config: WsServerConfig,
         delivery: PipeSender<WebSocketMessage>,
         fd_readiness: Option<Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>>,
-        clock: Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
-        let writer = BatchFrameWriter::with_defaults(stream.clone(), clock);
+        let writer = BatchFrameWriter::with_defaults(stream.clone(), ctx);
         Self {
             stream,
             decoder: WebSocketFrameDecoder::new(),

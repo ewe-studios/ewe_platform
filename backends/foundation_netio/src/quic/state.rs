@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::task::Waker;
 
 use bytes::Bytes;
-use foundation_core::valtron::ResumeSignal;
+use foundation_core::valtron::{Ctx, ResumeSignal};
 use quinn_proto::{ConnectionHandle, Dir};
 
 use super::traits::QuicConnError;
@@ -42,6 +42,8 @@ pub(crate) struct ConnState {
     pub(crate) conn: quinn_proto::Connection,
     /// The peer we are talking to.
     pub(crate) peer: SocketAddr,
+    /// The context whose clock times this connection (close stamp and timers).
+    pub(crate) ctx: Ctx,
     /// Peer-initiated bidirectional streams the driver has accepted, awaiting a
     /// `QuicConnection::accept_bidi` caller.
     pub(crate) inbound_bidi: VecDeque<StreamId>,

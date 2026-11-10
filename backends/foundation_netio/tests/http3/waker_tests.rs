@@ -102,7 +102,7 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
         .push(Waker::from(Arc::clone(&accept)));
 
     let (mut cq, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
     let deadline = Instant::now() + BUDGET;
     let server_conn = loop {
         if let Some(conn) = sq.take_accepted() {
@@ -184,7 +184,7 @@ fn idle_h3_connection_uses_no_cpu() {
 
     let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
     let (mut cq, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     // Drive the client by hand while the server driver runs on the pool.
     let deadline = Instant::now() + BUDGET;
@@ -257,4 +257,10 @@ fn driver_parks_on_fd_readiness_not_delayed() {
         matches!(sq.next_status(Ctx::host()), Some(TaskStatus::Depends(_))),
         "with fd readiness the idle driver should park, not poll"
     );
+}
+
+fn ctx() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }

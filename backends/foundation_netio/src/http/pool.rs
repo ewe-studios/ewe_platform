@@ -16,6 +16,7 @@
 //!
 use crate::netcap::RawStream;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::valtron::Ctx;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -106,10 +107,10 @@ impl ConnectionPool {
         &self,
         host: &str,
         port: u16,
-        clock: &dyn foundation_core::valtron::Clock,
+        ctx: &Ctx,
     ) -> Option<SharedByteBufferStream<RawStream>> {
         let key = format!("{host}:{port}");
-        let now = clock.now();
+        let now = ctx.clock().now();
 
         let Ok(mut map) = self.inner.lock() else {
             return None;
@@ -148,13 +149,13 @@ impl ConnectionPool {
     /// Unix-socket filtering is handled upstream by
     /// `HttpConnectionPool::return_to_pool` — it checks `stream.is_unix()`
     /// and never calls here for non-poolable connections.
-    #[tracing::instrument(skip(self, clock))]
+    #[tracing::instrument(skip(self, ctx))]
     pub fn checkin(
         &self,
         host: &str,
         port: u16,
         stream: SharedByteBufferStream<RawStream>,
-        clock: &dyn foundation_core::valtron::Clock,
+        ctx: &Ctx,
     ) {
         tracing::trace!(
             "Returning http client connection to the pool for host={:?}, port={:?}",
@@ -169,7 +170,7 @@ impl ConnectionPool {
         let queue = map.entry(key).or_insert_with(VecDeque::new);
 
         // Push current time and stream to the back (newest)
-        queue.push_back((clock.now(), stream));
+        queue.push_back((ctx.clock().now(), stream));
 
         // Enforce max_per_host: drop oldest while exceeding
         while queue.len() > self.max_per_host {
@@ -181,8 +182,8 @@ impl ConnectionPool {
     ///
     /// This is safe to call periodically from a maintenance task or during
     /// heavy allocation periods.
-    pub fn cleanup_stale(&self, clock: &dyn foundation_core::valtron::Clock) {
-        let now = clock.now();
+    pub fn cleanup_stale(&self, ctx: &Ctx) {
+        let now = ctx.clock().now();
         let Ok(mut map) = self.inner.lock() else {
             return;
         };

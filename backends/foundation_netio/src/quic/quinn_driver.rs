@@ -38,7 +38,7 @@ use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
 use foundation_core::valtron::{
-    AnyReadiness, Clock, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
+    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal,
     TaskIterator, TaskStatus,
 };
 use quinn_proto::{
@@ -75,11 +75,11 @@ pub enum QuicEvent {
 /// signal so a driver parked on socket readiness still wakes for QUIC timers
 /// (loss detection, idle timeout, keep-alive) — a `Depends` sleeper has no
 /// deadline of its own, so the driver composes this with the socket signal.
-struct DeadlinePassed(Instant, Arc<dyn foundation_core::valtron::Clock>);
+struct DeadlinePassed(Instant, Ctx);
 
 impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.1.now() >= self.0
+        self.1.clock().now() >= self.0
     }
 
     fn deadline(&self) -> Option<Instant> {
@@ -165,6 +165,7 @@ impl QuicDriver {
         addr: SocketAddr,
         cfg: ClientConfig,
         server_name: &str,
+        ctx: &Ctx,
     ) -> io::Result<(Self, QuinnConnection)> {
         let socket = UdpSocket::bind(if addr.is_ipv4() {
             "0.0.0.0:0"
@@ -176,16 +177,13 @@ impl QuicDriver {
         let endpoint = Endpoint::new(Arc::new(EndpointConfig::default()), None, true, None);
         let mut driver = Self::new(endpoint, socket, false);
 
-        // Connection setup runs before any task context exists, so it names
-        // the real clock explicitly. The driver task itself reads the engine
-        // clock from its `Ctx`.
-        let now = foundation_core::valtron::MonotonicClock::new().now();
+        let now = ctx.clock().now();
         let (handle, conn) = driver
             .endpoint
             .connect(now, cfg, addr, server_name)
             .map_err(|e| io::Error::new(io::ErrorKind::ConnectionRefused, e.to_string()))?;
 
-        let state = driver.insert_conn(handle, conn, addr);
+        let state = driver.insert_conn(handle, conn, addr, ctx.clone());
         Ok((driver, QuinnConnection::new(state)))
     }
 
@@ -283,11 +281,13 @@ impl QuicDriver {
         handle: ConnectionHandle,
         conn: quinn_proto::Connection,
         peer: SocketAddr,
+        ctx: Ctx,
     ) -> SharedConn {
         let state = Arc::new(Mutex::new(ConnState {
             handle,
             conn,
             peer,
+            ctx,
             inbound_bidi: VecDeque::new(),
             inbound_uni: VecDeque::new(),
             closed: None,
@@ -325,7 +325,7 @@ impl QuicDriver {
     ///
     /// WHAT: loop `recv_from` and route every datagram until it returns
     /// `WouldBlock`.
-    fn pump_recv(&mut self, now: Instant) -> bool {
+    fn pump_recv(&mut self, now: Instant, ctx: &Ctx) -> bool {
         let mut worked = false;
         loop {
             let (n, from) = match self.socket.recv_from(&mut self.rx_buf) {
@@ -370,7 +370,7 @@ impl QuicDriver {
                     match self.endpoint.accept(incoming, now, &mut self.scratch, None) {
                         Ok((handle, conn)) => {
                             tracing::debug!(?handle, %from, "QUIC connection accepted");
-                            self.insert_conn(handle, conn, from);
+                            self.insert_conn(handle, conn, from, ctx.clone());
                         }
                         Err(err) => {
                             // The endpoint may want to send a rejection datagram.
@@ -574,7 +574,7 @@ impl TaskIterator for QuicDriver {
         self.driver_woken.set(false);
 
         // Ordering matters: feed the state machine before asking it for output.
-        let recv = self.pump_recv(now);
+        let recv = self.pump_recv(now, &ctx);
         let timers = self.pump_timeouts(now);
         let event = self.pump_events();
         let tx = self.pump_transmit(now);
@@ -607,7 +607,7 @@ impl TaskIterator for QuicDriver {
             Some(deadline) => Some(TaskStatus::Depends(Arc::new(
                 AnyReadiness::either(
                     Arc::clone(fd),
-                    Arc::new(DeadlinePassed(deadline, ctx.clock())),
+                    Arc::new(DeadlinePassed(deadline, ctx.clone())),
                 )
                 .with(woken),
             ))),

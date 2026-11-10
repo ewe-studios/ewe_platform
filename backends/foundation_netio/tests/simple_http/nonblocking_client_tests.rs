@@ -420,8 +420,9 @@ fn post_with_clock(
     clock: Arc<SimClock>,
 ) -> PreparedRequest {
     let mut request = post(url, body, length);
-    let clock: Arc<dyn Clock> = clock;
-    request.extensions.insert::<Arc<dyn Clock>>(clock);
+    request
+        .extensions
+        .insert::<foundation_core::valtron::Ctx>(foundation_core::valtron::Ctx::fixed(clock));
     request
 }
 

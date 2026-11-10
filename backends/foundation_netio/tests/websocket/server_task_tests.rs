@@ -122,7 +122,9 @@ fn masked_text_message_delivers_via_incremental_decoder() {
         WsServerConfig::default(),
         tx,
         None,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let msgs = drain(&mut task);
@@ -143,7 +145,9 @@ fn ping_triggers_pong_output() {
         WsServerConfig::default(),
         tx,
         None,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     // Ping → no `Ready` message (control frame handled internally, pong written
@@ -168,7 +172,9 @@ fn close_frame_drains_task() {
         WsServerConfig::default(),
         tx,
         None,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let msgs = drain(&mut task);
@@ -196,7 +202,9 @@ fn unmasked_frame_triggers_close_and_drain() {
         WsServerConfig::default(),
         tx,
         None,
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     // No messages — violation sends close and drains.

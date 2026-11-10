@@ -5,8 +5,7 @@ use foundation_core::io::ioutils::{
     PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream,
 };
 use foundation_core::url::{InvalidUri, Uri};
-#[cfg(unix)]
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 #[cfg(unix)]
 use std::os::unix::io::AsRawFd;
 #[cfg(unix)]
@@ -764,15 +763,15 @@ impl PendingConnect {
 pub(crate) fn connect_tcp_nonblocking(
     addr: core::net::SocketAddr,
     timeout: Option<Duration>,
+    ctx: &Ctx,
 ) -> std::io::Result<TcpStream> {
-    let clock = foundation_core::valtron::MonotonicClock::new();
-    let deadline = timeout.map(|timeout| clock.now() + timeout);
+    let deadline = timeout.map(|timeout| ctx.clock().now() + timeout);
     let pending = PendingConnect::start(addr)?;
     let ready = crate::native::readiness::SocketReadiness::new(
         pending.as_raw_fd(),
         crate::native::readiness::IoInterest::Writable,
     )
-    .wait_blocking(deadline)?;
+    .wait_blocking(deadline, ctx)?;
     if !ready {
         return Err(std::io::Error::new(
             std::io::ErrorKind::TimedOut,
@@ -795,6 +794,7 @@ pub(crate) fn connect_tcp_nonblocking(
 pub(crate) fn connect_unix_nonblocking(
     path: &std::path::Path,
     timeout: Option<Duration>,
+    ctx: &Ctx,
 ) -> std::io::Result<unix_net::UnixStream> {
     let socket = socket2::Socket::new(socket2::Domain::UNIX, socket2::Type::STREAM, None)?;
     socket.set_nonblocking(true)?;
@@ -807,13 +807,12 @@ pub(crate) fn connect_unix_nonblocking(
         Err(err) => return Err(err),
     }
 
-    let clock = foundation_core::valtron::MonotonicClock::new();
-    let deadline = timeout.map(|timeout| clock.now() + timeout);
+    let deadline = timeout.map(|timeout| ctx.clock().now() + timeout);
     let ready = crate::native::readiness::SocketReadiness::new(
         socket.as_raw_fd(),
         crate::native::readiness::IoInterest::Writable,
     )
-    .wait_blocking(deadline)?;
+    .wait_blocking(deadline, ctx)?;
     if !ready {
         return Err(std::io::Error::new(
             std::io::ErrorKind::TimedOut,
@@ -841,15 +840,17 @@ impl Connection {
     /// Returns an error if the TCP connection fails.
     pub fn without_timeout(
         addr: core::net::SocketAddr,
+        ctx: &Ctx,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         #[cfg(unix)]
         {
-            let stream = connect_tcp_nonblocking(addr, None)?;
+            let stream = connect_tcp_nonblocking(addr, None, ctx)?;
             stream.set_nonblocking(false)?;
             Ok(Self::Tcp(stream))
         }
         #[cfg(not(unix))]
         {
+            let _ = ctx;
             Ok(Self::Tcp(TcpStream::connect(addr)?))
         }
     }
@@ -865,15 +866,17 @@ impl Connection {
     pub fn with_timeout(
         addr: core::net::SocketAddr,
         timeout: Duration,
+        ctx: &Ctx,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         #[cfg(unix)]
         {
-            let stream = connect_tcp_nonblocking(addr, Some(timeout))?;
+            let stream = connect_tcp_nonblocking(addr, Some(timeout), ctx)?;
             stream.set_nonblocking(false)?;
             Ok(Self::Tcp(stream))
         }
         #[cfg(not(unix))]
         {
+            let _ = ctx;
             Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
         }
     }
@@ -901,8 +904,9 @@ impl Connection {
     pub fn connect_unix(
         path: impl AsRef<std::path::Path>,
         read_timeout: Duration,
+        ctx: &Ctx,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let stream = connect_unix_nonblocking(path.as_ref(), None)?;
+        let stream = connect_unix_nonblocking(path.as_ref(), None, ctx)?;
         stream.set_nonblocking(false)?;
         // Docker closes the connection after every response — a blocking read
         // on a dead socket hangs forever. A read timeout converts the
@@ -1968,12 +1972,12 @@ impl TcpStreamWrapper {
     ///
     /// # Errors
     /// Returns an error if connecting fails.
-    pub fn connect<A: std::net::ToSocketAddrs>(addr: A) -> std::io::Result<Self> {
+    pub fn connect<A: std::net::ToSocketAddrs>(addr: A, ctx: &Ctx) -> std::io::Result<Self> {
         #[cfg(unix)]
         {
             let mut last_error = None;
             for addr in addr.to_socket_addrs()? {
-                match connect_tcp_nonblocking(addr, None) {
+                match connect_tcp_nonblocking(addr, None, ctx) {
                     Ok(stream) => {
                         stream.set_nonblocking(false)?;
                         return Ok(Self::new(stream));
@@ -1990,6 +1994,7 @@ impl TcpStreamWrapper {
         }
         #[cfg(not(unix))]
         {
+            let _ = ctx;
             TcpStream::connect(addr).map(Self::new)
         }
     }
@@ -2004,15 +2009,17 @@ impl TcpStreamWrapper {
     pub fn connect_timeout(
         addr: &core::net::SocketAddr,
         timeout: Duration,
+        ctx: &Ctx,
     ) -> std::io::Result<Self> {
         #[cfg(unix)]
         {
-            let stream = connect_tcp_nonblocking(*addr, Some(timeout))?;
+            let stream = connect_tcp_nonblocking(*addr, Some(timeout), ctx)?;
             stream.set_nonblocking(false)?;
             Ok(Self::new(stream))
         }
         #[cfg(not(unix))]
         {
+            let _ = ctx;
             TcpStream::connect_timeout(addr, timeout).map(Self::new)
         }
     }

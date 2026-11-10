@@ -1,4 +1,5 @@
 use crate::shared::http::DnsError;
+use foundation_core::valtron::Ctx;
 #[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::Pipe;
 use std::collections::HashMap;
@@ -302,8 +303,8 @@ struct CachedEntry {
 
 impl CachedEntry {
     /// Checks if this entry has expired on `clock`.
-    fn is_expired(&self, clock: &dyn foundation_core::valtron::Clock) -> bool {
-        clock.now() >= self.expires_at
+    fn is_expired(&self, ctx: &Ctx) -> bool {
+        ctx.clock().now() >= self.expires_at
     }
 }
 
@@ -320,7 +321,7 @@ pub struct CachingDnsResolver<R: DnsResolver> {
     cache: Arc<Mutex<HashMap<String, CachedEntry>>>,
     ttl: Duration,
     /// The clock that stamps and expires cache entries.
-    clock: Arc<dyn foundation_core::valtron::Clock>,
+    ctx: Ctx,
 }
 
 impl<R: DnsResolver> core::fmt::Debug for CachingDnsResolver<R> {
@@ -338,18 +339,18 @@ impl<R: DnsResolver> CachingDnsResolver<R> {
     ///
     /// * `inner` - The resolver to wrap
     /// * `ttl` - Time-to-live for cache entries
-    pub fn new(inner: R, ttl: Duration, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
+    pub fn new(inner: R, ttl: Duration, ctx: Ctx) -> Self {
         Self {
             inner,
             cache: Arc::new(Mutex::new(HashMap::new())),
             ttl,
-            clock,
+            ctx,
         }
     }
 
     /// Creates a new caching resolver with default 5-minute TTL.
-    pub fn with_default_ttl(inner: R, clock: Arc<dyn foundation_core::valtron::Clock>) -> Self {
-        Self::new(inner, Duration::from_secs(300), clock)
+    pub fn with_default_ttl(inner: R, ctx: Ctx) -> Self {
+        Self::new(inner, Duration::from_secs(300), ctx)
     }
 
     /// Clears all cached entries.
@@ -373,7 +374,7 @@ impl<R: DnsResolver> DnsResolver for CachingDnsResolver<R> {
         // Check cache first
         if let Ok(cache) = self.cache.lock() {
             if let Some(entry) = cache.get(&cache_key) {
-                if !entry.is_expired(&*self.clock) {
+                if !entry.is_expired(&self.ctx) {
                     return Ok(entry.addresses.clone());
                 }
             }
@@ -388,7 +389,7 @@ impl<R: DnsResolver> DnsResolver for CachingDnsResolver<R> {
                 cache_key,
                 CachedEntry {
                     addresses: addresses.clone(),
-                    expires_at: self.clock.now() + self.ttl,
+                    expires_at: self.ctx.clock().now() + self.ttl,
                 },
             );
         }
@@ -402,7 +403,7 @@ impl<R: DnsResolver> DnsResolver for CachingDnsResolver<R> {
         // Check cache first
         if let Ok(cache) = self.cache.lock() {
             if let Some(entry) = cache.get(&cache_key) {
-                if !entry.is_expired(&*self.clock) {
+                if !entry.is_expired(&self.ctx) {
                     return Ok(entry.addresses.clone());
                 }
             }
@@ -419,7 +420,7 @@ impl<R: DnsResolver> DnsResolver for CachingDnsResolver<R> {
                 cache_key,
                 CachedEntry {
                     addresses: addresses.clone(),
-                    expires_at: self.clock.now() + self.ttl,
+                    expires_at: self.ctx.clock().now() + self.ttl,
                 },
             );
         }

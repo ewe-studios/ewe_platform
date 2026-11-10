@@ -4,6 +4,7 @@ use crate::native::connection::Connection;
 use crate::native::connection::{DataStreamAddr, Endpoint, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};
 use foundation_core::io::ioutils::ReadTimeoutOperations;
+use foundation_core::valtron::Ctx;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ALL_VERSIONS};
@@ -769,9 +770,10 @@ impl RustlsConnector {
     /// Returns an error if the operation fails.
     pub fn client_tls_from_endpoint(
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+        ctx: &Ctx,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let connector = Self::create(endpoint);
-        connector.from_endpoint(endpoint)
+        connector.from_endpoint(endpoint, ctx)
     }
 
     ///
@@ -818,9 +820,10 @@ impl RustlsConnector {
         sni: String,
         plain: Connection,
         timeout: Option<std::time::Duration>,
+        ctx: &Ctx,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let (stream, addr) = self.from_tcp_stream(sni, plain)?;
-        finish_handshake(&stream, timeout).map_err(Box::new)?;
+        finish_handshake(&stream, timeout, ctx).map_err(Box::new)?;
         stream.set_nonblocking(false)?;
         Ok((stream, addr))
     }
@@ -835,13 +838,14 @@ impl RustlsConnector {
     pub fn from_endpoint(
         &self,
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+        ctx: &Ctx,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
         let timeout = super::endpoint_timeout(endpoint);
-        let plain_stream = super::connect_plain(host_socket_addr, timeout)?;
+        let plain_stream = super::connect_plain(host_socket_addr, timeout, ctx)?;
 
-        self.from_tcp_stream_complete(host, Connection::Tcp(plain_stream), timeout)
+        self.from_tcp_stream_complete(host, Connection::Tcp(plain_stream), timeout, ctx)
     }
 }
 
@@ -851,12 +855,14 @@ impl RustlsConnector {
 fn finish_handshake(
     stream: &RustTlsClientStream,
     timeout: Option<std::time::Duration>,
+    ctx: &Ctx,
 ) -> std::io::Result<()> {
     let readiness = stream.conn_readiness();
     crate::native::readiness::complete_handshake_blocking(
         || stream.drive_handshake(),
         || readiness.poll_fd(crate::native::readiness::IoInterest::Readable),
         timeout,
+        ctx,
     )
 }
 
@@ -866,6 +872,7 @@ fn finish_handshake(
 fn finish_handshake(
     stream: &RustTlsClientStream,
     _timeout: Option<std::time::Duration>,
+    _ctx: &Ctx,
 ) -> std::io::Result<()> {
     stream.set_nonblocking(false)?;
     stream.drive_handshake()

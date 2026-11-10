@@ -4,12 +4,12 @@ use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Clock, Ctx, MonotonicClock};
 use foundation_netio::http::nonblocking::{IdleDeadline, IoStep, PendingBytes};
 
 /// A real clock: this test only exercises the arm/expire ordering.
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 /// A writer that accepts `budget` bytes, then reports `WouldBlock`.

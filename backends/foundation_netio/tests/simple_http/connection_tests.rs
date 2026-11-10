@@ -195,6 +195,7 @@ fn test_connection_http_local() {
         &url,
         &local_resolver("local.test", addr),
         Some(Duration::from_secs(5)),
+        &ctx(),
     );
 
     assert!(result.is_ok(), "connect failed: {:?}", result.err());
@@ -253,6 +254,7 @@ fn test_connection_https_local() {
         &local_resolver("localhost", addr),
         Some(Duration::from_secs(5)),
         Some(&connector),
+        &ctx(),
     );
 
     assert!(result.is_ok(), "TLS connect failed: {:?}", result.err());
@@ -296,6 +298,7 @@ fn test_connection_timeout() {
         &url,
         &local_resolver("stalled.test", addr),
         Some(Duration::from_millis(100)),
+        &ctx(),
     );
 
     let err = result.expect_err("connect must time out");
@@ -320,8 +323,12 @@ fn test_connection_dns_failure() {
     let url = Uri::parse("http://invalid-host-12345.invalid").unwrap();
     let resolver = SystemDnsResolver::new();
 
-    let result =
-        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(5)));
+    let result = HttpClientConnection::connect(
+        &url,
+        &resolver,
+        Some(std::time::Duration::from_secs(5)),
+        &ctx(),
+    );
 
     assert!(result.is_err());
     // Should be wrapped in HttpClientError::DnsError
@@ -345,8 +352,12 @@ fn test_connection_with_mock_resolver() {
     let url = Uri::parse(&format!("http://example.com:{port}")).unwrap();
 
     // This will fail to connect since no server is running, but DNS should work
-    let result =
-        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_millis(100)));
+    let result = HttpClientConnection::connect(
+        &url,
+        &resolver,
+        Some(std::time::Duration::from_millis(100)),
+        &ctx(),
+    );
 
     // We expect connection failure, not DNS failure
     assert!(result.is_err());
@@ -354,4 +365,10 @@ fn test_connection_with_mock_resolver() {
         result.unwrap_err(),
         HttpClientError::ConnectionFailed(_) | HttpClientError::ConnectionTimeout(_)
     ));
+}
+
+fn ctx() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }

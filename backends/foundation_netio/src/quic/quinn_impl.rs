@@ -27,7 +27,7 @@
 use bytes::{Buf, Bytes};
 use quinn_proto::{Dir, VarInt};
 
-use foundation_core::valtron::{Clock, Stream};
+use foundation_core::valtron::Stream;
 
 use super::state::{lock, SharedConn};
 use super::traits::{
@@ -189,13 +189,10 @@ impl QuicConnection for QuinnConnection {
             return;
         };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
-        // A close stamp is required by the sans-IO protocol. The handle has no
-        // task context, so it names the real clock explicitly.
-        guard.conn.close(
-            foundation_core::valtron::MonotonicClock::new().now(),
-            code,
-            reason.to_vec().into(),
-        );
+        // A close stamp is required by the sans-IO protocol. The connection keeps
+        // the context it was created with, so the stamp uses that clock.
+        let now = guard.ctx.clock().now();
+        guard.conn.close(now, code, reason.to_vec().into());
         guard.closed = Some(QuicConnError::ApplicationClose {
             code: code.into_inner(),
         });
