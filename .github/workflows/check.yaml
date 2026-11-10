@@ -424,3 +424,16 @@ jobs:
 
       - name: Build
         run: cargo build --profile uat --workspace
+
+      - name: Check the iOS target
+        # The GitHub-hosted macOS image ships full Xcode with the iPhoneOS
+        # SDK, so this job proves the iOS build on every master and nightly
+        # run. The VM job `macos-ssh` (platform-vms.yaml) runs the same checks
+        # against the pinned SDK, but only on an Apple-hardware runner (#355,
+        # #464). LLVM is required: Cranelift cannot build ring for iOS.
+        run: |
+          rustup target add aarch64-apple-ios
+          xcrun --sdk iphoneos --show-sdk-version
+          cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
+          cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
+          cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
