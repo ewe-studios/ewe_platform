@@ -9,8 +9,9 @@
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::valtron::multi::{initialize_pool_with_config, spawn, PoolConfig};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 
 /// A task that records each poll and always parks as `Wait` (no deadline).
 /// The worker must wake it again once `max_yield_duration` elapses.

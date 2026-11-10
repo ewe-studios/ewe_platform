@@ -7,7 +7,9 @@
 use foundation_compact::Instant;
 use std::time::Duration;
 
-use crate::valtron::{Ctx, TaskIterator, TaskStatus};
+use crate::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 
 /// A [`TaskIterator`] that yields [`TaskStatus::Delayed(remaining)`] until
 /// the deadline passes, then returns `None`.

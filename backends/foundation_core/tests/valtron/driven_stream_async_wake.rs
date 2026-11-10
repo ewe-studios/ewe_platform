@@ -17,9 +17,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker,
-    StreamIteratorExt, TaskIterator, TaskStatus, WakeSignal,
+    execute, valtron_test, EventReadiness, EventReadinessPtr, ReadinessWaker, StreamIteratorExt,
+    TaskIterator, TaskStatus, WakeSignal,
 };
+
+use foundation_context::Ctx;
 
 /// How long each task stays parked.
 const PARK: Duration = Duration::from_secs(2);

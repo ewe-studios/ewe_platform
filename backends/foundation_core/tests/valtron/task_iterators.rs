@@ -1,5 +1,6 @@
 // Integration tests for TaskIterator combinators
-use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{Stream, TaskIterator, TaskIteratorExt, TaskStatus};
 
 // Simple test task iterator for unit tests
 struct TestTask {

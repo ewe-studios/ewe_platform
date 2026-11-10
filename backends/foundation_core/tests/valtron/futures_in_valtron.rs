@@ -1,5 +1,6 @@
+use foundation_context::Ctx;
 use foundation_core::valtron::TaskIterator;
-use foundation_core::valtron::{from_future, Ctx, FutureTask, TaskStatus};
+use foundation_core::valtron::{from_future, FutureTask, TaskStatus};
 
 /// WHY: `FutureTask` must poll and complete a simple future
 /// WHAT: Future that returns Ready immediately should complete on first poll

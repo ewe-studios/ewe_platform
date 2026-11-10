@@ -3,7 +3,9 @@
 //! This module provides composable wrappers that add retry logic, timeouts,
 //! and backoff strategies to any `TaskIterator`, enabling robust task execution.
 
-use crate::valtron::{Ctx, TaskIterator, TaskStatus};
+use crate::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use std::time::Duration;
 
 // ============================================================================

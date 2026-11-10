@@ -5,7 +5,9 @@
 
 #![cfg(all(feature = "multi", not(target_family = "wasm")))]
 
-use foundation_core::valtron::{execute, send, Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{execute, send, TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 
 struct Once(bool);
 

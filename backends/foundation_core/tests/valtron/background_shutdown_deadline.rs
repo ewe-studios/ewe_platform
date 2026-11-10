@@ -15,7 +15,7 @@
 use foundation_core::valtron::multi::{initialize_pool_with_config, PoolConfig};
 use foundation_core::valtron::{
     initialize_pool, run_background_job, BackgroundJobConfig, BackgroundJobRegistry,
-    MonotonicClock, ShutdownOutcome,
+    ShutdownOutcome,
 };
 use std::sync::mpsc;
 use std::thread;
@@ -151,7 +151,9 @@ fn background_shutdown_alone_keeps_its_timeout() {
         .expect("the blocking job should start");
 
     let start = Instant::now();
-    let outcome = registry.shutdown(&MonotonicClock::new());
+    let outcome = registry.shutdown(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let took = start.elapsed();
     drop(release_tx);
 

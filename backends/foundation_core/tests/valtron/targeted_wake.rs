@@ -27,9 +27,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, EventQueue, EventReadiness, EventReadinessPtr, ReadinessNotifier,
+    execute, valtron_test, EventQueue, EventReadiness, EventReadinessPtr, ReadinessNotifier,
     ReadinessWaker, ResumeSignal, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// Counts the `is_ready` calls of the readiness it wraps and forwards the rest.

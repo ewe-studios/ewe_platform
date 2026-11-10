@@ -17,9 +17,11 @@ use core::pin::Pin;
 use core::task::{Context, Poll};
 
 use foundation_core::valtron::{
-    AsyncStateTask, AsyncTransition, Ctx, EventReadiness, FutureTask, ReadinessWaker, ResumeSignal,
+    AsyncStateTask, AsyncTransition, EventReadiness, FutureTask, ReadinessWaker, ResumeSignal,
     StreamTask, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// Polls per test. Enough for the old per-poll waker to make the growth visible.

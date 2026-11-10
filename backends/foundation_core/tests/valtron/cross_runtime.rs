@@ -26,8 +26,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_core::valtron::{
-    execute, from_future, task, valtron_test, Ctx, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, from_future, task, valtron_test, StreamIteratorExt, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 // ============================================================================
 // Representative valtron tasks

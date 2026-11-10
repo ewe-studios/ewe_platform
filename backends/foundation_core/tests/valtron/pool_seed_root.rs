@@ -9,8 +9,9 @@
 use std::sync::Arc;
 
 use foundation_compact::rng::Rng;
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, MonotonicClock, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 
 const SEED: u64 = 4242;

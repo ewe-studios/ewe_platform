@@ -3,14 +3,13 @@
 use foundation_core::synca::{
     DurationStore, DurationWaker, Entry, Sleepers, Timeable, Timing, Waiter, Waker,
 };
-use foundation_core::valtron::{Clock, MonotonicClock};
 use std::sync::Arc;
 use std::thread;
 use std::time;
 
 /// The clock that decides when a waker matures.
-fn clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new()))
 }
 
 #[derive(Debug, Clone)]

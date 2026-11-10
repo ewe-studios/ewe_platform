@@ -128,7 +128,7 @@ pub struct SleepIterator<T>(
     foundation_compact::Instant,
     std::time::Duration,
     Option<T>,
-    std::sync::Arc<dyn crate::valtron::Clock>,
+    foundation_context::Ctx,
 );
 
 impl<T: core::fmt::Debug> core::fmt::Debug for SleepIterator<T> {
@@ -152,18 +152,14 @@ impl<T> SleepIterator<T> {
         from: foundation_compact::Instant,
         until: std::time::Duration,
         value: T,
-        clock: std::sync::Arc<dyn crate::valtron::Clock>,
+        ctx: foundation_context::Ctx,
     ) -> Self {
-        Self(from, until, Some(value), clock)
+        Self(from, until, Some(value), ctx)
     }
 
-    pub fn until(
-        duration: std::time::Duration,
-        value: T,
-        clock: std::sync::Arc<dyn crate::valtron::Clock>,
-    ) -> Self {
-        let from = clock.now();
-        Self(from, duration, Some(value), clock)
+    pub fn until(duration: std::time::Duration, value: T, ctx: foundation_context::Ctx) -> Self {
+        let from = ctx.clock().now();
+        Self(from, duration, Some(value), ctx)
     }
 }
 
@@ -191,7 +187,7 @@ impl<T> DelayedIterator for SleepIterator<T> {
     fn next(&mut self) -> Option<Delayed<Self::Item>> {
         self.2.as_ref()?;
 
-        let now = self.3.now();
+        let now = self.3.clock().now();
         let completed_at = self.0.checked_add(self.1);
         let result = match remaining(completed_at, now) {
             Some(diff) => Delayed::Pending(self.0, self.1, diff),

@@ -17,9 +17,9 @@ use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
 use foundation_compact::Instant;
+use foundation_context::{Clock, Ctx};
 use foundation_core::valtron::{
-    execute, fork_ctx, valtron_test, Clock, Ctx, SimulatedClock, StreamIteratorExt, TaskIterator,
-    TaskStatus,
+    execute, fork_ctx, valtron_test, SimulatedClock, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 
 /// Build a pool root with `clock` as its engine clock.

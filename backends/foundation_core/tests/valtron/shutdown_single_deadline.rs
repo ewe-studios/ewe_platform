@@ -13,10 +13,9 @@
 
 #![cfg(feature = "multi")]
 
+use foundation_context::Ctx;
 use foundation_core::valtron::multi::{initialize_pool_with_config, PoolConfig};
-use foundation_core::valtron::{
-    run_background_job, send, Ctx, PoolGuard, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{run_background_job, send, PoolGuard, TaskIterator, TaskStatus};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};

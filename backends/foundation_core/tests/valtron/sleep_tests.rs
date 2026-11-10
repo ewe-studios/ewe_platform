@@ -3,7 +3,9 @@
 use foundation_compact::Instant;
 use std::time::Duration;
 
-use foundation_core::valtron::{sleep_async, valtron_test, Ctx, SleepingTask, TaskIterator};
+use foundation_core::valtron::{sleep_async, valtron_test, SleepingTask, TaskIterator};
+
+use foundation_context::Ctx;
 
 // ── SleepingTask unit tests (no executor needed) ──────────────────────
 

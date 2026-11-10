@@ -25,10 +25,11 @@ use std::time::Duration;
 // `foundation_compact::Instant`, never a stand-in alias). On native targets it
 // is `std::time::Instant`; on wasm32 it is the host-clock instant.
 use foundation_compact::Instant;
+use foundation_context::Ctx;
 use foundation_core::synca::Entry;
 use foundation_core::valtron::multi::{is_pool_initialized, PoolConfig, ThreadRegistry};
 use foundation_core::valtron::{
-    block_on_future, valtron_test, BoxedExecutionEngine, Ctx, ExecutionIterator, State,
+    block_on_future, valtron_test, BoxedExecutionEngine, ExecutionIterator, State,
 };
 
 /// An [`ExecutionIterator`] that panics inside executor-owned code.

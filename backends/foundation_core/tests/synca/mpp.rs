@@ -7,11 +7,12 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_core::synca::mpp::RecvIterator;
 
 use foundation_core::synca::mpp::{bounded, unbounded, ReceiverError};
-use foundation_core::valtron::MonotonicClock;
 
 /// A real clock: this test only measures the monotonic timeout.
-fn clock() -> MonotonicClock {
-    MonotonicClock::new()
+fn clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }
 
 #[test]

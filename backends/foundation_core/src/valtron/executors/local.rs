@@ -18,12 +18,13 @@ use crate::{
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{
-        AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State, TaskIterator,
+        AnyResult, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State, TaskIterator,
         TaskStatus,
     },
 };
 use foundation_compact::rng::ChaCha8Rng;
 use foundation_compact::rng::SeedableRng;
+use foundation_context::Ctx;
 
 use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 
@@ -226,7 +227,7 @@ pub enum Sleepable {
         EventReadinessPtr,
         Entry,
         Option<crate::valtron::ParkGuard>,
-        sync::Arc<dyn crate::valtron::Clock>,
+        Ctx,
     ),
 }
 
@@ -261,9 +262,9 @@ impl Timeable for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
             Sleepable::Atomic(_, _) => None,
-            Sleepable::Readiness(signal, _, _, clock) => signal
+            Sleepable::Readiness(signal, _, _, ctx) => signal
                 .deadline()
-                .map(|deadline| deadline.saturating_duration_since(clock.now())),
+                .map(|deadline| deadline.saturating_duration_since(ctx.clock().now())),
         }
     }
 
@@ -284,13 +285,13 @@ impl Waiter for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.is_ready(dur),
             Sleepable::Atomic(inner, _) => inner.load(atomic::Ordering::SeqCst),
-            Sleepable::Readiness(signal, _, Some(park), clock) => {
+            Sleepable::Readiness(signal, _, Some(park), ctx) => {
                 // The signal wakes this task: look at it only after a wake (the
                 // first look is after the park, see `ParkState::new`) or when its
                 // deadline has passed. A wake for another task costs nothing here.
                 let due = signal
                     .deadline()
-                    .is_some_and(|deadline| clock.now() >= deadline);
+                    .is_some_and(|deadline| ctx.clock().now() >= deadline);
                 (park.0.take_woken() || due) && signal.is_ready(dur)
             }
             Sleepable::Readiness(signal, _, None, _) => signal.is_ready(dur),
@@ -499,8 +500,9 @@ impl<T> NotifyQueue<T> {
     pub fn wait_for_item(
         &self,
         timeout: time::Duration,
-        clock: &dyn crate::valtron::Clock,
+        clock: &dyn foundation_context::Clock,
     ) -> Option<NotificationItem<T>> {
+        // Kept: the blocking consumer has no caller `Ctx` on this path (see report).
         // First try non-blocking pop
         match self.pop() {
             Ok(item) => return Some(NotificationItem::Ready(item)),
@@ -691,7 +693,7 @@ impl<T> NotifyRecvIter<T> {
         // A blocking consumer parks on the real operating-system clock
         // (GitHub issue #102).
         self.queue
-            .wait_for_item(timeout, &crate::valtron::MonotonicClock::new())
+            .wait_for_item(timeout, &foundation_context::MonotonicClock::new())
     }
 }
 
@@ -861,10 +863,10 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
 
         // Queue is empty - block efficiently until item is available. The
         // blocking consumer parks on the real clock (GitHub issue #102).
-        match self
-            .chan
-            .wait_for_item(self.park_duration, &crate::valtron::MonotonicClock::new())
-        {
+        match self.chan.wait_for_item(
+            self.park_duration,
+            &foundation_context::MonotonicClock::new(),
+        ) {
             Some(NotificationItem::Ready(value)) => Some(value),
             Some(NotificationItem::None) => {
                 // Queue open but empty after max_spins — signal executor to yield
@@ -1034,8 +1036,9 @@ const DEPENDS_TRUE_PANIC_THRESHOLD: u32 = 4096;
 
 impl ExecutorState {
     /// The engine clock, seeded from the pool root [`Ctx`].
+    /// Kept: executor root plumbing; it returns the clock of the root `Ctx`.
     #[must_use]
-    pub fn clock(&self) -> Arc<dyn crate::valtron::Clock> {
+    pub fn clock(&self) -> Arc<dyn foundation_context::Clock> {
         self.root.clock()
     }
 
@@ -1083,7 +1086,7 @@ impl ExecutorState {
             task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             local_tasks: rc::Rc::new(cell::RefCell::new(EntryList::new())),
-            sleepers: Sleepers::with_max_readiness_wait(readiness_wait, root.clock()),
+            sleepers: Sleepers::with_max_readiness_wait(readiness_wait, root.clone()),
             processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
                 DEQUEUE_CAPACITY,
             ))),
@@ -1974,7 +1977,7 @@ impl ExecutorState {
                         Sleepable::Timable(DurationWaker::from_now(
                             top_entry,
                             inner,
-                            self.root.clock(),
+                            self.root.clone(),
                         )),
                     );
 
@@ -2097,7 +2100,7 @@ impl ExecutorState {
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 self.sleepers.insert(
                     top_entry,
-                    Sleepable::Readiness(signal, top_entry, park, self.root.clock()),
+                    Sleepable::Readiness(signal, top_entry, park, self.root.clone()),
                 );
 
                 if self.has_incoming_global_tasks() || self.has_inflight_task() {
@@ -2337,9 +2340,10 @@ impl ReferencedExecutorState {
     }
 
     /// The engine clock, seeded from the pool root [`Ctx`].
+    /// Kept: executor root plumbing; it returns the clock of the pool `Ctx`.
     #[inline]
     #[must_use]
-    pub fn clock(&self) -> Arc<dyn crate::valtron::Clock> {
+    pub fn clock(&self) -> Arc<dyn foundation_context::Clock> {
         self.inner.clock()
     }
 
@@ -3233,9 +3237,10 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     }
 
     /// The engine clock, seeded from the pool root [`Ctx`].
+    /// Kept: executor root plumbing; it returns the clock of the engine state `Ctx`.
     #[inline]
     #[must_use]
-    pub(crate) fn state_clock(&self) -> Arc<dyn crate::valtron::Clock> {
+    pub(crate) fn state_clock(&self) -> Arc<dyn foundation_context::Clock> {
         self.state.clock()
     }
 

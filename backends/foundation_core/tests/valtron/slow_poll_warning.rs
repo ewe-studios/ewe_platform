@@ -16,8 +16,9 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::valtron::multi::{initialize_pool_with_config, spawn, PoolConfig};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use tracing::field::{Field, Visit};
 use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;

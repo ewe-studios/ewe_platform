@@ -18,7 +18,9 @@ use core::task::{Context, Poll, Waker};
 use std::boxed::Box;
 use std::sync::Arc;
 
-use crate::valtron::{queue_waker, Ctx, TaskIterator, TaskStatus, WakeToken};
+use crate::valtron::{queue_waker, TaskIterator, TaskStatus, WakeToken};
+
+use foundation_context::Ctx;
 
 /// The async transition's return: the next state plus a [`TaskStatus`].
 pub type TransitionOutput<T, R, P> = Option<(T, TaskStatus<R, P>)>;

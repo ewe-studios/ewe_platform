@@ -18,9 +18,11 @@ use std::sync::Arc;
 use std::task::{Context, Poll, Waker};
 
 use foundation_core::valtron::{
-    execute, valtron_test, BoolSignal, Ctx, EventReadiness, StreamIteratorExt, TaskIterator,
-    TaskStatus, WakeSignal,
+    execute, valtron_test, BoolSignal, EventReadiness, StreamIteratorExt, TaskIterator, TaskStatus,
+    WakeSignal,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// A task that emits `Init`, then `Pending`, then parks on `Wait` forever —

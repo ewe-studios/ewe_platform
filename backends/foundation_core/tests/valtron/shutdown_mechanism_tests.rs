@@ -10,9 +10,9 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{
-    multi::spawn, valtron_test, Ctx, FnReady, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{multi::spawn, valtron_test, FnReady, TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 /// Task that returns Ready a limited number of times then completes
 struct FiniteTask {
     remaining: usize,

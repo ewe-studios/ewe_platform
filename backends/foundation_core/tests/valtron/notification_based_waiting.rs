@@ -20,10 +20,11 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
+use foundation_context::Ctx;
 #[cfg(feature = "multi")]
 use foundation_core::valtron::NotifyRecvIter;
 use foundation_core::valtron::{
-    Ctx, ExecutionAction, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask,
+    ExecutionAction, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask,
 };
 use foundation_core::valtron::{
     InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotificationItem, NotifyQueue,
@@ -69,7 +70,7 @@ fn test_notify_queue_blocks_until_item_available() {
     loop {
         match queue.wait_for_item(
             Duration::from_micros(100),
-            &foundation_core::valtron::MonotonicClock::new(),
+            &foundation_context::MonotonicClock::new(),
         ) {
             Some(NotificationItem::Ready(val)) => {
                 result = Some(val);
@@ -102,7 +103,7 @@ fn test_notify_queue_returns_none_when_closed() {
     // Should return None immediately since queue is closed
     let result = queue.wait_for_item(
         Duration::from_millis(100),
-        &foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::MonotonicClock::new(),
     );
     assert!(result.is_none());
 }
@@ -118,7 +119,7 @@ fn test_notify_queue_receives_item_with_notification() {
     // Should receive immediately with short timeout
     let result = queue.wait_for_item(
         Duration::from_micros(100),
-        &foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::MonotonicClock::new(),
     );
     assert_eq!(result, Some(NotificationItem::Ready(42)));
 }
@@ -145,7 +146,7 @@ fn test_notify_queue_multiple_items_blocking() {
         loop {
             match queue.wait_for_item(
                 Duration::from_micros(100),
-                &foundation_core::valtron::MonotonicClock::new(),
+                &foundation_context::MonotonicClock::new(),
             ) {
                 Some(NotificationItem::Ready(item)) => {
                     received.push(item);
@@ -176,7 +177,7 @@ fn test_notify_queue_race_condition_handling() {
     let start = Instant::now();
     let result = queue.wait_for_item(
         Duration::from_millis(100),
-        &foundation_core::valtron::MonotonicClock::new(),
+        &foundation_context::MonotonicClock::new(),
     );
     let elapsed = start.elapsed();
 
@@ -231,7 +232,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
     loop {
         match queue.wait_for_item(
             Duration::from_micros(1),
-            &foundation_core::valtron::MonotonicClock::new(),
+            &foundation_context::MonotonicClock::new(),
         ) {
             Some(NotificationItem::Ready(val)) => {
                 result = Some(val);
@@ -565,10 +566,9 @@ fn test_single_threaded_producer_consumer_interleaved() {
         produced += 1;
 
         // Consume with short timeout
-        if let Some(NotificationItem::Ready(val)) = queue.wait_for_item(
-            short_timeout,
-            &foundation_core::valtron::MonotonicClock::new(),
-        ) {
+        if let Some(NotificationItem::Ready(val)) =
+            queue.wait_for_item(short_timeout, &foundation_context::MonotonicClock::new())
+        {
             assert_eq!(val, i);
             consumed += 1;
         }

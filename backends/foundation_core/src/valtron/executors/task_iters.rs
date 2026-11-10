@@ -23,7 +23,8 @@ use crate::valtron::{
     task::{TaskSpread, TaskStatus},
     BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
-use crate::valtron::{BoxedExecutionIterator, Ctx, ExecutionIterator, State};
+use crate::valtron::{BoxedExecutionIterator, ExecutionIterator, State};
+use foundation_context::Ctx;
 // Only the `multi`-gated `Into<BoxedSendExecutionIterator>` impls use this alias.
 #[cfg(feature = "multi")]
 use crate::valtron::BoxedSendExecutionIterator;

@@ -10,8 +10,10 @@ use std::rc::Rc;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn, NoThreadController},
-    Ctx, FnReady, TaskIterator, TaskStatus,
+    FnReady, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 /// Task that returns Ready a limited number of times then completes
 struct FiniteTask {

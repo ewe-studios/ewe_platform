@@ -16,7 +16,9 @@
 //!
 //! [run]: ../../../examples/valtron_state_task.rs
 
-use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
+use crate::valtron::{execute, task, valtron, StreamIteratorExt, TaskStatus};
+
+use foundation_context::Ctx;
 
 /// The stages a house passes through on its way to completion.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

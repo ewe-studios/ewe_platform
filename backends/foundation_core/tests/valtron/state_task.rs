@@ -19,9 +19,11 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::{
-    sync_one, task, valtron_test, AsyncStateTask, AsyncTransition, Ctx, StateTask, TaskIterator,
+    sync_one, task, valtron_test, AsyncStateTask, AsyncTransition, StateTask, TaskIterator,
     TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 // ============================================================================
 // Core: StateTask (sync)

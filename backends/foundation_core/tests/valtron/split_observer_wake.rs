@@ -15,9 +15,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_core::valtron::{
-    CollectionState, Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus, WakeResult,
-    WakeableStream,
+    CollectionState, Stream, TaskIterator, TaskIteratorExt, TaskStatus, WakeResult, WakeableStream,
 };
+
+use foundation_context::Ctx;
 
 /// A task that yields its items once, in reverse order.
 struct TestTask {

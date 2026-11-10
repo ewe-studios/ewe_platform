@@ -12,12 +12,13 @@ use core::marker::PhantomData;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::{Ctx, TaskIterator, TaskStatus};
+use crate::valtron::{TaskIterator, TaskStatus};
 #[cfg(any(feature = "std", feature = "alloc"))]
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::pin::Pin;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::task::{Context, Poll};
+use foundation_context::Ctx;
 
 #[cfg(feature = "std")]
 use std::boxed::Box;

@@ -16,8 +16,9 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
+use foundation_core::valtron::{execute, task, valtron, StreamIteratorExt, TaskStatus};
 
 /// A tiny future that simulates a unit of async work: it yields `steps` times
 /// (each yield is one `Poll::Pending` with a self-wake) before completing.
