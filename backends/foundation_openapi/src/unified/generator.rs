@@ -1190,7 +1190,8 @@ pub struct UnifiedGenerator {
 /// fails: the requirement names a version the sibling no longer has.
 ///
 /// **WHAT:** renders the manifest, reading each sibling's version from that
-/// crate's own manifest.
+/// crate's own manifest. The group crate's own version comes from its committed
+/// manifest in `siblings`, or is `0.1.0` when the crate does not exist yet.
 ///
 /// **HOW:** the group crates live under `backends/`, next to the crates they
 /// depend on, so `siblings` is the workspace root that holds those crates and
@@ -1212,11 +1213,23 @@ pub fn group_crate_manifest(
     let deployment = sibling_version(siblings, "foundation_deployment")?;
     let macros_crate = sibling_version(siblings, "foundation_macros")?;
     let netio = sibling_version(siblings, "foundation_netio")?;
+    // The group crate keeps its own committed version, so a release bump
+    // survives a regeneration. A group crate that does not exist yet starts at
+    // 0.1.0. Any other read or parse failure is an error, not a silent default.
+    let own = match sibling_version(siblings, crate_name) {
+        Ok(version) => version,
+        Err(GenError::ReadFile { ref source, .. })
+            if source.kind() == std::io::ErrorKind::NotFound =>
+        {
+            "0.1.0".to_string()
+        }
+        Err(other) => return Err(other),
+    };
 
     let mut manifest = String::new();
     writeln!(manifest, "[package]").unwrap();
     writeln!(manifest, "name = \"{crate_name}\"").unwrap();
-    writeln!(manifest, "version = \"0.1.0\"").unwrap();
+    writeln!(manifest, "version = \"{own}\"").unwrap();
     writeln!(manifest, "edition.workspace = true").unwrap();
     writeln!(manifest, "rust-version.workspace = true").unwrap();
     writeln!(manifest, "license.workspace = true").unwrap();

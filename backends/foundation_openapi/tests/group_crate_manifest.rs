@@ -209,3 +209,49 @@ fn committed_group_manifests_require_current_sibling_versions() {
     }
     assert!(checked > 0, "no generated group crate was checked");
 }
+
+/// The group crate keeps its own committed version.
+///
+/// WHY: the generator wrote `version = "0.1.0"` for every group crate. A
+/// release bump of the committed crates then made `Codegen::check` fail, because
+/// the rendered manifests no longer matched them.
+#[test]
+fn the_group_crate_keeps_its_committed_version() {
+    let fixture = Fixture::new("own_version");
+    let own = fixture.siblings().join("foundation_cloudflare_access");
+    fs::create_dir_all(&own).expect("create the committed group crate");
+    fs::write(
+        own.join("Cargo.toml"),
+        "[package]\nname = \"foundation_cloudflare_access\"\nversion = \"9.5.1\"\n",
+    )
+    .expect("write the committed group manifest");
+
+    let manifest = group_crate_manifest(
+        &fixture.siblings(),
+        "foundation_cloudflare_access",
+        "access",
+    )
+    .expect("render the manifest");
+
+    assert!(
+        manifest.contains("\nversion = \"9.5.1\"\n"),
+        "the manifest must keep the committed version:\n{manifest}"
+    );
+}
+
+/// A group crate that does not exist yet starts at 0.1.0.
+#[test]
+fn a_new_group_crate_starts_at_0_1_0() {
+    let fixture = Fixture::new("new_crate");
+    let manifest = group_crate_manifest(
+        &fixture.siblings(),
+        "foundation_cloudflare_access",
+        "access",
+    )
+    .expect("render the manifest");
+
+    assert!(
+        manifest.contains("\nversion = \"0.1.0\"\n"),
+        "a new group crate must start at 0.1.0:\n{manifest}"
+    );
+}
