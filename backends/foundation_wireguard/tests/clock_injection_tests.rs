@@ -13,7 +13,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
 use foundation_wireguard::native::relay::RelayServer;
 use foundation_wireguard::shared::membership::PeerId;
 
@@ -26,8 +26,8 @@ fn peer(byte: u8) -> PeerId {
 #[test]
 fn relay_idle_timeout_follows_the_injected_clock() {
     let simulated = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let clock: Arc<dyn Clock> = Arc::clone(&simulated) as Arc<dyn Clock>;
-    let mut server = RelayServer::new(16, 1000, 1, clock);
+    let ctx = Ctx::fixed(Arc::clone(&simulated) as Arc<dyn Clock>);
+    let mut server = RelayServer::new(16, 1000, 1, ctx);
 
     assert!(server.attach(peer(7)));
     assert_eq!(server.session_count(), 1);
@@ -55,8 +55,8 @@ fn relay_idle_timeout_follows_the_injected_clock() {
 #[test]
 fn relay_reattach_refreshes_the_idle_window_on_the_injected_clock() {
     let simulated = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let clock: Arc<dyn Clock> = Arc::clone(&simulated) as Arc<dyn Clock>;
-    let mut server = RelayServer::new(16, 1000, 1, clock);
+    let ctx = Ctx::fixed(Arc::clone(&simulated) as Arc<dyn Clock>);
+    let mut server = RelayServer::new(16, 1000, 1, ctx);
 
     let id = peer(9);
     assert!(server.attach(id));
@@ -78,4 +78,21 @@ fn relay_reattach_refreshes_the_idle_window_on_the_injected_clock() {
     simulated.advance(Duration::from_millis(400));
     server.gc();
     assert_eq!(server.session_count(), 0);
+}
+
+/// A relay built from a `Ctx` reads the clock of that `Ctx`, so the change shows through the relay.
+#[test]
+fn relay_built_from_a_ctx_follows_the_ctx_clock() {
+    let simulated = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let ctx = Ctx::with_seed(Arc::clone(&simulated) as Arc<dyn Clock>, 7);
+    let mut server = RelayServer::new(16, 1000, 1, ctx);
+
+    assert!(server.attach(peer(3)));
+    simulated.advance(Duration::from_millis(1500));
+    server.gc();
+    assert_eq!(
+        server.session_count(),
+        0,
+        "the relay must read the clock of the Ctx it was built from"
+    );
 }

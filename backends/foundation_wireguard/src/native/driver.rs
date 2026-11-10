@@ -27,9 +27,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::shared::tunnel::{WgOutcome, WgTunnel};
-use foundation_core::valtron::{
-    Clock, Ctx, EventReadiness, ReadinessWaker, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{Ctx, EventReadiness, ReadinessWaker, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;
@@ -69,8 +67,8 @@ pub struct TunnelDriver<D: DataPlane = NetStack> {
     dataplane: D,
     peers: Vec<PeerLink>,
     recv_buf: Vec<u8>,
-    /// The injected clock: task wake times and timer deadlines come from it.
-    clock: Arc<dyn Clock>,
+    /// The injected context: task wake times and timer deadlines read its clock.
+    ctx: Ctx,
 }
 
 impl<D: DataPlane> std::fmt::Debug for TunnelDriver<D> {
@@ -83,13 +81,13 @@ impl<D: DataPlane> std::fmt::Debug for TunnelDriver<D> {
 
 impl<D: DataPlane> TunnelDriver<D> {
     #[must_use]
-    pub fn new(socket: UdpSocket, dataplane: D, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(socket: UdpSocket, dataplane: D, ctx: Ctx) -> Self {
         Self {
             socket,
             dataplane,
             peers: Vec::new(),
             recv_buf: vec![0u8; RECV_BUF],
-            clock,
+            ctx,
         }
     }
 
@@ -384,7 +382,7 @@ impl TaskIterator for TunnelDriverTask {
         if self.stop.load(Ordering::Relaxed) {
             return None;
         }
-        let now = self.driver.clock.now();
+        let now = self.driver.ctx.clock().now();
         let (had_work, deadline) = self.driver.drive_once(now);
 
         // Clear the latched readiness edge so the next event fires a fresh wake.
@@ -420,7 +418,7 @@ impl TaskIterator for TunnelDriverTask {
             let composite = TimedReadiness {
                 fd: Arc::clone(readiness),
                 deadline: now + max_park,
-                clock: Arc::clone(&self.driver.clock),
+                ctx: self.driver.ctx.clone(),
             };
             Some(TaskStatus::Depends(Arc::new(composite)))
         } else {
@@ -442,8 +440,8 @@ impl TaskIterator for TunnelDriverTask {
 pub(crate) struct TimedReadiness {
     pub(crate) fd: Arc<SharedReadiness>,
     pub(crate) deadline: Instant,
-    /// The injected clock the deadline is compared against.
-    pub(crate) clock: Arc<dyn Clock>,
+    /// The injected context. Its clock supplies the time the deadline is compared against.
+    pub(crate) ctx: Ctx,
 }
 
 impl std::fmt::Debug for TimedReadiness {
@@ -456,7 +454,7 @@ impl std::fmt::Debug for TimedReadiness {
 
 impl EventReadiness for TimedReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
-        self.fd.is_ready(None) || self.clock.now() >= self.deadline
+        self.fd.is_ready(None) || self.ctx.clock().now() >= self.deadline
     }
 
     fn deadline(&self) -> Option<Instant> {

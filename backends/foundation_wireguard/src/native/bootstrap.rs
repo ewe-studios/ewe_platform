@@ -16,7 +16,7 @@ use std::io::{self, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use super::noise_psk::{self, NoiseStream};
 use crate::shared::bootstrap::rpc::{Admission, BootstrapRequest, BootstrapResponse};
@@ -257,17 +257,13 @@ impl BootstrapServer {
     /// granularity — the reactor drain thread updates it asynchronously from
     /// epoll/kqueue events. Falls back to 50ms sleep when no reactor is running.
     ///
-    /// The idle wait deadline comes from `clock`, so a test can drive it with a
-    /// simulated clock and never sleep.
+    /// The idle wait deadline comes from the clock of `ctx`, so a test can drive it
+    /// with a simulated clock and never sleep.
     ///
     /// # Errors
     /// [`WgError::Io`] only on a fatal listener error; per-connection failures (e.g. a
     /// wrong-seed handshake) are logged and skipped.
-    pub fn serve_until(
-        &self,
-        stop: &std::sync::atomic::AtomicBool,
-        clock: &dyn Clock,
-    ) -> WgResult<()> {
+    pub fn serve_until(&self, stop: &std::sync::atomic::AtomicBool, ctx: &Ctx) -> WgResult<()> {
         use std::sync::atomic::Ordering;
         use std::time::Duration;
 
@@ -304,8 +300,8 @@ impl BootstrapServer {
                             reactor_token,
                             foundation_nativeapis::native::fd::Ready::READABLE,
                         );
-                        let deadline = clock.now() + Duration::from_millis(50);
-                        while clock.now() < deadline && !stop.load(Ordering::Relaxed) {
+                        let deadline = ctx.clock().now() + Duration::from_millis(50);
+                        while ctx.clock().now() < deadline && !stop.load(Ordering::Relaxed) {
                             if r.is_ready(reactor_token) {
                                 r.clear(
                                     reactor_token,

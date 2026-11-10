@@ -103,14 +103,14 @@ async fn overlay_rpc_parks_and_completes() {
 
     let handle_a = WgNode::from_config(
         WgConfig::seed(seed.clone(), net),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())),
     )
     .join()
     .expect("A join");
     let a_boot = handle_a.bootstrap_addr();
     let handle_b = WgNode::from_config(
         WgConfig::joiner(seed.clone(), net, vec![a_boot]),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())),
     )
     .join()
     .expect("B join");

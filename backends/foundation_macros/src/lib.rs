@@ -883,7 +883,10 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     udp_listen: "0.0.0.0:51820",
 ///     relay: { advertise: true },
 /// };
-/// let node = foundation_wireguard::native::WgNode::from_config(config);
+/// let node = foundation_wireguard::native::WgNode::from_config(
+///     config,
+///     foundation_core::valtron::Ctx::host(),
+/// );
 /// ```
 #[proc_macro]
 pub fn wireguard(input: TokenStream) -> TokenStream {

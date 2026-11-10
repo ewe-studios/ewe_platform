@@ -8,14 +8,14 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use foundation_wireguard::native::{WgConfig, WgNode};
 use foundation_wireguard::{IdentityKeypair, WgSeed};
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn mesh_uses_identity_keys_and_revoked_seed_blocks_new_join() {
     let network_id = seed.derive_network_id();
     let bootstrap = seed.derive_bootstrap(&network_id);
 
-    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id), test_clock())
+    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id), test_ctx())
         .join()
         .expect("A joins");
     let a_boot = node_a.bootstrap_addr();
@@ -48,7 +48,7 @@ fn mesh_uses_identity_keys_and_revoked_seed_blocks_new_join() {
     // B joins while the seed is valid.
     let node_b = WgNode::from_config(
         WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
-        test_clock(),
+        test_ctx(),
     )
     .join()
     .expect("B joins");
@@ -69,7 +69,7 @@ fn mesh_uses_identity_keys_and_revoked_seed_blocks_new_join() {
 
     let node_c = WgNode::from_config(
         WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
-        test_clock(),
+        test_ctx(),
     )
     .join();
     assert!(

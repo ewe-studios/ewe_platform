@@ -14,12 +14,11 @@
 
 use std::io;
 use std::net::SocketAddr;
-use std::sync::Arc;
 use std::time::Instant;
 
 use std::net::IpAddr;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_nativeapis::dataplane::netstack::{
     NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp,
 };
@@ -51,7 +50,7 @@ impl MeshDataPlane {
         mode: &DataPlaneMode,
         my_ip: IpAddr,
         prefix_len: u8,
-        clock: &Arc<dyn Clock>,
+        ctx: &Ctx,
     ) -> crate::shared::error::WgResult<Self> {
         Ok(match mode {
             DataPlaneMode::Tun { name, mtu } => {
@@ -69,7 +68,7 @@ impl MeshDataPlane {
             }
             DataPlaneMode::Netstack => Self::Stack(NetStack::new(
                 NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
-                clock,
+                &ctx.clock(),
             )),
         })
     }

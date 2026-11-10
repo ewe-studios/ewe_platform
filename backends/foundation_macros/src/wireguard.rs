@@ -312,11 +312,12 @@ pub fn wireguard_main_impl(attr: &TokenStream, item: TokenStream) -> TokenStream
                 ::core::option::Option::None,
             );
 
-            // Load config + join the mesh.
+            // Load config + join the mesh. The generated main is a host entry point,
+            // so it builds the host context once and passes it down.
             let __wg_config = #config_load;
             let __wg_node = foundation_wireguard::native::WgNode::from_config(
                 __wg_config,
-                ::std::sync::Arc::new(::foundation_core::valtron::MonotonicClock::new()),
+                ::foundation_core::valtron::Ctx::host(),
             );
             let __wg_handle = __wg_node.join().expect("wireguard mesh join failed");
 

@@ -11,14 +11,14 @@ use std::net::IpAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use foundation_wireguard::native::{WgConfig, WgHandle, WgNode};
 use foundation_wireguard::WgSeed;
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn network() -> (WgSeed, foundation_wireguard::NetworkId) {
@@ -116,7 +116,7 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     let (seed, network_id) = network();
 
     // Node A — the seed.
-    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id), test_clock())
+    let node_a = WgNode::from_config(WgConfig::seed(seed.clone(), network_id), test_ctx())
         .join()
         .expect("A joins");
     let a_boot = node_a.bootstrap_addr();
@@ -125,7 +125,7 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     // Node B joins A.
     let node_b = WgNode::from_config(
         WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
-        test_clock(),
+        test_ctx(),
     )
     .join()
     .expect("B joins");
@@ -135,7 +135,7 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     // Node C joins A too; it should learn about B purely via gossip/membership.
     let node_c = WgNode::from_config(
         WgConfig::joiner(seed.clone(), network_id, vec![a_boot]),
-        test_clock(),
+        test_ctx(),
     )
     .join()
     .expect("C joins");
@@ -177,7 +177,7 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     // A fourth node D joins from a survivor (B), proving the seed's role ended at t=0.
     let node_d = WgNode::from_config(
         WgConfig::joiner(seed.clone(), network_id, vec![b_boot]),
-        test_clock(),
+        test_ctx(),
     )
     .join()
     .expect("D joins from survivor B");

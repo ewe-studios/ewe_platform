@@ -10,14 +10,14 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use foundation_wireguard::{NetworkId, SeedBits, WgConfig, WgSeed};
 use std::sync::Mutex;
 use tracing_test::traced_test;
 
 /// The real clock for this host-level test.
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_ctx() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 /// Helper: generate a fresh 256-bit seed + its network id.
@@ -302,7 +302,7 @@ fn two_nodes_join_from_config() {
         .build()
         .expect("build A");
 
-    let handle_a = WgNode::from_config(cfg_a, test_clock())
+    let handle_a = WgNode::from_config(cfg_a, test_ctx())
         .join()
         .expect("join A");
     let a_boot = handle_a.bootstrap_addr();
@@ -318,7 +318,7 @@ fn two_nodes_join_from_config() {
         .expect("build B");
 
     // Node B: joiner from A.
-    let handle_b = WgNode::from_config(cfg_b, test_clock())
+    let handle_b = WgNode::from_config(cfg_b, test_ctx())
         .join()
         .expect("join B");
 

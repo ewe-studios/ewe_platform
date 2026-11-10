@@ -26,13 +26,14 @@ pub fn check() {
         }
     }
 
-    // Check 3: RelayServer + RelayClient instantiable (F05 relay)
+    // Check 3: RelayServer + RelayClient constructors exist (F05 relay)
     {
         use crate::shared::relay::{RelaySelector, RelayStrategy};
-        use foundation_core::valtron::MonotonicClock;
-        use std::sync::Arc;
-        let _s =
-            crate::native::relay::RelayServer::new(16, 1000, 60, Arc::new(MonotonicClock::new()));
+        use foundation_core::valtron::Ctx;
+        // A typed function pointer checks the constructor signature. It builds no
+        // clock and no context, so library code never reads the real clock here.
+        let _new_server: fn(u32, u32, u64, Ctx) -> crate::native::relay::RelayServer =
+            crate::native::relay::RelayServer::new;
         let _c =
             crate::native::relay::RelayClient::new(RelaySelector::new(RelayStrategy::LowestLoad));
     }
