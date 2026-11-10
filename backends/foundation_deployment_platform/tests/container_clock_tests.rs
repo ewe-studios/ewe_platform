@@ -19,7 +19,7 @@ use std::net::{Ipv4Addr, TcpListener};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerError, WaitFor, wait_for_port_at,
 };
@@ -47,14 +47,15 @@ fn a_container_without_a_clock_does_not_start() {
 fn a_container_config_uses_the_injected_clock() {
     let simulated = Arc::new(SimulatedClock::new(Duration::ZERO));
     let clock: Arc<dyn Clock> = simulated.clone();
+    let ctx = Ctx::fixed(Arc::clone(&clock));
 
-    let config = ContainerConfig::new("redis:7-alpine").clock(Arc::clone(&clock));
+    let config = ContainerConfig::new("redis:7-alpine").ctx(ctx.clone());
     let injected = config
-        .clock
+        .ctx
         .as_ref()
-        .expect("the config must keep the injected clock");
+        .expect("the config must keep the injected context");
     assert!(
-        Arc::ptr_eq(injected, &clock),
+        Arc::ptr_eq(&injected.clock(), &clock),
         "the config must hold the exact clock the caller injected"
     );
 
@@ -80,7 +81,7 @@ fn a_container_config_uses_the_injected_clock() {
         port,
         timeout,
         &ports,
-        clock.as_ref(),
+        &ctx,
     ))
     .expect_err("the closed port must time out");
 

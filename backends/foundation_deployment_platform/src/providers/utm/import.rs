@@ -11,7 +11,7 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::config::{Result, TestbedError, VmProfile};
 use crate::providers::http;
@@ -27,7 +27,7 @@ use super::bundle;
 ///
 /// # Panics
 /// Panics if the prepared bundle path is not valid UTF-8.
-pub fn ensure_utm_bundle(profile: &VmProfile, clock: &dyn Clock) -> Result<PathBuf> {
+pub fn ensure_utm_bundle(profile: &VmProfile, ctx: &Ctx) -> Result<PathBuf> {
     // Already imported under our profile name? Reuse it.
     if super::utmctl::list_vms()?
         .into_iter()
@@ -60,7 +60,7 @@ pub fn ensure_utm_bundle(profile: &VmProfile, clock: &dyn Clock) -> Result<PathB
 
     // Import
     eprintln!("  Importing into UTM.app...");
-    let uuid = super::applescript::import_bundle(prepared.to_str().unwrap(), clock)?;
+    let uuid = super::applescript::import_bundle(prepared.to_str().unwrap(), ctx)?;
 
     // Verify bundle on disk — orphan cleanup if collision
     let display_name = profile.name;

@@ -15,7 +15,7 @@ use crate::ssh;
 use crate::state;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::ProgressCallback;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -26,17 +26,14 @@ fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, 
 }
 
 /// Ensure the VM image is available in the cache.
-fn ensure_image(
-    profile: &crate::config::VmProfile,
-    clock: Arc<dyn Clock>,
-) -> Result<(), BoxedError> {
+fn ensure_image(profile: &crate::config::VmProfile, ctx: &Ctx) -> Result<(), BoxedError> {
     let cache_path = profile.image_cache_path();
     if cache_path.exists() {
         return Ok(());
     }
 
     eprintln!("  Image not cached, importing...");
-    let provider = default_provider(clock)?;
+    let provider = default_provider(ctx.clone())?;
     let path = provider
         .ensure_image(profile)
         .map_err(|e| format!("Failed to import image: {e}"))?;
@@ -47,7 +44,7 @@ fn ensure_image(
 /// Launch the VM if not already running. Returns resolved ports.
 fn ensure_vm_running(
     profile: &crate::config::VmProfile,
-    clock: Arc<dyn Clock>,
+    ctx: &Ctx,
 ) -> Result<ResolvedPorts, BoxedError> {
     // Check if there's existing state with a live PID
     if state::is_running(&profile.name) {
@@ -66,7 +63,7 @@ fn ensure_vm_running(
     }
 
     eprintln!("  VM '{}' not running, launching...", profile.name);
-    let provider = default_provider(clock)?;
+    let provider = default_provider(ctx.clone())?;
     let handle = provider
         .launch(profile, DisplayMode::Headless)
         .map_err(|e| format!("Failed to launch VM: {e}"))?;
@@ -81,31 +78,28 @@ fn ensure_vm_running(
     Ok(ports)
 }
 
-pub fn cmd_bootstrap(
-    args: &ArgMatches,
-    clock: Arc<dyn Clock>,
-) -> std::result::Result<(), BoxedError> {
+pub fn cmd_bootstrap(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let force_vsbuild = args.get_flag("force-vsbuild");
     let profile = resolve_profile(name)?;
 
     // Create logger — writes to $PWD/.testbed/<vm-name>/bootstrap.log
     let logger = Arc::new(
-        BootstrapLogger::new(name, Arc::clone(&clock))
+        BootstrapLogger::new(name, ctx.clone())
             .map_err(|e| format!("Failed to create bootstrap logger: {e}"))?,
     );
 
     // Check if already bootstrapped
-    if bootstrap::is_bootstrapped(&profile, Arc::clone(&clock)) {
+    if bootstrap::is_bootstrapped(&profile, ctx) {
         logger.message("already bootstrapped, skipping.");
         return Ok(());
     }
 
     // Ensure image is imported
-    ensure_image(&profile, Arc::clone(&clock))?;
+    ensure_image(&profile, ctx)?;
 
     // Ensure VM is running (auto-launch if needed)
-    let ports = ensure_vm_running(&profile, clock)?;
+    let ports = ensure_vm_running(&profile, ctx)?;
 
     // Progress callback: reports to logger during long-running elevated steps
     let logger_for_progress = Arc::clone(&logger);
@@ -163,7 +157,7 @@ fn bootstrap_windows(
             winrm_port,
             profile.user,
             profile.pass,
-            logger.clock(),
+            logger.ctx().clone(),
         );
         if winrm.ping() {
             break;
@@ -178,7 +172,7 @@ fn bootstrap_windows(
         winrm_port,
         profile.user,
         profile.pass,
-        logger.clock(),
+        logger.ctx().clone(),
     );
     bootstrap::windows::bootstrap_windows_winrm_phase(profile, &winrm, logger, progress)?;
 
@@ -216,7 +210,7 @@ fn bootstrap_windows(
     // Verify with retry — WinRM may need time to stabilize after nushell setup
     let mut verified = false;
     for attempt in 0..5 {
-        if bootstrap::is_bootstrapped(profile, logger.clock()) {
+        if bootstrap::is_bootstrapped(profile, logger.ctx()) {
             verified = true;
             break;
         }

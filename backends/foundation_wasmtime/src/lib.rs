@@ -60,7 +60,7 @@ use std::time::{Duration as StdDuration, UNIX_EPOCH};
 
 use derive_more::Display;
 use foundation_compact::rng::{ChaCha8Rng, Rng as CompactRng};
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_core::valtron::Ctx;
 use foundation_errstacks::ErrorTrace;
 use wasmtime::{Engine, Instance, Linker, Memory, Module, Store};
 use wasmtime_wasi::preview1::{self, WasiP1Ctx};
@@ -81,7 +81,7 @@ const HANDLE_REQUEST_EXPORT: &str = "handle_request";
 /// host global. A test then controls realtime too (spec 70 rule 11).
 #[derive(Clone)]
 struct InjectedWallClock {
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl HostWallClock for InjectedWallClock {
@@ -93,7 +93,8 @@ impl HostWallClock for InjectedWallClock {
     fn now(&self) -> StdDuration {
         // A clock seeded before the UNIX epoch cannot represent a WASI
         // timestamp. Report the epoch instead of returning a wrapped value.
-        self.clock
+        self.ctx
+            .clock()
             .wall_now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or(StdDuration::ZERO)
@@ -106,7 +107,7 @@ impl HostWallClock for InjectedWallClock {
 /// test with a simulated clock sees the time it advanced, not real time.
 #[derive(Clone)]
 struct InjectedMonotonicClock {
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl HostMonotonicClock for InjectedMonotonicClock {
@@ -117,7 +118,7 @@ impl HostMonotonicClock for InjectedMonotonicClock {
     fn now(&self) -> u64 {
         // `elapsed` is monotonic by the `Clock` contract. Nanoseconds do not
         // fit in `u64` only after about 584 years; saturate rather than wrap.
-        u64::try_from(self.clock.elapsed().as_nanos()).unwrap_or(u64::MAX)
+        u64::try_from(self.ctx.clock().elapsed().as_nanos()).unwrap_or(u64::MAX)
     }
 }
 
@@ -334,13 +335,11 @@ impl WasmtimeBuilder {
         preview1::add_to_linker_sync(&mut linker, |state: &mut HostState| &mut state.wasi)
             .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
 
-        let clock = ctx.clock();
+        // Each wrapper keeps its own handle to the injected context.
         let mut wasi = WasiCtxBuilder::new();
-        wasi.wall_clock(InjectedWallClock {
-            clock: Arc::clone(&clock),
-        })
-        .monotonic_clock(InjectedMonotonicClock { clock })
-        .secure_random(InjectedRng { rng: ctx.rng() });
+        wasi.wall_clock(InjectedWallClock { ctx: ctx.clone() })
+            .monotonic_clock(InjectedMonotonicClock { ctx: ctx.clone() })
+            .secure_random(InjectedRng { rng: ctx.rng() });
         let wasi = wasi.build_p1();
         let mut store = Store::new(&engine, HostState { wasi });
         let instance = linker

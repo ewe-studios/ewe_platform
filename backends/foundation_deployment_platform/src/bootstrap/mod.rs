@@ -6,11 +6,10 @@
 //!
 //! After bootstrap, nushell is the default execution shell.
 
-use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::config::{GuestOs, Result, VmProfile};
 use crate::ssh::VmSession;
@@ -32,11 +31,11 @@ const MACOS_MARKER: &str = "/Users/vagrant/.testbed-bootstrapped";
 
 /// Check if a profile's VM has already been bootstrapped.
 #[must_use]
-pub fn is_bootstrapped(profile: &VmProfile, clock: Arc<dyn Clock>) -> bool {
+pub fn is_bootstrapped(profile: &VmProfile, ctx: &Ctx) -> bool {
     match profile.os {
         GuestOs::Windows => {
             // Try WinRM first, fall back to SSH (WinRM may be down after nushell setup)
-            if let Ok(winrm) = WinRM::from_profile(profile, clock) {
+            if let Ok(winrm) = WinRM::from_profile(profile, ctx.clone()) {
                 let result = winrm.run_ps_quiet(&format!(
                     "if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}"
                 ));
@@ -102,17 +101,17 @@ pub fn bootstrap(
     logger: &BootstrapLogger,
     progress: ProgressCallback<'_>,
 ) -> Result<()> {
-    if is_bootstrapped(profile, logger.clock()) {
+    if is_bootstrapped(profile, logger.ctx()) {
         logger.message("already bootstrapped, skipping");
         return Ok(());
     }
 
     match profile.os {
         GuestOs::Windows => {
-            let winrm = WinRM::from_profile(profile, logger.clock())?;
+            let winrm = WinRM::from_profile(profile, logger.ctx().clone())?;
 
             // Phase 1: WinRM-only (installs OpenSSH)
-            if !is_bootstrapped(profile, logger.clock()) {
+            if !is_bootstrapped(profile, logger.ctx()) {
                 windows::bootstrap_windows_winrm_phase(profile, &winrm, logger, progress)?;
             }
 
@@ -149,7 +148,7 @@ pub fn bootstrap(
     }
 
     // Verify bootstrap succeeded
-    if !is_bootstrapped(profile, logger.clock()) {
+    if !is_bootstrapped(profile, logger.ctx()) {
         return Err(crate::config::TestbedError::BootstrapFailed {
             step: "verification".to_string(),
             message: "bootstrap marker not found after completion".to_string(),

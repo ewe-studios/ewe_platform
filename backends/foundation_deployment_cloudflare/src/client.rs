@@ -1,9 +1,7 @@
 //! `CloudflareClient` — wraps the auto-generated async `*_request` functions
 //! with auth injection and typed domain structs.
 
-use std::sync::Arc;
-
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 use crate::types::CloudflareError;
@@ -21,8 +19,8 @@ pub struct CloudflareClient {
     zone_id: String,
     domain: String,
     base_url: String,
-    /// The clock that stamps a DNS record this client creates.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock stamps a DNS record this client creates.
+    ctx: Ctx,
 }
 
 impl CloudflareClient {
@@ -32,7 +30,7 @@ impl CloudflareClient {
     /// # Errors
     /// Returns [`CloudflareError::Auth`] when `CLOUDFLARE_API_TOKEN` or
     /// `CLOUDFLARE_ZONE_ID` is absent.
-    pub fn from_env(clock: Arc<dyn Clock>) -> Result<Self, CloudflareError> {
+    pub fn from_env(ctx: Ctx) -> Result<Self, CloudflareError> {
         let token = std::env::var("CLOUDFLARE_API_TOKEN")
             .map_err(|_| CloudflareError::Auth("CLOUDFLARE_API_TOKEN not set".into()))?;
         let zone_id = std::env::var("CLOUDFLARE_ZONE_ID")
@@ -44,36 +42,32 @@ impl CloudflareClient {
             zone_id,
             domain,
             base_url: DEFAULT_BASE_URL.to_string(),
-            clock,
+            ctx,
         })
     }
 
-    /// Create with explicit credentials and the injected clock.
-    pub fn new(token: String, zone_id: String, clock: Arc<dyn Clock>) -> Self {
+    /// Create with explicit credentials and the injected context.
+    #[must_use]
+    pub fn new(token: String, zone_id: String, ctx: Ctx) -> Self {
         Self {
             http: HttpClientBuilder::new().build(),
             token,
             zone_id,
             domain: String::new(),
             base_url: DEFAULT_BASE_URL.to_string(),
-            clock,
+            ctx,
         }
     }
 
     /// Create with an externally-provided client (for testing or custom config).
-    pub fn with_client(
-        http: DynNetClient,
-        token: String,
-        zone_id: String,
-        clock: Arc<dyn Clock>,
-    ) -> Self {
+    pub fn with_client(http: DynNetClient, token: String, zone_id: String, ctx: Ctx) -> Self {
         Self {
             http,
             token,
             zone_id,
             domain: String::new(),
             base_url: DEFAULT_BASE_URL.to_string(),
-            clock,
+            ctx,
         }
     }
 
@@ -107,10 +101,10 @@ impl CloudflareClient {
         &self.base_url
     }
 
-    /// The clock that stamps a DNS record this client creates.
+    /// The context whose clock stamps a DNS record this client creates.
     #[must_use]
-    pub fn clock(&self) -> &Arc<dyn Clock> {
-        &self.clock
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 
     /// Point the client at a different base URL — a mock server, in practice.

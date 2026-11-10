@@ -64,8 +64,34 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
     `platform_run!` doc example calls `.ctx(Ctx::host())`. Commit `73f2616fc`.
   - The CI scripts `check_time_sources.py` and `check_executor_wake.py` pass.
 
+- 2026-11-10: wave 2, lane `spec76/w2` (local branch, not pushed). Five crates take `Ctx`
+  instead of `dyn Clock`:
+  - `foundation_deployment_platform`: commits `af53fb46e`, merge `dd974b4f8`, `d1ac0d926`
+    and `765042e1e` (new test `winrm_clock_tests`). The `dyn Clock` sites in `src` drop
+    from 81 to 2. The two kept sites are the `clock()` getters of `WinRM` and
+    `BootstrapLogger`. Tests pass with default features and with `vms`. clippy
+    `-D warnings` is clean for both.
+  - `foundation_macros`: commit `9f07eeeba`. The `proxy!` doc example passes
+    `Ctx::host()` to the async `start` call.
+  - `foundation_browser`: commit `6ce32a37f`. The `dyn Clock` sites drop from 19 to 0.
+    `LaunchConfig::ctx` replaces `clock`. A launch without a context returns
+    `BrowserError::Launch` and no longer panics. `foundation_testbed` passes its `Ctx`
+    directly. Tests pass. clippy is clean. The `browser-tests` feature compiles.
+  - `foundation_deployment_cloudflare`: commit `6e23326f2`. The `dyn Clock` sites drop
+    from 5 to 0. `CloudflareClient::clock()` is now `ctx()`. Default tests pass. clippy is
+    clean. The wasm32 checks pass for the default and `workers` feature sets.
+  - `foundation_wasmtime`: commit `5b825884d`. The WASI wall and monotonic clock wrappers
+    hold a `Ctx`. The `dyn Clock` sites drop from 2 to 0. Tests pass. clippy is clean.
+    CI has no entry for this crate, so only default features were run.
+  - The CI scripts `check_time_sources.py` and `check_executor_wake.py` pass.
+  - Nothing is pushed. The owner reviews the lane before any push.
+
 ## In progress
 
+- Wave 2: the `WinRM` and `BootstrapLogger` `clock()` getters still return `Arc<dyn Clock>`.
+  Decide whether they should expose the `Ctx` only.
+- Wave 2: the browser supervisor waits and the testbed browser runner sleep with
+  `std::thread::sleep`. The deadline reads the `Ctx`, but the sleep does not. See learnings.
 - Wave 1 small-crates lane: clippy, the remaining doctests, and the GitHub issues for the
   findings listed in the report.
 - Wave 1 platform lane: `foundation_platform` does not compile in this environment. The

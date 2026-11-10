@@ -11,34 +11,33 @@
 //! CDP (Chromium) or `BiDi` (Firefox) — behind one `Page` API.
 
 use std::path::Path;
-use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use serde_json::Value;
 
 use crate::backend::Backend;
 use crate::bidi::backend::BiDiBackend;
 use crate::cdp::backend::CdpBackend;
 use crate::cdp::launch::{Browser, LaunchConfig};
-use crate::error::Result;
+use crate::error::{BrowserError, Result};
 use crate::jsonrpc::RpcEngine;
 use crate::supervisor::BrowserProcess;
 
-/// The clock a driver reads: an owned `Arc`, or a borrow from the host.
+/// The context a driver reads: an owned [`Ctx`], or a borrow from the host.
 ///
-/// A launch with a [`LaunchConfig`] owns an `Arc`; the testbed browser runner
-/// already holds a `&dyn Clock`, so it borrows that same instance.
-enum ClockSource<'a> {
-    Shared(Arc<dyn Clock>),
-    Borrowed(&'a dyn Clock),
+/// A launch with a [`LaunchConfig`] owns its `Ctx`; the testbed browser runner
+/// already holds a `&Ctx`, so it borrows that same instance.
+enum CtxSource<'a> {
+    Shared(Ctx),
+    Borrowed(&'a Ctx),
 }
 
-impl ClockSource<'_> {
-    fn clock_ref(&self) -> &dyn Clock {
+impl CtxSource<'_> {
+    fn ctx_ref(&self) -> &Ctx {
         match self {
-            Self::Shared(clock) => clock.as_ref(),
-            Self::Borrowed(clock) => *clock,
+            Self::Shared(ctx) => ctx,
+            Self::Borrowed(ctx) => ctx,
         }
     }
 }
@@ -50,7 +49,7 @@ impl ClockSource<'_> {
 pub struct BrowserDriver<'a> {
     engine: RpcEngine,
     browser: Browser,
-    clock: ClockSource<'a>,
+    ctx: CtxSource<'a>,
     #[allow(dead_code)] // held for its Drop (kills the process)
     process: BrowserProcess,
 }
@@ -62,26 +61,27 @@ impl BrowserDriver<'static> {
     /// [`BrowserError`] if the browser is missing, the launch fails, or the
     /// CDP/BiDi socket can't be reached.
     ///
-    /// # Panics
-    /// Panics when `config` has no clock. Call [`LaunchConfig::clock`] first.
+    ///
+    /// # Errors
+    /// [`BrowserError::Launch`] if `config` has no context. Call
+    /// [`LaunchConfig::ctx`] first.
     #[expect(
         clippy::needless_pass_by_value,
         reason = "public API takes LaunchConfig by value; a reference would break every caller"
     )]
     pub fn launch(config: LaunchConfig) -> Result<Self> {
-        let clock = config
-            .clock
-            .clone()
-            .expect("LaunchConfig has no clock: call .clock(clock) before launch");
-        Self::launch_inner(&config, ClockSource::Shared(clock))
+        let ctx = config.ctx.clone().ok_or_else(|| {
+            BrowserError::Launch("LaunchConfig has no Ctx: call .ctx(ctx) before launch".into())
+        })?;
+        Self::launch_inner(&config, CtxSource::Shared(ctx))
     }
 }
 
 impl<'a> BrowserDriver<'a> {
-    /// Launch a browser and connect the driver, borrowing `clock`.
+    /// Launch a browser and connect the driver, borrowing `ctx`.
     ///
-    /// Use this when the caller already holds a `&dyn Clock`, so no second
-    /// clock instance enters the launch path.
+    /// Use this when the caller already holds a `&Ctx`, so no second
+    /// context enters the launch path.
     ///
     /// # Errors
     /// [`BrowserError`] if the browser is missing, the launch fails, or the
@@ -90,16 +90,16 @@ impl<'a> BrowserDriver<'a> {
         clippy::needless_pass_by_value,
         reason = "public API takes LaunchConfig by value; a reference would break every caller"
     )]
-    pub fn launch_borrowed(config: LaunchConfig, clock: &'a dyn Clock) -> Result<Self> {
-        Self::launch_inner(&config, ClockSource::Borrowed(clock))
+    pub fn launch_borrowed(config: LaunchConfig, ctx: &'a Ctx) -> Result<Self> {
+        Self::launch_inner(&config, CtxSource::Borrowed(ctx))
     }
 
-    fn launch_inner(config: &LaunchConfig, clock: ClockSource<'a>) -> Result<Self> {
+    fn launch_inner(config: &LaunchConfig, ctx: CtxSource<'a>) -> Result<Self> {
         let browser = config.browser;
-        let process = BrowserProcess::launch(config, clock.clock_ref())?;
+        let process = BrowserProcess::launch(config, ctx.ctx_ref())?;
         // Firefox's remote agent takes a beat to start listening; CDP's endpoint
         // is ready as soon as DevToolsActivePort appears, so one shot suffices.
-        let engine = connect_with_retry(process.ws_url(), browser, clock.clock_ref())?;
+        let engine = connect_with_retry(process.ws_url(), browser, ctx.ctx_ref())?;
         // BiDi is connection-scoped: open the session once, up front.
         if browser == Browser::Firefox {
             crate::bidi::new_session(&engine)?;
@@ -107,7 +107,7 @@ impl<'a> BrowserDriver<'a> {
         Ok(Self {
             engine,
             browser,
-            clock,
+            ctx,
             process,
         })
     }
@@ -123,22 +123,22 @@ impl<'a> BrowserDriver<'a> {
         };
         Ok(Page {
             backend,
-            clock: self.clock.clock_ref(),
+            ctx: self.ctx.ctx_ref(),
         })
     }
 }
 
 /// Connect the engine, retrying briefly (Firefox needs a moment to listen).
-fn connect_with_retry(ws_url: &str, browser: Browser, clock: &dyn Clock) -> Result<RpcEngine> {
+fn connect_with_retry(ws_url: &str, browser: Browser, ctx: &Ctx) -> Result<RpcEngine> {
     let call_timeout = Duration::from_secs(30);
     if browser == Browser::Chromium {
         return RpcEngine::connect(ws_url, call_timeout);
     }
-    let deadline = clock.now() + Duration::from_secs(20);
+    let deadline = ctx.clock().now() + Duration::from_secs(20);
     loop {
         match RpcEngine::connect(ws_url, call_timeout) {
             Ok(engine) => return Ok(engine),
-            Err(e) if clock.now() >= deadline => return Err(e),
+            Err(e) if ctx.clock().now() >= deadline => return Err(e),
             Err(_) => std::thread::sleep(Duration::from_millis(100)),
         }
     }
@@ -147,7 +147,7 @@ fn connect_with_retry(ws_url: &str, browser: Browser, clock: &dyn Clock) -> Resu
 /// A browser page (one CDP target session or `BiDi` browsing context).
 pub struct Page<'d> {
     backend: Box<dyn Backend + 'd>,
-    clock: &'d dyn Clock,
+    ctx: &'d Ctx,
 }
 
 impl Page<'_> {
@@ -159,7 +159,7 @@ impl Page<'_> {
     /// A [`Locator`](crate::locator::Locator) for `selector`.
     #[must_use]
     pub fn locator<'s>(&'s self, selector: &str) -> crate::locator::Locator<'s> {
-        crate::locator::Locator::new(self, selector, self.clock)
+        crate::locator::Locator::new(self, selector, self.ctx)
     }
 
     /// Navigate to `url` and wait for load to complete.

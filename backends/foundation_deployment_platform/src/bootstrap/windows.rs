@@ -9,7 +9,7 @@ use std::thread;
 use std::time::Duration;
 use tracing::{debug, warn};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::bootstrap::BootstrapLogger;
 use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
@@ -171,12 +171,7 @@ pub fn bootstrap_windows(
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(
-            session,
-            winrm,
-            &["virtiofs", "smb"],
-            logger.clock().as_ref(),
-        )
+        setup_project_mount(session, winrm, &["virtiofs", "smb"], logger.ctx())
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
@@ -286,12 +281,7 @@ pub fn bootstrap_windows_ssh_phase(
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(
-            session,
-            winrm,
-            &["virtiofs", "smb"],
-            logger.clock().as_ref(),
-        )
+        setup_project_mount(session, winrm, &["virtiofs", "smb"], logger.ctx())
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
@@ -609,7 +599,7 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
         }
 
         // Use fresh WinRM connection for each attempt
-        let fresh_winrm = crate::winrm::WinRM::from_profile(profile, winrm.clock_arc())?;
+        let fresh_winrm = crate::winrm::WinRM::from_profile(profile, winrm.ctx().clone())?;
         match fresh_winrm.run_ps(INSTALL_WEBVIEW2_PS1) {
             Ok(_) => return Ok(()),
             Err(e) => {
@@ -696,7 +686,7 @@ fn setup_project_mount(
     session: &mut VmSession,
     winrm: &WinRM,
     _methods: &[&str],
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> Result<()> {
     // Check if already mounted with content verification
     let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
@@ -711,9 +701,9 @@ fn setup_project_mount(
 
     if stdout.starts_with("starting|") {
         debug!("virtiofs process starting, waiting for completion...");
-        let deadline = clock.now() + Duration::from_secs(30);
+        let deadline = ctx.clock().now() + Duration::from_secs(30);
         loop {
-            if clock.now() > deadline {
+            if ctx.clock().now() > deadline {
                 break;
             }
             thread::sleep(Duration::from_secs(3));
@@ -730,9 +720,9 @@ fn setup_project_mount(
     elevated::run_elevated(winrm, REGISTER_VIRTIOFS_STARTUP_PS1, 60, None)?;
 
     // Wait for virtiofs mount to appear
-    let deadline = clock.now() + Duration::from_secs(90);
+    let deadline = ctx.clock().now() + Duration::from_secs(90);
     loop {
-        if clock.now() > deadline {
+        if ctx.clock().now() > deadline {
             break;
         }
         thread::sleep(Duration::from_secs(5));
@@ -785,9 +775,9 @@ fn setup_project_mount(
     debug!("virtiofs startup mount failed, falling back to SMB");
     elevated::run_interactive(winrm, SETUP_SMB_MOUNT_PS1, "vagrant")?;
 
-    let deadline = clock.now() + Duration::from_secs(60);
+    let deadline = ctx.clock().now() + Duration::from_secs(60);
     loop {
-        if clock.now() > deadline {
+        if ctx.clock().now() > deadline {
             break;
         }
         thread::sleep(Duration::from_secs(5));

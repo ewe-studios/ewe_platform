@@ -108,3 +108,27 @@ standard ASD-STE100.
   generates calls to `PlatformSession::new_test`. A signature change in `foundation_platform`
   also changes the generated code. Search the macro crates for generated calls, not only
   for direct calls.
+
+- Wave 2: a `SimulatedClock` that never advances makes a deadline loop run forever. The
+  browser wait helpers (`wait_for_port`, `discover_ws_url` and `connect_with_retry`) read
+  their deadline from the `Ctx`, but they pause with `std::thread::sleep`. A test with a frozen
+  simulated clock would hang. The fix is to pause through the injected sleeper. Severity
+  medium. Not filed as an issue, per the coordinator.
+- Wave 2: `foundation_testbed` calls `BrowserDriver::launch_borrowed`. An API change in one
+  crate can break a caller outside it. Run `cargo check --all-targets` on each caller.
+- Wave 2: `BootstrapLogger::new` writes into the current directory (`.testbed/`). A test that
+  builds one writes files. The deployment platform clock test uses `WinRM` instead, because
+  `WinRM::new` touches no file.
+- Wave 2: clippy `doc_markdown` rejects a bare type name such as `WinRM` in a doc comment.
+  Put type names in backticks.
+- Wave 2: clippy `must_use_candidate` flags a new `pub fn new` that returns `Self`. Add
+  `#[must_use]`.
+- Wave 2: rustfmt reflows lines after an argument rename. Run rustfmt on the changed files
+  only, then check that the diff stays small.
+- Wave 2: the shell guard refused several compound commands in this worktree. One refused
+  `sed` chain did not run, so an edit was missing. Check each edit with `grep` after a
+  refused command.
+- Wave 2: `foundation_deployment_cloudflare` takes about 5 minutes for a native check at
+  `-j 1`. Run it in the background with a log file, not in the foreground.
+- Wave 2: the disk filled again during a `vms` link step. Removing `uat/build/<crate>` for each
+  finished crate freed enough space.

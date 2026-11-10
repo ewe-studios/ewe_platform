@@ -87,8 +87,8 @@ pub enum DockerError {
     #[display("Network operation failed: {_0}")]
     Network(String),
 
-    /// The container has no clock. A host injects one with
-    /// [`crate::docker::ContainerConfig::clock`], and `#[docker_container]`
+    /// The container has no context. A host injects one with
+    /// [`crate::docker::ContainerConfig::ctx`], and `#[docker_container]`
     /// reads one from the valtron pool. A start never falls back to the real
     /// clock.
     #[display("No clock for the Docker container: inject one or run under a valtron pool")]

@@ -11,8 +11,8 @@
 //! use foundation_deployment_platform::qemu::QemuConfig;
 //!
 //! let profile = get_profile("windows-build").unwrap();
-//! let clock = Arc::new(MonotonicClock::new());
-//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless, clock)
+//! let ctx = Ctx::host();
+//! let vm = QemuConfig::new(profile.clone(), DisplayMode::Headless, ctx)
 //!     .launch()
 //!     .unwrap();
 //! ```

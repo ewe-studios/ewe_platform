@@ -10,10 +10,8 @@
 //! - Embedded in another CLI: `foundation_deployment_platform::cli::command()`
 //!   and `foundation_deployment_platform::cli::run()`
 
-use std::sync::Arc;
-
 use clap::{ArgMatches, Command};
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::Ctx;
 
 mod bootstrap;
 mod build;
@@ -292,36 +290,36 @@ pub fn command() -> Command {
 /// and passes it down. Every handler that starts a VM, waits on one, or records
 /// a timestamp reads that clock, never the process clock (AGENTS rule 11).
 pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());
+    let ctx = Ctx::host();
     match args.subcommand() {
         // Provider-agnostic commands
-        Some(("start", m)) => provider::cmd_start(m, Arc::clone(&clock)),
-        Some(("stop", m)) => provider::cmd_stop(m, Arc::clone(&clock)),
-        Some(("import", m)) => provider::cmd_import(m, Arc::clone(&clock)),
-        Some(("doctor", m)) => provider::cmd_doctor(m, Arc::clone(&clock)),
+        Some(("start", m)) => provider::cmd_start(m, &ctx),
+        Some(("stop", m)) => provider::cmd_stop(m, &ctx),
+        Some(("import", m)) => provider::cmd_import(m, &ctx),
+        Some(("doctor", m)) => provider::cmd_doctor(m, &ctx),
         Some(("ls", _)) => provider::cmd_ls(),
-        Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m, Arc::clone(&clock)),
-        Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m, Arc::clone(&clock)),
-        Some(("build", m)) => build::cmd_build(m, Arc::clone(&clock)),
-        Some(("debloat", m)) => debloat::cmd_debloat(m, Arc::clone(&clock)),
+        Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m, &ctx),
+        Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m, &ctx),
+        Some(("build", m)) => build::cmd_build(m, &ctx),
+        Some(("debloat", m)) => debloat::cmd_debloat(m, &ctx),
         // SSH-based commands
-        Some(("exec", m)) => ssh_cmds::cmd_exec(m, Arc::clone(&clock)),
+        Some(("exec", m)) => ssh_cmds::cmd_exec(m, &ctx),
         Some(("shell", m)) => ssh_cmds::cmd_shell(m),
-        Some(("run", m)) => ssh_cmds::cmd_run(m, Arc::clone(&clock)),
-        Some(("screenshot", m)) => ssh_cmds::cmd_screenshot(m, Arc::clone(&clock)),
+        Some(("run", m)) => ssh_cmds::cmd_run(m, &ctx),
+        Some(("screenshot", m)) => ssh_cmds::cmd_screenshot(m, &ctx),
         Some(("logs", m)) => ssh_cmds::cmd_logs(m),
         Some(("push", m)) => ssh_cmds::cmd_push(m),
         Some(("pull", m)) => ssh_cmds::cmd_pull(m),
         // Init
         Some(("init", m)) => provider::cmd_init(m),
         // QEMU-specific
-        Some(("snapshot", sub)) => qemu::cmd_snapshot(sub, Arc::clone(&clock)),
+        Some(("snapshot", sub)) => qemu::cmd_snapshot(sub, &ctx),
         Some(("resize-disk", m)) => qemu::cmd_resize_disk(m),
         Some(("mount", m)) => qemu::cmd_mount(m),
-        Some(("network", m)) => qemu::cmd_network(m, Arc::clone(&clock)),
-        Some(("adopt", m)) => qemu::cmd_adopt(m, clock.as_ref()),
-        Some(("refresh-network", m)) => qemu::cmd_refresh_network(m, Arc::clone(&clock)),
-        Some(("export", m)) => qemu::cmd_export(m, clock.as_ref()),
+        Some(("network", m)) => qemu::cmd_network(m, &ctx),
+        Some(("adopt", m)) => qemu::cmd_adopt(m, &ctx),
+        Some(("refresh-network", m)) => qemu::cmd_refresh_network(m, &ctx),
+        Some(("export", m)) => qemu::cmd_export(m, &ctx),
         _ => {
             eprintln!("unknown testbed subcommand");
             Ok(())

@@ -2,14 +2,13 @@
 //! These work across providers since they only need SSH access.
 
 use std::path::Path;
-use std::sync::Arc;
 
 use crate::config::get_profile;
 use crate::runner;
 use crate::runner::logs;
 use crate::ssh;
 use clap::ArgMatches;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -19,7 +18,7 @@ fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, 
         .map_err(|e| Box::new(e) as BoxedError)
 }
 
-pub fn cmd_exec(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
+pub fn cmd_exec(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let cmd = args.get_one::<String>("cmd").unwrap();
     let method = args
@@ -33,8 +32,13 @@ pub fn cmd_exec(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result
             let port = profile
                 .winrm_port
                 .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
-            let winrm =
-                crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass, clock);
+            let winrm = crate::winrm::WinRM::new(
+                "127.0.0.1",
+                port,
+                profile.user,
+                profile.pass,
+                ctx.clone(),
+            );
             let result = winrm.run_ps(cmd)?;
             if !result.stdout.is_empty() {
                 print!("{}", result.stdout);
@@ -64,7 +68,7 @@ pub fn cmd_shell(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     Ok(())
 }
 
-pub fn cmd_run(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<(), BoxedError> {
+pub fn cmd_run(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let bin = args.get_one::<String>("bin").map(|s| s.as_str());
     let profile = resolve_profile(name)?;
@@ -79,7 +83,7 @@ pub fn cmd_run(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<
             port,
             profile.user,
             profile.pass,
-            clock,
+            ctx.clone(),
         ))
     } else {
         None
@@ -90,10 +94,7 @@ pub fn cmd_run(args: &ArgMatches, clock: Arc<dyn Clock>) -> std::result::Result<
     Ok(())
 }
 
-pub fn cmd_screenshot(
-    args: &ArgMatches,
-    clock: Arc<dyn Clock>,
-) -> std::result::Result<(), BoxedError> {
+pub fn cmd_screenshot(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let out = args.get_one::<String>("out").unwrap();
     let profile = resolve_profile(name)?;
@@ -108,7 +109,7 @@ pub fn cmd_screenshot(
             port,
             profile.user,
             profile.pass,
-            clock,
+            ctx.clone(),
         ))
     } else {
         None

@@ -17,9 +17,11 @@ use crate::generated::zones::{
 use crate::types::{CloudflareError, DnsRecord, DnsRecordInput, DnsRecordType};
 
 /// The current wall time as a UTC date and time, from the injected clock.
-fn wall_now_utc(clock: &dyn foundation_core::valtron::Clock) -> chrono::DateTime<chrono::Utc> {
-    chrono::DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(clock.wall_now()))
-        .unwrap_or(chrono::DateTime::UNIX_EPOCH)
+fn wall_now_utc(ctx: &foundation_core::valtron::Ctx) -> chrono::DateTime<chrono::Utc> {
+    chrono::DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(
+        ctx.clock().wall_now(),
+    ))
+    .unwrap_or(chrono::DateTime::UNIX_EPOCH)
 }
 
 fn map_api_error(e: ApiError) -> CloudflareError {
@@ -226,8 +228,8 @@ impl crate::client::CloudflareClient {
             proxied: false,
             comment: None,
             tags: vec![],
-            created_on: wall_now_utc(self.clock().as_ref()),
-            modified_on: wall_now_utc(self.clock().as_ref()),
+            created_on: wall_now_utc(self.ctx()),
+            modified_on: wall_now_utc(self.ctx()),
         };
         self.upsert_dns_record(&record).await?;
         Ok(())

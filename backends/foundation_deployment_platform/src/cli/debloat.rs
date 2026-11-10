@@ -3,7 +3,6 @@
 //! Separate from bootstrap so users can run it only when needed.
 
 use clap::ArgMatches;
-use std::sync::Arc;
 use std::time::Duration;
 
 use crate::bootstrap;
@@ -11,14 +10,11 @@ use crate::config::{GuestOs, get_profile};
 use crate::state;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::ProgressCallback;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
-pub fn cmd_debloat(
-    args: &ArgMatches,
-    clock: Arc<dyn Clock>,
-) -> std::result::Result<(), BoxedError> {
+pub fn cmd_debloat(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let profile = get_profile(name)
         .map(|p| p.clone())
@@ -44,10 +40,10 @@ pub fn cmd_debloat(
         .expect("WinRM port not set for Windows VM");
 
     eprintln!("  Connecting to VM via WinRM (port {winrm_port})...");
-    let start = clock.now();
+    let start = ctx.clock().now();
     let timeout = Duration::from_secs(120);
     let winrm = loop {
-        if clock.now().duration_since(start) > timeout {
+        if ctx.clock().now().duration_since(start) > timeout {
             return Err("Timed out waiting for WinRM".into());
         }
         let w = WinRM::new(
@@ -55,15 +51,13 @@ pub fn cmd_debloat(
             winrm_port,
             &profile.user,
             &profile.pass,
-            Arc::clone(&clock),
+            ctx.clone(),
         );
         if w.ping() {
             break w;
         }
         std::thread::sleep(Duration::from_secs(2));
     };
-    // The client holds the shared clock now; drop the local handle.
-    drop(clock);
     eprintln!("  WinRM connected");
 
     let _progress: ProgressCallback<'_> = Some(&|msg: &str| {
