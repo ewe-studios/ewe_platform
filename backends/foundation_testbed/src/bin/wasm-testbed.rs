@@ -33,7 +33,10 @@ fn main() {
         Command::Init(args) => init::run(args),
         Command::Test(args) => run_test(&args),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
-        Command::Browser(args) => run_owned(fwt_runner::run_web(&args)),
+        Command::Browser(args) => run_owned(fwt_runner::run_web(
+            &args,
+            foundation_core::valtron::Ctx::host(),
+        )),
         Command::Bindgen(args) => run_bindgen_command(args),
         Command::Emscripten(args) => run_owned(emscripten_runner::run(&args)),
         Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
@@ -82,7 +85,10 @@ fn run_bindgen_outcome(
 /// gate as its use, so the other arm never warns about an unused argument.
 #[cfg(feature = "wasm-bindgen-test")]
 fn run_bindgen_command(args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
-    run_bindgen_outcome(bindgen_runner::run_bindgen(&args))
+    run_bindgen_outcome(bindgen_runner::run_bindgen(
+        &args,
+        foundation_core::valtron::Ctx::host(),
+    ))
 }
 
 #[cfg(not(feature = "wasm-bindgen-test"))]
@@ -125,7 +131,7 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                         &url,
                         &args.browser,
                         args.headless,
-                        &foundation_core::valtron::MonotonicClock::new(),
+                        foundation_core::valtron::Ctx::host(),
                     )?;
                     tracing::info!("Test output: {}", output.test_result);
                     server.shutdown();
@@ -155,7 +161,7 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     let output = wrangler::run(
                         &integration_dir,
                         None,
-                        &foundation_core::valtron::MonotonicClock::new(),
+                        foundation_core::valtron::Ctx::host(),
                     )?;
                     if output.status_code >= 400 {
                         return Err(WasmTestbedError::WranglerHttpFailed(format!(
@@ -242,7 +248,7 @@ fn run_bindgen_web(
         &url,
         browser,
         headless,
-        &foundation_core::valtron::MonotonicClock::new(),
+        foundation_core::valtron::Ctx::host(),
     )?;
     tracing::info!("Test output: {}", output.test_result);
 
@@ -367,11 +373,7 @@ fn run_bindgen_wrangler(
         integration_dir,
     )?;
 
-    let output = wrangler::run(
-        integration_dir,
-        None,
-        &foundation_core::valtron::MonotonicClock::new(),
-    )?;
+    let output = wrangler::run(integration_dir, None, foundation_core::valtron::Ctx::host())?;
     let passed = serde_json::from_str::<serde_json::Value>(&output.response_body)
         .ok()
         .and_then(|value| value.get("passed").and_then(serde_json::Value::as_bool));

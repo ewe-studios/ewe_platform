@@ -18,6 +18,7 @@
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
+use foundation_core::valtron::Ctx;
 use tracing::info;
 
 use crate::wasm::cli::OwnedRunArgs;
@@ -187,7 +188,7 @@ pub fn run_deno(_args: &OwnedRunArgs) -> Result<RunOutcome> {
 ///
 /// # Errors
 /// Fails on build/discovery/staging errors or when the browser run fails.
-pub fn run_web(args: &OwnedRunArgs) -> Result<RunOutcome> {
+pub fn run_web(args: &OwnedRunArgs, ctx: Ctx) -> Result<RunOutcome> {
     preflight(&[
         ("cargo", "builds the test crate to wasm32"),
         ("node", "runs the Playwright driver script"),
@@ -203,12 +204,7 @@ pub fn run_web(args: &OwnedRunArgs) -> Result<RunOutcome> {
     let serving = server::start_serving(dir.path())?;
     let url = serving.url("index.html");
     info!("serving owned harness at {url}");
-    let outcome = crate::wasm::browser::run(
-        &url,
-        &args.browser,
-        args.headless,
-        &foundation_core::valtron::MonotonicClock::new(),
-    );
+    let outcome = crate::wasm::browser::run(&url, &args.browser, args.headless, ctx);
     serving.shutdown();
     let browser_output = outcome?;
 

@@ -11,7 +11,7 @@
 use std::time::Duration;
 
 use foundation_browser::{BrowserDriver, LaunchConfig};
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use tracing::{debug, info};
 
 use crate::wasm::cli::Browser;
@@ -32,12 +32,7 @@ const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
 ///
 /// Returns an error if the browser is not supported, the page cannot be
 /// opened, or the result does not arrive before the timeout.
-pub fn run(
-    url: &str,
-    browser: &Browser,
-    headless: bool,
-    clock: &dyn Clock,
-) -> Result<BrowserOutput> {
+pub fn run(url: &str, browser: &Browser, headless: bool, ctx: Ctx) -> Result<BrowserOutput> {
     if !matches!(browser, Browser::Chrome) {
         return Err(WasmTestbedError::BrowserDriver(format!(
             "{browser:?} is not supported by the pure-Rust CDP driver yet — use Chrome"
@@ -47,8 +42,10 @@ pub fn run(
 
     info!("Running browser test: {url} (headless={headless})");
 
-    let driver = BrowserDriver::launch_borrowed(LaunchConfig::chromium().headless(headless), clock)
-        .map_err(|e| WasmTestbedError::BrowserDriver(format!("launch: {e}")).trace())?;
+    let clock = ctx.clock();
+    let driver =
+        BrowserDriver::launch_borrowed(LaunchConfig::chromium().headless(headless), clock.as_ref())
+            .map_err(|e| WasmTestbedError::BrowserDriver(format!("launch: {e}")).trace())?;
     let page = driver
         .new_page()
         .map_err(|e| WasmTestbedError::BrowserDriver(format!("attach page: {e}")).trace())?;
