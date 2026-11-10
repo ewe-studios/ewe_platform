@@ -116,7 +116,9 @@ fn drive_until_closed(handler: &mut ConnectionHandler, ctx: &Ctx, limit: usize) 
 fn keepalive_waits_the_default_idle_timeout() {
     let (_client, stream) = silent_tcp_pair();
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(
+        clock.clone(),
+    )));
     let config = KeepAliveConfig::defaults();
 
     assert_eq!(
@@ -156,7 +158,9 @@ fn keepalive_waits_the_default_idle_timeout() {
     // calculator's 120 s minimum read timeout.
     let (_client, stream) = silent_tcp_pair();
     let config = KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(2));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(
+        clock.clone(),
+    )));
     let ctx = Ctx::fixed(clock.clone());
     let mut handler = build_handler(app, stream, &config, ctx.clone());
 
@@ -177,7 +181,9 @@ fn keepalive_waits_the_default_idle_timeout() {
 fn keepalive_disabled_closes_after_one_second() {
     let (_client, stream) = silent_tcp_pair();
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(
+        clock.clone(),
+    )));
     let config = KeepAliveConfig::disabled();
 
     assert_eq!(config.idle_timeout(), Duration::from_secs(1));
@@ -258,7 +264,9 @@ fn a_middleware_write_error_closes_the_connection() {
 fn an_idle_keepalive_connection_parks_on_its_socket() {
     let (mut client, stream) = silent_tcp_pair();
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(
+        clock.clone(),
+    )));
     let config = KeepAliveConfig::defaults();
     let mut handler = build_handler(app, stream, &config, Ctx::fixed(clock));
 

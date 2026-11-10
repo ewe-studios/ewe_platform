@@ -35,7 +35,10 @@ fn rate_limit_window_moves_with_the_ctx_clock() {
         "the first request in a window is admitted"
     );
     assert!(
-        matches!(limiter.handle(&ctx, &mut req), MiddlewareResult::Response(_)),
+        matches!(
+            limiter.handle(&ctx, &mut req),
+            MiddlewareResult::Response(_)
+        ),
         "a second request in the same window is refused"
     );
 

@@ -329,7 +329,9 @@ impl ConnectionHandler {
 
     fn idle_exceeded(&self) -> bool {
         match self.idle_since {
-            Some(since) => self.ctx.clock().now().saturating_duration_since(since) >= self.idle_timeout(),
+            Some(since) => {
+                self.ctx.clock().now().saturating_duration_since(since) >= self.idle_timeout()
+            }
             None => false,
         }
     }
