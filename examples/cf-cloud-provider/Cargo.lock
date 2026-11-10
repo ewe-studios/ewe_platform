@@ -1440,7 +1440,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ai"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "concurrent-queue",
@@ -1467,7 +1467,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_arrow"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "arrow-array",
  "arrow-buffer",
@@ -1483,7 +1483,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "argon2",
  "async-trait",
@@ -1510,11 +1510,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_buildtools"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "foundation_cloudflare_types"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base85rs",
  "foundation_macros",
@@ -1525,7 +1525,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
@@ -1546,8 +1546,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_context"
+version = "0.0.2"
+dependencies = [
+ "foundation_compact",
+ "foundation_nostd",
+]
+
+[[package]]
 name = "foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -1555,6 +1563,7 @@ dependencies = [
  "fastrand",
  "foundation_buildtools",
  "foundation_compact",
+ "foundation_context",
  "foundation_macros",
  "foundation_nostd",
  "futures-core",
@@ -1572,7 +1581,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_db"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-lock",
  "async-stream",
@@ -1598,7 +1607,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_errstacks"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "derive_more",
  "serde",
@@ -1608,7 +1617,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_jsonschema"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "derive_more",
  "foundation_errstacks",
@@ -1624,7 +1633,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.11"
+version = "0.0.20"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -1643,7 +1652,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.13"
+version = "0.0.14"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -1663,7 +1672,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "base64",
@@ -1702,11 +1711,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.7"
+version = "0.0.8"
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "foundation_core",
  "libc",
@@ -1716,15 +1725,15 @@ dependencies = [
 
 [[package]]
 name = "foundation_theme"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "foundation_ui_traits"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "foundation_vectors"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "cc",

@@ -13,7 +13,7 @@ tracing = { version = "0.1.40" }
 
 # -- error crates
 derive_more = { version = ">=2.0", features = ["full"] }
-foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.3" }
+foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.4" }
 
 # -- watcher
 notify = { version = "6.1.1", features = [] }

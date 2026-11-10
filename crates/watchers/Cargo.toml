@@ -25,7 +25,7 @@ serde_with = { version = "3.6.1" }
 # -- error crates
 anyhow = { version = "1.0.80" }
 derive_more = { version = ">=2.0", features = ["full"] }
-foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.3" }
+foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.4" }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }

@@ -7,7 +7,7 @@ keywords = [
     "infrastructure",
 ]
 name = "foundation_deployment"
-version = "0.0.4"
+version = "0.0.5"
 
 [package.authors]
 workspace = true
@@ -33,11 +33,11 @@ futures-lite = { version = "2", default-features = false, features = ["alloc"] }
 http = "1.4.0"
 regex = "1.10"
 sha2 = "0.10"
-foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.12", features = ["ssl", "multi"] }
-foundation_db = { path = "../foundation_db", version = "0.0.6" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.13", features = ["ssl", "multi"] }
+foundation_db = { path = "../foundation_db", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
 
 [dependencies.chrono]
 workspace = true
@@ -62,7 +62,7 @@ tracing-test = "0.2"
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 features = ["test-clock"]
 
 [features]

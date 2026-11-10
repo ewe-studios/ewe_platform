@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wireguard"
-version = "0.0.7"
+version = "0.0.8"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -31,12 +31,12 @@ bincode = { version = "2", features = ["serde"] }
 toml = { workspace = true }
 # WireGuard Noise state machine (decision 01). Pure crypto (Tunn + x25519) —
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
-foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.1", default-features = false }
+foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.2", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
-foundation_macros = { path = "../foundation_macros", version = "0.0.11" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
 # The project error standard. It is a common dependency: the error types in
 # `shared/error.rs` compile for every target, including wasm32.
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.
 smoltcp = { version = "0.12", default-features = false, features = ["alloc", "medium-ip", "proto-ipv4", "proto-ipv6", "socket-tcp", "socket-udp"] }
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
@@ -45,17 +45,17 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 # Enable the multi-threaded executor so EventReadinessPtr + Send+S Sync is
 # available to foundation_netio's ExchangeContinuation (which requires Send on
 # non-wasm targets). On wasm, multi is off so the single-threaded path compiles.
-foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["multi"] }
 # UNIX timestamp conversions for the injected wall clock. `native::node` uses
 # `foundation_compact::time::unix_seconds`; no crate repeats the epoch math.
-foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.13", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.14", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
 # The `multi` feature gates the `Connector` impl (`overlay_connector`), which only
 # makes sense when the HTTP client stack (HttpConnectionPool, NativeHttpClient) is
 # compiled in. The native code is the only user.
-foundation_netio = { path = "../foundation_netio", version = "0.0.12", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.13", default-features = false }
 # Pure-Rust Noise Protocol implementation for the seed-authenticated bootstrap channel
 # (and the optional identity-pinned mTLS channel). `default-resolver` selects the
 # RustCrypto backends (x25519-dalek / ChaCha20-Poly1305 / BLAKE2s) — no C crypto, so
@@ -71,7 +71,7 @@ snow = { version = "0.10", default-features = false, features = ["default-resolv
 # `#[valtron_bindgen]` expands to `foundation_core::valtron` calls, and the
 # browser tests use `foundation_core::valtron` directly. The native section
 # turns on `multi`; wasm keeps the single-threaded executor.
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).

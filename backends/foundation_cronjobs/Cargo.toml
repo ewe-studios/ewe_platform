@@ -1,6 +1,6 @@
 [package]
 name = "foundation_cronjobs"
-version = "0.0.5"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,9 +10,9 @@ description = "Cron job scheduling with valtron executor and foundation_db persi
 keywords.workspace = true
 
 [dependencies]
-foundation_db = { path = "../foundation_db", version = "0.0.6" }
-foundation_core = { path = "../foundation_core", version = "0.0.19" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.4" }
+foundation_db = { path = "../foundation_db", version = "0.0.7" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
 async-trait = "0.1"
 futures-lite = "2"
 chrono = "0.4"
@@ -25,7 +25,7 @@ tracing = "0.1"
 tempfile = "3"
 # `test-clock` provides `SimulatedClock`, so a test proves that a cron run
 # time follows the injected wall clock.
-foundation_core = { path = "../foundation_core", version = "0.0.19", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.20", features = ["test-clock"] }
 
 [lints]
 workspace = true

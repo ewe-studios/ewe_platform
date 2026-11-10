@@ -321,11 +321,11 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
 name = "foundation_buildtools"
-version = "0.0.2"
+version = "0.0.3"
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.4"
+version = "0.2.5"
 dependencies = [
  "cfg-if",
  "foldhash",
@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_context"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "foundation_compact",
  "foundation_nostd",
@@ -353,7 +353,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_core"
-version = "0.0.19"
+version = "0.0.20"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -379,7 +379,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_errstacks"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "derive_more",
  "tracing",
@@ -387,7 +387,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
  "async-trait",
  "base64",
@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_iogate"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "foundation_core",
  "foundation_nativeapis",
@@ -420,7 +420,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.11"
+version = "0.0.20"
 dependencies = [
  "base85rs",
  "brotli 8.0.4",
@@ -439,7 +439,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.13"
+version = "0.0.14"
 dependencies = [
  "cfg-if",
  "concurrent-queue",
@@ -455,7 +455,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "async-trait",
  "base64",
@@ -494,11 +494,11 @@ dependencies = [
 
 [[package]]
 name = "foundation_nostd"
-version = "0.0.7"
+version = "0.0.8"
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "foundation_core",
  "io-uring",
@@ -509,7 +509,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_theme"
-version = "0.0.3"
+version = "0.0.4"
 
 [[package]]
 name = "fstr"
