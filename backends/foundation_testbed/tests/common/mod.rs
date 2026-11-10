@@ -72,7 +72,7 @@ impl TestVm {
         let mut config = QemuConfig::new(
             profile.clone(),
             display,
-            foundation_core::valtron::Ctx::host(),
+            foundation_core::valtron::Ctx::host().clock(),
         );
         if mount_project {
             let guest_path = match profile.os {
@@ -105,7 +105,7 @@ impl TestVm {
             qemu.resolved_ports.rdp_port,
             qemu.resolved_ports.vnc_port,
             false,
-            foundation_core::valtron::Ctx::host(),
+            &*foundation_core::valtron::Ctx::host().clock(),
         );
         state::save(&vm_state).ok();
 
@@ -172,7 +172,7 @@ impl TestVm {
                     }
                     if let Ok(winrm) = foundation_testbed::platform::winrm::WinRM::from_profile(
                         &self.profile,
-                        foundation_core::valtron::Ctx::host(),
+                        foundation_core::valtron::Ctx::host().clock(),
                     ) {
                         if winrm.ping() {
                             println!("[{}] WinRM ready", &self.profile_name);
@@ -194,21 +194,23 @@ impl TestVm {
     pub fn bootstrap(&mut self) -> Result<()> {
         if foundation_testbed::platform::bootstrap::is_bootstrapped(
             &self.profile,
-            foundation_core::valtron::Ctx::host(),
+            foundation_core::valtron::Ctx::host().clock(),
         ) {
             println!("[{}] Already bootstrapped, skipping", &self.profile_name);
             return Ok(());
         }
 
         // Create logger for test output
-        let logger =
-            BootstrapLogger::new(&self.profile_name, foundation_core::valtron::Ctx::host())
-                .map_err(|e| {
-                    foundation_testbed::platform::config::TestbedError::BootstrapFailed {
-                        step: "create logger".to_string(),
-                        message: e.to_string(),
-                    }
-                })?;
+        let logger = BootstrapLogger::new(
+            &self.profile_name,
+            foundation_core::valtron::Ctx::host().clock(),
+        )
+        .map_err(|e| {
+            foundation_testbed::platform::config::TestbedError::BootstrapFailed {
+                step: "create logger".to_string(),
+                message: e.to_string(),
+            }
+        })?;
 
         match self.profile.os {
             GuestOs::Linux | GuestOs::MacOS => {
@@ -228,7 +230,7 @@ impl TestVm {
                     winrm_port,
                     self.profile.user,
                     self.profile.pass,
-                    foundation_core::valtron::Ctx::host(),
+                    foundation_core::valtron::Ctx::host().clock(),
                 );
 
                 // Phase 1: WinRM-only (installs OpenSSH, configures SSH)
