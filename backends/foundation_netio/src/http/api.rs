@@ -65,31 +65,20 @@ impl core::fmt::Debug for ClientRequestState {
     }
 }
 
-/// The root context of the executor that runs the request task.
-///
-/// WHY: a synchronous send has no caller `Ctx`. The task that the executor
-/// runs reads its clock from that executor's root, so the response takes a
-/// fork of the same root. The fork shares the clock. The executor starts before
-/// this call, on the calling thread.
-#[cfg(feature = "multi")]
-fn engine_ctx() -> Ctx {
-    foundation_core::valtron::multi::fork_ctx()
-}
-
-/// The root context of the single-threaded executor that runs the request task.
-///
-/// See the `multi` variant for the reason.
-#[cfg(not(feature = "multi"))]
-fn engine_ctx() -> Ctx {
-    foundation_core::valtron::single::fork_ctx()
-}
-
 pub struct FinalizedResponse<T, R: DnsResolver + 'static>(
     Option<SimpleResponse<T>>,
     Option<Arc<HttpConnectionPool<R>>>,
     Option<HttpClientConnection>,
     /// The context whose clock stamps the connection when it returns to the pool.
     Option<Ctx>,
+);
+
+/// The result of [`ClientRequest::send_detached`]: the response, the
+/// connection and the pool. No guard returns the connection to the pool.
+pub type DetachedResponse<R> = (
+    SimpleResponse<SendSafeBody>,
+    HttpClientConnection,
+    Arc<HttpConnectionPool<R>>,
 );
 
 /// The parts returned by [`FinalizedResponse::into_parts`]: status, headers,
@@ -279,13 +268,14 @@ impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
 /// ```no_run
 /// use foundation_netio::http::NativeHttpClient;
 ///
+/// let ctx = foundation_context::Ctx::try_host().unwrap();
 /// let client = NativeHttpClient::from_system();
 /// let response = client
 ///     .get("http://example.com")
 ///     .unwrap()
 ///     .build_client()
 ///     .unwrap()
-///     .send()
+///     .send(&ctx)
 ///     .unwrap();
 /// assert_eq!(response.get_status().into_usize(), 200);
 /// ```
@@ -355,6 +345,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// collects all `IncomingResponseParts`, assembles `SimpleResponse`, handles
     /// connection pooling if configured.
     ///
+    /// # Arguments
+    ///
+    /// * `ctx` - The caller context. Its clock stamps the connection when the
+    ///   response returns it to the pool.
+    ///
     /// # Returns
     ///
     /// `SimpleResponse<SimpleBody>` with status, headers, and body.
@@ -377,18 +372,39 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// use foundation_netio::http::NativeHttpClient;
     /// use foundation_netio::shared::http::Status;
     ///
+    /// let ctx = foundation_context::Ctx::try_host().unwrap();
     /// let client = NativeHttpClient::from_system();
     /// let response = client
     ///     .get("http://example.com")
     ///     .unwrap()
     ///     .build_client()
     ///     .unwrap()
-    ///     .send()
+    ///     .send(&ctx)
     ///     .unwrap();
     /// assert_eq!(response.get_status(), Status::OK);
     /// ```
+    #[tracing::instrument(skip(self, ctx))]
+    pub fn send(self, ctx: &Ctx) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+        let (response, conn, pool) = self.send_detached()?;
+        Ok(FinalizedResponse::new(response, conn, pool, ctx.clone()))
+    }
+
+    /// Executes the request and returns the response, the connection and the pool.
+    ///
+    /// Unlike [`Self::send`], no guard returns the connection to the pool when
+    /// the response drops. The caller owns the connection. The caller that
+    /// returns it to the pool passes its own `Ctx` to
+    /// [`HttpConnectionPool::return_to_pool`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the request fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the response intro or body is missing after success.
     #[tracing::instrument(skip(self))]
-    pub fn send(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+    pub fn send_detached(mut self) -> Result<DetachedResponse<R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
         // IMPORTANT: We need to drive the body_stream first has
@@ -435,12 +451,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let (conn, body) = response_body.expect("should have body");
         let response = SimpleResponse::new(intro.status, headers, body);
 
-        Ok(FinalizedResponse::new(
-            response,
-            conn,
-            self.pool.clone(),
-            engine_ctx(),
-        ))
+        Ok((response, conn, self.pool.clone()))
     }
 
     /// Internal helper to start request execution.
@@ -570,14 +581,29 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// `set_nonblocking(true)` on the returned connection and attach
     /// `read_wake_source()`; otherwise the first body read blocks the valtron
     /// worker that polls it (spec 70 feature 121).
-    #[tracing::instrument(skip(self))]
+    ///
+    /// The `ctx` argument is the caller context. Its clock stamps the
+    /// connection when the response returns it to the pool.
+    #[tracing::instrument(skip(self, ctx))]
     ///
     /// # Errors
     ///
     /// Returns an error if the operation fails.
     pub async fn send_async(
-        mut self,
+        self,
+        ctx: &Ctx,
     ) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+        let (response, conn, pool) = self.send_detached_async().await?;
+        Ok(FinalizedResponse::new(response, conn, pool, ctx.clone()))
+    }
+
+    /// Asynchronous version of [`Self::send_detached`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub async fn send_detached_async(mut self) -> Result<DetachedResponse<R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
         // Drive body first — required by split_collect_one_map ordering:
@@ -597,11 +623,6 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         let response = SimpleResponse::new(intro.status, headers, body);
 
-        Ok(FinalizedResponse::new(
-            response,
-            conn,
-            self.pool.clone(),
-            engine_ctx(),
-        ))
+        Ok((response, conn, self.pool.clone()))
     }
 }

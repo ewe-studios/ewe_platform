@@ -91,7 +91,7 @@ impl Serve for ProxyHandler {
     )]
     fn serve(
         &self,
-        _ctx: Ctx,
+        serve_ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -245,6 +245,7 @@ impl Serve for ProxyHandler {
                     extra_headers: sticky_header.as_ref(),
                     client_read_wake,
                     max_request_body,
+                    call_ctx: &serve_ctx,
                 };
                 let result = forward_http(&mut writer, &backend, req, &ctx).await;
                 finish_relay(&mut writer, &backend, result, "forward").await;

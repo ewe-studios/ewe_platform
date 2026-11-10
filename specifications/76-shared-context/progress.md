@@ -208,3 +208,15 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 - Features 03, 04 and 05 after feature 02 is reviewed. They can run in parallel.
   Feature 06 is last.
+
+## 2026-11-10: lane C (issues 483 and 485)
+
+- Issue 483: `ClientRequest::send` and `ClientRequest::send_async` now take `&Ctx`. The
+  `FinalizedResponse` keeps that `Ctx`, so the pool stamps a returned connection with the
+  caller clock. The private `engine_ctx()` helpers are gone.
+- New `send_detached` and `send_detached_async` return the response, the connection and the
+  pool with no drop guard. The `HttpClient` trait impl uses them, because it has no `Ctx`.
+- New test `test_pool_stamps_returned_connection_with_the_caller_clock` in
+  `foundation_netio/tests/simple_http/pool_drain_tests.rs`.
+- Issue 485: the netio blackhole test and the connectrpc blackhole test (issue 466) now dial a
+  local listener with a full accept queue. They no longer depend on the host network.

@@ -234,3 +234,13 @@ standard ASD-STE100.
   `claude/friendly-ritchie-7acn6p`. This branch does not edit them. Its callers do not compile
   here until that work lands.
 
+
+- Lane C (2026-11-10): the sync client had no `Ctx` to give `FinalizedResponse`, so it took the
+  root `Ctx` of the executor. A caller with a simulated clock got a real-clock stamp on the
+  pooled connection. The fix is to take the `Ctx` at the entry point.
+- Lane C: a TCP listener with `listen(0)` that never calls `accept` makes a later connect hang
+  on Linux. The kernel drops the SYN when the accept queue is full and `tcp_abort_on_overflow`
+  is 0. Fill the queue with non-blocking connects, then prove the hang with a probe connect.
+  This replaces the address `10.255.255.1`, which a sandbox may refuse at once.
+- Lane C: a worktree can start from an old commit. Check that `foundation_netio` exists before
+  you start.

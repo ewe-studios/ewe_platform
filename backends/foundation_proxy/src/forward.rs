@@ -22,6 +22,7 @@ use std::collections::HashSet;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::writer::{ResponseWriter, WriterConfig};
 use foundation_iogate::ServerIo;
@@ -417,6 +418,9 @@ pub struct ForwardContext<'a> {
     /// Registers a waker for read readiness of the client connection, so the
     /// request body read parks instead of spinning. `None` polls.
     pub client_read_wake: Option<ReadWakeSource>,
+    /// The context of the serve call. Its clock stamps the upstream
+    /// connection when the exchange returns it to the pool.
+    pub call_ctx: &'a Ctx,
     /// The largest request body in bytes; 0 means no limit.
     pub max_request_body: usize,
 }
@@ -458,7 +462,7 @@ async fn exchange(
         .request(builder)
         .map_err(|e| ForwardError::before_response(format!("prepare upstream request: {e}")))?;
 
-    let response = request.send_async().await.map_err(|e| {
+    let response = request.send_async(ctx.call_ctx).await.map_err(|e| {
         ForwardError::before_response(format!("send upstream request to {url}: {e}"))
     })?;
 
