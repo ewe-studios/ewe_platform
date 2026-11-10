@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{timer, Clock};
+use foundation_core::valtron::timer;
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::{render_message, ResponseWriter, WriterConfig};
@@ -22,7 +22,7 @@ use crate::watcher::FileChange;
 
 pub struct SseReloadHandler {
     reload_rx: Arc<ConcurrentQueue<FileChange>>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl ServeFactory for SseReloadHandler {
@@ -39,12 +39,10 @@ impl ServeFactory for SseReloadHandler {
         // We need to get the inner Arc via deref
         let queue: &Arc<ConcurrentQueue<FileChange>> = &tx;
 
-        // The ctx carries the clock as a field, so `create` cannot miss it.
-        let clock = ctx.clock();
-
+        // Keep the ctx; the clock is a field of it, so `serve` cannot miss it.
         Self {
             reload_rx: (*queue).clone(),
-            clock,
+            ctx: ctx.clone(),
         }
     }
 }
@@ -57,7 +55,7 @@ impl Serve for SseReloadHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let reload_rx = Arc::clone(&self.reload_rx);
-        let clock = Arc::clone(&self.clock);
+        let clock = self.ctx.clock();
 
         // The response head and every event go through the async
         // `ResponseWriter`: a slow client parks on write readiness instead of

@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_compact::Instant;
-use foundation_core::valtron::{Clock, Ctx, EventQueue, EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, EventQueue, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::types::ProjectDefinition;
 
@@ -19,7 +19,7 @@ use crate::types::ProjectDefinition;
 /// `is_done` compares the clock to it, so a simulated clock drives the wait.
 #[derive(Clone)]
 pub struct DurationSleeper {
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
     deadline: Arc<Mutex<Option<Instant>>>,
 }
 
@@ -28,14 +28,14 @@ impl DurationSleeper {
     #[must_use]
     pub fn new(ctx: Ctx) -> Self {
         Self {
-            clock: ctx.clock(),
+            ctx,
             deadline: Arc::new(Mutex::new(None)),
         }
     }
 
     /// Start a wait of `duration` from the current clock instant.
     pub fn start(&mut self, duration: Duration) {
-        let deadline = self.clock.now() + duration;
+        let deadline = self.ctx.clock().now() + duration;
         let mut slot = self
             .deadline
             .lock()
@@ -50,7 +50,7 @@ impl DurationSleeper {
             .deadline
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        deadline.is_some_and(|deadline| self.clock.now() >= deadline)
+        deadline.is_some_and(|deadline| self.ctx.clock().now() >= deadline)
     }
 }
 

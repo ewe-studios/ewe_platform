@@ -23,7 +23,7 @@ use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_core::valtron::Ctx;
 
 pub struct Workerd {
     child: Option<Child>,
@@ -36,7 +36,6 @@ impl Workerd {
     }
 
     pub fn start_with(config: WorkerdConfig, ctx: Ctx) -> Result<Self, WorkerdError> {
-        let clock = ctx.clock();
         let config_file = config
             .config_file
             .as_ref()
@@ -93,7 +92,7 @@ impl Workerd {
             port,
         };
 
-        if !wait_for_ready(port, config.startup_timeout, clock.as_ref()) {
+        if !wait_for_ready(port, config.startup_timeout, &ctx) {
             let stderr = server.collect_stderr();
             server.stop();
             return Err(WorkerdError::ReadyTimeout {
@@ -252,7 +251,8 @@ fn resolve_bin(explicit: &Option<PathBuf>) -> Result<PathBuf, WorkerdError> {
     which::which("workerd").map_err(|_| WorkerdError::BinaryNotFound)
 }
 
-fn wait_for_ready(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
+fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
     let deadline = clock.now() + timeout;
     while clock.now() < deadline {
         if http_get("127.0.0.1", port, "/").is_ok() {

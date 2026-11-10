@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_core::valtron::Ctx;
 
 fn project_root() -> PathBuf {
     let manifest_dir =
@@ -47,7 +47,6 @@ impl LlamaServer {
     }
 
     pub fn start_with(config: LlamaServerConfig, ctx: Ctx) -> Result<Self, LlamaServerError> {
-        let clock = ctx.clock();
         if !config.server_bin.exists() {
             return Err(LlamaServerError::BinaryNotFound(
                 config.server_bin.display().to_string(),
@@ -100,7 +99,7 @@ impl LlamaServer {
         let pid = child.id();
         tracing::info!(pid, "llama-server spawned, waiting for health check");
 
-        if !wait_for_health(port, config.startup_timeout, clock.as_ref()) {
+        if !wait_for_health(port, config.startup_timeout, &ctx) {
             let guard = Self {
                 child: Some(child),
                 port,
@@ -267,7 +266,8 @@ fn kill_existing(port: u16) {
     std::thread::sleep(Duration::from_millis(500));
 }
 
-fn wait_for_health(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
+fn wait_for_health(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
     let deadline = clock.now() + timeout;
     while clock.now() < deadline {
         if let Ok(stream) = TcpStream::connect_timeout(

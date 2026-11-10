@@ -14,9 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use foundation_core::valtron::{
-    AsyncStateTask, AsyncTransition, Clock, Ctx, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{AsyncStateTask, AsyncTransition, Ctx, TaskIterator, TaskStatus};
 use foundation_db::{DataValue, QueryStore, SqlRow, StorageError};
 use futures_lite::StreamExt;
 use saffron::Cron;
@@ -106,7 +104,7 @@ impl CronJob {
     /// `now` is a wall-clock UTC time. A cron expression needs calendar time
     /// (weekday, month, leap day), which valtron's monotonic instant cannot
     /// provide, so the caller passes a wall-clock time derived from the
-    /// injected [`Clock::wall_now`]. This method is pure, so a test can move
+    /// injected [`foundation_core::valtron::Clock::wall_now`]. This method is pure, so a test can move
     /// the time without a live clock.
     #[must_use]
     pub fn next_fire(&self, now: DateTime<Utc>) -> Option<DateTime<Utc>> {
@@ -267,7 +265,7 @@ async fn job_transition(
     loop {
         let now = {
             let s = shared.lock().expect("job run state poisoned");
-            wall_now_utc(s.ctx.clock().as_ref())
+            wall_now_utc(&s.ctx)
         };
         let plan = {
             let mut s = shared.lock().expect("job run state poisoned");
@@ -280,7 +278,7 @@ async fn job_transition(
                 let job = shared.lock().expect("job run state poisoned").job.clone();
                 let result = job.run(ctx.clone()).await;
                 let mut s = shared.lock().expect("job run state poisoned");
-                let now = wall_now_utc(s.ctx.clock().as_ref());
+                let now = wall_now_utc(&s.ctx);
                 record_run(&mut s, now, &result);
                 s.state.next_run = next_fire_unix(&s.cron, now);
             }
@@ -294,7 +292,7 @@ async fn job_transition(
                 loop {
                     let result = job.run(ctx.clone()).await;
                     let mut s = shared.lock().expect("job run state poisoned");
-                    let now = wall_now_utc(s.ctx.clock().as_ref());
+                    let now = wall_now_utc(&s.ctx);
                     record_run(&mut s, now, &result);
                     let next = next_fire_unix_from(&s.cron, dt_from_unix(cursor));
                     if next == 0 || next > now.timestamp() {
@@ -388,11 +386,13 @@ fn dt_from_unix(secs: i64) -> DateTime<Utc> {
     DateTime::from_timestamp(secs, 0).unwrap_or(DateTime::UNIX_EPOCH)
 }
 
-/// The wall-clock UTC time on `clock`; the epoch when the value is out of
-/// range.
-fn wall_now_utc(clock: &dyn Clock) -> DateTime<Utc> {
-    DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(clock.wall_now()))
-        .unwrap_or(DateTime::UNIX_EPOCH)
+/// The wall-clock UTC time on the `ctx` clock; the epoch when the value is out
+/// of range.
+fn wall_now_utc(ctx: &Ctx) -> DateTime<Utc> {
+    DateTime::from_timestamp_millis(foundation_compact::time::unix_millis(
+        ctx.clock().wall_now(),
+    ))
+    .unwrap_or(DateTime::UNIX_EPOCH)
 }
 
 // ── Scheduler ───────────────────────────────────────────────────────────

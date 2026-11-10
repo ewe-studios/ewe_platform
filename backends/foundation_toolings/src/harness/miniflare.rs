@@ -30,7 +30,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, Ctx};
+use foundation_core::valtron::Ctx;
 
 /// The last lines a child wrote to one of its pipes, capped at `cap` lines.
 #[derive(Clone)]
@@ -98,7 +98,6 @@ impl Miniflare {
     }
 
     pub fn start_with(config: MiniflareConfig, ctx: Ctx) -> Result<Self, MiniflareError> {
-        let clock = ctx.clock();
         if let Some(ref dir) = config.worker_dir {
             if !dir.exists() {
                 return Err(MiniflareError::WorkerDirNotFound(dir.display().to_string()));
@@ -173,7 +172,7 @@ impl Miniflare {
             drains,
         };
 
-        if !wait_for_ready(port, config.startup_timeout, clock.as_ref()) {
+        if !wait_for_ready(port, config.startup_timeout, &ctx) {
             let stderr = server.collect_stderr();
             server.stop();
             return Err(MiniflareError::ReadyTimeout {
@@ -479,7 +478,8 @@ fn build_args(config: &MiniflareConfig, tool_path: &Path, port: u16) -> Vec<Stri
     args
 }
 
-fn wait_for_ready(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
+fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
     let deadline = clock.now() + timeout;
     while clock.now() < deadline {
         if http_get("127.0.0.1", port, "/").is_ok() {
