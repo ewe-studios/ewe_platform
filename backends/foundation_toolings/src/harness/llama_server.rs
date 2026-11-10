@@ -4,14 +4,12 @@
 //! endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use std::sync::Arc;
-//!
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_toolings::harness::LlamaServer;
 //!
 //! let server = LlamaServer::builder()
 //!     .model_file("path/to/model.gguf")
-//!     .build(Arc::new(MonotonicClock::new()))
+//!     .build(Ctx::host())
 //!     .expect("failed to start llama-server");
 //!
 //! println!("Server at {}", server.base_url());
@@ -22,10 +20,9 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, Ctx};
 
 fn project_root() -> PathBuf {
     let manifest_dir =
@@ -45,14 +42,12 @@ pub struct LlamaServer {
 }
 
 impl LlamaServer {
-    pub fn start(clock: Arc<dyn Clock>) -> Result<Self, LlamaServerError> {
-        Self::start_with(LlamaServerConfig::default(), clock)
+    pub fn start(ctx: Ctx) -> Result<Self, LlamaServerError> {
+        Self::start_with(LlamaServerConfig::default(), ctx)
     }
 
-    pub fn start_with(
-        config: LlamaServerConfig,
-        clock: Arc<dyn Clock>,
-    ) -> Result<Self, LlamaServerError> {
+    pub fn start_with(config: LlamaServerConfig, ctx: Ctx) -> Result<Self, LlamaServerError> {
+        let clock = ctx.clock();
         if !config.server_bin.exists() {
             return Err(LlamaServerError::BinaryNotFound(
                 config.server_bin.display().to_string(),
@@ -240,8 +235,8 @@ impl LlamaServerConfig {
         self
     }
 
-    pub fn build(self, clock: Arc<dyn Clock>) -> Result<LlamaServer, LlamaServerError> {
-        LlamaServer::start_with(self, clock)
+    pub fn build(self, ctx: Ctx) -> Result<LlamaServer, LlamaServerError> {
+        LlamaServer::start_with(self, ctx)
     }
 }
 
