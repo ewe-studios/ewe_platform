@@ -74,4 +74,9 @@ standard ASD-STE100.
 - Wave 1: `ewe_platform` and `answerme-agent` depend on `infrastructure_llama_bindings`. That build
   script needs the `tools/llama.cpp` submodule. The submodule is not checked out in this
   worktree, so these crates cannot be checked here.
-
+- Feature 03: `cargo check --all-targets` is the fastest check of the test build. Cargo stops at
+  the first failing test target, so re-run it after each batch of fixes.
+- Feature 03: `examples/*` is excluded from the workspace. Check each one by name. The two cf
+  examples are wasm crates. Check them with `--target wasm32-unknown-unknown`.
+- Feature 03: a full `cargo test -p foundation_ai` run used about 4 GB of the shared target and
+  filled the disk. Check `df -h /` before each run.

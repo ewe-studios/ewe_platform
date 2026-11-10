@@ -18,7 +18,7 @@ use wasm_bindgen::prelude::*;
 use foundation_ai::agentic::{AgentSession, Answer};
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
-use foundation_core::valtron::{initialize_pool, MonotonicClock, PoolGuard};
+use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_core::wasm_logs;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::Ctx;
@@ -94,14 +94,14 @@ async fn get_or_build_session() -> Result<AgentSession, String> {
     if let Some(base_url) = creds.base_url {
         config = config.with_base_url(base_url);
     }
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let ctx = foundation_core::valtron::Ctx::try_host().map_err(|e| e.to_string())?;
     let provider = WorkersAiProvider::with_http_client(
         HttpClientBuilder::new().build(),
-        Arc::clone(&clock),
+        ctx.clone(),
     )
     .create(Some(config))
     .map_err(|e| e.to_string())?;
-    let session = AgentSession::builder(provider, clock)
+    let session = AgentSession::builder(provider, ctx)
         .with_model(ModelId::from(creds.model.as_str()))
         .with_system_prompt(SYSTEM_PROMPT)
         .build()

@@ -49,8 +49,10 @@ fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
 }
 
 /// The explicit real clock backend for tests.
-fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
-    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+fn test_clock() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }
 
 /// Test `HuggingFaceCandleProvider` `repo_id` parsing.

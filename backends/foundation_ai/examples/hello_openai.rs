@@ -8,18 +8,16 @@
 
 use foundation_ai::agentic::Answer;
 use foundation_ai::harness::RouterPreset;
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // GPT-4o (main) + GPT-4o-mini (memory) via Chat Completions API.
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let builder =
-        RouterPreset::openai_chat(&api_key, Arc::clone(&clock))?.into_agent_builder(clock);
+    let ctx = Ctx::host();
+    let builder = RouterPreset::openai_chat(&api_key, ctx.clone())?.into_agent_builder(ctx);
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

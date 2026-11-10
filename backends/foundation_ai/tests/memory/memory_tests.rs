@@ -23,7 +23,9 @@ fn setup() -> (
         coordinator,
         ledger.clone(),
         MemoryConfig::default(),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     (hierarchy, ledger)
 }

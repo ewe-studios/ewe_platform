@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{sleep_async, Clock, Stream, StreamSpread};
+use foundation_core::valtron::{sleep_async, Ctx, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
@@ -436,37 +436,37 @@ pub struct AnthropicMessagesProvider {
     api_key: Option<ConfidentialText>,
     http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
-    /// The injected clock every message this provider emits is stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. Every message this provider emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl AnthropicMessagesProvider {
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
     /// A provider authenticated with an API key: shorthand for
     /// `with_config(AnthropicConfig::api_key(key))`.
     #[must_use]
-    pub fn api_key(key: impl Into<String>, clock: Arc<dyn Clock>) -> Self {
-        Self::with_config(AnthropicConfig::api_key(key), clock)
+    pub fn api_key(key: impl Into<String>, ctx: Ctx) -> Self {
+        Self::with_config(AnthropicConfig::api_key(key), ctx)
     }
 
     #[must_use]
-    pub fn with_config(config: AnthropicConfig, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_config(config: AnthropicConfig, ctx: Ctx) -> Self {
         Self {
             config,
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
@@ -475,13 +475,13 @@ impl AnthropicMessagesProvider {
     /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
     /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: DynNetClient, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_http_client(client: DynNetClient, ctx: Ctx) -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
@@ -490,14 +490,14 @@ impl AnthropicMessagesProvider {
     pub fn with_http_client_and_config(
         client: DynNetClient,
         config: AnthropicConfig,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             config,
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
@@ -668,7 +668,7 @@ impl ModelProvider for AnthropicMessagesProvider {
             models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -711,8 +711,8 @@ pub struct AnthropicModel {
     models_cache: ModelInfoCache,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
-    /// The injected clock every message this model emits is stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. Every message this model emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl AnthropicModel {
@@ -1075,7 +1075,7 @@ impl Model for AnthropicModel {
         let response: MessagesResponse = self.execute_request(&url, &body)?;
 
         let (messages, report) =
-            parse_response(&response, &self.model_id, &self.pricing, &*self.clock)?;
+            parse_response(&response, &self.model_id, &self.pricing, &self.ctx)?;
         self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(messages)
     }
@@ -1095,7 +1095,7 @@ impl Model for AnthropicModel {
         let response: MessagesResponse = self.execute_request_async(&url, &body).await?;
 
         let (messages, report) =
-            parse_response(&response, &self.model_id, &self.pricing, &*self.clock)?;
+            parse_response(&response, &self.model_id, &self.pricing, &self.ctx)?;
         self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(messages)
     }
@@ -1136,7 +1136,7 @@ impl Model for AnthropicModel {
             final_message_index: 0,
             pricing: self.pricing,
             cumulative_cost: Arc::clone(&self.cumulative_cost),
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }))
     }
 
@@ -1168,7 +1168,7 @@ struct AnthropicStream {
     final_message_index: usize,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 /// Readiness comes from the underlying SSE stream: a consumer parked on this
@@ -1303,7 +1303,7 @@ impl AnthropicStream {
                         Stream::Next(Messages::Assistant {
                             id: foundation_compact::ids::new_scru128(),
                             model: self.model_id.clone(),
-                            timestamp: self.clock.wall_now(),
+                            timestamp: self.ctx.clock().wall_now(),
                             usage: empty_usage_report(),
                             content: ModelOutput::Text(TextContent {
                                 content: self.accumulated_text.clone(),
@@ -1321,7 +1321,7 @@ impl AnthropicStream {
                         Stream::Next(Messages::Assistant {
                             id: foundation_compact::ids::new_scru128(),
                             model: self.model_id.clone(),
-                            timestamp: self.clock.wall_now(),
+                            timestamp: self.ctx.clock().wall_now(),
                             usage: empty_usage_report(),
                             content: ModelOutput::ThinkingContent {
                                 thinking: self.accumulated_thinking.clone(),
@@ -1393,7 +1393,7 @@ impl AnthropicStream {
         let partial = Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
-            timestamp: self.clock.wall_now(),
+            timestamp: self.ctx.clock().wall_now(),
             usage: empty_usage_report(),
             content: ModelOutput::Text(TextContent {
                 content: self.accumulated_text.clone(),
@@ -1432,7 +1432,7 @@ impl AnthropicStream {
             messages.push(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: self.clock.wall_now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: usage_report.clone(),
                 content: ModelOutput::ThinkingContent {
                     thinking: self.accumulated_thinking.clone(),
@@ -1451,7 +1451,7 @@ impl AnthropicStream {
             messages.push(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: self.clock.wall_now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: usage_report.clone(),
                 content: ModelOutput::Text(TextContent {
                     content: self.accumulated_text.clone(),
@@ -1472,7 +1472,7 @@ impl AnthropicStream {
             messages.push(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: self.clock.wall_now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: usage_report.clone(),
                 content: ModelOutput::ToolCall {
                     id: tc.id.clone(),
@@ -1495,7 +1495,7 @@ impl AnthropicStream {
             messages.push(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: self.clock.wall_now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: usage_report.clone(),
                 content: ModelOutput::Text(TextContent {
                     content: String::new(),
@@ -1731,7 +1731,7 @@ pub fn parse_response(
     response: &MessagesResponse,
     model_id: &ModelId,
     pricing: &ModelUsageCosting,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> GenerationResult<(Vec<Messages>, UsageReport)> {
     let stop_reason = map_stop_reason(&response.stop_reason);
 
@@ -1750,7 +1750,7 @@ pub fn parse_response(
             AnthropicContentBlock::Text { text } => Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
-                timestamp: clock.wall_now(),
+                timestamp: ctx.clock().wall_now(),
                 usage: report.clone(),
                 content: ModelOutput::Text(TextContent {
                     content: text.clone(),
@@ -1768,7 +1768,7 @@ pub fn parse_response(
                 Messages::Assistant {
                     id: foundation_compact::ids::new_scru128(),
                     model: model_id.clone(),
-                    timestamp: clock.wall_now(),
+                    timestamp: ctx.clock().wall_now(),
                     usage: report.clone(),
                     content: ModelOutput::ToolCall {
                         id: id.clone(),
@@ -1791,7 +1791,7 @@ pub fn parse_response(
             } => Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
-                timestamp: clock.wall_now(),
+                timestamp: ctx.clock().wall_now(),
                 usage: report.clone(),
                 content: ModelOutput::ThinkingContent {
                     thinking: thinking.clone(),
@@ -1806,7 +1806,7 @@ pub fn parse_response(
             AnthropicContentBlock::RedactedThinking { .. } => Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
-                timestamp: clock.wall_now(),
+                timestamp: ctx.clock().wall_now(),
                 usage: report.clone(),
                 content: ModelOutput::ThinkingContent {
                     thinking: String::from("[redacted]"),
@@ -1830,7 +1830,7 @@ pub fn parse_response(
         messages.push(Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: model_id.clone(),
-            timestamp: clock.wall_now(),
+            timestamp: ctx.clock().wall_now(),
             usage: report.clone(),
             content: ModelOutput::Text(TextContent {
                 content: String::new(),

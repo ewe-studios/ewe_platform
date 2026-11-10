@@ -39,6 +39,13 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   Testing doctests failed with a full disk, so they are not re-run yet. `ewe_platform` and
   `answerme-agent` do not build here, because the llama.cpp submodule is not checked out.
 
+- 2026-11-10: wave 1, foundation_ai lane: 124 `dyn Clock` sites in `src` now take `Ctx`.
+  answerme-agent, bin/platform, cf-agent-loop, cf-cloud-provider and the foundation_toolings
+  cf_examples test follow. 501 tests pass (493 unit and integration, 8 doctests). clippy
+  `-D warnings` is clean.
+- 2026-11-10: wave 1, small-crates lane: foundation_repl, foundation_testing,
+  foundation_toolings, foundation_testbed and foundation_cronjobs take `Ctx`.
+
 ## In progress
 
 - Wave 1 small-crates lane: clippy, the remaining doctests, and the GitHub issues for the

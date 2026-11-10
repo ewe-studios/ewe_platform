@@ -24,8 +24,10 @@ use foundation_ai::types::{
 };
 
 /// The explicit real clock backend for tests.
-fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
-    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+fn test_clock() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }
 
 // ---------------------------------------------------------------------------
@@ -108,7 +110,7 @@ fn parse(resp: &ChatCompletionResponse) -> (Messages, UsageReport) {
         resp,
         &ModelId::Name("gpt-4o".into(), None),
         &free_pricing(),
-        &*test_clock(),
+        &test_clock(),
     )
     .expect("parse succeeds")
 }
@@ -317,7 +319,7 @@ fn a_response_with_no_choices_is_an_error() {
             &resp,
             &ModelId::Name("gpt-4o".into(), None),
             &free_pricing(),
-            &*test_clock()
+            &test_clock()
         )
         .is_err(),
         "an empty choices array must error rather than yield an empty completion"

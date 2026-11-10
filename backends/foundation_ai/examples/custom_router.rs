@@ -15,9 +15,8 @@
 
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::harness::{CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O};
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -25,18 +24,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let openai_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // Mix: Claude Opus primary, Claude Sonnet memory, GPT-4o fallback.
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
+    let ctx = Ctx::host();
     let preset = RouterMix::new()
         .primary(
-            CloudPresets::claude_opus(&anthropic_key, Arc::clone(&clock))?,
+            CloudPresets::claude_opus(&anthropic_key, ctx.clone())?,
             CLAUDE_OPUS,
         )
         .memory(
-            CloudPresets::claude_sonnet(&anthropic_key, Arc::clone(&clock))?,
+            CloudPresets::claude_sonnet(&anthropic_key, ctx.clone())?,
             CLAUDE_SONNET,
         )
         .fallback(
-            CloudPresets::openai_gpt4o(&openai_key, Arc::clone(&clock))?,
+            CloudPresets::openai_gpt4o(&openai_key, ctx.clone())?,
             OPENAI_GPT4O,
         )
         .build();
@@ -48,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // Bridge into an agent builder and finish customizing.
     let agent = preset
-        .into_agent_builder(clock)
+        .into_agent_builder(ctx)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()

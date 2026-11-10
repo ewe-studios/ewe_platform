@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use foundation_core::valtron::{block_on_future, Clock};
+use foundation_core::valtron::{block_on_future, Ctx};
 use foundation_deployment_huggingface::{HFClient, HFRepository, RepoDownloadFileParams};
 
 use crate::backends::llamacpp::{LlamaBackendConfig, LlamaBackendKind, LlamaBackends, LlamaModels};
@@ -30,7 +30,7 @@ use foundation_deployment_huggingface::repository;
 pub struct HuggingFaceGGUFProvider {
     hf_client: HFClient,
     llama_backend: LlamaBackendKind,
-    clock: std::sync::Arc<dyn Clock>,
+    ctx: Ctx,
     cache_dir: PathBuf,
     default_quantization: Option<String>,
     /// llama.cpp settings (GPU layers, context length, batch, threads, and the
@@ -281,10 +281,7 @@ impl HuggingFaceGGUFProvider {
     /// # Errors
     ///
     /// Returns an error if the `HFClient` cannot be initialized.
-    pub fn new(
-        config: HuggingFaceGGUFConfig,
-        clock: std::sync::Arc<dyn Clock>,
-    ) -> ModelProviderResult<Self> {
+    pub fn new(config: HuggingFaceGGUFConfig, ctx: Ctx) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
             .token(
                 config
@@ -313,7 +310,7 @@ impl HuggingFaceGGUFProvider {
         Ok(Self {
             hf_client,
             llama_backend: config.llama_backend,
-            clock,
+            ctx,
             cache_dir: config.cache_dir,
             default_quantization: config.default_quantization,
             llama_config: config.llama_config,
@@ -535,7 +532,7 @@ impl ModelProvider for HuggingFaceGGUFProvider {
     {
         // If config is provided, recreate with new config
         if let Some(config) = config {
-            HuggingFaceGGUFProvider::new(config, self.clock)
+            HuggingFaceGGUFProvider::new(config, self.ctx)
         } else {
             Ok(self)
         }
@@ -586,7 +583,7 @@ impl ModelProvider for HuggingFaceGGUFProvider {
         // Delegate to LlamaBackends for actual model loading, carrying the full
         // llama.cpp config (GPU layers, context length, …) and the opt-in
         // speculative (MTP) config so they are applied + capability-checked.
-        LlamaBackends::new(self.llama_backend, std::sync::Arc::clone(&self.clock))
+        LlamaBackends::new(self.llama_backend, self.ctx.clone())
             .load_model(model_spec, &self.llama_config)
     }
 

@@ -12,8 +12,6 @@
 //! (the `response` field is cumulative). There is no `[DONE]` sentinel; the
 //! stream ends when the connection closes.
 
-use std::sync::Arc;
-
 use crate::backends::backend_utils::{
     capped_error_body, empty_usage_report, model_id_to_string, prepared_request,
 };
@@ -26,7 +24,7 @@ use crate::types::base_types::{
     UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{Clock, Stream, StreamSpread};
+use foundation_core::valtron::{Ctx, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
@@ -169,34 +167,34 @@ pub struct WorkersAiProvider {
     config: WorkersAiConfig,
     api_token: Option<ConfidentialText>,
     http_client: Option<DynNetClient>,
-    /// The injected clock every message this provider emits is stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. Every message this provider emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl WorkersAiProvider {
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             config: WorkersAiConfig::default(),
             api_token: None,
             http_client: None,
-            clock,
+            ctx,
         }
     }
 
     /// A provider authenticated with a Cloudflare API token.
     #[must_use]
-    pub fn api_token(token: impl Into<String>, clock: Arc<dyn Clock>) -> Self {
-        Self::with_config(WorkersAiConfig::api_token(token), clock)
+    pub fn api_token(token: impl Into<String>, ctx: Ctx) -> Self {
+        Self::with_config(WorkersAiConfig::api_token(token), ctx)
     }
 
     #[must_use]
-    pub fn with_config(config: WorkersAiConfig, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_config(config: WorkersAiConfig, ctx: Ctx) -> Self {
         Self {
             config,
             api_token: None,
             http_client: None,
-            clock,
+            ctx,
         }
     }
 
@@ -205,12 +203,12 @@ impl WorkersAiProvider {
     /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
     /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: DynNetClient, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_http_client(client: DynNetClient, ctx: Ctx) -> Self {
         Self {
             config: WorkersAiConfig::default(),
             api_token: None,
             http_client: Some(client),
-            clock,
+            ctx,
         }
     }
 
@@ -219,13 +217,13 @@ impl WorkersAiProvider {
     pub fn with_http_client_and_config(
         client: DynNetClient,
         config: WorkersAiConfig,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             config,
             api_token: None,
             http_client: Some(client),
-            clock,
+            ctx,
         }
     }
 }
@@ -295,7 +293,7 @@ impl ModelProvider for WorkersAiProvider {
             api_token: self.api_token.clone(),
             http_client: self.http_client.clone(),
             pricing: ModelUsageCosting::default(),
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -337,8 +335,8 @@ pub struct WorkersAiModel {
     api_token: Option<ConfidentialText>,
     http_client: Option<DynNetClient>,
     pricing: ModelUsageCosting,
-    /// The injected clock every message this model emits is stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. Every message this model emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl WorkersAiModel {
@@ -505,7 +503,7 @@ impl Model for WorkersAiModel {
         let response: WorkersAiRunResponse = self.do_request(&url, &body)?;
         let text = response.result.response.unwrap_or_default();
         Ok(vec![assistant_message(
-            &*self.clock,
+            &self.ctx,
             &self.model_id,
             text,
             StopReason::Stop,
@@ -527,7 +525,7 @@ impl Model for WorkersAiModel {
         let response: WorkersAiRunResponse = self.do_request_async(&url, &body).await?;
         let text = response.result.response.unwrap_or_default();
         Ok(vec![assistant_message(
-            &*self.clock,
+            &self.ctx,
             &self.model_id,
             text,
             StopReason::Stop,
@@ -561,7 +559,7 @@ impl Model for WorkersAiModel {
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             done: false,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }))
     }
 }
@@ -582,7 +580,7 @@ struct WorkersAiStream {
     model_id: ModelId,
     accumulated_text: String,
     done: bool,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 /// Readiness comes from the underlying SSE stream: a consumer parked on this
@@ -628,7 +626,7 @@ impl Iterator for WorkersAiStream {
                                 Stream::Delayed(_) => {
                                     self.done = true;
                                     mapped.push(StreamSpread::Done(assistant_message(
-                                        &*self.clock,
+                                        &self.ctx,
                                         &self.model_id,
                                         self.accumulated_text.clone(),
                                         StopReason::Stop,
@@ -667,7 +665,7 @@ impl WorkersAiStream {
         if data.trim() == "[DONE]" {
             self.done = true;
             return Stream::Next(assistant_message(
-                &*self.clock,
+                &self.ctx,
                 &self.model_id,
                 self.accumulated_text.clone(),
                 StopReason::Stop,
@@ -694,7 +692,7 @@ impl WorkersAiStream {
             Some(text) if !text.is_empty() => {
                 self.accumulated_text.push_str(&text);
                 Stream::Next(assistant_message(
-                    &*self.clock,
+                    &self.ctx,
                     &self.model_id,
                     self.accumulated_text.clone(),
                     StopReason::Stop,
@@ -720,7 +718,7 @@ impl WorkersAiStream {
         }
 
         let partial = assistant_message(
-            &*self.clock,
+            &self.ctx,
             &self.model_id,
             self.accumulated_text.clone(),
             StopReason::Stop,
@@ -831,7 +829,7 @@ fn build_run_request(
 
 /// Build a `Messages::Assistant` text message for the Workers AI provider.
 fn assistant_message(
-    clock: &dyn Clock,
+    ctx: &Ctx,
     model_id: &ModelId,
     content: String,
     stop_reason: StopReason,
@@ -840,7 +838,7 @@ fn assistant_message(
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: model_id.clone(),
-        timestamp: clock.wall_now(),
+        timestamp: ctx.clock().wall_now(),
         usage: empty_usage_report(),
         content: ModelOutput::Text(TextContent {
             content,

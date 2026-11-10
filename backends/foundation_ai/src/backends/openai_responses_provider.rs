@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{sleep_async, Clock, Stream, StreamSpread};
+use foundation_core::valtron::{sleep_async, Ctx, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
@@ -365,37 +365,37 @@ pub struct ResponsesProvider {
     api_key: Option<ConfidentialText>,
     http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
-    /// The injected clock every message this provider emits is stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. Every message this provider emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl ResponsesProvider {
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
     /// A provider authenticated with an API key: shorthand for
     /// `with_config(ResponsesConfig::api_key(key))`.
     #[must_use]
-    pub fn api_key(key: impl Into<String>, clock: Arc<dyn Clock>) -> Self {
-        Self::with_config(ResponsesConfig::api_key(key), clock)
+    pub fn api_key(key: impl Into<String>, ctx: Ctx) -> Self {
+        Self::with_config(ResponsesConfig::api_key(key), ctx)
     }
 
     #[must_use]
-    pub fn with_config(config: ResponsesConfig, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_config(config: ResponsesConfig, ctx: Ctx) -> Self {
         Self {
             config,
             api_key: None,
             http_client: None,
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
@@ -404,13 +404,13 @@ impl ResponsesProvider {
     /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
     /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: DynNetClient, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_http_client(client: DynNetClient, ctx: Ctx) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
@@ -419,14 +419,14 @@ impl ResponsesProvider {
     pub fn with_http_client_and_config(
         client: DynNetClient,
         config: ResponsesConfig,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             config,
             api_key: None,
             http_client: Some(client),
             models_cache: model_info::new_cache(),
-            clock,
+            ctx,
         }
     }
 
@@ -652,7 +652,7 @@ impl ModelProvider for ResponsesProvider {
             cumulative_cost: Arc::new(
                 std::sync::Mutex::new(crate::costing::CostAccumulator::new()),
             ),
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         })
     }
 
@@ -716,8 +716,8 @@ pub struct ResponsesModel {
     /// `costing()` cannot report a cumulative figure even though each response
     /// already carries the vendor's token counts.
     cumulative_cost: Arc<std::sync::Mutex<crate::costing::CostAccumulator>>,
-    /// The injected clock every message this model emits is stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. Every message this model emits reads its clock from it.
+    ctx: Ctx,
 }
 
 impl ResponsesModel {
@@ -1021,7 +1021,7 @@ impl Model for ResponsesModel {
         let url = self.build_url("responses");
         let response: Response = self.execute_request(&url, &body)?;
 
-        let message = parse_response(&response, &self.model_id, &*self.clock);
+        let message = parse_response(&response, &self.model_id, &self.ctx);
 
         // Accrue this call's usage so `costing()` can report a running total.
         // `parse_response` has already converted the vendor's token counts into
@@ -1047,7 +1047,7 @@ impl Model for ResponsesModel {
         let url = self.build_url("responses");
         let response: Response = self.execute_request_async(&url, &body).await?;
 
-        let message = parse_response(&response, &self.model_id, &*self.clock);
+        let message = parse_response(&response, &self.model_id, &self.ctx);
 
         if let Messages::Assistant { ref usage, .. } = message {
             self.cumulative_cost.lock().unwrap().add(&usage.cost);
@@ -1085,7 +1085,7 @@ impl Model for ResponsesModel {
             accumulated_text: String::new(),
             response: None,
             done: false,
-            clock: Arc::clone(&self.clock),
+            ctx: self.ctx.clone(),
         }))
     }
 }
@@ -1100,7 +1100,7 @@ struct ResponsesStream {
     accumulated_text: String,
     response: Option<Response>,
     done: bool,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 /// Readiness comes from the underlying SSE stream: a consumer parked on this
@@ -1171,7 +1171,7 @@ impl ResponsesStream {
             return Stream::Next(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: self.clock.wall_now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: empty_usage_report(),
                 content: ModelOutput::Text(TextContent {
                     content: self.accumulated_text.clone(),
@@ -1191,7 +1191,7 @@ impl ResponsesStream {
                 Stream::Next(Messages::Assistant {
                     id: foundation_compact::ids::new_scru128(),
                     model: self.model_id.clone(),
-                    timestamp: self.clock.wall_now(),
+                    timestamp: self.ctx.clock().wall_now(),
                     usage: empty_usage_report(),
                     content: ModelOutput::Text(TextContent {
                         content: self.accumulated_text.clone(),
@@ -1219,7 +1219,7 @@ impl ResponsesStream {
             return Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
-                timestamp: self.clock.wall_now(),
+                timestamp: self.ctx.clock().wall_now(),
                 usage: empty_usage_report(),
                 content: ModelOutput::Text(TextContent {
                     content: self.accumulated_text.clone(),
@@ -1266,7 +1266,7 @@ impl ResponsesStream {
         Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
-            timestamp: self.clock.wall_now(),
+            timestamp: self.ctx.clock().wall_now(),
             usage,
             content,
             stop_reason,
@@ -1425,7 +1425,7 @@ fn build_response_metadata(output: &[ResponseOutputItem]) -> Option<Vec<Generati
     }
 }
 
-fn parse_response(response: &Response, model_id: &ModelId, clock: &dyn Clock) -> Messages {
+fn parse_response(response: &Response, model_id: &ModelId, ctx: &Ctx) -> Messages {
     #[allow(clippy::cast_precision_loss)]
     let usage = response
         .usage
@@ -1459,7 +1459,7 @@ fn parse_response(response: &Response, model_id: &ModelId, clock: &dyn Clock) ->
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: model_id.clone(),
-        timestamp: clock.wall_now(),
+        timestamp: ctx.clock().wall_now(),
         usage,
         content,
         stop_reason,
