@@ -371,8 +371,15 @@ fn start_h3_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
 #[cfg(feature = "h3")]
 fn h3_client(addr: std::net::SocketAddr, procedure: &str) -> Client<Msg, Msg> {
     let cfg = client_config_trusting_pem(CA_PEM).expect("client config");
-    let transport: Arc<dyn Transport> =
-        Arc::new(H3Transport::new(cfg).with_server_name("localhost"));
+    let transport: Arc<dyn Transport> = Arc::new(
+        H3Transport::new(
+            cfg,
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .with_server_name("localhost"),
+    );
     Client::new(
         transport,
         &format!("https://{addr}{procedure}"),

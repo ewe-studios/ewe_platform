@@ -210,8 +210,15 @@ fn http3_server_echoes_a_request_over_quic() {
 
     // ── Client: connect over QUIC and drive one H3 request. ──
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) =
-        QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) = QuicDriver::connect(
+        server_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);
@@ -296,8 +303,15 @@ fn http3_server_rejects_a_request_it_has_no_handler_for() {
     .expect("start h3 server");
 
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) =
-        QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) = QuicDriver::connect(
+        server_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);

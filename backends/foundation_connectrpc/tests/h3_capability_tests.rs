@@ -29,7 +29,12 @@ use foundation_connectrpc::shared::transport::Transport;
 fn transport() -> H3Transport {
     let cert = include_bytes!("../../foundation_netio/tests/fixtures/quic_ca.pem");
     let cfg = foundation_netio::quic::client_config_trusting_pem(cert).expect("client config");
-    H3Transport::new(cfg)
+    H3Transport::new(
+        cfg,
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
 }
 
 #[test]

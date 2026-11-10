@@ -192,7 +192,15 @@ fn h3_proxy_forwards_to_http1_backend() {
 
     // ── H3 client: connect over QUIC and drive one request through the proxy. ──
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(h3_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) = QuicDriver::connect(
+        h3_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);

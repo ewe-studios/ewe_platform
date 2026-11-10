@@ -53,7 +53,15 @@ mod h3_conformance {
         let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
         let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
         let addr = sq.local_addr().expect("addr");
-        let (mut cq, cc) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        let (mut cq, cc) = QuicDriver::connect(
+            addr,
+            client_cfg,
+            "localhost",
+            &foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("connect");
         let dl = Instant::now() + BUDGET;
         let sc = loop {
             if let Some(c) = QuicDriver::take_accepted(&sq) {

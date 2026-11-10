@@ -242,7 +242,15 @@ fn open_request(tag: &str, max_request_body: usize, path: &str, send_head: bool)
 
     let deadline = Instant::now() + TIME_LIMIT;
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(h3_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) = QuicDriver::connect(
+        h3_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
     let mut h3 = H3Connection::new(conn);
     drive(|| h3.poll_setup(), deadline).expect("client h3 setup");
