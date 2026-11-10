@@ -172,7 +172,7 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   - clippy `-D warnings` is clean for default and `quic`.
   - wasm `check` passes for `wasm-fetch`.
   - The Windows target could not be checked. The MinGW toolchain is missing here.
-- Wave 9: `foundation_core`: midpoint commit `7ce02f7b7`. The final commit follows. `src` has
+- Wave 9: `foundation_core`: commit `7ce02f7b7`. It is the only core commit; the tests and clippy below ran on this state. `src` has
   7 `dyn Clock` sites. All seven are kept, and each has a comment that says why (see report).
   Results:
   - Test sets run and pass: default (874), `multi` (930), `test-clock` (885).
