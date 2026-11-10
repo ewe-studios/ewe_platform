@@ -57,8 +57,8 @@ pub struct ProtocolDetectHandler {
     alt_svc_h3_port: Option<u16>,
     /// When this detector first polled, on the engine clock.
     started: Option<Instant>,
-    /// The engine clock, resolved on the first poll.
-    clock: Option<Arc<dyn foundation_core::valtron::Clock>>,
+    /// The context the spawned handlers take. It holds the clock they read.
+    ctx: Ctx,
 }
 
 impl ProtocolDetectHandler {
@@ -76,7 +76,7 @@ impl ProtocolDetectHandler {
         drain_guard: WaitGroupGuard,
         keep_alive: KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
-        clock: Arc<dyn foundation_core::valtron::Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             stream,
@@ -88,19 +88,8 @@ impl ProtocolDetectHandler {
             keep_alive,
             alt_svc_h3_port,
             started: None,
-            clock: Some(clock),
+            ctx,
         }
-    }
-
-    /// The engine clock resolved on the first poll.
-    ///
-    /// # Panics
-    /// Panics when `next_status` has not run yet.
-    fn clock(&self) -> Arc<dyn foundation_core::valtron::Clock> {
-        self.clock
-            .as_ref()
-            .expect("the engine clock is resolved on the first poll")
-            .clone()
     }
 }
 
@@ -115,7 +104,6 @@ impl TaskIterator for ProtocolDetectHandler {
 
         // The detection deadline runs on the engine clock.
         let now = ctx.clock().now();
-        self.clock.get_or_insert_with(|| ctx.clock());
         let started = *self.started.get_or_insert(now);
 
         let mut buf = [0u8; H2C_PREFACE_PEEK_LEN];
@@ -192,7 +180,7 @@ impl ProtocolDetectHandler {
             self.connection.clone(),
             self.shutdown.clone(),
             guard,
-            self.clock(),
+            self.ctx.clone(),
         );
 
         if let Err(e) = foundation_core::valtron::send(handler) {
@@ -231,7 +219,7 @@ impl ProtocolDetectHandler {
             guard,
             &self.keep_alive,
             self.alt_svc_h3_port,
-            self.clock(),
+            self.ctx.clone(),
         );
 
         match foundation_core::valtron::send(handler) {

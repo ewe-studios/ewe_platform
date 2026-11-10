@@ -5,10 +5,9 @@
 //! to replace `app.ctx` after construction, and a forgotten step failed
 //! silently.
 //!
-//! WHAT: `HttpApp::with_ctx` and `HttpApp::with_clock` build the app from an
-//! explicit valtron `Ctx`. `HttpApp::with_clock` is the deterministic-test entry
-//! point; the plain constructors keep their signature and stay the host
-//! boundary.
+//! WHAT: `HttpApp::with_ctx` builds the app from an explicit valtron `Ctx`.
+//! It is the deterministic-test entry point; the plain constructors keep their
+//! signature and stay the host boundary.
 //!
 //! HOW: a `SimulatedClock` that the test advances, and a `Ctx` whose shared RNG
 //! stream the test draws from before building the app.
@@ -26,9 +25,9 @@ use rand_chacha::rand_core::Rng;
 type WriterApp = HttpApp<Arc<dyn ServeWriter>>;
 
 #[test]
-fn with_clock_keeps_the_injected_clock() {
+fn with_ctx_keeps_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::from_secs(100)));
-    let app: WriterApp = HttpApp::with_clock(clock.clone());
+    let app: WriterApp = HttpApp::with_ctx(Ctx::fixed(clock.clone()));
 
     assert_eq!(
         app.context().clock().elapsed(),

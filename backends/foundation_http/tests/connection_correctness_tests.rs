@@ -21,7 +21,7 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
-use foundation_core::valtron::{Clock, Ctx, SimulatedClock, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, SimulatedClock, TaskIterator, TaskStatus};
 use foundation_http::native::app::H1App;
 use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{ConnectionHandler, KeepAliveConfig};
@@ -74,7 +74,7 @@ fn build_handler(
     app: H1App,
     stream: SharedByteBufferStream<RawStream>,
     config: &KeepAliveConfig,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 ) -> ConnectionHandler {
     let waits = WaitGroup::new();
     waits.add(1);
@@ -88,7 +88,7 @@ fn build_handler(
         waits.guard(),
         config,
         None,
-        clock,
+        ctx,
     )
 }
 
@@ -116,7 +116,7 @@ fn drive_until_closed(handler: &mut ConnectionHandler, ctx: &Ctx, limit: usize) 
 fn keepalive_waits_the_default_idle_timeout() {
     let (_client, stream) = silent_tcp_pair();
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_clock(clock.clone()));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
     let config = KeepAliveConfig::defaults();
 
     assert_eq!(
@@ -125,8 +125,8 @@ fn keepalive_waits_the_default_idle_timeout() {
         "the default idle timeout is the nginx keepalive_timeout default"
     );
 
-    let mut handler = build_handler(app, stream, &config, clock.clone());
     let ctx = Ctx::fixed(clock.clone());
+    let mut handler = build_handler(app, stream, &config, ctx.clone());
 
     // First poll arms the idle deadline.
     assert!(
@@ -156,9 +156,9 @@ fn keepalive_waits_the_default_idle_timeout() {
     // calculator's 120 s minimum read timeout.
     let (_client, stream) = silent_tcp_pair();
     let config = KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(2));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_clock(clock.clone()));
-    let mut handler = build_handler(app, stream, &config, clock.clone());
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
     let ctx = Ctx::fixed(clock.clone());
+    let mut handler = build_handler(app, stream, &config, ctx.clone());
 
     assert!(handler.next_status(ctx.clone()).is_some());
     clock.advance(Duration::from_secs(1));
@@ -177,13 +177,13 @@ fn keepalive_waits_the_default_idle_timeout() {
 fn keepalive_disabled_closes_after_one_second() {
     let (_client, stream) = silent_tcp_pair();
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_clock(clock.clone()));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
     let config = KeepAliveConfig::disabled();
 
     assert_eq!(config.idle_timeout(), Duration::from_secs(1));
 
-    let mut handler = build_handler(app, stream, &config, clock.clone());
     let ctx = Ctx::fixed(clock.clone());
+    let mut handler = build_handler(app, stream, &config, ctx.clone());
 
     assert!(
         drive_until_closed(&mut handler, &ctx, 1),
@@ -204,14 +204,14 @@ fn a_404_with_a_body_does_not_desync_the_next_request() {
     client.queue_request(request.as_bytes());
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::with_clock(clock.clone());
+    let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::with_ctx(Ctx::fixed(clock.clone()));
     app.route::<SecretHandler>(SimpleMethod::GET, "/secret");
 
     let mut handler = build_handler(
         Arc::new(app),
         stream,
         &KeepAliveConfig::defaults(),
-        clock.clone(),
+        Ctx::fixed(clock.clone()),
     );
     drive_until_closed(&mut handler, &Ctx::fixed(clock), 200);
 
@@ -229,7 +229,7 @@ fn a_middleware_write_error_closes_the_connection() {
     client.queue_request(b"GET /blocked HTTP/1.1\r\nHost: test\r\n\r\n");
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::with_clock(clock.clone());
+    let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::with_ctx(Ctx::fixed(clock.clone()));
     app.middleware(AlwaysRespond);
 
     // The client is gone, so the middleware response cannot be written.
@@ -239,7 +239,7 @@ fn a_middleware_write_error_closes_the_connection() {
         Arc::new(app),
         stream,
         &KeepAliveConfig::defaults(),
-        clock.clone(),
+        Ctx::fixed(clock.clone()),
     );
 
     assert!(
@@ -258,9 +258,9 @@ fn a_middleware_write_error_closes_the_connection() {
 fn an_idle_keepalive_connection_parks_on_its_socket() {
     let (mut client, stream) = silent_tcp_pair();
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_clock(clock.clone()));
+    let app: H1App = Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(Ctx::fixed(clock.clone())));
     let config = KeepAliveConfig::defaults();
-    let mut handler = build_handler(app, stream, &config, clock);
+    let mut handler = build_handler(app, stream, &config, Ctx::fixed(clock));
 
     // No bytes yet: the handler parks on the socket readiness, never on a poll
     // timer and never on a busy spin.

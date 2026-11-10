@@ -37,8 +37,7 @@ impl HttpApp<Arc<dyn WebServe>> {
     /// Create a new empty `HttpApp` for `WebServe` handlers.
     ///
     /// This is a host entry point: it uses the real host clock. Use
-    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
-    /// test.
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_web() -> Self {
         Self::with_ctx(foundation_core::valtron::Ctx::host())

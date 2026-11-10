@@ -29,8 +29,7 @@ impl HttpApp<Arc<dyn Serve>> {
     /// Create a new empty `HttpApp` for native Serve handlers.
     ///
     /// This is a host entry point: it uses the real host clock. Use
-    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
-    /// test.
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_serve() -> Self {
         Self::with_ctx(Ctx::host())
@@ -70,8 +69,7 @@ impl HttpApp<Arc<dyn H2Serve>> {
     /// Create a new empty `HttpApp` for HTTP/2 handlers.
     ///
     /// This is a host entry point: it uses the real host clock. Use
-    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
-    /// test.
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_h2_serve() -> Self {
         Self::with_ctx(Ctx::host())
@@ -111,8 +109,7 @@ impl HttpApp<Arc<dyn H3Serve>> {
     /// Create a new empty `HttpApp` for HTTP/3 handlers.
     ///
     /// This is a host entry point: it uses the real host clock. Use
-    /// [`HttpApp::with_ctx`] or [`HttpApp::with_clock`] in a deterministic
-    /// test.
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_h3_serve() -> Self {
         Self::with_ctx(Ctx::host())
@@ -216,6 +213,23 @@ impl ServerApp {
             http1: Arc::new(http1),
             http2: Arc::new(http2),
             http3: Arc::new(http3),
+        }
+    }
+
+    /// The [`Ctx`] of this server.
+    ///
+    /// The accept loop passes it to every new connection. The HTTP/1.1 app
+    /// stands for the server when it has one. Every app of one server holds the
+    /// same host [`Ctx`], so any app gives the same clock.
+    #[must_use]
+    pub fn context(&self) -> &Ctx {
+        match self {
+            ServerApp::Http1(a) | ServerApp::Both { http1: a, .. } => a.context(),
+            ServerApp::Http2(a) => a.context(),
+            #[cfg(feature = "quic")]
+            ServerApp::Http3(a) => a.context(),
+            #[cfg(feature = "quic")]
+            ServerApp::Any { http1: a, .. } => a.context(),
         }
     }
 
