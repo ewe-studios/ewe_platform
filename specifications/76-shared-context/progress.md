@@ -220,3 +220,15 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   `foundation_netio/tests/simple_http/pool_drain_tests.rs`.
 - Issue 485: the netio blackhole test and the connectrpc blackhole test (issue 466) now dial a
   local listener with a full accept queue. They no longer depend on the host network.
+
+## 2026-11-10: issue #482, blocking consumers and the timer read a Ctx (branch fix/lane-b)
+
+- Landed: `NotifyQueue::wait_for_item` takes `&Ctx`. The receive iterators and the stream
+  iterator keep the `Ctx` of the code that builds them. `ExecutionEngine` has a new method,
+  `fork_ctx`. The builders use it.
+- Landed: the timer thread owns no clock. Each deadline carries the clock of its caller.
+  `sleep_for`, `sleep_until`, `call_at` and `sleep_async` take a `Ctx`.
+- Landed: callers in the workspace pass a `Ctx`. Tests in `foundation_core/tests/valtron/
+  blocking_clock_injection.rs` prove the waits follow a simulated clock.
+- Open: library code with no `Ctx` in scope uses the engine root (`valtron::fork_ctx`). See
+  `learnings.md` for the list.

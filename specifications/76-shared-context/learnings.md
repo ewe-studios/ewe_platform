@@ -244,3 +244,20 @@ standard ASD-STE100.
   This replaces the address `10.255.255.1`, which a sandbox may refuse at once.
 - Lane C: a worktree can start from an old commit. Check that `foundation_netio` exists before
   you start.
+
+- 2026-11-10 (issue #482): the timer is a process-wide thread, so it cannot hold one `Ctx`. The
+  fix keeps one ordered map of deadlines per clock. Each entry carries its clock. The thread asks
+  that clock for the time and parks on the real operating system only until the nearest deadline.
+  A simulated clock does not wake that park. `SimulatedClock::advance` now calls a crate-private
+  `timer::nudge`.
+- 2026-11-10 (issue #482): `mpp::RecvIterator` reads no clock. It parks on the operating system
+  and has no deadline, so it needed no change.
+- 2026-11-10 (issue #482): `NotifyQueue` is not `Send` without the `multi` feature. A test that
+  waits on a thread must build the queue on that thread.
+- 2026-11-10 (issue #482): these callers have no `Ctx` in scope and use the engine root
+  (`valtron::fork_ctx`): the `sleep_async` callers in foundation_ai, foundation_auth,
+  foundation_connectrpc client, foundation_deployment_hetzner, foundation_deployment_platform,
+  foundation_proxy and foundation_vectors; `ResponseWriter::new` in the foundation_http handlers,
+  foundation_keychain and foundation_proxy; `Hangup` and the deadline timer in
+  foundation_connectrpc; the connection gate of foundation_db (unless `with_ctx` is called).
+  `fork_ctx` panics when no pool runs. Next step: thread a `Ctx` through those handler APIs.

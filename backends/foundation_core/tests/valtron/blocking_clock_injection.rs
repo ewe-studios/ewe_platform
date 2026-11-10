@@ -57,9 +57,11 @@ fn spawn_reporting<R: Send + 'static>(
 #[test]
 fn wait_for_item_deadline_follows_the_injected_clock() {
     let (clock, ctx) = simulated();
-    let queue: Arc<NotifyQueue<u32>> = one_wait_queue();
-    let waiter = Arc::clone(&queue);
-    let done = spawn_reporting(move || waiter.wait_for_item(Duration::from_millis(50), &ctx));
+    // The queue is built on the waiting thread: without the `multi` feature it is not `Send`.
+    let done = spawn_reporting(move || {
+        let queue: Arc<NotifyQueue<u32>> = one_wait_queue();
+        queue.wait_for_item(Duration::from_millis(50), &ctx)
+    });
 
     // The real time is far past the 50 ms wait, but the simulated clock stood still.
     assert!(
@@ -72,6 +74,8 @@ fn wait_for_item_deadline_follows_the_injected_clock() {
     assert_eq!(item, Some(NotificationItem::None));
 }
 
+// A push from another thread needs a `Send` queue, so this test needs `multi`.
+#[cfg(feature = "multi")]
 #[test]
 fn wait_for_item_still_returns_a_pushed_item_at_once() {
     let (_clock, ctx) = simulated();
@@ -90,10 +94,12 @@ fn wait_for_item_still_returns_a_pushed_item_at_once() {
 #[test]
 fn stream_iterator_next_follows_the_injected_clock() {
     let (clock, ctx) = simulated();
-    let queue: Arc<NotifyQueue<Stream<u32, ()>>> = one_wait_queue();
-    let mut stream =
-        NotifyQueueStreamIterator::new(queue, 1, Duration::from_millis(50), ctx.fork());
-    let done = spawn_reporting(move || stream.next());
+    let done = spawn_reporting(move || {
+        let queue: Arc<NotifyQueue<Stream<u32, ()>>> = one_wait_queue();
+        let mut stream =
+            NotifyQueueStreamIterator::new(queue, 1, Duration::from_millis(50), ctx.fork());
+        stream.next().map(|item| matches!(item, Stream::Wait))
+    });
 
     // The old code read the real clock here and returned `Wait` after 50 ms.
     assert!(
@@ -103,16 +109,18 @@ fn stream_iterator_next_follows_the_injected_clock() {
 
     clock.advance(Duration::from_secs(1));
     let item = done.recv_timeout(ENDS_WITHIN).expect("`next` must end");
-    assert!(matches!(item, Some(Stream::Wait)));
+    assert_eq!(item, Some(true), "`next` must report `Wait`");
 }
 
 #[test]
 fn recv_iterator_next_follows_the_injected_clock() {
     let (clock, ctx) = simulated();
-    let queue: Arc<NotifyQueue<u32>> = one_wait_queue();
-    let mut iterator =
-        NotifyRecvIterator::from_notify_queue(queue, Duration::from_millis(50), ctx.fork());
-    let done = spawn_reporting(move || iterator.next());
+    let done = spawn_reporting(move || {
+        let queue: Arc<NotifyQueue<u32>> = one_wait_queue();
+        let mut iterator =
+            NotifyRecvIterator::from_notify_queue(queue, Duration::from_millis(50), ctx.fork());
+        iterator.next()
+    });
 
     assert!(
         done.recv_timeout(STILL_BLOCKED).is_err(),
