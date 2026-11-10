@@ -1,6 +1,7 @@
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
-use foundation_core::valtron::valtron;
+use foundation_core::valtron::{valtron, Ctx, MonotonicClock};
 use foundation_platform::capability::PlatformCapability;
 use foundation_platform::*;
 use foundation_ui_traits::{CapabilityId, NavigationIntent, Profile, RouteDecision};
@@ -12,6 +13,17 @@ mod generated;
 // ── HTML helpers ──────────────────────────────────────────────────────
 
 /// Wrap a body + optional extra head scripts into a full page.
+/// The host context. An entropy failure keeps the app running with a
+/// deterministic RNG and a warning (issue #426).
+fn host_ctx() -> Ctx {
+    Ctx::try_host().unwrap_or_else(|error| {
+        eprintln!(
+            "warning: entropy source unavailable, guest randomness is deterministic: {error}"
+        );
+        Ctx::fixed(Arc::new(MonotonicClock::new()))
+    })
+}
+
 fn page_html(title: &str, body: &str, nav: &str, extra_head: &str) -> String {
     format!(
         "<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>{title}</title>\
@@ -504,6 +516,7 @@ fn setup_routes(session: &PlatformSession) {
 #[valtron]
 pub fn run() {
     platform_run!(PlatformBuilder::new()
+        .ctx(host_ctx())
         .inject_platform_runtimes()
         .setup(setup_routes));
 }
