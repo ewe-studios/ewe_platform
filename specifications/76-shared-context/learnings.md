@@ -261,3 +261,16 @@ standard ASD-STE100.
   foundation_keychain and foundation_proxy; `Hangup` and the deadline timer in
   foundation_connectrpc; the connection gate of foundation_db (unless `with_ctx` is called).
   `fork_ctx` panics when no pool runs. Next step: thread a `Ctx` through those handler APIs.
+
+- Issue 474: a deadline read from a `Ctx` clock is not enough. The pause in the loop must
+  read the same clock. A real sleep never moves a `SimulatedClock`, so the loop runs forever.
+- Issue 474: the driver stays blocking. `launch`, `Page` and `Locator` block on a socket and
+  the `wasm_ui_server` macro generates blocking tests. An async `launch` would change every
+  generated test. A blocking `pause` on the `Ctx` clock is the smallest correct change.
+  `valtron::sleep_async` does not help here: it waits on the real timer thread, not on the
+  `Ctx` clock.
+- Issue 474: `RpcEngine::connect` is lazy. It succeeds on a closed port. So the retry loop in
+  `connect_with_retry` only retries on a bad URL, not on a refused connection. A test needs a
+  bad URL to make every attempt fail.
+- Issue 474: a frozen clock must not hide a launch failure. A test that steps the clock from
+  the start ends a failed browser launch on its clock deadline.

@@ -232,3 +232,15 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   blocking_clock_injection.rs` prove the waits follow a simulated clock.
 - Open: library code with no `Ctx` in scope uses the engine root (`valtron::fork_ctx`). See
   `learnings.md` for the list.
+
+## 2026-11-10 - Issue 474, wait loops pause on the Ctx clock
+
+- Landed: `foundation_browser::pause::pause` and `WaitConfig`. `wait_for_port`,
+  `discover_ws_url`, `connect_with_retry` and the testbed browser runner now pause on the
+  `Ctx` clock, not with `std::thread::sleep`.
+- Landed: tests `foundation_browser/tests/wait_loop_tests.rs` and
+  `foundation_testbed/tests/browser_wait_tests.rs`.
+- Landed: the `Locator` assertion retry and the wrangler readiness loop use the same pause.
+- Next: real sleeps remain in the testbed Docker readiness loop (`docker.rs`) and the QEMU
+  control loops (`qemu_control.rs`). The `RpcEngine` reader thread sleep is not a deadline
+  loop. Each needs its own issue.
