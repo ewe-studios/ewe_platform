@@ -3,9 +3,9 @@
 use foundation_platform::*;
 
 fn queue() -> MutationQueue {
-    MutationQueue::in_memory(std::sync::Arc::new(
+    MutationQueue::in_memory(foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
         foundation_core::valtron::MonotonicClock::new(),
-    ))
+    )))
 }
 
 // ── Enqueue ──────────────────────────────────────────────────

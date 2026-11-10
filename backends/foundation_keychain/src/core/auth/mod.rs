@@ -10,7 +10,7 @@
 //! token response adapter builds the full `LoginResponse`.
 
 use foundation_compact::time;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -39,9 +39,9 @@ pub fn mint_access_token(
     signing_key: &JwtSigningKey,
     user: &UserRow,
     device_identifier: &str,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> AppResult<String> {
-    let now = time::unix_seconds(clock.wall_now());
+    let now = time::unix_seconds(ctx.clock().wall_now());
     let claims = json!({
         "sub": user.uuid,
         "iss": ISSUER,
@@ -57,7 +57,7 @@ pub fn mint_access_token(
         "scope": ["api", "offline_access"],
     });
     signing_key
-        .sign_claims(&claims, clock)
+        .sign_claims(&claims, &*ctx.clock())
         .map_err(|e| AppError::Internal(format!("sign access token: {e}")))
         .map_err(Into::into)
 }
@@ -71,9 +71,9 @@ pub fn mint_refresh_token(
     signing_key: &JwtSigningKey,
     user_uuid: &str,
     device_identifier: &str,
-    clock: &dyn Clock,
+    ctx: &Ctx,
 ) -> AppResult<String> {
-    let now = time::unix_seconds(clock.wall_now());
+    let now = time::unix_seconds(ctx.clock().wall_now());
     let claims = json!({
         "sub": user_uuid,
         "iss": ISSUER,
@@ -83,7 +83,7 @@ pub fn mint_refresh_token(
         "device": device_identifier,
     });
     signing_key
-        .sign_claims(&claims, clock)
+        .sign_claims(&claims, &*ctx.clock())
         .map_err(|e| AppError::Internal(format!("sign refresh token: {e}")))
         .map_err(Into::into)
 }

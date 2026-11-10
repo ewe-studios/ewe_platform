@@ -43,10 +43,7 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let d = Arc::clone(&db);
     drive(async move { apply_schema(d.as_ref()).await }).expect("apply schema");
     (
-        KeychainContext::new(
-            db,
-            Arc::new(foundation_core::valtron::MonotonicClock::new()),
-        ),
+        KeychainContext::new(db, foundation_core::valtron::Ctx::host()),
         dir,
     )
 }

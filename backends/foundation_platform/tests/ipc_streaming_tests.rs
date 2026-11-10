@@ -61,7 +61,9 @@ fn stream_yields_chunks_in_order() {
     reg.register(TestStreamIpc);
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
 
     let handler = reg.get("test_stream").unwrap();

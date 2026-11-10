@@ -69,7 +69,7 @@ pub async fn create(
     req: FolderCreateRequest,
 ) -> AppResult<Folder> {
     let name = validated_name(&req.name)?;
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     let row = FolderRow {
         uuid: crypto::new_uuid_v4()?.to_string(),
         user_uuid: user_uuid.to_string(),
@@ -103,7 +103,7 @@ pub async fn update(
 ) -> AppResult<Folder> {
     let mut row = owned(ctx, user_uuid, id).await?;
     let name = validated_name(&req.name)?;
-    let now = wall_now_utc(ctx.clock());
+    let now = wall_now_utc(ctx.ctx());
     store::update_name(ctx.db(), id, &name, now).await?;
     row.name = name;
     row.updated_at = now;

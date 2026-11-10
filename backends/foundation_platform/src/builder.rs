@@ -2,7 +2,7 @@ use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 use tauri::{App, Context, Manager, Runtime};
 
@@ -28,9 +28,9 @@ pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     script_injector: ScriptInjector,
     /// Whether platform runtimes have been auto-registered.
     runtimes_injected: bool,
-    /// The host clock every session wall time comes from. [`Self::build`]
-    /// requires it; there is no fallback to the real clock.
-    clock: Option<Arc<dyn Clock>>,
+    /// The host side-effect bundle. Every session reads its clock and RNG from
+    /// it. [`Self::build`] requires it; there is no fallback to the real clock.
+    ctx: Option<Ctx>,
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
@@ -43,17 +43,17 @@ impl<R: Runtime> PlatformBuilder<R> {
             index_url: None,
             script_injector: ScriptInjector::new(PathBuf::new()),
             runtimes_injected: false,
-            clock: None,
+            ctx: None,
         }
     }
 
-    /// Set the host clock. Every session wall time comes from it.
+    /// Set the host side-effect bundle. Every session reads its clock from it.
     ///
-    /// [`Self::build`] panics when the builder was not given a clock: a missing
-    /// clock is a wiring fault, never a reason to read the real one.
+    /// [`Self::build`] panics when the builder was not given a context: a
+    /// missing context is a wiring fault, never a reason to read the real clock.
     #[must_use]
-    pub fn clock(mut self, clock: Arc<dyn Clock>) -> Self {
-        self.clock = Some(clock);
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
         self
     }
 
@@ -142,17 +142,17 @@ impl<R: Runtime> PlatformBuilder<R> {
     ///
     /// # Panics
     ///
-    /// Panics if the builder has no clock; call [`Self::clock`] first.
+    /// Panics if the builder has no context; call [`Self::ctx`] first.
     #[allow(clippy::needless_pass_by_value)]
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         let mut routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
         let _index_url = self.index_url.clone();
         let script_injector = std::mem::take(&mut self.script_injector);
-        let clock = self
-            .clock
+        let ctx = self
+            .ctx
             .take()
-            .expect("PlatformBuilder::build needs a clock: call PlatformBuilder::clock(clock)");
+            .expect("PlatformBuilder::build needs a context: call PlatformBuilder::ctx(ctx)");
 
         self.inner = self.inner.setup(move |app| {
             let resource_root = app
@@ -167,7 +167,7 @@ impl<R: Runtime> PlatformBuilder<R> {
                 script_injector
             };
 
-            let session = PlatformSession::new(resource_root, injector, clock);
+            let session = PlatformSession::new(resource_root, injector, ctx);
 
             for entry in routes.drain(..) {
                 let mut d = entry.decision.clone();

@@ -24,13 +24,9 @@ fn load_never_sees_a_torn_file() {
     let writer = Arc::new(ProxyStateStore::new(
         &dir,
         "torn.example",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::host(),
     ));
-    let reader = ProxyStateStore::new(
-        &dir,
-        "torn.example",
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
-    );
+    let reader = ProxyStateStore::new(&dir, "torn.example", foundation_core::valtron::Ctx::host());
 
     // The first state exists before the reader starts, so every load has a file.
     futures_lite::future::block_on(writer.save_backend_state("svc", "http://seed", "active"))

@@ -80,3 +80,31 @@ standard ASD-STE100.
   examples are wasm crates. Check them with `--target wasm32-unknown-unknown`.
 - Feature 03: a full `cargo test -p foundation_ai` run used about 4 GB of the shared target and
   filled the disk. Check `df -h /` before each run.
+
+- Wave 1 platform, proxy and keychain lane: a full disk fails a link step with
+  `rustc-LLVM ERROR: IO failure on output stream: No space left on device`. The cargo
+  summary shows it as `linking with clang failed, signal`. Read the full log, not the summary,
+  when a test link fails.
+- Wave 1 platform, proxy and keychain lane: `foundation_http::shared::context::Ctx` is a
+  re-export of `foundation_context::Ctx`. The proxy handlers and the H3 relay already held the
+  right type, so they needed no type change. Only the clock reads changed.
+- Wave 1 platform, proxy and keychain lane: `foundation_platform` cannot compile in this
+  environment. Tauri is a hard dependency, and the `gdk-sys` build script fails without the
+  system library `gdk-3.0`. `cargo check --lib` stops in that build script. Check platform
+  changes on a machine with GTK 3 installed. Read the diff until then.
+- Wave 1 platform, proxy and keychain lane: `PlatformSession` kept a second clock field
+  beside its `Ctx`. Removing it made the session read the clock from one place only. The
+  session needed no other change.
+- Wave 1 platform, proxy and keychain lane: the entropy fallback in `PlatformSession`
+  (warn, then use a fixed RNG) depended on a clock that the library may not build. The
+  fallback moved to the host entry points (the three examples), as issue #469 asked. The
+  library now takes a `Ctx` only.
+- Wave 1 platform, proxy and keychain lane: tests that used `new_test` with a real clock
+  now pass `Ctx::fixed`. `Ctx::fixed` keeps the seed-0 RNG that `new_test` used before.
+  Tests that build a service with a real clock pass `Ctx::host()`.
+- Wave 1 platform, proxy and keychain lane: the shell guard in this worktree refuses one
+  compound command that contains `cd` and a heredoc. Split such commands into single calls.
+- Wave 1 platform, proxy and keychain lane: `foundation_macros/src/platform_test.rs`
+  generates calls to `PlatformSession::new_test`. A signature change in `foundation_platform`
+  also changes the generated code. Search the macro crates for generated calls, not only
+  for direct calls.

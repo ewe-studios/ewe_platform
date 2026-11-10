@@ -6,8 +6,8 @@
 //! `foundation_db` storage handle and the `foundation_auth` JWT signing key +
 //! verifier used to mint and check Bitwarden access/refresh tokens.
 //!
-//! WHAT: `KeychainContext { db, signing_key, verifier, clock }`. It is `Clone`
-//! (all fields are `Arc`), so it is cheap to move into async tasks. `clock` is
+//! WHAT: `KeychainContext { db, signing_key, verifier, ctx }`. It is `Clone`
+//! (all fields are `Arc`), so it is cheap to move into async tasks. `ctx` carries
 //! the injected engine clock: every vault timestamp (row `created_at`,
 //! `updated_at`, key expiry, token expiry) comes from it.
 //!
@@ -23,7 +23,7 @@ use std::sync::Arc;
 use foundation_auth::shared::jwt::{
     JwtAlgorithm, JwtSigningKey, JwtVerifier, JwtVerifierConfig, PublicKeySource,
 };
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_db::core::storage_provider::QueryStore;
 
 use crate::core::auth::ISSUER;
@@ -37,16 +37,16 @@ pub struct KeychainContext {
     signing_key: Arc<JwtSigningKey>,
     /// Verifier derived from the signing key's public key — checks incoming tokens.
     verifier: Arc<JwtVerifier>,
-    /// The injected engine clock every vault timestamp reads.
-    clock: Arc<dyn Clock>,
+    /// The injected context. Its clock stamps every vault timestamp.
+    ctx: Ctx,
 }
 
 impl KeychainContext {
     /// Build a context over the given async SQL store with a fresh ephemeral
     /// Ed25519 signing key.
     #[must_use]
-    pub fn new(db: Arc<dyn QueryStore>, clock: Arc<dyn Clock>) -> Self {
-        Self::with_signing_key(db, JwtSigningKey::generate_ed25519(), clock)
+    pub fn new(db: Arc<dyn QueryStore>, ctx: Ctx) -> Self {
+        Self::with_signing_key(db, JwtSigningKey::generate_ed25519(), ctx)
     }
 
     /// Build a context with an explicit (persistent) signing key.
@@ -57,17 +57,13 @@ impl KeychainContext {
     /// this only happens on an internally-inconsistent key and is not reachable
     /// with `JwtSigningKey::generate_ed25519()` or a valid loaded key.
     #[must_use]
-    pub fn with_signing_key(
-        db: Arc<dyn QueryStore>,
-        signing_key: JwtSigningKey,
-        clock: Arc<dyn Clock>,
-    ) -> Self {
+    pub fn with_signing_key(db: Arc<dyn QueryStore>, signing_key: JwtSigningKey, ctx: Ctx) -> Self {
         let verifier = build_verifier(&signing_key).expect("derive verifier from signing key");
         Self {
             db,
             signing_key: Arc::new(signing_key),
             verifier: Arc::new(verifier),
-            clock,
+            ctx,
         }
     }
 
@@ -89,10 +85,10 @@ impl KeychainContext {
         &self.verifier
     }
 
-    /// The injected engine clock every handler reads its timestamps from.
+    /// The injected context. Handlers read the engine clock from it.
     #[must_use]
-    pub fn clock(&self) -> &dyn Clock {
-        self.clock.as_ref()
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 }
 

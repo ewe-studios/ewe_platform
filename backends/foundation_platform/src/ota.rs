@@ -16,9 +16,8 @@
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use serde::{Deserialize, Serialize};
 
 use crate::backend::http::HttpBackend;
@@ -106,7 +105,7 @@ impl LocalVersion {
 /// let directorate = PackageDirectorate::new(
 ///     resource_root,
 ///     "https://cdn.example.com/manifest.json",
-///     clock,
+///     ctx,
 /// );
 ///
 /// // At app startup:
@@ -123,19 +122,19 @@ pub struct PackageDirectorate {
     manifest_url: String,
     /// HTTP backend for fetching manifest and bundles.
     http: HttpBackend,
-    /// The clock an applied update's `updated_at` comes from.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock gives an applied update its `updated_at` value.
+    ctx: Ctx,
 }
 
 impl PackageDirectorate {
-    /// A directorate that stamps applied updates with `clock`.
+    /// A directorate that stamps applied updates with the clock of `ctx`.
     #[must_use]
-    pub fn new(resource_root: PathBuf, manifest_url: &str, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(resource_root: PathBuf, manifest_url: &str, ctx: Ctx) -> Self {
         Self {
             resource_root,
             manifest_url: manifest_url.to_string(),
             http: HttpBackend::new(),
-            clock,
+            ctx,
         }
     }
 
@@ -222,7 +221,7 @@ impl PackageDirectorate {
         LocalVersion {
             app_id: entry.app_id.clone(),
             bundle_version: entry.bundle_version.clone(),
-            updated_at: chrono_now(self.clock.as_ref()),
+            updated_at: chrono_now(&self.ctx),
         }
         .write(&self.resource_root)?;
 
@@ -230,10 +229,10 @@ impl PackageDirectorate {
     }
 }
 
-/// Get `clock`'s wall time as an ISO 8601 string (without a chrono dep).
+/// Get the wall time of the clock of `ctx` as an ISO 8601 string (without a chrono dep).
 #[must_use]
-pub fn chrono_now(clock: &dyn Clock) -> String {
-    let secs = wall_seconds(clock);
+pub fn chrono_now(ctx: &Ctx) -> String {
+    let secs = wall_seconds(ctx);
     // Simple ISO 8601: YYYY-MM-DDTHH:MM:SSZ
     let days_since_epoch = secs / 86400;
     let time_of_day = secs % 86400;

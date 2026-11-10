@@ -1,8 +1,21 @@
-use foundation_core::valtron::valtron;
+use std::sync::Arc;
+
+use foundation_core::valtron::{valtron, Ctx, MonotonicClock};
 use foundation_platform::*;
 use foundation_ui_traits::Profile;
 
 mod generated;
+
+/// The host context. An entropy failure keeps the app running with a
+/// deterministic RNG and a warning (issue #426).
+fn host_ctx() -> Ctx {
+    Ctx::try_host().unwrap_or_else(|error| {
+        eprintln!(
+            "warning: entropy source unavailable, guest randomness is deterministic: {error}"
+        );
+        Ctx::fixed(Arc::new(MonotonicClock::new()))
+    })
+}
 
 fn setup_routes(session: &PlatformSession) {
     let root = session.bundle_root();
@@ -28,6 +41,7 @@ fn setup_routes(session: &PlatformSession) {
 #[valtron]
 pub fn run() {
     platform_run!(PlatformBuilder::new()
+        .ctx(host_ctx())
         .inject_platform_runtimes()
         .setup(setup_routes));
 }
