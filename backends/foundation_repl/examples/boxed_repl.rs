@@ -41,9 +41,7 @@ fn main() {
         ))
         .goodbye("Goodbye!")
         .theme(theme)
-        .clock(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        ))
+        .ctx(foundation_core::valtron::Ctx::host())
         .build();
 
     for input in repl.messages() {

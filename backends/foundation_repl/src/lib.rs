@@ -4,11 +4,10 @@
 //! # Quick start
 //!
 //! ```no_run
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_repl::Repl;
-//! use std::sync::Arc;
 //!
-//! let repl = Repl::new(Arc::new(MonotonicClock::new()));
+//! let repl = Repl::new(Ctx::host());
 //!
 //! // Register custom commands (optional)
 //! repl.register_command("greet", |cmd| {
@@ -68,11 +67,10 @@
 //! piece at a time:
 //!
 //! ```no_run
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_repl::Repl;
-//! use std::sync::Arc;
 //!
-//! let repl = Repl::new(Arc::new(MonotonicClock::new()));
+//! let repl = Repl::new(Ctx::host());
 //! for input in repl.messages() {
 //!     let stream = repl.animation("thinking");
 //!     for token in generate(&input) {
@@ -100,9 +98,8 @@
 //! Use [`Repl::builder()`] to change prompts, banners and the theme:
 //!
 //! ```no_run
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_repl::{BorderKind, Repl, ReplColor, ReplPadding, ReplTheme};
-//! use std::sync::Arc;
 //!
 //! let repl = Repl::builder()
 //!     .prompt("myapp> ")
@@ -115,7 +112,7 @@
 //!         padding: ReplPadding::uniform(2),
 //!         ..ReplTheme::default()
 //!     })
-//!     .clock(Arc::new(MonotonicClock::new()))
+//!     .ctx(Ctx::host())
 //!     .build();
 //!
 //! for input in repl.messages() {
@@ -144,13 +141,12 @@
 //! greyscale this crate used to default to).
 //!
 //! ```
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_repl::{Repl, ReplTheme};
-//! use std::sync::Arc;
 //!
 //! let repl = Repl::builder()
 //!     .theme(ReplTheme::abyss())
-//!     .clock(Arc::new(MonotonicClock::new()))
+//!     .ctx(Ctx::host())
 //!     .build();
 //! # drop(repl);
 //! ```
