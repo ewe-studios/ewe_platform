@@ -54,7 +54,10 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
 /// The current valid TOTP code for a base32 secret (mirrors what an authenticator app shows).
 fn current_code(key_base32: &str) -> String {
     let bytes = base32::decode(ALPHABET, key_base32).expect("decode secret");
-    TOTPSecret::from_bytes(bytes).now(&foundation_core::valtron::MonotonicClock::new())
+    let ctx = foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ));
+    TOTPSecret::from_bytes(bytes).now(&ctx)
 }
 
 #[valtron_test]

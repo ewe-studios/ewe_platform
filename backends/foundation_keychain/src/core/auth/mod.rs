@@ -57,7 +57,7 @@ pub fn mint_access_token(
         "scope": ["api", "offline_access"],
     });
     signing_key
-        .sign_claims(&claims, &*ctx.clock())
+        .sign_claims(&claims, ctx)
         .map_err(|e| AppError::Internal(format!("sign access token: {e}")))
         .map_err(Into::into)
 }
@@ -83,7 +83,7 @@ pub fn mint_refresh_token(
         "device": device_identifier,
     });
     signing_key
-        .sign_claims(&claims, &*ctx.clock())
+        .sign_claims(&claims, ctx)
         .map_err(|e| AppError::Internal(format!("sign refresh token: {e}")))
         .map_err(Into::into)
 }

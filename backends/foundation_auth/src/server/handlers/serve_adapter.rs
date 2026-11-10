@@ -243,12 +243,10 @@ impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
             .get::<Arc<HandlerStorage<KV>>>()
             .map(|stored| Arc::clone(&*stored))
             .expect("Arc<HandlerStorage<KV>> must be in the Ctx");
-        // The ctx carries the host's injected engine clock as a field, so every
-        // `IdP` read uses the clock the host chose.
-        let clock = ctx.clock();
-        // Sessions live in the shared cache with the configured key, so every
-        // route sees the same sessions.
-        let mut core = IdpHandlerCore::new(config, storage, clock);
+        // The core keeps this ctx, so every `IdP` read uses the clock the host
+        // chose. Sessions live in the shared cache with the configured key, so
+        // every route sees the same sessions.
+        let mut core = IdpHandlerCore::new(config, storage, ctx.clone());
         if let Some(social) = ctx.get::<Arc<MemoryAuthSessionStore>>() {
             core = core.with_social_login(Arc::clone(&*social));
         }
@@ -264,12 +262,9 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
     core: Arc<IdpHandlerCore<KV>>,
     req: SimpleIncomingRequest,
 ) -> Result<HandlerResponse, IdpError> {
-    let clock = core.clock();
-    let task = from_future(async move {
-        // The dispatch ctx reads the same injected clock as the core.
-        let ctx = Ctx::fixed(clock);
-        core.dispatch(&ctx, &req).await
-    });
+    // The dispatch ctx is the core's ctx, so it reads the same injected clock.
+    let ctx = core.ctx();
+    let task = from_future(async move { core.dispatch(&ctx, &req).await });
     let stream = execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
     // The handler's own `IdpError` is the response; only a missing result is
     // an executor failure.

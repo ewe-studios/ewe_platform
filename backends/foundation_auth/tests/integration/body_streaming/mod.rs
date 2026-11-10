@@ -25,13 +25,15 @@ use foundation_auth::{
     DiscoveryClient, IntrospectionClient, JwksManager, ProviderMapping, ProviderType,
     UpstreamClientError, UpstreamOidcClient, UpstreamProvider, UserInfoClient,
 };
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, MonotonicClock};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, Ctx, MonotonicClock,
+};
 use foundation_netio::HttpClientBuilder;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 /// A real clock for the shared clients, which take one explicitly.
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 /// The fixed prefix the clients put before a capped error body for a 500.

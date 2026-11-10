@@ -12,7 +12,7 @@ use std::time::Duration;
 use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::idp_server::IdpServer;
 use foundation_auth::server::storage::HandlerStorage;
-use foundation_core::valtron::{valtron_test, Clock, MonotonicClock};
+use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
@@ -41,11 +41,11 @@ impl TestIdpServer {
         let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
         let query_store: Arc<dyn QueryStore> = Arc::new(provider);
         let cache = MemoryStorage::new();
-        let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());
-        let storage = Arc::new(HandlerStorage::new(query_store, cache, Arc::clone(&clock)));
+        let ctx: Ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+        let storage = Arc::new(HandlerStorage::new(query_store, cache, ctx.clone()));
 
         let config = IdpConfig::new("https://auth.example.com".into());
-        let idp = IdpServer::new(config, storage, clock);
+        let idp = IdpServer::new(config, storage, ctx);
         let app = idp.http_app();
 
         let shutdown = Arc::new(ShutdownSignal::new());
@@ -544,11 +544,11 @@ fn e2e_issuer_trailing_slash_normalized() {
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
-    let clock: Arc<dyn Clock> = Arc::new(MonotonicClock::new());
-    let storage = Arc::new(HandlerStorage::new(query_store, cache, Arc::clone(&clock)));
+    let ctx: Ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+    let storage = Arc::new(HandlerStorage::new(query_store, cache, ctx.clone()));
 
     let config = IdpConfig::new("https://auth.example.com/".into());
-    let idp = IdpServer::new(config, storage, clock);
+    let idp = IdpServer::new(config, storage, ctx);
     let app = idp.http_app();
 
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -635,7 +635,7 @@ fn e2e_custom_prefix_routes_work() {
     let storage = Arc::new(HandlerStorage::new(
         query_store,
         MemoryStorage::new(),
-        Arc::new(MonotonicClock::new()),
+        Ctx::fixed(Arc::new(MonotonicClock::new())),
     ));
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);

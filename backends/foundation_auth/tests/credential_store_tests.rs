@@ -12,11 +12,11 @@ use foundation_auth::shared::credential_store::{
     CredentialStorage, CredentialStore, OAuthTokenStore, StoredCredential,
 };
 use foundation_auth::shared::oauth_token::OAuthToken;
-use foundation_core::valtron::{valtron_test, MonotonicClock};
+use foundation_core::valtron::{valtron_test, Ctx, MonotonicClock};
 use foundation_db::{StorageBackend, StorageProvider};
 
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 async fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
@@ -101,7 +101,7 @@ async fn sqlite_store_oauth_helpers() {
         .expect("Failed to get OAuth state")
         .expect("OAuth state not found");
     assert_eq!(state.code_verifier, "verifier_abc");
-    assert!(!state.is_expired(test_clock().as_ref()));
+    assert!(!state.is_expired(&test_clock()));
 }
 
 #[valtron_test]
@@ -123,12 +123,12 @@ async fn sqlite_store_list_keys_filters_by_prefix() {
 
 #[test]
 fn stored_credential_tracks_access() {
-    let clock = test_clock();
-    let mut stored = StoredCredential::new("secret_data", clock.as_ref());
+    let ctx = test_clock();
+    let mut stored = StoredCredential::new("secret_data", &ctx);
     assert!(stored.created_at > 0);
     assert!(stored.last_accessed_at.is_none());
 
-    stored.mark_accessed(clock.as_ref());
+    stored.mark_accessed(&ctx);
     assert!(stored.last_accessed_at.is_some());
 }
 

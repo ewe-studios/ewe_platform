@@ -5,10 +5,10 @@ use std::sync::Arc;
 use foundation_auth::native::oauth::NativeOAuth;
 use foundation_auth::shared::oauth::{OAuthConfig, OAuthManager, PkceChallenge};
 use foundation_auth::shared::oauth_token::OAuthToken;
-use foundation_core::valtron::MonotonicClock;
+use foundation_core::valtron::{Ctx, MonotonicClock};
 
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]
@@ -104,9 +104,9 @@ fn test_oauth_token_conversion() {
         id_token: None,
     };
 
-    let clock = test_clock();
-    let jwt_token = oauth_token.into_jwt_token(clock.as_ref()).unwrap();
+    let ctx = test_clock();
+    let jwt_token = oauth_token.into_jwt_token(&ctx).unwrap();
     assert_eq!(jwt_token.access_token(), "access_123");
     assert_eq!(jwt_token.refresh_token(), Some("refresh_456".to_string()));
-    assert!(!jwt_token.is_expired(clock.as_ref()));
+    assert!(!jwt_token.is_expired(&ctx));
 }

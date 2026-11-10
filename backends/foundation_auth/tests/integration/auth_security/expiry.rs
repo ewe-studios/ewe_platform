@@ -7,12 +7,12 @@ use foundation_auth::server::models::{PendingLogin, TosVersion};
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::TotpKeyRing;
-use foundation_core::valtron::{valtron_test, BlockingFutureExt, MonotonicClock};
+use foundation_core::valtron::{valtron_test, BlockingFutureExt, Ctx, MonotonicClock};
 use foundation_db::{KeyValueStore, MemoryStorage, QueryStore};
 use futures_lite::StreamExt;
 
-fn test_clock() -> Arc<MonotonicClock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn storage() -> Arc<HandlerStorage<MemoryStorage>> {
@@ -52,11 +52,11 @@ async fn keys(storage: &HandlerStorage<MemoryStorage>) -> Vec<String> {
 #[valtron_test(threads = 8, timeout = 60000)]
 fn expired_entries_are_not_returned_and_are_cleaned() {
     let storage = storage();
-    let tos = TosService::new(Arc::clone(&storage), Arc::clone(&storage.clock));
+    let tos = TosService::new(Arc::clone(&storage), storage.ctx.clone());
     let mfa = MfaService::new(
         Arc::clone(&storage),
         TotpKeyRing::default(),
-        Arc::clone(&storage.clock),
+        storage.ctx.clone(),
     );
     let storage_c = Arc::clone(&storage);
 

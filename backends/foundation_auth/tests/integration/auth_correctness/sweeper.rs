@@ -15,7 +15,7 @@ use crate::integration::tos_login_gate::{config, start, Env};
 /// Issue a `ToS` code that is already expired; return nothing (the entry stays
 /// in the cache until a sweep removes it).
 fn add_expired_code(env: &Env, user: &str) {
-    let service = TosService::new(Arc::clone(&env.storage), Arc::clone(&env.storage.clock));
+    let service = TosService::new(Arc::clone(&env.storage), env.storage.ctx.clone());
     let user = user.to_string();
     async move {
         service

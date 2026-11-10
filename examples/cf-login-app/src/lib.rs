@@ -24,7 +24,6 @@ use argon2::{
     Argon2,
 };
 use foundation_auth::{CredentialStorage, SessionConfig, SessionManager};
-use foundation_core::valtron::MonotonicClock;
 use foundation_db::{
     core::schema::{MIGRATIONS, MigrationRunner},
     core::storage_provider::DataValue,
@@ -84,8 +83,10 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
 
     let cred_storage = CredentialStorage::new(provider);
 
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let session_mgr = SessionManager::new(cred_storage, Default::default(), SIGNING_KEY, clock)
+    // The worker entry point builds the host context once.
+    let ctx = foundation_core::valtron::Ctx::try_host()
+        .map_err(|e| format!("host context failed: {e:?}"))?;
+    let session_mgr = SessionManager::new(cred_storage, Default::default(), SIGNING_KEY, ctx)
         .map_err(|e| format!("session manager init failed: {e:?}"))?;
 
     let app = Arc::new(LazyApp {

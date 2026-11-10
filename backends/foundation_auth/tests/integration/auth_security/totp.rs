@@ -41,7 +41,7 @@ fn enroll(env: &Env, cookie: &str) -> TOTPSecret {
     let secret = TOTPSecret::from_base32(started.body["secret"].as_str().unwrap()).unwrap();
     let confirmed = env.post(
         ENROLL_CONFIRM,
-        &serde_json::json!({ "code": secret.now(env.storage.clock.as_ref()) }),
+        &serde_json::json!({ "code": secret.now(&env.storage.ctx) }),
         Some(cookie),
     );
     assert_eq!(confirmed.status, 200, "confirm: {}", confirmed.body);
@@ -103,7 +103,7 @@ fn totp_code_cannot_be_used_twice() {
     let env = start(config());
     let user = env.register("twice@example.com");
     let secret = env.enroll(&user);
-    let code = secret.now(env.storage.clock.as_ref());
+    let code = secret.now(&env.storage.ctx);
 
     let first = mfa_login(&env, "twice@example.com", &code);
     let second = mfa_login(&env, "twice@example.com", &code);
@@ -141,11 +141,7 @@ fn enrolled_secret_needs_the_current_code_to_be_replaced() {
     let user = env.register("replace@example.com");
     let secret = env.enroll(&user);
     // Sign in with TOTP to get a session.
-    let login = mfa_login(
-        &env,
-        "replace@example.com",
-        &secret.now(env.storage.clock.as_ref()),
-    );
+    let login = mfa_login(&env, "replace@example.com", &secret.now(&env.storage.ctx));
     let cookie = login.session_cookie().expect("session");
 
     let without = env.post(ENROLL_START, &serde_json::json!({}), Some(&cookie));
@@ -185,12 +181,8 @@ fn totp_secret_survives_key_rotation() {
 
     // A new active key "k2"; "k1" stays as a retired key.
     let rotated = TotpKeyRing::new("k2", [9u8; 32]).with_retired("k1", [7u8; 32]);
-    let service = MfaService::new(
-        Arc::clone(&env.storage),
-        rotated,
-        Arc::clone(&env.storage.clock),
-    );
-    let (user_c, code) = (user.clone(), secret.now(env.storage.clock.as_ref()));
+    let service = MfaService::new(Arc::clone(&env.storage), rotated, env.storage.ctx.clone());
+    let (user_c, code) = (user.clone(), secret.now(&env.storage.ctx));
     let ok = async move {
         let found = service.totp_secret(&user_c).await.unwrap().expect("secret");
         assert_eq!(
@@ -208,7 +200,7 @@ fn totp_secret_survives_key_rotation() {
     let no_old = MfaService::new(
         Arc::clone(&env.storage),
         TotpKeyRing::new("k2", [9u8; 32]),
-        Arc::clone(&env.storage.clock),
+        env.storage.ctx.clone(),
     );
     let user_c = user.clone();
     let failed = async move { no_old.totp_secret(&user_c).await.is_err() }.block();
@@ -250,7 +242,7 @@ fn sha256_enrollment_logs_in_with_sha256_codes() {
         .with_algorithm(foundation_auth::TotpAlgorithm::Sha256);
     let confirmed = env.post(
         ENROLL_CONFIRM,
-        &serde_json::json!({ "code": secret.now(env.storage.clock.as_ref()) }),
+        &serde_json::json!({ "code": secret.now(&env.storage.ctx) }),
         Some(&cookie),
     );
     assert_eq!(confirmed.status, 200, "{}", confirmed.body);

@@ -1,14 +1,14 @@
 //! `PowService` tests (async, over the in-memory store).
 
 use foundation_auth::server::services::pow_service::{PowService, PowSolution};
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 use foundation_db::MemoryStorage;
 use futures_lite::future::block_on;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 fn count_leading_zero_bytes(hash: &[u8]) -> u32 {

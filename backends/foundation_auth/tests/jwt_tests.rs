@@ -2,15 +2,15 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use foundation_auth::{JwtManager, JwtToken};
-use foundation_core::valtron::{Clock, MonotonicClock};
+use foundation_core::valtron::{Ctx, MonotonicClock};
 
-fn test_clock() -> Arc<dyn Clock> {
-    Arc::new(MonotonicClock::new())
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
 }
 
 #[test]
 fn test_jwt_token_creation() {
-    let clock = test_clock();
+    let ctx = test_clock();
     let future_time = Utc::now().timestamp() + 3600;
     let token = JwtToken::from_parts(
         "test_token".to_string(),
@@ -19,10 +19,10 @@ fn test_jwt_token_creation() {
         Some("read:write".to_string()),
         Some("api".to_string()),
         Some("auth.example.com".to_string()),
-        clock.as_ref(),
+        &ctx,
     );
 
-    assert!(!token.is_expired(clock.as_ref()));
+    assert!(!token.is_expired(&ctx));
     assert_eq!(token.access_token(), "test_token");
     assert_eq!(token.refresh_token(), Some("test_refresh".to_string()));
     assert_eq!(token.scope, Some("read:write".to_string()));
@@ -30,7 +30,7 @@ fn test_jwt_token_creation() {
 
 #[test]
 fn test_jwt_token_expiration() {
-    let clock = test_clock();
+    let ctx = test_clock();
     let past_time = Utc::now().timestamp() - 3600;
     let token = JwtToken::from_parts(
         "expired_token".to_string(),
@@ -39,16 +39,16 @@ fn test_jwt_token_expiration() {
         None,
         None,
         None,
-        clock.as_ref(),
+        &ctx,
     );
 
-    assert!(token.is_expired(clock.as_ref()));
-    assert_eq!(token.expires_in(clock.as_ref()), 0);
+    assert!(token.is_expired(&ctx));
+    assert_eq!(token.expires_in(&ctx), 0);
 }
 
 #[test]
 fn test_jwt_token_expires_within() {
-    let clock = test_clock();
+    let ctx = test_clock();
     let soon = Utc::now().timestamp() + 120;
     let token = JwtToken::from_parts(
         "expiring_token".to_string(),
@@ -57,17 +57,17 @@ fn test_jwt_token_expires_within() {
         None,
         None,
         None,
-        clock.as_ref(),
+        &ctx,
     );
 
-    assert!(token.expires_within(300, clock.as_ref()));
-    assert!(!token.expires_within(60, clock.as_ref()));
+    assert!(token.expires_within(300, &ctx));
+    assert!(!token.expires_within(60, &ctx));
 }
 
 #[test]
 fn test_jwt_manager_refresh() {
-    let clock = test_clock();
-    let mut manager = JwtManager::new(Arc::clone(&clock)).with_refresh_buffer(300);
+    let ctx = test_clock();
+    let mut manager = JwtManager::new(ctx.clone()).with_refresh_buffer(300);
 
     assert!(!manager.has_valid_token());
 
@@ -79,13 +79,10 @@ fn test_jwt_manager_refresh() {
         None,
         None,
         None,
-        clock.as_ref(),
+        &ctx,
     ));
 
-    assert!(manager
-        .get_token()
-        .unwrap()
-        .expires_within(300, clock.as_ref()));
+    assert!(manager.get_token().unwrap().expires_within(300, &ctx));
 
     let refresh_fn = |_refresh_token: String| {
         let future = Utc::now().timestamp() + 3600;
@@ -96,7 +93,7 @@ fn test_jwt_manager_refresh() {
             None,
             None,
             None,
-            clock.as_ref(),
+            &ctx,
         ))
     };
 

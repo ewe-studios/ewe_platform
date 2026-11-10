@@ -8,7 +8,7 @@
 //! middleware — provides composable guard functions instead.
 
 use crate::shared::auth_token::AuthToken;
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 /// Request context carrying authentication info.
 #[derive(Debug, Clone)]
@@ -50,8 +50,8 @@ impl AuthContext {
 
     /// Whether the request is authenticated.
     #[must_use]
-    pub fn is_authenticated(&self, clock: &dyn Clock) -> bool {
-        self.token.as_ref().is_some_and(|t| !t.is_expired(clock))
+    pub fn is_authenticated(&self, ctx: &Ctx) -> bool {
+        self.token.as_ref().is_some_and(|t| !t.is_expired(ctx))
     }
 }
 
@@ -72,13 +72,13 @@ pub enum GuardResult {
 /// `GuardResult::TokenExpired` if the token exists but is expired, or
 /// `GuardResult::Unauthorized` if no token is present.
 #[must_use]
-pub fn require_auth(ctx: AuthContext, clock: &dyn Clock) -> GuardResult {
-    match ctx.token {
+pub fn require_auth(auth: AuthContext, ctx: &Ctx) -> GuardResult {
+    match auth.token {
         Some(ref token) => {
-            if token.is_expired(clock) {
+            if token.is_expired(ctx) {
                 GuardResult::TokenExpired
             } else {
-                GuardResult::Authorized(Box::new(ctx))
+                GuardResult::Authorized(Box::new(auth))
             }
         }
         None => GuardResult::Unauthorized,
@@ -89,13 +89,13 @@ pub fn require_auth(ctx: AuthContext, clock: &dyn Clock) -> GuardResult {
 ///
 /// Useful for endpoints that work differently for authenticated vs anonymous users.
 #[must_use]
-pub fn optional_auth(mut ctx: AuthContext, clock: &dyn Clock) -> GuardResult {
-    if let Some(ref token) = ctx.token {
-        if token.is_expired(clock) {
-            ctx.token = None;
+pub fn optional_auth(mut auth: AuthContext, ctx: &Ctx) -> GuardResult {
+    if let Some(ref token) = auth.token {
+        if token.is_expired(ctx) {
+            auth.token = None;
         }
     }
-    GuardResult::Authorized(Box::new(ctx))
+    GuardResult::Authorized(Box::new(auth))
 }
 
 /// Check whether a session cookie is present and extract the token value.
