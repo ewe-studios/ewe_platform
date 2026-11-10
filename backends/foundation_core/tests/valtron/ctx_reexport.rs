@@ -20,6 +20,6 @@ fn the_re_export_is_the_same_type() {
 fn the_re_exported_clock_is_the_same_trait() {
     let clock: Arc<dyn foundation_core::valtron::Clock> =
         Arc::new(foundation_context::MonotonicClock::new());
-    let ctx = Ctx::new(clock);
+    let ctx = Ctx::fixed(clock);
     ctx.assert_minimum();
 }

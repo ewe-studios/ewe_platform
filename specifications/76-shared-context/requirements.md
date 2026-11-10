@@ -123,7 +123,8 @@ _Caption: `foundation_context` sits below `foundation_core`, so every crate can 
 
 ```rust
 impl Ctx {
-    pub fn new(clock: Arc<dyn Clock>) -> Self;            // unchanged
+    pub fn fixed(clock: Arc<dyn Clock>) -> Self;          // was new: fixed seed 0, tests only
+    pub fn with_seed(clock: Arc<dyn Clock>, seed: u64) -> Self; // a chosen seed
     pub fn host() -> Self;                                 // unchanged: real clock
     pub fn build(clock: Arc<dyn Clock>, f: impl FnOnce(&Ctx)) -> Self; // from ContextBag
     pub fn insert<T: Any + Send + Sync>(&self, value: Arc<T>) -> Option<Arc<T>>;
@@ -160,7 +161,7 @@ effect, so a later source (for example an ID source) needs no signature change.
 Exceptions (they keep `Arc<dyn Clock>`):
 
 - `foundation_context` and `foundation_core::valtron` internals that build or hold the
-  clock itself (`Ctx::new`, `with_clock`, `SimulatedClock`).
+  clock itself (`Ctx::fixed`, `with_seed`, `with_clock`, `SimulatedClock`).
 - Crates below `foundation_context` (`foundation_compact`, `foundation_nostd`).
 
 ## 3. Features and order

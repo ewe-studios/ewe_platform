@@ -1047,6 +1047,11 @@ impl ExecutorState {
         idler: IdleMan,
         readiness_wait: time::Duration,
     ) -> Self {
+        // The root RNG draws its seed from a copy of the executor RNG, so the
+        // run stays repeatable from the same RNG.
+        let root = crate::valtron::ctx::seeded_root(foundation_compact::rng::Rng::next_u64(
+            &mut rng.clone(),
+        ));
         Self::with_root(
             state_owner,
             global_tasks,
@@ -1054,7 +1059,7 @@ impl ExecutorState {
             rng,
             idler,
             readiness_wait,
-            Ctx::host(),
+            root,
         )
     }
 
@@ -2945,6 +2950,11 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         activities: Option<mpp::Sender<ThreadActivity>>,
         kill_signal_check_interval: usize,
     ) -> Self {
+        // The root RNG draws its seed from a copy of the executor RNG, so the
+        // run stays repeatable from the same RNG.
+        let root = crate::valtron::ctx::seeded_root(foundation_compact::rng::Rng::next_u64(
+            &mut rng.clone(),
+        ));
         Self::new_with_root(
             state_owner,
             tasks,
@@ -2956,7 +2966,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             kill_signal,
             activities,
             kill_signal_check_interval,
-            Ctx::host(),
+            root,
         )
     }
 
@@ -3069,7 +3079,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             no_work_yield,
             kill_signal,
             activities,
-            Ctx::host(),
+            crate::valtron::ctx::seeded_root(seed),
         )
     }
 

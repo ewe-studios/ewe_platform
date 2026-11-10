@@ -192,7 +192,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         let mut app = HttpApp::new_serve();
         // The app context carries this server's injected clock, so every handler
         // reads the clock the host chose.
-        app.ctx = Ctx::new(Arc::clone(&self.clock));
+        app.ctx = Ctx::fixed(Arc::clone(&self.clock));
         let dev_mode = self.config.dev_mode;
         app.ctx.store(self.config);
         // Stored as `Arc<HandlerStorage<KV>>`; `ServeAdapter::create` looks up

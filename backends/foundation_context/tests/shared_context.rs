@@ -42,7 +42,7 @@ fn ctx_is_send_and_sync() {
 
 #[test]
 fn clone_shares_the_map() {
-    let ctx = Ctx::new(fixed_clock());
+    let ctx = Ctx::fixed(fixed_clock());
     let shared = ctx.clone();
 
     ctx.insert(Arc::new(5u32));
@@ -57,7 +57,7 @@ fn clone_shares_the_map() {
 
 #[test]
 fn fork_copies_the_map() {
-    let ctx = Ctx::new(fixed_clock());
+    let ctx = Ctx::fixed(fixed_clock());
     ctx.insert(Arc::new(1u32));
 
     let forked = ctx.fork();
@@ -78,7 +78,7 @@ fn fork_copies_the_map() {
 
 #[test]
 fn with_clock_swaps_the_clock_and_copies_the_map() {
-    let ctx = Ctx::new(fixed_clock());
+    let ctx = Ctx::fixed(fixed_clock());
     let original = ctx.clock();
     ctx.insert(Arc::new(1u32));
     let other = fixed_clock();

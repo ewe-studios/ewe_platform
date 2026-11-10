@@ -65,11 +65,11 @@ impl<S> HttpApp<S> {
     /// Build an empty `HttpApp` from the given clock.
     ///
     /// This is the deterministic-test entry point when only the clock must be
-    /// injected. It builds on [`HttpApp::with_ctx`] with [`Ctx::new`], so the
+    /// injected. It builds on [`HttpApp::with_ctx`] with [`Ctx::fixed`], so the
     /// RNG is the deterministic seed-`0` stream and no real clock is read.
     #[must_use]
     pub fn with_clock(clock: Arc<dyn Clock>) -> Self {
-        Self::with_ctx(Ctx::new(clock))
+        Self::with_ctx(Ctx::fixed(clock))
     }
 
     /// Create a new empty `HttpApp`.

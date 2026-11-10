@@ -47,7 +47,7 @@ fn with_clock_keeps_the_injected_clock() {
 
 #[test]
 fn with_ctx_keeps_the_injected_rng() {
-    let ctx = Ctx::new(Arc::new(SimulatedClock::new(Duration::ZERO)));
+    let ctx = Ctx::fixed(Arc::new(SimulatedClock::new(Duration::ZERO)));
 
     // Move the shared stream off seed 0, then snapshot it. A fresh
     // `Ctx` starts at seed 0, so this value proves the app read the
@@ -80,9 +80,9 @@ fn with_ctx_keeps_the_injected_rng() {
 
     // Two independent contexts built with the same seed produce the same value.
     let app_a: WriterApp =
-        HttpApp::with_ctx(Ctx::new(Arc::new(SimulatedClock::new(Duration::ZERO))));
+        HttpApp::with_ctx(Ctx::fixed(Arc::new(SimulatedClock::new(Duration::ZERO))));
     let app_b: WriterApp =
-        HttpApp::with_ctx(Ctx::new(Arc::new(SimulatedClock::new(Duration::ZERO))));
+        HttpApp::with_ctx(Ctx::fixed(Arc::new(SimulatedClock::new(Duration::ZERO))));
     assert_eq!(
         app_a
             .context()
@@ -103,7 +103,7 @@ fn with_ctx_keeps_the_injected_rng() {
 #[test]
 fn with_context_shares_the_callers_ctx() {
     let clock = Arc::new(SimulatedClock::new(Duration::from_secs(7)));
-    let ctx = Ctx::new(clock);
+    let ctx = Ctx::fixed(clock);
     let app: WriterApp = HttpApp::with_context(ctx.clone());
 
     ctx.store(11u32);

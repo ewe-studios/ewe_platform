@@ -430,7 +430,7 @@ impl WgNode {
         let mesh_wrapper = MeshTask::new(mesh_task, mesh_stop);
         let mesh_clock = Arc::clone(&clock);
         // The mesh task reads the node's injected clock, not a fresh real one.
-        let mesh_ctx = Ctx::new(Arc::clone(&clock));
+        let mesh_ctx = Ctx::fixed(Arc::clone(&clock));
         let mesh_thread: JoinHandle<()> = thread::spawn(move || {
             // Drive the TaskIterator until stop is set. When the task returns
             // Depends(signal), poll the signal with 1ms reactor cache checks

@@ -58,7 +58,7 @@ fn read_one_byte_per_poll(
 /// A client that reads one byte per poll receives the whole event.
 #[foundation_macros::valtron_test(seed = 822, threads = 3, timeout = 60_000)]
 fn proxy_sse_client_reading_one_byte_per_poll_receives_the_whole_event() {
-    let ctx = Ctx::new(Arc::new(MonotonicClock::new()));
+    let ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
     let queue = Arc::new(ConcurrentQueue::unbounded());
     ctx.store::<Arc<ConcurrentQueue<FileChange>>>(Arc::clone(&queue));
     let handler = SseReloadHandler::create(&ctx);

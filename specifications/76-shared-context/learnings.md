@@ -50,3 +50,14 @@ standard ASD-STE100.
 - Feature 02: `Ctx` has no pointer-equality method. A test that proved "the app stores the
   caller's context" with `Arc::ptr_eq` now stores a value through one handle and reads it from the
   other, because a `Ctx` clone shares the map.
+- Review on PR #467 (owner): `Ctx::new(clock)` hid a fixed seed `0` behind a neutral name, so a
+  production caller got a stream that every host shares. It is now `Ctx::fixed(clock)`, so the
+  name says what it does. `Ctx::with_seed` takes a chosen seed, and `Ctx::host` seeds from
+  entropy.
+- The valtron pool constructors take a seed (`initialize_pool(seed, ..)`,
+  `#[valtron_test(seed = ..)]`), but their default root used `Ctx::host()`, so `ctx.rng()`
+  ignored that seed. The default root is now `Ctx::with_seed(real clock, seed)` (the
+  crate-private `seeded_root`), in the executors and in the macro expansion. The macro binds the
+  seed once, because its default seed expression draws a new value each time it runs.
+- Restoring files with `tar xf` keeps their old modification times, so cargo does not rebuild
+  them. Touch the files after a restore.

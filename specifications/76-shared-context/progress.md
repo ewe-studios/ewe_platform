@@ -23,6 +23,10 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   Both generators emit `RpcCtx`. `Ctx::host()` seeds its RNG from the entropy backend of
   `foundation_compact` (issue #448). The owner closes #448.
 
+- 2026-11-10: feature 02 is in PR #467. Review follow-up: `Ctx::new` is renamed `Ctx::fixed`,
+  and the valtron pool constructors and macros seed the root RNG from the pool seed
+  (`Ctx::with_seed`).
+
 ## In progress
 
 - Nothing. Feature 02 is done and waits for review.

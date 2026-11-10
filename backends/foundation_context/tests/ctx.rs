@@ -174,11 +174,11 @@ fn standard_elements_are_reachable_and_rng_draws() {
 #[test]
 fn new_carries_the_given_clock() {
     let clock: Arc<dyn Clock> = Arc::new(MockClock::new());
-    let ctx = Ctx::new(Arc::clone(&clock));
+    let ctx = Ctx::fixed(Arc::clone(&clock));
 
     assert!(
         Arc::ptr_eq(&ctx.clock(), &clock),
-        "Ctx::new must carry the injected clock, not build a real one"
+        "Ctx::fixed must carry the injected clock, not build a real one"
     );
     ctx.assert_minimum();
     ctx.fork().assert_minimum();

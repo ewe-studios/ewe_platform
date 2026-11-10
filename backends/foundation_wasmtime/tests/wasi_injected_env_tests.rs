@@ -75,7 +75,7 @@ fn instance_with(ctx: &Ctx) -> foundation_wasmtime::WasmtimeInstance {
 fn realtime_clock_is_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance_wall(Duration::from_secs(1_700_000_000));
-    let ctx = Ctx::new(clock);
+    let ctx = Ctx::fixed(clock);
     let mut instance = instance_with(&ctx);
 
     let body = instance
@@ -96,7 +96,7 @@ fn realtime_clock_is_the_injected_clock() {
 fn monotonic_clock_is_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     clock.advance(Duration::from_secs(42));
-    let ctx = Ctx::new(clock);
+    let ctx = Ctx::fixed(clock);
     let mut instance = instance_with(&ctx);
 
     let body = instance
@@ -112,7 +112,7 @@ fn monotonic_clock_is_the_injected_clock() {
 
 #[test]
 fn guest_randomness_is_the_injected_rng() {
-    let ctx = Ctx::new(Arc::new(SimulatedClock::new(Duration::ZERO)));
+    let ctx = Ctx::fixed(Arc::new(SimulatedClock::new(Duration::ZERO)));
     let mut expected_rng = ChaCha8Rng::from_seed([0x5a; 32]);
     *ctx.rng().lock().expect("the ctx RNG lock is not poisoned") = expected_rng.clone();
     // `wasmtime-wasi` fills a random request with `sample_iter(Standard)`. For

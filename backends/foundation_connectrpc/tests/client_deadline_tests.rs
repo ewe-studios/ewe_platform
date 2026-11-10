@@ -913,7 +913,7 @@ async fn a_simulated_clock_past_the_deadline_fails_the_call_at_once() {
     let client = client_for(Arc::new(H1Transport::default()), server.addr);
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app_ctx = Ctx::new(clock.clone());
+    let app_ctx = Ctx::fixed(clock.clone());
     let ctx = RpcCtx::client(app_ctx).with_deadline(Duration::from_secs(5));
     clock.advance(Duration::from_secs(10));
 
@@ -942,7 +942,7 @@ async fn client_deadline_cancels_a_call_without_a_server() {
     let client = client_for(Arc::new(H1Transport::default()), server.addr);
 
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let app_ctx = Ctx::new(clock.clone());
+    let app_ctx = Ctx::fixed(clock.clone());
     let ctx = RpcCtx::client(app_ctx).with_deadline(Duration::from_millis(200));
     clock.advance(Duration::from_secs(1));
 

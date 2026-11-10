@@ -267,7 +267,7 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
     let clock = core.clock();
     let task = from_future(async move {
         // The dispatch ctx reads the same injected clock as the core.
-        let ctx = Ctx::new(clock);
+        let ctx = Ctx::fixed(clock);
         core.dispatch(&ctx, &req).await
     });
     let stream = execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;

@@ -59,7 +59,7 @@ Note for `foundation_core`: `synca/sleepers.rs` and the executor internals may k
 6. A host entry point (`main`, a command-line command, a worker entry) builds `Ctx::host()`
    once and passes it down. Library code never builds `Ctx::host()` or `MonotonicClock::new()`.
 7. A test that used `Arc::new(SimulatedClock::new(..))` builds
-   `Ctx::new(clock.clone())` and keeps the `clock` handle to advance it.
+   `Ctx::fixed(clock.clone())` and keeps the `clock` handle to advance it.
 8. A trait method that took a clock takes `ctx: &Ctx` (or `Ctx` by value, if it moves into a
    future). Change every implementation in the same PR.
 9. Keep `Arc<dyn Clock>` only where the requirements section 2.3 allows it. Each kept site

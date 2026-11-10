@@ -211,7 +211,7 @@ impl PlatformSession {
     #[doc(hidden)]
     #[must_use]
     pub fn new_test(resource_root: PathBuf, clock: Arc<dyn Clock>) -> Arc<Self> {
-        let ctx = Ctx::new(Arc::clone(&clock));
+        let ctx = Ctx::fixed(Arc::clone(&clock));
         Self::with_ctx(
             resource_root,
             crate::injector::ScriptInjector::new(PathBuf::from(".")),
@@ -237,7 +237,7 @@ fn host_session_ctx(clock: &Arc<dyn Clock>) -> Ctx {
                 %error,
                 "session entropy is unavailable; guest randomness is deterministic"
             );
-            Ctx::new(Arc::clone(clock))
+            Ctx::fixed(Arc::clone(clock))
         }
     }
 }

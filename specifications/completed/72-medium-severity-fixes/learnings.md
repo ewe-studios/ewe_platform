@@ -149,7 +149,7 @@ _Seeded at spec creation. Updated after each feature PR. See
 
 ## Feature 01 (2026-11-07)
 
-- `Ctx::host_with_clock` does not exist. `Ctx::new(Arc<dyn Clock>)` is the constructor that
+- `Ctx::host_with_clock` does not exist. `Ctx::fixed(Arc<dyn Clock>)` is the constructor that
   installs an injected clock and the seeded RNG.
 - A wasm per-request `ContextBag` must `fork()` the app's bag. A fresh `ContextBag` from
   `Ctx::host()` silently loses the injected clock and every init-time binding.

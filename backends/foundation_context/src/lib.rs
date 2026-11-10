@@ -154,7 +154,7 @@ pub struct Ctx(Arc<CtxInner>);
 /// One of the engine-minimum elements that every task context must carry.
 ///
 /// [`Ctx::assert_minimum`] names the missing element in its panic message. The
-/// compiler checks the [`Ctx::new`] clock argument, but a context can reach a
+/// compiler checks the [`Ctx::fixed`] clock argument, but a context can reach a
 /// task boundary from a path the compiler cannot check. The boundary checks the
 /// full minimum set before the task starts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -199,15 +199,16 @@ impl Ctx {
     /// An empty context: no map entries, the given clock, a default config, and
     /// a deterministic RNG with the fixed seed `0`.
     ///
-    /// The fixed seed makes a test repeat. A host must not use it, because every
-    /// host would then draw the same stream. A host calls [`Ctx::host`]. A
-    /// deterministic simulation test (DST) that needs another fixed seed calls
+    /// The name says what it does: the seed is fixed, so every context from this
+    /// constructor draws the same stream. Use it in tests, where a run must
+    /// repeat. A host must not use it; a host calls [`Ctx::host`]. A
+    /// deterministic simulation test (DST) that chooses its seed calls
     /// [`Ctx::with_seed`].
     ///
     /// The clock is a required argument, so the compiler rejects a context with
     /// no clock (AGENTS rule 11).
     #[must_use]
-    pub fn new(clock: Arc<dyn Clock>) -> Self {
+    pub fn fixed(clock: Arc<dyn Clock>) -> Self {
         Self::with_seed(clock, 0)
     }
 
@@ -260,13 +261,13 @@ impl Ctx {
         }))
     }
 
-    /// A context made by [`Ctx::new`] and then filled by `f`.
+    /// A context made by [`Ctx::fixed`] (fixed seed `0`) and then filled by `f`.
     ///
     /// `f` receives the new context. Use it to store the first values in one
     /// expression.
     #[must_use]
     pub fn build(clock: Arc<dyn Clock>, f: impl FnOnce(&Ctx)) -> Self {
-        let ctx = Self::new(clock);
+        let ctx = Self::fixed(clock);
         f(&ctx);
         ctx
     }

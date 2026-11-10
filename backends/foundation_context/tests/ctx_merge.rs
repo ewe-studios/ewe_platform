@@ -174,7 +174,7 @@ fn with_seed_repeats_for_the_same_seed() {
 #[test]
 fn new_keeps_the_fixed_seed_zero() {
     let clock = host_clock();
-    let a = first_u64(&Ctx::new(Arc::clone(&clock)));
+    let a = first_u64(&Ctx::fixed(Arc::clone(&clock)));
     let b = first_u64(&Ctx::with_seed(clock, 0));
     assert_eq!(a, b);
 }

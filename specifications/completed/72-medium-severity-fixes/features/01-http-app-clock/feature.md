@@ -52,10 +52,10 @@ Files: `backends/foundation_http/src/shared/app/mod.rs`,
 HttpApp::new(...)        -> HttpApp::with_ctx(Ctx::host())     // host boundary only
 HttpApp::new_web(...)    -> HttpApp::with_ctx(Ctx::host())     // host boundary only
 HttpApp::with_ctx(ctx)   -> builds ContextBag::from_ctx(&ctx)
-HttpApp::with_clock(c)   -> HttpApp::with_ctx(Ctx::new(c))
+HttpApp::with_clock(c)   -> HttpApp::with_ctx(Ctx::fixed(c))
 ```
 
-- `Ctx::new(clock)` is the real constructor; it installs the seeded RNG. The sketched
+- `Ctx::fixed(clock)` is the real constructor; it installs the seeded RNG. The sketched
   `Ctx::host_with_clock` does not exist.
 
 - `with_clock` exists so a test does not build a whole bundle by hand.

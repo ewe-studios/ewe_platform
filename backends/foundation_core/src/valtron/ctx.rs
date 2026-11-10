@@ -103,3 +103,17 @@ impl Clock for SimulatedClock {
         self.wall_origin + *self.wall_offset.lock().expect("SimulatedClock poisoned")
     }
 }
+
+/// The engine root that a seed-taking pool constructor builds.
+///
+/// WHY: a pool constructor such as `initialize_pool(seed, ..)` takes a seed so
+/// that a run can repeat. The root [`Ctx`] must draw from that seed too.
+/// `Ctx::host` would seed the task RNG from the entropy source and ignore the
+/// pool seed.
+/// WHAT: [`Ctx::with_seed`] with the real [`MonotonicClock`] and the pool seed.
+/// The constructors are host entry points, so the real clock is correct here.
+/// A deterministic simulation test passes its own root to the `*_with_ctx`
+/// constructors instead.
+pub(crate) fn seeded_root(seed: u64) -> Ctx {
+    Ctx::with_seed(std::sync::Arc::new(MonotonicClock::new()), seed)
+}

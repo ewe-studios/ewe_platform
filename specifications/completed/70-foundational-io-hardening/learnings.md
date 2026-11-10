@@ -488,12 +488,12 @@ _What an agent learned that the next agent needs. Newest first._
 
 - 2026-11-06 (feature 115, clock injection):
   - **A multi-pool task did not read `ThreadRegistry.root`.** The worker's
-    `LocalThreadExecutor` had its own `Ctx::new()`, and that is what
+    `LocalThreadExecutor` had its own `Ctx::fixed()`, and that is what
     `ExecutorState::root.fork()` gives a task. Injecting the registry root alone
     changes nothing. Fix in this feature: build the worker executor with
     `from_seed_with_root(..., self.root.clone())`.
   - **Giving workers the pool root also shares its `config` and `rng`.** Before
-    feature 115 each worker built its own `Ctx::new()`, so its seed-0 RNG stream
+    feature 115 each worker built its own `Ctx::fixed()`, so its seed-0 RNG stream
     was separate. A task now forks the pool root, so one stream serves the pool.
     That is the deterministic simulation testing (DST) behaviour a host wants,
     and no test depended on the separation. State such a side effect when you
@@ -2385,7 +2385,7 @@ time can still leave an async consumer with nothing to wake it. The old code had
   message but not the test, so the `--features multi` suite failed on the
   first full run. A grep for the old message in tests would have caught it.
 - 2026-11-06 (#217/#218): the clock migration is mostly a constructor rename.
-  Replacing all 284 `Ctx::new()` calls with `Ctx::host()` first, then checking
+  Replacing all 284 `Ctx::fixed()` calls with `Ctx::host()` first, then checking
   the few sites that had an injected clock in hand, kept the change small.
   `ContextBag::from_ctx(&Ctx::host())` is the host-boundary form for a bag with
   no task context.

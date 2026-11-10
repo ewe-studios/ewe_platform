@@ -135,7 +135,7 @@ struct Args {
     /// this. Default 100 ms.
     slow_poll: Option<syn::Expr>,
     /// `ctx = expr` — the `Ctx` the engine starts with. Absent → the engine
-    /// uses its default `Ctx::host()`.
+    /// uses `Ctx::with_seed` with the real clock and the pool seed.
     ctx: Option<syn::Expr>,
     /// `shutdown_grace = ms` — after a `timeout`, how long the pool gets to stop
     /// before stuck workers are detached. Default
@@ -437,13 +437,22 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         Some(expr) => quote! { let __valtron_ctx: #fc::valtron::Ctx = (#expr); },
     };
     let init_pool_direct = match ctx_expr {
+        // The root RNG takes the pool seed (`Ctx::with_seed`), so one seed
+        // drives the whole run. Bind the seed once: the default seed
+        // expression draws a new value each time it runs.
         None => quote! {
-            #fc::valtron::initialize_pool_with_slow_poll_warning(
-                #seed,
-                #threads,
-                #slow_poll,
-                #fc::valtron::Ctx::host(),
-            )
+            {
+                let __valtron_seed: u64 = #seed;
+                #fc::valtron::initialize_pool_with_slow_poll_warning(
+                    __valtron_seed,
+                    #threads,
+                    #slow_poll,
+                    #fc::valtron::Ctx::with_seed(
+                        ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
+                        __valtron_seed,
+                    ),
+                )
+            }
         },
         Some(expr) => quote! {
             #fc::valtron::initialize_pool_with_slow_poll_warning(
@@ -469,7 +478,10 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                 __valtron_seed,
                 #threads,
                 #slow_poll,
-                #fc::valtron::Ctx::host(),
+                #fc::valtron::Ctx::with_seed(
+                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
+                    __valtron_seed,
+                ),
             )
         }
     };
@@ -486,7 +498,10 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             #fc::valtron::initialize_current_thread_with_slow_poll_warning(
                 __valtron_seed,
                 #slow_poll,
-                #fc::valtron::Ctx::host(),
+                #fc::valtron::Ctx::with_seed(
+                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
+                    __valtron_seed,
+                ),
             )
         }
     };
