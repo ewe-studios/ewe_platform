@@ -1,7 +1,7 @@
 //! `CondVar` stress tests.
 
 use crate::stress::{StressConfig, StressHarness, StressResult};
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_nostd::primitives::{CondVar, CondVarMutex};
 use std::sync::Arc;
 use std::time::Duration;
@@ -17,22 +17,21 @@ use std::time::Duration;
 /// # Examples
 ///
 /// ```
-/// use foundation_core::valtron::MonotonicClock;
+/// use foundation_core::valtron::Ctx;
 /// use foundation_testing::stress::{StressConfig, sync::run_condvar_stress_test};
-/// use std::sync::Arc;
 ///
 /// let config = StressConfig::new().threads(10).iterations(100);
-/// let result = run_condvar_stress_test(config, Arc::new(MonotonicClock::new()));
+/// let result = run_condvar_stress_test(config, Ctx::host());
 ///
 /// // Should complete successfully with high success rate
 /// assert!(result.success_rate() > 0.99);
 /// ```
 #[must_use]
-pub fn run_condvar_stress_test(config: StressConfig, clock: Arc<dyn Clock>) -> StressResult {
+pub fn run_condvar_stress_test(config: StressConfig, ctx: Ctx) -> StressResult {
     let mutex = Arc::new(CondVarMutex::new(0u64));
     let condvar = Arc::new(CondVar::new());
 
-    let harness = StressHarness::new(config, clock);
+    let harness = StressHarness::new(config, ctx);
 
     harness.run(move |_thread_id, _iteration| {
         // Lock, wait, modify, notify pattern
@@ -69,25 +68,21 @@ pub fn run_condvar_stress_test(config: StressConfig, clock: Arc<dyn Clock>) -> S
 /// # Examples
 ///
 /// ```
-/// use foundation_core::valtron::MonotonicClock;
+/// use foundation_core::valtron::Ctx;
 /// use foundation_testing::stress::{StressConfig, sync::run_condvar_producer_consumer_stress};
-/// use std::sync::Arc;
 ///
 /// let config = StressConfig::new().threads(8).iterations(500);
-/// let result = run_condvar_producer_consumer_stress(config, Arc::new(MonotonicClock::new()));
+/// let result = run_condvar_producer_consumer_stress(config, Ctx::host());
 ///
 /// assert!(result.success_rate() > 0.99);
 /// ```
 #[must_use]
-pub fn run_condvar_producer_consumer_stress(
-    config: StressConfig,
-    clock: Arc<dyn Clock>,
-) -> StressResult {
+pub fn run_condvar_producer_consumer_stress(config: StressConfig, ctx: Ctx) -> StressResult {
     let queue = Arc::new(CondVarMutex::new(Vec::<u64>::new()));
     let condvar = Arc::new(CondVar::new());
     let max_queue_size = 100;
 
-    let harness = StressHarness::new(config, clock);
+    let harness = StressHarness::new(config, ctx);
 
     harness.run(move |thread_id, iteration| {
         let queue_clone = Arc::clone(&queue);
@@ -149,14 +144,11 @@ pub fn run_condvar_producer_consumer_stress(
 /// then wakes them all repeatedly. Tests `notify_all()` performance
 /// under extreme contention.
 #[must_use]
-pub fn run_condvar_high_contention_stress(
-    config: StressConfig,
-    clock: Arc<dyn Clock>,
-) -> StressResult {
+pub fn run_condvar_high_contention_stress(config: StressConfig, ctx: Ctx) -> StressResult {
     let mutex = Arc::new(CondVarMutex::new(false));
     let condvar = Arc::new(CondVar::new());
 
-    let harness = StressHarness::new(config, clock);
+    let harness = StressHarness::new(config, ctx);
 
     harness.run(move |thread_id, _iteration| {
         let mutex_clone = Arc::clone(&mutex);
@@ -205,11 +197,11 @@ pub fn run_condvar_high_contention_stress(
 ///
 /// Tests `wait_timeout()` under contention with various timeout durations.
 #[must_use]
-pub fn run_condvar_timeout_stress(config: StressConfig, clock: Arc<dyn Clock>) -> StressResult {
+pub fn run_condvar_timeout_stress(config: StressConfig, ctx: Ctx) -> StressResult {
     let mutex = Arc::new(CondVarMutex::new(0u64));
     let condvar = Arc::new(CondVar::new());
 
-    let harness = StressHarness::new(config, clock);
+    let harness = StressHarness::new(config, ctx);
 
     harness.run(move |_thread_id, iteration| {
         let mutex_clone = Arc::clone(&mutex);

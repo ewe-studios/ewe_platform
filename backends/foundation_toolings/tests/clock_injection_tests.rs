@@ -7,14 +7,14 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
 use foundation_toolings::runner::DurationSleeper;
 
 #[test]
 fn duration_sleeper_follows_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     let shared: Arc<dyn Clock> = Arc::clone(&clock) as Arc<dyn Clock>;
-    let mut sleeper = DurationSleeper::new(shared);
+    let mut sleeper = DurationSleeper::new(Ctx::fixed(shared));
 
     assert!(!sleeper.is_done(), "an unstarted sleeper is not done");
 

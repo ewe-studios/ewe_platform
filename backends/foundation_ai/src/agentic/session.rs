@@ -19,7 +19,7 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{execute, Clock};
+use foundation_core::valtron::{execute, Ctx};
 use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_errstacks::ErrorTrace;
@@ -137,8 +137,8 @@ pub struct AgentSessionBuilder<D = MemoryDocumentStore, M = KvMemoryStore<Memory
         Arc<dyn crate::agentic::embedding::EmbeddingProvider>,
         String,
     )>,
-    /// The injected clock the session's memory records are stamped with.
-    clock: Arc<dyn Clock>,
+    /// The context. The session's memory records read their clock from it.
+    ctx: Ctx,
 }
 
 impl AgentSession {
@@ -157,7 +157,7 @@ impl AgentSession {
     /// carries no model, so `build()` then fails with "no model set" unless
     /// `with_model` is called.
     #[must_use]
-    pub fn builder(router: impl Into<RouterPreset>, clock: Arc<dyn Clock>) -> AgentSessionBuilder {
+    pub fn builder(router: impl Into<RouterPreset>, ctx: Ctx) -> AgentSessionBuilder {
         let RouterPreset {
             router,
             primary_model,
@@ -168,7 +168,7 @@ impl AgentSession {
             router,
             MemoryDocumentStore::new(),
             KvMemoryStore::new(MemoryStorage::new()),
-            clock,
+            ctx,
         );
         builder.model = primary_model;
         builder.memory_model = memory_model;
@@ -188,14 +188,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         router: ProviderRouter,
         doc_store: D,
         memory_store: M,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> AgentSessionBuilder<D, M> {
-        AgentSessionBuilder::new(router, doc_store, memory_store, clock).with_session_id(session_id)
+        AgentSessionBuilder::new(router, doc_store, memory_store, ctx).with_session_id(session_id)
     }
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
-    fn new(router: ProviderRouter, doc_store: D, memory_store: M, clock: Arc<dyn Clock>) -> Self {
+    fn new(router: ProviderRouter, doc_store: D, memory_store: M, ctx: Ctx) -> Self {
         Self {
             session_id: SessionId::new(),
             require_existing: false,
@@ -215,7 +215,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             memory_config: MemoryConfig::default(),
             message_config: MessageApiConfig::default(),
             embedder: None,
-            clock,
+            ctx,
         }
     }
 
@@ -241,7 +241,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             memory_config: self.memory_config,
             message_config: self.message_config,
             embedder: self.embedder,
-            clock: self.clock,
+            ctx: self.ctx,
         }
     }
 
@@ -477,7 +477,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             coordinator,
             ledger.clone(),
             memory_config,
-            Arc::clone(&self.clock),
+            self.ctx.clone(),
         ));
 
         // The shed's output is the session's tool manager.

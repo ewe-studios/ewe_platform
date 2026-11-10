@@ -166,8 +166,10 @@ fn sample_def(name: &str, desc: &str, category: &str) -> ToolDefinition {
 // ---------------------------------------------------------------------------
 
 /// The explicit real clock backend for tests.
-fn test_clock() -> std::sync::Arc<dyn foundation_core::valtron::Clock> {
-    std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())
+fn test_clock() -> foundation_core::valtron::Ctx {
+    foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+        foundation_core::valtron::MonotonicClock::new(),
+    ))
 }
 
 #[valtron_test]

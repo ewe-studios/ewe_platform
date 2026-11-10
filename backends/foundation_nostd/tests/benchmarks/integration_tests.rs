@@ -2,7 +2,7 @@
 //!
 //! These tests verify complex multi-threaded scenarios and edge cases.
 
-use foundation_core::valtron::MonotonicClock;
+use foundation_core::valtron::Ctx;
 use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};
 use foundation_testing::stress::{StressConfig, StressHarness};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -180,7 +180,7 @@ fn test_thread_pool_ordering() {
 fn test_stress_with_rapid_notifications() {
     // Test rapid notify_one calls
     let config = StressConfig::new().threads(8).iterations(500);
-    let harness = StressHarness::new(config, Arc::new(MonotonicClock::new()));
+    let harness = StressHarness::new(config, Ctx::host());
 
     let success_count = Arc::new(AtomicUsize::new(0));
 
@@ -203,7 +203,7 @@ fn test_stress_with_timeout() {
         .iterations(1_000_000) // Very high, should be stopped by timeout
         .duration_secs(1);
 
-    let harness = StressHarness::new(config, Arc::new(MonotonicClock::new()));
+    let harness = StressHarness::new(config, Ctx::host());
 
     let result = harness.run(|_thread_id, _iteration| {
         thread::sleep(Duration::from_micros(10));

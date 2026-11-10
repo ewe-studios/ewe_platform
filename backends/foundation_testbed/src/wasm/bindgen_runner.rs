@@ -13,6 +13,7 @@
 //! [`init::write_template_to`] / [`init::write_bindgen_runjs_to`],
 //! [`server::start_serving`], and [`browser::run`] (the pure-Rust CDP driver).
 
+use foundation_core::valtron::Ctx;
 use tracing::info;
 
 use crate::wasm::cli::BindgenArgs;
@@ -90,7 +91,7 @@ fn check_wasm_bindgen_version() -> Result<()> {
 /// # Errors
 /// Fails on missing tools, build failure, bindgen failure, test discovery
 /// failure, or browser timeout.
-pub fn run_bindgen(args: &BindgenArgs) -> Result<RunOutcome> {
+pub fn run_bindgen(args: &BindgenArgs, ctx: &Ctx) -> Result<RunOutcome> {
     check_wasm_bindgen_version()?;
 
     // Inline preflight — avoids depending on `fwt_runner::preflight` which
@@ -156,12 +157,7 @@ pub fn run_bindgen(args: &BindgenArgs) -> Result<RunOutcome> {
     let url = serving.url("index.html");
     info!("serving at {url}");
 
-    let output = browser::run(
-        &url,
-        &crate::wasm::cli::Browser::Chrome,
-        args.headless,
-        &foundation_core::valtron::MonotonicClock::new(),
-    )?;
+    let output = browser::run(&url, &crate::wasm::cli::Browser::Chrome, args.headless, ctx)?;
     serving.shutdown();
 
     let exit_code = i32::from(!output.test_result.contains("test result: ok"));

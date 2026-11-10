@@ -1,10 +1,10 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Mutex, RwLock};
 
 use serde::{Deserialize, Serialize};
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 use crate::errors::GenerationError;
 use crate::types::{
@@ -270,8 +270,8 @@ pub struct CachedEmbeddingProvider {
     hits: AtomicU64,
     misses: AtomicU64,
     epoch: u64,
-    /// The injected clock that stamps the synthetic embedding request.
-    clock: Arc<dyn Clock>,
+    /// The context. Its clock stamps the synthetic embedding request.
+    ctx: Ctx,
 }
 
 fn hash_text(text: &str) -> u64 {
@@ -285,7 +285,7 @@ fn checked_dim(dim: usize) -> Result<u16, EmbeddingError> {
     u16::try_from(dim).map_err(|_| EmbeddingError::DimensionOverflow { value: dim })
 }
 
-fn make_embedding_interaction(text: &str, clock: &dyn Clock) -> ModelInteraction {
+fn make_embedding_interaction(text: &str, ctx: &Ctx) -> ModelInteraction {
     ModelInteraction {
         system_prompt: None,
         soul: None,
@@ -296,7 +296,7 @@ fn make_embedding_interaction(text: &str, clock: &dyn Clock) -> ModelInteraction
             Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
                 model: ModelId::Name("embedding".to_string(), None),
-                timestamp: clock.wall_now(),
+                timestamp: ctx.clock().wall_now(),
                 usage: zero_usage(),
                 content: ModelOutput::Embedding {
                     dimensions: 0,
@@ -328,7 +328,7 @@ impl CachedEmbeddingProvider {
         chunker: Box<dyn TextChunker>,
         cold_cache: Box<dyn ColdCache>,
         max_cache_entries: usize,
-        clock: Arc<dyn Clock>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             router,
@@ -339,18 +339,18 @@ impl CachedEmbeddingProvider {
             hits: AtomicU64::new(0),
             misses: AtomicU64::new(0),
             epoch: 0,
-            clock,
+            ctx,
         }
     }
 
     #[must_use]
-    pub fn with_defaults(router: ProviderRouter, clock: Arc<dyn Clock>) -> Self {
+    pub fn with_defaults(router: ProviderRouter, ctx: Ctx) -> Self {
         Self::new(
             router,
             Box::new(SentenceChunker),
             Box::new(NoopColdCache),
             1000,
-            clock,
+            ctx,
         )
     }
 
@@ -396,7 +396,7 @@ impl CachedEmbeddingProvider {
         let mid = ModelId::Name(model_id.to_string(), None);
         let model: BoxModel = self.router.get_model(&mid)?;
 
-        let interaction = make_embedding_interaction(text, &*self.clock);
+        let interaction = make_embedding_interaction(text, &self.ctx);
         let results = model.generate_async(interaction, None).await?;
 
         let (dimensions_raw, values) = results

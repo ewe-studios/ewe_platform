@@ -7,12 +7,10 @@
 //!   without driving a terminal UI.
 //! * `agent` — starts a `foundation_repl` session for an interactive chat.
 
-use std::sync::Arc;
-
 use clap::{Parser, Subcommand};
 use foundation_ai::agentic::{AgentSession, AgenticError, Answer};
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::{block_on_future, valtron, MonotonicClock};
+use foundation_core::valtron::{block_on_future, valtron};
 use foundation_errstacks::ErrorTrace;
 use foundation_repl::{Repl, ReplTheme};
 
@@ -92,10 +90,9 @@ fn main() {
 /// `q4_k_m`, 4096-token context, one thread per CPU). The preset's model is
 /// the session's model. `main` is the sync boundary that waits on it.
 async fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let preset =
-        RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None, Arc::clone(&clock))?;
-    AgentSession::builder(preset, clock)
+    let ctx = foundation_core::valtron::Ctx::host();
+    let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None, ctx.clone())?;
+    AgentSession::builder(preset, ctx)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .build()
         .await
@@ -142,9 +139,7 @@ fn run_repl(session: &Session) {
         .banner("answerme-agent — local Gemma session\nType /help for commands, /exit to quit.")
         .goodbye("Goodbye!")
         .theme(ReplTheme::from_env("ANSWERME_THEME"))
-        .clock(std::sync::Arc::new(
-            foundation_core::valtron::MonotonicClock::new(),
-        ))
+        .ctx(foundation_core::valtron::Ctx::host())
         .build();
 
     repl.register_command("status", |_| "agent: running (gemma-4-E2B-it)".into());

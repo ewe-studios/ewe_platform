@@ -1,21 +1,19 @@
-//! The activity indicator measures elapsed time on the injected clock
-//! (spec 70 feature 134).
+//! The activity indicator measures elapsed time on the clock of its `Ctx`
+//! (spec 70 feature 134, spec 76 feature 05).
 //!
 //! WHY: the animation thread read the real monotonic clock, so a deterministic
 //! test could not state the elapsed time it showed.
 //!
-//! WHAT: with a `SimulatedClock`, an elapsed readout of five seconds appears
-//! without a five-second wait.
-//!
-//! HOW: before this feature the animation started from `Instant::now()` and
-//! moved only with real time.
+//! WHAT: with a `SimulatedClock` inside a `Ctx`, an elapsed readout of five
+//! seconds appears without a five-second wait. A second test proves that the
+//! indicator reads the clock of the `Ctx` it is given, and no other clock.
 
 #![cfg(not(target_arch = "wasm32"))]
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_repl::{
     Activity, ActivityStyle, ActivityView, InputView, ReplDisplay, SharedDisplay,
 };
@@ -44,6 +42,32 @@ impl ReplDisplay for Recorder {
     fn shutdown(&mut self) {}
 }
 
+fn elapsed_style() -> ActivityStyle {
+    ActivityStyle {
+        show_elapsed: true,
+        ..ActivityStyle::default()
+    }
+}
+
+/// Wait until the renderer has drawn `expected`.
+///
+/// WHY: the animation runs on its own thread, so the test must wait for a
+/// frame. The wait is bounded, so a missing frame fails the test.
+fn wait_for_elapsed(recorder: &Recorder, expected: Duration) {
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    loop {
+        let elapsed = recorder.elapsed.lock().expect("elapsed recorder").clone();
+        if elapsed.contains(&Some(expected)) {
+            return;
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "the activity never reported {expected:?}; saw {elapsed:?}"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
+
 #[test]
 fn the_activity_elapsed_follows_the_injected_clock() {
     let recorder = Recorder::default();
@@ -52,30 +76,35 @@ fn the_activity_elapsed_follows_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
     let activity = Activity::start(
         display,
-        ActivityStyle {
-            show_elapsed: true,
-            ..ActivityStyle::default()
-        },
+        elapsed_style(),
         "working".to_string(),
-        Arc::clone(&clock) as Arc<dyn foundation_core::valtron::Clock>,
+        Ctx::fixed(clock.clone()),
     );
 
     clock.advance(Duration::from_secs(5));
+    wait_for_elapsed(&recorder, Duration::from_secs(5));
 
-    // Wait for one animation frame to draw. This is a real wait for a frame,
-    // not a wait that proves a timeout.
-    let deadline = std::time::Instant::now() + Duration::from_secs(5);
-    loop {
-        let elapsed = recorder.elapsed.lock().expect("elapsed recorder").clone();
-        if elapsed.contains(&Some(Duration::from_secs(5))) {
-            break;
-        }
-        assert!(
-            std::time::Instant::now() < deadline,
-            "the activity never reported the simulated five seconds; saw {elapsed:?}"
-        );
-        std::thread::sleep(Duration::from_millis(20));
-    }
+    drop(activity);
+}
+
+/// WHY: a `Ctx` can carry a different clock than the one a caller kept. The
+/// indicator must follow the clock inside the `Ctx` it received.
+/// WHAT: the `Ctx` is rebased onto a second clock. Only that second clock
+/// moves, and the indicator shows its elapsed time.
+#[test]
+fn the_activity_reads_the_clock_of_the_ctx_it_is_given() {
+    let recorder = Recorder::default();
+    let display: SharedDisplay = Arc::new(Mutex::new(Box::new(recorder.clone())));
+
+    let unused_clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let used_clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let ctx = Ctx::fixed(unused_clock.clone()).with_clock(used_clock.clone());
+
+    let activity = Activity::start(display, elapsed_style(), "working".to_string(), ctx);
+
+    unused_clock.advance(Duration::from_secs(30));
+    used_clock.advance(Duration::from_secs(2));
+    wait_for_elapsed(&recorder, Duration::from_secs(2));
 
     drop(activity);
 }

@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 
 fn project_root() -> PathBuf {
     let manifest_dir =
@@ -101,8 +101,8 @@ fn kill_existing(port: u16) {
     std::thread::sleep(Duration::from_millis(500));
 }
 
-fn wait_for_health(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
-    let start = clock.now();
+fn wait_for_health(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let start = ctx.clock().now();
     while start.elapsed() < timeout {
         if let Ok(stream) = TcpStream::connect_timeout(
             &format!("127.0.0.1:{port}").parse().unwrap(),
@@ -133,13 +133,13 @@ fn wait_for_health(port: u16, timeout: Duration, clock: &dyn Clock) -> bool {
 ///
 /// Returns a `LlamaServerGuard` that kills the server on drop.
 #[must_use]
-pub fn start_llama_server(clock: &dyn Clock) -> LlamaServerGuard {
-    start_llama_server_with(LlamaServerConfig::default(), clock)
+pub fn start_llama_server(ctx: &Ctx) -> LlamaServerGuard {
+    start_llama_server_with(LlamaServerConfig::default(), ctx)
 }
 
 /// Start a llama-server with the given configuration.
 #[must_use]
-pub fn start_llama_server_with(config: LlamaServerConfig, clock: &dyn Clock) -> LlamaServerGuard {
+pub fn start_llama_server_with(config: LlamaServerConfig, ctx: &Ctx) -> LlamaServerGuard {
     assert!(
         config.server_bin.exists(),
         "llama-server not found at {}. Run: mise run llama:server:build",
@@ -188,7 +188,7 @@ pub fn start_llama_server_with(config: LlamaServerConfig, clock: &dyn Clock) -> 
     let pid = child.id();
     eprintln!("[llama-harness] llama-server spawned (pid={pid}), waiting for health check");
 
-    let healthy = wait_for_health(config.port, config.startup_timeout, clock);
+    let healthy = wait_for_health(config.port, config.startup_timeout, ctx);
 
     if !healthy {
         // Kill via Drop before panicking.

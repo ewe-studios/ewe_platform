@@ -61,3 +61,22 @@ standard ASD-STE100.
   seed once, because its default seed expression draws a new value each time it runs.
 - Restoring files with `tar xf` keeps their old modification times, so cargo does not rebuild
   them. Touch the files after a restore.
+- Wave 1 small crates: a worktree `target` grows by about 12 GB during one lane. The disk
+  filled to 100% during `cargo test` doctests (the `foundation_testing` doc link failed with
+  "No space left on device"). Run `df -h /` before each cargo command. Remove the build output of
+  finished owned crates in `target/uat/build/` first.
+- Wave 1: `DurationSleeper`, `BinaryRunnerTask::new`, the harness constructors and `DevService`
+  take `Ctx` by value. Private `wait_for_*` helpers still take `&dyn Clock`, because they only
+  read the clock.
+- Wave 1: `foundation_toolings`'s `tests/sse_reload_tests.rs` uses the `foundation_http` `Ctx`,
+  not the `foundation_context` one. Its `MonotonicClock` use is a test-only host clock, so it was
+  left unchanged.
+- Wave 1: `ewe_platform` and `answerme-agent` depend on `infrastructure_llama_bindings`. That build
+  script needs the `tools/llama.cpp` submodule. The submodule is not checked out in this
+  worktree, so these crates cannot be checked here.
+- Feature 03: `cargo check --all-targets` is the fastest check of the test build. Cargo stops at
+  the first failing test target, so re-run it after each batch of fixes.
+- Feature 03: `examples/*` is excluded from the workspace. Check each one by name. The two cf
+  examples are wasm crates. Check them with `--target wasm32-unknown-unknown`.
+- Feature 03: a full `cargo test -p foundation_ai` run used about 4 GB of the shared target and
+  filled the disk. Check `df -h /` before each run.

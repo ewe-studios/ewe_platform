@@ -15,19 +15,17 @@
 use foundation_ai::agentic::AgentConfig;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::harness::{RouterMix, RouterPreset};
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 
 /// Build a router preset that talks to `OpenRouter` with the given model as primary.
 fn openrouter_router(
     api_key: &str,
     primary_model: &str,
     memory_model: Option<&str>,
-    clock: &Arc<dyn foundation_core::valtron::Clock>,
+    ctx: &Ctx,
 ) -> RouterPreset {
-    let provider =
-        || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key), Arc::clone(clock));
+    let provider = || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key), ctx.clone());
 
     let mut mix = RouterMix::new().primary(provider(), primary_model);
     if let Some(memory) = memory_model {
@@ -44,12 +42,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
 
     println!("Building OpenRouter router for model: {PRIMARY}");
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let preset = openrouter_router(&api_key, PRIMARY, None, &clock);
+    let ctx = Ctx::host();
+    let preset = openrouter_router(&api_key, PRIMARY, None, &ctx);
 
     // Bridge into an AgentSessionBuilder.
     let agent = preset
-        .into_agent_builder(clock)
+        .into_agent_builder(ctx)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
             ..AgentConfig::default()

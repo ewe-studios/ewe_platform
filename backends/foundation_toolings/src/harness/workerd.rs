@@ -4,14 +4,12 @@
 //! file, waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use std::sync::Arc;
-//!
-//! use foundation_core::valtron::MonotonicClock;
+//! use foundation_core::valtron::Ctx;
 //! use foundation_toolings::harness::Workerd;
 //!
 //! let wd = Workerd::builder()
 //!     .config_file("worker.capnp")
-//!     .build(Arc::new(MonotonicClock::new()))
+//!     .build(Ctx::host())
 //!     .expect("failed to start workerd");
 //!
 //! println!("Worker at {}", wd.base_url());
@@ -23,10 +21,9 @@ use std::io::Write as IoWrite;
 use std::net::TcpStream;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::{Clock, Ctx};
 
 pub struct Workerd {
     child: Option<Child>,
@@ -34,11 +31,12 @@ pub struct Workerd {
 }
 
 impl Workerd {
-    pub fn start(clock: Arc<dyn Clock>) -> Result<Self, WorkerdError> {
-        Self::start_with(WorkerdConfig::default(), clock)
+    pub fn start(ctx: Ctx) -> Result<Self, WorkerdError> {
+        Self::start_with(WorkerdConfig::default(), ctx)
     }
 
-    pub fn start_with(config: WorkerdConfig, clock: Arc<dyn Clock>) -> Result<Self, WorkerdError> {
+    pub fn start_with(config: WorkerdConfig, ctx: Ctx) -> Result<Self, WorkerdError> {
+        let clock = ctx.clock();
         let config_file = config
             .config_file
             .as_ref()
@@ -216,8 +214,8 @@ impl WorkerdConfig {
         self
     }
 
-    pub fn build(self, clock: Arc<dyn Clock>) -> Result<Workerd, WorkerdError> {
-        Workerd::start_with(self, clock)
+    pub fn build(self, ctx: Ctx) -> Result<Workerd, WorkerdError> {
+        Workerd::start_with(self, ctx)
     }
 }
 

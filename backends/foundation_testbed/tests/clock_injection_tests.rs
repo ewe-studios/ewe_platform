@@ -15,14 +15,14 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
 use foundation_testbed::docker::TestEnvironmentBuilder;
 
 #[test]
 fn the_ready_deadline_follows_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::from_secs(10)));
     let injected: Arc<dyn Clock> = clock.clone();
-    let builder = TestEnvironmentBuilder::new("container", injected.clone())
+    let builder = TestEnvironmentBuilder::new("container", Ctx::fixed(injected.clone()))
         .with_ready_timeout(Duration::from_secs(30));
 
     let first = builder.deadline();

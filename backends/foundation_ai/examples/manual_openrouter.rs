@@ -15,9 +15,8 @@
 use foundation_ai::agentic::{AgentConfig, AgentSession};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, RoutingRule};
-use std::sync::Arc;
 
-use foundation_core::valtron::{valtron, MonotonicClock};
+use foundation_core::valtron::{valtron, Ctx};
 
 /// Build a `ProviderRouter` that talks to `OpenRouter`.
 /// No harness helpers — explicit provider creation, boxing, and routing rules.
@@ -25,12 +24,12 @@ fn build_openrouter_router(
     api_key: &str,
     primary_model: &str,
     memory_model: Option<&str>,
-    clock: &Arc<dyn foundation_core::valtron::Clock>,
+    ctx: &Ctx,
 ) -> ProviderRouter {
     // `OpenAIConfig::openrouter(key)` = an API-key credential plus the
     // OpenRouter base URL.
     let make_provider =
-        || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key), Arc::clone(clock));
+        || OpenAIProvider::with_config(OpenAIConfig::openrouter(api_key), ctx.clone());
 
     let mut builder = ProviderRouter::builder()
         .add_provider(Box::new(RoutableProviderBox::with_identity(
@@ -66,10 +65,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
 
     println!("Building manual OpenRouter router for model: {PRIMARY}");
-    let clock: Arc<dyn foundation_core::valtron::Clock> = Arc::new(MonotonicClock::new());
-    let router = build_openrouter_router(&api_key, PRIMARY, None, &clock);
+    let ctx = Ctx::host();
+    let router = build_openrouter_router(&api_key, PRIMARY, None, &ctx);
 
-    let agent = AgentSession::builder(router, clock)
+    let agent = AgentSession::builder(router, ctx)
         .with_model(PRIMARY)
         .with_config(AgentConfig {
             max_outer_iterations: 3,
