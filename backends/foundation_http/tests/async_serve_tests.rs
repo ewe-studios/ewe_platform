@@ -64,7 +64,14 @@ impl Serve for AsyncKeepHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         ConnectionResult::Async(Box::pin(async move {
-            if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, "first")).await {
+            if let ServeOutcome::Close(err) = write_or_close(send_text(
+                conn,
+                200,
+                "first",
+                &foundation_core::valtron::Ctx::host(),
+            ))
+            .await
+            {
                 return ServeOutcome::Close(err);
             }
             timer::sleep_for(
@@ -108,7 +115,13 @@ impl Serve for PendingDropHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         ConnectionResult::Async(Box::pin(async move {
-            if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, "pending")).await
+            if let ServeOutcome::Close(err) = write_or_close(send_text(
+                conn,
+                200,
+                "pending",
+                &foundation_core::valtron::Ctx::host(),
+            ))
+            .await
             {
                 return ServeOutcome::Close(err);
             }
@@ -143,7 +156,14 @@ impl Serve for AsyncEndHandler {
         let take = req.request_url.url.starts_with("/take");
         ConnectionResult::Async(Box::pin(async move {
             let body = if take { "take-ok" } else { "close-ok" };
-            if let ServeOutcome::Close(err) = write_or_close(send_text(conn, 200, body)).await {
+            if let ServeOutcome::Close(err) = write_or_close(send_text(
+                conn,
+                200,
+                body,
+                &foundation_core::valtron::Ctx::host(),
+            ))
+            .await
+            {
                 return ServeOutcome::Close(err);
             }
             if take {
@@ -251,7 +271,7 @@ impl Serve for LongRpcHandler {
         ConnectionResult::Async(Box::pin(async move {
             started.fetch_add(1, Ordering::SeqCst);
             GateWait(gate).await;
-            match send_text(conn, 200, "long").split() {
+            match send_text(conn, 200, "long", &foundation_core::valtron::Ctx::host()).split() {
                 Ok(future) => future.await,
                 Err(outcome) => outcome,
             }
@@ -275,7 +295,7 @@ impl Serve for ShortHandler {
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        send_text(conn, 200, "short")
+        send_text(conn, 200, "short", &foundation_core::valtron::Ctx::host())
     }
 }
 

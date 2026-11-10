@@ -378,7 +378,12 @@ fn test_tcp_passthrough_roundtrips_raw_bytes() {
     let port = backend.host_port(ECHO_PORT).expect("mapped");
     let authority = format!("127.0.0.1:{port}");
 
-    let passthrough = TcpPassthrough::start("127.0.0.1:0", &authority).expect("start passthrough");
+    let passthrough = TcpPassthrough::start(
+        "127.0.0.1:0",
+        &authority,
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("start passthrough");
     let addr = passthrough.local_addr();
 
     // Speak raw HTTP through the passthrough; the bytes reach http-echo and

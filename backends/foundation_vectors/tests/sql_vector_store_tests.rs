@@ -26,7 +26,11 @@ use tracing_subscriber::Layer;
 async fn make_store() -> (TempDir, SqlVectorStore<TursoStorage>) {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("vectors.db").to_string_lossy().into_owned();
-    let storage = Arc::new(TursoStorage::new(&url).await.unwrap());
+    let storage = Arc::new(
+        TursoStorage::new(&url, foundation_core::valtron::Ctx::host())
+            .await
+            .unwrap(),
+    );
     let config = VectorStoreConfig::new(3, DistanceMetric::Cosine);
     let store = SqlVectorStore::new(storage, config).await.unwrap();
     (dir, store)
@@ -198,7 +202,11 @@ async fn persistence_across_reopen() {
     let config = VectorStoreConfig::new(3, DistanceMetric::Cosine);
 
     {
-        let storage = Arc::new(TursoStorage::new(url).await.unwrap());
+        let storage = Arc::new(
+            TursoStorage::new(url, foundation_core::valtron::Ctx::host())
+                .await
+                .unwrap(),
+        );
         let store = SqlVectorStore::new(storage, config.clone()).await.unwrap();
         store
             .insert(NS, entry("p1", vec![1.0, 0.0, 0.0]))
@@ -211,7 +219,11 @@ async fn persistence_across_reopen() {
     }
 
     {
-        let storage = Arc::new(TursoStorage::new(url).await.unwrap());
+        let storage = Arc::new(
+            TursoStorage::new(url, foundation_core::valtron::Ctx::host())
+                .await
+                .unwrap(),
+        );
         let store = SqlVectorStore::new(storage, config).await.unwrap();
         assert_eq!(store.len(NS).await.unwrap(), 2);
         let got = store.get(NS, "p1").await.unwrap().unwrap();
@@ -262,7 +274,11 @@ fn sql_store_warns_above_scan_threshold() {
             futures_lite::future::block_on(async {
                 let dir = TempDir::new().unwrap();
                 let url = dir.path().join("vectors.db").to_string_lossy().into_owned();
-                let storage = Arc::new(TursoStorage::new(&url).await.unwrap());
+                let storage = Arc::new(
+                    TursoStorage::new(&url, foundation_core::valtron::Ctx::host())
+                        .await
+                        .unwrap(),
+                );
                 let config = VectorStoreConfig::new(3, DistanceMetric::Cosine);
                 let scan = SqlVectorStoreConfig::default().with_scan_warning_threshold(10);
                 let store = SqlVectorStore::with_scan_config(storage, config, scan)

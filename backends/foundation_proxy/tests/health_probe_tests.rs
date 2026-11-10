@@ -109,7 +109,7 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
     #[cfg(target_os = "linux")]
     let fds_before_warmup = fd_count();
     assert!(
-        !probe_grpc_health(&base_url, timeout),
+        !probe_grpc_health(&base_url, timeout, &foundation_core::valtron::Ctx::host()),
         "a silent backend must fail its health probe"
     );
     // The warm-up pump closes its socket just after the probe returns. Wait for
@@ -130,7 +130,7 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
     let mut all_bounded = true;
     for _ in 0..20 {
         let start = Instant::now();
-        let ok = probe_grpc_health(&base_url, timeout);
+        let ok = probe_grpc_health(&base_url, timeout, &foundation_core::valtron::Ctx::host());
         let elapsed = start.elapsed();
         assert!(!ok, "a silent backend must fail its health probe");
         // The probe must finish in about `timeout`, not the 10 s handshake budget.

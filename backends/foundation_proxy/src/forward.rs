@@ -635,11 +635,12 @@ pub async fn forward_upgrade(
     io_mode: ServerIo,
     connect_timeout: std::time::Duration,
     writer_config: WriterConfig,
+    ctx: &Ctx,
 ) -> Result<(), String> {
     let authority = backend.target().authority();
     // Dial through iogate (F50): `Completion` reads the upstream from the io_uring
     // inbox and writes via `IORING_OP_SEND`; `Std` is a plain non-blocking socket.
-    let upstream = crate::aio::dial_tcp(&authority, io_mode, connect_timeout)
+    let upstream = crate::aio::dial_tcp(&authority, io_mode, connect_timeout, ctx)
         .await
         .map_err(|e| format!("connect upstream {authority}: {e}"))?;
 
@@ -655,11 +656,7 @@ pub async fn forward_upgrade(
 
     let request_bytes =
         serialize_request_head(&req.method.to_string(), &req.request_url.url, &headers);
-    let mut writer = ResponseWriter::new(
-        upstream.clone(),
-        writer_config,
-        foundation_core::valtron::fork_ctx(),
-    );
+    let mut writer = ResponseWriter::new(upstream.clone(), writer_config, ctx.clone());
     writer
         .write_all(request_bytes.as_bytes())
         .await
@@ -670,7 +667,7 @@ pub async fn forward_upgrade(
         .map_err(|e| format!("flush upgrade request: {e}"))?;
 
     // From here the connection is opaque: splice both directions.
-    crate::aio::splice(conn.clone(), upstream, writer_config).await;
+    crate::aio::splice(conn.clone(), upstream, writer_config, ctx).await;
     Ok(())
 }
 

@@ -58,7 +58,7 @@ impl Serve for BodyEchoHandler {
             .and_then(|b| try_collect_bytes(b).ok())
             .unwrap_or_default();
         let text = String::from_utf8_lossy(&body);
-        send_text(conn, 200, &text)
+        send_text(conn, 200, &text, &foundation_core::valtron::Ctx::host())
     }
 }
 

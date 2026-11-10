@@ -9,7 +9,9 @@ async fn old_rate_limit_table_is_rebuilt() {
     // (`key` is the primary key; no `id` and no `window_end`) and whose earlier
     // migrations are already recorded. Only 027 and 028 are still pending, so the runner
     // must not re-run 014 (which would fail on the old shape) and must rebuild.
-    let store = TursoStorage::new(":memory:").await.unwrap();
+    let store = TursoStorage::new(":memory:", foundation_context::Ctx::host())
+        .await
+        .unwrap();
     store
         .execute_batch(
             "CREATE TABLE _migrations (\

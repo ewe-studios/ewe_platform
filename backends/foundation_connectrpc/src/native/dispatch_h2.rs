@@ -393,6 +393,7 @@ async fn dispatch_h2_stream(
             let read_max_bytes = entry.options.limits.read_max_bytes;
             let cancel = ctx.cancel_signal().clone();
             let deadline = ctx.request.deadline;
+            let timer_ctx = ctx.ctx.clone();
             let timed_out = deadline.map(|_| deadline_response(&request));
             let too_large = status_only(&request, Status::PayloadTooLarge);
             let handler = handler.clone();
@@ -428,7 +429,7 @@ async fn dispatch_h2_stream(
                     .await,
                 )
             });
-            let expiry = std::pin::pin!(deadline_expiry(Some(&ThreadTimer), deadline));
+            let expiry = std::pin::pin!(deadline_expiry(Some(&ThreadTimer), deadline, &timer_ctx));
             let gone = std::pin::pin!(tx.closed());
             let cut_short = select(expiry, gone);
             match select(call, cut_short).await {
@@ -503,6 +504,7 @@ async fn run_streaming_h2(
 
     let cancel = ctx.cancel_signal().clone();
     let deadline = ctx.request.deadline;
+    let timer_ctx = ctx.ctx.clone();
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
@@ -588,7 +590,7 @@ async fn run_streaming_h2(
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
         response_side,
-        deadline_expiry(Some(&ThreadTimer), deadline),
+        deadline_expiry(Some(&ThreadTimer), deadline, &timer_ctx),
         tx.closed(),
         &cancel,
     ));

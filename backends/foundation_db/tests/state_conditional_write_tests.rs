@@ -155,7 +155,12 @@ fn libsql_store_set_if_version() {
     let path = dir.path().join("state.db").to_string_lossy().into_owned();
     let make = |name: &'static str| {
         let path = path.clone();
-        async move { LibsqlStore::new_state(&path, "proj", name).await.unwrap() }.block()
+        async move {
+            LibsqlStore::new_state(&path, "proj", name, foundation_context::Ctx::host())
+                .await
+                .unwrap()
+        }
+        .block()
     };
     run(make("contract"), make("race"));
 }

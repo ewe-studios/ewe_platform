@@ -75,7 +75,7 @@ impl Serve for EchoHandler {
         let body = serde_json::json!({ "method": method, "path": path });
 
         tracing::info!("Writing json back to connection");
-        let value = send_json(conn, 200, &body);
+        let value = send_json(conn, 200, &body, &foundation_core::valtron::Ctx::host());
         tracing::info!("Written json back to connection");
 
         value
@@ -116,7 +116,12 @@ impl Serve for BodyEchoHandler {
             None => Vec::new(),
         };
         let body_text = String::from_utf8_lossy(&body_bytes);
-        send_text(conn, 200, &body_text)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -139,7 +144,7 @@ impl Serve for QueryHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let url = &req.request_url.url;
-        send_text(conn, 200, url)
+        send_text(conn, 200, url, &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -875,7 +880,7 @@ impl Serve for SlowHandler {
         std::thread::sleep(Duration::from_millis(500));
         let path = &req.request_url.url;
         let body = serde_json::json!({ "path": path, "slept_ms": 500 });
-        send_json(conn, 200, &body)
+        send_json(conn, 200, &body, &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -1155,11 +1160,14 @@ impl Serve for WsEchoHandler {
     ) -> ConnectionResult {
         ConnectionResult::Async(Box::pin(async move {
             // Attempt WebSocket upgrade
-            if !accept_websocket(&conn, &req).await {
+            if !accept_websocket(&conn, &req, &foundation_core::valtron::Ctx::host()).await {
                 // Not a valid upgrade request
-                if let ConnectionResult::Async(write) =
-                    send_text(conn, 400, "Invalid WebSocket upgrade request")
-                {
+                if let ConnectionResult::Async(write) = send_text(
+                    conn,
+                    400,
+                    "Invalid WebSocket upgrade request",
+                    &foundation_core::valtron::Ctx::host(),
+                ) {
                     let _ = write.await;
                 }
                 return ServeOutcome::Close(None);
@@ -1249,7 +1257,8 @@ impl Serve for SseCounterHandler {
         let count = Arc::clone(&self.count);
         ConnectionResult::Async(Box::pin(async move {
             // Create SSE stream - this writes headers
-            let mut sse = match SseStream::new(&conn).await {
+            let mut sse = match SseStream::new(&conn, &foundation_core::valtron::Ctx::host()).await
+            {
                 Ok(s) => s,
                 Err(e) => {
                     tracing::error!("Failed to create SSE stream: {:?}", e);
@@ -1406,7 +1415,12 @@ impl Serve for ExpectContinueEchoHandler {
             String::new()
         };
         tracing::trace!("ExpectContinueEchoHandler: echoing body = {:?}", body_text);
-        send_text(conn, 200, &body_text)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -1614,7 +1628,12 @@ impl Serve for AfterInterimHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let path = &req.request_url.url;
-        send_text(conn, 200, &format!("handler reached: {path}"))
+        send_text(
+            conn,
+            200,
+            &format!("handler reached: {path}"),
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 

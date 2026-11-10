@@ -285,6 +285,7 @@ impl Serve for ServeAdapter {
             .unwrap_or_else(|_| "insecure-dev-master-key".to_string());
         // `KeychainContext` holds only `Arc`s, so this clone is cheap.
         let ctx = self.ctx.clone();
+        let io_ctx = ctx.ctx().clone();
         let limit = self.config.max_request_body;
 
         ConnectionResult::Async(Box::pin(async move {
@@ -302,17 +303,17 @@ impl Serve for ServeAdapter {
                             "Object": "error"
                         }
                     });
-                    let _ = write_json(conn, 413, &json, true).await;
+                    let _ = write_json(conn, 413, &json, true, &io_ctx).await;
                     return ServeOutcome::Close(None);
                 }
                 Err(BodyError::NotUtf8) => {
                     let err = AppError::BadRequest("request body is not valid UTF-8".into());
-                    return write_json(conn, err.status(), &err.to_json(), false).await;
+                    return write_json(conn, err.status(), &err.to_json(), false, &io_ctx).await;
                 }
             };
             let (status, json) =
                 handle(&ctx, &master_key, &method, &path, &body, bearer.as_deref()).await;
-            write_json(conn, status, &json, false).await
+            write_json(conn, status, &json, false, &io_ctx).await
         }))
     }
 }
@@ -381,6 +382,7 @@ async fn write_json(
     status: u16,
     body: &serde_json::Value,
     close: bool,
+    io_ctx: &Ctx,
 ) -> ServeOutcome {
     let bytes = match serde_json::to_vec(body) {
         Ok(bytes) => bytes,
@@ -395,11 +397,7 @@ async fn write_json(
     }
     match render_head(status, &headers, bytes.len()) {
         Ok(head) => {
-            let writer = ResponseWriter::new(
-                conn,
-                WriterConfig::default(),
-                foundation_core::valtron::fork_ctx(),
-            );
+            let writer = ResponseWriter::new(conn, WriterConfig::default(), io_ctx.clone());
             write_response(writer, head, bytes).await
         }
         Err(e) => {

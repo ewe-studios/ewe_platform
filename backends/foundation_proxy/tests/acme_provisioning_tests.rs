@@ -320,6 +320,7 @@ async fn handle_acme(
                     "newAccount": format!("{base}/new-account"),
                     "newOrder": format!("{base}/new-order"),
                 }),
+                &foundation_core::valtron::Ctx::host(),
             ))
             .await;
         }
@@ -504,7 +505,11 @@ async fn handle_acme(
             }
         },
         _ => {
-            write_response(send_not_found(conn.clone())).await;
+            write_response(send_not_found(
+                conn.clone(),
+                &foundation_core::valtron::Ctx::host(),
+            ))
+            .await;
         }
     }
     ServeOutcome::Close(None)

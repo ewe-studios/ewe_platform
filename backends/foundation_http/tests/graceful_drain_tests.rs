@@ -47,7 +47,7 @@ impl Serve for EchoHandler {
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        send_text(conn, 200, "ok")
+        send_text(conn, 200, "ok", &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -70,7 +70,7 @@ impl Serve for SlowHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         std::thread::sleep(Duration::from_millis(SLOW_SLEEP_MS.load(Ordering::SeqCst)));
-        send_text(conn, 200, "slow-ok")
+        send_text(conn, 200, "slow-ok", &foundation_core::valtron::Ctx::host())
     }
 }
 

@@ -141,27 +141,27 @@ impl<T> Receiver<T> {
     /// Returns [`ReceiverError::Timeout`] when the duration expires, and
     /// [`ReceiverError::Closed`] when the channel is closed.
     pub fn recv_timeout(&self, dur: std::time::Duration, ctx: &Ctx) -> Result<T, ReceiverError> {
-        let started = ctx.clock().now();
+        let clock = ctx.clock();
+        let started = clock.now();
 
-        let mut remaining_timeout = dur;
         loop {
-            // if not parking then
-            match self.chan.pop() {
+            // The time left is `dur` minus the time since the original start. It
+            // is computed from `started` each turn, so a spurious wake does not
+            // subtract the same time twice.
+            let remaining = match self.chan.pop() {
                 Ok(value) => return Ok(value),
-                Err(err) => match err {
-                    PopError::Empty => {
-                        // check the state and see if we've crossed that threshold.
-                        let elapsed = ctx.clock().now().saturating_duration_since(started);
-                        if elapsed >= remaining_timeout {
-                            return Err(ReceiverError::Timeout);
-                        }
-                        remaining_timeout -= elapsed;
+                Err(PopError::Empty) => {
+                    let elapsed = clock.now().saturating_duration_since(started);
+                    let remaining = dur.saturating_sub(elapsed);
+                    if remaining.is_zero() {
+                        return Err(ReceiverError::Timeout);
                     }
-                    PopError::Closed => return Err(ReceiverError::Closed(err)),
-                },
-            }
+                    remaining
+                }
+                Err(err @ PopError::Closed) => return Err(ReceiverError::Closed(err)),
+            };
 
-            std::thread::park_timeout(remaining_timeout);
+            std::thread::park_timeout(remaining);
         }
     }
 }

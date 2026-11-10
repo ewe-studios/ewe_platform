@@ -47,7 +47,7 @@ impl Serve for EchoHandler {
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        send_text(conn, 200, "ok")
+        send_text(conn, 200, "ok", &foundation_core::valtron::Ctx::host())
     }
 }
 

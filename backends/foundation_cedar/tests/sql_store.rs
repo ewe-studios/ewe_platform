@@ -26,7 +26,9 @@ permit(
 async fn turso() -> (TursoStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let url = dir.path().join("cedar.db").to_string_lossy().into_owned();
-    let store = TursoStorage::new(&url).await.expect("open turso");
+    let store = TursoStorage::new(&url, foundation_core::valtron::Ctx::host())
+        .await
+        .expect("open turso");
     (store, dir)
 }
 

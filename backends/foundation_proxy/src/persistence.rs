@@ -174,11 +174,7 @@ impl ProxyStateStore {
                             self.lock_timeout
                         )));
                     }
-                    sleep_async(
-                        self.lock_retry_interval,
-                        &foundation_core::valtron::fork_ctx(),
-                    )
-                    .await;
+                    sleep_async(self.lock_retry_interval, &self.ctx).await;
                 }
                 Err(e) => {
                     return Err(StorageError::Backend(format!(

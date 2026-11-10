@@ -137,8 +137,8 @@ impl ConnIo {
     /// for what counts). Fails with `Unsupported` on a transport that cannot
     /// report it, so the caller can tell "never" from "not yet".
     #[must_use]
-    pub(crate) fn hangup(self: &Arc<Self>) -> Hangup {
-        Hangup::new(Arc::clone(self))
+    pub(crate) fn hangup(self: &Arc<Self>, ctx: foundation_context::Ctx) -> Hangup {
+        Hangup::new(Arc::clone(self), ctx)
     }
 }
 
@@ -403,17 +403,16 @@ pub(crate) struct Hangup {
     /// The valtron timer that re-polls a poll-fallback transport's fd at
     /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
     fallback: Option<Sleep>,
-    /// The engine root context: it has no caller context, so the poll-fallback
-    /// timer reads the clock of the engine that runs the connection.
+    /// The context whose clock times the poll-fallback timer.
     ctx: foundation_context::Ctx,
 }
 
 impl Hangup {
-    pub(crate) fn new(io: Arc<ConnIo>) -> Self {
+    pub(crate) fn new(io: Arc<ConnIo>, ctx: foundation_context::Ctx) -> Self {
         Self {
             io,
             fallback: None,
-            ctx: foundation_core::valtron::fork_ctx(),
+            ctx,
         }
     }
 }

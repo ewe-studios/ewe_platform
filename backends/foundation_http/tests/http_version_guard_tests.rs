@@ -59,7 +59,7 @@ impl Serve for EchoHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         HANDLER_CALLED.store(true, Ordering::SeqCst);
-        send_text(conn, 200, "ok")
+        send_text(conn, 200, "ok", &foundation_core::valtron::Ctx::host())
     }
 }
 

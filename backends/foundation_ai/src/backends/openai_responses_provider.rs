@@ -952,11 +952,7 @@ impl ResponsesModel {
                     attempt += 1;
                     // `sleep_async` is `!Send` on wasm (single-threaded valtron
                     // executor); wrap it so this async-trait future stays `Send`.
-                    SendWrapper::new(sleep_async(
-                        Duration::from_secs(delay),
-                        &foundation_core::valtron::fork_ctx(),
-                    ))
-                    .await;
+                    SendWrapper::new(sleep_async(Duration::from_secs(delay), &self.ctx)).await;
                 }
             }
         }

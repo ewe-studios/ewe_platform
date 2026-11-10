@@ -402,6 +402,7 @@ pub fn send_bytes<B: AsRef<[u8]> + Send + Sync + 'static>(
     status: u16,
     content_type: &str,
     body: B,
+    ctx: &Ctx,
 ) -> ConnectionResult {
     let headers = [
         (SimpleHeader::CONTENT_TYPE, content_type.to_string()),
@@ -409,11 +410,7 @@ pub fn send_bytes<B: AsRef<[u8]> + Send + Sync + 'static>(
     ];
     match render_head(status, &headers, body.as_ref().len()) {
         Ok(head) => {
-            let writer = ResponseWriter::new(
-                conn,
-                WriterConfig::default(),
-                foundation_core::valtron::fork_ctx(),
-            );
+            let writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
             ConnectionResult::Async(Box::pin(write_response(writer, head, body)))
         }
         Err(e) => {
@@ -429,8 +426,9 @@ pub fn send_text(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &str,
+    ctx: &Ctx,
 ) -> ConnectionResult {
-    send_bytes(conn, status, "text/plain", body.as_bytes().to_vec())
+    send_bytes(conn, status, "text/plain", body.as_bytes().to_vec(), ctx)
 }
 
 /// Send an HTML response. See [`send_bytes`].
@@ -439,8 +437,9 @@ pub fn send_html(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &str,
+    ctx: &Ctx,
 ) -> ConnectionResult {
-    send_bytes(conn, status, "text/html", body.as_bytes().to_vec())
+    send_bytes(conn, status, "text/html", body.as_bytes().to_vec(), ctx)
 }
 
 /// Send a JSON response. See [`send_bytes`].
@@ -449,9 +448,10 @@ pub fn send_json<T: Serialize>(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &T,
+    ctx: &Ctx,
 ) -> ConnectionResult {
     match serde_json::to_vec(body) {
-        Ok(bytes) => send_bytes(conn, status, "application/json", bytes),
+        Ok(bytes) => send_bytes(conn, status, "application/json", bytes, ctx),
         Err(e) => {
             tracing::error!("response JSON encode failed: {e}");
             ConnectionResult::Close(None)
@@ -461,8 +461,8 @@ pub fn send_json<T: Serialize>(
 
 /// Send a 404 Not Found response. See [`send_bytes`].
 #[must_use]
-pub fn send_not_found(conn: SharedByteBufferStream<RawStream>) -> ConnectionResult {
-    send_text(conn, 404, "Not Found")
+pub fn send_not_found(conn: SharedByteBufferStream<RawStream>, ctx: &Ctx) -> ConnectionResult {
+    send_text(conn, 404, "Not Found", ctx)
 }
 
 /// Send a 500 Internal Server Error response. See [`send_bytes`].
@@ -470,8 +470,9 @@ pub fn send_not_found(conn: SharedByteBufferStream<RawStream>) -> ConnectionResu
 pub fn send_server_error(
     conn: SharedByteBufferStream<RawStream>,
     reason: Option<&str>,
+    ctx: &Ctx,
 ) -> ConnectionResult {
-    send_text(conn, 500, reason.unwrap_or("Internal Server Error"))
+    send_text(conn, 500, reason.unwrap_or("Internal Server Error"), ctx)
 }
 
 /// Send a `100 Continue` interim response. See [`send_bytes`].
@@ -480,7 +481,7 @@ pub fn send_server_error(
 /// allows an informational (1xx) status without headers. The response is
 /// flushed so the client can send its body at once.
 #[must_use]
-pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>) -> ConnectionResult {
+pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>, ctx: &Ctx) -> ConnectionResult {
     let response = match SimpleOutgoingResponse::builder()
         .with_status(status_from_code(100))
         .with_body(SendSafeBody::None)
@@ -494,11 +495,7 @@ pub fn send_continue_100(conn: SharedByteBufferStream<RawStream>) -> ConnectionR
     };
     match render_message(response) {
         Ok(head) => {
-            let writer = ResponseWriter::new(
-                conn,
-                WriterConfig::default(),
-                foundation_core::valtron::fork_ctx(),
-            );
+            let writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
             ConnectionResult::Async(Box::pin(write_response(writer, head, [])))
         }
         Err(e) => {

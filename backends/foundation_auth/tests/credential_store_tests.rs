@@ -24,7 +24,7 @@ async fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("auth.sqlite");
     let url = db_path.to_str().expect("non-utf8 tempdir path").to_owned();
-    let store = CredentialStorage::turso(&url)
+    let store = CredentialStorage::turso(&url, foundation_context::Ctx::host())
         .await
         .expect("init turso credential storage");
     (store, dir)
@@ -138,9 +138,12 @@ async fn credential_storage_wraps_arbitrary_provider() {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("wrap.sqlite");
     let url = db_path.to_string_lossy().into_owned();
-    let provider = StorageProvider::new(StorageBackend::Turso { url })
-        .await
-        .expect("init turso provider");
+    let provider = StorageProvider::new(StorageBackend::Turso {
+        url,
+        ctx: foundation_context::Ctx::host().into(),
+    })
+    .await
+    .expect("init turso provider");
     let store = CredentialStorage::new(provider);
     store.set("k", "v").await.unwrap();
     let got: String = store.get("k").await.unwrap().unwrap();

@@ -104,6 +104,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         let storage = Arc::clone(&self.storage);
         let interval = self.config.sweep_interval;
         let slice = interval.min(Duration::from_millis(500));
+        let ctx = self.ctx.clone();
         let task = from_future(async move {
             while !shutdown.probe() {
                 if let Err(e) = storage.sweep_expired().await {
@@ -111,7 +112,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
                 }
                 let mut waited = Duration::ZERO;
                 while waited < interval && !shutdown.probe() {
-                    sleep_async(slice, &foundation_core::valtron::fork_ctx()).await;
+                    sleep_async(slice, &ctx).await;
                     waited += slice;
                 }
             }

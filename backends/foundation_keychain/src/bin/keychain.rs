@@ -32,9 +32,17 @@ fn main() {
     let db_url = std::env::var("KEYCHAIN_DB").unwrap_or_else(|_| "/data/keychain.db".to_string());
     let addr = std::env::var("LISTEN_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
 
+    let ctx = Ctx::host();
     let provider = BlockingFutureExt::block({
         let url = db_url.clone();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        let backend_ctx = ctx.clone();
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: backend_ctx.into(),
+            })
+            .await
+        }
     })
     .expect("open keychain database");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
@@ -43,7 +51,6 @@ fn main() {
     block_on_future(async move { apply_schema(schema_db.as_ref()).await })
         .expect("apply keychain schema");
 
-    let ctx = Ctx::host();
     let app = KeychainServer::new(KeychainContext::new(db, ctx)).http_app();
     let listener = std::net::TcpListener::bind(&addr).expect("bind listen address");
     let shutdown = Arc::new(ShutdownSignal::new());

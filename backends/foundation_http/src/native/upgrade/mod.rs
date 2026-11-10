@@ -3,6 +3,7 @@
 //! SSE client types are provided by `foundation_netio::event_source`.
 //! Server-side SSE streaming is provided by `SseStream`.
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::event_source::{render_comment, SseEvent};
 use foundation_netio::netcap::RawStream;
@@ -47,6 +48,7 @@ impl From<std::io::Error> for UpgradeError {
 pub async fn accept_websocket(
     conn: &SharedByteBufferStream<RawStream>,
     req: &SimpleIncomingRequest,
+    ctx: &Ctx,
 ) -> bool {
     let upgrade = get_header_value(&req.headers, "upgrade");
     let connection = get_header_value(&req.headers, "connection");
@@ -91,11 +93,7 @@ pub async fn accept_websocket(
             return false;
         }
     };
-    let mut writer = ResponseWriter::new(
-        conn.clone(),
-        WriterConfig::default(),
-        foundation_core::valtron::fork_ctx(),
-    );
+    let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default(), ctx.clone());
     let result = async {
         writer.write_all(&head).await?;
         writer.flush().await
@@ -139,9 +137,9 @@ pub struct SseWriter {
 impl SseWriter {
     /// A writer for `conn` with the given limits.
     #[must_use]
-    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig) -> Self {
+    pub fn new(conn: SharedByteBufferStream<RawStream>, config: WriterConfig, ctx: &Ctx) -> Self {
         Self {
-            writer: ResponseWriter::new(conn, config, foundation_core::valtron::fork_ctx()),
+            writer: ResponseWriter::new(conn, config, ctx.clone()),
         }
     }
 
@@ -239,7 +237,10 @@ impl SseStream {
     /// # Errors
     ///
     /// Returns `UpgradeError` if header writing fails.
-    pub async fn new(conn: &SharedByteBufferStream<RawStream>) -> Result<Self, UpgradeError> {
+    pub async fn new(
+        conn: &SharedByteBufferStream<RawStream>,
+        ctx: &Ctx,
+    ) -> Result<Self, UpgradeError> {
         let response = SimpleOutgoingResponse::builder()
             .with_status(Status::OK)
             .add_header(SimpleHeader::CONTENT_TYPE, "text/event-stream")
@@ -251,11 +252,7 @@ impl SseStream {
 
         let head = render_message(response).map_err(UpgradeError::WriteError)?;
 
-        let mut writer = ResponseWriter::new(
-            conn.clone(),
-            WriterConfig::default(),
-            foundation_core::valtron::fork_ctx(),
-        );
+        let mut writer = ResponseWriter::new(conn.clone(), WriterConfig::default(), ctx.clone());
         writer
             .write_all(&head)
             .await

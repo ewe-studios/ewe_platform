@@ -32,7 +32,7 @@ type SqlSession = AgentSession<SqlDocumentStore<TursoStorage>, KvMemoryStore<Tur
 
 /// A migrated in-memory Turso database, opened asynchronously.
 async fn in_memory_turso() -> TursoStorage {
-    let storage = TursoStorage::new(":memory:")
+    let storage = TursoStorage::new(":memory:", foundation_context::Ctx::host())
         .await
         .expect("open an in-memory Turso database");
     storage

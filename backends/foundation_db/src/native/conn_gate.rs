@@ -60,9 +60,8 @@ pub(crate) struct ConnGate {
     lock: Arc<RwLock<()>>,
     /// How long a call waits for the lock.
     timeout: Duration,
-    /// The context whose clock measures `timeout`. A gate with no context
-    /// uses the root context of the valtron engine that runs the call.
-    ctx: Option<Ctx>,
+    /// The context whose clock measures `timeout`.
+    ctx: Ctx,
     /// Set when a `ROLLBACK` failed: the connection may still be in a transaction.
     needs_check: Arc<AtomicBool>,
     /// Test hook: the next rollback is not run and counts as failed.
@@ -70,34 +69,22 @@ pub(crate) struct ConnGate {
     inject_rollback_failure: Arc<AtomicBool>,
 }
 
-impl Default for ConnGate {
-    fn default() -> Self {
+impl ConnGate {
+    /// A new gate with no holders. The wait limit is measured on the clock of `ctx`.
+    pub(crate) fn new(ctx: Ctx) -> Self {
         Self {
             lock: Arc::default(),
             timeout: DEFAULT_LOCK_TIMEOUT,
-            ctx: None,
+            ctx,
             needs_check: Arc::default(),
             #[cfg(feature = "test-hooks")]
             inject_rollback_failure: Arc::default(),
         }
     }
-}
-
-impl ConnGate {
-    /// A new gate with no holders.
-    pub(crate) fn new() -> Self {
-        Self::default()
-    }
 
     /// The same lock and flags, with a different wait limit.
     pub(crate) fn with_timeout(mut self, timeout: Duration) -> Self {
         self.timeout = timeout;
-        self
-    }
-
-    /// The same lock and flags, with the context that measures the wait limit.
-    pub(crate) fn with_ctx(mut self, ctx: Ctx) -> Self {
-        self.ctx = Some(ctx);
         self
     }
 
@@ -162,12 +149,7 @@ impl ConnGate {
 
     /// Completes with `LockTimeout` once the wait limit has passed.
     async fn expire<G>(&self, mode: LockMode) -> StorageResult<G> {
-        // No context set: use the clock of the engine that runs this call.
-        let ctx = self
-            .ctx
-            .clone()
-            .unwrap_or_else(foundation_core::valtron::fork_ctx);
-        sleep_for(self.timeout, &ctx).await;
+        sleep_for(self.timeout, &self.ctx).await;
         Err(StorageError::LockTimeout {
             mode,
             waited: self.timeout,

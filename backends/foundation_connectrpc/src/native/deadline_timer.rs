@@ -12,6 +12,8 @@
 
 use std::time::Instant;
 
+use foundation_context::Ctx;
+
 use crate::shared::router::DeadlineTimer;
 use crate::shared::transport::BoxFuture;
 
@@ -19,9 +21,7 @@ use crate::shared::transport::BoxFuture;
 pub(crate) struct ThreadTimer;
 
 impl DeadlineTimer for ThreadTimer {
-    fn sleep_until(&self, deadline: Instant) -> BoxFuture<'_, ()> {
-        // The engine root clock times the deadline, as the dispatcher's does.
-        let ctx = foundation_core::valtron::fork_ctx();
-        Box::pin(foundation_core::valtron::timer::sleep_until(deadline, &ctx))
+    fn sleep_until(&self, deadline: Instant, ctx: &Ctx) -> BoxFuture<'_, ()> {
+        Box::pin(foundation_core::valtron::timer::sleep_until(deadline, ctx))
     }
 }

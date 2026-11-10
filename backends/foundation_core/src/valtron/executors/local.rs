@@ -831,6 +831,12 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
         self.max_turns
     }
 
+    /// The context whose clock bounds each blocking wait.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
+    }
+
     /// Returns the configured `park_duration` value.
     #[must_use]
     pub fn park_duration(&self) -> time::Duration {

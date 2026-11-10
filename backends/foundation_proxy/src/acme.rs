@@ -506,7 +506,7 @@ impl AcmeClient {
                     break;
                 }
                 let step = (deadline - now).min(self.dns_wait_interval);
-                sleep_async(step, &foundation_core::valtron::fork_ctx()).await;
+                sleep_async(step, &self.ctx).await;
             }
             self.respond_to_challenge(&challenge.url).await?;
         }

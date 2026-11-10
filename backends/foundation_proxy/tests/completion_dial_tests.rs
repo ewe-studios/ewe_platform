@@ -145,10 +145,20 @@ async fn completion_dial_does_not_hold_worker() {
     let config = PassthroughConfig::new()
         .with_io_mode(ServerIo::Completion)
         .with_connect_timeout(CONNECT_TIMEOUT);
-    let stuck = TcpPassthrough::start_with("127.0.0.1:0", &hole.addr.to_string(), config)
-        .expect("start stuck passthrough");
-    let good = TcpPassthrough::start_with("127.0.0.1:0", &format!("127.0.0.1:{echo_port}"), config)
-        .expect("start good passthrough");
+    let stuck = TcpPassthrough::start_with(
+        "127.0.0.1:0",
+        &hole.addr.to_string(),
+        config,
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("start stuck passthrough");
+    let good = TcpPassthrough::start_with(
+        "127.0.0.1:0",
+        &format!("127.0.0.1:{echo_port}"),
+        config,
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("start good passthrough");
 
     // These clients make the proxy dial the blackhole: more dials than workers.
     let stuck_clients: Vec<TcpStream> = (0..STUCK_DIALS)

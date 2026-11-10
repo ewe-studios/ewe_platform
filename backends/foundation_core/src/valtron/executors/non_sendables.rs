@@ -1670,8 +1670,10 @@ where
             // on the readiness quantum. Replacing the handle cancels the last one.
             self.1.timer = single::parked_wake_after().map(|after| {
                 let timer_slot = Arc::clone(&slot);
-                let ctx = single::fork_ctx();
-                crate::valtron::timer::call_at(ctx.clock().now() + after, &ctx, move || {
+                // The stream iterator keeps the `Ctx` it was built with, so the
+                // timed wake reads that clock and no `Ctx` is forked per park.
+                let ctx = inner.ctx();
+                crate::valtron::timer::call_at(ctx.clock().now() + after, ctx, move || {
                     timer_slot.fire();
                 })
             });

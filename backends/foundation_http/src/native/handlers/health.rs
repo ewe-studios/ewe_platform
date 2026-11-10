@@ -23,10 +23,9 @@ impl Serve for HealthHandler {
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let _ = ctx;
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or("/");
-        crate::native::writer::send_json(conn, 200, &health_body(path))
+        crate::native::writer::send_json(conn, 200, &health_body(path), &ctx)
     }
 }
 

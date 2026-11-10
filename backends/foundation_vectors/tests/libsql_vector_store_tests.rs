@@ -26,7 +26,11 @@ use tempfile::TempDir;
 async fn make_store() -> (TempDir, LibsqlVectorStore<LibsqlStore>) {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("vec.db").to_string_lossy().into_owned();
-    let backend = Arc::new(LibsqlStore::new_kv(&path, None).await.unwrap());
+    let backend = Arc::new(
+        LibsqlStore::new_kv(&path, None, foundation_core::valtron::Ctx::host())
+            .await
+            .unwrap(),
+    );
     let store = LibsqlVectorStore::new(backend, VectorStoreConfig::new(3, DistanceMetric::Cosine))
         .await
         .unwrap();

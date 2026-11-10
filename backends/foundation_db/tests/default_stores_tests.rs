@@ -1,4 +1,4 @@
-//! Ready-to-use stores: `TursoStorage::in_memory()` / `LibsqlStore::in_memory()`
+//! Ready-to-use stores: `TursoStorage::in_memory(foundation_context::Ctx::host())` / `LibsqlStore::in_memory(foundation_context::Ctx::host())`
 //! open a migrated in-memory database (the async replacement for the old
 //! blocking `Default` impls), and `StorageProvider::default()` is the
 //! in-memory backend.
@@ -12,7 +12,9 @@ use foundation_db::LibsqlStore;
 
 #[valtron_test]
 async fn in_memory_turso_storage_is_a_migrated_key_value_store() {
-    let storage = TursoStorage::in_memory().await.unwrap();
+    let storage = TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
 
     storage.set("greeting", "hello").await.unwrap();
     let value: Option<String> = storage.get("greeting").await.unwrap();
@@ -21,7 +23,11 @@ async fn in_memory_turso_storage_is_a_migrated_key_value_store() {
 
 #[valtron_test]
 async fn sql_document_store_over_in_memory_turso_has_its_documents_table() {
-    let store = SqlDocumentStore::new(TursoStorage::in_memory().await.unwrap());
+    let store = SqlDocumentStore::new(
+        TursoStorage::in_memory(foundation_context::Ctx::host())
+            .await
+            .unwrap(),
+    );
 
     let doc = store
         .append("k", serde_json::json!({"n": 1}))
@@ -34,8 +40,12 @@ async fn sql_document_store_over_in_memory_turso_has_its_documents_table() {
 
 #[valtron_test]
 async fn in_memory_turso_stores_are_independent() {
-    let a = TursoStorage::in_memory().await.unwrap();
-    let b = TursoStorage::in_memory().await.unwrap();
+    let a = TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
+    let b = TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
 
     a.set("only_in_a", 1_u32).await.unwrap();
     let in_b: Option<u32> = b.get("only_in_a").await.unwrap();
@@ -45,7 +55,9 @@ async fn in_memory_turso_stores_are_independent() {
 #[cfg(feature = "libsql")]
 #[valtron_test]
 async fn in_memory_libsql_store_is_a_migrated_key_value_store() {
-    let store = LibsqlStore::in_memory().await.unwrap();
+    let store = LibsqlStore::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
 
     store.set("greeting", "hello").await.unwrap();
     let value: Option<String> = store.get("greeting").await.unwrap();

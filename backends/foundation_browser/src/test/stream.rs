@@ -163,7 +163,7 @@ impl Serve for StreamHandler {
             let Some(bc) = ctx.get::<Broadcaster>() else {
                 return ServeOutcome::Close(None);
             };
-            let sse = match SseStream::new(&conn).await {
+            let sse = match SseStream::new(&conn, &ctx).await {
                 Ok(sse) => sse,
                 Err(e) => {
                     tracing::warn!("SSE upgrade failed: {e}");

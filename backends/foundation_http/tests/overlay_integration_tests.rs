@@ -69,7 +69,12 @@ impl Serve for EchoHandler {
             None => Vec::new(),
         };
         let body_text = String::from_utf8_lossy(&body_bytes);
-        send_text(conn, 200, &body_text)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 

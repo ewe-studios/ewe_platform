@@ -41,6 +41,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
+use foundation_core::valtron::Ctx;
 use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
@@ -168,6 +169,8 @@ pub struct TurboPufferVectorStore {
     config: VectorStoreConfig,
     limits: TurboPufferLimits,
     retry: TurboPufferConfig,
+    /// The context whose clock times the retry waits.
+    ctx: Ctx,
 }
 
 /// A 2xx body, or the HTTP 404 of a namespace that does not exist.
@@ -186,8 +189,12 @@ impl TurboPufferVectorStore {
     /// # Errors
     /// [`VectorStoreError::Unsupported`] for [`DistanceMetric::Dot`]:
     /// `TurboPuffer` has no dot-product metric.
-    pub fn new(api_key: String, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
-        Self::with_client(HttpClientBuilder::new().build(), api_key, config)
+    pub fn new(
+        api_key: String,
+        config: VectorStoreConfig,
+        ctx: Ctx,
+    ) -> Result<Self, VectorStoreError> {
+        Self::with_client(HttpClientBuilder::new().build(), api_key, config, ctx)
     }
 
     /// A store that sends its requests through `client`: a client that the
@@ -201,6 +208,7 @@ impl TurboPufferVectorStore {
         client: DynNetClient,
         api_key: String,
         config: VectorStoreConfig,
+        ctx: Ctx,
     ) -> Result<Self, VectorStoreError> {
         if config.metric == DistanceMetric::Dot {
             return Err(VectorStoreError::Unsupported(
@@ -214,6 +222,7 @@ impl TurboPufferVectorStore {
             config,
             limits: TurboPufferLimits::default(),
             retry: TurboPufferConfig::default(),
+            ctx,
         })
     }
 
@@ -329,8 +338,7 @@ impl TurboPufferVectorStore {
             // The next request is fresh; no message is kept from this one.
             drop(body);
             let delay = self.retry_delay(&headers, attempt);
-            foundation_core::valtron::sleep_async(delay, &foundation_core::valtron::fork_ctx())
-                .await;
+            foundation_core::valtron::sleep_async(delay, &self.ctx).await;
         }
     }
 
