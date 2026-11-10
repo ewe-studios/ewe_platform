@@ -86,6 +86,33 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   - The CI scripts `check_time_sources.py` and `check_executor_wake.py` pass.
   - Nothing is pushed. The owner reviews the lane before any push.
 
+- 2026-11-10: wave 3, lane `spec76/w3` (local branch). Four crates take `Ctx` instead of
+  `dyn Clock`. Nothing was pushed by this lane:
+  - `foundation_wireguard`: commit `2731a10a6`. The 15 `dyn Clock` sites in `src` drop to 0.
+    `WgNode`, `TunnelDriver`, `RelayServer`, `MeshDataPlane`, `serve` and `serve_until` take
+    `Ctx`. The mesh task now uses the node's `Ctx` (it used to reset the RNG to seed 0).
+    Tests pass. The `spec55-complete` tests compile. clippy `-D warnings` is clean.
+  - `foundation_connectrpc`: commit `bbd91ef7f`. `RequestContext` holds `pub ctx: Ctx`
+    instead of a clock copy. `empty` and `for_dispatch` take a `Ctx`. Client streams, the
+    dispatch path, the HTTP/1.1 server and the h2 transport store a `Ctx`. The only kept
+    `dyn Clock` is the `RpcCtx::clock()` getter. Tests pass except
+    `a_blackholed_dial_does_not_block_the_worker`, which also fails on master (#466).
+    The `h3` set compiles. The wasm check passes with `-D warnings`.
+  - `foundation_deployment`: commit `39c8c7a9f`. The 11 sites in `src` drop to 0 except
+    the `ProviderClient::clock()` getter, which returns `self.ctx.clock()`. `ProviderClient`
+    adds `ctx()`. The callers in `foundation_deployment_hetzner` and
+    `foundation_deployment_docker` follow in the same commit. Hetzner's `HetznerClient`
+    stores a `Ctx`. Its `from_env` takes `&Ctx`. Tests pass for `foundation_deployment` (lib,
+    tests and doctests), for hetzner (all) and for docker (default and `docker` features, and
+    `docker,integration-tests` compiles). clippy `-D warnings` is clean for
+    `foundation_deployment` and docker. Docker `--all-features` cannot build here:
+    `protoc` is missing for the `buildkit` build script.
+  - `foundation_sshkit`: commit `c114f6b24`. `ConnectionPool` stores a `Ctx`. Its
+    `clock()` getter returns `self.ctx.clock()`. `ctx()` returns `&Ctx`. Tests pass.
+  - The CI scripts `check_time_sources.py` and `check_executor_wake.py` pass.
+  - Allowed kept sites are the getters that return `self.ctx.clock()`, plus the
+    `store_typed` call sites that pass `clock.as_ref()` to `foundation_db` (a later wave).
+
 ## In progress
 
 - Wave 2: the `WinRM` and `BootstrapLogger` `clock()` getters still return `Arc<dyn Clock>`.

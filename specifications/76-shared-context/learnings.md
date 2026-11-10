@@ -132,3 +132,26 @@ standard ASD-STE100.
   `-j 1`. Run it in the background with a log file, not in the foreground.
 - Wave 2: the disk filled again during a `vms` link step. Removing `uat/build/<crate>` for each
   finished crate freed enough space.
+
+- Wave 3: the grep `dyn Clock` misses the full path `dyn foundation_core::valtron::Clock`.
+  Use `grep -rn "dyn .*Clock"` to find every site. connectrpc had 8 short sites and more
+  full-path sites.
+- Wave 3: the connectrpc `Ctx` name is not a clash. `foundation_http::shared::context::Ctx`
+  re-exports `foundation_context::Ctx`, so it is the same type.
+- Wave 3: clippy `needless_pass_by_value` rejects a `Ctx` parameter that a function only
+  clones. Take `&Ctx` (hetzner `from_env`).
+- Wave 3: `foundation_wireguard::WgNode::join` built `Ctx::fixed(clock)` for the mesh task.
+  That reset the RNG to seed 0 in library code. It now uses the node's `Ctx`. Severity
+  medium. Fixed in `2731a10a6`.
+- Wave 3: `foundation_deployment_docker` with `--all-features` needs `protoc` for its
+  `buildkit` build script. The sandbox has no `protoc`, so that clippy set cannot run here.
+  Run it on a machine with `protoc`, or install `protoc` first.
+- Wave 3: `foundation_deployment_hetzner` tests pass `&MonotonicClock` to `store_typed`.
+  That is a `foundation_db` API (wave 7) and still takes `&dyn Clock`, so the call stays.
+- Wave 3: connectrpc `h2_dial_tests::a_blackholed_dial_does_not_block_the_worker` fails on
+  master in this sandbox (#466). It is not caused by the `Ctx` change.
+- Wave 3: `foundation_wireguard` completeness check built a `RelayServer` with a real
+  clock in library code. It now checks the constructor signature with a typed function
+  pointer, which needs no clock.
+- Wave 3: the shell guard refuses one command that combines `cd` with a heredoc or a
+  redirect. Use plain commands, or a script file run by a plain command.
