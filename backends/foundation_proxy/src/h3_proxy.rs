@@ -73,8 +73,7 @@ impl H3Serve for H3ProxyHandler {
         let client_ip = connection
             .peer_addr
             .as_ref()
-            .map(|a| a.ip().to_string())
-            .unwrap_or_else(|| "unknown".to_string());
+            .map_or_else(|| "unknown".to_string(), |a| a.ip().to_string());
 
         Box::pin(async move {
             let send_timeout = state.writer_config().send_timeout;
@@ -122,56 +121,35 @@ impl H3Serve for H3ProxyHandler {
 
             // The first body read tells whether the request has a body at all: a
             // bodyless request is sent bodyless, not chunked.
-            let first = match park_op(
+            let Some(Ok(first)) = park_op(
                 &mut request,
                 read_timeout,
                 &ctx,
                 counted(state.h3_body_gauge(), H3Request::poll_body),
             )
             .await
-            {
-                Some(Ok(first)) => first,
-                _ => {
-                    request.reset(error_code::H3_REQUEST_CANCELLED);
-                    return Ok(());
-                }
+            else {
+                request.reset(error_code::H3_REQUEST_CANCELLED);
+                return Ok(());
             };
             let gauge = state.h3_body_gauge();
             let outcome = if let Some(first) = first {
-                let (producer, body, readiness) =
-                    pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
-                let (upstream, pumped) = {
-                    let fwd =
-                        forward(&client, &method, &url, headers, body, Some(readiness)).fuse();
-                    let pump = pump_request_body(
-                        &mut request,
-                        first,
-                        producer,
-                        limit,
-                        gauge,
-                        read_timeout,
-                        &ctx,
-                    )
-                    .fuse();
-                    pin_mut!(fwd, pump);
-                    let mut pump_done = false;
-                    let result = loop {
-                        select! {
-                            upstream = fwd => break Ok(upstream),
-                            pumped = pump => match pumped {
-                                Ok(()) => pump_done = true,
-                                Err(end) => break Err(end),
-                            },
-                        }
-                    };
-                    (result, pump_done)
+                let upstream = UpstreamRequest {
+                    client: &client,
+                    method: &method,
+                    url: &url,
+                    headers,
                 };
-                if upstream.is_ok() && !pumped {
-                    // The upstream answered before the upload ended: tell the
-                    // client to stop sending (RFC 9114 section 4.1.1).
-                    request.stop_sending(error_code::H3_NO_ERROR);
-                }
-                upstream
+                forward_with_body(
+                    &mut request,
+                    first,
+                    upstream,
+                    limit,
+                    gauge,
+                    read_timeout,
+                    &ctx,
+                )
+                .await
             } else {
                 Ok(forward(&client, &method, &url, headers, SendSafeBody::None, None).await)
             };
@@ -193,6 +171,61 @@ impl H3Serve for H3ProxyHandler {
             Ok(())
         })
     }
+}
+
+/// The parts of the upstream request that [`forward_with_body`] sends.
+struct UpstreamRequest<'a> {
+    client: &'a SharedHttpClient,
+    method: &'a str,
+    url: &'a str,
+    headers: SimpleHeaders,
+}
+
+/// Send a request that has a body upstream, and pump the client body into it.
+///
+/// The upstream send and the body pump run at the same time. If the upstream
+/// answers before the upload ends, the client is told to stop sending
+/// (RFC 9114 section 4.1.1). A body error from the pump wins over the
+/// upstream result.
+async fn forward_with_body(
+    request: &mut H3Request<QuinnBidiStream>,
+    first: Bytes,
+    upstream: UpstreamRequest<'_>,
+    limit: usize,
+    gauge: &BufferedBytesGauge,
+    read_timeout: Duration,
+    ctx: &Ctx,
+) -> Result<Result<UpstreamResponse, String>, BodyEnd> {
+    let (producer, body, readiness) = pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
+    let (result, pumped) = {
+        let fwd = forward(
+            upstream.client,
+            upstream.method,
+            upstream.url,
+            upstream.headers,
+            body,
+            Some(readiness),
+        )
+        .fuse();
+        let pump =
+            pump_request_body(request, first, producer, limit, gauge, read_timeout, ctx).fuse();
+        pin_mut!(fwd, pump);
+        let mut pump_done = false;
+        let result = loop {
+            select! {
+                answer = fwd => break Ok(answer),
+                pumped = pump => match pumped {
+                    Ok(()) => pump_done = true,
+                    Err(end) => break Err(end),
+                },
+            }
+        };
+        (result, pump_done)
+    };
+    if result.is_ok() && !pumped {
+        request.stop_sending(error_code::H3_NO_ERROR);
+    }
+    result
 }
 
 /// The upstream response, head read and body not yet read.
@@ -310,11 +343,11 @@ async fn relay_response(
         if chunk.is_empty() {
             continue;
         }
-        let held = chunk.len();
-        gauge.add(held);
+        let chunk_len = chunk.len();
+        gauge.add(chunk_len);
         let frame = H3Request::<QuinnBidiStream>::encode_data(Bytes::from(chunk));
         let sent = send_all(request, frame, false, send_timeout, ctx).await;
-        gauge.sub(held);
+        gauge.sub(chunk_len);
         if let Err(e) = sent {
             tracing::debug!("H3 client stopped taking the body: {e}");
             request.reset(error_code::H3_REQUEST_CANCELLED);
