@@ -431,6 +431,7 @@ dependencies = [
  "cfg-if",
  "concurrent-queue",
  "derive_more",
+ "foundation_context",
  "foundation_core",
  "foundation_reactor",
  "io-uring",
@@ -487,6 +488,7 @@ version = "0.0.8"
 name = "foundation_reactor"
 version = "0.0.3"
 dependencies = [
+ "foundation_context",
  "foundation_core",
  "io-uring",
  "libc",
@@ -505,6 +507,7 @@ dependencies = [
  "concurrent-queue",
  "derive_more",
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_errstacks",
  "foundation_http",
