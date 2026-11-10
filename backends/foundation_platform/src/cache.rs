@@ -11,9 +11,9 @@
 //! Backends: `MemoryCacheStorage` (tests), `DbCacheStorage` (`foundation_db`).
 
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
-use foundation_core::valtron::Clock;
+use foundation_core::valtron::Ctx;
 use foundation_ui_traits::{CachePolicy, Profile, RouteDecision};
 
 use crate::clock::wall_seconds;
@@ -71,10 +71,10 @@ pub struct CachedEntry {
 }
 
 impl CachedEntry {
-    /// A cache entry stamped with `clock`'s wall time.
+    /// A cache entry stamped with the wall time of the clock of `ctx`.
     #[must_use]
-    pub fn new(body: Vec<u8>, content_type: &str, profile: Profile, clock: &dyn Clock) -> Self {
-        let cached_at = wall_seconds(clock);
+    pub fn new(body: Vec<u8>, content_type: &str, profile: Profile, ctx: &Ctx) -> Self {
+        let cached_at = wall_seconds(ctx);
         Self {
             body,
             content_type: content_type.to_string(),
@@ -90,23 +90,23 @@ impl CachedEntry {
 /// Profile-scoped — entries are keyed by `{profile}:{route}`.
 pub struct CacheManager {
     storage: Box<dyn CacheStorage>,
-    /// The clock every entry is stamped from; set by the host at build time.
-    clock: Arc<dyn Clock>,
+    /// The context whose clock stamps every entry; set by the host at build time.
+    ctx: Ctx,
 }
 
 impl CacheManager {
-    /// A manager over `storage` that stamps entries with `clock`.
-    pub fn new(storage: impl CacheStorage, clock: Arc<dyn Clock>) -> Self {
+    /// A manager over `storage` that stamps entries with the clock of `ctx`.
+    pub fn new(storage: impl CacheStorage, ctx: Ctx) -> Self {
         Self {
             storage: Box::new(storage),
-            clock,
+            ctx,
         }
     }
 
-    /// An in-memory manager that stamps entries with `clock`.
+    /// An in-memory manager that stamps entries with the clock of `ctx`.
     #[must_use]
-    pub fn in_memory(clock: Arc<dyn Clock>) -> Self {
-        Self::new(MemoryCacheStorage::new(), clock)
+    pub fn in_memory(ctx: Ctx) -> Self {
+        Self::new(MemoryCacheStorage::new(), ctx)
     }
 
     fn scoped_key(profile: Profile, route: &str) -> String {
@@ -117,7 +117,7 @@ impl CacheManager {
         let key = Self::scoped_key(profile, route);
         self.storage.set(
             &key,
-            CachedEntry::new(body.to_vec(), content_type, profile, self.clock.as_ref()),
+            CachedEntry::new(body.to_vec(), content_type, profile, &self.ctx),
         );
     }
 

@@ -15,7 +15,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::SimulatedClock;
+use foundation_core::valtron::{Ctx, SimulatedClock};
 use foundation_platform::{CacheManager, MutationQueue, PlatformSession, Profile};
 
 /// A simulated clock whose wall time starts `secs` seconds after the UNIX epoch.
@@ -28,7 +28,7 @@ fn clock_at(secs: u64) -> Arc<SimulatedClock> {
 #[test]
 fn a_cache_entry_is_stamped_from_the_injected_wall_clock() {
     let clock = clock_at(1_700_000_000);
-    let cache = CacheManager::in_memory(clock.clone());
+    let cache = CacheManager::in_memory(Ctx::fixed(clock.clone()));
 
     cache.store(Profile::App, "/app/home", b"body", "text/html");
     assert_eq!(
@@ -55,7 +55,7 @@ fn a_cache_entry_is_stamped_from_the_injected_wall_clock() {
 #[test]
 fn a_mutation_is_stamped_from_the_injected_wall_clock() {
     let clock = clock_at(1_700_000_000);
-    let queue = MutationQueue::in_memory(clock.clone());
+    let queue = MutationQueue::in_memory(Ctx::fixed(clock.clone()));
 
     let _ = queue.enqueue("order_update", serde_json::json!({ "id": 1 }));
     assert_eq!(
@@ -76,14 +76,36 @@ fn a_mutation_is_stamped_from_the_injected_wall_clock() {
 #[test]
 fn a_session_id_is_the_injected_wall_time_in_milliseconds() {
     let clock = clock_at(1_700_000_000);
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."), clock.clone());
+    let session =
+        PlatformSession::new_test(std::path::PathBuf::from("."), Ctx::fixed(clock.clone()));
     assert_eq!(session.session_id().0, 1_700_000_000_000);
 
     clock.advance_wall(Duration::from_millis(1_000));
-    let later = PlatformSession::new_test(std::path::PathBuf::from("."), clock);
+    let later = PlatformSession::new_test(std::path::PathBuf::from("."), Ctx::fixed(clock));
     assert_eq!(
         later.session_id().0,
         1_700_000_001_000,
         "a wall-clock advance must move the next session id"
+    );
+}
+
+/// A session reads its wall time from the clock of the `Ctx` it is given. An
+/// advance of the simulated clock shows through the session's own `ctx()`.
+#[test]
+fn a_session_reads_its_wall_time_through_the_ctx_it_was_given() {
+    let clock = clock_at(1_700_000_000);
+    let session =
+        PlatformSession::new_test(std::path::PathBuf::from("."), Ctx::fixed(clock.clone()));
+    let before = session.ctx().clock().wall_now();
+
+    clock.advance_wall(Duration::from_secs(42));
+    let after = session.ctx().clock().wall_now();
+
+    assert_eq!(
+        after
+            .duration_since(before)
+            .expect("the wall clock moved forward"),
+        Duration::from_secs(42),
+        "the session must see the advance through its ctx"
     );
 }

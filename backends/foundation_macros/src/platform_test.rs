@@ -81,9 +81,9 @@ pub fn platform_test(attr: &TokenStream, item: TokenStream) -> TokenStream {
                     let session = ::std::sync::Arc::new(
                         ::foundation_platform::PlatformSession::new_test(
                             ::std::path::PathBuf::from("."),
-                            ::std::sync::Arc::new(
+                            ::foundation_core::valtron::Ctx::fixed(::std::sync::Arc::new(
                                 ::foundation_core::valtron::MonotonicClock::new()
-                            ),
+                            )),
                         )
                     );
                     #[allow(unused)]
@@ -115,9 +115,9 @@ pub fn platform_test(attr: &TokenStream, item: TokenStream) -> TokenStream {
                     let session = ::std::sync::Arc::new(
                         ::foundation_platform::PlatformSession::new_test(
                             ::std::path::PathBuf::from("."),
-                            ::std::sync::Arc::new(
+                            ::foundation_core::valtron::Ctx::fixed(::std::sync::Arc::new(
                                 ::foundation_core::valtron::MonotonicClock::new()
-                            ),
+                            )),
                         )
                     );
                     #[allow(unused)]

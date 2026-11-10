@@ -90,6 +90,7 @@ pub use foundation_ui_traits::*;
 ///
 /// ```ignore
 /// platform_run!(PlatformBuilder::new()
+///     .ctx(Ctx::host())
 ///     .route("/app/*", webview_app())
 ///     .setup(|session| { session.capabilities().register(MyCap); }));
 /// ```

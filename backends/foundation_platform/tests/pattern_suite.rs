@@ -212,7 +212,9 @@ fn router_as_route_handler() {
 
     let session = PlatformSession::new_test(
         std::path::PathBuf::from("."),
-        std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new()),
+        foundation_core::valtron::Ctx::fixed(std::sync::Arc::new(
+            foundation_core::valtron::MonotonicClock::new(),
+        )),
     );
     let d = router.resolve(&intent("/app/dashboard"), &session).unwrap();
     assert_eq!(d.source, RouteSource::WebviewApp);
