@@ -1,6 +1,6 @@
 //! Tests for the `Ctx` methods that came from the old context bag.
 //!
-//! WHAT: `store`, `get_cloned`, `remove`, `contains`, `build`, `with_empty_map`, `rebase`
+//! WHAT: `store`, `get_and_store`, `get_cloned`, `remove`, `contains`, `build`, `with_empty_map`, `rebase`
 //! and `fork`. Also the RNG seeds: `host` draws from the entropy source, and `with_seed`
 //! repeats.
 
@@ -41,6 +41,20 @@ fn store_overwrites_the_prior_value() {
     ctx.store(1u32);
     ctx.store(99u32);
     assert_eq!(*ctx.get::<u32>().expect("u32 should be stored"), 99u32);
+}
+
+#[test]
+fn get_and_store_returns_the_prior_value() {
+    let ctx = host_ctx();
+    assert!(
+        ctx.get_and_store(1u32).is_none(),
+        "the first store has no prior value"
+    );
+    let prior = ctx
+        .get_and_store(2u32)
+        .expect("the second store returns the first value");
+    assert_eq!(*prior, 1u32);
+    assert_eq!(*ctx.get::<u32>().expect("u32 should be stored"), 2u32);
 }
 
 #[test]

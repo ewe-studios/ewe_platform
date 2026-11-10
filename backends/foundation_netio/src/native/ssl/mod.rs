@@ -1,7 +1,5 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 
-#![cfg(not(target_family = "wasm"))]
-
 #[cfg(not(any(
     feature = "ssl-rustls",
     feature = "ssl-openssl",

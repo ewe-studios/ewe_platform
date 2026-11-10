@@ -54,7 +54,6 @@ impl MeshDataPlane {
         clock: &Arc<dyn Clock>,
     ) -> crate::shared::error::WgResult<Self> {
         Ok(match mode {
-            #[cfg(not(target_family = "wasm"))]
             DataPlaneMode::Tun { name, mtu } => {
                 let tun = TunDataPlane::open(&TunConfig {
                     name: name.clone(),
@@ -67,10 +66,6 @@ impl MeshDataPlane {
                 add_tun_route(name);
                 tracing::info!(name = name, mtu = mtu, "kernel TUN data plane active");
                 Self::Tun(tun)
-            }
-            #[cfg(target_family = "wasm")]
-            DataPlaneMode::Tun { .. } => {
-                panic!("kernel TUN is not available on wasm targets");
             }
             DataPlaneMode::Netstack => Self::Stack(NetStack::new(
                 NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),

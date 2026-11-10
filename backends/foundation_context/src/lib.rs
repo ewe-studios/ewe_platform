@@ -337,12 +337,25 @@ impl Ctx {
 
     /// Store `value` under its type, replacing any prior entry.
     ///
-    /// This is `insert(Arc::new(value))`. The prior entry is dropped.
+    /// This is `insert(Arc::new(value))`. The prior entry is dropped; use
+    /// [`Ctx::get_and_store`] to get it back.
     ///
     /// # Panics
     /// Panics if the internal map lock is poisoned.
     pub fn store<T: Any + Send + Sync>(&self, value: T) {
         drop(self.insert(Arc::new(value)));
+    }
+
+    /// Store `value` under its type and return the prior entry, if any.
+    ///
+    /// This is [`Ctx::store`] for a caller that needs the replaced value. It is
+    /// `insert(Arc::new(value))`.
+    ///
+    /// # Panics
+    /// Panics if the internal map lock is poisoned.
+    #[must_use]
+    pub fn get_and_store<T: Any + Send + Sync>(&self, value: T) -> Option<Arc<T>> {
+        self.insert(Arc::new(value))
     }
 
     /// The `Arc<T>` stored under `T`, or `None` if absent or of a different type.

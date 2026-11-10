@@ -27,18 +27,18 @@
 use std::future::Future;
 use std::io;
 use std::pin::Pin;
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 use foundation_netio::http3::connection::H3Request;
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::netcap::RawStream;
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 use foundation_netio::quic::QuinnBidiStream;
 use foundation_netio::shared::http::SimpleIncomingRequest;
 
@@ -100,7 +100,7 @@ pub trait H2Serve: Send + Sync + 'static {
 /// The `H3Request` is handed to the handler by value; the handler owns it and
 /// drives `poll_headers` / `poll_body` / `poll_send_*` to completion, then
 /// drops it.
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 pub trait H3Serve: Send + Sync + 'static {
     /// Handle one HTTP/3 request stream.
     ///
