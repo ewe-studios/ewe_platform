@@ -4,6 +4,8 @@ mod memory_registry;
 mod shared_message;
 #[cfg(feature = "ipc")]
 mod shared_version;
+#[cfg(all(windows, feature = "ipc"))]
+mod windows_remote;
 
 /// Integration tests for the IPC message bus (Linux).
 ///
