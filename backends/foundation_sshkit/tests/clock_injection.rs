@@ -14,13 +14,13 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Clock, SimulatedClock};
+use foundation_core::valtron::{Clock, Ctx, SimulatedClock};
 use foundation_sshkit::ConnectionPool;
 
 #[test]
 fn the_pool_measures_idle_age_on_the_injected_clock() {
     let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let pool = ConnectionPool::new(Duration::from_secs(30), clock.clone());
+    let pool = ConnectionPool::new(Duration::from_secs(30), Ctx::fixed(clock.clone()));
 
     assert_eq!(
         pool.clock().now(),
