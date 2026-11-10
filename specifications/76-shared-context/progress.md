@@ -113,6 +113,21 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   - Allowed kept sites are the getters that return `self.ctx.clock()`, plus the
     `store_typed` call sites that pass `clock.as_ref()` to `foundation_db` (a later wave).
 
+- Wave 4: `foundation_auth`: commit `6a2bc40ff`. `src` has 0 `dyn Clock` sites (it had 80).
+  Every struct field now holds a `Ctx`. The helpers in `shared/clock.rs` take `&Ctx`.
+  `AuthManager`, `JwtManager`, `JwksManager`, `SessionManager`, `IdpServer` and
+  `IdpHandlerCore` take a `Ctx`. The callers in `foundation_keychain`,
+  `foundation_connectrpc` (tests) and `examples/cf-login-app` follow in the same commit.
+  Results:
+  - Tests pass for the default set (lib and all test targets) and for `server-test`
+    (245 integration tests).
+  - clippy `-D warnings` is clean for the default set and for `server-test`.
+  - `cargo check` passes for `server-native`, for wasm (`wasm` and `wasm-bindgen-session`),
+    for `foundation_ai` (`testing`, and default backends) and for the `cf-login-app` wasm build.
+  - `foundation_keychain` passes `cargo check --all-targets` and the wasm check.
+  - `foundation_connectrpc --features auth` passes `cargo check --all-targets`.
+  - The CI guards `check_time_sources.py` and `check_executor_wake.py` pass.
+
 ## In progress
 
 - Wave 2: the `WinRM` and `BootstrapLogger` `clock()` getters still return `Arc<dyn Clock>`.
@@ -127,6 +142,11 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
   with GTK 3 installed, then run clippy and the platform tests, and fix any error.
 
 ## Next
+
+- Wave 4 checks not run yet, because the disk filled: `cargo test -p foundation_keychain`
+  (its `native_e2e` and `sends` targets failed to link), `cargo test -p foundation_connectrpc
+  --features auth`, and clippy for `foundation_keychain` and `foundation_connectrpc`.
+  The disk had 3.3 GB free after the routine. Free more space, then run them.
 
 - Features 03, 04 and 05 after feature 02 is reviewed. They can run in parallel.
   Feature 06 is last.

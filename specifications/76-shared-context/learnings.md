@@ -155,3 +155,24 @@ standard ASD-STE100.
   pointer, which needs no clock.
 - Wave 3: the shell guard refuses one command that combines `cd` with a heredoc or a
   redirect. Use plain commands, or a script file run by a plain command.
+
+- Wave 4: `require_auth(ctx: AuthContext, clock)` already had a parameter named `ctx`. A
+  mechanical rename to `ctx: &Ctx` would give two parameters one name. The auth context
+  parameter is now `auth`. Before a rename, check the original file with `git grep -w ctx`.
+- Wave 4: `IdpServer::http_app`, `serve_adapter::run_sync` and the `Serve` path built
+  `Ctx::fixed(clock)` inside library code. That reset the RNG to seed 0 and broke the rule
+  that only tests use `Ctx::fixed`. Severity medium. Both now reuse the `Ctx` that the
+  server stores. The dispatch reads no map entries, so the behavior does not change.
+- Wave 4: `cargo fmt` from the workspace formats the crate with the workspace style. Running
+  `rustfmt` on `examples/cf-login-app/src/lib.rs` reordered its imports and reflowed code
+  outside the change. Revert that noise. Edit the example by hand, or format it with its own
+  toolchain setup.
+- Wave 4: `examples/cf-login-app` is a separate workspace. It does not define the `uat` profile.
+  Check it with the default dev profile and a shared `CARGO_TARGET_DIR`.
+- Wave 4: the Bash tool writes its output under `/tmp`. When the root volume is full, the tool
+  refuses to run and reports "Disk full", even for a plain `df`. The linker reported a bus
+  error first, which was a symptom of the same full disk. Check `df -h /` before each build.
+- Wave 4: removing the llama build objects (`uat/build/infrastructure_llama_bindings`) and the
+  finished auth and connectrpc build outputs freed only about 3 GB. The routine's 4 GB floor
+  was not reached. The `uat/deps` directory holds most of the space. The routine does not
+  allow removing it, so the remaining checks wait for the owner.
