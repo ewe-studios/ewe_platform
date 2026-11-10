@@ -207,6 +207,16 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_body_mut()
     }
 
+    /// The context of the call that made this response.
+    ///
+    /// A caller that takes the parts with [`Self::into_parts`] passes this
+    /// context to [`HttpConnectionPool::return_to_pool`]. The pool then stamps
+    /// the connection with the clock of the call. `None` after `into_parts`.
+    #[must_use]
+    pub fn ctx(&self) -> Option<&Ctx> {
+        self.3.as_ref()
+    }
+
     ///
     /// # Panics
     ///
