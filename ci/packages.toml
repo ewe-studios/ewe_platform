@@ -34,37 +34,41 @@
 #                             it to false with a `reason` until its list is
 #                             empty, and must keep every feature tree in
 #                             `clippy-runs` so the list stays complete.
+#   linux-only-features (in [defaults]) = [...]  feature names that build only on
+#                             Linux. macOS and Windows test every package with
+#                             the entries of `runs`, minus each entry that
+#                             turns on one of these features.
 #   macos-runs      = [...]   one `cargo test` per entry on the macOS runner (job
 #                             `macos-test` in check.yaml), same feature-flag
-#                             syntax as `runs`. Only the feature sets that
-#                             build on macOS belong here: leave out `uring`,
-#                             `ptrace`, `vfs-fuse` and `vfs-preload`. A
-#                             package without this key is not tested on macOS.
-#                             ci.py uses it when it runs on a macOS host.
-#                             List a package only if its tests reach code that
-#                             is gated on `target_os = "macos"`.
+#                             syntax as `runs`. Optional: it replaces the
+#                             default (the `runs` entries without a Linux-only
+#                             feature). Use it when macOS needs a feature set
+#                             that Linux does not run (for example `watcher-macos`).
+#                             Every name must be a feature of the package; the
+#                             guard in `plan` checks it. ci.py uses it on a macOS host.
 #   macos-env       = { K = "v" }  environment for the macOS test commands. It
-#                             replaces `env` on macOS, so the Linux-only
-#                             `EWE_REQUIRE_IO_URING` and `EWE_REQUIRE_PTRACE`
-#                             never reach a macOS run.
+#                             replaces `env` on macOS. Without it, macOS uses
+#                             `env` minus the Linux-only `EWE_REQUIRE_*` variables.
 #   windows-runs    = [...]   one `cargo test` per entry on the Windows runner
-#                             (job `windows-test` in check.yaml), same
-#                             feature-flag syntax as `runs`. Only the feature
-#                             sets that build on Windows belong here: leave out
-#                             `uring`, `ptrace`, `vfs-fuse`, `vfs-preload` and
-#                             `fd` Unix-only sets. A package without this key
-#                             is not tested on Windows.
+#                             (job `windows-test` in check.yaml). Same rules as
+#                             `macos-runs`. Leave out Unix-only sets such as `fd`.
 #   windows-env     = { K = "v" }  environment for the Windows test commands.
 #                             It replaces `env` on Windows, like `macos-env`.
-#   macos-tests / windows-tests = "none"  the package has macOS or Windows
-#                             specific code (`target_os = "macos"`,
-#                             `target_vendor = "apple"`, `target_os =
-#                             "windows"`, `cfg(windows)`) but is not tested on
-#                             that OS. It needs a `reason` (or `macos-reason` /
-#                             `windows-reason` when `reason` already says
-#                             something else) with the cause. It excludes `macos-runs` /
-#                             `windows-runs`. The CI guard (run by `plan`) fails
-#                             for a package with such code and neither key.
+#   macos-tests / windows-tests = "none"  opt the package out of the tests on
+#                             that OS. Every package is tested on Linux, macOS and
+#                             Windows by default, so an opt-out needs a reason:
+#                             `macos-reason` / `windows-reason`, or `reason` when
+#                             one text fits all. The reason names the missing
+#                             tool, library or service. It excludes `macos-runs` /
+#                             `windows-runs`. The guard (run by `plan`) fails
+#                             for an opt-out without a reason.
+#   max-parallel-linux / max-parallel-macos / max-parallel-windows (in [defaults])
+#                             the most jobs of one matrix that run at once
+#                             (`strategy.max-parallel` in check.yaml). Free
+#                             GitHub plans run about 20 jobs at once, with at
+#                             most 5 macOS jobs, and Blacksmith free minutes
+#                             are limited. The defaults (8, 2, 2) stay well below
+#                             that, so jobs queue and do not stampede.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   failure-lines = N         failed-test lines kept per command for the end-of-run
@@ -95,6 +99,29 @@ test = "enforce"
 wasm = "off"
 runs = [""]
 timeout-minutes = 60
+# Features that build only on Linux. Every package is also tested on macOS and
+# Windows; those jobs skip each `runs` entry that turns on one of these.
+#   uring                         io_uring (Linux kernel interface)
+#   native-linux                  bundle that includes `uring`
+#   watcher-linux                 inotify file watcher
+#   vfs-ptrace, vfs-ptrace-nix    ptrace (Linux process tracing) VFS spawn
+#   vfs-fuse                      FUSE (needs /dev/fuse and libfuse)
+#   vfs-preload                   LD_PRELOAD shim (a Linux shared object)
+#   vms                           QEMU/KVM virtual machines
+linux-only-features = [
+  "uring",
+  "native-linux",
+  "watcher-linux",
+  "vfs-ptrace",
+  "vfs-ptrace-nix",
+  "vfs-fuse",
+  "vfs-preload",
+  "vms",
+]
+# Most jobs of one matrix that run at once. See the header for the reason.
+max-parallel-linux = 8
+max-parallel-macos = 2
+max-parallel-windows = 2
 
 # ---------------------------------------------------------------------------
 # Already rustfmt-clean: keep them that way.
@@ -262,8 +289,7 @@ runs = ["", "--no-default-features --features single_threaded"]
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
 runs = ["", "vms"]
-macos-tests = "none"
-macos-reason = "The macOS provider code starts UTM virtual machines (the `vms` feature), which a macOS runner cannot host."
+# The `vms` run is in `linux-only-features`: macOS and Windows run the default set.
 # Lint both feature trees: a warning in `vms` code must fail CI too
 # (spec 70 feature 79).
 clippy-runs = ["", "vms"]
@@ -335,8 +361,6 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
-# `multi` compiles the macOS branch of tests/h2_parking_tests.rs.
-macos-runs = ["", "multi"]
 # tests/integration_tests.rs (and the other server suites) are gated on
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
@@ -464,17 +488,13 @@ runs = ["", "quic"]
 # Clippy covers the quic tree too, at zero warnings (clippy-deny-warnings is
 # the default), so a new H3 warning fails CI.
 clippy-runs = ["", "quic"]
-# The default run also compiles the macOS branch of the completion dial tests.
-macos-runs = [""]
 # The completion dial and splice tests need io_uring; fail instead of skipping.
 env = { EWE_REQUIRE_IO_URING = "1" }
 container-options = "--security-opt seccomp=unconfined"
 
 [packages.foundation_reactor]
-# The macOS reactor uses kqueue. `uring` is Linux-only, so only the default run.
-macos-runs = [""]
-# The Windows reactor uses an I/O completion port (IOCP) selector.
-windows-runs = [""]
+# The macOS reactor uses kqueue and the Windows reactor uses an I/O completion
+# port (IOCP) selector; both run the default set.
 # At zero clippy warnings under `--all-targets`: a new one fails CI. Without
 # this, a warning here blocked the clippy gate of every crate that depends on it.
 clippy-deny-warnings = true
@@ -484,10 +504,8 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_compact]
-# The default run covers the macOS entropy and errno backends.
-macos-runs = [""]
-# The default run covers the Windows entropy backend (`BCryptGenRandom`).
-windows-runs = [""]
+# The default run covers the macOS entropy and errno backends and the Windows
+# entropy backend (`BCryptGenRandom`).
 wasm = "enforce"
 # Defaults use the wasm-bindgen time/entropy backend; the second run is the
 # owned path's `host-abi` backend.
@@ -520,13 +538,15 @@ wasm-deny-warnings = true
 # exist on macOS. Without `device`, the macOS code is not compiled.
 macos-runs = ["", "device"]
 # The default run covers the Windows `sleepyinstant` clock backend. `device`
-# builds the Unix tun and poller code only.
-windows-runs = [""]
+# builds the Unix tun and poller code only, so Windows runs the default set.
 
 # ---------------------------------------------------------------------------
 # Example workspaces
 
 [packages.examples]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The wasm32 example workspaces need the wasm32-unknown-unknown target and wrangler, which only the Linux CI image has."
 # The `examples/cf-*` directories are self-contained wasm32 workspaces excluded
 # from the main workspace, so cargo metadata never lists them. The synthetic
 # `examples` package (see `examples_commands` in scripts/ci/ci.py) compiles each
@@ -541,6 +561,9 @@ wasm = "off"
 # Wasm runtime test suites (feature 22 E4).
 
 [packages.wasm-tests]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The suites run in Deno with the wasm32 target and wasm-bindgen, which only the Linux CI image provides."
 # The wasm `wasm_bindgen_test` / `#[wasm_test]` suites are wasm32-only test
 # targets, and the standalone wasm_tests crate sits outside the root workspace,
 # so cargo metadata's library-only wasm gate never compiled them. This synthetic

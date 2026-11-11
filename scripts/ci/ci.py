@@ -9,15 +9,17 @@ mystery:
     python3 scripts/ci/ci.py run foundation_ai        # fmt + clippy + tests for one package
     python3 scripts/ci/ci.py run foundation_ai --step test
 
-On a macOS host (`sys.platform == "darwin"`) `run` does only the test step, with
-the feature sets of the package's `macos-runs` key. A package without that key
-is not tested on macOS. `plan` also writes the `macos-matrix` output.
-A Windows host (`sys.platform == "win32"`) works the same way with the
-`windows-runs` key and the `windows-matrix` output.
+On a macOS host (`sys.platform == "darwin"`) `run` does only the test step.
+Every package is tested on macOS by default, with the feature sets of its `runs`
+key minus the sets that name a feature in `linux-only-features`. The
+`macos-runs` key replaces that default. A package opts out with
+`macos-tests = "none"` and a reason. `plan` also writes the `macos-matrix`
+output. A Windows host (`sys.platform == "win32"`) works the same way with the
+`windows-runs` / `windows-tests` keys and the `windows-matrix` output.
 
-`plan` also runs a guard. A package with macOS or Windows specific code must
-set `macos-runs` / `windows-runs`, or opt out with `macos-tests = "none"` /
-`windows-tests = "none"` and a reason. See `platform_guard`.
+`plan` also runs a guard. It fails when an opt-out has no reason, and when a
+`macos-runs` / `windows-runs` entry names a feature the package does not have.
+See `platform_guard`.
 
 Per-package settings live in `ci/packages.toml`. Everything else (the package
 list, which packages need the llama.cpp submodule, who depends on whom) comes
@@ -151,21 +153,26 @@ class Settings:
     # `run` (feature flags) and `contains` (the message). Checks the documented
     # minimum feature set instead of dropping the configuration.
     wasm_expect_error: dict | None = None
-    # Feature sets for the macOS test job, in the same syntax as `runs`. None
-    # means the package is not tested on macOS. The Linux-only sets (`uring`,
-    # `ptrace`, `fuse`, `preload`) stay out of this list.
+    # Feature sets for the macOS test job, in the same syntax as `runs`. The
+    # default is `runs` minus the sets that name a `linux-only-features` entry.
+    # The `macos-runs` key replaces it. None means the package is not tested on
+    # macOS: it opted out, or every run is Linux-only.
     macos_runs: list[str] | None = None
-    # Environment for the macOS test commands. It replaces `env` on macOS, so
-    # the Linux-only `EWE_REQUIRE_*` variables never reach a macOS run.
+    # Environment for the macOS test commands. The `macos-env` key replaces it.
+    # Without the key it is `env` minus the Linux-only `EWE_REQUIRE_*` variables.
     macos_env: dict[str, str] = field(default_factory=dict)
-    # The same two keys for the Windows test job (`windows-runs`, `windows-env`).
+    # The same keys for the Windows test job (`windows-runs`, `windows-env`).
     windows_runs: list[str] | None = None
     windows_env: dict[str, str] = field(default_factory=dict)
-    # `macos-tests = "none"` / `windows-tests = "none"` with a reason: the
-    # package has platform code but is not tested on that platform. The guard
-    # in `platform_guard` accepts it. The value is the reason text.
+    # `macos-tests = "none"` / `windows-tests = "none"`: the package cannot be
+    # tested on that platform. The value is the reason text; an empty string is
+    # an opt-out without a reason, which `platform_guard` rejects.
     macos_opt_out: str | None = None
     windows_opt_out: str | None = None
+    # The `macos-runs` / `windows-runs` keys as written, for the guard. None
+    # means the default applies.
+    macos_runs_override: list[str] | None = None
+    windows_runs_override: list[str] | None = None
 
     def platform_runs(self, platform: str) -> list[str] | None:
         """The feature sets of the test job for `platform`, or None."""
@@ -286,6 +293,49 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
     }
 
 
+def run_features(run: str) -> list[str]:
+    """The feature names one `runs` entry turns on.
+
+    An entry is "" (defaults), "a b" or "a,b" (feature names), or raw cargo flags
+    that start with "-" (`--features a,b` / `-F a`). Other flags name no feature.
+    """
+    run = run.strip()
+    if not run.startswith("-"):
+        return [f for f in run.replace(",", " ").split() if f]
+    tokens, found, i = run.split(), [], 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok in ("--features", "-F") and i + 1 < len(tokens):
+            found += tokens[i + 1].split(",")
+            i += 1
+        elif tok.startswith("--features="):
+            found += tok.split("=", 1)[1].split(",")
+        i += 1
+    return [f for f in found if f]
+
+
+def run_is_linux_only(run: str, linux_only: list[str]) -> bool:
+    """True when the entry turns on any feature in `linux-only-features`."""
+    return any(f in linux_only for f in run_features(run))
+
+
+def max_parallel() -> dict[str, int]:
+    """The most jobs of one matrix that run at once, per OS (`[defaults]` keys).
+
+    Limits are configuration (CLAUDE.md rule 8). The defaults match
+    ci/packages.toml: free GitHub plans run about 20 jobs at once, with at most
+    5 macOS jobs, so the macOS and Windows defaults stay small.
+    """
+    defaults = tomllib.loads(CONFIG_PATH.read_text()).get("defaults", {})
+    result = {}
+    for plat, fallback in (("linux", 8), ("macos", 2), ("windows", 2)):
+        value = defaults.get(f"max-parallel-{plat}", fallback)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise SystemExit(f"[defaults]: `max-parallel-{plat}` must be a positive integer")
+        result[plat] = value
+    return result
+
+
 def settings_for(name: str, defaults: dict, package: dict) -> Settings:
     """Merge `[defaults]` with one `[packages.<name>]` table and validate it."""
     merged = {**defaults, **package}
@@ -308,6 +358,10 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         for key in ("run", "contains"):
             if not isinstance(wasm_expect_error.get(key), str):
                 raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
+    linux_only = defaults.get("linux-only-features", [])
+    if not isinstance(linux_only, list) or not all(isinstance(f, str) for f in linux_only):
+        raise SystemExit("[defaults]: `linux-only-features` must be a list of strings")
+    runs = list(merged.get("runs", [""])) or [""]
     platform_keys: dict[str, tuple] = {}
     for plat in ("macos", "windows"):
         runs_key = package.get(f"{plat}-runs")
@@ -318,8 +372,10 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
                 or not all(isinstance(r, str) for r in runs_key)
             ):
                 raise SystemExit(f"{name}: `{plat}-runs` must be a non-empty list of strings")
-        env_key = package.get(f"{plat}-env", {})
-        if not isinstance(env_key, dict) or not all(isinstance(v, str) for v in env_key.values()):
+        env_key = package.get(f"{plat}-env")
+        if env_key is not None and (
+            not isinstance(env_key, dict) or not all(isinstance(v, str) for v in env_key.values())
+        ):
             raise SystemExit(f"{name}: `{plat}-env` must be a table of strings")
         opt_out = None
         if f"{plat}-tests" in package:
@@ -327,12 +383,23 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
                 raise SystemExit(f'{name}: `{plat}-tests` must be "none"')
             if runs_key is not None:
                 raise SystemExit(f"{name}: `{plat}-tests` and `{plat}-runs` exclude each other")
-            opt_out = package.get(f"{plat}-reason") or package.get("reason")
-            if not isinstance(opt_out, str) or not opt_out.strip():
-                raise SystemExit(f'{name}: `{plat}-tests = "none"` needs a `{plat}-reason` or a `reason`')
-        platform_keys[plat] = (runs_key, env_key, opt_out)
-    macos_runs, macos_env, macos_opt_out = platform_keys["macos"]
-    windows_runs, windows_env, windows_opt_out = platform_keys["windows"]
+            # A missing reason is not an error here: `platform_guard` reports it.
+            opt_out = str(package.get(f"{plat}-reason") or package.get("reason") or "")
+        # The default runs: the Linux list minus the Linux-only feature sets.
+        if opt_out is not None:
+            effective = None
+        elif runs_key is not None:
+            effective = list(runs_key)
+        else:
+            effective = [r for r in runs if not run_is_linux_only(r, linux_only)] or None
+        effective_env = (
+            dict(env_key)
+            if env_key is not None
+            else {k: v for k, v in env.items() if not k.startswith("EWE_REQUIRE_")}
+        )
+        platform_keys[plat] = (effective, effective_env, opt_out, runs_key)
+    macos_runs, macos_env, macos_opt_out, macos_override = platform_keys["macos"]
+    windows_runs, windows_env, windows_opt_out, windows_override = platform_keys["windows"]
     s = Settings(
         skip=merged.get("skip"),
         fmt=merged.get("fmt", "report"),
@@ -359,6 +426,8 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         windows_env=dict(windows_env),
         macos_opt_out=macos_opt_out,
         windows_opt_out=windows_opt_out,
+        macos_runs_override=list(macos_override) if macos_override is not None else None,
+        windows_runs_override=list(windows_override) if windows_override is not None else None,
     )
     for step in STEPS:
         if getattr(s, step) not in MODES:
@@ -677,7 +746,9 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
 
     if platform != "linux" and s.platform_runs(platform) is None:
         label = {"macos": "macOS", "windows": "Windows"}[platform]
-        print(f"skipping {name}: no `{platform}-runs` in ci/packages.toml, so it is not tested on {label}")
+        opt_out = s.macos_opt_out if platform == "macos" else s.windows_opt_out
+        why = f"it opted out: {opt_out}" if opt_out else "every run names a Linux-only feature"
+        print(f"skipping {name}: not tested on {label}; {why}")
         return 0
 
     plan = commands(name, s, profile, platform)
@@ -777,83 +848,74 @@ def run_package(name: str, steps: list[str], profile: str, platform: str | None 
 # ---------------------------------------------------------------------------
 # Platform guard
 #
-# A package with macOS or Windows specific code must be tested on that OS, or
-# say why not. The guard runs in `plan`, so every CI run checks it.
-
-# `cfg(...)`, `cfg!(...)` and `cfg_attr(...)` openers. The scan reads the text
-# inside the balanced brackets.
-CFG_OPEN = re.compile(r"\bcfg(?:_attr)?!?\s*\(")
-STRING_LITERAL = re.compile(r'"(?:[^"\\]|\\.)*"')
-MACOS_CFG = re.compile(r'target_os\s*=\s*"macos"|target_vendor\s*=\s*"apple"')
-WINDOWS_CFG = re.compile(r'target_(?:os|family)\s*=\s*"windows"')
-# A bare `windows` predicate, as in `cfg(windows)`. Checked after string
-# literals are blanked, so `feature = "windows"` does not match.
-WINDOWS_BARE = re.compile(r"(?<![\w.])windows(?![\w=])")
-COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+# Every package is tested on macOS and Windows unless it opts out. The guard
+# keeps the opt-outs and overrides honest. It runs in `plan`, so every CI run
+# checks it.
 
 
-def cfg_expressions(source: str) -> list[str]:
-    """The text inside every real `cfg(...)` / `cfg!(...)` in Rust `source`.
+def cargo_features(package_dir: Path) -> set[str] | None:
+    """The feature names a package's Cargo.toml offers, or None without a manifest.
 
-    Comments are removed first, so a cfg in a comment or doc comment is ignored.
+    That is the `[features]` table plus every optional dependency, which cargo
+    turns into an implicit feature of the same name.
     """
-    text = COMMENTS.sub("", source)
-    found = []
-    for match in CFG_OPEN.finditer(text):
-        depth, i = 1, match.end()
-        while i < len(text) and depth:
-            depth += {"(": 1, ")": -1}.get(text[i], 0)
-            i += 1
-        found.append(text[match.end() : i - 1])
-    return found
+    manifest = package_dir / "Cargo.toml"
+    if not manifest.is_file():
+        return None
+    try:
+        data = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError:
+        return None  # a manifest that is a template, not TOML: cannot check
+    names = set(data.get("features", {}))
 
+    def collect(tables: dict) -> None:
+        for dep, spec in tables.items():
+            if isinstance(spec, dict) and spec.get("optional"):
+                names.add(dep)
 
-def platform_cfg_sites(source: str) -> dict[str, int]:
-    """Count the macOS and Windows cfg sites in Rust `source`."""
-    counts = {"macos": 0, "windows": 0}
-    for expr in cfg_expressions(source):
-        if MACOS_CFG.search(expr):
-            counts["macos"] += 1
-        if WINDOWS_CFG.search(expr) or WINDOWS_BARE.search(STRING_LITERAL.sub('""', expr)):
-            counts["windows"] += 1
-    return counts
-
-
-def package_platform_sites(package_dir: Path) -> dict[str, int]:
-    """Count the platform cfg sites in the `src/` and `tests/` of one package."""
-    total = {"macos": 0, "windows": 0}
-    for sub in ("src", "tests"):
-        for path in sorted((package_dir / sub).rglob("*.rs")):
-            counts = platform_cfg_sites(path.read_text(encoding="utf-8", errors="replace"))
-            for plat in total:
-                total[plat] += counts[plat]
-    return total
+    for key in ("dependencies", "build-dependencies"):
+        collect(data.get(key, {}))
+    for target in data.get("target", {}).values():
+        collect(target.get("dependencies", {}))
+    return names
 
 
 def platform_guard(
     packages: dict[str, Package], settings: dict[str, Settings], root: Path = ROOT
 ) -> list[str]:
-    """One error message per package with platform code and no test on it.
+    """One error message per broken `macos-*` / `windows-*` setting.
 
-    The synthetic packages (`examples`, `wasm-tests`) and skipped packages are
-    not checked.
+    Two checks:
+    - an opt-out (`<platform>-tests = "none"`) has a reason;
+    - a `<platform>-runs` entry names only features the package has.
+
+    The synthetic packages (`examples`, `wasm-tests`) have no manifest of their
+    own, so the feature check skips them. Skipped packages are not checked.
     """
     errors = []
     for name in sorted(packages):
         s = settings[name]
-        if s.skip or name in ("examples", "wasm-tests"):
+        if s.skip:
             continue
-        sites = package_platform_sites(root / packages[name].dir)
+        features = None if name in ("examples", "wasm-tests") else cargo_features(root / packages[name].dir)
         for plat, label in (("macos", "macOS"), ("windows", "Windows")):
-            if sites[plat] == 0 or s.platform_runs(plat) is not None:
+            opt_out = s.macos_opt_out if plat == "macos" else s.windows_opt_out
+            override = s.macos_runs_override if plat == "macos" else s.windows_runs_override
+            if opt_out is not None and not opt_out.strip():
+                errors.append(
+                    f"{name}: `{plat}-tests = \"none\"` has no reason. Add a `{plat}-reason` "
+                    f"(or `reason`) in ci/packages.toml that names the missing tool, library or "
+                    f"service on {label}."
+                )
+            if features is None or override is None:
                 continue
-            if (s.macos_opt_out if plat == "macos" else s.windows_opt_out) is not None:
-                continue
-            errors.append(
-                f"{name}: {sites[plat]} {label}-specific cfg site(s) but no `{plat}-runs` in "
-                f"ci/packages.toml. Add `{plat}-runs`, or set `{plat}-tests = \"none\"` "
-                f"with a `reason`."
-            )
+            for run in override:
+                for feature in run_features(run):
+                    if feature.split("/", 1)[0].removeprefix("dep:") not in features:
+                        errors.append(
+                            f"{name}: `{plat}-runs` entry {run!r} names feature {feature!r}, "
+                            f"which {packages[name].dir}/Cargo.toml does not define."
+                        )
     return errors
 
 
@@ -894,19 +956,21 @@ def cmd_plan(args: argparse.Namespace) -> int:
     ]
     skipped = sorted(n for n in selected if settings[n].skip)
     matrix = json.dumps({"include": include})
-    # The macOS test matrix: the selected packages that set `macos-runs`.
-    macos_include = [
-        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
-        for item in include
-        if settings[item["package"]].macos_runs is not None and settings[item["package"]].test != "off"
-    ]
+    # The macOS and Windows test matrices: every selected package that has a
+    # run for that OS, so every package except the opted-out ones. GitHub allows
+    # 256 jobs per matrix; the workspace has about 110 packages, so it fits. If
+    # the workspace ever passes 256 packages, split the matrix by package.
+    def platform_include(plat: str) -> list[dict]:
+        return [
+            {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
+            for item in include
+            if settings[item["package"]].platform_runs(plat) is not None
+            and settings[item["package"]].test != "off"
+        ]
+
+    macos_include = platform_include("macos")
     macos_matrix = json.dumps({"include": macos_include})
-    # The Windows test matrix: the selected packages that set `windows-runs`.
-    windows_include = [
-        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
-        for item in include
-        if settings[item["package"]].windows_runs is not None and settings[item["package"]].test != "off"
-    ]
+    windows_include = platform_include("windows")
     windows_matrix = json.dumps({"include": windows_include})
     summary = f"{len(include)} package(s) selected ({why})"
     print(summary, file=sys.stderr)
@@ -916,6 +980,8 @@ def cmd_plan(args: argparse.Namespace) -> int:
             fh.write(f"matrix={matrix}\ncount={len(include)}\n")
             fh.write(f"macos-matrix={macos_matrix}\nmacos-count={len(macos_include)}\n")
             fh.write(f"windows-matrix={windows_matrix}\nwindows-count={len(windows_include)}\n")
+            for plat, limit in max_parallel().items():
+                fh.write(f"max-parallel-{plat}={limit}\n")
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(step_summary, "a") as fh:
             fh.write(f"### CI plan\n\n{summary}\n\n")

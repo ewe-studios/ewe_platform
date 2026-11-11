@@ -15,13 +15,19 @@ name: "Audit: Checks & Tests"
 # only when it is missing) before the package jobs start; see
 # ci/platform-images/README.md.
 #
-# A `macos-test` job runs the tests of the packages with macOS-specific code
-# (`macos-runs` in ci/packages.toml) on a macOS runner. A `windows-test` job
-# does the same for Windows-specific code (`windows-runs`). The plan step fails
-# when a crate has macOS or Windows code and neither runs nor an opt-out.
+# A `macos-test` job and a `windows-test` job run the tests of every selected
+# package on a macOS and a Windows runner. A package opts out with
+# `macos-tests = "none"` / `windows-tests = "none"` and a reason in
+# ci/packages.toml. The plan step fails when an opt-out has no reason.
 #
-# Pull requests test only what they affect. Pushes to master, the nightly
-# schedule and manual runs test the whole workspace (or the packages you name).
+# Pull requests test only what they affect, on all three operating systems.
+# Pushes to master, the nightly schedule and manual runs test the whole
+# workspace (or the packages you name) on all three.
+#
+# Each matrix sets `max-parallel` from ci/packages.toml ([defaults]
+# `max-parallel-*`), so jobs queue on the free GitHub and Blacksmith plans and
+# do not stampede. GitHub allows 256 jobs per matrix; the workspace has about
+# 110 packages, so the full run fits in one matrix.
 
 on:
   pull_request:
@@ -39,9 +45,11 @@ on:
         required: false
         default: "all"
 
+# A new push to a pull request cancels the old run of that pull request. Runs on
+# master, the nightly schedule and manual runs queue and never cancel each other.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -73,12 +81,16 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
-      # The selected packages that set `macos-runs` in ci/packages.toml.
+      # Every selected package that is not opted out of macOS in ci/packages.toml.
       macos-matrix: ${{ steps.plan.outputs.macos-matrix }}
       macos-count: ${{ steps.plan.outputs.macos-count }}
-      # The selected packages that set `windows-runs` in ci/packages.toml.
+      # Every selected package that is not opted out of Windows.
       windows-matrix: ${{ steps.plan.outputs.windows-matrix }}
       windows-count: ${{ steps.plan.outputs.windows-count }}
+      # Most jobs of one matrix that run at once (ci/packages.toml [defaults]).
+      max-parallel-linux: ${{ steps.plan.outputs.max-parallel-linux }}
+      max-parallel-macos: ${{ steps.plan.outputs.max-parallel-macos }}
+      max-parallel-windows: ${{ steps.plan.outputs.max-parallel-windows }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@v1
@@ -152,6 +164,8 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
+      # From ci/packages.toml, so free-plan runners queue instead of stampede.
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-linux) }}
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Free runner disk
@@ -278,6 +292,8 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
+      # From ci/packages.toml, so free-plan runners queue instead of stampede.
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-linux) }}
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
       IMAGE: ${{ needs.image.outputs.image-ref }}
@@ -397,9 +413,9 @@ jobs:
   macos-test:
     name: macOS ${{ matrix.package }}
     needs: plan
-    # Runs the tests of the selected packages that have macOS-specific code
-    # (`macos-runs` in ci/packages.toml). A pull request selects only the
-    # changed packages and their dependents, so this job is path-filtered too.
+    # Runs the tests of every selected package that is not opted out of macOS
+    # (ci/packages.toml). A pull request selects only the changed packages and
+    # their dependents.
     # No container and no CI image: the job runs on the macOS runner itself.
     if: needs.plan.outputs.macos-count != '0'
     # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
@@ -410,6 +426,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     strategy:
       fail-fast: false
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-macos) }}
       matrix: ${{ fromJSON(needs.plan.outputs.macos-matrix) }}
     steps:
       - name: Checkout
@@ -442,14 +459,14 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: test
-        # On a macOS host, ci.py runs only the test step, with `macos-runs`.
+        # On a macOS host, ci.py runs only the test step, with the macOS runs.
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
   windows-test:
     name: Windows ${{ matrix.package }}
     needs: plan
-    # Runs the tests of the selected packages that have Windows-specific code
-    # (`windows-runs` in ci/packages.toml). Path-filtered like `macos-test`.
+    # Runs the tests of every selected package that is not opted out of Windows
+    # (ci/packages.toml). Selected like `macos-test`.
     # No container: the job runs on the Windows runner itself.
     if: needs.plan.outputs.windows-count != '0'
     # RUNNER LABEL: change it on this line only. The `env` context is not
@@ -465,6 +482,7 @@ jobs:
         shell: bash
     strategy:
       fail-fast: false
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-windows) }}
       matrix: ${{ fromJSON(needs.plan.outputs.windows-matrix) }}
     steps:
       - name: Checkout
@@ -495,7 +513,7 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: test
-        # On a Windows host, ci.py runs only the test step, with `windows-runs`.
+        # On a Windows host, ci.py runs only the test step, with the Windows runs.
         run: python scripts/ci/ci.py run ${{ matrix.package }} --step test
 
   # One stable check to mark as required in branch protection: it passes when
