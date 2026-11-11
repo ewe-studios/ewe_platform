@@ -15,6 +15,9 @@ name: "Audit: Checks & Tests"
 # only when it is missing) before the package jobs start; see
 # ci/platform-images/README.md.
 #
+# A `macos-test` job runs the tests of the packages with macOS-specific code
+# (`macos-runs` in ci/packages.toml) on a macOS runner.
+#
 # Pull requests test only what they affect. Pushes to master, the nightly
 # schedule and manual runs test the whole workspace (or the packages you name).
 
@@ -64,13 +67,16 @@ jobs:
     name: Plan
     # Only reads `cargo metadata`, so it runs on the runner, in parallel with
     # the image job.
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
+      # The selected packages that set `macos-runs` in ci/packages.toml.
+      macos-matrix: ${{ steps.plan.outputs.macos-matrix }}
+      macos-count: ${{ steps.plan.outputs.macos-count }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: useblacksmith/checkout@v1
         with:
           fetch-depth: 0 # change detection diffs against the PR base
           submodules: false
@@ -120,7 +126,7 @@ jobs:
     # The usual path: the image is in the registry (it existed, or the image
     # job just pushed it).
     if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'registry'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     container:
       image: ${{ needs.image.outputs.image-ref }}
       # Empty for forks (no secrets): the runner then pulls anonymously.
@@ -208,6 +214,31 @@ jobs:
         if: matrix.package == 'foundation_iogate'
         run: cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
 
+      - name: io_uring kernel probe
+        # foundation_nativeapis and foundation_proxy also run with
+        # EWE_REQUIRE_IO_URING=1 but have no probe target. Print the kernel
+        # setting, the seccomp mode and the raw `io_uring_setup` result, so a
+        # failed `fd,uring` run names its cause. The step never fails.
+        if: matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy'
+        run: |
+          {
+          echo "kernel: $(uname -r)"
+          echo "kernel.io_uring_disabled: $(cat /proc/sys/kernel/io_uring_disabled 2>&1)"
+          grep -E '^Seccomp' /proc/self/status || true
+          python3 - <<'PY'
+          import ctypes, os
+          libc = ctypes.CDLL(None, use_errno=True)
+          params = ctypes.create_string_buffer(120)
+          fd = libc.syscall(425, 4, params)  # io_uring_setup(entries, params)
+          if fd >= 0:
+              print("io_uring_setup: ok")
+              os.close(fd)
+          else:
+              e = ctypes.get_errno()
+              print(f"io_uring_setup: failed errno={e} ({os.strerror(e)})")
+          PY
+          } 2>&1 | tee /tmp/io_uring_probe.txt
+
       - name: ptrace probe
         # Record whether this kernel lets a tracer read its child's registers
         # before the ptrace spawn tests run. EWE_REQUIRE_PTRACE makes a missing
@@ -223,6 +254,13 @@ jobs:
       - name: wasm
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
 
+      - name: io_uring probe result
+        # Print the probe result again at the end of the job. The test step
+        # prints thousands of lines, and the log API returns only the last
+        # 5000, so the first copy is often out of reach.
+        if: always() && (matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy')
+        run: cat /tmp/io_uring_probe.txt || echo "the io_uring probe did not run"
+
   package-artifact:
     name: ${{ matrix.package }}
     needs: [plan, image]
@@ -231,7 +269,7 @@ jobs:
     # built it as an artifact. `container:` can only pull from a registry, so
     # load the image and run the same steps in it with `docker exec`.
     if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'artifact'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
@@ -297,13 +335,64 @@ jobs:
       - name: wasm
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
 
+  macos-test:
+    name: macOS ${{ matrix.package }}
+    needs: plan
+    # Runs the tests of the selected packages that have macOS-specific code
+    # (`macos-runs` in ci/packages.toml). A pull request selects only the
+    # changed packages and their dependents, so this job is path-filtered too.
+    # No container and no CI image: the job runs on the macOS runner itself.
+    if: needs.plan.outputs.macos-count != '0'
+    # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
+    # DEVELOPER_DIR picks Xcode 26.2, the same as the `macos` job.
+    runs-on: blacksmith-6vcpu-macos-26
+    timeout-minutes: ${{ matrix.timeout }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.macos-matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch llama.cpp
+        if: matrix.llama
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402). rustfmt is there because the
+        # generated provider crates' build scripts run it.
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: macos-test-${{ matrix.package }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: test
+        # On a macOS host, ci.py runs only the test step, with `macos-runs`.
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact]
+    needs: [image, plan, package, package-artifact, macos-test]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Evaluate
         env:
@@ -311,10 +400,11 @@ jobs:
           PLAN: ${{ needs.plan.result }}
           PACKAGES: ${{ needs.package.result }}
           PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
+          MACOS_TESTS: ${{ needs.macos-test.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, macOS tests: $MACOS_TESTS"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$MACOS_TESTS"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;
@@ -327,7 +417,7 @@ jobs:
     # Packaging the whole workspace is slow; run it where releases happen.
     # Non-PR events always have registry credentials, so the image is there.
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     container:
       image: ${{ needs.image.outputs.image-ref }}
       credentials:
@@ -400,8 +490,13 @@ jobs:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
     if: github.event_name != 'pull_request'
-    runs-on: macos-latest
+    # The Blacksmith macOS 26 image has every Xcode from 26.0 to 27.0.
+    # DEVELOPER_DIR picks Xcode 26.2, which ships the iPhoneOS 26.2 SDK. The
+    # macOS VM image pins the same SDK (components.env IOS_SDK_VERSION).
+    runs-on: blacksmith-6vcpu-macos-26
     timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -434,14 +529,16 @@ jobs:
         run: cargo build --profile uat --workspace
 
       - name: Check the iOS target
-        # The GitHub-hosted macOS image ships full Xcode with the iPhoneOS
-        # SDK, so this job proves the iOS build on every master and nightly
-        # run. The VM job `macos-ssh` (platform-vms.yaml) runs the same checks
-        # against the pinned SDK, but only on an Apple-hardware runner (#355,
-        # #464). LLVM is required: Cranelift cannot build ring for iOS.
+        # The job uses Xcode 26.2, so the check runs against the iPhoneOS 26.2
+        # SDK, the same SDK as the VM pin. The step fails if the SDK is
+        # different. The VM job `macos-ssh` (platform-vms.yaml) runs the same
+        # checks inside the VM (#355, #464). LLVM is required: Cranelift
+        # cannot build ring for iOS.
         run: |
           rustup target add aarch64-apple-ios
-          xcrun --sdk iphoneos --show-sdk-version
+          sdk=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "iPhoneOS SDK: $sdk"
+          test "$sdk" = "26.2" || { echo "::error::expected the iPhoneOS 26.2 SDK, got $sdk"; exit 1; }
           cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
           cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
           cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat

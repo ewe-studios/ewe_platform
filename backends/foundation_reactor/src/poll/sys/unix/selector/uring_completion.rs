@@ -144,8 +144,6 @@ pub struct Selector {
     inboxes: Mutex<HashMap<Token, VecDeque<Completion>>>,
     /// Tokens whose multishot recv ended with `-ENOBUFS`, awaiting a free buffer.
     starved: Mutex<HashSet<Token>>,
-    /// `BufRing::recycle_count` as of the last starvation sweep.
-    last_recycles: AtomicU64,
     /// User-filled buffer pool backing `IORING_OP_SEND` (F49). The SEND mirror of
     /// `bufring`: it owns the bytes a write submits until the send's CQE arrives.
     send_pool: Arc<SendPool>,
@@ -262,7 +260,6 @@ impl Selector {
             entries: Mutex::new(HashMap::new()),
             inboxes: Mutex::new(HashMap::new()),
             starved: Mutex::new(HashSet::new()),
-            last_recycles: AtomicU64::new(0),
             send_pool: SendPool::new(buf_size, entries as usize),
             in_flight_sends: Mutex::new(HashMap::new()),
             next_send_id: AtomicU64::new(0),
@@ -904,11 +901,12 @@ impl Selector {
     /// # Panics
     /// Panics if an internal lock is poisoned.
     fn sweep_starved(&self) {
-        let recycles = self.bufring.recycle_count();
-        if recycles == self.last_recycles.load(Ordering::Acquire) {
+        // Check the pool level, not a change counter. On kernels before 6.12 the
+        // `-ENOBUFS` completion can arrive after the consumer already returned
+        // its buffer. A counter would miss that return and park the token forever.
+        if !self.bufring.has_free_buffer() {
             return;
         }
-        self.last_recycles.store(recycles, Ordering::Release);
 
         let mut starved = self.starved.lock().expect("uring starved lock poisoned");
         if starved.is_empty() {
@@ -1239,6 +1237,8 @@ impl Selector {
         self.wait_for_completion(timeout)?;
 
         let (seen, rearm_recv) = self.drain_completions();
+        // A new `-ENOBUFS` may have parked a token while a buffer is free.
+        self.sweep_starved();
 
         if !rearm_recv.is_empty() {
             let entries = self.entries.lock().expect("uring entries lock poisoned");

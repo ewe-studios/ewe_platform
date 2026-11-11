@@ -69,7 +69,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push')
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
@@ -92,6 +92,10 @@ jobs:
   publish:
     name: Publish to crates.io
     needs: [gate, image]
+    # Stays on the GitHub-hosted runner. The job spends hours waiting out the
+    # crates.io rate limit (scripts/ci/publish_with_retry.py), so a paid
+    # runner would bill for idle time, and faster hardware does not shorten
+    # a rate-limit wait.
     runs-on: ubuntu-latest
     # Publishing builds every crate from its packaged tarball, llama.cpp
     # included, so it runs in the CI image with the baked submodules.
@@ -199,7 +203,7 @@ jobs:
     # reflects master; it skips only when the gate did.
     needs: [gate, image, publish]
     if: ${{ !cancelled() && needs.gate.result == 'success' && needs.image.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     # Publishing builds every crate from its packaged tarball, llama.cpp
     # included, so it runs in the CI image with the baked submodules.
     container:

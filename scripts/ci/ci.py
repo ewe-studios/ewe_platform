@@ -9,6 +9,10 @@ mystery:
     python3 scripts/ci/ci.py run foundation_ai        # fmt + clippy + tests for one package
     python3 scripts/ci/ci.py run foundation_ai --step test
 
+On a macOS host (`sys.platform == "darwin"`) `run` does only the test step, with
+the feature sets of the package's `macos-runs` key. A package without that key
+is not tested on macOS. `plan` also writes the `macos-matrix` output.
+
 Per-package settings live in `ci/packages.toml`. Everything else (the package
 list, which packages need the llama.cpp submodule, who depends on whom) comes
 from `cargo metadata`, so a new crate is picked up without editing CI.
@@ -21,9 +25,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
+import threading
 import time
 import tomllib
 from dataclasses import dataclass, field
@@ -75,6 +81,16 @@ GLOBAL_PATHS = (
 
 STEPS = ("fmt", "build", "clippy", "test", "wasm")
 MODES = ("enforce", "report", "off")
+PLATFORMS = ("linux", "macos")
+
+
+def host_platform() -> str:
+    """The platform this script runs on: "macos" on Darwin, else "linux".
+
+    One `sys.platform` check is enough. The macOS job runs this script on the
+    runner itself, with no container, so no flag is needed.
+    """
+    return "macos" if sys.platform == "darwin" else "linux"
 
 
 
@@ -112,6 +128,9 @@ class Settings:
     wasm_deny_warnings: bool
     test_args: list[str]
     timeout_minutes: int
+    # Most failure lines kept per command for the end-of-run summary. The
+    # `failure-lines` setting; the default is 200.
+    failure_lines: int
     reason: str | None
     # Extra environment for this package's cargo commands (the `env` table).
     env: dict[str, str] = field(default_factory=dict)
@@ -122,6 +141,13 @@ class Settings:
     # `run` (feature flags) and `contains` (the message). Checks the documented
     # minimum feature set instead of dropping the configuration.
     wasm_expect_error: dict | None = None
+    # Feature sets for the macOS test job, in the same syntax as `runs`. None
+    # means the package is not tested on macOS. The Linux-only sets (`uring`,
+    # `ptrace`, `fuse`, `preload`) stay out of this list.
+    macos_runs: list[str] | None = None
+    # Environment for the macOS test commands. It replaces `env` on macOS, so
+    # the Linux-only `EWE_REQUIRE_*` variables never reach a macOS run.
+    macos_env: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -252,6 +278,17 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         for key in ("run", "contains"):
             if not isinstance(wasm_expect_error.get(key), str):
                 raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
+    macos_runs = package.get("macos-runs")
+    if macos_runs is not None:
+        if (
+            not isinstance(macos_runs, list)
+            or not macos_runs
+            or not all(isinstance(r, str) for r in macos_runs)
+        ):
+            raise SystemExit(f"{name}: `macos-runs` must be a non-empty list of strings")
+    macos_env = package.get("macos-env", {})
+    if not isinstance(macos_env, dict) or not all(isinstance(v, str) for v in macos_env.values()):
+        raise SystemExit(f"{name}: `macos-env` must be a table of strings")
     s = Settings(
         skip=merged.get("skip"),
         fmt=merged.get("fmt", "report"),
@@ -266,10 +303,14 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
         wasm_deny_warnings=bool(merged.get("wasm-deny-warnings", False)),
         test_args=list(merged.get("test-args", [])),
         timeout_minutes=int(merged.get("timeout-minutes", 60)),
+        # Default 200 lines: enough for many failed tests, small for a log tail.
+        failure_lines=int(merged.get("failure-lines", 200)),
         reason=merged.get("reason"),
         env=env,
         container_options=container_options,
         wasm_expect_error=wasm_expect_error,
+        macos_runs=list(macos_runs) if macos_runs is not None else None,
+        macos_env=dict(macos_env),
     )
     for step in STEPS:
         if getattr(s, step) not in MODES:
@@ -419,7 +460,25 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
     return plan
 
 
-def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str] | PlannedCommand]]:
+def test_command(name: str, run: str, profile: str, test_args: list[str]) -> list[str]:
+    """One `cargo test` for one feature set."""
+    cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
+    # `--nocapture` prints every test's output, so a failing or hanging
+    # test leaves its own trace instead of a bare "FAILED" line.
+    return cmd + ["--", "--nocapture", *test_args]
+
+
+def commands(
+    name: str, s: Settings, profile: str, platform: str = "linux"
+) -> dict[str, list[list[str] | PlannedCommand]]:
+    if platform == "macos":
+        # The macOS job runs tests only. Format, clippy and the wasm gate stay
+        # on Linux. `cargo test` builds the targets, so no build step runs.
+        macos_plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
+        if s.macos_runs and s.test != "off":
+            for run in s.macos_runs:
+                macos_plan["test"].append(test_command(name, run, profile, s.test_args))
+        return macos_plan
     if name == "examples":
         return examples_commands(profile)
     if name == "wasm-tests":
@@ -452,11 +511,7 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str] |
             plan["clippy"].append(cmd)
     if s.test != "off":
         for run in s.runs:
-            cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
-            # `--nocapture` prints every test's output, so a failing or hanging
-            # test leaves its own trace instead of a bare "FAILED" line.
-            cmd += ["--", "--nocapture", *s.test_args]
-            plan["test"].append(cmd)
+            plan["test"].append(test_command(name, run, profile, s.test_args))
     if s.wasm != "off":
         # A wasm32 compile gate: no `--all-targets`/profile (wasm has no test
         # binaries or uat tuning), just `cargo check` on the wasm-relevant
@@ -498,7 +553,57 @@ def annotate(level: str, message: str) -> None:
     print(f"::{level}::{message}" if IN_GITHUB else f"{level}: {message}", flush=True)
 
 
-def run_package(name: str, steps: list[str], profile: str) -> int:
+# Lines that show why a test run failed. Kept for the end-of-run summary.
+FAILURE_LINE = re.compile(r"^test .* \.\.\. FAILED$|^---- .* stdout ----$|panicked at")
+
+
+def run_streamed(
+    cmd: list[str], env: dict[str, str], timeout: float, limit: int
+) -> tuple[int, list[str]]:
+    """Run `cmd`, stream its merged output, and keep the failure lines.
+
+    Returns (exit code, kept lines). Raises `subprocess.TimeoutExpired` after it
+    kills the process when `timeout` seconds pass. At most `limit` lines are kept.
+    """
+    proc = subprocess.Popen(
+        cmd,
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        errors="replace",
+        bufsize=1,
+    )
+    kept: list[str] = []
+    timer = threading.Timer(timeout, proc.kill)
+    timer.start()
+    try:
+        after_panic = False
+        assert proc.stdout is not None
+        for raw in proc.stdout:
+            sys.stdout.write(raw)
+            sys.stdout.flush()
+            text = raw.rstrip("\n")
+            if FAILURE_LINE.search(text) or after_panic:
+                if len(kept) < limit:
+                    kept.append(text)
+            # The line after `panicked at` holds the panic message.
+            after_panic = "panicked at" in text
+        code = proc.wait()
+    finally:
+        expired = not timer.is_alive()
+        timer.cancel()
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+    if expired:
+        raise subprocess.TimeoutExpired(cmd, timeout)
+    return code, kept
+
+
+def run_package(name: str, steps: list[str], profile: str, platform: str | None = None) -> int:
+    platform = platform or host_platform()
     packages = load_workspace()
     if name not in packages:
         raise SystemExit(f"unknown package: {name}")
@@ -507,15 +612,25 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
         print(f"skipping {name}: {s.skip}")
         return 0
 
-    plan = commands(name, s, profile)
+    if platform == "macos" and s.macos_runs is None:
+        print(f"skipping {name}: no `macos-runs` in ci/packages.toml, so it is not tested on macOS")
+        return 0
+
+    plan = commands(name, s, profile, platform)
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
-    env = {**s.env, **os.environ}
+    # On macOS the package's `macos-env` replaces `env`.
+    package_env = s.macos_env if platform == "macos" else s.env
+    env = {**package_env, **os.environ}
     env["CARGO_TARGET_DIR"] = target_dir()
-    if s.env:
-        print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
+    if package_env:
+        print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(package_env.items())), flush=True)
     print(f"{name}: target dir {env['CARGO_TARGET_DIR']}", flush=True)
+    # One message per failed or timed-out command. Used for the summary below.
     failures: list[str] = []
+    # Kept failure lines per failure note, printed under it in the summary.
+    details: dict[str, list[str]] = {}
+    timed_out = False
     # One hard deadline for the whole package. GitHub gives the same job
     # `timeout-minutes`; a local run had no kill switch, so a step that looped
     # (a hung test, a deadlocked build) never returned. Each command borrows
@@ -540,29 +655,57 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
             if remaining <= 0:
                 if IN_GITHUB:
                     print("::endgroup::", flush=True)
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
-                return 1
+                note = f"{name}: `{line}` timed out after {s.timeout_minutes} minutes"
+                failures.append(note)
+                annotate("error", note)
+                timed_out = True
+                break
             try:
-                code = subprocess.run(
-                    cmd, cwd=ROOT, env={**env, **cmd_env}, timeout=remaining
-                ).returncode
+                code, kept = run_streamed(
+                    cmd, {**env, **cmd_env}, remaining, s.failure_lines
+                )
             except subprocess.TimeoutExpired:
                 if IN_GITHUB:
                     print("::endgroup::", flush=True)
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
-                return 1
+                note = f"{name}: `{line}` timed out after {s.timeout_minutes} minutes"
+                failures.append(note)
+                annotate("error", note)
+                timed_out = True
+                break
             if IN_GITHUB:
                 print("::endgroup::", flush=True)
             if code == 0:
                 continue
             if mode == "enforce":
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` failed")
+                note = f"{name}: `{line}` failed"
+                failures.append(note)
+                details[note] = kept
+                annotate("error", note)
             else:
                 why = f" — {s.reason}" if s.reason else ""
                 annotate("warning", f"{name}: `{line}` failed (report-only{why})")
+        if timed_out:
+            # A timeout ends the package, as it always did. Skip later steps.
+            break
+
+    if failures:
+        # Why this summary: the per-command error line can scroll out of the log
+        # tail. GitHub's log API returns only the last 5000 lines. A later command
+        # can print thousands of lines and push the error out of that window.
+        # This block prints last, so every failed command stays visible.
+        steps_text = ", ".join(steps)
+        header = f"{name}: {len(failures)} failed command(s) in step {steps_text}"
+        if IN_GITHUB:
+            print(f"::group::{header}", flush=True)
+        else:
+            print(header, flush=True)
+        for note in failures:
+            print(note, flush=True)
+            for kept_line in details.get(note, []):
+                print(f"    {kept_line}", flush=True)
+        if IN_GITHUB:
+            print("::endgroup::", flush=True)
+        annotate("error", f"{header}: " + "; ".join(failures))
 
     return 1 if failures else 0
 
@@ -600,17 +743,28 @@ def cmd_plan(args: argparse.Namespace) -> int:
     ]
     skipped = sorted(n for n in selected if settings[n].skip)
     matrix = json.dumps({"include": include})
+    # The macOS test matrix: the selected packages that set `macos-runs`.
+    macos_include = [
+        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
+        for item in include
+        if settings[item["package"]].macos_runs is not None and settings[item["package"]].test != "off"
+    ]
+    macos_matrix = json.dumps({"include": macos_include})
     summary = f"{len(include)} package(s) selected ({why})"
     print(summary, file=sys.stderr)
 
     if out := os.environ.get("GITHUB_OUTPUT"):
         with open(out, "a") as fh:
             fh.write(f"matrix={matrix}\ncount={len(include)}\n")
+            fh.write(f"macos-matrix={macos_matrix}\nmacos-count={len(macos_include)}\n")
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(step_summary, "a") as fh:
             fh.write(f"### CI plan\n\n{summary}\n\n")
             for item in include:
                 fh.write(f"- `{item['package']}`{' (needs llama.cpp)' if item['llama'] else ''}\n")
+            if macos_include:
+                names = ", ".join(f"`{i['package']}`" for i in macos_include)
+                fh.write(f"\nmacOS tests: {names}\n\n")
             for name in skipped:
                 fh.write(f"- ~~`{name}`~~ skipped: {settings[name].skip}\n")
     print(matrix)
