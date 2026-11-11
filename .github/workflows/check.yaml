@@ -353,7 +353,8 @@ jobs:
       needs.plan.result == 'success' &&
       (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
       contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
-    runs-on: windows-latest
+    # Same Blacksmith Windows image as `windows-test`.
+    runs-on: blacksmith-4vcpu-windows-2025
     # Limit, not a measurement: a cold build of both packages takes about 15 to
     # 20 minutes on this runner, and a warm cache cuts that to a few minutes.
     timeout-minutes: 45
@@ -453,7 +454,9 @@ jobs:
     if: needs.plan.outputs.windows-count != '0'
     # RUNNER LABEL: change it on this line only. The `env` context is not
     # available in `runs-on`, so a workflow-level variable cannot hold it.
-    runs-on: windows-latest
+    # Blacksmith Windows Server 2025: Visual Studio 2022 (MSVC), Windows SDK
+    # 10.0.26100, LLVM, Git, Python 3.12 and 67 GB free disk (probe 2026-11-11).
+    runs-on: blacksmith-4vcpu-windows-2025
     timeout-minutes: ${{ matrix.timeout }}
     env:
       PYTHONUTF8: "1"
