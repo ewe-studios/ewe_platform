@@ -360,10 +360,9 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
         }
 
         match self.state {
-            State::Init(_) => None,
             State::Polling(_) => Some(self.poll_child(&ctx)),
             State::StreamingBody(_) => Some(self.stream_body(&ctx)),
-            State::Done => None,
+            State::Init(_) | State::Done => None,
             State::Failed(ref mut opt) => {
                 let err = opt.take();
                 if err.is_none() {
