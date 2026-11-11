@@ -1,373 +1,592 @@
 ---
-feature: "Provider and doctor"
+feature: "Programs, RPC and Provider"
 status: "pending"
 priority: "high"
 model: "sonnet"
-depends_on: ["04-libkrun-backend", "06-firecracker-backend"]
-crates: ["foundation_deployment_platform", "foundation_platform_sandbox"]
+phase: "MVP-A"
+depends_on: ["05-firecracker-driver"]
+crates: ["foundation_platform_sandbox", "foundation_deployment_platform", "agent_slave"]
 ---
 
-# Feature 07: `Provider` implementations and host checks (version 0.1)
+# Feature 06: The programs, `SandboxService`, the remote client and the `Provider` facade (MVP-A)
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
-**Abbreviations in this file.** application programming interface (API); virtual machine
-(VM); Kernel-based Virtual Machine (KVM); Hypervisor.framework (HVF); behaviour-driven development (BDD); continuous integration
-(CI); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE
-standard ASD-STE100.
+**Abbreviations in this file.** application programming interface (API); remote procedure
+call (RPC); Unix domain socket (UDS); Transmission Control Protocol (TCP); Kernel-based
+Virtual Machine (KVM); command-line interface (CLI); behaviour-driven development (BDD);
+continuous integration (CI); AeroSpace and Defence Industries Association of Europe (ASD),
+the owner of the STE standard ASD-STE100.
 
 ## 1. Goal
 
-Make the two local backends available through the `Provider` trait of
-`foundation_deployment_platform`, add a default backend choice, and add one example program.
-This feature completes version 0.1.
+Give the core its boundaries on a host:
 
-## A. Story
+1. The command structures of `agent-sandbox` and `agent-slave`, in the library
+   (`foundation_platform_sandbox::cli`).
+2. The `SandboxService` server (the control plane over RPC) and `SandboxRpcClient`, which
+   implements `SandboxControl` for a remote control plane.
+3. The two program entry points.
+4. The `Provider` facade in `foundation_deployment_platform`.
+5. The CI job that runs the real Firecracker tests.
 
-- **S1**: "A caller that uses the platform `Provider` trait starts and stops a sandbox the
-  same way as a Docker container or a QEMU VM."
-- **S2**: "A caller asks which sandbox backend this machine can run, and why the others
-  cannot."
-- **S3**: "A new user runs one example program and sees a command run in a sandbox."
-- **S4**: "No backend is usable on this machine."
-- **S5**: "The real microVM tests run in CI on a runner with KVM."
+This feature completes MVP-A: a person runs
+`agent-sandbox run --rootfs <image> -- echo hello` on a Linux host with KVM and sees
+`hello`; Rust code gets the same through the library, through RPC, or through a `Provider`.
+
+## 2. Story
+
+- **S1**: "A person runs one command and sees a program run in a sandbox."
+- **S2**: "An operator starts `agent-sandbox serve`, and other programs (agent-rpc, a CLI
+  on the same machine) create and use sandboxes through it."
+- **S3**: "A Rust program uses `SandboxRpcClient` and gets the same results as with
+  `SandboxManager` in its own process."
+- **S4**: "A caller with no token, or a wrong token, calls the served control plane."
+- **S5**: "A caller that uses the platform `Provider` trait starts and stops a sandbox the
+  same way as a Docker container."
+- **S6**: "A person asks what this machine can run, and why not the rest."
+- **S7**: "The real microVM tests run in CI."
+- **S8**: "`agent-slave` is built as a static program and starts as PID 1."
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Launch through a provider | orchestration code | `Provider::launch(&spec)` | A `SandboxHandle`. |
-| U2 | Stop through a provider | orchestration code | `Provider::stop(&handle)` | The sandbox is stopped. |
-| U3 | Health | doctor, caller | `Provider::host_health()`, `sandbox_host_reports` | Each check with its message. |
-| U4 | Pick a backend | caller | `default_sandbox_backend(ctx)` | A backend, or `NoBackend` with every report. |
-| U5 | Try it | new user | `sandbox_run -- echo hello` | `hello`, and the program's exit code. |
+| U1 | Run one command | person | `agent-sandbox run ...` | Output streams; the exit code is the program's. |
+| U2 | Serve | operator | `agent-sandbox serve --listen ...` | `SandboxService` on a UDS or TCP. |
+| U3 | Remote control | program | `SandboxRpcClient` | Every `SandboxControl` and `Sandbox` call, over RPC. |
+| U4 | Manage | person | `agent-sandbox create | exec | list | stop | kill` with `--connect` | The same calls from a shell. |
+| U5 | Doctor | person | `agent-sandbox doctor` | One report for each driver. |
+| U6 | Provider | orchestration code | `Provider::launch` and others | A `SandboxHandle`. |
+| U7 | Slave start | kernel, container, test | `agent-slave [--listen ...]` | The slave serves. |
 
-## B. Bounded context
+## 3. Bounded context
 
-**Inside this feature:** the `Provider` implementations in `foundation_deployment_platform`
-(the central place where the platform brings its backends together), the default choice,
-the example, the documentation, the CI job.
+**Inside this feature:** argument parsing, the mapping between `SandboxService` messages
+and `SandboxControl` calls (both directions), token checks, the `Provider` adapter, the
+programs' `main` functions, the CI job, the user documentation.
 
-**Outside:** all sandbox logic. It lives in `foundation_platform_sandbox` (features 00 to
-06). A provider adapts; it adds no behaviour of its own.
+**Outside:** all sandbox behaviour (features 01, 02, 05). A boundary translates. It does
+not decide.
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
+| `SandboxCli`, `SlaveCli` | The parsed arguments of the two programs. | `cli::sandbox`, `cli::slave` |
+| `ControlService` | The `SandboxService` implementation on an `Arc<dyn SandboxControl>`. | `shared::control::service` |
+| `SandboxRpcClient` | `SandboxControl` on a `Transport`. | `shared::control::rpc_client` |
+| Remote sandbox handle | `SandboxOps` on the scoped RPC calls. | `shared::control::rpc_client` |
+| Access token | A shared secret for TCP listeners. | the operator; read by the boundary |
+| `SandboxProvider`, `SandboxHandle` | The `Provider` adapter and its handle. | `foundation_deployment_platform::providers::sandbox` |
 | `ProviderId` | The identifier of a provider kind. | `foundation_deployment_platform::providers` |
-| `FirecrackerProvider`, `LibkrunProvider` | A `Ctx` and a backend, behind the sync `Provider` trait. | `providers::sandbox` |
-| `SandboxHandle` | A `Sandbox` and its `ProviderId`. | `providers::sandbox` |
-| `HostReport` | The result of a backend `probe`. | each backend (read here) |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
-| launch | entity (adapter) | caller | Blocks on `backend.create`. |
-| stop | entity (adapter) | caller | Blocks on `sandbox.stop`. |
-| is_running | entity (adapter) | caller | Reads the sandbox state. |
-| host_health | entity (adapter) | caller | Maps `probe` checks to tuples. |
-| choose default | entity | caller | Probes in a fixed order; returns the first usable backend. |
+| parse | entity | program start | Arguments to a command value, or a usage error. |
+| serve | entity | `serve` | Binds a listener; routes calls to `ControlService`. |
+| translate in | entity | an RPC call | A `SandboxControl` call with the same data. |
+| translate out | entity | a `SandboxRpcClient` call | An RPC call with the same data. |
+| authorise | entity | each call on TCP | Compares the bearer token in constant time. |
+| adapt | entity | a `Provider` method | Blocks on the matching `SandboxControl` call. |
 
-**The driver rule.** A provider translates. It does not decide. A provider that validates a
-spec, retries a start or hides an error moves a rule out of the sandbox crate, where the
-tests are.
+**The driver rule.** `ControlService`, `SandboxRpcClient`, the CLI and the `Provider` hold
+no rule about sandboxes. A check, a retry or a time-out that appears only in one of them is
+a defect: it moves a rule away from the core and its tests.
 
-## C. Rules
+## 4. Rules
 
-### Law worksheet
+### 4.1 Law worksheet
 
 ```
-Entity: Provider (adapter)
-Conserved value:         launch(spec) gives the same result as block_on(backend.create(ctx, spec))
+Entity: The RPC pair (ControlService + SandboxRpcClient)
+Conserved value:         for every call: client(service(control)).call(x) has the same outcome as control.call(x)
+Bound:                   message <= max_message_bytes; data chunk <= chunk_bytes
+Inverse pairs:           translate out / translate in
+Idempotent verbs:        the same as the wrapped call
+Ordering pairs:          none of its own
+Monotone values:         none
+Freeze points:           none
+Links to other entities: errors keep their variant (SandboxError::to_connect / from_connect)
+
+Entity: Served listener
+Conserved value:         none
+Bound:                   UDS file mode 0600
+Inverse pairs:           bind / close
+Idempotent verbs:        none
+Ordering pairs:          authorise -> every call on TCP (enabling)
+Monotone values:         none
+Freeze points:           the token at start
+Links to other entities: a UDS has no token; file permissions guard it
+
+Entity: Provider adapter
+Conserved value:         launch(spec) has the outcome of block_on(control.create(spec))
 Bound:                   none of its own
 Inverse pairs:           launch / stop
-Idempotent verbs:        stop (as the sandbox: the second call is Ok); is_running; host_health
+Idempotent verbs:        stop; is_running; host_health
 Ordering pairs:          launch -> stop (enabling)
 Monotone values:         none
 Freeze points:           none
-Links to other entities: is_running(handle) == (handle.sandbox.state() == Ready)
+Links to other entities: is_running(handle) == (handle.sandbox.info().state == Ready)
 
-Entity: Default choice
-Conserved value:         none
+Entity: CLI run
+Conserved value:         the program's standard output and standard error bytes = the CLI's, in order per stream
 Bound:                   none
 Inverse pairs:           none
-Idempotent verbs:        default_sandbox_backend (on an unchanged host)
-Ordering pairs:          Linux: Firecracker before libkrun; macOS: libkrun only
+Idempotent verbs:        none
+Ordering pairs:          create -> exec -> stop (always stop, also on an error or Ctrl-C)
 Monotone values:         none
 Freeze points:           none
-Links to other entities: the result is usable <=> its probe report says usable
+Links to other entities: CLI exit code = the program's exit code, or 128 + signal
 ```
 
-### Invariants
+### 4.2 Invariants
 
 | # | Invariant |
 |---|---|
-| I1 | A provider method has the same outcome as the sandbox call that it wraps. The error is the same typed error. |
-| I2 | `is_running(handle)` is true exactly when the sandbox state is `Ready`. |
-| I3 | `default_sandbox_backend` returns a backend only when its `probe` says `usable`. When none is, the error holds every report. |
-| I4 | The provider crate has no sandbox logic: no spec validation, no retry, no time-out of its own. |
-| I5 | Without the `sandbox` feature, `foundation_deployment_platform` builds and tests as before. |
-| I6 | The only blocking calls of this spec are in the `Provider` methods and in example `main` functions. |
+| I1 | Every shared acceptance scenario (feature 02, section 7) has the same result through `SandboxManager` and through `SandboxRpcClient` + `ControlService`. |
+| I2 | An error keeps its `SandboxError` variant and fields across RPC. |
+| I3 | A TCP listener refuses every call with no token or a wrong token with `Unauthorized`, and the check is constant-time. A TCP listener does not start with no token. |
+| I4 | A UDS listener file has mode `0600`. |
+| I5 | `agent-sandbox run` stops its sandbox on every exit path: normal end, an error, `SIGINT` and `SIGTERM`. |
+| I6 | `agent-sandbox run` exits with the program's exit code, or `128 + signal` when a signal ended the program. Its own failures use 125. |
+| I7 | A `Provider` method has the outcome of the `SandboxControl` call that it wraps; the error is the same typed error. |
+| I8 | `is_running(handle)` is true exactly when the sandbox state is `Ready`. |
+| I9 | Without the `sandbox` feature, `foundation_deployment_platform` builds and tests as before. |
+| I10 | The boundaries have no sandbox logic: a source scan finds no spec validation, retry loop or time-out constant in `cli/`, `service.rs`, `rpc_client.rs`, the `Provider` module and the `main` files. |
+| I11 | `agent-slave` is a static program for both musl targets. |
+| I12 | Blocking calls of this spec are only in `Provider` methods and `main` functions. |
 
-### Must have
+### 4.3 Must have
 
-- `ProviderId::Firecracker` and `ProviderId::Libkrun`.
-- The two providers, `SandboxHandle`, `default_sandbox_backend`, `sandbox_host_reports`.
-- The example `sandbox_run`, the README, `docs/sandbox.md`, the CI job.
+- `agent-sandbox` with the sub-commands `run`, `serve`, `create`, `exec`, `list`, `stop`,
+  `kill`, `doctor`.
+- `agent-slave`.
+- `ControlService`, `SandboxRpcClient`.
+- `ProviderId::Firecracker`, `SandboxProvider`, `SandboxHandle`.
+- The CI job, the README, `docs/sandbox.md`.
 
-### Must do
+### 4.4 Must do
 
-- Bump the crate versions and every consumer (`.agents` reminder 12).
-- Run the real microVM tests on Linux in CI.
+- Bump crate versions and every consumer (`.agents` reminder 12).
 - Declare in `ci/packages.toml` which operating systems run which tests, with a reason for
   each opt-out (`.agents` rule 16).
+- File the GitHub issues of section 6.10 (when the owner approves issue filing; decision
+  D9).
 
-### Must not
+### 4.5 Must not
 
+- Must not call `Ctx::host()` in library code. Only `main` functions do.
+- Must not print the token.
 - Must not put the sandbox checks behind the `vms` feature.
-- Must not call `Ctx::host()` in library code.
 
-## D. Acceptance scenarios
+## 5. Acceptance scenarios
 
 ```gherkin
-Feature: Provider and doctor
+Feature: Programs, RPC and Provider
+
+  Scenario: One command runs in a sandbox
+    Given a usable Firecracker host
+    When "agent-sandbox run --rootfs <image> -- sh -c 'echo hello; exit 3'" runs
+    Then its standard output is "hello\n"
+    And its exit code is 3
+    And no firecracker process of it is left
+
+  Scenario: A signal ends the run and cleans up
+    Given "agent-sandbox run --rootfs <image> -- sleep 60" is running
+    When it gets SIGINT
+    Then it exits in less than shutdown_grace + 3 s
+    And no firecracker process of it is left
+
+  Scenario: The remote client behaves as the local manager
+    Given "agent-sandbox serve --listen unix:<path>" is running
+    When the shared acceptance scenarios run with SandboxRpcClient on that socket
+    Then each has the same result as with SandboxManager
+
+  Scenario: An error keeps its type across RPC
+    Given a served control plane
+    When the remote caller creates a sandbox with a root kind that no driver accepts
+    Then the error is UnsupportedRootFs
+
+  Scenario: A TCP listener needs the token
+    Given "agent-sandbox serve --listen tcp:127.0.0.1:0 --token-file <f>" is running
+    When a client with no token calls List
+    Then the call fails with Unauthorized
+    When a client with the token calls List
+    Then the call succeeds
+
+  Scenario: A TCP listener does not start without a token
+    When "agent-sandbox serve --listen tcp:127.0.0.1:0" runs with no token option
+    Then it exits with code 64 and names the missing option
+
+  Scenario: The shell commands work against a served control plane
+    Given a served control plane on a Unix socket
+    When "agent-sandbox create --connect unix:<path> --rootfs <image>" runs
+    Then it prints a sandbox id
+    When "agent-sandbox exec --connect unix:<path> <id> -- echo ok" runs
+    Then it prints "ok"
+    When "agent-sandbox stop --connect unix:<path> <id>" runs
+    Then "agent-sandbox list --connect unix:<path>" does not show the id
+
+  Scenario: Doctor says what is missing
+    Given a host with no firecracker program
+    When "agent-sandbox doctor" runs
+    Then it prints the firecracker report with the failed check
+    And its exit code is 1
 
   Scenario: A provider launches and stops a sandbox
-    Given a provider on the simulation host
+    Given a SandboxProvider on a simulated manager
     When launch is called with a valid spec
     Then a handle is returned and is_running is true
     When stop is called
     Then the result is Ok and is_running is false
 
   Scenario: A provider passes errors through
-    When launch is called with a root kind that the backend cannot use
+    When launch is called with a root kind that the driver cannot use
     Then the error context is UnsupportedRootFs
 
   Scenario: Health mirrors the probe
-    Given a backend whose probe has the checks ("kvm", ok) and ("agent", not ok, "missing")
+    Given a manager whose probe has the checks ("kvm", ok) and ("slave", not ok, "missing")
     When host_health is called
     Then it returns exactly those two tuples
 
-  Scenario: Linux prefers Firecracker
-    Given a Linux host where both backends are usable
-    When default_sandbox_backend is called
-    Then the backend id is firecracker
+  Scenario: The slave program starts from its arguments
+    When "agent-slave --listen unix:<path>" runs
+    Then Info on that socket answers with is_pid1 false
 
-  Scenario: Linux falls back to libkrun
-    Given a Linux host where only libkrun is usable
-    When default_sandbox_backend is called
-    Then the backend id is libkrun
-
-  Scenario: No backend is a full answer
-    Given a host where no backend is usable
-    When default_sandbox_backend is called
-    Then the result is NoBackend with one report for each backend
-
-  Scenario: The example runs a program
-    Given a usable host
-    When "sandbox_run -- sh -c 'echo hello; exit 3'" runs
-    Then its standard output is "hello\n" and its exit code is 3
-
-  Scenario: The handle gives the sandbox API
-    Given a launched handle on a usable host
-    When handle.run(["echo", "ok"]) is called through block_on_future
-    Then stdout is "ok\n"
+  Scenario: The slave program refuses a bad argument
+    When "agent-slave --listen nonsense" runs
+    Then it exits with code 64
 ```
 
-## 2. Measured facts
+## 6. Technical breakdown
 
-File `backends/foundation_deployment_platform/src/providers/mod.rs`:
+### 6.1 Where the code is
+
+| Path | Content |
+|---|---|
+| `foundation_platform_sandbox/src/cli/mod.rs` | Shared argument helpers: `parse_listen`, `parse_connect`. Feature `cli`, native only. |
+| `.../src/cli/sandbox.rs` | `SandboxCli` (a `clap` derive), `pub fn run(ctx: Ctx, cli: SandboxCli) -> i32`. |
+| `.../src/cli/slave.rs` | `SlaveCli`, `pub fn run(ctx: Ctx, cli: SlaveCli) -> i32`. Reads `/proc/cmdline` for `ewe.listen` when `--listen` is not given. Calls `native::slave::run`. Needs the `slave` feature. |
+| `.../src/shared/control/service.rs` | `ControlService`. |
+| `.../src/shared/control/rpc_client.rs` | `SandboxRpcClient` and the remote handle. |
+| `.../src/native/serve.rs` | `serve_control(ctx, control, listen, auth, shutdown)`: the HTTP server for `SandboxService`. |
+| `foundation_deployment_platform/src/bin/agent_sandbox.rs` | `fn main()`: `Ctx::host()`, store `SandboxHost::native(..)`, parse `SandboxCli`, `std::process::exit(cli::sandbox::run(ctx, cli))`. |
+| `bin/agent_slave/src/main.rs` | `fn main()`: `Ctx::host()`, parse `SlaveCli`, exit with `cli::slave::run(ctx, cli)`. |
+| `foundation_deployment_platform/src/providers/sandbox/mod.rs` | The `Provider` facade. Feature `sandbox`. |
+
+**Where `agent-slave` lives (measured).** Decision D4 puts the entry points in
+`foundation_deployment_platform/src/bin/`. `agent-sandbox` is there. `agent-slave` must be
+a static musl program, and a program in that directory compiles the library crate
+`foundation_deployment_platform` for musl. On 2026-11-11,
+`cargo check -p foundation_deployment_platform --target x86_64-unknown-linux-musl` failed:
+the crate depends on `foundation_netio` with `ssl`, which builds `ring`, which needs a musl
+C compiler; and its Docker client is not optional. So `agent-slave` has its own package,
+`bin/agent_slave`, that depends only on `foundation_platform_sandbox` with
+`default-features = false, features = ["slave", "cli"]`. Its `main` is the same three
+lines. Requirements question Q3 asks the owner to confirm. If the owner wants it in
+`foundation_deployment_platform`, that crate first needs its Docker client and TLS behind
+features; that is a separate change.
+
+### 6.2 `agent-sandbox`
+
+```
+agent-sandbox run     [--driver <id>] [--rootfs <path>] [--vcpus n] [--memory-mib n]
+                      [--network none|host] [--env K=V]... [--workdir <path>] [--read-only]
+                      [--connect <addr>] -- <program> [args...]
+agent-sandbox serve   --listen <addr> [--token-file <path>] [--driver-order a,b]
+agent-sandbox create  [--connect <addr>] <the spec options of run>
+agent-sandbox exec    [--connect <addr>] <sandbox-id> [--env K=V]... [--workdir <path>] -- <program> [args...]
+agent-sandbox list    [--connect <addr>]
+agent-sandbox stop    [--connect <addr>] <sandbox-id>
+agent-sandbox kill    [--connect <addr>] <sandbox-id>
+agent-sandbox doctor
+```
+
+- `<addr>` is `unix:<path>` or `tcp:<host>:<port>`.
+- `--rootfs <path>`: `.ext4` gives `Ext4Image`, `.squashfs` gives `SquashfsImage`, a
+  directory gives `Directory`; any other file gives exit code 64 with a message. With no
+  `--rootfs`, `run` and `create` use `store.firecracker_ci_rootfs(arch)` when the chosen
+  driver is Firecracker.
+- With no `--connect`, `run` and `doctor` build a local `SandboxManager` with every driver
+  that this build has. `create`, `exec`, `list`, `stop` and `kill` need `--connect` or the
+  environment variable `EWE_SANDBOX_CONNECT`; with neither they exit with 64 (a sandbox
+  made by a local manager ends with the process, so a local `create` has no use).
+- With `--connect tcp:...`, the token comes from `--token-file` or `EWE_SANDBOX_TOKEN`.
+- Output: `run` and `exec` copy `Stdout` events to standard output and `Stderr` events to
+  standard error as they arrive. Progress lines of `run` (`create_with_progress`) go to
+  standard error with the prefix `agent-sandbox:`. `list` prints one line for each sandbox:
+  ID, driver, state. `create` prints the ID.
+
+`run` steps: create; `exec` with standard input piped from the CLI's standard input when it
+is not a terminal, else `Null`; copy events; on `Exit`, `stop()`; exit with the code of
+invariant I6. A `SIGINT` or `SIGTERM` handler (the repository's signal support,
+`foundation_nativeapis` feature `signal`) sends `ExecSignal(15)` to the command, waits for
+`Exit` up to `shutdown_grace`, then `stop()`. Any error path calls `kill()` before it
+exits with 125.
+
+| Exit code of `agent-sandbox` | Meaning |
+|---|---|
+| the program's code | `run` and `exec`, normal end |
+| `128 + n` | The program ended by signal `n` |
+| 1 | `doctor`: no driver is usable |
+| 64 | Usage error |
+| 125 | The sandbox or the control plane failed; the error is on standard error |
+
+### 6.3 `ControlService`
 
 ```rust
-pub trait Provider: Send + Sync {
-    type Handle;
-    type Config;
-    type Error: std::fmt::Debug + std::fmt::Display;
-    fn name(&self) -> &'static str;
-    fn id(&self) -> ProviderId;
-    fn launch(&self, config: &Self::Config) -> Result<Self::Handle, Self::Error>;
-    fn stop(&self, handle: &Self::Handle) -> Result<(), Self::Error>;
-    fn is_running(&self, handle: &Self::Handle) -> bool;
-    fn resolved_ports(&self, handle: &Self::Handle) -> Result<ResolvedPorts, Self::Error>;
-    fn host_health(&self) -> Vec<(String, bool, String)>;
+pub struct ControlService { control: Arc<dyn SandboxControl>, limits: SandboxLimits }
+impl SandboxService for ControlService { /* one method for each call */ }
+```
+
+| Call | Body |
+|---|---|
+| `probe`, `get`, `list`, `stop`, `kill` | Call the control plane; map the result. |
+| `create` | `control.create_with_progress(spec)`; map `Pending(p)` to `CreateEvent::Progress(p)` and the result to `Created(info)` or the stream error. When the client drops the stream before the end, the create task is dropped, and the control plane cleans up (feature 02, section 6.4). |
+| `exec` | `control.get(id)`, `sandbox.exec(command)`; the handle is stored in a session map under `(sandbox_id, exec_id)`; events are forwarded with new `seq` numbers from 0 (`Started` first). When the stream ends or the client drops it, the entry is removed and the handle is dropped. |
+| `exec_input` | Finds the session; `Sequence::accept(seq)`; on `Apply`, `stdin.write(data)` and `close` on `eof`. `Duplicate` returns `next_seq`. `Gap` returns `SequenceGap`. |
+| `exec_signal` | Finds the session; `handle.signal(n)`. |
+| `file_write_begin`, `_chunk`, `_commit`, `_abort` | Pass through to the sandbox's slave client with the same messages. (The control plane exposes these four on `Sandbox` as crate-private calls for this purpose; `write_file` is built on them.) |
+| `file_read` | `sandbox.read_file(path)`; forward chunks with offsets. |
+
+The `exec_id` in a scoped `ExecRequest` is the client's. The service uses it as the key of
+its session map; the control plane makes its own `exec_id` towards the slave. An `exec_id`
+that is in use for that sandbox gives `AlreadyExists` (mapped as `SlaveError` with that
+code).
+
+Errors: `SandboxError::to_connect`. An unknown sandbox ID gives `NotFound { what: "sandbox" }`.
+
+### 6.4 `SandboxRpcClient`
+
+```rust
+pub struct SandboxRpcClient { /* generated SandboxService client, ctx, limits */ }
+impl SandboxRpcClient {
+    pub fn new(ctx: Ctx, transport: Arc<dyn Transport>, limits: SandboxLimits) -> Self;
+    /// Builds the transport for an address. Native only.
+    pub fn connect(ctx: Ctx, addr: ConnectAddr, limits: SandboxLimits) -> SandboxResult<Self>;
+    pub fn with_token(self, token: SecretString) -> Self;   // adds "Authorization: Bearer ..."
+}
+/// `Unix` and `Tcp` are the forms of `--connect`. `Url` is an `http://` or `https://`
+/// base address (the Cloudflare Worker of feature 08).
+pub enum ConnectAddr { Unix(PathBuf), Tcp { host: String, port: u16 }, Url(String) }
+impl SandboxControl for SandboxRpcClient { /* each call maps to its RPC */ }
+```
+
+`connect` uses `H1Transport` on an HTTP client of `foundation_netio`: a UDS client for
+`Unix`, a TCP client for `Tcp`, and a client with TLS for an `https://` `Url`. The base
+address of the calls is `http://localhost` for `Unix`, `http://<host>:<port>` for `Tcp`,
+and the `Url` as given.
+
+The remote `Sandbox` handle implements `SandboxOps` with the scoped calls. `exec`, input,
+signal, `write_file` and `read_file` have the same client logic as in feature 02
+(`ExecHandle`, `ExecStdin`, chunking, sequence numbers, abort on failure). So that logic is
+written one time: feature 02's handle code is generic over the trait `ExecFileCalls`
+(feature 02, section 6.6),
+
+```rust
+/// The calls that a handle needs. Implemented by SlaveClient (local control plane) and by
+/// the scoped SandboxService client (remote control plane).
+pub trait ExecFileCalls: Send + Sync + 'static {
+    fn exec(&self, req: ExecRequest) -> BoxFuture<'_, SandboxResult<ExecEventStream>>;
+    fn exec_input(&self, req: ExecInputRequest) -> BoxFuture<'_, SandboxResult<ExecInputResponse>>;
+    fn exec_signal(&self, req: ExecSignalRequest) -> BoxFuture<'_, SandboxResult<()>>;
+    fn file_write_begin(&self, req: FileWriteBeginRequest) -> BoxFuture<'_, SandboxResult<FileWriteBeginResponse>>;
+    fn file_write_chunk(&self, req: FileWriteChunkRequest) -> BoxFuture<'_, SandboxResult<FileWriteChunkResponse>>;
+    fn file_write_commit(&self, req: FileWriteCommitRequest) -> BoxFuture<'_, SandboxResult<FileWriteCommitResponse>>;
+    fn file_write_abort(&self, req: FileWriteAbortRequest) -> BoxFuture<'_, SandboxResult<()>>;
+    fn file_read(&self, req: FileReadRequest) -> BoxFuture<'_, SandboxResult<FileChunkStream>>;
 }
 ```
 
-- The trait is sync. `DockerProvider` (`providers/docker/mod.rs`) wraps async calls with
-  sync functions.
-- `ProviderId` has `Qemu`, `Utm` and `Docker`, with a `Display` implementation.
-- `ResolvedPorts { ssh_port: u16, winrm_port: Option<u16>, rdp_port: Option<u16>, vnc_port: u16 }`.
-  A sandbox has no such ports. `DockerProvider` returns 0 for a port that it does not have.
-- `foundation_deployment_platform` version is `0.1.6`. A new public API needs a version
-  bump and an update of each workspace consumer (`.agents` reminder 12).
+and this feature adds the second implementation (the scoped `SandboxService` client). `SecretString` is the secret type that the
+workspace already has (`grep -rn "struct Secret" backends/*/src`); its `Debug` prints no
+value.
 
-## 3. Work
+### 6.5 Serving and authentication
 
-### 3.1 `ProviderId`
+`serve_control(ctx, control, listen, auth, shutdown)`:
 
-Add the variants `Firecracker` and `Libkrun`, with the `Display` strings `firecracker` and
-`libkrun`. Search the workspace for each `match` on `ProviderId`
-(`grep -rn "ProviderId::" --include=*.rs .`) and update it.
+- `unix:<path>`: check the socket path length; remove a stale socket file only when a
+  connect to it fails with "connection refused"; bind; mode `0600`. No token.
+- `tcp:<host>:<port>`: needs `auth = Some(token)`. An interceptor
+  (`foundation_connectrpc` `shared/interceptor`) reads `Authorization: Bearer <token>`,
+  compares SHA-256 digests of the two values in constant time, and returns `Unauthorized`
+  on a mismatch. The check runs before the handler.
+- HTTP/1.1, `ConnectRpcServe` on `HttpServer` (as in feature 01, section 6.4).
+- The token file is read one time at start: the first line, trimmed. An empty file is a
+  usage error. The token is never logged.
 
-### 3.2 The providers
+Requirements question Q4: mutual TLS comes with the agent-rpc work. A TCP listener is for
+`127.0.0.1` or a private network until then; the README says so.
 
-New Cargo feature `sandbox` in `foundation_deployment_platform`, off by default:
-`sandbox = ["dep:foundation_platform_sandbox"]`. Add it to `all-providers`.
+### 6.6 `agent-slave`
 
-New module `src/providers/sandbox/mod.rs`, behind the feature:
+```
+agent-slave [--listen vsock:<port> | unix:<path> | tcp:<host>:<port>]
+```
+
+`cli::slave::run`: take `--listen`; if it is not given, read `ewe.listen=` from
+`/proc/cmdline`; if neither exists, the failure of feature 01, section 6.3. Build
+`SlaveArgs` and call `native::slave::run`.
+
+Package `bin/agent_slave`: one dependency (section 6.1). The workspace root gets the
+profile `agent` (`inherits = "release"`, `opt-level = "s"`, `lto = true`,
+`panic = "abort"`, `strip = true`, `codegen-units = 1`).
+
+`mise` task `sandbox:slave`:
+
+```bash
+rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+cargo build -p agent_slave --profile agent --target x86_64-unknown-linux-musl
+cargo build -p agent_slave --profile agent --target aarch64-unknown-linux-musl
+```
+
+For a target that is not the host, the task sets
+`RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes"`. The slave has no C dependency
+(feature 01, section 6.1), so no C cross compiler is necessary. The task copies each result
+to `target/sandbox/agent-slave-<arch>`, which is the name that `HostConfig::discover`
+looks for beside `agent-sandbox` when both are installed in one directory.
+
+### 6.7 The `Provider` facade
+
+`foundation_deployment_platform`, Cargo feature `sandbox`
+(`sandbox = ["dep:foundation_platform_sandbox"]`, in `all-providers`, off by default).
 
 ```rust
 /// A running sandbox, as a `Provider` handle.
-pub struct SandboxHandle {
-    pub sandbox: Sandbox,
-    pub provider_id: ProviderId,
+pub struct SandboxHandle { pub sandbox: Sandbox, pub provider_id: ProviderId }
+impl std::ops::Deref for SandboxHandle { type Target = Sandbox; /* ... */ }
+
+/// A `Provider` on any control plane. `driver` fixes which driver each launch uses.
+pub struct SandboxProvider { control: Arc<dyn SandboxControl>, driver: DriverId }
+
+impl SandboxProvider {
+    pub fn firecracker(control: Arc<dyn SandboxControl>) -> Self;
+    pub fn new(control: Arc<dyn SandboxControl>, driver: DriverId) -> Self;
 }
-
-pub struct FirecrackerProvider { ctx: Ctx, backend: FirecrackerBackend }   // cfg(target_os = "linux")
-pub struct LibkrunProvider     { ctx: Ctx, backend: LibkrunBackend }       // cfg(linux or macos)
-
-impl FirecrackerProvider { pub fn new(ctx: Ctx) -> Self; }
-impl LibkrunProvider     { pub fn new(ctx: Ctx) -> Self; }
 ```
 
-Both implement `Provider` with `Handle = SandboxHandle`, `Config = SandboxSpec`,
-`Error = ErrorTrace<SandboxError>`. One generic helper holds the body, so the two types do
-not repeat it:
+`ProviderId` gets the variant `Firecracker` (`firecracker`). Features 08, 09 and 10 add
+`CloudflareContainer`, `Libkrun` and `DockerSandbox`. Update each `match` on `ProviderId`
+(`grep -rn "ProviderId::" --include=*.rs .`).
+
+`impl Provider for SandboxProvider` with `Handle = SandboxHandle`, `Config = SandboxSpec`,
+`Error = ErrorTrace<SandboxError>`:
 
 | Method | Body |
 |---|---|
-| `launch(config)` | `block_on_future(self.backend.create(self.ctx.clone(), config.clone()))`, then wrap in `SandboxHandle`. |
-| `stop(handle)` | `block_on_future(handle.sandbox.stop())`, drop the `ExitReport`. |
-| `is_running(handle)` | `handle.sandbox.state() == SandboxState::Ready` |
-| `resolved_ports(handle)` | `Ok(ResolvedPorts { ssh_port: 0, winrm_port: None, rdp_port: None, vnc_port: 0 })` |
-| `host_health()` | `self.backend.probe(&self.ctx).checks`, mapped to `(name, ok, message)`. |
+| `name`, `id` | From `driver`. |
+| `launch(config)` | A copy of the spec with `driver = Some(self.driver)`; `block_on_future(self.control.create(spec))`. |
+| `stop(handle)` | `block_on_future(handle.sandbox.stop())`; drop the report. |
+| `is_running(handle)` | `handle.sandbox.info().state == SandboxState::Ready` |
+| `resolved_ports(handle)` | `Ok(ResolvedPorts { ssh_port: 0, winrm_port: None, rdp_port: None, vnc_port: 0 })`. A sandbox has no such ports; `DockerProvider` returns 0 in the same case. |
+| `host_health()` | `block_on_future(self.control.probe())`; the checks of the report for `self.driver`, as `(name, ok, message)`. |
 
 `block_on_future` is `foundation_core::valtron::block_on_future`
-(`executors/sendables.rs`, line 1004). Read its doc comment for where a call is legal. The
-`Provider` methods are a sync boundary; they are the only place in this spec that blocks.
-The doc comment of each provider says: "Async callers use `Sandbox` and `SandboxBackend`
-directly."
+(`executors/sendables.rs`, line 1004). The doc comment of the type says: "Async callers use
+`SandboxControl` directly."
 
-`SandboxHandle` implements `Deref<Target = Sandbox>`, so a caller that has a handle can call
-`run` and `exec`.
+Because the provider takes any `SandboxControl`, the same type works on a local
+`SandboxManager` and on a `SandboxRpcClient`.
 
-### 3.3 Default choice
+### 6.8 CI
 
-```rust
-/// The best local sandbox backend for this host.
-pub fn default_sandbox_backend(ctx: &Ctx) -> SandboxResult<Arc<dyn SandboxBackend>>;
-```
+`.github/workflows/sandbox-e2e.yaml`:
 
-| Host | Order |
-|---|---|
-| Linux | Firecracker when its `probe()` is usable; if not, libkrun when usable. |
-| macOS | libkrun when usable. |
-| other | `SandboxError::NoBackend` |
+- Runs on `ubuntu-latest`. That runner has `/dev/kvm`
+  (`.github/workflows/platform-images-vm.yaml` uses it for QEMU).
+- Steps: checkout with submodules; enable KVM access for the runner user (a udev rule
+  `KERNEL=="kvm", GROUP="kvm", MODE="0666"`, then `udevadm trigger`); install the Rust
+  toolchain and the musl target; download the pinned `firecracker` release (the version
+  and SHA-256 are in `ci/sandbox.toml`, read by the workflow); `mise run sandbox:slave`;
+  run `cargo test -p foundation_platform_sandbox --features testing --profile uat
+  e2e_firecracker` and the `agent-sandbox` program tests.
+- Triggers: a pull request that changes `backends/foundation_platform_sandbox/**`,
+  `bin/agent_slave/**`, `backends/foundation_netio/**` or the workflow; pushes to
+  `master`; nightly. A concurrency group cancels a superseded pull request run
+  (`.agents` rule 17).
+- The job fails when `probe()` says the runner is not usable. (On a developer machine the
+  tests return with a message; in this job the environment variable
+  `EWE_SANDBOX_E2E_REQUIRED=1` turns that return into a failure, so CI cannot pass by
+  skipping.)
 
-When no backend is usable, the error is `SandboxError::NoBackend { reports }` with each
-`HostReport`, so the caller sees why. The function lives in
-`foundation_platform_sandbox` (`src/lib.rs`), not in the provider crate, so async callers
-get it too. Firecracker is first on Linux because it has the smaller device set and its own
-seccomp filter.
+`ci/packages.toml`:
 
-### 3.4 Doctor
+| Package | Linux | macOS | Windows |
+|---|---|---|---|
+| `foundation_platform_sandbox` | all features of this phase | default features with `firecracker` off; reason: "Firecracker needs KVM" | `windows-tests = "none"`; reason: "no driver for a Windows host; the crate's native code is unix-only" |
+| `agent_slave` | build for both musl targets; its tests are the slave tests of feature 01 | `macos-tests = "none"`; reason: "a Linux guest program" | `windows-tests = "none"`; the same reason |
+| `foundation_deployment_platform` | add the run `sandbox` to `runs` and `clippy-runs` | the same | as today |
 
-`foundation_deployment_platform` has a `doctor` module behind the `vms` feature. Do not put
-sandbox checks behind `vms`. Add a function in the provider module:
+### 6.9 Documentation
 
-```rust
-/// One report for each sandbox backend that this build has.
-pub fn sandbox_host_reports(ctx: &Ctx) -> Vec<HostReport>;
-```
+- `backends/foundation_platform_sandbox/README.md`: the model (control plane, slave,
+  drivers), host requirements for Firecracker, how to build the slave, `agent-sandbox run`,
+  the library example, and the security notes below.
+- `docs/sandbox.md`: the architecture diagram of the requirements and a "first sandbox"
+  guide for Linux.
 
-If the `testbed` command-line program has a `doctor` command
-(`backends/foundation_deployment_platform/src/cli/`), add the sandbox reports to its output
-when both the `cli` and `sandbox` features are on.
+Security notes to state plainly:
 
-### 3.5 Example
+- The VM boundary isolates the guest. The VMM process itself runs with the rights of the
+  caller; it is not confined in this version.
+- `serve` on a UDS trusts every process that can open the socket. `serve` on TCP uses one
+  shared token and no TLS; use it on `127.0.0.1` or a private network.
+- A path in a spec is a path on the control plane's machine. A remote caller that can
+  create sandboxes can read each root image that the control plane's user can read.
 
-`backends/foundation_platform_sandbox/examples/sandbox_run.rs`:
+### 6.10 Issues to file
 
-```
-sandbox_run [--backend firecracker|libkrun] [--rootfs <path>] -- <program> [args...]
-```
-
-- Builds `Ctx::host()` and stores `SandboxHost::native(..)`. This is a host entry point, so
-  these calls are legal here.
-- With no `--rootfs`: libkrun uses the Alpine directory, and Firecracker uses the CI
-  squashfs image (feature 03).
-- Prints progress lines from `create_with_progress` to standard error.
-- Streams the program output to its own standard output and standard error with
-  `exec().events()`. Exits with the exit code of the program.
-
-### 3.6 Documentation
-
-- `backends/foundation_platform_sandbox/README.md`: what the crate is, the host
-  requirements for each backend, how to build the agent and the runner, the example, the
-  security notes of section 4.
-- `docs/`: one page, `docs/sandbox.md`, with the architecture diagram of the requirements
-  and a "first sandbox" guide for Linux and for macOS.
-
-### 3.7 Issues to file
-
-File these GitHub issues in this change (root rule 9). Requirements section 2.2 lists the
-first group.
+When the owner approves issue filing (decision D9):
 
 | Issue | Label |
 |---|---|
-| One for each item of requirements section 2.2 | `enhancement` |
-| `ResolvedPorts`: `ssh_port` and `vnc_port` are `u16`, a provider with no such port returns 0 | `severity: low` |
-| Embed `sandbox-agent` in the host crate with `include_bytes!` | `enhancement` |
-| Each finding from features 00 to 06 that has no issue yet | its severity |
+| One for each item of requirements section 7.3 | `enhancement` |
+| `ResolvedPorts`: `ssh_port` and `vnc_port` are `u16`; a provider with no such port returns 0. Likely fix: `Option<u16>`. | `severity: low` |
+| `foundation_deployment_platform` does not build for musl targets (TLS and the Docker client are not optional). | `severity: low` |
+| `backends/foundation_deployment_docker/specs/swagger2openapi.py` is used by two crates. Likely fix: move it to `scripts/openapi/`. | `severity: low` |
+| A binary codec for the two services (JSON carries bytes as base64). | `enhancement` |
+| Each finding from features 00 to 05 that has no issue yet | its severity |
 
-## 4. Security notes for the documentation
+## 7. Tests
 
-State these limits plainly in the README:
+| Law or scenario | Test | Where | Oracle |
+|---|---|---|---|
+| I1, "The remote client behaves as the local manager" | `rpc_parity`: the shared acceptance scenarios with `SandboxRpcClient` + `ControlService` over `in_memory_connector`-style pipes (simulation), and over a real UDS with the slave process driver | `foundation_platform_sandbox/tests/control_rpc_*.rs` | differential (local and remote give the same outcomes) |
+| I2, "An error keeps its type across RPC" | `rpc_error_variants` (each variant that a control call can return) | the same | identity |
+| I3, the two token scenarios | `tcp_needs_token`, `tcp_wrong_token`, `tcp_no_token_no_start` | `tests/serve_*.rs` | expected outcome |
+| I4 | `unix_socket_mode` | the same | example |
+| `create` stream dropped by the client | `rpc_create_dropped_cleans_up` (simulation: the driver handle got `kill` and `cleanup`) | `tests/control_rpc_*.rs` | fault |
+| `exec_input` through the service | `rpc_input_duplicate_and_gap` | the same | expected outcome |
+| I5, I6, the two `run` scenarios | `cli_run_exit_code`, `cli_run_signal_exit`, `cli_run_sigint_cleans_up` | `foundation_deployment_platform/tests/agent_sandbox_cli.rs` (real Firecracker; returns with a message when not usable) | expected outcome |
+| argument parsing | `cli_parse` (each sub-command; each usage error gives 64) | `foundation_platform_sandbox/tests/cli_parse.rs` | example |
+| "The shell commands work ..." | `cli_remote_flow` | `agent_sandbox_cli.rs` | example |
+| "Doctor says what is missing" | `cli_doctor` (a fake environment with no `firecracker`) | the same | expected outcome |
+| I7, I8, the three provider scenarios | `provider_launch_stop_sim`, `provider_error_is_typed`, `provider_host_health` | `foundation_deployment_platform/tests/sandbox_provider_tests.rs` | expected outcome |
+| provider on a real host | `provider_e2e_firecracker`: `launch`, `handle.run(["echo", "ok"])` through `block_on_future`, `stop` | the same | example |
+| I9 | the default-feature test run in section 8 | | build |
+| I10 | `boundaries_have_no_logic` (a source scan for `validate(`, `boot_timeout`, `Duration::from_`, `loop` with a retry in the boundary files) | `tests/boundary_scan.rs` | example |
+| I11, the two slave scenarios | `slave_cli_listen_unix`, `slave_cli_bad_arg`; `file` reports "statically linked" in the verify step | `bin/agent_slave/tests/` | example |
 
-- Version 0.1 gives the isolation of the VM boundary. It does not confine the VMM process
-  on the host. The VMM runs with the rights of the caller.
-- libkrun with `NetworkMode::Host` gives the guest the network of the host process.
-- A host directory mounted with `HostMount` is visible to the guest through the VMM. Mount
-  only what the guest needs.
-- The Firecracker `jailer` and VMM process confinement are planned, and the issue numbers
-  are in the README.
-
-## 5. Tests
-
-`backends/foundation_deployment_platform/tests/sandbox_provider_tests.rs`:
-
-| Test | Needs | Proves |
-|---|---|---|
-| `provider_ids_display` | nothing | `firecracker` and `libkrun`. |
-| `provider_launch_stop_sim` | nothing | With the simulation host: `launch` returns a handle, `is_running` is true, `stop` returns `Ok`, `is_running` is false. Proves that `block_on_future` works with the launch task. |
-| `provider_host_health_maps_checks` | nothing | A fake report with two checks gives two tuples. |
-| `provider_launch_error_is_typed` | nothing | A spec with the wrong `RootFs` kind gives an error whose `current_context()` is `UnsupportedRootFs`. |
-| `default_backend_no_backend` | nothing | With a simulation host where each probe fails, the result is `NoBackend` with the reports. |
-| `provider_e2e_libkrun`, `provider_e2e_firecracker` | KVM or HVF | `launch`, `handle.run(["echo", "ok"])` through `block_on_future`, `stop`. Returns with a message when the host is not usable. |
-
-The simulation host is in `foundation_platform_sandbox/tests/support/`. The provider tests
-need it too. Move it to a public module `foundation_platform_sandbox::testing`, behind a
-Cargo feature `testing`, with a doc comment that it gives no isolation and is for tests
-only. `foundation_deployment_platform` enables that feature in `dev-dependencies`.
-
-## 6. Verify
+## 8. Verify
 
 ```bash
 cargo fmt --all --check
+cargo clippy -p foundation_platform_sandbox --features "cli testing slave" --all-targets --profile uat --no-deps -- -D warnings
 cargo clippy -p foundation_deployment_platform --features sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_deployment_platform --features sandbox --profile uat sandbox_provider
+cargo test -p foundation_platform_sandbox --features "cli testing slave" --profile uat control_rpc serve_ cli_parse boundary_scan
+cargo test -p foundation_deployment_platform --features sandbox --profile uat sandbox_provider agent_sandbox_cli
 cargo test -p foundation_deployment_platform --profile uat          # default features still pass
+mise run sandbox:slave
+file target/sandbox/agent-slave-x86_64    # must say "statically linked"
 cargo tree -i foundation_deployment_platform --workspace --depth 1  # then test each consumer
-cargo run -p foundation_platform_sandbox --example sandbox_run --profile uat -- -- echo hello
 python3 scripts/ci/package_workspace.py
 ```
 
-Add the run `sandbox` to the `runs` and `clippy-runs` lists of
-`[packages.foundation_deployment_platform]` in `ci/packages.toml`.
+## 9. Done when
 
-## 7. Done when
-
-- Both providers implement `Provider`, and the tests of section 5 pass.
-- The example prints `hello` on a Linux host with KVM (both backends) and on a macOS host
-  with Apple silicon (libkrun).
-- The versions of `foundation_deployment_platform` and `foundation_platform_sandbox` are
-  bumped, and each consumer uses the new version.
-- The README, `docs/sandbox.md` and the issues of section 3.7 exist.
-- `requirements.md` frontmatter counts are current, and `progress.md` records 0.1.
+- Each scenario of section 5 and each row of section 7 passes.
+- `agent-sandbox run --rootfs <image> -- echo hello` prints `hello` on a Linux host with
+  KVM, and the CI job `sandbox-e2e` is green.
+- `agent-slave` is a static program for both musl targets.
+- The versions of the changed crates are bumped, and each consumer uses the new version.
+- The README and `docs/sandbox.md` exist.
+- `requirements.md` frontmatter counts are current, and `progress.md` records MVP-A.

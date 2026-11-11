@@ -332,7 +332,12 @@ pub struct SandboxManager { /* Arc<Inner> */ }
 pub struct ManagerConfig {
     pub limits: SandboxLimits,           // defaults for a spec that does not set them
     pub max_sandboxes: usize,            // default 64
+    pub id_source: IdSource,             // default Random
 }
+/// `Fixed` is for a control plane that holds one sandbox with a given name (a Cloudflare
+/// DO, feature 07). With `Fixed`, a second create while the first exists fails with
+/// `TooManySessions`.
+pub enum IdSource { Random, Fixed(SandboxId) }
 
 impl SandboxManager {
     /// `drivers` is in preference order. `connector` turns an endpoint into a transport.
@@ -345,7 +350,24 @@ impl SandboxManager {
     ) -> Self;
 }
 impl SandboxControl for SandboxManager { /* section 6 of the requirements */ }
+
+impl SandboxManager {
+    /// Loads the stored records and finds their substrates again. Call it one time, before
+    /// the first request, in a control plane that can restart while its sandboxes live.
+    pub async fn restore(&self) -> SandboxResult<()>;
+}
 ```
+
+`restore`, for each record of `store.list()`:
+
+| Record state | Work |
+|---|---|
+| `Ready` | `driver.attach(ctx, &record)`. `Ok(Some(substrate))`: connect, call `Info` with `rpc_timeout`; when it answers with `prepared == true`, add the record as `Ready` and start its watcher. In every other case (`Ok(None)`, an attach error, no answer, `prepared == false`): `cleanup()` when a substrate exists, then `store.remove(id)`. |
+| `Creating`, `Stopping`, `Failed` | Not finished work. `attach`; `kill` and `cleanup` when a substrate exists; `store.remove(id)`. |
+| `Stopped` | `store.remove(id)`. |
+
+`restore` does not start a substrate and does not call `Prepare`. A second call does
+nothing.
 
 `max_sandboxes` default 64: a small host limit that a caller raises; the count of `Ready`
 and `Creating` records above it gives `TooManySessions`.
@@ -418,6 +440,23 @@ A thin wrapper on the generated `SlaveService` client with a `Transport`:
   not retried.
 
 ### 6.6 Handles
+
+The handle code is generic over the calls that it needs, so the remote client of feature
+06 uses the same code:
+
+```rust
+/// Implemented by SlaveClient here, and by the scoped SandboxService client in feature 06.
+pub trait ExecFileCalls: Send + Sync + 'static {
+    fn exec(&self, req: ExecRequest) -> BoxFuture<'_, SandboxResult<ExecEventStream>>;
+    fn exec_input(&self, req: ExecInputRequest) -> BoxFuture<'_, SandboxResult<ExecInputResponse>>;
+    fn exec_signal(&self, req: ExecSignalRequest) -> BoxFuture<'_, SandboxResult<()>>;
+    fn file_write_begin(&self, req: FileWriteBeginRequest) -> BoxFuture<'_, SandboxResult<FileWriteBeginResponse>>;
+    fn file_write_chunk(&self, req: FileWriteChunkRequest) -> BoxFuture<'_, SandboxResult<FileWriteChunkResponse>>;
+    fn file_write_commit(&self, req: FileWriteCommitRequest) -> BoxFuture<'_, SandboxResult<FileWriteCommitResponse>>;
+    fn file_write_abort(&self, req: FileWriteAbortRequest) -> BoxFuture<'_, SandboxResult<()>>;
+    fn file_read(&self, req: FileReadRequest) -> BoxFuture<'_, SandboxResult<FileChunkStream>>;
+}
+```
 
 ```rust
 impl ExecHandle {
@@ -516,11 +555,9 @@ pub trait RecordStore: Send + Sync + 'static {
     fn remove(&self, id: &SandboxId) -> BoxFuture<'_, SandboxResult<()>>;
     fn list(&self) -> BoxFuture<'_, SandboxResult<Vec<StoredRecord>>>;
 }
-pub struct StoredRecord {
-    pub id: SandboxId, pub driver: DriverId, pub spec: SandboxSpec,
-    pub state: SandboxState, pub created_unix_ms: u64, pub endpoint: SlaveEndpoint,
-}
 ```
+
+`StoredRecord` is defined in feature 00 (section 6.8).
 
 The manager calls `put` on each state change and `remove` at `Stopped`. A store error in
 `create` fails the create (with clean-up); a store error after that is logged with
@@ -563,6 +600,7 @@ Simulation (`control_sim_*.rs`), with `Ctx::with_seed`, `SimulatedClock`, `SimDr
 | I13, "A substrate that dies ..." | `substrate_exit_fails_sandbox` | fault |
 | I12, "Dropping a command handle ..." | `drop_exec_handle` | expected outcome |
 | I15, "The same seed gives the same trace" | `same_seed_same_trace` | identity |
+| `restore` (section 6.2) | `restore_ready_record`, `restore_dead_substrate`, `restore_unprepared_slave`, `restore_unfinished_record` (one for `Creating`, one for `Stopping`), `restore_twice`; `fixed_id` (the sandbox ID is the configured one; a second create fails with `TooManySessions`) | expected outcome |
 | I16 | the wasm check in section 8; `no_os_calls` (a source scan of `src/shared/control/`) | build, example |
 
 Real slave process (`control_slave_process_*.rs`, Linux, features `slave` and `testing`). A

@@ -1,432 +1,501 @@
 ---
-feature: "Cloudflare bridge Worker"
+feature: "Cloudflare control plane"
 status: "pending"
-priority: "medium"
+priority: "high"
 model: "sonnet"
-depends_on: ["07-provider-and-doctor"]
-crates: ["infrastructure/sandbox_bridge", "sandbox_agent"]
+phase: "MVP"
+depends_on: ["01-slave-core", "02-control-plane-core"]
+crates: ["foundation_platform_sandbox"]
 ---
 
-# Feature 08: The Cloudflare bridge Worker
+# Feature 07: The control plane on Cloudflare (library part)
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
-**Abbreviations in this file.** application programming interface (API); Durable Object
-(DO); WebSocket (WS); Transmission Control Protocol (TCP); Hypertext Transfer Protocol
-(HTTP); JavaScript Object Notation (JSON); behaviour-driven development (BDD); continuous
-integration (CI); AeroSpace and Defence Industries Association of Europe (ASD), the owner of
-the STE standard ASD-STE100.
+**Abbreviations in this file.** application programming interface (API); remote procedure
+call (RPC); Durable Object (DO); WebAssembly (wasm); Hypertext Transfer Protocol (HTTP);
+Transmission Control Protocol (TCP); behaviour-driven development (BDD); continuous
+integration (CI); AeroSpace and Defence Industries Association of Europe (ASD), the owner
+of the STE standard ASD-STE100.
 
 ## 1. Goal
 
-Cloudflare has no public API that starts a container for a caller. A Worker must do it. This
-feature writes that Worker, the "bridge", and gives the agent the transport that the bridge
-needs. The bridge does two things only:
+Make the control-plane core run in a Cloudflare DO and drive that DO's container, with the
+slave as the container's main process. This feature is library code only:
 
-1. Life cycle: start and destroy the container of a named sandbox.
-2. Pass-through: forward one WS upgrade request, and HTTP requests, to a port of the
-   container.
+1. `CloudflareContainerDriver`: a `SandboxDriver` on a small trait for the container.
+2. `ContainerPortTransport`: an RPC transport that sends each call with the container's
+   port `fetch`.
+3. `DoRecordStore` and the idle alarm logic.
+4. `DoControlPlane`: the object that a DO class holds; it builds the `SandboxManager` and
+   handles each request.
+5. In `src/cloudflare/`: the implementations of the traits on the `worker` crate types.
 
-All command and file logic stays in the Rust agent and the Rust client. The bridge has no
-knowledge of the agent protocol.
+The logic of items 1 to 4 depends only on traits, so it compiles and is tested on a native
+host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
 
-## A. Story
+## 2. Story
 
-- **S1**: "A host program asks the bridge to start a container for a named sandbox."
-- **S2**: "The host opens one WS to the agent in that container and speaks the agent
-  protocol on it."
-- **S3**: "The host reaches an HTTP service on a port of a container."
-- **S4**: "The host destroys the container."
-- **S5**: "A caller with no token, or a wrong token, asks for anything."
-- **S6**: "The container is not listening yet, crashed, or was stopped by Cloudflare for
-  inactivity."
+- **S1**: "A DO gets a `Create` call; it starts its container, waits for the slave in it,
+  prepares it, and answers with a ready sandbox."
+- **S2**: "A caller runs commands and moves files in that container through the DO."
+- **S3**: "The DO is removed from memory while its container still runs; the next call
+  finds the sandbox again."
+- **S4**: "Nobody uses the sandbox for some time; it stops by itself."
+- **S5**: "The container is not listening yet, crashes, or was destroyed by the platform."
+- **S6**: "A caller stops the sandbox; the container is destroyed and the record is gone."
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Start | host | `PUT /v1/sandboxes/{name}` | The container runs; `SandboxInfo`. |
-| U2 | Inspect | host | `GET /v1/sandboxes/{name}` | `SandboxInfo`. |
-| U3 | Open the agent stream | host | `GET /v1/sandboxes/{name}/agent` + upgrade | 101 and a WS to the agent; or 409. |
-| U4 | Reach a port | host | `ANY /v1/sandboxes/{name}/ports/{port}/...` | The container's own answer. |
-| U5 | Destroy | host | `DELETE /v1/sandboxes/{name}` | The container is gone. |
-| U6 | Health | anyone | `GET /v1/health` | The bridge version. |
+| U1 | Launch | control plane | `driver.launch` | The container starts with the slave as entry point; the endpoint is `CloudflarePort { 1024 }`. |
+| U2 | Call the slave | control plane | any `SlaveService` call | One `fetch` to port 1024 for each call. |
+| U3 | Restore | DO | first request after a restart of the DO | The manager has the sandbox again, or the record is removed. |
+| U4 | Idle stop | alarm | the idle deadline passed | `stop()`. |
+| U5 | Handle a request | DO class | an HTTP request | The `SandboxService` answer. |
 
-## B. Bounded context
+## 3. Bounded context
 
-**Inside this feature:** the Worker (`infrastructure/sandbox_bridge`), its DO class, its
-HTTP API, the default sandbox image, and the agent transport `ws-listen`.
+**Inside this feature:** the Cloudflare driver, the port transport, the DO record store,
+the idle rule, the request handler of one DO.
 
-**Outside:** the Cloudflare container runtime (`ctx.container`); the Rust client of this API
-(feature 09); the agent protocol (feature 00), which passes through untouched.
+**Outside:** `SandboxManager` and its laws (feature 02); the slave (feature 01); the Worker
+entry, routing to a DO, the token check and the container image (feature 08); the
+Cloudflare runtime.
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
-| Sandbox name | The key of one DO and its container. Matches `^[a-z0-9][a-z0-9-]{0,62}$`. | the host picks it |
-| Sandbox DO | One Durable Object for each name. It is the only code that touches `ctx.container`. | `src/sandbox.ts` |
-| Container | The Cloudflare container of one DO. | Cloudflare runtime, through the DO |
-| Start record | `{ image, agent }` in DO storage, so `GET` can answer after a DO restart. | the DO |
-| Bridge token | The secret `BRIDGE_TOKEN`. | the deployer |
-| Agent stream | One WS from the host to port 1024 of the container. | the host and the agent; the bridge only forwards the upgrade |
+| Container | The one container of one DO. | the Cloudflare runtime, through `ContainerApi` |
+| `ContainerApi` | The trait for the container: running, start, destroy, signal, wait, port fetch. | defined in `shared::cloudflare`; implemented in `cloudflare/` and by a fake |
+| DO storage | The key-value store of one DO. | `DoStorage` trait; the DO |
+| Stored record | The sandbox record under the key `sandbox`. | `DoRecordStore` |
+| Idle deadline | The time after which an unused sandbox stops. Key `idle_deadline_ms`. | `DoControlPlane` |
+| Alarm | The DO's one timer. | `DoAlarm` trait |
+| Index | The list of sandboxes of the Worker. | feature 08 (an index DO); written here through `SandboxIndex` trait |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
-| authorise | entity | every request but health | Compares the bearer token in constant time. |
-| start | entity | `PUT` | `container.start(..)` when not running; stores the start record; sets the inactivity time-out. |
-| info | entity | `GET` | Reads `container.running` and the start record. |
-| forward | entity | agent or port request | `container.getTcpPort(port).fetch(request)`. |
-| destroy | entity | `DELETE` | `container.destroy()` when running; clears the start record. |
+| launch | story | `create` | Start the container; return the substrate. |
+| attach | entity | restore | Give a substrate for a running container, or none. |
+| fetch call | entity | each RPC | One port `fetch`; maps "not listening" to a transport error. |
+| restore | story | first request of a DO instance | Load the record; attach; rebuild the manager state. |
+| touch | entity | each request | Move the idle deadline; set the alarm. |
+| on alarm | story | the alarm | Stop when idle; else set the alarm again. |
+| handle | entity | a request | Route to `ControlService`. |
 
-**Words.** *Bridge*: the Worker. *Sandbox* (here): one name, one DO, one container. *Agent
-stream*: the WS that carries agent frames. *Port proxy*: forwarding of a normal HTTP request
-to a container port.
+**Words.** *One DO, one sandbox*: a DO instance holds a `SandboxManager` with room for one
+sandbox, and its ID is the DO's name. *Not listening*: the container runs and no process
+accepts on the port yet.
 
-## C. Rules
+## 4. Rules
 
-### Law worksheet
+### 4.1 Law worksheet
 
 ```
-Entity: Sandbox DO / container
-Conserved value:         at most one container for each name
-Bound:                   name matches the pattern; request body of PUT <= 64 KiB
+Entity: Container (through the driver)
+Conserved value:         one container for each DO; after cleanup, running is false
+Bound:                   none
 Inverse pairs:           start / destroy
-Idempotent verbs:        start (a second PUT with the same body changes nothing and returns 200);
-                         destroy (a second DELETE returns 204); info
-Ordering pairs:          start -> forward (enabling); destroy / forward (competing: after destroy, forward gives 409)
+Idempotent verbs:        destroy on a container that does not run; cleanup; attach
+Ordering pairs:          start -> fetch (enabling); destroy / fetch (competing: after destroy, fetch fails)
 Monotone values:         none
-Freeze points:           image and agent flag of a running container (a PUT with a different image gives 409 image_mismatch)
-Links to other entities: SandboxInfo.running == container.running
+Freeze points:           entry point, environment and internet flag at start
+Links to other entities: stored record exists <=> the sandbox is Creating, Ready or Stopping
 
-Entity: Agent stream
-Conserved value:         bytes in = bytes out, in both directions (the bridge changes nothing)
-Bound:                   none in the bridge
+Entity: Stored record
+Conserved value:         the record in storage = the manager's record, after each state change
+Bound:                   one record for each DO
+Inverse pairs:           put / remove
+Idempotent verbs:        remove of a missing record
+Ordering pairs:          put(Creating) -> put(Ready) -> remove
+Monotone values:         state, as in feature 02
+Freeze points:           id (= the DO name), spec
+Links to other entities: the index has an entry <=> the record exists
+
+Entity: Idle deadline
+Conserved value:         none
+Bound:                   deadline = last request time + idle_timeout
 Inverse pairs:           none
-Idempotent verbs:        none
-Ordering pairs:          byte order is kept
+Idempotent verbs:        on alarm, when the deadline is in the future (only sets the alarm again)
+Ordering pairs:          touch / on alarm (competing: a touch before the alarm moves the deadline)
+Monotone values:         the deadline never moves back
+Freeze points:           none
+Links to other entities: an in-flight streaming call keeps the deadline in the future
+
+Entity: Restore (story)
+Conserved value:         after restore: the manager has the sandbox <=> the container runs and the slave answers Info with prepared true
+Bound:                   time <= rpc_timeout
+Inverse pairs:           none
+Idempotent verbs:        restore (a second call does nothing)
+Ordering pairs:          restore -> every request (enabling)
 Monotone values:         none
 Freeze points:           none
-Links to other entities: at most one host at a time (the agent enforces it; a second upgrade gets 409 from the agent)
+Links to other entities: a record with no running container is removed from storage and from the index
 ```
 
-### Invariants
+### 4.2 Invariants
 
 | # | Invariant |
 |---|---|
-| I1 | Every path but `/v1/health` needs a valid bearer token. The check is constant-time, and a failure tells the caller nothing more than 401. |
-| I2 | A name that does not match the pattern never reaches a DO. |
-| I3 | One name has at most one container. Two `PUT` calls at the same time start one. |
-| I4 | The bridge does not read or change the bytes of the agent stream. Its source has no agent frame name. |
-| I5 | `PUT` and `DELETE` are safe to repeat. |
-| I6 | An image key that is not in `container.images` gives 400 `unknown_image`; nothing starts. |
-| I7 | A running container keeps its image. A `PUT` that names another image gives 409 `image_mismatch`. |
-| I8 | Every error answer is JSON `ErrorBody` with a code from the table in section 4. |
-| I9 | The agent, on `ws-listen`, serves one host at a time and answers a second upgrade with 409. |
+| I1 | One DO holds at most one sandbox, and its ID is the DO name. A second `Create` fails with `TooManySessions`. |
+| I2 | The container starts with the entry point `["/usr/local/bin/agent-slave", "--listen", "tcp:0.0.0.0:1024"]`, with only the environment that the driver sets, and with `enable_internet` equal to `network == Host`. |
+| I3 | Every slave call is one port `fetch`. No call needs a streamed request body. |
+| I4 | A `fetch` that fails because the container is not listening is a transport error, so the readiness wait of feature 02 tries again. Any other `fetch` error is not hidden. |
+| I5 | A failed `create` destroys the container and leaves no record in storage and no index entry. |
+| I6 | After `Stopped`: the container does not run, storage has no record, the index has no entry, and no alarm is set. |
+| I7 | After a DO restart, the first request restores the sandbox when the container runs and the slave is prepared; if not, it removes the record and answers `NotFound`. |
+| I8 | A sandbox with no request for `idle_timeout` stops. A request before that moves the deadline. A running streaming call counts as use. |
+| I9 | The logic of this feature (driver, transport, store, idle, handler) compiles and passes its tests on a native host with fakes; only `src/cloudflare/` names a `worker` type. |
+| I10 | The driver accepts only `RootFs::ContainerImage(name)` with `name` equal to the configured image name, the default `vcpus` and `memory_mib`, no mounts, and `RootMode::Overlay`. Each other value is rejected before the container starts. |
 
-### Must have
+### 4.3 Must have
 
-- The six routes of section 4.
-- The agent transport `ws-listen:<port>`.
-- The default image with the agent as its entry point.
+- `ContainerApi`, `DoStorage`, `DoAlarm`, `SandboxIndex` traits and `CloudflareHost`.
+- `CloudflareContainerDriver`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane`.
+- The `worker` implementations in `src/cloudflare/`.
+- The `attach` implementation of this driver, and the use of `restore` and `IdSource`
+  (section 6.7).
 
-### Must do
+### 4.4 Must do
 
-- Set the container inactivity time-out on each start.
-- Report "not listening" as its own error, so the host can retry.
+- Report the container's exit through `SubstrateHandle::exited` (`wait_for_exit`).
+- Keep the stored record equal to the manager's record on each state change.
 
-### Must not
+### 4.5 Must not
 
-- Must not put a token, an environment value or a request body in a log line.
-- Must not use a Cloudflare call that the sources do not prove (section 2).
-- Must not keep state outside the DO.
+- Must not use a Cloudflare call that is not in the `worker` crate version of this
+  workspace (section 6.1).
+- Must not keep sandbox state only in DO memory.
+- Must not start a container in `restore`.
 
-## D. Acceptance scenarios
+## 5. Acceptance scenarios
+
+All run on a native host with `FakeContainer`, `MemoryDoStorage`, `FakeAlarm`, a
+`SimulatedClock` and a `ScriptedSlave` behind the fake container's port.
 
 ```gherkin
-Feature: Cloudflare bridge Worker
+Feature: Cloudflare control plane
 
-  Background:
-    Given the bridge runs in wrangler dev with BRIDGE_TOKEN "test"
+  Scenario: Create starts the container with the slave
+    When the DO control plane handles Create with RootFs::ContainerImage("sandbox")
+    Then the fake container got start with the slave entry point and enable_internet false
+    And the progress values are Preparing, SubstrateStarted, SlaveConnected, SlaveReady
+    And storage has the record with state Ready
+    And the index has the sandbox
 
-  Scenario: Health needs no token
-    When GET /v1/health is sent with no Authorization header
-    Then the status is 200 and the body has a version
+  Scenario: The slave is reached with port fetches
+    Given a ready sandbox
+    When the caller runs ["echo", "hi"]
+    Then every slave call was a fetch to port 1024
+    And the result is stdout "hi\n", code 0
 
-  Scenario: Everything else needs the token
-    When GET /v1/sandboxes/a is sent with no token
-    Then the status is 401
-    When it is sent with the token "wrong"
-    Then the status is 401
+  Scenario: Not listening means try again
+    Given a container whose port answers "the container is not listening" 3 times and then works
+    When the DO control plane handles Create
+    Then Create succeeds
+    And Info was fetched 4 times, with waits of 5, 10 and 20 ms
 
-  Scenario: A bad name is refused
-    When PUT /v1/sandboxes/Bad_Name is sent with the token
-    Then the status is 400 and the code is bad_request
+  Scenario: Another fetch error is not hidden
+    Given a container whose port fetch fails with "internal error"
+    When the clock passes boot_timeout
+    Then the result is BootTimeout { stage: "slave" }
+    And the container got destroy
+    And storage has no record and the index has no entry
 
-  Scenario: Start, inspect, destroy
-    When PUT /v1/sandboxes/a is sent with image "sandbox" and agent true
-    Then the status is 200 and running is true
-    When GET /v1/sandboxes/a is sent
-    Then running is true and image is "sandbox"
-    When DELETE /v1/sandboxes/a is sent
-    Then the status is 204
-    When GET /v1/sandboxes/a is sent
-    Then running is false
+  Scenario: A wrong image name is refused before start
+    When the DO control plane handles Create with RootFs::ContainerImage("other")
+    Then the result is UnsupportedRootFs
+    And the container did not start
 
-  Scenario: Start is safe to repeat
-    When PUT /v1/sandboxes/a is sent two times with the same body
-    Then both answers are 200
-    And one container exists
+  Scenario: Host network turns the internet flag on
+    When the DO control plane handles Create with NetworkMode::Host
+    Then the fake container got start with enable_internet true
 
-  Scenario: An unknown image starts nothing
-    When PUT /v1/sandboxes/a is sent with image "nope"
-    Then the status is 400 and the code is unknown_image
-    And GET /v1/sandboxes/a shows running false
+  Scenario: One DO holds one sandbox
+    Given a ready sandbox
+    When the DO control plane handles Create again
+    Then the result is TooManySessions
 
-  Scenario: A running sandbox keeps its image
-    Given sandbox a runs the image "sandbox"
-    When PUT /v1/sandboxes/a is sent with image "http-test"
-    Then the status is 409 and the code is image_mismatch
+  Scenario: A restarted DO finds its sandbox
+    Given a ready sandbox
+    When the DO control plane object is dropped and a new one is built on the same storage and container
+    And the caller runs ["echo", "again"]
+    Then the result is stdout "again\n"
+    And the container did not start a second time
+    And the slave did not get a second Prepare
 
-  Scenario: The agent stream carries the agent's own bytes
-    Given sandbox a runs with agent true
-    When the host opens the agent WS and sends the 8 preface bytes
-    Then the host receives the 8 preface bytes of the agent
+  Scenario: A restarted DO with a dead container forgets the sandbox
+    Given a stored record with state Ready and a container that does not run
+    When a new DO control plane handles Get
+    Then the result is NotFound
+    And storage has no record and the index has no entry
 
-  Scenario: The agent stream is not open before the agent listens
-    Given sandbox a was started less than 50 ms ago
-    When the host asks for the agent WS
-    Then the status is 101, or 409 with the code not_listening
+  Scenario: An idle sandbox stops
+    Given a ready sandbox and idle_timeout 10 minutes
+    When the clock moves 10 minutes and the alarm fires
+    Then the sandbox is stopped and the container got destroy
+    And no alarm is set
 
-  Scenario: Only one host talks to the agent
-    Given one open agent WS for sandbox a
-    When a second agent WS is requested
-    Then the status is 409
+  Scenario: A request moves the idle deadline
+    Given a ready sandbox and idle_timeout 10 minutes
+    When a request arrives after 9 minutes and the alarm fires at 10 minutes
+    Then the sandbox is still Ready
+    And the alarm is set for minute 19
 
-  Scenario: Destroy closes the stream
-    Given one open agent WS for sandbox a
-    When DELETE /v1/sandboxes/a is sent
-    Then the WS closes
+  Scenario: A streaming call keeps the sandbox alive
+    Given a command that runs for 15 minutes with an open event stream
+    When the alarm fires at 10 minutes
+    Then the sandbox is still Ready
 
-  Scenario: A port is reachable through the bridge
-    Given sandbox b runs the image "http-test" with a server on port 8080
-    When GET /v1/sandboxes/b/ports/8080/hello is sent
-    Then the answer is the server's own answer for /hello
+  Scenario: Stop removes everything
+    When the caller stops a ready sandbox
+    Then the slave got Shutdown
+    And the container got destroy
+    And storage has no record, the index has no entry, and no alarm is set
 
-  Scenario: A stopped sandbox has no agent stream
-    Given sandbox c does not run
-    When the host asks for the agent WS
-    Then the status is 409 and the code is not_running
+  Scenario: A container that exits makes the sandbox Failed
+    Given a ready sandbox
+    When the fake container's wait_for_exit completes
+    Then the state becomes Failed and then Stopped
+    And storage has no record
 ```
 
-## 2. Facts from the Cloudflare sources
+## 6. Technical breakdown
 
-Sources: `github.com/cloudflare/sandbox-sdk` at `61cac81`, `github.com/cloudflare/containers`
-at `a17055c` (`learnings.md` section 4).
+### 6.1 Facts
 
 | Fact | Source |
 |---|---|
-| A DO with a container uses `this.ctx.container`. | `sandbox-sdk/README.md` |
-| `container.running` is a boolean. | `containers/src/lib/container.ts`, lines 561 and 940 |
-| `container.start({ image, instance, enableInternet, env, entrypoint, labels })`. `image` is `container.images.<key>`. `instance` is an instance type such as `"lite"`. | `sandbox-sdk/examples/minimal/src/index.ts`, lines 64 to 68; `containers/src/lib/container.ts`, lines 498 to 500 and 781 |
-| `container.setInactivityTimeout(milliseconds)` returns a promise. | `sandbox-sdk/examples/artifact-workspace/src/index.ts`, lines 47 and 108 |
-| `container.destroy()` returns a promise. `container.signal(number)` sends a signal. `container.monitor()` returns a promise that settles when the container exits. | `containers/src/lib/container.ts`, lines 590, 990 and 1000 |
-| `container.getTcpPort(port).fetch(request)` sends an HTTP request to a container port. It streams bodies and carries WS connections. | `sandbox-sdk/docs/architecture.md`, "Adding to the public API" |
-| A `fetch` to a port that nobody listens on throws an error whose message contains `the container is not listening`. | `containers/src/lib/container.ts`, line 27 (`NOT_LISTENING_ERROR`) and lines 927 to 950 |
-| `wrangler.jsonc` declares `containers[]` with `class_name`, `scheduling_policy: "durable_object"`, `images.<key>.dockerfile`; a DO binding; `exports.<class>` with `storage: "sqlite"`. | `sandbox-sdk/examples/minimal/wrangler.jsonc` |
-| `wrangler dev` runs the container with Docker on the local machine. | `sandbox-sdk/docs/testing.md` |
+| The workspace uses `worker` 0.8.5 (Rust Workers). | `Cargo.lock` |
+| `State::container() -> Option<Container>`. | `worker-0.8.5/src/durable.rs`, line 258 |
+| `Container::running() -> bool`, `start(Option<ContainerStartupOptions>) -> Result<()>`, `wait_for_exit()`, `destroy(Option<&str>)`, `signal(i32)`, `get_tcp_port(u16) -> Result<Fetcher>`. | `worker-0.8.5/src/container.rs`, lines 13 to 41 |
+| `ContainerStartupOptions` has `entrypoint`, `enable_internet`, `env`. It has no image and no instance type. | the same file, lines 86 to 112 |
+| `Fetcher::fetch` and `fetch_request` send an HTTP request and give a response with a streamed body. | `worker-0.8.5/src/fetcher.rs`, lines 23 and 48 |
+| A port `fetch` before a process listens fails with an error whose text contains `the container is not listening`. | `cloudflare/containers`, `src/lib/container.ts`, line 27 |
+| The image of a container class is set in the Worker configuration (`containers[].image`), not at start. | `cloudflare/containers`, `examples/core-tests/wrangler.jsonc` |
+| The repository serves HTTP in a Worker with `foundation_http::wasm` (`CfHttpAppSingleton`, `serve_cf::CfServe`, `dispatch`), and has a Rust DO (`foundation_keychain/src/server/signalr_do.rs`). | those files; `examples/cf-agent-loop/src/lib.rs` |
+| The Connect client transport for `fetch` is a capability constant only today (`WASM_FETCH_CAPABILITIES`: no request streaming, no full duplex). | `foundation_connectrpc/src/shared/transport/wasm.rs` |
 
-No source shows a raw TCP socket from a DO to a container port. Every use of `getTcpPort` in
-both repositories calls `.fetch`. So this design uses `.fetch` only: the agent is a WS
-server, and the DO forwards the upgrade request.
+### 6.2 Files
 
-## 3. The agent transport `ws-listen`
-
-This is a change to `bin/sandbox_agent` (feature 01), done in this feature.
-
-`--transport ws-listen:<port>` is the third transport. It plugs into the transport seam of
-feature 01, and it returns `AcceptNext` when a connection ends (feature 01, section 9).
-
-| Step | Behaviour |
-|---|---|
-| Listen | Bind `0.0.0.0:<port>`, non-blocking, on the shared reactor. |
-| Accept | Read one HTTP request. Use the WS server of `foundation_netio` (`websocket::native::server::WebSocketUpgrade` and `WebSocketServerConnection`); do not write a second WS codec. |
-| Upgrade | A valid `GET` with `Upgrade: websocket` and no open host: answer 101. From here the WS is the agent byte stream. |
-| Busy | A request while a host is connected: answer `409 Conflict` with the body `agent busy`, and close. |
-| Not an upgrade | Any other request: answer `400 Bad Request`, and close. |
-| Read | Each binary message is a chunk of the byte stream. A message is not a frame boundary; the frame decoder gets the bytes in order. A text message is a protocol error: close with WS code 1003. |
-| Write | The writer task sends each agent frame as one binary message. One message is at most `max_frame_payload + 10` bytes. |
-| Ping | Answer a WS ping with a pong. Send no ping. |
-| Close | A WS close or a TCP end is stream loss (feature 01, section 9): kill the programs, discard the channels, accept the next host. |
-
-The agent adds the dependency `foundation_netio` with `default-features = false` and only
-the feature that the WS server needs. The verify step builds both musl targets; a part of
-`foundation_netio` that does not compile for musl is fixed in the same change (`severity:
-high`, it blocks this feature).
-
-## 4. HTTP API of the bridge
-
-All requests but health need the header `Authorization: Bearer <token>`. The token is the
-Worker secret `BRIDGE_TOKEN`. The Worker compares SHA-256 digests of the two values with
-`crypto.subtle.timingSafeEqual`.
-
-| Method and path | Body | Result |
+| File | Target | Content |
 |---|---|---|
-| `GET /v1/health` | none | 200 `{"version": "<bridge version>"}`. No token. |
-| `PUT /v1/sandboxes/{name}` | `StartRequest` | 200 `SandboxInfo`. |
-| `GET /v1/sandboxes/{name}` | none | 200 `SandboxInfo`. |
-| `DELETE /v1/sandboxes/{name}` | none | 204. |
-| `GET /v1/sandboxes/{name}/agent` with `Upgrade: websocket` | none | 101 from the agent, or an error. |
-| `ANY /v1/sandboxes/{name}/ports/{port}/{path...}` | any | The container's answer. The bridge sends the method, the rest of the path, the query, the headers (without `Authorization`) and the streamed body. |
+| `src/shared/cloudflare/mod.rs` | all | The traits, `CloudflareHost`, `CloudflareConfig`. |
+| `src/shared/cloudflare/driver.rs` | all | `CloudflareContainerDriver`, its handle. |
+| `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
+| `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
+| `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
+| `src/shared/cloudflare/testing.rs` | feature `testing` | `FakeContainer`, `MemoryDoStorage`, `FakeAlarm`, `MemoryIndex`. |
+| `src/cloudflare/mod.rs` | wasm32, feature `cloudflare` | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state(state)`. |
 
-```ts
-type StartRequest = {
-  image: string;                    // a key of container.images
-  enable_internet: boolean;
-  env?: Record<string, string>;     // passed as start({ env })
-  entrypoint?: string[];            // passed as start({ entrypoint }); omit to use the image entry point
-  instance?: string;                // passed as start({ instance }); default "lite"
-  inactivity_timeout_ms?: number;   // default 600000 (10 minutes, the default sleepAfter of @cloudflare/containers)
-  agent: boolean;                   // true: the image runs the agent on port 1024
-};
-type SandboxInfo = { name: string; running: boolean; image: string | null; agent: boolean };
-type ErrorBody = { error: { code: string; message: string } };
-```
+The `shared/cloudflare/` code has no target gate (`.agents` rule: platform-agnostic code is
+in `shared/`). It uses only the traits below.
 
-| Code | Status | When |
-|---|---|---|
-| `unauthorized` | 401 | Missing or wrong token. |
-| `bad_request` | 400 | Bad name, bad JSON, body above 64 KiB, port not 1 to 65535, `agent` path on a sandbox started with `agent: false`. |
-| `unknown_image` | 400 | `image` is not a key of `container.images`. |
-| `image_mismatch` | 409 | The container runs with another image or agent flag. |
-| `not_running` | 409 | Agent or port request, and `container.running` is false. |
-| `not_listening` | 409 | `fetch` threw an error that contains `the container is not listening`. |
-| `container_failed` | 502 | `start` or `fetch` threw another error. The message is the error text, cut to 1024 characters. |
-| `internal` | 500 | Any other exception. |
+### 6.3 The traits
 
-`message` never has the token or an environment value.
+```rust
+/// The container of one DO. Mirrors `worker::Container`.
+pub trait ContainerApi: Send + Sync + 'static {
+    fn running(&self) -> bool;
+    fn start(&self, options: ContainerStart) -> SandboxResult<()>;
+    fn destroy(&self) -> BoxFuture<'_, SandboxResult<()>>;
+    fn signal(&self, signo: i32) -> SandboxResult<()>;
+    fn wait_for_exit(&self) -> BoxFuture<'_, SandboxResult<()>>;
+    fn fetch(&self, port: u16, request: PortRequest) -> BoxFuture<'_, Result<PortResponse, PortError>>;
+}
+pub struct ContainerStart { pub entrypoint: Vec<String>, pub enable_internet: bool, pub env: Vec<(String, String)> }
+pub struct PortRequest { pub method: String, pub path: String, pub headers: Vec<(String, String)>, pub body: Vec<u8> }
+pub struct PortResponse { pub status: u16, pub headers: Vec<(String, String)>, pub body: BoxByteStream }
+pub enum PortError { NotListening, Other(String) }   // Other text is cut to max_error_message
 
-### 4.1 Fault table: `PUT /v1/sandboxes/{name}`
+pub trait DoStorage: Send + Sync + 'static {
+    fn get(&self, key: &str) -> BoxFuture<'_, SandboxResult<Option<Vec<u8>>>>;
+    fn put(&self, key: &str, value: Vec<u8>) -> BoxFuture<'_, SandboxResult<()>>;
+    fn delete(&self, key: &str) -> BoxFuture<'_, SandboxResult<()>>;
+}
+pub trait DoAlarm: Send + Sync + 'static {
+    fn set(&self, at_unix_ms: u64) -> BoxFuture<'_, SandboxResult<()>>;
+    fn clear(&self) -> BoxFuture<'_, SandboxResult<()>>;
+}
+/// The Worker-wide list of sandboxes. Feature 08 implements it on an index DO.
+pub trait SandboxIndex: Send + Sync + 'static {
+    fn put(&self, info: SandboxInfo) -> BoxFuture<'_, SandboxResult<()>>;
+    fn remove(&self, id: &SandboxId) -> BoxFuture<'_, SandboxResult<()>>;
+}
 
-| Step that fails | What the bridge does | What the caller sees | What is left behind |
-|---|---|---|---|
-| Token check | Stops. | 401 | nothing |
-| Name or body check | Stops. | 400 | nothing |
-| Image lookup | Stops. | 400 `unknown_image` | nothing |
-| Running with another image | Stops. | 409 `image_mismatch` | the first container, unchanged |
-| `container.start` throws | Clears the start record. | 502 `container_failed` | nothing |
-| `setInactivityTimeout` throws | Calls `container.destroy()`; clears the start record. | 502 `container_failed` | nothing |
-
-Two `PUT` calls at the same time: the DO runs them one after the other (a DO handles one
-event at a time while it awaits storage; the start path is inside
-`ctx.blockConcurrencyWhile`). The second finds `running` true and returns 200.
-
-### 4.2 Fault table: agent and port forward
-
-| Step that fails | What the bridge does | What the caller sees | What is left behind |
-|---|---|---|---|
-| `container.running` is false | Stops. | 409 `not_running` | nothing |
-| `fetch` throws "not listening" | Stops. | 409 `not_listening` | the container, still starting |
-| `fetch` throws another error | Stops. | 502 `container_failed` | the container (the host decides to destroy) |
-| The agent answers 409 (busy) | Passes it through. | 409 with the body `agent busy` | the first stream, unchanged |
-
-## 5. The DO
-
-```ts
-export class Sandbox extends DurableObject<Env> {
-  async start(req: StartRequest): Promise<SandboxInfo>;   // inside blockConcurrencyWhile
-  async info(): Promise<SandboxInfo>;
-  async destroy(): Promise<void>;
-  async forward(port: number, request: Request): Promise<Response>;  // getTcpPort(port).fetch(request)
+#[derive(Clone)]
+pub struct CloudflareHost {
+    pub container: Arc<dyn ContainerApi>,
+    pub storage: Arc<dyn DoStorage>,
+    pub alarm: Arc<dyn DoAlarm>,
+    pub index: Arc<dyn SandboxIndex>,
+    pub config: Arc<CloudflareConfig>,
+}
+pub struct CloudflareConfig {
+    pub image_name: String,              // default "sandbox": the name a spec must use
+    pub slave_port: u16,                 // default 1024
+    pub slave_path: String,              // default "/usr/local/bin/agent-slave"
+    pub idle_timeout: Duration,          // default 10 minutes: the default sleepAfter of @cloudflare/containers
 }
 ```
 
-- `start` reads the start record. Running with the same image and agent flag: return the
-  info. Running with another: `image_mismatch`. Not running: look up
-  `container.images[req.image]`, call `container.start(..)`, then
-  `container.setInactivityTimeout(..)`, then store the record.
-- `forward` for the agent path builds a new `Request` to `http://container/` that keeps the
-  upgrade headers, and returns the `Response` of `fetch` as it is. The 101 response carries
-  the WS; the Worker runtime joins the two ends.
-- `forward` for a port path builds a `Request` to `http://container/<rest>?<query>`.
-- The Worker entry (`src/index.ts`) does the token check, the name check and the routing:
-  `env.SANDBOX.getByName(name)`.
+`WorkerContainer::fetch` maps an error whose text contains `the container is not listening`
+to `PortError::NotListening`, and every other error to `PortError::Other`. That text match
+is in one function with a test (the text is from the Cloudflare source in section 6.1; if
+Cloudflare changes it, readiness then waits until `boot_timeout` and fails with the real
+error text in the message, so the failure is visible).
 
-Each request renews the inactivity time-out (`setInactivityTimeout` again). An open agent WS
-counts as activity for the runtime. A container that Cloudflare stops for inactivity looks
-like `running: false`; the host sees `not_running` or a closed stream and reports
-`SandboxStopped` (feature 09).
+### 6.4 `CloudflareContainerDriver`
 
-## 6. Files
+Capabilities: `rootfs_container_image: true`, the other `rootfs_*` false,
+`root_modes: [Overlay]`, `host_mounts: false`, `network_host: true`, `max_vcpus: 1`.
 
-`infrastructure/sandbox_bridge/`:
+`probe`: one check, `container_binding`: ok when the DO has a container
+(`CloudflareHost` exists). No call to the platform.
 
-| File | Content |
+`launch(ctx, id, spec)` is a small `#[task]`:
+
+| State | Work | Emits | Next |
+|---|---|---|---|
+| `Check` | `RootFs::ContainerImage(name)` with `name == config.image_name` (`UnsupportedRootFs`). `vcpus == 1` and `memory_mib == 512` (`InvalidSpec` with the message "set the instance type in the Worker configuration"). `container.running()` must be false (`TooManySessions`). | `Pending(Preparing)` | `Start` |
+| `Start` | `container.start(ContainerStart { entrypoint: [slave_path, "--listen", "tcp:0.0.0.0:<slave_port>"], enable_internet: spec.network == Host, env: [] })`. | `Pending(SubstrateStarted)`, then `Ready(Ok(substrate))` | `Done` |
+
+The substrate: `endpoint: CloudflarePort { port }`,
+`root: RootSetup { source: Plain, mode: Overlay }`, no mounts, and a handle:
+
+| Handle method | Work |
 |---|---|
-| `wrangler.jsonc` | Worker name `ewe-sandbox-bridge`; the DO class `Sandbox` with SQLite storage; the container declaration with the images `sandbox` and `http-test`; compatibility date `2026-09-02`. The shape is `sandbox-sdk/examples/minimal/wrangler.jsonc`. |
-| `src/index.ts` | The fetch handler. |
-| `src/sandbox.ts` | The DO class. |
-| `src/config.ts` | The limits in one object, each with the source of its default in a comment: PUT body 64 KiB, name pattern, agent port 1024, default inactivity time-out, default instance type. |
-| `images/sandbox/Dockerfile` | `FROM alpine:3.22`; `COPY sandbox-agent /usr/local/bin/sandbox-agent`; `CMD ["/usr/local/bin/sandbox-agent", "--transport", "ws-listen:1024"]`. |
-| `images/http-test/Dockerfile` | `FROM alpine:3.22`; a `busybox httpd -f -p 8080` entry point with one file. For the port test only. |
-| `package.json`, `tsconfig.json` | `wrangler` and TypeScript as development dependencies. No run-time dependency. |
-| `README.md` | How to deploy (`npx wrangler deploy`), how to set the token (`npx wrangler secret put BRIDGE_TOKEN`), how to add an image. |
+| `exited()` | `container.wait_for_exit()`; `SubstrateExit { code: None, signal: None, forced: false }` (the platform gives no code). |
+| `terminate(grace)` | Await the first of the exit and a timer of `grace`; then `destroy()`. `forced` is true when the timer won. |
+| `kill()` | `destroy()`; `forced: true`. |
+| `log_tail(max)` | Empty. The platform gives no log through this API; the error message says "see the Worker logs". |
+| `cleanup()` | `destroy()` when `running()`. |
 
-Cloudflare containers are `linux/amd64`. The image needs the
-`x86_64-unknown-linux-musl` agent. A `mise` task `sandbox:bridge-image` builds the agent and
-copies it to `images/sandbox/`.
+A failed `start` returns `SubstrateApi { status: 0, message }` with the platform's text.
+
+`attach(ctx, record)` (section 6.7): `Ok(Some(substrate))` when `container.running()`, with
+the same endpoint and handle; `Ok(None)` when it does not run.
+
+### 6.5 `ContainerPortTransport`
+
+Implements `foundation_connectrpc::shared::transport::Transport`
+(`shared/transport/base.rs`):
+
+- `capabilities()` returns `WASM_FETCH_CAPABILITIES`. So the client refuses a call that
+  needs a streamed request, before it sends (`check_compatible`).
+- `open(request)`: collect the request body from `send_body` (the calls of both services
+  send one message, at most `max_message_bytes`); call
+  `container.fetch(port, PortRequest { method: "POST", path, headers, body })`; publish the
+  response head from `status` and `headers`; pump `body` chunks to `recv_body`; no
+  trailers. The pump is a task started with `execute(from_future(..))`.
+- `PortError::NotListening` and `PortError::Other` both become a `TransportError` before
+  the head; the first has the text `not listening`.
+- A unary call has the time-out `rpc_timeout` from the `Ctx` clock (a race with a timer).
+
+`PortConnector` is the `SlaveConnector` for a DO: `CloudflarePort { port }` gives a
+`ContainerPortTransport`; every other endpoint gives `InvalidSpec { field: "endpoint" }`.
+
+If feature 05 of spec 65 lands a general `WasmFetchTransport` in `foundation_connectrpc`
+first, this type uses its body pump. It does not wait for it: the pump is about 80 lines.
+
+### 6.6 `DoRecordStore` and `DoControlPlane`
+
+`DoRecordStore` implements `RecordStore` (feature 02, section 6.8): `put` writes the record
+as JSON under the key `sandbox` and calls `index.put(info)`; `remove` deletes the key,
+calls `index.remove(id)` and `alarm.clear()`; `list` returns the one record or none. An
+index error is logged and does not fail the call (the index is a view; section 6.8).
+
+```rust
+pub struct DoControlPlane { /* ctx, host, manager, service, restored flag */ }
+
+impl DoControlPlane {
+    /// `id` is the DO name. Builds a SandboxManager with one driver, PortConnector,
+    /// DoRecordStore, max_sandboxes 1 and IdSource::Fixed(id).
+    pub fn new(ctx: Ctx, host: CloudflareHost, id: SandboxId, limits: SandboxLimits) -> Self;
+
+    /// Handles one HTTP request to this DO: restore (first time), touch, then the
+    /// SandboxService router.
+    pub async fn handle(&self, request: HttpRequestParts) -> HttpResponseParts;
+
+    /// The DO alarm.
+    pub async fn on_alarm(&self);
+}
+```
+
+`handle`:
+
+1. `restore()` when it did not run yet in this object (section 6.7).
+2. `touch()`: `deadline = now + idle_timeout`; `storage.put("idle_deadline_ms", ..)`;
+   `alarm.set(deadline)`. A streaming response holds a guard; while a guard exists, a timer
+   task calls `touch()` every `idle_timeout / 2`.
+3. Route the request to `ControlService` (feature 06) through a
+   `foundation_connectrpc` `Router`. `HttpRequestParts` and `HttpResponseParts` are the
+   request and response types that `foundation_http::wasm` uses for a Worker
+   (`examples/cf-agent-loop/src/lib.rs` shows the wiring); on a native host the tests call
+   the router through the pipe connection types.
+
+`on_alarm`: read `idle_deadline_ms`. `now >= deadline` and a sandbox exists: `stop()`.
+`now < deadline`: `alarm.set(deadline)`. No sandbox: `alarm.clear()`.
+
+### 6.7 What this feature uses from features 00 and 02
+
+- `SandboxDriver::attach` (feature 00, section 6.8): this driver returns
+  `Ok(Some(substrate))` when `container.running()`, else `Ok(None)`.
+- `IdSource::Fixed(id)` and `max_sandboxes: 1` (feature 02, section 6.2): the DO's manager
+  holds one sandbox, named as the DO.
+- `SandboxManager::restore` (feature 02, section 6.2): `DoControlPlane::handle` calls it
+  one time for each DO object, before the first request.
+
+### 6.8 The index is a view
+
+The index (feature 08) holds a copy of each sandbox's `SandboxInfo` for `List`. The truth
+is each DO's own record. An index entry with no live DO is possible when an index call
+failed; `List` in feature 08 removes an entry whose DO answers `NotFound`.
+
+### 6.9 Fault table: `Create` in a DO
+
+| Step that fails | What the control plane does | What the caller sees | What is left behind |
+|---|---|---|---|
+| Driver check | Nothing started. | `UnsupportedRootFs`, `InvalidSpec`, `TooManySessions` | nothing |
+| `storage.put(Creating)` | Removes the manager record. | `Io { op: "do storage" }` | nothing |
+| `container.start` | Removes the record. | `SubstrateApi` | nothing |
+| The slave does not answer until `boot_timeout` | `destroy`; removes the record. | `BootTimeout { stage: "slave" }` | nothing |
+| The container exits during the wait | Removes the record. | `SubstrateExited` | nothing |
+| `Prepare` fails | `destroy`; removes the record. | the `SlaveError` | nothing |
+| The DO is removed from memory during `Create` | The next request runs `restore`: a `Creating` record is cleaned up (`destroy`) and removed. | the first caller's stream ends with a transport error; a later `Get` gives `NotFound` | nothing |
 
 ## 7. Tests
 
-`infrastructure/sandbox_bridge/test/`, run with `wrangler dev` and Docker (specifications
-rule 3: the real local form exists, so no stub). The script `test/run.sh` starts
-`wrangler dev`, saves its PID, waits for `/v1/health`, runs the tests, and stops the process
-by that PID. With `--keep-running` it leaves the process up and prints the PID (feature 09
-uses this).
+`backends/foundation_platform_sandbox/tests/cloudflare_*.rs`, native, features `testing`.
+Each scenario of section 5 is one test.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
-| I1, "Health needs no token", "Everything else needs the token" | `health`, `auth_required` (each route, no token and wrong token) | expected outcome |
-| I2, "A bad name is refused" | `bad_name` (examples: upper case, `_`, 64 characters, empty) | expected outcome |
-| "Start, inspect, destroy" | `start_info_delete` | example |
-| I3, I5, "Start is safe to repeat" | `start_is_idempotent`, `start_concurrent` (two `PUT` at once; `docker ps` shows one container) | expected outcome |
-| I5 | `delete_is_idempotent` | expected outcome |
-| I6, "An unknown image starts nothing" | `unknown_image` | expected outcome |
-| I7, "A running sandbox keeps its image" | `image_mismatch` | expected outcome |
-| I4, "The agent stream carries the agent's own bytes" | `agent_pipe_carries_preface`; `agent_pipe_is_transparent` (10 MiB of random bytes through `cat` in the sandbox, compared by hash) | identity |
-| "The agent stream is not open before the agent listens" | `agent_not_listening_then_ready` (retry until 101; each earlier answer is 409 `not_listening`) | expected outcome |
-| I9, "Only one host talks to the agent" | `agent_pipe_single_client` | expected outcome |
-| "Destroy closes the stream" | `agent_pipe_closes_on_delete` | example |
-| "A port is reachable through the bridge" | `port_proxy` (GET, and a POST with a 1 MiB body that the server echoes) | identity |
-| "A stopped sandbox has no agent stream" | `agent_not_running` | expected outcome |
-| I8 | `errors_are_json` (each error path has an `ErrorBody` with a known code) | expected outcome |
-| I4 | `no_frame_names_in_bridge` (a source scan for `Exec`, `Stdout`, `FrameKind`) | example |
-
-Agent tests for `ws-listen`, in `bin/sandbox_agent/tests/` (Linux, no Docker). They use the
-WS client of `foundation_netio` as the host.
-
-| Scenario | Test |
-|---|---|
-| Upgrade then handshake then `echo` | `ws_listen_exec_echo` |
-| A second upgrade while one host is connected gets 409 | `ws_listen_busy` |
-| A plain `GET` with no upgrade gets 400 | `ws_listen_not_upgrade` |
-| A text message closes with 1003 | `ws_listen_text_message` |
-| Two hosts one after the other | `ws_listen_serves_two_hosts` |
-| A frame split over two messages, and two frames in one message | `ws_listen_message_is_not_a_frame` |
+| I2, "Create starts the container with the slave", "Host network ..." | `create_starts_container` | example |
+| I3, "The slave is reached with port fetches" | `calls_are_port_fetches`; the shared acceptance scenarios with a real slave process behind the fake container's port (`FakeContainer` forwards `fetch` to a UDS HTTP client; Linux only) | example, identity |
+| I4, the two readiness scenarios | `not_listening_retries`, `other_error_times_out`, `not_listening_text_match` | expected outcome |
+| I5, the fault table of section 6.9 | `create_fault_matrix` | fault |
+| I1, "One DO holds one sandbox" | `one_sandbox_per_do` | expected outcome |
+| I10, "A wrong image name ..." | `driver_rejects` (image name, vcpus, memory, mounts, `ReadOnly`) | expected outcome |
+| I7, the two restart scenarios | `restore_live`, `restore_dead_container`, `restore_unprepared_slave`, `restore_creating_record` | expected outcome |
+| I8, the three idle scenarios | `idle_stops`, `touch_moves_deadline`, `stream_keeps_alive`; `idle_model` (stateful: random requests, alarms and clock steps against a model with one deadline) | stateful model |
+| I6, "Stop removes everything" | `stop_removes_all` | conservation |
+| "A container that exits ..." | `container_exit_fails_sandbox` | fault |
+| transport | `transport_refuses_request_streaming` (a client-streaming call fails before a fetch), `transport_streams_response` (a 10 MiB server stream arrives in chunks; the fake counts that it never holds more than 2 chunks) | expected outcome, bound |
+| I9 | the native test run itself, and the wasm check in section 8 | build |
 
 ## 8. Verify
 
 ```bash
-cargo test -p sandbox_agent --profile uat ws_listen
-cargo build -p sandbox_agent --profile agent --target x86_64-unknown-linux-musl
-cd infrastructure/sandbox_bridge
-npm ci
-npx tsc --noEmit
-mise run sandbox:bridge-image
-./test/run.sh
+cargo fmt --all --check
+cargo clippy -p foundation_platform_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_platform_sandbox --features "testing slave" --profile uat cloudflare_ control_sim
+cargo check -p foundation_platform_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
 ```
 
 ## 9. Done when
 
-- Each scenario of section D and each row of section 7 passes.
-- The agent has `ws-listen`, and builds for both musl targets.
-- The bridge uses only the Cloudflare calls of section 2.
-- The bridge source has no agent frame name.
-- The README tells a user how to deploy and how to set the token.
+- Each scenario of section 5 and each row of section 7 passes on a native host.
+- The `cloudflare` feature compiles for wasm32.
+- Only `src/cloudflare/` names a `worker` type.
+- A restarted DO control plane finds its sandbox again (invariant I7).

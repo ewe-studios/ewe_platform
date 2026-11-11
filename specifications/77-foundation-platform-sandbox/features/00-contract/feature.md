@@ -524,6 +524,17 @@ pub trait SandboxDriver: Send + Sync + 'static {
     fn probe(&self, ctx: Ctx) -> BoxFuture<'static, HostReport>;
     /// Starts one substrate. Emits progress, then one result.
     fn launch(&self, ctx: Ctx, id: SandboxId, spec: SandboxSpec) -> LaunchStream;
+    /// Finds the substrate of a stored record again, after the control plane restarted.
+    /// `Ok(None)`: the substrate does not exist any more. A driver whose substrates die
+    /// with the control plane's process returns `Ok(None)` and removes what is left of
+    /// that sandbox on the host.
+    fn attach(&self, ctx: Ctx, record: &StoredRecord) -> BoxFuture<'_, SandboxResult<Option<Substrate>>>;
+}
+
+/// What a control plane keeps about one sandbox outside its memory.
+pub struct StoredRecord {
+    pub id: SandboxId, pub driver: DriverId, pub spec: SandboxSpec,
+    pub state: SandboxState, pub created_unix_ms: u64, pub endpoint: SlaveEndpoint,
 }
 pub type LaunchStream =
     Box<dyn StreamIterator<D = SandboxResult<Substrate>, P = CreateProgress> + Send + 'static>;
