@@ -40,6 +40,7 @@ The primary configuration file for all AI agents (including Claude) has been mov
     | Mechanical edits, search, log reading, file listing, version bumps, formatting, simple one-file fixes | Haiku |
 
     Do the task with the main model only when a brief would cost more tokens than the task itself (for example, a one-line edit). Give each sub-agent a self-contained brief, because it starts with no context. Ask for a short report (a diff, the commands run and their results), not full logs. The goal is the lowest token use that still gives correct, verified work.
+15. **Platform code is tested on its platform** (owner rule 2026-11-11): a crate with macOS-only or Windows-only code (`target_os = "macos"`, `target_vendor = "apple"`, `target_os = "windows"`, `cfg(windows)`) runs its tests on that OS in CI. List the feature sets in `ci/packages.toml` as `macos-runs` or `windows-runs`. A `cargo check` or a cross-compile is not a test. A crate that cannot run its tests on a CI runner sets `macos-tests = "none"` or `windows-tests = "none"` with a `reason`, and the reason names the missing tool or service. The CI plan step fails when a crate has platform code and neither key.
 
 ---
 
