@@ -25,12 +25,174 @@ cache, with a checked hash:
 | Artifact | For | Source |
 |---|---|---|
 | Alpine root directory | libkrun | The Alpine "minirootfs" release archive, unpacked. |
-| Alpine ext4 image | Firecracker | Built from the Alpine root directory. |
+| Ubuntu squashfs image | Firecracker | The Firecracker CI root file system. |
 | Kernel | Firecracker | The Firecracker CI kernel. |
 | Agent initramfs | Firecracker | Built in memory from the agent program. |
 
 Only the Alpine root directory is on the path to M1. An agent can deliver part A first as
 its own PR, then part B.
+
+## A. Story
+
+- **S1**: "A caller asks for a guest file (a kernel, a root file system, an initramfs) and
+  gets a path to a verified copy."
+- **S2**: "A second caller asks for the same file and no download happens."
+- **S3**: "The download is cut, is too large, or has the wrong hash."
+- **S4**: "An archive tries to write outside its target directory, or expands without end."
+- **S5**: "Two processes ask for the same file at the same time."
+
+| # | Use case | Actor | Trigger | Result |
+|---|---|---|---|---|
+| U1 | Get a pinned artifact | backend, test, example | `ensure(spec)` | The path of a ready entry. |
+| U2 | Get the Alpine directory | libkrun user | `alpine_rootfs_dir` | An unpacked tree. |
+| U3 | Get the Firecracker kernel and root | Firecracker user | `firecracker_kernel`, `firecracker_ci_rootfs` | Two verified files. |
+| U4 | Build the agent initramfs | Firecracker backend | `agent_initramfs(agent)` | A `newc` archive with the agent as `/init`. |
+
+## B. Bounded context
+
+**Inside this feature:** the cache of guest files on the host, and the code that fills it.
+
+**Outside:** who uses the files (features 04, 06, 07, 10 to 13); the HTTP client
+(`foundation_netio`); the agent program (feature 01, an input here).
+
+| Entity | Meaning | Owner (the one writer) |
+|---|---|---|
+| Artifact spec | Name, URL, SHA-256, kind. Data. | `artifacts::manifest` (pinned ones); the caller (its own) |
+| Cache entry | A directory `<kind>/<hash prefix>/` with the file or tree and a `.ready` marker. | `ArtifactStore` only |
+| Temporary entry | `<entry>.tmp-<random>`, visible to one build. | the `ensure` call that made it |
+| `newc` archive | The initramfs bytes. | `artifacts::cpio` |
+
+| Verb | Kind | Trigger | Effect |
+|---|---|---|---|
+| ensure | story | a spec | Returns a ready entry; fetches and builds it when it is missing. |
+| fetch | entity | a URL | Streams a body to a temporary file while it hashes. |
+| verify | entity | a file and a hash | Accepts or removes the file. |
+| unpack | entity | a `.tar.gz` | Writes a tree, inside limits. |
+| commit | entity | a temporary entry | Renames it to the entry and writes `.ready`. |
+| write_newc | entity | entries | Writes archive bytes. |
+
+## C. Rules
+
+### Law worksheet
+
+```
+Entity: Cache entry
+Conserved value:         the content of a ready entry never changes
+Bound:                   download <= max_download_bytes; unpacked bytes <= max_unpacked_bytes; entries <= max_entries
+Inverse pairs:           none (the store has no delete in this feature)
+Idempotent verbs:        ensure (a second call returns the same path and does no work)
+Ordering pairs:          fetch -> verify -> commit (each enables the next); two ensure calls for one spec compete, and both return a correct entry
+Monotone values:         an entry moves missing -> ready, never back
+Freeze points:           content at commit
+Links to other entities: the entry path contains the first 16 hex digits of the spec hash
+
+Entity: newc archive
+Conserved value:         the archive holds exactly the given entries plus the trailer
+Bound:                   total length is a multiple of 512
+Inverse pairs:           write_newc / GNU cpio -i (the reference reader gives the entries back)
+Idempotent verbs:        write_newc (same input, same bytes)
+Ordering pairs:          entries appear in the given order; the trailer is last
+Monotone values:         none
+Freeze points:           modification time field is 0
+Links to other entities: cache key = SHA-256 of the agent file
+```
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | A path that `ensure` returns holds bytes whose SHA-256 equals the spec hash (for a tree: the hash of its source archive). |
+| I2 | A failed `ensure` leaves no entry, no `.ready` marker and no temporary entry. |
+| I3 | A body is streamed. Memory use does not grow with the body size. |
+| I4 | A download stops at `max_download_bytes`; an unpack stops at `max_unpacked_bytes` and `max_entries`. |
+| I5 | No unpacked path is outside the target directory. |
+| I6 | `write_newc` gives the same bytes for the same input. |
+| I7 | Two `ensure` calls for one spec, at the same time, both return a complete entry. |
+| I8 | A non-200 answer reads at most `max_error_message` bytes of its body. |
+
+### Must have
+
+- `ArtifactStore`, the manifest, `fetch`, `tarball`, `cpio`.
+- `ArtifactLimits` with `max_download_bytes`, `max_unpacked_bytes`, `max_entries`.
+
+### Must do
+
+- Check the status before the body.
+- Remove a temporary entry on every failure path.
+- Record in `learnings.md` how each pinned hash was made.
+
+### Must not
+
+- Must not list a remote bucket at run time. Versions are pinned.
+- Must not unpack a device node, or follow an archive path with `..`.
+- Must not read a whole download into memory.
+
+## D. Acceptance scenarios
+
+```gherkin
+Feature: Guest artifacts
+
+  Background:
+    Given an empty cache directory and a local HTTP server
+
+  Scenario: A verified download becomes a ready entry
+    Given the server gives 1 MiB of bytes with a known hash
+    When ensure is called with that hash
+    Then the returned path holds those bytes
+    And a .ready marker exists
+
+  Scenario: The second request does no work
+    Given a ready entry
+    When ensure is called again
+    Then the server got no new request
+
+  Scenario: A wrong hash leaves nothing
+    When ensure is called with a hash that does not match
+    Then the result is ArtifactHashMismatch
+    And the cache directory has no entry and no temporary entry
+
+  Scenario: A download that is too large is cut
+    Given max_download_bytes is 1024 and a body of 1 MiB
+    When ensure is called
+    Then the result is ArtifactTooLarge
+    And the client read less than 64 KiB of the body
+
+  Scenario: An error answer is read with a bound
+    Given the server answers 500 with a 10 MiB body
+    When ensure is called
+    Then the error message is at most max_error_message bytes
+
+  Scenario: An archive cannot write outside its target
+    Given an archive with the entry "../x"
+    When it is unpacked
+    Then the result is ArtifactUnsafePath
+    And no file "x" exists beside the target
+
+  Scenario: An archive that expands too far is cut
+    Given max_unpacked_bytes is 1 MiB and an archive that expands to 100 MiB
+    When it is unpacked
+    Then the result is ArtifactTooLarge
+
+  Scenario: Two builders do not corrupt an entry
+    When two ensure calls for one spec run at the same time
+    Then both return the same path with the correct bytes
+
+  Scenario: The initramfs is the same each time
+    When agent_initramfs is called two times for one agent file
+    Then the two archives are byte-equal
+    And the archive equals the reference made by GNU cpio
+```
+
+| Law | Test | Oracle |
+|---|---|---|
+| I1 | `fetch_checks_hash`, `alpine_dir_real`, `ci_rootfs_real` | expected outcome |
+| I2 | `store_is_atomic` | fault (the server cuts the body; a bad hash) |
+| I3 | `fetch_streams` (a 64 MiB body with a 1 MiB memory budget on the test allocator counter) | bound |
+| I4 | `fetch_stops_at_limit`, `tar_stops_at_limits` | bound |
+| I5 | `tar_rejects_escape` (examples: `../x`, `/abs`, `a/../../x`) | expected outcome |
+| I6 | `cpio_is_deterministic`, `cpio_matches_reference` | identity, differential against GNU `cpio` |
+| I7 | `store_concurrent_ensure` | property over interleavings (two valtron tasks) |
+| I8 | `fetch_reads_bounded_error` | bound |
 
 ## 2. Module layout
 
@@ -43,7 +205,6 @@ its own PR, then part B.
 | `fetch.rs` | Streamed download to a temporary file, with a hash check. |
 | `tarball.rs` | Streamed unpack of a `.tar.gz` into a directory. |
 | `cpio.rs` | A `newc` archive writer. |
-| `ext4.rs` | Directory to ext4 image through `mkfs.ext4 -d`. |
 
 ## 3. Part A: store, fetch, Alpine root directory
 
@@ -64,7 +225,7 @@ impl ArtifactStore {
     pub fn ensure_with_progress(&self, spec: ArtifactSpec) -> ArtifactStream; // Stream<PathBuf, ArtifactProgress>
 
     pub async fn alpine_rootfs_dir(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
-    pub async fn alpine_rootfs_ext4(&self, arch: GuestArch, size_mib: u32) -> SandboxResult<PathBuf>;
+    pub async fn firecracker_ci_rootfs(&self, arch: GuestArch) -> SandboxResult<PathBuf>;   // squashfs
     pub async fn firecracker_kernel(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
     pub async fn agent_initramfs(&self, agent_path: &Path) -> SandboxResult<PathBuf>;
 }
@@ -102,6 +263,7 @@ records in `learnings.md` how each hash was made.
 |---|---|---|
 | `alpine-minirootfs` | `https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/<arch>/alpine-minirootfs-3.22.<patch>-<arch>.tar.gz` | Use the newest 3.22 patch release on the day of the work. Alpine publishes a `.sha256` file beside the archive; compare with it. |
 | `firecracker-kernel` | `https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/<prefix>/<arch>/vmlinux-6.1.<patch>` | Find `<prefix>` with the list call in `learnings.md` section 2.6, one time, by hand. Pin it. Compute the SHA-256 of the downloaded file. |
+| `firecracker-ci-rootfs` | `https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/<prefix>/<arch>/ubuntu-<version>.squashfs` | The same `<prefix>`. A squashfs image with root-owned files. |
 
 The manifest is data, not code paths: a caller can pass its own `ArtifactSpec { name, url,
 sha256, kind }` to `ensure`.
@@ -119,7 +281,7 @@ sha256, kind }` to `ensure`.
   1 000 000). Passing one fails the unpack. These stop an archive that expands without
   end.
 
-## 4. Part B: initramfs, ext4 image, kernel
+## 4. Part B: initramfs, kernel, Firecracker root file system
 
 ### 4.1 `cpio`
 
@@ -147,23 +309,16 @@ agent gives the same archive. The cache key is the SHA-256 of the agent file.
 The agent file is about 1 MiB. Reading it whole is allowed: it is small and its content is
 the input of the next step (root rule 4).
 
-### 4.2 `ext4`
+### 4.2 Firecracker root file system
 
-```rust
-pub async fn build_ext4(
-    ctx: &Ctx, host: &SandboxHost, source_dir: &Path, size_mib: u32, out: &Path,
-) -> SandboxResult<()>;
-```
+`firecracker_ci_rootfs(arch)` is `ensure` on the manifest entry `firecracker-ci-rootfs`. The
+file is used as it is: Firecracker attaches it read-only, and the agent mounts it as the
+lower layer.
 
-- Runs `mkfs.ext4 -q -F -d <source_dir> -E root_owner=0:0 <out> <size_mib>M` through
-  `host.processes`. `-d` fills the image from a directory with no mount and no root
-  rights (e2fsprogs 1.43 or newer).
-- The program must exist. If `mkfs.ext4` is not found, the error is
-  `BinaryNotFound { name: "mkfs.ext4" }`, and feature 07 reports it in the host check.
-- This is Linux only in 0.1. Firecracker is Linux only, so macOS does not need it.
-- On a failed exit, the error has the last `max_error_message` bytes of its output.
-- `alpine_rootfs_ext4(arch, size_mib)` calls `alpine_rootfs_dir` and then `build_ext4`.
-  The cache key is the Alpine hash plus `size_mib`.
+Why not an ext4 image made from the Alpine directory: `mkfs.ext4 -d <directory>` copies the
+host owner of each file into the image, so a normal user gets an image where no file is
+owned by root. Feature 10 makes ext4 images with correct owners. Version 0.1 tests
+Firecracker with the squashfs image, which already has correct owners.
 
 ### 4.3 Kernel
 
@@ -186,7 +341,7 @@ pub async fn build_ext4(
 | `tar_rejects_escape` | nothing | An archive with `../x` fails with `ArtifactUnsafePath`. |
 | `tar_stops_at_limits` | nothing | An archive above `max_unpacked_bytes` fails. |
 | `alpine_dir_real` | network | The real Alpine archive unpacks, and `bin/busybox` exists. The test returns with a message when the network is not available. |
-| `ext4_builds` | Linux, `mkfs.ext4` | A small directory becomes an image; `dumpe2fs -h` (or the magic bytes `0x53 0xEF` at offset 1080) confirms ext4. |
+| `ci_rootfs_real` | network | The real squashfs file downloads, its hash matches, and its first 4 bytes are `hsqs`. Returns with a message when the network is not available. |
 
 ## 6. Verify
 
@@ -200,7 +355,7 @@ cargo test -p foundation_platform_sandbox --profile uat artifacts
 
 - Part A: `alpine_rootfs_dir` returns a directory with a working Alpine tree on Linux and
   on macOS.
-- Part B: `agent_initramfs`, `alpine_rootfs_ext4` and `firecracker_kernel` return ready
+- Part B: `agent_initramfs`, `firecracker_ci_rootfs` and `firecracker_kernel` return ready
   files on Linux.
 - Each download is streamed, hashed and bounded.
 - `learnings.md` has the pinned versions and how each hash was made.

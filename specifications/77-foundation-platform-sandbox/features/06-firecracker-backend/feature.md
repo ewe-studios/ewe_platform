@@ -2,7 +2,7 @@
 feature: "Firecracker backend"
 status: "pending"
 priority: "high"
-model: "opus"
+model: "sonnet"
 depends_on: ["01-guest-agent", "02-host-core", "03-guest-artifacts", "05-firecracker-api-client"]
 crates: ["foundation_platform_sandbox"]
 ---
@@ -25,10 +25,10 @@ lands, this code works on a Linux host with KVM and the `firecracker` program:
 
 ```rust
 let store = ArtifactStore::new(ctx.clone(), SandboxHost::from_ctx(&ctx)?);
-let rootfs = store.alpine_rootfs_ext4(GuestArch::host(), 256).await?;
+let rootfs = store.firecracker_ci_rootfs(GuestArch::host()).await?;
 
 let sandbox = FirecrackerBackend::new()
-    .create(ctx, SandboxSpec::new(RootFs::Ext4Image(rootfs)))
+    .create(ctx, SandboxSpec::new(RootFs::SquashfsImage(rootfs)))
     .await?;
 let out = sandbox.run(Command::new(["echo", "hello"])).await?;
 assert_eq!(out.stdout, b"hello\n");
@@ -36,6 +36,177 @@ sandbox.stop().await?;
 ```
 
 The kernel and the agent initramfs come from the artifact store by default.
+
+## A. Story
+
+- **S1**: "A caller on Linux starts a sandbox from a root file system image and runs a
+  command in it."
+- **S2**: "Many sandboxes use one image file at the same time, and the file never changes."
+- **S3**: "The host is not ready: no KVM access, no `firecracker` program."
+- **S4**: "The VM does not come up: the process exits, the API rejects a setting, the kernel
+  panics, the agent never connects."
+- **S5**: "The host program dies; the VM does not stay."
+
+| # | Use case | Actor | Trigger | Result |
+|---|---|---|---|---|
+| U1 | Check the host | caller, doctor | `FirecrackerBackend::probe` | A report and the capabilities. |
+| U2 | Create | caller | `create(ctx, spec)` | A `Ready` sandbox, or a typed error and no leftovers. |
+| U3 | Watch progress | caller | `create_with_progress` | `Preparing`, `VmmSpawned`, `VmmConfigured`, `Booting`, `AgentConnected`, then the result. |
+| U4 | Stop | caller | `stop()` | The guest powers off; the process exits with code 0. |
+
+## B. Bounded context
+
+**Inside this feature:** the Firecracker start state machine, the plan of one VM, the boot
+arguments, the Firecracker host checks.
+
+**Outside:** the `firecracker` program (installed); the API client (feature 05); the agent
+as PID 1 (feature 01); `AgentSandbox` (feature 02); kernel, initramfs and image files
+(feature 03).
+
+| Entity | Meaning | Owner (the one writer) |
+|---|---|---|
+| `FcPlan` | Every resolved path and value of one VM. | the `Prepare` state; later states only read |
+| VMM process | One `firecracker` child. | `ProcessSpawner` (spawn); backend (signal) |
+| API socket | `fc.sock`. | Firecracker creates it |
+| Agent listener | `v.sock_1024`. | backend |
+| Root image | The caller's ext4 or squashfs file. Attached read-only. | the caller; nobody writes it |
+| Launch state | The enum `FcLaunch`. | the `fc_launch` task |
+
+| Verb | Kind | Trigger | Effect |
+|---|---|---|---|
+| probe | entity | caller | Reads the host; starts nothing. |
+| prepare | entity | `create` | Resolves files; makes the run directory and the listener. |
+| spawn | entity | after prepare | Starts `firecracker`. |
+| await API | entity | after spawn | Polls `GET /` with back-off until it answers. |
+| configure | story | API is up | Five calls in a fixed order; the last one starts the VM. |
+| await agent | entity | after start | Waits for accept, process exit or the deadline. |
+| create | story | caller | All of the above plus the handshake; cleans up on a failed step. |
+
+## C. Rules
+
+### Law worksheet
+
+```
+Entity: Launch (the create story)
+Conserved value:         a failed create leaves 0 processes and 0 run directories; a good one leaves exactly 1 of each
+Bound:                   total time <= boot_timeout (+ clean-up); back-off wait <= 100 ms
+Inverse pairs:           create / stop
+Idempotent verbs:        probe
+Ordering pairs:          listen -> InstanceStart (enabling); machine-config, boot-source, drive, vsock -> InstanceStart (enabling);
+                         accept / process exit / deadline (competing)
+Monotone values:         launch state; ConfigStep; progress values
+Freeze points:           FcPlan after Prepare; boot arguments
+Links to other entities: Vsock.uds_path + "_1024" = the listener path; drive path = spec image; initramfs = hash of the agent file
+
+Entity: Root image file
+Conserved value:         its bytes before create = its bytes after stop
+Bound:                   none
+Inverse pairs:           none
+Idempotent verbs:        none
+Ordering pairs:          none
+Monotone values:         none
+Freeze points:           the whole file, for the life of every sandbox that uses it
+Links to other entities: attached as drive "rootfs", is_read_only true, is_root_device false
+```
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | The listener on `v.sock_1024` exists before `InstanceStart` is sent. |
+| I2 | The API calls go in the order machine-config, boot-source, drive, vsock, start. A failed call stops the sequence; no later call is sent. |
+| I3 | The root image is attached with `is_read_only: true` and `is_root_device: false`. Its bytes never change. |
+| I4 | The default seccomp filter stays on. `--no-seccomp` is never passed. |
+| I5 | The `firecracker` process gets an empty environment. |
+| I6 | A failed `create` leaves no `firecracker` process and no run directory. |
+| I7 | Every wait uses the injected clock; the back-off is 5, 10, 20, 40, 80, 100, 100 ... ms. |
+| I8 | When the host process dies, the `firecracker` process dies (`PR_SET_PDEATHSIG`). |
+| I9 | The agent is PID 1 in the guest, and a `Shutdown` ends the process with code 0. |
+| I10 | Two sandboxes on one image do not see each other's writes. |
+
+### Must have
+
+- `FirecrackerBackend`, the `FirecrackerApi` trait, `FcPlan`, the boot argument builder.
+
+### Must do
+
+- Put the tail of `console.log` and `vmm.log` in each start error.
+- Reject, before any process starts, a spec that Firecracker cannot run (directory root,
+  odd vCPU count above 1, host network, host mounts).
+
+### Must not
+
+- Must not add `root=` to the boot arguments.
+- Must not write to the image, the kernel or the initramfs.
+- Must not use the `jailer` or a network device in this feature.
+
+## D. Acceptance scenarios
+
+```gherkin
+Feature: Firecracker backend
+
+  Scenario: A command runs in a microVM
+    Given a usable Firecracker host and the CI squashfs image
+    When the caller creates a sandbox and runs ["echo", "hello"]
+    Then stdout is "hello\n" and the exit code is 0
+
+  Scenario: The agent is the first process
+    When the sandbox reports HelloAck
+    Then is_pid1 is true
+    And "cat /proc/1/comm" prints the agent name
+
+  Scenario: The image never changes
+    Given the SHA-256 of the image file
+    When a sandbox runs ["sh", "-c", "echo x > /root/f"] and stops
+    Then the SHA-256 of the image file is the same
+
+  Scenario: Two sandboxes share one image and not their writes
+    Given two sandboxes on one image file
+    When the first writes /tmp/a
+    Then the second does not see /tmp/a
+
+  Scenario: Read-only mode allows only the named places
+    Given a spec with RootMode::ReadOnly
+    When the sandbox runs ["sh", "-c", "touch /etc/x"]
+    Then the exit code is not 0
+    When the sandbox runs ["sh", "-c", "touch /tmp/x && touch x"]
+    Then the exit code is 0
+
+  Scenario: The API calls come in order
+    Given a fake API that records calls
+    When create runs
+    Then the calls are describe_instance, put_machine_config, put_boot_source, put_drive, put_vsock, instance_start
+    And the listener existed when instance_start arrived
+
+  Scenario: A rejected setting stops the launch
+    Given a fake API where put_drive returns 400 "bad drive"
+    When create runs
+    Then the result is VmmApi { status: 400, fault_message: "bad drive" }
+    And instance_start was never called
+    And the process got SIGKILL and no run directory is left
+
+  Scenario: The API back-off uses the clock
+    Given a fake API that fails to connect 4 times
+    When create runs on a simulated clock
+    Then the waits are 5, 10, 20 and 40 ms
+
+  Scenario: A guest that cannot start is reported with its console
+    Given boot arguments with ewe.transport=bad
+    When create runs
+    Then the result is BootTimeout or VmmExited
+    And the error has the console tail
+    And no process and no run directory are left
+
+  Scenario: A wrong root kind is refused before any process
+    When create runs with RootFs::Directory
+    Then the result is UnsupportedRootFs
+    And no process was spawned
+
+  Scenario: Stop powers the guest off
+    When the caller stops a ready sandbox
+    Then the firecracker process exits with code 0
+    And ExitReport.killed is false
+```
 
 ## 2. How the guest is put together
 
@@ -147,7 +318,7 @@ async fn fc_launch(ctx: Ctx, state: FcLaunch)
 | `AwaitApi` | If `fc.sock` does not exist yet, or `describe_instance()` fails to connect: await a timer of `min(5 ms * 2^attempt, 100 ms)` from the clock, then the same state with `attempt + 1`. Also check `vmm.try_wait()`. On a good answer with state `Not started`, go on. | nothing (`Ignore`) while it waits | `Configure { MachineConfig }` |
 | `Configure` | One API call for each step, in the order of `ConfigStep`. Section 4.3 has the bodies. | `Pending(VmmConfigured)` after `Vsock`; `Pending(Booting)` after `Start` | the next step, then `AwaitAgent` |
 | `AwaitAgent` | Await the first of: `listener.accept()`, `vmm.wait()`, the deadline timer. | `Pending(AgentConnected)` | `Handshake` |
-| `Handshake` | `AgentClient::handshake` with `RootSource::BlockDevice { device: "/dev/vda", fstype }`. Build `AgentSandbox`. | `Ready(Ok(sandbox))` | `Done` |
+| `Handshake` | `AgentClient::handshake` with `RootSource::BlockDevice { device: "/dev/vda", fstype }` and an empty `dns` list (Firecracker has no guest network in 0.1). Build `AgentSandbox`. | `Ready(Ok(sandbox))` | `Done` |
 | `Done` | | `None` | |
 
 Failure handling is the same as for libkrun (feature 04, section 4.1): kill the VMM, read
@@ -250,11 +421,11 @@ we do not use it.
 | `firecracker` | The program exists at the resolved path. `firecracker --version` runs and prints a version. Report the version. |
 | `firecracker_version` | The version is 1.10 or newer. Record in `learnings.md` the oldest version that the real test passed on, and set the check to that. |
 | `agent` | The agent file exists for the guest architecture. |
-| `mkfs.ext4` | Exists. Not required: `usable` stays true without it, and the message says that `alpine_rootfs_ext4` needs it. |
 
 ## 6. Tests
 
-`backends/foundation_platform_sandbox/tests/`:
+`backends/foundation_platform_sandbox/tests/`. Each scenario of section D is one test
+below. Each invariant of section C has a test that names it in a comment.
 
 No VM (simulation host, `SimulatedClock`, a `FakeFirecrackerApi` that records calls):
 
@@ -277,8 +448,8 @@ report when `usable` is false.
 
 | Test | Proves |
 |---|---|
-| `e2e_echo` | The code of section 1, with the Alpine ext4 image. |
-| `e2e_squashfs_root` | The same with a squashfs image made from the Alpine directory (`mksquashfs`; the test returns with a message when that program is not found). |
+| `e2e_echo` | The code of section 1, with the CI squashfs image. |
+| `e2e_ext4_root` | The same with an ext4 image. The test makes it with `mkfs.ext4 -q -F -d <Alpine directory> <file> 64M` and returns with a message when that program is not found. File owners in this image are wrong (feature 03, section 4.2); the test only proves that the ext4 mount path works. |
 | `e2e_exit_code`, `e2e_write_and_read_file`, `e2e_no_network_by_default`, `e2e_stop_is_clean`, `e2e_kill_parent_kills_vm` | The same as the libkrun tests of feature 04. Put the shared body in `tests/support/e2e_cases.rs` and call it from both files. |
 | `e2e_image_not_changed` | The SHA-256 of the image file is the same before `create` and after `stop`, after a command that wrote to `/`. |
 | `e2e_two_sandboxes_one_image` | Two sandboxes from one image file run at the same time. A file that one writes is not in the other. |
@@ -299,9 +470,12 @@ EWE_SANDBOX_AGENT=<agent path> EWE_FIRECRACKER=<firecracker path> \
   cargo test -p foundation_platform_sandbox --profile uat e2e_firecracker -- --nocapture
 ```
 
-Run the last command on a Linux host with KVM, on x86_64. Run it on aarch64 too when a host
-is available; if none is, say so in the report and file a `severity: medium` issue
-"Firecracker backend is not verified on aarch64".
+The CI job of feature 07 runs the last command on `ubuntu-latest` (x86_64, with `/dev/kvm`).
+Until that job exists, run it on a Linux x86_64 host with KVM and paste the output in the
+report. aarch64 has no CI runner with KVM: the backend compiles and runs its tests with no
+VM there, and the first person with an aarch64 KVM host runs the real tests and records the
+result in `progress.md`. The README lists aarch64 Firecracker as "built, not verified"
+until then.
 
 ## 8. Done when
 

@@ -2,7 +2,7 @@
 feature: "Host core"
 status: "pending"
 priority: "high"
-model: "opus"
+model: "sonnet"
 depends_on: ["00-protocol-and-api-types"]
 crates: ["foundation_platform_sandbox"]
 ---
@@ -30,6 +30,229 @@ Write the host side that all backends share:
 
 After this feature a test can run commands through the public API against a real agent
 process on a UDS, with no VM.
+
+## A. Story
+
+- **S1**: "A backend gives the host core a byte stream to a guest agent, and gets back a
+  sandbox that a caller can use."
+- **S2**: "A caller runs a command and reads its output while it runs."
+- **S3**: "A caller runs several commands at once; a slow reader of one does not stop the
+  others."
+- **S4**: "A caller sends a file in, and reads a file out."
+- **S5**: "A caller stops the sandbox, and nothing is left on the host."
+- **S6**: "The guest stops answering, the stream breaks, or the VMM process exits."
+- **S7**: "A caller drops a handle without a stop."
+
+| # | Use case | Actor | Trigger | Result |
+|---|---|---|---|---|
+| U1 | Handshake | backend | `AgentClient::handshake` | A client and the `HelloAck`, or `BootTimeout` / `AgentHandshake`. |
+| U2 | Run with streams | caller | `Sandbox::exec` | An `ExecHandle`: events in order, `Exit` last. |
+| U3 | Run and capture | caller | `Sandbox::run` | Bounded output and the exit status. |
+| U4 | Move a file | caller | `write_file`, `read_file` | Bytes moved inside the credit; size returned. |
+| U5 | Stop | caller | `stop`, `kill` | The VMM is gone; the run directory is gone; one `ExitReport`. |
+| U6 | Fail | guest or VMM | stream end, exit | State `Failed`; every open handle ends with an error; clean-up runs. |
+
+## B. Bounded context
+
+**Inside this feature:** the client side of the agent protocol, the sandbox object that all
+agent-based backends share, and the real and simulated host bundles.
+
+**Outside:** the frame format (feature 00); the agent (feature 01); how a guest starts and
+which stream reaches it (features 04, 06, 09).
+
+| Entity | Meaning | Owner (the one writer) |
+|---|---|---|
+| `AgentClient` | One protocol connection: reader task, writer task, channel table. | `shared::client` |
+| Channel state | Inbox, send window, received count of one channel. | the reader task (table); the handle (credit counter) |
+| Out queue | Frames that wait for the writer. | producers push; only the writer task pops |
+| `ExecHandle` | The caller's end of one command. | `shared::client` |
+| `FileStream` | The caller's end of one file read. | `shared::client` |
+| `AgentSandbox` | Client + VMM child + run directory + state. | `shared::agent_sandbox` |
+| Sandbox state | `Ready`, `Stopping`, `Stopped`, `Failed`. | `AgentSandbox` only |
+| `SandboxHost::native` | The real processes, sockets and files. | `native::host` |
+
+| Verb | Kind | Trigger | Effect |
+|---|---|---|---|
+| handshake | story | a stream | Preface, `Hello`, wait for `HelloAck`; starts the two tasks. |
+| open channel | entity | `exec`, `write_file`, `read_file` | Takes the next number; adds a table entry; sends the request. |
+| deliver | entity | a frame from the agent | Pushes to one inbox, or closes the connection on a rule break. |
+| grant credit | entity | the consumer took bytes | Sends `Credit` when half a window was taken. |
+| close | story | stream end, protocol error, shutdown | One time: fails every channel, closes the queue. |
+| stop | story | caller | Shutdown, wait, signal, remove the run directory. |
+| kill | story | caller, drop, failure | `SIGKILL`, wait, remove the run directory. |
+
+## C. Rules
+
+### Law worksheet
+
+```
+Entity: AgentClient (connection)
+Conserved value:         every channel that was opened ends exactly one time (Exit, FileDone, Error or Closed)
+Bound:                   open channels <= max_channels; out queue <= max_channels * 4 frames
+Inverse pairs:           none
+Idempotent verbs:        close (the second call does nothing)
+Ordering pairs:          handshake -> every other verb (enabling); close / deliver (competing: after close nothing is delivered)
+Monotone values:         channel numbers grow by 1; state moves open -> closed only
+Freeze points:           limits at handshake
+Links to other entities: Hello.channel_window = the receive window that the client enforces
+
+Entity: Channel
+Conserved value:         bytes received = bytes taken by the consumer + bytes in the inbox
+Bound:                   bytes in the inbox <= channel_window; bytes sent and not credited <= channel_window
+Inverse pairs:           none
+Idempotent verbs:        none
+Ordering pairs:          Started before Stdout/Stderr; Exit last; events reach the consumer in wire order
+Monotone values:         received count; credit granted
+Freeze points:           none
+Links to other entities: the agent's send window = credit granted - bytes received
+
+Entity: AgentSandbox
+Conserved value:         one VMM process and one run directory for each sandbox, removed exactly one time
+Bound:                   state in {Ready, Stopping, Stopped, Failed}
+Inverse pairs:           none (a stopped sandbox does not start again)
+Idempotent verbs:        stop, kill (later calls return the first ExitReport)
+Ordering pairs:          stop / kill (competing: the first decides `killed`); stop -> exec is rejected
+Monotone values:         state: Ready -> Stopping -> Stopped, Ready -> Failed -> Stopped
+Freeze points:           the ExitReport after the first stop or kill
+Links to other entities: state Failed <=> client closed without a caller stop, or VMM exited
+```
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | Events of one command reach the consumer in the order that the agent sent them, and `Exit` is last. |
+| I2 | An inbox never holds more than `channel_window` data bytes. |
+| I3 | The client never sends more data bytes on a channel than the credit that the agent gave. |
+| I4 | A consumer that does not read stops only its own channel. Other channels and `ping` continue. |
+| I5 | An agent that sends more than the window is a protocol error (`BadCredit`); the connection closes. |
+| I6 | When the connection closes, every open handle gets exactly one terminal error, and no handle waits for ever. |
+| I7 | After `Stopped`, no VMM process and no run directory of that sandbox exist. |
+| I8 | `stop` and `kill` return the same `ExitReport` each time after the first. |
+| I9 | Every wait has a deadline from `ctx.clock()`. No test uses a real sleep. |
+| I10 | Only `src/native/host.rs` touches the real processes, sockets and files. |
+| I11 | `run` holds at most `max_captured_output` bytes for each stream, and still lets the program end. |
+
+### Must have
+
+- `AgentClient`, `ExecHandle`, `ExecStdin`, `FileStream`, `AgentSandbox`.
+- `SandboxHost::native()` and `HostConfig::discover`.
+- The simulation host and the `ScriptedAgent` for tests.
+
+### Must do
+
+- Kill the VMM and remove the run directory on every path that leaves `Ready`.
+- Send `Signal(SIGKILL)` for a command whose handle is dropped before `Exit`.
+- Report the reason of a closed connection (`CloseReason`).
+
+### Must not
+
+- Must not block an executor thread. A wait is an `await` or a `Depends`.
+- Must not buffer a stream without a bound.
+- Must not fall back to the real system when `SandboxHost` is missing.
+- Must not send a signal to a PID after its exit is recorded.
+
+## D. Acceptance scenarios
+
+```gherkin
+Feature: Host core
+
+  Background:
+    Given a Ctx with a seed, a SimulatedClock and the simulation host
+    And a scripted agent that answers HelloAck
+
+  Scenario: Events arrive in order and Exit is last
+    Given the agent will send Started, Stdout "a", Stderr "b", Stdout "c", Exit 0
+    When the caller runs a command and reads all events
+    Then the events are Stdout "a", Stderr "b", Stdout "c", Exit(code 0) in that order
+
+  Scenario: A slow reader stops only its own command
+    Given command 1 produces output and the caller does not read it
+    When the caller runs command 2 and pings the agent
+    Then command 2 completes
+    And the ping answers
+    And the inbox of command 1 holds at most channel_window bytes
+
+  Scenario: Credit is granted at half a window
+    Given channel_window is 4096
+    When the consumer takes 2047 bytes
+    Then no Credit frame was sent
+    When the consumer takes 1 more byte
+    Then one Credit(2048) frame is sent
+
+  Scenario: An agent that ignores the window is cut off
+    Given channel_window is 4096
+    When the agent sends 4097 data bytes with no credit
+    Then the connection closes with Protocol(BadCredit)
+    And the open handle gets ChannelClosed
+
+  Scenario: Standard input waits for credit
+    Given channel_window is 4096 and the agent sends no Credit
+    When the caller writes 8192 bytes to standard input
+    Then exactly 4096 bytes are on the wire
+    When the agent sends Credit(4096)
+    Then the write completes
+
+  Scenario: The boot deadline is enforced
+    Given an agent that never answers Hello
+    When the clock moves past the deadline
+    Then handshake returns BootTimeout
+
+  Scenario: A command time-out kills the program
+    Given a command with timeout 5 s that does not exit
+    When the clock moves 5 s
+    Then Signal(9) is sent on its channel
+    And wait returns ExecTimeout
+
+  Scenario: Losing the stream fails every handle
+    Given two running commands and one file read
+    When the stream ends
+    Then each of the three handles gets ChannelClosed
+    And the sandbox state is Failed
+    And the VMM got SIGKILL and the run directory is gone
+
+  Scenario: The VMM exits by itself
+    Given a ready sandbox
+    When the VMM process exits with code 1
+    Then the sandbox state is Failed
+    And the run directory is gone
+
+  Scenario: Stop is graceful first
+    Given a ready sandbox whose VMM exits 100 ms after Shutdown
+    When the caller stops it
+    Then Shutdown was sent before any signal
+    And ExitReport.killed is false
+
+  Scenario: Stop uses force after the grace time
+    Given a ready sandbox whose VMM never exits
+    When the caller stops it and the clock moves shutdown_grace
+    Then SIGTERM is sent, then SIGKILL 1 s later
+    And ExitReport.killed is true
+
+  Scenario: Stop two times gives one answer
+    When the caller stops a sandbox two times
+    Then both calls return the same ExitReport
+    And Shutdown was sent one time
+
+  Scenario: A stopped sandbox refuses work
+    Given a stopped sandbox
+    When the caller runs a command
+    Then the call fails with SandboxStopped
+
+  Scenario: Dropping a handle kills its command
+    Given a running command
+    When its ExecHandle is dropped
+    Then Signal(9) is sent on its channel
+
+  Scenario: Capture is bounded
+    Given max_captured_output is 1024 and a program that prints 1 MiB and exits 0
+    When the caller uses run
+    Then stdout holds 1024 bytes, stdout_truncated is true, and the status is code 0
+
+  Scenario: The same seed gives the same trace
+    When the same scripted run executes two times with seed 7
+    Then the two frame traces are equal
+```
 
 ## 2. `AgentClient`
 
@@ -264,14 +487,17 @@ Wrap the existing types. Read these first:
 
 - `listen_unix(path)`: checks the path length (feature 00, section 3.4), binds, sets the
   socket non-blocking, and sets the file mode to `0600`.
-- `accept()`, `read()`, `write_all()`: try the non-blocking call. On `WouldBlock`, register
-  the task waker for readiness and return `Pending`. Use the readiness seam that
-  `foundation_netio` uses for its own sockets; do not add a second poller.
-- **Measure first.** Find how an `async fn` in this repository awaits socket readiness
-  today (for example the HTTP client body read in `foundation_netio`). Write the answer in
-  `learnings.md` before you write this type. If no async read exists for a raw stream,
-  stop and report; the main session decides between a small addition to `foundation_netio`
-  and a different design.
+- Each socket is non-blocking and is wrapped in a
+  `foundation_nativeapis::native::fd::RegisteredFd` on the shared reactor
+  (`Reactor::get()?.registry()`). `RegisteredFd` implements
+  `foundation_core::valtron::EventReadiness` (`native/fd/mod.rs`, module documentation).
+- `accept()`, `read()`, `write_all()`: try the non-blocking call. On `WouldBlock`, the
+  future parks on the `RegisteredFd` readiness and tries again when the reactor wakes it.
+  This is the same seam that `foundation_netio` uses for its own sockets; do not add a
+  second poller.
+- `foundation_nativeapis` is a dependency with `default-features = false` and
+  `features = ["fd"]`. This feature set compiles for `x86_64-unknown-linux-musl` (checked
+  2026-11-11 with `cargo check`), so the agent (feature 01) uses the same types.
 
 ### 4.3 `NativeFs`
 
@@ -361,5 +587,4 @@ python3 scripts/ci/check_executor_wake.py
 - The simulation tests and the real agent tests pass.
 - `grep -rn "process::Command\|UnixListener::bind\|Instant::now\|SystemTime::now" backends/foundation_platform_sandbox/src`
   finds matches only in `src/native/host.rs`.
-- `learnings.md` has the measured answer of section 4.2.
 - No test uses a real sleep; time moves only through the injected clock in simulation tests.

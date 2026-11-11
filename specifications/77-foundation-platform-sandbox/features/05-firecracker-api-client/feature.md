@@ -14,7 +14,7 @@ are._
 
 **Abbreviations in this file.** application programming interface (API); representational
 state transfer (REST); Unix domain socket (UDS); Hypertext Transfer Protocol (HTTP);
-JavaScript Object Notation (JSON); virtual machine monitor (VMM); continuous integration
+JavaScript Object Notation (JSON); virtual machine monitor (VMM); behaviour-driven development (BDD); continuous integration
 (CI); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE
 standard ASD-STE100.
 
@@ -23,6 +23,143 @@ standard ASD-STE100.
 Give the crate typed request functions for the Firecracker REST API, generated from the
 Firecracker Swagger file (root rule 5), and a small client on a UDS. This feature starts no
 VM. Feature 06 uses it.
+
+## A. Story
+
+- **S1**: "The backend tells a Firecracker process how the VM looks and starts it, through
+  typed calls."
+- **S2**: "Firecracker rejects a setting and says why."
+- **S3**: "Firecracker does not answer."
+- **S4**: "The Firecracker API changes in a new release."
+
+| # | Use case | Actor | Trigger | Result |
+|---|---|---|---|---|
+| U1 | Configure | Firecracker backend | `put_machine_config`, `put_boot_source`, `put_drive`, `put_vsock` | 204, or `VmmApi { status, fault_message }`. |
+| U2 | Start | Firecracker backend | `instance_start` | 204, or `VmmApi`. |
+| U3 | Ask | backend, host check | `describe_instance`, `version` | Typed answers. |
+| U4 | Regenerate | maintainer | a new Swagger file | New generated code, no hand edit. |
+
+## B. Bounded context
+
+**Inside this feature:** the vendored API file, the generated types and request functions,
+and the small client on a UDS.
+
+**Outside:** the `firecracker` process and its life (feature 06); the generator
+(`foundation_openapi`, `gen_api`); the HTTP client (`foundation_netio`).
+
+| Entity | Meaning | Owner (the one writer) |
+|---|---|---|
+| API file | `specs/firecracker-v1.19.yaml`, a copy of upstream. | upstream; we only vendor |
+| Generated code | `src/firecracker/generated/`. | the generator only |
+| `FirecrackerClient` | A UDS path, a `DynNetClient`, the limits. | `firecracker::client` |
+| API error | Status and `fault_message`. | Firecracker; we map it |
+
+| Verb | Kind | Trigger | Effect |
+|---|---|---|---|
+| generate | entity | maintainer | Writes `generated/` from the API file. |
+| call | entity | a client method | One HTTP request; one typed answer or error. |
+| map error | entity | a non-2xx status | `VmmApi` with a bounded message. |
+
+## C. Rules
+
+### Law worksheet
+
+```
+Entity: Generated code
+Conserved value:         generate(API file) is the same each run (no diff on a second run)
+Bound:                   none
+Inverse pairs:           serialize / deserialize for each body type
+Idempotent verbs:        generate
+Ordering pairs:          none
+Monotone values:         none
+Freeze points:           the API file version (1.19) until a maintainer changes it
+Links to other entities: field names and enum strings = the API file, byte for byte
+
+Entity: FirecrackerClient
+Conserved value:         one method call = one HTTP request
+Bound:                   call time <= api_timeout; error message <= max_error_message
+Inverse pairs:           none
+Idempotent verbs:        describe_instance, version (read only)
+Ordering pairs:          none in the client; the order of calls belongs to feature 06
+Monotone values:         none
+Freeze points:           socket path and limits at construction
+Links to other entities: none
+```
+
+### Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | Every request body and answer uses a generated type. No hand-written copy and no `serde_json::Value`. |
+| I2 | A field that is `None` is not in the JSON. No `null` reaches Firecracker. |
+| I3 | A non-2xx answer becomes `VmmApi { status, fault_message }`; the body read is at most `max_error_message` bytes. |
+| I4 | Each call ends in `api_timeout` or sooner. |
+| I5 | A second generator run gives no diff. |
+| I6 | The crate builds with no `firecracker` feature, and then has no generated code and no `foundation_deployment` dependency. |
+
+### Must have
+
+- The vendored API file with its source commit.
+- The client methods of section 3.3.
+
+### Must do
+
+- Fix the generator when its output is wrong, and record the fix.
+- Test against the real `firecracker` program when it is installed.
+
+### Must not
+
+- Must not edit generated files by hand.
+- Must not copy the common API types from `foundation_deployment`.
+
+## D. Acceptance scenarios
+
+```gherkin
+Feature: Firecracker API client
+
+  Background:
+    Given a mock HTTP server on a Unix socket
+
+  Scenario: The machine configuration has only the set fields
+    When put_machine_config is called with 1 vCPU, 512 MiB and smt false
+    Then the server receives PUT /machine-config
+    And the body is exactly {"vcpu_count":1,"mem_size_mib":512,"smt":false}
+
+  Scenario: A drive goes to its own path
+    When put_drive is called with drive_id "rootfs"
+    Then the server receives PUT /drives/rootfs
+    And the body has drive_id, path_on_host, is_root_device and is_read_only and no null
+
+  Scenario: The start action is typed
+    When instance_start is called
+    Then the body is exactly {"action_type":"InstanceStart"}
+
+  Scenario: A state with a space parses
+    Given the server answers {"app_name":"Firecracker","id":"x","state":"Not started","vmm_version":"1.19.0"}
+    When describe_instance is called
+    Then the state is the "Not started" variant
+
+  Scenario: Firecracker's reason reaches the caller
+    Given the server answers 400 with {"fault_message":"bad"}
+    When put_vsock is called
+    Then the result is VmmApi { status: 400, fault_message: "bad" }
+
+  Scenario: A huge error body is bounded
+    Given the server answers 400 with a 10 MiB body
+    When any call is made
+    Then the error message is at most max_error_message bytes
+
+  Scenario: A silent server times out
+    Given the server accepts and never answers
+    When the clock passes api_timeout
+    Then the call fails with a time-out error
+
+  Scenario: The types match the real program
+    Given the firecracker program is installed
+    When a real process is started with --api-sock
+    Then version and describe_instance parse
+    And put_machine_config returns Ok
+```
 
 ## 2. Measured facts
 
