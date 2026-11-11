@@ -208,6 +208,29 @@ jobs:
         if: matrix.package == 'foundation_iogate'
         run: cargo test --profile "$CI_PROFILE" -p foundation_iogate --test io_uring_probe -- --nocapture
 
+      - name: io_uring kernel probe
+        # foundation_nativeapis and foundation_proxy also run with
+        # EWE_REQUIRE_IO_URING=1 but have no probe target. Print the kernel
+        # setting, the seccomp mode and the raw `io_uring_setup` result, so a
+        # failed `fd,uring` run names its cause. The step never fails.
+        if: matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy'
+        run: |
+          echo "kernel: $(uname -r)"
+          echo "kernel.io_uring_disabled: $(cat /proc/sys/kernel/io_uring_disabled 2>&1)"
+          grep -E '^Seccomp' /proc/self/status || true
+          python3 - <<'PY'
+          import ctypes, os
+          libc = ctypes.CDLL(None, use_errno=True)
+          params = ctypes.create_string_buffer(120)
+          fd = libc.syscall(425, 4, params)  # io_uring_setup(entries, params)
+          if fd >= 0:
+              print("io_uring_setup: ok")
+              os.close(fd)
+          else:
+              e = ctypes.get_errno()
+              print(f"io_uring_setup: failed errno={e} ({os.strerror(e)})")
+          PY
+
       - name: ptrace probe
         # Record whether this kernel lets a tracer read its child's registers
         # before the ptrace spawn tests run. EWE_REQUIRE_PTRACE makes a missing
