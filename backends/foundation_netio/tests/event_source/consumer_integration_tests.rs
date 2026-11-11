@@ -1,9 +1,9 @@
-//! Integration tests for SseStream and ReconnectingSseStream consumer APIs.
+//! Integration tests for `SseStream` and `ReconnectingSseStream` consumer APIs.
 //!
 //! WHY: Consumer wrappers should be tested with real TCP connections to verify
-//! they correctly translate TaskIterator states into SseStreamEvent variants.
+//! they correctly translate `TaskIterator` states into `SseStreamEvent` variants.
 //!
-//! HOW: Uses TestHttpServer bound to localhost with SSE-formatted responses.
+//! HOW: Uses `TestHttpServer` bound to localhost with SSE-formatted responses.
 
 use foundation_core::valtron::PoolGuard;
 use foundation_netio::event_source::{Event, SseStream, SseStreamEvent};
@@ -14,7 +14,7 @@ use std::net::SocketAddr;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
-/// Parse the SocketAddr from a TestHttpServer's base_url.
+/// Parse the `SocketAddr` from a `TestHttpServer`'s `base_url`.
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
         .base_url()
@@ -38,8 +38,8 @@ fn sse_response(body: &[u8]) -> HttpResponse {
     }
 }
 
-/// WHY: SseStream should connect to a real server and receive SSE events.
-/// WHAT: Verify SseStream wraps EventSourceTask correctly and yields Event variant.
+/// WHY: `SseStream` should connect to a real server and receive SSE events.
+/// WHAT: Verify `SseStream` wraps `EventSourceTask` correctly and yields Event variant.
 #[test]
 #[serial(valtron_pool)]
 fn test_sse_stream_connects_and_receives_event() {
@@ -89,8 +89,8 @@ fn test_sse_stream_connects_and_receives_event() {
     assert!(event_count >= 1, "Should receive at least one event");
 }
 
-/// WHY: SseStream should handle multiple SSE events from server.
-/// WHAT: Verify SseStream yields all events before exhaustion.
+/// WHY: `SseStream` should handle multiple SSE events from server.
+/// WHAT: Verify `SseStream` yields all events before exhaustion.
 #[test]
 #[serial(valtron_pool)]
 fn test_sse_stream_multiple_events() {
@@ -118,8 +118,7 @@ fn test_sse_stream_multiple_events() {
                 received_events.push(data.clone());
                 event_count += 1;
             }
-            SseStreamEvent::Skip => {}
-            SseStreamEvent::Event(_) => {}
+            SseStreamEvent::Skip | SseStreamEvent::Event(_) => {}
         }
         if i > 30 {
             break;
@@ -130,7 +129,7 @@ fn test_sse_stream_multiple_events() {
     assert_eq!(event_count, 3, "Should receive exactly 3 events");
 }
 
-/// WHY: SseStream should preserve event data correctly.
+/// WHY: `SseStream` should preserve event data correctly.
 /// WHAT: Verify event data matches what server sent.
 #[test]
 #[serial(valtron_pool)]
@@ -139,7 +138,7 @@ fn test_sse_stream_preserves_event_data() {
 
     let expected_data = "test-payload-123";
     let server = TestHttpServer::with_response(move |_req| {
-        sse_response(format!("data: {}\n\n", expected_data).as_bytes())
+        sse_response(format!("data: {expected_data}\n\n").as_bytes())
     })
     .close_after_response(true);
 

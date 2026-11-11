@@ -1,10 +1,12 @@
 #![cfg(feature = "multi")]
 
-//! WebSocket ReconnectingWebSocketTask integration tests.
+//! WebSocket `ReconnectingWebSocketTask` integration tests.
 //!
 //! Tests automatic reconnection with exponential backoff.
 
-use foundation_core::valtron::{Ctx, PoolGuard, TaskIterator, TaskStatus};
+use foundation_core::valtron::{PoolGuard, TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use serial_test::serial;
@@ -68,20 +70,12 @@ fn test_reconnecting_task_progress_states() {
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1").unwrap();
 
     // First next() should return a pending state
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     assert!(status.is_some(), "Should return Some status");
 
-    match status {
-        Some(TaskStatus::Pending(ReconnectingWebSocketProgress::Connecting)) => {
-            // Expected - trying to connect
-        }
-        Some(TaskStatus::Pending(_)) => {
-            // Also acceptable - might transition quickly
-        }
-        _ => {
-            // Other states are also valid depending on timing
-        }
-    }
+    // Any status is acceptable here: Connecting, another Pending state, or other
+    // states that depend on connection timing.
+    let _ = status;
 }
 
 // Test 6: ReconnectingWebSocketTask is Send
@@ -168,7 +162,7 @@ fn test_connection_failure_triggers_reconnect() {
 
     while iterations < max_iterations {
         iterations += 1;
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             None => {
                 // Task exhausted - reconnection attempts used up
                 break;
@@ -183,9 +177,7 @@ fn test_connection_failure_triggers_reconnect() {
                 let delay = std::cmp::min(duration, std::time::Duration::from_millis(50));
                 std::thread::sleep(delay);
             }
-            Some(TaskStatus::Ready(Err(_))) => {
-                // Connection error - expected
-            }
+            // Connection error (Ready(Err)) or any other status: tolerated here.
             _ => {}
         }
     }
@@ -215,7 +207,7 @@ fn test_max_retries_exhausts() {
 
     while iterations < max_iterations {
         iterations += 1;
-        if task.next_status(Ctx::new()).is_none() {
+        if task.next_status(Ctx::host()).is_none() {
             got_exhausted = true;
             break;
         }
@@ -250,7 +242,7 @@ fn test_max_reconnect_duration_exhausts() {
 
     while iterations < max_iterations {
         iterations += 1;
-        match task.next_status(Ctx::new()) {
+        match task.next_status(Ctx::host()) {
             None => {
                 got_exhausted = true;
                 break;
@@ -267,12 +259,10 @@ fn test_max_reconnect_duration_exhausts() {
     let elapsed = start.elapsed();
     assert!(
         got_exhausted,
-        "Task should exhaust after max duration, iterations={}, elapsed={:?}",
-        iterations, elapsed
+        "Task should exhaust after max duration, iterations={iterations}, elapsed={elapsed:?}"
     );
     assert!(
         elapsed >= std::time::Duration::from_millis(100),
-        "Should have run for some time before exhausting, elapsed={:?}",
-        elapsed
+        "Should have run for some time before exhausting, elapsed={elapsed:?}"
     );
 }

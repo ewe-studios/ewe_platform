@@ -256,7 +256,9 @@ fn extract_crate_name(crate_dir: &Path) -> Result<String, WasmBinError> {
 
 fn scan_for_wasm_entrypoints(crate_dir: &Path) -> Result<Vec<WasmEntrypoint>, WasmBinError> {
     let scanner = CrateScanner::new("wasm_entrypoint");
-    let registry = scanner.scan_crate(crate_dir)?;
+    let registry = scanner
+        .scan_crate(crate_dir)
+        .map_err(|e| WasmBinError::ScanError(e.to_string()))?;
     let functions = registry.filter_by_kind(&ItemKind::Function);
     let mut entrypoints = Vec::with_capacity(functions.len());
     for target in functions {

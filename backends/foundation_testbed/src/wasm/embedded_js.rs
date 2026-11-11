@@ -1,4 +1,4 @@
-//! spec-44 — embedded Deno (deno_core + deno_web), in-process JS for the wasm harness.
+//! spec-44 — embedded Deno (`deno_core` + `deno_web`), in-process JS for the wasm harness.
 //!
 //! WHY: run the wasm test harness's JavaScript in-process with no external
 //! `node`/`deno` binary — `cargo build` gives JS execution for free (spec-44).
@@ -18,6 +18,34 @@
 //! `deno_runtime` bootstrap normally does that). So [`build_runtime`] runs a tiny
 //! bootstrap that loads those scripts via `Deno.core.loadExtScript` and assigns the
 //! classes onto `globalThis`.
+//!
+//! # The tokio boundary (documented third-party boundary, not a valtron port)
+//!
+//! This module keeps a **current-thread tokio runtime** local to itself, behind
+//! the `wasm-embedded-js` feature flag. It is the one tokio runtime outside
+//! valtron's own cross-runtime tests, and it must stay. Research against
+//! `deno_core` 0.404 shows why:
+//!
+//! - `JsRuntime::poll_event_loop(&mut self, cx, options)` is a plain poll method:
+//!   it registers its waker on the caller's `Context` and returns
+//!   `Poll<Result<(), CoreError>>`. So it *can* be polled from a valtron task.
+//! - But the timer and I/O backend under it is not pollable by valtron.
+//!   `deno_core` 0.404 splits the reactor behind a `Reactor` trait
+//!   (`reactor.rs`), whose `DefaultReactor` type alias is hard-coded to
+//!   `reactor_tokio::TokioReactor` (`reactor.rs: pub type DefaultReactor =
+//!   crate::reactor_tokio::TokioReactor;`). `jsrealm.rs` then binds
+//!   `UserTimer<DefaultReactor>` with no `RuntimeOptions` field to swap it.
+//! - `TokioReactor` timers use tokio's own sleeping and monotonic clock reads
+//!   (`reactor_tokio.rs`), which panic outside a tokio runtime. `uv_compat.rs`
+//!   drives TCP with tokio's `poll_accept` / `try_read` / `try_write`, and
+//!   `deno_websocket` (kept: `embedded_js_tests.rs` exercises the WebSocket
+//!   global) dials real TCP through tokio's net driver.
+//!
+//! So the JS timers cannot run on valtron's clock and the event loop cannot
+//! drain without a tokio runtime context. `deno_core` offers no seam to
+//! replace the reactor without patching the third-party crate. This is a
+//! third-party boundary by design: the runtime never leaves this module, is a
+//! current-thread runtime, and is gated behind `wasm-embedded-js`.
 
 use std::cell::RefCell;
 use std::path::Path;
@@ -26,7 +54,7 @@ use std::sync::Arc;
 
 use deno_core::convert::Uint8Array;
 use deno_core::{
-    op2, Extension, FsModuleLoader, JsRuntime, OpState, PollEventLoopOptions, RuntimeOptions,
+    Extension, FsModuleLoader, JsRuntime, OpState, PollEventLoopOptions, RuntimeOptions, op2,
 };
 use deno_error::JsErrorBox;
 
@@ -120,6 +148,10 @@ const BOOTSTRAP_GLOBALS: &str = r#"
 /// Read a file's bytes — replaces the runner's `node:fs`/`fetch` byte loading.
 /// The runner passes the local path of a staged file (`module.wasm`/`cases.json`).
 #[op2]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the op2 macro passes a `#[string]` argument as an owned String"
+)]
 fn op_fwt_read_file(#[string] path: String) -> Result<Uint8Array, JsErrorBox> {
     std::fs::read(&path)
         .map(Uint8Array::from)
@@ -135,7 +167,7 @@ fn op_fwt_report(state: &mut OpState, #[string] json: String) {
     *sink.0.borrow_mut() = Some(json);
 }
 
-/// Fill `buf` from OS entropy (foundation_compact's vendored getrandom): backs
+/// Fill `buf` from OS entropy (`foundation_compact`'s vendored `getrandom`): backs
 /// the bootstrap's `crypto.getRandomValues`, which checks the Web Crypto
 /// contract (integer view, 65536-byte quota) before calling in.
 #[op2(fast)]
@@ -310,7 +342,7 @@ fn install_crypto_provider() {
 }
 
 /// A current-thread tokio runtime with the time driver — the minimal executor
-/// deno_core's event loop + timers (`reactor_tokio.rs`) require.
+/// `deno_core`'s event loop + timers (`reactor_tokio.rs`) require.
 fn tokio_runtime() -> Result<tokio::runtime::Runtime, Box<dyn std::error::Error>> {
     Ok(tokio::runtime::Builder::new_current_thread()
         .enable_io() // deno_websocket dials real TCP — needs the I/O driver
@@ -341,10 +373,16 @@ async fn evaluate(
 // ── W1 spike (kept: smallest possible build/eval/WebAssembly proof) ──────────
 
 /// Evaluate `1 + 1` in an in-process V8 isolate and return the number (W1 spike).
+///
+/// # Panics
+///
+/// Panics if the V8 isolate cannot run the script.
 #[must_use]
 pub fn spike_eval_addition() -> f64 {
     let mut rt = JsRuntime::new(RuntimeOptions::default());
-    let value = rt.execute_script("<spike>", "1 + 1").expect("execute_script");
+    let value = rt
+        .execute_script("<spike>", "1 + 1")
+        .expect("execute_script");
     deno_core::scope!(scope, rt);
     let local = deno_core::v8::Local::new(scope, value);
     local.number_value(scope).unwrap_or(f64::NAN)
@@ -352,6 +390,10 @@ pub fn spike_eval_addition() -> f64 {
 
 /// Synchronously compile + instantiate a minimal (header-only) wasm module in V8 —
 /// proves the engine's `WebAssembly` works (the harness needs it) (W1 spike).
+///
+/// # Panics
+///
+/// Panics if the V8 isolate cannot run the script.
 #[must_use]
 pub fn spike_wasm_instantiate() -> bool {
     let mut rt = JsRuntime::new(RuntimeOptions::default());
@@ -361,7 +403,9 @@ pub fn spike_wasm_instantiate() -> bool {
         const i = new WebAssembly.Instance(m);\
         return typeof i === 'object';\
     })()";
-    let value = rt.execute_script("<spike-wasm>", src).expect("execute_script");
+    let value = rt
+        .execute_script("<spike-wasm>", src)
+        .expect("execute_script");
     deno_core::scope!(scope, rt);
     let local = deno_core::v8::Local::new(scope, value);
     local.boolean_value(scope)

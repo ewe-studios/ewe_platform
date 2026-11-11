@@ -6,139 +6,134 @@
 //! upgrade everything is opaque frames. Both cases are "copy bytes both ways
 //! until one side closes".
 //!
-//! WHAT: [`splice_bidirectional`] (the generic two-way copy used by the
-//! WebSocket relay) and [`TcpPassthrough`] (a standalone raw TCP listener that
-//! splices every accepted client to a fixed backend authority).
+//! WHAT: [`TcpPassthrough`] (a standalone raw TCP listener that splices every
+//! accepted client to a fixed backend authority), [`UdpPassthrough`] (the same
+//! for datagrams).
 //!
-//! HOW: One poll loop on a single thread moves data in both directions over
-//! non-blocking sockets, sleeping briefly only when neither side had data. EOF
-//! or a hard error on either side ends the splice.
+//! HOW: The listeners are futures on the valtron pool. The accept loop parks on
+//! the listener's read readiness, each client is its own future that runs
+//! [`crate::aio::splice`], and the UDP loop parks on the socket's read readiness.
+//! No thread is started per client or per listener, and none sleeps. A loop
+//! also wakes on a timer every `shutdown_poll` to see the shutdown signal.
 
-use std::io::{ErrorKind, Read, Write};
-use std::net::{TcpListener, TcpStream, UdpSocket};
+use std::net::{SocketAddr, TcpListener, UdpSocket};
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Arc;
-use std::thread::JoinHandle;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::synca::OnSignal;
+use foundation_core::valtron::{from_future, send, sleep_async};
+use foundation_http::native::writer::WriterConfig;
+use foundation_iogate::ServerIo;
+use foundation_netio::shared::client::{DnsResolver, SystemDnsResolver};
+use futures_util::future::{select, Either};
 
-/// How long the UDP relay waits for a backend response before giving up on that
-/// datagram.  The relay checks the shutdown signal on every poll cycle, so
-/// shutdown is never delayed by more than the poll sleep (5ms).
-const BACKEND_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
+use crate::aio::{dial_tcp, splice, wrap_tcp, AsyncFd};
 
-/// One direction of a bidirectional splice: bytes read from a source and being
-/// relayed to a sink, with the backpressure state that keeps the relay correct
-/// on both readiness (`Std`) and completion (io_uring `SEND`) sinks.
-struct HalfRelay {
-    /// Bytes read from the source, awaiting write to the sink.
-    pending: Vec<u8>,
-    /// How many bytes of `pending` have already been accepted by the sink.
-    written: usize,
-    /// The sink has an un-acked write. On a completion sink `flush` returns
-    /// `WouldBlock` ("send still in flight"); that is not an error, and the
-    /// relay must drain it to completion before submitting the next chunk so
-    /// separate `IORING_OP_SEND`s cannot land out of order.
-    flushing: bool,
+/// Limits and modes for [`TcpPassthrough`] and [`UdpPassthrough`].
+#[derive(Debug, Clone, Copy)]
+pub struct PassthroughConfig {
+    /// How often an idle loop wakes to check for shutdown. A timer wake, not a
+    /// thread sleep. Default 50 ms (the control socket's former poll).
+    pub shutdown_poll: Duration,
+    /// How long the UDP relay waits for the backend to answer one datagram.
+    /// Default 5 seconds.
+    pub udp_response_timeout: Duration,
+    /// How the backend leg is dialed. Default `Std`.
+    pub io_mode: ServerIo,
+    /// The longest the backend TCP connect may take. Default 60 seconds (nginx
+    /// `proxy_connect_timeout`).
+    pub connect_timeout: Duration,
+    /// Write limits for the spliced connections (`send_timeout` is nginx's 60 s).
+    pub writer: WriterConfig,
 }
 
-/// The outcome of pumping one direction for one tick.
-enum Pump {
-    /// Bytes moved (read, written, or a flush completed) — keep spinning hot.
-    Progressed,
-    /// Nothing to do this tick (source empty, or a send still draining).
-    Idle,
-    /// EOF or a hard error — the splice is over.
-    Closed,
-}
-
-impl HalfRelay {
-    fn new() -> Self {
-        Self { pending: Vec::new(), written: 0, flushing: false }
-    }
-
-    /// Move one step of `src → dst`: finish an outstanding flush, drain buffered
-    /// bytes, then read more. Ordering is preserved by never writing new bytes
-    /// while a previous completion-mode send is still in flight.
-    fn pump<S: Read, D: Write>(&mut self, src: &mut S, dst: &mut D, buf: &mut [u8]) -> Pump {
-        // 1. A prior write is still draining — finish it before anything else.
-        if self.flushing {
-            match dst.flush() {
-                Ok(()) => self.flushing = false,
-                Err(ref e) if e.kind() == ErrorKind::WouldBlock => return Pump::Idle,
-                Err(_) => return Pump::Closed,
-            }
-        }
-
-        // 2. Drain buffered bytes into the sink.
-        if self.written < self.pending.len() {
-            match dst.write(&self.pending[self.written..]) {
-                Ok(0) => return Pump::Closed,
-                Ok(n) => {
-                    self.written += n;
-                    if self.written >= self.pending.len() {
-                        self.pending.clear();
-                        self.written = 0;
-                        // Kick the flush; a completion sink reports the send as
-                        // still in flight (`WouldBlock`) — drain it next tick.
-                        match dst.flush() {
-                            Ok(()) => {}
-                            Err(ref e) if e.kind() == ErrorKind::WouldBlock => self.flushing = true,
-                            Err(_) => return Pump::Closed,
-                        }
-                    }
-                    return Pump::Progressed;
-                }
-                Err(ref e) if e.kind() == ErrorKind::WouldBlock => return Pump::Idle,
-                Err(_) => return Pump::Closed,
-            }
-        }
-
-        // 3. Buffer is empty — read the next chunk from the source.
-        match src.read(buf) {
-            Ok(0) => Pump::Closed,
-            Ok(n) => {
-                self.pending.extend_from_slice(&buf[..n]);
-                Pump::Progressed
-            }
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => Pump::Idle,
-            Err(_) => Pump::Closed,
+impl Default for PassthroughConfig {
+    fn default() -> Self {
+        Self {
+            shutdown_poll: Duration::from_millis(50),
+            udp_response_timeout: Duration::from_secs(5),
+            io_mode: ServerIo::default(),
+            connect_timeout: Duration::from_secs(60),
+            writer: WriterConfig::default(),
         }
     }
 }
 
-/// Copy bytes in both directions between `a` and `b` until one side closes.
-///
-/// WHAT: Reads whatever is available on each side and writes it to the other,
-/// looping until an EOF (`Ok(0)`) or a non-`WouldBlock` error on either side.
-///
-/// # Preconditions
-/// Both streams must already be in non-blocking mode; otherwise a read on an
-/// idle side blocks the other direction. Callers own that setup because the two
-/// stream types differ.
-///
-/// The sinks may be readiness sockets (`flush` is synchronous) or io_uring
-/// completion sockets (`flush` is a barrier that reports `WouldBlock` while a
-/// `SEND` is still in flight). Both are handled: a `WouldBlock` from `write` or
-/// `flush` is backpressure, not failure.
-pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B) {
-    let mut buf = [0u8; 16 * 1024];
-    let mut a_to_b = HalfRelay::new();
-    let mut b_to_a = HalfRelay::new();
-
-    loop {
-        let ab = a_to_b.pump(&mut a, &mut b, &mut buf);
-        let ba = b_to_a.pump(&mut b, &mut a, &mut buf);
-
-        if matches!(ab, Pump::Closed) || matches!(ba, Pump::Closed) {
-            break;
-        }
-        // Neither direction moved: nothing buffered, nothing readable, no send
-        // draining — sleep briefly rather than burn the core.
-        if matches!(ab, Pump::Idle) && matches!(ba, Pump::Idle) {
-            std::thread::sleep(Duration::from_millis(1));
-        }
+impl PassthroughConfig {
+    /// The defaults documented on each field.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
     }
+
+    /// Set [`Self::shutdown_poll`].
+    #[must_use]
+    pub fn with_shutdown_poll(mut self, poll: Duration) -> Self {
+        self.shutdown_poll = poll;
+        self
+    }
+
+    /// Set [`Self::udp_response_timeout`].
+    #[must_use]
+    pub fn with_udp_response_timeout(mut self, timeout: Duration) -> Self {
+        self.udp_response_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::io_mode`].
+    #[must_use]
+    pub fn with_io_mode(mut self, mode: ServerIo) -> Self {
+        self.io_mode = mode;
+        self
+    }
+
+    /// Set [`Self::connect_timeout`].
+    #[must_use]
+    pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::writer`].
+    #[must_use]
+    pub fn with_writer(mut self, writer: WriterConfig) -> Self {
+        self.writer = writer;
+        self
+    }
+}
+
+/// Wait for `fut`, or give up after `tick`: `None` means the tick came first.
+async fn or_tick<T>(
+    fut: impl std::future::Future<Output = T>,
+    tick: Duration,
+    ctx: &Ctx,
+) -> Option<T> {
+    match select(Box::pin(fut), Box::pin(sleep_async(tick, ctx))).await {
+        Either::Left((value, _)) => Some(value),
+        Either::Right(((), _)) => None,
+    }
+}
+
+/// Start `task` on the valtron pool and return a channel that gets one message
+/// when it ends.
+fn spawn_loop(
+    task: impl std::future::Future<Output = ()> + Send + 'static,
+    done: Sender<()>,
+) -> std::io::Result<()> {
+    send(from_future(async move {
+        task.await;
+        let _ = done.send(());
+    }))
+    .map_err(|e| std::io::Error::other(format!("cannot start the passthrough loop: {e}")))
+}
+
+/// Stop a loop: set its signal and wait (bounded) until it has ended and
+/// dropped its socket. A blocking wait on the caller's thread.
+fn stop_loop(shutdown: &OnSignal, done: &Receiver<()>, poll: Duration) {
+    shutdown.turn_on();
+    let _ = done.recv_timeout(poll.saturating_mul(4) + Duration::from_secs(1));
 }
 
 /// A raw TCP passthrough listener: every accepted client is spliced to
@@ -147,96 +142,140 @@ pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B
 /// WHY: The HTTP front end parses HTTP before dispatch, so a genuinely raw
 /// protocol (`tcp://` service) cannot ride it — it needs its own listener that
 /// hands the bytes straight to the backend.
+///
+/// The valtron pool must be initialised before [`TcpPassthrough::start`].
 #[derive(Debug)]
 pub struct TcpPassthrough {
-    local_addr: std::net::SocketAddr,
+    local_addr: SocketAddr,
     shutdown: Arc<OnSignal>,
-    accept_thread: Option<JoinHandle<()>>,
+    done: Receiver<()>,
+    poll: Duration,
 }
 
 impl TcpPassthrough {
-    /// Bind `listen_addr` and splice every connection to `backend_authority`.
+    /// Bind `listen_addr` and splice every connection to `backend_authority`,
+    /// with the default [`PassthroughConfig`].
     ///
-    /// Returns immediately with a handle; the accept loop runs on its own
-    /// thread until [`TcpPassthrough::shutdown`] (or drop).
+    /// Returns immediately with a handle; the accept loop runs as a future until
+    /// [`TcpPassthrough::shutdown`] (or drop).
     ///
     /// # Errors
-    /// Returns the bind error if `listen_addr` cannot be bound.
-    pub fn start(listen_addr: &str, backend_authority: &str) -> std::io::Result<Self> {
+    /// Returns the bind error if `listen_addr` cannot be bound, or an error if
+    /// the loop cannot be started on the pool.
+    pub fn start(listen_addr: &str, backend_authority: &str, ctx: Ctx) -> std::io::Result<Self> {
+        Self::start_with(
+            listen_addr,
+            backend_authority,
+            PassthroughConfig::default(),
+            ctx,
+        )
+    }
+
+    /// Like [`Self::start`], with explicit limits.
+    ///
+    /// # Errors
+    /// As [`Self::start`].
+    pub fn start_with(
+        listen_addr: &str,
+        backend_authority: &str,
+        config: PassthroughConfig,
+        ctx: Ctx,
+    ) -> std::io::Result<Self> {
         let listener = TcpListener::bind(listen_addr)?;
         listener.set_nonblocking(true)?;
         let local_addr = listener.local_addr()?;
+        let listener = AsyncFd::new(listener)?;
         let shutdown = Arc::new(OnSignal::new());
         let backend = backend_authority.to_string();
+        let (done_tx, done_rx) = std::sync::mpsc::channel();
 
-        let loop_shutdown = Arc::clone(&shutdown);
-        let accept_thread = std::thread::spawn(move || {
-            accept_loop(&listener, &backend, &loop_shutdown);
-        });
+        spawn_loop(
+            accept_loop(listener, backend, Arc::clone(&shutdown), config, ctx),
+            done_tx,
+        )?;
 
         Ok(Self {
             local_addr,
             shutdown,
-            accept_thread: Some(accept_thread),
+            done: done_rx,
+            poll: config.shutdown_poll,
         })
     }
 
     /// The actual bound address (useful when binding to port 0).
     #[must_use]
-    pub fn local_addr(&self) -> std::net::SocketAddr {
+    pub fn local_addr(&self) -> SocketAddr {
         self.local_addr
     }
 
-    /// Stop accepting and join the accept thread.
-    pub fn shutdown(mut self) {
-        self.shutdown.turn_on();
-        if let Some(handle) = self.accept_thread.take() {
-            let _ = handle.join();
-        }
+    /// Stop accepting. Clients already spliced run until they close.
+    pub fn shutdown(self) {
+        stop_loop(&self.shutdown, &self.done, self.poll);
     }
 }
 
 impl Drop for TcpPassthrough {
     fn drop(&mut self) {
         self.shutdown.turn_on();
-        if let Some(handle) = self.accept_thread.take() {
-            let _ = handle.join();
-        }
     }
 }
 
-/// Accept loop for [`TcpPassthrough`]: one splice thread per client.
-fn accept_loop(listener: &TcpListener, backend_authority: &str, shutdown: &Arc<OnSignal>) {
-    loop {
-        if shutdown.probe() {
-            return;
-        }
-        match listener.accept() {
-            Ok((client, _addr)) => {
-                let backend = backend_authority.to_string();
-                std::thread::spawn(move || {
-                    if let Err(e) = splice_client_to_backend(client, &backend) {
+/// Accept loop for [`TcpPassthrough`]: one splice future per client.
+async fn accept_loop(
+    listener: AsyncFd<TcpListener>,
+    backend: String,
+    shutdown: Arc<OnSignal>,
+    config: PassthroughConfig,
+    ctx: Ctx,
+) {
+    while !shutdown.probe() {
+        let accepted = or_tick(
+            listener.read_with(std::net::TcpListener::accept),
+            config.shutdown_poll,
+            &ctx,
+        )
+        .await;
+        match accepted {
+            None => {}
+            Some(Ok((client, _addr))) => {
+                let backend = backend.clone();
+                let relay_ctx = ctx.clone();
+                let task = async move {
+                    if let Err(e) =
+                        splice_client_to_backend(client, &backend, config, &relay_ctx).await
+                    {
                         tracing::warn!(%backend, "tcp passthrough failed: {e}");
                     }
-                });
+                };
+                if let Err(e) = send(from_future(task)) {
+                    tracing::error!("tcp passthrough cannot start a client relay: {e}");
+                }
             }
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                std::thread::sleep(Duration::from_millis(5));
-            }
-            Err(e) => {
+            Some(Err(e)) => {
                 tracing::error!("tcp passthrough accept error: {e}");
-                std::thread::sleep(Duration::from_millis(20));
+                // Back off one poll so a persistent error does not spin.
+                sleep_async(config.shutdown_poll, &ctx).await;
             }
         }
     }
 }
 
 /// Connect to the backend and splice a single client connection to it.
-fn splice_client_to_backend(client: TcpStream, backend_authority: &str) -> std::io::Result<()> {
-    let backend = TcpStream::connect(backend_authority)?;
-    client.set_nonblocking(true)?;
-    backend.set_nonblocking(true)?;
-    splice_bidirectional(client, backend);
+async fn splice_client_to_backend(
+    client: std::net::TcpStream,
+    backend_authority: &str,
+    config: PassthroughConfig,
+    ctx: &Ctx,
+) -> std::io::Result<()> {
+    let client = wrap_tcp(client)?;
+    let backend = dial_tcp(
+        backend_authority,
+        config.io_mode,
+        config.connect_timeout,
+        ctx,
+    )
+    .await?;
+    splice(client, backend, config.writer, ctx).await;
     Ok(())
 }
 
@@ -248,130 +287,161 @@ fn splice_client_to_backend(client: TcpStream, backend_authority: &str) -> std::
 ///
 /// HOW: Binds a single `UdpSocket`. Each datagram is forwarded to the backend;
 /// the backend's response is sent back to the client address that sent the
-/// original datagram.  Connectionless — one socket serves all clients.
+/// original datagram.  Connectionless — one socket serves all clients. The relay
+/// is one future that parks on the socket's read readiness.
+///
+/// The valtron pool must be initialised before [`UdpPassthrough::start`].
 #[derive(Debug)]
 pub struct UdpPassthrough {
-    local_addr: std::net::SocketAddr,
+    local_addr: SocketAddr,
     shutdown: Arc<OnSignal>,
-    relay_thread: Option<JoinHandle<()>>,
+    done: Receiver<()>,
+    poll: Duration,
 }
 
 impl UdpPassthrough {
-    /// Bind `listen_addr` and relay every datagram to `backend_authority`.
+    /// Bind `listen_addr` and relay every datagram to `backend_authority`, with
+    /// the default [`PassthroughConfig`]. The clock of `ctx` times the response wait.
     ///
-    /// Returns immediately with a handle; the relay loop runs on its own thread
-    /// until [`UdpPassthrough::shutdown`] (or drop).
+    /// Returns immediately with a handle; the relay runs as a future until
+    /// [`UdpPassthrough::shutdown`] (or drop).
     ///
     /// # Errors
-    /// Returns the bind error if `listen_addr` cannot be bound.
-    pub fn start(listen_addr: &str, backend_authority: &str) -> std::io::Result<Self> {
+    /// Returns the bind error if `listen_addr` cannot be bound, or an error if
+    /// the loop cannot be started on the pool.
+    pub fn start(listen_addr: &str, backend_authority: &str, ctx: Ctx) -> std::io::Result<Self> {
+        Self::start_with(
+            listen_addr,
+            backend_authority,
+            PassthroughConfig::default(),
+            ctx,
+        )
+    }
+
+    /// Like [`Self::start`], with explicit limits.
+    ///
+    /// # Errors
+    /// As [`Self::start`].
+    pub fn start_with(
+        listen_addr: &str,
+        backend_authority: &str,
+        config: PassthroughConfig,
+        ctx: Ctx,
+    ) -> std::io::Result<Self> {
         let socket = UdpSocket::bind(listen_addr)?;
         socket.set_nonblocking(true)?;
         let local_addr = socket.local_addr()?;
+        let socket = AsyncFd::new(socket)?;
         let shutdown = Arc::new(OnSignal::new());
         let backend = backend_authority.to_string();
+        let (done_tx, done_rx) = std::sync::mpsc::channel();
 
-        let loop_shutdown = Arc::clone(&shutdown);
-        let relay_thread = std::thread::spawn(move || {
-            relay_udp(socket, &backend, &loop_shutdown);
-        });
+        spawn_loop(
+            relay_udp(socket, backend, Arc::clone(&shutdown), config, ctx),
+            done_tx,
+        )?;
 
         Ok(Self {
             local_addr,
             shutdown,
-            relay_thread: Some(relay_thread),
+            done: done_rx,
+            poll: config.shutdown_poll,
         })
     }
 
     #[must_use]
-    pub fn local_addr(&self) -> std::net::SocketAddr {
+    pub fn local_addr(&self) -> SocketAddr {
         self.local_addr
     }
 
-    pub fn shutdown(mut self) {
-        self.shutdown.turn_on();
-        if let Some(handle) = self.relay_thread.take() {
-            let _ = handle.join();
-        }
+    /// Stop relaying.
+    pub fn shutdown(self) {
+        stop_loop(&self.shutdown, &self.done, self.poll);
     }
 }
 
 impl Drop for UdpPassthrough {
     fn drop(&mut self) {
         self.shutdown.turn_on();
-        if let Some(handle) = self.relay_thread.take() {
-            let _ = handle.join();
-        }
     }
 }
 
-/// Single-threaded relay loop: client datagram → backend, response → client.
-fn relay_udp(socket: UdpSocket, backend_addr: &str, shutdown: &Arc<OnSignal>) {
-    let mut buf = [0u8; 65535];
-    let backend = match backend_addr.to_socket_addrs_first() {
-        Some(addr) => addr,
-        None => {
-            tracing::error!(%backend_addr, "UDP relay: cannot resolve backend address");
-            return;
-        }
+/// Relay loop: client datagram → backend, response → client.
+async fn relay_udp(
+    socket: AsyncFd<UdpSocket>,
+    backend_authority: String,
+    shutdown: Arc<OnSignal>,
+    config: PassthroughConfig,
+    ctx: Ctx,
+) {
+    let clock = ctx.clock();
+    let Some(backend) = resolve_first(&backend_authority).await else {
+        tracing::error!(backend_addr = %backend_authority, "UDP relay: cannot resolve backend address");
+        return;
     };
+    let mut buf = vec![0u8; 65535];
 
-    loop {
-        if shutdown.probe() {
-            return;
-        }
-        match socket.recv_from(&mut buf) {
-            Ok((n, client_addr)) => {
-                // Forward to backend.
-                if let Err(e) = socket.send_to(&buf[..n], backend) {
-                    tracing::warn!(%backend, "UDP relay send to backend failed: {e}");
-                    continue;
-                }
-                // Poll for a response while keeping shutdown responsive.
-                let deadline = Instant::now() + BACKEND_RESPONSE_TIMEOUT;
-                let mut responded = false;
-                while Instant::now() < deadline {
-                    if shutdown.probe() {
-                        return;
-                    }
-                    match socket.recv_from(&mut buf) {
-                        Ok((m, _from)) => {
-                            if let Err(e) = socket.send_to(&buf[..m], client_addr) {
-                                tracing::warn!(%client_addr, "UDP relay send to client failed: {e}");
-                            }
-                            responded = true;
-                            break;
-                        }
-                        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                            std::thread::sleep(Duration::from_millis(5));
-                        }
-                        Err(e) => {
-                            tracing::warn!("UDP relay recv from backend failed: {e}");
-                            break;
-                        }
-                    }
-                }
-                if !responded {
-                    tracing::trace!("UDP relay: no response from backend within {:?}", BACKEND_RESPONSE_TIMEOUT);
-                }
-            }
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}
-            Err(e) => {
+    while !shutdown.probe() {
+        let received = or_tick(
+            socket.read_with(|s| s.recv_from(&mut buf)),
+            config.shutdown_poll,
+            &ctx,
+        )
+        .await;
+        let (n, client_addr) = match received {
+            None => continue,
+            Some(Ok(pair)) => pair,
+            Some(Err(e)) => {
                 tracing::error!("UDP relay recv error: {e}");
-                break;
+                return;
             }
+        };
+        // Forward to the backend.
+        if let Err(e) = socket.write_with(|s| s.send_to(&buf[..n], backend)).await {
+            tracing::warn!(%backend, "UDP relay send to backend failed: {e}");
+            continue;
+        }
+        // Wait for the response, in slices so shutdown stays responsive.
+        let deadline = clock.now() + config.udp_response_timeout;
+        let mut responded = false;
+        while !responded && clock.now() < deadline && !shutdown.probe() {
+            let slice = config
+                .shutdown_poll
+                .min(deadline.saturating_duration_since(clock.now()));
+            match or_tick(socket.read_with(|s| s.recv_from(&mut buf)), slice, &ctx).await {
+                None => {}
+                Some(Ok((m, _from))) => {
+                    if let Err(e) = socket
+                        .write_with(|s| s.send_to(&buf[..m], client_addr))
+                        .await
+                    {
+                        tracing::warn!(%client_addr, "UDP relay send to client failed: {e}");
+                    }
+                    responded = true;
+                }
+                Some(Err(e)) => {
+                    tracing::warn!("UDP relay recv from backend failed: {e}");
+                    break;
+                }
+            }
+        }
+        if !responded {
+            tracing::trace!(
+                "UDP relay: no response from backend within {:?}",
+                config.udp_response_timeout
+            );
         }
     }
 }
 
-/// Minimal helper: resolve the first socket address for `host:port`.
-trait FirstSocketAddr {
-    fn to_socket_addrs_first(&self) -> Option<std::net::SocketAddr>;
-}
-
-impl FirstSocketAddr for str {
-    fn to_socket_addrs_first(&self) -> Option<std::net::SocketAddr> {
-        use std::net::ToSocketAddrs;
-        self.to_socket_addrs().ok().and_then(|mut it| it.next())
-    }
+/// Resolve the first socket address for `host:port` without blocking a thread.
+async fn resolve_first(authority: &str) -> Option<SocketAddr> {
+    let (host, port) = authority.rsplit_once(':')?;
+    let port = port.parse::<u16>().ok()?;
+    SystemDnsResolver
+        .resolve(host.trim_matches(['[', ']']), port)
+        .await
+        .ok()?
+        .into_iter()
+        .next()
 }

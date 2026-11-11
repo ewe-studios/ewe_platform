@@ -1513,10 +1513,7 @@ impl FromBinary for GroupReturnTypeHints {
                 .get(mem_id);
             assert!(
                 memory_result.is_ok(),
-                "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
-                &mem_id,
-                &return_hint,
-                &memory_result
+                "GroupReturnTypeHints: Received memoryId: {mem_id:?} -> {return_hint:?} -- result: {memory_result:?}"
             );
             if let Err(err) = memory_result {
                 return Err(err.into());

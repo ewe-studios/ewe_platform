@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Identity API — `connect/token` (spec-57, F008 Stage 1).
 //!
 //! WHY: The Bitwarden login endpoint. Two OAuth2 grants: `password` (verify the
@@ -12,16 +16,14 @@
 //! (`foundation_auth::JwtSigningKey`); devices + rotated refresh tokens persist via
 //! [`crate::core::store::devices`].
 
-use chrono::Utc;
-use uuid::Uuid;
+use crate::core::clock::wall_now_utc;
 
-use base64::Engine;
 use crate::core::api::accounts::verify_user_password;
-use crate::core::crypto;
 use crate::core::auth::{
     mint_access_token, mint_refresh_token, verify_refresh_token, ACCESS_TOKEN_TTL_SECS,
 };
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::user::{
     LoginResponse, MasterPasswordUnlock, MasterPasswordUnlockKdf, TokenRequest,
@@ -29,13 +31,18 @@ use crate::core::models::user::{
 };
 use crate::core::store::devices::{self, DeviceRow};
 use crate::core::store::users::{self, UserRow};
+use base64::Engine;
 
 /// `POST /identity/connect/token` — dispatch on `grant_type`.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn connect_token(ctx: &KeychainContext, req: TokenRequest) -> AppResult<LoginResponse> {
     match req.grant_type.as_str() {
         "password" => password_grant(ctx, req).await,
         "refresh_token" => refresh_grant(ctx, req).await,
-        other => Err(AppError::BadRequest(format!("unsupported grant_type: {other}"))),
+        other => Err(AppError::BadRequest(format!("unsupported grant_type: {other}")).into()),
     }
 }
 
@@ -54,10 +61,10 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         .master_password_hash
         .as_deref()
         .ok_or_else(|| invalid_grant("missing password"))?;
-    let device_identifier = req
-        .device_identifier
-        .clone()
-        .unwrap_or_else(|| Uuid::new_v4().to_string());
+    let device_identifier = match req.device_identifier.clone() {
+        Some(id) => id,
+        None => crypto::new_uuid_v4()?.to_string(),
+    };
 
     let user = users::find_by_email(ctx.db(), &email)
         .await?
@@ -82,7 +89,8 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         } else {
             600_000
         };
-        if let Ok(Some(computed)) = crypto::derive_client_hash(password, &email, client_iters).await {
+        if let Ok(Some(computed)) = crypto::derive_client_hash(password, &email, client_iters).await
+        {
             verify_user_password(&user, &computed).await?
         } else {
             false
@@ -90,14 +98,15 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
     };
 
     if !verified {
-        return Err(invalid_grant("username or password is incorrect"));
+        return Err(invalid_grant("username or password is incorrect").into());
     }
 
-    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier)?;
-    let refresh_token = mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier)?;
+    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.ctx())?;
+    let refresh_token =
+        mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier, ctx.ctx())?;
 
     // Upsert the device with the freshly-minted refresh token.
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.ctx());
     match devices::find(ctx.db(), &user.uuid, &device_identifier).await? {
         Some(existing) => {
             devices::update_refresh_token(ctx.db(), &existing.uuid, &refresh_token, now).await?;
@@ -106,7 +115,7 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
             devices::insert(
                 ctx.db(),
                 &DeviceRow {
-                    uuid: Uuid::new_v4().to_string(),
+                    uuid: crypto::new_uuid_v4()?.to_string(),
                     user_uuid: user.uuid.clone(),
                     identifier: device_identifier.clone(),
                     name: req.device_name.clone(),
@@ -140,21 +149,32 @@ async fn refresh_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<Lo
 
     // The presented token must be the one we last handed this device (rotation).
     if device.refresh_token != presented {
-        return Err(invalid_grant("refresh token has been superseded"));
+        return Err(invalid_grant("refresh token has been superseded").into());
     }
 
     let user = users::find_by_uuid(ctx.db(), &user_uuid)
         .await?
         .ok_or_else(|| invalid_grant("user no longer exists"))?;
 
-    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier)?;
-    let new_refresh = mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier)?;
-    devices::update_refresh_token(ctx.db(), &device.uuid, &new_refresh, Utc::now()).await?;
+    let access_token = mint_access_token(ctx.signing_key(), &user, &device_identifier, ctx.ctx())?;
+    let new_refresh =
+        mint_refresh_token(ctx.signing_key(), &user.uuid, &device_identifier, ctx.ctx())?;
+    devices::update_refresh_token(
+        ctx.db(),
+        &device.uuid,
+        &new_refresh,
+        wall_now_utc(ctx.ctx()),
+    )
+    .await?;
 
     Ok(build_login_response(&user, access_token, new_refresh))
 }
 
-fn build_login_response(user: &UserRow, access_token: String, refresh_token: String) -> LoginResponse {
+fn build_login_response(
+    user: &UserRow,
+    access_token: String,
+    refresh_token: String,
+) -> LoginResponse {
     // `bw` requires `Key` in the login response.  The real value is the user's
     // symmetric key encrypted with the stretched master key (EncString type 2).
     // Self-hosted servers set a dummy EncString — `bw` tries to decrypt it,
@@ -163,7 +183,8 @@ fn build_login_response(user: &UserRow, access_token: String, refresh_token: Str
     let akey = user.akey.clone().or_else(|| {
         // EncString type-2: "2.<base64-iv>|<base64-ciphertext>|<base64-mac>"
         // 16-byte IV + 32 bytes garbage + 32-byte HMAC placeholder
-        Some(format!("2.{}=|{}=",
+        Some(format!(
+            "2.{}=|{}=",
             base64::engine::general_purpose::STANDARD.encode([0u8; 16]),
             base64::engine::general_purpose::STANDARD.encode([0u8; 32]),
         ))

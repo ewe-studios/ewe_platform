@@ -1,6 +1,6 @@
 #![cfg(feature = "wasm")]
 //! WHY: Feature 13 — the testbed must enumerate `#[wasm_test]` cases (names +
-//! async/should_panic/ignore flags) from a compiled module WITHOUT running it,
+//! `async/should_panic/ignore` flags) from a compiled module WITHOUT running it,
 //! using the owned wasm reader (the F15 wasmbin port), not walrus and not
 //! wasm-bindgen.
 //!
@@ -12,10 +12,11 @@
 
 use std::path::PathBuf;
 
-use foundation_testbed::wasm::fwt::{discover_cases, FwtCase};
+use foundation_testbed::wasm::fwt::{FwtCase, discover_cases};
 
 fn fixture() -> Option<PathBuf> {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("integration/fixtures/fwt_sample.wasm");
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("integration/fixtures/fwt_sample.wasm");
     path.is_file().then_some(path)
 }
 

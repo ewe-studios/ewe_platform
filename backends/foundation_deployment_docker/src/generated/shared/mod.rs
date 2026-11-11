@@ -325,16 +325,16 @@ pub struct ContainerAttachArgsShape {
     pub id: String,
     /// Query parameter: `detachKeys`.
     pub detach_keys: Option<String>,
-    /// Query parameter: `logs`.
-    pub logs: Option<String>,
-    /// Query parameter: `stream`.
-    pub stream: Option<String>,
-    /// Query parameter: `stdin`.
-    pub stdin: Option<String>,
-    /// Query parameter: `stdout`.
-    pub stdout: Option<String>,
-    /// Query parameter: `stderr`.
-    pub stderr: Option<String>,
+    /// Query parameter: `logs` (true/false).
+    pub logs: Option<bool>,
+    /// Query parameter: `stream` (true/false).
+    pub stream: Option<bool>,
+    /// Query parameter: `stdin` (true/false).
+    pub stdin: Option<bool>,
+    /// Query parameter: `stdout` (true/false).
+    pub stdout: Option<bool>,
+    /// Query parameter: `stderr` (true/false).
+    pub stderr: Option<bool>,
 }
 
 /// A shape 6 generated types share.
@@ -371,7 +371,7 @@ pub struct DeviceRequestShape {
     pub options: Option<serde_json::Value>,
 }
 
-/// A shape 6 generated types share.
+/// A shape 7 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmptyArgs {}
 
@@ -484,6 +484,15 @@ pub struct IdObject {
 
 /// A shape 2 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdPathArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Query parameter: `path`.
+    pub path: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct IdSignalTArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -562,8 +571,8 @@ pub struct NameArgs {
 pub struct NameForceArgs {
     /// Path parameter: `name`.
     pub name: String,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
 }
 
 /// A shape 4 generated types share.
@@ -618,18 +627,18 @@ pub struct PathRateObject {
 pub struct ServiceLogsArgsShape {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `details`.
-    pub details: Option<String>,
-    /// Query parameter: `follow`.
-    pub follow: Option<String>,
-    /// Query parameter: `stdout`.
-    pub stdout: Option<String>,
-    /// Query parameter: `stderr`.
-    pub stderr: Option<String>,
+    /// Query parameter: `details` (true/false).
+    pub details: Option<bool>,
+    /// Query parameter: `follow` (true/false).
+    pub follow: Option<bool>,
+    /// Query parameter: `stdout` (true/false).
+    pub stdout: Option<bool>,
+    /// Query parameter: `stderr` (true/false).
+    pub stderr: Option<bool>,
     /// Query parameter: `since`.
     pub since: Option<String>,
-    /// Query parameter: `timestamps`.
-    pub timestamps: Option<String>,
+    /// Query parameter: `timestamps` (true/false).
+    pub timestamps: Option<bool>,
     /// Query parameter: `tail`.
     pub tail: Option<String>,
 }

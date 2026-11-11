@@ -1,4 +1,4 @@
-/// PollWatcher fallback — stdlib-only metadata polling.
+/// `PollWatcher` fallback — stdlib-only metadata polling.
 ///
 /// Walks watched paths, records metadata (mtime, size, exists),
 /// and diffs on each poll call. Slow but reliable.
@@ -6,7 +6,6 @@
 /// `has_events()` and `poll()` share a cache so that readiness checks
 /// don't duplicate scan work: `has_events()` scans and caches, `poll()`
 /// drains the cache.
-
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -48,9 +47,7 @@ impl PathSnapshot {
         if self.exists && !other.exists {
             return Some(WatchEventKind::Created);
         }
-        if self.exists && other.exists
-            && (self.mtime != other.mtime || self.size != other.size)
-        {
+        if self.exists && other.exists && (self.mtime != other.mtime || self.size != other.size) {
             return Some(WatchEventKind::Modified);
         }
         None
@@ -65,6 +62,7 @@ pub struct PollWatcher {
 }
 
 impl PollWatcher {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             watches: HashMap::new(),
@@ -89,9 +87,7 @@ impl PollWatcher {
                     }
                     updates.push((path.clone(), new));
                 }
-                Err(WatchError::Io(e))
-                    if e.kind() == std::io::ErrorKind::NotFound =>
-                {
+                Err(WatchError::Io(e)) if e.kind() == std::io::ErrorKind::NotFound => {
                     if old.exists {
                         events.push(WatchEvent {
                             kind: WatchEventKind::Removed,
@@ -112,6 +108,12 @@ impl PollWatcher {
         }
 
         events
+    }
+}
+
+impl Default for PollWatcher {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

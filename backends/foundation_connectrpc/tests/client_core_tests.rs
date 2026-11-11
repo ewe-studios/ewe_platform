@@ -1,29 +1,37 @@
-//! Client-core tests (F24): `Client<Req,Res>`, `ClientOptions`, per-call `Ctx`
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
+//! Client-core tests (F24): `Client<Req,Res>`, `ClientOptions`, per-call `RpcCtx`
 //! derivation, and the four stream facades (Decision 07).
 //!
 //! HOW: A `MockTransport` that pre-wires valtron pipes lets the test drive the
 //! client's async RPC methods. The mock server is spawned as a separate valtron
 //! task so the client and server run concurrently via the executor.
 
+use std::collections::VecDeque;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use bytes::Bytes;
-use foundation_core::valtron::{self, Pipe, PipeReceiver, PipeSender};
 use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{self, Pipe, PipeReceiver, PipeSender};
 use foundation_netio::shared::http::{
-    Proto, RequestDescriptor, SimpleHeaders, Status,
+    Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, Status,
 };
 
-use foundation_connectrpc::shared::client::{
-    Client, ClientOptions, ProtocolSelection,
-};
+use foundation_connectrpc::shared::client::{Client, ClientOptions, ProtocolSelection};
 use foundation_connectrpc::shared::codec::{Codec, CodecError, CodecFor, ProcedureCodecs};
-use foundation_connectrpc::shared::context::Ctx;
+use foundation_connectrpc::shared::context::{IdempotencyLevel, RpcCtx};
 use foundation_connectrpc::shared::error::Code;
 use foundation_connectrpc::shared::message::Request;
 use foundation_connectrpc::shared::transport::{
-    Transport, TransportCapabilities, TransportError, TransportStream,
-    head_stream_from_pipe, body_stream_from_pipe,
+    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities, TransportError,
+    TransportStream,
 };
 
 // ============================================================================
@@ -35,8 +43,12 @@ use foundation_connectrpc::shared::transport::{
 struct IdentityCodec;
 
 impl Codec for IdentityCodec {
-    fn name(&self) -> &str { "proto" }
-    fn is_binary(&self) -> bool { true }
+    fn name(&self) -> &'static str {
+        "proto"
+    }
+    fn is_binary(&self) -> bool {
+        true
+    }
 }
 
 impl CodecFor<Vec<u8>> for IdentityCodec {
@@ -74,6 +86,26 @@ struct MockTransport {
     pipes: Arc<std::sync::Mutex<Option<MockPipes>>>,
 }
 
+/// The client-side pipes and their test-side peers for one `open` call.
+fn new_pipes() -> (MockPipes, ServerPipes) {
+    let (req_tx, req_rx) = Pipe::with_depth(4);
+    let (head_tx, head_rx) = Pipe::with_depth(1);
+    let (resp_tx, resp_rx) = Pipe::with_depth(4);
+
+    (
+        MockPipes {
+            req_tx,
+            head_rx,
+            resp_rx,
+        },
+        ServerPipes {
+            req_rx,
+            head_tx,
+            resp_tx,
+        },
+    )
+}
+
 impl MockTransport {
     /// Build a mock transport that supports everything (h1+h2, duplex, streaming).
     fn full_duplex() -> Self {
@@ -106,21 +138,9 @@ impl MockTransport {
     /// Pre-configure the pipes for the next `open()` call. Returns `ServerPipes`
     /// the test uses to inspect the request and send responses.
     fn prepare(&self) -> ServerPipes {
-        let (req_tx, req_rx) = Pipe::with_depth(4);
-        let (head_tx, head_rx) = Pipe::with_depth(1);
-        let (resp_tx, resp_rx) = Pipe::with_depth(4);
-
-        *self.pipes.lock().unwrap() = Some(MockPipes {
-            req_tx,
-            head_rx,
-            resp_rx,
-        });
-
-        ServerPipes {
-            req_rx,
-            head_tx,
-            resp_tx,
-        }
+        let (pipes, server) = new_pipes();
+        *self.pipes.lock().unwrap() = Some(pipes);
+        server
     }
 }
 
@@ -138,7 +158,7 @@ impl Transport for MockTransport {
             .ok_or_else(|| TransportError::Protocol("mock: no pipes prepared".into()))?;
 
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        trailer_tx.close();
+        let _ = trailer_tx.close();
         Ok(TransportStream {
             send_body: Arc::new(pipes.req_tx),
             head: head_stream_from_pipe(pipes.head_rx),
@@ -148,7 +168,67 @@ impl Transport for MockTransport {
     }
 }
 
-/// The "server" (test) side of a MockTransport exchange.
+/// A pipe-backed mock that serves a queue of prepared exchanges and records
+/// the HTTP method of every `open` call. The GET→POST fallback opens the
+/// transport twice, so the test must prepare both exchanges up front.
+struct QueuedTransport {
+    pipes: std::sync::Mutex<VecDeque<MockPipes>>,
+    methods: std::sync::Mutex<Vec<SimpleMethod>>,
+}
+
+impl QueuedTransport {
+    fn new() -> Self {
+        Self {
+            pipes: std::sync::Mutex::new(VecDeque::new()),
+            methods: std::sync::Mutex::new(Vec::new()),
+        }
+    }
+
+    /// Queue one exchange. Returns the test side of it.
+    fn prepare(&self) -> ServerPipes {
+        let (pipes, server) = new_pipes();
+        self.pipes.lock().unwrap().push_back(pipes);
+        server
+    }
+
+    /// The HTTP methods of the `open` calls made so far, in order.
+    fn methods(&self) -> Vec<SimpleMethod> {
+        self.methods.lock().unwrap().clone()
+    }
+}
+
+impl Transport for QueuedTransport {
+    fn capabilities(&self) -> TransportCapabilities {
+        TransportCapabilities {
+            request_streaming: true,
+            full_duplex: true,
+            h2_trailers: true,
+            http_versions: &[Proto::HTTP11, Proto::HTTP20],
+            multiplexed: false,
+        }
+    }
+
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
+        self.methods.lock().unwrap().push(request.method);
+        let pipes = self
+            .pipes
+            .lock()
+            .unwrap()
+            .pop_front()
+            .ok_or_else(|| TransportError::Protocol("mock: no exchange prepared".into()))?;
+
+        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
+        let _ = trailer_tx.close();
+        Ok(TransportStream {
+            send_body: Arc::new(pipes.req_tx),
+            head: head_stream_from_pipe(pipes.head_rx),
+            recv_body: body_stream_from_pipe(pipes.resp_rx),
+            trailers: trailer_rx,
+        })
+    }
+}
+
+/// The "server" (test) side of a `MockTransport` exchange.
 struct ServerPipes {
     /// Request body bytes sent by the client.
     req_rx: PipeReceiver<Bytes>,
@@ -173,10 +253,7 @@ impl ServerPipes {
     /// closed when `ServerPipes` is dropped, which signals end-of-stream to
     /// the client.
     async fn send_unary_response(&self, body: Bytes) {
-        let _ = self
-            .head_tx
-            .send((Status::OK, SimpleHeaders::new()))
-            .await;
+        let _ = self.head_tx.send((Status::OK, SimpleHeaders::new())).await;
         let _ = self.resp_tx.send(body).await;
     }
 }
@@ -230,8 +307,10 @@ fn client_init_unknown_codec() {
     match result {
         Err(e) => {
             let msg = e.to_string().to_lowercase();
-            assert!(msg.contains("codec") || msg.contains("nonexistent"),
-                "expected a codec-not-found error, got: {e}");
+            assert!(
+                msg.contains("codec") || msg.contains("nonexistent"),
+                "expected a codec-not-found error, got: {e}"
+            );
         }
         Ok(_) => panic!("expected error for unknown codec"),
     }
@@ -249,7 +328,10 @@ fn client_init_grpc_on_h1_fails() {
         ClientOptions::new().with_grpc(),
     );
 
-    assert!(result.is_err(), "expected error for gRPC on h1-only transport");
+    assert!(
+        result.is_err(),
+        "expected error for gRPC on h1-only transport"
+    );
 }
 
 // ============================================================================
@@ -262,17 +344,11 @@ fn client_init_grpc_on_h1_fails() {
 /// when a task parks (e.g. on a pipe read), the entire future tree suspends, so
 /// `join!` branches cannot make progress. Spawning the server as a separate
 /// valtron task lets the executor schedule them concurrently.
-fn spawn_unary_server(
-    server: ServerPipes,
-    expected_req: Vec<u8>,
-    resp_body: Vec<u8>,
-) {
+fn spawn_unary_server(server: ServerPipes, expected_req: Vec<u8>, resp_body: Vec<u8>) {
     let _ = foundation_core::valtron::send(foundation_core::valtron::from_future(async move {
         let req_body = server.read_request_body().await;
         assert_eq!(req_body, expected_req);
-        server
-            .send_unary_response(Bytes::from(resp_body))
-            .await;
+        server.send_unary_response(Bytes::from(resp_body)).await;
     }));
 }
 
@@ -293,7 +369,7 @@ async fn client_unary_connect_round_trip() {
 
     spawn_unary_server(server, b"ping".to_vec(), b"pong".to_vec());
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     let response = client.unary(ctx, request).await.unwrap();
@@ -325,7 +401,7 @@ async fn client_unary_error_status() {
         let _ = server.resp_tx.send(Bytes::from_static(b"not found")).await;
     }));
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     match client.unary(ctx, request).await {
@@ -333,6 +409,120 @@ async fn client_unary_error_status() {
             assert_eq!(e.current_context().code(), Code::NotFound);
         }
         Ok(_) => panic!("expected error for 404 status"),
+    }
+}
+
+/// A non-OK response with a body larger than the error-body cap must stop at
+/// the cap and drop the response stream (issue #410).
+///
+/// WHY: the old code buffered the whole body before it checked the status, so a
+/// large or slow error body used unbounded memory and delayed the error. The
+/// server sends `CHUNKS` chunks; the client must stop reading near the cap, so
+/// most sends fail with a closed pipe. The test asserts the message length and
+/// that the server did not finish (the stream was dropped early) — no timer.
+#[valtron_test]
+async fn a_large_error_body_is_cut_at_the_default_cap_and_the_stream_is_dropped_early() {
+    const CHUNK: usize = 4 * 1024;
+    const CHUNKS: usize = 64;
+    /// The documented default of `SizeLimits::error_body_max_bytes`.
+    const DEFAULT_ERROR_BODY_MAX_BYTES: usize = 8 * 1024;
+
+    let mock = MockTransport::full_duplex();
+    let server = mock.prepare();
+    let transport: Arc<dyn Transport> = Arc::new(mock);
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    let client = Client::new(
+        transport,
+        "http://localhost:8080",
+        codecs,
+        ClientOptions::new(),
+    )
+    .unwrap();
+
+    let sent = Arc::new(AtomicUsize::new(0));
+    let sent_by_server = Arc::clone(&sent);
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = server.read_request_body().await;
+        let _ = server
+            .head_tx
+            .send((Status::InternalServerError, SimpleHeaders::new()))
+            .await;
+        for _ in 0..CHUNKS {
+            if server
+                .resp_tx
+                .send(Bytes::from(vec![b'x'; CHUNK]))
+                .await
+                .is_err()
+            {
+                break;
+            }
+            sent_by_server.fetch_add(1, Ordering::SeqCst);
+        }
+    }));
+
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
+    let request = Request::new(b"ping".to_vec());
+
+    match client.unary(ctx, request).await {
+        Err(e) => {
+            let message = e.current_context().message();
+            assert_eq!(
+                message.len(),
+                DEFAULT_ERROR_BODY_MAX_BYTES,
+                "the error message must stop at the configured cap"
+            );
+            assert!(
+                message.bytes().all(|byte| byte == b'x'),
+                "the message must carry the read prefix"
+            );
+            assert_eq!(e.current_context().code(), Code::Internal);
+        }
+        Ok(_) => panic!("expected an error for 500 Internal Server Error"),
+    }
+
+    let sent = sent.load(Ordering::SeqCst);
+    assert!(
+        sent < CHUNKS,
+        "the client must drop the error body stream at the cap; the server sent {sent} of {CHUNKS} chunks"
+    );
+}
+
+/// A custom error-body cap reaches the message builder.
+#[valtron_test]
+async fn a_configured_error_body_cap_reaches_the_error_message() {
+    const CAP: usize = 100;
+
+    let mock = MockTransport::full_duplex();
+    let server = mock.prepare();
+    let transport: Arc<dyn Transport> = Arc::new(mock);
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    let client = Client::new(
+        transport,
+        "http://localhost:8080",
+        codecs,
+        ClientOptions::new().with_error_body_max_bytes(CAP),
+    )
+    .unwrap();
+
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = server.read_request_body().await;
+        let _ = server
+            .head_tx
+            .send((Status::InternalServerError, SimpleHeaders::new()))
+            .await;
+        let _ = server.resp_tx.send(Bytes::from(vec![b'y'; 4096])).await;
+    }));
+
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
+    let request = Request::new(b"ping".to_vec());
+
+    match client.unary(ctx, request).await {
+        Err(e) => {
+            let message = e.current_context().message();
+            assert_eq!(message.len(), CAP);
+            assert!(message.bytes().all(|byte| byte == b'y'));
+        }
+        Ok(_) => panic!("expected an error for 500 Internal Server Error"),
     }
 }
 
@@ -365,12 +555,144 @@ async fn client_unary_with_grpc_web() {
     let resp_envelope = grpc_envelope(b"pong");
     spawn_unary_server(server, req_envelope, resp_envelope);
 
-    let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
     // The client unwraps the response envelope; the caller sees b"pong".
     let response = client.unary(ctx, request).await.unwrap();
     assert_eq!(response.msg, b"pong".to_vec());
+}
+
+// ============================================================================
+// GET→POST fallback (issues #262, #263)
+// ============================================================================
+
+/// A GET rejected with a typed 405 is retried as POST, even when the error body
+/// does not name the status. The old check matched the error **text**, so this
+/// call had no fallback (issue #262).
+#[valtron_test]
+async fn a_typed_405_triggers_the_post_fallback() {
+    let concrete = Arc::new(QueuedTransport::new());
+    let get_server = concrete.prepare();
+    let post_server = concrete.prepare();
+
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = get_server
+            .head_tx
+            .send((Status::MethodNotAllowed, SimpleHeaders::new()))
+            .await;
+        let _ = get_server
+            .resp_tx
+            .send(Bytes::from_static(b"no GET here"))
+            .await;
+    }));
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = post_server.read_request_body().await;
+        post_server
+            .send_unary_response(Bytes::from_static(b"pong"))
+            .await;
+    }));
+
+    let transport: Arc<dyn Transport> = Arc::clone(&concrete) as Arc<dyn Transport>;
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    let client = Client::new(
+        transport,
+        "http://localhost:8080",
+        codecs,
+        ClientOptions::new()
+            .with_http_get()
+            .with_idempotency(IdempotencyLevel::NoSideEffects),
+    )
+    .unwrap();
+
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
+    let response = client
+        .unary(ctx, Request::new(b"ping".to_vec()))
+        .await
+        .unwrap();
+    assert_eq!(response.msg, b"pong".to_vec());
+    assert_eq!(
+        concrete.methods(),
+        vec![SimpleMethod::GET, SimpleMethod::POST],
+        "a typed 405 must trigger the POST fallback"
+    );
+}
+
+/// A GET rejected with a 404 whose body names "405 Method Not Allowed" is not
+/// retried. The old text check would have retried it (issue #262).
+#[valtron_test]
+async fn a_404_body_that_names_405_does_not_trigger_the_fallback() {
+    let concrete = Arc::new(QueuedTransport::new());
+    let get_server = concrete.prepare();
+
+    let _ = valtron::send(valtron::from_future(async move {
+        let _ = get_server
+            .head_tx
+            .send((Status::NotFound, SimpleHeaders::new()))
+            .await;
+        let _ = get_server
+            .resp_tx
+            .send(Bytes::from_static(b"405 Method Not Allowed"))
+            .await;
+    }));
+
+    let transport: Arc<dyn Transport> = Arc::clone(&concrete) as Arc<dyn Transport>;
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    let client = Client::new(
+        transport,
+        "http://localhost:8080",
+        codecs,
+        ClientOptions::new()
+            .with_http_get()
+            .with_idempotency(IdempotencyLevel::NoSideEffects),
+    )
+    .unwrap();
+
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
+    let err = client
+        .unary(ctx, Request::new(b"ping".to_vec()))
+        .await
+        .expect_err("a 404 must not be retried");
+
+    assert_eq!(err.current_context().code(), Code::NotFound);
+    assert_eq!(
+        concrete.methods(),
+        vec![SimpleMethod::GET],
+        "only a typed 405 or 415 may trigger the POST fallback"
+    );
+}
+
+/// A URL that the client accepts at construction but the URI parser rejects
+/// fails the streaming call with a typed `Internal` error. The old code
+/// panicked on a fallback `expect` in `build_request_descriptor` (issue #263).
+#[valtron_test]
+async fn an_invalid_request_url_fails_typed() {
+    let mock = MockTransport::full_duplex();
+    let transport: Arc<dyn Transport> = Arc::new(mock);
+    let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+    // The space in the path is not a valid URI character.
+    let client = Client::new(
+        transport,
+        "http://localhost:8080/bad path",
+        codecs,
+        ClientOptions::new(),
+    )
+    .expect("Client::new does not parse the URL");
+
+    let ctx = RpcCtx::background().with_deadline(std::time::Duration::from_secs(10));
+    // The streaming paths build the descriptor with `build_request_descriptor`.
+    let Err(err) = client
+        .server_stream(ctx, Request::new(b"ping".to_vec()))
+        .await
+    else {
+        panic!("an invalid URL must fail the call");
+    };
+
+    assert_eq!(err.current_context().code(), Code::Internal);
+    assert!(
+        err.to_string().contains("invalid request URL"),
+        "the error must name the URL, got: {err}"
+    );
 }
 
 // ============================================================================
@@ -396,7 +718,7 @@ fn client_config_debug() {
     let opts = ClientOptions::new()
         .with_timeout(std::time::Duration::from_secs(5))
         .with_codec("json");
-    let debug_str = format!("{:?}", opts);
+    let debug_str = format!("{opts:?}");
     assert!(debug_str.contains("ClientOptions"));
     assert!(debug_str.contains("timeout"));
 }

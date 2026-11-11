@@ -1,5 +1,14 @@
-use foundation_vectors::fusion::{FusionStrategy, fuse};
-use foundation_vectors::store::VectorMatch;
+use std::collections::HashMap;
+use std::sync::Mutex;
+
+use foundation_core::valtron::valtron_test;
+use foundation_vectors::bm25::{Bm25Index, SimpleTokenizer};
+use foundation_vectors::fusion::{fuse, hybrid_search, FusionStrategy, Reranker, TextLookup};
+use foundation_vectors::metric::DistanceMetric;
+use foundation_vectors::store::{
+    InMemoryVectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig,
+};
+use foundation_vectors::vector::Vector;
 
 fn vm(id: &str, score: f32) -> VectorMatch {
     VectorMatch {
@@ -62,7 +71,7 @@ fn alpha_pure_keyword() {
 #[test]
 fn empty_lists_produce_empty() {
     let fused = fuse(&[], &[], 10, FusionStrategy::default());
-    assert!(fused.is_empty());
+    assert_eq!(fused, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
@@ -70,4 +79,100 @@ fn one_empty_list_still_works() {
     let vector = vec![vm("a", 0.9), vm("b", 0.5)];
     let fused = fuse(&vector, &[], 10, FusionStrategy::Rrf { k: 60.0 });
     assert_eq!(fused.len(), 2);
+}
+
+struct RecordingLookup {
+    texts: HashMap<String, String>,
+}
+
+#[async_trait::async_trait]
+impl TextLookup for RecordingLookup {
+    async fn text(&self, id: &str) -> Option<String> {
+        self.texts.get(id).cloned()
+    }
+}
+
+struct RecordingReranker {
+    seen: Mutex<Vec<Vec<String>>>,
+}
+
+impl Reranker for RecordingReranker {
+    fn rerank(
+        &self,
+        _query: &str,
+        candidates: Vec<VectorMatch>,
+        texts: &[&str],
+    ) -> Vec<VectorMatch> {
+        self.seen
+            .lock()
+            .unwrap()
+            .push(texts.iter().map(|t| (*t).to_string()).collect());
+        candidates
+    }
+}
+
+fn entry(id: &str, v: [f32; 3]) -> VectorEntry {
+    VectorEntry {
+        id: id.into(),
+        vector: Vector::new(v.to_vec()),
+        metadata: VectorMetadata::default(),
+    }
+}
+
+/// The reranker gets one text per fused candidate, in fused order. The vector
+/// list ranks `a, b, c`; the keyword list matches only `b`, so RRF fuses to
+/// `b, a, c`.
+#[valtron_test]
+async fn hybrid_search_passes_texts_to_reranker() {
+    let store = InMemoryVectorStore::new(VectorStoreConfig::new(3, DistanceMetric::L2));
+    for (id, v) in [
+        ("a", [1.0, 0.0, 0.0]),
+        ("b", [2.0, 0.0, 0.0]),
+        ("c", [3.0, 0.0, 0.0]),
+    ] {
+        store.insert("ns", entry(id, v)).await.unwrap();
+    }
+
+    let bm25 = Bm25Index::new(Box::new(SimpleTokenizer));
+    bm25.insert("a", "the first note");
+    bm25.insert("b", "the matching note");
+    bm25.insert("c", "the third note");
+
+    let lookup = RecordingLookup {
+        texts: [
+            ("a".to_string(), "text a".to_string()),
+            ("b".to_string(), "text b".to_string()),
+            ("c".to_string(), "text c".to_string()),
+        ]
+        .into_iter()
+        .collect(),
+    };
+    let reranker = RecordingReranker {
+        seen: Mutex::new(Vec::new()),
+    };
+
+    let out = hybrid_search(
+        "matching",
+        &[1.0, 0.0, 0.0],
+        "ns",
+        &store,
+        &bm25,
+        &lookup,
+        3,
+        FusionStrategy::Rrf { k: 60.0 },
+        Some(&reranker),
+    )
+    .await
+    .unwrap();
+
+    let ids: Vec<&str> = out.iter().map(|m| m.id.as_str()).collect();
+    assert_eq!(ids, vec!["b", "a", "c"], "RRF fused order");
+
+    let seen = reranker.seen.lock().unwrap();
+    assert_eq!(seen.len(), 1, "one rerank call");
+    assert_eq!(
+        seen[0],
+        vec!["text b", "text a", "text c"],
+        "one text per candidate, in order"
+    );
 }

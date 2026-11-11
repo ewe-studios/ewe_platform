@@ -11,14 +11,19 @@ pub mod mount;
 pub mod net;
 pub mod snapshot;
 
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::process::{Child, Command, Stdio};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use crate::config::{ensure_dirs, monitor_dir, DisplayMode, GuestOs, Result, TestbedError, VmProfile};
+use foundation_context::Ctx;
 use tracing::debug;
+
+use crate::config::{
+    DisplayMode, GuestOs, Result, TestbedError, VmProfile, ensure_dirs, monitor_dir,
+};
 
 /// A running QEMU VM instance.
 ///
@@ -27,7 +32,7 @@ use tracing::debug;
 pub struct QemuVm {
     /// The QEMU child process (None if adopted from existing state).
     process: Option<Child>,
-    /// Monitor socket for QEMU commands (savevm, loadvm, system_powerdown).
+    /// Monitor socket for QEMU commands (savevm, loadvm, `system_powerdown`).
     monitor: UnixStream,
     /// The profile this VM was launched with.
     pub profile: VmProfile,
@@ -37,6 +42,8 @@ pub struct QemuVm {
     pub pid: u32,
     /// Resolved ports (may differ from profile defaults if ports were in use).
     pub resolved_ports: ResolvedPorts,
+    /// The host's context, for every shutdown and monitor deadline.
+    ctx: Ctx,
 }
 
 /// Actual port numbers the VM is listening on.
@@ -49,7 +56,7 @@ pub struct ResolvedPorts {
 }
 
 /// Configuration for launching a QEMU VM.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct QemuConfig {
     profile: VmProfile,
     display_mode: DisplayMode,
@@ -58,10 +65,28 @@ pub struct QemuConfig {
     project_mount_guest_path: Option<String>,
     project_mount_readonly: bool,
     cdrom_path: Option<std::path::PathBuf>,
+    /// The host's context, for the launch and readiness deadlines.
+    ctx: Ctx,
+}
+
+impl std::fmt::Debug for QemuConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("QemuConfig")
+            .field("profile", &self.profile)
+            .field("display_mode", &self.display_mode)
+            .field("extra_args", &self.extra_args)
+            .field("project_mount", &self.project_mount)
+            .field("project_mount_guest_path", &self.project_mount_guest_path)
+            .field("project_mount_readonly", &self.project_mount_readonly)
+            .field("cdrom_path", &self.cdrom_path)
+            .field("ctx", &"Ctx")
+            .finish()
+    }
 }
 
 impl QemuConfig {
-    pub fn new(profile: VmProfile, display_mode: DisplayMode) -> Self {
+    #[must_use]
+    pub fn new(profile: VmProfile, display_mode: DisplayMode, ctx: Ctx) -> Self {
         Self {
             profile,
             display_mode,
@@ -70,10 +95,12 @@ impl QemuConfig {
             project_mount_guest_path: None,
             project_mount_readonly: false,
             cdrom_path: None,
+            ctx,
         }
     }
 
     /// Add extra QEMU arguments (for advanced use cases).
+    #[must_use]
     pub fn with_extra_arg(mut self, arg: String) -> Self {
         self.extra_args.push(arg);
         self
@@ -82,6 +109,7 @@ impl QemuConfig {
     /// Set the host directory to mount into the guest via 9p.
     /// `guest_path` is where it will be mounted inside the VM.
     /// `readonly` controls whether the guest has write access.
+    #[must_use]
     pub fn with_project_mount(
         mut self,
         host_path: std::path::PathBuf,
@@ -95,6 +123,7 @@ impl QemuConfig {
     }
 
     /// Get the configured guest mount path for this VM.
+    #[must_use]
     pub fn project_mount_guest_path(&self) -> Option<&str> {
         self.project_mount_guest_path.as_deref()
     }
@@ -102,6 +131,7 @@ impl QemuConfig {
     /// Attach an ISO as a CD-ROM drive in the guest.
     ///
     /// Used for Windows guests to attach the virtio-win driver ISO.
+    #[must_use]
     pub fn with_cdrom(mut self, path: std::path::PathBuf) -> Self {
         self.cdrom_path = Some(path);
         self
@@ -112,6 +142,18 @@ impl QemuConfig {
     /// This spawns `qemu-system-x86_64` and connects to the monitor socket.
     /// The guest OS boot is **not** waited for here — use the bootstrap
     /// module to wait for SSH/WinRM after launch.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if directories cannot be created, if the QEMU binary
+    /// cannot be found, if ports cannot be allocated, if the disk image cannot
+    /// be prepared, if QEMU cannot be spawned, or if the monitor socket does not
+    /// appear in time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the macOS boot disk path has no parent directory.
+    #[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
     pub fn launch(self) -> Result<QemuVm> {
         ensure_dirs().map_err(|e| TestbedError::Qcow2Error {
             message: format!("failed to create cache dirs: {e}"),
@@ -124,21 +166,21 @@ impl QemuConfig {
         let resolved = net::allocate_ports(&self.profile)?;
 
         // Build monitor socket path
-        let monitor_dir_path = monitor_dir(&self.profile.name);
+        let monitor_dir_path = monitor_dir(self.profile.name);
         std::fs::create_dir_all(&monitor_dir_path).ok();
         let monitor_path = monitor_dir_path.join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path); // clean stale socket
-        eprintln!("DEBUG: monitor_path = {:?}", monitor_path);
+        eprintln!("DEBUG: monitor_path = {}", monitor_path.display());
 
         // Build disk path — goes through full resolution chain (env → cache → stores → Vagrant)
         let disk_path = crate::import::ensure_image(&self.profile)?;
 
         // For Windows guests, attach virtio-win ISO if available (for driver installation)
         let mut config = self;
-        if config.profile.os == GuestOs::Windows {
-            if let Ok(iso_path) = crate::import::ensure_virtio_iso() {
-                config = config.with_cdrom(iso_path);
-            }
+        if config.profile.os == GuestOs::Windows
+            && let Ok(iso_path) = crate::import::ensure_virtio_iso()
+        {
+            config = config.with_cdrom(iso_path);
         }
 
         // For macOS guests, ensure the full image set exists (BaseSystem + OpenCore + data disk)
@@ -155,29 +197,33 @@ impl QemuConfig {
         let mut cmd = Command::new(&qemu_bin);
         let (display_args, has_native_window) = if config.display_mode == DisplayMode::Headful {
             let backend = display::detect_backend();
-            let vnc_offset = (resolved.vnc_port - 5900) as u32;
+            let vnc_offset = u32::from(resolved.vnc_port - 5900);
             let args = backend.qemu_args(vnc_offset);
-            let has_native = matches!(backend, display::DisplayBackend::Spice | display::DisplayBackend::Gtk);
+            let has_native = matches!(
+                backend,
+                display::DisplayBackend::Spice | display::DisplayBackend::Gtk
+            );
             (args, has_native)
         } else {
-            let vnc_offset = (resolved.vnc_port - 5900) as u32;
+            let vnc_offset = u32::from(resolved.vnc_port - 5900);
             (display::DisplayBackend::Vnc.qemu_args(vnc_offset), false)
         };
         let actual_disk = macos_boot_disk.as_ref().unwrap_or(&disk_path);
 
         // Spawn virtiofsd daemon for Windows guests with project mount
-        if config.profile.os == GuestOs::Windows {
-            if let Some(host_path) = &config.project_mount {
-                let socket_path = monitor_path.with_file_name(format!("{}.virtiofsd.sock", config.profile.name));
-                let _ = std::fs::remove_file(&socket_path);
-                let (_, daemon_config) = mount::virtiofs_args(
-                    host_path,
-                    mount::DEFAULT_TAG,
-                    &socket_path,
-                    config.project_mount_readonly,
-                );
-                spawn_virtiofsd(&daemon_config)?;
-            }
+        if config.profile.os == GuestOs::Windows
+            && let Some(host_path) = &config.project_mount
+        {
+            let socket_path =
+                monitor_path.with_file_name(format!("{}.virtiofsd.sock", config.profile.name));
+            let _ = std::fs::remove_file(&socket_path);
+            let (_, daemon_config) = mount::virtiofs_args(
+                host_path,
+                mount::DEFAULT_TAG,
+                &socket_path,
+                config.project_mount_readonly,
+            );
+            spawn_virtiofsd(&daemon_config, &config.ctx)?;
         }
 
         cmd.args(build_qemu_args(
@@ -195,7 +241,7 @@ impl QemuConfig {
         cmd.args(&config.extra_args);
 
         // Capture QEMU stderr to the VM work directory: .testbed/[vm-name]/qemu.log
-        let work_dir = crate::config::work_dir(&config.profile.name);
+        let work_dir = crate::config::work_dir(config.profile.name);
         let _ = std::fs::create_dir_all(&work_dir);
         let qemu_log = work_dir.join("qemu.log");
         let qemu_log_file = std::fs::OpenOptions::new()
@@ -224,12 +270,16 @@ impl QemuConfig {
         })?;
 
         // Wait for monitor socket to appear (up to 5s)
-        let deadline = Instant::now() + Duration::from_secs(5);
+        let deadline = config.ctx.clock().now() + Duration::from_secs(5);
         let monitor = loop {
-            if Instant::now() > deadline {
+            if config.ctx.clock().now() > deadline {
                 process.kill().ok();
                 return Err(TestbedError::QemuExited {
-                    code: process.try_wait().ok().flatten().map(|s| s.code().unwrap_or(-1)).unwrap_or(-1),
+                    code: process
+                        .try_wait()
+                        .ok()
+                        .flatten()
+                        .map_or(-1, |s| s.code().unwrap_or(-1)),
                 });
             }
             match UnixStream::connect(&monitor_path) {
@@ -245,10 +295,15 @@ impl QemuConfig {
 
         // Auto-launch external viewer for headful VNC mode
         if config.display_mode == DisplayMode::Headful && !has_native_window {
-            if let Some(name) = display::launch_viewer(display::DisplayBackend::Vnc, resolved.vnc_port) {
+            if let Some(name) =
+                display::launch_viewer(display::DisplayBackend::Vnc, resolved.vnc_port)
+            {
                 eprintln!("  Viewer: {name} on 127.0.0.1:{}", resolved.vnc_port);
             } else {
-                eprintln!("  No VNC viewer found. Connect manually to 127.0.0.1:{}", resolved.vnc_port);
+                eprintln!(
+                    "  No VNC viewer found. Connect manually to 127.0.0.1:{}",
+                    resolved.vnc_port
+                );
             }
         }
 
@@ -259,6 +314,7 @@ impl QemuConfig {
             disk_path,
             pid,
             resolved_ports: resolved,
+            ctx: config.ctx,
         })
     }
 }
@@ -268,15 +324,23 @@ impl QemuVm {
     ///
     /// Used by CLI commands (snapshot, stop) that need to communicate with
     /// a VM that was started in a previous process.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the monitor socket cannot be connected.
     pub fn adopt_running(
         profile: VmProfile,
         disk_path: std::path::PathBuf,
         pid: u32,
         monitor_path: &std::path::Path,
         resolved_ports: ResolvedPorts,
+        ctx: Ctx,
     ) -> Result<Self> {
         let monitor = UnixStream::connect(monitor_path).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("connecting to monitor socket {monitor_path:?}: {e}"),
+            message: format!(
+                "connecting to monitor socket {}: {e}",
+                monitor_path.display()
+            ),
         })?;
         monitor.set_nonblocking(true).ok();
 
@@ -287,6 +351,7 @@ impl QemuVm {
             disk_path,
             pid,
             resolved_ports,
+            ctx,
         })
     }
 
@@ -301,6 +366,7 @@ impl QemuVm {
     }
 
     /// Get the PID of the QEMU process.
+    #[must_use]
     pub fn pid(&self) -> u32 {
         self.pid
     }
@@ -310,6 +376,10 @@ impl QemuVm {
     /// Sends `system_powerdown` via the QEMU monitor, then waits up to
     /// 30 seconds for the process to exit. Falls back to `kill()` if
     /// the guest doesn't respond.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error; the `Result` type is kept for a uniform API.
     pub fn shutdown(&mut self) -> Result<()> {
         if !self.is_running() {
             return Ok(()); // already exited
@@ -317,8 +387,8 @@ impl QemuVm {
 
         // Try graceful shutdown via monitor
         if self.monitor_command("system_powerdown").is_ok() {
-            let deadline = Instant::now() + Duration::from_secs(30);
-            while Instant::now() < deadline {
+            let deadline = self.ctx.clock().now() + Duration::from_secs(30);
+            while self.ctx.clock().now() < deadline {
                 thread::sleep(Duration::from_millis(500));
                 if !self.is_running() {
                     return Ok(());
@@ -331,7 +401,10 @@ impl QemuVm {
             let _ = child.kill();
         } else {
             // Adopted VM — send SIGTERM via libc
-            unsafe { libc::kill(self.pid as i32, libc::SIGTERM) };
+            #[allow(clippy::cast_possible_wrap)] // PID fits in i32 on supported Unix targets.
+            {
+                unsafe { libc::kill(self.pid as i32, libc::SIGTERM) };
+            }
             // Wait briefly
             for _ in 0..30 {
                 thread::sleep(Duration::from_millis(500));
@@ -339,14 +412,18 @@ impl QemuVm {
                     return Ok(());
                 }
             }
-            unsafe { libc::kill(self.pid as i32, libc::SIGKILL) };
+            #[allow(clippy::cast_possible_wrap)] // PID fits in i32 on supported Unix targets.
+            {
+                unsafe { libc::kill(self.pid as i32, libc::SIGKILL) };
+            }
         }
         if let Some(ref mut child) = self.process {
             child.wait().ok();
         }
 
         // Clean up monitor socket
-        let monitor_path = monitor_dir(&self.profile.name).join(format!("{}.monitor", self.profile.name));
+        let monitor_path =
+            monitor_dir(self.profile.name).join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path);
 
         Ok(())
@@ -356,6 +433,11 @@ impl QemuVm {
     ///
     /// The monitor socket is a simple text protocol: write a command
     /// followed by `\n`, read the response until `(qemu)` prompt.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the command cannot be written, if the socket cannot
+    /// be flushed, if reading fails, or if the response times out.
     pub fn monitor_command(&mut self, cmd: &str) -> Result<String> {
         // The socket is non-blocking for reads, so we need to handle
         // WouldBlock errors. Write the command first.
@@ -373,10 +455,10 @@ impl QemuVm {
         // Read response until (qemu) prompt
         let reader = BufReader::new(&self.monitor);
         let mut output = String::new();
-        let deadline = Instant::now() + Duration::from_secs(5);
+        let deadline = self.ctx.clock().now() + Duration::from_secs(5);
 
         for line in reader.lines() {
-            if Instant::now() > deadline {
+            if self.ctx.clock().now() > deadline {
                 return Err(TestbedError::MonitorFailed {
                     source: anyhow::anyhow!("monitor response timeout"),
                 });
@@ -393,7 +475,6 @@ impl QemuVm {
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     thread::sleep(Duration::from_millis(50));
-                    continue;
                 }
                 Err(e) => {
                     return Err(TestbedError::MonitorFailed {
@@ -408,6 +489,10 @@ impl QemuVm {
 
     /// Wait for the process to exit, returning the exit code.
     /// Only works for VMs we launched (not adopted ones).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if waiting for the QEMU process fails.
     pub fn wait(self) -> Result<Option<i32>> {
         let Some(mut child) = self.process else {
             return Ok(None); // Adopted VM — no child to wait on
@@ -425,9 +510,15 @@ impl QemuVm {
 /// 2. Copies the disk into the image cache under a unique name
 /// 3. Creates a state file with `bootstrapped: false`
 /// 4. Returns the resolved profile + disk path so the caller can launch
+///
+/// # Errors
+///
+/// Returns an error if the disk file is missing or empty, if the copy fails,
+/// or if the state file cannot be saved.
 pub fn adopt(
     profile: &VmProfile,
     disk_path: &std::path::Path,
+    ctx: &Ctx,
 ) -> Result<(VmProfile, std::path::PathBuf)> {
     if !disk_path.exists() {
         return Err(TestbedError::Qcow2Error {
@@ -463,7 +554,7 @@ pub fn adopt(
         rdp_port: profile.rdp_port,
         vnc_port: profile.vnc_port,
         bootstrapped: false,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at: crate::clock::wall_now_rfc3339(ctx),
     })?;
 
     Ok((profile.clone(), dest))
@@ -476,33 +567,37 @@ pub fn adopt(
 /// 3. Reallocates ports (checks for conflicts)
 /// 4. Relaunches the VM with fresh port forwarding
 /// 5. Waits for SSH/WinRM to become reachable
-pub fn refresh_network(
-    profile: &VmProfile,
-    display_mode: DisplayMode,
-) -> Result<QemuVm> {
+///
+/// # Errors
+///
+/// Returns an error if the VM cannot be stopped, relaunched, or if the new
+/// state cannot be saved.
+pub fn refresh_network(profile: &VmProfile, display_mode: DisplayMode, ctx: Ctx) -> Result<QemuVm> {
     // Stop if running
     if let Ok(state) = crate::state::load(profile.name)
-        && let Some(pid) = state.pid {
-            // Check if process is still alive via /proc
-            let alive = std::path::Path::new(&format!("/proc/{pid}")).exists();
-            if alive {
-                // Try graceful stop via QEMU monitor
-                if let Ok(mut vm) = QemuConfig::new(profile.clone(), display_mode).launch() {
-                    vm.shutdown()?;
+        && let Some(pid) = state.pid
+    {
+        // Check if process is still alive via /proc
+        let alive = std::path::Path::new(&format!("/proc/{pid}")).exists();
+        if alive {
+            // Try graceful stop via QEMU monitor
+            if let Ok(mut vm) = QemuConfig::new(profile.clone(), display_mode, ctx.clone()).launch()
+            {
+                vm.shutdown()?;
+            }
+            // Wait for process to fully exit
+            let deadline = ctx.clock().now() + std::time::Duration::from_secs(15);
+            while ctx.clock().now() < deadline {
+                if !std::path::Path::new(&format!("/proc/{pid}")).exists() {
+                    break;
                 }
-                // Wait for process to fully exit
-                let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
-                while std::time::Instant::now() < deadline {
-                    if !std::path::Path::new(&format!("/proc/{pid}")).exists() {
-                        break;
-                    }
-                    std::thread::sleep(std::time::Duration::from_millis(200));
-                }
+                std::thread::sleep(std::time::Duration::from_millis(200));
             }
         }
+    }
 
     // Relaunch with fresh ports
-    let vm = QemuConfig::new(profile.clone(), display_mode).launch()?;
+    let vm = QemuConfig::new(profile.clone(), display_mode, ctx).launch()?;
 
     // Save updated state with new ports
     crate::state::save(&crate::state::VmState {
@@ -517,7 +612,7 @@ pub fn refresh_network(
         rdp_port: vm.resolved_ports.rdp_port,
         vnc_port: vm.resolved_ports.vnc_port,
         bootstrapped: false,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at: crate::clock::wall_now_rfc3339(&vm.ctx),
     })?;
 
     Ok(vm)
@@ -526,6 +621,8 @@ pub fn refresh_network(
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /// Build the full QEMU command-line argument list.
+#[must_use]
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn build_qemu_args(
     profile: &VmProfile,
     disk_path: &std::path::Path,
@@ -569,7 +666,9 @@ pub fn build_qemu_args(
             let _ = std::fs::copy("/usr/share/edk2/x64/OVMF_VARS.4m.fd", &vars_path);
         }
         args.push("-drive".to_string());
-        args.push("file=/usr/share/edk2/x64/OVMF_CODE.4m.fd,if=pflash,format=raw,readonly=on".to_string());
+        args.push(
+            "file=/usr/share/edk2/x64/OVMF_CODE.4m.fd,if=pflash,format=raw,readonly=on".to_string(),
+        );
         args.push("-drive".to_string());
         args.push(format!("file={},if=pflash,format=raw", vars_path.display()));
     }
@@ -578,7 +677,10 @@ pub fn build_qemu_args(
     if profile.os == GuestOs::MacOS {
         // Apple SMC (System Management Controller)
         args.push("-device".to_string());
-        args.push("isa-applesmc,osk=\"ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc\"".to_string());
+        args.push(
+            "isa-applesmc,osk=\"ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc\""
+                .to_string(),
+        );
 
         // USB controller + keyboard + tablet (XHCI, not legacy USB)
         args.push("-device".to_string());
@@ -655,11 +757,15 @@ pub fn build_qemu_args(
             // protocol to work. Without this, virtiofsd dies with
             // "vhost_set_vring_kick failed: Input/output error".
             args.push("-object".to_string());
-            args.push(format!("memory-backend-memfd,id=mem,size={}M,share=on", profile.memory_mib));
+            args.push(format!(
+                "memory-backend-memfd,id=mem,size={}M,share=on",
+                profile.memory_mib
+            ));
             args.push("-machine".to_string());
             args.push("memory-backend=mem".to_string());
 
-            let socket_path = monitor_path.with_file_name(format!("{}.virtiofsd.sock", profile.name));
+            let socket_path =
+                monitor_path.with_file_name(format!("{}.virtiofsd.sock", profile.name));
             let (vfs_args, _daemon) = mount::virtiofs_args(
                 host_path,
                 mount::DEFAULT_TAG,
@@ -669,24 +775,29 @@ pub fn build_qemu_args(
             args.extend(vfs_args);
         } else {
             // Linux/macOS use 9p/virtfs
-            args.extend(mount::mount_args(host_path, mount::DEFAULT_TAG, project_mount_readonly));
+            args.extend(mount::mount_args(
+                host_path,
+                mount::DEFAULT_TAG,
+                project_mount_readonly,
+            ));
         }
     }
 
     // Network (user-mode with port forwarding)
     let mut netdev = "user,id=net".to_string();
-    netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{}-:22", ports.ssh_port));
+    let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{}-:22", ports.ssh_port);
     if let Some(p) = ports.winrm_port {
-        netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{p}-:5985"));
+        let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{p}-:5985");
     }
     if let Some(p) = ports.rdp_port {
-        netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{p}-:3389"));
+        let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{p}-:3389");
     }
     // Enable built-in SMB server for Windows guests with project mount
-    if profile.os == GuestOs::Windows && project_mount.is_some() {
-        if let Some(host_path) = project_mount {
-            netdev.push_str(&format!(",smb={}", host_path.display()));
-        }
+    if profile.os == GuestOs::Windows
+        && project_mount.is_some()
+        && let Some(host_path) = project_mount
+    {
+        let _ = write!(netdev, ",smb={}", host_path.display());
     }
     args.push("-netdev".to_string());
     args.push(netdev);
@@ -708,10 +819,7 @@ pub fn build_qemu_args(
 
     // Monitor
     args.push("-monitor".to_string());
-    args.push(format!(
-        "unix:{},server,nowait",
-        monitor_path.display()
-    ));
+    args.push(format!("unix:{},server,nowait", monitor_path.display()));
 
     // Display (auto-detected: spice-app, gtk, or vnc)
     args.extend(display_args);
@@ -725,10 +833,7 @@ pub fn build_qemu_args(
 /// Check if KVM is available by testing `/dev/kvm`.
 fn kvm_available() -> bool {
     let path = std::path::Path::new("/dev/kvm");
-    path.exists()
-        && std::fs::metadata(path)
-            .map(|m| !m.permissions().readonly()) // best-effort check
-            .unwrap_or(false)
+    path.exists() && std::fs::metadata(path).is_ok_and(|m| !m.permissions().readonly())
 }
 
 /// Find `qemu-system-x86_64` on PATH, trying common locations.
@@ -758,24 +863,26 @@ fn find_qemu_system() -> Result<std::path::PathBuf> {
 /// virtiofsd 1.13.x creates the socket, QEMU immediately connects, and
 /// the filesystem socket may vanish. We check for the PID file (`.sock.pid`)
 /// as a reliable readiness indicator since virtiofsd creates it early.
-fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
+fn spawn_virtiofsd(config: &mount::VirtiofsdConfig, ctx: &Ctx) -> Result<()> {
     // Clean stale socket and PID file
     let _ = std::fs::remove_file(&config.socket_path);
     let pid_path = config.socket_path.with_extension("sock.pid");
     let _ = std::fs::remove_file(&pid_path);
 
-    let mut child = config.command()
+    let mut child = config
+        .command()
         // Use null stdio — piped stdio blocks when the buffer fills and
         // the parent forgets the Child without reading the pipes.
         .stdout(Stdio::null())
         .stderr(Stdio::null())
-        .spawn().map_err(|e| TestbedError::Qcow2Error {
+        .spawn()
+        .map_err(|e| TestbedError::Qcow2Error {
             message: format!("failed to spawn virtiofsd: {e}"),
         })?;
 
     // Wait for readiness signal (up to 10s)
-    let deadline = Instant::now() + Duration::from_secs(10);
-    while Instant::now() < deadline {
+    let deadline = ctx.clock().now() + Duration::from_secs(10);
+    while ctx.clock().now() < deadline {
         // Check for child process exit first
         if let Some(status) = child.try_wait().map_err(|e| TestbedError::Qcow2Error {
             message: format!("virtiofsd child error: {e}"),
@@ -788,7 +895,10 @@ fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
 
         // Socket or PID file indicates readiness
         if config.socket_path.exists() || pid_path.exists() {
-            debug!("virtiofsd started, socket at {}", config.socket_path.display());
+            debug!(
+                "virtiofsd started, socket at {}",
+                config.socket_path.display()
+            );
             std::mem::forget(child);
             return Ok(());
         }
@@ -797,7 +907,10 @@ fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
 
     drop(child);
     Err(TestbedError::Qcow2Error {
-        message: format!("virtiofsd did not start at {}", config.socket_path.display()),
+        message: format!(
+            "virtiofsd did not start at {}",
+            config.socket_path.display()
+        ),
     })
 }
 
@@ -805,4 +918,3 @@ fn spawn_virtiofsd(config: &mount::VirtiofsdConfig) -> Result<()> {
 pub fn stop_virtiofsd(socket_path: &std::path::Path) {
     let _ = std::fs::remove_file(socket_path);
 }
-

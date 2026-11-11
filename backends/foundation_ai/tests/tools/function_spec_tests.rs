@@ -1,6 +1,6 @@
 //! Tests for `Tool::function_spec()` — the bridge from `ToolDefinition` to
 //! `ToolFunctionSpec` that providers consume. Covers returns field propagation
-//! for both SingleCommand and MultiCommands shapes (F19).
+//! for both `SingleCommand` and `MultiCommands` shapes (F19).
 
 use foundation_ai::types::{Args, Tool, ToolDefinition};
 use foundation_jsonschema::ValidationOptions;
@@ -12,23 +12,23 @@ fn make_opts() -> ValidationOptions {
 }
 
 fn make_tool() -> Tool {
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: "search".into(),
         category: "search".into(),
         description: "Search the web".into(),
         arguments: Args::new(make_opts()),
         returns: None,
-    })
+    }))
 }
 
 fn make_tool_with_returns(schema: serde_json::Value) -> Tool {
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: "search".into(),
         category: "search".into(),
         description: "Search the web".into(),
         arguments: Args::new(make_opts()),
         returns: Some(Args::new(ValidationOptions::with_schema(schema))),
-    })
+    }))
 }
 
 #[test]
@@ -104,10 +104,12 @@ fn multi_commands_collects_first_returns() {
                     "properties": {"id": {"type": "string"}},
                     "required": ["id"]
                 }))),
-                returns: Some(Args::new(ValidationOptions::with_schema(serde_json::json!({
-                    "type": "object",
-                    "properties": {"state": {"type": "string"}}
-                })))),
+                returns: Some(Args::new(ValidationOptions::with_schema(
+                    serde_json::json!({
+                        "type": "object",
+                        "properties": {"state": {"type": "string"}}
+                    }),
+                ))),
             },
         ],
     );

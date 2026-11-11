@@ -46,21 +46,25 @@ impl From<&WatchEvent> for FileChange {
 
 // -- Event pump: subscribes to FileWatcherTask, maps WatchEvent → FileChange
 
-use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::QueueReadiness;
-use std::sync::Arc;
+use foundation_core::valtron::{EventQueue, QueueReadiness};
 
 pub struct FileChangeEventPump {
-    /// Queue that receives FileChange events.
-    pub queue: Arc<ConcurrentQueue<FileChange>>,
+    /// Queue that receives FileChange events. Its push wakes `ready`.
+    pub queue: EventQueue<FileChange>,
     /// Readiness signal for valtron Depends.
     pub ready: QueueReadiness<FileChange>,
 }
 
+impl Default for FileChangeEventPump {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FileChangeEventPump {
     pub fn new() -> Self {
-        let queue = Arc::new(ConcurrentQueue::unbounded());
-        let ready = QueueReadiness::new(queue.clone());
+        let queue = EventQueue::unbounded();
+        let ready = queue.readiness();
         Self { queue, ready }
     }
 

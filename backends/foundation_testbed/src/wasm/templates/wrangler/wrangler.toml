@@ -1,3 +1,23 @@
 name = "wasm-test"
 main = "worker.js"
 compatibility_date = "2026-05-18"
+
+# Local Cloudflare bindings for a custom wasm test harness. `wrangler dev
+# --local` runs workerd with real local D1, R2 and KV storage; the worker
+# passes `env` to the wasm tests through `globalThis.__CF_TEST_ENV__`.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wasm-test-db"
+database_id = "wasm-test-db-id"
+preview_database_id = "wasm-test-db-preview"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "wasm-test-bucket"
+preview_bucket_name = "wasm-test-bucket-preview"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "0000000000000000000000000000000a"
+preview_id = "0000000000000000000000000000000b"

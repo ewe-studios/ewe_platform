@@ -8,6 +8,8 @@
 use std::cell::{Cell, RefCell};
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use foundation_context::Ctx;
+
 use crate::shared::activity::Activity;
 use crate::shared::commands::{CommandRegistry, CommandResult};
 use crate::shared::config::ReplConfig;
@@ -31,18 +33,20 @@ pub struct Repl {
     commands: RefCell<CommandRegistry>,
     history: RefCell<ReplHistory>,
     exited: Cell<bool>,
+    /// The context the activity indicator reads its clock from.
+    ctx: Ctx,
 }
 
 impl Repl {
     /// Create a new REPL with default config, using the platform-native backend.
     #[must_use]
-    pub fn new() -> Self {
-        Self::with_config(ReplConfig::default())
+    pub fn new(ctx: Ctx) -> Self {
+        Self::with_config(ReplConfig::default(), ctx)
     }
 
-    /// Create a new REPL with custom config.
+    /// Create a new REPL with custom config and the injected context.
     #[must_use]
-    pub fn with_config(config: ReplConfig) -> Self {
+    pub fn with_config(config: ReplConfig, ctx: Ctx) -> Self {
         let (input, display) = Self::make_backend(config.theme.clone());
         Self {
             config,
@@ -51,6 +55,7 @@ impl Repl {
             commands: RefCell::new(CommandRegistry::new()),
             history: RefCell::new(ReplHistory::new(1000)),
             exited: Cell::new(false),
+            ctx,
         }
     }
 
@@ -70,7 +75,10 @@ impl Repl {
     #[cfg(feature = "wasm")]
     fn make_backend(
         theme: ReplTheme,
-    ) -> (crate::wasm::input::WasmInput, crate::wasm::display::WasmDisplay) {
+    ) -> (
+        crate::wasm::input::WasmInput,
+        crate::wasm::display::WasmDisplay,
+    ) {
         (
             crate::wasm::input::WasmInput::new(),
             crate::wasm::display::WasmDisplay::new(theme),
@@ -114,9 +122,10 @@ impl Repl {
     /// # Examples
     ///
     /// ```no_run
+    /// use foundation_context::Ctx;
     /// use foundation_repl::Repl;
     ///
-    /// let repl = Repl::new();
+    /// let repl = Repl::new(Ctx::host());
     /// for input in repl.messages() {
     ///     let stream = repl.animation("thinking");
     ///     for chunk in answer(&input) {
@@ -132,6 +141,7 @@ impl Repl {
             Arc::clone(&self.display),
             self.config.theme.activity.clone(),
             label.into(),
+            self.ctx.clone(),
         )
     }
 
@@ -160,12 +170,6 @@ impl Repl {
         self.display
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
-    }
-}
-
-impl Default for Repl {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -273,12 +277,22 @@ impl Iterator for ReplMessageIter<'_> {
 }
 
 /// Builder for customizing a REPL.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct ReplBuilder {
     config: ReplConfig,
+    ctx: Option<Ctx>,
 }
 
 impl ReplBuilder {
+    /// Set the context the activity indicator reads its clock from.
+    ///
+    /// Required: there is no fallback to the real clock.
+    #[must_use]
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
+        self
+    }
+
     /// Set the primary prompt.
     #[must_use]
     pub fn prompt(mut self, s: impl Into<String>) -> Self {
@@ -322,8 +336,15 @@ impl ReplBuilder {
     }
 
     /// Build the REPL.
+    ///
+    /// # Panics
+    /// Panics when [`ReplBuilder::ctx`] was not called. A REPL without an
+    /// injected context is a design fault, and a fallback would read the global.
     #[must_use]
     pub fn build(self) -> Repl {
-        Repl::with_config(self.config)
+        let ctx = self
+            .ctx
+            .expect("ReplBuilder::build needs the injected context; call .ctx(ctx)");
+        Repl::with_config(self.config, ctx)
     }
 }

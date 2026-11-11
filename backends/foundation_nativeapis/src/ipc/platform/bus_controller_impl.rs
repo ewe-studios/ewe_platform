@@ -2,15 +2,20 @@
 ///
 /// Platform-agnostic: uses `EncodedMessage`, `IoHub`, and `Remote` which are
 /// re-exported per-platform from the parent module.
-
-use std::{mem, sync::mpsc::Sender, thread, time::{Duration, Instant}};
-
-use crate::ipc::{
-    decode, version::version,
-    ConnectMessage, ConnectMessageAck, Message,
-    EndpointID, Error, Label, SelectorMode,
+use std::{
+    mem,
+    sync::mpsc::Sender,
+    thread,
+    time::{Duration, Instant},
 };
-use super::{Remote, EncodedMessage, IoHub};
+
+use foundation_context::Ctx;
+
+use super::{EncodedMessage, IoHub, Remote};
+use crate::ipc::{
+    decode, version::version, ConnectMessage, ConnectMessageAck, EndpointID, Error, Label, Message,
+    SelectorMode,
+};
 use foundation_core::type_uuid::TypeUuid;
 
 struct Endpoint {
@@ -36,6 +41,7 @@ pub(crate) struct BusController {
     message_buffer_swap: Vec<(Instant, EncodedMessage)>,
     io_hub: IoHub,
     last_detect_reachable: Instant,
+    ctx: Ctx,
 }
 
 impl BusController {
@@ -45,17 +51,19 @@ impl BusController {
         token: String,
         sender: Sender<EncodedMessage>,
         io_hub: IoHub,
+        ctx: Ctx,
     ) -> Self {
         Self {
             endpoint_id,
             label,
             token,
             sender,
-            endpoints: Default::default(),
-            message_buffer: Default::default(),
-            message_buffer_swap: Default::default(),
+            endpoints: Vec::default(),
+            message_buffer: Vec::default(),
+            message_buffer_swap: Vec::default(),
             io_hub,
-            last_detect_reachable: Instant::now(),
+            last_detect_reachable: ctx.clock().now(),
+            ctx,
         }
     }
 
@@ -63,7 +71,7 @@ impl BusController {
         thread::Builder::new()
             .name(String::from("ipmb bus controller"))
             .spawn(move || loop {
-                let msg = match self.io_hub.recv(None, None) {
+                let msg = match self.io_hub.recv(None, None, &self.ctx) {
                     Ok(msg) => msg,
                     Err(Error::VersionMismatch(_, _)) => {
                         // Can't send back version mismatch reply without a remote reference
@@ -72,7 +80,7 @@ impl BusController {
                     _ => continue,
                 };
 
-                let now = Instant::now();
+                let now = self.ctx.clock().now();
 
                 let (remain, endpoint_connected) = self.handle_message(msg);
 
@@ -112,45 +120,37 @@ impl BusController {
         let mut remain = None;
         let mut endpoint_connected = false;
 
-        match encoded_msg.selector.uuid {
-            <ConnectMessage as TypeUuid>::UUID => {
-                endpoint_connected = self.endpoint_connect(encoded_msg);
-            }
-            _ => {
-                self.endpoints.retain(|Endpoint { label, remote, .. }| {
-                    let mut online = true;
+        if encoded_msg.selector.uuid == <ConnectMessage as TypeUuid>::UUID {
+            endpoint_connected = self.endpoint_connect(encoded_msg);
+        } else {
+            self.endpoints.retain(|Endpoint { label, remote, .. }| {
+                let mut online = true;
 
-                    if routed && encoded_msg.selector.mode == SelectorMode::Unicast {
-                        return online;
-                    }
+                if routed && encoded_msg.selector.mode == SelectorMode::Unicast {
+                    return online;
+                }
 
-                    if encoded_msg.selector.label_op.validate(label) {
-                        match encoded_msg.send(remote) {
-                            Ok(_) => routed = true,
-                            Err(Error::Disconnect) => online = false,
-                            _ => {}
-                        }
-                    }
-
-                    online
-                });
-
-                if (!routed || encoded_msg.selector.mode == SelectorMode::Multicast)
-                    && encoded_msg.selector.label_op.validate(&self.label)
-                {
-                    match self.sender.send(encoded_msg) {
-                        Ok(_) => {}
-                        Err(err) => {
-                            if !routed {
-                                remain = Some(err.0);
-                            }
-                        }
-                    }
-                } else {
-                    if !routed {
-                        remain = Some(encoded_msg);
+                if encoded_msg.selector.label_op.validate(label) {
+                    match encoded_msg.send(remote) {
+                        Ok(()) => routed = true,
+                        Err(Error::Disconnect) => online = false,
+                        _ => {}
                     }
                 }
+
+                online
+            });
+
+            if (!routed || encoded_msg.selector.mode == SelectorMode::Multicast)
+                && encoded_msg.selector.label_op.validate(&self.label)
+            {
+                if let Err(err) = self.sender.send(encoded_msg) {
+                    if !routed {
+                        remain = Some(err.0);
+                    }
+                }
+            } else if !routed {
+                remain = Some(encoded_msg);
             }
         }
 
@@ -162,17 +162,14 @@ impl BusController {
         let Some(remote) = remote else { return false };
 
         // Decode ConnectMessage
-        let payload = match decode::<ConnectMessage>(encoded_msg.payload_data) {
-            Ok(p) => p,
-            Err(_) => {
-                let _ = Message::new(
-                    encoded_msg.selector.clone(),
-                    ConnectMessageAck::ErrVersion(version()),
-                )
-                .into_encoded()
-                .send(&remote);
-                return false;
-            }
+        let Ok(payload) = decode::<ConnectMessage>(encoded_msg.payload_data) else {
+            let _ = Message::new(
+                encoded_msg.selector.clone(),
+                ConnectMessageAck::ErrVersion(version()),
+            )
+            .into_encoded()
+            .send(&remote);
+            return false;
         };
 
         // Version check
@@ -224,7 +221,7 @@ impl BusController {
             return false;
         }
 
-        let _ = self.endpoints.push(pair);
+        self.endpoints.push(pair);
         true
     }
 

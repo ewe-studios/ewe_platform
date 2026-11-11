@@ -76,9 +76,12 @@ impl CooperativeSpinWaiter {
     #[must_use]
     pub fn wait(&self, dur: core::time::Duration) -> WaitStatus {
         let resumed = Arc::clone(&self.resumed);
-        (self.schedule_resume)(dur, Box::new(move || {
-            resumed.store(true, Ordering::Release);
-        }));
+        (self.schedule_resume)(
+            dur,
+            Box::new(move || {
+                resumed.store(true, Ordering::Release);
+            }),
+        );
         WaitStatus::Waiting
     }
 

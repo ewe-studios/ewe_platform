@@ -1,4 +1,8 @@
-//! `H2Serve` — the HTTP/2 equivalent of [`Serve`](crate::shared::serve::Serve) (F47).
+//! Native serve traits: [`Serve`], [`ServeFactory`], `H2Serve` and `H3Serve`.
+//!
+//! [`Serve`] takes `SharedByteBufferStream<RawStream>`, so it exists only on
+//! native targets; `foundation_netio::netcap::RawStream` is not exported on
+//! wasm. [`H2Serve`] is the HTTP/2 equivalent of [`Serve`] (F47).
 //!
 //! Native-only: the HTTP/2 serve path drives `foundation_netio::http2` (the native
 //! frame substrate), which does not exist on wasm. It lives under `native/` so the
@@ -23,21 +27,46 @@
 use std::future::Future;
 use std::io;
 use std::pin::Pin;
+#[cfg(feature = "quic")]
 use std::sync::Arc;
 
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 use foundation_netio::http3::connection::H3Request;
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 use foundation_netio::netcap::ConnectionContext;
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+use foundation_netio::netcap::RawStream;
+#[cfg(feature = "quic")]
 use foundation_netio::quic::QuinnBidiStream;
+use foundation_netio::shared::http::SimpleIncomingRequest;
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
+use crate::shared::serve::ConnectionResult;
 
 /// A boxed, sendable future — the unit of work the connection handler spawns.
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+
+// ---------------------------------------------------------------------------
+// Serve
+
+/// Core handler trait — executed at request time (native TCP connections).
+pub trait Serve: Send + Sync + 'static {
+    /// Handle an incoming request.
+    fn serve(
+        &self,
+        ctx: Ctx,
+        req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult;
+}
+
+/// Factory trait for creating handler instances.
+pub trait ServeFactory: Serve + Sized {
+    /// Create a new instance of this handler.
+    fn create(ctx: &Ctx) -> Self;
+}
 
 /// Core HTTP/2 handler trait — one invocation per h2 stream.
 ///
@@ -52,7 +81,7 @@ pub trait H2Serve: Send + Sync + 'static {
     /// signals the stream is complete.
     fn serve_h2(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         header: SimpleIncomingRequestHeader,
         body: PipeReceiver<H2IncomingFrame>,
         tx: PipeSender<H2Frame>,
@@ -71,7 +100,7 @@ pub trait H2Serve: Send + Sync + 'static {
 /// The `H3Request` is handed to the handler by value; the handler owns it and
 /// drives `poll_headers` / `poll_body` / `poll_send_*` to completion, then
 /// drops it.
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+#[cfg(feature = "quic")]
 pub trait H3Serve: Send + Sync + 'static {
     /// Handle one HTTP/3 request stream.
     ///
@@ -80,7 +109,7 @@ pub trait H3Serve: Send + Sync + 'static {
     /// completes, the stream is done and the response has been fully flushed.
     fn serve_h3(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         connection: Arc<ConnectionContext>,
         request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, io::Result<()>>;

@@ -2,24 +2,28 @@
 //!
 //! WHY: Tauri has no built-in overlay/toolbar system. The platform needs a
 //! way to render navigation bars, slide panels, and modal overlays on top
-//! of WebView content — without native bridge overhead.
+//! of `WebView` content — without native bridge overhead.
 //!
 //! WHAT: `OverlayCapability` is a `PlatformCapability` that injects the
-//! `floating-nav.js` toolbar into the WebView. `OverlayConfig` lets route
+//! `floating-nav.js` toolbar into the `WebView`. `OverlayConfig` lets route
 //! handlers customize position, visibility, and toolbar buttons.
 //!
 //! HOW: The overlay is pure CSS + JS injected by the `ScriptInjector`.
 //! `OverlayCapability` provides a programmatic API for route handlers to
 //! show/hide/configure the toolbar without calling `window.eval()` directly.
 
-use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 use foundation_ui_traits::{CapabilityId, Profile};
+use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 
 use crate::capability::PlatformCapability;
 
 // ── Overlay config ───────────────────────────────────────────────────────
 
 /// Configuration for the floating navigation toolbar.
+///
+/// The boolean fields are independent visibility switches, not a state machine,
+/// so the pedantic `struct_excessive_bools` suggestion does not apply.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone)]
 pub struct OverlayConfig {
     /// Toolbar position: `"top"` or `"bottom"`.
@@ -73,8 +77,7 @@ impl OverlayConfig {
         let title_js = self
             .title
             .as_ref()
-            .map(|t| format!("__eweNav.setTitle({t:?});"))
-            .unwrap_or_default();
+            .map_or_default(|t| format!("__eweNav.setTitle({t:?});"));
 
         format!(
             "if(window.__eweNav){{__eweNav.setPosition('{pos}');{title_js}__eweNav.{visibility}}}"
@@ -152,7 +155,7 @@ impl WasmCapability for OverlayCapability {
                         },
                         visible: config
                             .get("visible")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         title: config
                             .get("title")
@@ -160,19 +163,19 @@ impl WasmCapability for OverlayCapability {
                             .map(String::from),
                         show_back: config
                             .get("show_back")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         show_home: config
                             .get("show_home")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         show_refresh: config
                             .get("show_refresh")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                         show_app_switcher: config
                             .get("show_app_switcher")
-                            .and_then(|v| v.as_bool())
+                            .and_then(serde_json::Value::as_bool)
                             .unwrap_or(true),
                     };
                     oc.to_js()
@@ -212,78 +215,3 @@ impl PlatformCapability for OverlayCapability {
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn overlay_config_default_to_js() {
-        let config = OverlayConfig::default();
-        let js = config.to_js();
-        assert!(js.contains("bottom"));
-        assert!(js.contains("show()"));
-    }
-
-    #[test]
-    fn overlay_config_hidden() {
-        let config = OverlayConfig {
-            visible: false,
-            ..Default::default()
-        };
-        let js = config.to_js();
-        assert!(js.contains("hide()"));
-    }
-
-    #[test]
-    fn overlay_config_with_title() {
-        let config = OverlayConfig {
-            title: Some("Settings".into()),
-            ..Default::default()
-        };
-        let js = config.to_js();
-        assert!(js.contains("Settings"));
-    }
-
-    #[test]
-    fn overlay_capability_show_action() {
-        let cap = OverlayCapability;
-        let req = CapabilityRequest {
-            capability: "overlay".into(),
-            action: "show".into(),
-            payload: vec![],
-            content_type: foundation_wasm::CapabilityContentType::Json,
-        };
-        let resp = cap.invoke_capability(&req).unwrap();
-        let js = String::from_utf8(resp.payload).unwrap();
-        assert!(js.contains("__eweNav.show()"));
-    }
-
-    #[test]
-    fn overlay_capability_hide_action() {
-        let cap = OverlayCapability;
-        let req = CapabilityRequest {
-            capability: "overlay".into(),
-            action: "hide".into(),
-            payload: vec![],
-            content_type: foundation_wasm::CapabilityContentType::Json,
-        };
-        let resp = cap.invoke_capability(&req).unwrap();
-        let js = String::from_utf8(resp.payload).unwrap();
-        assert!(js.contains("__eweNav.hide()"));
-    }
-
-    #[test]
-    fn overlay_capability_set_title() {
-        let cap = OverlayCapability;
-        let req = CapabilityRequest {
-            capability: "overlay".into(),
-            action: "set_title".into(),
-            payload: b"Home".to_vec(),
-            content_type: foundation_wasm::CapabilityContentType::Json,
-        };
-        let resp = cap.invoke_capability(&req).unwrap();
-        let js = String::from_utf8(resp.payload).unwrap();
-        assert!(js.contains("Home"));
-    }
-}

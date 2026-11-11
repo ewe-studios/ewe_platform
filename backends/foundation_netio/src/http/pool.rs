@@ -15,6 +15,7 @@
 //!   added in a later phase.
 //!
 use crate::netcap::RawStream;
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
@@ -102,9 +103,14 @@ impl ConnectionPool {
     /// Removes and returns the most-recently-added valid connection if one
     /// exists and is not stale. Otherwise returns `None`.
     #[must_use]
-    pub fn checkout(&self, host: &str, port: u16) -> Option<SharedByteBufferStream<RawStream>> {
+    pub fn checkout(
+        &self,
+        host: &str,
+        port: u16,
+        ctx: &Ctx,
+    ) -> Option<SharedByteBufferStream<RawStream>> {
         let key = format!("{host}:{port}");
-        let now = Instant::now();
+        let now = ctx.clock().now();
 
         let Ok(mut map) = self.inner.lock() else {
             return None;
@@ -113,16 +119,16 @@ impl ConnectionPool {
         if let Some(queue) = map.get_mut(&key) {
             // Pop from the back (LIFO reuse) until we find a valid non-stale stream
             while let Some((ts, stream)) = queue.pop_back() {
-                if now.duration_since(ts) <= self.max_idle_time {
+                if now.saturating_duration_since(ts) <= self.max_idle_time {
                     tracing::debug!(
                         "[pool] checkout hit for {key} (idle {:?})",
-                        now.duration_since(ts)
+                        now.saturating_duration_since(ts)
                     );
                     return Some(stream);
                 }
                 tracing::debug!(
                     "[pool] checkout stale for {key} (idle {:?})",
-                    now.duration_since(ts)
+                    now.saturating_duration_since(ts)
                 );
             }
             // If queue is empty, remove the key to keep map small
@@ -143,8 +149,14 @@ impl ConnectionPool {
     /// Unix-socket filtering is handled upstream by
     /// `HttpConnectionPool::return_to_pool` — it checks `stream.is_unix()`
     /// and never calls here for non-poolable connections.
-    #[tracing::instrument(skip(self))]
-    pub fn checkin(&self, host: &str, port: u16, stream: SharedByteBufferStream<RawStream>) {
+    #[tracing::instrument(skip(self, ctx))]
+    pub fn checkin(
+        &self,
+        host: &str,
+        port: u16,
+        stream: SharedByteBufferStream<RawStream>,
+        ctx: &Ctx,
+    ) {
         tracing::trace!(
             "Returning http client connection to the pool for host={:?}, port={:?}",
             &host,
@@ -158,7 +170,7 @@ impl ConnectionPool {
         let queue = map.entry(key).or_insert_with(VecDeque::new);
 
         // Push current time and stream to the back (newest)
-        queue.push_back((Instant::now(), stream));
+        queue.push_back((ctx.clock().now(), stream));
 
         // Enforce max_per_host: drop oldest while exceeding
         while queue.len() > self.max_per_host {
@@ -170,8 +182,8 @@ impl ConnectionPool {
     ///
     /// This is safe to call periodically from a maintenance task or during
     /// heavy allocation periods.
-    pub fn cleanup_stale(&self) {
-        let now = Instant::now();
+    pub fn cleanup_stale(&self, ctx: &Ctx) {
+        let now = ctx.clock().now();
         let Ok(mut map) = self.inner.lock() else {
             return;
         };
@@ -180,7 +192,7 @@ impl ConnectionPool {
 
         for (key, queue) in map.iter_mut() {
             // Retain only entries that are fresh
-            queue.retain(|(ts, _)| now.duration_since(*ts) <= self.max_idle_time);
+            queue.retain(|(ts, _)| now.saturating_duration_since(*ts) <= self.max_idle_time);
             if queue.is_empty() {
                 remove_keys.push(key.clone());
             }

@@ -11,6 +11,7 @@
 //!   and `foundation_deployment_platform::cli::run()`
 
 use clap::{ArgMatches, Command};
+use foundation_context::Ctx;
 
 mod bootstrap;
 mod build;
@@ -284,36 +285,41 @@ pub fn command() -> Command {
 }
 
 /// Dispatch to the appropriate command handler.
+///
+/// The command dispatch is the host entry point: it builds the one real clock
+/// and passes it down. Every handler that starts a VM, waits on one, or records
+/// a timestamp reads that clock, never the process clock (AGENTS rule 11).
 pub fn run(args: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let ctx = Ctx::host();
     match args.subcommand() {
         // Provider-agnostic commands
-        Some(("start", m)) => provider::cmd_start(m),
-        Some(("stop", m)) => provider::cmd_stop(m),
-        Some(("import", m)) => provider::cmd_import(m),
-        Some(("doctor", m)) => provider::cmd_doctor(m),
+        Some(("start", m)) => provider::cmd_start(m, &ctx),
+        Some(("stop", m)) => provider::cmd_stop(m, &ctx),
+        Some(("import", m)) => provider::cmd_import(m, &ctx),
+        Some(("doctor", m)) => provider::cmd_doctor(m, &ctx),
         Some(("ls", _)) => provider::cmd_ls(),
-        Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m),
-        Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m),
-        Some(("build", m)) => build::cmd_build(m),
-        Some(("debloat", m)) => debloat::cmd_debloat(m),
+        Some(("winrm-test", m)) => winrm_test::cmd_winrm_test(m, &ctx),
+        Some(("bootstrap", m)) => bootstrap::cmd_bootstrap(m, &ctx),
+        Some(("build", m)) => build::cmd_build(m, &ctx),
+        Some(("debloat", m)) => debloat::cmd_debloat(m, &ctx),
         // SSH-based commands
-        Some(("exec", m)) => ssh_cmds::cmd_exec(m),
+        Some(("exec", m)) => ssh_cmds::cmd_exec(m, &ctx),
         Some(("shell", m)) => ssh_cmds::cmd_shell(m),
-        Some(("run", m)) => ssh_cmds::cmd_run(m),
-        Some(("screenshot", m)) => ssh_cmds::cmd_screenshot(m),
+        Some(("run", m)) => ssh_cmds::cmd_run(m, &ctx),
+        Some(("screenshot", m)) => ssh_cmds::cmd_screenshot(m, &ctx),
         Some(("logs", m)) => ssh_cmds::cmd_logs(m),
         Some(("push", m)) => ssh_cmds::cmd_push(m),
         Some(("pull", m)) => ssh_cmds::cmd_pull(m),
         // Init
         Some(("init", m)) => provider::cmd_init(m),
         // QEMU-specific
-        Some(("snapshot", sub)) => qemu::cmd_snapshot(sub),
+        Some(("snapshot", sub)) => qemu::cmd_snapshot(sub, &ctx),
         Some(("resize-disk", m)) => qemu::cmd_resize_disk(m),
         Some(("mount", m)) => qemu::cmd_mount(m),
-        Some(("network", m)) => qemu::cmd_network(m),
-        Some(("adopt", m)) => qemu::cmd_adopt(m),
-        Some(("refresh-network", m)) => qemu::cmd_refresh_network(m),
-        Some(("export", m)) => qemu::cmd_export(m),
+        Some(("network", m)) => qemu::cmd_network(m, &ctx),
+        Some(("adopt", m)) => qemu::cmd_adopt(m, &ctx),
+        Some(("refresh-network", m)) => qemu::cmd_refresh_network(m, &ctx),
+        Some(("export", m)) => qemu::cmd_export(m, &ctx),
         _ => {
             eprintln!("unknown testbed subcommand");
             Ok(())

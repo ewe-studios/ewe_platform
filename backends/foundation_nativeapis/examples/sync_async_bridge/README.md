@@ -34,7 +34,7 @@ The example demonstrates two bridging patterns:
 2. **`SyncFs<A>` wrapper** — A generic adapter that takes any `AsyncVfsFileSystem` and implements the sync `VfsFileSystem` trait by internally calling `exec_async` for every operation. This provides a clean, ergonomic sync API over async implementations:
 
    ```rust
-   let sync_fs = SyncFs::new(MemoryFs::new());
+   let sync_fs = SyncFs::new(MemoryFs::new(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())));
    sync_fs.mkdir("/bridged").unwrap();  // Internally calls exec_async
    ```
 
@@ -80,14 +80,14 @@ SyncFs stat: size=29, inode=3
 
 ```rust
 // Option 1: Direct async execution
-let fs = Arc::new(MemoryFs::new());
+let fs = Arc::new(MemoryFs::new(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())));
 exec_async(async move {
     fs.mkdir_async("/dir".into()).await?;
     Ok(())
 }).unwrap();
 
 // Option 2: Sync wrapper for ergonomic usage
-let sync_fs = SyncFs::new(MemoryFs::new());
+let sync_fs = SyncFs::new(MemoryFs::new(std::sync::Arc::new(foundation_core::valtron::MonotonicClock::new())));
 sync_fs.mkdir("/dir").unwrap();  // Internally exec_async
 ```
 

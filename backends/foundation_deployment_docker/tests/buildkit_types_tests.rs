@@ -1,6 +1,6 @@
-//! Type-level tests for the generated BuildKit gRPC message types.
+//! Type-level tests for the generated `BuildKit` gRPC message types.
 //!
-//! WHY: The BuildKit client drives `foundation_connectrpc::Client<Req, Res>`
+//! WHY: The `BuildKit` client drives `foundation_connectrpc::Client<Req, Res>`
 //! with `ProcedureCodecs::defaults()`, whose bound is `buffa::Message +
 //! Serialize + DeserializeOwned`. These tests prove the buffa-generated Control
 //! message types satisfy that bound and round-trip on both the proto wire and
@@ -39,13 +39,16 @@ fn info_request_proto_round_trips() {
     let bytes = req.encode_to_vec();
     let back = InfoRequest::decode_from_slice(&bytes).expect("proto decode");
     // An empty message encodes to zero bytes on the proto wire.
-    assert!(bytes.is_empty());
+    assert_eq!(bytes, [] as [u8; 0]);
     let _ = back;
 }
 
 #[test]
 fn status_request_ref_round_trips_proto_and_json() {
-    let req = StatusRequest { Ref: "build-ref-123".into(), ..Default::default() };
+    let req = StatusRequest {
+        Ref: "build-ref-123".into(),
+        ..Default::default()
+    };
 
     // Proto wire round-trip.
     let bytes = req.encode_to_vec();
@@ -61,8 +64,10 @@ fn status_request_ref_round_trips_proto_and_json() {
 
 #[test]
 fn solve_request_frontend_round_trips_proto() {
-    let mut req = SolveRequest::default();
-    req.Frontend = "dockerfile.v0".into();
+    let req = SolveRequest {
+        Frontend: "dockerfile.v0".into(),
+        ..Default::default()
+    };
     let bytes = req.encode_to_vec();
     let back = SolveRequest::decode_from_slice(&bytes).expect("proto decode");
     assert_eq!(back.Frontend, "dockerfile.v0");

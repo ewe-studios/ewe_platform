@@ -19,7 +19,9 @@ fn init_pool() -> PoolGuard {
 #[tracing_test::traced_test]
 fn error_not_found_propagated() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     let err = sync.stat("/does/not/exist").unwrap_err();
     assert!(matches!(err.current_context(), VfsError::NotFound { .. }));
@@ -31,7 +33,9 @@ fn error_not_found_propagated() {
 #[tracing_test::traced_test]
 fn error_already_exists_propagated() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     sync.create("/file.txt", 0o644).unwrap();
 
@@ -48,7 +52,9 @@ fn error_already_exists_propagated() {
 #[tracing_test::traced_test]
 fn error_not_a_file_propagated() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     sync.mkdir("/dir").unwrap();
 
@@ -64,7 +70,9 @@ fn error_not_a_file_propagated() {
 #[tracing_test::traced_test]
 fn error_not_a_directory_propagated() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     sync.write_file("/file.txt", b"data").unwrap();
 
@@ -81,7 +89,9 @@ fn error_not_a_directory_propagated() {
 #[tracing_test::traced_test]
 fn error_directory_not_empty_propagated() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     sync.mkdir("/dir").unwrap();
     sync.write_file("/dir/file.txt", b"data").unwrap();
@@ -96,7 +106,9 @@ fn error_directory_not_empty_propagated() {
 #[tracing_test::traced_test]
 fn error_cannot_remove_root() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     let err = sync.remove("/").unwrap_err();
     assert!(matches!(
@@ -111,7 +123,9 @@ fn error_cannot_remove_root() {
 #[tracing_test::traced_test]
 fn error_path_traversal_rejected() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     sync.mkdir("/safe").unwrap();
 
@@ -128,7 +142,9 @@ fn error_path_traversal_rejected() {
 #[tracing_test::traced_test]
 fn error_stack_trace_preserved() {
     let _guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     let err = sync.stat("/missing").unwrap_err();
     assert!(err.downcast_ref::<VfsError>().is_some());
@@ -140,7 +156,9 @@ fn error_stack_trace_preserved() {
 #[tracing_test::traced_test]
 fn pool_guard_dropped_cleanly() {
     let guard = init_pool();
-    let sync = SyncFs::new(MemoryFs::new());
+    let sync = SyncFs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    )));
 
     sync.mkdir("/before").unwrap();
     sync.write_file("/before/a.txt", b"data").unwrap();

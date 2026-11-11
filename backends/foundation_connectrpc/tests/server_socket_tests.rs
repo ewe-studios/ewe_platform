@@ -1,3 +1,11 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Walking-skeleton tests (spec-41 F44 / Decision 11 §Connection ownership) —
 //! prove the end-to-end spine over a **real loopback TCP socket**.
 //!
@@ -8,7 +16,7 @@
 //! | Half | Owner | What it proves |
 //! |---|---|---|
 //! | **Server** | Per-connection task spawned by the listener on `accept` | The fd owner
-//!   (foundation_http `HttpServer`) reads the request off the wire, hands it to
+//!   (`foundation_http` `HttpServer`) reads the request off the wire, hands it to
 //!   `ConnectRpcServe::serve()`, which dispatches through the router and writes the
 //!   response back. |
 //! | **Client** | `Transport::open()` (Decision 11 §Transport) | The connection owner
@@ -25,7 +33,7 @@
 //! end-to-end **without depending on the client transport working correctly**. If
 //! these fail, the server spine is broken.
 //!
-//! ## Style B — H1Transport (client-spine proof)
+//! ## Style B — `H1Transport` (client-spine proof)
 //!
 //! `h1_transport_over_real_socket` uses `H1Transport::open()` to push request bytes
 //! into `send_body` (a `PipeSender<Bytes>`), await the response head from `response`
@@ -48,15 +56,15 @@ use std::time::Duration;
 use futures::StreamExt;
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
-use bytes::{Buf, BufMut, Bytes};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
+use bytes::{Buf, Bytes};
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::codec::CodecFor;
 use foundation_connectrpc::{
@@ -81,9 +89,12 @@ impl DefaultInstance for TestMsg {
 
 impl Message for TestMsg {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        let mut size = 0usize;
+        size += 1 + buffa::types::int32_encoded_len(self.id);
+        size += 1 + buffa::types::string_encoded_len(&self.name);
+        size as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);
@@ -210,8 +221,8 @@ fn read_chunk(stream: &mut TcpStream, rest: &mut Vec<u8>) -> Option<Vec<u8>> {
         rest.extend_from_slice(&tmp[..n]);
     };
     let size_text = String::from_utf8_lossy(&rest[..line_end]).to_string();
-    let size = usize::from_str_radix(size_text.split(';').next().unwrap().trim(), 16)
-        .expect("chunk size");
+    let size =
+        usize::from_str_radix(size_text.split(';').next().unwrap().trim(), 16).expect("chunk size");
     let needed = line_end + 2 + size + 2;
     while rest.len() < needed {
         let n = stream.read(&mut tmp).expect("read chunk data");
@@ -258,7 +269,7 @@ fn unary_round_trip_over_real_socket() {
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -329,7 +340,7 @@ fn list_serve() -> Arc<dyn Serve> {
 ///
 /// The client parses the Connect envelope framing (5-byte header: 1 flag + 4 byte
 /// length, per the Connect streaming protocol) and asserts all 3 items arrived
-/// followed by a terminating EndStream frame.
+/// followed by a terminating `EndStream` frame.
 #[test]
 fn server_stream_over_real_socket() {
     let _guard = initialize_pool(42, Some(4));
@@ -338,7 +349,7 @@ fn server_stream_over_real_socket() {
     let serve = list_serve();
     app.router.add_route_any(LIST_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -467,17 +478,17 @@ fn h1_transport_capabilities_are_correct() {
 async fn h1_client_transport_over_real_socket() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
+    use foundation_core::url::Uri;
     use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
-    use foundation_core::url::Uri;
 
     // Server.
     let mut app = HttpApp::new_serve();
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -571,7 +582,7 @@ async fn h1_client_transport_over_real_socket() {
 ///    (`application/connect+json`, one enveloped seed message) and returns
 ///    `TransportStream` synchronously.
 /// 3. The caller drains `recv_body` to end of stream, reassembles the Connect
-///    envelope frames, and asserts all 3 items plus the terminating EndStream
+///    envelope frames, and asserts all 3 items plus the terminating `EndStream`
 ///    frame arrived — proving the H1 client consumes a multi-frame server stream,
 ///    not just a single unary body.
 #[valtron_test(seed = 45, threads = 8)]
@@ -588,7 +599,7 @@ async fn h1_client_server_stream_over_real_socket() {
     let serve = list_serve();
     app.router.add_route_any(LIST_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -668,7 +679,11 @@ async fn h1_client_server_stream_over_real_socket() {
             .unmarshal(Bytes::from(msg_bytes.clone()))
             .expect("decode item");
         assert_eq!(item.id, 10 + i as i32, "item {i} id over H1 client");
-        assert_eq!(item.name, format!("item-{i}"), "item {i} name over H1 client");
+        assert_eq!(
+            item.name,
+            format!("item-{i}"),
+            "item {i} name over H1 client"
+        );
     }
 
     shutdown.turn_on();
@@ -693,10 +708,13 @@ use foundation_netio::HttpClientBuilder;
 
 /// Start an `HttpServer` serving `serve` at `route`; returns its address and the
 /// shutdown switch.
-fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server(
+    route: &str,
+    serve: &Arc<dyn Serve>,
+) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
-    app.router.add_route_any(route, &serve);
-    let shutdown = Arc::new(OnSignal::new());
+    app.router.add_route_any(route, serve);
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -849,10 +867,8 @@ fn first_frame_arrives_before_the_handler_finishes() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        GATED_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(GATED_PROCEDURE, &serve);
 
     let (mut stream, mut rest) = open_stream_request(addr, GATED_PROCEDURE);
     let mut carry = Vec::new();
@@ -925,10 +941,8 @@ fn endless_stream_follows_the_client_and_stops_when_it_leaves() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        ENDLESS_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(ENDLESS_PROCEDURE, &serve);
 
     let (mut stream, mut rest) = open_stream_request(addr, ENDLESS_PROCEDURE);
     let mut carry = Vec::new();
@@ -1003,10 +1017,8 @@ fn error_after_frames_is_sent_in_band() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        FAILING_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(FAILING_PROCEDURE, &serve);
 
     let (mut stream, mut rest) = open_stream_request(addr, FAILING_PROCEDURE);
     let mut carry = Vec::new();
@@ -1045,10 +1057,8 @@ fn error_before_any_frame_is_reported() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        REFUSING_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(REFUSING_PROCEDURE, &serve);
 
     let mut stream = connect_with_retry(addr);
     stream
@@ -1076,7 +1086,7 @@ fn error_before_any_frame_is_reported() {
 #[test]
 fn unary_request_body_in_many_chunks_arrives_whole() {
     let _guard = initialize_pool(50, Some(4));
-    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+    let (addr, shutdown) = start_server(PROCEDURE, &echo_serve());
 
     let msg = TestMsg {
         id: 7,
@@ -1122,10 +1132,8 @@ fn client_stream_in_many_chunks_delivers_every_message() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        COUNT_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(COUNT_PROCEDURE, &serve);
 
     let pieces: Vec<Vec<u8>> = (0..12)
         .map(|i| {
@@ -1194,10 +1202,8 @@ fn client_stream_body_arriving_slowly_is_waited_for() {
         },
         HandlerOptions::new(),
     );
-    let (addr, shutdown) = start_server(
-        COUNT_PROCEDURE,
-        Arc::new(ConnectRpcServe::new(router.into_handler())),
-    );
+    let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
+    let (addr, shutdown) = start_server(COUNT_PROCEDURE, &serve);
 
     let mut pieces: Vec<Vec<u8>> = (0..5)
         .map(|i| {
@@ -1239,7 +1245,7 @@ fn client_stream_body_arriving_slowly_is_waited_for() {
 #[test]
 fn unary_body_arriving_slowly_is_waited_for() {
     let _guard = initialize_pool(53, Some(4));
-    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+    let (addr, shutdown) = start_server(PROCEDURE, &echo_serve());
 
     let msg = TestMsg {
         id: 9,
@@ -1295,7 +1301,7 @@ fn keep_alive_connection_serves_unary_and_streams_in_turn() {
     let list = list_serve();
     app.router.add_route_any(PROCEDURE, &echo);
     app.router.add_route_any(LIST_PROCEDURE, &list);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -1340,7 +1346,7 @@ fn keep_alive_connection_serves_unary_and_streams_in_turn() {
 #[test]
 fn rejected_request_with_unread_body_closes_the_connection() {
     let _guard = initialize_pool(55, Some(4));
-    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+    let (addr, shutdown) = start_server(PROCEDURE, &echo_serve());
 
     let mut stream = connect_with_retry(addr);
     stream

@@ -21,6 +21,7 @@
 //! ## Stress Testing
 //!
 //! ```rust
+//! use foundation_context::Ctx;
 //! use foundation_testing::stress::{StressConfig, StressHarness};
 //! use std::sync::atomic::{AtomicUsize, Ordering};
 //! use std::sync::Arc;
@@ -30,7 +31,7 @@
 //!     .iterations(1000);
 //!
 //! let counter = Arc::new(AtomicUsize::new(0));
-//! let harness = StressHarness::new(config);
+//! let harness = StressHarness::new(config, Ctx::host());
 //!
 //! let counter_clone = Arc::clone(&counter);
 //! let results = harness.run(move |_thread_id, _iteration| {

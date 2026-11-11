@@ -1,6 +1,8 @@
 //! Integration tests for `StoreStateTask` and `StoreStateIdentifierTask`.
 
-use foundation_core::valtron::{valtron_test, Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{valtron_test, TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_db::core::state::file::FileStateStore;
 use foundation_db::core::state::resource_identifier::ResourceIdentifier;
 use foundation_db::core::state::store_state_task::{StoreStateIdentifierTask, StoreStateTask};
@@ -34,18 +36,12 @@ impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
     type Ready = Result<T, String>;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
-    {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(TaskStatus::Ready(Ok(self
-                .value
-                .clone())))
+            Some(TaskStatus::Ready(Ok(self.value.clone())))
         }
     }
 }
@@ -70,18 +66,12 @@ impl TaskIterator for MockFailResourceTask {
     type Ready = Result<TestResource, String>;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
-    {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(TaskStatus::Ready(Err(self
-                .error
-                .clone())))
+            Some(TaskStatus::Ready(Err(self.error.clone())))
         }
     }
 }
@@ -106,18 +96,12 @@ impl TaskIterator for MockFailTask {
     type Ready = Result<String, String>;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
-    {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(TaskStatus::Ready(Err(self
-                .error
-                .clone())))
+            Some(TaskStatus::Ready(Err(self.error.clone())))
         }
     }
 }
@@ -157,7 +141,10 @@ struct TestArgs {
 async fn test_store_state_task_success() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let output = TestResource {
         id: "res-123".to_string(),
@@ -184,7 +171,7 @@ async fn test_store_state_task_success() {
     let mut task = store_task;
     let mut found_success = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-123");
@@ -218,7 +205,10 @@ async fn test_store_state_task_success() {
 async fn test_store_state_task_inner_failure() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let input = TestArgs {
         name: "test".to_string(),
@@ -240,7 +230,7 @@ async fn test_store_state_task_inner_failure() {
     let mut task = store_task;
     let mut found_error = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Err(_)) => {
                 found_error = true;
@@ -274,7 +264,10 @@ async fn test_store_state_task_inner_failure() {
 async fn test_store_state_identifier_task_success() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let output = TestResource {
         id: "res-456".to_string(),
@@ -298,7 +291,7 @@ async fn test_store_state_identifier_task_success() {
     let mut task = store_task;
     let mut found_success = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-456");
@@ -332,7 +325,10 @@ async fn test_store_state_identifier_task_success() {
 async fn test_store_state_identifier_task_inner_failure() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let input = TestArgs {
         name: "test".to_string(),
@@ -351,7 +347,7 @@ async fn test_store_state_identifier_task_inner_failure() {
     let mut task = store_task;
     let mut found_error = false;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(Err(_)) => {
                 found_error = true;

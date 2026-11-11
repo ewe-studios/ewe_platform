@@ -1,17 +1,24 @@
 //! Integration test for HTTP client: redirect limit enforcement
 //! This test spins up a local HTTP server that responds with 302 (redirect)
-//! and checks that the client triggers TooManyRedirects when max_redirects is exceeded.
+//! and checks that the client triggers `TooManyRedirects` when `max_redirects` is exceeded.
 
 use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
+use foundation_netio::shared::client::*;
 use foundation_netio::shared::http::HttpClientError;
 use serial_test::serial;
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
+
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
@@ -48,22 +55,21 @@ fn redirect_limit_triggers_too_many_redirects() {
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Configure the HTTP client (system DNS resolver and zero redirects allowed)
-    let client = SimpleHttpClient::from_system().max_redirects(0);
+    let client = NativeHttpClient::from_system().max_redirects(0);
 
-    let url = format!("http://127.0.0.1:{}/redirect", port);
+    let url = format!("http://127.0.0.1:{port}/redirect");
 
     // Create a request
     let request = client.get(&url).unwrap().build_client().unwrap();
 
     // Send the request – should fail with TooManyRedirects
-    let send_result = request.send();
+    let send_result = request.send(&call_ctx());
 
     if let Err(err) = send_result {
-        println!("Actual error: {:?}", err);
+        println!("Actual error: {err:?}");
         assert!(
             matches!(err, HttpClientError::TooManyRedirects),
-            "Expected TooManyRedirects error, got: {:?}",
-            err
+            "Expected TooManyRedirects error, got: {err:?}"
         );
     } else {
         panic!("Expected error due to too many redirects, but got Ok");

@@ -1,0 +1,105 @@
+//! macOS/BSD `Event` — wraps `libc::kevent`.
+
+/// A single readiness event from `kevent()`.
+#[derive(Clone, Copy)]
+pub struct Event {
+    event: libc::kevent,
+}
+
+impl Event {
+    /// Create an Event from a raw kevent.
+    #[inline]
+    #[must_use]
+    pub fn from_kevent(event: libc::kevent) -> Self {
+        Self { event }
+    }
+
+    /// Which token was registered for this event.
+    /// On kqueue, the token is stored in `udata` (cast from *const `c_void`).
+    #[must_use]
+    pub fn token(&self) -> super::super::Token {
+        super::super::Token(self.event.udata as usize)
+    }
+
+    /// Returns `true` if the event indicates readability (`EVFILT_READ`).
+    #[must_use]
+    pub fn is_readable(&self) -> bool {
+        self.event.filter == libc::EVFILT_READ
+    }
+
+    /// Returns `true` if the event indicates writability (`EVFILT_WRITE`).
+    #[must_use]
+    pub fn is_writable(&self) -> bool {
+        self.event.filter == libc::EVFILT_WRITE
+    }
+
+    /// Returns `true` if the event contains an error.
+    /// This fires on `EV_ERROR` flag, or on `EV_EOF` with non-zero `fflags`.
+    #[must_use]
+    pub fn is_error(&self) -> bool {
+        (self.event.flags & libc::EV_ERROR) != 0
+            || ((self.event.flags & libc::EV_EOF) != 0 && self.event.fflags != 0)
+    }
+
+    /// Returns `true` if the read side is closed.
+    /// On kqueue: `EVFILT_READ` filter with `EV_EOF` flag set.
+    #[must_use]
+    pub fn is_read_closed(&self) -> bool {
+        self.event.filter == libc::EVFILT_READ && (self.event.flags & libc::EV_EOF) != 0
+    }
+
+    /// Returns `true` if the write side is closed.
+    /// On kqueue: `EVFILT_WRITE` filter with `EV_EOF` flag set.
+    #[must_use]
+    pub fn is_write_closed(&self) -> bool {
+        self.event.filter == libc::EVFILT_WRITE && (self.event.flags & libc::EV_EOF) != 0
+    }
+
+    /// Returns `true` if the event indicates priority/out-of-band data.
+    /// kqueue doesn't have a priority indicator, so this always returns `false`.
+    #[must_use]
+    pub fn is_priority(&self) -> bool {
+        false
+    }
+
+    /// Returns the `ident` field (usually the fd or vnode identifier).
+    #[must_use]
+    pub fn ident(&self) -> libc::uintptr_t {
+        self.event.ident
+    }
+
+    /// Returns the `fflags` field (used by `EVFILT_VNODE` for change flags).
+    #[must_use]
+    pub fn fflags(&self) -> u32 {
+        self.event.fflags
+    }
+
+    /// Returns the `data` field. For `EVFILT_READ` this is the number of bytes
+    /// available to read.
+    #[must_use]
+    pub fn data(&self) -> libc::intptr_t {
+        self.event.data
+    }
+}
+
+impl Default for Event {
+    fn default() -> Self {
+        Self {
+            event: unsafe { std::mem::zeroed() },
+        }
+    }
+}
+
+impl std::fmt::Debug for Event {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Event")
+            .field("token", &self.token())
+            .field("readable", &self.is_readable())
+            .field("writable", &self.is_writable())
+            .field("error", &self.is_error())
+            .field("read_closed", &self.is_read_closed())
+            .field("write_closed", &self.is_write_closed())
+            .field("priority", &self.is_priority())
+            .finish()
+    }
+}

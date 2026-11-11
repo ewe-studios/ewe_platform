@@ -9,4 +9,4 @@ mod key;
 #[cfg(feature = "crypto-chacha")]
 pub mod chacha;
 
-pub use key::{EncryptionKey, SecureBytes, SecureString, fill_random, generate_nonce};
+pub use key::{fill_random, generate_nonce, EncryptionKey, SecureBytes, SecureString};

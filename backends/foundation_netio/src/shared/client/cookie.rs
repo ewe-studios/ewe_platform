@@ -11,9 +11,12 @@
 //! `CookieJar` uses `HashMap` with composite key (domain, path, name) for storage.
 //! Domain and path matching follow RFC 6265 rules.
 
+use foundation_context::Ctx;
 use foundation_core::url::Uri;
 use std::collections::HashMap;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
+
+use foundation_compact::SystemTime;
 
 /// `SameSite` attribute for cookies.
 ///
@@ -62,12 +65,17 @@ impl Default for SameSite {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```rust
+/// use foundation_netio::shared::client::Cookie;
+///
 /// let cookie = Cookie::new("session", "abc123")
 ///     .domain("example.com")
 ///     .path("/")
 ///     .secure(true)
 ///     .http_only(true);
+///
+/// assert_eq!(cookie.name, "session");
+/// assert_eq!(cookie.value, "abc123");
 /// ```
 ///
 /// # Panics
@@ -244,7 +252,9 @@ impl Cookie {
         if let Some(expires) = self.expires {
             if let Ok(dur) = expires.duration_since(SystemTime::UNIX_EPOCH) {
                 let secs = dur.as_secs();
-                let dt = chrono::DateTime::from_timestamp(secs as i64, 0);
+                let dt = i64::try_from(secs)
+                    .ok()
+                    .and_then(|secs| chrono::DateTime::from_timestamp(secs, 0));
                 if let Some(dt) = dt {
                     parts.push(format!(
                         "Expires={}",
@@ -389,9 +399,19 @@ struct CookieKey {
 ///
 /// # Panics
 /// Never panics.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct CookieJar {
     cookies: HashMap<CookieKey, Cookie>,
+    /// The wall clock that decides whether a cookie has expired.
+    ctx: Ctx,
+}
+
+impl core::fmt::Debug for CookieJar {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("CookieJar")
+            .field("cookies", &self.cookies)
+            .finish_non_exhaustive()
+    }
 }
 
 impl CookieJar {
@@ -404,9 +424,10 @@ impl CookieJar {
     /// # Panics
     /// Never panics.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             cookies: HashMap::new(),
+            ctx,
         }
     }
 
@@ -471,8 +492,7 @@ impl CookieJar {
     pub fn get_for_url(&self, uri: &Uri) -> Vec<&Cookie> {
         let host = uri
             .authority()
-            .map(|a| a.host().to_string_for_display())
-            .unwrap_or_default();
+            .map_or_default(|a| a.host().to_string_for_display());
         let path = uri.path();
         let is_https = uri.scheme().as_str() == "https";
 
@@ -491,7 +511,7 @@ impl CookieJar {
                 let secure_ok = !cookie.secure || is_https;
 
                 // Check expiration
-                let not_expired = !Self::is_expired(cookie);
+                let not_expired = !Self::is_expired(cookie, &self.ctx);
 
                 domain_ok && path_ok && secure_ok && not_expired
             })
@@ -551,7 +571,7 @@ impl CookieJar {
     ///
     /// # Panics
     /// Never panics.
-    fn is_expired(cookie: &Cookie) -> bool {
+    fn is_expired(cookie: &Cookie, ctx: &Ctx) -> bool {
         // Max-Age takes precedence over Expires
         if let Some(_max_age) = cookie.max_age {
             // For now, we don't track creation time, so we can't check max_age
@@ -561,10 +581,11 @@ impl CookieJar {
         }
 
         if let Some(expires) = cookie.expires {
-            if let Ok(now) = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-                if let Ok(exp) = expires.duration_since(SystemTime::UNIX_EPOCH) {
-                    return now >= exp;
-                }
+            let now = ctx.clock().wall_now();
+            if let Ok(exp) = expires.duration_since(SystemTime::UNIX_EPOCH) {
+                return now
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .is_ok_and(|now| now >= exp);
             }
         }
 
@@ -609,7 +630,8 @@ impl CookieJar {
     /// # Panics
     /// Never panics.
     pub fn clear_expired(&mut self) {
-        self.cookies.retain(|_, cookie| !Self::is_expired(cookie));
+        self.cookies
+            .retain(|_, cookie| !Self::is_expired(cookie, &self.ctx));
     }
 
     /// Gets all cookies for a specific domain.
@@ -629,11 +651,5 @@ impl CookieJar {
                 Self::domain_matches(cookie_domain, domain)
             })
             .collect()
-    }
-}
-
-impl Default for CookieJar {
-    fn default() -> Self {
-        Self::new()
     }
 }

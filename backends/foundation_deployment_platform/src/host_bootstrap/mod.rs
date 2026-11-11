@@ -25,9 +25,15 @@ pub struct HostPrerequisites {
 impl Default for HostPrerequisites {
     fn default() -> Self {
         Self {
-            mise: ToolStatus::Missing { error: String::new() },
-            nushell: ToolStatus::Missing { error: String::new() },
-            pitchfork: ToolStatus::Missing { error: String::new() },
+            mise: ToolStatus::Missing {
+                error: String::new(),
+            },
+            nushell: ToolStatus::Missing {
+                error: String::new(),
+            },
+            pitchfork: ToolStatus::Missing {
+                error: String::new(),
+            },
         }
     }
 }
@@ -41,13 +47,17 @@ pub enum ToolStatus {
 }
 
 impl ToolStatus {
+    #[must_use]
     pub fn is_available(&self) -> bool {
         !matches!(self, ToolStatus::Missing { .. })
     }
 
+    #[must_use]
     pub fn version(&self) -> Option<&str> {
         match self {
-            ToolStatus::AlreadyPresent { version } | ToolStatus::Installed { version } => Some(version),
+            ToolStatus::AlreadyPresent { version } | ToolStatus::Installed { version } => {
+                Some(version)
+            }
             ToolStatus::Missing { .. } => None,
         }
     }
@@ -57,6 +67,9 @@ impl ToolStatus {
 ///
 /// Idempotent — skips installation if the tool is already present
 /// and meets minimum version.
+///
+/// # Errors
+/// Returns an error if a prerequisite check or install fails.
 pub fn ensure_host_prerequisites() -> Result<HostPrerequisites> {
     let mut state = HostPrerequisites::default();
 
@@ -77,15 +90,16 @@ pub fn ensure_host_prerequisites() -> Result<HostPrerequisites> {
 
 /// Check mise on PATH and version. Install if missing.
 fn ensure_mise() -> Result<ToolStatus> {
-    match check_tool_version("mise", MISE_MIN_VERSION) {
-        Ok(version) => Ok(ToolStatus::AlreadyPresent { version }),
-        Err(_) => {
-            eprintln!("  Installing mise...");
-            install::install_mise()?;
-            match check_tool_version("mise", MISE_MIN_VERSION) {
-                Ok(version) => Ok(ToolStatus::Installed { version }),
-                Err(e) => Ok(ToolStatus::Missing { error: format!("{e}") }),
-            }
+    if let Ok(version) = check_tool_version("mise", MISE_MIN_VERSION) {
+        Ok(ToolStatus::AlreadyPresent { version })
+    } else {
+        eprintln!("  Installing mise...");
+        install::install_mise()?;
+        match check_tool_version("mise", MISE_MIN_VERSION) {
+            Ok(version) => Ok(ToolStatus::Installed { version }),
+            Err(e) => Ok(ToolStatus::Missing {
+                error: format!("{e}"),
+            }),
         }
     }
 }
@@ -93,7 +107,9 @@ fn ensure_mise() -> Result<ToolStatus> {
 /// Check nushell on PATH and version. Install via mise if missing.
 fn ensure_nushell(mise_status: &ToolStatus) -> Result<ToolStatus> {
     // Check if nu is on PATH
-    if let Ok(version) = check_tool_present("nu") { return Ok(ToolStatus::AlreadyPresent { version }) }
+    if let Ok(version) = check_tool_present("nu") {
+        return Ok(ToolStatus::AlreadyPresent { version });
+    }
 
     if !mise_status.is_available() {
         return Ok(ToolStatus::Missing {
@@ -105,13 +121,17 @@ fn ensure_nushell(mise_status: &ToolStatus) -> Result<ToolStatus> {
     install::install_nushell()?;
     match check_tool_present("nu") {
         Ok(version) => Ok(ToolStatus::Installed { version }),
-        Err(e) => Ok(ToolStatus::Missing { error: format!("{e}") }),
+        Err(e) => Ok(ToolStatus::Missing {
+            error: format!("{e}"),
+        }),
     }
 }
 
 /// Check pitchfork on PATH. Install via mise if missing.
 fn ensure_pitchfork(mise_status: &ToolStatus) -> Result<ToolStatus> {
-    if let Ok(version) = check_tool_present("pitchfork") { return Ok(ToolStatus::AlreadyPresent { version }) }
+    if let Ok(version) = check_tool_present("pitchfork") {
+        return Ok(ToolStatus::AlreadyPresent { version });
+    }
 
     if !mise_status.is_available() {
         return Ok(ToolStatus::Missing {
@@ -123,7 +143,9 @@ fn ensure_pitchfork(mise_status: &ToolStatus) -> Result<ToolStatus> {
     install::install_pitchfork()?;
     match check_tool_present("pitchfork") {
         Ok(version) => Ok(ToolStatus::Installed { version }),
-        Err(e) => Ok(ToolStatus::Missing { error: format!("{e}") }),
+        Err(e) => Ok(ToolStatus::Missing {
+            error: format!("{e}"),
+        }),
     }
 }
 
@@ -178,6 +200,7 @@ fn write_host_mise_config() -> Result<()> {
 }
 
 /// Path to the user's global mise config: `~/.config/mise/config.toml`.
+#[must_use]
 pub fn host_mise_config_path() -> PathBuf {
     if let Some(home) = dirs::home_dir() {
         return home.join(".config").join("mise").join("config.toml");
@@ -186,19 +209,26 @@ pub fn host_mise_config_path() -> PathBuf {
 }
 
 /// Check if all host prerequisites are met (quick check, no installs).
+#[must_use]
 pub fn check_host_prerequisites() -> HostPrerequisites {
     let mise = check_tool_present("mise").map_or_else(
-        |e| ToolStatus::Missing { error: format!("{e}") },
+        |e| ToolStatus::Missing {
+            error: format!("{e}"),
+        },
         |v| ToolStatus::AlreadyPresent { version: v },
     );
 
     let nushell = check_tool_present("nu").map_or_else(
-        |e| ToolStatus::Missing { error: format!("{e}") },
+        |e| ToolStatus::Missing {
+            error: format!("{e}"),
+        },
         |v| ToolStatus::AlreadyPresent { version: v },
     );
 
     let pitchfork = check_tool_present("pitchfork").map_or_else(
-        |e| ToolStatus::Missing { error: format!("{e}") },
+        |e| ToolStatus::Missing {
+            error: format!("{e}"),
+        },
         |v| ToolStatus::AlreadyPresent { version: v },
     );
 
@@ -208,4 +238,3 @@ pub fn check_host_prerequisites() -> HostPrerequisites {
         pitchfork,
     }
 }
-

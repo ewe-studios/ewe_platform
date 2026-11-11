@@ -5,13 +5,14 @@
 //! waits for the HTTP endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
+//! use foundation_context::Ctx;
 //! use foundation_toolings::harness::Miniflare;
 //!
 //! let mf = Miniflare::builder()
 //!     .worker_dir("examples/cf-login-app")
 //!     .d1_database("DB")
 //!     .r2_bucket("STORAGE")
-//!     .build()
+//!     .build(Ctx::host())
 //!     .expect("failed to start miniflare");
 //!
 //! println!("Worker at {}", mf.base_url());
@@ -27,7 +28,9 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_context::Ctx;
 
 /// The last lines a child wrote to one of its pipes, capped at `cap` lines.
 #[derive(Clone)]
@@ -90,23 +93,21 @@ pub struct Miniflare {
 }
 
 impl Miniflare {
-    pub fn start() -> Result<Self, MiniflareError> {
-        Self::start_with(MiniflareConfig::default())
+    pub fn start(ctx: Ctx) -> Result<Self, MiniflareError> {
+        Self::start_with(MiniflareConfig::default(), ctx)
     }
 
-    pub fn start_with(config: MiniflareConfig) -> Result<Self, MiniflareError> {
+    pub fn start_with(config: MiniflareConfig, ctx: Ctx) -> Result<Self, MiniflareError> {
         if let Some(ref dir) = config.worker_dir {
             if !dir.exists() {
-                return Err(MiniflareError::WorkerDirNotFound(
-                    dir.display().to_string(),
-                ));
+                return Err(MiniflareError::WorkerDirNotFound(dir.display().to_string()));
             }
         }
 
         let tool = resolve_tool(&config.tool)?;
-        let port = config.port.unwrap_or_else(|| {
-            super::pick_unused_port().expect("no free port available")
-        });
+        let port = config
+            .port
+            .unwrap_or_else(|| super::pick_unused_port().expect("no free port available"));
 
         let mut args = build_args(&config, &tool, port);
 
@@ -171,7 +172,7 @@ impl Miniflare {
             drains,
         };
 
-        if !wait_for_ready(port, config.startup_timeout) {
+        if !wait_for_ready(port, config.startup_timeout, &ctx) {
             let stderr = server.collect_stderr();
             server.stop();
             return Err(MiniflareError::ReadyTimeout {
@@ -269,17 +270,12 @@ impl Drop for Miniflare {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum MinflareTool {
+    #[default]
     Wrangler,
     Miniflare,
     Custom(PathBuf),
-}
-
-impl Default for MinflareTool {
-    fn default() -> Self {
-        Self::Wrangler
-    }
 }
 
 pub struct MiniflareConfig {
@@ -389,8 +385,8 @@ impl MiniflareConfig {
         self
     }
 
-    pub fn build(self) -> Result<Miniflare, MiniflareError> {
-        Miniflare::start_with(self)
+    pub fn build(self, ctx: Ctx) -> Result<Miniflare, MiniflareError> {
+        Miniflare::start_with(self, ctx)
     }
 }
 
@@ -410,9 +406,7 @@ pub enum MiniflareError {
     #[display("failed to spawn miniflare: {_0}")]
     SpawnFailed(std::io::Error),
 
-    #[display(
-        "miniflare did not become ready within {seconds} seconds\nstderr:\n{stderr}"
-    )]
+    #[display("miniflare did not become ready within {seconds} seconds\nstderr:\n{stderr}")]
     #[error(ignore)]
     ReadyTimeout { seconds: u64, stderr: String },
 
@@ -434,10 +428,7 @@ fn resolve_tool(tool: &MinflareTool) -> Result<PathBuf, MiniflareError> {
 }
 
 fn build_args(config: &MiniflareConfig, tool_path: &Path, port: u16) -> Vec<String> {
-    let tool_name = tool_path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("");
+    let tool_name = tool_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
     let is_npx = tool_name == "npx";
 
     let mut args: Vec<String> = Vec::new();
@@ -487,9 +478,10 @@ fn build_args(config: &MiniflareConfig, tool_path: &Path, port: u16) -> Vec<Stri
     args
 }
 
-fn wait_for_ready(port: u16, timeout: Duration) -> bool {
-    let start = Instant::now();
-    while start.elapsed() < timeout {
+fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let clock = ctx.clock();
+    let deadline = clock.now() + timeout;
+    while clock.now() < deadline {
         if http_get("127.0.0.1", port, "/").is_ok() {
             return true;
         }

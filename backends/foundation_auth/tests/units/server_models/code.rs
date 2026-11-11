@@ -1,9 +1,15 @@
-//! AuthorizationCode and DeviceCode model tests.
+//! `AuthorizationCode` and `DeviceCode` model tests.
 
-use foundation_auth::server::models::code::{AuthorizationCode, DeviceCode};
-use sha2::{Digest, Sha256};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use foundation_auth::server::models::code::{AuthorizationCode, DeviceCode};
+use foundation_context::{Ctx, MonotonicClock};
+use sha2::{Digest, Sha256};
+use std::sync::Arc;
 use std::time::Duration;
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 #[test]
 fn test_auth_code_not_expired() {
@@ -15,9 +21,10 @@ fn test_auth_code_not_expired() {
         "openid".into(),
         None,
         Duration::from_secs(600),
+        &test_clock(),
     );
-    assert!(!code.is_expired());
-    assert!(!code.code.is_empty());
+    assert!(!code.is_expired(&test_clock()));
+    assert_ne!(code.code, "");
 }
 
 #[test]
@@ -35,6 +42,7 @@ fn test_auth_code_pkce_verify() {
         "openid".into(),
         None,
         Duration::from_secs(600),
+        &test_clock(),
     );
 
     assert!(code.verify_pkce(verifier));
@@ -51,14 +59,21 @@ fn test_auth_code_pkce_none() {
         "openid".into(),
         None,
         Duration::from_secs(600),
+        &test_clock(),
     );
     assert!(code.verify_pkce("anything"));
 }
 
 #[test]
 fn test_device_code_creation() {
-    let dc = DeviceCode::new("c1".into(), "openid".into(), Duration::from_secs(600), 5);
-    assert!(!dc.is_expired());
+    let dc = DeviceCode::new(
+        "c1".into(),
+        "openid".into(),
+        Duration::from_secs(600),
+        5,
+        &test_clock(),
+    );
+    assert!(!dc.is_expired(&test_clock()));
     assert!(!dc.is_approved());
     assert!(dc.user_code.contains('-'));
     assert_eq!(dc.user_code.len(), 9);

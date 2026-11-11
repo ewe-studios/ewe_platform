@@ -27,18 +27,22 @@
 //!
 //! Sync boundary: fjall has only a sync application programming interface
 //! (API). Its reads and writes go to local disk through the operating system
-//! (OS) page cache, and a write appends to a journal without an `fsync`. So the
-//! async methods call fjall inline, and every future is ready on its first
-//! poll. This is the same choice as `FjallDocumentStore` in
-//! `foundation_nativeapis` (spec 50 feature 04). Only [`FjallVectorStore::flush`]
-//! waits for the disk (`fsync`), and it stays a sync method that the caller
-//! runs at a boundary of its choice.
+//! (OS) page cache, and a write appends to a journal without an `fsync`. So
+//! small reads and writes run inline: `insert`, `delete`, `search`, `get` and
+//! `len` never wait for the disk, and every future is ready on its first poll.
+//! Two operations do real disk work and run on valtron's blocking-work seam
+//! (the same offload pool as `NativeFs` in `foundation_nativeapis`, spec 50
+//! feature 04): a namespace index rebuild (a full scan of the vectors
+//! partition) and [`FjallVectorStore::flush`] (persist dirty index blobs and
+//! `fsync` the keyspace). Both are async and await a result on a [`Pipe`];
+//! nothing blocks a valtron worker.
 
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, RwLock};
 
 use fjall::{Config, Keyspace, PartitionCreateOptions, PartitionHandle, PersistMode};
+use foundation_core::valtron::{BackgroundJobConfig, BackgroundJobRegistry, Pipe};
 
 use crate::index::{load_index, VectorIndex};
 use crate::ivf::IvfIndex;
@@ -49,6 +53,12 @@ use crate::vector::Vector;
 
 /// Default number of IVF clusters per namespace index.
 const DEFAULT_NLIST: usize = 16;
+
+/// Default for [`FjallVectorStore::open`]'s offload worker count: 2 threads.
+/// Two workers match `NativeFs`'s default (spec 50 feature 04): a rebuild and
+/// a `flush` are serialized per keyspace, so two workers cover the read-heavy
+/// mix without spare threads.
+const DEFAULT_OFFLOAD_THREADS: usize = 2;
 
 fn backend_err<E: core::fmt::Display>(ctx: &str) -> impl Fn(E) -> VectorStoreError + '_ {
     move |e| VectorStoreError::Backend(format!("{ctx}: {e}"))
@@ -66,6 +76,59 @@ struct NamespaceState {
     dirty: bool,
 }
 
+/// A bounded pool that runs fjall's blocking disk work off the valtron workers.
+///
+/// Backed by valtron's [`BackgroundJobRegistry`]: a fixed worker count and a
+/// bounded first-in-first-out (FIFO) queue, with panic protection per job. Each
+/// offloaded job sends its result back through a [`Pipe`], which the async
+/// caller awaits.
+#[derive(Clone)]
+struct OffloadPool {
+    registry: Arc<BackgroundJobRegistry>,
+}
+
+impl OffloadPool {
+    fn new(threads: usize) -> Result<Self, VectorStoreError> {
+        if threads == 0 {
+            return Err(VectorStoreError::Backend(
+                "fjall vector store offload pool needs at least one worker thread".into(),
+            ));
+        }
+        let background = BackgroundJobConfig::new(threads);
+        let registry = BackgroundJobRegistry::with_config(background).map_err(|err| {
+            VectorStoreError::Backend(format!("start fjall vector store offload pool: {err:?}"))
+        })?;
+        Ok(Self { registry })
+    }
+
+    /// Run `job` on an offload worker and await its result.
+    ///
+    /// The submit returns an error when the bounded queue is full or closed;
+    /// the caller then gets that error instead of unbounded buffering.
+    async fn offload<T, F>(&self, job: F) -> Result<T, VectorStoreError>
+    where
+        T: Send + 'static,
+        F: FnOnce() -> Result<T, VectorStoreError> + Send + 'static,
+    {
+        let (tx, rx) = Pipe::new();
+        self.registry
+            .submit(move || {
+                let _ = tx.try_send(job());
+            })
+            .map_err(|err| {
+                VectorStoreError::Backend(format!(
+                    "fjall vector store offload queue full or closed: {err}"
+                ))
+            })?;
+        match rx.receive().await {
+            Some(result) => result,
+            None => Err(VectorStoreError::Backend(
+                "fjall vector store offload worker dropped the result channel".into(),
+            )),
+        }
+    }
+}
+
 pub struct FjallVectorStore {
     keyspace: Keyspace,
     vectors: PartitionHandle,
@@ -74,6 +137,7 @@ pub struct FjallVectorStore {
     nlist: usize,
     nprobe: usize,
     namespaces: RwLock<HashMap<String, NamespaceState>>,
+    offload: OffloadPool,
 }
 
 impl FjallVectorStore {
@@ -85,6 +149,22 @@ impl FjallVectorStore {
     pub fn open<P: AsRef<Path>>(
         path: P,
         config: VectorStoreConfig,
+    ) -> Result<Self, VectorStoreError> {
+        Self::open_with_offload_threads(path, config, DEFAULT_OFFLOAD_THREADS)
+    }
+
+    /// Open the store and run its offload pool with `offload_threads` workers.
+    ///
+    /// Use this when the default of 2 workers (see [`DEFAULT_OFFLOAD_THREADS`])
+    /// does not fit. Zero workers is an error.
+    ///
+    /// # Errors
+    /// Returns [`VectorStoreError::Backend`] if the fjall keyspace, its
+    /// partitions, or the offload pool cannot be opened.
+    pub fn open_with_offload_threads<P: AsRef<Path>>(
+        path: P,
+        config: VectorStoreConfig,
+        offload_threads: usize,
     ) -> Result<Self, VectorStoreError> {
         let keyspace = Config::new(path)
             .open()
@@ -105,7 +185,21 @@ impl FjallVectorStore {
             // nprobe == nlist → the IVF visits every cluster → exact top-k.
             nprobe: nlist,
             namespaces: RwLock::new(HashMap::new()),
+            offload: OffloadPool::new(offload_threads)?,
         })
+    }
+
+    /// Replace the offload pool with one of `threads` workers.
+    ///
+    /// Use it before the first search or flush; the pool that it replaces is
+    /// shut down.
+    ///
+    /// # Errors
+    /// Returns [`VectorStoreError::Backend`] when the pool cannot start (for
+    /// example, zero workers).
+    pub fn with_offload_threads(mut self, threads: usize) -> Result<Self, VectorStoreError> {
+        self.offload = OffloadPool::new(threads)?;
+        Ok(self)
     }
 
     /// Override the IVF clustering parameters (clusters / clusters-probed).
@@ -146,27 +240,42 @@ impl FjallVectorStore {
     }
 
     /// Build a fresh, live IVF index for `namespace` from its stored vectors.
-    fn rebuild_index(&self, namespace: &str) -> Result<Box<dyn VectorIndex>, VectorStoreError> {
-        let index: Box<dyn VectorIndex> = Box::new(IvfIndex::new(
-            self.config.metric,
-            self.config.dimension,
-            self.nlist,
-            self.nprobe,
-        ));
-        for kv in self.vectors.prefix(Self::ns_prefix(namespace)) {
-            let (key, val) = kv.map_err(backend_err("scan vectors"))?;
-            let id = id_from_key(&key, namespace);
-            let entry = decode_entry(&val)?;
-            index
-                .insert(&id, &entry.vector.data)
-                .map_err(backend_err("index insert"))?;
-        }
-        Ok(index)
+    ///
+    /// The scan reads every vector of the namespace from the `vectors`
+    /// partition, so for a large namespace it runs on the offload pool.
+    async fn rebuild_index(
+        &self,
+        namespace: &str,
+    ) -> Result<Box<dyn VectorIndex>, VectorStoreError> {
+        let vectors = self.vectors.clone();
+        let config = self.config.clone();
+        let nlist = self.nlist;
+        let nprobe = self.nprobe;
+        let ns = namespace.to_string();
+        self.offload
+            .offload(move || {
+                let index: Box<dyn VectorIndex> = Box::new(IvfIndex::new(
+                    config.metric,
+                    config.dimension,
+                    nlist,
+                    nprobe,
+                ));
+                for kv in vectors.prefix(Self::ns_prefix(&ns)) {
+                    let (key, val) = kv.map_err(backend_err("scan vectors"))?;
+                    let id = id_from_key(&key, &ns);
+                    let entry = decode_entry(&val)?;
+                    index
+                        .insert(&id, &entry.vector.data)
+                        .map_err(backend_err("index insert"))?;
+                }
+                Ok(index)
+            })
+            .await
     }
 
     /// Ensure `namespace` has a live index (loaded from disk or rebuilt), then
     /// run `f` against it.
-    fn with_index<T>(
+    async fn with_index<T>(
         &self,
         namespace: &str,
         f: impl FnOnce(&dyn VectorIndex) -> Result<T, VectorStoreError>,
@@ -177,15 +286,21 @@ impl FjallVectorStore {
                 return f(state.index.as_ref());
             }
         }
-        let index = self.load_or_rebuild(namespace)?;
+        let index = self.load_or_rebuild(namespace).await?;
         let mut guard = self.namespaces.write().map_err(poisoned)?;
         let state = guard
             .entry(namespace.to_string())
-            .or_insert(NamespaceState { index, dirty: false });
+            .or_insert(NamespaceState {
+                index,
+                dirty: false,
+            });
         f(state.index.as_ref())
     }
 
-    fn load_or_rebuild(&self, namespace: &str) -> Result<Box<dyn VectorIndex>, VectorStoreError> {
+    async fn load_or_rebuild(
+        &self,
+        namespace: &str,
+    ) -> Result<Box<dyn VectorIndex>, VectorStoreError> {
         if let Some(bytes) = self
             .indexes
             .get(namespace.as_bytes())
@@ -196,27 +311,33 @@ impl FjallVectorStore {
             }
             // Corrupt/incompatible blob → rebuild from the source-of-truth vectors.
         }
-        self.rebuild_index(namespace)
+        self.rebuild_index(namespace).await
     }
 
     /// Mutate the live index for `namespace`, marking it dirty.
-    fn mutate_index(
+    async fn mutate_index(
         &self,
         namespace: &str,
         f: impl FnOnce(&dyn VectorIndex) -> Result<(), VectorStoreError>,
     ) -> Result<(), VectorStoreError> {
-        let mut guard = self.namespaces.write().map_err(poisoned)?;
-        if !guard.contains_key(namespace) {
-            drop(guard);
-            let index = self.load_or_rebuild(namespace)?;
-            guard = self.namespaces.write().map_err(poisoned)?;
-            guard
-                .entry(namespace.to_string())
-                .or_insert(NamespaceState { index, dirty: false });
+        {
+            let mut guard = self.namespaces.write().map_err(poisoned)?;
+            if let Some(state) = guard.get_mut(namespace) {
+                f(state.index.as_ref())?;
+                state.dirty = true;
+                return Ok(());
+            }
         }
+        // The namespace has no live index yet: load or rebuild it off the lock,
+        // then insert it. `or_insert` keeps a state another task added first.
+        let index = self.load_or_rebuild(namespace).await?;
+        let mut guard = self.namespaces.write().map_err(poisoned)?;
         let state = guard
-            .get_mut(namespace)
-            .ok_or_else(|| VectorStoreError::Backend("namespace index missing".into()))?;
+            .entry(namespace.to_string())
+            .or_insert(NamespaceState {
+                index,
+                dirty: false,
+            });
         f(state.index.as_ref())?;
         state.dirty = true;
         Ok(())
@@ -224,32 +345,42 @@ impl FjallVectorStore {
 
     /// Persist every dirty namespace index and `fsync` the keyspace.
     ///
+    /// The `fsync` waits for the disk, so this runs on the offload pool.
+    ///
     /// # Errors
     /// Returns [`VectorStoreError::Backend`] on a fjall write/persist failure.
-    pub fn flush(&self) -> Result<(), VectorStoreError> {
-        let mut guard = self.namespaces.write().map_err(poisoned)?;
-        for (ns, state) in guard.iter_mut() {
-            if state.dirty {
-                self.indexes
-                    .insert(ns.as_bytes(), state.index.to_bytes())
-                    .map_err(backend_err("persist index"))?;
-                state.dirty = false;
+    pub async fn flush(&self) -> Result<(), VectorStoreError> {
+        let mut dirty: Vec<(String, Vec<u8>)> = Vec::new();
+        {
+            let mut guard = self.namespaces.write().map_err(poisoned)?;
+            for (ns, state) in guard.iter_mut() {
+                if state.dirty {
+                    dirty.push((ns.clone(), state.index.to_bytes()));
+                    state.dirty = false;
+                }
             }
         }
-        self.keyspace
-            .persist(PersistMode::SyncAll)
-            .map_err(backend_err("persist keyspace"))?;
-        Ok(())
+        let indexes = self.indexes.clone();
+        let keyspace = self.keyspace.clone();
+        self.offload
+            .offload(move || {
+                for (ns, bytes) in dirty {
+                    indexes
+                        .insert(ns.as_bytes(), &bytes)
+                        .map_err(backend_err("persist index"))?;
+                }
+                keyspace
+                    .persist(PersistMode::SyncAll)
+                    .map_err(backend_err("persist keyspace"))?;
+                Ok(())
+            })
+            .await
     }
 }
 
 #[async_trait::async_trait]
 impl VectorStore for FjallVectorStore {
-    async fn insert_async(
-        &self,
-        namespace: &str,
-        entry: VectorEntry,
-    ) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let key = Self::vec_key(namespace, &entry.id);
         self.vectors
@@ -260,9 +391,10 @@ impl VectorStore for FjallVectorStore {
         self.mutate_index(namespace, |idx| {
             idx.insert(&id, &data).map_err(backend_err("index insert"))
         })
+        .await
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let key = Self::vec_key(namespace, id);
         if !self
             .vectors
@@ -277,9 +409,10 @@ impl VectorStore for FjallVectorStore {
         self.mutate_index(namespace, |idx| {
             idx.remove(id).map_err(backend_err("index remove"))
         })
+        .await
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -289,9 +422,10 @@ impl VectorStore for FjallVectorStore {
         self.with_index(namespace, |idx| {
             idx.search(query, k).map_err(backend_err("search"))
         })
+        .await
     }
 
-    async fn get_async(
+    async fn get(
         &self,
         namespace: &str,
         id: &str,
@@ -307,7 +441,7 @@ impl VectorStore for FjallVectorStore {
         }
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         let mut count = 0;
         for kv in self.vectors.prefix(Self::ns_prefix(namespace)) {
             kv.map_err(backend_err("count vectors"))?;

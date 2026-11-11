@@ -1,6 +1,6 @@
 [package]
 name = "foundation_arrow"
-version = "0.0.3"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,18 +13,17 @@ description = "Arrow-based zero-copy serialization for any Rust type. Works on n
 # pull exactly what the wire needs (ipc framing, arrays, schema) — no csv/
 # json/prettyprint, and NO chrono-tz (we use plain millisecond timestamps;
 # tz-name parsing and its embedded tz database are never needed).
-arrow-array = { version = "55", default-features = false }
-arrow-schema = { version = "55", default-features = false }
-arrow-ipc = { version = "55", default-features = false }
-arrow-data = { version = "55", default-features = false }
-arrow-buffer = { version = "55", default-features = false }
+arrow-array = { version = "59", default-features = false }
+arrow-schema = { version = "59", default-features = false }
+arrow-ipc = { version = "59", default-features = false }
+arrow-data = { version = "59", default-features = false }
+arrow-buffer = { version = "59", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 serde_json = { workspace = true }
 # DomOp + the shared Row mapping + ProtocolEncoder contract (feature 05).
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
-
-[dev-dependencies]
-foundation_errstacks = { path = "../foundation_errstacks" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+derive_more.workspace = true
 
 [lints]
 workspace = true

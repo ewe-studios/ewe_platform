@@ -12,6 +12,6 @@ pub use errors::*;
 pub use extensions::{ContentLengthEnforcingIterator, Extensions};
 pub use impls::*;
 pub use pushable_body::{
-    pushable_request_body, pushable_request_body_with_depth, PushableRequestBody,
-    DEFAULT_PUSHABLE_DEPTH,
+    pushable_request_body, pushable_request_body_with_depth, pushable_request_body_with_readiness,
+    PushableRequestBody, DEFAULT_PUSHABLE_DEPTH,
 };

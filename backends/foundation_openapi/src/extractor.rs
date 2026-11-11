@@ -70,6 +70,7 @@ impl EndpointExtractor {
                 ("PUT", &path_item.put),
                 ("PATCH", &path_item.patch),
                 ("DELETE", &path_item.delete),
+                ("HEAD", &path_item.head),
             ];
 
             for (method_name, operation_opt) in methods {
@@ -145,8 +146,12 @@ impl EndpointExtractor {
         let array_query_params = operation
             .parameters
             .as_deref()
-            .map(EndpointInfo::extract_array_query_params)
-            .unwrap_or_default();
+            .map_or_default(EndpointInfo::extract_array_query_params);
+
+        let boolean_query_params = operation
+            .parameters
+            .as_deref()
+            .map_or_default(EndpointInfo::extract_boolean_query_params);
 
         // Use path template params if parameter array didn't provide path params
         if param_path.is_empty() && !path_params.is_empty() {
@@ -193,6 +198,7 @@ impl EndpointExtractor {
             path_params: param_path,
             query_params: param_query,
             array_query_params,
+            boolean_query_params,
             request_type,
             raw_request_body,
             response_type,
@@ -261,6 +267,7 @@ impl EndpointExtractor {
     }
 
     /// Extract endpoint info from a GCP method.
+    #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
     fn extract_gcp_method(method: &GcpMethod, base_url: Option<&str>) -> Option<EndpointInfo> {
         let operation_id = method.id.clone()?;
 
@@ -276,10 +283,8 @@ impl EndpointExtractor {
             .unwrap_or_else(|| method.flat_path.as_deref().unwrap_or(""));
 
         // Extract parameters
-        let params: BTreeMap<String, GcpParameter> = method
-            .parameters
-            .as_ref()
-            .map(|p| {
+        let params: BTreeMap<String, GcpParameter> =
+            method.parameters.as_ref().map_or_default(|p| {
                 p.iter()
                     .map(|(k, v)| {
                         (
@@ -294,8 +299,7 @@ impl EndpointExtractor {
                         )
                     })
                     .collect()
-            })
-            .unwrap_or_default();
+            });
 
         // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder}).
         // GCP v2 uses resource expansion prefix {+name} — strip the `+`.
@@ -388,6 +392,7 @@ impl EndpointExtractor {
             path_params,
             query_params,
             array_query_params: Vec::new(),
+            boolean_query_params: Vec::new(),
             request_type,
             raw_request_body: None,
             response_type,

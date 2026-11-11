@@ -16,7 +16,7 @@ fn batch_reader_normal_reads() {
     for r in &results {
         assert!(r.is_ok());
         match r.as_ref().unwrap() {
-            Data::Bytes(b) => assert!(!b.is_empty()),
+            Data::Bytes(b) => assert_ne!(b.as_slice(), &[] as &[u8]),
             Data::Retry => panic!("unexpected retry"),
         }
     }
@@ -127,7 +127,7 @@ fn full_body_reader_complete_read() {
     let reader = FullBodyReader::new(BatchReader::new(Cursor::new(data.to_vec())), data.len());
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -165,7 +165,7 @@ fn full_body_reader_partial_reads() {
     );
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -210,7 +210,7 @@ fn full_body_reader_retry_handling() {
     );
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -227,7 +227,7 @@ fn full_body_reader_unexpected_eof() {
     let reader = FullBodyReader::new(BatchReader::new(Cursor::new(data.to_vec())), 10);
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -255,7 +255,7 @@ fn full_body_reader_retry_limit_exceeded() {
 
     let results: Vec<_> = reader.collect();
     // Should get an error after retries exhausted
-    assert!(results.iter().any(|r| r.is_err()));
+    assert!(results.iter().any(std::result::Result::is_err));
 }
 
 // -- BatchStreamReader tests (updated: now exposes Data::Retry) --
@@ -342,7 +342,7 @@ fn eof_reader_complete_read() {
     let reader = EofReader::new(batch);
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -378,7 +378,7 @@ fn eof_reader_with_max_size() {
         .collect();
 
     assert_eq!(collected, data);
-    println!("Results generarted from first reader: {:?}", &collected);
+    println!("Results generarted from first reader: {collected:?}");
 
     // Test exceeding cap
     let batch = BatchReader::new(Cursor::new(data.to_vec()))
@@ -387,7 +387,7 @@ fn eof_reader_with_max_size() {
     let reader = LimitedEOFStreamReader::new(batch, 5);
 
     let results: Vec<Result<Data, Box<dyn std::error::Error + 'static>>> = reader.collect();
-    println!("Results generarted from reader: {:?}", &results);
+    println!("Results generarted from reader: {results:?}");
     assert!(!results.is_empty());
 }
 
@@ -418,7 +418,7 @@ fn eof_reader_partial_reads() {
     let reader = EofReader::new(batch);
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -463,7 +463,7 @@ fn eof_reader_retry_handling() {
     let reader = EofReader::new(batch);
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -487,7 +487,7 @@ fn eof_reader_retry_limit_exceeded() {
     let reader = EofReader::new(batch);
 
     let results: Vec<_> = reader.collect();
-    assert!(results.iter().any(|r| r.is_err()));
+    assert!(results.iter().any(std::result::Result::is_err));
 }
 
 #[test]
@@ -496,7 +496,7 @@ fn eof_reader_empty_source() {
     let reader = EofReader::new(batch);
 
     let collected: Vec<u8> = reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -504,7 +504,7 @@ fn eof_reader_empty_source() {
         .flatten()
         .collect();
 
-    assert!(collected.is_empty());
+    assert_eq!(collected, [] as [u8; 0]);
 }
 
 // -- DataBytesIterator tests --
@@ -632,7 +632,7 @@ fn eof_stream_reader_reads_until_eof() {
     let eof_reader = EOFStreamReader::new(batch);
 
     let collected: Vec<u8> = eof_reader
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -670,15 +670,15 @@ fn limited_eof_stream_reader_enforces_max() {
     for result in limited {
         match result {
             Ok(Data::Bytes(bytes)) => collected.extend(bytes),
-            Ok(Data::Retry) => continue,
+            Ok(Data::Retry) => {}
             Err(e) => {
                 // no error is returned as reader forces cap to only specific size.
                 // never exceeding it
-                panic!("got an error form reader and should not occur: {:?}", e,);
+                panic!("got an error form reader and should not occur: {e:?}");
             }
         }
     }
-    assert!(!collected.is_empty())
+    assert_ne!(collected, Vec::<u8>::new());
 }
 
 #[test]
@@ -688,7 +688,7 @@ fn limited_eof_stream_reader_under_limit() {
     let limited = LimitedEOFStreamReader::new(batch, 100);
 
     let collected: Vec<u8> = limited
-        .filter_map(|r| r.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|d| match d {
             Data::Bytes(b) => Some(b),
             Data::Retry => None,
@@ -702,7 +702,7 @@ fn limited_eof_stream_reader_under_limit() {
 // -- HintReadterator tests --
 
 /// WHY: Verify `next_bytes(Some(n))` limits buffer allocation to exactly `n`,
-/// preventing overshoot when the inner reader's batch_size exceeds remaining bytes.
+/// preventing overshoot when the inner reader's `batch_size` exceeds remaining bytes.
 ///
 /// WHAT: Use a one-byte-per-read source with `batch_size=100` but `byte_cap=7`.
 /// Without the hint, `LimitedBatchStreamReader` would request 100 bytes and
@@ -717,7 +717,7 @@ fn limited_batch_stream_reader_hint_prevents_overshoot() {
     for result in limited {
         match result {
             Ok(Data::Bytes(bytes)) => collected.extend(bytes),
-            Ok(Data::Retry) => continue,
+            Ok(Data::Retry) => {}
             Err(e) => panic!("unexpected error: {e}"),
         }
     }
@@ -742,7 +742,7 @@ fn limited_eof_stream_reader_hint_prevents_overshoot() {
     for result in limited {
         match result {
             Ok(Data::Bytes(bytes)) => collected.extend(bytes),
-            Ok(Data::Retry) => continue,
+            Ok(Data::Retry) => {}
             Err(e) => {
                 assert!(
                     e.to_string().contains("exceeds"),
@@ -793,7 +793,7 @@ fn batch_reader_next_bytes_respects_hint() {
     }
 }
 
-/// WHY: Verify that `next_bytes(None)` falls back to batch_size.
+/// WHY: Verify that `next_bytes(None)` falls back to `batch_size`.
 #[test]
 fn batch_reader_next_bytes_none_uses_batch_size() {
     let data = b"0123456789";
@@ -834,6 +834,63 @@ fn into_data_bytes_extension() {
 
     for result in wrapped {
         let bytes: Vec<u8> = result.unwrap();
-        assert!(!bytes.is_empty());
+        assert_ne!(bytes, [] as [u8; 0]);
     }
+}
+
+/// WHY: `LimitedBatchStreamReader` asked the inner reader for all the bytes that
+/// remained of the cap, so a 16 MiB `Content-Length` body came out in pieces of
+/// several MiB (one `read` took whatever the socket held) and every read
+/// allocated and zeroed a buffer of the whole remainder. `batch_size` is the
+/// largest piece a body hands out (spec 70 feature 70, E3: a relay that streams
+/// holds one piece at a time).
+///
+/// WHAT: a source of 64 bytes, `batch_size = 8`, `byte_cap = 64`: no piece may be
+/// longer than 8 bytes, and the pieces add up to the whole 64 bytes.
+#[test]
+fn limited_batch_stream_reader_pieces_never_pass_batch_size() {
+    let data: Vec<u8> = (0..64u8).collect();
+    let batch = BatchReader::new(Cursor::new(data.clone())).batch_size(8);
+    let limited = LimitedBatchStreamReader::new(batch, 64);
+
+    let mut collected = Vec::new();
+    for result in limited {
+        if let Data::Bytes(b) = result.unwrap() {
+            assert!(
+                b.len() <= 8,
+                "a piece of {} bytes passes batch_size 8",
+                b.len()
+            );
+            collected.extend_from_slice(&b);
+        }
+    }
+    assert_eq!(collected, data);
+}
+
+/// WHY: `LimitedEOFStreamReader` had the same flaw: it asked for the whole
+/// remainder of its cap (1 GiB for the client default), so every read of a
+/// close-delimited body allocated and zeroed a buffer of that size.
+///
+/// WHAT: a source of 64 bytes, `batch_size = 8`, `byte_cap = 1 GiB`: each piece is
+/// at most 8 bytes.
+#[test]
+fn limited_eof_stream_reader_pieces_never_pass_batch_size() {
+    let data: Vec<u8> = (0..64u8).collect();
+    let batch = BatchReader::new(Cursor::new(data.clone()))
+        .batch_size(8)
+        .eof_on_zero_read(true);
+    let limited = LimitedEOFStreamReader::new(batch, 1024 * 1024 * 1024);
+
+    let mut collected = Vec::new();
+    for result in limited {
+        if let Data::Bytes(b) = result.unwrap() {
+            assert!(
+                b.len() <= 8,
+                "a piece of {} bytes passes batch_size 8",
+                b.len()
+            );
+            collected.extend_from_slice(&b);
+        }
+    }
+    assert_eq!(collected, data);
 }

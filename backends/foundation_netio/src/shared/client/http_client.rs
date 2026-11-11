@@ -11,7 +11,7 @@
 //! - `send_sse()` — returns a sync iterator (sync callers `for item in iter`)
 //!
 //! HOW: Trait is `#[async_trait]` and object-safe (`Arc<dyn HttpClient>`).
-//! Native sync methods call `SimpleHttpClient` directly.
+//! Native sync methods call `NativeHttpClient` directly.
 //! Native async methods use `ClientRequest::send_async()` and `into_future_stream()`.
 //! Wasm async methods use `fetch()`. Wasm sync wraps async via `block_on_collect()`.
 
@@ -76,9 +76,17 @@ pub trait HttpClient: Send + Sync {
     ) -> Result<BoxedSseFutureStream, HttpClientError>;
 
     /// Send an HTTP request synchronously.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if the request fails.
     fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
 
     /// Send an SSE request synchronously — returns a sync iterator.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if the request fails.
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask;

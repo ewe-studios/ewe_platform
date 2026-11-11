@@ -1,45 +1,20 @@
-use core::str;
+use std::sync::Arc;
 
-use axum::{
-    response::{Html, IntoResponse, Response},
-    routing::get,
-    Router,
-};
-use http::StatusCode;
-use rust_embed::Embed;
+use foundation_core::valtron::valtron;
+use foundation_http::ShutdownSignal;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-#[derive(Embed)]
-#[folder = "public/"]
-#[prefix = "static/"]
-struct Assets;
-
-async fn handler() -> Response {
-    match Assets::get("static/index.html") {
-        Some(html_data) => {
-            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
-            Html(content).into_response()
-        }
-        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
-    }
-}
-
-#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
-async fn main() {
+#[valtron(seed = 10, threads = 10)]
+fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let app = Router::new().route("/", get(handler));
-
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
-
-    tracing::info!("Listening on {}", listener.local_addr().unwrap());
-
-    axum::serve(listener, app).await.unwrap();
+    let app = wello::app();
+    let server = app.server("127.0.0.1:3000");
+    let shutdown = Arc::new(ShutdownSignal::new());
+    server.serve(&shutdown);
 }

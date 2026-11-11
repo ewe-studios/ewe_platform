@@ -13,10 +13,9 @@
 
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{
-    execute, task, valtron, Ctx, StreamExt, StreamIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{execute, task, valtron, StreamExt, StreamIteratorExt, TaskStatus};
 
 /// An enum state: the light currently showing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,6 +43,10 @@ enum Phase {
     Show { light: Light, remaining: u32 },
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn traffic_light(ctx: Ctx, phase: Phase) -> Option<(Phase, TaskStatus<Light, ()>)> {
     let _ = ctx;
@@ -57,7 +60,10 @@ fn traffic_light(ctx: Ctx, phase: Phase) -> Option<(Phase, TaskStatus<Light, ()>
         )),
         // Show the light, then advance to the next colour.
         Phase::Show { light, remaining } => Some((
-            Phase::Pause { light: light.next(), remaining: remaining - 1 },
+            Phase::Pause {
+                light: light.next(),
+                remaining: remaining - 1,
+            },
             TaskStatus::Ready(light),
         )),
     }
@@ -68,7 +74,10 @@ async fn main() {
     // Stream two full cycles (6 phases), skipping the `Delayed` gaps, via
     // `into_next_stream`.
     let mut stream = execute(
-        traffic_light::new(Phase::Pause { light: Light::Red, remaining: 6 }),
+        traffic_light::new(Phase::Pause {
+            light: Light::Red,
+            remaining: 6,
+        }),
         None,
     )
     .expect("engine live")

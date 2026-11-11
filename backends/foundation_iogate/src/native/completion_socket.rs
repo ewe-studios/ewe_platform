@@ -1,4 +1,4 @@
-//! `CompletionSocket` — transport-facing byte source for the io_uring completion
+//! `CompletionSocket` — transport-facing byte source for the `io_uring` completion
 //! read path (Decision 14 F4 / Feature 48).
 //!
 //! WHY: the transport-facing end of Decision 14 F4. A transport that reads
@@ -12,14 +12,14 @@
 //! correct on every backend, plus a `CompletionReadWrite` impl so a boxed
 //! `Connection::Completion` can delegate through it. **Explicit read/write mode
 //! flags** (F50 config gate) replace the previous auto-detection so both paths
-//! — io_uring completion and standard syscalls — are visible, independently
+//! — `io_uring` completion and standard syscalls — are visible, independently
 //! selectable, and trivially testable.
 //!
 //! HOW: on Linux the inner fd is registered with the shared reactor — armed for
 //! multishot `RECV` in [`CompletionSocket::completion`], or plain-registered for
 //! readiness only in [`CompletionSocket::readiness`] — and `read` goes through
 //! the unified `read_bytes` path (which itself falls back to `read(2)` when the
-//! fd is not a completion source). Off Linux there is no io_uring, so both
+//! fd is not a completion source). Off Linux there is no `io_uring`, so both
 //! constructors register plainly and `read` is `read(2)`.
 
 use std::fmt;
@@ -45,17 +45,17 @@ use foundation_netio::netcap::{CompletionReadWrite, SocketAddr as NetcapSocketAd
 /// WHAT: `Std` issues `read(2)`; `Completion` pops the kernel-filled RECV inbox.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReadMode {
-    /// Standard `read(2)` — no io_uring, no reactor inbox.
+    /// Standard `read(2)` — no `io_uring`, no reactor inbox.
     Std,
-    /// io_uring completion: pop from the kernel's multishot-RECV inbox.
+    /// `io_uring` completion: pop from the kernel's multishot-RECV inbox.
     Completion,
 }
 
 /// How writes are performed on this socket.
 ///
-/// WHY: io_uring SEND (F49) and SEND_ZC (F50) are independent of the RECV mode.
+/// WHY: `io_uring` SEND (F49) and `SEND_ZC` (F50) are independent of the RECV mode.
 /// A relay may want completion reads on both legs but std writes (e.g. small
-/// responses that don't benefit from SEND_ZC), or completion reads + SEND_ZC
+/// responses that don't benefit from `SEND_ZC`), or completion reads + `SEND_ZC`
 /// writes for maximum throughput. Explicit modes make every combination
 /// constructable and testable.
 ///
@@ -65,21 +65,21 @@ pub enum ReadMode {
 /// no user-memory copy either).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WriteMode {
-    /// Standard `write(2)` — no io_uring, no send pool.
+    /// Standard `write(2)` — no `io_uring`, no send pool.
     Std,
-    /// io_uring `IORING_OP_SEND`: copy into a pool buffer, submit SQE.
+    /// `io_uring` `IORING_OP_SEND`: copy into a pool buffer, submit SQE.
     /// One `memcpy` per write; zero `write(2)` syscalls.
     Send,
-    /// io_uring `IORING_OP_SEND_ZC`: zero-copy send with two-phase
-    /// completion (F_MORE → F_NOTIF). The buffer stays pinned until the notif.
+    /// `io_uring` `IORING_OP_SEND_ZC`: zero-copy send with two-phase
+    /// completion (`F_MORE` → `F_NOTIF`). The buffer stays pinned until the notif.
     SendZc,
 }
 
 // ── CompletionSocket ─────────────────────────────────────────────────────
 
-/// A socket whose reads come from the io_uring completion inbox when available.
+/// A socket whose reads come from the `io_uring` completion inbox when available.
 ///
-/// Constructed once per accepted connection. On an io_uring completion backend,
+/// Constructed once per accepted connection. On an `io_uring` completion backend,
 /// `read` pops the per-token inbox with no syscall. Everywhere else it falls
 /// back to `read(2)` — this type is always correct, just not always free.
 ///
@@ -119,7 +119,7 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
     /// `Completion` + `Send` (the F48+F49 combined path).
     ///
     /// WHAT: the [`crate::ServerIo::Completion`] / [`crate::ServerIo::Auto`]
-    /// construction. On io_uring the kernel starts reading the socket into the
+    /// construction. On `io_uring` the kernel starts reading the socket into the
     /// buffer ring; `read` then pops the inbox.
     ///
     /// # Errors
@@ -133,7 +133,15 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
     ) -> io::Result<Self> {
-        Self::register(inner, registry, token, peer, true, ReadMode::Completion, WriteMode::Send)
+        Self::register(
+            inner,
+            registry,
+            token,
+            peer,
+            true,
+            ReadMode::Completion,
+            WriteMode::Send,
+        )
     }
 
     /// Register `inner` with `registry` for readiness only — no completion RECV
@@ -152,14 +160,22 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
     ) -> io::Result<Self> {
-        Self::register(inner, registry, token, peer, false, ReadMode::Std, WriteMode::Std)
+        Self::register(
+            inner,
+            registry,
+            token,
+            peer,
+            false,
+            ReadMode::Std,
+            WriteMode::Std,
+        )
     }
 
     /// Register with explicit read and write modes (F50 config gate).
     ///
     /// WHY: the caller — not the auto-detection — decides which paths to use.
     /// A relay can have completion reads on both legs but std writes, or vice
-    /// versa. Tests can force `Std` on an io_uring kernel and verify the
+    /// versa. Tests can force `Std` on an `io_uring` kernel and verify the
     /// fallback.
     ///
     /// WHAT: `arm_completion` arms a multishot `RECV` (needed when `read_mode`
@@ -180,7 +196,15 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         read_mode: ReadMode,
         write_mode: WriteMode,
     ) -> io::Result<Self> {
-        Self::register(inner, registry, token, peer, arm_completion, read_mode, write_mode)
+        Self::register(
+            inner,
+            registry,
+            token,
+            peer,
+            arm_completion,
+            read_mode,
+            write_mode,
+        )
     }
 
     /// The per-backend registration. On Linux with io_uring, `arm_completion`
@@ -207,7 +231,12 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         } else {
             RegisteredFd::new(inner, registry, token)?
         };
-        Ok(Self { inner, peer, read_mode, write_mode })
+        Ok(Self {
+            inner,
+            peer,
+            read_mode,
+            write_mode,
+        })
     }
 
     #[cfg(not(target_os = "linux"))]
@@ -217,13 +246,18 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
         _arm_completion: bool,
-        read_mode: ReadMode,
-        write_mode: WriteMode,
+        _read_mode: ReadMode,
+        _write_mode: WriteMode,
     ) -> io::Result<Self> {
         let _ = Interest::READABLE;
         let inner = RegisteredFd::new(inner, registry, token)?;
         // Off Linux, force modes to Std since there's no io_uring.
-        Ok(Self { inner, peer, read_mode: ReadMode::Std, write_mode: WriteMode::Std })
+        Ok(Self {
+            inner,
+            peer,
+            read_mode: ReadMode::Std,
+            write_mode: WriteMode::Std,
+        })
     }
 
     /// Access the inner registration.
@@ -258,7 +292,9 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         #[cfg(target_os = "linux")]
         {
             self.read_mode == ReadMode::Completion
-                && foundation_nativeapis::native::fd::CompletionSource::is_completion_source(&self.inner)
+                && foundation_nativeapis::native::fd::CompletionSource::is_completion_source(
+                    &self.inner,
+                )
         }
         #[cfg(not(target_os = "linux"))]
         {
@@ -293,7 +329,7 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
     /// # Panics
     /// Panics if an internal lock is poisoned, or if `write_mode` is not
     /// `WriteMode::SendZc`.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
+    #[cfg(target_os = "linux")]
     pub fn write_from_provided_buf(
         &mut self,
         buf: foundation_nativeapis::native::fd::completion::ProvidedBuf,
@@ -306,77 +342,9 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         self.inner.send_bytes_zc_direct(buf)
     }
 
-    // ── split_read_write (F49 Phase C) ────────────────────────────────────
-
-    /// Split this socket into independent read and write halves, each on its own
-    /// `dup(2)`'d fd with its own reactor registration.
-    ///
-    /// WHY: some transports want to move the read half and write half to
-    /// different tasks. A plain `dup(2)` + `write(2)` write-half already exists
-    /// in `ReadWriteStream::split_read_write`; this is the completion-backed
-    /// analogue — the write half is a full `CompletionSocket` with its own
-    /// token, its own registration, and its own SEND/SEND_ZC path.
-    ///
-    /// WHAT: `dup(2)` the fd, create a [`ReadHalf`] (this socket, with writes
-    /// disabled) and a [`WriteHalf`] (a new `CompletionSocket` on the dup'd fd,
-    /// with reads disabled, registered for SEND only).
-    ///
-    /// HOW: the dup'd fd gets a fresh token and an independent registration.
-    /// Dropping either half shuts down its direction and deregisters its fd
-    /// from the reactor. The halves share no state — the dup makes them
-    /// independent kernel objects, each with its own buffer.
-    ///
-    /// # Errors
-    /// `dup(2)` or registration failure.
-    ///
-    /// # Panics
-    /// Never panics.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn split(mut self) -> io::Result<(ReadHalf<T>, WriteHalf<T>)> {
-        use std::os::unix::io::FromRawFd;
-
-        let read_fd = self.inner.as_raw_fd();
-        // SAFETY: dup(2) of a valid, open fd — the only failure is EMFILE/ENFILE.
-        let write_raw = unsafe { libc::dup(read_fd) };
-        if write_raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-
-        // Shut down the read direction on the write half and the write direction
-        // on the read half so each half only does what it is meant to.
-        let _ = self.inner.get_mut().shutdown(Shutdown::Write);
-
-        // SAFETY: write_raw is a fresh owned fd from dup(2).
-        let write_stream = unsafe { T::from_raw_fd(write_raw) };
-        let _ = write_stream.shutdown(Shutdown::Read);
-
-        // The write half needs its own reactor registration. Use the same
-        // registry as the read half (the shared reactor).
-        let reactor = foundation_nativeapis::native::fd::Reactor::get()?;
-        let registry = reactor.registry();
-        // Allocate a fresh token for the write half.
-        let write_token = {
-            use std::sync::atomic::{AtomicUsize, Ordering};
-            static NEXT_SPLIT_TOKEN: AtomicUsize = AtomicUsize::new(1 << 30);
-            let n = NEXT_SPLIT_TOKEN.fetch_add(1, Ordering::Relaxed) & ((1usize << 62) - 1);
-            Token(n)
-        };
-
-        let write_socket = CompletionSocket::<T>::with_modes(
-            write_stream,
-            registry,
-            write_token,
-            self.peer,
-            false, // no RECV on the write half
-            ReadMode::Std,
-            self.write_mode,
-        )?;
-
-        let read_half = ReadHalf { socket: self };
-        let write_half = WriteHalf { socket: write_socket };
-
-        Ok((read_half, write_half))
-    }
+    // A completion-backed split into read and write halves (spec 41 F49
+    // Phase C) is deferred until a consumer needs one; the earlier draft sat
+    // behind an undeclared `uring` feature and never compiled.
 }
 
 // ── Read / Write impls (explicit mode branches) ──────────────────────────
@@ -437,69 +405,6 @@ impl<T: AsRawFd + Read + Write> AsRawFd for CompletionSocket<T> {
 impl<T: AsRawFd + Read + Write + AsFd> AsFd for CompletionSocket<T> {
     fn as_fd(&self) -> BorrowedFd<'_> {
         self.inner.as_fd()
-    }
-}
-
-// ── Split halves ─────────────────────────────────────────────────────────
-
-/// The read half of a split [`CompletionSocket`] (F49 Phase C).
-///
-/// Dropping this shuts down the read direction and deregisters the fd.
-pub struct ReadHalf<T: AsRawFd + Read + Write> {
-    socket: CompletionSocket<T>,
-}
-
-impl<T: AsRawFd + Read + Write> ReadHalf<T> {
-    /// The peer address captured at accept time.
-    pub fn peer_addr(&self) -> Option<SocketAddr> {
-        self.socket.peer_addr()
-    }
-}
-
-impl<T: AsRawFd + Read + Write> Read for ReadHalf<T> {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.socket.read(buf)
-    }
-}
-
-impl<T: AsRawFd + Read + Write> AsRawFd for ReadHalf<T> {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket.as_raw_fd()
-    }
-}
-
-/// The write half of a split [`CompletionSocket`] (F49 Phase C).
-///
-/// Dropping this shuts down the write direction and deregisters the dup'd fd.
-pub struct WriteHalf<T: AsRawFd + Read + Write> {
-    socket: CompletionSocket<T>,
-}
-
-impl<T: AsRawFd + Read + Write> WriteHalf<T> {
-    /// The peer address captured at accept time.
-    pub fn peer_addr(&self) -> Option<SocketAddr> {
-        self.socket.peer_addr()
-    }
-
-    /// How writes are performed on this half.
-    pub fn write_mode(&self) -> WriteMode {
-        self.socket.write_mode()
-    }
-}
-
-impl<T: AsRawFd + Read + Write> Write for WriteHalf<T> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.socket.write(buf)
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        self.socket.flush()
-    }
-}
-
-impl<T: AsRawFd + Read + Write> AsRawFd for WriteHalf<T> {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket.as_raw_fd()
     }
 }
 

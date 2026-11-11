@@ -2,7 +2,7 @@
 
 #![cfg(feature = "vms")]
 
-use foundation_deployment_platform::config::{get_profile, DisplayMode};
+use foundation_deployment_platform::config::{DisplayMode, get_profile};
 use foundation_deployment_platform::providers::{Provider, ProviderId, ResolvedPorts, VmHandle};
 
 // From providers/mod.rs
@@ -32,23 +32,32 @@ fn test_vm_handle_pid_parsing() {
 
 #[test]
 fn test_qemu_provider_creation() {
+    use foundation_context::MonotonicClock;
     use foundation_deployment_platform::providers::qemu::QemuProvider;
-    let provider = QemuProvider::new();
+    let provider = QemuProvider::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        MonotonicClock::new(),
+    )));
     assert_eq!(provider.name(), "qemu");
     assert_eq!(provider.id(), ProviderId::Qemu);
 }
 
 #[test]
 fn test_qemu_provider_host_health() {
-    use foundation_deployment_platform::providers::qemu::QemuProvider;
+    use foundation_context::MonotonicClock;
     use foundation_deployment_platform::providers::Provider;
-    let provider = QemuProvider::new();
+    use foundation_deployment_platform::providers::qemu::QemuProvider;
+    let provider = QemuProvider::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        MonotonicClock::new(),
+    )));
     let health = provider.host_health();
     // The provider reports one (name, ok, message) row per host check the
     // doctor runs. Individual checks may fail (no KVM, no qemu on the host);
     // the report itself must still cover every check.
     let expected = foundation_deployment_platform::doctor::check_host();
-    assert!(!health.is_empty(), "host health must report at least one check");
+    assert!(
+        !health.is_empty(),
+        "host health must report at least one check"
+    );
     let names: Vec<&str> = health.iter().map(|(name, _, _)| name.as_str()).collect();
     let expected_names: Vec<&str> = expected.checks.iter().map(|c| c.name).collect();
     assert_eq!(names, expected_names);
@@ -60,8 +69,7 @@ fn test_import_script_format() {
     // Verify the import script uses the correct AppleSyntax
     let bundle = "/tmp/test.utm";
     let script = format!(
-        r#"tell application "UTM" to import new virtual machine from POSIX file "{}""#,
-        bundle
+        r#"tell application "UTM" to import new virtual machine from POSIX file "{bundle}""#
     );
     assert!(script.contains("import new virtual machine from POSIX file"));
 }
@@ -98,9 +106,20 @@ fn test_is_utm_bundle_false_for_regular_dir() {
 // From providers/utm/state.rs
 #[test]
 fn test_save_from_runtime_creates_valid_state() {
-    use foundation_deployment_platform::providers::utm::state::{delete, exists, save_from_runtime};
-    save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false)
-        .expect("saving UTM runtime state must succeed");
+    use foundation_deployment_platform::providers::utm::state::{
+        delete, exists, save_from_runtime,
+    };
+    save_from_runtime(
+        "test-utm",
+        "/tmp/test.utm",
+        "test-uuid",
+        2222,
+        false,
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("saving UTM runtime state must succeed");
     assert!(exists("test-utm"));
     delete("test-utm").expect("deleting UTM runtime state must succeed");
     assert!(!exists("test-utm"));

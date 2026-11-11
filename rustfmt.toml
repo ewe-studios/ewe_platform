@@ -1,0 +1,12 @@
+# Generated code is never reformatted by hand.
+#
+# The Cloudflare per-group crates are written by `cargo run --bin genapi
+# generate`, which formats them with rustfmt (empty config) before writing. They
+# are rustfmt-clean, so they are not ignored here. Their build script
+# (`backends/foundation_deployment_cloudflare/build.rs`) compares the committed
+# files against a fresh generation and regenerates on any difference: edit the
+# generator, never the output.
+ignore = [
+    # Vendored fork of upstream boringtun: keep its diff from upstream minimal.
+    "backends/foundation_boringtun",
+]

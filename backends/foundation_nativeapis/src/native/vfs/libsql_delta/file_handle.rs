@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use foundation_context::Ctx;
 use libsql::Connection;
 
 use crate::shared::vfs::async_traits::{AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile};
@@ -24,6 +25,7 @@ pub struct SqliteFile {
     pub mode: OpenMode,
     pub chunk_size: usize,
     pub size: u64,
+    pub ctx: Ctx,
 }
 
 impl SqliteFile {
@@ -74,9 +76,15 @@ impl AsyncVfsFile for SqliteFile {
             row.get::<i64>(0).map_err(le)? as u64
         };
         let mut buf = vec![0u8; len];
-        let n =
-            read_chunk_range_async(&self.db, self.ino, current_size, self.chunk_size, &mut buf, offset)
-                .await?;
+        let n = read_chunk_range_async(
+            &self.db,
+            self.ino,
+            current_size,
+            self.chunk_size,
+            &mut buf,
+            offset,
+        )
+        .await?;
         buf.truncate(n);
         Ok(buf)
     }
@@ -156,10 +164,7 @@ impl AsyncVfsFile for SqliteFile {
         }
 
         let checksum = blake3::hash(&file_data[..new_size as usize]);
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.ctx.clock().wall_now());
 
         self.db
             .execute(
@@ -203,7 +208,7 @@ impl AsyncVfsFile for SqliteFile {
     }
 
     async fn truncate_async(&self, size: u64) -> VfsResult<()> {
-        truncate_file_async(&self.db, self.ino, size, self.chunk_size).await
+        truncate_file_async(&self.db, self.ino, size, self.chunk_size, &self.ctx).await
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
@@ -256,14 +261,24 @@ impl AsyncVfsFile for SeekableSqliteFile {
 #[async_trait]
 impl AsyncSeekableVfsFile for SeekableSqliteFile {
     async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
-        let data = AsyncVfsFile::read_at_async(&self.inner, len, self.cursor.load(Ordering::Relaxed)).await?;
-        self.cursor.store(self.cursor.load(Ordering::Relaxed) + data.len() as u64, Ordering::Relaxed);
+        let data =
+            AsyncVfsFile::read_at_async(&self.inner, len, self.cursor.load(Ordering::Relaxed))
+                .await?;
+        self.cursor.store(
+            self.cursor.load(Ordering::Relaxed) + data.len() as u64,
+            Ordering::Relaxed,
+        );
         Ok(data)
     }
 
     async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> {
-        let n = AsyncVfsFile::write_at_async(&self.inner, data, self.cursor.load(Ordering::Relaxed)).await?;
-        self.cursor.store(self.cursor.load(Ordering::Relaxed) + n as u64, Ordering::Relaxed);
+        let n =
+            AsyncVfsFile::write_at_async(&self.inner, data, self.cursor.load(Ordering::Relaxed))
+                .await?;
+        self.cursor.store(
+            self.cursor.load(Ordering::Relaxed) + n as u64,
+            Ordering::Relaxed,
+        );
         Ok(n)
     }
 
@@ -300,6 +315,7 @@ pub struct SqliteDirectory {
     pub db: Arc<Connection>,
     pub ino: i64,
     pub path: String,
+    pub ctx: Ctx,
 }
 
 #[async_trait]
@@ -389,10 +405,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
     }
 
     async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.ctx.clock().wall_now());
         let version_id = super::types::next_version_id();
 
         self.db
@@ -412,9 +425,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             .await
             .map_err(|e| {
                 if e.to_string().contains("UNIQUE constraint") {
-                    VfsError::AlreadyExists {
-                        path: name.clone(),
-                    }
+                    VfsError::AlreadyExists { path: name.clone() }
                 } else {
                     VfsError::Backend {
                         message: e.to_string(),
@@ -447,19 +458,16 @@ impl AsyncVfsDirectory for SqliteDirectory {
             mode: OpenMode::Write,
             chunk_size: 64 * 1024,
             size: 0,
+            ctx: self.ctx.clone(),
         })
     }
 
     async fn create_dir_async(
         &self,
         name: String,
-    ) -> VfsResult<
-        Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>,
-    > {
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let updated_at = foundation_compact::time::unix_millis(self.ctx.clock().wall_now());
         let version_id = super::types::next_version_id();
 
         let new_path = if self.path == "/" {
@@ -517,6 +525,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             db: Arc::clone(&self.db),
             ino,
             path: new_path,
+            ctx: self.ctx.clone(),
         }))
     }
 
@@ -574,10 +583,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
     }
 
     async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
-        let updated_at = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as i64; // millis since epoch; fits i64 until year ~292M
+        let updated_at = foundation_compact::time::unix_millis(self.ctx.clock().wall_now());
         self.db
             .execute(
                 "UPDATE vfs_dentry SET name = ?, updated_at = ? WHERE parent_ino = ? AND name = ?",
@@ -618,10 +624,15 @@ impl AsyncVfsDirectory for SqliteDirectory {
             mode,
             chunk_size,
             size,
+            ctx: self.ctx.clone(),
         })
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         let file = self.open_async(path, mode).await?;
         Ok(SeekableSqliteFile::new(file))
     }
@@ -629,9 +640,8 @@ impl AsyncVfsDirectory for SqliteDirectory {
     async fn open_directory_async(
         &self,
         path: String,
-    ) -> VfsResult<
-        Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>,
-    > {
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
         let ino = resolve_path_async(self.db.clone(), path.clone()).await?;
         let stmt = self
             .db
@@ -664,6 +674,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             db: Arc::clone(&self.db),
             ino,
             path: full_path,
+            ctx: self.ctx.clone(),
         }))
     }
 

@@ -7,8 +7,8 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use foundation_core::valtron::{
-    Stream, StreamCollectFuture, StreamPendingFuture,
-    StreamReadyFuture, StreamAsFutureStream, StreamIteratorExt,
+    Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt, StreamPendingFuture,
+    StreamReadyFuture,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -17,12 +17,7 @@ use futures_core::Stream as FuturesStream;
 // ============================================================================
 
 fn noop_waker() -> Waker {
-    const VTABLE: RawWakerVTable = RawWakerVTable::new(
-        |_| RAW_WAKER,
-        |_| {},
-        |_| {},
-        |_| {},
-    );
+    const VTABLE: RawWakerVTable = RawWakerVTable::new(|_| RAW_WAKER, |_| {}, |_| {}, |_| {});
     const RAW_WAKER: RawWaker = RawWaker::new(core::ptr::null(), &VTABLE);
     unsafe { Waker::from_raw(RAW_WAKER) }
 }
@@ -54,7 +49,9 @@ mod sync_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Next(2),
             Stream::Next(3),
-        ].into_iter().into_stream_iter();
+        ]
+        .into_iter()
+        .into_stream_iter();
         let mut future = StreamCollectFuture::new(iter);
 
         match poll_once(&mut future) {
@@ -73,7 +70,9 @@ mod sync_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Pending("wait"),
             Stream::Next(2),
-        ].into_iter().into_stream_iter();
+        ]
+        .into_iter()
+        .into_stream_iter();
         let mut future = StreamCollectFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -95,7 +94,9 @@ mod sync_tests {
             Stream::<i32, &str>::Ignore,
             Stream::Next(42),
             Stream::Ignore,
-        ].into_iter().into_stream_iter();
+        ]
+        .into_iter()
+        .into_stream_iter();
         let mut future = StreamCollectFuture::new(iter);
 
         match poll_once(&mut future) {
@@ -115,7 +116,7 @@ mod sync_tests {
         match poll_once(&mut future) {
             Poll::Ready(v) => {
                 tracing::info!("empty iterator produced empty vec: {:?}", v);
-                assert!(v.is_empty());
+                assert_eq!(v, [] as [i32; 0]);
             }
             Poll::Pending => panic!("expected Ready"),
         }
@@ -128,10 +129,9 @@ mod sync_tests {
     #[test]
     fn test_ready_future_returns_first_next_with_remaining() {
         tracing::info!("creating StreamReadyFuture with two Next items");
-        let iter = vec![
-            Stream::<i32, &str>::Next(42),
-            Stream::Next(99),
-        ].into_iter().into_stream_iter();
+        let iter = vec![Stream::<i32, &str>::Next(42), Stream::Next(99)]
+            .into_iter()
+            .into_stream_iter();
         let mut future = StreamReadyFuture::new(iter);
 
         match poll_once(&mut future) {
@@ -152,7 +152,9 @@ mod sync_tests {
             Stream::<i32, &str>::Init,
             Stream::Pending("loading"),
             Stream::Next(1),
-        ].into_iter().into_stream_iter();
+        ]
+        .into_iter()
+        .into_stream_iter();
         let mut future = StreamReadyFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -171,10 +173,9 @@ mod sync_tests {
     #[test]
     fn test_ready_future_none_on_no_next() {
         tracing::info!("creating StreamReadyFuture with no Next values");
-        let iter = vec![
-            Stream::<i32, &str>::Ignore,
-            Stream::Init,
-        ].into_iter().into_stream_iter();
+        let iter = vec![Stream::<i32, &str>::Ignore, Stream::Init]
+            .into_iter()
+            .into_stream_iter();
         let mut future = StreamReadyFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -198,7 +199,9 @@ mod sync_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Pending("waiting"),
             Stream::Next(2),
-        ].into_iter().into_stream_iter();
+        ]
+        .into_iter()
+        .into_stream_iter();
         let mut future = StreamPendingFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -216,10 +219,9 @@ mod sync_tests {
     #[test]
     fn test_pending_future_none_on_no_pending() {
         tracing::info!("creating StreamPendingFuture with no Pending values");
-        let iter = vec![
-            Stream::<i32, &str>::Next(1),
-            Stream::Next(2),
-        ].into_iter().into_stream_iter();
+        let iter = vec![Stream::<i32, &str>::Next(1), Stream::Next(2)]
+            .into_iter()
+            .into_stream_iter();
         let mut future = StreamPendingFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -239,15 +241,27 @@ mod sync_tests {
     #[test]
     fn test_future_stream_yields_all_items_one_to_one() {
         tracing::info!("creating StreamAsFutureStream");
-        let mut stream = StreamAsFutureStream::new(vec![
-            Stream::<i32, &str>::Next(1),
-            Stream::Pending("p"),
-            Stream::Next(2),
-        ].into_iter());
+        let mut stream = StreamAsFutureStream::new(
+            vec![
+                Stream::<i32, &str>::Next(1),
+                Stream::Pending("p"),
+                Stream::Next(2),
+            ]
+            .into_iter(),
+        );
 
-        assert_eq!(poll_stream_next(&mut stream), Poll::Ready(Some(Stream::Next(1))));
-        assert_eq!(poll_stream_next(&mut stream), Poll::Ready(Some(Stream::Pending("p"))));
-        assert_eq!(poll_stream_next(&mut stream), Poll::Ready(Some(Stream::Next(2))));
+        assert_eq!(
+            poll_stream_next(&mut stream),
+            Poll::Ready(Some(Stream::Next(1)))
+        );
+        assert_eq!(
+            poll_stream_next(&mut stream),
+            Poll::Ready(Some(Stream::Pending("p")))
+        );
+        assert_eq!(
+            poll_stream_next(&mut stream),
+            Poll::Ready(Some(Stream::Next(2)))
+        );
         assert_eq!(poll_stream_next(&mut stream), Poll::Ready(None));
         tracing::info!("all 3 items yielded in order, then None");
     }
@@ -261,7 +275,10 @@ mod sync_tests {
             items.push(item);
         }
         tracing::info!("collected {} items", items.len());
-        assert!(items.is_empty());
+        assert_eq!(
+            items,
+            [] as [foundation_core::valtron::Stream<i32, &str>; 0]
+        );
     }
 }
 
@@ -272,7 +289,6 @@ mod sync_tests {
 #[cfg(not(target_family = "wasm"))]
 mod smol_ext_tests {
     use super::*;
-    
 
     #[test]
     fn test_into_collect_future_via_ext() {
@@ -280,7 +296,7 @@ mod smol_ext_tests {
             vec![Stream::<&str, &str>::Next("a"), Stream::Next("b")]
                 .into_iter()
                 .into_stream_iter()
-                .into_collect_future()
+                .into_collect_future(),
         );
         tracing::info!("collect via ext: {:?}", result);
         assert_eq!(result, vec!["a", "b"]);
@@ -292,8 +308,9 @@ mod smol_ext_tests {
             vec![Stream::<i32, &str>::Next(42), Stream::Next(1)]
                 .into_iter()
                 .into_stream_iter()
-                .into_ready_future()
-        ).unwrap();
+                .into_ready_future(),
+        )
+        .unwrap();
         tracing::info!("ready via ext: value={}", value);
         assert_eq!(value, 42);
         // The remaining iterator still holds the unconsumed `Next(1)`.
@@ -307,8 +324,9 @@ mod smol_ext_tests {
             vec![Stream::<i32, &str>::Next(1), Stream::Pending("x")]
                 .into_iter()
                 .into_stream_iter()
-                .into_pending_future()
-        ).unwrap();
+                .into_pending_future(),
+        )
+        .unwrap();
         tracing::info!("pending via ext: ctx={}", ctx);
         assert_eq!(ctx, "x");
     }
@@ -319,7 +337,9 @@ mod smol_ext_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Pending("p"),
             Stream::Next(2),
-        ].into_iter().into_pure_future_stream();
+        ]
+        .into_iter()
+        .into_pure_future_stream();
         let mut items = Vec::new();
         while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
             items.push(item);
@@ -336,176 +356,191 @@ mod smol_ext_tests {
 #[cfg(not(target_family = "wasm"))]
 mod tokio_tests {
     use super::*;
-    
-    
 
-#[tokio::test]
-async fn test_tokio_await_collect() {
-    tracing::info!("tokio: awaiting collect future");
-    let result = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Next(2),
-        Stream::Next(3),
-    ].into_iter().into_stream_iter().into_collect_future().await;
-    tracing::info!("tokio collect result: {:?}", result);
-    assert_eq!(result, vec![1, 2, 3]);
-}
-
-#[tokio::test]
-async fn test_tokio_await_ready_future() {
-    tracing::info!("tokio: awaiting ready future");
-    let (value, mut remaining) = vec![
-        Stream::<i32, &str>::Next(42),
-        Stream::Pending("wait"),
-    ].into_iter().into_stream_iter().into_ready_future().await.unwrap();
-    tracing::info!("tokio ready: value={}", value);
-    assert_eq!(value, 42);
-    // The remaining iterator still holds the unconsumed `Pending("wait")`.
-    assert_eq!(remaining.next(), Some(Stream::Pending("wait")));
-    assert!(remaining.next().is_none());
-}
-
-#[tokio::test]
-async fn test_tokio_await_pending_future_first() {
-    tracing::info!("tokio: awaiting pending future (target first)");
-    let (ctx, _) = vec![
-        Stream::<i32, &str>::Pending("done"),
-        Stream::Next(1),
-    ].into_iter().into_stream_iter().into_pending_future().await.unwrap();
-    tracing::info!("tokio pending: ctx={}", ctx);
-    assert_eq!(ctx, "done");
-}
-
-#[tokio::test]
-async fn test_tokio_await_pending_future_after_next() {
-    tracing::info!("tokio: awaiting pending future (after Next values)");
-    let (ctx, _) = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Next(2),
-        Stream::Pending("done"),
-    ].into_iter().into_stream_iter().into_pending_future().await.unwrap();
-    tracing::info!("tokio pending: ctx={}", ctx);
-    assert_eq!(ctx, "done");
-}
-
-#[tokio::test]
-async fn test_tokio_await_future_stream() {
-    tracing::info!("tokio: awaiting future stream");
-    let mut stream = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Pending("p"),
-        Stream::Next(2),
-    ].into_iter().into_pure_future_stream();
-    let mut items = Vec::new();
-    while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
-        items.push(item);
-    }
-    tracing::info!("tokio stream: {} items", items.len());
-    assert_eq!(items.len(), 3);
-}
-
-// ============================================================================
-// Async tests — smol runtime
-// ============================================================================
-
-#[test]
-fn test_smol_run_collect() {
-    tracing::info!("smol: block_on collect");
-    let result = smol::block_on(async {
-        vec![
-            Stream::<i32, &str>::Next(10),
-            Stream::Next(20),
-        ].into_iter().into_stream_iter().into_collect_future().await
-    });
-    tracing::info!("smol collect result: {:?}", result);
-    assert_eq!(result, vec![10, 20]);
-}
-
-#[test]
-fn test_smol_run_ready_future() {
-    tracing::info!("smol: block_on ready future");
-    let (value, mut remaining) = smol::block_on(async {
-        vec![
-            Stream::<i32, &str>::Init,
-            Stream::Next(99),
-        ].into_iter().into_stream_iter().into_ready_future().await.unwrap()
-    });
-    tracing::info!("smol ready: value={}, remaining exhausted={}", value, remaining.next().is_none());
-    assert_eq!(value, 99);
-    assert!(remaining.next().is_none());
-}
-
-#[test]
-fn test_smol_run_future_stream() {
-    tracing::info!("smol: block_on future stream");
-    let mut stream = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Pending("p"),
-        Stream::Next(2),
-    ].into_iter().into_pure_future_stream();
-    let mut items = Vec::new();
-    while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
-        items.push(item);
-    }
-    tracing::info!("smol stream: {} items", items.len());
-    assert_eq!(items.len(), 3);
-}
-
-// ============================================================================
-// Combinator chaining tests
-// ============================================================================
-
-#[test]
-fn test_combinator_then_collect_future() {
-    let result = smol::block_on(async {
-        vec![
+    #[tokio::test]
+    async fn test_tokio_await_collect() {
+        tracing::info!("tokio: awaiting collect future");
+        let result = vec![
             Stream::<i32, &str>::Next(1),
             Stream::Next(2),
             Stream::Next(3),
-        ].into_iter()
+        ]
+        .into_iter()
+        .into_stream_iter()
+        .into_collect_future()
+        .await;
+        tracing::info!("tokio collect result: {:?}", result);
+        assert_eq!(result, vec![1, 2, 3]);
+    }
+
+    #[tokio::test]
+    async fn test_tokio_await_ready_future() {
+        tracing::info!("tokio: awaiting ready future");
+        let (value, mut remaining) = vec![Stream::<i32, &str>::Next(42), Stream::Pending("wait")]
+            .into_iter()
+            .into_stream_iter()
+            .into_ready_future()
+            .await
+            .unwrap();
+        tracing::info!("tokio ready: value={}", value);
+        assert_eq!(value, 42);
+        // The remaining iterator still holds the unconsumed `Pending("wait")`.
+        assert_eq!(remaining.next(), Some(Stream::Pending("wait")));
+        assert!(remaining.next().is_none());
+    }
+
+    #[tokio::test]
+    async fn test_tokio_await_pending_future_first() {
+        tracing::info!("tokio: awaiting pending future (target first)");
+        let (ctx, _) = vec![Stream::<i32, &str>::Pending("done"), Stream::Next(1)]
+            .into_iter()
+            .into_stream_iter()
+            .into_pending_future()
+            .await
+            .unwrap();
+        tracing::info!("tokio pending: ctx={}", ctx);
+        assert_eq!(ctx, "done");
+    }
+
+    #[tokio::test]
+    async fn test_tokio_await_pending_future_after_next() {
+        tracing::info!("tokio: awaiting pending future (after Next values)");
+        let (ctx, _) = vec![
+            Stream::<i32, &str>::Next(1),
+            Stream::Next(2),
+            Stream::Pending("done"),
+        ]
+        .into_iter()
+        .into_stream_iter()
+        .into_pending_future()
+        .await
+        .unwrap();
+        tracing::info!("tokio pending: ctx={}", ctx);
+        assert_eq!(ctx, "done");
+    }
+
+    #[tokio::test]
+    async fn test_tokio_await_future_stream() {
+        tracing::info!("tokio: awaiting future stream");
+        let mut stream = vec![
+            Stream::<i32, &str>::Next(1),
+            Stream::Pending("p"),
+            Stream::Next(2),
+        ]
+        .into_iter()
+        .into_pure_future_stream();
+        let mut items = Vec::new();
+        while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
+            items.push(item);
+        }
+        tracing::info!("tokio stream: {} items", items.len());
+        assert_eq!(items.len(), 3);
+    }
+
+    // ============================================================================
+    // Async tests — smol runtime
+    // ============================================================================
+
+    #[test]
+    fn test_smol_run_collect() {
+        tracing::info!("smol: block_on collect");
+        let result = smol::block_on(async {
+            vec![Stream::<i32, &str>::Next(10), Stream::Next(20)]
+                .into_iter()
+                .into_stream_iter()
+                .into_collect_future()
+                .await
+        });
+        tracing::info!("smol collect result: {:?}", result);
+        assert_eq!(result, vec![10, 20]);
+    }
+
+    #[test]
+    fn test_smol_run_ready_future() {
+        tracing::info!("smol: block_on ready future");
+        let (value, mut remaining) = smol::block_on(async {
+            vec![Stream::<i32, &str>::Init, Stream::Next(99)]
+                .into_iter()
+                .into_stream_iter()
+                .into_ready_future()
+                .await
+                .unwrap()
+        });
+        tracing::info!(
+            "smol ready: value={}, remaining exhausted={}",
+            value,
+            remaining.next().is_none()
+        );
+        assert_eq!(value, 99);
+        assert!(remaining.next().is_none());
+    }
+
+    #[test]
+    fn test_smol_run_future_stream() {
+        tracing::info!("smol: block_on future stream");
+        let mut stream = vec![
+            Stream::<i32, &str>::Next(1),
+            Stream::Pending("p"),
+            Stream::Next(2),
+        ]
+        .into_iter()
+        .into_pure_future_stream();
+        let mut items = Vec::new();
+        while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
+            items.push(item);
+        }
+        tracing::info!("smol stream: {} items", items.len());
+        assert_eq!(items.len(), 3);
+    }
+
+    // ============================================================================
+    // Combinator chaining tests
+    // ============================================================================
+
+    #[test]
+    fn test_combinator_then_collect_future() {
+        let result = smol::block_on(async {
+            vec![
+                Stream::<i32, &str>::Next(1),
+                Stream::Next(2),
+                Stream::Next(3),
+            ]
+            .into_iter()
             .into_stream_iter()
             .map_done(|v| v * 10)
             .into_collect_future()
             .await
-    });
-    tracing::info!("combinator then collect: {:?}", result);
-    assert_eq!(result, vec![10, 20, 30]);
-}
-
-#[test]
-fn test_combinator_then_ready_future() {
-    let (value, _) = smol::block_on(async {
-        vec![
-            Stream::<i32, &str>::Pending("a"),
-            Stream::Next(42),
-        ].into_iter()
-            .into_stream_iter()
-            .map_pending(str::len)
-            .into_ready_future()
-            .await
-            .unwrap()
-    });
-    tracing::info!("combinator then ready: value={}", value);
-    assert_eq!(value, 42);
-}
-
-#[test]
-fn test_combinator_then_future_stream() {
-    let mut stream = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Next(2),
-    ].into_iter()
-        .map_done(|v| v * 2)
-        .into_pure_future_stream();
-    let mut items = Vec::new();
-    while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
-        items.push(item);
+        });
+        tracing::info!("combinator then collect: {:?}", result);
+        assert_eq!(result, vec![10, 20, 30]);
     }
-    tracing::info!("combinator then stream: {:?}", items);
-    assert_eq!(items, vec![
-        Stream::Next(2),
-        Stream::Next(4),
-    ]);
-}
 
+    #[test]
+    fn test_combinator_then_ready_future() {
+        let (value, _) = smol::block_on(async {
+            vec![Stream::<i32, &str>::Pending("a"), Stream::Next(42)]
+                .into_iter()
+                .into_stream_iter()
+                .map_pending(str::len)
+                .into_ready_future()
+                .await
+                .unwrap()
+        });
+        tracing::info!("combinator then ready: value={}", value);
+        assert_eq!(value, 42);
+    }
+
+    #[test]
+    fn test_combinator_then_future_stream() {
+        let mut stream = vec![Stream::<i32, &str>::Next(1), Stream::Next(2)]
+            .into_iter()
+            .map_done(|v| v * 2)
+            .into_pure_future_stream();
+        let mut items = Vec::new();
+        while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
+            items.push(item);
+        }
+        tracing::info!("combinator then stream: {:?}", items);
+        assert_eq!(items, vec![Stream::Next(2), Stream::Next(4),]);
+    }
 }

@@ -4,8 +4,8 @@
 //! and [`CandleModels`] implementing [`Model`] for safetensors models via
 //! `HuggingFace`'s Candle framework.
 
-use foundation_compact::SystemTime;
 use std::collections::HashMap;
+use std::fmt::Write as _;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -15,6 +15,7 @@ use candle_transformers::generation::{LogitsProcessor, Sampling};
 use candle_transformers::models::llama as candle_llama;
 use tokenizers::Tokenizer;
 
+use foundation_context::Ctx;
 use foundation_core::valtron::Stream;
 
 use crate::backends::backend_utils::flatten_tools;
@@ -171,12 +172,13 @@ impl CandleBackendConfigBuilder {
 // ==================================
 
 /// Hardware backend variants for Candle.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum CandleBackend {
     /// CPU-only execution.
     Cpu {
         config: CandleBackendConfig,
         cache: Arc<Mutex<HashMap<String, CandleModels>>>,
+        ctx: Ctx,
     },
     /// CUDA GPU execution.
     #[cfg(feature = "candle-cuda")]
@@ -184,6 +186,7 @@ pub enum CandleBackend {
         config: CandleBackendConfig,
         device_id: usize,
         cache: Arc<Mutex<HashMap<String, CandleModels>>>,
+        ctx: Ctx,
     },
     /// Apple Metal execution.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
@@ -191,22 +194,39 @@ pub enum CandleBackend {
         config: CandleBackendConfig,
         device_id: usize,
         cache: Arc<Mutex<HashMap<String, CandleModels>>>,
+        ctx: Ctx,
     },
+}
+
+impl core::fmt::Debug for CandleBackend {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let variant = match self {
+            CandleBackend::Cpu { .. } => "Cpu",
+            #[cfg(feature = "candle-cuda")]
+            CandleBackend::Cuda { .. } => "Cuda",
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
+            CandleBackend::Metal { .. } => "Metal",
+        };
+        f.debug_struct("CandleBackend")
+            .field("variant", &variant)
+            .finish_non_exhaustive()
+    }
 }
 
 impl CandleBackend {
     /// Create a CPU backend with default config.
     #[must_use]
-    pub fn cpu() -> Self {
-        Self::cpu_with_config(CandleBackendConfig::default())
+    pub fn cpu(ctx: Ctx) -> Self {
+        Self::cpu_with_config(CandleBackendConfig::default(), ctx)
     }
 
     /// Create a CPU backend with an explicit config.
     #[must_use]
-    pub fn cpu_with_config(config: CandleBackendConfig) -> Self {
+    pub fn cpu_with_config(config: CandleBackendConfig, ctx: Ctx) -> Self {
         Self::Cpu {
             config,
             cache: Arc::new(Mutex::new(HashMap::new())),
+            ctx,
         }
     }
 
@@ -221,18 +241,19 @@ impl CandleBackend {
     /// could build a value that reached them, so the backend never ran on a GPU.
     #[cfg(feature = "candle-cuda")]
     #[must_use]
-    pub fn cuda(device_id: usize) -> Self {
-        Self::cuda_with_config(device_id, CandleBackendConfig::default())
+    pub fn cuda(device_id: usize, ctx: Ctx) -> Self {
+        Self::cuda_with_config(device_id, CandleBackendConfig::default(), ctx)
     }
 
     /// Create a CUDA backend on `device_id`, with an explicit config.
     #[cfg(feature = "candle-cuda")]
     #[must_use]
-    pub fn cuda_with_config(device_id: usize, config: CandleBackendConfig) -> Self {
+    pub fn cuda_with_config(device_id: usize, config: CandleBackendConfig, ctx: Ctx) -> Self {
         Self::Cuda {
             config,
             device_id,
             cache: Arc::new(Mutex::new(HashMap::new())),
+            ctx,
         }
     }
 
@@ -248,28 +269,29 @@ impl CandleBackend {
     /// Returns the underlying [`candle_core::Error`] when the device cannot be
     /// opened.
     #[cfg(feature = "candle-cuda")]
-    pub fn try_cuda(device_id: usize) -> Result<Self, candle_core::Error> {
+    pub fn try_cuda(device_id: usize, ctx: Ctx) -> Result<Self, candle_core::Error> {
         // Open once to validate; the backend re-opens lazily via `device()`,
         // which is cheap once the driver context exists.
         let _device = Device::new_cuda(device_id)?;
-        Ok(Self::cuda(device_id))
+        Ok(Self::cuda(device_id, ctx))
     }
 
     /// Create a Metal backend on `device_id`, with default config.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
     #[must_use]
-    pub fn metal(device_id: usize) -> Self {
-        Self::metal_with_config(device_id, CandleBackendConfig::default())
+    pub fn metal(device_id: usize, ctx: Ctx) -> Self {
+        Self::metal_with_config(device_id, CandleBackendConfig::default(), ctx)
     }
 
     /// Create a Metal backend on `device_id`, with an explicit config.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
     #[must_use]
-    pub fn metal_with_config(device_id: usize, config: CandleBackendConfig) -> Self {
+    pub fn metal_with_config(device_id: usize, config: CandleBackendConfig, ctx: Ctx) -> Self {
         Self::Metal {
             config,
             device_id,
             cache: Arc::new(Mutex::new(HashMap::new())),
+            ctx,
         }
     }
 
@@ -282,13 +304,13 @@ impl CandleBackend {
     /// after the fact — a GPU job that secretly ran on CPU is the failure this
     /// method exists to make visible.
     #[must_use]
-    pub fn best_available() -> Self {
+    pub fn best_available(ctx: Ctx) -> Self {
         // A CUDA success returns eagerly. The Apple and non-Apple tails are
         // mutually exclusive by cfg, so exactly one is ever the tail expression
         // — no unreachable-code warning under any feature combination.
         #[cfg(feature = "candle-cuda")]
         {
-            match Self::try_cuda(0) {
+            match Self::try_cuda(0, ctx.clone()) {
                 Ok(backend) => {
                     tracing::info!(device = "cuda:0", "candle: using CUDA accelerator");
                     return backend;
@@ -301,12 +323,12 @@ impl CandleBackend {
         #[cfg(all(target_vendor = "apple", feature = "candle"))]
         {
             tracing::info!(device = "metal:0", "candle: using Metal accelerator");
-            Self::metal(0)
+            Self::metal(0, ctx)
         }
         #[cfg(not(all(target_vendor = "apple", feature = "candle")))]
         {
             tracing::info!(device = "cpu", "candle: using CPU");
-            Self::cpu()
+            Self::cpu(ctx)
         }
     }
 
@@ -341,6 +363,18 @@ impl CandleBackend {
         }
     }
 
+    /// The context. Every message from this backend reads its clock from it.
+    #[must_use]
+    pub fn ctx(&self) -> Ctx {
+        match self {
+            CandleBackend::Cpu { ctx, .. } => ctx.clone(),
+            #[cfg(feature = "candle-cuda")]
+            CandleBackend::Cuda { ctx, .. } => ctx.clone(),
+            #[cfg(all(target_vendor = "apple", feature = "candle"))]
+            CandleBackend::Metal { ctx, .. } => ctx.clone(),
+        }
+    }
+
     fn model_id_key(model_id: &ModelId) -> String {
         format!("{model_id:?}")
     }
@@ -357,18 +391,20 @@ impl ModelProvider for CandleBackend {
         if let Some(config) = config {
             let cache = Arc::new(Mutex::new(HashMap::new()));
             match self {
-                CandleBackend::Cpu { .. } => Ok(CandleBackend::Cpu { config, cache }),
+                CandleBackend::Cpu { ctx, .. } => Ok(CandleBackend::Cpu { config, cache, ctx }),
                 #[cfg(feature = "candle-cuda")]
-                CandleBackend::Cuda { device_id, .. } => Ok(CandleBackend::Cuda {
+                CandleBackend::Cuda { device_id, ctx, .. } => Ok(CandleBackend::Cuda {
                     config,
                     device_id,
                     cache,
+                    ctx,
                 }),
                 #[cfg(all(target_vendor = "apple", feature = "candle"))]
-                CandleBackend::Metal { device_id, .. } => Ok(CandleBackend::Metal {
+                CandleBackend::Metal { device_id, ctx, .. } => Ok(CandleBackend::Metal {
                     config,
                     device_id,
                     cache,
+                    ctx,
                 }),
             }
         } else {
@@ -453,6 +489,7 @@ fn load_from_local(
     model_spec: &ModelSpec,
 ) -> ModelProviderResult<CandleModels> {
     let config = backend.config();
+    let ctx = backend.ctx();
     let device = backend.device().map_err(|e| {
         ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
             "Device init failed: {e}"
@@ -504,6 +541,7 @@ fn load_from_local(
         &device,
         &config.architecture,
         model_spec.clone(),
+        ctx,
     )
 }
 
@@ -522,7 +560,7 @@ fn detect_architecture(config_path: &std::path::Path) -> Option<String> {
         .and_then(|a| a.as_array())
         .and_then(|a| a.first())
         .and_then(|v| v.as_str())
-        .map(|s| s.to_lowercase())
+        .map(str::to_lowercase)
 }
 
 fn build_candle_model(
@@ -533,22 +571,37 @@ fn build_candle_model(
     device: &Device,
     architecture: &CandleArchitecture,
     spec: ModelSpec,
+    ctx: Ctx,
 ) -> ModelProviderResult<CandleModels> {
     // An explicit config override wins; otherwise detect from the model files.
     let detected = detect_architecture(config_path);
     let arch = match architecture {
         CandleArchitecture::Custom(name) => name.to_lowercase(),
-        CandleArchitecture::Llama => detected
-            .clone()
-            .unwrap_or_else(|| "llama".to_string()),
+        CandleArchitecture::Llama => detected.clone().unwrap_or_else(|| "llama".to_string()),
     };
 
     // Llama-family names candle's llama loader handles.
     if arch.contains("llama") {
-        return build_llama_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
+        return build_llama_model(
+            config_path,
+            tokenizer_path,
+            weights_files,
+            dtype,
+            device,
+            spec,
+            ctx,
+        );
     }
     if arch.contains("gemma2") {
-        return build_gemma2_model(config_path, tokenizer_path, weights_files, dtype, device, spec);
+        return build_gemma2_model(
+            config_path,
+            tokenizer_path,
+            weights_files,
+            dtype,
+            device,
+            spec,
+            ctx,
+        );
     }
 
     // Unsupported: fail loudly with the DETECTED name, never silently load as
@@ -568,6 +621,7 @@ fn build_llama_model(
     dtype: DType,
     device: &Device,
     spec: ModelSpec,
+    ctx: Ctx,
 ) -> ModelProviderResult<CandleModels> {
     let config_content = std::fs::read_to_string(config_path).map_err(|e| {
         ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
@@ -588,7 +642,10 @@ fn build_llama_model(
         )))
     })?;
 
-    let file_refs: Vec<&std::path::Path> = weights_files.iter().map(std::path::PathBuf::as_path).collect();
+    let file_refs: Vec<&std::path::Path> = weights_files
+        .iter()
+        .map(std::path::PathBuf::as_path)
+        .collect();
     let vb =
         unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }.map_err(|e| {
             ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
@@ -614,7 +671,7 @@ fn build_llama_model(
     })?;
     let inner = CandleModelInner::Llama {
         model,
-        cache,
+        cache: Box::new(cache),
         config: llama_config,
         dtype,
         device: device.clone(),
@@ -622,7 +679,10 @@ fn build_llama_model(
 
     let chat_template = ChatTemplate::load(tokenizer_path);
     if chat_template.is_none() {
-        tracing::debug!("no chat_template for {}; using plain prompt fallback", spec.name);
+        tracing::debug!(
+            "no chat_template for {}; using plain prompt fallback",
+            spec.name
+        );
     }
 
     Ok(CandleModels::new(
@@ -632,6 +692,7 @@ fn build_llama_model(
         eos_token_id,
         spec,
         chat_template,
+        ctx,
     ))
 }
 
@@ -640,8 +701,11 @@ fn eos_from_config_json(config_path: &std::path::Path) -> Option<u32> {
     let raw = std::fs::read_to_string(config_path).ok()?;
     let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
     match json.get("eos_token_id")? {
-        serde_json::Value::Number(n) => n.as_u64().map(|v| v as u32),
-        serde_json::Value::Array(a) => a.first().and_then(|v| v.as_u64()).map(|v| v as u32),
+        serde_json::Value::Number(n) => n.as_u64().and_then(|v| u32::try_from(v).ok()),
+        serde_json::Value::Array(a) => a
+            .first()
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| u32::try_from(v).ok()),
         _ => None,
     }
 }
@@ -656,12 +720,11 @@ fn build_gemma2_model(
     dtype: DType,
     device: &Device,
     spec: ModelSpec,
+    ctx: Ctx,
 ) -> ModelProviderResult<CandleModels> {
     use candle_transformers::models::gemma2;
 
-    let load_err = |e: String| {
-        ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(e))
-    };
+    let load_err = |e: String| ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(e));
 
     let config_content = std::fs::read_to_string(config_path)
         .map_err(|e| load_err(format!("Failed to read config: {e}")))?;
@@ -671,8 +734,10 @@ fn build_gemma2_model(
     let tokenizer = Tokenizer::from_file(tokenizer_path)
         .map_err(|e| load_err(format!("Failed to load tokenizer: {e}")))?;
 
-    let file_refs: Vec<&std::path::Path> =
-        weights_files.iter().map(std::path::PathBuf::as_path).collect();
+    let file_refs: Vec<&std::path::Path> = weights_files
+        .iter()
+        .map(std::path::PathBuf::as_path)
+        .collect();
     let vb = unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }
         .map_err(|e| load_err(format!("Failed to load weights: {e}")))?;
 
@@ -690,6 +755,7 @@ fn build_gemma2_model(
         eos_token_id,
         spec,
         chat_template,
+        ctx,
     ))
 }
 
@@ -709,7 +775,7 @@ fn build_gemma2_model(
 enum CandleModelInner {
     Llama {
         model: candle_llama::Llama,
-        cache: candle_llama::Cache,
+        cache: Box<candle_llama::Cache>,
         config: candle_llama::Config,
         dtype: DType,
         device: Device,
@@ -736,7 +802,7 @@ impl CandleModelInner {
                 device,
                 ..
             } => {
-                *cache = candle_llama::Cache::new(false, *dtype, config, device)?;
+                **cache = candle_llama::Cache::new(false, *dtype, config, device)?;
                 Ok(())
             }
             CandleModelInner::Gemma2(m) => {
@@ -759,6 +825,8 @@ struct CandleModelsState {
     cumulative_cost: CostAccumulator,
     /// The model's own chat template (from `tokenizer_config.json`), if any.
     chat_template: Option<ChatTemplate>,
+    /// The context. Every message this model emits reads its clock from it.
+    ctx: Ctx,
 }
 
 /// A model's chat template plus the special-token strings it references.
@@ -812,9 +880,15 @@ impl ChatTemplate {
         let mut env = minijinja::Environment::new();
         // HF templates occasionally call raise_exception(); make it a no-op-ish
         // error so a template that uses it fails cleanly rather than at parse.
-        env.add_function("raise_exception", |msg: String| -> Result<(), minijinja::Error> {
-            Err(minijinja::Error::new(minijinja::ErrorKind::InvalidOperation, msg))
-        });
+        env.add_function(
+            "raise_exception",
+            |msg: String| -> Result<(), minijinja::Error> {
+                Err(minijinja::Error::new(
+                    minijinja::ErrorKind::InvalidOperation,
+                    msg,
+                ))
+            },
+        );
         // HF chat templates are written for Python's Jinja and call Python str
         // methods minijinja lacks natively (e.g. `content.strip()` in the
         // Llama-2 template). Bridge the common ones so real templates render.
@@ -880,6 +954,7 @@ impl CandleModels {
         eos_token_id: Option<u32>,
         spec: ModelSpec,
         chat_template: Option<ChatTemplate>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(CandleModelsState {
@@ -893,6 +968,7 @@ impl CandleModels {
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
                 chat_template,
+                ctx,
             })),
         }
     }
@@ -1023,7 +1099,7 @@ impl Model for CandleModels {
         Ok(vec![Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: inner.spec.id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: inner.ctx.clock().wall_now(),
             usage,
             content: ModelOutput::Text(TextContent {
                 content: output_text,
@@ -1066,6 +1142,8 @@ struct CandleStreamState {
     initialized: bool,
     /// Persisted across polls so its rng advances token to token (spec-60/S3).
     processor: LogitsProcessor,
+    /// The context. Every streamed message reads its clock from it.
+    ctx: Ctx,
 }
 
 impl CandleStream {
@@ -1097,6 +1175,8 @@ impl CandleStream {
 
         let processor = build_logits_processor(&params);
 
+        let ctx = model.inner.lock().unwrap().ctx.clone();
+
         Ok(Self {
             inner: Arc::new(Mutex::new(CandleStreamState {
                 model,
@@ -1107,6 +1187,7 @@ impl CandleStream {
                 tokens_generated: 0,
                 finished: false,
                 initialized: false,
+                ctx,
             })),
         })
     }
@@ -1158,19 +1239,25 @@ impl Iterator for CandleStream {
 
             let device = model_inner.device.clone();
 
-        #[allow(clippy::manual_let_else)]
-            let input_tensor = if let Ok(t) = Tensor::new(&next_input[..], &device) { t } else {
+            #[allow(clippy::manual_let_else)]
+            let input_tensor = if let Ok(t) = Tensor::new(&next_input[..], &device) {
+                t
+            } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
-        #[allow(clippy::manual_let_else)]
-            let input_tensor = if let Ok(t) = input_tensor.unsqueeze(0) { t } else {
+            #[allow(clippy::manual_let_else)]
+            let input_tensor = if let Ok(t) = input_tensor.unsqueeze(0) {
+                t
+            } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
 
-        #[allow(clippy::manual_let_else)]
-            let logits = if let Ok(l) = forward(&mut model_inner, &input_tensor, seq_start) { l } else {
+            #[allow(clippy::manual_let_else)]
+            let logits = if let Ok(l) = forward(&mut model_inner, &input_tensor, seq_start) {
+                l
+            } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
@@ -1179,17 +1266,15 @@ impl Iterator for CandleStream {
                 // Reborrow so `processor` (mut) and `all_tokens` (shared) are
                 // disjoint field borrows rather than two borrows of the guard.
                 let st = &mut *state;
-                match sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
-                    Ok(t) => t,
-                    Err(_) => {
-                        st.finished = true;
-                        return Some(Stream::Pending(ModelState::Finished));
-                    }
+                if let Ok(t) = sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
+                    t
+                } else {
+                    st.finished = true;
+                    return Some(Stream::Pending(ModelState::Finished));
                 }
             };
 
-            let eos_hit = model_inner
-                .eos_token_id == Some(next_token);
+            let eos_hit = model_inner.eos_token_id == Some(next_token);
 
             let token_str = model_inner
                 .tokenizer
@@ -1212,7 +1297,7 @@ impl Iterator for CandleStream {
         Some(Stream::Next(Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: spec.id.clone(),
-            timestamp: SystemTime::now(),
+            timestamp: state.ctx.clock().wall_now(),
             usage: UsageReport {
                 input: state.input_len as f64,
                 output: state.tokens_generated as f64,
@@ -1258,7 +1343,7 @@ fn forward(
 }
 
 /// Convert an interaction to the `[{role, content}]` list HF chat templates
-/// expect, folding system_prompt + soul + tool definitions into a leading
+/// expect, folding `system_prompt` + soul + tool definitions into a leading
 /// system message.
 fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
     let mut out = Vec::new();
@@ -1280,7 +1365,7 @@ fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
         }
         system.push_str("Available tools:\n");
         for t in &tools {
-            system.push_str(&format!("- {}({})\n", t.name(), t.arg_summary()));
+            let _ = writeln!(system, "- {}({})", t.name(), t.arg_summary());
         }
     }
     if !system.is_empty() {
@@ -1289,13 +1374,18 @@ fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
 
     for msg in &interaction.messages {
         let (role, content) = match msg {
-            Messages::User { content: UserModelContent::Text(t), .. } => ("user", t.content.clone()),
-            Messages::Assistant { content: ModelOutput::Text(t), .. } => {
-                ("assistant", t.content.clone())
-            }
-            Messages::ToolResult { content: UserModelContent::Text(t), .. } => {
-                ("tool", t.content.clone())
-            }
+            Messages::User {
+                content: UserModelContent::Text(t),
+                ..
+            } => ("user", t.content.clone()),
+            Messages::Assistant {
+                content: ModelOutput::Text(t),
+                ..
+            } => ("assistant", t.content.clone()),
+            Messages::ToolResult {
+                content: UserModelContent::Text(t),
+                ..
+            } => ("tool", t.content.clone()),
             _ => continue,
         };
         out.push(serde_json::json!({"role": role, "content": content}));
@@ -1409,9 +1499,16 @@ fn build_logits_processor(params: &ModelParams) -> LogitsProcessor {
         let top_p = f64::from(params.top_p);
         let use_top_p = top_p > 0.0 && top_p < 1.0;
         match (top_k, use_top_p) {
-            (0, true) => Sampling::TopP { p: top_p, temperature },
+            (0, true) => Sampling::TopP {
+                p: top_p,
+                temperature,
+            },
             (0, false) => Sampling::All { temperature },
-            (k, true) => Sampling::TopKThenTopP { k, p: top_p, temperature },
+            (k, true) => Sampling::TopKThenTopP {
+                k,
+                p: top_p,
+                temperature,
+            },
             (k, false) => Sampling::TopK { k, temperature },
         }
     };

@@ -127,8 +127,8 @@ pub struct ImageCommitArgs {
     pub comment: Option<String>,
     /// Query parameter: `author`.
     pub author: Option<String>,
-    /// Query parameter: `pause`.
-    pub pause: Option<String>,
+    /// Query parameter: `pause` (true/false).
+    pub pause: Option<bool>,
     /// Query parameter: `changes`.
     pub changes: Option<String>,
     /// Request body.
@@ -170,8 +170,8 @@ pub async fn image_commit_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/commit",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/commit");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -181,7 +181,10 @@ where
     builder = builder.query("tag", args.tag.as_deref());
     builder = builder.query("comment", args.comment.as_deref());
     builder = builder.query("author", args.author.as_deref());
-    builder = builder.query("pause", args.pause.as_deref());
+    builder = builder.query(
+        "pause",
+        args.pause.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("changes", args.changes.as_deref());
 
     builder = builder

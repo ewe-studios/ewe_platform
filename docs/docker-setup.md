@@ -53,6 +53,16 @@ Subsequent boots: 2-5 minutes.
 **File sharing:** The repo is mounted at `/shared` inside the container.
 Files written to `/shared` on macOS appear in your host repo directory.
 
+The compose file defaults the shared directory and the VM disk directory to the
+maintainer's own paths. On another machine, set `EWE_SHARED_DIR` and
+`EWE_MACOS_STORAGE` (or `EWE_WINDOWS_STORAGE`) before `docker compose up`. Docker
+answers a host path that does not exist by creating an empty directory, so a wrong
+path is silent: the container then has no repository at `/shared`.
+
+The virtual machine runs inside the container. `docker exec` reaches the container's
+Linux side, never the guest. Use VNC or the web UI to work inside macOS, and
+`ci/platform-images` to reach a provisioned guest over SSH.
+
 ### Android Emulator (`dockurr/android`)
 
 | Property | Value |
@@ -97,9 +107,10 @@ adb install app-debug.apk
 adb shell am start -n com.ewe.platform/.MainActivity
 adb shell input tap 500 500  # simulate touch
 
-# iOS (headless — requires VNC for full Xcode automation)
-# Use xcodebuild CLI inside macOS container:
-docker compose exec macos xcodebuild test -project ...
+# iOS (headless)
+# `docker compose exec` reaches the container's Linux side, not macOS, so
+# `xcodebuild` does not run there. Use VNC, or the provisioned guest images in
+# ci/platform-images, which accept SSH.
 ```
 
 ## Troubleshooting

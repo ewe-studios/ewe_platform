@@ -111,7 +111,7 @@ pub mod internal_api {
     /// Panics if the internal mutex is poisoned.
     pub fn parse_callback_replies(
         memory_id: MemoryId,
-        returns: ReturnTypeHints,
+        returns: &ReturnTypeHints,
     ) -> MemoryAllocationResult<Returns> {
         let memory = internal_api::get_memory(memory_id);
         let result_container = memory.into_with(|mem| {
@@ -336,11 +336,14 @@ pub mod internal_api {
     ///
     /// Panics if the internal mutex is poisoned.
     pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
-        match RECURRING_INTERVAL_CALLBACKS
+        // Take a handle and drop the registry lock BEFORE running it: a
+        // callback that registers or cancels an interval would otherwise
+        // re-lock this mutex (a panic or a deadlock).
+        let item = RECURRING_INTERVAL_CALLBACKS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .call(id)
-        {
+            .get(id);
+        match item.as_ref().map(crate::intervals::perform_interval) {
             Some(inner) => Ok(inner),
             None => Err(crate::WASMErrors::GuestError(
                 crate::GuestOperationError::UnknownInternalPointer(id),
@@ -479,7 +482,7 @@ pub mod internal_api {
             .get_type(addr)
             .expect("should be registered");
 
-        match internal_api::parse_callback_replies(value, returns) {
+        match internal_api::parse_callback_replies(value, &returns) {
             Ok(values) => {
                 INTERNAL_CALLBACKS
                     .lock()
@@ -495,9 +498,9 @@ pub mod internal_api {
                         .call(addr, Err(code))
                         .expect("should have called callback");
                 }
-                _ => panic!(
-                    "Runtime memory bug, please investigate, this should not fail: {err:?}"
-                ),
+                _ => {
+                    panic!("Runtime memory bug, please investigate, this should not fail: {err:?}")
+                }
             },
         }
     }
@@ -626,24 +629,38 @@ pub mod exposed_runtime {
         );
     }
 
+    /// Advance the guest timer loop.
+    ///
+    /// Returns 1 for `REQUEUE`, 2 for `STOP`, and 0 when the guest installed no
+    /// [`crate::wasi_host::TimeSource`]. The guest installs the source with
+    /// [`crate::wasi_host::WasiHost::install`] before the embedder calls this.
     #[cfg(feature = "wasi")]
     #[no_mangle]
     pub extern "C" fn wasi_tick() -> u8 {
-        crate::wasi_host::tick().into_u8()
+        crate::wasi_host::tick().map_or(0, crate::TickState::into_u8)
     }
 
+    /// Sleep until the next timer event, then fire it.
+    ///
+    /// Returns 1 for `REQUEUE`, 2 for `STOP`, and 0 when the guest installed no
+    /// [`crate::wasi_host::TimeSource`].
     #[cfg(feature = "wasi")]
     #[no_mangle]
     pub extern "C" fn wasi_poll_blocking() -> u8 {
-        crate::wasi_host::poll_blocking().into_u8()
+        crate::wasi_host::poll_blocking().map_or(0, crate::TickState::into_u8)
     }
 
+    /// The duration until the next timer event, in milliseconds.
+    ///
+    /// Returns `u64::MAX` when no timer is pending or when the guest installed
+    /// no [`crate::wasi_host::TimeSource`].
     #[cfg(feature = "wasi")]
     #[no_mangle]
     pub extern "C" fn wasi_time_until_next_event_ms() -> u64 {
         crate::wasi_host::time_until_next_event()
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(u64::MAX)
+            .ok()
+            .flatten()
+            .map_or(u64::MAX, |d| d.as_millis() as u64)
     }
 
     #[cfg(feature = "wasi")]
@@ -1154,8 +1171,16 @@ pub mod abi {
 
             // ── F28: Stream FFI ────────────────────────────────────────
 
-            pub fn host_stream_create() -> u64 { 0 }
-            pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
+            pub fn host_stream_create() -> u64 {
+                0
+            }
+            pub fn host_sender_send(
+                _stream_id: u64,
+                _data_start: *const u8,
+                _data_len: u32,
+                _seq: u64,
+            ) {
+            }
             pub fn host_sender_end(_stream_id: u64) {}
         }
 

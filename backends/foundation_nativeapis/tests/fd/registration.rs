@@ -1,10 +1,9 @@
-/// Integration test: FD readiness tracking with RegisteredFd.
+/// Integration test: FD readiness tracking with `RegisteredFd`.
 ///
 /// Tests the edge-triggered readiness tracking patterns:
 /// - Readiness is set when data arrives
 /// - Readiness is cleared after read
 /// - Broken pipe / closed fd returns Error, not perpetual Ready
-
 use foundation_nativeapis::native::fd::{PollResult, Ready, RegisteredFd};
 use foundation_nativeapis::{Events, Interest, Poll, Token};
 use std::os::fd::{AsRawFd, OwnedFd};
@@ -13,20 +12,22 @@ use std::time::Duration;
 /// Create a pipe (reader, writer), both nonblocking.
 fn make_pipe() -> (OwnedFd, OwnedFd) {
     let (r, w) = nix::unistd::pipe().expect("pipe creation failed");
-    nix::fcntl::fcntl(r.as_raw_fd(), nix::fcntl::FcntlArg::F_SETFL(
-        nix::fcntl::OFlag::O_NONBLOCK
-    )).expect("fcntl O_NONBLOCK failed");
-    nix::fcntl::fcntl(w.as_raw_fd(), nix::fcntl::FcntlArg::F_SETFL(
-        nix::fcntl::OFlag::O_NONBLOCK
-    )).expect("fcntl O_NONBLOCK failed");
-    (r, w)  // nix::pipe already returns OwnedFd
+    nix::fcntl::fcntl(
+        r.as_raw_fd(),
+        nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+    )
+    .expect("fcntl O_NONBLOCK failed");
+    nix::fcntl::fcntl(
+        w.as_raw_fd(),
+        nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+    )
+    .expect("fcntl O_NONBLOCK failed");
+    (r, w) // nix::pipe already returns OwnedFd
 }
 
 /// Write to a raw fd using libc.
 fn write_fd(fd: std::os::unix::io::RawFd, data: &[u8]) -> std::io::Result<()> {
-    let n = unsafe {
-        libc::write(fd, data.as_ptr() as *const libc::c_void, data.len())
-    };
+    let n = unsafe { libc::write(fd, data.as_ptr().cast::<libc::c_void>(), data.len()) };
     if n < 0 {
         Err(std::io::Error::last_os_error())
     } else {
@@ -42,17 +43,16 @@ fn registered_fd_not_ready_when_empty() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // No poll needed when readiness hasn't been set yet — defaults to EMPTY
     match registered.poll_readable() {
         PollResult::NotReady => {} // expected
-        other => panic!("expected NotReady, got {:?}", other),
+        other => panic!("expected NotReady, got {other:?}"),
     }
 }
 
-/// Test: After polling with data available, poll_readable returns Ready
+/// Test: After polling with data available, `poll_readable` returns Ready
 /// This requires the poll layer to update the readiness bitmask.
 #[test]
 fn registered_fd_ready_after_poll_with_data() {
@@ -60,8 +60,8 @@ fn registered_fd_ready_after_poll_with_data() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let _registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let _registered =
+        RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Write data to the pipe
     write_fd(writer.as_raw_fd(), b"hello").expect("write failed");
@@ -86,8 +86,7 @@ fn registered_fd_readiness_cleared_after_read() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Write data
     write_fd(writer.as_raw_fd(), b"hello").expect("write failed");
@@ -96,7 +95,7 @@ fn registered_fd_readiness_cleared_after_read() {
     let mut events = Events::with_capacity(16);
     poll.poll(&mut events, Some(Duration::from_millis(100)))
         .expect("poll failed");
-    assert!(events.len() >= 1);
+    assert!(!events.is_empty());
 
     // Read all data via the raw fd
     let fd = registered.get_ref();
@@ -104,7 +103,7 @@ fn registered_fd_readiness_cleared_after_read() {
     let n = unsafe {
         libc::read(
             fd.as_raw_fd(),
-            buf.as_mut_ptr() as *mut libc::c_void,
+            buf.as_mut_ptr().cast::<libc::c_void>(),
             buf.len(),
         )
     };
@@ -141,10 +140,10 @@ fn ready_bitmask_operations() {
     assert_eq!(intersection, readable);
 }
 
-/// Test: Closed read end of pipe triggers error on poll_readable
-/// This tests the READ_CLOSED / ERROR detection in poll_readable().
+/// Test: Closed read end of pipe triggers error on `poll_readable`
+/// This tests the `READ_CLOSED` / ERROR detection in `poll_readable()`.
 /// When the write end is closed and all data read, epoll returns EPOLLIN | EPOLLHUP.
-/// The poll layer maps EPOLLHUP to is_read_closed().
+/// The poll layer maps EPOLLHUP to `is_read_closed()`.
 #[test]
 fn poll_read_closed_detects_pipe_close() {
     let (reader, writer) = make_pipe();
@@ -152,7 +151,11 @@ fn poll_read_closed_detects_pipe_close() {
     let registry = poll.registry();
 
     registry
-        .register(&mut foundation_nativeapis::SourceFd(reader.as_raw_fd()), Token(0), Interest::READABLE)
+        .register(
+            &mut foundation_nativeapis::SourceFd(reader.as_raw_fd()),
+            Token(0),
+            Interest::READABLE,
+        )
         .expect("register failed");
 
     // Close the write end — read end will get EPOLLHUP on next poll
@@ -167,11 +170,14 @@ fn poll_read_closed_detects_pipe_close() {
 
     assert_eq!(events.len(), 1);
     let event = events.iter().next().unwrap();
-    assert!(event.is_read_closed(), "expected read_closed flag, events: {:?}", event);
+    assert!(
+        event.is_read_closed(),
+        "expected read_closed flag, events: {event:?}"
+    );
 }
 
 /// Test: Fd lifecycle — register, use, drop, deregister.
-/// Verifies that dropping a RegisteredFd properly deregisters from the poll
+/// Verifies that dropping a `RegisteredFd` properly deregisters from the poll
 /// selector, so stale events don't appear for a closed fd.
 #[test]
 fn registered_fd_lifecycle() {
@@ -180,8 +186,8 @@ fn registered_fd_lifecycle() {
     let registry = poll.registry();
 
     {
-        let registered = RegisteredFd::new(reader, &registry, Token(0))
-            .expect("failed to register fd");
+        let registered =
+            RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
         // Write data, poll, verify readable
         write_fd(writer.as_raw_fd(), b"hello").expect("write failed");
@@ -217,8 +223,8 @@ fn registered_fd_edge_triggered() {
     let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("failed to create poll");
 
-    let registered = RegisteredFd::new(reader, &poll.registry(), Token(0))
-        .expect("failed to register fd");
+    let registered =
+        RegisteredFd::new(reader, &poll.registry(), Token(0)).expect("failed to register fd");
 
     // Write data
     write_fd(writer.as_raw_fd(), b"hello").expect("write failed");
@@ -227,7 +233,10 @@ fn registered_fd_edge_triggered() {
     let mut events = Events::with_capacity(16);
     poll.poll(&mut events, Some(Duration::from_millis(100)))
         .expect("poll failed");
-    assert!(events.iter().any(|e| e.is_readable()), "first poll should show readable");
+    assert!(
+        events.iter().any(|e| e.is_readable()),
+        "first poll should show readable"
+    );
 
     // Read only 2 bytes (not all 5)
     let fd = registered.get_ref();
@@ -235,7 +244,7 @@ fn registered_fd_edge_triggered() {
     let n = unsafe {
         libc::read(
             fd.as_raw_fd(),
-            buf.as_mut_ptr() as *mut libc::c_void,
+            buf.as_mut_ptr().cast::<libc::c_void>(),
             buf.len(),
         )
     };
@@ -276,7 +285,8 @@ fn registered_fd_multi_interest() {
         &registry,
         Token(0),
         Interest::READABLE | Interest::WRITABLE,
-    ).expect("failed to register fd");
+    )
+    .expect("failed to register fd");
 
     // Write data to reader side, poll
     write_fd(writer.as_raw_fd(), b"hello").expect("write failed");
@@ -294,17 +304,16 @@ fn registered_fd_multi_interest() {
 
 /// Test: Broken pipe — busy loop prevention.
 /// When a pipe's write end is closed, the read end becomes permanently
-/// readable (EPOLLIN | EPOLLHUP). Without READ_CLOSED detection, the
+/// readable (EPOLLIN | EPOLLHUP). Without `READ_CLOSED` detection, the
 /// fd would appear readable forever, causing a busy loop.
-/// This test verifies that poll_readable returns Error, not Ready.
+/// This test verifies that `poll_readable` returns Error, not Ready.
 #[test]
 fn registered_fd_broken_pipe_no_busy_loop() {
     let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Close the write end
     drop(writer);
@@ -331,15 +340,14 @@ fn registered_fd_broken_pipe_no_busy_loop() {
 /// Test: EOF handling — closed write end is detected.
 /// When the write end of a pipe is closed, `poll_readable()` returns
 /// Error(ConnectionReset) rather than Ready, preventing a busy loop.
-/// This verifies the READ_CLOSED → Error path in poll_readable().
+/// This verifies the `READ_CLOSED` → Error path in `poll_readable()`.
 #[test]
 fn registered_fd_eof_returns_error() {
     let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Write data then close write end
     write_fd(writer.as_raw_fd(), b"hi").expect("write failed");
@@ -350,8 +358,11 @@ fn registered_fd_eof_returns_error() {
     // (READ_CLOSED is checked before READABLE)
     match registered.poll_readable() {
         PollResult::Error(e) => {
-            assert_eq!(e.kind(), std::io::ErrorKind::ConnectionReset,
-                "expected ConnectionReset, got {:?}", e);
+            assert_eq!(
+                e.kind(),
+                std::io::ErrorKind::ConnectionReset,
+                "expected ConnectionReset, got {e:?}"
+            );
         }
         PollResult::Ready(_) => {
             panic!("poll_readable returned Ready for closed pipe — busy loop!");
@@ -362,7 +373,7 @@ fn registered_fd_eof_returns_error() {
     }
 }
 
-/// Test: try_io_read clears readiness on 0-byte read (EOF path).
+/// Test: `try_io_read` clears readiness on 0-byte read (EOF path).
 /// This directly tests the guard's EOF handling: when a read returns
 /// 0 bytes, readiness is cleared to prevent a busy loop.
 #[test]
@@ -371,8 +382,8 @@ fn try_io_read_clears_on_zero_bytes() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let _registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let _registered =
+        RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Manually construct a scenario where readiness is set but read returns 0
     // by using poll_readable when no data is available — the guard should

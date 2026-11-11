@@ -12,9 +12,9 @@
 #![allow(clippy::pedantic)]
 
 fn main() {
-	let matches = foundation_codegentools::cli::gen_api::command().get_matches();
-	if let Err(e) = foundation_codegentools::cli::gen_api::run(&matches) {
-		eprintln!("error: {e}");
-		std::process::exit(1);
-	}
+    let matches = foundation_codegentools::cli::gen_api::command().get_matches();
+    if let Err(e) = foundation_codegentools::cli::gen_api::run(&matches) {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
 }

@@ -1,17 +1,18 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 
-#![cfg(not(target_family = "wasm"))]
-
 use crate::native::connection::Connection;
-use crate::native::connection::{DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
+use crate::native::connection::{DataStreamAddr, Endpoint, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ALL_VERSIONS};
 use std::error::Error;
 use std::io::{Read, Write};
-use std::net::{Shutdown, TcpStream};
+use std::net::Shutdown;
+#[cfg(not(unix))]
+use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 use webpki_roots::TLS_SERVER_ROOTS;
 use zeroize::Zeroizing;
@@ -109,11 +110,11 @@ pub fn initialize_tls_provider() -> Option<CryptoProvider> {
 ///
 /// # Example
 ///
-/// ```no_run
+/// ```rust
 /// use foundation_netio::netcap::ssl::rustls::default_client_config;
 ///
 /// let config = default_client_config();
-/// // Use config with RustlsConnector
+/// assert!(std::sync::Arc::strong_count(&config) >= 1);
 /// ```
 #[must_use]
 pub fn default_client_config() -> Arc<ClientConfig> {
@@ -356,6 +357,134 @@ where
     }
 }
 
+/// A readiness handle for a synchronous I/O driver (`conn_io`) that blocks its
+/// thread, on a stream whose TLS connection type is `'static` and `Send + Sync`.
+/// Feature 06.
+///
+/// The handle clones this stream (cheap `Arc` bump) so the driver can query the
+/// TLS state (`wants_write` / `is_handshaking`) at each wait. The `'static`
+/// bound lets the clone coerce to `Arc<dyn TlsInterest>`.
+#[cfg(unix)]
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>>
+        + Send
+        + Sync
+        + std::fmt::Debug
+        + 'static,
+{
+    #[must_use]
+    pub fn conn_readiness(&self) -> crate::native::connection::ConnReadiness {
+        use std::os::fd::AsRawFd;
+        let fd = self.as_raw_fd();
+        crate::native::connection::ConnReadiness::Fd(fd, Some(std::sync::Arc::new(self.clone())))
+    }
+}
+#[cfg(unix)]
+impl<T, D> crate::native::connection::TlsInterest for RustlsStream<T>
+where
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>> + Send + Sync + std::fmt::Debug,
+{
+    fn corrected(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> crate::native::readiness::IoInterest {
+        use crate::native::readiness::IoInterest;
+        let guard = self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if guard.conn.wants_write() {
+            IoInterest::Writable
+        } else if guard.conn.is_handshaking() {
+            IoInterest::Readable
+        } else {
+            interest
+        }
+    }
+
+    fn fd(&self) -> std::os::unix::io::RawFd {
+        use std::os::fd::AsRawFd;
+        self.as_raw_fd()
+    }
+}
+
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::DerefMut<Target = rustls::ConnectionCommon<D>>,
+{
+    /// Ask rustls to refresh the TLS 1.3 traffic keys.
+    ///
+    /// The next write carries the key update record. Until it is flushed the
+    /// session has pending TLS output (`wants_write`), which is the state a
+    /// plaintext read must still make progress past (Feature 06: the sync
+    /// driver corrects a read to the write direction in this state).
+    ///
+    /// # Errors
+    /// The rustls key-update error, or an error if the stream mutex is poisoned.
+    pub fn refresh_traffic_keys(&self) -> std::io::Result<()> {
+        let mut guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        guard
+            .conn
+            .refresh_traffic_keys()
+            .map_err(std::io::Error::other)
+    }
+}
+
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::DerefMut<Target = rustls::ConnectionCommon<D>>,
+{
+    /// Drive the TLS handshake on the non-blocking socket until it finishes or
+    /// would block.
+    ///
+    /// WHY: the first `write` of the request used to drive the handshake
+    /// implicitly, so the handshake's wait used the body's idle timeout instead
+    /// of the connect deadline. Driving it here as its own step lets the caller
+    /// use the connect deadline and park on the direction rustls asks for.
+    ///
+    /// WHAT: calls [`rustls::ConnectionCommon::complete_io`] in a loop while the
+    /// handshake makes progress. Returns `Ok(())` once the handshake is done,
+    /// `Err(WouldBlock)` when the socket must turn before more progress is
+    /// possible, or the handshake's real error (a bad certificate, a protocol
+    /// alert, …).
+    ///
+    /// The caller parks on [`Self::readiness`] when it gets `WouldBlock`; that
+    /// method already picks the direction from the TLS session (`wants_write`
+    /// first, then "still handshaking").
+    ///
+    /// # Errors
+    /// `WouldBlock` (park and call again), or the handshake's error.
+    pub fn drive_handshake(&self) -> std::io::Result<()> {
+        let mut guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        let rustls::StreamOwned { conn, sock } = &mut *guard;
+
+        loop {
+            if !conn.is_handshaking() {
+                return Ok(());
+            }
+            match conn.complete_io(sock) {
+                Ok((rdlen, wrlen)) => {
+                    // Progress was made: drive again. No progress while still
+                    // handshaking cannot normally happen (`complete_io` returns
+                    // `WouldBlock` in that case), but do not spin if it does.
+                    if rdlen == 0 && wrlen == 0 {
+                        return Err(std::io::Error::from(std::io::ErrorKind::WouldBlock));
+                    }
+                }
+                Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => return Err(err),
+                Err(err) => return Err(err),
+            }
+        }
+    }
+}
+
 impl<T> Clone for RustlsStream<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
@@ -490,6 +619,9 @@ impl RustlsAcceptor {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    // Public API: callers in other crates pass the PEM bytes by value; changing
+    // to slices would break the crate's public API surface.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn from_pem(
         certificates: Vec<u8>,
         private_key: Zeroizing<Vec<u8>>,
@@ -540,11 +672,11 @@ impl RustlsConnector {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ```rust
     /// use foundation_netio::netcap::ssl::rustls::RustlsConnector;
     ///
     /// let connector = RustlsConnector::new();
-    /// // connector is ready to establish TLS connections
+    /// let _ = connector.clone();
     /// ```
     #[must_use]
     pub fn new() -> Self {
@@ -560,15 +692,11 @@ impl RustlsConnector {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// use foundation_netio::netcap::ssl::rustls::RustlsConnector;
-    /// use std::sync::Arc;
+    /// ```rust
+    /// use foundation_netio::netcap::ssl::rustls::{default_client_config, RustlsConnector};
     ///
-    /// let config = rustls::ClientConfig::builder()
-    ///     .with_root_certificates(rustls::RootCertStore::empty())
-    ///     .with_no_client_auth();
-    ///
-    /// let connector = RustlsConnector::with_config(Arc::new(config));
+    /// let connector = RustlsConnector::with_config(default_client_config());
+    /// let _ = connector.clone();
     /// ```
     #[must_use]
     pub fn with_config(config: Arc<rustls::ClientConfig>) -> Self {
@@ -632,7 +760,7 @@ impl RustlsConnector {
             Endpoint::WithIdentity(_, identity) => {
                 Self(identity.clone())
             }
-            _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
+            Endpoint::WithDefault(_) => unreachable!("You generally won't call this method with Endpoint::WithDefault since its left to you to generate")
         }
     }
 
@@ -642,9 +770,10 @@ impl RustlsConnector {
     /// Returns an error if the operation fails.
     pub fn client_tls_from_endpoint(
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+        ctx: &Ctx,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let connector = Self::create(endpoint);
-        connector.from_endpoint(endpoint)
+        connector.from_endpoint(endpoint, ctx)
     }
 
     ///
@@ -674,123 +803,83 @@ impl RustlsConnector {
         Ok((RustlsStream(shared_stream), addr))
     }
 
+    /// Wrap a plain connection and drive the TLS handshake to completion.
+    ///
+    /// WHY: a synchronous caller (the `HttpClientConnection` constructors and
+    /// [`Self::from_endpoint`]) cannot park on a readiness signal. It still must
+    /// not start a blocking kernel call, so it drives the same non-blocking
+    /// handshake a valtron task drives, and waits on the socket readiness
+    /// ([`Self::from_tcp_stream`] leaves the handshake to the caller).
+    ///
+    /// The returned stream is blocking, as a synchronous caller expects.
+    ///
+    /// # Errors
+    /// The handshake failed or the timeout expired.
+    pub fn from_tcp_stream_complete(
+        &self,
+        sni: String,
+        plain: Connection,
+        timeout: Option<std::time::Duration>,
+        ctx: &Ctx,
+    ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
+        let (stream, addr) = self.from_tcp_stream(sni, plain)?;
+        finish_handshake(&stream, timeout, ctx).map_err(Box::new)?;
+        stream.set_nonblocking(false)?;
+        Ok((stream, addr))
+    }
+
     ///
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    ///
+    /// The connect runs on a non-blocking socket and the handshake is driven by
+    /// readiness, so no blocking socket call runs here (issues #277 and #279).
     pub fn from_endpoint(
         &self,
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
+        ctx: &Ctx,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
+        let timeout = super::endpoint_timeout(endpoint);
+        let plain_stream = super::connect_plain(host_socket_addr, timeout, ctx)?;
 
-        let plain_stream = match endpoint {
-            Endpoint::WithDefault(config) => match config {
-                EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
-                }
-                _ => TcpStream::connect(host_socket_addr),
-            },
-            Endpoint::WithIdentity(config, _) => match config {
-                EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
-                }
-                _ => TcpStream::connect(host_socket_addr),
-            },
-        }?;
-
-        self.from_tcp_stream(host, Connection::Tcp(plain_stream))
+        self.from_tcp_stream_complete(host, Connection::Tcp(plain_stream), timeout, ctx)
     }
+}
+
+/// Drive the rustls handshake on a non-blocking socket, blocking the calling
+/// thread until it finishes or the deadline passes.
+#[cfg(unix)]
+fn finish_handshake(
+    stream: &RustTlsClientStream,
+    timeout: Option<std::time::Duration>,
+    ctx: &Ctx,
+) -> std::io::Result<()> {
+    let readiness = stream.conn_readiness();
+    crate::native::readiness::complete_handshake_blocking(
+        || stream.drive_handshake(),
+        || readiness.poll_fd(crate::native::readiness::IoInterest::Readable),
+        timeout,
+        ctx,
+    )
+}
+
+/// Drive the rustls handshake on a blocking socket (non-unix platforms have no
+/// `poll(2)` readiness here).
+#[cfg(not(unix))]
+fn finish_handshake(
+    stream: &RustTlsClientStream,
+    _timeout: Option<std::time::Duration>,
+    _ctx: &Ctx,
+) -> std::io::Result<()> {
+    stream.set_nonblocking(false)?;
+    stream.drive_handshake()
 }
 
 impl Default for RustlsConnector {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_client_config() {
-        let config = default_client_config();
-        // Verify config is created successfully
-        assert!(Arc::strong_count(&config) == 1);
-    }
-
-    #[test]
-    fn test_rustls_connector_new() {
-        let connector = RustlsConnector::new();
-        // Verify connector is created with default config
-        assert!(Arc::strong_count(&connector.0) >= 1);
-    }
-
-    #[test]
-    fn test_rustls_connector_default() {
-        let connector = RustlsConnector::default();
-        // Verify Default trait works
-        assert!(Arc::strong_count(&connector.0) >= 1);
-    }
-
-    #[test]
-    fn test_rustls_connector_clone() {
-        let connector1 = RustlsConnector::new();
-        let connector2 = connector1.clone();
-        // Verify Arc is shared
-        assert!(Arc::strong_count(&connector1.0) == 2);
-        assert!(Arc::strong_count(&connector2.0) == 2);
-    }
-
-    #[test]
-    fn test_rustls_acceptor_from_pem_invalid() {
-        // Test with invalid certificate data
-        let certs = vec![0u8; 10];
-        let key = Zeroizing::new(vec![0u8; 10]);
-
-        let result = RustlsAcceptor::from_pem(certs, key);
-        // Should fail with invalid PEM data
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_server_name_parsing() {
-        // Test valid SNI
-        let valid_sni = "example.com";
-        let result: Result<ServerName, _> = valid_sni.try_into();
-        assert!(result.is_ok());
-
-        // Test invalid SNI (empty)
-        let invalid_sni = "";
-        let result: Result<ServerName, _> = invalid_sni.try_into();
-        assert!(result.is_err());
-
-        // Test invalid SNI (too long)
-        let too_long = "a".repeat(300);
-        let result: Result<ServerName, _> = too_long.as_str().try_into();
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_rustls_connector_create_from_endpoint() {
-        let custom_config = default_client_config();
-        let uri = foundation_core::url::Uri::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(uri), custom_config.clone());
-
-        let _ = RustlsConnector::create(&endpoint);
-
-        // Verify the connector uses the custom config
-        assert!(Arc::strong_count(&custom_config) >= 2);
-    }
-
-    #[test]
-    fn test_root_cert_store_not_empty() {
-        let _config = default_client_config();
-        // The config should have root certificates loaded
-        // We can't directly inspect the root store, but we know it was created with TLS_SERVER_ROOTS
-        assert!(!TLS_SERVER_ROOTS.is_empty());
     }
 }

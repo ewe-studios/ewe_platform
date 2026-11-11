@@ -9,7 +9,7 @@
 #[cfg(all(target_os = "linux", feature = "watcher-linux"))]
 pub mod linux;
 
-/// KqueueWatcher — macOS/BSD kqueue-based file watching (EVFILT_VNODE).
+/// `KqueueWatcher` — macOS/BSD kqueue-based file watching (`EVFILT_VNODE`).
 #[cfg(all(
     any(
         target_os = "macos",

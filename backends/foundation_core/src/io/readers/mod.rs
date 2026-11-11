@@ -190,7 +190,13 @@ impl<R: Read> HintReadterator for BatchReader<R> {
             Err(e)
                 if e.kind() == io::ErrorKind::WouldBlock || e.kind() == io::ErrorKind::TimedOut =>
             {
-                tracing::error!("Timeout/WouldBlock error received: {:?}", &e);
+                // WouldBlock is normal back-pressure, not an error; TimedOut is a
+                // stall worth a debug line but still not an error.
+                if e.kind() == io::ErrorKind::WouldBlock {
+                    tracing::trace!("WouldBlock received: {:?}", &e);
+                } else {
+                    tracing::debug!("TimedOut received: {:?}", &e);
+                }
                 self.consecutive_retries += 1;
                 tracing::trace!(
                     "Checking consecutive errors (max={}): current={}",
@@ -380,7 +386,13 @@ impl<R: Read + Send> Iterator for LimitedBatchStreamReader<R> {
         let remaining = self.byte_cap - self.bytes_yielded;
 
         tracing::trace!("Remaining bytes to read: {}", remaining);
-        match self.inner.next_bytes(Some(remaining)) {
+        // Ask for no more than one batch: a read takes whatever the source holds,
+        // so the remainder of a large cap would hand out (and allocate) pieces of
+        // many MiB.
+        match self
+            .inner
+            .next_bytes(Some(remaining.min(self.inner.batch_size)))
+        {
             Some(Ok(Data::Bytes(bytes))) => {
                 tracing::trace!("Readed new bytes size from reader: {}", bytes.len());
                 self.bytes_yielded += bytes.len();
@@ -472,7 +484,13 @@ impl<R: Read + Send> Iterator for LimitedEOFStreamReader<R> {
 
         let remaining = self.byte_cap - self.bytes_yielded;
         tracing::trace!(remaining = %remaining, "Remaining bytes to read: {}", &remaining);
-        match self.inner.next_bytes(Some(remaining)) {
+        // Ask for no more than one batch: a read takes whatever the source holds,
+        // so the remainder of a large cap would hand out (and allocate) pieces of
+        // many MiB.
+        match self
+            .inner
+            .next_bytes(Some(remaining.min(self.inner.batch_size)))
+        {
             Some(Ok(Data::Bytes(bytes))) => {
                 self.bytes_yielded += bytes.len();
                 if self.bytes_yielded > self.byte_cap {
@@ -530,7 +548,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.inner.next() {
-                Some(Ok(Data::Retry)) => continue, // Absorb and retry
+                Some(Ok(Data::Retry)) => {} // Absorb and retry
                 Some(Ok(Data::Bytes(bytes))) => return Some(Ok(bytes)),
                 Some(Err(e)) => return Some(Err(e)),
                 None => return None,

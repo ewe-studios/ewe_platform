@@ -1,4 +1,4 @@
-//! Integration test for the RawStream → RegisteredFd seam (Decision 12 §12 of
+//! Integration test for the `RawStream` → `RegisteredFd` seam (Decision 12 §12 of
 //! spec 41-connectrpc, feature F09).
 //!
 //! WHY: The native parking model registers a connection's socket fd with the

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.6"
+version = "0.0.20"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -22,23 +22,25 @@ crate-type = ["rlib"]
 # foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5", default-features = false }
+# The shared context (`Ctx`, `Clock`, ...). `valtron` re-exports it.
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
 
 # -- Workspace dependencies
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
 # optional: native builds no longer compile foundation_wasm and its native-only
 # CLI tooling (clap, toml_edit, foundation_codegen, ...).
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.5", optional = true }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.8", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.8" }
 
 # -- Other dependencies
-futures-core = { version = "0.3", default-features = false }
+futures-core = { version = "0.3", default-features = false, optional = true }
 # `StreamExt` (`.next().await`, `.collect::<Vec<_>>().await`, …) for the valtron
-# `futures_core::Stream` bridges. Optional + pulled in by `std`, so `no_std`
-# builds stay `futures-core`-only.
+# `futures_core::Stream` bridges. Optional and pulled in by `alloc`/`std`, so a
+# bare build does not compile it.
 futures-lite = { version = "2", default-features = false, features = ["std"], optional = true }
 derive_more = { version = "2.0", features = ["from", "debug", "error", "display"] }
 serde = { version = "1", features = ["derive"] }
@@ -65,6 +67,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+libc = "0.2"
 serial_test = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }
 smol = "2"
@@ -83,17 +86,20 @@ log_info = []
 alloc = ["futures-core/alloc"]
 std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std", "dep:futures-lite"]
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
+# Test-only `SimulatedClock` for deterministic time control. It needs `std`
+# (the `Ctx` module is std-gated).
+test-clock = ["std"]
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 # Each also picks foundation_compact's matching wasm32 time/entropy backend.
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen"]
-js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_compact/host-abi"]
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen", "foundation_context/wasm-bindgen"]
+js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_compact/host-abi", "foundation_context/host-abi"]
 
 # default flags
 default = ["standard", "std", "alloc"]
 
 [build-dependencies]
-foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.2" }
+foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.3" }
 
 [lints]
 workspace = true

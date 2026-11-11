@@ -1,23 +1,23 @@
-//! The per-call context model (Decision 04): [`Ctx`], [`RequestContext`],
+//! The per-call context model (Decision 04): [`RpcCtx`], [`RequestContext`],
 //! [`CancelSignal`], and the extensions travel pathway.
 //!
-//! WHY: Every handler and client method receives a [`Ctx`] **by value**. It is
+//! WHY: Every handler and client method receives a [`RpcCtx`] **by value**. It is
 //! owned + cheaply-`Clone` (Arc-backed internals): a clone is a handful of
 //! refcount bumps and `'static`, which is what lets streaming handlers return
 //! `impl Stream + Send + 'static`. **Write = rebuild-and-move, read = share** —
 //! after construction the shared parts are immutable; a layer that changes
-//! something calls a `with_*` method (copy-on-write) and passes the new `Ctx`
+//! something calls a `with_*` method (copy-on-write) and passes the new `RpcCtx`
 //! forward, so two clones can never silently diverge on shared state. The only
 //! cross-clone mutable object is the [`CancelSignal`].
 //!
 //! WHAT: [`StreamType`], [`IdempotencyLevel`], [`Spec`], [`Peer`],
-//! [`RequestContext`], [`Ctx`], and [`CancelSignal`].
+//! [`RequestContext`], [`RpcCtx`], and [`CancelSignal`].
 //!
 //! **Extensions travel pathway (Decision 04):** HTTP middleware `&mut`-inserts on
 //! the owned `SimpleIncomingRequest`; dispatch **moves** the map into
 //! `RequestContext` (`take()`); post-construction writers use COW
 //! `with_extension` — visibility is **downstream-only** (a layer holding an
-//! earlier clone never sees a later insert), because each `Ctx` clone owns its
+//! earlier clone never sees a later insert), because each `RpcCtx` clone owns its
 //! own extensions map (the `Arc`-valued entries are shared, the map is not).
 
 mod cancel;
@@ -25,9 +25,11 @@ mod cancel;
 pub use cancel::CancelSignal;
 
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use foundation_http::shared::context::ContextBag;
+use foundation_compact::Instant;
+use foundation_context::Clock;
+use foundation_http::shared::context::Ctx;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};
 
@@ -115,18 +117,20 @@ pub struct RequestContext {
     /// Absolute deadline, if any (Copy).
     pub deadline: Option<Instant>,
     /// Type-map for untyped user/middleware data — Arc-valued, itself cheap-Clone
-    /// (Decision 12 §13); each `Ctx` clone owns its own map.
+    /// (Decision 12 §13); each `RpcCtx` clone owns its own map.
     pub extensions: Extensions,
     /// Connection-scoped metadata (peer, TLS, ALPN, …) shared across the
     /// connection's requests (Decision 04 Q13 / Decision 12 §13).
     pub connection: Arc<ConnectionContext>,
     cancel: CancelSignal,
+    /// The context whose clock measures the deadline and the remaining timeout.
+    pub ctx: Ctx,
 }
 
 impl RequestContext {
     /// An empty per-call state (base/background context).
     #[must_use]
-    pub fn empty(is_client: bool) -> Self {
+    pub fn empty(is_client: bool, ctx: Ctx) -> Self {
         Self {
             spec: Arc::new(Spec::empty(is_client)),
             peer: Arc::new(Peer::empty()),
@@ -135,6 +139,7 @@ impl RequestContext {
             extensions: Extensions::new(),
             connection: Arc::new(ConnectionContext::default()),
             cancel: CancelSignal::new(),
+            ctx,
         }
     }
 
@@ -152,6 +157,7 @@ impl RequestContext {
         extensions: Extensions,
         connection: Arc<ConnectionContext>,
         cancel: CancelSignal,
+        ctx: Ctx,
     ) -> Self {
         Self {
             spec: Arc::new(spec),
@@ -161,6 +167,7 @@ impl RequestContext {
             extensions,
             connection,
             cancel,
+            ctx,
         }
     }
 
@@ -179,7 +186,7 @@ impl RequestContext {
     #[must_use]
     pub fn remaining_timeout(&self) -> Option<Duration> {
         self.deadline
-            .map(|d| d.saturating_duration_since(Instant::now()))
+            .map(|d| d.saturating_duration_since(self.ctx.clock().now()))
     }
 
     /// The call's cancel signal — the transport holds a clone and fires it on
@@ -193,57 +200,65 @@ impl RequestContext {
 /// The context parameter every handler and client method receives, **by value,
 /// in all four RPC kinds** (Decision 04). Owned + cheap-`Clone`.
 #[derive(Clone)]
-pub struct Ctx {
-    /// App-scoped shared dependencies (DB pools, config, caches, …) — the same
-    /// bag the HTTP layer hands `Serve` handlers.
-    pub bag: Arc<ContextBag>,
+pub struct RpcCtx {
+    /// App-scoped shared dependencies (DB pools, config, caches, …) and the
+    /// injected clock and RNG — the same context the HTTP layer hands `Serve`
+    /// handlers.
+    pub ctx: Ctx,
     /// Per-RPC state.
     pub request: RequestContext,
 }
 
-impl Ctx {
+impl RpcCtx {
     /// Client-side base context: app deps only, empty per-call state.
     #[must_use]
-    pub fn client(bag: Arc<ContextBag>) -> Ctx {
-        Ctx {
-            bag,
-            request: RequestContext::empty(true),
-        }
+    pub fn client(ctx: Ctx) -> RpcCtx {
+        let request = RequestContext::empty(true, ctx.clone());
+        RpcCtx { ctx, request }
     }
 
-    /// Empty-bag base — tests, CLIs, wasm entry points.
+    /// Empty-context base — tests, CLIs, wasm entry points.
+    ///
+    /// This is a host entry point. It builds [`Ctx::host`], so it uses the real
+    /// clock and an RNG seeded from the entropy source. Library code must call
+    /// [`RpcCtx::client`] with the [`Ctx`] it was given.
     #[must_use]
-    pub fn background() -> Ctx {
-        Ctx {
-            bag: Arc::new(ContextBag::new()),
-            request: RequestContext::empty(false),
-        }
+    pub fn background() -> RpcCtx {
+        let ctx = Ctx::host();
+        let request = RequestContext::empty(false, ctx.clone());
+        RpcCtx { ctx, request }
+    }
+
+    /// The engine clock carried by this call context.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.ctx.clock()
     }
 
     // ── COW derivations: rebuild-and-move; the original is untouched ──
 
-    /// Return a new `Ctx` with the given deadline (`now + d`). The original is
+    /// Return a new `RpcCtx` with the given deadline (`now + d`). The original is
     /// unchanged; downstream layers receive the new context.
     #[must_use]
-    pub fn with_deadline(mut self, d: Duration) -> Ctx {
-        self.request.deadline = Some(Instant::now() + d);
+    pub fn with_deadline(mut self, d: Duration) -> RpcCtx {
+        self.request.deadline = Some(self.ctx.clock().now() + d);
         self
     }
 
-    /// Return a new `Ctx` with an extension inserted. Visibility is
+    /// Return a new `RpcCtx` with an extension inserted. Visibility is
     /// **downstream-only**: a layer holding an earlier clone does not see it,
-    /// because each `Ctx` clone owns its own extensions map.
+    /// because each `RpcCtx` clone owns its own extensions map.
     #[must_use]
-    pub fn with_extension<T: Send + Sync + 'static>(mut self, v: T) -> Ctx {
+    pub fn with_extension<T: Send + Sync + 'static>(mut self, v: T) -> RpcCtx {
         self.request.extensions.insert(v);
         self
     }
 
-    /// Return a new `Ctx` with the cancel signal replaced — detach
+    /// Return a new `RpcCtx` with the cancel signal replaced — detach
     /// (`CancelSignal::new()`) or opt-in link (`CancelSignal::linked(&parent)`).
     /// Plain `clone()` always **shares** the current signal.
     #[must_use]
-    pub fn with_cancellation(mut self, signal: CancelSignal) -> Ctx {
+    pub fn with_cancellation(mut self, signal: CancelSignal) -> RpcCtx {
         self.request.cancel = signal;
         self
     }
@@ -292,9 +307,9 @@ impl Ctx {
     }
 }
 
-impl core::fmt::Debug for Ctx {
+impl core::fmt::Debug for RpcCtx {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("Ctx")
+        f.debug_struct("RpcCtx")
             .field("spec", &self.request.spec)
             .field("peer", &self.request.peer)
             .field("deadline", &self.request.deadline)

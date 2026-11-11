@@ -11,7 +11,7 @@
 use std::borrow::Cow;
 
 use foundation_ui_traits::{
-    encode_with_envelope, ColumnarEncoder, AttrName, DecodeError, DomOp, Envelope, HtmlTag,
+    encode_with_envelope, AttrName, ColumnarEncoder, DecodeError, DomOp, Envelope, HtmlTag,
     JsonEncoder, MorphAction, ProtocolEncoder, TargetSelector, ATTR_CLASS, ENVELOPE_SIZE,
     PROTOCOL_ARROW, PROTOCOL_JSON, PROTOCOL_VERSION, TAG_DIV, TAG_SPAN,
 };
@@ -150,7 +150,10 @@ fn columnar_create_element_keeps_tag_and_class() {
     // The wire carries the compact id form, not the tag name.
     let as_text = String::from_utf8_lossy(&bytes);
     assert!(as_text.contains("id:1"), "known tag should encode as id:1");
-    assert!(!as_text.contains("div"), "tag NAME should not be on the wire");
+    assert!(
+        !as_text.contains("div"),
+        "tag NAME should not be on the wire"
+    );
     assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), vec![op]);
 }
 
@@ -417,8 +420,12 @@ fn columnar_and_json_agree_on_ten_ops() {
     ]);
     assert_eq!(ops.len(), 10);
 
-    let from_columnar = ColumnarEncoder.decode(&ColumnarEncoder.encode(ops.clone())).unwrap();
-    let from_json = JsonEncoder.decode(&JsonEncoder.encode(ops.clone())).unwrap();
+    let from_columnar = ColumnarEncoder
+        .decode(&ColumnarEncoder.encode(ops.clone()))
+        .unwrap();
+    let from_json = JsonEncoder
+        .decode(&JsonEncoder.encode(ops.clone()))
+        .unwrap();
     assert_eq!(from_columnar, ops);
     assert_eq!(from_json, ops);
     assert_eq!(from_columnar, from_json);
@@ -430,8 +437,12 @@ fn columnar_and_json_agree_on_ten_ops() {
 #[test]
 fn all_encoders_agree_on_every_variant() {
     let ops = all_nineteen_ops();
-    let from_columnar = ColumnarEncoder.decode(&ColumnarEncoder.encode(ops.clone())).unwrap();
-    let from_json = JsonEncoder.decode(&JsonEncoder.encode(ops.clone())).unwrap();
+    let from_columnar = ColumnarEncoder
+        .decode(&ColumnarEncoder.encode(ops.clone()))
+        .unwrap();
+    let from_json = JsonEncoder
+        .decode(&JsonEncoder.encode(ops.clone()))
+        .unwrap();
     assert_eq!(from_columnar, ops);
     assert_eq!(from_json, ops);
 }
@@ -464,7 +475,9 @@ fn morph_selector_and_action_round_trip() {
             action,
             content: Cow::Borrowed("<span>x</span>"),
         };
-        let decoded = ColumnarEncoder.decode(&ColumnarEncoder.encode(vec![op.clone()])).unwrap();
+        let decoded = ColumnarEncoder
+            .decode(&ColumnarEncoder.encode(vec![op.clone()]))
+            .unwrap();
         assert_eq!(decoded, vec![op], "target {target:?} action {action:?}");
     }
 }

@@ -70,14 +70,19 @@ impl<T: WirePayload> IpcRequest<T> {
     }
 
     /// Create a wire request from typed parts.
-    pub fn wire(ipc: impl Into<String>, action: impl Into<String>, payload: T) -> IpcRequest<Vec<u8>> {
+    pub fn wire(
+        ipc: impl Into<String>,
+        action: impl Into<String>,
+        payload: T,
+    ) -> IpcRequest<Vec<u8>> {
         IpcRequest {
             ipc: ipc.into(),
             action: action.into(),
             payload,
             content_type: IpcContentType::Json,
             target: None,
-        }.into_wire()
+        }
+        .into_wire()
     }
 }
 
@@ -104,7 +109,10 @@ impl<T: WirePayload> IpcResponse<T> {
     /// Convert a typed response into the wire form.
     pub fn into_wire(self) -> IpcResponse<Vec<u8>> {
         let (payload, content_type) = self.payload.into_wire_bytes();
-        IpcResponse { payload, content_type }
+        IpcResponse {
+            payload,
+            content_type,
+        }
     }
 
     /// Create a wire response from typed parts.
@@ -112,7 +120,8 @@ impl<T: WirePayload> IpcResponse<T> {
         IpcResponse {
             payload,
             content_type: IpcContentType::Json,
-        }.into_wire()
+        }
+        .into_wire()
     }
 }
 
@@ -123,7 +132,10 @@ impl IpcResponse<Vec<u8>> {
     /// Returns [`WireError`] if deserialisation fails.
     pub fn into_typed<T: WirePayload>(self) -> Result<IpcResponse<T>, WireError> {
         let payload = T::from_wire_bytes(&self.payload, self.content_type)?;
-        Ok(IpcResponse { payload, content_type: self.content_type })
+        Ok(IpcResponse {
+            payload,
+            content_type: self.content_type,
+        })
     }
 }
 
@@ -192,10 +204,7 @@ pub trait Ipc {
     /// # Errors
     ///
     /// Returns [`IpcError`] if invocation fails.
-    fn invoke(
-        &self,
-        request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError>;
+    fn invoke(&self, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError>;
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -205,8 +214,5 @@ pub trait Ipc: Send + Sync {
     /// # Errors
     ///
     /// Returns [`IpcError`] if invocation fails.
-    fn invoke(
-        &self,
-        request: &IpcRequest<Vec<u8>>,
-    ) -> Result<IpcResponse<Vec<u8>>, IpcError>;
+    fn invoke(&self, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError>;
 }

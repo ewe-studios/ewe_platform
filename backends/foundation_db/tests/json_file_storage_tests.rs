@@ -2,9 +2,14 @@
 //! traits (it implements only the `Async*` ones; see `blocking_tests.rs` for
 //! the sync view).
 
-use foundation_db::{
-    KeyValueStore, QueryStore, RateLimiterStore, JsonFileStorage, StorageError,
-};
+use std::time::Duration;
+
+use std::sync::Arc;
+
+use foundation_core::valtron::SimulatedClock;
+
+use foundation_context::Ctx;
+use foundation_db::{JsonFileStorage, KeyValueStore, QueryStore, RateLimiterStore, StorageError};
 use futures_lite::future::block_on;
 use tempfile::TempDir;
 
@@ -17,18 +22,18 @@ fn test_json_file_storage_basic() {
 
     block_on(async {
         storage
-            .set_async::<String>("test_key", "test_value".to_string())
+            .set::<String>("test_key", "test_value".to_string())
             .await
             .unwrap();
 
-        let value: Option<String> = storage.get_async("test_key").await.unwrap();
+        let value: Option<String> = storage.get("test_key").await.unwrap();
         assert_eq!(value, Some("test_value".to_string()));
 
-        assert!(storage.exists_async("test_key").await.unwrap());
-        assert!(!storage.exists_async("nonexistent").await.unwrap());
+        assert!(storage.exists("test_key").await.unwrap());
+        assert!(!storage.exists("nonexistent").await.unwrap());
 
-        storage.delete_async("test_key").await.unwrap();
-        assert!(!storage.exists_async("test_key").await.unwrap());
+        storage.delete("test_key").await.unwrap();
+        assert!(!storage.exists("test_key").await.unwrap());
     });
 }
 
@@ -39,12 +44,12 @@ fn test_json_file_storage_persistence() {
 
     {
         let storage = JsonFileStorage::new(&path).unwrap();
-        block_on(storage.set_async::<String>("persistent", "value".to_string())).unwrap();
+        block_on(storage.set::<String>("persistent", "value".to_string())).unwrap();
     }
 
     {
         let storage2 = JsonFileStorage::new(&path).unwrap();
-        let value: Option<String> = block_on(storage2.get_async("persistent")).unwrap();
+        let value: Option<String> = block_on(storage2.get("persistent")).unwrap();
         assert_eq!(value, Some("value".to_string()));
     }
 }
@@ -57,10 +62,16 @@ fn test_json_file_storage_list_keys() {
     let storage = JsonFileStorage::new(&path).unwrap();
 
     let keys = block_on(async {
-        storage.set_async::<String>("key1", "v1".to_string()).await.unwrap();
-        storage.set_async::<String>("key2", "v2".to_string()).await.unwrap();
         storage
-            .list_keys_async(None)
+            .set::<String>("key1", "v1".to_string())
+            .await
+            .unwrap();
+        storage
+            .set::<String>("key2", "v2".to_string())
+            .await
+            .unwrap();
+        storage
+            .list_keys(None)
             .await
             .unwrap()
             .collect_all()
@@ -79,15 +90,15 @@ fn test_json_file_storage_query_is_unsupported() {
 
     block_on(async {
         assert!(matches!(
-            storage.query_async("SELECT 1", &[]).await,
+            storage.query("SELECT 1", &[]).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(
-            storage.execute_async("DELETE FROM t", &[]).await,
+            storage.execute("DELETE FROM t", &[]).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(
-            storage.execute_batch_async("CREATE TABLE t (x)").await,
+            storage.execute_batch("CREATE TABLE t (x)").await,
             Err(StorageError::Generic(_))
         ));
     });
@@ -101,16 +112,17 @@ fn test_json_file_storage_rate_limit_is_unsupported() {
     let storage = JsonFileStorage::new(temp_dir.path().join("store.json")).unwrap();
 
     block_on(async {
+        let ctx = Ctx::fixed(Arc::new(SimulatedClock::new(Duration::ZERO)));
         assert!(matches!(
-            storage.check_rate_limit_async("k", 5, 60).await,
+            storage.check_rate_limit(&ctx, "k", 5, 60).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(
-            storage.record_rate_limit_async("k", 60).await,
+            storage.record_rate_limit(&ctx, "k", 60).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(
-            storage.reset_rate_limit_async("k").await,
+            storage.reset_rate_limit("k").await,
             Err(StorageError::Generic(_))
         ));
     });

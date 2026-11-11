@@ -1,11 +1,9 @@
-use foundation_nativeapis::shared::vfs::{
-    MemoryFs, ObservableFs, SyncFs, VfsFile, VfsFileSystem,
-};
+use foundation_nativeapis::shared::vfs::{MemoryFs, ObservableFs, SyncFs, VfsFile, VfsFileSystem};
 
 fn main() {
     println!("=== ObservableFs Example ===\n");
 
-    let inner = MemoryFs::new();
+    let inner = MemoryFs::new(foundation_context::Ctx::host());
     // ObservableFs implements the async VFS traits; `main` is a sync
     // boundary, so the example uses it through `SyncFs`.
     let fs = SyncFs::new(ObservableFs::new(inner));
@@ -21,23 +19,25 @@ fn main() {
     file.write_at(b"first line\n", 0).unwrap();
     println!("Created and wrote to /data/log.txt");
 
-    fs.write_file("/data/config.json", b"{\"key\": \"value\"}").unwrap();
+    fs.write_file("/data/config.json", b"{\"key\": \"value\"}")
+        .unwrap();
     println!("Wrote /data/config.json");
 
     let _ = fs.stat("/data/log.txt").unwrap();
     println!("Stat'd /data/log.txt");
 
-    fs.rename("/data/config.json", "/data/settings.json").unwrap();
+    fs.rename("/data/config.json", "/data/settings.json")
+        .unwrap();
     println!("Renamed config.json → settings.json");
 
     // Drain all events from the subscriber
     println!("\n--- Events received ---");
     let mut count = 0;
     while let Ok(event) = rx.recv() {
-        println!("  {:?}", event);
+        println!("  {event:?}");
         count += 1;
     }
-    println!("\nTotal events: {}", count);
+    println!("\nTotal events: {count}");
 
     println!("\n=== Done ===");
 }

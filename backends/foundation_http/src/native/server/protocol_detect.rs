@@ -21,9 +21,11 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::synca::WaitGroupGuard;
+use foundation_core::valtron::{FutureTask, TaskIterator, TaskStatus};
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::detect::{detect_protocol, DetectedProtocol, H2C_PREFACE_PEEK_LEN};
 use foundation_netio::netcap::{ConnectionContext, RawStream};
@@ -32,8 +34,9 @@ use foundation_netio::shared::http::HTTPStreams;
 use super::connection::ConnectionHandler;
 use super::h2_connection::H2ConnectionHandler;
 use super::KeepAliveConfig;
-use crate::shared::app::ServerApp;
-use crate::shared::serve::respond;
+use crate::native::app::ServerApp;
+use crate::native::writer::send_text;
+use crate::shared::serve::{ConnectionResult, ServeOutcome};
 
 const POLL_DELAY: Duration = Duration::from_millis(3);
 
@@ -47,26 +50,34 @@ pub struct ProtocolDetectHandler {
     app: ServerApp,
     client_ip: String,
     connection: Arc<ConnectionContext>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     /// Moved into whichever handler we spawn; `None` after hand-off.
     drain_guard: Option<WaitGroupGuard>,
     keep_alive: KeepAliveConfig,
     /// When set, every H1 response carries `Alt-Svc: h3=":<port>"` (F53).
     alt_svc_h3_port: Option<u16>,
-    started: Instant,
+    /// When this detector first polled, on the engine clock.
+    started: Option<Instant>,
+    /// The context the spawned handlers take. It holds the clock they read.
+    ctx: Ctx,
 }
 
 impl ProtocolDetectHandler {
     #[must_use]
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the detector carries the same per-connection state as its sibling handlers"
+    )]
     pub fn new(
         stream: SharedByteBufferStream<RawStream>,
         app: ServerApp,
         client_ip: String,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
         keep_alive: KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             stream,
@@ -77,7 +88,8 @@ impl ProtocolDetectHandler {
             drain_guard: Some(drain_guard),
             keep_alive,
             alt_svc_h3_port,
-            started: Instant::now(),
+            started: None,
+            ctx,
         }
     }
 }
@@ -86,10 +98,14 @@ impl TaskIterator for ProtocolDetectHandler {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         if self.shutdown.probe() {
             return None;
         }
+
+        // The detection deadline runs on the engine clock.
+        let now = ctx.clock().now();
+        let started = *self.started.get_or_insert(now);
 
         let mut buf = [0u8; H2C_PREFACE_PEEK_LEN];
         let raw_peek = self.stream.peek(&mut buf);
@@ -100,6 +116,11 @@ impl TaskIterator for ProtocolDetectHandler {
             Ok(n) => n.min(buf.len()),
             // Nothing readable yet — the client has not spoken.
             Err(PeekError::IOError(ref e)) if e.kind() == std::io::ErrorKind::WouldBlock => 0,
+            // The client went away before saying anything.
+            Err(PeekError::EndOfStream) => {
+                tracing::trace!(client = %self.client_ip, "client closed before sending a request");
+                return None;
+            }
             Err(e) => {
                 tracing::debug!(client = %self.client_ip, err = %e, "protocol peek failed");
                 return None;
@@ -108,7 +129,7 @@ impl TaskIterator for ProtocolDetectHandler {
 
         match detect_protocol(&buf[..peeked]) {
             DetectedProtocol::NeedMore => {
-                if self.started.elapsed() >= DETECT_TIMEOUT {
+                if now.saturating_duration_since(started) >= DETECT_TIMEOUT {
                     tracing::debug!(client = %self.client_ip, "protocol detection timed out");
                     return None;
                 }
@@ -160,6 +181,7 @@ impl ProtocolDetectHandler {
             self.connection.clone(),
             self.shutdown.clone(),
             guard,
+            self.ctx.clone(),
         );
 
         if let Err(e) = foundation_core::valtron::send(handler) {
@@ -176,7 +198,16 @@ impl ProtocolDetectHandler {
                 client = %self.client_ip,
                 "HTTP/1.1 request on an HTTP/2-only server; refusing with 505"
             );
-            let _ = respond::text(&mut self.stream.clone(), 505, "HTTP Version Not Supported");
+            let guard = self.drain_guard.take();
+            self.finish_after_write(
+                send_text(
+                    self.stream.clone(),
+                    505,
+                    "HTTP Version Not Supported",
+                    &self.ctx,
+                ),
+                guard,
+            );
             return;
         };
 
@@ -194,14 +225,53 @@ impl ProtocolDetectHandler {
             guard,
             &self.keep_alive,
             self.alt_svc_h3_port,
+            self.ctx.clone(),
         );
 
         match foundation_core::valtron::send(handler) {
             Ok(()) => tracing::trace!(client = %self.client_ip, "submitted h1 connection"),
             Err(e) => {
                 tracing::error!(client = %self.client_ip, err = ?e, "failed to submit connection");
-                let _ = respond::text(&mut self.stream.clone(), 503, "Service Unavailable");
+                self.finish_after_write(
+                    send_text(self.stream.clone(), 503, "Service Unavailable", &self.ctx),
+                    None,
+                );
             }
+        }
+    }
+
+    /// Write a refusal through the async writer and close when it ends.
+    ///
+    /// The write owns its own stream clone, so it outlives this detector task.
+    /// A `guard`, when given, stays alive until the write finishes, so the
+    /// server's drain still counts the connection.
+    fn finish_after_write(&self, response: ConnectionResult, guard: Option<WaitGroupGuard>) {
+        let write = match response {
+            ConnectionResult::Async(write) => write,
+            ConnectionResult::Close(err) => {
+                if let Some(e) = err {
+                    tracing::debug!(client = %self.client_ip, err = ?e, "refusal response could not be built");
+                }
+                return;
+            }
+            ConnectionResult::Keep | ConnectionResult::Take => return,
+        };
+        let client = self.client_ip.clone();
+        let task = FutureTask::new(async move {
+            let _guard = guard;
+            // The connection is already closing, so the outcome is not returned
+            // to a caller. It is logged with the peer, never dropped: a refusal
+            // that never reached the peer is otherwise invisible.
+            if let ServeOutcome::Close(err) = write.await {
+                tracing::debug!(
+                    client = %client,
+                    err = ?err,
+                    "refusal response write failed"
+                );
+            }
+        });
+        if let Err(e) = foundation_core::valtron::send(task) {
+            tracing::error!(client = %self.client_ip, err = ?e, "failed to submit refusal write");
         }
     }
 }

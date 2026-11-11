@@ -10,9 +10,11 @@ use std::task::{Context, Poll, Wake, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_netio::shared::http::{Proto, SimpleHeaders};
+use foundation_core::valtron::valtron_test;
+use foundation_netio::shared::http::{Proto, SimpleHeader, SimpleHeaders};
 
 use foundation_connectrpc::shared::context::{CancelSignal, Peer, Spec, StreamType};
+use foundation_connectrpc::shared::transport::wasm::WASM_FETCH_CAPABILITIES;
 use foundation_connectrpc::shared::transport::{
     check_compatible, requirements, ClientConn, Frame, HandlerConn, PipeClientConn,
     PipeHandlerConn, ProtocolKind, TransportCapabilities,
@@ -56,7 +58,7 @@ fn run_all(mut futs: Vec<BoxFut>) {
         while i < futs.len() {
             match futs[i].as_mut().poll(&mut cx) {
                 Poll::Ready(()) => {
-                    let _ = futs.swap_remove(i);
+                    drop(futs.swap_remove(i));
                 }
                 Poll::Pending => i += 1,
             }
@@ -144,6 +146,15 @@ fn capability_matrix_wasm_fetch() {
     assert!(!ok(ProtocolKind::Connect, StreamType::BidiStream, &FETCH));
 }
 
+#[test]
+fn wasm_fetch_capabilities_are_correct() {
+    let caps = WASM_FETCH_CAPABILITIES;
+    assert!(!caps.request_streaming);
+    assert!(!caps.full_duplex);
+    assert!(!caps.h2_trailers);
+    assert!(!caps.multiplexed);
+}
+
 // ── client end-of-stream semantics ────────────────────────────────────────────
 
 #[test]
@@ -198,7 +209,10 @@ fn client_receive_clean_eos_is_ok_none() {
             .unwrap();
     });
 
-    assert_eq!(block_on(rx.receive()).unwrap(), Some(Bytes::from_static(b"one")));
+    assert_eq!(
+        block_on(rx.receive()).unwrap(),
+        Some(Bytes::from_static(b"one"))
+    );
     assert_eq!(block_on(rx.receive()).unwrap(), None, "clean EOS");
 }
 
@@ -230,6 +244,100 @@ fn parked_receive_wakes_on_cancel() {
     );
 }
 
+// ── response head publication ─────────────────────────────────────────────────
+
+/// A published head resolves the wait with no response frame.
+///
+/// The reader publishes the head as soon as it arrives. A peer that sends no
+/// body frame must not keep the call setup open. Before feature 135 the wait
+/// took the next response frame instead, so this test timed out.
+#[valtron_test(timeout = 2_000)]
+async fn response_headers_resolves_when_the_head_is_published_without_a_frame() {
+    let (conn, ends) = PipeClientConn::with_defaults(
+        spec(StreamType::ServerStream),
+        SimpleHeaders::new(),
+        CancelSignal::new(),
+    );
+    let (_tx, mut rx) = Box::new(conn).split();
+
+    let mut head = SimpleHeaders::new();
+    head.insert(
+        SimpleHeader::from("x-head".to_string()),
+        vec!["published".to_string()],
+    );
+    let expected = head.clone();
+
+    // Publish after a short delay. No response frame ever arrives.
+    let publish = async move {
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(50),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
+        ends.publish_response_headers(head);
+    };
+
+    let (got, ()) = futures::join!(rx.response_headers(), publish);
+    let got = got.expect("a published head must resolve the wait").clone();
+    assert_eq!(got, expected);
+}
+
+/// A transport that ends without a head yields empty headers.
+///
+/// Dropping the ends closes the wake pipe, which is the signal that no head
+/// will ever arrive. The wait must end rather than park for a frame.
+#[valtron_test(timeout = 2_000)]
+async fn response_headers_resolves_to_empty_when_the_transport_drops_without_a_head() {
+    let (conn, ends) = PipeClientConn::with_defaults(
+        spec(StreamType::ServerStream),
+        SimpleHeaders::new(),
+        CancelSignal::new(),
+    );
+    let (_tx, mut rx) = Box::new(conn).split();
+
+    // The transport ends with no head and no frame.
+    drop(ends);
+
+    let headers = rx
+        .response_headers()
+        .await
+        .expect("a failed transport must still yield a head")
+        .clone();
+    assert!(headers.is_empty(), "a failed request has no head");
+}
+
+/// Cancel ends the head wait with the call's usual error.
+#[valtron_test(timeout = 2_000)]
+async fn response_headers_stops_on_cancel() {
+    let cancel = CancelSignal::new();
+    let (conn, ends) = PipeClientConn::with_defaults(
+        spec(StreamType::ServerStream),
+        SimpleHeaders::new(),
+        cancel.clone(),
+    );
+    let (_tx, mut rx) = Box::new(conn).split();
+    // Keep the wake pipe open: it must not close as if the transport ended.
+    let _ends = ends;
+
+    let fire = async move {
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(50),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
+        cancel.cancel();
+    };
+
+    let (result, ()) = futures::join!(rx.response_headers(), fire);
+    match result {
+        Ok(_) => panic!("cancel must interrupt the head wait"),
+        Err(trace) => assert_eq!(
+            trace.current_context().code(),
+            foundation_connectrpc::Code::Canceled
+        ),
+    }
+}
+
 // ── bidi deadlock stress (split halves, depth 4) ──────────────────────────────
 
 #[test]
@@ -245,8 +353,12 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
         cancel.clone(),
         DEPTH,
     );
-    let (client_conn, client_ends) =
-        PipeClientConn::new(spec(StreamType::BidiStream), SimpleHeaders::new(), cancel, DEPTH);
+    let (client_conn, client_ends) = PipeClientConn::new(
+        spec(StreamType::BidiStream),
+        SimpleHeaders::new(),
+        cancel,
+        DEPTH,
+    );
 
     let (mut server_rx, server_tx) = Box::new(server_conn).split();
     let (mut client_tx, mut client_rx) = Box::new(client_conn).split();
@@ -279,7 +391,10 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
         while let Some(bytes) = server_rx.receive().await.unwrap() {
             server_sender.send(bytes).await.unwrap();
         }
-        server_sender.close(None, SimpleHeaders::new()).await.unwrap();
+        server_sender
+            .close(None, SimpleHeaders::new())
+            .await
+            .unwrap();
     });
 
     // Pumps wiring client ⇄ server byte-for-byte (stand-in for the wire).
@@ -291,7 +406,7 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
                 break;
             }
         }
-        req_pump_dst.close();
+        let _ = req_pump_dst.close();
     });
 
     let resp_pump_src = server_ends.response_rx;
@@ -302,7 +417,7 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
                 break;
             }
         }
-        resp_pump_dst.close();
+        let _ = resp_pump_dst.close();
     });
 
     run_all(vec![

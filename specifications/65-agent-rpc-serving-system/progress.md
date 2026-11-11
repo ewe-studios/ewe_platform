@@ -8,6 +8,14 @@ been started. An earlier version of
 this file said "Features 00–05 complete"; the feature docs and the code say
 otherwise (no agent-rpc / installer / registrar crates exist yet).
 
+**Design input (2026-10-30):** the [Durable Streams research
+note](../research/edge-data/durable-streams.md) and [spec
+71](../71-durable-streams-in-valtron) now feed the streaming operations. The
+turn/progress streams of `01-agent-rpc` and the SSE tail of `05-cloudflare` will
+consume the `DurableStream` reader/writer and `DurableStreamStore` trait that
+spec 71 builds. No feature in this spec is added for it; see `requirements.md`
+"Durable streams and the streaming operations".
+
 ## Feature 06 — WASM Lazy Streaming
 
 | Task | Status | Commit |

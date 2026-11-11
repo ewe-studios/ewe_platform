@@ -1,5 +1,5 @@
 /// WHY: Timeout system must have production-quality defaults to ensure proper behavior
-/// WHAT: TimeoutConfig default values should match production configuration
+/// WHAT: `TimeoutConfig` default values should match production configuration
 #[test]
 fn test_timeout_config_default_values() {
     use foundation_netio::shared::http::timeout::TimeoutConfig;

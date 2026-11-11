@@ -14,17 +14,20 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use foundation_context::Ctx;
+
+use crate::docker::error::{DockerError, DockerResult, docker_err};
 use crate::docker::image::DockerFileConfig;
 use crate::docker::wait_for::WaitFor;
 
 /// Builder for a Docker container configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ContainerConfig {
     /// Docker image name (e.g. "redis:7", "postgres:16", "dockurr/windows:5.15").
     pub image: String,
     /// Optional container name. Auto-generated if absent.
     pub name: Option<String>,
-    /// Port mappings: container_port -> optional host_port (None = auto-assign).
+    /// Port mappings: `container_port` -> optional `host_port` (None = auto-assign).
     pub ports: Vec<PortMapping>,
     /// Environment variables: KEY=VALUE pairs.
     pub env: Vec<(String, String)>,
@@ -63,6 +66,39 @@ pub struct ContainerConfig {
     /// so the two reach each other on `localhost`. See
     /// [`ContainerConfig::share_caller_network`].
     pub share_caller_network: bool,
+    /// The context that bounds the readiness wait. A host injects it with
+    /// [`ContainerConfig::ctx`]. A start without one is a
+    /// [`DockerError::MissingClock`] error; it never falls back to the real
+    /// clock.
+    pub ctx: Option<Ctx>,
+}
+
+impl std::fmt::Debug for ContainerConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ContainerConfig")
+            .field("image", &self.image)
+            .field("name", &self.name)
+            .field("ports", &self.ports)
+            .field("env", &self.env)
+            .field("volumes", &self.volumes)
+            .field("network", &self.network)
+            .field("network_aliases", &self.network_aliases)
+            .field("wait", &self.wait)
+            .field("stop_timeout", &self.stop_timeout)
+            .field("memory", &self.memory)
+            .field("cpus", &self.cpus)
+            .field("labels", &self.labels)
+            .field("extra_hosts", &self.extra_hosts)
+            .field("always_pull", &self.always_pull)
+            .field("command", &self.command)
+            .field("devices", &self.devices)
+            .field("cap_add", &self.cap_add)
+            .field("required", &self.required)
+            .field("build", &self.build)
+            .field("share_caller_network", &self.share_caller_network)
+            .field("has_ctx", &self.ctx.is_some())
+            .finish()
+    }
 }
 
 /// A port mapping from container to host.
@@ -126,7 +162,32 @@ impl ContainerConfig {
             required: false,
             build: None,
             share_caller_network: false,
+            ctx: None,
         }
+    }
+
+    /// Set the context that bounds the readiness wait.
+    ///
+    /// A host passes its injected context here. `#[docker_container]` passes the
+    /// context from its `ctx = <expr>` argument, or the valtron pool's context
+    /// when the argument is absent. A config without a context does not start:
+    /// [`ContainerHandle::start_async`](crate::docker::ContainerHandle::start_async)
+    /// returns [`DockerError::MissingClock`].
+    #[must_use]
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
+        self
+    }
+
+    /// The context this config starts with.
+    ///
+    /// # Errors
+    /// Returns [`DockerError::MissingClock`] when no context was injected. The
+    /// start must not fall back to the real clock (root rule 11).
+    pub fn resolve_ctx(&self) -> DockerResult<Ctx> {
+        self.ctx
+            .clone()
+            .ok_or_else(|| docker_err(DockerError::MissingClock))
     }
 
     /// Build the image from `dockerfile` before starting, tagged with this
@@ -227,7 +288,11 @@ impl ContainerConfig {
 
     /// Bind-mount a host path into the container.
     #[must_use]
-    pub fn volume(mut self, host_path: impl Into<PathBuf>, container_path: impl Into<PathBuf>) -> Self {
+    pub fn volume(
+        mut self,
+        host_path: impl Into<PathBuf>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Bind(host_path.into()),
             target: container_path.into(),
@@ -236,8 +301,6 @@ impl ContainerConfig {
         self
     }
 
-    /// Mount a named volume into the container.
-    #[must_use]
     /// Bind-mount a host path read-only — the container can read it but any
     /// write is refused by the kernel.
     #[must_use]
@@ -254,8 +317,13 @@ impl ContainerConfig {
         self
     }
 
+    /// Mount a named volume into the container.
     #[must_use]
-    pub fn named_volume(mut self, volume_name: impl Into<String>, container_path: impl Into<PathBuf>) -> Self {
+    pub fn named_volume(
+        mut self,
+        volume_name: impl Into<String>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Named(volume_name.into()),
             target: container_path.into(),
@@ -345,18 +413,24 @@ impl ContainerConfig {
 ///
 /// Returns `Err` with the offending input rather than a fallback, so a
 /// mistyped limit surfaces instead of silently running unlimited.
+///
+/// # Errors
+/// Returns `Err` when the input is empty, has an unknown unit, or overflows
+/// an `i64` byte count.
 pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
     let text = input.trim().to_ascii_lowercase();
     if text.is_empty() {
         return Err("memory limit is empty".to_string());
     }
 
-    let digits_end = text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len());
+    let digits_end = text
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(text.len());
     let (number, suffix) = text.split_at(digits_end);
 
-    let value: i64 = number
-        .parse()
-        .map_err(|_| format!("invalid memory limit {input:?}: expected a byte count like \"256m\""))?;
+    let value: i64 = number.parse().map_err(|_| {
+        format!("invalid memory limit {input:?}: expected a byte count like \"256m\"")
+    })?;
 
     let multiplier: i64 = match suffix.trim_end_matches('b') {
         "" => 1,
@@ -367,7 +441,7 @@ pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
         _ => {
             return Err(format!(
                 "invalid memory limit {input:?}: unknown unit {suffix:?} (use b, k, m, g, or t)"
-            ))
+            ));
         }
     };
 

@@ -46,7 +46,11 @@ fn remote_set_and_update_apply_fifo() {
     assert_eq!(report.commands_applied, 2);
     assert!(report.stabilized);
     assert_eq!(count.get(), 2, "set then update, in order");
-    assert_eq!(*runs.borrow(), 2, "initial run + ONE re-run for the whole pump");
+    assert_eq!(
+        *runs.borrow(),
+        2,
+        "initial run + ONE re-run for the whole pump"
+    );
 }
 
 /// Row 2 — many sets from several workers: all applied, ONE stabilize.
@@ -61,7 +65,9 @@ fn many_workers_coalesce_into_one_stabilize() {
         let handle = remote.clone();
         workers.push(std::thread::spawn(move || {
             for i in 0..25u64 {
-                handle.update(move |v| *v += w * 25 + i + 1 - (w * 25 + i)).unwrap();
+                handle
+                    .update(move |v| *v += w * 25 + i + 1 - (w * 25 + i))
+                    .unwrap();
             }
         }));
     }
@@ -134,8 +140,13 @@ fn snapshots_are_never_glitchy() {
         std::thread::yield_now();
     }
     stop.store(true, Ordering::Relaxed);
-    watcher.join().expect("the watcher never observed a torn diamond");
-    assert!(sampled.load(Ordering::Relaxed) > 0, "the watcher actually sampled");
+    watcher
+        .join()
+        .expect("the watcher never observed a torn diamond");
+    assert!(
+        sampled.load(Ordering::Relaxed) > 0,
+        "the watcher actually sampled"
+    );
     assert_eq!(d_mirror.get(), 199 * 5);
 }
 
@@ -212,7 +223,11 @@ fn hub_drop_is_observable() {
     assert_eq!(remote_set.set(1), Err(HubGone));
     assert_eq!(handle.run_on_hub(|_| {}), Err(HubGone));
     assert_eq!(stream.try_next(), Err(HubGone), "stream ended");
-    assert_eq!(remote_get.snapshot(), Some(0), "snapshot stays at last value");
+    assert_eq!(
+        remote_get.snapshot(),
+        Some(0),
+        "snapshot stays at last value"
+    );
 }
 
 /// Empty pump: no commands, no stabilize.
@@ -229,7 +244,8 @@ fn idle_pump_is_a_noop() {
 #[cfg(feature = "valtron")]
 #[test]
 fn valtron_stream_and_driver_integration() {
-    use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+    use foundation_context::Ctx;
+    use foundation_core::valtron::{TaskIterator, TaskStatus};
     use foundation_signals::HubDriver;
 
     let (_runtime, ctx, hub) = setup();
@@ -242,14 +258,20 @@ fn valtron_stream_and_driver_integration() {
     let mut driver = HubDriver::new(hub);
 
     // Drive manually as the executor would: pump until Ready, then drain.
-    let status = driver.next_status(Ctx::new()).expect("driver alive");
+    let status = driver.next_status(Ctx::host()).expect("driver alive");
     assert!(matches!(status, TaskStatus::Ready(report) if report.commands_applied == 1));
     assert!(
-        matches!(driver.next_status(Ctx::new()), Some(TaskStatus::Pending(()))),
+        matches!(
+            driver.next_status(Ctx::host()),
+            Some(TaskStatus::Pending(()))
+        ),
         "idle tick is Pending, never blocking"
     );
 
-    let next: Option<TaskStatus<i32, ()>> = stream.next_status(Ctx::new());
+    let next: Option<TaskStatus<i32, ()>> = stream.next_status(Ctx::host());
     assert!(matches!(next, Some(TaskStatus::Ready(5))));
-    assert!(matches!(stream.next_status(Ctx::new()), Some(TaskStatus::Pending(()))));
+    assert!(matches!(
+        stream.next_status(Ctx::host()),
+        Some(TaskStatus::Pending(()))
+    ));
 }

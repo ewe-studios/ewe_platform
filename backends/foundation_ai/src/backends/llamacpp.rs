@@ -22,12 +22,12 @@ use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::speculative::{LlamaMtp, LlamaMtpModel, MtpSampling};
 use infrastructure_llama_cpp::token::LlamaToken;
 
-use foundation_compact::SystemTime;
 use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, OnceLock};
 
+use foundation_context::Ctx;
 use foundation_core::valtron::Stream;
 
 use crate::backends::llamacpp_helpers::build_sampler_chain;
@@ -155,7 +155,7 @@ impl Default for LlamaBackendConfig {
             split_mode: SplitMode::Layer,
             main_gpu: 0,
             pooling_type: LlamaPoolingType::Mean, // retrieval/sentence default
-            speculative: None, // standard decoding by default
+            speculative: None,                    // standard decoding by default
         }
     }
 }
@@ -387,6 +387,10 @@ struct LlamaModelsInner {
     /// never contend. `None` until first use; only populated when
     /// `config.speculative` selects MTP with a head path.
     mtp_model: Arc<Mutex<Option<Arc<LlamaMtpModel>>>>,
+    /// The context. Every message this model emits reads its clock from it.
+    /// The name `clock_ctx` is kept on purpose. It shows that the field
+    /// carries the clock, and that the clock comes in through a `Ctx`.
+    clock_ctx: Ctx,
 }
 
 /// `llama.cpp` model wrapper implementing the `Model` trait.
@@ -419,6 +423,7 @@ impl LlamaModels {
         context: LlamaModelContextParams,
         spec: ModelSpec,
         config: LlamaBackendConfig,
+        clock_ctx: Ctx,
     ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(LlamaModelsInner {
@@ -430,8 +435,19 @@ impl LlamaModels {
                 cumulative_cost: CostAccumulator::new(),
                 config,
                 mtp_model: Arc::new(Mutex::new(None)),
+                clock_ctx,
             })),
         }
+    }
+
+    /// The context. Every message this model emits reads its clock from it.
+    #[must_use]
+    pub fn ctx(&self) -> Ctx {
+        self.inner
+            .lock()
+            .expect("model inner poisoned")
+            .clock_ctx
+            .clone()
     }
 
     /// A handle over the SAME loaded weights, with independent accounting.
@@ -448,7 +464,8 @@ impl LlamaModels {
     /// and every stream builds its own `llama_context` (and its own KV cache and
     /// sampler) from the shared weights, which is what makes concurrent agents
     /// safe.
-    fn share_weights(&self) -> Self {
+    #[allow(clippy::arc_with_non_send_sync)]
+    fn share_weights(&self, clock_ctx: Ctx) -> Self {
         let inner = self.inner.lock().expect("model inner poisoned");
         Self {
             inner: Arc::new(Mutex::new(LlamaModelsInner {
@@ -456,10 +473,11 @@ impl LlamaModels {
                 context: inner.context.clone(),
                 sampler: None,
                 spec: inner.spec.clone(),
-                pricing: inner.pricing.clone(),
+                pricing: inner.pricing,
                 cumulative_cost: CostAccumulator::new(),
                 config: inner.config.clone(),
                 mtp_model: Arc::clone(&inner.mtp_model),
+                clock_ctx,
             })),
         }
     }
@@ -521,7 +539,7 @@ impl Model for LlamaModels {
         // Get model, spec, context params, the full backend config (carries any
         // opt-in speculative/MTP setup + runtime sizing), and the shared MTP
         // draft-model cache slot.
-        let (model, spec, ctx_params, backend_config, mtp_model_slot) = {
+        let (model, spec, ctx_params, backend_config, mtp_model_slot, clock_ctx) = {
             let inner = self.inner.lock().unwrap();
             (
                 Arc::clone(&inner.model),
@@ -529,6 +547,7 @@ impl Model for LlamaModels {
                 inner.context.clone(),
                 inner.config.clone(),
                 Arc::clone(&inner.mtp_model),
+                inner.clock_ctx.clone(),
             )
         };
 
@@ -543,7 +562,7 @@ impl Model for LlamaModels {
             let mut ctx = model
                 .new_context(&backend, backend_config.to_embedding_context_params())
                 .map_err(Into::<GenerationError>::into)?;
-            return generate_embeddings(&model, &mut ctx, &text, &spec);
+            return generate_embeddings(&model, &mut ctx, &text, &spec, &clock_ctx);
         }
 
         // Apply chat template if messages are present. BOS handling is
@@ -572,6 +591,7 @@ impl Model for LlamaModels {
                     &backend_config,
                     spec_cfg,
                     mtp_path,
+                    &clock_ctx,
                 ) {
                     Ok(messages) => return Ok(messages),
                     Err(err) => {
@@ -589,8 +609,17 @@ impl Model for LlamaModels {
         let mut ctx = model
             .new_context(&backend, ctx_params)
             .map_err(Into::<GenerationError>::into)?;
-        let mut sampler = build_sampler_chain(&params);
-        generate_text(&model, &mut ctx, &mut sampler, &prompt, templated, &params, &spec)
+        let mut sampler = build_sampler_chain(&params, model.n_vocab());
+        generate_text(
+            &model,
+            &mut ctx,
+            &mut sampler,
+            &prompt,
+            templated,
+            &params,
+            &spec,
+            &clock_ctx,
+        )
     }
 
     fn stream(
@@ -664,6 +693,8 @@ struct LlamaCppStreamInner {
     /// Whether `prompt` came from a chat template (drives BOS handling; see
     /// `tokenize_prompt`).
     prompt_templated: bool,
+    /// The context. Every streamed message reads its clock from it.
+    clock_ctx: Ctx,
 }
 
 impl LlamaCppStream {
@@ -684,7 +715,8 @@ impl LlamaCppStream {
 
         // Build sampler from params
         let params = specs.unwrap_or_default();
-        let sampler = build_sampler_chain(&params);
+        let n_vocab = model.inner.lock().unwrap().model.n_vocab();
+        let sampler = build_sampler_chain(&params, n_vocab);
 
         // Get max_tokens from params
         #[allow(
@@ -718,6 +750,7 @@ impl LlamaCppStream {
         // a per-stream engine and a chat-templated prompt. On init failure we
         // `warn!` and fall back to standard streaming (mtp = None).
         let mtp = build_mtp_stream_state(&model, interaction, &params, max_tokens);
+        let clock_ctx = model.ctx();
 
         Ok(Self {
             inner: Arc::new(Mutex::new(LlamaCppStreamInner {
@@ -734,6 +767,7 @@ impl LlamaCppStream {
                 finished: false,
                 prompt: Some(prompt),
                 prompt_templated,
+                clock_ctx,
             })),
         })
     }
@@ -912,7 +946,9 @@ impl Iterator for LlamaCppStream {
             tracing::trace!("stream_next: decoding Batch with ctx");
             if let Err(err) = ctx.decode(&mut batch) {
                 inner.finished = true;
-                return Some(stream_error(format!("failed to decode prompt batch: {err}")));
+                return Some(stream_error(format!(
+                    "failed to decode prompt batch: {err}"
+                )));
             }
 
             inner.current_pos = tokens.len() as i32;
@@ -923,7 +959,7 @@ impl Iterator for LlamaCppStream {
             inner.finished = true;
             return Some(stream_error("sampler missing — cannot sample next token"));
         };
-        let next_token = sampler.sample(&ctx, 0);
+        let next_token = sampler.sample(ctx, 0);
         tracing::trace!("stream_next: generated next token: {:?}", &next_token);
 
         // Check for end of sequence
@@ -986,7 +1022,7 @@ impl Iterator for LlamaCppStream {
         Some(Stream::Next(Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: ModelId::Name("llamacpp".to_string(), None),
-            timestamp: SystemTime::now(),
+            timestamp: inner.clock_ctx.clock().wall_now(),
             usage: UsageReport {
                 cost: stream_cost,
                 ..stream_usage
@@ -1005,7 +1041,12 @@ impl Iterator for LlamaCppStream {
 }
 
 /// Build a streaming `Assistant` message for a text `piece` (local model → $0).
-fn build_stream_assistant(input_tokens: usize, output_tokens: usize, piece: String) -> Messages {
+fn build_stream_assistant(
+    input_tokens: usize,
+    output_tokens: usize,
+    piece: String,
+    clock_ctx: &Ctx,
+) -> Messages {
     #[allow(clippy::cast_precision_loss)]
     let usage = UsageReport {
         input: input_tokens as f64,
@@ -1028,7 +1069,7 @@ fn build_stream_assistant(input_tokens: usize, output_tokens: usize, piece: Stri
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
-        timestamp: SystemTime::now(),
+        timestamp: clock_ctx.clock().wall_now(),
         usage: UsageReport { cost, ..usage },
         content: ModelOutput::Text(TextContent {
             content: piece,
@@ -1050,10 +1091,7 @@ fn build_stream_assistant(input_tokens: usize, output_tokens: usize, piece: Stri
 /// finishes the stream gracefully (spec-51 G5).
 #[allow(clippy::cast_sign_loss)]
 fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, ModelState>> {
-    let need_begin = match inner.mtp.as_ref() {
-        Some(m) => !m.started,
-        None => return None,
-    };
+    let need_begin = !inner.mtp.as_ref()?.started;
 
     tracing::trace!("mtp_stream_next: need_begin: {:?}", need_begin);
 
@@ -1093,6 +1131,7 @@ fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, M
                 inner.input_tokens,
                 inner.tokens_generated as usize,
                 step.piece,
+                &inner.clock_ctx,
             );
             tracing::trace!("mtp_stream_next: get msg: {:?}", &msg);
             if step.done {
@@ -1340,6 +1379,7 @@ fn generate_embeddings(
     ctx: &mut LlamaModelContext,
     prompt: &str,
     _spec: &ModelSpec,
+    clock_ctx: &Ctx,
 ) -> GenerationResult<Vec<Messages>> {
     // Tokenize the raw text. BERT-style embedding models (nomic-embed-text, …)
     // expect the plain text without an injected BOS/CLS token — unlike
@@ -1392,7 +1432,7 @@ fn generate_embeddings(
     Ok(vec![Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
-        timestamp: SystemTime::now(),
+        timestamp: clock_ctx.clock().wall_now(),
         usage: emb_usage,
         content: ModelOutput::Embedding {
             dimensions,
@@ -1559,6 +1599,7 @@ fn run_mtp_generation(
     backend_config: &LlamaBackendConfig,
     spec_cfg: &SpeculativeConfig,
     mtp_path: &std::path::Path,
+    clock_ctx: &Ctx,
 ) -> GenerationResult<Vec<Messages>> {
     let sampling = mtp_sampling_from_params(params);
     let n_predict = params.max_tokens as i32;
@@ -1613,7 +1654,7 @@ fn run_mtp_generation(
     Ok(vec![Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
-        timestamp: SystemTime::now(),
+        timestamp: clock_ctx.clock().wall_now(),
         usage: mtp_usage,
         content: ModelOutput::Text(TextContent {
             content: generation.text,
@@ -1649,6 +1690,7 @@ fn generate_text(
     templated: bool,
     params: &ModelParams,
     _spec: &ModelSpec,
+    clock_ctx: &Ctx,
 ) -> GenerationResult<Vec<Messages>> {
     // Note: the speculative/MTP dispatch lives in `Model::generate` (before the
     // standard `ctx`/`sampler` are built, so a successful MTP run allocates no
@@ -1751,7 +1793,7 @@ fn generate_text(
     Ok(vec![Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
-        timestamp: SystemTime::now(),
+        timestamp: clock_ctx.clock().wall_now(),
         usage: txt_usage,
         content: ModelOutput::Text(TextContent {
             content: output_text,
@@ -1770,14 +1812,70 @@ fn generate_text(
 // ==================================
 
 /// Hardware backend variants for llama.cpp.
-#[derive(Debug, Clone, Copy)]
-pub enum LlamaBackends {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LlamaBackendKind {
     /// CPU-only execution.
     LLamaCPU,
     /// GPU execution (CUDA or Vulkan).
     LLamaGPU,
     /// Apple Metal execution.
     LLamaMetal,
+}
+
+/// A llama.cpp backend selector carrying a context.
+///
+/// Its clock stamps every assistant message the loaded models emit. It is
+/// injected at construction; there is no fallback to the real clock.
+#[derive(Clone)]
+pub struct LlamaBackends {
+    kind: LlamaBackendKind,
+    clock_ctx: Ctx,
+}
+
+impl core::fmt::Debug for LlamaBackends {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("LlamaBackends")
+            .field("kind", &self.kind)
+            .finish_non_exhaustive()
+    }
+}
+
+impl LlamaBackends {
+    /// A backend of `kind`, stamping messages with the clock from `ctx`.
+    #[must_use]
+    pub fn new(kind: LlamaBackendKind, clock_ctx: Ctx) -> Self {
+        Self { kind, clock_ctx }
+    }
+
+    /// A CPU backend stamping messages with the clock from `ctx`.
+    #[must_use]
+    pub fn cpu(clock_ctx: Ctx) -> Self {
+        Self::new(LlamaBackendKind::LLamaCPU, clock_ctx)
+    }
+
+    /// A GPU backend stamping messages with the clock from `ctx`.
+    #[must_use]
+    pub fn gpu(clock_ctx: Ctx) -> Self {
+        Self::new(LlamaBackendKind::LLamaGPU, clock_ctx)
+    }
+
+    /// A Metal backend stamping messages with the clock from `ctx`.
+    #[must_use]
+    pub fn metal(clock_ctx: Ctx) -> Self {
+        Self::new(LlamaBackendKind::LLamaMetal, clock_ctx)
+    }
+
+    /// The selected hardware kind.
+    #[must_use]
+    pub fn kind(&self) -> LlamaBackendKind {
+        self.kind
+    }
+
+    /// The context. Every message reads its clock from it.
+    #[must_use]
+    pub fn ctx(&self) -> Ctx {
+        self.clock_ctx.clone()
+    }
 }
 
 impl ModelProvider for LlamaBackends {
@@ -1903,11 +2001,7 @@ impl LlamaBackends {
         // forces a genuine reload rather than silently reusing a mismatched
         // model. Inference contexts are NOT shared — each stream still builds
         // its own from the shared weights (they are `!Send`, see docs/fixes/005).
-        let cache_key = format!(
-            "{}|{}|{config:?}",
-            model_path.display(),
-            model_spec.name
-        );
+        let cache_key = format!("{}|{}|{config:?}", model_path.display(), model_spec.name);
         let cache = LOADED_MODELS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
 
         // Fast path: an already-loaded model is a lock-and-clone.
@@ -1918,7 +2012,7 @@ impl LlamaBackends {
         {
             tracing::debug!(model = %model_spec.name, "load_model: reusing cached model weights");
             // Share the weights, not the wrapper — see `share_weights`.
-            return Ok(cached.share_weights());
+            return Ok(cached.share_weights(self.clock_ctx.clone()));
         }
 
         // Cold path: serialize concurrent loads OF THE SAME KEY so exactly one
@@ -1946,7 +2040,7 @@ impl LlamaBackends {
             .get(&cache_key)
         {
             tracing::debug!(model = %model_spec.name, "load_model: cached after waiting for concurrent load");
-            return Ok(cached.share_weights());
+            return Ok(cached.share_weights(self.clock_ctx.clone()));
         }
 
         let backend = LlamaBackend::init_or_get().map_err(|e| {
@@ -1980,8 +2074,13 @@ impl LlamaBackends {
         // Apply context params from config (context length, batch, threads).
         let context_params = config.to_context_params();
 
-        let loaded =
-            LlamaModels::new_with_config(model, context_params, model_spec, config.clone());
+        let loaded = LlamaModels::new_with_config(
+            model,
+            context_params,
+            model_spec,
+            config.clone(),
+            self.ctx(),
+        );
 
         cache
             .lock()

@@ -3,11 +3,18 @@
 // WHAT: Ensure correct status transitions, header/semantic mutability, limit enforcement, and sensitive header stripping per sync-only project mandate
 
 use foundation_core::valtron;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
 use serial_test::serial;
+
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
@@ -23,7 +30,7 @@ fn test_redirect_chain_resolves_successfully() {
         (307, "/final"),
         (200, "OK"),
     ]);
-    let client = SimpleHttpClient::from_system().max_redirects(6);
+    let client = NativeHttpClient::from_system().max_redirects(6);
 
     let url = server.url("/step1");
     let res = client
@@ -31,7 +38,7 @@ fn test_redirect_chain_resolves_successfully() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     assert!(res.is_ok());
 }
@@ -48,7 +55,7 @@ fn test_redirect_chain_limit_enforced() {
         (307, "/final"),
         (200, "OK"),
     ]);
-    let client = SimpleHttpClient::from_system().max_redirects(2);
+    let client = NativeHttpClient::from_system().max_redirects(2);
 
     let url = server.url("/step1");
     let res = client
@@ -56,7 +63,7 @@ fn test_redirect_chain_limit_enforced() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     assert!(matches!(res, Err(HttpClientError::TooManyRedirects)));
 }
@@ -74,7 +81,7 @@ fn test_post_without_redirect() {
     let server = TestHttpServer::http_chain(vec![(200, "OK")]);
 
     // Setup: Create a client with redirect enabled and POST method
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
 
     // Build a POST request
     let url = server.url("/step1");
@@ -83,18 +90,18 @@ fn test_post_without_redirect() {
 }
 
 /// WHY: Validate redirect handling when each redirect is returned as the final response
-///      to a request (not during initial connection phase). This exercises the CheckRedirect
-///      state in SendRequestTask which was added to handle this edge case.
+///      to a request (not during initial connection phase). This exercises the `CheckRedirect`
+///      state in `SendRequestTask` which was added to handle this edge case.
 ///
 /// WHAT: Tests a chain of redirects where each one is returned as the final response,
-///       verifying the client automatically follows them via the CheckRedirect state.
+///       verifying the client automatically follows them via the `CheckRedirect` state.
 ///
 /// IMPORTANCE: The original implementation only handled redirects during initial connection.
-///             The updated SendRequestTask adds a CheckRedirect state that validates the
+///             The updated `SendRequestTask` adds a `CheckRedirect` state that validates the
 ///             final response for redirect status codes (301-308) and follows the Location.
 ///
-/// NOTE: This test uses http_chain which inherently returns each redirect as a final
-///       response to each request in the chain, exercising the CheckRedirect state.
+/// NOTE: This test uses `http_chain` which inherently returns each redirect as a final
+///       response to each request in the chain, exercising the `CheckRedirect` state.
 #[test]
 #[serial(valtron_pool)]
 fn test_redirect_as_final_response_chain() {
@@ -108,7 +115,7 @@ fn test_redirect_as_final_response_chain() {
         (200, "Final destination reached!"), // Second request (after redirect): OK
     ]);
 
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
     let url = server.url("/redirect");
 
     let response = client
@@ -116,7 +123,7 @@ fn test_redirect_as_final_response_chain() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Should follow redirect from final response");
 
     assert!(
@@ -142,7 +149,7 @@ fn test_redirect_307_as_final_response() {
         (200, "307 redirect target"),
     ]);
 
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
     let url = server.url("/redirect");
 
     let response = client
@@ -150,15 +157,15 @@ fn test_redirect_307_as_final_response() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Should follow 307 redirect");
 
     assert!(response.is_success());
 }
 
-/// WHY: Validate that redirect fails gracefully when max_redirects limit is exceeded.
+/// WHY: Validate that redirect fails gracefully when `max_redirects` limit is exceeded.
 ///
-/// WHAT: Tests that too many redirects returns TooManyRedirects error.
+/// WHAT: Tests that too many redirects returns `TooManyRedirects` error.
 ///
 /// IMPORTANCE: Prevents infinite redirect loops from hanging the client.
 #[test]
@@ -175,7 +182,7 @@ fn test_too_many_redirects_as_final_response() {
         (302, "/redirect"), // Will keep returning redirect
     ]);
 
-    let client = SimpleHttpClient::from_system().max_redirects(3);
+    let client = NativeHttpClient::from_system().max_redirects(3);
     let url = server.url("/start");
 
     let result = client
@@ -183,7 +190,7 @@ fn test_too_many_redirects_as_final_response() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     dbg!("Result is: ", &result);
     assert!(
@@ -226,8 +233,7 @@ fn test_redirect_after_100_continue() {
                 .get(&foundation_netio::shared::http::SimpleHeader::HOST);
             let host_str = host
                 .and_then(|v| v.first())
-                .map(|s| s.as_str())
-                .unwrap_or("127.0.0.1");
+                .map_or("127.0.0.1", std::string::String::as_str);
             let redirect_location = format!("http://{host_str}/final");
             (
                 Some(HttpResponse::continue_response()),
@@ -239,7 +245,7 @@ fn test_redirect_after_100_continue() {
         }
     });
 
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
     let url = server.url("/redirect");
 
     let response = client
@@ -248,7 +254,7 @@ fn test_redirect_after_100_continue() {
         .body_text("test body")
         .build_client()
         .unwrap()
-        .send()
+        .send(&call_ctx())
         .expect("Should follow redirect after 100 Continue");
 
     assert!(
@@ -271,20 +277,20 @@ fn test_redirect_after_100_continue() {
 // unnecessarily.
 
 /// A plain GET with no body must complete successfully without entering
-/// WriteBody. Before the fix, WriteBody would call `Http11::request_body()` on
+/// `WriteBody`. Before the fix, `WriteBody` would call `Http11::request_body()` on
 /// a bodyless request and attempt to render/write an empty body.
 #[test]
 #[serial(valtron_pool)]
 fn get_without_body_completes_successfully() {
     let _pool_guard = foundation_core::valtron::initialize_pool(48, None);
     let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"hello"));
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
     let res = client
         .get(&server.url("/test"))
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
     assert!(res.is_ok(), "GET without body should succeed");
     assert_eq!(
         res.unwrap().get_status().into_usize(),
@@ -294,14 +300,14 @@ fn get_without_body_completes_successfully() {
 }
 
 /// A POST with no body (Content-Length: 0 but no actual body data in the
-/// SendSafeBody field) must NOT trigger the Expect: 100-continue handshake
+/// `SendSafeBody` field) must NOT trigger the Expect: 100-continue handshake
 /// probe. The body field directly tells us there's nothing to write.
 #[test]
 #[serial(valtron_pool)]
 fn post_with_empty_body_skips_100_continue() {
     let _pool_guard = foundation_core::valtron::initialize_pool(49, None);
     let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"ok"));
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     // POST with no body (explicitly None, not even Content-Length: 0) —
     // the client must not send Expect: 100-continue.
@@ -310,7 +316,7 @@ fn post_with_empty_body_skips_100_continue() {
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
     assert!(res.is_ok(), "POST without body should succeed");
 }
 
@@ -321,14 +327,14 @@ fn post_with_empty_body_skips_100_continue() {
 fn post_with_body_still_works() {
     let _pool_guard = foundation_core::valtron::initialize_pool(50, None);
     let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"received"));
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
     let res = client
         .post(&server.url("/test"))
         .unwrap()
         .body_text("hello world")
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
     assert!(res.is_ok(), "POST with body should succeed");
     let resp = res.unwrap();
     assert_eq!(
@@ -339,20 +345,20 @@ fn post_with_body_still_works() {
 }
 
 /// A redirect chain where each hop is a bodyless GET must complete without
-/// entering WriteBody at any redirect step.
+/// entering `WriteBody` at any redirect step.
 #[test]
 #[serial(valtron_pool)]
 fn redirect_chain_bodyless_requests_skip_writebody() {
     let _pool_guard = foundation_core::valtron::initialize_pool(51, None);
     let server = TestHttpServer::http_chain(vec![(302, "/step2"), (302, "/step3"), (200, "final")]);
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
 
     let res = client
         .get(&server.url("/step1"))
         .unwrap()
         .build_client()
         .unwrap()
-        .send();
+        .send(&call_ctx());
 
     assert!(
         res.is_ok(),

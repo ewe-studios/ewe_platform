@@ -6,7 +6,7 @@ use foundation_netio::http2::hpack::huffman;
 
 #[test]
 fn decode_single_byte() {
-    assert_eq!(&huffman::decode(&[0b00111111]).unwrap()[..], b"o");
+    assert_eq!(&huffman::decode(&[0b0011_1111]).unwrap()[..], b"o");
     assert_eq!(&huffman::decode(&[7]).unwrap()[..], b"0");
     assert_eq!(&huffman::decode(&[(0x21 << 2) + 3]).unwrap()[..], b"A");
 }
@@ -21,7 +21,7 @@ fn single_char_multi_byte() {
 fn multi_char() {
     assert_eq!(&huffman::decode(&[254, 1]).unwrap()[..], b"!0");
     assert_eq!(
-        &huffman::decode(&[0b01010011, 0b11111000]).unwrap()[..],
+        &huffman::decode(&[0b0101_0011, 0b1111_1000]).unwrap()[..],
         b" !"
     );
 }

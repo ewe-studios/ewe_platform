@@ -123,7 +123,8 @@ pub const IDENTITY_LABEL: &str = "ewe.dev/deployment";
 /// which Hetzner rejects with `invalid label_selector: value contains invalid
 /// characters or is malformed`. Every mock in this crate accepted it happily; the
 /// vendor did not.
-fn label_value(namespace: &str, instance_id: usize) -> String {
+#[must_use]
+pub fn label_value(namespace: &str, instance_id: usize) -> String {
     let mut value: String = format!("{namespace}.{instance_id}")
         .chars()
         .map(|c| {
@@ -261,8 +262,10 @@ impl HetznerServer {
     /// returned something" as "alive" would have `deploy` hand back a corpse
     /// (decision 03 §3).
     fn is_usable(server: &Server) -> bool {
-        matches!(server.status, ServerStatus::Running | ServerStatus::Starting)
-            || server.status == ServerStatus::Initializing
+        matches!(
+            server.status,
+            ServerStatus::Running | ServerStatus::Starting
+        ) || server.status == ServerStatus::Initializing
     }
 
     /// The identity this deployable stamps on the instance for `instance_id`.
@@ -270,7 +273,8 @@ impl HetznerServer {
     /// `<namespace>/<instance_id>` — the deployment slot, which is what the record
     /// is *about*. Not the name (a user edits it) and not the id (Hetzner assigns
     /// it, and we may never learn it).
-    fn identity(instance_id: usize) -> String {
+    #[must_use]
+    pub fn identity(instance_id: usize) -> String {
         label_value(Self::NAMESPACE, instance_id)
     }
 
@@ -339,6 +343,7 @@ impl Deployable for HetznerServer {
         // `&self`/`&client` — and moved into the future).
         let hetzner = self.client.clone();
         let store = self.store(&client);
+        let ctx = client.ctx().clone();
         let request = CreateServerRequest {
             name: self.name.clone(),
             server_type: self.server_type.clone(),
@@ -362,7 +367,8 @@ impl Deployable for HetznerServer {
 
             // 1. What we think we already made.
             let recorded: Option<ServerDeployOutput> = store
-                .get_typed(&key).await
+                .get_typed(&key)
+                .await
                 .map_err(|e| HetznerError::Transport(format!("load deploy state: {e}")))?;
 
             if let Some(recorded) = &recorded {
@@ -428,7 +434,9 @@ impl Deployable for HetznerServer {
             //    stamped on the machine for this slot, so it identifies the
             //    instance even if the declaration has since been renamed, and it
             //    is present regardless of whether we ever saw the id.
-            let ours = hetzner.find_servers_by_label(IDENTITY_LABEL, &identity).await?;
+            let ours = hetzner
+                .find_servers_by_label(IDENTITY_LABEL, &identity)
+                .await?;
             if let Some(existing) = ours.iter().find(|s| HetznerServer::is_usable(s)) {
                 {
                     tracing::debug!(
@@ -439,9 +447,9 @@ impl Deployable for HetznerServer {
                     );
                     let settled = hetzner.await_running(existing.id).await?;
                     let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
-                    store
-                        .store_typed(&key, &output).await
-                        .map_err(|e| HetznerError::Transport(format!("persist deploy state: {e}")))?;
+                    store.store_typed(&key, &output, &ctx).await.map_err(|e| {
+                        HetznerError::Transport(format!("persist deploy state: {e}"))
+                    })?;
                     return Ok(output);
                 }
             }
@@ -508,7 +516,8 @@ impl Deployable for HetznerServer {
                 let settled = hetzner.await_running(created_id).await?;
                 let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
                 store
-                    .store_typed(&key, &output).await
+                    .store_typed(&key, &output, &ctx)
+                    .await
                     .map_err(|e| HetznerError::Transport(format!("persist deploy state: {e}")))?;
                 Ok::<_, HetznerError>(output)
             }
@@ -558,7 +567,8 @@ impl Deployable for HetznerServer {
         Box::pin(async move {
             let key = instance_id.to_string();
             let recorded: Option<ServerDeployOutput> = store
-                .get_typed(&key).await
+                .get_typed(&key)
+                .await
                 .map_err(|e| HetznerError::Transport(format!("load deploy state: {e}")))?;
 
             // A record from a completed deploy is AUTHORITATIVE — it says what we
@@ -571,7 +581,8 @@ impl Deployable for HetznerServer {
                 // State clears last: a failed delete above keeps the record, so a
                 // retry still knows what to chase.
                 store
-                    .remove(&key).await
+                    .remove(&key)
+                    .await
                     .map_err(|e| HetznerError::Transport(format!("clear deploy state: {e}")))?;
                 tracing::debug!(id = recorded.id, %name, "destroyed");
                 return Ok(());
@@ -592,7 +603,9 @@ impl Deployable for HetznerServer {
             // and it does not care what the server is called. `deploy` adopts by
             // the same label, so destroy must remove by it or deploy would adopt
             // what destroy refuses to delete.
-            let orphans = hetzner.find_servers_by_label(IDENTITY_LABEL, &identity).await?;
+            let orphans = hetzner
+                .find_servers_by_label(IDENTITY_LABEL, &identity)
+                .await?;
             if orphans.is_empty() {
                 // Genuinely absent, which is what destroy promises. Not an error:
                 // erroring would make teardown in a `finally` unusable.
@@ -611,78 +624,5 @@ impl Deployable for HetznerServer {
             }
             Ok(())
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{label_value, HetznerServer, IDENTITY_LABEL};
-
-    /// `label_value` is private; this belongs here rather than in `tests/`.
-    #[test]
-    fn an_identity_is_a_legal_hetzner_label_value() {
-        // The rule, from Hetzner's spec: <=63 chars, begins and ends
-        // [a-z0-9A-Z], with -_. and alphanumerics between. No slashes — they are
-        // only legal in a KEY, separating the prefix.
-        //
-        // NAMESPACE is "hetzner/cloud/servers", so the obvious
-        // format!("{NAMESPACE}/{id}") gives "hetzner/cloud/servers/0", which the
-        // real API rejects: `invalid label_selector: value contains invalid
-        // characters or is malformed`. Every mock accepted it.
-        let value = HetznerServer::identity(0);
-        assert_eq!(value, "hetzner.cloud.servers.0");
-        assert_valid(&value);
-
-        // The key may carry a prefix — that is where a slash is allowed.
-        assert!(IDENTITY_LABEL.contains('/'), "the key is prefixed: {IDENTITY_LABEL}");
-        assert!(
-            !IDENTITY_LABEL.starts_with("hetzner.cloud/"),
-            "that prefix is reserved by Hetzner"
-        );
-    }
-
-    #[test]
-    fn a_hostile_namespace_still_yields_a_legal_value() {
-        for (ns, id) in [
-            ("a/b/c", 0),
-            ("with spaces", 3),
-            ("sym+bols!", 9),
-            ("trailing/", 1),
-            ("ünicode", 2),
-        ] {
-            let value = label_value(ns, id);
-            assert_valid(&value);
-        }
-    }
-
-    #[test]
-    fn an_over_long_namespace_is_truncated_and_still_ends_alphanumeric() {
-        // Truncating at 63 can leave a trailing '.', which is itself invalid —
-        // the fix must not create the bug it is preventing.
-        let value = label_value(&"x".repeat(80), 0);
-        assert!(value.len() <= 63, "{} chars", value.len());
-        assert_valid(&value);
-
-        let value = label_value(&format!("{}.", "y".repeat(62)), 0);
-        assert_valid(&value);
-    }
-
-    fn assert_valid(value: &str) {
-        assert!(!value.is_empty(), "empty");
-        assert!(value.len() <= 63, "{value:?} is {} chars", value.len());
-        assert!(
-            value.chars().next().is_some_and(|c| c.is_ascii_alphanumeric()),
-            "{value:?} must begin alphanumeric"
-        );
-        assert!(
-            value.chars().next_back().is_some_and(|c| c.is_ascii_alphanumeric()),
-            "{value:?} must end alphanumeric"
-        );
-        assert!(
-            value
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.'),
-            "{value:?} has an illegal character"
-        );
     }
 }

@@ -4,6 +4,7 @@
 //! Uses atomic writes (temp file + rename) for crash safety and
 //! Zeroizing for secure memory handling of sensitive data.
 
+use foundation_context::Ctx;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -14,8 +15,8 @@ use zeroize::Zeroizing;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue,
+    content_etag, AsyncListStream, AsyncQueryStream, BlobListStream, BlobPutCondition, BlobStore,
+    DataValue, KeyValueStore, QueryStore, RateLimiterStore,
 };
 
 /// JSON file storage backend.
@@ -154,8 +155,13 @@ impl JsonFileStorage {
 
 #[async_trait::async_trait]
 impl KeyValueStore for JsonFileStorage {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let data = self.data.lock()
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        let data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         let result = match data.get(key) {
             Some(bytes) => {
@@ -168,71 +174,172 @@ impl KeyValueStore for JsonFileStorage {
         Ok(result)
     }
 
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let bytes =
             serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let mut data = self.data.lock()
+        let mut data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.insert(key.to_string(), Zeroizing::new(bytes));
         drop(data);
         self.flush_to_disk()
     }
 
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
-        let mut data = self.data.lock()
+    async fn delete(&self, key: &str) -> StorageResult<()> {
+        let mut data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(key);
         drop(data);
         self.flush_to_disk()
     }
 
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
-        let data = self.data.lock()
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One lock covers the read and the removal; the flush follows.
+        let bytes = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?
+            .remove(key);
+        let Some(bytes) = bytes else {
+            return Ok(None);
+        };
+        let value: V = serde_json::from_slice(&bytes)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.flush_to_disk()?;
+        Ok(Some(value))
+    }
+
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
+        let data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         Ok(data.contains_key(key))
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
-        let data = self.data.lock()
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        let keys: Vec<String> = data.keys()
+        let keys: Vec<String> = data
+            .keys()
             .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
             .cloned()
             .collect();
         Ok(AsyncListStream::new(futures_lite::stream::iter(
-            keys.into_iter().map(Ok)
+            keys.into_iter().map(Ok),
         )))
     }
 }
 
 #[async_trait::async_trait]
 impl BlobStore for JsonFileStorage {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let mut storage = self.data.lock()
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let mut storage = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
         drop(storage);
         self.flush_to_disk()
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let data = self.data.lock()
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         Ok(data.get(key).cloned().map(|z| z.to_vec()))
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        let mut data = self.data.lock()
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
+        let mut data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(key);
         drop(data);
         self.flush_to_disk()
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        let data = self.data.lock()
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
+        let data = self
+            .data
+            .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         Ok(data.contains_key(key))
+    }
+
+    async fn blob_etag(&self, key: &str) -> StorageResult<Option<String>> {
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.get(key).map(|z| content_etag(z)))
+    }
+
+    async fn put_blob_conditionally(
+        &self,
+        key: &str,
+        data: &[u8],
+        condition: BlobPutCondition,
+    ) -> StorageResult<()> {
+        let mut storage = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        match &condition {
+            BlobPutCondition::IfNoneMatch => {
+                if storage.contains_key(key) {
+                    return Err(StorageError::PreconditionFailed(key.to_string()));
+                }
+            }
+            BlobPutCondition::IfMatch(expected) => {
+                let current = storage.get(key).map(|z| content_etag(z));
+                if current.as_deref() != Some(expected.as_str()) {
+                    return Err(StorageError::PreconditionFailed(key.to_string()));
+                }
+            }
+        }
+        storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
+        drop(storage);
+        self.flush_to_disk()
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        let mut keys: Vec<String> = data
+            .keys()
+            .filter(|k| k.starts_with(prefix))
+            .filter(|k| start_after.is_none_or(|s| k.as_str() > s))
+            .cloned()
+            .collect();
+        keys.sort();
+        if let Some(limit) = limit {
+            keys.truncate(limit);
+        }
+        Ok(Box::pin(futures_lite::stream::iter(
+            keys.into_iter().map(Ok),
+        )))
     }
 }
 
@@ -240,23 +347,19 @@ impl BlobStore for JsonFileStorage {
 /// method fails with `StorageError::Generic`.
 #[async_trait::async_trait]
 impl QueryStore for JsonFileStorage {
-    async fn query_async(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         Err(StorageError::Generic(
             "QueryStore not supported for JsonFileStorage".to_string(),
         ))
     }
 
-    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         Err(StorageError::Generic(
             "QueryStore not supported for JsonFileStorage".to_string(),
         ))
     }
 
-    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+    async fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "QueryStore not supported for JsonFileStorage".to_string(),
         ))
@@ -267,8 +370,9 @@ impl QueryStore for JsonFileStorage {
 /// with `StorageError::Generic`.
 #[async_trait::async_trait]
 impl RateLimiterStore for JsonFileStorage {
-    async fn check_rate_limit_async(
+    async fn check_rate_limit(
         &self,
+        _ctx: &Ctx,
         _key: &str,
         _max_count: u32,
         _window_seconds: u64,
@@ -278,13 +382,18 @@ impl RateLimiterStore for JsonFileStorage {
         ))
     }
 
-    async fn record_rate_limit_async(&self, _key: &str, _window_seconds: u64) -> StorageResult<u32> {
+    async fn record_rate_limit(
+        &self,
+        _ctx: &Ctx,
+        _key: &str,
+        _window_seconds: u64,
+    ) -> StorageResult<u32> {
         Err(StorageError::Generic(
             "RateLimiterStore not supported for JsonFileStorage".to_string(),
         ))
     }
 
-    async fn reset_rate_limit_async(&self, _key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, _key: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "RateLimiterStore not supported for JsonFileStorage".to_string(),
         ))

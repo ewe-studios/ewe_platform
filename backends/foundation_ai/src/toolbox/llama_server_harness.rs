@@ -13,7 +13,9 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_context::Ctx;
 
 fn project_root() -> PathBuf {
     let manifest_dir =
@@ -75,7 +77,10 @@ impl Default for LlamaServerConfig {
             api_key: "test-api-key-123".into(),
             model_name: std::env::var("LLAMA_TEST_MODEL_NAME")
                 .unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into()),
-            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(|_| root.join("artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"), PathBuf::from),
+            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(
+                |_| root.join("artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"),
+                PathBuf::from,
+            ),
             server_bin: root.join("support/bin/llama-server"),
             threads: 4,
             ctx_size: 2048,
@@ -96,8 +101,8 @@ fn kill_existing(port: u16) {
     std::thread::sleep(Duration::from_millis(500));
 }
 
-fn wait_for_health(port: u16, timeout: Duration) -> bool {
-    let start = Instant::now();
+fn wait_for_health(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
+    let start = ctx.clock().now();
     while start.elapsed() < timeout {
         if let Ok(stream) = TcpStream::connect_timeout(
             &format!("127.0.0.1:{port}").parse().unwrap(),
@@ -106,7 +111,7 @@ fn wait_for_health(port: u16, timeout: Duration) -> bool {
             let request = format!(
                 "GET /health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
             );
-            
+
             let _ = (&stream).write_all(request.as_bytes());
             let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
             let reader = BufReader::new(&stream);
@@ -128,13 +133,13 @@ fn wait_for_health(port: u16, timeout: Duration) -> bool {
 ///
 /// Returns a `LlamaServerGuard` that kills the server on drop.
 #[must_use]
-pub fn start_llama_server() -> LlamaServerGuard {
-    start_llama_server_with(LlamaServerConfig::default())
+pub fn start_llama_server(ctx: &Ctx) -> LlamaServerGuard {
+    start_llama_server_with(LlamaServerConfig::default(), ctx)
 }
 
 /// Start a llama-server with the given configuration.
 #[must_use]
-pub fn start_llama_server_with(config: LlamaServerConfig) -> LlamaServerGuard {
+pub fn start_llama_server_with(config: LlamaServerConfig, ctx: &Ctx) -> LlamaServerGuard {
     assert!(
         config.server_bin.exists(),
         "llama-server not found at {}. Run: mise run llama:server:build",
@@ -183,7 +188,7 @@ pub fn start_llama_server_with(config: LlamaServerConfig) -> LlamaServerGuard {
     let pid = child.id();
     eprintln!("[llama-harness] llama-server spawned (pid={pid}), waiting for health check");
 
-    let healthy = wait_for_health(config.port, config.startup_timeout);
+    let healthy = wait_for_health(config.port, config.startup_timeout, ctx);
 
     if !healthy {
         // Kill via Drop before panicking.

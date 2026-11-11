@@ -4,13 +4,15 @@ use std::time::{Duration, SystemTime};
 
 use libsql::Row;
 
-use crate::shared::vfs::types::{Checksum, VfsEntryState, VfsFileType, VfsMetadata};
 use crate::shared::vfs::error::{VfsError, VfsResult};
+use crate::shared::vfs::types::{Checksum, VfsEntryState, VfsFileType, VfsMetadata};
 use foundation_errstacks::ErrorTrace;
 
 /// Convert a libsql error to a VfsError.
 pub fn libsql_err(e: libsql::Error) -> VfsError {
-    VfsError::Backend { message: e.to_string() }
+    VfsError::Backend {
+        message: e.to_string(),
+    }
 }
 
 /// Chunk configuration.
@@ -59,7 +61,11 @@ impl SqliteDentry {
             "file" => VfsFileType::Regular,
             "dir" => VfsFileType::Directory,
             "symlink" => VfsFileType::Symlink,
-            other => return Err(ErrorTrace::new(VfsError::Backend { message: format!("unknown file_type: {other}") })),
+            other => {
+                return Err(ErrorTrace::new(VfsError::Backend {
+                    message: format!("unknown file_type: {other}"),
+                }))
+            }
         };
 
         let size = row.get::<i64>(4).map_err(libsql_err)? as u64;
@@ -69,8 +75,8 @@ impl SqliteDentry {
 
         let checksum = match row.get::<Vec<u8>>(8) {
             Ok(bytes) => {
-                let arr: [u8; 32] = bytes.try_into().map_err(|_| {
-                    VfsError::Backend { message: "checksum is not 32 bytes".into() }
+                let arr: [u8; 32] = bytes.try_into().map_err(|_| VfsError::Backend {
+                    message: "checksum is not 32 bytes".into(),
                 })?;
                 Some(arr)
             }
@@ -78,11 +84,9 @@ impl SqliteDentry {
         };
 
         let version_id = match row.get::<Vec<u8>>(9) {
-            Ok(bytes) => {
-                bytes.try_into().map_err(|_| {
-                    VfsError::Backend { message: "version_id is not 16 bytes".into() }
-                })?
-            }
+            Ok(bytes) => bytes.try_into().map_err(|_| VfsError::Backend {
+                message: "version_id is not 16 bytes".into(),
+            })?,
             Err(_) => [0u8; 16],
         };
 
@@ -123,7 +127,10 @@ impl SqliteDentry {
             created: Some(SystemTime::UNIX_EPOCH + Duration::from_millis(self.created_at)),
             modified: Some(SystemTime::UNIX_EPOCH + Duration::from_millis(self.updated_at)),
             accessed: None,
-            checksum: self.checksum.map(Checksum::Blake3).unwrap_or(Checksum::None),
+            checksum: self
+                .checksum
+                .map(Checksum::Blake3)
+                .unwrap_or(Checksum::None),
             version,
             state: VfsEntryState::Ready,
         }

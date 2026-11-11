@@ -1,4 +1,4 @@
-//! IdpConfig and PasswordPolicy tests.
+//! `IdpConfig` and `PasswordPolicy` tests.
 
 use foundation_auth::server::config::{IdpConfig, PasswordPolicy};
 use std::time::Duration;
@@ -7,17 +7,17 @@ use std::time::Duration;
 fn test_default_config() {
     let config = IdpConfig::new("https://auth.example.com".into());
     assert_eq!(config.issuer_url, "https://auth.example.com");
-    assert_eq!(config.access_token_ttl, Duration::from_secs(900));
-    assert_eq!(config.refresh_token_ttl, Duration::from_secs(604_800));
+    assert_eq!(config.access_token_ttl, Duration::from_mins(15));
+    assert_eq!(config.refresh_token_ttl, Duration::from_hours(168));
     assert!(config.require_pkce);
 }
 
 #[test]
 fn test_config_builder() {
     let config = IdpConfig::new("https://auth.example.com".into())
-        .with_access_token_ttl(Duration::from_secs(1800))
+        .with_access_token_ttl(Duration::from_mins(30))
         .with_require_pkce(false);
-    assert_eq!(config.access_token_ttl, Duration::from_secs(1800));
+    assert_eq!(config.access_token_ttl, Duration::from_mins(30));
     assert!(!config.require_pkce);
 }
 

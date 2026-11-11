@@ -1,6 +1,7 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 //! Abstractions of Tcp and Unix socket types
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::{
     PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream,
 };
@@ -313,9 +314,17 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
     fn peer_addr(&self) -> Option<SocketAddr>;
 
     /// The local address via getsockname on the fd.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the address cannot be obtained.
     fn local_addr(&self) -> std::io::Result<Option<SocketAddr>>;
 
     /// Shutdown the socket.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the shutdown fails.
     fn shutdown(&self, how: Shutdown) -> std::io::Result<()>;
 
     /// Whether `read` here costs no syscall. Observational only.
@@ -324,7 +333,7 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
     }
 }
 
-/// WireGuard overlay byte stream (smoltcp userspace TCP/IP, spec-55 F11).
+/// `WireGuard` overlay byte stream (smoltcp userspace TCP/IP, spec-55 F11).
 ///
 /// Same pattern as [`CompletionReadWrite`]: a boxed trait object so
 /// `foundation_netio` does not need to depend on `foundation_nativeapis`
@@ -337,7 +346,7 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
 ///
 /// Registered via [`Connection::register_read_waker`] /
 /// [`Connection::register_write_waker`]; the transport's own driver (e.g. the
-/// WireGuard `TunnelDriver`) invokes it when the underlying socket's readiness
+/// `WireGuard` `TunnelDriver`) invokes it when the underlying socket's readiness
 /// changes. Structurally identical to `foundation_nativeapis::dataplane::WakeFn`,
 /// so a wireguard `OverlayReadWrite` impl can pass it straight through to
 /// `OverlayStream::set_read_waker`.
@@ -384,6 +393,21 @@ pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
     /// write backpressure.
     fn set_write_waker(&self, waker: ConnWaker);
 
+    /// True when the next `read` will not return `WouldBlock`: data is buffered,
+    /// or the receive half is closed (EOF).
+    ///
+    /// A synchronous I/O driver (`conn_io`) probes this to answer "readable now"
+    /// without consuming a byte (which a `read` would).
+    fn readable(&self) -> bool;
+
+    /// True when the next `write` will not return `WouldBlock`: the send buffer
+    /// has spare capacity, or the send half is closed (the write surfaces the
+    /// error).
+    ///
+    /// The write-side twin of [`Self::readable`]: probe "writable now" without
+    /// enqueuing anything.
+    fn writable(&self) -> bool;
+
     /// Whether an HTTP connection over this stream may be returned to the pool
     /// for reuse.
     ///
@@ -399,18 +423,148 @@ pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
     }
 }
 
-/// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
-/// behind `&mut self`. OverlayAcceptor (in wireguard) wraps smoltcp.
+/// The TLS state a synchronous I/O driver needs to pick the wire direction.
+///
+/// Feature 06: a plaintext read can stall on a pending TLS write, and a
+/// plaintext write can stall waiting for the peer's handshake reply. The driver
+/// asks this trait which way the socket must turn, instead of polling the
+/// socket in the direction the application asked for.
+#[cfg(unix)]
+pub trait TlsInterest: Send + Sync + std::fmt::Debug {
+    /// The wire direction `interest` actually needs.
+    fn corrected(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> crate::native::readiness::IoInterest;
+
+    /// The underlying kernel fd the TLS session wraps.
+    fn fd(&self) -> std::os::unix::io::RawFd;
+}
+
+/// How a synchronous I/O driver (`conn_io`) waits for readiness on one
+/// connection, without a valtron task to park. Feature 06.
+///
+/// This is a purpose-built type, not an overload of `EventReadiness`: the
+/// synchronous driver must *block* its thread, while `EventReadiness::is_ready`
+/// answers "ready now" without blocking.
+#[cfg(unix)]
+pub enum ConnReadiness {
+    /// A kernel-fd transport: poll `fd`, with the TLS-corrected direction from
+    /// `tls` when it is `Some`.
+    Fd(
+        std::os::unix::io::RawFd,
+        Option<std::sync::Arc<dyn TlsInterest>>,
+    ),
+    /// The `WireGuard` overlay: no pollable fd. Probe with
+    /// [`ConnReadiness::ready_now`] and register a [`ConnWaker`].
+    Overlay(Box<dyn OverlayReadWrite>),
+}
+
+#[cfg(unix)]
+impl ConnReadiness {
+    /// The kernel fd and the (TLS-corrected) direction to poll for `interest`,
+    /// or `None` for a transport with no pollable fd.
+    #[must_use]
+    pub fn poll_fd(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> Option<(
+        std::os::unix::io::RawFd,
+        crate::native::readiness::IoInterest,
+    )> {
+        match self {
+            Self::Fd(fd, tls) => {
+                let corrected = tls.as_ref().map_or(interest, |t| t.corrected(interest));
+                Some((*fd, corrected))
+            }
+            Self::Overlay(_) => None,
+        }
+    }
+
+    /// Non-blocking "ready now" probe in `interest`'s direction. TLS-corrected
+    /// for kernel-fd transports; the overlay probes its smoltcp socket.
+    ///
+    /// # Errors
+    /// The `poll(2)` error, other than `EINTR` (which reports "not ready").
+    pub fn ready_now(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> std::io::Result<bool> {
+        match self {
+            Self::Fd(fd, tls) => {
+                let corrected = tls.as_ref().map_or(interest, |t| t.corrected(interest));
+                crate::native::readiness::SocketReadiness::new(*fd, corrected).poll_now()
+            }
+            Self::Overlay(o) => Ok(match interest {
+                crate::native::readiness::IoInterest::Readable => o.readable(),
+                crate::native::readiness::IoInterest::Writable => o.writable(),
+            }),
+        }
+    }
+
+    /// Register a one-shot [`ConnWaker`] for `interest`. Returns `true` when the
+    /// transport supports wake registration (the overlay); kernel-fd transports
+    /// are polled, so they return `false`.
+    pub fn register_waker(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+        waker: ConnWaker,
+    ) -> bool {
+        match self {
+            Self::Overlay(o) => {
+                match interest {
+                    crate::native::readiness::IoInterest::Readable => o.set_read_waker(waker),
+                    crate::native::readiness::IoInterest::Writable => o.set_write_waker(waker),
+                }
+                true
+            }
+            Self::Fd(..) => false,
+        }
+    }
+}
+
+/// Trait name stays as-is. `TcpListener` blanket impl wraps the OS `accept`
+/// behind `&mut self`. `OverlayAcceptor` (in wireguard) wraps smoltcp.
 pub trait Acceptor: Send + Sync + 'static {
+    /// Accept one connection from the listener.
+    ///
+    /// This is a blocking boundary, not a valtron-worker operation: the HTTP
+    /// server runs it on its dedicated accept thread, with the listener set
+    /// non-blocking, so a missing connection returns `WouldBlock` instead of
+    /// parking a task worker (issue #279 explains why this call stays sync).
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the accept fails.
     fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
+
+    /// Switch the acceptor's blocking mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the operation fails.
     fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
+
+    /// The listener's local address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the address cannot be obtained.
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
+
+    /// The underlying file descriptor, when the transport has one. Unix TCP
+    /// listeners return their fd so the accept loop can park on readiness
+    /// (Feature 05); acceptors without an fd (an overlay) return `None`.
+    #[cfg(unix)]
+    fn raw_fd(&self) -> Option<std::os::fd::RawFd> {
+        None
+    }
 }
 
 /// Opens a `Connection` for a given host:port (spec-55, F11).
 ///
 /// WHY: `HttpConnectionPool` hardcodes DNS + `TcpStream::connect()`. This trait
-/// lets different transports plug in — kernel TCP, WireGuard overlay, Unix
+/// lets different transports plug in — kernel TCP, `WireGuard` overlay, Unix
 /// sockets — without changing the HTTP stack.
 ///
 /// WHAT: `connect(host, port, timeout)` returns an established `Connection`.
@@ -421,6 +575,10 @@ pub trait Acceptor: Send + Sync + 'static {
 /// Implementors: `OverlayConnector` in `foundation_wireguard`.
 pub trait Connector: Send + Sync + 'static {
     /// Open a connection to `host:port` with an optional timeout.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the connection cannot be established.
     fn connect(
         &self,
         host: &str,
@@ -443,6 +601,12 @@ impl Acceptor for std::net::TcpListener {
 
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
         std::net::TcpListener::local_addr(self)
+    }
+
+    #[cfg(unix)]
+    fn raw_fd(&self) -> Option<std::os::fd::RawFd> {
+        use std::os::fd::AsRawFd;
+        Some(self.as_raw_fd())
     }
 }
 
@@ -496,56 +660,258 @@ pub enum Connection {
     #[cfg(unix)]
     Completion(Box<dyn CompletionReadWrite>),
 
-    /// WireGuard overlay TCP stream — smoltcp userspace netstack (spec-55 F11).
+    /// `WireGuard` overlay TCP stream — smoltcp userspace netstack (spec-55 F11).
     /// The trait object avoids a `netio → nativeapis → db → netio` cycle.
     /// The impl lives in `foundation_wireguard`.
     Overlay(Box<dyn OverlayReadWrite>),
 }
 
+/// A TCP connect that is in flight on a non-blocking socket.
+///
+/// WHY: a blocking `connect` holds a valtron worker for the whole kernel connect
+/// (one round-trip at best, the entire timeout for an unreachable host). The
+/// request task must instead create the socket non-blocking, start `connect(2)`,
+/// park on write readiness, and read `SO_ERROR` when the socket turns writable
+/// (feature 04).
+///
+/// WHAT: [`PendingConnect::start`] creates the socket, switches it to
+/// non-blocking, and starts the connect. The task parks on write readiness of
+/// [`PendingConnect::as_raw_fd`]. [`PendingConnect::check`] reads `SO_ERROR` and
+/// either returns the connected `TcpStream` (still non-blocking) or the connect
+/// error.
+///
+/// HOW: `socket2` owns the raw fd and hides the address-family and `SO_ERROR`
+/// details. `take_error` reads `SO_ERROR`; a `None` means connected, a `Some`
+/// means the connect failed with that error.
+#[cfg(unix)]
+pub struct PendingConnect {
+    socket: socket2::Socket,
+}
+
+#[cfg(unix)]
+impl PendingConnect {
+    /// Create a non-blocking socket and start connecting to `addr`.
+    ///
+    /// `Ok(())` from `connect` means the connect finished at once (a loopback
+    /// peer). `EINPROGRESS`/`WouldBlock` means it is still in flight and the
+    /// caller must wait for write readiness. Any other error (for example
+    /// `ECONNREFUSED` to a closed local port) is returned at once.
+    ///
+    /// # Errors
+    /// The socket could not be created, or the connect failed immediately.
+    pub fn start(addr: core::net::SocketAddr) -> std::io::Result<Self> {
+        let socket = socket2::Socket::new(
+            socket2::Domain::for_address(addr),
+            socket2::Type::STREAM,
+            Some(socket2::Protocol::TCP),
+        )?;
+        socket.set_nonblocking(true)?;
+
+        match socket.connect(&addr.into()) {
+            Ok(()) => {}
+            Err(err)
+                if err.raw_os_error() == Some(libc::EINPROGRESS)
+                    || err.kind() == std::io::ErrorKind::WouldBlock =>
+            {
+                // In flight: the caller parks on write readiness.
+            }
+            Err(err) => return Err(err),
+        }
+
+        Ok(Self { socket })
+    }
+
+    /// The raw fd to watch for write readiness.
+    #[must_use]
+    pub fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        std::os::unix::io::AsRawFd::as_raw_fd(&self.socket)
+    }
+
+    /// Finish the connect by reading `SO_ERROR`.
+    ///
+    /// Call this only after the fd reports writable. `Ok` carries the connected
+    /// `TcpStream`, still in non-blocking mode. `Err` carries the connect error
+    /// (for example `ECONNREFUSED`, `ETIMEDOUT`).
+    ///
+    /// # Errors
+    /// The connect failed, or `SO_ERROR` could not be read.
+    pub fn check(self) -> std::io::Result<std::net::TcpStream> {
+        if let Some(err) = self.socket.take_error()? {
+            return Err(err);
+        }
+        // SAFETY: `socket` owns a live, connected fd; ownership moves to the
+        // `TcpStream`, which keeps the non-blocking mode socket2 set.
+        Ok(self.socket.into())
+    }
+}
+
+/// Start a non-blocking TCP connect and settle it from readiness, leaving the
+/// stream non-blocking.
+///
+/// WHY: the synchronous constructors in this module must not hand a valtron
+/// worker to a blocking `connect(2)` (issue #277). They create the socket
+/// non-blocking, wait for write readiness and read `SO_ERROR`, the same state
+/// machine a parked task uses with [`PendingConnect`] and
+/// [`SocketReadiness`](crate::native::readiness::SocketReadiness).
+///
+/// A sync caller that needs a blocking stream switches it back with
+/// `set_nonblocking(false)` after the connect (see [`Connection::without_timeout`]).
+///
+/// # Errors
+/// The socket could not be created, the connect failed, or the timeout expired.
+#[cfg(unix)]
+pub(crate) fn connect_tcp_nonblocking(
+    addr: core::net::SocketAddr,
+    timeout: Option<Duration>,
+    ctx: &Ctx,
+) -> std::io::Result<TcpStream> {
+    let deadline = timeout.map(|timeout| ctx.clock().now() + timeout);
+    let pending = PendingConnect::start(addr)?;
+    let ready = crate::native::readiness::SocketReadiness::new(
+        pending.as_raw_fd(),
+        crate::native::readiness::IoInterest::Writable,
+    )
+    .wait_blocking(deadline, ctx)?;
+    if !ready {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::TimedOut,
+            "TCP connection timed out",
+        ));
+    }
+    pending.check()
+}
+
+/// Connect to a Unix domain socket on a non-blocking socket, leaving the stream
+/// non-blocking.
+///
+/// WHY: a Unix socket connect can wait when the peer's accept backlog is full
+/// (issue #279). The connect therefore runs on a non-blocking socket and settles
+/// from readiness, like the TCP path.
+///
+/// # Errors
+/// The path is invalid, the connect failed, or the timeout expired.
+#[cfg(unix)]
+pub(crate) fn connect_unix_nonblocking(
+    path: &std::path::Path,
+    timeout: Option<Duration>,
+    ctx: &Ctx,
+) -> std::io::Result<unix_net::UnixStream> {
+    let socket = socket2::Socket::new(socket2::Domain::UNIX, socket2::Type::STREAM, None)?;
+    socket.set_nonblocking(true)?;
+    match socket.connect(&socket2::SockAddr::unix(path)?) {
+        Ok(()) => {}
+        Err(err)
+            if err.raw_os_error() == Some(libc::EINPROGRESS)
+                || err.raw_os_error() == Some(libc::EAGAIN)
+                || err.kind() == std::io::ErrorKind::WouldBlock => {}
+        Err(err) => return Err(err),
+    }
+
+    let deadline = timeout.map(|timeout| ctx.clock().now() + timeout);
+    let ready = crate::native::readiness::SocketReadiness::new(
+        socket.as_raw_fd(),
+        crate::native::readiness::IoInterest::Writable,
+    )
+    .wait_blocking(deadline, ctx)?;
+    if !ready {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::TimedOut,
+            "Unix socket connection timed out",
+        ));
+    }
+    if let Some(err) = socket.take_error()? {
+        return Err(err);
+    }
+
+    // SAFETY: `socket` owns a live, connected fd; ownership moves to the
+    // `UnixStream`, which keeps the non-blocking mode set above.
+    let fd: std::os::fd::OwnedFd = socket.into();
+    Ok(unix_net::UnixStream::from(fd))
+}
+
 impl Connection {
     /// Create a new TCP connection without a timeout.
+    ///
+    /// The connect runs on a non-blocking socket and settles from `SO_ERROR`
+    /// (issue #277). The returned stream is blocking, as a synchronous caller
+    /// expects.
     ///
     /// # Errors
     /// Returns an error if the TCP connection fails.
     pub fn without_timeout(
         addr: core::net::SocketAddr,
+        ctx: &Ctx,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Self::Tcp(TcpStream::connect(addr)?))
+        #[cfg(unix)]
+        {
+            let stream = connect_tcp_nonblocking(addr, None, ctx)?;
+            stream.set_nonblocking(false)?;
+            Ok(Self::Tcp(stream))
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = ctx;
+            Ok(Self::Tcp(TcpStream::connect(addr)?))
+        }
     }
 
     /// Create a new TCP connection with a timeout.
+    ///
+    /// The connect runs on a non-blocking socket and settles from `SO_ERROR`
+    /// (issue #277). The returned stream is blocking, as a synchronous caller
+    /// expects.
     ///
     /// # Errors
     /// Returns an error if the TCP connection fails or the timeout expires.
     pub fn with_timeout(
         addr: core::net::SocketAddr,
         timeout: Duration,
+        ctx: &Ctx,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
+        #[cfg(unix)]
+        {
+            let stream = connect_tcp_nonblocking(addr, Some(timeout), ctx)?;
+            stream.set_nonblocking(false)?;
+            Ok(Self::Tcp(stream))
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = ctx;
+            Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
+        }
     }
 
     /// Connect to a Unix domain socket.
     ///
-    /// WHY: The Docker daemon and BuildKitd listen on Unix sockets
+    /// WHY: The Docker daemon and `BuildKitd` listen on Unix sockets
     /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — the primary,
     /// unprivileged, TLS-free local transport.
     ///
-    /// WHAT: Opens a `UnixStream` to `path` and wraps it as `Connection::Unix`.
+    /// WHAT: Opens a `UnixStream` to `path`, applies `read_timeout` as the
+    /// socket read timeout, and wraps it as `Connection::Unix`.
     ///
-    /// HOW: Delegates to `std::os::unix::net::UnixStream::connect`.
+    /// HOW: The connect runs on a non-blocking socket and settles from
+    /// readiness (issue #279). The returned stream is blocking, as a
+    /// synchronous caller expects. The read timeout is configuration, not a
+    /// constant (issue #420).
     ///
     /// # Errors
     ///
-    /// Returns an error if the socket path does not exist or the connection fails.
+    /// Returns an error if the socket path does not exist, the connection
+    /// fails, or the platform cannot set the read timeout. A failed
+    /// `set_read_timeout` is returned, never ignored.
     #[cfg(unix)]
     pub fn connect_unix(
         path: impl AsRef<std::path::Path>,
+        read_timeout: Duration,
+        ctx: &Ctx,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let stream = unix_net::UnixStream::connect(path)?;
+        let stream = connect_unix_nonblocking(path.as_ref(), None, ctx)?;
+        stream.set_nonblocking(false)?;
         // Docker closes the connection after every response — a blocking read
-        // on a dead socket hangs forever. A short read timeout converts the
+        // on a dead socket hangs forever. A read timeout converts the
         // dead-socket read into a WouldBlock error our buffer layer handles.
-        let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
+        stream.set_read_timeout(Some(read_timeout))?;
         Ok(Self::Unix(stream))
     }
 
@@ -553,10 +919,17 @@ impl Connection {
     /// a single HTTP exchange — Docker/BuildKitd close after each response).
     #[must_use]
     pub fn is_unix(&self) -> bool {
-        matches!(self, Self::Unix(_))
+        #[cfg(unix)]
+        {
+            matches!(self, Self::Unix(_))
+        }
+        #[cfg(not(unix))]
+        {
+            false
+        }
     }
 
-    /// Whether this connection is a WireGuard overlay stream (smoltcp userspace TCP).
+    /// Whether this connection is a `WireGuard` overlay stream (smoltcp userspace TCP).
     #[must_use]
     pub fn is_overlay(&self) -> bool {
         matches!(self, Self::Overlay(_))
@@ -571,6 +944,7 @@ impl Connection {
     #[must_use]
     pub fn should_pool(&self) -> bool {
         match self {
+            #[cfg(unix)]
             Self::Unix(_) => false,
             Self::Overlay(o) => o.should_pool(),
             _ => true,
@@ -614,7 +988,7 @@ impl ReadTimeoutOperations for Connection {
                     &timeout,
                 );
 
-                u.set_read_timeout(Some(timeout))
+                unix_timeout_result(u.set_read_timeout(Some(timeout)))
             }
             #[cfg(any(
                 feature = "ssl-rustls",
@@ -732,7 +1106,7 @@ impl Connection {
         match self {
             Self::Tcp(t) => t.set_write_timeout(dur),
             #[cfg(unix)]
-            Self::Unix(u) => u.set_write_timeout(dur),
+            Self::Unix(u) => unix_timeout_result(u.set_write_timeout(dur)),
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
@@ -762,7 +1136,7 @@ impl Connection {
         match self {
             Self::Tcp(t) => t.set_read_timeout(dur),
             #[cfg(unix)]
-            Self::Unix(u) => u.set_read_timeout(dur),
+            Self::Unix(u) => unix_timeout_result(u.set_read_timeout(dur)),
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
@@ -778,6 +1152,28 @@ impl Connection {
             }
             Self::Overlay(_) => Ok(()),
         }
+    }
+}
+
+/// Map the result of setting `SO_RCVTIMEO` / `SO_SNDTIMEO` on a Unix socket.
+///
+/// macOS (like the other BSDs) answers `EINVAL` when the socket has already
+/// been shut down by the peer — a server that wrote its whole response and
+/// closed (`Connection: close`) before we got to set the body-read timeout.
+/// The timeout cannot matter then (every read returns at once with the
+/// buffered bytes or EOF), so this is "timeout not applied", not a failed
+/// send. Linux accepts the option in that state.
+#[cfg(unix)]
+fn unix_timeout_result(result: std::io::Result<()>) -> std::io::Result<()> {
+    match result {
+        Err(err) if err.raw_os_error() == Some(libc::EINVAL) => {
+            tracing::debug!(
+                ?err,
+                "unix socket refused a timeout (peer already shut it down); continuing without it"
+            );
+            Ok(())
+        }
+        other => other,
     }
 }
 
@@ -816,7 +1212,10 @@ impl SplitReadStream for Connection {
 impl PeekableReadStream for Connection {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         match self {
+            // `MSG_PEEK` answers 0 only at end of stream (a stall is
+            // `WouldBlock`), which the trait reports as `EndOfStream`.
             Self::Tcp(inner) => match inner.peek(buf) {
+                Ok(0) if !buf.is_empty() => Err(PeekError::EndOfStream),
                 Ok(count) => Ok(count),
                 Err(err) => Err(PeekError::IOError(err)),
             },
@@ -826,6 +1225,7 @@ impl PeekableReadStream for Connection {
 
             #[cfg(all(feature = "nightly", unix))]
             Self::Unix(inner) => match inner.peek(buf) {
+                Ok(0) if !buf.is_empty() => Err(PeekError::EndOfStream),
                 Ok(count) => Ok(count),
                 Err(err) => Err(PeekError::IOError(err)),
             },
@@ -998,7 +1398,7 @@ impl Connection {
 
     /// Register a wake callback fired when this connection becomes readable.
     ///
-    /// Returns `true` if the transport supports readiness wakeups (the WireGuard
+    /// Returns `true` if the transport supports readiness wakeups (the `WireGuard`
     /// overlay), `false` for blocking transports (TCP/TLS/Unix) whose reads block
     /// until data or timeout and never surface `WouldBlock` for parking. A reader
     /// task uses the result to decide between parking (`Depends`) and treating a
@@ -1043,11 +1443,10 @@ impl Connection {
     /// spinning with nothing to wait on. Transports that answer `false` keep the
     /// blocking path with kernel read timeouts.
     ///
-    /// WHAT: `true` for kernel sockets on unix (TCP, Unix domain), for rustls over
-    /// those, and for the overlay (always non-blocking, woken by its driver).
-    /// `false` for completion sockets, whose bytes come from an `io_uring` inbox and
-    /// not from fd readability, and for the openssl / native-tls backends, which
-    /// do not expose whether a stalled call needs the socket readable or writable.
+    /// WHAT: `true` for kernel sockets on unix (TCP, Unix domain), for every TLS
+    /// backend over those, and for the overlay (always non-blocking, woken by its
+    /// driver). `false` for completion sockets, whose bytes come from an
+    /// `io_uring` inbox and not from fd readability.
     #[must_use]
     pub fn supports_nonblocking_io(&self) -> bool {
         match self {
@@ -1055,11 +1454,22 @@ impl Connection {
             Self::Tcp(_) | Self::Unix(_) => true,
             #[cfg(not(unix))]
             Self::Tcp(_) => false,
-            #[cfg(all(unix, feature = "ssl-rustls"))]
-            Self::Tls(_) => true,
             #[cfg(all(
-                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
-                not(all(unix, feature = "ssl-rustls"))
+                unix,
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )
+            ))]
+            Self::Tls(tls) => tls.supports_nonblocking_io(),
+            #[cfg(all(
+                not(unix),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )
             ))]
             Self::Tls(_) => false,
             #[cfg(unix)]
@@ -1074,23 +1484,19 @@ impl Connection {
     /// switch, so this is a no-op for them.
     ///
     /// # Errors
-    /// The socket's `fcntl` error, or `Unsupported` for a TLS backend that cannot
-    /// be driven non-blocking (see [`Self::supports_nonblocking_io`]).
+    /// The socket's `fcntl` error, or an error when the TLS stream cannot reach
+    /// its socket.
     pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
         match self {
             Self::Tcp(s) => s.set_nonblocking(nonblocking),
             #[cfg(unix)]
             Self::Unix(s) => s.set_nonblocking(nonblocking),
-            #[cfg(feature = "ssl-rustls")]
-            Self::Tls(tls) => tls.set_nonblocking(nonblocking),
-            #[cfg(all(
-                not(feature = "ssl-rustls"),
-                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
             ))]
-            Self::Tls(_) => Err(std::io::Error::new(
-                std::io::ErrorKind::Unsupported,
-                "this TLS backend cannot be driven non-blocking",
-            )),
+            Self::Tls(tls) => tls.set_nonblocking(nonblocking),
             #[cfg(unix)]
             Self::Completion(_) => Ok(()),
             Self::Overlay(_) => Ok(()),
@@ -1117,13 +1523,12 @@ impl Connection {
             Self::Tcp(_) => Ok(false),
             #[cfg(unix)]
             Self::Unix(s) => fd_is_nonblocking(s.as_raw_fd()),
-            #[cfg(feature = "ssl-rustls")]
-            Self::Tls(tls) => tls.is_nonblocking(),
-            #[cfg(all(
-                not(feature = "ssl-rustls"),
-                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
             ))]
-            Self::Tls(_) => Ok(false),
+            Self::Tls(tls) => tls.is_nonblocking(),
             #[cfg(unix)]
             Self::Completion(_) => Ok(true),
             Self::Overlay(_) => Ok(true),
@@ -1157,26 +1562,62 @@ impl Connection {
             Self::Unix(s) => Some(std::sync::Arc::new(
                 crate::native::readiness::SocketReadiness::new(s.as_raw_fd(), interest),
             )),
-            #[cfg(feature = "ssl-rustls")]
+            #[cfg(all(
+                unix,
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )
+            ))]
             Self::Tls(tls) => tls.readiness(interest),
             #[cfg(all(
-                not(feature = "ssl-rustls"),
-                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+                not(unix),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                )
             ))]
             Self::Tls(_) => None,
             #[cfg(unix)]
             Self::Completion(_) => None,
             Self::Overlay(o) => {
-                let signal = foundation_core::valtron::BoolSignal::new(false);
-                let flag = signal.clone_inner();
-                let waker: ConnWaker =
-                    std::sync::Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+                // `ResumeSignal::set` asks the executor to run again, so the parked
+                // task needs no re-check on a timer.
+                let signal = foundation_core::valtron::ResumeSignal::new(false);
+                let flag = signal.clone();
+                let waker: ConnWaker = std::sync::Arc::new(move || flag.set(true));
                 match interest {
                     IoInterest::Readable => o.set_read_waker(waker),
                     IoInterest::Writable => o.set_write_waker(waker),
                 }
                 Some(std::sync::Arc::new(signal))
             }
+        }
+    }
+
+    /// A readiness handle for a synchronous I/O driver (`conn_io`) that blocks
+    /// its thread. Feature 06.
+    ///
+    /// Returns `None` for a transport that cannot be waited on this way (a
+    /// completion socket, the openssl/native-tls backends). The driver then uses
+    /// a configured poll fallback.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn conn_readiness(&self) -> Option<ConnReadiness> {
+        use std::os::fd::AsRawFd;
+        match self {
+            Self::Tcp(s) => Some(ConnReadiness::Fd(s.as_raw_fd(), None)),
+            Self::Unix(s) => Some(ConnReadiness::Fd(s.as_raw_fd(), None)),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(tls) => Some(tls.conn_readiness()),
+            Self::Completion(_) => None,
+            Self::Overlay(o) => Some(ConnReadiness::Overlay(o.clone_box())),
         }
     }
 
@@ -1534,21 +1975,61 @@ impl TcpStreamWrapper {
 
     /// Creates a new TCP stream and issues a non-blocking connect to the specified address.
     ///
+    /// The connect settles from readiness and `SO_ERROR` (issue #277). The
+    /// returned stream is blocking, as a synchronous caller expects.
+    ///
     /// # Errors
     /// Returns an error if connecting fails.
-    pub fn connect<A: std::net::ToSocketAddrs>(addr: A) -> std::io::Result<Self> {
-        TcpStream::connect(addr).map(Self::new)
+    pub fn connect<A: std::net::ToSocketAddrs>(addr: A, ctx: &Ctx) -> std::io::Result<Self> {
+        #[cfg(unix)]
+        {
+            let mut last_error = None;
+            for addr in addr.to_socket_addrs()? {
+                match connect_tcp_nonblocking(addr, None, ctx) {
+                    Ok(stream) => {
+                        stream.set_nonblocking(false)?;
+                        return Ok(Self::new(stream));
+                    }
+                    Err(err) => last_error = Some(err),
+                }
+            }
+            Err(last_error.unwrap_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "the address resolved to no socket addresses",
+                )
+            }))
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = ctx;
+            TcpStream::connect(addr).map(Self::new)
+        }
     }
 
     /// Creates a new TCP stream and issues a connect with a timeout to the specified address.
+    ///
+    /// The connect settles from readiness and `SO_ERROR` (issue #277). The
+    /// returned stream is blocking, as a synchronous caller expects.
     ///
     /// # Errors
     /// Returns an error if connecting fails or the timeout expires.
     pub fn connect_timeout(
         addr: &core::net::SocketAddr,
         timeout: Duration,
+        ctx: &Ctx,
     ) -> std::io::Result<Self> {
-        TcpStream::connect_timeout(addr, timeout).map(Self::new)
+        #[cfg(unix)]
+        {
+            let stream = connect_tcp_nonblocking(*addr, Some(timeout), ctx)?;
+            stream.set_nonblocking(false)?;
+            Ok(Self::new(stream))
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = ctx;
+            TcpStream::connect_timeout(addr, timeout).map(Self::new)
+        }
     }
 
     /// Sets the linger duration for this TCP stream.
@@ -1649,84 +2130,5 @@ impl Write for TcpStreamWrapper {
 
     fn flush(&mut self) -> std::io::Result<()> {
         self.inner.flush()
-    }
-}
-
-// Example usage and tests
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::net::TcpListener;
-    use std::time::Duration;
-
-    #[test]
-    fn test_wrapper_standard() {
-        // Set up a simple server
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let addr = listener.local_addr().unwrap();
-
-        // Test connect
-        let mut wrapper = TcpStreamWrapper::connect(addr).unwrap();
-
-        // Test writing
-        wrapper.write_all(b"test").unwrap();
-        wrapper.flush().unwrap();
-
-        // Test nodelay
-        wrapper.set_nodelay(true).unwrap();
-        assert!(wrapper.nodelay().unwrap());
-
-        // Test ttl
-        wrapper.set_ttl(100).unwrap();
-        assert_eq!(wrapper.ttl().unwrap(), 100);
-
-        // Test timeouts
-        let timeout = Some(Duration::from_secs(1));
-        wrapper.set_read_timeout(timeout).unwrap();
-        wrapper.set_write_timeout(timeout).unwrap();
-        assert_eq!(wrapper.read_timeout().unwrap(), timeout);
-        assert_eq!(wrapper.write_timeout().unwrap(), timeout);
-
-        // Test peek
-        let mut buf = [0u8; 128];
-        let result = wrapper.peek(&mut buf);
-        assert!(result.is_ok() || result.unwrap_err().kind() == std::io::ErrorKind::WouldBlock);
-
-        // Test take_error
-        assert!(wrapper.take_error().unwrap().is_none());
-
-        // Test shutdown
-        wrapper.shutdown(Shutdown::Both).unwrap();
-    }
-
-    #[test]
-    fn test_connect_timeout() {
-        // Test connect_timeout with an unreachable address
-        let addr = "127.0.0.1:54321".parse().expect("generate addrs"); // Assuming no server is running here
-        let result = TcpStreamWrapper::connect_timeout(&addr, Duration::from_millis(100));
-        assert!(result.is_err());
-    }
-
-    #[cfg(feature = "nightly")]
-    #[test]
-    fn test_wrapper_nightly() {
-        // Set up a simple server
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let addr = listener.local_addr().unwrap();
-
-        // Connect to server
-        let mut wrapper = TcpStreamWrapper::connect(addr).unwrap();
-
-        // Test linger
-        wrapper.set_linger(Some(Duration::from_secs(1))).unwrap();
-        assert_eq!(wrapper.linger().unwrap(), Some(Duration::from_secs(1)));
-
-        // Test addresses
-        let _local_addr = wrapper.local_addr().expect("as local address");
-        let _peer_addr = wrapper.peer_addr().expect("expect peer addr");
-
-        // Test reuse address
-        wrapper.set_reuse_address(true).unwrap();
-        assert!(wrapper.reuse_address().unwrap());
     }
 }

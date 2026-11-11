@@ -7,9 +7,11 @@
 //! 4. Combinators work correctly with boxed and mutex-wrapped iterators
 
 use foundation_core::valtron::{
-    Ctx, ShortCircuit, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt,
-    TaskShortCircuit, TaskStatus,
+    ShortCircuit, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskShortCircuit,
+    TaskStatus,
 };
+
+use foundation_context::Ctx;
 use std::sync::{Arc, Mutex};
 
 // ============================================================================
@@ -156,10 +158,7 @@ impl TaskIterator for CountingTaskIterator {
     type Ready = usize;
     type Pending = &'static str;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }
@@ -171,22 +170,31 @@ impl TaskIterator for CountingTaskIterator {
 
 #[test]
 fn test_task_map_circuit_continue() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = CountingTaskIterator::new(5);
     let mut circuit_iter = iter.map_circuit(|status| match status {
         TaskStatus::Ready(v) if v < 3 => TaskShortCircuit::Continue(TaskStatus::Ready(v * 2)),
         _ => TaskShortCircuit::Stop,
     });
 
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(0)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(2)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(4)));
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(0))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(2))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(4))
+    );
     assert_eq!(circuit_iter.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_task_map_circuit_return_and_stop() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = CountingTaskIterator::new(5);
     let mut circuit_iter = iter.map_circuit(|status| match status {
         TaskStatus::Ready(v) if v == 3 => TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(v)),
@@ -194,31 +202,52 @@ fn test_task_map_circuit_return_and_stop() {
         _ => TaskShortCircuit::Stop,
     });
 
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(0)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(1)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(2)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(3)));
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(0))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(1))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(2))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(3))
+    );
     assert_eq!(circuit_iter.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_task_map_circuit_with_box() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = Box::new(CountingTaskIterator::new(3));
     let mut circuit_iter = iter.map_circuit(|status| match status {
         TaskStatus::Ready(v) => TaskShortCircuit::Continue(TaskStatus::Ready(v + 10)),
         _ => TaskShortCircuit::Stop,
     });
 
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(10)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(11)));
-    assert_eq!(circuit_iter.next_status(ctx.clone()), Some(TaskStatus::Ready(12)));
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(10))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(11))
+    );
+    assert_eq!(
+        circuit_iter.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(12))
+    );
     assert_eq!(circuit_iter.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_task_map_circuit_chained_with_map_ready() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let iter = CountingTaskIterator::new(4);
     let mut result = iter
         .map_circuit(|status| match status {
@@ -228,8 +257,14 @@ fn test_task_map_circuit_chained_with_map_ready() {
         .map_ready(|v| v * 100);
 
     assert_eq!(result.next_status(ctx.clone()), Some(TaskStatus::Ready(0)));
-    assert_eq!(result.next_status(ctx.clone()), Some(TaskStatus::Ready(100)));
-    assert_eq!(result.next_status(ctx.clone()), Some(TaskStatus::Ready(200)));
+    assert_eq!(
+        result.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(100))
+    );
+    assert_eq!(
+        result.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(200))
+    );
     assert_eq!(result.next_status(ctx.clone()), None);
 }
 

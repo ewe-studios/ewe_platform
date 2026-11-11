@@ -6,11 +6,10 @@
 //!
 //! HOW: mock handlers that echo or transform the request.
 
-use foundation_wasm::{
-    CapabilityError, CapabilityContentType, CapabilityRequest, CapabilityResponse,
-    TriggerRegistry,
-};
 use foundation_wasm::ipc::{IpcContentType, IpcError, IpcRequest, IpcResponse};
+use foundation_wasm::{
+    CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, TriggerRegistry,
+};
 
 // ── Capability trigger tests ───────────────────────────────────────────
 
@@ -197,13 +196,13 @@ fn trigger_handlers_independent() {
 fn trigger_handlers_receive_request_by_value() {
     let mut reg = TriggerRegistry::new();
     reg.set_capability_handler(|req: CapabilityRequest<Vec<u8>>| {
-        // Handler OWNS the request — can move fields out
-        let _owned: String = req.capability;
-        let _owned: Vec<u8> = req.payload;
+        // Handler OWNS the request — can move fields out and return them.
+        let owned: String = req.capability;
+        let owned_payload: Vec<u8> = req.payload;
         Ok(CapabilityResponse {
-            capability: "ok".into(),
+            capability: owned,
             action: "ok".into(),
-            payload: vec![],
+            payload: owned_payload,
             content_type: CapabilityContentType::Json,
         })
     });

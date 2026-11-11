@@ -66,16 +66,16 @@ cargo run -p foundation_connectrpc --example code_first_service
 
 ## The four RPC kinds
 
-Handlers are plain async closures/functions (Decision 04). `Ctx` is passed **by
+Handlers are plain async closures/functions (Decision 04). `RpcCtx` is passed **by
 value** (owned, cheap-`Clone`, Arc-backed) and every RPC-surface signature returns
 `ConnectResult<T>` (`= Result<T, ErrorTrace<ConnectError>>`).
 
 | Kind | Handler signature |
 |---|---|
-| **Unary** | `Fn(Ctx, Request<Req>) -> ConnectResult<Response<Res>>` |
-| **Server-streaming** | `Fn(Ctx, Request<Req>) -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>` |
-| **Client-streaming** | `Fn(Ctx, RequestStream<Req>) -> ConnectResult<Response<Res>>` |
-| **Bidi-streaming** | `Fn(Ctx, RequestStream<Req>) -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>` |
+| **Unary** | `Fn(RpcCtx, Request<Req>) -> ConnectResult<Response<Res>>` |
+| **Server-streaming** | `Fn(RpcCtx, Request<Req>) -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>` |
+| **Client-streaming** | `Fn(RpcCtx, RequestStream<Req>) -> ConnectResult<Response<Res>>` |
+| **Bidi-streaming** | `Fn(RpcCtx, RequestStream<Req>) -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>` |
 
 Full-duplex bidi needs a full-duplex transport — `H2Transport` (HTTP/2 cleartext
 or TLS) enables it; unary, server-streaming, and client-streaming work over both
@@ -126,7 +126,7 @@ app.route_any_h2("/my.Svc/Method", rpc);
 use std::sync::Arc;
 use std::time::Duration;
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H1Transport, ProcedureCodecs, Request,
+    Client, ClientOptions, RpcCtx, H1Transport, ProcedureCodecs, Request,
 };
 use foundation_connectrpc::transport::Transport;
 use foundation_netio::HttpClientBuilder;
@@ -145,7 +145,7 @@ let client: Client<EchoMessage, EchoMessage> = Client::new(
     ClientOptions::new(),                             // .with_connect() / .with_grpc() / .with_grpc_web() / .with_codec("json") / .with_timeout(..)
 )?;
 
-let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
 let resp = client.unary(ctx, Request::new(EchoMessage { /* .. */ })).await?;
 ```
 
@@ -292,7 +292,7 @@ include!(concat!(env!("OUT_DIR"), "/connectrpc.greet.v1.rs"));
 ```
 
 > **Note:** The generated code references runtime types by their real crate path
-> (`foundation_connectrpc::Ctx`, `foundation_connectrpc::Router`, …), so your crate
+> (`foundation_connectrpc::RpcCtx`, `foundation_connectrpc::Router`, …), so your crate
 > just needs `foundation_connectrpc` as a regular dependency — **no alias**.
 
 > **How to find the prost-build filename:** If you're unsure what prost-build
@@ -372,13 +372,13 @@ The generated code refers to the runtime crate by its **real name**
 macro and the types you use:
 
 ```rust
-use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+use foundation_connectrpc::{service, RpcCtx, Request, Response, ConnectResult};
 
 #[service(package = "demo.greet.v1", codecs(json))]
 pub trait GreetService {
     async fn greet(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         _req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>>;
 }
@@ -454,7 +454,7 @@ struct Greeter;
 impl GreetService for Greeter {
     async fn greet(
         &self,
-        _ctx: Ctx,
+        _ctx: RpcCtx,
         req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>> {
         Ok(Response::new(GreetResponse {
@@ -490,13 +490,13 @@ artifacts in the consuming crate. This is what `generate!` does.
 
 ```rust
 // my-api/src/lib.rs
-use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+use foundation_connectrpc::{service, RpcCtx, Request, Response, ConnectResult};
 
 #[service(package = "my.api.v1", codecs(json))]
 pub trait MyApi {
     async fn do_thing(
         &self,
-        ctx: Ctx,
+        ctx: RpcCtx,
         req: Request<MyRequest>,
     ) -> ConnectResult<Response<MyResponse>>;
 }
@@ -574,7 +574,7 @@ struct MyServer;
 impl MyApi for MyServer {
     async fn do_thing(
         &self,
-        ctx: foundation_connectrpc::Ctx,
+        ctx: foundation_connectrpc::RpcCtx,
         req: foundation_connectrpc::Request<MyRequest>,
     ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<MyResponse>> {
         // ...
@@ -611,18 +611,18 @@ its parameter and return types syntactically:
 #[service(package = "demo.v1", codecs(json))]
 pub trait StreamingService {
     // Unary: Request<T> → ConnectResult<Response<T>>
-    async fn unary(&self, ctx: Ctx, req: Request<Req>) -> ConnectResult<Response<Res>>;
+    async fn unary(&self, ctx: RpcCtx, req: Request<Req>) -> ConnectResult<Response<Res>>;
 
     // Server-streaming: Request<T> → ConnectResult<impl Stream<Item = ConnectResult<T>>>
-    async fn server_stream(&self, ctx: Ctx, req: Request<Req>)
+    async fn server_stream(&self, ctx: RpcCtx, req: Request<Req>)
         -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>;
 
     // Client-streaming: impl Stream<Item = ConnectResult<T>> → ConnectResult<Response<T>>
-    async fn client_stream(&self, ctx: Ctx, reqs: impl Stream<Item = ConnectResult<Req>>)
+    async fn client_stream(&self, ctx: RpcCtx, reqs: impl Stream<Item = ConnectResult<Req>>)
         -> ConnectResult<Response<Res>>;
 
     // Bidi-streaming: impl Stream<Item = ...> → ConnectResult<impl Stream<Item = ...>>
-    async fn bidi(&self, ctx: Ctx, reqs: impl Stream<Item = ConnectResult<Req>>)
+    async fn bidi(&self, ctx: RpcCtx, reqs: impl Stream<Item = ConnectResult<Req>>)
         -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>;
 }
 ```
@@ -665,7 +665,7 @@ pub const GREETSERVICE_NAME: &str = "demo.greet.v1.GreetService";
 pub trait GreetService: Send + Sync + 'static {
     async fn greet(
         &self,
-        ctx: foundation_connectrpc::Ctx,
+        ctx: foundation_connectrpc::RpcCtx,
         req: foundation_connectrpc::Request<GreetRequest>,
     ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
 }
@@ -695,7 +695,7 @@ impl GreetServiceClient {
 
     pub async fn greet(
         &self,
-        ctx: foundation_connectrpc::Ctx,
+        ctx: foundation_connectrpc::RpcCtx,
         request: foundation_connectrpc::Request<GreetRequest>,
     ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
 }
@@ -704,7 +704,7 @@ impl GreetServiceClient {
 pub trait GreetServiceClientExt: Send + Sync + 'static {
     async fn greet(
         &self,
-        ctx: foundation_connectrpc::Ctx,
+        ctx: foundation_connectrpc::RpcCtx,
         request: foundation_connectrpc::Request<GreetRequest>,
     ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
 }
@@ -716,7 +716,7 @@ macro_rules! greet_service_rpc_definitions { (common) => { ... }; (server) => { 
 ```
 
 > **Note:** The generated code uses the crate's **real path** as its prefix
-> throughout (`foundation_connectrpc::Ctx`, `foundation_connectrpc::Router`, …), so
+> throughout (`foundation_connectrpc::RpcCtx`, `foundation_connectrpc::Router`, …), so
 > the consuming crate just needs `foundation_connectrpc` as a dependency — no alias.
 
 ---

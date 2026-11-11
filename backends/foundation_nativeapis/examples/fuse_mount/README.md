@@ -58,7 +58,7 @@ Starting FUSE server... (Ctrl+C to unmount)
 
 ## Key APIs Demonstrated
 
-- `FuseMount::new()` — creates a FUSE filesystem from any `VfsFileSystem`
+- `FuseMount::new(fs, options, clock)` — creates a FUSE filesystem from any `VfsFileSystem`
 - `FuseMount::mount()` — mounts at a path (blocks until unmount)
 - `OverlayFileSystem` — provides writable overlay on read-only base
 

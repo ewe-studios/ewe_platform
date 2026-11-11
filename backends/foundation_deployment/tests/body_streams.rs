@@ -10,14 +10,18 @@
 //! [`BodyLimits`] that cap them.
 
 use core::task::{Context, Poll};
+use std::io::{Read, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_core::io::readers::Data;
+use foundation_core::valtron::valtron_test;
 use foundation_deployment::providers::common::{
-    read_bounded, read_error_body, ApiClient, ApiError, BodyLimits, ByteStream, JsonLinesStream,
+    read_bounded, read_error_body, send_json, ApiClient, ApiError, BodyLimits, ByteStream,
+    JsonLinesStream,
 };
 use foundation_netio::shared::http::SendSafeBody;
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use serde::de::DeserializeOwned;
 
 /// The default line limit, which the stream tests below run under.
@@ -175,10 +179,24 @@ fn the_default_limits_are_the_documented_ones() {
     let limits = BodyLimits::default();
     assert_eq!(limits.max_error_body, 64 * 1024);
     assert_eq!(limits.max_json_line, MAX_LINE);
-    let tuned = limits.with_max_error_body(10).with_max_json_line(20);
-    assert_eq!((tuned.max_error_body, tuned.max_json_line), (10, 20));
+    assert_eq!(limits.max_json_body, MAX_LINE);
+    let tuned = limits
+        .with_max_error_body(10)
+        .with_max_json_line(20)
+        .with_max_json_body(30);
+    assert_eq!(
+        (
+            tuned.max_error_body,
+            tuned.max_json_line,
+            tuned.max_json_body
+        ),
+        (10, 20, 30)
+    );
     // Zero is a valid (if useless) limit, not a sentinel.
-    assert_eq!(BodyLimits::default().with_max_error_body(0).max_error_body, 0);
+    assert_eq!(
+        BodyLimits::default().with_max_error_body(0).max_error_body,
+        0
+    );
 }
 
 #[test]
@@ -212,7 +230,10 @@ fn a_line_exactly_at_the_limit_is_accepted() {
 #[test]
 fn a_bare_transport_reads_under_the_default_limits() {
     let http = foundation_netio::HttpClientBuilder::new().build();
-    assert_eq!(ApiClient::from(http.clone()).limits(), BodyLimits::default());
+    assert_eq!(
+        ApiClient::from(http.clone()).limits(),
+        BodyLimits::default()
+    );
     let limits = BodyLimits::default().with_max_error_body(1);
     assert_eq!(ApiClient::new(http).with_limits(limits).limits(), limits);
 }
@@ -222,8 +243,66 @@ fn an_error_body_is_cut_at_the_configured_limit() {
     let reads = Arc::new(AtomicUsize::new(0));
     let body = counted_stream(vec![b"0123", b"4567", b"89"], Arc::clone(&reads));
     assert_eq!(block_on(read_error_body(body, 5)).as_deref(), Some("01234"));
-    assert_eq!(reads.load(Ordering::SeqCst), 2, "the third chunk is never read");
+    assert_eq!(
+        reads.load(Ordering::SeqCst),
+        2,
+        "the third chunk is never read"
+    );
     // A zero limit reads nothing, which reads as no body at all.
     let body = counted_stream(vec![b"0123"], Arc::new(AtomicUsize::new(0)));
     assert_eq!(block_on(read_error_body(body, 0)), None);
+}
+
+/// A mock HTTP server on `127.0.0.1:0` that answers every request with a
+/// 4 KiB JSON object. Returns its port.
+fn spawn_json_server() -> u16 {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind mock json server");
+    let port = listener.local_addr().expect("local addr").port();
+    std::thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            // Read the head through its blank line; a GET has no body.
+            let mut buf = Vec::new();
+            let mut chunk = [0u8; 1024];
+            loop {
+                if buf.windows(4).any(|w| w == b"\r\n\r\n") {
+                    break;
+                }
+                match stream.read(&mut chunk) {
+                    Ok(0) | Err(_) => return,
+                    Ok(n) => buf.extend_from_slice(&chunk[..n]),
+                }
+            }
+            // 4096 bytes of valid JSON: `{"pad":"` + 4086 `x` + `"}`.
+            let body = format!(r#"{{"pad":"{}"}}"#, "x".repeat(4086));
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            let _ = stream.write_all(response.as_bytes());
+            let _ = stream.flush();
+        }
+    });
+    port
+}
+
+#[valtron_test]
+async fn send_json_rejects_body_over_cap() {
+    // WHY: Proves `send_json` refuses a JSON success body longer than
+    // `max_json_body`, naming the limit, instead of buffering it whole.
+    let port = spawn_json_server();
+    let http = HttpClientBuilder::new().build();
+    let client = ApiClient::new(http).with_limits(BodyLimits::default().with_max_json_body(1024));
+    let url = format!("http://127.0.0.1:{port}/big");
+    let request = PreparedRequestBuilder::get(&url)
+        .expect("build GET")
+        .build();
+
+    let result = send_json::<serde_json::Value>(client, request).await;
+    match result {
+        Err(ApiError::ParseFailed(m)) => {
+            assert!(m.contains("longer than 1024 bytes"), "{m}");
+        }
+        other => panic!("expected ParseFailed naming the limit, got {other:?}"),
+    }
 }

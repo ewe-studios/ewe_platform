@@ -1,8 +1,8 @@
 //! End-to-end integration tests exercising the full HTTP stack:
-//! real TcpListener → HttpServer → middleware → routing → handler → response.
+//! real `TcpListener` → `HttpServer` → middleware → routing → handler → response.
 //!
 //! Each test starts a real `HttpServer` on a random port, sends actual
-//! HTTP requests via `SimpleHttpClient` with `StaticSocketAddr` resolver,
+//! HTTP requests via the platform client (`HttpClientBuilder::resolve_to`),
 //! and verifies the responses.
 
 #![cfg(feature = "multi")]
@@ -14,28 +14,30 @@ use tracing_test::traced_test;
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::writer::{send_json, send_text};
+use foundation_http::ShutdownSignal;
 use foundation_netio::event_source::SseEvent;
+use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::client::StaticSocketAddr;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::SimpleResponse;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serial_test::serial;
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::{
         server::{HttpServer, KeepAliveConfig, ServerConfig},
         upgrade::{accept_websocket, SseStream},
     },
     shared::{
         app::HttpApp,
-        context::ContextBag,
+        context::Ctx,
         middleware::{MiddlewareResult, RequestMiddleware},
-        serve::{respond, ConnectionResult, Serve, ServeError, ServeFactory},
+        serve::{ConnectionResult, ServeError, ServeOutcome},
     },
 };
 
@@ -45,7 +47,7 @@ use foundation_http::{
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -53,9 +55,9 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let method = match req.method {
             SimpleMethod::GET => "GET",
@@ -73,8 +75,7 @@ impl Serve for EchoHandler {
         let body = serde_json::json!({ "method": method, "path": path });
 
         tracing::info!("Writing json back to connection");
-        let value = respond::json(&mut conn, 200, &body)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+        let value = send_json(conn, 200, &body, &foundation_core::valtron::Ctx::host());
         tracing::info!("Written json back to connection");
 
         value
@@ -87,7 +88,7 @@ impl Serve for EchoHandler {
 struct BodyEchoHandler;
 
 impl ServeFactory for BodyEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -95,9 +96,9 @@ impl ServeFactory for BodyEchoHandler {
 impl Serve for BodyEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let body_bytes = match req.body {
             Some(body) => match try_collect_bytes(body) {
@@ -107,7 +108,7 @@ impl Serve for BodyEchoHandler {
                     return ConnectionResult::Close(Some(foundation_errstacks::ErrorTrace::new(
                         ServeError::InternalError {
                             status: 500,
-                            reason: format!("failed to read body: {}", e),
+                            reason: format!("failed to read body: {e}"),
                         },
                     )));
                 }
@@ -115,8 +116,12 @@ impl Serve for BodyEchoHandler {
             None => Vec::new(),
         };
         let body_text = String::from_utf8_lossy(&body_bytes);
-        respond::text(&mut conn, 200, &body_text)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -126,7 +131,7 @@ impl Serve for BodyEchoHandler {
 struct QueryHandler;
 
 impl ServeFactory for QueryHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -134,13 +139,12 @@ impl ServeFactory for QueryHandler {
 impl Serve for QueryHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let url = &req.request_url.url;
-        respond::text(&mut conn, 200, url)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, url, &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -152,7 +156,7 @@ struct CounterMiddleware {
 }
 
 impl RequestMiddleware for CounterMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.count.fetch_add(1, Ordering::SeqCst);
         MiddlewareResult::Continue
     }
@@ -164,7 +168,7 @@ impl RequestMiddleware for CounterMiddleware {
 struct BlockMiddleware;
 
 impl RequestMiddleware for BlockMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(
             foundation_netio::shared::http::SimpleOutgoingResponse::builder()
                 .with_status(Status::Forbidden)
@@ -178,19 +182,18 @@ impl RequestMiddleware for BlockMiddleware {
 // ---------------------------------------------------------------------------
 // Test helpers.
 
-/// Start an HttpServer in a background thread. Returns (addr, shutdown_signal).
-/// Binds the TcpListener before spawning the server thread so the port is
+/// Start an `HttpServer` in a background thread. Returns (addr, `shutdown_signal`).
+/// Binds the `TcpListener` before spawning the server thread so the port is
 /// guaranteed to be in use by the time this function returns.
-fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     // Bind the listener first — the port is ours from this point on.
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
-    let config = ServerConfig::defaults().with_keep_alive(
-        KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)),
-    );
+    let config = ServerConfig::defaults()
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let server = HttpServer::with_config(app, &bind_addr, config);
@@ -203,17 +206,29 @@ fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSi
     (addr, shutdown)
 }
 
-/// Create a SimpleHttpClient pointed at the test server via StaticSocketAddr.
-fn make_client(addr: std::net::SocketAddr) -> SimpleHttpClient<StaticSocketAddr> {
-    let resolver = StaticSocketAddr::new(addr);
-    SimpleHttpClient::with_resolver(resolver)
+/// A client whose every host name resolves to the test server's socket.
+fn make_client(addr: std::net::SocketAddr) -> DynNetClient {
+    HttpClientBuilder::new()
+        .resolve_to(addr)
         .max_retries(10)
         .connect_timeout(Duration::from_secs(5))
         .read_timeout(Duration::from_secs(20))
         .write_timeout(Duration::from_secs(5))
+        .build()
 }
 
-/// Read body text by taking ownership — handles all SendSafeBody variants
+/// `is_success` for a response from the platform client.
+trait IsSuccess {
+    fn is_success(&self) -> bool;
+}
+
+impl IsSuccess for SimpleResponse<SendSafeBody> {
+    fn is_success(&self) -> bool {
+        (200..=299).contains(&self.get_status().into_usize())
+    }
+}
+
+/// Read body text by taking ownership — handles all `SendSafeBody` variants
 /// including streams via the body reader.
 fn read_body(body: SendSafeBody) -> Result<String, BoxedError> {
     match body {
@@ -228,7 +243,7 @@ fn read_body(body: SendSafeBody) -> Result<String, BoxedError> {
 
 /// Extract status code as u16.
 fn status_code(status: &Status) -> u16 {
-    status.clone().into_usize() as u16
+    u16::try_from(status.clone().into_usize()).expect("a status code fits u16")
 }
 
 // ---------------------------------------------------------------------------
@@ -249,15 +264,15 @@ fn test_static_route_get() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success());
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     dbg!("Received body", &body);
     assert!(
@@ -287,14 +302,14 @@ fn test_static_route_post() {
     let client = make_client(addr);
 
     let response = client
-        .post("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert!(
         body.contains("POST"),
@@ -322,27 +337,27 @@ fn test_param_route() {
     let client = make_client(addr);
 
     let r1 = client
-        .get("http://testserver/users/42")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/users/42")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r1.is_success());
 
     let r2 = client
-        .get("http://testserver/users/abc")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/users/abc")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r2.is_success());
 
     shutdown.turn_on();
 }
 
-/// GET /users/:id/posts/:post_id — nested params.
+/// GET /`users/:id/posts/:post_id` — nested params.
 
 #[test]
 #[serial(http_test)]
@@ -357,14 +372,14 @@ fn test_nested_param_route() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/users/123/posts/456")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/users/123/posts/456")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert!(
         body.contains("/users/123/posts/456"),
@@ -392,20 +407,20 @@ fn test_wildcard_route() {
     let client = make_client(addr);
 
     let r2 = client
-        .get("http://testserver/files/a/b/c.txt")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/files/a/b/c.txt")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r2.is_success());
 
     let r1 = client
-        .get("http://testserver/files/a")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/files/a")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r1.is_success());
 
@@ -415,7 +430,7 @@ fn test_wildcard_route() {
 // ---------------------------------------------------------------------------
 // Tests: route_any
 
-/// route_any matches all HTTP methods on the same path.
+/// `route_any` matches all HTTP methods on the same path.
 
 #[test]
 #[foundation_macros::timeout(60000)]
@@ -430,43 +445,43 @@ fn test_route_any_matches_all_methods() {
     let client = make_client(addr);
 
     assert!(client
-        .get("http://testserver/any")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
-        .unwrap()
-        .is_success());
-    assert!(client
-        .post("http://testserver/any")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/any")
+                .unwrap()
+                .build(),
+        )
         .unwrap()
         .is_success());
     assert!(client
-        .delete("http://testserver/any")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
-        .unwrap()
-        .is_success());
-    assert!(client
-        .put("http://testserver/any")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/any")
+                .unwrap()
+                .build(),
+        )
         .unwrap()
         .is_success());
     assert!(client
-        .patch("http://testserver/any")
+        .send(
+            PreparedRequestBuilder::delete("http://testserver/any")
+                .unwrap()
+                .build(),
+        )
         .unwrap()
-        .build_client()
+        .is_success());
+    assert!(client
+        .send(
+            PreparedRequestBuilder::put("http://testserver/any")
+                .unwrap()
+                .build(),
+        )
         .unwrap()
-        .send()
+        .is_success());
+    assert!(client
+        .send(
+            PreparedRequestBuilder::patch("http://testserver/any")
+                .unwrap()
+                .build(),
+        )
         .unwrap()
         .is_success());
 
@@ -489,11 +504,11 @@ fn test_root_route() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success());
@@ -519,11 +534,11 @@ fn test_not_found() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/nonexistent")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/nonexistent")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert_eq!(status_code(&response.get_status()), 404);
@@ -546,11 +561,11 @@ fn test_method_mismatch_returns_not_found() {
     let client = make_client(addr);
 
     let response = client
-        .post("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert_eq!(status_code(&response.get_status()), 404);
@@ -576,12 +591,12 @@ fn test_post_with_text_body() {
     let client = make_client(addr);
 
     let response = client
-        .post("http://testserver/body-echo")
-        .unwrap()
-        .body_text("hello world")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/body-echo")
+                .unwrap()
+                .body_text("hello world")
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success());
@@ -606,16 +621,16 @@ fn test_post_with_json_body() {
     let payload = serde_json::json!({ "name": "test", "value": 42 });
 
     let response = client
-        .post("http://testserver/json")
-        .unwrap()
-        .body_json(&payload)
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/json")
+                .unwrap()
+                .body_json(&payload)
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert!(body.contains("test"), "body should contain 'test': {body}");
     assert!(body.contains("42"), "body should contain '42': {body}");
@@ -641,14 +656,14 @@ fn test_query_string_preserved() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/search?q=rust&lang=en")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/search?q=rust&lang=en")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     // The router matches /search, and the query string should be in the URL.
     assert!(
@@ -683,25 +698,25 @@ fn test_middleware_runs_before_handler() {
     let client = make_client(addr);
 
     let _ = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     let _ = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     let _ = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert_eq!(count.load(Ordering::SeqCst), 3);
@@ -725,15 +740,15 @@ fn test_middleware_blocks_request() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert_eq!(status_code(&response.get_status()), 403);
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     assert_eq!(read_body(body).unwrap(), "blocked by middleware");
 
     shutdown.turn_on();
@@ -764,11 +779,11 @@ fn test_multiple_middleware_chain() {
     let client = make_client(addr);
 
     let _ = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     // Each request passes through both middleware.
     assert_eq!(count.load(Ordering::SeqCst), 2);
@@ -796,39 +811,39 @@ fn test_multiple_routes_same_app() {
     // GET /echo
     tracing::info!("Moving to next request: http://testserver/echo");
     let r1 = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r1.is_success());
-    let (_, _, b1_body, _, _) = r1.into_parts();
+    let (_, _, b1_body) = r1.into_parts();
     let b1 = read_body(b1_body).unwrap();
     assert!(b1.contains("GET"));
 
     // POST /body
     tracing::info!("Moving to next request: http://testserver/body");
     let r2 = client
-        .post("http://testserver/body")
-        .unwrap()
-        .body_text("hello")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/body")
+                .unwrap()
+                .body_text("hello")
+                .build(),
+        )
         .unwrap();
     assert!(r2.is_success());
-    let (_, _, b2_body, _, _) = r2.into_parts();
+    let (_, _, b2_body) = r2.into_parts();
     assert_eq!(read_body(b2_body).unwrap(), "hello");
 
     // GET /search?q=test
     tracing::info!("Moving to next request: http://testserver/search?q=test");
     let r3 = client
-        .get("http://testserver/search?q=test")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/search?q=test")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r3.is_success());
 
@@ -850,7 +865,7 @@ fn test_multiple_routes_same_app() {
 struct SlowHandler;
 
 impl ServeFactory for SlowHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -858,15 +873,14 @@ impl ServeFactory for SlowHandler {
 impl Serve for SlowHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         std::thread::sleep(Duration::from_millis(500));
         let path = &req.request_url.url;
         let body = serde_json::json!({ "path": path, "slept_ms": 500 });
-        respond::json(&mut conn, 200, &body)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_json(conn, 200, &body, &foundation_core::valtron::Ctx::host())
     }
 }
 
@@ -891,27 +905,27 @@ fn test_valtron_multiplex_concurrent_connections() {
     // Sequential: verify basic routing works.
     let client = make_client(addr);
     let r1 = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r1.is_success(), "Sequential /echo should succeed");
     let r2 = client
-        .get("http://testserver/slow")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/slow")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r2.is_success(), "Sequential /slow should succeed");
     let r3 = client
-        .get("http://testserver/search?q=seq")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/search?q=seq")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
     assert!(r3.is_success(), "Sequential /search should succeed");
 
@@ -925,7 +939,6 @@ fn test_valtron_multiplex_concurrent_connections() {
 
     let handles: Vec<_> = (0..NUM_CONCURRENT)
         .map(|i| {
-            let addr = addr;
             std::thread::spawn(move || {
                 let client = make_client(addr);
                 let url = match i % 3 {
@@ -933,7 +946,7 @@ fn test_valtron_multiplex_concurrent_connections() {
                     1 => format!("http://testserver/echo?i={i}"),
                     _ => format!("http://testserver/search?q=conc&i={i}"),
                 };
-                let response = client.get(&url).unwrap().build_client().unwrap().send();
+                let response = client.send(PreparedRequestBuilder::get(&url).unwrap().build());
                 (i, response)
             })
         })
@@ -970,11 +983,7 @@ fn test_multiple_sequential_requests() {
     for i in 0..5 {
         let url = format!("http://testserver/echo?n={i}");
         let response = client
-            .get(&url)
-            .unwrap()
-            .build_client()
-            .unwrap()
-            .send()
+            .send(PreparedRequestBuilder::get(&url).unwrap().build())
             .unwrap();
         assert!(response.is_success(), "Request {i} should succeed");
     }
@@ -997,12 +1006,12 @@ fn test_custom_request_header() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .add_header("X-Custom-Header".to_string(), "test-value")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .header(SimpleHeader::custom("X-Custom-Header"), "test-value")
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success());
@@ -1026,11 +1035,11 @@ fn test_head_request() {
     let client = make_client(addr);
 
     let response = client
-        .head("http://testserver/echo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::head("http://testserver/echo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success());
@@ -1054,14 +1063,14 @@ fn test_delete_request() {
     let client = make_client(addr);
 
     let response = client
-        .delete("http://testserver/items/99")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::delete("http://testserver/items/99")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert!(body.contains("DELETE"));
 
@@ -1088,9 +1097,10 @@ fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
     assert_eq!(config.would_block_sleep(), Duration::from_millis(15)); // base sleep from calculator
     assert_eq!(config.accept_error_sleep(), Duration::from_millis(30)); // 2x base sleep
+    assert_eq!(config.accept_shutdown_poll, Duration::from_millis(10)); // Feature 05 shutdown poll
     assert_eq!(config.keep_alive.min_delay(), Duration::from_millis(15));
     assert_eq!(config.keep_alive.max_delay(), Duration::from_secs(300)); // max_read_timeout
-    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(120)); // min_read_timeout
+    assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(75)); // nginx keepalive default
     assert_eq!(config.keep_alive.escalation_threshold, 50);
     assert_eq!(config.keep_alive.max_delay_cycles, 100);
     assert_eq!(config.max_body_bytes, 10 * 1024 * 1024);
@@ -1101,9 +1111,7 @@ fn test_server_config_builder() {
     let config = ServerConfig::defaults()
         .with_would_block_sleep(Duration::from_millis(50))
         .with_accept_error_sleep(Duration::from_millis(200))
-        .with_keep_alive(
-            KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)),
-        )
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)))
         .with_max_body_bytes(1024);
 
     // with_accept_error_sleep sets min_sleep_duration to dur/2 = 100ms
@@ -1138,7 +1146,7 @@ fn test_context_store_multiple_types() {
 struct WsEchoHandler;
 
 impl ServeFactory for WsEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1146,19 +1154,28 @@ impl ServeFactory for WsEchoHandler {
 impl Serve for WsEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        // Attempt WebSocket upgrade
-        if !accept_websocket(&mut conn, &req) {
-            // Not a valid upgrade request
-            let _ = respond::text(&mut conn, 400, "Invalid WebSocket upgrade request");
-            return ConnectionResult::Close(None);
-        }
+        ConnectionResult::Async(Box::pin(async move {
+            // Attempt WebSocket upgrade
+            if !accept_websocket(&conn, &req, &foundation_core::valtron::Ctx::host()).await {
+                // Not a valid upgrade request
+                if let ConnectionResult::Async(write) = send_text(
+                    conn,
+                    400,
+                    "Invalid WebSocket upgrade request",
+                    &foundation_core::valtron::Ctx::host(),
+                ) {
+                    let _ = write.await;
+                }
+                return ServeOutcome::Close(None);
+            }
 
-        // Upgrade successful - return Take to own the connection
-        ConnectionResult::Take
+            // Upgrade successful - return Take to own the connection
+            ServeOutcome::Take
+        }))
     }
 }
 
@@ -1179,8 +1196,7 @@ fn test_websocket_upgrade() {
     let client = make_client(addr);
 
     // Build a WebSocket upgrade request
-    let request = client
-        .get("http://testserver/ws")
+    let request = PreparedRequestBuilder::get("http://testserver/ws")
         .unwrap()
         .header(SimpleHeader::custom("Upgrade"), "websocket")
         .header(SimpleHeader::custom("Connection"), "Upgrade")
@@ -1189,10 +1205,9 @@ fn test_websocket_upgrade() {
             "dGhlIHNhbXBsZSBub25jZQ==",
         )
         .header(SimpleHeader::custom("Sec-WebSocket-Version"), "13")
-        .build_client()
-        .unwrap();
+        .build();
 
-    let response = request.send().unwrap();
+    let response = client.send(request).unwrap();
 
     // Should get 101 Switching Protocols
     assert_eq!(
@@ -1224,9 +1239,9 @@ struct SseCounterHandler {
 }
 
 impl ServeFactory for SseCounterHandler {
-    fn create(bag: &ContextBag) -> Self {
+    fn create(ctx: &Ctx) -> Self {
         // Get shared counter from context
-        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = bag.get();
+        let count: Option<Arc<std::sync::atomic::AtomicUsize>> = ctx.get();
         let count = count.unwrap_or_else(|| Arc::new(std::sync::atomic::AtomicUsize::new(0)));
         Self { count }
     }
@@ -1235,43 +1250,48 @@ impl ServeFactory for SseCounterHandler {
 impl Serve for SseCounterHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        // Clone the connection for SSE stream
-        let mut conn_clone = conn.clone();
+        let count = Arc::clone(&self.count);
+        ConnectionResult::Async(Box::pin(async move {
+            // Create SSE stream - this writes headers
+            let mut sse = match SseStream::new(&conn, &foundation_core::valtron::Ctx::host()).await
+            {
+                Ok(s) => s,
+                Err(e) => {
+                    tracing::error!("Failed to create SSE stream: {:?}", e);
+                    return ServeOutcome::Close(None);
+                }
+            };
 
-        // Create SSE stream - this writes headers
-        let mut sse = match SseStream::new(&mut conn_clone) {
-            Ok(s) => s,
-            Err(e) => {
-                tracing::error!("Failed to create SSE stream: {:?}", e);
-                return ConnectionResult::Close(None);
+            // Send 3 counter events
+            for i in 0..3 {
+                let count = count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                let data = serde_json::json!({ "count": count });
+
+                let event = SseEvent::new()
+                    .event("counter")
+                    .data(data.to_string())
+                    .id(i.to_string())
+                    .build();
+
+                if let Err(e) = sse.send(&event).await {
+                    tracing::error!("Failed to send SSE event: {:?}", e);
+                    break;
+                }
+
+                // Small delay between events
+                foundation_core::valtron::timer::sleep_for(
+                    Duration::from_millis(10),
+                    &foundation_core::valtron::Ctx::host(),
+                )
+                .await;
             }
-        };
 
-        // Send 3 counter events
-        for i in 0..3 {
-            let count = self.count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-            let data = serde_json::json!({ "count": count });
-
-            let event = SseEvent::new()
-                .event("counter")
-                .data(data.to_string())
-                .id(&i.to_string())
-                .build();
-
-            if let Err(e) = sse.send(&event) {
-                tracing::error!("Failed to send SSE event: {:?}", e);
-                break;
-            }
-
-            // Small delay between events
-            std::thread::sleep(Duration::from_millis(10));
-        }
-
-        ConnectionResult::Take
+            ServeOutcome::Take
+        }))
     }
 }
 
@@ -1296,11 +1316,11 @@ fn test_sse_streaming() {
 
     // Send request to SSE endpoint
     let response = client
-        .get("http://testserver/sse")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/sse")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     // Verify 200 OK
@@ -1315,8 +1335,7 @@ fn test_sse_streaming() {
     let ct_value = content_type.unwrap().1.first().cloned().unwrap_or_default();
     assert!(
         ct_value.contains("text/event-stream"),
-        "Expected text/event-stream, got: {}",
-        ct_value
+        "Expected text/event-stream, got: {ct_value}"
     );
 
     // Verify Cache-Control header
@@ -1331,7 +1350,7 @@ fn test_sse_streaming() {
         .first()
         .cloned()
         .unwrap_or_default();
-    assert_eq!(cc_value, "no-cache", "Expected no-cache, got: {}", cc_value);
+    assert_eq!(cc_value, "no-cache", "Expected no-cache, got: {cc_value}");
 
     shutdown.turn_on();
 }
@@ -1366,7 +1385,7 @@ fn test_sse_event_formatting() {
 struct ExpectContinueEchoHandler;
 
 impl ServeFactory for ExpectContinueEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1374,9 +1393,9 @@ impl ServeFactory for ExpectContinueEchoHandler {
 impl Serve for ExpectContinueEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         // Pull the body — if Expect: 100-continue worked, the body
         // should have been delivered after the interim 100 Continue.
@@ -1384,22 +1403,24 @@ impl Serve for ExpectContinueEchoHandler {
         // collect from it properly.
         tracing::trace!(
             "ExpectContinueEchoHandler: req.body variant = {:?}",
-            req.body.as_ref().map(|b| std::mem::discriminant(b))
+            req.body.as_ref().map(std::mem::discriminant)
         );
-        let body_text = match req.body {
-            Some(body) => {
-                let bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(body);
-                tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
-                String::from_utf8_lossy(&bytes).to_string()
-            }
-            None => {
-                tracing::trace!("ExpectContinueEchoHandler: no body present");
-                String::new()
-            }
+        let body_text = if let Some(body) = req.body {
+            let bytes =
+                foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(body);
+            tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
+            String::from_utf8_lossy(&bytes).to_string()
+        } else {
+            tracing::trace!("ExpectContinueEchoHandler: no body present");
+            String::new()
         };
         tracing::trace!("ExpectContinueEchoHandler: echoing body = {:?}", body_text);
-        respond::text(&mut conn, 200, &body_text)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            &body_text,
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
@@ -1422,17 +1443,17 @@ fn test_expect_100_continue_body_echo() {
     // The server echoes the body back — if we get the body text,
     // the 100-continue flow worked correctly.
     let response = client
-        .post("http://testserver/echo-body")
-        .unwrap()
-        .header(SimpleHeader::EXPECT, "100-continue")
-        .body_text("hello via expect-continue")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/echo-body")
+                .unwrap()
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .body_text("hello via expect-continue")
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success(), "Expected 200 OK");
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert_eq!(
         body, "hello via expect-continue",
@@ -1459,17 +1480,17 @@ fn test_expect_100_continue_json_body() {
     let payload = serde_json::json!({ "key": "value", "number": 123 });
 
     let response = client
-        .post("http://testserver/json-echo")
-        .unwrap()
-        .header(SimpleHeader::EXPECT, "100-continue")
-        .body_json(&payload)
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/json-echo")
+                .unwrap()
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .body_json(&payload)
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     tracing::trace!("Body received: {:?}", body);
     assert!(body.contains("key"), "Body should contain 'key': {body}");
@@ -1497,15 +1518,15 @@ fn test_expect_100_continue_get_no_body() {
 
     // GET with Expect header but no body — server should ignore it.
     let response = client
-        .get("http://testserver/echo")
-        .unwrap()
-        .header(SimpleHeader::EXPECT, "100-continue")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/echo")
+                .unwrap()
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert!(body.contains("GET"), "Body should contain GET: {body}");
 
@@ -1513,7 +1534,7 @@ fn test_expect_100_continue_get_no_body() {
 }
 
 /// POST with Expect: 100-continue and explicit Content-Length: 0 — server
-/// should detect zero body and skip WaitingForBody, going straight to Processing.
+/// should detect zero body and skip `WaitingForBody`, going straight to Processing.
 #[test]
 #[traced_test]
 #[foundation_macros::timeout(60000)]
@@ -1529,16 +1550,16 @@ fn test_expect_100_continue_zero_content_length() {
     // POST with Expect header and explicit Content-Length: 0.
     // The server must not enter WaitingForBody — should skip to Processing.
     let response = client
-        .post("http://testserver/echo-zero")
-        .unwrap()
-        .header(SimpleHeader::EXPECT, "100-continue")
-        .header(SimpleHeader::CONTENT_LENGTH, "0")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/echo-zero")
+                .unwrap()
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .header(SimpleHeader::CONTENT_LENGTH, "0")
+                .build(),
+        )
         .unwrap();
 
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     let body = read_body(body).unwrap();
     assert!(
         body.is_empty() || body.contains("{}"),
@@ -1559,7 +1580,7 @@ struct InterimMiddleware {
 }
 
 impl RequestMiddleware for InterimMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
@@ -1571,13 +1592,13 @@ impl RequestMiddleware for InterimMiddleware {
     }
 }
 
-/// BadInterim middleware — sends a 102 Processing response but adds a body which is wrong.
+/// `BadInterim` middleware — sends a 102 Processing response but adds a body which is wrong.
 struct BadInterimMiddleware {
     interim_sent: Arc<std::sync::atomic::AtomicBool>,
 }
 
 impl RequestMiddleware for BadInterimMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         self.interim_sent
             .store(true, std::sync::atomic::Ordering::SeqCst);
         MiddlewareResult::InterimResponse(
@@ -1594,7 +1615,7 @@ impl RequestMiddleware for BadInterimMiddleware {
 struct AfterInterimHandler;
 
 impl ServeFactory for AfterInterimHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -1602,17 +1623,21 @@ impl ServeFactory for AfterInterimHandler {
 impl Serve for AfterInterimHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let path = &req.request_url.url;
-        respond::text(&mut conn, 200, &format!("handler reached: {path}"))
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(
+            conn,
+            200,
+            &format!("handler reached: {path}"),
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 
-/// InterimResponse middleware — sends 102 Processing but continues to handler.
+/// `InterimResponse` middleware — sends 102 Processing but continues to handler.
 /// The final response should still come from the handler.
 #[test]
 #[traced_test]
@@ -1632,16 +1657,16 @@ fn test_interim_response_continues_to_handler() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/interim-test")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/interim-test")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     // The interim response (102) is written first, but the final response
     // that the client sees is from the handler (200).
-    let (status_code, headers, body, _, _) = response.into_parts();
+    let (status_code, headers, body) = response.into_parts();
     dbg!("ResponseStatusAndHeaders: ", &status_code, &headers);
 
     assert!(status_code == Status::OK, "Expected 200 OK from handler");
@@ -1664,8 +1689,8 @@ fn test_interim_response_continues_to_handler() {
     shutdown.turn_on();
 }
 
-/// Multiple middleware: first sends InterimResponse, second does Continue,
-/// handler runs — verifying InterimResponse doesn't break the chain.
+/// Multiple middleware: first sends `InterimResponse`, second does Continue,
+/// handler runs — verifying `InterimResponse` doesn't break the chain.
 #[test]
 #[traced_test]
 #[foundation_macros::timeout(60000)]
@@ -1691,11 +1716,11 @@ fn test_interim_response_with_subsequent_middleware() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/chain-test")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/chain-test")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     assert!(response.is_success(), "Expected 200 OK from handler");
@@ -1713,7 +1738,7 @@ fn test_interim_response_with_subsequent_middleware() {
     shutdown.turn_on();
 }
 
-/// InterimResponse + blocking middleware: interim runs, then blocker
+/// `InterimResponse` + blocking middleware: interim runs, then blocker
 /// short-circuits — handler should NOT run.
 #[test]
 #[traced_test]
@@ -1734,11 +1759,11 @@ fn test_interim_response_then_blocker() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/blocked")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/blocked")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
     // BlockMiddleware short-circuits with 403
@@ -1747,7 +1772,7 @@ fn test_interim_response_then_blocker() {
         403,
         "Expected 403 from blocking middleware"
     );
-    let (_, _, body, _, _) = response.into_parts();
+    let (_, _, body) = response.into_parts();
     assert_eq!(read_body(body).unwrap(), "blocked by middleware");
     // Interim still ran (was written to stream before blocker)
     assert!(
@@ -1798,14 +1823,13 @@ fn test_interim_response_with_body_does_not_leak_body_to_wire() {
     // Read until the final response's body arrives (or the peer stops talking).
     loop {
         match stream.read(&mut buf) {
-            Ok(0) => break,
+            Ok(0) | Err(_) => break,
             Ok(n) => {
                 raw.extend_from_slice(&buf[..n]);
                 if raw.windows(7).any(|w| w == b"handler") {
                     break;
                 }
             }
-            Err(_) => break,
         }
     }
     let wire = String::from_utf8_lossy(&raw).into_owned();

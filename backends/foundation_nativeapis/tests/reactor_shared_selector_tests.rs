@@ -22,18 +22,50 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::fd::{Ready, Reactor};
+use foundation_nativeapis::native::fd::{Reactor, Ready};
 use foundation_nativeapis::{Interest, Token};
 
 /// Create a nonblocking pipe, returning `(read_fd, write_fd)`.
 fn nonblocking_pipe() -> io::Result<(RawFd, RawFd)> {
     let mut fds = [0 as RawFd; 2];
-    // SAFETY: `fds` is a valid 2-element array for pipe2 to fill.
+    // SAFETY: `fds` is a valid 2-element array for pipe/pipe2 to fill.
+    #[cfg(target_os = "linux")]
     let rc = unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC | libc::O_NONBLOCK) };
+    // macOS has no `pipe2`; make the pipe nonblocking and close-on-exec after.
+    #[cfg(not(target_os = "linux"))]
+    let rc = unsafe { libc::pipe(fds.as_mut_ptr()) };
     if rc < 0 {
         return Err(io::Error::last_os_error());
     }
+    #[cfg(not(target_os = "linux"))]
+    for fd in fds {
+        set_nonblocking_cloexec(fd)?;
+    }
     Ok((fds[0], fds[1]))
+}
+
+/// Set `O_NONBLOCK` and `FD_CLOEXEC` on `fd` (macOS has no `pipe2`).
+#[cfg(not(target_os = "linux"))]
+fn set_nonblocking_cloexec(fd: RawFd) -> io::Result<()> {
+    // SAFETY: `fd` is a valid pipe descriptor we just created.
+    let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
+    if flags < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `fd` is a valid pipe descriptor.
+    if unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `fd` is a valid pipe descriptor.
+    let fdflags = unsafe { libc::fcntl(fd, libc::F_GETFD) };
+    if fdflags < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `fd` is a valid pipe descriptor.
+    if unsafe { libc::fcntl(fd, libc::F_SETFD, fdflags | libc::FD_CLOEXEC) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
 }
 
 /// Poll `Reactor::is_ready` until it turns true or `budget` elapses.
@@ -209,18 +241,19 @@ fn readiness_reports_actual_flags_not_a_collapsed_mask() {
 ///
 /// `/proc/self/fd` is itself read through an open fd, so the returned count is
 /// only meaningful as a *delta* between two calls made the same way.
+#[cfg(target_os = "linux")]
 fn open_fd_count() -> usize {
     std::fs::read_dir("/proc/self/fd")
         .expect("procfs must be mounted")
         .count()
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 #[serial_test::serial]
 fn registering_many_fds_adds_no_selector_fds() {
-    let reactor = Reactor::get().expect("shared reactor must initialise");
-
     const N: usize = 64;
+    let reactor = Reactor::get().expect("shared reactor must initialise");
     let mut pipes = Vec::with_capacity(N);
     for _ in 0..N {
         pipes.push(nonblocking_pipe().expect("pipe"));
@@ -237,7 +270,8 @@ fn registering_many_fds_adds_no_selector_fds() {
 
     let after = open_fd_count();
     assert_eq!(
-        after, before,
+        after,
+        before,
         "registering {N} fds into the shared reactor allocated {} new fds; a \
          shared reactor must add none — one private epoll fd per registration is \
          exactly what Decision 14 §Scope 3 removes",
@@ -245,7 +279,9 @@ fn registering_many_fds_adds_no_selector_fds() {
     );
 
     for (i, (read_fd, write_fd)) in pipes.iter().enumerate() {
-        reactor.deregister(*read_fd, Token(0xF43_1000 + i)).expect("deregister");
+        reactor
+            .deregister(*read_fd, Token(0xF43_1000 + i))
+            .expect("deregister");
         // SAFETY: fds are owned by this test and not used again.
         unsafe {
             libc::close(*read_fd);

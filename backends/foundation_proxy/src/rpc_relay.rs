@@ -35,25 +35,24 @@
 //! is a single-message round trip buffered whole, distinct from the enveloped
 //! streaming seam.
 
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::extensions::result_ext::BoxedError;
-use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{block_on_future, from_future, send, Pipe, PipeReceiver, PipeSender};
-use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_core::valtron::{from_future, send, Pipe, PipeReceiver, PipeSender};
+use foundation_http::native::writer::ResponseWriter;
+use foundation_netio::shared::client::body_reader::{
+    collect_bytes_bounded, AsyncSendSafeBody, ReadWakeSource,
+};
 use foundation_netio::shared::http::{
-    ChunkedData, Proto, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders,
-    SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleUrl, Status,
+    Proto, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
+    SimpleMethod, SimpleOutgoingResponse, SimpleUrl, Status,
 };
 
 use foundation_connectrpc::shared::protocol::connect::constants as connect_consts;
-use foundation_connectrpc::shared::protocol::connect::{
-    streaming_content_type as connect_streaming_content_type,
-};
+use foundation_connectrpc::shared::protocol::connect::streaming_content_type as connect_streaming_content_type;
 use foundation_connectrpc::shared::protocol::grpc::constants as grpc_consts;
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
 use foundation_connectrpc::shared::protocol::grpc_web::{
@@ -69,7 +68,9 @@ use foundation_connectrpc::{
 
 use futures_util::FutureExt;
 
-use crate::forward::{forward_request_headers, upstream_url, write_response};
+use crate::forward::{
+    forward_request_headers, upstream_url, write_streamed_response, ForwardError, ResponseShape,
+};
 use crate::runtime::BackendRuntime;
 
 /// Translate a forwarded Connect deadline into the `grpc-timeout` header a
@@ -101,27 +102,84 @@ pub(crate) fn translate_connect_deadline_to_grpc(out_headers: &mut SimpleHeaders
     }
 }
 
+/// What the H1 translators need besides the writer, backend and request.
+pub(crate) struct RpcContext<'a> {
+    /// The client's IP, appended to `X-Forwarded-For`.
+    pub client_ip: &'a str,
+    /// The scheme the client used, set as `X-Forwarded-Proto`.
+    pub scheme: &'a str,
+    /// Headers added to the response (the sticky cookie).
+    pub sticky_header: Option<&'a SimpleHeaders>,
+    /// Registers a waker for read readiness of the client connection.
+    pub client_read_wake: Option<ReadWakeSource>,
+    /// The largest request body in bytes; 0 means no limit.
+    pub max_request_body: usize,
+}
+
+/// Read a request body (a small unary envelope) as an async stream, at most
+/// `limit` bytes (0 = no limit). One byte more than `limit` is read to tell "at
+/// the limit" from "over"; the rest is never read.
+async fn collect_request_body(
+    body: Option<SendSafeBody>,
+    read_wake: Option<ReadWakeSource>,
+    limit: usize,
+) -> Result<Bytes, ForwardError> {
+    let body = match body {
+        None | Some(SendSafeBody::None) => return Ok(Bytes::new()),
+        Some(body) => body,
+    };
+    let mut stream = AsyncSendSafeBody::from(body);
+    if let Some(source) = read_wake {
+        stream = stream.with_read_wake(source);
+    }
+    let cap = if limit == 0 {
+        usize::MAX
+    } else {
+        limit.saturating_add(1)
+    };
+    let bytes = collect_bytes_bounded(stream, cap).await;
+    if limit != 0 && bytes.len() > limit {
+        return Err(ForwardError::too_large(limit));
+    }
+    Ok(Bytes::from(bytes))
+}
+
+/// The framed response body of a streaming relay as an async stream: each pipe
+/// item is one chunk; the stream ends when the relay closes the pipe.
+fn pipe_body(
+    receiver: PipeReceiver<Bytes>,
+) -> impl futures_util::Stream<Item = Result<Vec<u8>, String>> + Unpin {
+    Box::pin(futures_util::stream::unfold(receiver, |rx| async move {
+        rx.receive()
+            .await
+            .map(|bytes| (Ok::<Vec<u8>, String>(bytes.to_vec()), rx))
+    }))
+}
 
 /// Relay a gRPC-Web request from the HTTP/1.1 front end to a native-gRPC
-/// backend, translating at the frame level. Runs on the caller's thread (the
-/// H1 relay thread); drives the async relay on the valtron pool and streams the
-/// framed gRPC-Web response back to `conn` without buffering the whole body.
+/// backend, translating at the frame level. Drives the async relay on the
+/// valtron pool and streams the framed gRPC-Web response back to `writer`
+/// without buffering the whole body, parked on the response pipe.
 ///
 /// The unary request body is buffered whole (it is a single small envelope);
 /// the response body is streamed incrementally through a pipe.
 ///
 /// # Errors
-/// Returns `Err(String)` on a setup/relay failure; the caller answers `502` so
-/// the client never sees a silent drop.
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn relay_grpc_web_to_grpc(
-    conn: &mut SharedByteBufferStream<RawStream>,
+/// Returns [`ForwardError`] on a setup/relay failure; when `response_started` is
+/// false the caller answers `502` (or `413`) so the client never sees a silent
+/// drop.
+pub(crate) async fn relay_grpc_web_to_grpc(
+    writer: &mut ResponseWriter,
     backend: &Arc<BackendRuntime>,
     mut req: SimpleIncomingRequest,
-    client_ip: &str,
-    scheme: &str,
-    sticky_header: Option<&SimpleHeaders>,
-) -> Result<(), String> {
+    ctx: &RpcContext<'_>,
+) -> Result<(), ForwardError> {
+    let (client_ip, scheme, sticky_header) = (ctx.client_ip, ctx.scheme, ctx.sticky_header);
+    let shape = ResponseShape {
+        extra_headers: sticky_header,
+        head_only: matches!(req.method, SimpleMethod::HEAD),
+        chunk_ok: matches!(req.proto, Proto::HTTP11),
+    };
     // The inbound content-type selects the codec + text mode, which decide both
     // the outbound gRPC content-type and the response content-type echoed back.
     let inbound_ct = req
@@ -130,17 +188,20 @@ pub(crate) fn relay_grpc_web_to_grpc(
         .and_then(|v| v.first())
         .cloned()
         .unwrap_or_else(|| "application/grpc-web+proto".to_string());
-    let (codec, text) = parse_grpc_web_content_type(&inbound_ct)
-        .unwrap_or_else(|| ("proto".to_string(), false));
+    let (codec, text) =
+        parse_grpc_web_content_type(&inbound_ct).unwrap_or_else(|| ("proto".to_string(), false));
     let out_content_type = grpc_content_type(&codec);
     let resp_content_type = grpc_web_content_type(&codec, text);
 
     // Buffer the request body: a unary gRPC-Web request is one small envelope,
     // and the relay needs it whole to feed the request pipe. `take()` leaves
     // `req` intact so it can move into the setup below.
-    let req_body = Bytes::from(collect_bytes_from_send_safe(
-        req.body.take().unwrap_or(SendSafeBody::None),
-    ));
+    let req_body = collect_request_body(
+        req.body.take(),
+        ctx.client_read_wake.clone(),
+        ctx.max_request_body,
+    )
+    .await?;
 
     // Outbound gRPC request headers: the same hop-by-hop + forwarding policy as
     // the transparent leg, re-typed to gRPC and given `te: trailers`.
@@ -156,28 +217,34 @@ pub(crate) fn relay_grpc_web_to_grpc(
     // Build the inbound/outbound exchanges synchronously (no await), so a setup
     // failure is reported to the caller *before* any response bytes are written.
     let (driver, responder_rx) =
-        setup_streaming_relay_to_grpc(GrpcWebHandler, req, req_body, url, out_headers)
-            .map_err(|e| format!("grpc-web→grpc relay setup failed: {e}"))?;
+        setup_streaming_relay_to_grpc(GrpcWebHandler, req, req_body, url, out_headers).map_err(
+            |e| ForwardError::before_response(format!("grpc-web→grpc relay setup failed: {e}")),
+        )?;
 
     // Drive the relay on the pool, non-blocking: it re-envelopes frames and
     // pushes the framed gRPC-Web response body into the responder pipe.
-    send(from_future(driver))
-        .map_err(|e| format!("grpc-web→grpc relay spawn failed: {e}"))?;
+    send(from_future(driver)).map_err(|e| {
+        ForwardError::before_response(format!("grpc-web→grpc relay spawn failed: {e}"))
+    })?;
 
-    // Stream the framed response body back, chunk by chunk, blocking only on
-    // the response pipe (never buffering the whole server-stream).
+    // Stream the framed response body back, chunk by chunk, parked on the
+    // response pipe (never buffering the whole server-stream).
     let mut headers = SimpleHeaders::new();
     headers.insert(SimpleHeader::CONTENT_TYPE, vec![resp_content_type]);
-    let body = SendSafeBody::ChunkedStream(Some(Box::new(BlockingChunkReader {
-        receiver: responder_rx,
-        ended: false,
-    })));
-    write_response(conn, Status::OK, &headers, body, sticky_header)
+    write_streamed_response(
+        writer,
+        Status::OK,
+        &headers,
+        pipe_body(responder_rx),
+        &shape,
+        &AtomicBool::new(false),
+    )
+    .await
 }
 
 /// Relay a Connect request from the HTTP/1.1 front end to a native-gRPC
-/// backend, translating at the frame level. Runs on the caller's thread (the H1
-/// relay thread), exactly like [`relay_grpc_web_to_grpc`].
+/// backend, translating at the frame level, exactly like
+/// [`relay_grpc_web_to_grpc`].
 ///
 /// Connect has two wire shapes, selected by the inbound `Content-Type`:
 /// - **streaming** (`application/connect+{codec}`) is envelope-framed like gRPC,
@@ -187,16 +254,20 @@ pub(crate) fn relay_grpc_web_to_grpc(
 ///   message is decoded back to a bare Connect body (all small, buffered whole).
 ///
 /// # Errors
-/// Returns `Err(String)` on a setup/relay failure; the caller answers `502`.
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn relay_connect_to_grpc(
-    conn: &mut SharedByteBufferStream<RawStream>,
+/// Returns [`ForwardError`] on a setup/relay failure; when `response_started` is
+/// false the caller answers `502` (or `413`).
+pub(crate) async fn relay_connect_to_grpc(
+    writer: &mut ResponseWriter,
     backend: &Arc<BackendRuntime>,
     mut req: SimpleIncomingRequest,
-    client_ip: &str,
-    scheme: &str,
-    sticky_header: Option<&SimpleHeaders>,
-) -> Result<(), String> {
+    ctx: &RpcContext<'_>,
+) -> Result<(), ForwardError> {
+    let (client_ip, scheme, sticky_header) = (ctx.client_ip, ctx.scheme, ctx.sticky_header);
+    let shape = ResponseShape {
+        extra_headers: sticky_header,
+        head_only: matches!(req.method, SimpleMethod::HEAD),
+        chunk_ok: matches!(req.proto, Proto::HTTP11),
+    };
     // The inbound content-type selects the codec + streaming shape, which decide
     // the outbound gRPC content-type and the response content-type echoed back.
     let inbound_ct = req
@@ -205,16 +276,20 @@ pub(crate) fn relay_connect_to_grpc(
         .and_then(|v| v.first())
         .cloned()
         .unwrap_or_else(|| "application/json".to_string());
-    let (codec, is_streaming) = parse_connect_content_type(&inbound_ct)
-        .ok_or_else(|| format!("unrecognized connect content-type {inbound_ct:?}"))?;
+    let (codec, is_streaming) = parse_connect_content_type(&inbound_ct).ok_or_else(|| {
+        ForwardError::before_response(format!("unrecognized connect content-type {inbound_ct:?}"))
+    })?;
     let out_content_type = grpc_content_type(&codec);
 
     // Buffer the request body. A unary body is bare bytes; a streaming body is a
     // single small envelope-fed chunk — both are small and needed whole to start
     // the relay. `take()` leaves `req` intact for the branches below.
-    let req_body = Bytes::from(collect_bytes_from_send_safe(
-        req.body.take().unwrap_or(SendSafeBody::None),
-    ));
+    let req_body = collect_request_body(
+        req.body.take(),
+        ctx.client_read_wake.clone(),
+        ctx.max_request_body,
+    )
+    .await?;
 
     // Outbound gRPC request headers: the same hop-by-hop + forwarding policy as
     // the transparent leg, re-typed to gRPC and given `te: trailers`.
@@ -233,32 +308,42 @@ pub(crate) fn relay_connect_to_grpc(
         let resp_content_type = connect_streaming_content_type(&codec);
         let (driver, responder_rx) =
             setup_streaming_relay_to_grpc(ConnectHandler, req, req_body, url, out_headers)
-                .map_err(|e| format!("connect→grpc relay setup failed: {e}"))?;
-        send(from_future(driver))
-            .map_err(|e| format!("connect→grpc relay spawn failed: {e}"))?;
+                .map_err(|e| {
+                    ForwardError::before_response(format!("connect→grpc relay setup failed: {e}"))
+                })?;
+        send(from_future(driver)).map_err(|e| {
+            ForwardError::before_response(format!("connect→grpc relay spawn failed: {e}"))
+        })?;
 
         let mut headers = SimpleHeaders::new();
         headers.insert(SimpleHeader::CONTENT_TYPE, vec![resp_content_type]);
-        let body = SendSafeBody::ChunkedStream(Some(Box::new(BlockingChunkReader {
-            receiver: responder_rx,
-            ended: false,
-        })));
-        write_response(conn, Status::OK, &headers, body, sticky_header)
+        write_streamed_response(
+            writer,
+            Status::OK,
+            &headers,
+            pipe_body(responder_rx),
+            &shape,
+            &AtomicBool::new(false),
+        )
+        .await
     } else {
         // Unary: bare bytes ↔ envelope, a single message each way — buffered whole.
         // The round trip is shared with the H2 front end; only the response
-        // rendering differs (H1 `write_response` vs H2 frames).
-        let response = block_on_future(connect_unary_roundtrip(
-            req, req_body, codec, url, out_headers,
-        ))
-        .map_err(|e| format!("connect unary→grpc relay failed: {e}"))?;
-        write_response(
-            conn,
+        // rendering differs (H1 chunk framing vs H2 frames).
+        let response = connect_unary_roundtrip(req, req_body, codec, url, out_headers)
+            .await
+            .map_err(|e| {
+                ForwardError::before_response(format!("connect unary→grpc relay failed: {e}"))
+            })?;
+        write_streamed_response(
+            writer,
             response.status,
             &response.headers,
-            response.body.unwrap_or(SendSafeBody::None),
-            sticky_header,
+            AsyncSendSafeBody::from(response.body.unwrap_or(SendSafeBody::None)),
+            &shape,
+            &AtomicBool::new(false),
         )
+        .await
     }
 }
 
@@ -266,6 +351,9 @@ pub(crate) fn relay_connect_to_grpc(
 /// as a single gRPC message, send it over H2, and return the decoded gRPC
 /// response message plus its trailing headers (carrying `grpc-status`). All
 /// bodies are single small messages.
+// The trait object tuple is the exchange's public shape; a struct would be
+// overkill for one call site.
+#[allow(clippy::type_complexity)]
 async fn connect_unary_to_grpc(
     message: Bytes,
     url: String,
@@ -283,6 +371,7 @@ async fn connect_unary_to_grpc(
         .open(out_request)
         .map_err(|e| format!("open h2 upstream {url}: {e}"))?;
     let cancel = CancelSignal::new();
+    let compression = CompressionRegistry::new();
     let outbound = GrpcClient
         .new_conn(
             &Spec::empty(true),
@@ -291,6 +380,10 @@ async fn connect_unary_to_grpc(
             ClientExchangeConfig {
                 cancel: cancel.clone(),
                 read_max_bytes: 0,
+                compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc outbound exchange: {e}"))?;
@@ -328,7 +421,7 @@ async fn connect_unary_to_grpc(
             let trailers = out_recv
                 .response_trailers()
                 .await
-                .map(|t| t.clone())
+                .cloned()
                 .unwrap_or_default();
             Ok((msg, trailers))
         }
@@ -411,6 +504,14 @@ pub(crate) async fn connect_unary_roundtrip(
 /// Returns the driver **and** the shared [`CancelSignal`] wired into both
 /// exchanges: firing it tears the inbound and outbound sides down together
 /// (spec 63 T13). The caller fires it when the client resets the stream.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the relay setup reads best as one ordered function"
+)]
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the handler takes ownership of the request and response pipes"
+)]
 pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     handler: H,
     request: SimpleIncomingRequest,
@@ -454,6 +555,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     let stream = H2Transport::new()
         .open(out_request)
         .map_err(|e| format!("open h2 upstream {url}: {e}"))?;
+    let compression = CompressionRegistry::empty();
     let outbound = GrpcClient
         .new_conn(
             &Spec::empty(true),
@@ -462,6 +564,10 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
             ClientExchangeConfig {
                 cancel: cancel.clone(),
                 read_max_bytes: 0,
+                compression: &compression,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .map_err(|e| format!("build grpc outbound exchange: {e}"))?;
@@ -470,6 +576,8 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
         conn: inbound_conn,
         reader_task: in_reader,
         writer_task: in_writer,
+        // The relay builds the response head itself; no handler sets headers here.
+        response_headers: _,
     } = inbound;
     let ClientExchange {
         conn: outbound_conn,
@@ -482,14 +590,9 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
 
     // Request direction: de-framed inbound messages → gRPC request frames.
     let request_pump = async move {
-        loop {
-            match in_recv.receive().await {
-                Ok(Some(bytes)) => {
-                    if out_send.send(bytes).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(None) | Err(_) => break,
+        while let Ok(Some(bytes)) = in_recv.receive().await {
+            if out_send.send(bytes).await.is_err() {
+                break;
             }
         }
         let _ = out_send.close_send().await;
@@ -510,7 +613,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
                     let trailers = out_recv
                         .response_trailers()
                         .await
-                        .map(|t| t.clone())
+                        .cloned()
                         .unwrap_or_default();
                     let _ = in_send.close(None, trailers).await;
                     return;
@@ -519,7 +622,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
                     let trailers = out_recv
                         .response_trailers()
                         .await
-                        .map(|t| t.clone())
+                        .cloned()
                         .unwrap_or_default();
                     let _ = in_send.close(Some(e), trailers).await;
                     return;
@@ -549,8 +652,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     let driver: futures_util::future::BoxFuture<'static, ()> = async move {
         let cancelled = Box::pin(cancel_for_driver.cancelled());
         match futures_util::future::select(work, cancelled).await {
-            futures_util::future::Either::Left(_) => {}
-            futures_util::future::Either::Right(_) => {}
+            futures_util::future::Either::Left(_) | futures_util::future::Either::Right(_) => {}
         }
     }
     .boxed();
@@ -573,7 +675,13 @@ fn setup_streaming_relay_to_grpc<H: ProtocolHandler>(
     req_body: Bytes,
     url: String,
     out_headers: SimpleHeaders,
-) -> Result<(futures_util::future::BoxFuture<'static, ()>, PipeReceiver<Bytes>), String> {
+) -> Result<
+    (
+        futures_util::future::BoxFuture<'static, ()>,
+        PipeReceiver<Bytes>,
+    ),
+    String,
+> {
     let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
     let (responder_tx, responder_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
 
@@ -583,41 +691,9 @@ fn setup_streaming_relay_to_grpc<H: ProtocolHandler>(
     if !req_body.is_empty() {
         let _ = body_tx.try_send(req_body);
     }
-    body_tx.close();
+    let _ = body_tx.close();
 
     let (driver, _cancel) =
         build_streaming_relay_to_grpc(handler, request, body_rx, responder_tx, url, out_headers)?;
     Ok((driver, responder_rx))
-}
-
-/// Chunked response-body reader that drains a response pipe one chunk at a time,
-/// blocking (via [`block_on_future`]) until a chunk arrives or the pipe closes.
-///
-/// WHY: a `SendSafeBody::Stream` adapter surfaces an empty-but-open pipe as
-/// `Data::Retry`, which the *sync* H1 response renderer would busy-spin on. This
-/// reader blocks per chunk instead, so a long server-stream never buffered whole
-/// and never spins a relay thread.
-struct BlockingChunkReader {
-    receiver: PipeReceiver<Bytes>,
-    ended: bool,
-}
-
-impl Iterator for BlockingChunkReader {
-    type Item = Result<ChunkedData, BoxedError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.ended {
-            return None;
-        }
-        // `receive` borrows the receiver; clone the cheap `Arc` handle so the
-        // future owns it and can run `'static` on the pool.
-        let rx = self.receiver.clone();
-        match block_on_future(async move { rx.receive().await }) {
-            Some(bytes) => Some(Ok(ChunkedData::Data(bytes.to_vec(), None))),
-            None => {
-                self.ended = true;
-                Some(Ok(ChunkedData::DataEnded))
-            }
-        }
-    }
 }

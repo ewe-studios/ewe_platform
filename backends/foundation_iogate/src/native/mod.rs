@@ -11,12 +11,15 @@
 //! turns an accepted `TcpStream` into the netio `Connection` a given
 //! [`crate::ServerIo`] mode asks for.
 //!
-//! HOW: `CompletionSocket` wraps a `RegisteredFd`. On Linux with io_uring it
+//! HOW: `CompletionSocket` wraps a `RegisteredFd`. On Linux with `io_uring` it
 //! registers for multishot `RECV` and reads by popping the inbox; elsewhere it
 //! registers plainly and reads with `read(2)`.
 
 mod accept;
 mod completion_socket;
 
-pub use accept::{accept_connection, connect_completion, init_reactor_for};
+pub use accept::{accept_connection, adopt_connected, connect_completion, init_reactor_for};
 pub use completion_socket::CompletionSocket;
+// `FdReadiness` now lives in `foundation_reactor` (below netio) so both netio
+// and iogate can reach it. Re-export to keep `foundation_iogate::native::FdReadiness`.
+pub use foundation_reactor::FdReadiness;

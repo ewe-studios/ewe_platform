@@ -1,7 +1,8 @@
-//! Tests extracted from simple_http/client/shared/cookie.rs
+//! Tests extracted from `simple_http/client/shared/cookie.rs`
 mod tests {
+    use foundation_compact::SystemTime;
     use foundation_netio::shared::client::cookie::*;
-    use std::time::{Duration, SystemTime};
+    use std::time::Duration;
 
     #[test]
     fn to_set_cookie_string_minimal() {
@@ -13,7 +14,7 @@ mod tests {
 
     #[test]
     fn to_set_cookie_string_with_max_age() {
-        let cookie = Cookie::new("remember", "me").max_age(Duration::from_secs(86400));
+        let cookie = Cookie::new("remember", "me").max_age(Duration::from_hours(24));
         let s = cookie.to_set_cookie_string();
         assert!(s.contains("Max-Age=86400"));
     }

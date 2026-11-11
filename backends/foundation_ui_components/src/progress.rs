@@ -33,7 +33,12 @@ pub struct ProgressConfig {
 
 impl Default for ProgressConfig {
     fn default() -> Self {
-        Self { min: 0.0, max: 100.0, class: None, aria_label: None }
+        Self {
+            min: 0.0,
+            max: 100.0,
+            class: None,
+            aria_label: None,
+        }
     }
 }
 

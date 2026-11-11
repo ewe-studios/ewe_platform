@@ -1,7 +1,14 @@
 # Platform Docker Tests (spec-52 F30 Layer 3)
 #
-# Boots macOS + Windows Docker containers and runs cross-platform tests
-# against the foundation_testbed TestEnvironmentBuilder.
+# Boots the macOS and Windows VM host containers and smoke-tests them from the
+# host side: the container starts, its web console answers, and the repository
+# is mounted at `/shared`.
+#
+# The images run the guest operating system in QEMU inside the container.
+# `docker exec` reaches the container's Linux side, never the guest, so this
+# workflow cannot build or test anything inside macOS or Windows. Those checks
+# run in the provisioned VM images of `.github/workflows/platform-vms.yaml`,
+# which reach the guest over SSH (nightly and manual only).
 #
 # Triggers:
 #   - Manual: workflow_dispatch
@@ -22,55 +29,50 @@ on:
       - 'backends/foundation_testbed/**'
       - 'backends/foundation_macros/**'
       - 'examples/platform_*/**'
+      - 'docker-compose.yaml'
+      - 'scripts/ci/vm-host-smoke.sh'
+      - '.github/workflows/platform-docker-tests.yml'
   schedule:
     - cron: '37 3 * * *'  # 3:37am UTC daily (off-peak)
 
 jobs:
-  # ── macOS tests ─────────────────────────────────────────────────────────
+  # ── macOS VM host ───────────────────────────────────────────────────────
   macos-tests:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # The macOS image is large and plays its guest disk on a cold runner, which
+    # installs macOS from scratch. The smoke test does not wait for that install.
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: useblacksmith/checkout@v1
 
-      - name: Boot macOS container
-        run: |
-          docker compose -f docker-compose.yaml up macos -d
-          echo "Waiting for macOS to boot (up to 10 minutes)..."
-          for i in $(seq 1 120); do
-            if docker exec macos sh -c 'echo ready' 2>/dev/null; then
-              echo "macOS ready after ${i}0 seconds"
-              break
-            fi
-            sleep 10
-          done
-
-      - name: Install Rust on macOS
-        run: |
-          docker exec macos bash -c '
-            curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-            source ~/.cargo/env
-            rustup target add aarch64-apple-ios aarch64-apple-ios-sim
-          '
+      - name: Smoke-test the macOS VM host
+        # `docker-compose.yaml` defaults these to the developer's own
+        # directories. They do not exist on a runner, and Docker answers a
+        # missing host path by creating an empty directory: the container would
+        # then have no repository at `/shared` and no VM disk at `/storage`.
+        env:
+          EWE_SHARED_DIR: ${{ github.workspace }}
+          EWE_MACOS_STORAGE: ${{ runner.temp }}/macos-storage
+        run: scripts/ci/vm-host-smoke.sh macos ewe_macos 8006 600
 
       - name: Docker connectivity tests
+        # The test file is an integration test, so `--test`, not `--lib`. This
+        # job boots the macOS container only, so it runs that container's test.
         run: |
-          cargo test -p foundation_testbed --features docker-tests --lib -- docker
+          cargo test -p foundation_testbed --features docker-tests --test docker_tests -- builder_with_vnc
+          cargo test -p foundation_testbed --features docker-tests --test docker_tests -- builder_container_not_found
+          cargo test -p foundation_testbed --features docker-tests --test docker_tests -- port_is_open
 
-      - name: iOS target check
-        run: |
-          docker exec macos bash -c '
-            source ~/.cargo/env
-            export RUSTUP_TOOLCHAIN=stable
-            cd /shared/examples/platform_ios/src-tauri
-            cargo check --target aarch64-apple-ios
-          '
-
-      - name: Collect screenshots
+      - name: Collect diagnostics
         if: always()
         run: |
-          docker exec macos screencapture -x /tmp/screenshot.png 2>/dev/null || true
-          docker cp macos:/tmp/screenshot.png ./macos-screenshot.png 2>/dev/null || true
+          {
+            echo "# docker compose ps"
+            docker compose -f docker-compose.yaml ps || true
+            echo
+            echo "# docker logs ewe_macos (last 200 lines)"
+            docker logs --tail 200 ewe_macos 2>&1 || true
+          } > macos-host-diagnostics.txt
 
       - name: Upload artifacts
         if: always()
@@ -78,36 +80,39 @@ jobs:
         with:
           name: macos-test-artifacts
           path: |
-            macos-screenshot.png
+            macos-host-diagnostics.txt
           retention-days: 7
 
-  # ── Windows tests ───────────────────────────────────────────────────────
+  # ── Windows VM host ─────────────────────────────────────────────────────
   windows-tests:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: useblacksmith/checkout@v1
 
-      - name: Boot Windows container
-        run: |
-          docker compose -f docker-compose.yaml up windows -d
-          echo "Waiting for Windows to boot (up to 10 minutes)..."
-          for i in $(seq 1 120); do
-            if docker exec ewe_windows cmd /c "echo ready" 2>/dev/null; then
-              echo "Windows ready after ${i}0 seconds"
-              break
-            fi
-            sleep 10
-          done
+      - name: Smoke-test the Windows VM host
+        # The Windows image publishes its web console on host port 8008.
+        env:
+          EWE_SHARED_DIR: ${{ github.workspace }}
+          EWE_WINDOWS_STORAGE: ${{ runner.temp }}/windows-storage
+        run: scripts/ci/vm-host-smoke.sh windows ewe_windows 8008 600
 
       - name: Docker connectivity tests
         run: |
-          cargo test -p foundation_testbed --features docker-tests --lib -- docker
+          cargo test -p foundation_testbed --features docker-tests --test docker_tests -- builder_with_rdp
+          cargo test -p foundation_testbed --features docker-tests --test docker_tests -- builder_container_not_found
+          cargo test -p foundation_testbed --features docker-tests --test docker_tests -- port_is_open
 
-      - name: Collect artifacts
+      - name: Collect diagnostics
         if: always()
         run: |
-          docker exec ewe_windows cmd /c "ver" 2>/dev/null > windows-version.txt || true
+          {
+            echo "# docker compose ps"
+            docker compose -f docker-compose.yaml ps || true
+            echo
+            echo "# docker logs ewe_windows (last 200 lines)"
+            docker logs --tail 200 ewe_windows 2>&1 || true
+          } > windows-host-diagnostics.txt
 
       - name: Upload artifacts
         if: always()
@@ -115,15 +120,28 @@ jobs:
         with:
           name: windows-test-artifacts
           path: |
-            windows-version.txt
+            windows-host-diagnostics.txt
           retention-days: 7
 
   # ── Platform unit tests (in-memory, no Docker needed) ──────────────────
   platform-unit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: useblacksmith/checkout@v1
+
+      # `foundation_platform` depends on `tauri`, whose Linux build needs the
+      # GTK/WebKit development packages. Without them `cargo test` stops in
+      # `glib-sys`'s build script: "Package 'glib-2.0' not found".
+      - name: Install the Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential curl file pkg-config \
+            libglib2.0-dev libgtk-3-dev libsoup-3.0-dev \
+            libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev \
+            librsvg2-dev libxdo-dev libayatana-appindicator3-dev \
+            libssl-dev patchelf
 
       - name: Run foundation_platform tests
         run: cargo test -p foundation_platform -- --test-threads=1

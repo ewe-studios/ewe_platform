@@ -1,32 +1,52 @@
+use std::sync::Arc;
+
+use foundation_core::valtron::valtron;
+use foundation_http::native::serve::{Serve, ServeFactory};
+use foundation_http::native::writer::{send_html, send_not_found};
+use foundation_http::shared::{
+    app::HttpApp,
+    context::Ctx,
+    serve::ConnectionResult,
+};
+use foundation_http::{RawStream, SharedByteBufferStream, ShutdownSignal, SimpleIncomingRequest, SimpleMethod};
+use rust_embed::Embed;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-
-use axum::{
-    extract,
-    response::{Html, IntoResponse, Response},
-    routing::get,
-    Router,
-};
-use http::StatusCode;
-use rust_embed::Embed;
 
 #[derive(Embed)]
 #[folder = "public/"]
 #[prefix = "static/"]
 struct Assets;
 
-async fn handler(req: extract::Request) -> Response {
-    match Assets::get("static/index.html") {
-        Some(html_data) => {
-            let content = String::from_utf8(html_data.data.to_vec()).expect("should generate str");
-            Html(content).into_response()
-        }
-        None => (StatusCode::NOT_FOUND, "404 NOT FOUND").into_response(),
+/// Serves the embedded `index.html` at the application root.
+struct IndexHandler;
+
+impl ServeFactory for IndexHandler {
+    fn create(_ctx: &Ctx) -> Self {
+        Self
     }
 }
 
-#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
-async fn main() {
+impl Serve for IndexHandler {
+    fn serve(
+        &self,
+        ctx: Ctx,
+        _req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        match Assets::get("static/index.html") {
+            Some(html_data) => {
+                let content =
+                    String::from_utf8(html_data.data.to_vec()).expect("should generate str");
+                send_html(conn, 200, &content, &ctx)
+            }
+            None => send_not_found(conn, &ctx),
+        }
+    }
+}
+
+#[valtron(seed = 10, threads = 10)]
+fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();
@@ -35,11 +55,10 @@ async fn main() {
 
     tracing::info!("Starting local binary");
 
-    let app = Router::new().route("/", get(handler));
+    let mut app = HttpApp::new_serve();
+    app.route::<IndexHandler>(SimpleMethod::GET, "/");
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
-
-    tracing::info!("Listening on {}", listener.local_addr().unwrap());
+    let server = app.server("127.0.0.1:3000");
+    let shutdown = Arc::new(ShutdownSignal::new());
+    server.serve(&shutdown);
 }

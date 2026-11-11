@@ -62,6 +62,14 @@ pub struct H2Conn {
     handshake: ServerHandshake,
 }
 
+/// The peer closed the connection: no more frames will arrive.
+fn peer_closed() -> io::Error {
+    io::Error::new(
+        io::ErrorKind::UnexpectedEof,
+        "h2: the peer closed the connection",
+    )
+}
+
 /// Nothing is readable yet — the caller should park and retry.
 fn would_block() -> io::Error {
     io::Error::new(io::ErrorKind::WouldBlock, "h2: frame not yet buffered")
@@ -94,10 +102,10 @@ impl H2Conn {
     /// Are at least `n` bytes already buffered? Peeking consumes nothing, so a
     /// `false` answer leaves the stream exactly as it was.
     fn buffered(&mut self, n: usize) -> io::Result<bool> {
-        let mut probe = vec![0u8; n];
-        match self.stream.peek(&mut probe) {
-            Ok(got) => Ok(got >= n),
-            Err(PeekError::IOError(ref e)) if e.kind() == io::ErrorKind::WouldBlock => Ok(false),
+        match self.stream.has_buffered(n) {
+            Ok(enough) => Ok(enough),
+            // The peer closed: no more frames will come, whole or partial.
+            Err(PeekError::EndOfStream) => Err(peer_closed()),
             Err(PeekError::IOError(e)) => Err(e),
             Err(e) => Err(io::Error::new(io::ErrorKind::InvalidData, e.to_string())),
         }
@@ -115,6 +123,7 @@ impl H2Conn {
             Err(PeekError::IOError(ref e)) if e.kind() == io::ErrorKind::WouldBlock => {
                 return Ok(false)
             }
+            Err(PeekError::EndOfStream) => return Err(peer_closed()),
             Err(PeekError::IOError(e)) => return Err(e),
             Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e.to_string())),
         }
@@ -200,7 +209,9 @@ impl H2Conn {
                     if head.flag & ping_flags::ACK == 0 {
                         let ack = PingFrame::ack(
                             PingFrame::parse(&head, &payload)
-                                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad PING"))?
+                                .map_err(|_| {
+                                    io::Error::new(io::ErrorKind::InvalidData, "bad PING")
+                                })?
                                 .opaque_data,
                         );
                         let mut buf = BytesMut::new();
@@ -236,6 +247,33 @@ impl H2Conn {
         self.inner.flush()
     }
 
+    /// The socket's fd, to watch it for readiness; `-1` for a transport with
+    /// no kernel fd (the `WireGuard` overlay).
+    #[cfg(unix)]
+    #[must_use]
+    pub fn raw_fd(&self) -> std::os::unix::io::RawFd {
+        use std::os::unix::io::AsRawFd;
+        self.stream.with_inner_ref(AsRawFd::as_raw_fd)
+    }
+
+    /// Register a callback fired when the transport becomes readable, for a
+    /// transport with its own readiness (the overlay). `false` if it has none.
+    #[must_use]
+    // Public API: `ConnWaker` is handed over by value by callers (including
+    // foundation_http); changing to a reference would break that crate.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
+        self.stream
+            .with_inner_ref(|raw| raw.register_read_waker(waker.clone()))
+    }
+
+    /// Whether frames are queued but not yet written (a flush hit
+    /// `WouldBlock`); the caller should wait for the socket to be writable.
+    #[must_use]
+    pub fn has_pending_writes(&self) -> bool {
+        self.inner.has_pending_writes()
+    }
+
     /// Decode an HPACK header block into (name, value) pairs, advancing the
     /// connection's dynamic table.
     ///
@@ -267,13 +305,12 @@ impl H2Conn {
     /// Call [`flush`](Self::flush) to send it over the socket.
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame) {
         let tag = match frame {
-            H2Frame::Headers { status, end_stream, .. } =>
-                format!("HEADERS(status={status} end={end_stream})"),
-            H2Frame::Data { end_stream, .. } =>
-                format!("DATA(end={end_stream})"),
+            H2Frame::Headers {
+                status, end_stream, ..
+            } => format!("HEADERS(status={status} end={end_stream})"),
+            H2Frame::Data { end_stream, .. } => format!("DATA(end={end_stream})"),
             H2Frame::Trailers { .. } => "TRAILERS(end=true)".to_string(),
-            H2Frame::Reset { error_code } =>
-                format!("RST_STREAM({error_code:?})"),
+            H2Frame::Reset { error_code } => format!("RST_STREAM({error_code:?})"),
         };
         tracing::trace!(stream = stream_id, frame = %tag, "h2 conn: send frame");
         match frame {

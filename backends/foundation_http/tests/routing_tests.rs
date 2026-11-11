@@ -1,15 +1,12 @@
-//! Routing tests — RouteSegment tree matching, priority sorting, param extraction.
+//! Routing tests — `RouteSegment` tree matching, priority sorting, param extraction.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_http::{
-    shared::{
-        context::ContextBag,
-        router::Router,
-        serve::{ConnectionResult, Serve, ServeFactory},
-    },
-    SimpleIncomingRequest, SimpleMethod, SharedByteBufferStream, RawStream,
+    native::serve::{Serve, ServeFactory},
+    shared::{context::Ctx, router::Router, serve::ConnectionResult},
+    RawStream, SharedByteBufferStream, SimpleIncomingRequest, SimpleMethod,
 };
 
 // -----------------------------------------------------------------------
@@ -22,7 +19,7 @@ struct TestHandler {
 }
 
 impl ServeFactory for TestHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         panic!("TestHandler must be created with TestHandler::new()");
     }
 }
@@ -36,7 +33,7 @@ impl TestHandler {
 impl Serve for TestHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
         _conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -57,9 +54,7 @@ fn dummy_request() -> SimpleIncomingRequest {
     SimpleIncomingRequest::builder()
         .with_plain_url("/")
         .build()
-        .unwrap_or_else(|_| {
-            panic!("Failed to build dummy request")
-        })
+        .unwrap_or_else(|_| panic!("Failed to build dummy request"))
 }
 
 fn dummy_conn() -> SharedByteBufferStream<RawStream> {
@@ -85,7 +80,11 @@ fn test_static_route_get() {
     let handler = router.dispatch(&SimpleMethod::GET, "/hello");
     assert!(handler.is_some());
 
-    let result = handler.unwrap().serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let result = handler.unwrap().serve(
+        foundation_context::Ctx::host(),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert!(matches!(result, ConnectionResult::Keep));
     assert_eq!(count.load(Ordering::SeqCst), 1);
 }
@@ -107,7 +106,11 @@ fn test_param_route() {
     let mut router = Router::new();
     let count = Arc::new(AtomicUsize::new(0));
 
-    router.add_route(SimpleMethod::GET, "/users/:id", make_handler(3, count.clone()));
+    router.add_route(
+        SimpleMethod::GET,
+        "/users/:id",
+        make_handler(3, count.clone()),
+    );
 
     assert!(router.dispatch(&SimpleMethod::GET, "/users/123").is_some());
     assert!(router.dispatch(&SimpleMethod::GET, "/users/abc").is_some());
@@ -125,9 +128,15 @@ fn test_nested_routes() {
         make_handler(4, count.clone()),
     );
 
-    assert!(router.dispatch(&SimpleMethod::GET, "/api/v1/users").is_some());
-    assert!(router.dispatch(&SimpleMethod::GET, "/api/v1/posts").is_none());
-    assert!(router.dispatch(&SimpleMethod::GET, "/api/v2/users").is_none());
+    assert!(router
+        .dispatch(&SimpleMethod::GET, "/api/v1/users")
+        .is_some());
+    assert!(router
+        .dispatch(&SimpleMethod::GET, "/api/v1/posts")
+        .is_none());
+    assert!(router
+        .dispatch(&SimpleMethod::GET, "/api/v2/users")
+        .is_none());
 }
 
 #[test]
@@ -147,18 +156,36 @@ fn test_static_precedence_over_param() {
     let static_count = Arc::new(AtomicUsize::new(0));
     let param_count = Arc::new(AtomicUsize::new(0));
 
-    router.add_route(SimpleMethod::GET, "/users/profile", make_handler(10, static_count.clone()));
-    router.add_route(SimpleMethod::GET, "/users/:action", make_handler(11, param_count.clone()));
+    router.add_route(
+        SimpleMethod::GET,
+        "/users/profile",
+        make_handler(10, static_count.clone()),
+    );
+    router.add_route(
+        SimpleMethod::GET,
+        "/users/:action",
+        make_handler(11, param_count.clone()),
+    );
 
     // Static route should win for exact match
-    let handler = router.dispatch(&SimpleMethod::GET, "/users/profile").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let handler = router
+        .dispatch(&SimpleMethod::GET, "/users/profile")
+        .unwrap();
+    let _ = handler.serve(
+        foundation_context::Ctx::host(),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(static_count.load(Ordering::SeqCst), 1);
     assert_eq!(param_count.load(Ordering::SeqCst), 0);
 
     // Param route should match for non-static
     let handler = router.dispatch(&SimpleMethod::GET, "/users/edit").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        foundation_context::Ctx::host(),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(param_count.load(Ordering::SeqCst), 1);
 }
 
@@ -168,16 +195,32 @@ fn test_multiple_methods_same_path() {
     let get_count = Arc::new(AtomicUsize::new(0));
     let post_count = Arc::new(AtomicUsize::new(0));
 
-    router.add_route(SimpleMethod::GET, "/resource", make_handler(20, get_count.clone()));
-    router.add_route(SimpleMethod::POST, "/resource", make_handler(21, post_count.clone()));
+    router.add_route(
+        SimpleMethod::GET,
+        "/resource",
+        make_handler(20, get_count.clone()),
+    );
+    router.add_route(
+        SimpleMethod::POST,
+        "/resource",
+        make_handler(21, post_count.clone()),
+    );
 
     let handler = router.dispatch(&SimpleMethod::GET, "/resource").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        foundation_context::Ctx::host(),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(get_count.load(Ordering::SeqCst), 1);
     assert_eq!(post_count.load(Ordering::SeqCst), 0);
 
     let handler = router.dispatch(&SimpleMethod::POST, "/resource").unwrap();
-    let _ = handler.serve(Arc::new(ContextBag::new()), dummy_request(), dummy_conn());
+    let _ = handler.serve(
+        foundation_context::Ctx::host(),
+        dummy_request(),
+        dummy_conn(),
+    );
     assert_eq!(post_count.load(Ordering::SeqCst), 1);
 }
 
@@ -205,7 +248,9 @@ fn test_deep_nested_route() {
 
     assert!(router.dispatch(&SimpleMethod::GET, "/a/b/c/d/e").is_some());
     assert!(router.dispatch(&SimpleMethod::GET, "/a/b/c/d").is_none());
-    assert!(router.dispatch(&SimpleMethod::GET, "/a/b/c/d/e/f").is_none());
+    assert!(router
+        .dispatch(&SimpleMethod::GET, "/a/b/c/d/e/f")
+        .is_none());
 }
 
 #[test]
@@ -229,6 +274,8 @@ fn test_add_route_any() {
 
     assert!(router.dispatch(&SimpleMethod::GET, "/catch-all").is_some());
     assert!(router.dispatch(&SimpleMethod::POST, "/catch-all").is_some());
-    assert!(router.dispatch(&SimpleMethod::DELETE, "/catch-all").is_some());
+    assert!(router
+        .dispatch(&SimpleMethod::DELETE, "/catch-all")
+        .is_some());
     assert!(router.dispatch(&SimpleMethod::PUT, "/catch-all").is_some());
 }

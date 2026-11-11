@@ -23,14 +23,18 @@ pub trait ProcessController {
 }
 
 pub trait CloneProcessController: ProcessController {
-    fn clone_process_controller(&self) -> Box<dyn CloneProcessController<YieldSignal = Self::YieldSignal>>;
+    fn clone_process_controller(
+        &self,
+    ) -> Box<dyn CloneProcessController<YieldSignal = Self::YieldSignal>>;
 }
 
 impl<F> CloneProcessController for F
 where
     F: ProcessController + Clone + 'static,
 {
-    fn clone_process_controller(&self) -> Box<dyn CloneProcessController<YieldSignal = Self::YieldSignal>> {
+    fn clone_process_controller(
+        &self,
+    ) -> Box<dyn CloneProcessController<YieldSignal = Self::YieldSignal>> {
         Box::new(self.clone())
     }
 }

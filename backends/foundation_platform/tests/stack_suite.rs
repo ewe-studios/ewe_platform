@@ -4,7 +4,7 @@ use std::sync::Mutex;
 
 use foundation_platform::*;
 
-/// A fake WebView for testing — records operations for assertions.
+/// A fake `WebView` for testing — records operations for assertions.
 struct FakeWebView {
     navigated_urls: Mutex<Vec<String>>,
     eval_scripts: Mutex<Vec<String>>,
@@ -309,16 +309,6 @@ fn full_navigation_cycle() {
 
 // ── Presentation mode tests (F35 — Multi-WebView) ──────────────
 
-/// Build a NavigationIntent for testing.
-fn intent_for(url: &str) -> foundation_platform::NavigationIntent {
-    foundation_platform::NavigationIntent {
-        url: url.to_string(),
-        method: foundation_platform::Method::Get,
-        source: foundation_platform::IntentSource::LinkClick,
-        referrer: None,
-    }
-}
-
 #[test]
 fn presentation_morph_keeps_one_slot() {
     // Morph replaces content in-place — no new slot, depth unchanged.
@@ -373,7 +363,10 @@ fn presentation_push_adds_slot_and_screenshot() {
     assert_eq!(stack.active_route(), Some("/app/items"));
     // Previous slot should have a screenshot
     let prev = &stack.slots()[0];
-    assert!(prev.screenshot.is_some(), "Push should capture screenshot of previous slot");
+    assert!(
+        prev.screenshot.is_some(),
+        "Push should capture screenshot of previous slot"
+    );
     assert_eq!(prev.state, SlotState::Screenshot);
 }
 
@@ -412,7 +405,10 @@ fn presentation_push_uses_pool_label() {
     // Pool should have both "main" (default) and "app_hello"
     let pool = stack.pool().unwrap();
     assert!(pool.get("main").is_some(), "main pool entry should exist");
-    assert!(pool.get("app_hello").is_some(), "app_hello pool entry should be created");
+    assert!(
+        pool.get("app_hello").is_some(),
+        "app_hello pool entry should be created"
+    );
     assert_eq!(pool.get("app_hello").unwrap().state, WebViewState::Active);
     assert_eq!(stack.depth(), 2);
 }
@@ -434,7 +430,11 @@ fn presentation_root_clears_and_resets() {
         &wv,
     );
 
-    assert_eq!(stack.depth(), 1, "Root should clear everything and set one slot");
+    assert_eq!(
+        stack.depth(),
+        1,
+        "Root should clear everything and set one slot"
+    );
     assert_eq!(stack.active_route(), Some("/login"));
     assert_eq!(stack.active(), 0);
 }
@@ -542,7 +542,11 @@ fn presentation_preload_queue() {
     // Drain preloads (single-WebView mode skips — need pool)
     // In pool mode with idle WebViews, preloads would navigate:
     let processed = stack.drain_preloads(&wv);
-    assert_eq!(stack.preload_queue_len(), 2, "preloads remain until idle WebViews exist");
+    assert_eq!(
+        stack.preload_queue_len(),
+        2,
+        "preloads remain until idle WebViews exist"
+    );
     // processed may be 0 if no idle pool WebViews yet
     let _ = processed; // just verify it doesn't panic
 }
@@ -551,7 +555,10 @@ fn presentation_preload_queue() {
 fn presentation_recorded_in_session() {
     // Verify session.record_presentation updates the WebViewStack for each mode.
     let session = foundation_platform::PlatformSession::new_test(
-        std::path::PathBuf::from(".")
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
     );
 
     // Morph

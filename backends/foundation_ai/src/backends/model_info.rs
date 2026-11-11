@@ -1,5 +1,5 @@
 //! Model metadata lookups shared by the HTTP providers (OpenAI-compatible,
-//! OpenAI Responses, Anthropic).
+//! `OpenAI` Responses, Anthropic).
 //!
 //! WHY: every HTTP provider can ask its vendor for a model's metadata
 //! (`GET models/{name}`), and every one of them must do it without blocking
@@ -21,12 +21,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use foundation_netio::shared::client::{
-    body_reader::collect_strings_from_send_safe,
-    request::PreparedRequest,
+    body_reader::collect_strings_from_send_safe, request::PreparedRequest,
 };
 use foundation_netio::DynNetClient;
 use serde::de::DeserializeOwned;
 
+use crate::backends::backend_utils::capped_error_body;
 use crate::backends::openai_provider::format_http_error;
 use crate::backends::openai_provider::OpenAIModelInfo;
 use crate::errors::{GenerationError, GenerationResult};
@@ -55,7 +55,11 @@ pub fn placeholder(model_name: &str, owned_by: &str) -> OpenAIModelInfo {
 
 /// The cached metadata for `model_name`, or a placeholder.
 #[must_use]
-pub fn cached_or_placeholder(cache: &ModelInfoCache, model_name: &str, owned_by: &str) -> OpenAIModelInfo {
+pub fn cached_or_placeholder(
+    cache: &ModelInfoCache,
+    model_name: &str,
+    owned_by: &str,
+) -> OpenAIModelInfo {
     cache
         .lock()
         .expect("model cache poisoned")
@@ -108,13 +112,14 @@ pub async fn fetch<T: DeserializeOwned>(
     req: PreparedRequest,
     error_detail: fn(&str) -> Option<String>,
     convert: fn(T) -> OpenAIModelInfo,
+    max_error_body: usize,
 ) -> GenerationResult<OpenAIModelInfo> {
     let response = client
         .send_async(req)
         .await
         .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
     let (status, _headers, body) = response.into_parts();
-    parse(status.into(), body, error_detail, convert)
+    parse(status.into(), body, error_detail, convert, max_error_body)
 }
 
 fn parse<T: DeserializeOwned>(
@@ -122,13 +127,20 @@ fn parse<T: DeserializeOwned>(
     body: foundation_netio::shared::http::SendSafeBody,
     error_detail: fn(&str) -> Option<String>,
     convert: fn(T) -> OpenAIModelInfo,
+    max_error_body: usize,
 ) -> GenerationResult<OpenAIModelInfo> {
+    if !(200..=299).contains(&status_code) {
+        // Status first: only the error message is needed, so the body read
+        // stops at the configured cap instead of buffering the whole reply.
+        let body_text = capped_error_body(body, max_error_body);
+        let detail = error_detail(&body_text).unwrap_or(body_text);
+        return Err(GenerationError::Backend(format_http_error(
+            status_code,
+            &detail,
+        )));
+    }
     let body_text = collect_strings_from_send_safe(body)
         .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
-    if !(200..=299).contains(&status_code) {
-        let detail = error_detail(&body_text).unwrap_or(body_text);
-        return Err(GenerationError::Backend(format_http_error(status_code, &detail)));
-    }
     let resp: T = serde_json::from_str(&body_text)
         .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
     Ok(convert(resp))

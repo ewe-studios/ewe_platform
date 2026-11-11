@@ -1,30 +1,32 @@
 [package]
 name = "ewe_channels"
-version = "0.0.1"
+version = "0.0.2"
 description = "The channels wrapper for implementing channels in ewe_domain crate"
-authors.workspace = true
-edition.workspace = true
-repository.workspace = true
-license.workspace = true
-rust-version.workspace = true
-keywords.workspace = true
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dev-dependencies]
-tokio-test = { version = "0.4" }
-tracing-test = { version = "0.2.5" }
-
+edition = "2021"
+rust-version = "1.87"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/ewe-studios/ewe_platform"
+keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 [dependencies]
 tracing = { version = "0.1.40" }
-tokio = { version = "1.36", features = ["full"] }
 async-channel = { version = "2.2" }
 futures = { version = "0.3" }
 crossbeam = { version = "0.8" }
-anyhow = { version = "1.0.80" }
-thiserror = { version = "2.0.17" }
+derive_more = { version = ">=2.0", features = ["full"] }
+foundation_errstacks = { path = "../../backends/foundation_errstacks", version = "0.0.4" }
 
+[dev-dependencies]
+# Valtron runtime for the tests that exercise async send/receive and the
+# hand-rolled executor.
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.20", features = ["multi"] }
 
-[lints]
-workspace = true
+# Opt out of the parent workspace — this crate is a self-contained crate
+# (the root workspace excludes `crates/*`).
+[workspace]
+
+# Mirror the root workspace's `uat` profile so `--profile uat` works here too
+# (the profile is not inherited across a workspace boundary).
+[profile.uat]
+inherits = "dev"

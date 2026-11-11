@@ -20,10 +20,12 @@ use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use futures_core::Stream as FuturesStream;
 
 use foundation_core::valtron::{
-    collect_one, collect_result, execute, valtron_test, Ctx, Stream, StreamCollectFuture,
-    StreamIteratorExt, StreamSpread, TaskIterator, TaskSpread, TaskStatus, WakeCallback, WakeResult,
-    WakeableStream,
+    collect_one, collect_result, execute, valtron_test, Stream, StreamCollectFuture,
+    StreamIteratorExt, StreamSpread, TaskIterator, TaskSpread, TaskStatus, WakeCallback,
+    WakeResult, WakeableStream,
 };
+
+use foundation_context::Ctx;
 
 // ============================================================================
 // No-op waker for sync polling
@@ -166,7 +168,10 @@ impl Iterator for RecheckSpreadIter {
             }
             1 => {
                 self.step = 2;
-                Some(Stream::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]))
+                Some(Stream::Spread(vec![
+                    StreamSpread::Done(1),
+                    StreamSpread::Done(2),
+                ]))
             }
             _ => None,
         }
@@ -189,7 +194,7 @@ fn collect_future_recheck_drains_spread_done() {
     // `Spread`, drains both Done payloads, then exhausts — all in one poll.
     match poll_once(&mut future) {
         Poll::Ready(v) => assert_eq!(v, vec![1, 2]),
-        other => panic!("expected Ready(vec![1, 2]), got {other:?}"),
+        Poll::Pending => panic!("expected Ready(vec![1, 2]), got Pending"),
     }
 }
 
@@ -223,7 +228,7 @@ fn collect_result_spread_only_pending_collects_nothing() {
         StreamSpread::Pending("a"),
         StreamSpread::Pending("b"),
     ])];
-    assert!(collect_result(stream.into_iter()).is_empty());
+    assert_eq!(collect_result(stream.into_iter()), [] as [u32; 0]);
 }
 
 #[test]
@@ -358,24 +363,16 @@ fn smol_next_stream_fans_out_spread() {
 /// A task that emits a single `TaskStatus::Spread` of `Ready` values. The
 /// executor converts it to `Stream::Spread(Done(..))`, which the collect bridge
 /// must drain losslessly.
+#[derive(Default)]
 struct SpreadTask {
     emitted: bool,
-}
-
-impl Default for SpreadTask {
-    fn default() -> Self {
-        Self { emitted: false }
-    }
 }
 
 impl TaskIterator for SpreadTask {
     type Ready = i32;
     type Pending = &'static str;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.emitted {
             None
         } else {

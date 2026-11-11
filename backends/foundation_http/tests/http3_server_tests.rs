@@ -8,15 +8,17 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{initialize_pool, Stream};
-use foundation_netio::http3::{H3Connection, H3Request};
-use foundation_netio::quic::{client_config_trusting_pem, QuicDriver, QuinnBidiStream};
+use foundation_context::Ctx;
+use foundation_core::valtron::{initialize_pool, Stream, TaskIterator, TaskStatus};
+use foundation_http::ShutdownSignal;
+use foundation_netio::http3::{H3Connection, H3Error, H3Request};
+use foundation_netio::quic::{
+    client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
+};
 
 use foundation_http::native::serve::{BoxFuture, H3Serve};
-use foundation_http::native::server::serve_h3;
+use foundation_http::native::server::{serve_h3, H3AcceptTask};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
 
 const CERT: &[u8] = include_bytes!("fixtures/quic_cert.pem");
@@ -55,16 +57,13 @@ fn send_frame(request: &mut H3Request<QuinnBidiStream>, mut pending: Bytes, head
         } else {
             request.poll_send_data(&mut pending)
         };
-        match step {
-            Stream::Next(Ok(())) => return,
-            Stream::Next(Err(_)) => return,
-            _ => {
-                if Instant::now() >= deadline {
-                    return;
-                }
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(Ok(()) | Err(_)) = step {
+            return;
         }
+        if Instant::now() >= deadline {
+            return;
+        }
+        std::thread::sleep(ms(1));
     }
 }
 
@@ -74,8 +73,7 @@ fn read_body(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) -> Vec
     loop {
         match request.poll_body() {
             Stream::Next(Ok(Some(chunk))) => body.extend_from_slice(&chunk),
-            Stream::Next(Ok(None)) => return body,
-            Stream::Next(Err(_)) => return body,
+            Stream::Next(Ok(None) | Err(_)) => return body,
             _ => {
                 if Instant::now() >= deadline {
                     return body;
@@ -86,6 +84,76 @@ fn read_body(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) -> Vec
     }
 }
 
+// ── Async H3 request helpers ─────────────────────────────────────────────
+
+/// Poll one `H3Request` method until it yields a terminal value.
+///
+/// WHY: a handler future shares its executor thread with other tasks, the QUIC
+/// driver among them. Waiting with `std::thread::sleep` inside it blocks that
+/// thread and starves every other task on it (issue #437). The production
+/// handlers park the task instead.
+///
+/// HOW: register the task's waker on the connection before each poll, then let
+/// the poll return `Pending`. The driver wakes the task when the connection
+/// makes progress.
+async fn poll_h3<T>(
+    request: &mut H3Request<QuinnBidiStream>,
+    mut poll: impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()>,
+) -> Option<T> {
+    std::future::poll_fn(move |cx: &mut std::task::Context<'_>| {
+        let parked = request.register_waker(cx.waker());
+        match poll(request) {
+            Stream::Next(Ok(value)) => std::task::Poll::Ready(Some(value)),
+            Stream::Next(Err(_)) => std::task::Poll::Ready(None),
+            _ => {
+                // A backend that cannot wake falls back to a self-wake, so the
+                // task is re-queued behind the driver instead of deadlocking.
+                if !parked {
+                    cx.waker().wake_by_ref();
+                }
+                std::task::Poll::Pending
+            }
+        }
+    })
+    .await
+}
+
+/// Read the whole request body, parking between data frames.
+async fn read_body_async(request: &mut H3Request<QuinnBidiStream>) -> Vec<u8> {
+    let mut body = Vec::new();
+    loop {
+        match poll_h3(request, H3Request::poll_body).await {
+            Some(Some(chunk)) => body.extend_from_slice(&chunk),
+            _ => return body,
+        }
+    }
+}
+
+/// Send one fully-encoded frame (`pending`), parking while the stream is full.
+async fn send_frame_async(
+    request: &mut H3Request<QuinnBidiStream>,
+    mut pending: Bytes,
+    headers: bool,
+) {
+    std::future::poll_fn(|cx: &mut std::task::Context<'_>| {
+        let parked = request.register_waker(cx.waker());
+        let step = if headers {
+            request.poll_send_headers(&mut pending)
+        } else {
+            request.poll_send_data(&mut pending)
+        };
+        if let Stream::Next(Ok(()) | Err(_)) = step {
+            std::task::Poll::Ready(())
+        } else {
+            if !parked {
+                cx.waker().wake_by_ref();
+            }
+            std::task::Poll::Pending
+        }
+    })
+    .await;
+}
+
 // ── Echo H3 handler ──────────────────────────────────────────────────────
 
 struct EchoH3;
@@ -93,36 +161,26 @@ struct EchoH3;
 impl H3Serve for EchoH3 {
     fn serve_h3(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _connection: Arc<ConnectionContext>,
         mut request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, std::io::Result<()>> {
         Box::pin(async move {
-            let deadline = Instant::now() + Duration::from_secs(10);
             // Read request headers + body.
-            let _headers = drive(|| request.poll_headers(), deadline);
-            let body = read_body(&mut request, deadline);
+            let _headers = poll_h3(&mut request, H3Request::poll_headers).await;
+            let body = read_body_async(&mut request).await;
 
             // Respond 200 echoing the body.
-            let resp_headers =
-                H3Request::<QuinnBidiStream>::encode_headers(&[(b":status".as_ref(), b"200".as_ref())]);
-            send_frame(&mut request, resp_headers, true);
+            let resp_headers = H3Request::<QuinnBidiStream>::encode_headers(&[(
+                b":status".as_ref(),
+                b"200".as_ref(),
+            )]);
+            send_frame_async(&mut request, resp_headers, true).await;
             let data = H3Request::<QuinnBidiStream>::encode_data(Bytes::from(body));
-            send_frame(&mut request, data, false);
+            send_frame_async(&mut request, data, false).await;
 
             // Finish the send half.
-            let fin_deadline = Instant::now() + Duration::from_secs(5);
-            loop {
-                match request.poll_finish() {
-                    Stream::Next(Ok(())) | Stream::Next(Err(_)) => break,
-                    _ => {
-                        if Instant::now() >= fin_deadline {
-                            break;
-                        }
-                        std::thread::sleep(ms(1));
-                    }
-                }
-            }
+            let _ = poll_h3(&mut request, H3Request::poll_finish).await;
             Ok(())
         })
     }
@@ -137,7 +195,7 @@ fn http3_server_echoes_a_request_over_quic() {
     // Start the H3 server with the echo handler.
     let mut app = HttpApp::new_h3_serve();
     app.route_any_h3("/*", Arc::new(EchoH3));
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT,
@@ -152,7 +210,15 @@ fn http3_server_echoes_a_request_over_quic() {
 
     // ── Client: connect over QUIC and drive one H3 request. ──
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) = QuicDriver::connect(
+        server_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);
@@ -181,19 +247,21 @@ fn http3_server_echoes_a_request_over_quic() {
         (b":path".as_ref(), b"/echo".as_ref()),
     ]);
     send_frame(&mut request, req_headers, true);
-    send_frame(&mut request, H3Request::<QuinnBidiStream>::encode_data(Bytes::from_static(b"hello-http3")), false);
+    send_frame(
+        &mut request,
+        H3Request::<QuinnBidiStream>::encode_data(Bytes::from_static(b"hello-http3")),
+        false,
+    );
     // Finish the request send half so the server sees end-of-body.
     let fin_deadline = Instant::now() + Duration::from_secs(5);
     loop {
-        match request.poll_finish() {
-            Stream::Next(Ok(())) | Stream::Next(Err(_)) => break,
-            _ => {
-                if Instant::now() >= fin_deadline {
-                    break;
-                }
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(Ok(()) | Err(_)) = request.poll_finish() {
+            break;
         }
+        if Instant::now() >= fin_deadline {
+            break;
+        }
+        std::thread::sleep(ms(1));
     }
 
     // Read the response.
@@ -206,7 +274,113 @@ fn http3_server_echoes_a_request_over_quic() {
     assert_eq!(status, "200", "expected 200 from echo handler");
 
     let body = read_body(&mut request, deadline);
-    assert_eq!(&body, b"hello-http3", "echoed body: {:?}", String::from_utf8_lossy(&body));
+    assert_eq!(
+        &body,
+        b"hello-http3",
+        "echoed body: {:?}",
+        String::from_utf8_lossy(&body)
+    );
 
     shutdown.turn_on();
+}
+
+/// A request the server cannot route is reset with `H3_REQUEST_REJECTED`, so
+/// the client learns at once. It used to be dropped without a word, leaving
+/// the client waiting for a response until its own timeout.
+#[test]
+fn http3_server_rejects_a_request_it_has_no_handler_for() {
+    let _guard = initialize_pool(78, Some(8));
+
+    let app = HttpApp::new_h3_serve();
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let server_addr = serve_h3(
+        "127.0.0.1:0".parse().unwrap(),
+        CERT,
+        KEY,
+        Arc::new(app),
+        Arc::clone(&shutdown),
+    )
+    .expect("start h3 server");
+
+    let client_cfg = client_config_trusting_pem(CA).expect("client config");
+    let (driver, conn) = QuicDriver::connect(
+        server_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
+    foundation_core::valtron::send(driver).expect("spawn client driver");
+
+    let mut h3 = H3Connection::new(conn);
+    let deadline = Instant::now() + Duration::from_secs(15);
+    drive(|| h3.poll_setup(), deadline).expect("client h3 setup");
+    let mut request = loop {
+        match h3.poll_open_request() {
+            Stream::Next(Ok(r)) => break r,
+            Stream::Next(Err(e)) => panic!("open request: {e}"),
+            _ => {
+                assert!(Instant::now() < deadline, "could not open a request");
+                std::thread::sleep(ms(1));
+            }
+        }
+    };
+    send_frame(
+        &mut request,
+        H3Request::<QuinnBidiStream>::encode_headers(&[
+            (b":method".as_ref(), b"GET".as_ref()),
+            (b":scheme".as_ref(), b"https".as_ref()),
+            (b":authority".as_ref(), b"localhost".as_ref()),
+            (b":path".as_ref(), b"/nowhere".as_ref()),
+        ]),
+        true,
+    );
+
+    let answer_deadline = Instant::now() + Duration::from_secs(5);
+    let rejected = loop {
+        match request.poll_headers() {
+            Stream::Next(Ok(headers)) => panic!("expected a reset, got a response: {headers:?}"),
+            Stream::Next(Err(e)) => break e,
+            _ => {
+                assert!(
+                    Instant::now() < answer_deadline,
+                    "the unroutable request was never answered or reset"
+                );
+                std::thread::sleep(ms(1));
+            }
+        }
+    };
+    assert!(
+        rejected.to_string().contains("0x10b") || rejected.to_string().contains("267"),
+        "expected H3_REQUEST_REJECTED, got {rejected}"
+    );
+
+    shutdown.turn_on();
+}
+
+/// The accept task parks between turns: with no connection arriving, it returns
+/// `Depends` (waiting on its waker or shutdown), never `Delayed` (a poll timer).
+/// The old fixed 5 ms delay made it wake 100 times in 500 ms.
+#[test]
+fn h3_accept_task_parks_until_a_connection_arrives() {
+    let cfg = server_config_from_pem(CERT, KEY).expect("server config");
+    let driver = QuicDriver::server("127.0.0.1:0".parse().unwrap(), cfg).expect("bind");
+    let accept_queue = driver.accept_queue();
+    let accept_wakers = driver.accept_wakers();
+
+    let app = Arc::new(HttpApp::new_h3_serve());
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let mut task = H3AcceptTask::new(accept_queue, accept_wakers, app, shutdown);
+
+    for _ in 0..5 {
+        let status = task
+            .next_status(Ctx::host())
+            .expect("accept task stays alive");
+        assert!(
+            matches!(status, TaskStatus::Depends(_)),
+            "an idle h3 accept task must park via Depends, not a timer"
+        );
+    }
 }

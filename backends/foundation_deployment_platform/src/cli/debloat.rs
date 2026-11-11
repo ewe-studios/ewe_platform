@@ -3,19 +3,21 @@
 //! Separate from bootstrap so users can run it only when needed.
 
 use clap::ArgMatches;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crate::bootstrap;
-use crate::config::{get_profile, GuestOs};
+use crate::config::{GuestOs, get_profile};
 use crate::state;
 use crate::winrm::WinRM;
 use crate::winrm::elevated::ProgressCallback;
+use foundation_context::Ctx;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
-pub fn cmd_debloat(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn cmd_debloat(args: &ArgMatches, ctx: &Ctx) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
-    let profile = get_profile(name).map(|p| p.clone())
+    let profile = get_profile(name)
+        .map(|p| p.clone())
         .map_err(|e| format!("Unknown profile '{name}': {e}"))?;
 
     if profile.os != GuestOs::Windows {
@@ -24,22 +26,33 @@ pub fn cmd_debloat(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     // Ensure VM is running
     if !state::is_running(&profile.name) {
-        return Err(format!("VM '{}' is not running. Start it first with `testbed start`", profile.name).into());
+        return Err(format!(
+            "VM '{}' is not running. Start it first with `testbed start`",
+            profile.name
+        )
+        .into());
     }
 
-    let vm_state = state::load(&profile.name)
-        .expect("is_running returned true but load failed");
+    let vm_state = state::load(&profile.name).expect("is_running returned true but load failed");
 
-    let winrm_port = vm_state.winrm_port.expect("WinRM port not set for Windows VM");
+    let winrm_port = vm_state
+        .winrm_port
+        .expect("WinRM port not set for Windows VM");
 
     eprintln!("  Connecting to VM via WinRM (port {winrm_port})...");
-    let start = Instant::now();
+    let start = ctx.clock().now();
     let timeout = Duration::from_secs(120);
     let winrm = loop {
-        if start.elapsed() > timeout {
+        if ctx.clock().now().duration_since(start) > timeout {
             return Err("Timed out waiting for WinRM".into());
         }
-        let w = WinRM::new("127.0.0.1", winrm_port, &profile.user, &profile.pass);
+        let w = WinRM::new(
+            "127.0.0.1",
+            winrm_port,
+            &profile.user,
+            &profile.pass,
+            ctx.clone(),
+        );
         if w.ping() {
             break w;
         }
@@ -52,8 +65,7 @@ pub fn cmd_debloat(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     });
 
     eprintln!("  Running debloat (this may take several minutes)...");
-    bootstrap::windows::debloat_windows(&winrm)
-        .map_err(|e| format!("Debloat failed: {e}"))?;
+    bootstrap::windows::debloat_windows(&winrm).map_err(|e| format!("Debloat failed: {e}"))?;
     eprintln!("  ✓ Debloat complete");
 
     Ok(())

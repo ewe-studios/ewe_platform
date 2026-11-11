@@ -1,17 +1,17 @@
-//! Auth storage traits — abstract interface for passkey, ToS, and user storage.
+//! Auth storage traits — abstract interface for passkey, `ToS`, and user storage.
 //!
 //! WHY: The auth server should not depend on specific storage implementations.
 //! These traits allow swapping between Turso/SQLite, CF D1, in-memory, etc.
 //! while keeping the auth service logic identical.
 //!
-//! WHAT: Traits for passkey CRUD, ToS acceptance tracking, and user management
+//! WHAT: Traits for passkey CRUD, `ToS` acceptance tracking, and user management
 //! that any storage backend can implement.
 
 use std::string::String;
 use std::vec::Vec;
 
-use crate::core::storage_provider::AsyncStorageItemStream;
 use crate::core::errors::StorageResult;
+use crate::core::storage_provider::AsyncStorageItemStream;
 
 // ─── Stored Types ────────────────────────────────────────────────────────────
 
@@ -49,27 +49,43 @@ pub struct StoredTosAcceptance {
 /// return streams to avoid loading all passkeys into memory at once.
 #[async_trait::async_trait]
 pub trait PasskeyStore {
-    async fn store_passkey_async(&self, passkey: &StoredPasskey) -> Result<(), String>;
-    async fn find_passkeys_by_user_async<'a>(&'a self, user_id: &'a str) -> StorageResult<AsyncStorageItemStream<'a, StoredPasskey>>;
-    async fn find_passkey_by_id_async<'a>(&'a self, passkey_id: &'a str) -> StorageResult<Option<StoredPasskey>>;
-    async fn find_passkey_by_credential_id_async<'a>(&'a self, credential_id: &'a [u8]) -> StorageResult<Option<StoredPasskey>>;
-    async fn update_passkey_counter_async(&self, passkey_id: &str, counter: u32) -> Result<(), String>;
-    async fn update_passkey_name_async(&self, passkey_id: &str, name: &str) -> Result<(), String>;
-    async fn delete_passkey_async(&self, passkey_id: &str) -> Result<(), String>;
+    async fn store_passkey(&self, passkey: &StoredPasskey) -> Result<(), String>;
+    async fn find_passkeys_by_user<'a>(
+        &'a self,
+        user_id: &'a str,
+    ) -> StorageResult<AsyncStorageItemStream<'a, StoredPasskey>>;
+    async fn find_passkey_by_id<'a>(
+        &'a self,
+        passkey_id: &'a str,
+    ) -> StorageResult<Option<StoredPasskey>>;
+    async fn find_passkey_by_credential_id<'a>(
+        &'a self,
+        credential_id: &'a [u8],
+    ) -> StorageResult<Option<StoredPasskey>>;
+    async fn update_passkey_counter(&self, passkey_id: &str, counter: u32) -> Result<(), String>;
+    async fn update_passkey_name(&self, passkey_id: &str, name: &str) -> Result<(), String>;
+    async fn delete_passkey(&self, passkey_id: &str) -> Result<(), String>;
 }
 
 /// Async storage operations for Terms of Service acceptances.
 #[async_trait::async_trait]
 pub trait TosStore {
-    async fn store_tos_acceptance_async(&self, acceptance: &StoredTosAcceptance) -> Result<(), String>;
-    async fn find_tos_acceptance_async<'a>(&'a self, user_id: &'a str, tos_version: &'a str) -> StorageResult<Option<StoredTosAcceptance>>;
-    async fn find_latest_tos_acceptance_async<'a>(&'a self, user_id: &'a str) -> StorageResult<Option<StoredTosAcceptance>>;
+    async fn store_tos_acceptance(&self, acceptance: &StoredTosAcceptance) -> Result<(), String>;
+    async fn find_tos_acceptance<'a>(
+        &'a self,
+        user_id: &'a str,
+        tos_version: &'a str,
+    ) -> StorageResult<Option<StoredTosAcceptance>>;
+    async fn find_latest_tos_acceptance<'a>(
+        &'a self,
+        user_id: &'a str,
+    ) -> StorageResult<Option<StoredTosAcceptance>>;
 }
 
 /// Combined async auth store — the primary trait for async auth handlers.
 #[async_trait::async_trait]
 pub trait AuthStore: PasskeyStore + TosStore {
     /// Find a user by email (used by passkey login flow).
-    /// Returns (user_id, has_password).
-    async fn find_user_by_email_async(&self, email: &str) -> StorageResult<Option<(String, bool)>>;
+    /// Returns (`user_id`, `has_password`).
+    async fn find_user_by_email(&self, email: &str) -> StorageResult<Option<(String, bool)>>;
 }

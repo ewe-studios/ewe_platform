@@ -3,7 +3,7 @@
 //! Two tiers (spec-60 F03):
 //!   * **Offline** — model-id parsing and provider description. No network, run
 //!     by default with the `provider_tests` suite.
-//!   * **External service** — download SmolLM2 from the HuggingFace Hub and run
+//!   * **External service** — download `SmolLM2` from the `HuggingFace` Hub and run
 //!     inference. Gated behind `external-service-tests` and self-skips (never
 //!     fails) when `HF_TOKEN` is unset, so a keyless run is green. All network
 //!     tests share one cache dir + one small model, so the model is pulled once
@@ -12,19 +12,25 @@
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
-use foundation_ai::types::{
-    Model, ModelId, ModelProvider, Quantization,
-};
+use foundation_ai::backends::llamacpp::LlamaBackendKind;
+use foundation_ai::types::{ModelId, ModelProvider, Quantization};
 use foundation_core::valtron::valtron_test;
 
 // ---------------------------------------------------------------------------
 // Offline — always run (no network, no token)
 // ---------------------------------------------------------------------------
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 #[valtron_test]
 fn gguf_provider_parses_model_ids() {
     let config = HuggingFaceGGUFConfig::default();
-    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
+    let provider = HuggingFaceGGUFProvider::new(config, test_clock()).unwrap();
 
     // repo:quant
     let parsed = provider
@@ -54,16 +60,23 @@ fn gguf_provider_parses_model_ids() {
         .expect("parses bare repo");
     assert_eq!(parsed.repo_id, "TheBloke/Llama-2-7B-GGUF");
     assert_eq!(parsed.revision, "main");
-    assert!(parsed.quantization.is_some(), "bare repo gets a default quant");
+    assert!(
+        parsed.quantization.is_some(),
+        "bare repo gets a default quant"
+    );
 }
 
 #[valtron_test]
 fn gguf_provider_parses_quantization_enum_and_revision() {
-    let provider = HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default()).unwrap();
+    let provider =
+        HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default(), test_clock()).unwrap();
 
     // A ModelId Quantization enum takes priority and maps to GGUF filename form.
     let parsed = provider
-        .parse_model_id(&ModelId::Name("some/repo".to_string(), Some(Quantization::Q2K)))
+        .parse_model_id(&ModelId::Name(
+            "some/repo".to_string(),
+            Some(Quantization::Q2K),
+        ))
         .expect("parses with enum quant");
     assert_eq!(parsed.repo_id, "some/repo");
     assert_eq!(parsed.quantization, Some("Q2_K".to_string()));
@@ -98,8 +111,6 @@ fn gguf_quantization_filename_pattern() {
 
 #[valtron_test]
 fn gguf_config_builder_full_chain_and_clone() {
-    use foundation_ai::backends::llamacpp::LlamaBackends;
-
     let config = HuggingFaceGGUFConfig::builder()
         .token("hf_xxx")
         .cache_dir("/tmp/gguf-cache")
@@ -107,7 +118,7 @@ fn gguf_config_builder_full_chain_and_clone() {
         .n_gpu_layers(10)
         .n_threads(3usize)
         .context_length(1024usize)
-        .llama_backend(LlamaBackends::LLamaCPU)
+        .llama_backend(LlamaBackendKind::LLamaCPU)
         .build();
 
     assert_eq!(config.default_quantization, Some("Q4_K_M".to_string()));
@@ -144,7 +155,8 @@ fn gguf_provider_new_with_token_creates_cache_dir() {
         .token("hf_secret")
         .cache_dir(&tmp)
         .build();
-    let provider = HuggingFaceGGUFProvider::new(config).expect("provider builds with token");
+    let provider =
+        HuggingFaceGGUFProvider::new(config, test_clock()).expect("provider builds with token");
     assert!(tmp.exists(), "new() creates the cache directory");
     // describe() works on the token-configured provider too.
     assert_eq!(provider.describe().unwrap().id, "huggingface");
@@ -154,7 +166,7 @@ fn gguf_provider_new_with_token_creates_cache_dir() {
 #[valtron_test]
 fn gguf_provider_describes_itself() {
     let config = HuggingFaceGGUFConfig::default();
-    let provider = HuggingFaceGGUFProvider::new(config).unwrap();
+    let provider = HuggingFaceGGUFProvider::new(config, test_clock()).unwrap();
 
     let descriptor = provider.describe().unwrap();
     assert_eq!(descriptor.id, "huggingface");
@@ -207,12 +219,12 @@ mod live {
         let config = HuggingFaceGGUFConfig::builder()
             .token(token)
             .cache_dir(&cache_dir())
-            .llama_backend(foundation_ai::backends::llamacpp::LlamaBackends::LLamaCPU)
+            .llama_backend(foundation_ai::backends::llamacpp::LlamaBackendKind::LLamaCPU)
             .n_gpu_layers(0)
             .n_threads(2usize)
             .context_length(512usize)
             .build();
-        Some(HuggingFaceGGUFProvider::new(config).expect("provider builds"))
+        Some(HuggingFaceGGUFProvider::new(config, test_clock()).expect("provider builds"))
     }
 
     #[valtron_test]
@@ -221,10 +233,12 @@ mod live {
             return;
         };
         let model_id = ModelId::Name(SMOLLM_REPO.to_string(), Some(Quantization::Q2K));
-        provider.get_model(model_id).expect("SmolLM downloads + loads");
+        provider
+            .get_model(model_id)
+            .expect("SmolLM downloads + loads");
 
-        let expected = cache_dir()
-            .join("unsloth--SmolLM2-360M-Instruct-GGUF/SmolLM2-360M-Instruct-Q2_K.gguf");
+        let expected =
+            cache_dir().join("unsloth--SmolLM2-360M-Instruct-GGUF/SmolLM2-360M-Instruct-Q2_K.gguf");
         assert!(expected.exists(), "GGUF file cached at {expected:?}");
     }
 
@@ -235,7 +249,7 @@ mod live {
         let config = HuggingFaceGGUFConfig::builder()
             .cache_dir(&cache_dir())
             .build();
-        let provider = HuggingFaceGGUFProvider::new(config).expect("provider builds");
+        let provider = HuggingFaceGGUFProvider::new(config, test_clock()).expect("provider builds");
         let bad = ModelId::Name(
             "ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(),
             Some(Quantization::Q2K),
@@ -283,9 +297,9 @@ mod live {
 // parse_model_id — the remaining branches
 // ---------------------------------------------------------------------------
 
-/// A default-config provider; parse_model_id needs no cache or network.
+/// A default-config provider; `parse_model_id` needs no cache or network.
 fn provider() -> HuggingFaceGGUFProvider {
-    HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default())
+    HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default(), test_clock())
         .expect("provider builds offline")
 }
 
@@ -385,7 +399,7 @@ fn provider_with_cache(cache: &std::path::Path) -> HuggingFaceGGUFProvider {
     let config = HuggingFaceGGUFConfig::builder()
         .cache_dir(cache.to_path_buf())
         .build();
-    HuggingFaceGGUFProvider::new(config).expect("provider builds offline")
+    HuggingFaceGGUFProvider::new(config, test_clock()).expect("provider builds offline")
 }
 
 #[test]
@@ -421,7 +435,10 @@ fn the_quantization_match_is_case_insensitive_on_the_request_side() {
     let result = provider.download_model(&parsed);
     std::fs::remove_dir_all(&cache).ok();
 
-    assert!(result.is_ok(), "lowercase request must match an uppercase filename");
+    assert!(
+        result.is_ok(),
+        "lowercase request must match an uppercase filename"
+    );
 }
 
 #[foundation_core::valtron::valtron_test]

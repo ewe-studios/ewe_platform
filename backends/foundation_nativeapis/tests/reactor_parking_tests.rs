@@ -19,9 +19,10 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, 
-    collect_result, execute, initialize_pool, EventReadiness,
-    EventReadinessPtr, PoolGuard, TaskIterator, TaskStatus,
+use foundation_context::Ctx;
+use foundation_core::valtron::{
+    collect_result, execute, initialize_pool, EventReadiness, EventReadinessPtr, PoolGuard,
+    TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::native::fd::{Reactor, RegisteredFd};
 use foundation_nativeapis::Token;
@@ -96,12 +97,12 @@ impl TaskIterator for ReadOnReady {
         let n = unsafe { libc::read(raw, buf.as_mut_ptr().cast(), buf.len()) };
         if n > 0 {
             self.done = true;
-            Some(TaskStatus::Ready(buf[..n as usize].to_vec()))
+            Some(TaskStatus::Ready(buf[..n.cast_unsigned()].to_vec()))
         } else {
             // Nothing buffered yet (EAGAIN) — park until the reactor signals the
             // fd readable, then this task is re-run and the read above succeeds.
             Some(TaskStatus::Depends(
-                Arc::clone(&self.fd) as EventReadinessPtr,
+                Arc::clone(&self.fd) as EventReadinessPtr
             ))
         }
     }
@@ -111,8 +112,11 @@ impl TaskIterator for ReadOnReady {
 fn make_pipe() -> (std::os::fd::OwnedFd, std::os::fd::OwnedFd) {
     let (r, w) = nix::unistd::pipe().expect("pipe creation failed");
     for fd in [r.as_raw_fd(), w.as_raw_fd()] {
-        nix::fcntl::fcntl(fd, nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK))
-            .expect("set O_NONBLOCK");
+        nix::fcntl::fcntl(
+            fd,
+            nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+        )
+        .expect("set O_NONBLOCK");
     }
     (r, w)
 }
@@ -141,7 +145,11 @@ fn readiness_signal_parks_task_until_flipped() {
     let stream = execute(task, Some(Duration::from_millis(20))).expect("execute");
     let results = collect_result(stream);
 
-    assert_eq!(results, vec!["woke"], "parked task must complete once readiness fires");
+    assert_eq!(
+        results,
+        vec!["woke"],
+        "parked task must complete once readiness fires"
+    );
 }
 
 /// Native fd parking end-to-end: the task parks on `Depends(Arc<RegisteredFd>)`

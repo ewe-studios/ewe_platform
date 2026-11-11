@@ -6,7 +6,7 @@
 use futures_lite::StreamExt;
 
 use crate::core::errors::StorageResult;
-use crate::core::storage_provider::{QueryStore, DataValue};
+use crate::core::storage_provider::{DataValue, QueryStore};
 
 /// A single database migration.
 pub struct Migration {
@@ -137,6 +137,21 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Create user-provider links table for account linking",
         sql: include_str!("sql/025_create_user_provider_links.sql"),
     },
+    Migration {
+        id: "026_auth_timestamps_milliseconds",
+        name: "Convert legacy auth-table timestamps to Unix milliseconds",
+        sql: include_str!("sql/026_auth_timestamps_milliseconds.sql"),
+    },
+    Migration {
+        id: "027_rebuild_rate_limits",
+        name: "Rebuild the rate limits table with the documented shape",
+        sql: include_str!("sql/027_rebuild_rate_limits.sql"),
+    },
+    Migration {
+        id: "028_create_tos_acceptances",
+        name: "Create the Terms of Service acceptances table",
+        sql: include_str!("sql/028_create_tos_acceptances.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
@@ -158,7 +173,7 @@ impl<'a> MigrationRunner<'a> {
     /// Returns an error if any migration SQL statement fails.
     pub async fn run_async(&self, store: &dyn QueryStore) -> StorageResult<usize> {
         // Ensure the migrations tracking table exists
-        store.execute_batch_async(
+        store.execute_batch(
             "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"
         ).await?;
 
@@ -166,10 +181,12 @@ impl<'a> MigrationRunner<'a> {
 
         for migration in self.migrations {
             // Check if migration already applied
-            let mut rows = store.query_async(
-                "SELECT 1 FROM _migrations WHERE id = ?",
-                &[DataValue::Text(migration.id.to_string())],
-            ).await?;
+            let mut rows = store
+                .query(
+                    "SELECT 1 FROM _migrations WHERE id = ?",
+                    &[DataValue::Text(migration.id.to_string())],
+                )
+                .await?;
 
             // One row is enough to know the migration ran.
             let exists = match rows.next().await {
@@ -179,19 +196,24 @@ impl<'a> MigrationRunner<'a> {
                 }
                 None => false,
             };
+            // Release the row stream (and the store's lock on it) before the
+            // next call on the same store, or that call waits for the stream.
+            drop(rows);
 
             if !exists {
                 // Apply migration
-                store.execute_batch_async(migration.sql).await?;
+                store.execute_batch(migration.sql).await?;
 
                 // Record migration
-                store.execute_async(
-                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
-                    &[
-                        DataValue::Text(migration.id.to_string()),
-                        DataValue::Text(migration.name.to_string()),
-                    ],
-                ).await?;
+                store
+                    .execute(
+                        "INSERT INTO _migrations (id, name) VALUES (?, ?)",
+                        &[
+                            DataValue::Text(migration.id.to_string()),
+                            DataValue::Text(migration.name.to_string()),
+                        ],
+                    )
+                    .await?;
 
                 count += 1;
             }

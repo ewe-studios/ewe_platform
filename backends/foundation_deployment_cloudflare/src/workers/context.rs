@@ -6,7 +6,7 @@
 //!
 //! WHAT: thin wrappers that extract typed bindings from the route context.
 
-use worker::{RouteContext, Result as WorkerResult};
+use worker::{Result as WorkerResult, RouteContext};
 
 /// Run a closure with a D1 database extracted from the route data.
 ///
@@ -28,7 +28,10 @@ pub fn with_d1<T>(
 /// Run an async closure with a D1 database from the route context.
 ///
 /// Async variant for handlers that need `.await`.
-pub async fn with_d1_async<T, F, Fut>(ctx: &RouteContext<worker::D1Database>, f: F) -> WorkerResult<T>
+pub async fn with_d1_async<T, F, Fut>(
+    ctx: &RouteContext<worker::D1Database>,
+    f: F,
+) -> WorkerResult<T>
 where
     F: FnOnce(&worker::D1Database) -> Fut,
     Fut: std::future::Future<Output = WorkerResult<T>>,

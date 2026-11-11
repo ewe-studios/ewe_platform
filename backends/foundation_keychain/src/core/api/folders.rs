@@ -12,10 +12,10 @@
 //! HOW: persistence via [`crate::core::store::folders`]; the transport layer is
 //! responsible for auth extraction, JSON (de)serialization, and notifications.
 
-use chrono::Utc;
-use uuid::Uuid;
+use crate::core::clock::wall_now_utc;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::folder::{Folder, FolderCreateRequest, FolderUpdateRequest};
 use crate::core::store::folders as store;
@@ -32,7 +32,7 @@ fn to_api(row: FolderRow) -> Folder {
 fn validated_name(name: &str) -> AppResult<String> {
     let trimmed = name.trim();
     if trimmed.is_empty() {
-        return Err(AppError::BadRequest("folder name is required".into()));
+        return Err(AppError::BadRequest("folder name is required".into()).into());
     }
     Ok(trimmed.to_string())
 }
@@ -43,27 +43,35 @@ async fn owned(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Fo
         .await?
         .ok_or_else(|| AppError::NotFound("folder not found".into()))?;
     if row.user_uuid != user_uuid {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(row)
 }
 
 /// `GET /api/folders` — all folders owned by the user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<Folder>> {
     let rows = store::find_by_user(ctx.db(), user_uuid).await?;
     Ok(rows.into_iter().map(to_api).collect())
 }
 
 /// `POST /api/folders` — create a folder for the user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     user_uuid: &str,
     req: FolderCreateRequest,
 ) -> AppResult<Folder> {
     let name = validated_name(&req.name)?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.ctx());
     let row = FolderRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         user_uuid: user_uuid.to_string(),
         name,
         created_at: now,
@@ -74,11 +82,19 @@ pub async fn create(
 }
 
 /// `GET /api/folders/:id` — a single owned folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<Folder> {
     Ok(to_api(owned(ctx, user_uuid, id).await?))
 }
 
 /// `PUT /api/folders/:id` — rename an owned folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -87,7 +103,7 @@ pub async fn update(
 ) -> AppResult<Folder> {
     let mut row = owned(ctx, user_uuid, id).await?;
     let name = validated_name(&req.name)?;
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.ctx());
     store::update_name(ctx.db(), id, &name, now).await?;
     row.name = name;
     row.updated_at = now;
@@ -95,6 +111,10 @@ pub async fn update(
 }
 
 /// `DELETE /api/folders/:id` — delete an owned folder.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResult<()> {
     owned(ctx, user_uuid, id).await?;
     store::delete(ctx.db(), id).await?;

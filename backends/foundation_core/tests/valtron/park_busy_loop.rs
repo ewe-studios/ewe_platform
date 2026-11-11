@@ -2,7 +2,7 @@
 //! caller (`Poll::Pending`), never busy-loop inside `run_until`.
 //!
 //! This reproduces the single-threaded symptom seen under `wrangler dev`:
-//! an AgentLoop task that parks on an in-flight SSE stream (`Init` →
+//! an `AgentLoop` task that parks on an in-flight SSE stream (`Init` →
 //! `Pending` → `Wait` / `Depends`) made `run_until` spin on
 //! `CanProgress(None)` without ever yielding to JS.  The same `run_until`
 //! loop drives the native single executor, so we can pin the exact park
@@ -18,13 +18,15 @@ use std::sync::Arc;
 use std::task::{Context, Poll, Waker};
 
 use foundation_core::valtron::{
-    execute, valtron_test, BoolSignal, Ctx, EventReadiness, StreamIteratorExt, TaskIterator,
-    TaskStatus, WakeSignal,
+    execute, valtron_test, BoolSignal, EventReadiness, StreamIteratorExt, TaskIterator, TaskStatus,
+    WakeSignal,
 };
+
+use foundation_context::Ctx;
 use futures_core::Stream as FuturesStream;
 
 /// A task that emits `Init`, then `Pending`, then parks on `Wait` forever —
-/// the exact shape of an AgentLoop parked on a stream that never delivers.
+/// the exact shape of an `AgentLoop` parked on a stream that never delivers.
 struct ForeverWait {
     step: u8,
 }
@@ -75,7 +77,7 @@ where
     S: FuturesStream<Item = u32> + Unpin,
 {
     let waker = Waker::noop();
-    let mut cx = Context::from_waker(&waker);
+    let mut cx = Context::from_waker(waker);
     Pin::new(stream).poll_next(&mut cx)
 }
 
@@ -156,12 +158,9 @@ fn wake_signal_is_ready_only_after_its_callback_runs() {
 async fn depends_on_wake_signal_parks_then_resumes() {
     let signal = WakeSignal::new();
     let wake = signal.callback();
-    let mut stream = execute(
-        ParkOnWakeSignal { signal, step: 0 },
-        None,
-    )
-    .expect("execute")
-    .into_next_stream();
+    let mut stream = execute(ParkOnWakeSignal { signal, step: 0 }, None)
+        .expect("execute")
+        .into_next_stream();
 
     match poll_once(&mut stream) {
         Poll::Pending => {}
@@ -174,5 +173,9 @@ async fn depends_on_wake_signal_parks_then_resumes() {
     // poll once, which raced the worker (and only passed while `next()`
     // blocked until the value arrived).
     let resumed = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx)).await;
-    assert_eq!(resumed, Some(7), "after the wake the task must resume with its value");
+    assert_eq!(
+        resumed,
+        Some(7),
+        "after the wake the task must resume with its value"
+    );
 }

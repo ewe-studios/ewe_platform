@@ -20,10 +20,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    drive_iterator, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, EventReadinessPtr,
-    FutureTask,
-    Stream, StreamSpread, TaskIterator, TaskSpread, park_on, TaskStatus,
+    drive_iterator, park_on, CancelOutcome, CancellableFutureTask, DrivenTaskIterator,
+    EventReadinessPtr, FutureTask, Stream, StreamSpread, TaskIterator, TaskSpread, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 use foundation_db::{StorageError, StorageResult};
@@ -511,7 +511,7 @@ fn coalesce_turn(collected: &[Messages]) -> Vec<Messages> {
 /// one assistant text message (the prose around the calls, if any) followed
 /// by one assistant message per call, carrying the last chunk's metadata and
 /// usage so the ledger still records the turn correctly.
-fn with_text_protocol_tool_calls(collected: Vec<Messages>) -> Vec<Messages> {
+fn with_text_protocol_tool_calls(collected: Vec<Messages>, ctx: &Ctx) -> Vec<Messages> {
     let has_native_call = collected.iter().any(|message| {
         matches!(
             message,
@@ -557,7 +557,7 @@ fn with_text_protocol_tool_calls(collected: Vec<Messages>) -> Vec<Messages> {
     let make = |content: ModelOutput, stop_reason: StopReason| Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: model.clone(),
-        timestamp: foundation_compact::SystemTime::now(),
+        timestamp: ctx.clock().wall_now(),
         usage: usage.clone(),
         content,
         stop_reason,
@@ -721,9 +721,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     // -----------------------------------------------------------------------
     // State transition helpers
 
-    fn transition_outer_boundary(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_outer_boundary(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         // A hard abort requested via `AgentSession::abort` (or `steer`'s Abort
         // code) terminates the turn at this boundary. Previously the Abort code
         // existed but nothing set it and the loop never read it — a stubbed
@@ -785,10 +783,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         TaskStatus::Pending(AgentProgress::SessionEnding)
     }
 
-    fn transition_inner_assemble(
-        &mut self,
-        ctx: Ctx,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_assemble(&mut self, ctx: Ctx) -> TaskStatus<SessionRecord, AgentProgress> {
         // Honor a hard abort mid-turn (before starting another generation).
         if self.queues.is_aborted() {
             self.queues.reset_cancel();
@@ -938,9 +933,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_generate(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_generate(&mut self, ctx: &Ctx) -> TaskStatus<SessionRecord, AgentProgress> {
         // We need to take ownership of the state to pump the stream.
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
@@ -949,15 +942,17 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             mut collected,
         } = previous
         else {
-            panic!("transition_inner_generate requires AgentLoopState::InnerGenerate, found {actual}")
+            panic!(
+                "transition_inner_generate requires AgentLoopState::InnerGenerate, found {actual}"
+            )
         };
 
         // Pump one item from the stream.
         let Some(item) = stream.next() else {
             // Stream finished — run loop detection, extract tool calls.
             self.breaker.on_success();
-            let collected = with_text_protocol_tool_calls(collected);
-            return self.on_generation_complete(&collected);
+            let collected = with_text_protocol_tool_calls(collected, ctx);
+            return self.on_generation_complete(&collected, ctx);
         };
 
         // Check for mid-generation steering interruption (OD-19-3).
@@ -1034,6 +1029,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     fn on_generation_complete(
         &mut self,
         collected: &[Messages],
+        ctx: &Ctx,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Run loop detection (F17) synchronously on the model outputs.
         // Check the coalesced turn, not the raw chunks: HTTP backends stream
@@ -1109,7 +1105,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                                 crate::agentic::errors::LoopDetectedInfo {
                                     kind: format!("{detection:?}"),
                                     occurrences,
-                                });
+                                },
+                            );
                             self.state = AgentLoopState::Ending;
                             return TaskStatus::Ready(err.into_failed_action());
                         }
@@ -1165,7 +1162,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                             reason: format!(
                                 "turn produced no usable answer ({answer:?}), retrying"
                             ),
-                            timestamp: foundation_compact::SystemTime::now(),
+                            timestamp: ctx.clock().wall_now(),
                         });
                     }
                     // Deliberately NOT a failure. Out of retries, the best thing
@@ -1287,9 +1284,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         calls
     }
 
-    fn transition_inner_tool_calls(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_tool_calls(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerToolCalls { calls } = previous else {
@@ -1339,7 +1334,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
 
     fn transition_inner_executing(
         &mut self,
-        ctx: Ctx,
+        ctx: &Ctx,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
@@ -1391,7 +1386,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                         id: foundation_compact::ids::new_scru128(),
                         tool_call_id: req.id,
                         name: req.name,
-                        timestamp: foundation_compact::SystemTime::now(),
+                        timestamp: ctx.clock().wall_now(),
                         details: None,
                         content,
                         error_detail,
@@ -1446,7 +1441,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             let signal = Arc::new(AtomicBool::new(false));
             cancel_signals.push(Arc::clone(&signal));
             let task = CancellableFutureTask::new(fut, signal);
-            active = Some(drive_iterator(task, ctx.clone()));
+            active = Some(drive_iterator(task, Ctx::clone(ctx)));
         }
 
         // Poll the driven iterator.
@@ -1482,7 +1477,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                     completed: idx + 1,
                 })
             }
-            Some(TaskStatus::Pending(_)) => {
+            Some(TaskStatus::Pending(())) => {
                 self.state = AgentLoopState::InnerExecuting {
                     calls,
                     results,
@@ -1524,9 +1519,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_emit_results(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_emit_results(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerEmitResults { results, idx } = previous else {
@@ -1568,9 +1561,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         TaskStatus::Ready(SessionRecord::Conversation { message: msg })
     }
 
-    fn transition_output_processing(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_output_processing(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         // Fire memory triggers (F15) — check if observation/reflection needed.
         let action = self.memory.check_triggers();
         self.state = AgentLoopState::OuterBoundary;
@@ -1668,9 +1659,9 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             AgentLoopState::OuterBoundary => Some(self.transition_outer_boundary()),
             AgentLoopState::InnerAssemble => Some(self.transition_inner_assemble(ctx)),
             AgentLoopState::InnerAssembling { .. } => Some(self.transition_inner_assembling(ctx)),
-            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate()),
+            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate(&ctx)),
             AgentLoopState::InnerToolCalls { .. } => Some(self.transition_inner_tool_calls()),
-            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(ctx)),
+            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(&ctx)),
             AgentLoopState::InnerEmitResults { .. } => Some(self.transition_inner_emit_results()),
             AgentLoopState::OutputProcessing => Some(self.transition_output_processing()),
             AgentLoopState::Flushing { .. } => self.transition_flushing(ctx),
@@ -1680,9 +1671,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_summarizing(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_summarizing(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         let snapshot = self.ledger.snapshot();
         let summary = SessionRecord::Summary {
             message_count: self.message_count,
@@ -1695,10 +1684,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     // -----------------------------------------------------------------------
     // Error handling (F02)
 
-    fn handle_error(
-        &mut self,
-        error: AgenticError,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn handle_error(&mut self, error: AgenticError) -> TaskStatus<SessionRecord, AgentProgress> {
         let action = self.policy.classify(error.clone());
         match action {
             AgentAction::Continue => TaskStatus::Ignore,

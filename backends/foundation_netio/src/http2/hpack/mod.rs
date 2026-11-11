@@ -141,6 +141,12 @@ impl DynamicTable {
         self.entries.len()
     }
 
+    /// True when the table has no entries.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
     /// Current total size in bytes.
     #[must_use]
     pub fn size(&self) -> usize {
@@ -330,6 +336,8 @@ pub fn encode_int(value: usize, prefix_bits: u8, dst: &mut BytesMut) {
     // the first byte's prefix; we only emit continuation.
     // For simplicity, we write all the continuation bytes to dst directly.
     loop {
+        // `remaining % 128` is 0..=127, so it always fits a `u8`.
+        #[allow(clippy::cast_possible_truncation)]
         let cont = (remaining % 128) as u8;
         remaining /= 128;
         if remaining > 0 {
@@ -363,9 +371,8 @@ fn decode_string_literal(buf: &[u8]) -> Result<Option<(Bytes, usize)>, &'static 
     }
     let huffman = buf[0] & 0x80 != 0;
     let len_result = decode_int(buf, 7)?;
-    let (len, consumed) = match len_result {
-        Some(v) => v,
-        None => return Ok(None),
+    let Some((len, consumed)) = len_result else {
+        return Ok(None);
     };
 
     let total_needed = consumed + len;
@@ -488,9 +495,8 @@ fn decode_one(table: &DynamicTable, buf: &[u8]) -> Result<(DecodeAction, usize),
     // ── Indexed Header Field (RFC 7541 §6.1) ──────────────────────────
     // 1xxx_xxxx
     if first & 0x80 != 0 {
-        let (idx, consumed) = match decode_int(buf, 7)? {
-            Some(v) => v,
-            None => return Ok((DecodeAction::NeedMore, 0)),
+        let Some((idx, consumed)) = decode_int(buf, 7)? else {
+            return Ok((DecodeAction::NeedMore, 0));
         };
         let (name, value) = lookup(table, idx)?;
         return Ok((
@@ -512,9 +518,8 @@ fn decode_one(table: &DynamicTable, buf: &[u8]) -> Result<(DecodeAction, usize),
     // ── Dynamic Table Size Update (§6.3) ──────────────────────────────
     // 001x_xxxx
     if first & 0xE0 == 0x20 {
-        let (new_max, consumed) = match decode_int(buf, 5)? {
-            Some(v) => v,
-            None => return Ok((DecodeAction::NeedMore, 0)),
+        let Some((new_max, consumed)) = decode_int(buf, 5)? else {
+            return Ok((DecodeAction::NeedMore, 0));
         };
         return Ok((DecodeAction::TableSizeUpdate(new_max), consumed));
     }
@@ -535,15 +540,13 @@ fn decode_literal_indexed(
     prefix: u8,
 ) -> Result<(DecodeAction, usize), &'static str> {
     let name_info = decode_literal_name(table, buf, prefix, buf[0])?;
-    let (name, offset) = match name_info {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((name, offset)) = name_info else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     let val_result = decode_string_literal(&buf[offset..])?;
-    let (value, val_consumed) = match val_result {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((value, val_consumed)) = val_result else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     Ok((DecodeAction::Emit(name, value, true), offset + val_consumed))
@@ -556,15 +559,13 @@ fn decode_literal_no_index(
     prefix: u8,
 ) -> Result<(DecodeAction, usize), &'static str> {
     let name_info = decode_literal_name(table, buf, prefix, buf[0])?;
-    let (name, offset) = match name_info {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((name, offset)) = name_info else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     let val_result = decode_string_literal(&buf[offset..])?;
-    let (value, val_consumed) = match val_result {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((value, val_consumed)) = val_result else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     Ok((
@@ -585,9 +586,8 @@ fn decode_literal_name(
 
     if name_index > 0 {
         let result = decode_int(buf, prefix)?;
-        let (idx, consumed) = match result {
-            Some(v) => v,
-            None => return Ok(None),
+        let Some((idx, consumed)) = result else {
+            return Ok(None);
         };
         let (n, _) = lookup(table, idx)?;
         Ok(Some((Bytes::copy_from_slice(n), consumed)))
@@ -664,9 +664,15 @@ impl Encoder {
             // Indexed Header Field: 1xxx_xxxx
             let prefix_max = int_prefix_max(7);
             if idx <= prefix_max {
-                dst.put_u8(0x80 | idx as u8);
+                // `idx <= prefix_max` (7 bits, so <= 127), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let idx_u8 = idx as u8;
+                dst.put_u8(0x80 | idx_u8);
             } else {
-                dst.put_u8(0x80 | prefix_max as u8);
+                // `prefix_max` is 127 (7-bit prefix), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let prefix_max_u8 = prefix_max as u8;
+                dst.put_u8(0x80 | prefix_max_u8);
                 encode_int(idx, 7, dst);
             }
             return;
@@ -679,9 +685,15 @@ impl Encoder {
             // Literal Header Field with Incremental Indexing: 01xx_xxxx
             let prefix_max = int_prefix_max(6);
             if idx <= prefix_max {
-                dst.put_u8(0x40 | idx as u8);
+                // `idx <= prefix_max` (6 bits, so <= 63), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let idx_u8 = idx as u8;
+                dst.put_u8(0x40 | idx_u8);
             } else {
-                dst.put_u8(0x40 | prefix_max as u8);
+                // `prefix_max` is 63 (6-bit prefix), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let prefix_max_u8 = prefix_max as u8;
+                dst.put_u8(0x40 | prefix_max_u8);
                 encode_int(idx, 6, dst);
             }
         } else {
@@ -706,9 +718,15 @@ impl Encoder {
         if let Some(idx) = name_idx {
             let prefix_max = int_prefix_max(4);
             if idx <= prefix_max {
-                dst.put_u8(idx as u8);
+                // `idx <= prefix_max` (4 bits, so <= 15), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let idx_u8 = idx as u8;
+                dst.put_u8(idx_u8);
             } else {
-                dst.put_u8(prefix_max as u8);
+                // `prefix_max` is 15 (4-bit prefix), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let prefix_max_u8 = prefix_max as u8;
+                dst.put_u8(prefix_max_u8);
                 encode_int(idx, 4, dst);
             }
         } else {
@@ -724,9 +742,15 @@ impl Encoder {
         // 001x_xxxx
         let prefix_max = int_prefix_max(5);
         if new_max <= prefix_max {
-            dst.put_u8(0x20 | new_max as u8);
+            // `new_max <= prefix_max` (5 bits, so <= 31), so it fits a `u8`.
+            #[allow(clippy::cast_possible_truncation)]
+            let new_max_u8 = new_max as u8;
+            dst.put_u8(0x20 | new_max_u8);
         } else {
-            dst.put_u8(0x20 | prefix_max as u8);
+            // `prefix_max` is 31 (5-bit prefix), so it fits a `u8`.
+            #[allow(clippy::cast_possible_truncation)]
+            let prefix_max_u8 = prefix_max as u8;
+            dst.put_u8(0x20 | prefix_max_u8);
             encode_int(new_max, 5, dst);
         }
         self.table.set_max_size(new_max);
@@ -749,9 +773,15 @@ pub fn encode_string_literal(data: &[u8], dst: &mut BytesMut) {
     let prefix_max = int_prefix_max(7);
 
     if len < prefix_max {
-        dst.put_u8(0x80 | len as u8); // Huffman flag set
+        // `len < prefix_max` (7 bits, so <= 126), so it fits a `u8`.
+        #[allow(clippy::cast_possible_truncation)]
+        let len_u8 = len as u8;
+        dst.put_u8(0x80 | len_u8); // Huffman flag set
     } else {
-        dst.put_u8(0x80 | prefix_max as u8);
+        // `prefix_max` is 127 (7-bit prefix), so it fits a `u8`.
+        #[allow(clippy::cast_possible_truncation)]
+        let prefix_max_u8 = prefix_max as u8;
+        dst.put_u8(0x80 | prefix_max_u8);
         encode_int(len, 7, dst);
     }
     dst.put_slice(&encoded);

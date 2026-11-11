@@ -1,6 +1,7 @@
 //! Consolidated test module for `tests/http2/` — Feature 29 (substrate)
 //! and Feature 30 (multiplexers).
 
+mod conn_eof_tests;
 mod connection_tests;
 mod detect_tests;
 mod flow_control_tests;

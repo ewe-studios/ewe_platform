@@ -1,10 +1,9 @@
-/// ReadyGuard and MutReadyGuard — returned by readiness polls.
+/// `ReadyGuard` and `MutReadyGuard` — returned by readiness polls.
 ///
 /// The `#[must_use]` attribute ensures the compiler warns if the guard
 /// is dropped without being explicitly handled. This prevents the critical
 /// bug of forgetting to clear readiness after an operation, which causes
 /// the fd to appear ready forever on edge-triggered pollers.
-
 use crate::native::fd::{Ready, RegisteredFd};
 
 use std::io;
@@ -12,7 +11,7 @@ use std::os::unix::io::AsRawFd;
 
 /// Represents an observed readiness state on a file descriptor.
 ///
-/// #must_use — you must explicitly choose whether to clear readiness.
+/// #`must_use` — you must explicitly choose whether to clear readiness.
 /// This prevents the critical bug of forgetting to clear readiness
 /// after an operation, which causes the fd to appear ready forever
 /// on edge-triggered pollers.
@@ -22,7 +21,7 @@ pub struct ReadyGuard<'a, T: AsRawFd> {
     readiness: Ready,
 }
 
-impl<'a, T: AsRawFd + std::fmt::Debug> std::fmt::Debug for ReadyGuard<'a, T> {
+impl<T: AsRawFd + std::fmt::Debug> std::fmt::Debug for ReadyGuard<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ReadyGuard")
             .field("readiness", &self.readiness)
@@ -32,7 +31,7 @@ impl<'a, T: AsRawFd + std::fmt::Debug> std::fmt::Debug for ReadyGuard<'a, T> {
 }
 
 impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn new(fd: &'a RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
     }
@@ -40,19 +39,23 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
 
 impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
     /// What readiness states were observed.
+    #[must_use]
     pub fn ready(&self) -> Ready {
         self.readiness
     }
 
-    /// Execute an I/O operation. If it returns WouldBlock, readiness
+    /// Execute an I/O operation. If it returns `WouldBlock`, readiness
     /// is automatically cleared so the next poll will block again.
     ///
     /// ## EOF handling (Ok(0) for reads)
     ///
-    /// When read() returns 0 (EOF on a pipe/socket whose peer closed),
+    /// When `read()` returns 0 (EOF on a pipe/socket whose peer closed),
     /// readiness is cleared to prevent a busy loop. The caller should
     /// use `try_io_read()` for read operations to get this behavior,
     /// or call `clear_ready()` manually after detecting EOF.
+    ///
+    /// # Errors
+    /// This function never returns `Err`; it wraps the closure result.
     pub fn try_io<R>(
         &mut self,
         f: impl FnOnce(&RegisteredFd<T>) -> io::Result<R>,
@@ -80,6 +83,9 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
     /// Execute a read I/O operation. The closure returns `(value, bytes_read)`
     /// so we can detect EOF (`bytes_read == 0`) and clear readiness
     /// to prevent a busy loop on closed connections.
+    ///
+    /// # Errors
+    /// This function never returns `Err`; it wraps the closure result.
     pub fn try_io_read<R>(
         &mut self,
         f: impl FnOnce(&RegisteredFd<T>) -> io::Result<(R, usize)>,
@@ -126,24 +132,26 @@ impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
         self.readiness = self.readiness.difference(ready);
     }
 
-    /// Explicitly retain readiness (no-op, satisfies must_use).
+    /// Explicitly retain readiness (no-op, satisfies `must_use`).
     /// Use when you've already handled the readiness and want to keep it set.
     pub fn retain_ready(&mut self) {
         // No-op — the guard is being "used"
     }
 
-    /// Get reference to the inner RegisteredFd.
+    /// Get reference to the inner `RegisteredFd`.
+    #[must_use]
     pub fn get_ref(&self) -> &'a RegisteredFd<T> {
         self.fd
     }
 
     /// Get reference to the inner IO object.
+    #[must_use]
     pub fn get_inner(&self) -> &'a T {
         self.fd.get_ref()
     }
 }
 
-/// Mutable variant of ReadyGuard.
+/// Mutable variant of `ReadyGuard`.
 ///
 /// Needed when the I/O operation requires mutable access to the inner object
 /// (e.g., reading into a buffer stored on the task).
@@ -154,19 +162,23 @@ pub struct MutReadyGuard<'a, T: AsRawFd> {
 }
 
 impl<'a, T: AsRawFd> MutReadyGuard<'a, T> {
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn new(fd: &'a mut RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
     }
 }
 
-impl<'a, T: AsRawFd> MutReadyGuard<'a, T> {
+impl<T: AsRawFd> MutReadyGuard<'_, T> {
     /// What readiness states were observed.
+    #[must_use]
     pub fn ready(&self) -> Ready {
         self.readiness
     }
 
-    /// Execute an I/O operation with mutable access to the RegisteredFd.
+    /// Execute an I/O operation with mutable access to the `RegisteredFd`.
+    ///
+    /// # Errors
+    /// This function never returns `Err`; it wraps the closure result.
     pub fn try_io<R>(
         &mut self,
         f: impl FnOnce(&mut RegisteredFd<T>) -> io::Result<R>,
@@ -201,19 +213,19 @@ impl<'a, T: AsRawFd> MutReadyGuard<'a, T> {
         self.readiness = self.readiness.difference(ready);
     }
 
-    /// Explicitly retain readiness (no-op, satisfies must_use).
+    /// Explicitly retain readiness (no-op, satisfies `must_use`).
     pub fn retain_ready(&mut self) {}
 
-    /// Get mutable reference to the inner RegisteredFd.
+    /// Get mutable reference to the inner `RegisteredFd`.
     pub fn get_mut(&mut self) -> &mut RegisteredFd<T> {
         self.fd
     }
 }
 
-/// Error returned when try_io fails.
+/// Error returned when `try_io` fails.
 #[derive(Debug)]
 pub struct TryIoError {
-    /// The underlying I/O error (typically WouldBlock).
+    /// The underlying I/O error (typically `WouldBlock`).
     pub error: io::Error,
     /// Whether readiness was automatically cleared.
     pub readiness_cleared: bool,

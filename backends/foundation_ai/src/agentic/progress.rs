@@ -166,4 +166,3 @@ pub fn lift_model_item(item: Stream<Messages, ModelState>, model: &ModelId) -> A
         }
     }
 }
-

@@ -10,12 +10,12 @@
 //!
 //! | column      | type   | nullable |
 //! |-------------|--------|----------|
-//! | `op_id`     | UInt32 | no       |
-//! | `node_id`   | UInt32 | no       |
-//! | `operation` | UInt8  | no       |
-//! | `attribute` | Utf8   | yes      |
-//! | `value`     | Utf8   | yes      |
-//! | `text_val`  | Utf8   | yes      |
+//! | `op_id`     | `UInt32` | no       |
+//! | `node_id`   | `UInt32` | no       |
+//! | `operation` | `UInt8`  | no       |
+//! | `attribute` | `Utf8`   | yes      |
+//! | `value`     | `Utf8`   | yes      |
+//! | `text_val`  | `Utf8`   | yes      |
 //!
 //! HOW: Encoding maps each op through `foundation_ui_traits::Row` (THE one
 //! `DomOp` ⇄ row mapping every wire format shares) into typed Arrow arrays and
@@ -29,7 +29,9 @@ use std::sync::Arc;
 use arrow_array::builder::{StringBuilder, UInt32Builder, UInt8Builder};
 use arrow_array::{Array, RecordBatch, StringArray, UInt32Array, UInt8Array};
 use arrow_schema::{DataType, Field, Schema};
-use foundation_ui_traits::{DecodeError, DecodeResult, DomOp, ProtocolEncoder, Row, PROTOCOL_ARROW};
+use foundation_ui_traits::{
+    DecodeError, DecodeResult, DomOp, ProtocolEncoder, Row, PROTOCOL_ARROW,
+};
 
 use crate::ipc::{decode_ipc, encode_ipc};
 

@@ -11,10 +11,11 @@
 //! - `execute_map_all_pending_and_done`: executes with state visibility
 
 use foundation_core::valtron::{
-    execute_map_all_pending_and_done, valtron_test, CollectAll, Ctx, MapAllDone,
-    MapAllPendingAndDone, Stream, TaskIterator, TaskStatus, DEFAULT_WAIT_CYCLE,
+    execute_map_all_pending_and_done, valtron_test, CollectAll, MapAllDone, MapAllPendingAndDone,
+    Stream, TaskIterator, TaskStatus, DEFAULT_WAIT_CYCLE,
 };
 
+use foundation_context::Ctx;
 
 // Simple test stream iterator
 struct TestStream {
@@ -231,18 +232,15 @@ impl TaskIterator for CounterTask {
     type Ready = u32;
     type Pending = u32;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        println!("Count: {} {}", &self.current, self.ready_value);
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        println!("Count: {} {}", self.current, self.ready_value);
         if self.current < self.ready_value {
             let res = Some(TaskStatus::Pending(self.current));
             self.current += 1;
             return res;
         }
         if self.current == self.ready_value {
-            println!("Sending ready for : {} {}", &self.current, self.ready_value);
+            println!("Sending ready for : {} {}", self.current, self.ready_value);
             let res = Some(TaskStatus::Ready(self.current));
             self.current += 1;
             return res;
@@ -329,7 +327,7 @@ fn test_execute_map_all_pending_and_done() {
     let tasks = vec![CounterTask::new(1, 3), CounterTask::new(2, 4)];
 
     let mapper = |states: Vec<Stream<u32, u32>>| {
-        println!("Mapping states for : {:?}", &states);
+        println!("Mapping states for : {states:?}");
         let mut values: Vec<Stream<u32, ()>> = Vec::new();
 
         for state in states {
@@ -345,19 +343,16 @@ fn test_execute_map_all_pending_and_done() {
         .expect("get the result");
 
     // Iterate through the progress stream
-    let results: Vec<u32> = Iterator::collect(
-        result
-            .filter(|v| matches!(v, Stream::Next(_)))
-            .flat_map(|item| match item {
-                Stream::Next(inner) => inner
-                    .into_iter()
-                    .filter_map(|item2| match item2 {
-                        Stream::Next(n) => Some(n),
-                        _ => None,
-                    }),
+    let results: Vec<u32> =
+        Iterator::collect(result.filter(|v| matches!(v, Stream::Next(_))).flat_map(
+            |item| match item {
+                Stream::Next(inner) => inner.into_iter().filter_map(|item2| match item2 {
+                    Stream::Next(n) => Some(n),
+                    _ => None,
+                }),
                 _ => unreachable!("should never be triggered"),
-            }),
-    );
+            },
+        ));
 
     assert_eq!(results.len(), 2, "Should get exactly 2 values");
     assert!(results.contains(&3), "Should contain 3");
@@ -453,10 +448,7 @@ impl TaskIterator for SplitTestTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }
@@ -466,7 +458,7 @@ impl TaskIterator for SplitTestTask {
 fn test_split_collector_observer_receives_matched_items() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Create task that produces: Ready(5), Ready(10), Ready(15)
     let task = SplitTestTask::new(vec![
         TaskStatus::Ready(5),
@@ -510,7 +502,7 @@ fn test_split_collector_observer_receives_matched_items() {
 fn test_split_collect_one_first_match() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Create task with multiple values
     let task = SplitTestTask::new(vec![
         TaskStatus::Ready(1),
@@ -528,7 +520,7 @@ fn test_split_collect_one_first_match() {
     let mut observer_values = Vec::new();
     loop {
         // Free any pending slot first so a parked source can advance.
-        while let Some(stream) = observer.next() {
+        for stream in observer.by_ref() {
             match stream {
                 Stream::Next(v) => observer_values.push(v),
                 _ => break,
@@ -558,7 +550,7 @@ fn test_split_collect_one_first_match() {
 fn test_split_collector_observer_stream_type() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SplitTestTask::new(vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(42),
@@ -593,7 +585,7 @@ fn test_split_collector_observer_stream_type() {
 fn test_split_collector_continuation_forwards_all_states() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SplitTestTask::new(vec![
         TaskStatus::Pending("wait1".to_string()),
         TaskStatus::Ready(10),
@@ -686,7 +678,7 @@ fn test_stream_split_collect_one_first_match() {
     let mut got_match = false;
     loop {
         // Free any pending slot first so a parked source can advance.
-        while let Some(stream_item) = observer.next() {
+        for stream_item in observer.by_ref() {
             match stream_item {
                 Stream::Next(v) => {
                     if v > 2 {

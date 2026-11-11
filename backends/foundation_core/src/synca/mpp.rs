@@ -1,13 +1,18 @@
+use foundation_context::Ctx;
 use std::{
     sync::Arc,
-    time::{self, Duration, Instant},
+    time::{self, Duration},
 };
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
 use derive_more::derive::From;
 
+use crate::valtron::{QueueReadiness, ReadinessNotifier};
+
 pub struct Receiver<T> {
     chan: Arc<ConcurrentQueue<T>>,
+    /// Woken after a send and on close, so a parked consumer runs again.
+    notifier: Arc<ReadinessNotifier>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, From)]
@@ -40,14 +45,27 @@ impl<T> Clone for Receiver<T> {
     fn clone(&self) -> Self {
         Self {
             chan: self.chan.clone(),
+            notifier: self.notifier.clone(),
         }
     }
 }
 
 #[allow(unused)]
 impl<T> Receiver<T> {
-    pub fn new(chan: Arc<ConcurrentQueue<T>>) -> Self {
-        Receiver { chan }
+    pub(crate) fn with_notifier(
+        chan: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Receiver { chan, notifier }
+    }
+
+    /// A readiness that is ready when the channel has an item or is closed.
+    ///
+    /// A [`Sender`] from the same [`bounded`] or [`unbounded`] call wakes the
+    /// task parked on it after a send and on close.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<T> {
+        QueueReadiness::with_notifier(Arc::clone(&self.chan), Arc::clone(&self.notifier))
     }
 
     /// Get a clone of the underlying channel Arc
@@ -90,14 +108,21 @@ impl<T> Receiver<T> {
         self.chan.try_iter()
     }
 
+    #[must_use]
     pub fn into_recv_iter_timeout(&self, duration: Duration) -> RecvIterator<T> {
         RecvIterator::from_chan(self.chan.clone(), duration)
     }
 
+    #[must_use]
     pub fn into_recv_iter(&self) -> RecvIterator<T> {
         RecvIterator::from_hundred_millis(self.chan.clone())
     }
 
+    /// Receives the next value from the channel.
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Empty`] when the channel has no value, and
+    /// [`ReceiverError::Closed`] when the channel is closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
         match self.chan.pop() {
             Ok(value) => Ok(value),
@@ -111,28 +136,32 @@ impl<T> Receiver<T> {
     /// `recv_timeout` attempts to read value from the channel within the specified duration.
     /// It internally uses [`std::thread::park_timeout`] to block the current thread
     /// for a given duration until a value is received or the timeout is reached.
-    pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
-        let started = Instant::now();
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Timeout`] when the duration expires, and
+    /// [`ReceiverError::Closed`] when the channel is closed.
+    pub fn recv_timeout(&self, dur: std::time::Duration, ctx: &Ctx) -> Result<T, ReceiverError> {
+        let clock = ctx.clock();
+        let started = clock.now();
 
-        let mut remaining_timeout = dur;
         loop {
-            // if not parking then
-            match self.chan.pop() {
+            // The time left is `dur` minus the time since the original start. It
+            // is computed from `started` each turn, so a spurious wake does not
+            // subtract the same time twice.
+            let remaining = match self.chan.pop() {
                 Ok(value) => return Ok(value),
-                Err(err) => match err {
-                    PopError::Empty => {
-                        // check the state and see if we've crossed that threshold.
-                        let elapsed = started.elapsed();
-                        if elapsed >= remaining_timeout {
-                            return Err(ReceiverError::Timeout);
-                        }
-                        remaining_timeout -= elapsed;
+                Err(PopError::Empty) => {
+                    let elapsed = clock.now().saturating_duration_since(started);
+                    let remaining = dur.saturating_sub(elapsed);
+                    if remaining.is_zero() {
+                        return Err(ReceiverError::Timeout);
                     }
-                    PopError::Closed => return Err(ReceiverError::Closed(err)),
-                },
-            }
+                    remaining
+                }
+                Err(err @ PopError::Closed) => return Err(ReceiverError::Closed(err)),
+            };
 
-            std::thread::park_timeout(remaining_timeout);
+            std::thread::park_timeout(remaining);
         }
     }
 }
@@ -188,6 +217,10 @@ impl<T> RecvIter<T> {
 
     /// [`Self::recv`] returns a Result of the value from the underlying channel if
     /// there is a value or if empty or closed.
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Empty`] when the channel has no value, and
+    /// [`ReceiverError::Closed`] when the channel is closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
         match self.chan.pop() {
             Ok(value) => Ok(value),
@@ -200,6 +233,9 @@ impl<T> RecvIter<T> {
 
     /// [`Self::block_recv`] blocks the thread with a spinning loop waiting for an item
     /// to be received on the channel.
+    ///
+    /// # Errors
+    /// Returns [`ReceiverError::Closed`] when the channel is closed.
     pub fn block_recv(&self, block_ts: time::Duration) -> Result<T, ReceiverError> {
         let mut yield_now = false;
         loop {
@@ -294,6 +330,8 @@ impl<T> Iterator for RecvIterator<T> {
 
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
+    /// Woken after a send and on close, so a parked consumer runs again.
+    notifier: Arc<ReadinessNotifier>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -319,13 +357,17 @@ impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
         Sender {
             chan: self.chan.clone(),
+            notifier: self.notifier.clone(),
         }
     }
 }
 
 impl<T> Sender<T> {
-    pub fn new(chan: Arc<ConcurrentQueue<T>>) -> Self {
-        Sender { chan }
+    pub(crate) fn with_notifier(
+        chan: Arc<ConcurrentQueue<T>>,
+        notifier: Arc<ReadinessNotifier>,
+    ) -> Self {
+        Sender { chan, notifier }
     }
 
     #[must_use]
@@ -340,7 +382,9 @@ impl<T> Sender<T> {
 
     #[must_use]
     pub fn close(&self) -> bool {
-        self.chan.close()
+        let closed = self.chan.close();
+        self.notifier.notify();
+        closed
     }
 
     #[must_use]
@@ -358,17 +402,36 @@ impl<T> Sender<T> {
         self.chan.is_full()
     }
 
+    /// Sends a value to the channel.
+    ///
+    /// A successful send wakes the task parked on [`Receiver::readiness`].
+    ///
+    /// # Errors
+    /// Returns [`SenderError::Full`] when the bounded channel is full, and
+    /// [`SenderError::Closed`] when the channel is closed. The error carries the
+    /// value back.
     pub fn send(&self, value: T) -> Result<(), SenderError<T>> {
         match self.chan.push(value) {
-            Ok(()) => Ok(()),
+            Ok(()) => {
+                self.notifier.notify();
+                Ok(())
+            }
             Err(PushError::Full(v)) => Err(SenderError::Full(v)),
             Err(PushError::Closed(v)) => Err(SenderError::Closed(v)),
         }
     }
 
+    /// Sends a value even when the channel is full, and returns the evicted value.
+    ///
+    /// # Errors
+    /// Returns [`SenderError::Closed`] when the channel is closed. The error
+    /// carries the value back.
     pub fn force_send(&self, value: T) -> Result<Option<T>, SenderError<T>> {
         match self.chan.force_push(value) {
-            Ok(v) => Ok(v),
+            Ok(v) => {
+                self.notifier.notify();
+                Ok(v)
+            }
             Err(ForcePushError(v)) => Err(SenderError::Closed(v)),
         }
     }
@@ -378,8 +441,9 @@ impl<T> Sender<T> {
 #[must_use]
 pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::bounded(capacity));
-    let sender = Sender::new(chan.clone());
-    let receiver = Receiver::new(chan);
+    let notifier = Arc::new(ReadinessNotifier::new());
+    let sender = Sender::with_notifier(chan.clone(), notifier.clone());
+    let receiver = Receiver::with_notifier(chan, notifier);
     (sender, receiver)
 }
 
@@ -387,8 +451,9 @@ pub fn bounded<T>(capacity: usize) -> (Sender<T>, Receiver<T>) {
 #[must_use]
 pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
     let chan = Arc::new(ConcurrentQueue::unbounded());
-    let sender = Sender::new(chan.clone());
-    let receiver = Receiver::new(chan);
+    let notifier = Arc::new(ReadinessNotifier::new());
+    let sender = Sender::with_notifier(chan.clone(), notifier.clone());
+    let receiver = Receiver::with_notifier(chan, notifier);
     (sender, receiver)
 }
 
@@ -404,6 +469,7 @@ pub struct Broadcaster<T: Clone + Send + 'static> {
 
 impl<T: Clone + Send + 'static> Broadcaster<T> {
     /// Create a new broadcaster with the given per-subscriber channel capacity.
+    #[must_use]
     pub fn new(capacity: usize) -> Self {
         Self {
             subscribers: Vec::new(),
@@ -423,17 +489,15 @@ impl<T: Clone + Send + 'static> Broadcaster<T> {
     /// Dead subscriber channels (Receiver dropped) are cleaned up automatically.
     /// Uses `force_send` to drop oldest events if a subscriber's queue is full.
     pub fn broadcast(&mut self, event: T) {
-        self.subscribers.retain(|tx| {
-            match tx.send(event.clone()) {
-                Ok(()) => true,
-                Err(_) => {
-                    match tx.force_send(event.clone()) {
-                        Ok(_dropped) => true,
-                        Err(_) => false,
-                    }
-                }
-            }
+        self.subscribers.retain(|tx| match tx.send(event.clone()) {
+            Ok(()) => true,
+            Err(_) => match tx.force_send(event.clone()) {
+                Ok(_dropped) => true,
+                Err(_) => false,
+            },
         });
+        // Every subscriber holds a clone, so the original is not needed.
+        drop(event);
     }
 
     /// Clean up dead subscribers (Receiver dropped).
@@ -442,6 +506,7 @@ impl<T: Clone + Send + 'static> Broadcaster<T> {
     }
 
     /// Number of active subscribers.
+    #[must_use]
     pub fn subscriber_count(&self) -> usize {
         self.subscribers.len()
     }
@@ -484,10 +549,12 @@ pub struct TrackedBroadcaster<T: Clone + Send + 'static> {
 }
 
 impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
+    #[must_use]
     pub fn new(capacity: usize) -> Self {
         Self::with_max_retries(capacity, 16)
     }
 
+    #[must_use]
     pub fn with_max_retries(capacity: usize, max_retries: u32) -> Self {
         Self {
             inner: std::sync::Mutex::new(TrackedInner {
@@ -500,7 +567,10 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
     }
 
     pub fn subscribe(&self) -> Receiver<T> {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let mut inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         let cap = inner.capacity;
         let idx = inner.event_index;
         let (tx, rx) = bounded(cap);
@@ -519,7 +589,10 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
     /// `consecutive_failures`. After `max_retries` consecutive failures,
     /// evict: close the queue and remove the slot.
     pub fn broadcast(&self, event: T) {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let mut inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         inner.event_index += 1;
         let idx = inner.event_index;
         let max = inner.max_retries;
@@ -528,33 +601,38 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
             if slot.sender.is_closed() {
                 return false;
             }
-            match slot.sender.send(event.clone()) {
-                Ok(()) => {
-                    slot.delivered_up_to = idx;
-                    slot.consecutive_failures = 0;
+            if let Ok(()) = slot.sender.send(event.clone()) {
+                slot.delivered_up_to = idx;
+                slot.consecutive_failures = 0;
+                true
+            } else {
+                slot.consecutive_failures += 1;
+                if slot.consecutive_failures >= max {
+                    let _ = slot.sender.close();
+                    false
+                } else {
                     true
-                }
-                Err(_) => {
-                    slot.consecutive_failures += 1;
-                    if slot.consecutive_failures >= max {
-                        let _ = slot.sender.close();
-                        false
-                    } else {
-                        true
-                    }
                 }
             }
         });
+        // Every subscriber holds a clone, so the original is not needed.
+        drop(event);
     }
 
     pub fn subscriber_count(&self) -> usize {
-        let inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         inner.slots.len()
     }
 
     /// Close all subscriber queues (session-end lifecycle signal).
     pub fn close(&self) {
-        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let mut inner = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         for slot in &inner.slots {
             let _ = slot.sender.close();
         }

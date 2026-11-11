@@ -10,18 +10,29 @@
 use std::path::PathBuf;
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
-use foundation_nativeapis::shared::vfs::{
-    DeltaStore, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
-};
 use foundation_nativeapis::native::vfs::libsql_delta::LibsqlDelta;
 use foundation_nativeapis::shared::vfs::exec_async::exec_async;
 use foundation_nativeapis::shared::vfs::SyncFs;
+use foundation_nativeapis::shared::vfs::{
+    DeltaStore, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
+};
 
 /// Opens a `LibsqlDelta` and wraps it in `SyncFs`, the sync face of an
 /// I/O-backed store.
 fn open_sync(path: &std::path::Path) -> SyncFs<LibsqlDelta> {
     let path = path.to_path_buf();
-    SyncFs::new(exec_async(async move { LibsqlDelta::new(path).await }).unwrap())
+    SyncFs::new(
+        exec_async(async move {
+            LibsqlDelta::new(
+                path,
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .await
+        })
+        .unwrap(),
+    )
 }
 
 fn init_pool() -> PoolGuard {

@@ -955,8 +955,8 @@ pub async fn config_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/configs/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/configs/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1003,8 +1003,8 @@ pub async fn container_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1061,8 +1061,8 @@ pub async fn image_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/images/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1119,8 +1119,8 @@ pub async fn network_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/networks/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1169,8 +1169,8 @@ pub async fn plugin_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/plugins/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/plugins/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1219,8 +1219,8 @@ pub async fn secret_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/secrets/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/secrets/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1267,8 +1267,8 @@ pub async fn service_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/services/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/services/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1315,8 +1315,8 @@ pub async fn volume_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/create",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/volumes/create");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

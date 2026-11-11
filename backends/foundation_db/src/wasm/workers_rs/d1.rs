@@ -2,7 +2,7 @@
 ///
 /// Both types wrap the same underlying JS `D1Database` object. Converting
 /// through `JsValue` gives us a zero-cost cast to the foundation_db type
-/// so it can be used with `D1WasmStorage` and stored in `ContextBag`.
+/// so it can be used with `D1WasmStorage` and stored in `Ctx`.
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use worker::D1Database as WorkerD1Database;

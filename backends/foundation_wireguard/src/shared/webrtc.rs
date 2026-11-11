@@ -19,16 +19,26 @@ pub enum WebRtcSignal {
     /// An SDP answer from the native peer back to the browser.
     Answer { sdp: String },
     /// An ICE candidate from either side.
-    IceCandidate { candidate: String, sdp_mid: Option<String>, sdp_mline_index: Option<u16> },
+    IceCandidate {
+        candidate: String,
+        sdp_mid: Option<String>,
+        sdp_mline_index: Option<u16>,
+    },
 }
 
 impl WebRtcSignal {
-    /// Serialize to bytes for embedding in SwimMessage::WebRtcSignal.
+    /// Serialize to bytes for embedding in `SwimMessage::WebRtcSignal`.
+    ///
+    /// # Panics
+    /// Panics if the signal cannot be encoded as JSON. The payload is a plain
+    /// enum of strings, so serialization cannot fail in practice.
+    #[must_use]
     pub fn to_bytes(&self) -> Vec<u8> {
         serde_json::to_vec(self).expect("WebRtcSignal encode")
     }
 
-    /// Deserialize from the SwimMessage payload.
+    /// Deserialize from the `SwimMessage` payload.
+    #[must_use]
     pub fn from_bytes(data: &[u8]) -> Option<Self> {
         serde_json::from_slice(data).ok()
     }

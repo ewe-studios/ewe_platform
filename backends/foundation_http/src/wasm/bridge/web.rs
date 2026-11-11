@@ -2,6 +2,7 @@
 
 use std::sync::{Arc, Mutex, Weak};
 
+use foundation_context::Ctx;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
@@ -10,7 +11,6 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
 use crate::shared::serve_web::WebServe;
 use crate::wasm::dispatch::HttpAppWebDispatch;
 
@@ -30,12 +30,12 @@ async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsErro
         }
     }
 
-    let text_promise = req.text().map_err(|e| {
-        JsError::new(&format!("failed to get request text: {e:?}"))
-    })?;
-    let body_js = JsFuture::from(text_promise).await.map_err(|e| {
-        JsError::new(&format!("failed to read request body: {e:?}"))
-    })?;
+    let text_promise = req
+        .text()
+        .map_err(|e| JsError::new(&format!("failed to get request text: {e:?}")))?;
+    let body_js = JsFuture::from(text_promise)
+        .await
+        .map_err(|e| JsError::new(&format!("failed to read request body: {e:?}")))?;
     let body_text = body_js.as_string().unwrap_or_default();
     let body = if body_text.is_empty() {
         None
@@ -59,39 +59,65 @@ async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsErro
 #[wasm_bindgen]
 pub struct WasmHttpApp {
     inner: Arc<HttpApp<Arc<dyn WebServe>>>,
+    /// The app's context. Each request forks it. The singleton sets it to
+    /// its own context, so init-time bindings survive every request.
+    app_ctx: Ctx,
 }
 
 #[wasm_bindgen]
 impl WasmHttpApp {
     /// Create a new empty `WasmHttpApp`.
+    ///
+    /// This is a host entry point: it uses the real host clock. A
+    /// deterministic host uses [`WasmHttpApp::with_ctx`].
     #[wasm_bindgen(constructor)]
     pub fn new() -> Self {
-        Self {
-            inner: Arc::new(HttpApp::new_web()),
-        }
+        Self::with_ctx(Ctx::host())
     }
 
     /// Dispatch a `web_sys::Request` through the app and return a `web_sys::Response`.
+    ///
+    /// Each request forks the app's context. The bindings stored at init, the
+    /// injected clock and the RNG stream reach the handler. Inserts made
+    /// during a request stay private to that request.
     #[wasm_bindgen(js_name = handleRequest)]
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
-        let bag = Arc::new(crate::shared::context::ContextBag::new());
-        Ok(self.inner.dispatch_web(bag, simple_req).await.map_err(|e| {
-            JsError::new(&format!("dispatch failed: {e:?}"))
-        })?)
+        let app_ctx = self.app_ctx.fork();
+        Ok(self
+            .inner
+            .dispatch_web(app_ctx, simple_req)
+            .await
+            .map_err(|e| JsError::new(&format!("dispatch failed: {e:?}")))?)
     }
 }
 
 impl WasmHttpApp {
+    /// Create an empty `WasmHttpApp` from an explicit valtron [`Ctx`].
+    ///
+    /// This is the deterministic-test entry point: the app and every request
+    /// it dispatches read the injected clock and RNG stream.
+    pub fn with_ctx(ctx: Ctx) -> Self {
+        let app_ctx = ctx.with_empty_map();
+        Self {
+            inner: Arc::new(HttpApp::with_context(app_ctx.clone())),
+            app_ctx,
+        }
+    }
+
     /// Get the inner `HttpApp` reference for Rust-side route registration.
     pub fn app(&self) -> &HttpApp<Arc<dyn WebServe>> {
         &self.inner
     }
 
     /// Create a `WasmHttpApp` from an existing `HttpApp<Arc<dyn WebServe>>`.
+    ///
+    /// The wrapper shares the app's own context.
     pub fn from_app(app: HttpApp<Arc<dyn WebServe>>) -> Self {
+        let app_ctx = app.context().clone();
         Self {
             inner: Arc::new(app),
+            app_ctx,
         }
     }
 }
@@ -159,19 +185,42 @@ impl WasmHttpAppSingleton {
 
     /// Initialize the app if not already initialized.
     ///
-    /// The closure receives an `Arc<ContextBag>` so you can store typed
-    /// bindings before building the `WasmHttpApp`.
+    /// The closure receives a `Ctx`. Store typed bindings in that
+    /// context before you build the `HttpApp`. The app uses that context for every
+    /// request.
     ///
     /// If already initialized, returns the existing guard and ignores the closure.
-    pub fn get_or_init<F: FnOnce(Arc<ContextBag>) -> HttpApp<Arc<dyn WebServe>>>(
+    ///
+    /// This is a host entry point: it uses the real host clock. A deterministic
+    /// host uses [`WasmHttpAppSingleton::get_or_init_with_ctx`].
+    pub fn get_or_init<F: FnOnce(Ctx) -> HttpApp<Arc<dyn WebServe>>>(
+        builder: F,
+    ) -> WasmHttpAppGuard {
+        Self::get_or_init_with_ctx(Ctx::host(), builder)
+    }
+
+    /// Initialize the app from an explicit valtron [`Ctx`] if not initialized.
+    ///
+    /// The closure receives a `Ctx` built from `ctx`. Store typed
+    /// bindings in that context. Build the app with `HttpApp::with_context`, so
+    /// route factories also see the bindings. The singleton gives the context to
+    /// the app that the closure returns, so the bindings, the clock and the
+    /// RNG reach every request.
+    ///
+    /// If already initialized, returns the existing guard and ignores `ctx`
+    /// and the closure.
+    pub fn get_or_init_with_ctx<F: FnOnce(Ctx) -> HttpApp<Arc<dyn WebServe>>>(
+        ctx: Ctx,
         builder: F,
     ) -> WasmHttpAppGuard {
         let mut weak = STATE.lock().unwrap();
         if let Some(arc) = weak.upgrade() {
             return WasmHttpAppGuard { state: arc };
         }
-        let bag = Arc::new(ContextBag::new());
-        let app = Arc::new(WasmHttpApp::from_app(builder(bag)));
+        let app_ctx = ctx.with_empty_map();
+        let mut app = builder(app_ctx.clone());
+        app.ctx = app_ctx.clone();
+        let app = Arc::new(WasmHttpApp::from_app(app));
         let state = Arc::new(AppState { app });
         *weak = Arc::downgrade(&state);
         WasmHttpAppGuard { state }
@@ -180,12 +229,5 @@ impl WasmHttpAppSingleton {
     /// Check if the app has been initialized.
     pub fn is_initialized() -> bool {
         STATE.lock().unwrap().upgrade().is_some()
-    }
-
-    /// Force-reset the singleton state. cfg-gated to `#[cfg(test)]`.
-    #[cfg(test)]
-    pub fn reset() {
-        let mut weak = STATE.lock().unwrap();
-        *weak = Weak::new();
     }
 }

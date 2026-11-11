@@ -15,8 +15,11 @@
 
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::WebSocketFrame;
+use foundation_context::Ctx;
 use std::io::Write;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use foundation_compact::Instant;
 
 /// Default batch size limit (16 KiB).
 ///
@@ -45,21 +48,23 @@ const DEFAULT_FLUSH_TIMEOUT: Duration = Duration::from_millis(10);
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use foundation_netio::wire::websocket::{BatchFrameWriter, WebSocketFrame, Opcode};
+/// ```rust
+/// use foundation_netio::websocket::{BatchFrameWriter, Opcode, WebSocketFrame};
 /// use std::time::Duration;
 ///
-/// let mut writer = BatchFrameWriter::new(
-///     &mut my_stream,  // Your TCP stream
-///     16 * 1024,  // 16 KiB batch size
-///     Duration::from_millis(10),  // 10ms flush timeout
-/// );
+/// let mut writer = BatchFrameWriter::new(Vec::new(), 16 * 1024, Duration::from_millis(10), foundation_context::Ctx::host());
 ///
-/// // Queue frames for batched writing
-/// writer.queue_frame(my_frame)?;
+/// let frame = WebSocketFrame {
+///     fin: true,
+///     opcode: Opcode::Text,
+///     mask: None,
+///     payload: b"hello".to_vec(),
+/// };
+/// writer.queue_frame(frame).unwrap();
+/// writer.flush().unwrap();
 ///
-/// // Flush when ready (or wait for automatic flush on timeout/size)
-/// writer.flush()?;
+/// let bytes = writer.into_inner().unwrap();
+/// assert!(!bytes.is_empty());
 /// ```
 pub struct BatchFrameWriter<W> {
     /// The underlying writer (e.g., TCP stream).
@@ -72,6 +77,8 @@ pub struct BatchFrameWriter<W> {
     flush_timeout: Duration,
     /// Time when the current batch started accumulating.
     batch_start: Option<Instant>,
+    /// The clock that measures the batch flush timeout.
+    ctx: Ctx,
     /// Number of frames queued in the current batch.
     frame_count: usize,
     /// Statistics: total frames written.
@@ -94,18 +101,19 @@ where
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// use foundation_netio::wire::websocket::BatchFrameWriter;
+    /// ```rust
+    /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let mut writer = BatchFrameWriter::with_defaults(&mut my_stream);
+    /// let mut writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// ```
-    pub fn with_defaults(inner: W) -> Self {
+    pub fn with_defaults(inner: W, ctx: Ctx) -> Self {
         Self {
             inner,
             buffer: Vec::with_capacity(DEFAULT_BATCH_SIZE_BYTES),
             max_batch_size: DEFAULT_BATCH_SIZE_BYTES,
             flush_timeout: DEFAULT_FLUSH_TIMEOUT,
             batch_start: None,
+            ctx,
             frame_count: 0,
             total_frames_written: 0,
             total_flushes: 0,
@@ -123,23 +131,20 @@ where
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// use foundation_netio::wire::websocket::BatchFrameWriter;
+    /// ```rust
+    /// use foundation_netio::websocket::BatchFrameWriter;
     /// use std::time::Duration;
     ///
-    /// let writer = BatchFrameWriter::new(
-    ///     &mut my_stream,  // Your TCP stream
-    ///     32 * 1024,  // 32 KiB
-    ///     Duration::from_millis(5),  // 5ms
-    /// );
+    /// let writer = BatchFrameWriter::new(Vec::new(), 32 * 1024, Duration::from_millis(5), foundation_context::Ctx::host());
     /// ```
-    pub fn new(inner: W, max_batch_size: usize, flush_timeout: Duration) -> Self {
+    pub fn new(inner: W, max_batch_size: usize, flush_timeout: Duration, ctx: Ctx) -> Self {
         Self {
             inner,
             buffer: Vec::with_capacity(max_batch_size),
             max_batch_size,
             flush_timeout,
             batch_start: None,
+            ctx,
             frame_count: 0,
             total_frames_written: 0,
             total_flushes: 0,
@@ -163,7 +168,7 @@ where
 
         // Flush if timeout has elapsed since batch started
         if let Some(start) = self.batch_start {
-            if start.elapsed() >= self.flush_timeout {
+            if self.ctx.clock().now().saturating_duration_since(start) >= self.flush_timeout {
                 return true;
             }
         }
@@ -188,13 +193,16 @@ where
     ///
     /// # Panics
     /// Never panics.
+    // Public API: callers hand the frame over for queuing; by-value matches
+    // that ownership-transfer contract.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn queue_frame(&mut self, frame: WebSocketFrame) -> Result<(), WebSocketError> {
         let encoded = frame.encode();
         let encoded_len = encoded.len();
 
         // Start timing the batch if this is the first frame
         if self.batch_start.is_none() {
-            self.batch_start = Some(Instant::now());
+            self.batch_start = Some(self.ctx.clock().now());
         }
 
         // Check if adding this frame would exceed the batch limit
@@ -202,7 +210,7 @@ where
         if self.buffer.len() + encoded_len > self.max_batch_size && !self.buffer.is_empty() {
             self.flush()?;
             // Restart timing for the new batch
-            self.batch_start = Some(Instant::now());
+            self.batch_start = Some(self.ctx.clock().now());
         }
 
         // Add frame to buffer
@@ -295,6 +303,9 @@ where
     ///
     /// # Panics
     /// Never panics.
+    // Public API: callers hand the frame over for writing; by-value matches
+    // that ownership-transfer contract.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn write_immediate(&mut self, frame: WebSocketFrame) -> Result<(), WebSocketError> {
         // Flush any existing batch first to maintain ordering
         self.flush()?;
@@ -318,10 +329,10 @@ where
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// use foundation_netio::wire::websocket::BatchFrameWriter;
+    /// ```rust
+    /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(&mut my_stream);
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// assert_eq!(writer.queued_frame_count(), 0);
     /// ```
     #[must_use]
@@ -333,10 +344,10 @@ where
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// use foundation_netio::wire::websocket::BatchFrameWriter;
+    /// ```rust
+    /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(&mut my_stream);
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// assert_eq!(writer.buffered_bytes(), 0);
     /// ```
     #[must_use]
@@ -348,12 +359,14 @@ where
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// use foundation_netio::wire::websocket::BatchFrameWriter;
+    /// ```rust
+    /// use foundation_netio::websocket::BatchFrameWriter;
     ///
-    /// let writer = BatchFrameWriter::with_defaults(&mut my_stream);
+    /// let writer = BatchFrameWriter::with_defaults(Vec::new(), foundation_context::Ctx::host());
     /// let stats = writer.stats();
-    /// println!("Frames: {}, Flushes: {}, Bytes: {}", stats.frames, stats.flushes, stats.bytes);
+    /// assert_eq!(stats.frames, 0);
+    /// assert_eq!(stats.flushes, 0);
+    /// assert_eq!(stats.bytes, 0);
     /// ```
     #[must_use]
     pub fn stats(&self) -> BatchWriterStats {
@@ -414,6 +427,9 @@ impl BatchWriterStats {
     /// # Panics
     /// Never panics.
     #[must_use]
+    // Averages are approximate stats; sub-unit precision above 2^52 is
+    // irrelevant, so the usize -> f64 cast is fine.
+    #[allow(clippy::cast_precision_loss)]
     pub fn avg_batch_size(&self) -> f64 {
         if self.flushes == 0 {
             0.0
@@ -427,6 +443,9 @@ impl BatchWriterStats {
     /// # Panics
     /// Never panics.
     #[must_use]
+    // Averages are approximate stats; sub-unit precision above 2^52 is
+    // irrelevant, so the usize -> f64 cast is fine.
+    #[allow(clippy::cast_precision_loss)]
     pub fn flush_efficiency(&self) -> f64 {
         if self.flushes == 0 {
             0.0

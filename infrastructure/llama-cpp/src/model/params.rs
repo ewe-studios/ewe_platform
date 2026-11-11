@@ -106,6 +106,76 @@ impl Default for LlamaSplitMode {
     }
 }
 
+const LLAMA_LOAD_MODE_AUTO: i32 = infrastructure_llama_bindings::LLAMA_LOAD_MODE_AUTO;
+const LLAMA_LOAD_MODE_NONE: i32 = infrastructure_llama_bindings::LLAMA_LOAD_MODE_NONE;
+const LLAMA_LOAD_MODE_MMAP: i32 = infrastructure_llama_bindings::LLAMA_LOAD_MODE_MMAP;
+const LLAMA_LOAD_MODE_MLOCK: i32 = infrastructure_llama_bindings::LLAMA_LOAD_MODE_MLOCK;
+const LLAMA_LOAD_MODE_MMAP_MLOCK: i32 = infrastructure_llama_bindings::LLAMA_LOAD_MODE_MMAP_MLOCK;
+const LLAMA_LOAD_MODE_DIRECT_IO: i32 = infrastructure_llama_bindings::LLAMA_LOAD_MODE_DIRECT_IO;
+
+/// A rusty wrapper around `llama_load_mode`.
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum LlamaLoadMode {
+    /// Auto-detect based on device capabilities.
+    Auto = LLAMA_LOAD_MODE_AUTO,
+    /// No special loading mode.
+    None = LLAMA_LOAD_MODE_NONE,
+    /// Memory map the model.
+    Mmap = LLAMA_LOAD_MODE_MMAP,
+    /// Force system to keep the model in RAM.
+    Mlock = LLAMA_LOAD_MODE_MLOCK,
+    /// Memory map the model and keep it in RAM.
+    MmapMlock = LLAMA_LOAD_MODE_MMAP_MLOCK,
+    /// Use direct I/O if available.
+    DirectIo = LLAMA_LOAD_MODE_DIRECT_IO,
+}
+
+/// An error that occurs when an unknown load mode is encountered.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LlamaLoadModeParseError(pub i32);
+
+/// Create a `LlamaLoadMode` from a `i32`.
+///
+/// # Errors
+/// Returns `LlamaLoadModeParseError` if the value does not correspond to a valid `LlamaLoadMode`.
+impl TryFrom<i32> for LlamaLoadMode {
+    type Error = LlamaLoadModeParseError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            LLAMA_LOAD_MODE_AUTO => Ok(Self::Auto),
+            LLAMA_LOAD_MODE_NONE => Ok(Self::None),
+            LLAMA_LOAD_MODE_MMAP => Ok(Self::Mmap),
+            LLAMA_LOAD_MODE_MLOCK => Ok(Self::Mlock),
+            LLAMA_LOAD_MODE_MMAP_MLOCK => Ok(Self::MmapMlock),
+            LLAMA_LOAD_MODE_DIRECT_IO => Ok(Self::DirectIo),
+            _ => Err(LlamaLoadModeParseError(value)),
+        }
+    }
+}
+
+/// Create a `i32` from a `LlamaLoadMode`.
+impl From<LlamaLoadMode> for i32 {
+    fn from(value: LlamaLoadMode) -> Self {
+        match value {
+            LlamaLoadMode::Auto => LLAMA_LOAD_MODE_AUTO,
+            LlamaLoadMode::None => LLAMA_LOAD_MODE_NONE,
+            LlamaLoadMode::Mmap => LLAMA_LOAD_MODE_MMAP,
+            LlamaLoadMode::Mlock => LLAMA_LOAD_MODE_MLOCK,
+            LlamaLoadMode::MmapMlock => LLAMA_LOAD_MODE_MMAP_MLOCK,
+            LlamaLoadMode::DirectIo => LLAMA_LOAD_MODE_DIRECT_IO,
+        }
+    }
+}
+
+/// The default load mode is `Auto` in llama.cpp.
+impl Default for LlamaLoadMode {
+    fn default() -> Self {
+        LlamaLoadMode::Auto
+    }
+}
+
 /// The maximum number of devices supported.
 ///
 /// The real maximum number of devices is the lesser one of this value and the value returned by
@@ -127,8 +197,7 @@ impl Debug for LlamaModelParams {
             .field("n_gpu_layers", &self.params.n_gpu_layers)
             .field("main_gpu", &self.params.main_gpu)
             .field("vocab_only", &self.params.vocab_only)
-            .field("use_mmap", &self.params.use_mmap)
-            .field("use_mlock", &self.params.use_mlock)
+            .field("load_mode", &self.load_mode())
             .field("split_mode", &self.split_mode())
             .field("devices", &self.devices)
             .field("kv_overrides", &"vec of kv_overrides")
@@ -279,16 +348,12 @@ impl LlamaModelParams {
         self.params.vocab_only
     }
 
-    /// use mmap if possible
-    #[must_use]
-    pub fn use_mmap(&self) -> bool {
-        self.params.use_mmap
-    }
-
-    /// force system to keep model in RAM
-    #[must_use]
-    pub fn use_mlock(&self) -> bool {
-        self.params.use_mlock
+    /// get the load mode
+    ///
+    /// # Errors
+    /// Returns `LlamaLoadModeParseError` if the unknown load mode is encountered.
+    pub fn load_mode(&self) -> Result<LlamaLoadMode, LlamaLoadModeParseError> {
+        LlamaLoadMode::try_from(self.params.load_mode)
     }
 
     /// get the split mode
@@ -355,10 +420,10 @@ impl LlamaModelParams {
         self
     }
 
-    /// sets `use_mlock`
+    /// sets `load_mode`
     #[must_use]
-    pub fn with_use_mlock(mut self, use_mlock: bool) -> Self {
-        self.params.use_mlock = use_mlock;
+    pub fn with_load_mode(mut self, load_mode: LlamaLoadMode) -> Self {
+        self.params.load_mode = load_mode.into();
         self
     }
 
@@ -407,6 +472,7 @@ impl LlamaModelParams {
 /// Default parameters for `LlamaModel`. (as defined in llama.cpp by `llama_model_default_params`)
 /// ```
 /// # use infrastructure_llama_cpp::model::params::LlamaModelParams;
+/// use infrastructure_llama_cpp::model::params::LlamaLoadMode;
 /// use infrastructure_llama_cpp::model::params::LlamaSplitMode;
 /// let params = LlamaModelParams::default();
 /// // Upstream llama.cpp changed this default from 999 to -1; both mean "offload
@@ -414,8 +480,7 @@ impl LlamaModelParams {
 /// assert_eq!(params.n_gpu_layers(), -1, "n_gpu_layers should be -1 (all layers)");
 /// assert_eq!(params.main_gpu(), 0, "main_gpu should be 0");
 /// assert_eq!(params.vocab_only(), false, "vocab_only should be false");
-/// assert_eq!(params.use_mmap(), true, "use_mmap should be true");
-/// assert_eq!(params.use_mlock(), false, "use_mlock should be false");
+/// assert_eq!(params.load_mode(), Ok(LlamaLoadMode::Auto), "load_mode should be AUTO");
 /// assert_eq!(params.split_mode(), Ok(LlamaSplitMode::Layer), "split_mode should be LAYER");
 /// assert_eq!(params.devices().len(), 0, "devices should be empty");
 /// ```

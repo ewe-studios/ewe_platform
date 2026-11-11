@@ -16,10 +16,23 @@ use crate::valtron::{Stream, StreamSpread};
 /// **sync boundaries only** — on single-threaded wasm a synchronous loop can
 /// never let the event loop deliver the I/O it waits on.
 ///
-/// ```ignore
-/// for value in next_values(execute(task, None)?) {
-///     println!("{value:?}");
-/// }
+/// ```
+/// use foundation_core::valtron::{next_values, Stream, StreamSpread};
+///
+/// // Control states sit between the values and are skipped.
+/// let stream = vec![
+///     Stream::<u32, ()>::Init,
+///     Stream::Pending(()),
+///     Stream::Next(1),
+///     Stream::Spread(vec![
+///         StreamSpread::Done(2),
+///         StreamSpread::Pending(()),
+///     ]),
+///     Stream::Next(3),
+/// ];
+///
+/// let values: Vec<u32> = next_values(stream.into_iter()).collect();
+/// assert_eq!(values, vec![1, 2, 3]);
 /// ```
 pub fn next_values<D, P, I>(stream: I) -> NextValues<D, I>
 where
@@ -76,10 +89,11 @@ where
             match self.stream.next()? {
                 Stream::Next(value) => return Some(value),
                 Stream::Spread(items) => {
-                    self.spread.extend(items.into_iter().filter_map(|item| match item {
-                        StreamSpread::Done(value) => Some(value),
-                        StreamSpread::Pending(_) => None,
-                    }));
+                    self.spread
+                        .extend(items.into_iter().filter_map(|item| match item {
+                            StreamSpread::Done(value) => Some(value),
+                            StreamSpread::Pending(_) => None,
+                        }));
                 }
                 Stream::Pending(_)
                 | Stream::Wait
@@ -107,10 +121,19 @@ where
 ///
 /// # Examples
 ///
-/// ```ignore
-/// // Launch work, collect at boundary
-/// let stream = execute(task, None)?;
-/// let results: Vec<MyValue> = collect_result(stream);
+/// ```
+/// use foundation_core::valtron::{collect_result, Stream};
+///
+/// // Every value is collected, in order.
+/// let stream = vec![
+///     Stream::<u32, ()>::Init,
+///     Stream::Next(1),
+///     Stream::Pending(()),
+///     Stream::Next(2),
+/// ];
+///
+/// let results: Vec<u32> = collect_result(stream.into_iter());
+/// assert_eq!(results, vec![1, 2]);
 /// ```
 pub fn collect_result<D, P>(stream: impl Iterator<Item = Stream<D, P>>) -> Vec<D> {
     let mut results = Vec::new();
@@ -147,9 +170,19 @@ pub fn collect_result<D, P>(stream: impl Iterator<Item = Stream<D, P>>) -> Vec<D
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let stream = execute(task, None)?;
-/// let value: Option<MyValue> = collect_one(stream);
+/// ```
+/// use foundation_core::valtron::{collect_one, Stream};
+///
+/// // Only the first value is returned.
+/// let stream = vec![
+///     Stream::<u32, ()>::Init,
+///     Stream::Pending(()),
+///     Stream::Next(42),
+///     Stream::Next(43),
+/// ];
+///
+/// let value: Option<u32> = collect_one(stream.into_iter());
+/// assert_eq!(value, Some(42));
 /// ```
 pub fn collect_one<D, P>(stream: impl Iterator<Item = Stream<D, P>>) -> Option<D> {
     for item in stream {

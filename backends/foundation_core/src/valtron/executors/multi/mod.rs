@@ -1,6 +1,4 @@
 #![cfg(feature = "multi")]
-#![allow(clippy::new_ret_no_self)]
-#![allow(clippy::type_complexity)]
 
 use std::{
     any::Any,
@@ -13,16 +11,18 @@ use std::{
         atomic::{self, AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
-    thread::JoinHandle,
+    thread::{Builder, JoinHandle},
     time::{self},
 };
 
-use crate::valtron::{Ctx, Stream, DEFAULT_YIELD_WAIT_TIME};
+use crate::valtron::Stream;
+
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use foundation_compact::rng::ChaCha8Rng;
 use foundation_compact::rng::Rng;
 use foundation_compact::rng::SeedableRng;
+use foundation_context::Ctx;
 use std::str::FromStr;
 
 use crate::{
@@ -38,17 +38,18 @@ use crate::{
 };
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutorError,
-    FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController, ReadyConsumingIter,
-    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutorError, FnMutReady,
+    FnReady, OnNext, PriorityOrder, ProcessController, ReadyConsumingIter, SharedTaskQueue,
+    TaskIterator, TaskReadyResolver, TaskStatus,
 };
 
 use crate::valtron::{ThreadActivity, ThreadId};
 
 use crate::valtron::{
     executors::constants::{
-        BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
-        DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+        DEFAULT_BACK_OFF_JITTER, DEFAULT_BACK_OFF_MAX_DURATION, DEFAULT_BACK_OFF_MIN_DURATION,
+        DEFAULT_BACK_OFF_THREAD_FACTOR, DEFAULT_MAX_YIELD_DURATION, DEFAULT_OP_READ_TIME,
+        DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
     ConsumingIter, DoNext, StreamConsumingIter,
 };
@@ -111,9 +112,15 @@ impl FairGate {
     /// Acquire the gate, blocking in FIFO order until this caller's ticket is up.
     fn acquire(&'static self) -> FairGateGuard {
         let my_ticket = self.next_ticket.fetch_add(1, Ordering::SeqCst);
-        let mut guard = self.inner.lock().unwrap_or_else(|p| p.into_inner());
+        let mut guard = self
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         while self.now_serving.load(Ordering::SeqCst) != my_ticket {
-            guard = self.cond.wait(guard).unwrap_or_else(|p| p.into_inner());
+            guard = self
+                .cond
+                .wait(guard)
+                .unwrap_or_else(crate::compati::recover_poison);
         }
         FairGateGuard { gate: self }
     }
@@ -127,17 +134,25 @@ pub struct FairGateGuard {
 
 impl Drop for FairGateGuard {
     fn drop(&mut self) {
-        let _guard = self.gate.inner.lock().unwrap_or_else(|p| p.into_inner());
+        let _guard = self
+            .gate
+            .inner
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
         self.gate.now_serving.fetch_add(1, Ordering::SeqCst);
         self.gate.cond.notify_all();
     }
 }
 
 pub(crate) fn clear_global_registries() {
-    let mut reg = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut reg = REGISTRY
+        .lock()
+        .unwrap_or_else(crate::compati::recover_poison);
     *reg = None;
     drop(reg);
-    let mut bg = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut bg = BG_REGISTRY
+        .lock()
+        .unwrap_or_else(crate::compati::recover_poison);
     *bg = None;
 }
 
@@ -152,7 +167,22 @@ pub struct LocalPoolHandle {
     latch: Arc<LockSignal>,
     kill_signal: Arc<OnSignal>,
     yielders: SharedThreadYielders,
+    /// A fork of the pool root. Receivers that the builders return read their
+    /// clock from it.
+    ctx: Ctx,
 }
+
+/// A thread-pool task builder whose resolver is boxed over `Task`.
+pub type SendThreadPoolTaskBuilder<Task> = ThreadPoolTaskBuilder<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + Send
+            + 'static,
+    >,
+    Task,
+>;
 
 impl LocalPoolHandle {
     fn new(registry: &Arc<ThreadRegistry>) -> Self {
@@ -161,26 +191,24 @@ impl LocalPoolHandle {
             latch: registry.latch(),
             kill_signal: registry.kill_signal(),
             yielders: registry.yielders(),
+            ctx: registry.fork_ctx(),
         }
     }
 
     /// Create a task builder for scheduling work.
     #[must_use]
-    pub fn spawn<Task>(
-        &self,
-    ) -> ThreadPoolTaskBuilder<
-        Task::Ready,
-        Task::Pending,
-        Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
-        Task,
-    >
+    pub fn spawn<Task>(&self) -> SendThreadPoolTaskBuilder<Task>
     where
         Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
         Task: TaskIterator + Send + 'static,
     {
-        ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
-            .with_yielders(self.yielders.clone())
+        ThreadPoolTaskBuilder::new(
+            self.shared_tasks.clone(),
+            self.latch.clone(),
+            self.ctx.fork(),
+        )
+        .with_yielders(self.yielders.clone())
     }
 
     /// Create a task builder with an explicit Resolver type.
@@ -194,8 +222,12 @@ impl LocalPoolHandle {
         Task: TaskIterator + Send + 'static,
         Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static,
     {
-        ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
-            .with_yielders(self.yielders.clone())
+        ThreadPoolTaskBuilder::new(
+            self.shared_tasks.clone(),
+            self.latch.clone(),
+            self.ctx.fork(),
+        )
+        .with_yielders(self.yielders.clone())
     }
 
     /// Signal all threads to die.
@@ -210,7 +242,7 @@ impl LocalPoolHandle {
 pub fn is_pool_initialized() -> bool {
     REGISTRY
         .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .unwrap_or_else(crate::compati::recover_poison)
         .is_some()
 }
 
@@ -223,7 +255,7 @@ pub fn is_pool_initialized() -> bool {
 pub fn get_pool() -> LocalPoolHandle {
     let registry = REGISTRY
         .lock()
-        .unwrap_or_else(|p| p.into_inner())
+        .unwrap_or_else(crate::compati::recover_poison)
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     LocalPoolHandle::new(&registry)
@@ -234,7 +266,7 @@ pub fn get_pool() -> LocalPoolHandle {
 /// The multi-threaded pool owns one root [`Ctx`] (on [`ThreadRegistry`]) and forks
 /// it per task on each worker. This exposes that same root-fork to code that drives
 /// a task alongside the pool (e.g. [`super::sendables::DrivenTaskIterator`]) so it
-/// never mints an unrelated `Ctx::new()`.
+/// never mints an unrelated `Ctx::host()`.
 ///
 /// # Panics
 ///
@@ -243,7 +275,7 @@ pub fn get_pool() -> LocalPoolHandle {
 pub fn fork_ctx() -> Ctx {
     let registry = REGISTRY
         .lock()
-        .unwrap_or_else(|p| p.into_inner())
+        .unwrap_or_else(crate::compati::recover_poison)
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     registry.fork_ctx()
@@ -273,25 +305,82 @@ where
 /// and clears the global registries to prevent test interference.
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
+#[must_use]
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
-    initialize_pool_with_config(seed_for_rng, user_thread_num, PoolConfig::default())
+    initialize_pool_with_ctx(
+        seed_for_rng,
+        user_thread_num,
+        crate::valtron::ctx::seeded_root(seed_for_rng),
+    )
+}
+
+/// [`initialize_pool`] with an explicit engine root.
+///
+/// Every task the pool drives gets a fork of `root`. This is the startup hook
+/// for a deterministic simulation test (DST).
+#[must_use]
+pub fn initialize_pool_with_ctx(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    root: Ctx,
+) -> PoolGuard {
+    initialize_pool_with_config_and_ctx(seed_for_rng, user_thread_num, PoolConfig::default(), root)
 }
 
 /// Tunables for the multi-threaded pool beyond its seed and thread count.
 ///
 /// WHY: Limits are configuration, not constants (CLAUDE.md rule 8).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PoolConfig {
     /// The longest `PoolGuard::shutdown` waits for queued background jobs
     /// before dropping the unstarted ones and detaching stuck workers. Default
     /// [`BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT`].
     pub background_shutdown_timeout: std::time::Duration,
+    /// Longest a task worker yields between steps, even when a sleeper's
+    /// deadline is further out. Capping it makes a worker wake to check for new
+    /// work at least this often. Default [`DEFAULT_MAX_YIELD_DURATION`].
+    pub max_yield_duration: std::time::Duration,
+    /// Idle back-off wait when the worker queue is empty (no immediate work).
+    /// Default [`DEFAULT_YIELD_WAIT_TIME`].
+    pub yield_wait_time: std::time::Duration,
+    /// How long a worker waits for a message from the activity queue. Default
+    /// [`DEFAULT_OP_READ_TIME`].
+    pub op_read_time: std::time::Duration,
+    /// Base factor for an idle worker's exponential back-off. Default
+    /// [`DEFAULT_BACK_OFF_THREAD_FACTOR`].
+    pub back_off_thread_factor: u32,
+    /// Jitter applied to the back-off (0.75 = ±25%). Default
+    /// [`DEFAULT_BACK_OFF_JITTER`].
+    pub back_off_jitter: f32,
+    /// Minimum back-off duration for an idle worker. Default
+    /// [`DEFAULT_BACK_OFF_MIN_DURATION`].
+    pub back_off_min_duration: std::time::Duration,
+    /// Maximum back-off duration for an idle worker. Default
+    /// [`DEFAULT_BACK_OFF_MAX_DURATION`].
+    pub back_off_max_duration: std::time::Duration,
+    /// Warn when one task step takes longer than this (the slow-poll
+    /// watchdog). `None` disables the check.
+    ///
+    /// WHY off by default: the check reads the monotonic clock twice on every
+    /// task poll, and a healthy poll takes microseconds. Turn it on in a test
+    /// harness or a diagnostic run. The `#[valtron]` and `#[valtron_test]`
+    /// macros turn it on with 100 ms: ten times the executor's 10 ms readiness
+    /// quantum, and well under the 2 s peer bound of the 2026-11-06 failure.
+    pub slow_poll_warning: Option<std::time::Duration>,
 }
 
 impl Default for PoolConfig {
     fn default() -> Self {
         Self {
             background_shutdown_timeout: BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT,
+            max_yield_duration: DEFAULT_MAX_YIELD_DURATION,
+            yield_wait_time: DEFAULT_YIELD_WAIT_TIME,
+            op_read_time: DEFAULT_OP_READ_TIME,
+            back_off_thread_factor: DEFAULT_BACK_OFF_THREAD_FACTOR,
+            back_off_jitter: DEFAULT_BACK_OFF_JITTER,
+            back_off_min_duration: DEFAULT_BACK_OFF_MIN_DURATION,
+            back_off_max_duration: DEFAULT_BACK_OFF_MAX_DURATION,
+            slow_poll_warning: None,
         }
     }
 }
@@ -303,14 +392,93 @@ impl PoolConfig {
         self.background_shutdown_timeout = timeout;
         self
     }
+
+    /// Set [`Self::max_yield_duration`].
+    #[must_use]
+    pub fn with_max_yield_duration(mut self, duration: std::time::Duration) -> Self {
+        self.max_yield_duration = duration;
+        self
+    }
+
+    /// Set [`Self::yield_wait_time`].
+    #[must_use]
+    pub fn with_yield_wait_time(mut self, duration: std::time::Duration) -> Self {
+        self.yield_wait_time = duration;
+        self
+    }
+
+    /// Set [`Self::op_read_time`].
+    #[must_use]
+    pub fn with_op_read_time(mut self, duration: std::time::Duration) -> Self {
+        self.op_read_time = duration;
+        self
+    }
+
+    /// Set [`Self::back_off_thread_factor`].
+    #[must_use]
+    pub fn with_back_off_thread_factor(mut self, factor: u32) -> Self {
+        self.back_off_thread_factor = factor;
+        self
+    }
+
+    /// Set [`Self::back_off_jitter`].
+    #[must_use]
+    pub fn with_back_off_jitter(mut self, jitter: f32) -> Self {
+        self.back_off_jitter = jitter;
+        self
+    }
+
+    /// Set [`Self::back_off_min_duration`].
+    #[must_use]
+    pub fn with_back_off_min_duration(mut self, duration: std::time::Duration) -> Self {
+        self.back_off_min_duration = duration;
+        self
+    }
+
+    /// Set [`Self::back_off_max_duration`].
+    #[must_use]
+    pub fn with_back_off_max_duration(mut self, duration: std::time::Duration) -> Self {
+        self.back_off_max_duration = duration;
+        self
+    }
+
+    /// Set [`Self::slow_poll_warning`].
+    #[must_use]
+    pub fn with_slow_poll_warning(mut self, warning: Option<std::time::Duration>) -> Self {
+        self.slow_poll_warning = warning;
+        self
+    }
 }
 
 /// [`initialize_pool`] with explicit [`PoolConfig`] tunables.
+#[must_use]
 pub fn initialize_pool_with_config(
     seed_for_rng: u64,
     user_thread_num: Option<usize>,
     config: PoolConfig,
 ) -> PoolGuard {
+    initialize_pool_with_config_and_ctx(
+        seed_for_rng,
+        user_thread_num,
+        config,
+        crate::valtron::ctx::seeded_root(seed_for_rng),
+    )
+}
+
+/// [`initialize_pool_with_config`] with an explicit engine root.
+///
+/// Every task the pool drives gets a fork of `root`.
+///
+/// # Panics
+/// Panics if a worker thread or a background thread cannot start.
+pub fn initialize_pool_with_config_and_ctx(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    config: PoolConfig,
+    root: Ctx,
+) -> PoolGuard {
+    // The pool start is a task boundary: every task forks this root.
+    root.assert_minimum();
     // Acquire the process-wide lifecycle gate FIRST — blocks (in FIFO order)
     // until any previous pool's PoolGuard has dropped. This serializes all pool
     // users (across test files, regardless of #[serial]) since the global
@@ -338,9 +506,11 @@ pub fn initialize_pool_with_config(
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
 
-    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
+    let registry = Arc::new(ThreadRegistry::with_config_and_root(
         seed_for_rng,
         task_threads,
+        &config,
+        root,
     ));
 
     // Spawn task worker threads
@@ -350,21 +520,54 @@ pub fn initialize_pool_with_config(
             .expect("Failed to spawn worker thread");
     }
 
+    // Drain the worker-activity queue for the life of the pool (issue #243).
+    // The `Panicked` arm respawns a worker, and the `Blocked`/`Unblocked` arms
+    // keep `idle_threads` accurate; neither runs unless something reads the
+    // queue, and before this the pool read it only from `block_until_done`.
+    registry.start_activity_monitor();
+
     // The background registry has its own lifecycle: `PoolGuard::shutdown`
     // shuts it down (running every job it accepted) before the task workers.
     let bg_registry = BackgroundJobRegistry::with_config(
         BackgroundJobConfig::new(bg_threads)
             .with_shutdown_timeout(config.background_shutdown_timeout),
-    );
+    )
+    .expect("Failed to spawn background worker thread");
 
-    let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut reg_guard = REGISTRY
+        .lock()
+        .unwrap_or_else(crate::compati::recover_poison);
     *reg_guard = Some(registry.clone());
-    let mut bg_guard = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    let mut bg_guard = BG_REGISTRY
+        .lock()
+        .unwrap_or_else(crate::compati::recover_poison);
     *bg_guard = Some(bg_registry.clone());
     drop(reg_guard);
     drop(bg_guard);
 
     PoolGuard::with_bg_registry(registry, bg_registry, lifecycle)
+}
+
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// WHY: both `#[valtron]` and `#[valtron_test]` must turn the watchdog on
+/// without naming every other [`PoolConfig`] field, and the same call must
+/// compile in the single-threaded build.
+/// WHAT: builds a default [`PoolConfig`] with `slow_poll_warning` set and
+/// starts the pool. `None` disables the check.
+#[must_use]
+pub fn initialize_pool_with_slow_poll_warning(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    slow_poll_warning: Option<time::Duration>,
+    root: Ctx,
+) -> PoolGuard {
+    initialize_pool_with_config_and_ctx(
+        seed_for_rng,
+        user_thread_num,
+        PoolConfig::default().with_slow_poll_warning(slow_poll_warning),
+        root,
+    )
 }
 
 /// Submit a blocking closure for execution on the background job pool.
@@ -376,17 +579,18 @@ pub fn initialize_pool_with_config(
 /// # Errors
 ///
 /// Returns an error if the background registry is not initialized or the queue is closed.
-///
-/// # Panics
-///
-/// Panics if the background job pool has not been initialized.
+/// A missing pool is a fallible state, not an invariant.
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
     let bg_registry = BG_REGISTRY
         .lock()
-        .unwrap_or_else(|p| p.into_inner())
-        .clone()
-        .expect("Background job pool not initialized, ensure to call initialize_pool first");
-    bg_registry.submit(job)
+        .unwrap_or_else(crate::compati::recover_poison)
+        .clone();
+    match bg_registry {
+        Some(bg_registry) => bg_registry.submit(job),
+        None => {
+            Err("Background job pool not initialized, ensure to call initialize_pool first".into())
+        }
+    }
 }
 
 /// [`spawn`] provides a builder which allows you to build out
@@ -394,12 +598,7 @@ pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<
 ///
 /// Uses the global registry's shared queue and latch.
 #[must_use]
-pub fn spawn<Task>() -> ThreadPoolTaskBuilder<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
-    Task,
->
+pub fn spawn<Task>() -> SendThreadPoolTaskBuilder<Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
@@ -411,8 +610,7 @@ where
 /// [`spawn2`] provides a builder which allows you to build out
 /// the underlying tasks with an explicit Resolver type.
 #[must_use]
-pub fn spawn2<Task, Resolver>(
-) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Resolver, Task>
+pub fn spawn2<Task, Resolver>() -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
@@ -499,58 +697,52 @@ impl PoolGuard {
         }
     }
 
-    /// Explicit shutdown. Idempotent — safe to call multiple times.
-    /// Clears the global registries; the lifecycle lock (held until this guard
-    /// drops) guarantees no other pool can be running concurrently.
+    /// Explicit shutdown with the default grace. Idempotent — safe to call
+    /// multiple times.
+    ///
+    /// WHY: this is the stop call on the drop path. It must always return, or
+    /// the [`FairGateGuard`] field is never dropped and the process-wide
+    /// lifecycle gate stays shut for the rest of the process.
+    /// WHAT: calls [`Self::shutdown_within`] with
+    /// [`DEFAULT_POOL_SHUTDOWN_GRACE`](crate::valtron::DEFAULT_POOL_SHUTDOWN_GRACE).
+    /// A stuck worker is detached at the deadline instead of blocking the drop
+    /// forever.
+    ///
+    /// Removes this guard's own entries from the global registries; a private
+    /// guard (see [`PoolGuard::new`]) owns no global entry and leaves the live
+    /// pool alone. The lifecycle lock (held until this guard drops) guarantees
+    /// no other pool can be initialized concurrently.
     pub fn shutdown(&self) {
-        tracing::debug!("PoolGuard::shutdown() called - pool shutting down");
-        if self
-            .shut_down
-            .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
-            .is_ok()
-        {
-            tracing::debug!("PoolGuard::shutdown() - signaling kill to all threads");
-            // Shut down background workers first, while the task workers are
-            // still alive: queued background jobs may depend on them.
-            if let Some(ref bg) = self.bg_registry {
-                tracing::debug!("PoolGuard::shutdown() - shutting down background workers");
-                if let ShutdownOutcome::TimedOut {
-                    abandoned_jobs,
-                    busy_workers,
-                } = bg.shutdown()
-                {
-                    // Already logged by the registry; the pool carries on tearing
-                    // down the task workers rather than hanging on stuck jobs.
-                    tracing::warn!(
-                        abandoned_jobs,
-                        busy_workers,
-                        "PoolGuard::shutdown() - background shutdown timed out"
-                    );
-                }
-            }
-
-            self.registry.shutdown();
-            tracing::debug!("clearing the global pool registry");
-            clear_global_registries();
-            tracing::debug!("cleared the global pool registry");
-        } else {
-            tracing::debug!("PoolGuard::shutdown() - already shut down, skipping");
+        tracing::debug!("PoolGuard::shutdown() called - bounded shutdown");
+        let stopped = self.shutdown_within(crate::valtron::DEFAULT_POOL_SHUTDOWN_GRACE);
+        if !stopped {
+            tracing::warn!(
+                grace_ms = crate::valtron::DEFAULT_POOL_SHUTDOWN_GRACE.as_millis(),
+                "PoolGuard::shutdown() - task workers still busy at the deadline; they were detached"
+            );
         }
     }
 
-    /// [`Self::shutdown`] with a deadline for the task workers.
+    /// [`Self::shutdown`] with an explicit deadline.
     ///
-    /// WHY: `shutdown` waits for every worker to reach its kill check, so a
-    /// worker stuck inside a task (blocked in a syscall, or deadlocked) makes it
-    /// wait forever, and the process-wide lifecycle gate is never released. A
-    /// test harness that has already given up on a hung test needs the pool torn
-    /// down in bounded time so the next pool user can start.
+    /// WHY: a worker can be stuck inside a task (blocked in a syscall, or
+    /// deadlocked) and never reach its kill check. An unbounded wait would keep
+    /// the process-wide lifecycle gate shut for the rest of the process. A
+    /// caller with its own deadline (the `#[valtron_test(timeout = ..)]`
+    /// harness, or a host with a tighter stop budget) needs the pool torn down
+    /// in bounded time.
     ///
-    /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
-    /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
-    /// Either way the global registries are cleared, and dropping the guard
-    /// afterwards releases the lifecycle gate without waiting again. Idempotent:
-    /// a second call, or a call after `shutdown`, returns `true`.
+    /// WHAT: returns `true` if every worker stopped within `timeout` of the
+    /// call, `false` if some were detached still busy (see
+    /// [`ThreadRegistry::shutdown_within`]). One deadline covers both shutdown
+    /// phases, measured from the start of the call (issue #340). The background
+    /// job registry gets `min(deadline, background_shutdown_timeout)`, and the
+    /// task worker registry gets the budget that remains: a stuck background
+    /// job cannot outlast this call, and the two phases cannot each spend the
+    /// full `timeout` (issues #233 and #340). Either way this guard's own
+    /// global registry entries are cleared, and dropping the guard afterwards
+    /// releases the lifecycle gate without waiting again. Idempotent: a second
+    /// call, or a call after `shutdown`, returns `true`.
     #[must_use]
     pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
         if self
@@ -560,11 +752,21 @@ impl PoolGuard {
         {
             return true;
         }
+        // One absolute deadline covers both phases, measured from this call's
+        // start. Before issue #340, each phase received the full `timeout`, so
+        // one call could take about twice the budget.
+        let ctx = self.registry.fork_ctx();
+        let deadline = ctx.clock().now() + timeout;
         if let Some(ref bg) = self.bg_registry {
+            // Bound the background registry by the caller's deadline as well as
+            // the registry's own configured timeout (issue #233). Without the
+            // `min`, a stuck background job would hold the lifecycle gate for
+            // the configured 30 s default, long past this call's bound.
+            let bg_deadline = deadline.min(ctx.clock().now() + bg.shutdown_timeout());
             if let ShutdownOutcome::TimedOut {
                 abandoned_jobs,
                 busy_workers,
-            } = bg.shutdown()
+            } = bg.shutdown_until(&ctx, bg_deadline)
             {
                 tracing::warn!(
                     abandoned_jobs,
@@ -573,9 +775,52 @@ impl PoolGuard {
                 );
             }
         }
-        let stopped = self.registry.shutdown_within(timeout);
-        clear_global_registries();
+        // Give the task worker registry only what is left of the one deadline.
+        // A zero budget detaches busy workers at once, which is intended.
+        let remaining = deadline.saturating_duration_since(ctx.clock().now());
+        let stopped = self.registry.shutdown_within(remaining);
+        self.clear_owned_globals();
         stopped
+    }
+
+    /// Clear each global registry slot, but only when it still holds the
+    /// registry this guard owns.
+    ///
+    /// WHY: a guard from [`PoolGuard::new`] owns a private registry that was
+    /// never installed in the globals (tests build one to exercise shutdown
+    /// without a pool). Such a guard holds no lifecycle gate, so its shutdown can
+    /// run while another test uses the global pool; clearing the slots
+    /// unconditionally would wipe that other pool, and its next `get_pool()`
+    /// panics with "Thread pool not initialized". Comparing the `Arc` makes the
+    /// clear owner-only: a guard never touches a registry it does not own, which
+    /// is the "clear only if the generation still matches" rule in the
+    /// [`PoolGuard`] docs.
+    fn clear_owned_globals(&self) {
+        let mut reg = REGISTRY
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
+        let owns_task_slot = reg
+            .as_ref()
+            .is_some_and(|global| Arc::ptr_eq(global, &self.registry));
+        if owns_task_slot {
+            *reg = None;
+        }
+        drop(reg);
+
+        let Some(ref bg) = self.bg_registry else {
+            // A private guard owns no background registry: leave that slot to
+            // the pool that installed it.
+            return;
+        };
+        let mut bg_guard = BG_REGISTRY
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
+        let owns_bg_slot = bg_guard
+            .as_ref()
+            .is_some_and(|global| Arc::ptr_eq(global, bg));
+        if owns_bg_slot {
+            *bg_guard = None;
+        }
     }
 
     /// Get the `WaitGroup` for this pool.
@@ -610,6 +855,7 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 ///
 /// Panics if the desired thread count is greater than the maximum allowed threads.
 /// Panics if the desired thread count is zero.
+#[must_use]
 pub fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
     let desired_threads = get_num_threads();
@@ -673,7 +919,7 @@ pub struct ThreadYielders {
 }
 
 impl ThreadYielders {
-    /// Creates a new ThreadYielders registry.
+    /// Creates a new `ThreadYielders` registry.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -682,13 +928,19 @@ impl ThreadYielders {
     }
 
     /// Register a yielder for interrupt tracking.
+    ///
+    /// # Panics
+    /// Panics if the yielder lock is poisoned.
     pub fn register(&self, yielder: Arc<ThreadYielder>) {
         let mut yielders = self.yielders.write().unwrap();
         yielders.push(yielder);
     }
 
     /// Interrupt all registered yielders.
-    /// Call this when new work arrives to wake threads waiting in yield_for.
+    /// Call this when new work arrives to wake threads waiting in `yield_for`.
+    ///
+    /// # Panics
+    /// Panics if the yielder lock is poisoned.
     pub fn interrupt_all(&self) {
         let yielders = self.yielders.read().unwrap();
         for yielder in yielders.iter() {
@@ -709,9 +961,9 @@ pub struct ThreadYielder {
     thread_id: ThreadId,
     latch: Arc<LockSignal>,
     sender: mpp::Sender<ThreadActivity>,
-    /// CondVar for interruptible waiting - replaces park_timeout
+    /// `CondVar` for interruptible waiting - replaces `park_timeout`
     condvar: Arc<CondVar>,
-    /// State for CondVar waiting
+    /// State for `CondVar` waiting
     wait_state: Arc<CvMutex<WaitState>>,
 }
 
@@ -744,18 +996,18 @@ impl ThreadYielder {
         }
     }
 
-    /// Interrupt the current wait by notifying the CondVar.
+    /// Interrupt the current wait by notifying the `CondVar`.
     /// This wakes the thread waiting in `wait_timeout_while` immediately.
     ///
-    /// WHY: Called during shutdown (via interrupt_all_yielders) or when new work arrives
-    /// WHAT: Sets state to Notified and calls notify_all() on the CondVar
+    /// WHY: Called during shutdown (via `interrupt_all_yielders`) or when new work arrives
+    /// WHAT: Sets state to Notified and calls `notify_all()` on the `CondVar`
     /// HOW:
-    ///   1. Acquire lock on wait_state
-    ///   2. Set state to Notified (causes predicate in wait_timeout_while to return false)
-    ///   3. Call notify_all() to wake any waiting threads
+    ///   1. Acquire lock on `wait_state`
+    ///   2. Set state to Notified (causes predicate in `wait_timeout_while` to return false)
+    ///   3. Call `notify_all()` to wake any waiting threads
     ///
-    /// This wakes threads waiting in yield_for() even if they're in the middle
-    /// of a long sleep. The wait_timeout_while will check the predicate again
+    /// This wakes threads waiting in `yield_for()` even if they're in the middle
+    /// of a long sleep. The `wait_timeout_while` will check the predicate again
     /// after waking and return immediately since state != Waiting.
     pub fn interrupt(&self) {
         if let Ok(mut guard) = self.wait_state.lock() {
@@ -780,19 +1032,19 @@ impl Clone for ThreadYielder {
 impl ProcessController for ThreadYielder {
     type YieldSignal = ();
 
-    /// WHY: Uses CondVar::wait_timeout_while for interruptible waiting
-    /// WHAT: Blocks thread with timeout, but can be woken early via interrupt()
+    /// WHY: Uses `CondVar::wait_timeout_while` for interruptible waiting
+    /// WHAT: Blocks thread with timeout, but can be woken early via `interrupt()`
     /// HOW:
-    ///   1. Acquire lock on wait_state
-    ///   2. Call wait_timeout_while which atomically:
+    ///   1. Acquire lock on `wait_state`
+    ///   2. Call `wait_timeout_while` which atomically:
     ///      - Checks predicate (returns immediately if false)
     ///      - If true, unlocks mutex and waits for timeout or notification
     ///      - On wakeup, re-locks mutex and re-checks predicate
     ///   3. Returns when either:
-    ///      - Duration expires (timed_out=true)
-    ///      - interrupt() sets state to Notified and calls notify_all()
+    ///      - Duration expires (`timed_out=true`)
+    ///      - `interrupt()` sets state to Notified and calls `notify_all()`
     ///
-    /// CRITICAL FIX: wait_timeout_while returns the guard still locked.
+    /// CRITICAL FIX: `wait_timeout_while` returns the guard still locked.
     /// We MUST use that returned guard directly to reset state.
     /// Attempting to acquire the lock again causes deadlock.
     fn yield_for(&self, dur: std::time::Duration) {
@@ -802,7 +1054,7 @@ impl ProcessController for ThreadYielder {
             .expect("should send event");
 
         // A parked task becoming ready anywhere interrupts this wait
-        // (`request_executor_resume`), so it resumes at once.
+        // (a wake of a task parked on this worker), so it resumes at once.
         let interrupter = self.clone();
         crate::valtron::executors::idle_wake::park_idle(
             std::sync::Arc::new(move || interrupter.interrupt()),
@@ -837,13 +1089,13 @@ impl SharedThreadRegistry {
 
     #[must_use]
     pub fn executor_count(&self) -> usize {
-        let registry = self.0.read().unwrap_or_else(|p| p.into_inner());
+        let registry = self.0.read().unwrap_or_else(crate::compati::recover_poison);
         registry.threads.active_slots()
     }
 
     #[must_use]
-    pub fn get_thread(&self, thread: ThreadId) -> ThreadRef {
-        let registry = self.0.read().unwrap_or_else(|p| p.into_inner());
+    pub fn get_thread(&self, thread: &ThreadId) -> ThreadRef {
+        let registry = self.0.read().unwrap_or_else(crate::compati::recover_poison);
 
         match registry.threads.get(thread.get_ref()) {
             Some(thread_ref) => thread_ref.clone(),
@@ -858,7 +1110,10 @@ impl SharedThreadRegistry {
         latch: Arc<LockSignal>,
         sender: mpp::Sender<ThreadActivity>,
     ) -> ThreadId {
-        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+        let mut registry = self
+            .0
+            .write()
+            .unwrap_or_else(crate::compati::recover_poison);
 
         // insert thread and get thread key.
         let entry = registry.threads.insert(thread);
@@ -879,15 +1134,21 @@ impl SharedThreadRegistry {
 
     /// Remove a thread entry from the registry when the thread stops.
     /// This prevents stale entries from accumulating after shutdown/restart cycles.
-    pub fn unregister_thread(&self, thread_id: ThreadId) {
-        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+    pub fn unregister_thread(&self, thread_id: &ThreadId) {
+        let mut registry = self
+            .0
+            .write()
+            .unwrap_or_else(crate::compati::recover_poison);
         registry.threads.vacate(thread_id.get_ref());
     }
 
     /// Clear all thread entries from the registry. Called during shutdown
     /// to ensure a clean state for the next test.
     pub fn clear(&self) {
-        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+        let mut registry = self
+            .0
+            .write()
+            .unwrap_or_else(crate::compati::recover_poison);
         registry.threads.clear();
     }
 }
@@ -947,8 +1208,9 @@ pub struct ThreadPoolRegistryInner {
 }
 
 impl ThreadPoolRegistryInner {
+    /// An empty registry handle.
     #[must_use]
-    pub fn new() -> SharedThreadRegistry {
+    pub fn shared_empty() -> SharedThreadRegistry {
         SharedThreadRegistry::new(sync::Arc::new(RwLock::new(ThreadPoolRegistryInner {
             threads: EntryList::new(),
         })))
@@ -974,7 +1236,7 @@ impl core::fmt::Display for ThreadExecutionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Panicked(_) => write!(f, "ThreadExecutionError(_)"),
-            _ => write!(f, "{self:?}"),
+            Self::FailedStart(_) => write!(f, "{self:?}"),
         }
     }
 }
@@ -994,6 +1256,8 @@ pub struct ThreadPoolTaskBuilder<
     panic_handler: Option<BoxedPanicHandler>,
     /// Channel capacity for bounded queues (None = unbounded)
     channel_capacity: Option<usize>,
+    /// The context whose clock bounds the waits of the receivers this builder returns.
+    ctx: Ctx,
     _marker: PhantomData<(Done, Pending)>,
 }
 
@@ -1004,8 +1268,10 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
     > ThreadPoolTaskBuilder<Done, Pending, Resolver, Task>
 {
-    pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
+    /// Build a task builder. The receivers it returns read their clock from `ctx`.
+    pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>, ctx: Ctx) -> Self {
         Self {
+            ctx,
             tasks,
             latch,
             yielders: None,
@@ -1030,7 +1296,7 @@ impl<
         self
     }
 
-    #[allow(clippy::return_self_not_must_use)]
+    #[must_use]
     pub fn with_panic_handler<T>(mut self, handler: T) -> Self
     where
         T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
@@ -1039,7 +1305,7 @@ impl<
         self
     }
 
-    #[allow(clippy::return_self_not_must_use)]
+    #[must_use]
     pub fn with_resolver(mut self, resolver: Resolver) -> Self {
         self.resolver = Some(resolver);
         self
@@ -1052,7 +1318,7 @@ impl<
     /// producers will apply backpressure (return Pending/Reschedule).
     ///
     /// Default is unbounded (None).
-    #[allow(clippy::return_self_not_must_use)]
+    #[must_use]
     pub fn with_channel_capacity(mut self, capacity: usize) -> Self {
         self.channel_capacity = Some(capacity);
         self
@@ -1067,15 +1333,17 @@ impl<
     /// This makes it possible to build synchronous experiences in a async world.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn ready_iter(
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
-            match self.channel_capacity {
-                Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
-                None => Arc::new(NotifyQueue::unbounded()),
-            };
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> = match self.channel_capacity {
+            Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+            None => Arc::new(NotifyQueue::unbounded()),
+        };
 
         let boxed_task = match self.task {
             Some(task) => match self.resolver {
@@ -1096,7 +1364,11 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+                Ok(NotifyRecvIterator::from_notify_queue(
+                    iter_chan,
+                    wait_cycle,
+                    self.ctx.fork(),
+                ))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
@@ -1119,6 +1391,9 @@ impl<
     /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream_iter(
         self,
         wait_cycle: time::Duration,
@@ -1144,6 +1419,9 @@ impl<
     /// # Returns
     ///
     /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn stream_iter_with_config(
         self,
         wait_cycle: time::Duration,
@@ -1156,7 +1434,18 @@ impl<
 
         let boxed_task = match self.task {
             Some(task) => match self.resolver {
-                None => StreamConsumingIter::new(task, iter_chan.clone()),
+                None => {
+                    let mut task_iter = StreamConsumingIter::new(task, iter_chan.clone());
+                    // The stream path used to drop the builder's panic handler.
+                    // That left a caller (`block_on_future`, issue #242) with no
+                    // way to learn the payload of a panic inside the task: the
+                    // result channel closed with no value. Wire it through the
+                    // same way `schedule()` does.
+                    if let Some(panic_handler) = self.panic_handler {
+                        task_iter = task_iter.with_panic_handler(panic_handler);
+                    }
+                    task_iter
+                }
                 Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
@@ -1174,7 +1463,10 @@ impl<
                 }
 
                 Ok(NotifyQueueStreamIterator::new(
-                    iter_chan, max_turns, wait_cycle,
+                    iter_chan,
+                    max_turns,
+                    wait_cycle,
+                    self.ctx.fork(),
                 ))
             }
             Err(err) => match err {
@@ -1192,15 +1484,17 @@ impl<
     /// This makes it possible to build synchronous experiences in a async world.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
-            match self.channel_capacity {
-                Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
-                None => Arc::new(NotifyQueue::unbounded()),
-            };
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> = match self.channel_capacity {
+            Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+            None => Arc::new(NotifyQueue::unbounded()),
+        };
 
         let boxed_task = match self.task {
             Some(task) => match self.resolver {
@@ -1221,7 +1515,11 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+                Ok(NotifyRecvIterator::from_notify_queue(
+                    iter_chan,
+                    wait_cycle,
+                    self.ctx.fork(),
+                ))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
@@ -1232,24 +1530,26 @@ impl<
 
     /// `schedule` adds a task into the global execution queue which should
     /// be processed by the underlying thread pool.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError` when the engine cannot accept the task.
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
-            Some(task) => match self.resolver {
-                Some(resolver) => {
+            Some(task) => {
+                if let Some(resolver) = self.resolver {
                     let mut task_iter = OnNext::new(task, resolver);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
-                }
-                None => {
+                } else {
                     let mut task_iter = DoNext::new(task);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
                 }
-            },
+            }
             None => return Err(ExecutorError::TaskRequired),
         };
 
@@ -1283,6 +1583,7 @@ impl<
 where
     F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
+    #[must_use]
     pub fn on_next(self, action: F) -> Self {
         self.with_resolver(FnReady::new(action))
     }
@@ -1297,6 +1598,7 @@ impl<
 where
     F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
+    #[must_use]
     pub fn on_next_mut(self, action: F) -> Self {
         self.with_resolver(FnMutReady::new(action))
     }
@@ -1320,6 +1622,13 @@ pub struct ThreadRegistry {
     // Activity monitoring
     activity_sender: mpp::Sender<ThreadActivity>,
     pub(crate) activity_receiver: mpp::Receiver<ThreadActivity>,
+    /// The thread that drains [`Self::activity_receiver`] in normal operation
+    /// (issue #243). `None` until [`Self::start_activity_monitor`] runs, and
+    /// `None` again after shutdown joined it.
+    activity_monitor: Mutex<Option<std::thread::JoinHandle<()>>>,
+    /// Set before the monitor is joined, so it leaves its receive loop instead
+    /// of waiting for the channel to close.
+    activity_monitor_stop: Arc<AtomicBool>,
 
     // Shutdown coordination
     pub(crate) waitgroup: WaitGroup,
@@ -1337,6 +1646,8 @@ pub struct ThreadRegistry {
     priority: PriorityOrder,
     op_read_time: time::Duration,
     yield_wait_time: time::Duration,
+    max_yield_duration: time::Duration,
+    slow_poll_warning: Option<time::Duration>,
     thread_stack_size: Option<usize>,
     thread_max_idle_count: u32,
     thread_max_sleep_before_end: u32,
@@ -1362,6 +1673,14 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("kill_latch", &"<LockSignal>")
             .field("activity_sender", &"<Sender<ThreadActivity>>")
             .field("activity_receiver", &"<Receiver<ThreadActivity>>")
+            .field(
+                "activity_monitor",
+                &self
+                    .activity_monitor
+                    .lock()
+                    .is_ok_and(|handle| handle.is_some()),
+            )
+            .field("activity_monitor_stop", &self.activity_monitor_stop)
             .field("waitgroup", &"<WaitGroup>")
             .field("rng", &"<Mutex<ChaCha8Rng>>")
             .field("max_threads", &self.max_threads)
@@ -1370,6 +1689,8 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("priority", &self.priority)
             .field("op_read_time", &self.op_read_time)
             .field("yield_wait_time", &self.yield_wait_time)
+            .field("max_yield_duration", &self.max_yield_duration)
+            .field("slow_poll_warning", &self.slow_poll_warning)
             .field("thread_stack_size", &self.thread_stack_size)
             .field("thread_max_idle_count", &self.thread_max_idle_count)
             .field(
@@ -1382,12 +1703,48 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("thread_back_max_duration", &self.thread_back_max_duration)
             .field("registry", &"<SharedThreadRegistry>")
             .field("thread_handles", &"<RwLock<HashMap>>")
-            .finish()
+            .finish_non_exhaustive()
+    }
+}
+
+/// Logs a worker stop and reports the outcome to the activity channel.
+fn finish_worker_stop(
+    worker_tag: &str,
+    seed: u64,
+    sender: &mpp::Sender<ThreadActivity>,
+    sender_id: ThreadId,
+    result: std::thread::Result<()>,
+) {
+    match result {
+        Ok(()) => {
+            tracing::debug!("worker thread({}) {} stopped cleanly", worker_tag, seed);
+        }
+        Err(err) => {
+            // A worker dying to a panic is a real fault; keep it at error level.
+            tracing::error!(
+                "worker thread({}) {} stopped by panic: {:?}",
+                worker_tag,
+                seed,
+                err
+            );
+            // Exactly ONE exit event per worker. `Panicked` performs the same
+            // accounting as `Stopped` (decrement `live_threads`, unregister,
+            // drop the handle) and then respawns. Sending `Stopped` as well
+            // made the listener decrement twice (issue #241), so
+            // `live_threads` drifted down by one per panic and could reach 0
+            // while workers were still alive.
+            sender
+                .send(ThreadActivity::Panicked(sender_id, err))
+                .expect("should send event");
+        }
     }
 }
 
 impl ThreadRegistry {
     /// Create a new `ThreadRegistry` with the given seed and thread count.
+    ///
+    /// # Panics
+    /// Panics if `num_threads` is below 2 or above `THREADS_MAX`.
     #[allow(clippy::too_many_arguments)]
     #[must_use]
     pub fn new(
@@ -1396,6 +1753,7 @@ impl ThreadRegistry {
         priority: PriorityOrder,
         op_read_time: time::Duration,
         yield_wait: time::Duration,
+        max_yield_duration: time::Duration,
         thread_stack_size: Option<usize>,
         thread_max_idle_count: u32,
         thread_max_sleep_before_end: u32,
@@ -1427,15 +1785,19 @@ impl ThreadRegistry {
             kill_latch,
             activity_sender: activity_sender.clone(),
             activity_receiver,
+            activity_monitor: Mutex::new(None),
+            activity_monitor_stop: Arc::new(AtomicBool::new(false)),
             waitgroup: WaitGroup::new(),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
-            root: Ctx::new(),
+            root: crate::valtron::ctx::seeded_root(seed_for_rng),
             max_threads: num_threads,
             live_threads: Arc::new(AtomicUsize::new(0)),
             idle_threads: Arc::new(AtomicUsize::new(0)),
             priority,
             op_read_time,
             yield_wait_time: yield_wait,
+            max_yield_duration,
+            slow_poll_warning: None,
             thread_stack_size,
             thread_max_idle_count,
             thread_max_sleep_before_end,
@@ -1454,20 +1816,49 @@ impl ThreadRegistry {
     /// Create a `ThreadRegistry` with default configuration.
     #[must_use]
     pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
-        Self::new(
+        Self::with_config(seed_from_rng, num_threads, &PoolConfig::default())
+    }
+
+    /// Create a `ThreadRegistry` with the given [`PoolConfig`] tunables.
+    #[must_use]
+    pub fn with_config(seed_from_rng: u64, num_threads: usize, config: &PoolConfig) -> Self {
+        Self::with_config_and_root(
+            seed_from_rng,
+            num_threads,
+            config,
+            crate::valtron::ctx::seeded_root(seed_from_rng),
+        )
+    }
+
+    /// [`ThreadRegistry::with_config`] with an explicit pool root.
+    #[must_use]
+    pub fn with_config_and_root(
+        seed_from_rng: u64,
+        num_threads: usize,
+        config: &PoolConfig,
+        root: Ctx,
+    ) -> Self {
+        let mut registry = Self::new(
             seed_from_rng,
             num_threads,
             PriorityOrder::Top,
-            DEFAULT_OP_READ_TIME,
-            DEFAULT_YIELD_WAIT_TIME,
+            config.op_read_time,
+            config.yield_wait_time,
+            config.max_yield_duration,
             None,
             MAX_ROUNDS_IDLE_COUNT,
             MAX_ROUNDS_WHEN_SLEEPING_ENDS,
-            BACK_OFF_THREAD_FACTOR,
-            BACK_OFF_JITER,
-            BACK_OFF_MIN_DURATION,
-            BACK_OFF_MAX_DURATION,
-        )
+            config.back_off_thread_factor,
+            config.back_off_jitter,
+            config.back_off_min_duration,
+            config.back_off_max_duration,
+        );
+        // The registry is not shared yet, so replace the default root here.
+        registry.root = root;
+        // Same for the slow-poll watchdog: `new` has no argument for it, so
+        // the config sets it on the still-unshared registry.
+        registry.slow_poll_warning = config.slow_poll_warning;
+        registry
     }
 
     /// Accessor for `shared_tasks` queue.
@@ -1480,6 +1871,13 @@ impl ThreadRegistry {
     #[must_use]
     pub fn fork_ctx(&self) -> Ctx {
         self.root.fork()
+    }
+
+    /// The clock of the pool's stable root, seeded by the host or the test.
+    /// Kept: executor root plumbing; it returns the clock of the root `Ctx`.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn foundation_context::Clock> {
+        self.root.clock()
     }
 
     /// Accessor for latch.
@@ -1500,7 +1898,7 @@ impl ThreadRegistry {
         &self.waitgroup
     }
 
-    /// Register a yielder for interrupt_all tracking.
+    /// Register a yielder for `interrupt_all` tracking.
     pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
         self.yielders.register(yielder);
     }
@@ -1512,7 +1910,7 @@ impl ThreadRegistry {
     }
 
     /// Interrupt all registered yielders.
-    /// Call this during shutdown to wake threads waiting in yield_for.
+    /// Call this during shutdown to wake threads waiting in `yield_for`.
     pub fn interrupt_all_yielders(&self) {
         self.yielders.interrupt_all();
     }
@@ -1520,7 +1918,14 @@ impl ThreadRegistry {
     /// Shutdown the registry - signals kill and waits for all threads.
     pub fn shutdown(&self) {
         self.kill_signal.turn_on();
-        // Interrupt all yielding threads first
+        // Stop the activity monitor before the wait. It can respawn a worker
+        // from a `Panicked` event that it read just before the kill signal, and
+        // a respawn after `waitgroup.wait()` observed zero would leave a worker
+        // outside the join set. The kill signal is already on, so any such
+        // worker exits at once.
+        self.stop_activity_monitor();
+        // Interrupt the yielding threads after the monitor stopped, so a
+        // replacement worker it started is interrupted too.
         self.interrupt_all_yielders();
         self.latch.signal_all();
         self.waitgroup.wait();
@@ -1541,14 +1946,21 @@ impl ThreadRegistry {
     #[must_use]
     pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
         self.kill_signal.turn_on();
+        // Same reason as [`Self::shutdown`]: no worker may respawn after the
+        // wait, and a replacement worker must see the yielder interrupt.
+        self.stop_activity_monitor();
         self.interrupt_all_yielders();
         self.latch.signal_all();
-        let stopped = self.waitgroup.wait_timeout(timeout);
+        let ctx = self.fork_ctx();
+        let stopped = self.waitgroup.wait_timeout(timeout, &ctx);
         if stopped {
             self.join_all_threads();
         } else {
             let detached = {
-                let mut map = self.thread_handles.write().unwrap_or_else(|p| p.into_inner());
+                let mut map = self
+                    .thread_handles
+                    .write()
+                    .unwrap_or_else(crate::compati::recover_poison);
                 std::mem::take(&mut *map).len()
             };
             tracing::error!(
@@ -1563,6 +1975,9 @@ impl ThreadRegistry {
     }
 
     /// Join all thread handles.
+    ///
+    /// # Panics
+    /// Panics if the thread-handle lock is poisoned.
     pub fn join_all_threads(&self) {
         let handles = {
             let mut map = self.thread_handles.write().unwrap();
@@ -1586,8 +2001,126 @@ impl ThreadRegistry {
         self.kill_latch.signal_all();
     }
 
+    /// The number of worker threads this registry counts as live.
+    ///
+    /// WHY: worker-panic accounting (`live_threads`) is otherwise invisible to
+    /// callers. Tests and diagnostics need to check that it tracks the real
+    /// worker count (issue #241).
+    /// WHAT: reads the registry's live-thread counter.
+    #[must_use]
+    pub fn live_threads(&self) -> usize {
+        self.live_threads.load(atomic::Ordering::Acquire)
+    }
+
+    /// Start the thread that drains the worker-activity queue.
+    ///
+    /// WHY: the queue carries the worker exit events. The `Panicked` arm is the
+    /// only place that respawns a worker, and it runs when an event is read. A
+    /// pool that never reads the queue therefore loses one worker for good on
+    /// every worker-level panic, and its `live_threads`/`idle_threads`
+    /// accounting stays frozen after startup (issue #243).
+    /// WHAT: spawns one named thread that drains the queue until the registry
+    /// shuts down or every worker is gone. [`initialize_pool_with_config_and_ctx`]
+    /// calls it once, after the workers start. A private registry built by a
+    /// test may call it directly; without it the test must drive the queue with
+    /// [`Self::pump_activity`], because the two compete for the same events.
+    /// HOW: the thread holds a [`Weak`](std::sync::Weak) reference, so it never
+    /// keeps the registry alive; shutdown sets
+    /// [`Self::activity_monitor_stop`](ThreadRegistry) and joins the thread.
+    ///
+    /// Idempotent: a second call does nothing.
+    ///
+    /// # Panics
+    /// Panics when the operating system cannot start the monitor thread.
+    pub fn start_activity_monitor(self: &Arc<Self>) {
+        let mut slot = self
+            .activity_monitor
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison);
+        if slot.is_some() {
+            return;
+        }
+
+        // A later start after a stop would otherwise see the stale flag and
+        // exit at once.
+        self.activity_monitor_stop
+            .store(false, atomic::Ordering::Release);
+
+        let weak = Arc::downgrade(self);
+        let stop = Arc::clone(&self.activity_monitor_stop);
+        let handle = std::thread::Builder::new()
+            .name("valtron-activity-monitor".into())
+            .spawn(move || {
+                loop {
+                    if stop.load(atomic::Ordering::Acquire) {
+                        break;
+                    }
+                    // The registry may be dropped without a shutdown; a failed
+                    // upgrade means nothing is left to account for.
+                    let Some(registry) = weak.upgrade() else {
+                        break;
+                    };
+                    let keep_going = registry.listen_for_activity_tick().is_some();
+                    drop(registry);
+                    if !keep_going {
+                        break;
+                    }
+                }
+            })
+            .expect("Failed to spawn the valtron activity monitor thread");
+        *slot = Some(handle);
+    }
+
+    /// Stop and join the activity monitor, if it runs.
+    ///
+    /// WHY: the monitor blocks in a timed receive, so a shutdown that only sets
+    /// a flag still waits for the receive timeout. Sending one benign event
+    /// wakes it at once. The worker kill signal is set before this call, so the
+    /// latch signal that `BroadcastedTask` can raise cannot start new work.
+    /// WHAT: sets the stop flag, wakes the monitor, joins it, and leaves the
+    /// slot empty. Idempotent.
+    fn stop_activity_monitor(&self) {
+        self.activity_monitor_stop
+            .store(true, atomic::Ordering::Release);
+        let _ = self.activity_sender.send(ThreadActivity::BroadcastedTask);
+        let handle = self
+            .activity_monitor
+            .lock()
+            .unwrap_or_else(crate::compati::recover_poison)
+            .take();
+        if let Some(handle) = handle {
+            if handle.join().is_err() {
+                tracing::warn!("valtron activity monitor panicked");
+            }
+        }
+    }
+
+    /// Process at most one pending worker-activity event.
+    ///
+    /// WHY: a private registry that has no activity monitor
+    /// ([`Self::start_activity_monitor`]) needs a way to advance the queue while
+    /// its workers stay alive. The pool starts a monitor, so it does not use
+    /// this hook; a test must not mix the two, because they compete for the same
+    /// events.
+    /// WHAT: returns `true` when an event was consumed, `false` when the queue
+    /// was empty for [`Self::op_read_time`].
+    /// HOW: one [`Self::listen_for_activity_tick`] pass.
+    #[doc(hidden)]
+    pub fn pump_activity(&self) -> bool {
+        matches!(self.listen_for_activity_tick(), Some(true))
+    }
+
     /// Listen for activity events from worker threads.
     fn listen_for_activity(&self) -> Option<()> {
+        self.listen_for_activity_tick().map(|_processed| ())
+    }
+
+    /// One activity-processing pass.
+    ///
+    /// Returns `None` when listening must stop, and `Some(processed)` where
+    /// `processed` is `true` when an event was consumed from the queue and
+    /// `false` when it was empty or the read timed out.
+    fn listen_for_activity_tick(&self) -> Option<bool> {
         let remaining_live = self.live_threads.load(atomic::Ordering::Acquire);
         if remaining_live == 0 {
             tracing::debug!("No more live threads, returning");
@@ -1600,11 +2133,11 @@ impl ThreadRegistry {
             self.latch.signal_all();
         }
 
-        let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
+        let ctx = self.root.fork();
+        let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time, &ctx) {
             Ok(activity) => activity,
             Err(err) => match err {
-                mpp::ReceiverError::Empty => return Some(()),
-                mpp::ReceiverError::Timeout => return Some(()),
+                mpp::ReceiverError::Empty | mpp::ReceiverError::Timeout => return Some(false),
                 mpp::ReceiverError::Closed(_) => return None,
             },
         };
@@ -1615,22 +2148,22 @@ impl ThreadRegistry {
                     self.latch.signal_one();
                 }
             }
-            ThreadActivity::Started(_id) => {
-                tracing::debug!("Thread started: {:?}", _id);
+            ThreadActivity::Started(id) => {
+                tracing::debug!("Thread started: {:?}", id);
             }
             ThreadActivity::Stopped(id) => {
                 tracing::debug!("Thread stopped: {:?}", id);
                 self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
                 // Remove from thread registry entry list to prevent stale entries
-                self.registry.unregister_thread(id.clone());
-                self.remove_thread_id(id);
+                self.registry.unregister_thread(&id);
+                self.remove_thread_id(&id);
             }
             ThreadActivity::Panicked(id, err) => {
                 tracing::debug!("Thread panicked: {:?}, err: {:?}", id, err);
                 self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
                 // Remove from thread registry entry list to prevent stale entries
-                self.registry.unregister_thread(id.clone());
-                self.remove_thread_id(id);
+                self.registry.unregister_thread(&id);
+                self.remove_thread_id(&id);
 
                 // Respawn if under max threads and not killed
                 if self.live_threads.load(atomic::Ordering::Acquire) < self.max_threads
@@ -1658,29 +2191,34 @@ impl ThreadRegistry {
             }
         }
 
-        Some(())
+        Some(true)
     }
 
-    fn remove_thread_id(&self, thread_id: ThreadId) {
-        self.thread_handles.write().unwrap().remove(&thread_id);
+    fn remove_thread_id(&self, thread_id: &ThreadId) {
+        self.thread_handles.write().unwrap().remove(thread_id);
     }
 
     /// Spawn a worker thread with `WaitGroup` tracking.
+    ///
+    /// # Errors
+    /// Returns `ThreadExecutionError::FailedStart` when the operating system cannot
+    /// start the worker thread.
+    ///
+    /// # Panics
+    /// Panics if the internal RNG lock is poisoned.
     pub fn spawn_worker(&self) -> ThreadExecutionResult<ThreadRef> {
-        use std::thread::Builder;
+        let seed = self.rng.lock().unwrap().next_u64();
 
-        let mut rng = self.rng.lock().unwrap();
-        let seed = rng.next_u64();
-        drop(rng);
+        // Name the thread: without a name it inherits the name of the thread
+        // that started it (GitHub issue #309). A test then sees its own name on
+        // a worker, and a per-thread CPU check counts that worker as a test
+        // thread. Linux keeps only the first 15 bytes of the name, so the name
+        // stays short. The seed stays in `worker_tag`, which is used in logs.
+        let b = self
+            .thread_stack_size
+            .map_or_else(Builder::new, |size| Builder::new().stack_size(size))
+            .name("valtron-worker".to_string());
 
-        let b = Builder::new();
-        let b = if let Some(size) = self.thread_stack_size {
-            b.stack_size(size)
-        } else {
-            b
-        };
-
-        // Register thread in registry first
         let worker_tag = format!("worker-{seed}");
 
         let thread_ref = ThreadRef::new(
@@ -1699,10 +2237,8 @@ impl ThreadRegistry {
             self.activity_sender.clone(),
         );
 
-        // Get updated thread_ref from registry (process field is now populated)
-        let thread_ref = self.registry.get_thread(thread_id.clone());
+        let thread_ref = self.registry.get_thread(&thread_id);
 
-        // Register the yielder for interrupt_all tracking
         let process_clone = thread_ref.process.clone().unwrap();
         self.register_yielder(Arc::new(process_clone.clone()));
 
@@ -1711,44 +2247,42 @@ impl ThreadRegistry {
         let task_clone = thread_ref.tasks.clone();
         let thread_kill_signal = thread_ref.global_kill_signal.clone();
 
-        let sender_id = thread_id.clone();
-        let sender = self.activity_sender.clone();
+        let (sender_id, sender) = (thread_id.clone(), self.activity_sender.clone());
 
         let thread_yield_wait_duration = self.yield_wait_time;
+        let thread_max_yield_duration = self.max_yield_duration;
+        let thread_slow_poll_warning = self.slow_poll_warning;
         let thread_max_idle_count = self.thread_max_idle_count;
         let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
         let thread_back_off_factor = self.thread_back_off_factor;
         let thread_back_off_jitter = self.thread_back_off_jitter;
         let thread_back_min_duration = self.thread_back_min_duration;
         let thread_back_max_duration = self.thread_back_max_duration;
+        let root = self.root.clone();
 
-        // Get WaitGroup guard BEFORE spawning
         let wg_guard = self.waitgroup.guard();
         self.waitgroup.add(1);
 
-        // Capture the spawning thread's tracing dispatcher so events emitted on
-        // this worker reach the SAME subscriber — including a test's thread-local
-        // `#[traced_test]` subscriber, which otherwise only covers the test thread
-        // (worker-thread `tracing::*` would silently go to the global no-op one).
-        let dispatch = tracing::dispatcher::get_default(|d| d.clone());
+        // Inherit the spawning thread's dispatcher (test thread-local subscribers).
+        let dispatch = tracing::dispatcher::get_default(std::clone::Clone::clone);
 
         match b.spawn(move || {
-            // Install the inherited dispatcher for this worker thread's lifetime.
             let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
             tracing::debug!("worker thread({}) {} started", &worker_tag, seed_clone);
 
-            // Hold guard for lifetime of thread - dropped on exit (including panic)
             let _wg = wg_guard;
 
-            match panic::catch_unwind(|| {
+            // The `Ctx` clock is not `RefUnwindSafe`; the closure only builds a
+            // thread-local executor, so a panic cannot leave shared state half-written.
+            let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
                 sender
                     .send(ThreadActivity::Started(sender_id.clone()))
                     .expect("should send event");
 
-                let thread_executor = LocalThreadExecutor::from_seed(
+                let thread_executor = LocalThreadExecutor::from_seed_with_root(
                     seed_clone,
                     worker_tag.clone(),
                     task_clone,
@@ -1770,7 +2304,10 @@ impl ThreadRegistry {
                     thread_yield_wait_duration,
                     Some(thread_kill_signal),
                     Some(sender.clone()),
-                );
+                    root,
+                )
+                .with_max_yield_duration(thread_max_yield_duration)
+                .with_slow_poll_warning(thread_slow_poll_warning);
 
                 thread_executor.block_on();
 
@@ -1782,30 +2319,9 @@ impl ThreadRegistry {
                     &worker_tag,
                     seed_clone
                 );
-            }) {
-                Ok(()) => {
-                    tracing::debug!("worker thread({}) {} stopped cleanly", &worker_tag, seed_clone);
-                    Ok(())
-                }
-                Err(err) => {
-                    // Error, not warn: a worker dying to a panic is a real
-                    // fault, and callers that quieten this module's routine
-                    // chatter down to `error` must still hear about it.
-                    tracing::error!(
-                        "worker thread({}) {} stopped by panic: {:?}",
-                        &worker_tag,
-                        seed_clone,
-                        err
-                    );
-                    sender
-                        .send(ThreadActivity::Panicked(sender_id.clone(), err))
-                        .expect("should send event");
-                    sender
-                        .send(ThreadActivity::Stopped(sender_id))
-                        .expect("should send event");
-                    Ok(())
-                }
-            }
+            }));
+            finish_worker_stop(&worker_tag, seed_clone, &sender, sender_id, result);
+            Ok(())
             // _wg dropped here → WaitGroup::done()
         }) {
             Ok(handle) => {

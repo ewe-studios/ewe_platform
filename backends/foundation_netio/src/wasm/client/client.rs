@@ -1,7 +1,7 @@
 //! Fetch-based HTTP client for wasm32 (browser + CF Workers).
 //!
 //! WHY: AI providers and other HTTP consumers need to work on wasm32.
-//! The native `SimpleHttpClient` uses TCP sockets — unavailable in
+//! The native `NativeHttpClient` uses TCP sockets — unavailable in
 //! browsers and CF Workers. The `fetch()` Web API is the standard
 //! HTTP primitive on these platforms.
 //!
@@ -356,7 +356,11 @@ fn build_web_request(req: PreparedRequest, max_redirects: u8) -> Result<Request,
     // Set via `Reflect` (the `RequestInit.redirect` field) rather than a typed
     // web-sys setter — the setter's name/signature drifts across web-sys patch
     // releases, and the string form is what the fetch API consumes regardless.
-    let redirect_mode = if max_redirects == 0 { "manual" } else { "follow" };
+    let redirect_mode = if max_redirects == 0 {
+        "manual"
+    } else {
+        "follow"
+    };
     let _ = js_sys::Reflect::set(
         init.as_ref(),
         &JsValue::from_str("redirect"),

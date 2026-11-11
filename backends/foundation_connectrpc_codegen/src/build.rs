@@ -1,7 +1,7 @@
-//! Build.rs helper for ConnectRPC code generation (Decision 10 Mode 1).
+//! Build.rs helper for `ConnectRPC` code generation (Decision 10 Mode 1).
 //!
 //! WHY: Users need a simple `build.rs` API that compiles `.proto` files and
-//! generates both message types (via prost-build) and ConnectRPC service stubs
+//! generates both message types (via prost-build) and `ConnectRPC` service stubs
 //! (via [`generate_services`]).
 //!
 //! WHAT: [`Config`] builder with `files`, `includes`, and `out_dir` settings.
@@ -15,11 +15,10 @@
 //! `_connectrpc.rs` in the output directory.
 
 use std::path::PathBuf;
-use std::str::FromStr;
 
 use prost::Message;
 
-/// Builder for protobuf compilation and ConnectRPC code generation.
+/// Builder for protobuf compilation and `ConnectRPC` code generation.
 pub struct Config {
     files: Vec<String>,
     includes: Vec<String>,
@@ -46,25 +45,25 @@ impl Config {
     /// Set the `.proto` source files to compile.
     #[must_use]
     pub fn files(mut self, files: &[&str]) -> Self {
-        self.files = files.iter().map(|s| s.to_string()).collect();
+        self.files = files.iter().map(std::string::ToString::to_string).collect();
         self
     }
 
     /// Set the include directories for proto imports.
     #[must_use]
     pub fn includes(mut self, dirs: &[&str]) -> Self {
-        self.includes = dirs.iter().map(|s| s.to_string()).collect();
+        self.includes = dirs.iter().map(std::string::ToString::to_string).collect();
         self
     }
 
     /// Override the output directory (defaults to `OUT_DIR` env var).
     #[must_use]
     pub fn out_dir(mut self, dir: &str) -> Self {
-        self.out_dir = Some(PathBuf::from_str(dir).expect("valid path"));
+        self.out_dir = Some(PathBuf::from(dir));
         self
     }
 
-    /// Compile `.proto` files and generate ConnectRPC service code.
+    /// Compile `.proto` files and generate `ConnectRPC` service code.
     ///
     /// 1. Uses prost-build to compile `.proto` → message types and a file
     ///    descriptor set.
@@ -75,9 +74,9 @@ impl Config {
     /// Returns a boxed error if prost-build compilation fails, the descriptor
     /// set cannot be read or decoded, or the output file cannot be written.
     pub fn compile(self) -> Result<(), Box<dyn std::error::Error>> {
-        let out_dir = self
-            .out_dir
-            .unwrap_or_else(|| PathBuf::from(std::env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string())));
+        let out_dir = self.out_dir.unwrap_or_else(|| {
+            PathBuf::from(std::env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string()))
+        });
 
         // ── Configure prost-build ───────────────────────────────────────────
         let mut config = prost_build::Config::new();
@@ -97,8 +96,7 @@ impl Config {
         let descriptor_set = prost_types::FileDescriptorSet::decode(buf.as_slice())?;
 
         // ── Generate ConnectRPC service code ────────────────────────────────
-        let connectrpc_code =
-            super::generate_services(&descriptor_set.file);
+        let connectrpc_code = super::generate_services(&descriptor_set.file);
 
         // ── Write output ────────────────────────────────────────────────────
         let out_file = out_dir.join("_connectrpc.rs");

@@ -249,8 +249,7 @@ impl<R: RandSource, T> Generator<R, T> {
         let random = self.rand_source.next_u32();
         let entropy = self.entropy_with_machine_id(random);
         Some(
-            Id::try_from_fields(self.timestamp, self.counter_hi, self.counter_lo, entropy)
-                .unwrap(),
+            Id::try_from_fields(self.timestamp, self.counter_hi, self.counter_lo, entropy).unwrap(),
         )
     }
 
@@ -300,6 +299,3 @@ impl TimeSource for StdSystemTime {
             .as_millis() as u64
     }
 }
-
-#[cfg(test)]
-mod tests;

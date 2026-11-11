@@ -1,6 +1,6 @@
 //! E2E Integration Tests — full user story validation.
 //!
-//! Each test spins up a real IdP server with real Turso storage and exercises
+//! Each test spins up a real `IdP` server with real Turso storage and exercises
 //! a complete user journey from start to finish. No server mocks — only external
 //! dependencies (OAuth providers, email) are faked.
 
@@ -12,29 +12,29 @@ use std::time::Duration;
 use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::idp_server::IdpServer;
 use foundation_auth::server::storage::HandlerStorage;
-use foundation_core::synca::OnSignal;
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::valtron_test;
 use foundation_db::{MemoryStorage, QueryStore};
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::SimpleResponse;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 // ─── Test Infrastructure ─────────────────────────────────────────────────────
 
-/// Spins up a real IdP server with real Turso storage on a random port.
-
+/// Spins up a real `IdP` server with real Turso storage on a random port.
 struct TestIdpServer {
     addr: std::net::SocketAddr,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     _db_dir: tempfile::TempDir,
 }
 
 impl TestIdpServer {
-    /// Start a new IdP server with fresh Turso database.
+    /// Start a new `IdP` server with fresh Turso database.
     fn start() -> Self {
         let dir = tempfile::tempdir().expect("tempdir");
         let db_path = dir.path().join("test_auth.db");
@@ -42,13 +42,14 @@ impl TestIdpServer {
         let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
         let query_store: Arc<dyn QueryStore> = Arc::new(provider);
         let cache = MemoryStorage::new();
-        let storage = Arc::new(HandlerStorage::new(query_store, cache));
+        let ctx: Ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+        let storage = Arc::new(HandlerStorage::new(query_store, cache, ctx.clone()));
 
         let config = IdpConfig::new("https://auth.example.com".into());
-        let idp = IdpServer::new(config, storage);
+        let idp = IdpServer::new(config, storage, ctx);
         let app = idp.http_app();
 
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
         let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
         let addr = listener.local_addr().expect("local_addr failed");
 
@@ -81,27 +82,6 @@ impl TestIdpServer {
 impl Drop for TestIdpServer {
     fn drop(&mut self) {
         self.shutdown.turn_on();
-    }
-}
-
-/// HTTP client with cookie persistence for session-based tests.
-struct TestClient {
-    inner: DynNetClient,
-    cookies: std::sync::Mutex<Vec<String>>,
-}
-
-impl TestClient {
-    fn new(addr: std::net::SocketAddr) -> Self {
-        Self {
-            inner: HttpClientBuilder::new()
-                .resolve_to(addr)
-                .max_retries(3)
-                .connect_timeout(Duration::from_secs(5))
-                .read_timeout(Duration::from_secs(20))
-                .write_timeout(Duration::from_secs(5))
-                .build(),
-            cookies: std::sync::Mutex::new(Vec::new()),
-        }
     }
 }
 
@@ -506,7 +486,7 @@ fn e2e_token_without_storage_returns_400() {
         )
         .unwrap();
 
-    let (status, _, body) = resp.into_parts();
+    let (status, _, _body) = resp.into_parts();
     assert_eq!(status_code(&status), 400);
 }
 
@@ -565,13 +545,14 @@ fn e2e_issuer_trailing_slash_normalized() {
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
-    let storage = Arc::new(HandlerStorage::new(query_store, cache));
+    let ctx: Ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+    let storage = Arc::new(HandlerStorage::new(query_store, cache, ctx.clone()));
 
     let config = IdpConfig::new("https://auth.example.com/".into());
-    let idp = IdpServer::new(config, storage);
+    let idp = IdpServer::new(config, storage, ctx);
     let app = idp.http_app();
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
@@ -646,20 +627,24 @@ fn e2e_jwks_returns_same_key_across_requests() {
 
 #[valtron_test(threads = 8)]
 fn e2e_custom_prefix_routes_work() {
-    let server = TestIdpServer::start();
+    let _server = TestIdpServer::start();
     let config = IdpConfig::new("https://auth.example.com".into());
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("test_auth.db");
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
-    let storage = Arc::new(HandlerStorage::new(query_store, MemoryStorage::new()));
+    let storage = Arc::new(HandlerStorage::new(
+        query_store,
+        MemoryStorage::new(),
+        Ctx::fixed(Arc::new(MonotonicClock::new())),
+    ));
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
-    // The routes' handlers need the storage in the bag (as `IdpServer` stores it).
+    // The routes' handlers need the storage in the context (as `IdpServer` stores it).
     app.ctx.store(storage);
     IdpServer::<MemoryStorage>::register_routes(&mut app, "/auth/v1");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 

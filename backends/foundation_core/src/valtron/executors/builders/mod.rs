@@ -25,6 +25,7 @@
 use std::{any::Any, marker::PhantomData};
 
 use crate::synca::Entry;
+use crate::valtron::executors::DEFAULT_DELIVERY_CAPACITY;
 use crate::valtron::AnyResult;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedPanicHandler, DoNext, ExecutorError, FnMutReady, FnReady, OnNext,
@@ -70,6 +71,11 @@ where
     pub(crate) parent: Option<Entry>,
     pub(crate) resolver: Option<Resolver>,
     pub(crate) panic_handler: Option<BoxedPanicHandler>,
+    /// Bound for a `sequenced` task's delivery queue. `Some` for a bounded
+    /// queue, `None` for unbounded. Default [`DEFAULT_DELIVERY_CAPACITY`]. Only
+    /// the `sequenced` verb (and `broadcast`'s `sequence` fallback) reads it;
+    /// `schedule`/`lift` deliveries are always unbounded.
+    pub(crate) delivery_capacity: Option<usize>,
     pub(crate) _marker: PhantomData<(Done, Pending)>,
 }
 
@@ -89,6 +95,7 @@ where
             parent: None,
             resolver: None,
             panic_handler: None,
+            delivery_capacity: Some(DEFAULT_DELIVERY_CAPACITY),
             _marker: PhantomData,
         }
     }
@@ -111,6 +118,14 @@ where
     #[must_use]
     pub fn maybe_parent(mut self, parent: Option<Entry>) -> Self {
         self.parent = parent;
+        self
+    }
+
+    /// Set the bound for a `sequenced` delivery queue. Default
+    /// [`DEFAULT_DELIVERY_CAPACITY`].
+    #[must_use]
+    pub fn with_delivery_capacity(mut self, capacity: usize) -> Self {
+        self.delivery_capacity = Some(capacity);
         self
     }
 
@@ -145,10 +160,7 @@ where
 
     /// Transition to a [`SequenceBuilder`] linked to `parent`.
     #[must_use]
-    pub fn as_sequenced(
-        mut self,
-        parent: Entry,
-    ) -> SequenceBuilder<Done, Pending, Resolver, Task> {
+    pub fn as_sequenced(mut self, parent: Entry) -> SequenceBuilder<Done, Pending, Resolver, Task> {
         self.parent = Some(parent);
         SequenceBuilder { config: self }
     }
@@ -310,6 +322,7 @@ where
 fn local_spawn_task<Done, Pending, Resolver, Task>(
     task: Task,
     resolver: Option<Resolver>,
+    panic_handler: Option<BoxedPanicHandler>,
 ) -> crate::valtron::BoxedExecutionIterator
 where
     Done: 'static,
@@ -317,9 +330,18 @@ where
     Resolver: TaskReadyResolver<Done, Pending> + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
-    match resolver {
-        Some(resolver) => OnNext::new(task, resolver).into(),
-        None => Box::new(DoNext::new(task)),
+    if let Some(resolver) = resolver {
+        let iter = OnNext::new(task, resolver);
+        match panic_handler {
+            Some(handler) => Box::new(iter.with_panic_handler(handler)),
+            None => iter.into(),
+        }
+    } else {
+        let iter = DoNext::new(task);
+        match panic_handler {
+            Some(handler) => Box::new(iter.with_panic_handler(handler)),
+            None => Box::new(iter),
+        }
     }
 }
 
@@ -331,12 +353,16 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Deliver the task to the bottom of the local queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::TaskRequired` when the builder holds no task.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let c = self.config;
         let Some(task) = c.task else {
             return Err(ExecutorError::TaskRequired);
         };
-        c.engine.schedule(local_spawn_task(task, c.resolver))
+        c.engine
+            .schedule(local_spawn_task(task, c.resolver, c.panic_handler))
     }
 }
 
@@ -348,13 +374,17 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Deliver the task to the top of the local queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::TaskRequired` when the builder holds no task.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let c = self.config;
         let parent = c.parent;
         let Some(task) = c.task else {
             return Err(ExecutorError::TaskRequired);
         };
-        c.engine.lift(local_spawn_task(task, c.resolver), parent)
+        c.engine
+            .lift(local_spawn_task(task, c.resolver, c.panic_handler), parent)
     }
 }
 
@@ -366,6 +396,10 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Sequence the task with its parent on the local queue.
+    ///
+    /// # Errors
+    /// Returns `ExecutorError::ParentMustBeSupplied` when the builder holds no
+    /// parent, and `ExecutorError::TaskRequired` when it holds no task.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let c = self.config;
         let Some(parent) = c.parent else {
@@ -375,7 +409,7 @@ where
             return Err(ExecutorError::TaskRequired);
         };
         c.engine
-            .sequenced(local_spawn_task(task, c.resolver), parent)
+            .sequenced(local_spawn_task(task, c.resolver, c.panic_handler), parent)
     }
 }
 
@@ -383,18 +417,33 @@ where
 // Entry points
 // ---------------------------------------------------------------------------
 
+/// A task builder whose resolver is boxed over `Task`.
+type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + 'static,
+    >,
+    Task,
+>;
+
+/// A `Send` task builder whose resolver is boxed over `Task`.
+type SendBoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + Send
+            + 'static,
+    >,
+    Task,
+>;
+
 /// [`spawn_builder`] returns a [`TaskSpawnConfig`] whose resolver is a boxed
 /// `dyn TaskReadyResolver`, for the common local-dispatch paths.
 #[must_use]
-#[allow(clippy::type_complexity)]
-pub fn spawn_builder<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn spawn_builder<Task>(engine: BoxedExecutionEngine) -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
@@ -406,15 +455,9 @@ where
 /// [`spawn_broadcaster`] returns a [`TaskSpawnConfig`] whose resolver is a
 /// `Send` boxed `dyn TaskReadyResolver`, for the broadcast path.
 #[must_use]
-#[allow(clippy::type_complexity)]
 pub fn spawn_broadcaster<Task>(
     engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
-    Task,
->
+) -> SendBoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,

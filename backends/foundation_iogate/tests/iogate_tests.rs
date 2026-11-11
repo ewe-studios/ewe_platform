@@ -25,7 +25,7 @@ use tracing_test::traced_test;
 /// Read `want` bytes from `conn`, retrying on `WouldBlock` up to `deadline`.
 ///
 /// Both modes are nonblocking: `Std` is `read(2)` on a nonblocking socket,
-/// `Completion` pops the io_uring inbox — both return `WouldBlock` when empty.
+/// `Completion` pops the `io_uring` inbox — both return `WouldBlock` when empty.
 fn read_until(conn: &mut Connection, want: usize, deadline: Duration) -> Vec<u8> {
     let start = Instant::now();
     let mut got = Vec::with_capacity(want);
@@ -54,6 +54,23 @@ fn accept_one(listener: &TcpListener, mode: ServerIo) -> Connection {
     let (server_tcp, peer) = listener.accept().expect("accept");
     server_tcp.set_nonblocking(true).expect("nonblocking");
     foundation_iogate::accept_connection(server_tcp, peer, mode).expect("accept_connection")
+}
+
+/// Whether `io_uring` is missing, so the caller skips its test.
+///
+/// A local machine without `io_uring` skips with a warning. An environment that
+/// sets `EWE_REQUIRE_IO_URING=1` expects `io_uring`, so a missing `io_uring` fails the
+/// test there: CI cannot lose this coverage without anyone noticing.
+fn io_uring_missing(what: &str) -> bool {
+    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_ok() {
+        return false;
+    }
+    assert!(
+        std::env::var("EWE_REQUIRE_IO_URING").as_deref() != Ok("1"),
+        "EWE_REQUIRE_IO_URING=1 but io_uring is unavailable ({what})"
+    );
+    tracing::warn!("io_uring unavailable — skipping {what}");
+    true
 }
 
 #[test]
@@ -110,8 +127,7 @@ fn completion_mode_carries_bytes() {
     // Completion mode demands io_uring. On a kernel without it, initialising the
     // reactor on `Uring` is a hard error — skip loudly rather than fail, since
     // this is an environment capability, not a defect.
-    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
-        tracing::warn!("io_uring unavailable — skipping completion-mode byte test");
+    if io_uring_missing("completion-mode byte test") {
         return;
     }
 
@@ -165,18 +181,56 @@ fn connect_completion_dials_a_completion_backed_upstream() {
     // The client mirror of `completion_mode_carries_bytes`: the *outbound* dial is
     // registered with the reactor, so an upstream leg reads from the io_uring inbox
     // (Feature 50 Part A). Skip loudly without io_uring.
-    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
-        tracing::warn!("io_uring unavailable — skipping completion-mode dial test");
+    if io_uring_missing("completion-mode dial test") {
         return;
     }
 
     let (addr, server) = one_shot_writer(b"from a completion upstream");
 
-    let mut conn =
-        foundation_iogate::connect_completion(addr, ServerIo::Completion).expect("dial");
+    let mut conn = foundation_iogate::connect_completion(addr, ServerIo::Completion).expect("dial");
     assert!(matches!(conn, Connection::Completion(_)));
 
-    let got = read_until(&mut conn, b"from a completion upstream".len(), Duration::from_secs(5));
+    let got = read_until(
+        &mut conn,
+        b"from a completion upstream".len(),
+        Duration::from_secs(5),
+    );
     assert_eq!(&got, b"from a completion upstream");
     server.join().ok();
+}
+
+#[test]
+#[serial]
+#[traced_test]
+fn adopt_connected_registers_an_already_connected_upstream() {
+    // `adopt_connected` is `connect_completion` minus the blocking connect: the
+    // async dial connects non-blocking, then hands the socket here.
+    if io_uring_missing("adopt_connected test") {
+        return;
+    }
+
+    let (addr, server) = one_shot_writer(b"adopted upstream");
+    let tcp = TcpStream::connect(addr).expect("connect");
+
+    let mut conn =
+        foundation_iogate::adopt_connected(tcp, addr, ServerIo::Completion).expect("adopt");
+    assert!(matches!(conn, Connection::Completion(_)));
+
+    let got = read_until(&mut conn, b"adopted upstream".len(), Duration::from_secs(5));
+    assert_eq!(&got, b"adopted upstream");
+    server.join().ok();
+}
+
+/// The SEND_ZC relay entry point exists on Linux. It sat behind a `uring`
+/// feature the crate never declared, so it could not be compiled in at all;
+/// io_uring is a Linux target property here, not a feature.
+#[cfg(target_os = "linux")]
+#[test]
+fn provided_buffer_send_is_compiled_in_on_linux() {
+    let send: fn(
+        &mut foundation_iogate::CompletionSocket<TcpStream>,
+        foundation_nativeapis::native::fd::completion::ProvidedBuf,
+    ) -> std::io::Result<usize> =
+        foundation_iogate::CompletionSocket::<TcpStream>::write_from_provided_buf;
+    let _ = send;
 }

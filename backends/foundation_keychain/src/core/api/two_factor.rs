@@ -13,14 +13,14 @@
 //! HOW: the secret is a base32-encoded 256-bit random key; verification rebuilds
 //! `TOTPSecret::from_bytes` from the decoded secret.
 
+use crate::core::clock::wall_now_utc;
 use base32::Alphabet;
-use chrono::Utc;
 use serde::Serialize;
-use uuid::Uuid;
 
 use foundation_auth::shared::two_factor::TOTPSecret;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::store::two_factor as store;
 use crate::core::store::two_factor::TwoFactorRow;
@@ -47,11 +47,8 @@ pub struct EnableAuthenticatorResponse {
     pub recovery_code: String,
 }
 
-fn new_secret_base32() -> String {
-    // 256-bit random secret from two UUID v4s (cross-platform getrandom).
-    let mut bytes = Uuid::new_v4().as_bytes().to_vec();
-    bytes.extend_from_slice(Uuid::new_v4().as_bytes());
-    base32::encode(ALPHABET, &bytes)
+fn new_secret_base32() -> AppResult<String> {
+    Ok(base32::encode(ALPHABET, &crypto::random_bytes(32)?))
 }
 
 fn totp_from_base32(secret: &str) -> AppResult<TOTPSecret> {
@@ -62,6 +59,10 @@ fn totp_from_base32(secret: &str) -> AppResult<TOTPSecret> {
 
 /// Fetch the user's authenticator secret, generating (and persisting, disabled) a
 /// fresh one if none exists yet.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get_authenticator(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -73,10 +74,10 @@ pub async fn get_authenticator(
             object: "twoFactorAuthenticator",
         });
     }
-    let now = Utc::now();
+    let now = wall_now_utc(ctx.ctx());
     let row = TwoFactorRow {
         user_uuid: user_uuid.to_string(),
-        secret: new_secret_base32(),
+        secret: new_secret_base32()?,
         enabled: false,
         recovery_code: None,
         created_at: now,
@@ -91,6 +92,10 @@ pub async fn get_authenticator(
 }
 
 /// Enable 2FA after verifying a current code. Issues a recovery code.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn enable_authenticator(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -100,14 +105,14 @@ pub async fn enable_authenticator(
         .await?
         .ok_or_else(|| AppError::BadRequest("call get-authenticator first".into()))?;
 
-    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE) {
-        return Err(AppError::BadRequest("invalid verification code".into()));
+    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, ctx.ctx()) {
+        return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
 
-    let recovery_code = Uuid::new_v4().to_string().replace('-', "");
+    let recovery_code = crypto::new_uuid_v4()?.to_string().replace('-', "");
     row.enabled = true;
     row.recovery_code = Some(recovery_code.clone());
-    row.updated_at = Utc::now();
+    row.updated_at = wall_now_utc(ctx.ctx());
     store::upsert(ctx.db(), &row).await?;
 
     Ok(EnableAuthenticatorResponse {
@@ -118,6 +123,10 @@ pub async fn enable_authenticator(
 }
 
 /// Disable 2FA after verifying a current code.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn disable_authenticator(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -126,13 +135,17 @@ pub async fn disable_authenticator(
     let row = store::get(ctx.db(), user_uuid)
         .await?
         .ok_or_else(|| AppError::BadRequest("two-factor is not configured".into()))?;
-    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE) {
-        return Err(AppError::BadRequest("invalid verification code".into()));
+    if !totp_from_base32(&row.secret)?.verify(token, TOLERANCE, ctx.ctx()) {
+        return Err(AppError::BadRequest("invalid verification code".into()).into());
     }
     store::delete(ctx.db(), user_uuid).await
 }
 
 /// Whether the user has 2FA enabled (login must issue a challenge).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn is_enabled(ctx: &KeychainContext, user_uuid: &str) -> AppResult<bool> {
     Ok(store::get(ctx.db(), user_uuid)
         .await?
@@ -140,6 +153,10 @@ pub async fn is_enabled(ctx: &KeychainContext, user_uuid: &str) -> AppResult<boo
 }
 
 /// Verify a login 2FA response — accepts a TOTP code or the recovery code.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn verify(ctx: &KeychainContext, user_uuid: &str, code: &str) -> AppResult<bool> {
     let Some(row) = store::get(ctx.db(), user_uuid).await? else {
         return Ok(false);
@@ -150,5 +167,5 @@ pub async fn verify(ctx: &KeychainContext, user_uuid: &str, code: &str) -> AppRe
     if row.recovery_code.as_deref() == Some(code) {
         return Ok(true);
     }
-    Ok(totp_from_base32(&row.secret)?.verify(code, TOLERANCE))
+    Ok(totp_from_base32(&row.secret)?.verify(code, TOLERANCE, ctx.ctx()))
 }

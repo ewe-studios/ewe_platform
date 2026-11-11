@@ -1068,12 +1068,12 @@ pub type ThrottleDevice = super::shared::PathRateObject;
 /// Arguments for [`ContainerList_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ContainerListArgs {
-    /// Query parameter: `all`.
-    pub all: Option<String>,
+    /// Query parameter: `all` (true/false).
+    pub all: Option<bool>,
     /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: `size`.
-    pub size: Option<String>,
+    /// Query parameter: `size` (true/false).
+    pub size: Option<bool>,
     /// Query parameter: `filters`.
     pub filters: Option<String>,
 }
@@ -1083,8 +1083,8 @@ pub struct ContainerListArgs {
 pub struct ContainerInspectArgs {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `size`.
-    pub size: Option<String>,
+    /// Query parameter: `size` (true/false).
+    pub size: Option<bool>,
 }
 
 /// Arguments for [`DistributionInspect_request`].
@@ -1100,16 +1100,16 @@ pub type ExecInspectArgs = super::shared::IdArgs;
 /// Arguments for [`ImageList_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ImageListArgs {
-    /// Query parameter: `all`.
-    pub all: Option<String>,
+    /// Query parameter: `all` (true/false).
+    pub all: Option<bool>,
     /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: `shared-size`.
-    pub shared_size: Option<String>,
-    /// Query parameter: `digests`.
-    pub digests: Option<String>,
-    /// Query parameter: `manifests`.
-    pub manifests: Option<String>,
+    /// Query parameter: `shared-size` (true/false).
+    pub shared_size: Option<bool>,
+    /// Query parameter: `digests` (true/false).
+    pub digests: Option<bool>,
+    /// Query parameter: `manifests` (true/false).
+    pub manifests: Option<bool>,
 }
 
 /// Arguments for [`ImageInspect_request`].
@@ -1117,8 +1117,8 @@ pub struct ImageListArgs {
 pub struct ImageInspectArgs {
     /// Path parameter: `name`.
     pub name: String,
-    /// Query parameter: `manifests`.
-    pub manifests: Option<String>,
+    /// Query parameter: `manifests` (true/false).
+    pub manifests: Option<bool>,
     /// Query parameter: `platform`.
     pub platform: Option<String>,
 }
@@ -1163,15 +1163,15 @@ pub async fn container_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/json",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/json");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("all", args.all.as_deref());
+    builder = builder.query("all", args.all.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("limit", args.limit.as_deref());
-    builder = builder.query("size", args.size.as_deref());
+    builder = builder.query("size", args.size.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("filters", args.filters.as_deref());
 
     if let Some(f) = builder_mod {
@@ -1212,13 +1212,13 @@ pub async fn container_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/json", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}/json", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("size", args.size.as_deref());
+    builder = builder.query("size", args.size.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1258,8 +1258,8 @@ pub async fn distribution_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/distribution/{}/json", args.name,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/distribution/{}/json", args.name);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1302,8 +1302,8 @@ pub async fn exec_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/exec/{}/json", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/exec/{}/json", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1346,17 +1346,26 @@ pub async fn image_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/json",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/images/json");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("all", args.all.as_deref());
+    builder = builder.query("all", args.all.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("filters", args.filters.as_deref());
-    builder = builder.query("shared-size", args.shared_size.as_deref());
-    builder = builder.query("digests", args.digests.as_deref());
-    builder = builder.query("manifests", args.manifests.as_deref());
+    builder = builder.query(
+        "shared-size",
+        args.shared_size.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "digests",
+        args.digests.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "manifests",
+        args.manifests.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -1396,13 +1405,16 @@ pub async fn image_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/{}/json", args.name,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/images/{}/json", args.name);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("manifests", args.manifests.as_deref());
+    builder = builder.query(
+        "manifests",
+        args.manifests.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("platform", args.platform.as_deref());
 
     if let Some(f) = builder_mod {
@@ -1443,8 +1455,8 @@ pub async fn plugin_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/plugins/{}/json", args.name,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/plugins/{}/json", args.name);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 mod pool_guard;
 
 pub use pool_guard::PoolGuard;
@@ -9,12 +7,15 @@ use std::sync::Arc;
 
 use crate::valtron::{
     executors::constants::{
-        BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
-        DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+        DEFAULT_BACK_OFF_JITTER, DEFAULT_BACK_OFF_MAX_DURATION, DEFAULT_BACK_OFF_MIN_DURATION,
+        DEFAULT_BACK_OFF_THREAD_FACTOR, DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT,
+        MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator,
-    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
+    LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
+    TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
+
+use foundation_context::Ctx;
 
 use crate::{
     retries::ExponentialBackoffDecider,
@@ -42,7 +43,7 @@ pub struct NoThreadController {
 }
 
 impl NoThreadController {
-    /// Creates a new NoThreadController with platform-appropriate settings.
+    /// Creates a new `NoThreadController` with platform-appropriate settings.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -111,11 +112,14 @@ static VALTRON_SINGLETON: std::sync::Mutex<Option<PoolGuard>> = std::sync::Mutex
 pub struct SingleExecutorSingleton;
 
 impl SingleExecutorSingleton {
-    /// Initialize the executor and return a PoolGuard.
+    /// Initialize the executor and return a `PoolGuard`.
     ///
-    /// On first call: calls `initialize_pool(seed)`, stores a PoolGuard,
+    /// On first call: calls `initialize_pool(seed)`, stores a `PoolGuard`,
     /// runs the setup closure. On subsequent calls: returns a cloned guard
-    /// (PoolGuard is zero-sized in single mode).
+    /// (`PoolGuard` is zero-sized in single mode).
+    ///
+    /// # Panics
+    /// Panics if the singleton lock is poisoned.
     pub fn get_or_init<F: FnOnce(&PoolGuard)>(seed: u64, setup: F) -> PoolGuard {
         initialize_pool(seed);
         let mut guard = VALTRON_SINGLETON.lock().unwrap();
@@ -126,7 +130,11 @@ impl SingleExecutorSingleton {
         guard.clone().unwrap()
     }
 
-    /// Get a PoolGuard. Panics if `get_or_init` has not been called.
+    /// Get a `PoolGuard`.
+    ///
+    /// # Panics
+    /// Panics if `get_or_init` has not been called, or if the singleton lock is
+    /// poisoned.
     pub fn guard() -> PoolGuard {
         VALTRON_SINGLETON
             .lock()
@@ -136,6 +144,9 @@ impl SingleExecutorSingleton {
     }
 
     /// Check if the singleton has been initialized.
+    ///
+    /// # Panics
+    /// Panics if the singleton lock is poisoned.
     pub fn is_initialized() -> bool {
         VALTRON_SINGLETON.lock().unwrap().is_some()
     }
@@ -146,6 +157,27 @@ impl SingleExecutorSingleton {
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
 pub fn initialize_pool(seed_for_rng: u64) {
+    initialize_pool_with_ctx(seed_for_rng, crate::valtron::ctx::seeded_root(seed_for_rng));
+}
+
+/// [`initialize_pool`] with an explicit engine root.
+///
+/// A thread that already has an engine keeps it, so this is idempotent like
+/// [`initialize_pool`]. Every task the engine drives gets a fork of `root`.
+pub fn initialize_pool_with_ctx(seed_for_rng: u64, root: Ctx) {
+    initialize_pool_with_ctx_and_slow_poll_warning(seed_for_rng, root, None);
+}
+
+/// [`initialize_pool_with_ctx`] with a slow-poll watchdog threshold.
+///
+/// Idempotent: a thread that already has an engine keeps it, so a later call
+/// does not change the threshold.
+pub fn initialize_pool_with_ctx_and_slow_poll_warning(
+    seed_for_rng: u64,
+    root: Ctx,
+    slow_poll_warning: Option<std::time::Duration>,
+) {
+    root.assert_minimum();
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
             // `SharedTaskQueue` is `Arc<…>` in BOTH cfgs so one alias serves the
@@ -154,7 +186,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
             // non-Send contents are fine.
             #[allow(clippy::arc_with_non_send_sync)]
             let tasks: SharedTaskQueue = Arc::new(ConcurrentQueue::unbounded());
-            LocalThreadExecutor::from_seed(
+            LocalThreadExecutor::from_seed_with_root(
                 seed_for_rng,
                 "single-thread-pool".to_string(),
                 tasks,
@@ -164,10 +196,10 @@ pub fn initialize_pool(seed_for_rng: u64) {
                     SleepyMan::new(
                         MAX_ROUNDS_WHEN_SLEEPING_ENDS,
                         ExponentialBackoffDecider::new(
-                            BACK_OFF_THREAD_FACTOR,
-                            BACK_OFF_JITER,
-                            BACK_OFF_MIN_DURATION,
-                            Some(BACK_OFF_MAX_DURATION),
+                            DEFAULT_BACK_OFF_THREAD_FACTOR,
+                            DEFAULT_BACK_OFF_JITTER,
+                            DEFAULT_BACK_OFF_MIN_DURATION,
+                            Some(DEFAULT_BACK_OFF_MAX_DURATION),
                         ),
                     ),
                 ),
@@ -176,7 +208,9 @@ pub fn initialize_pool(seed_for_rng: u64) {
                 DEFAULT_YIELD_WAIT_TIME,
                 None,
                 None,
+                root,
             )
+            .with_slow_poll_warning(slow_poll_warning)
         });
     });
 }
@@ -191,6 +225,57 @@ pub fn has_runnable_work() -> bool {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         pool.get()
             .is_some_and(LocalThreadExecutor::has_runnable_work)
+    })
+}
+
+/// Native: sleep this thread while only parked sleepers remain, as long as the
+/// sleepers allow. Returns `true` if it slept. See
+/// [`LocalThreadExecutor::wait_for_sleepers`].
+///
+/// Returns `false` when the engine has not been initialized.
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn wait_for_sleepers(until: foundation_compact::Instant) -> bool {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get()
+            .is_some_and(|engine| engine.wait_for_sleepers(until))
+    })
+}
+
+/// Native: how long one call of a caller that drives this engine may wait for
+/// parked sleepers (the executor's `max_yield_duration`).
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn sleeper_budget() -> std::time::Duration {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get().map_or(
+            std::time::Duration::ZERO,
+            LocalThreadExecutor::sleeper_budget,
+        )
+    })
+}
+
+/// How long a consumer driving this thread's engine may stay parked before it
+/// must look again: the nearest sleeper deadline, or the readiness poll quantum
+/// when a sleeper needs polling. `None` when no sleeper needs a timed wake, or
+/// the engine has not been initialized. See
+/// [`LocalThreadExecutor::parked_wake_after`].
+#[must_use]
+pub fn parked_wake_after() -> Option<core::time::Duration> {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE
+        .with(|pool| pool.get().and_then(LocalThreadExecutor::parked_wake_after))
+}
+
+/// This thread's engine readiness poll quantum, or the default when the engine
+/// has not been initialized. See [`LocalThreadExecutor::readiness_poll_quantum`].
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn readiness_poll_quantum() -> core::time::Duration {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get().map_or(
+            super::constants::DEFAULT_READINESS_POLL_QUANTUM,
+            LocalThreadExecutor::readiness_poll_quantum,
+        )
     })
 }
 
@@ -237,7 +322,7 @@ where
 /// The single-threaded engine owns one root [`Ctx`] seeded at construction and
 /// forks it per task. This exposes that same root-fork to code that drives a
 /// task alongside the engine (e.g. [`super::non_sendables::DrivenTaskIterator`])
-/// so it never mints an unrelated `Ctx::new()`.
+/// so it never mints an unrelated `Ctx::host()`.
 ///
 /// # Panics
 ///
@@ -246,6 +331,24 @@ where
 pub fn fork_ctx() -> Ctx {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => pool.fork_ctx(),
+        None => panic!("Thread pool not initialized, ensure to call initialize() first"),
+    })
+}
+
+/// The clock of the current engine's stable root.
+///
+/// A caller that drives the engine alongside its own steps (see
+/// [`super::non_sendables::DrivenStreamIterator`]) times its waits on this
+/// clock, so a simulated clock controls them as it controls the tasks.
+///
+/// # Panics
+///
+/// Panics if the pool has not been initialized (mirrors [`fork_ctx`]).
+/// Kept: executor root plumbing; it returns the clock of the engine root `Ctx`.
+#[must_use]
+pub fn clock() -> std::sync::Arc<dyn foundation_context::Clock> {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
+        Some(pool) => pool.state_clock(),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
     })
 }
@@ -288,6 +391,17 @@ pub fn run_until_complete() {
     });
 }
 
+/// A task builder whose resolver is boxed over `Task`.
+type BoxedResolverTaskSpawnConfig<Task> = TaskSpawnConfig<
+    <Task as TaskIterator>::Ready,
+    <Task as TaskIterator>::Pending,
+    Box<
+        dyn TaskReadyResolver<<Task as TaskIterator>::Ready, <Task as TaskIterator>::Pending>
+            + 'static,
+    >,
+    Task,
+>;
+
 /// `spawn` provides a builder which specifically allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
@@ -302,12 +416,7 @@ pub fn run_until_complete() {
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn<Task>() -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
+pub fn spawn<Task>() -> BoxedResolverTaskSpawnConfig<Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
@@ -332,8 +441,7 @@ where
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn2<Task, Resolver>(
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+pub fn spawn2<Task, Resolver>() -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,

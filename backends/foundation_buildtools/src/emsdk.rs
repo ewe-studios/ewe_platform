@@ -79,4 +79,3 @@ impl Emsdk {
         println!("cargo:rerun-if-env-changed=EMSDK_DIR");
     }
 }
-

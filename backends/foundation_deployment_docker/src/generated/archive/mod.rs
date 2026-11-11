@@ -30,13 +30,9 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// Arguments for [`ContainerArchive_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ContainerArchiveArgs {
-    /// Path parameter: `id`.
-    pub id: String,
-    /// Query parameter: `path`.
-    pub path: Option<String>,
-}
+///
+/// Same shape as `super::shared::IdPathArgs`.
+pub type ContainerArchiveArgs = super::shared::IdPathArgs;
 
 /// Arguments for [`PutContainerArchive_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -50,6 +46,11 @@ pub struct PutContainerArchiveArgs {
     /// Query parameter: `copyUIDGID`.
     pub copy_uidgid: Option<String>,
 }
+
+/// Arguments for [`ContainerArchiveInfo_request`].
+///
+/// Same shape as `super::shared::IdPathArgs`.
+pub type ContainerArchiveInfoArgs = super::shared::IdPathArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -91,8 +92,8 @@ pub async fn container_archive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/archive", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}/archive", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -139,8 +140,8 @@ pub async fn put_container_archive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/archive", args.id,);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/{}/archive", args.id);
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -153,6 +154,52 @@ where
     builder = builder.query("copyUIDGID", args.copy_uidgid.as_deref());
 
     builder = super::shared::with_raw_body(builder, "application/x-tar", body);
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    super::shared::send_without_body(client.into(), builder.build()).await
+}
+
+// -----------------------------------------------------------------------------
+// HEAD /containers/{id}/archive
+// -----------------------------------------------------------------------------
+
+/// HEAD /containers/{id}/archive.
+///
+/// Takes a client and args, builds the request, optionally applies
+/// modifications, then sends it via `send_async().await`.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let response = container_archive_info_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {
+///     b.header("X-Custom-Header", "value");
+/// })).await?;
+/// ```
+pub async fn container_archive_info_request<F>(
+    client: impl Into<super::shared::ApiClient>,
+    args: &ContainerArchiveInfoArgs,
+    base_url: &str,
+    builder_mod: Option<F>,
+) -> Result<ApiResponse<()>, super::shared::ApiError>
+where
+    F: FnOnce(&mut PreparedRequestBuilder),
+{
+    let path = format!("/containers/{}/archive", args.id);
+    let endpoint_url = format!("{base_url}{path}");
+
+    let mut builder = PreparedRequestBuilder::head(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("path", args.path.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

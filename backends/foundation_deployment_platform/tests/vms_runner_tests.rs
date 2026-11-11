@@ -23,7 +23,7 @@ fn test_log_kind_from_str() {
 #[test]
 fn test_log_path_linux() {
     use foundation_deployment_platform::config::get_profile;
-    use foundation_deployment_platform::runner::logs::{log_path, LogKind};
+    use foundation_deployment_platform::runner::logs::{LogKind, log_path};
     let profile = get_profile("linux-build").unwrap().clone();
     assert_eq!(
         log_path(&profile, LogKind::Build),
@@ -34,7 +34,7 @@ fn test_log_path_linux() {
 #[test]
 fn test_log_path_windows() {
     use foundation_deployment_platform::config::get_profile;
-    use foundation_deployment_platform::runner::logs::{log_path, LogKind};
+    use foundation_deployment_platform::runner::logs::{LogKind, log_path};
     let profile = get_profile("windows-build").unwrap().clone();
     assert!(log_path(&profile, LogKind::Build).contains("Users"));
     assert!(log_path(&profile, LogKind::Build).contains("build.log"));
@@ -46,7 +46,11 @@ fn test_capture_uses_correct_paths() {
     // Verify the function would use the right VM path
     let path = "/tmp/testbed-screenshot.png";
     assert!(path.starts_with("/tmp/"));
-    assert!(path.ends_with(".png"));
+    assert!(
+        std::path::Path::new(path)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+    );
 }
 
 // From runner/transfer.rs
@@ -64,7 +68,7 @@ fn test_push_uses_upload_for_files() {
     // Verify the path resolution logic
     let local = PathBuf::from("/tmp/test.txt");
     let remote = "/tmp/test.txt";
-    assert_eq!(local.is_file(), false); // doesn't exist
+    assert!(!local.is_file()); // doesn't exist
     assert_eq!(remote, "/tmp/test.txt");
 }
 
@@ -72,7 +76,7 @@ fn test_push_uses_upload_for_files() {
 #[test]
 fn test_linux_type_escape() {
     let text = "hello 'world'";
-    let escaped = text.replace("\\", "\\\\").replace("'", "\\'");
+    let escaped = text.replace('\\', "\\\\").replace('\'', "\\'");
     assert_eq!(escaped, "hello \\'world\\'");
 }
 
@@ -80,10 +84,10 @@ fn test_linux_type_escape() {
 fn test_windows_type_escape() {
     let text = "hello+world^test%foo";
     let escaped = text
-        .replace("+", "{{+}}")
-        .replace("^", "{{^}}")
-        .replace("%", "{{%}}")
-        .replace("~", "{{~}}");
+        .replace('+', "{{+}}")
+        .replace('^', "{{^}}")
+        .replace('%', "{{%}}")
+        .replace('~', "{{~}}");
     assert_eq!(escaped, "hello{{+}}world{{^}}test{{%}}foo");
 }
 

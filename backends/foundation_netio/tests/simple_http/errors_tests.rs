@@ -64,6 +64,6 @@ fn test_errors_implement_std_error() {
     let http_error: &dyn std::error::Error = &HttpClientError::InvalidUrl("test".to_string());
 
     // These should compile and execute without issues
-    assert!(!dns_error.to_string().is_empty());
-    assert!(!http_error.to_string().is_empty());
+    assert_ne!(dns_error.to_string(), "");
+    assert_ne!(http_error.to_string(), "");
 }

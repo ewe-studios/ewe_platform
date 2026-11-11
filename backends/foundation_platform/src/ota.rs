@@ -15,11 +15,13 @@
 //! bundles are preferred over compiled-in ones.
 
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 
 use crate::backend::http::HttpBackend;
+use crate::clock::wall_seconds;
 
 // ── Manifest types ──────────────────────────────────────────────────────
 
@@ -70,14 +72,19 @@ pub struct LocalVersion {
 impl LocalVersion {
     /// Read the local version file for an app.
     #[must_use]
-    pub fn read(app_dir: &PathBuf, app_id: &str) -> Option<Self> {
+    pub fn read(app_dir: &Path, app_id: &str) -> Option<Self> {
         let path = app_dir.join(app_id).join(".ewe_version.json");
         let data = std::fs::read_to_string(path).ok()?;
         serde_json::from_str(&data).ok()
     }
 
     /// Write the local version file for an app.
-    pub fn write(&self, app_dir: &PathBuf) -> Result<(), String> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string if the directory or file cannot be created, the
+    /// version cannot be encoded, or the write fails.
+    pub fn write(&self, app_dir: &Path) -> Result<(), String> {
         let dir = app_dir.join(&self.app_id);
         std::fs::create_dir_all(&dir).map_err(|e| format!("mkdir failed: {e}"))?;
         let path = dir.join(".ewe_version.json");
@@ -98,6 +105,7 @@ impl LocalVersion {
 /// let directorate = PackageDirectorate::new(
 ///     resource_root,
 ///     "https://cdn.example.com/manifest.json",
+///     ctx,
 /// );
 ///
 /// // At app startup:
@@ -114,15 +122,19 @@ pub struct PackageDirectorate {
     manifest_url: String,
     /// HTTP backend for fetching manifest and bundles.
     http: HttpBackend,
+    /// The context whose clock gives an applied update its `updated_at` value.
+    ctx: Ctx,
 }
 
 impl PackageDirectorate {
+    /// A directorate that stamps applied updates with the clock of `ctx`.
     #[must_use]
-    pub fn new(resource_root: PathBuf, manifest_url: &str) -> Self {
+    pub fn new(resource_root: PathBuf, manifest_url: &str, ctx: Ctx) -> Self {
         Self {
             resource_root,
             manifest_url: manifest_url.to_string(),
             http: HttpBackend::new(),
+            ctx,
         }
     }
 
@@ -147,9 +159,9 @@ impl PackageDirectorate {
         let mut updates = Vec::new();
         for entry in &manifest.apps {
             let local = LocalVersion::read(&self.resource_root, &entry.app_id);
-            let is_newer = local.as_ref().map_or(true, |l| {
-                l.bundle_version != entry.bundle_version
-            });
+            let is_newer = local
+                .as_ref()
+                .is_none_or(|l| l.bundle_version != entry.bundle_version);
 
             if is_newer {
                 updates.push(entry.clone());
@@ -167,14 +179,10 @@ impl PackageDirectorate {
     /// # Errors
     ///
     /// Returns an error string if any download or write fails.
-    pub fn apply_update(
-        &self,
-        manifest: &OtaManifest,
-        entry: &OtaAppEntry,
-    ) -> Result<(), String> {
+    pub fn apply_update(&self, manifest: &OtaManifest, entry: &OtaAppEntry) -> Result<(), String> {
         let app_dir = self.resource_root.join(&entry.app_id);
         std::fs::create_dir_all(&app_dir)
-            .map_err(|e| format!("mkdir {app_dir:?}: {e}"))?;
+            .map_err(|e| format!("mkdir {}: {e}", app_dir.display()))?;
 
         for file in &entry.files {
             let url = format!("{}/{}/{}", manifest.base_url, entry.app_id, file.path);
@@ -197,23 +205,23 @@ impl PackageDirectorate {
             let dest = app_dir.join(&file.path);
             if let Some(parent) = dest.parent() {
                 std::fs::create_dir_all(parent)
-                    .map_err(|e| format!("mkdir {parent:?}: {e}"))?;
+                    .map_err(|e| format!("mkdir {}: {e}", parent.display()))?;
             }
 
             let tmp = dest.with_extension("tmp");
-            let mut f =
-                std::fs::File::create(&tmp).map_err(|e| format!("create {tmp:?}: {e}"))?;
+            let mut f = std::fs::File::create(&tmp)
+                .map_err(|e| format!("create {}: {e}", tmp.display()))?;
             f.write_all(&data)
-                .map_err(|e| format!("write {tmp:?}: {e}"))?;
+                .map_err(|e| format!("write {}: {e}", tmp.display()))?;
             std::fs::rename(&tmp, &dest)
-                .map_err(|e| format!("rename {tmp:?} → {dest:?}: {e}"))?;
+                .map_err(|e| format!("rename {} → {}: {e}", tmp.display(), dest.display()))?;
         }
 
         // Write local version manifest
         LocalVersion {
             app_id: entry.app_id.clone(),
             bundle_version: entry.bundle_version.clone(),
-            updated_at: chrono_now(),
+            updated_at: chrono_now(&self.ctx),
         }
         .write(&self.resource_root)?;
 
@@ -221,12 +229,10 @@ impl PackageDirectorate {
     }
 }
 
-/// Get current UTC timestamp as ISO 8601 string (without chrono dep).
-fn chrono_now() -> String {
-    let dur = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default();
-    let secs = dur.as_secs();
+/// Get the wall time of the clock of `ctx` as an ISO 8601 string (without a chrono dep).
+#[must_use]
+pub fn chrono_now(ctx: &Ctx) -> String {
+    let secs = wall_seconds(ctx);
     // Simple ISO 8601: YYYY-MM-DDTHH:MM:SSZ
     let days_since_epoch = secs / 86400;
     let time_of_day = secs % 86400;
@@ -236,7 +242,7 @@ fn chrono_now() -> String {
 
     // Compute year/month/day from days since epoch (approximate, good enough for version tracking)
     let mut year = 1970i64;
-    let mut remaining_days = days_since_epoch as i64;
+    let mut remaining_days = i64::try_from(days_since_epoch).unwrap_or(i64::MAX);
     loop {
         let days_in_year = if is_leap(year) { 366 } else { 365 };
         if remaining_days < days_in_year {
@@ -254,10 +260,10 @@ fn chrono_now() -> String {
 
     let mut month = 1;
     for &md in &month_days {
-        if remaining_days < md as i64 {
+        if remaining_days < i64::from(md) {
             break;
         }
-        remaining_days -= md as i64;
+        remaining_days -= i64::from(md);
         month += 1;
     }
     let day = remaining_days + 1;
@@ -270,60 +276,3 @@ const fn is_leap(year: i64) -> bool {
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn local_version_write_and_read() {
-        let dir = std::env::temp_dir().join("ewe_ota_test");
-        let _ = std::fs::remove_dir_all(&dir);
-
-        let lv = LocalVersion {
-            app_id: "test-app".into(),
-            bundle_version: "1.2.3".into(),
-            updated_at: "2026-01-01T00:00:00Z".into(),
-        };
-        lv.write(&dir).unwrap();
-
-        let read = LocalVersion::read(&dir, "test-app").unwrap();
-        assert_eq!(read.bundle_version, "1.2.3");
-        assert_eq!(read.app_id, "test-app");
-
-        let _ = std::fs::remove_dir_all(&dir);
-    }
-
-    #[test]
-    fn local_version_missing_returns_none() {
-        let dir = std::env::temp_dir().join("ewe_ota_nonexistent");
-        assert!(LocalVersion::read(&dir, "nonexistent").is_none());
-    }
-
-    #[test]
-    fn ota_manifest_deserialize() {
-        let json = r#"{
-            "version": 1,
-            "base_url": "https://cdn.example.com/bundles",
-            "apps": [{
-                "app_id": "app",
-                "bundle_version": "2.0.0",
-                "files": [{"path": "index.html", "sha256": "abc123", "size": 1024}]
-            }]
-        }"#;
-        let manifest: OtaManifest = serde_json::from_str(json).unwrap();
-        assert_eq!(manifest.version, 1);
-        assert_eq!(manifest.apps.len(), 1);
-        assert_eq!(manifest.apps[0].app_id, "app");
-        assert_eq!(manifest.apps[0].bundle_version, "2.0.0");
-    }
-
-    #[test]
-    fn chrono_now_produces_iso8601() {
-        let ts = chrono_now();
-        assert!(ts.contains('T'));
-        assert!(ts.ends_with('Z'));
-        // Basic format check: YYYY-MM-DDTHH:MM:SSZ
-        assert_eq!(ts.len(), 20);
-    }
-}

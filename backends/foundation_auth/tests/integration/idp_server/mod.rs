@@ -5,34 +5,35 @@ use std::time::Duration;
 
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
-use foundation_core::synca::OnSignal;
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::valtron_test;
 use foundation_db::{MemoryStorage, QueryStore};
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::SimpleResponse;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
-fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
+fn make_storage(ctx: Ctx) -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("test_auth.db");
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
-    Arc::new(HandlerStorage::new(query_store, cache))
+    Arc::new(HandlerStorage::new(query_store, cache, ctx))
 }
 
 fn start_idp(
     config: IdpConfig,
 ) -> (
     std::net::SocketAddr,
-    Arc<OnSignal>,
+    Arc<ShutdownSignal>,
     std::thread::JoinHandle<()>,
 ) {
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
@@ -40,13 +41,14 @@ fn start_idp(
         .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
-    let idp = IdpServer::new(config, make_storage());
+    let ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+    let idp = IdpServer::new(config, make_storage(ctx.clone()), ctx);
     let app = idp.http_app();
     let server = HttpServer::with_config(app, &bind_addr, server_config);
 
     let shutdown_thread = shutdown.clone();
     let handle = std::thread::spawn(move || {
-        eprintln!("SERVER THREAD: starting HttpServer on {}", bind_addr);
+        eprintln!("SERVER THREAD: starting HttpServer on {bind_addr}");
         server.serve_with_listener(&listener, &shutdown_thread);
         eprintln!("SERVER THREAD: HttpServer returned");
     });
@@ -59,10 +61,10 @@ fn start_idp_with_prefix(
     prefix: &str,
 ) -> (
     std::net::SocketAddr,
-    Arc<OnSignal>,
+    Arc<ShutdownSignal>,
     std::thread::JoinHandle<()>,
 ) {
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
@@ -72,7 +74,8 @@ fn start_idp_with_prefix(
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
-    app.ctx.store(make_storage());
+    app.ctx
+        .store(make_storage(Ctx::fixed(Arc::new(MonotonicClock::new()))));
     IdpServer::<MemoryStorage>::register_routes(&mut app, prefix);
     let server = HttpServer::with_config(app, &bind_addr, server_config);
 
@@ -265,7 +268,7 @@ fn discovery_then_jwks_flow() {
     let (_, _, body) = jwks_resp.into_parts();
     let jwks = parse_json(&read_body(body));
     assert!(jwks["keys"].is_array());
-    assert!(!jwks["keys"].as_array().unwrap().is_empty());
+    assert_ne!(jwks["keys"].as_array().unwrap().len(), 0);
 
     shutdown.turn_on();
     let _ = handle.join();
@@ -325,7 +328,7 @@ fn introspect_returns_inactive_for_unknown_token() {
     tracing::info!("TEST: starting idp server...");
     println!("TEST: starting idp server...");
     let (addr, shutdown, handle) = start_idp(test_config());
-    println!("TEST: server started on {}", addr);
+    println!("TEST: server started on {addr}");
     let client = make_client(addr);
     println!("TEST: sending POST to introspect...");
 
@@ -586,7 +589,7 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
     let (_, _, body) = jwks_resp.into_parts();
     let jwks = parse_json(&read_body(body));
     let keys = jwks["keys"].as_array().unwrap();
-    assert!(!keys.is_empty());
+    assert_ne!(keys.len(), 0);
 
     // Step 3: Client attempts authorization (no session → error expected)
     let auth_resp = client
@@ -792,6 +795,80 @@ fn device_code_endpoint_is_post_only_at_correct_path() {
         400,
         "POST to device/authorize should reach handler"
     );
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+// ============================================================================
+// Scenario 16: Duplicate registration — a second register with the same email
+// is a 409 Conflict, not a 200 with `{"error":"user_exists"}`.
+// ============================================================================
+
+#[valtron_test(threads = 8)]
+fn register_duplicate_email_is_409() {
+    let (addr, shutdown, handle) = start_idp(test_config());
+    let client = make_client(addr);
+
+    let register = |email: &str| {
+        PreparedRequestBuilder::post("http://testserver/auth/v1/users/register")
+            .unwrap()
+            .body_text(
+                serde_json::json!({ "email": email, "password": "ValidPass123!" }).to_string(),
+            )
+            .header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .build()
+    };
+
+    let first = client.send(register("dup@example.com")).unwrap();
+    let (status, _, _) = first.into_parts();
+    assert_eq!(status_code(&status), 200, "first registration succeeds");
+
+    let second = client.send(register("dup@example.com")).unwrap();
+    let (status, _, body) = second.into_parts();
+    assert_eq!(status_code(&status), 409, "duplicate email is a conflict");
+    assert_eq!(parse_json(&read_body(body))["error"], "conflict");
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+// ============================================================================
+// Dev register route: served only when `dev_mode` is on.
+// ============================================================================
+
+fn dev_register(client: &DynNetClient, email: &str) -> SimpleResponse<SendSafeBody> {
+    let request = PreparedRequestBuilder::post("http://testserver/auth/v1/dev/register")
+        .unwrap()
+        .body_text(serde_json::json!({ "email": email, "password": "ValidPass123!" }).to_string())
+        .header(SimpleHeader::CONTENT_TYPE, "application/json")
+        .build();
+    client.send(request).unwrap()
+}
+
+#[valtron_test(threads = 8)]
+fn dev_register_is_404_when_dev_mode_is_off() {
+    assert!(!test_config().dev_mode, "dev_mode defaults to false");
+    let (addr, shutdown, handle) = start_idp(test_config());
+    let client = make_client(addr);
+
+    let resp = dev_register(&client, "dev-off@example.com");
+    let (status, _, _) = resp.into_parts();
+    assert_eq!(status_code(&status), 404);
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+#[valtron_test(threads = 8)]
+fn dev_register_works_when_dev_mode_is_on() {
+    let (addr, shutdown, handle) = start_idp(test_config().with_dev_mode(true));
+    let client = make_client(addr);
+
+    let resp = dev_register(&client, "dev-on@example.com");
+    let (status, _, body) = resp.into_parts();
+    assert_eq!(status_code(&status), 200);
+    assert_eq!(parse_json(&read_body(body))["status"], "created");
 
     shutdown.turn_on();
     let _ = handle.join();

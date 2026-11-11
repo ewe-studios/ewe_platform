@@ -49,18 +49,13 @@ impl From<ParseResult> for SseStreamEvent {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use foundation_netio::wire::event_source::{SseStream, SseStreamEvent};
-/// use foundation_netio::wire::simple_http::client::SystemDnsResolver;
+/// ```no_run
+/// use foundation_netio::event_source::SseStream;
+/// use foundation_netio::shared::client::SystemDnsResolver;
 ///
-/// let stream = SseStream::connect(SystemDnsResolver, "https://api.example.com/events")?;
-///
-/// for result in stream {
-///     match result? {
-///         SseStreamEvent::Event(event) => println!("Got event: {:?}", event),
-///         SseStreamEvent::Skip => continue, // Still working, no event yet
-///     }
-/// }
+/// // Connect to a server-sent events endpoint.
+/// let _stream =
+///     SseStream::connect(SystemDnsResolver, "https://api.example.com/events").unwrap();
 /// ```
 pub struct SseStream<R: DnsResolver + Send + 'static> {
     inner: DrivenStreamIterator<EventSourceTask<R>>,
@@ -107,10 +102,14 @@ impl<R: DnsResolver + Send + 'static> Iterator for SseStream<R> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             Some(Stream::Next(parse_result)) => Some(Ok(SseStreamEvent::Event(parse_result.event))),
-            Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Init | Stream::Ignore | Stream::Wait) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Spread(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(
+                Stream::Pending(_)
+                | Stream::Delayed(_)
+                | Stream::Init
+                | Stream::Ignore
+                | Stream::Wait
+                | Stream::Spread(_),
+            ) => Some(Ok(SseStreamEvent::Skip)),
             None => None,
         }
     }
@@ -149,10 +148,14 @@ impl<R: DnsResolver + Clone + Send + 'static> Iterator for ReconnectingSseStream
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             Some(Stream::Next(parse_result)) => Some(Ok(SseStreamEvent::Event(parse_result.event))),
-            Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Init | Stream::Ignore | Stream::Wait) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Spread(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(
+                Stream::Pending(_)
+                | Stream::Delayed(_)
+                | Stream::Init
+                | Stream::Ignore
+                | Stream::Wait
+                | Stream::Spread(_),
+            ) => Some(Ok(SseStreamEvent::Skip)),
             None => None,
         }
     }

@@ -151,7 +151,7 @@ impl WebSocketFrame {
             #[allow(clippy::cast_possible_truncation)] // len < 126 fits in u8
             buf.push(mask_bit | (len as u8));
         } else if len <= 65535 {
-            buf.push(mask_bit | 126);
+            buf.push(mask_bit | 0x7E);
             #[allow(clippy::cast_possible_truncation)] // len <= 65535 fits in u16
             buf.extend_from_slice(&(len as u16).to_be_bytes());
         } else {

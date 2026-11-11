@@ -1,7 +1,16 @@
-#![allow(clippy::type_complexity)]
-#![allow(clippy::items_after_test_module)]
-
 use std::{any::Any, marker::PhantomData};
+
+/// Outcome of the pre-poll retry and spread drain.
+enum PollGate {
+    /// Poll the task now.
+    Proceed,
+    /// One spread item was delivered; yield a `Pending` state.
+    Drained,
+    /// The queue is full; park on the vacancy signal.
+    Full,
+    /// The queue is closed; the task is done.
+    Closed,
+}
 
 use crate::compati::Mutex;
 
@@ -11,11 +20,11 @@ use crate::valtron::iterators::Stream;
 use concurrent_queue::PushError;
 
 use crate::valtron::{
-    task::{TaskSpread, TaskStatus}, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
+    task::{TaskSpread, TaskStatus},
+    BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
-use crate::valtron::{
-    BoxedExecutionIterator, Ctx, ExecutionIterator, QueueVacancyReadiness, State,
-};
+use crate::valtron::{BoxedExecutionIterator, ExecutionIterator, State};
+use foundation_context::Ctx;
 // Only the `multi`-gated `Into<BoxedSendExecutionIterator>` impls use this alias.
 #[cfg(feature = "multi")]
 use crate::valtron::BoxedSendExecutionIterator;
@@ -48,10 +57,7 @@ impl<Task, Done, Pending> StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(
-        iter: Task,
-        chan: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>,
-    ) -> Self {
+    pub fn new(iter: Task, chan: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>) -> Self {
         Self {
             channel: chan,
             alive: Some(()),
@@ -75,8 +81,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for StreamConsumingIter<Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
@@ -119,23 +125,22 @@ where
     /// `multi` (for `QueueVacancyReadiness` coercion into `EventReadinessPtr`)
     /// are supplied by the wrapper's own bounds rather than leaking into this
     /// inherent method.
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
-        if self.alive.is_none() {
-            return None;
-        }
-
+    /// Retries a stashed message and drains one spread item before polling.
+    ///
+    /// Returns `Some(state)` when the caller must return that state now.
+    fn retry_before_poll(&mut self) -> PollGate {
         // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(on_full());
+                    return PollGate::Full;
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
                     self.alive.take();
-                    return Some(State::Done);
+                    return PollGate::Closed;
                 }
             }
         }
@@ -144,21 +149,61 @@ where
         if !self.spread_items.is_empty() {
             let item = self.spread_items.remove(0);
             match self.channel.push(item) {
-                Ok(()) => return Some(State::Pending(None)),
+                Ok(()) => return PollGate::Drained,
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(on_full());
+                    return PollGate::Full;
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
                     self.alive.take();
-                    return Some(State::Done);
+                    return PollGate::Closed;
                 }
             }
         }
 
+        PollGate::Proceed
+    }
+
+    /// Pushes one stream state and maps the result to an executor state.
+    fn deliver(
+        &mut self,
+        status: Stream<Done, Pending>,
+        on_full: impl FnOnce() -> State,
+        ok: impl FnOnce() -> State,
+    ) -> State {
+        match self.channel.push(status) {
+            Ok(()) => ok(),
+            Err(PushError::Full(msg)) => {
+                self.pending_msg = Some(msg);
+                on_full()
+            }
+            Err(PushError::Closed(_)) => {
+                self.channel.close();
+                self.alive.take();
+                State::Done
+            }
+        }
+    }
+
+    fn drive(
+        &mut self,
+        entry: Entry,
+        executor: BoxedExecutionEngine,
+        ctx: Ctx,
+        on_full: impl FnOnce() -> State,
+    ) -> Option<State> {
+        self.alive?;
+
+        match self.retry_before_poll() {
+            PollGate::Proceed => {}
+            PollGate::Drained => return Some(State::Pending(None)),
+            PollGate::Full => return Some(on_full()),
+            PollGate::Closed => return Some(State::Done),
+        }
+
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status(ctx.clone())
+            self.task.lock().unwrap().next_status(ctx)
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -173,8 +218,7 @@ where
                 // (and so `block_on_future`, and so `#[valtron_test]`) waits on
                 // a stream that will never yield and never end. A failing
                 // assertion inside a task then wedges the whole test in a futex
-                // instead of reporting a failure — the panic is swallowed here,
-                // and the harness never even prints `test result:`.
+                // instead of reporting a failure.
                 self.channel.close();
                 self.alive.take();
                 return Some(State::Panicked);
@@ -196,94 +240,27 @@ where
                     State::SpawnFailed(entry)
                 }
             },
-            TaskStatus::Ignore => match self.channel.push(Stream::Ignore) {
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(Stream::Ignore);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Delayed(inner) => match self.channel.push(Stream::Delayed(inner)) {
-                Ok(()) => State::Pending(Some(inner)),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(Stream::Delayed(inner));
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Init => match self.channel.push(Stream::Init) {
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(Stream::Init);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Pending(inner) => match self.channel.push(Stream::Pending(inner)) {
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(msg)) => {
-                    self.pending_msg = Some(msg);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Ready(inner) => match self.channel.push(Stream::Next(inner)) {
-                Ok(()) => State::ReadyValue(entry),
-                Err(PushError::Full(msg)) => {
-                    self.pending_msg = Some(msg);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
+            TaskStatus::Ignore => self.deliver(Stream::Ignore, on_full, || State::Pending(None)),
+            TaskStatus::Delayed(inner) => self.deliver(Stream::Delayed(inner), on_full, || {
+                State::Pending(Some(inner))
+            }),
+            TaskStatus::Init => self.deliver(Stream::Init, on_full, || State::Pending(None)),
+            TaskStatus::Pending(inner) => {
+                self.deliver(Stream::Pending(inner), on_full, || State::Pending(None))
+            }
+            TaskStatus::Ready(inner) => {
+                self.deliver(Stream::Next(inner), on_full, || State::ReadyValue(entry))
+            }
             // `Wait` is the task's "no data yet, queue still open" signal: a
-            // yield, not a park (tasks waiting on I/O should park with
-            // `TaskStatus::Depends`).
-            //
-            // Single-threaded executor (native and wasm): it reaches the executor
-            // as `State::Wait`, so the stream driver hands control back to its
-            // caller (native) or yields to the JS event loop on a short timer
-            // (wasm) instead of re-polling the task in a tight loop.
-            //
-            // Thread pool (`multi`): `State::Wait` parks the worker for its idle
-            // back-off with no sleeper to wake it, which stalls a fast producer
-            // (`bridge_park_executor`); re-poll immediately instead — other
-            // threads make progress meanwhile.
-            TaskStatus::Wait => match self.channel.push(Stream::Wait) {
+            // yield, not a park. Under `multi` re-poll at once instead of
+            // parking a worker with no sleeper to wake it.
+            TaskStatus::Wait => {
                 #[cfg(not(feature = "multi"))]
-                Ok(()) => State::Wait,
+                let ok = || State::Wait;
                 #[cfg(feature = "multi")]
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(Stream::Wait);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
+                let ok = || State::Pending(None);
+                self.deliver(Stream::Wait, on_full, ok)
+            }
             TaskStatus::Spread(items) => {
                 self.spread_items = items
                     .into_iter()
@@ -292,22 +269,11 @@ where
                         TaskSpread::Pending(p) => Stream::Pending(p),
                     })
                     .collect();
-                if !self.spread_items.is_empty() {
-                    let item = self.spread_items.remove(0);
-                    match self.channel.push(item) {
-                        Ok(()) => State::Pending(None),
-                        Err(PushError::Full(msg)) => {
-                            self.pending_msg = Some(msg);
-                            on_full()
-                        }
-                        Err(PushError::Closed(_)) => {
-                            self.channel.close();
-                            self.alive.take();
-                            State::Done
-                        }
-                    }
-                } else {
+                if self.spread_items.is_empty() {
                     State::Pending(None)
+                } else {
+                    let item = self.spread_items.remove(0);
+                    self.deliver(item, on_full, || State::Pending(None))
                 }
             }
             TaskStatus::Depends(signal) => State::Depends(signal),
@@ -316,35 +282,29 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending> ExecutionIterator
-    for StreamConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
     Pending: Send + 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending> ExecutionIterator
-    for StreamConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
     Pending: 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -377,10 +337,7 @@ impl<Task, Done, Pending> ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(
-        iter: Task,
-        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
-    ) -> Self {
+    pub fn new(iter: Task, chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>) -> Self {
         Self {
             channel: chan,
             alive: Some(()),
@@ -404,8 +361,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for ConsumingIter<Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
@@ -442,23 +399,22 @@ impl<Task, Done, Pending> ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
-        if self.alive.is_none() {
-            return None;
-        }
-
+    /// Retries a stashed message and drains one spread item before polling.
+    ///
+    /// Returns `Some(state)` when the caller must return that state now.
+    fn retry_before_poll(&mut self) -> PollGate {
         // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(on_full());
+                    return PollGate::Full;
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
                     self.alive.take();
-                    return Some(State::Done);
+                    return PollGate::Closed;
                 }
             }
         }
@@ -467,21 +423,61 @@ where
         if !self.spread_items.is_empty() {
             let item = self.spread_items.remove(0);
             match self.channel.push(item) {
-                Ok(()) => return Some(State::Pending(None)),
+                Ok(()) => return PollGate::Drained,
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(on_full());
+                    return PollGate::Full;
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
                     self.alive.take();
-                    return Some(State::Done);
+                    return PollGate::Closed;
                 }
             }
         }
 
+        PollGate::Proceed
+    }
+
+    /// Pushes one task status and maps the result to an executor state.
+    fn deliver(
+        &mut self,
+        status: TaskStatus<Done, Pending>,
+        on_full: impl FnOnce() -> State,
+        ok: impl FnOnce() -> State,
+    ) -> State {
+        match self.channel.push(status) {
+            Ok(()) => ok(),
+            Err(PushError::Full(msg)) => {
+                self.pending_msg = Some(msg);
+                on_full()
+            }
+            Err(PushError::Closed(_)) => {
+                self.channel.close();
+                self.alive.take();
+                State::Done
+            }
+        }
+    }
+
+    fn drive(
+        &mut self,
+        entry: Entry,
+        executor: BoxedExecutionEngine,
+        ctx: Ctx,
+        on_full: impl FnOnce() -> State,
+    ) -> Option<State> {
+        self.alive?;
+
+        match self.retry_before_poll() {
+            PollGate::Proceed => {}
+            PollGate::Drained => return Some(State::Pending(None)),
+            PollGate::Full => return Some(on_full()),
+            PollGate::Closed => return Some(State::Done),
+        }
+
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status(ctx.clone())
+            self.task.lock().unwrap().next_status(ctx)
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -496,8 +492,7 @@ where
                 // (and so `block_on_future`, and so `#[valtron_test]`) waits on
                 // a stream that will never yield and never end. A failing
                 // assertion inside a task then wedges the whole test in a futex
-                // instead of reporting a failure — the panic is swallowed here,
-                // and the harness never even prints `test result:`.
+                // instead of reporting a failure.
                 self.channel.close();
                 self.alive.take();
                 return Some(State::Panicked);
@@ -519,69 +514,20 @@ where
                     State::SpawnFailed(entry)
                 }
             },
-            TaskStatus::Delayed(inner) => {
-                match self.channel.push(TaskStatus::Delayed(inner)) {
-                    Ok(()) => State::Pending(Some(inner)),
-                    Err(PushError::Full(_)) => {
-                        self.pending_msg = Some(TaskStatus::Delayed(inner));
-                        on_full()
-                    }
-                    Err(PushError::Closed(_)) => {
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
-                }
+            TaskStatus::Delayed(inner) => self.deliver(TaskStatus::Delayed(inner), on_full, || {
+                State::Pending(Some(inner))
+            }),
+            TaskStatus::Init => self.deliver(TaskStatus::Init, on_full, || State::Pending(None)),
+            TaskStatus::Pending(inner) => {
+                self.deliver(TaskStatus::Pending(inner), on_full, || State::Pending(None))
             }
-            TaskStatus::Init => match self.channel.push(TaskStatus::Init) {
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(TaskStatus::Init);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Pending(inner) => match self.channel.push(TaskStatus::Pending(inner)) {
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(msg)) => {
-                    self.pending_msg = Some(msg);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
-                Ok(()) => State::ReadyValue(entry),
-                Err(PushError::Full(msg)) => {
-                    self.pending_msg = Some(msg);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Ignore => State::Pending(None),
-            TaskStatus::Wait => match self.channel.push(TaskStatus::Wait) {
-                Ok(()) => State::Pending(None),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(TaskStatus::Wait);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
+            TaskStatus::Ready(inner) => self.deliver(TaskStatus::Ready(inner), on_full, || {
+                State::ReadyValue(entry)
+            }),
+            TaskStatus::Ignore => {
+                self.deliver(TaskStatus::Ignore, on_full, || State::Pending(None))
+            }
+            TaskStatus::Wait => self.deliver(TaskStatus::Wait, on_full, || State::Pending(None)),
             TaskStatus::Spread(items) => {
                 self.spread_items = items
                     .into_iter()
@@ -590,22 +536,11 @@ where
                         TaskSpread::Pending(p) => TaskStatus::Pending(p),
                     })
                     .collect();
-                if !self.spread_items.is_empty() {
-                    let item = self.spread_items.remove(0);
-                    match self.channel.push(item) {
-                        Ok(()) => State::Pending(None),
-                        Err(PushError::Full(msg)) => {
-                            self.pending_msg = Some(msg);
-                            on_full()
-                        }
-                        Err(PushError::Closed(_)) => {
-                            self.channel.close();
-                            self.alive.take();
-                            State::Done
-                        }
-                    }
-                } else {
+                if self.spread_items.is_empty() {
                     State::Pending(None)
+                } else {
+                    let item = self.spread_items.remove(0);
+                    self.deliver(item, on_full, || State::Pending(None))
                 }
             }
             TaskStatus::Depends(signal) => State::Depends(signal),
@@ -614,35 +549,29 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending> ExecutionIterator
-    for ConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
     Pending: Send + 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending> ExecutionIterator
-    for ConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
     Pending: 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -674,10 +603,7 @@ impl<Task, Done, Pending> ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(
-        iter: Task,
-        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
-    ) -> Self {
+    pub fn new(iter: Task, chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>) -> Self {
         Self {
             alive: Some(()),
             channel: chan,
@@ -701,8 +627,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for ReadyConsumingIter<Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
@@ -739,21 +665,22 @@ impl<Task, Done, Pending> ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
-        self.alive?;
-
+    /// Retries a stashed message and drains one spread item before polling.
+    ///
+    /// Returns `Some(state)` when the caller must return that state now.
+    fn retry_before_poll(&mut self) -> PollGate {
         // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(on_full());
+                    return PollGate::Full;
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
                     self.alive.take();
-                    return Some(State::Done);
+                    return PollGate::Closed;
                 }
             }
         }
@@ -762,21 +689,61 @@ where
         if !self.spread_items.is_empty() {
             let item = self.spread_items.remove(0);
             match self.channel.push(item) {
-                Ok(()) => return Some(State::Pending(None)),
+                Ok(()) => return PollGate::Drained,
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(on_full());
+                    return PollGate::Full;
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
                     self.alive.take();
-                    return Some(State::Done);
+                    return PollGate::Closed;
                 }
             }
         }
 
+        PollGate::Proceed
+    }
+
+    /// Pushes one task status and maps the result to an executor state.
+    fn deliver(
+        &mut self,
+        status: TaskStatus<Done, Pending>,
+        on_full: impl FnOnce() -> State,
+        ok: impl FnOnce() -> State,
+    ) -> State {
+        match self.channel.push(status) {
+            Ok(()) => ok(),
+            Err(PushError::Full(msg)) => {
+                self.pending_msg = Some(msg);
+                on_full()
+            }
+            Err(PushError::Closed(_)) => {
+                self.channel.close();
+                self.alive.take();
+                State::Done
+            }
+        }
+    }
+
+    fn drive(
+        &mut self,
+        entry: Entry,
+        executor: BoxedExecutionEngine,
+        ctx: Ctx,
+        on_full: impl FnOnce() -> State,
+    ) -> Option<State> {
+        self.alive?;
+
+        match self.retry_before_poll() {
+            PollGate::Proceed => {}
+            PollGate::Drained => return Some(State::Pending(None)),
+            PollGate::Full => return Some(on_full()),
+            PollGate::Closed => return Some(State::Done),
+        }
+
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status(ctx.clone())
+            self.task.lock().unwrap().next_status(ctx)
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -791,8 +758,7 @@ where
                 // (and so `block_on_future`, and so `#[valtron_test]`) waits on
                 // a stream that will never yield and never end. A failing
                 // assertion inside a task then wedges the whole test in a futex
-                // instead of reporting a failure — the panic is swallowed here,
-                // and the harness never even prints `test result:`.
+                // instead of reporting a failure.
                 self.channel.close();
                 self.alive.take();
                 return Some(State::Panicked);
@@ -815,32 +781,13 @@ where
                 }
             },
             TaskStatus::Delayed(dur) => State::Pending(Some(dur)),
-            TaskStatus::Init | TaskStatus::Pending(_) => State::Pending(None),
-            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
-                Ok(()) => State::ReadyValue(entry),
-                Err(PushError::Full(msg)) => {
-                    self.pending_msg = Some(msg);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
-            TaskStatus::Ignore => State::Pending(None),
-            TaskStatus::Wait => match self.channel.push(TaskStatus::Wait) {
-                Ok(()) => State::ReadyValue(entry),
-                Err(PushError::Full(_)) => {
-                    self.pending_msg = Some(TaskStatus::Wait);
-                    on_full()
-                }
-                Err(PushError::Closed(_)) => {
-                    self.channel.close();
-                    self.alive.take();
-                    State::Done
-                }
-            },
+            TaskStatus::Init | TaskStatus::Pending(_) | TaskStatus::Ignore => State::Pending(None),
+            TaskStatus::Ready(inner) => self.deliver(TaskStatus::Ready(inner), on_full, || {
+                State::ReadyValue(entry)
+            }),
+            TaskStatus::Wait => {
+                self.deliver(TaskStatus::Wait, on_full, || State::ReadyValue(entry))
+            }
             TaskStatus::Spread(items) => {
                 self.spread_items = items
                     .into_iter()
@@ -849,22 +796,11 @@ where
                         TaskSpread::Pending(_) => None,
                     })
                     .collect();
-                if !self.spread_items.is_empty() {
-                    let item = self.spread_items.remove(0);
-                    match self.channel.push(item) {
-                        Ok(()) => State::ReadyValue(entry),
-                        Err(PushError::Full(msg)) => {
-                            self.pending_msg = Some(msg);
-                            on_full()
-                        }
-                        Err(PushError::Closed(_)) => {
-                            self.channel.close();
-                            self.alive.take();
-                            State::Done
-                        }
-                    }
-                } else {
+                if self.spread_items.is_empty() {
                     State::Pending(None)
+                } else {
+                    let item = self.spread_items.remove(0);
+                    self.deliver(item, on_full, || State::ReadyValue(entry))
                 }
             }
             TaskStatus::Depends(signal) => State::Depends(signal),
@@ -873,35 +809,29 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending> ExecutionIterator
-    for ReadyConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
     Pending: Send + 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending> ExecutionIterator
-    for ReadyConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
     Pending: 'static,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
-        let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let vacancy = self.channel.vacancy_readiness();
+        let on_full = move || State::Depends(std::sync::Arc::new(vacancy));
         self.drive(entry, executor, ctx, on_full)
     }
 }

@@ -69,8 +69,7 @@ struct ewe_mtp {
     llama_context *     ctx_dft   = nullptr;
     common_speculative * spec     = nullptr;
     const llama_vocab * vocab     = nullptr;
-    llama_batch         batch     = {};
-    bool                batch_ok  = false;
+    common_batch        batch;
 
     // Kept alive for the lifetime of `spec` (holds ctx pointers / n_max).
     common_params_speculative pspec;
@@ -159,8 +158,7 @@ extern "C" ewe_mtp * ewe_mtp_init(const llama_model *   target_model,
         h->ctx_dft     = ctx_dft;
         h->vocab       = llama_model_get_vocab(target_model);
         h->n_draft_max = n_draft_max;
-        h->batch       = llama_batch_init(llama_n_batch(ctx_tgt), 0, 1);
-        h->batch_ok    = true;
+        h->batch       = common_batch(ctx_tgt);
 
         h->pspec               = common_params_speculative();
         h->pspec.types         = { COMMON_SPECULATIVE_TYPE_DRAFT_MTP };
@@ -170,7 +168,6 @@ extern "C" ewe_mtp * ewe_mtp_init(const llama_model *   target_model,
 
         h->spec = common_speculative_init(h->pspec, 1);
         if (h->spec == nullptr) {
-            llama_batch_free(h->batch);
             llama_free(ctx_dft);
             llama_free(ctx_tgt);
             delete h;
@@ -189,9 +186,6 @@ extern "C" void ewe_mtp_free(ewe_mtp * h) {
     }
     if (h->smpl != nullptr) {
         common_sampler_free(h->smpl);
-    }
-    if (h->batch_ok) {
-        llama_batch_free(h->batch);
     }
     if (h->spec != nullptr) {
         common_speculative_free(h->spec);
@@ -240,9 +234,7 @@ extern "C" int32_t ewe_mtp_begin(ewe_mtp *        h,
         }
         h->n_prompt_tokens = (int) inp.size();
 
-        // Enable target embeddings if the MTP speculator needs them.
-        llama_set_embeddings(h->ctx_tgt, common_speculative_need_embd(h->spec));
-
+        // The MTP speculator enables the target and draft embeddings itself.
         // Evaluate the prompt (all but the last token) on the target.
         if (llama_decode(h->ctx_tgt, llama_batch_get_one(inp.data(), (int32_t) inp.size() - 1)) != 0) {
             return -1;
@@ -290,7 +282,7 @@ extern "C" int32_t ewe_mtp_step(ewe_mtp * h, char ** out_piece) {
         common_speculative_get_draft_params(h->spec, 0) = {
             /* .drafting = */ true,
             /* .n_max    = */ h->n_draft_max,
-            /* .n_past   = */ h->n_past,
+            /* .pos0     = */ h->n_past,
             /* .id_last  = */ h->id_last,
             /* .prompt   = */ &h->prompt_tgt,
             /* .result   = */ &h->draft,
@@ -299,13 +291,13 @@ extern "C" int32_t ewe_mtp_step(ewe_mtp * h, char ** out_piece) {
         const int n_draft = (int) h->draft.size();
 
         // Target batch: [id_last, draft0, draft1, ...].
-        common_batch_clear(h->batch);
-        common_batch_add(h->batch, h->id_last, h->n_past++, { 0 }, true);
+        h->batch.clear();
+        h->batch.add(h->id_last, h->n_past++, 0, true);
         for (int i = 0; i < n_draft; ++i) {
-            common_batch_add(h->batch, h->draft[i], h->n_past + i, { 0 }, true);
+            h->batch.add(h->draft[i], h->n_past + i, 0, true);
         }
 
-        if (llama_decode(h->ctx_tgt, h->batch) != 0) {
+        if (llama_process(h->ctx_tgt, LLAMA_PROCESS_TYPE_DECODE, h->batch.get()) != 0) {
             h->done = true;
             return -1;
         }

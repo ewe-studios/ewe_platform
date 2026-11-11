@@ -114,7 +114,10 @@ impl Parse for SslBlock {
                 Ok(SslBlock::StaticCert { cert, key })
             }
             "none" => Ok(SslBlock::None),
-            other => Err(syn::Error::new(variant.span(), format!("unknown SSL provider: {other}"))),
+            other => Err(syn::Error::new(
+                variant.span(),
+                format!("unknown SSL provider: {other}"),
+            )),
         }
     }
 }
@@ -158,7 +161,12 @@ impl Parse for ServiceBlock {
                     }
                 }
                 "health_check" => health_check = Some(content.parse()?),
-                other => return Err(syn::Error::new(key.span(), format!("unknown service key: {other}"))),
+                other => {
+                    return Err(syn::Error::new(
+                        key.span(),
+                        format!("unknown service key: {other}"),
+                    ))
+                }
             }
             if content.peek(Token![,]) {
                 content.parse::<Token![,]>()?;
@@ -205,7 +213,12 @@ impl Parse for HealthCheckBlock {
                 "timeout" => timeout = Some(content.parse()?),
                 "healthy" => healthy_threshold = Some(content.parse()?),
                 "unhealthy" => unhealthy_threshold = Some(content.parse()?),
-                other => return Err(syn::Error::new(key.span(), format!("unknown health_check key: {other}"))),
+                other => {
+                    return Err(syn::Error::new(
+                        key.span(),
+                        format!("unknown health_check key: {other}"),
+                    ))
+                }
             }
             if content.peek(Token![,]) {
                 content.parse::<Token![,]>()?;
@@ -227,7 +240,10 @@ impl Parse for HealthCheckBlock {
 fn parse_field<T: Parse>(input: ParseStream, field_name: &str) -> syn::Result<T> {
     let key: Ident = input.parse()?;
     if key != field_name {
-        return Err(syn::Error::new(key.span(), format!("expected {field_name}, got {key}")));
+        return Err(syn::Error::new(
+            key.span(),
+            format!("expected {field_name}, got {key}"),
+        ));
     }
     input.parse::<Token![:]>()?;
     input.parse()
@@ -252,7 +268,7 @@ pub fn proxy_impl(input: TokenStream) -> TokenStream {
 
     // SSL
     let ssl_call = match &config.ssl {
-        None => quote! {},
+        None | Some(SslBlock::None) => quote! {},
         Some(SslBlock::LetsEncrypt { email }) => {
             quote! { .ssl(foundation_proxy::SslConfig::lets_encrypt(#email)) }
         }
@@ -262,64 +278,71 @@ pub fn proxy_impl(input: TokenStream) -> TokenStream {
         Some(SslBlock::StaticCert { cert, key }) => {
             quote! { .ssl(foundation_proxy::SslConfig::static_cert(#cert, #key)) }
         }
-        Some(SslBlock::None) => quote! {},
     };
 
     // Services
-    let service_calls: Vec<_> = config.services.iter().map(|svc| {
-        let name_str = svc.name.to_string();
-        let name_lit = LitStr::new(&name_str, svc.name.span());
-        let host = &svc.host;
+    let service_calls: Vec<_> = config
+        .services
+        .iter()
+        .map(|svc| {
+            let name_str = svc.name.to_string();
+            let name_lit = LitStr::new(&name_str, svc.name.span());
+            let host = &svc.host;
 
-        let prefix_call = match &svc.path_prefix {
-            Some(p) => quote! { .path_prefix(#p) },
-            None => quote! {},
-        };
+            let prefix_call = match &svc.path_prefix {
+                Some(p) => quote! { .path_prefix(#p) },
+                None => quote! {},
+            };
 
-        let backend_calls: Vec<_> = svc.backends.iter().map(|b| {
-            quote! { .backend(#b) }
-        }).collect();
+            let backend_calls: Vec<_> = svc
+                .backends
+                .iter()
+                .map(|b| {
+                    quote! { .backend(#b) }
+                })
+                .collect();
 
-        let health_call = match &svc.health_check {
-            Some(hc) => {
-                let path = &hc.path;
-                let interval = &hc.interval;
-                let timeout = &hc.timeout;
-                let healthy = &hc.healthy_threshold;
-                let unhealthy = &hc.unhealthy_threshold;
+            let health_call = match &svc.health_check {
+                Some(hc) => {
+                    let path = &hc.path;
+                    let interval = &hc.interval;
+                    let timeout = &hc.timeout;
+                    let healthy = &hc.healthy_threshold;
+                    let unhealthy = &hc.unhealthy_threshold;
 
-                let healthy_set = match healthy {
-                    Some(v) => quote! { healthy_threshold: #v as u32, },
-                    None => quote! {},
-                };
-                let unhealthy_set = match unhealthy {
-                    Some(v) => quote! { unhealthy_threshold: #v as u32, },
-                    None => quote! {},
-                };
+                    let healthy_set = match healthy {
+                        Some(v) => quote! { healthy_threshold: #v as u32, },
+                        None => quote! {},
+                    };
+                    let unhealthy_set = match unhealthy {
+                        Some(v) => quote! { unhealthy_threshold: #v as u32, },
+                        None => quote! {},
+                    };
 
-                quote! {
-                    .health_check_config(foundation_proxy::HealthCheckConfig {
-                        path: #path.into(),
-                        interval: std::time::Duration::from_secs(#interval as u64),
-                        timeout: std::time::Duration::from_secs(#timeout as u64),
-                        #healthy_set
-                        #unhealthy_set
-                        ..foundation_proxy::HealthCheckConfig::default()
-                    })
+                    quote! {
+                        .health_check_config(foundation_proxy::HealthCheckConfig {
+                            path: #path.into(),
+                            interval: std::time::Duration::from_secs(#interval as u64),
+                            timeout: std::time::Duration::from_secs(#timeout as u64),
+                            #healthy_set
+                            #unhealthy_set
+                            ..foundation_proxy::HealthCheckConfig::default()
+                        })
+                    }
                 }
-            }
-            None => quote! {},
-        };
+                None => quote! {},
+            };
 
-        quote! {
-            .service(
-                foundation_proxy::ServiceConfig::new(#name_lit, #host)
-                    #prefix_call
-                    #(#backend_calls)*
-                    #health_call
-            )
-        }
-    }).collect();
+            quote! {
+                .service(
+                    foundation_proxy::ServiceConfig::new(#name_lit, #host)
+                        #prefix_call
+                        #(#backend_calls)*
+                        #health_call
+                )
+            }
+        })
+        .collect();
 
     let expanded = quote! {
         {

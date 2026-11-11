@@ -84,18 +84,21 @@ pub struct Swim {
     cfg: SwimConfig,
     rng: u64,
     seq: u64,
-    started: bool,
-    last_probe: Instant,
-    last_anti_entropy: Instant,
+    /// When the last probe was issued. `None` until the first [`Swim::tick`] seeds
+    /// it from the caller's `now`, so construction never reads a clock.
+    last_probe: Option<Instant>,
+    /// When the last anti-entropy digest was sent. `None` until the first
+    /// [`Swim::tick`] seeds it from the caller's `now`.
+    last_anti_entropy: Option<Instant>,
     pending: Option<PendingProbe>,
     /// Set when a gossip challenged us and we bumped our incarnation; drives one
     /// refutation broadcast.
     refute_pending: bool,
-    /// PeerId → instant at which a `Suspect` becomes `Dead`.
+    /// `PeerId` → instant at which a `Suspect` becomes `Dead`.
     suspicion: BTreeMap<PeerId, Instant>,
-    /// PeerId → instant at which a `Dead` tombstone is garbage-collected.
+    /// `PeerId` → instant at which a `Dead` tombstone is garbage-collected.
     tombstones: BTreeMap<PeerId, Instant>,
-    /// PeerId → incarnation at which it was reaped (GC'd). Suppresses resurrection of a
+    /// `PeerId` → incarnation at which it was reaped (GC'd). Suppresses resurrection of a
     /// tombstone by a peer that GCs later; a genuine rejoin (higher-incarnation `Alive`)
     /// clears the entry.
     reaped: BTreeMap<PeerId, u64>,
@@ -120,9 +123,8 @@ impl Swim {
             cfg,
             rng: seed | 1, // xorshift must be non-zero
             seq: 0,
-            started: false,
-            last_probe: Instant::now(),
-            last_anti_entropy: Instant::now(),
+            last_probe: None,
+            last_anti_entropy: None,
             pending: None,
             refute_pending: false,
             suspicion: BTreeMap::new(),
@@ -195,10 +197,11 @@ impl Swim {
     /// # Panics
     /// Never panics.
     pub fn tick(&mut self, now: Instant) -> (Vec<SwimOutbound>, Vec<SwimEvent>) {
-        if !self.started {
-            self.started = true;
-            self.last_probe = now;
-            self.last_anti_entropy = now;
+        // The first tick seeds the periodic timers from the caller's clock. The
+        // state machine never reads a clock itself: every deadline comes from `now`.
+        if self.last_probe.is_none() {
+            self.last_probe = Some(now);
+            self.last_anti_entropy = Some(now);
         }
 
         let mut out = Vec::new();
@@ -243,15 +246,15 @@ impl Swim {
                 self.forwards.insert(seq, (from, target));
                 out.push(SwimOutbound::new(target, SwimMessage::Ping { seq }));
             }
-            SwimMessage::Gossip { updates } => {
+            SwimMessage::Gossip { updates } | SwimMessage::SyncResponse { updates } => {
                 self.absorb_and_regossip(updates, &mut out, &mut events);
             }
             SwimMessage::SyncDigest { entries } => {
                 let updates = self.records_newer_than(&entries);
-                out.push(SwimOutbound::new(from, SwimMessage::SyncResponse { updates }));
-            }
-            SwimMessage::SyncResponse { updates } => {
-                self.absorb_and_regossip(updates, &mut out, &mut events);
+                out.push(SwimOutbound::new(
+                    from,
+                    SwimMessage::SyncResponse { updates },
+                ));
             }
             // WebRTC signals are dispatched by the mesh/node layer to the
             // answerer/offerer state machines — SWIM just delivers them.
@@ -264,10 +267,11 @@ impl Swim {
     // ----- probe lifecycle -------------------------------------------------
 
     fn maybe_probe(&mut self, now: Instant, out: &mut Vec<SwimOutbound>) {
-        if self.pending.is_some() || now.duration_since(self.last_probe) < self.cfg.probe_interval {
+        let last_probe = self.last_probe.unwrap_or(now);
+        if self.pending.is_some() || now.duration_since(last_probe) < self.cfg.probe_interval {
             return;
         }
-        self.last_probe = now;
+        self.last_probe = Some(now);
         // Bump our heartbeat so LWW favours our freshest self-record.
         self.my_record.heartbeat += 1;
 
@@ -359,9 +363,12 @@ impl Swim {
         }
         self.suspicion
             .insert(target, now + self.cfg.suspicion_timeout);
-        self.broadcast(SwimMessage::Gossip {
-            updates: vec![suspected],
-        }, out);
+        self.broadcast(
+            &SwimMessage::Gossip {
+                updates: vec![suspected],
+            },
+            out,
+        );
     }
 
     fn age_suspicions(
@@ -390,7 +397,12 @@ impl Swim {
                 events.push(event);
             }
             self.tombstones.insert(id, now + self.cfg.tombstone_ttl);
-            self.broadcast(SwimMessage::Gossip { updates: vec![dead] }, out);
+            self.broadcast(
+                &SwimMessage::Gossip {
+                    updates: vec![dead],
+                },
+                out,
+            );
         }
     }
 
@@ -433,7 +445,8 @@ impl Swim {
     fn apply_record(&mut self, record: PeerRecord) -> Option<SwimEvent> {
         if record.id == self.my_record.id {
             // Refutation bookkeeping: adopt a higher incarnation if we are challenged.
-            if record.state != MemberState::Alive && record.incarnation >= self.my_record.incarnation
+            if record.state != MemberState::Alive
+                && record.incarnation >= self.my_record.incarnation
             {
                 self.my_record.incarnation = record.incarnation + 1;
                 self.my_record.state = MemberState::Alive;
@@ -474,7 +487,9 @@ impl Swim {
                 } else if was_dead {
                     Some(SwimEvent::PeerUp(self.members.get(&id)?.clone()))
                 } else if endpoints_changed {
-                    Some(SwimEvent::PeerEndpointChanged(self.members.get(&id)?.clone()))
+                    Some(SwimEvent::PeerEndpointChanged(
+                        self.members.get(&id)?.clone(),
+                    ))
                 } else if caps_changed {
                     Some(SwimEvent::PeerCapsChanged(self.members.get(&id)?.clone()))
                 } else {
@@ -501,7 +516,7 @@ impl Swim {
             }
         }
         if !changed.is_empty() {
-            self.broadcast(SwimMessage::Gossip { updates: changed }, out);
+            self.broadcast(&SwimMessage::Gossip { updates: changed }, out);
         }
         self.emit_refutation(out);
     }
@@ -513,7 +528,7 @@ impl Swim {
         }
         self.refute_pending = false;
         self.broadcast(
-            SwimMessage::Gossip {
+            &SwimMessage::Gossip {
                 updates: vec![self.my_record.clone()],
             },
             out,
@@ -523,10 +538,11 @@ impl Swim {
     // ----- anti-entropy ----------------------------------------------------
 
     fn maybe_anti_entropy(&mut self, now: Instant, out: &mut Vec<SwimOutbound>) {
-        if now.duration_since(self.last_anti_entropy) < self.cfg.anti_entropy_interval {
+        let last_anti_entropy = self.last_anti_entropy.unwrap_or(now);
+        if now.duration_since(last_anti_entropy) < self.cfg.anti_entropy_interval {
             return;
         }
-        self.last_anti_entropy = now;
+        self.last_anti_entropy = Some(now);
         let Some(peer) = self.random_alive_member() else {
             return;
         };
@@ -559,15 +575,14 @@ impl Swim {
 
         let mut updates = Vec::new();
         // Our own record.
-        self.push_if_newer(&self.my_record, &digest, &mut updates);
+        Self::push_if_newer(&self.my_record, &digest, &mut updates);
         for record in self.members.iter() {
-            self.push_if_newer(record, &digest, &mut updates);
+            Self::push_if_newer(record, &digest, &mut updates);
         }
         updates
     }
 
     fn push_if_newer(
-        &self,
         record: &PeerRecord,
         digest: &BTreeMap<PeerId, (u64, u64, u8)>,
         updates: &mut Vec<PeerRecord>,
@@ -586,7 +601,7 @@ impl Swim {
 
     // ----- helpers ---------------------------------------------------------
 
-    fn broadcast(&mut self, message: SwimMessage, out: &mut Vec<SwimOutbound>) {
+    fn broadcast(&mut self, message: &SwimMessage, out: &mut Vec<SwimOutbound>) {
         let targets = self.random_members_excluding_none(self.cfg.gossip_fanout);
         for target in targets {
             out.push(SwimOutbound::new(target, message.clone()));
@@ -598,7 +613,7 @@ impl Swim {
         if candidates.is_empty() {
             return None;
         }
-        let idx = (self.rng_next() as usize) % candidates.len();
+        let idx = usize::try_from(self.rng_next()).unwrap_or(usize::MAX) % candidates.len();
         Some(candidates[idx])
     }
 
@@ -620,7 +635,7 @@ impl Swim {
     fn take_random(&mut self, candidates: &mut Vec<PeerId>, k: usize) -> Vec<PeerId> {
         let mut chosen = Vec::new();
         while !candidates.is_empty() && chosen.len() < k {
-            let idx = (self.rng_next() as usize) % candidates.len();
+            let idx = usize::try_from(self.rng_next()).unwrap_or(usize::MAX) % candidates.len();
             chosen.push(candidates.swap_remove(idx));
         }
         chosen

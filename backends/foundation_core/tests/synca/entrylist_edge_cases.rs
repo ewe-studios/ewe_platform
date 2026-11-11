@@ -94,8 +94,8 @@ fn test_generation_increment_on_reuse() {
     let entry2 = list.insert(2);
 
     // entry2 should have same id but different generation
-    assert!(entry1.id == entry2.id);
-    assert!(entry1.gen != entry2.gen);
+    assert_eq!(entry1.id, entry2.id);
+    assert_ne!(entry1.gen, entry2.gen);
 
     // Old entry should be invalid
     assert!(list.not_valid(&entry1));
@@ -221,7 +221,7 @@ fn test_mixed_operations_stress() {
     }
 
     // Verify integrity
-    for entry in new_entries.iter() {
+    for entry in &new_entries {
         assert_eq!(Some(&888), list.get(entry));
     }
 }

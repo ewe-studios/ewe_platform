@@ -12,7 +12,7 @@ cargo run -p foundation_connectrpc --example <name>
 
 | Example | RPC kind | Codecs | Definition style | What it teaches |
 |---|---|---|---|---|
-| [`unary_echo`](unary_echo) | unary | proto + json | hand-wired router | The end-to-end spine: server, client, `Ctx`, connection ownership, authoring a `buffa::Message`. |
+| [`unary_echo`](unary_echo) | unary | proto + json | hand-wired router | The end-to-end spine: server, client, `RpcCtx`, connection ownership, authoring a `buffa::Message`. |
 | [`server_streaming`](server_streaming) | server-stream | json only | hand-wired router | Returning a `Stream`, draining it, and a serde-only (no protobuf) service. |
 | [`codecs`](codecs) | unary | **all combinations** | hand-wired router | proto+json, json, arrow, arrow+json, proto+json+arrow — the codec table as the single authority. |
 | [`code_first_service`](code_first_service) | unary | json | `#[service]` | Generating a service + typed client from a Rust trait (no `.proto`). |

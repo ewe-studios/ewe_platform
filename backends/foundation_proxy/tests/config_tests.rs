@@ -1,4 +1,4 @@
-//! Unit tests for ProxyConfig, ServiceConfig, SslConfig.
+//! Unit tests for `ProxyConfig`, `ServiceConfig`, `SslConfig`.
 
 use foundation_proxy::{ProxyConfig, ServiceConfig, SslConfig, SslProvider};
 use std::time::Duration;
@@ -26,10 +26,14 @@ fn test_proxy_config_builder() {
 #[test]
 fn test_ssl_config_variants() {
     let le = SslConfig::lets_encrypt("admin@example.com");
-    assert!(matches!(le.provider, SslProvider::LetsEncrypt { ref email } if email == "admin@example.com"));
+    assert!(
+        matches!(le.provider, SslProvider::LetsEncrypt { ref email } if email == "admin@example.com")
+    );
 
     let cf = SslConfig::cloudflare("zone_id_123");
-    assert!(matches!(cf.provider, SslProvider::Cloudflare { ref zone_id } if zone_id == "zone_id_123"));
+    assert!(
+        matches!(cf.provider, SslProvider::Cloudflare { ref zone_id } if zone_id == "zone_id_123")
+    );
 
     let st = SslConfig::static_cert("/etc/cert.pem", "/etc/key.pem");
     assert!(matches!(st.provider, SslProvider::Static { .. }));

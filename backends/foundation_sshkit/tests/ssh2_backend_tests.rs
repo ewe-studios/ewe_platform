@@ -16,7 +16,10 @@ use foundation_sshkit::{Command, ConnectionPool, Host, Ssh2Backend};
 
 #[test]
 fn test_execute_connection_refused_returns_error() {
-    let pool = Arc::new(ConnectionPool::new(Duration::from_secs(2)));
+    let pool = Arc::new(ConnectionPool::new(
+        Duration::from_secs(2),
+        foundation_context::Ctx::fixed(Arc::new(foundation_context::MonotonicClock::new())),
+    ));
     let backend = Ssh2Backend::new(pool);
     let host = Host::parse("root@127.0.0.1:1");
 
@@ -24,8 +27,9 @@ fn test_execute_connection_refused_returns_error() {
 
     assert!(result.is_err(), "connecting to a closed port must fail");
     let err = result.unwrap_err();
+    let rendered = format!("{err:?}");
     assert!(
-        err.contains("connect"),
-        "error should originate from the TCP connect, got: {err:?}"
+        rendered.contains("connect"),
+        "error should originate from the TCP connect, got: {rendered}"
     );
 }

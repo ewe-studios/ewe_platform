@@ -101,8 +101,8 @@ pub struct BuildPruneArgs {
     pub max_used_space: Option<String>,
     /// Query parameter: `min-free-space`.
     pub min_free_space: Option<String>,
-    /// Query parameter: `all`.
-    pub all: Option<String>,
+    /// Query parameter: `all` (true/false).
+    pub all: Option<bool>,
     /// Query parameter: `filters`.
     pub filters: Option<String>,
 }
@@ -162,8 +162,8 @@ pub async fn build_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/build/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/build/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -171,7 +171,7 @@ where
     builder = builder.query("reserved-space", args.reserved_space.as_deref());
     builder = builder.query("max-used-space", args.max_used_space.as_deref());
     builder = builder.query("min-free-space", args.min_free_space.as_deref());
-    builder = builder.query("all", args.all.as_deref());
+    builder = builder.query("all", args.all.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("filters", args.filters.as_deref());
 
     if let Some(f) = builder_mod {
@@ -212,8 +212,8 @@ pub async fn container_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/containers/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -258,8 +258,8 @@ pub async fn image_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/images/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -304,8 +304,8 @@ pub async fn network_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/networks/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -350,8 +350,8 @@ pub async fn volume_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/prune",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/volumes/prune");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

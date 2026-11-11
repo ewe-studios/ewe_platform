@@ -85,7 +85,14 @@ impl<R: QuicRecvStream> FramedRecv<R> {
     /// Refuse frames larger than `max` bytes.
     #[must_use]
     pub fn with_max_frame_size(mut self, max: usize) -> Self {
-        self.decoder = FrameDecoder::new().with_max_frame_size(max);
+        self.decoder = std::mem::take(&mut self.decoder).with_max_frame_size(max);
+        self
+    }
+
+    /// Yield DATA payload in pieces of at most `read_chunk` bytes.
+    #[must_use]
+    pub fn with_read_chunk(mut self, read_chunk: usize) -> Self {
+        self.decoder = std::mem::take(&mut self.decoder).with_read_chunk(read_chunk);
         self
     }
 
@@ -183,6 +190,10 @@ impl<R: QuicRecvStream> FramedRecv<R> {
     }
 }
 
+/// The stream type, the receive stream, and bytes that followed the type
+/// varint in the same read.
+type StreamType<R> = (u64, R, Vec<u8>);
+
 /// Read the stream-type varint that prefixes every unidirectional stream
 /// (RFC 9114 §6.2), one byte at a time.
 ///
@@ -214,7 +225,7 @@ impl<R: QuicRecvStream> StreamTypeReader<R> {
     /// The receiver is moved out on success, which is why it lives in an
     /// `Option`: `mem::replace` with an "unreachable" placeholder would actually
     /// construct — and therefore panic on — that placeholder.
-    pub fn poll_type(&mut self) -> Stream<Result<Option<(u64, R, Vec<u8>)>, StreamError>, ()> {
+    pub fn poll_type(&mut self) -> Stream<Result<Option<StreamType<R>>, StreamError>, ()> {
         loop {
             let Some(recv) = self.recv.as_mut() else {
                 return Stream::Next(Ok(None));
@@ -222,7 +233,9 @@ impl<R: QuicRecvStream> StreamTypeReader<R> {
 
             if let Ok(Some((ty, used))) = super::varint::VarInt::decode(&self.buffer) {
                 let rest = self.buffer[used..].to_vec();
-                let recv = self.recv.take().expect("checked above");
+                let Some(recv) = self.recv.take() else {
+                    return Stream::Next(Ok(None));
+                };
                 return Stream::Next(Ok(Some((ty.value(), recv, rest))));
             }
 

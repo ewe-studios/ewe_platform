@@ -100,7 +100,11 @@ fn row_round_trips_a_user_conversation() {
 fn row_promotes_assistant_token_columns() {
     let rec = assistant_record("hi", 12.0, 5.0);
     let row = SessionRecordRow::from_record(&rec).expect("project");
-    assert_eq!(row.input_tokens, Some(12), "input tokens promoted to a column");
+    assert_eq!(
+        row.input_tokens,
+        Some(12),
+        "input tokens promoted to a column"
+    );
     assert_eq!(row.output_tokens, Some(5), "output tokens promoted");
     assert!(row.model.is_some(), "assistant model promoted");
 }
@@ -127,7 +131,10 @@ fn record_batch_round_trips_mixed_records() {
     assert_eq!(batch.num_rows(), 3, "one Arrow row per record");
 
     let back = from_record_batch(&batch).expect("from batch");
-    assert_eq!(back, records, "the Arrow batch must round-trip every record");
+    assert_eq!(
+        back, records,
+        "the Arrow batch must round-trip every record"
+    );
 }
 
 #[test]

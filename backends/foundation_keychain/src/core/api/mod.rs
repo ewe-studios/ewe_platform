@@ -10,19 +10,19 @@ pub mod identity;
 
 /// Ciphers API — CRUD, share, move, purge, restore.
 pub mod ciphers;
+/// Emergency access API.
+pub mod emergency;
+/// Events API — audit log.
+pub mod events;
 /// Folders API — CRUD.
 pub mod folders;
+/// Icon proxy API.
+pub mod icons;
 /// Organizations API — CRUD + membership.
 pub mod orgs;
 /// Sends API — CRUD + anonymous access.
 pub mod sends;
-/// Two-factor API — setup, verify, recovery codes.
-pub mod two_factor;
 /// Sync API — full vault sync.
 pub mod sync;
-/// Events API — audit log.
-pub mod events;
-/// Emergency access API.
-pub mod emergency;
-/// Icon proxy API.
-pub mod icons;
+/// Two-factor API — setup, verify, recovery codes.
+pub mod two_factor;

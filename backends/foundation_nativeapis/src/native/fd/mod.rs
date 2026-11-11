@@ -1,7 +1,8 @@
+pub mod error;
 /// File descriptor management — wraps any raw fd with readiness tracking.
 ///
 /// Built for our sync, task-driven model on top of our cross-platform
-/// poll::Selector (epoll/kqueue/IOCP).
+/// `poll::Selector` (epoll/kqueue/IOCP).
 ///
 /// ## Key Types
 ///
@@ -9,7 +10,7 @@
 /// - [`FdRegistration`] — tracks per-fd readiness state as an atomic bitmask
 /// - [`ReadyGuard`] — returned by `poll_readable()`/`poll_writable()`, must be
 ///   explicitly handled to clear readiness
-/// - [`Ready`] — bitmask of readiness states (READABLE, WRITABLE, READ_CLOSED, WRITE_CLOSED, ERROR)
+/// - [`Ready`] — bitmask of readiness states (READABLE, WRITABLE, `READ_CLOSED`, `WRITE_CLOSED`, ERROR)
 ///
 /// ## Parking a transport task on fd readiness (spec-41 F10 / Decision 00 L2)
 ///
@@ -41,146 +42,45 @@
 ///
 /// `foundation_core` never touches the fd or gains an OS dependency: the bridge
 /// is realized entirely through the `EventReadiness` impl on `RegisteredFd`.
-
 pub mod guard;
-pub mod error;
-pub mod reactor;
+// `Reactor`/`SharedReadiness`/`Ready` now live in `foundation_reactor` so that
+// `foundation_netio` can reach them without a dependency cycle. Re-export to
+// keep `foundation_nativeapis::native::fd::{Reactor, SharedReadiness, Ready}`.
+pub use foundation_reactor::reactor;
 
 /// The `CompletionSource` seam — byte acquisition for io_uring completion mode.
 pub mod completion;
 
 /// The `SendPool` — user-filled buffer pool for the `IORING_OP_SEND` write path.
 #[cfg(all(target_os = "linux", feature = "uring"))]
-pub mod send_pool;
+pub use foundation_reactor::send_pool;
 
 // `CompletionSocket` — the transport-facing byte-source wrapper — moved to
 // `foundation_iogate::native`, the one crate that owns both this reactor and
 // the netio `Connection`/`CompletionReadWrite` seam it plugs into. Keeping it
 // here would strand it below the `Connection` it exists to construct.
 
-pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
-pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
+pub use foundation_reactor::reactor::{AlreadyInitialised, Reactor, SharedReadiness};
+pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use completion::{Completion, CompletionSource};
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use send_pool::{SendBuf, SendPool};
 
-use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
+use crate::native::poll::{Events, Interest, Token};
 
 use std::io;
 use std::os::unix::io::{AsRawFd, RawFd as StdRawFd};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::EventReadiness;
+use foundation_core::valtron::{EventReadiness, ReadinessWaker};
 
-/// Bitmask of readiness and lifecycle states observed on a file descriptor.
-///
-/// ## Why CLOSED and ERROR flags are needed
-///
-/// On edge-triggered pollers, when a pipe's write end closes, epoll returns
-/// `EPOLLIN | EPOLLHUP`. The `EPOLLIN` sets READABLE, but `EPOLLHUP` means
-/// the connection is permanently broken — it will NEVER transition back to
-/// "not ready". Without a CLOSED flag, the fd appears permanently readable,
-/// causing a busy-wait loop.
-///
-/// Similarly, `EPOLLERR` can arrive without `EPOLLIN` or `EPOLLOUT`. Without
-/// an ERROR flag, the fd would appear "not ready" when it actually has an
-/// error condition that needs handling.
-///
-/// ## Platform mapping
-/// | Flag        | epoll                              | kqueue                          |
-/// |-------------|-------------------------------------|----------------------------------|
-/// | READABLE    | EPOLLIN                             | EVFILT_READ                      |
-/// | WRITABLE    | EPOLLOUT                            | EVFILT_WRITE                     |
-/// | READ_CLOSED | EPOLLHUP or (EPOLLIN+EPOLLRDHUP)    | EVFILT_READ + EV_EOF             |
-/// | WRITE_CLOSED| EPOLLHUP or (EPOLLOUT+EPOLLERR)     | EVFILT_WRITE + EV_EOF            |
-/// | ERROR       | EPOLLERR                            | EVFILT_READ/WRITE + EV_EOF+fflags |
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Ready(u8);
-
-impl Ready {
-    pub const READABLE:    Ready = Ready(0b00001);
-    pub const WRITABLE:    Ready = Ready(0b00010);
-    pub const READ_CLOSED: Ready = Ready(0b00100);
-    pub const WRITE_CLOSED: Ready = Ready(0b01000);
-    pub const ERROR:       Ready = Ready(0b10000);
-    pub const EMPTY:       Ready = Ready(0b00000);
-
-    pub fn is_readable(self)     -> bool { self.0 & Self::READABLE.0 != 0 }
-    pub fn is_writable(self)     -> bool { self.0 & Self::WRITABLE.0 != 0 }
-    pub fn is_read_closed(self)  -> bool { self.0 & Self::READ_CLOSED.0 != 0 }
-    pub fn is_write_closed(self) -> bool { self.0 & Self::WRITE_CLOSED.0 != 0 }
-    pub fn is_error(self)        -> bool { self.0 & Self::ERROR.0 != 0 }
-    pub fn is_empty(self)        -> bool { self.0 == 0 }
-
-    /// Combine readiness states.
-    pub fn union(self, other: Ready) -> Ready { Ready(self.0 | other.0) }
-
-    /// Remove specific readiness states.
-    pub fn difference(self, other: Ready) -> Ready { Ready(self.0 & !other.0) }
-
-    /// Intersection — readiness flags present in both.
-    pub fn intersection(self, other: Ready) -> Ready { Ready(self.0 & other.0) }
-
-    /// Check if this readiness contains all flags in `other`.
-    pub fn contains(self, other: Ready) -> bool { self.0 & other.0 == other.0 }
-
-    /// WHY: the shared reactor stores readiness in an `AtomicU8` so the drain
-    /// thread can set bits and consumers can clear them without taking a write
-    /// lock on the registration map.
-    ///
-    /// WHAT: the raw bit pattern backing this `Ready`.
-    ///
-    /// HOW: direct field read; the bit layout is the `Ready::*` constants.
-    ///
-    /// # Panics
-    /// Never panics.
-    pub const fn bits(self) -> u8 { self.0 }
-
-    /// WHY: counterpart to [`Ready::bits`] for reading back an atomically
-    /// stored readiness set.
-    ///
-    /// WHAT: rebuild a `Ready` from a raw bit pattern.
-    ///
-    /// HOW: unknown high bits are masked off, so a corrupted or future-widened
-    /// value can never produce a `Ready` claiming flags this build doesn't know.
-    ///
-    /// # Panics
-    /// Never panics.
-    pub const fn from_bits(bits: u8) -> Ready { Ready(bits & Self::ALL.0) }
-
-    /// Every readiness flag this build understands.
-    pub const ALL: Ready = Ready(0b11111);
-}
-
-impl std::fmt::Display for Ready {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.is_empty() {
-            return write!(f, "EMPTY");
-        }
-        let mut first = true;
-        for (flag, name) in [
-            (Self::READABLE, "READABLE"),
-            (Self::WRITABLE, "WRITABLE"),
-            (Self::READ_CLOSED, "READ_CLOSED"),
-            (Self::WRITE_CLOSED, "WRITE_CLOSED"),
-            (Self::ERROR, "ERROR"),
-        ] {
-            if self.contains(flag) {
-                if !first {
-                    write!(f, "|")?;
-                }
-                write!(f, "{name}")?;
-                first = false;
-            }
-        }
-        Ok(())
-    }
-}
+// `Ready` now lives in `foundation_reactor` (see the reactor re-export above).
+pub use foundation_reactor::ready::Ready;
 
 /// Result of a readiness poll.
 pub enum PollResult<T> {
@@ -189,8 +89,8 @@ pub enum PollResult<T> {
     /// The fd is not yet ready — caller should yield and retry.
     NotReady,
     /// An error occurred. This includes:
-    /// - READ_CLOSED: pipe write end closed, socket peer shutdown (EOF)
-    /// - WRITE_CLOSED: pipe read end closed, socket peer shutdown
+    /// - `READ_CLOSED`: pipe write end closed, socket peer shutdown (EOF)
+    /// - `WRITE_CLOSED`: pipe read end closed, socket peer shutdown
     /// - ERROR: epoll error condition (EPOLLERR), socket reset
     /// - Deregistered: fd was removed from the poll selector
     Error(io::Error),
@@ -209,11 +109,11 @@ impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
 /// Tracks readiness state for a registered file descriptor.
 ///
 /// # How readiness tracking works:
-/// 1. The fd is registered with the poll::Selector via FdRegistration::new()
-/// 2. poll_readable()/poll_writable() call poll() with zero timeout to check
+/// 1. The fd is registered with the `poll::Selector` via `FdRegistration::new()`
+/// 2. `poll_readable()/poll_writable()` call `poll()` with zero timeout to check
 ///    current readiness state from the selector
-/// 3. Events returned are mapped to Ready flags (READABLE, WRITABLE, READ_CLOSED, etc.)
-/// 4. The guard's try_io() or clear_ready() resets readiness by re-polling
+/// 3. Events returned are mapped to Ready flags (READABLE, WRITABLE, `READ_CLOSED`, etc.)
+/// 4. The guard's `try_io()` or `clear_ready()` resets readiness by re-polling
 ///
 /// This is the critical loop that prevents busy-wait on edge-triggered systems.
 #[allow(dead_code)]
@@ -222,7 +122,7 @@ pub struct FdRegistration {
     token: Token,
     /// Private Poll for readiness queries (legacy — unused when reactor is Some).
     poll: Option<crate::native::poll::Poll>,
-    /// Shared reactor (F40). When Some, is_ready() consults cached bits — zero syscalls.
+    /// Shared reactor (F40). When Some, `is_ready()` consults cached bits — zero syscalls.
     reactor: Option<Arc<Reactor>>,
     /// Last known readiness state — cached between poll calls.
     readiness: Mutex<Ready>,
@@ -264,17 +164,14 @@ impl FdRegistration {
             .ok()
             .filter(|reactor| registry.same_selector(reactor.registry()));
 
-        let (poll, reactor) = match shared {
-            Some(reactor) => {
-                reactor.register(fd, token, interest)?;
-                (None, Some(reactor))
-            }
-            None => {
-                registry.register_fd(fd, token, interest)?;
-                let poll = crate::native::poll::Poll::new()?;
-                poll.registry().register_fd(fd, token, interest)?;
-                (Some(poll), None)
-            }
+        let (poll, reactor) = if let Some(reactor) = shared {
+            reactor.register(fd, token, interest)?;
+            (None, Some(reactor))
+        } else {
+            registry.register_fd(fd, token, interest)?;
+            let poll = crate::native::poll::Poll::new()?;
+            poll.registry().register_fd(fd, token, interest)?;
+            (Some(poll), None)
         };
 
         Ok(Self {
@@ -503,7 +400,10 @@ impl FdRegistration {
             }
 
             let Some(ref reactor) = self.reactor else {
-                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
+                return Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "no completions pending",
+                ));
             };
             let refill = reactor.take_completions(self.token).unwrap_or_default();
             if refill.is_empty() {
@@ -511,7 +411,10 @@ impl FdRegistration {
                 // contract as a `WouldBlock` from `read(2)` in readiness mode.
                 drop(guard);
                 self.clear_readiness(Ready::READABLE);
-                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
+                return Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "no completions pending",
+                ));
             }
             staged.queue.extend(refill);
         }
@@ -673,12 +576,24 @@ impl FdRegistration {
     }
 }
 
+// `register`: on the shared-reactor path the reactor's drain thread latches
+// every readiness bit and then wakes the tasks registered on the token
+// (`foundation_reactor::reactor::drain_loop`), so an executor that sleeps on the
+// registration is woken by the event: `true`. On the legacy path a private
+// `Poll` is queried with a zero-timeout syscall and nothing wakes the task, so
+// the executor must re-check on a timer: `false`.
 impl EventReadiness for FdRegistration {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         match self.query_readiness() {
             Ok(r) => !r.is_empty(),
             Err(_) => false,
         }
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.reactor
+            .as_ref()
+            .is_some_and(|reactor| reactor.register_task_waker(self.token, waker))
     }
 }
 
@@ -717,7 +632,7 @@ impl completion::CompletionSource for FdRegistration {
     }
 }
 
-/// Wraps any type that produces a raw fd, registering it with our poll::Selector
+/// Wraps any type that produces a raw fd, registering it with our `poll::Selector`
 /// and providing readiness polling + guarded I/O operations.
 pub struct RegisteredFd<T: AsRawFd> {
     registration: FdRegistration,
@@ -727,6 +642,12 @@ pub struct RegisteredFd<T: AsRawFd> {
 impl<T: AsRawFd + Send + Sync> EventReadiness for RegisteredFd<T> {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.registration.is_ready(dur)
+    }
+
+    /// See the note on [`FdRegistration`]'s `EventReadiness` impl: `true` on the
+    /// shared-reactor path, `false` on the legacy private-`Poll` path.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.registration.register(waker)
     }
 }
 
@@ -750,15 +671,30 @@ impl<T: AsRawFd> completion::CompletionSource for RegisteredFd<T> {
 }
 
 impl<T: AsRawFd> RegisteredFd<T> {
-    /// Create a new RegisteredFd with default interest (readable + writable).
+    /// Create a new `RegisteredFd` with default interest (readable + writable).
     ///
-    /// The fd is immediately registered with the poll::Selector.
+    /// The fd is immediately registered with the `poll::Selector`.
     /// The fd MUST be in nonblocking mode for correct operation.
-    pub fn new(inner: T, registry: &crate::native::poll::Registry, token: Token) -> io::Result<Self> {
-        Self::with_interest(inner, registry, token, Interest::READABLE | Interest::WRITABLE)
+    ///
+    /// # Errors
+    /// Returns an I/O error if the fd cannot be registered.
+    pub fn new(
+        inner: T,
+        registry: &crate::native::poll::Registry,
+        token: Token,
+    ) -> io::Result<Self> {
+        Self::with_interest(
+            inner,
+            registry,
+            token,
+            Interest::READABLE | Interest::WRITABLE,
+        )
     }
 
     /// Create with specific interest.
+    ///
+    /// # Errors
+    /// Returns an I/O error if the fd cannot be registered.
     pub fn with_interest(
         inner: T,
         registry: &crate::native::poll::Registry,
@@ -803,10 +739,17 @@ impl<T: AsRawFd> RegisteredFd<T> {
     ) -> io::Result<Self> {
         let fd = inner.as_raw_fd();
         let registration = FdRegistration::with_completion(fd, registry, token, interest)?;
-        Ok(Self { registration, inner: Some(inner) })
+        Ok(Self {
+            registration,
+            inner: Some(inner),
+        })
     }
 
     /// Create, returning the original inner value on failure.
+    ///
+    /// # Errors
+    /// Returns `FdRegistrationError::Failed` with the registration error and
+    /// the original inner value if the fd cannot be registered.
     pub fn try_new(
         inner: T,
         registry: &crate::native::poll::Registry,
@@ -844,7 +787,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// Panics if an internal lock is poisoned.
     #[cfg(all(target_os = "linux", feature = "uring"))]
     pub fn read_bytes(&self, buf: &mut [u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.read_bytes(fd, buf)
     }
 
@@ -862,7 +809,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// Panics if an internal lock is poisoned.
     #[cfg(all(target_os = "linux", feature = "uring"))]
     pub fn send_bytes(&self, data: &[u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.send_bytes(fd, data)
     }
 
@@ -870,7 +821,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// `IORING_OP_SEND_ZC` (F50 Part C). See [`FdRegistration::send_bytes_zc`].
     #[cfg(all(target_os = "linux", feature = "uring"))]
     pub fn send_bytes_zc(&self, data: &[u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.send_bytes_zc(fd, data)
     }
 
@@ -882,7 +837,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
         &self,
         buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
     ) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.send_bytes_zc_direct(fd, buf)
     }
 
@@ -911,16 +870,25 @@ impl<T: AsRawFd> RegisteredFd<T> {
     }
 
     /// Get a shared reference to the inner object.
+    ///
+    /// # Panics
+    /// Panics if the inner object was moved out.
     pub fn get_ref(&self) -> &T {
         self.inner.as_ref().unwrap()
     }
 
     /// Get a mutable reference to the inner object.
+    ///
+    /// # Panics
+    /// Panics if the inner object was moved out.
     pub fn get_mut(&mut self) -> &mut T {
         self.inner.as_mut().unwrap()
     }
 
     /// Deregister and return ownership of the inner object.
+    ///
+    /// # Panics
+    /// Panics if the inner object was already moved out.
     pub fn into_inner(mut self) -> T {
         let fd = self.inner.as_ref().unwrap().as_raw_fd();
         let _ = self.registration.deregister(fd);
@@ -931,10 +899,10 @@ impl<T: AsRawFd> RegisteredFd<T> {
     ///
     /// Returns immediately with:
     /// - Ready(guard) if the fd is readable
-    /// - NotReady if no data is available
+    /// - `NotReady` if no data is available
     /// - Error if the fd was deregistered or closed
     ///
-    /// The guard must be explicitly handled via try_io(), clear_ready(), or retain_ready().
+    /// The guard must be explicitly handled via `try_io()`, `clear_ready()`, or `retain_ready()`.
     pub fn poll_readable(&self) -> PollResult<ReadyGuard<'_, T>> {
         let ready = match self.registration.refresh_readiness() {
             Ok(r) => r,
@@ -943,8 +911,7 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // 1. Check for error condition FIRST
         if ready.is_error() {
-            return PollResult::Error(io::Error::new(
-                io::ErrorKind::Other,
+            return PollResult::Error(io::Error::other(
                 "file descriptor has an error condition (EPOLLERR)",
             ));
         }
@@ -974,10 +941,7 @@ impl<T: AsRawFd> RegisteredFd<T> {
         };
 
         if ready.is_error() {
-            return PollResult::Error(io::Error::new(
-                io::ErrorKind::Other,
-                "file descriptor has an error condition",
-            ));
+            return PollResult::Error(io::Error::other("file descriptor has an error condition"));
         }
 
         if ready.is_write_closed() {
@@ -1006,10 +970,7 @@ impl<T: AsRawFd> RegisteredFd<T> {
 
         // Check error first
         if ready.is_error() {
-            return PollResult::Error(io::Error::new(
-                io::ErrorKind::Other,
-                "file descriptor has an error condition",
-            ));
+            return PollResult::Error(io::Error::other("file descriptor has an error condition"));
         }
 
         // Check closed states

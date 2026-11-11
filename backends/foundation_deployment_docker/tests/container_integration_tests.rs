@@ -45,8 +45,7 @@ async fn container_list_with_filters() {
             .and_then(|n| n.as_array())
             .and_then(|a| a.first())
             .and_then(|n| n.as_str())
-            .map(|n| n == &format!("/{name}"))
-            .unwrap_or(false)
+            .is_some_and(|n| n == format!("/{name}"))
     });
     assert!(found, "container list should contain /{name}");
 

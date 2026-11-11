@@ -154,8 +154,7 @@ pub fn mount_for<T, K>(
             //    effects run in document order): each inserts before the
             //    next KEPT item's first id, else the anchor — consecutive
             //    new items before one ref keep their relative order.
-            let mut new_entries: Vec<Option<Entry<K>>> =
-                items.iter().map(|_| None).collect();
+            let mut new_entries: Vec<Option<Entry<K>>> = items.iter().map(|_| None).collect();
             for (i, item) in items.iter().enumerate() {
                 let k = &new_keys[i];
                 if let Some(at) = entries.iter().position(|e| &e.key == k) {

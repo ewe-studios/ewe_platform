@@ -1,7 +1,7 @@
-//! ProviderService integration tests — real Turso DB, no mocks.
+//! `ProviderService` integration tests — real Turso DB, no mocks.
 //!
 //! Exercises the full CRUD + secret encryption round-trip against a real
-//! SQLite (Turso) database with migrations 024/025 applied via init_schema.
+//! SQLite (Turso) database with migrations 024/025 applied via `init_schema`.
 
 #![cfg(feature = "server-test")]
 
@@ -11,9 +11,14 @@ use foundation_auth::server::models::provider::{
     ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider,
 };
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::valtron_test;
 use foundation_db::StorageProvider;
 use tempfile::TempDir;
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 /// Build a real Turso-backed query store with all migrations applied.
 ///
@@ -33,7 +38,7 @@ fn make_store() -> (Arc<StorageProvider>, TempDir) {
 fn make_service() -> (ProviderService<StorageProvider>, TempDir) {
     let (store, dir) = make_store();
     let crypto = ProviderCrypto::from_passphrase("test-passphrase-abc123", "default");
-    (ProviderService::new(store, crypto), dir)
+    (ProviderService::new(store, crypto, test_clock()), dir)
 }
 
 fn sample_provider() -> UpstreamProvider {
@@ -47,9 +52,7 @@ fn sample_provider() -> UpstreamProvider {
         authorization_url: None,
         token_url: None,
         userinfo_url: None,
-        discovery_url: Some(
-            "https://accounts.google.com/.well-known/openid-configuration".into(),
-        ),
+        discovery_url: Some("https://accounts.google.com/.well-known/openid-configuration".into()),
         scopes: vec!["openid".into(), "email".into(), "profile".into()],
         is_active: true,
         mapping_config: ProviderMapping::default(),
@@ -68,7 +71,11 @@ async fn create_and_find_round_trips() {
     assert!(created.created_at > 0, "created_at should be stamped");
     assert!(created.client_secret_ciphertext.is_none());
 
-    let found = svc.find_by_id("google").await.expect("find").expect("present");
+    let found = svc
+        .find_by_id("google")
+        .await
+        .expect("find")
+        .expect("present");
     assert_eq!(found.name, "Google");
     assert_eq!(found.provider_type, ProviderType::Oidc);
     assert_eq!(found.scopes, vec!["openid", "email", "profile"]);
@@ -84,7 +91,9 @@ async fn secret_encrypt_decrypt_round_trips() {
     let (svc, _tmp) = make_service();
     svc.create(sample_provider()).await.expect("create");
 
-    svc.set_secret("google", "GOCSPX-super-secret").await.expect("set_secret");
+    svc.set_secret("google", "GOCSPX-super-secret")
+        .await
+        .expect("set_secret");
 
     // Decrypt returns the original plaintext.
     let secret = svc.get_secret("google").await.expect("get_secret");
@@ -94,7 +103,10 @@ async fn secret_encrypt_decrypt_round_trips() {
     let stored = svc.find_by_id("google").await.unwrap().unwrap();
     let blob = stored.client_secret_ciphertext.expect("ciphertext present");
     assert_ne!(blob.as_slice(), b"GOCSPX-super-secret");
-    assert!(blob.len() > "GOCSPX-super-secret".len(), "nonce + tag overhead");
+    assert!(
+        blob.len() > "GOCSPX-super-secret".len(),
+        "nonce + tag overhead"
+    );
 }
 
 #[valtron_test]
@@ -106,13 +118,17 @@ async fn secret_survives_new_service_with_same_passphrase() {
     let svc1 = ProviderService::new(
         store.clone(),
         ProviderCrypto::from_passphrase("shared-passphrase", "default"),
+        test_clock(),
     );
     svc1.create(sample_provider()).await.expect("create");
-    svc1.set_secret("google", "the-secret").await.expect("set_secret");
+    svc1.set_secret("google", "the-secret")
+        .await
+        .expect("set_secret");
 
     let svc2 = ProviderService::new(
         store,
         ProviderCrypto::from_passphrase("shared-passphrase", "default"),
+        test_clock(),
     );
     assert_eq!(svc2.get_secret("google").await.unwrap(), "the-secret");
 }
@@ -123,13 +139,17 @@ async fn wrong_passphrase_fails_to_decrypt() {
     let svc1 = ProviderService::new(
         store.clone(),
         ProviderCrypto::from_passphrase("right-passphrase", "default"),
+        test_clock(),
     );
     svc1.create(sample_provider()).await.expect("create");
-    svc1.set_secret("google", "the-secret").await.expect("set_secret");
+    svc1.set_secret("google", "the-secret")
+        .await
+        .expect("set_secret");
 
     let svc2 = ProviderService::new(
         store,
         ProviderCrypto::from_passphrase("wrong-passphrase", "default"),
+        test_clock(),
     );
     // AEAD authentication fails with the wrong key.
     assert!(svc2.get_secret("google").await.is_err());
@@ -149,7 +169,8 @@ async fn update_applies_partial_changes() {
                 scopes: Some(vec!["openid".into()]),
                 ..Default::default()
             },
-        ).await
+        )
+        .await
         .expect("update");
     assert_eq!(updated.name, "Google SSO");
     assert!(!updated.is_active);
@@ -192,7 +213,7 @@ async fn delete_removes_provider() {
 async fn create_rejects_empty_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
-    p.id = "".into();
+    p.id = String::new();
     assert!(svc.create(p).await.is_err());
 }
 
@@ -200,7 +221,7 @@ async fn create_rejects_empty_id() {
 async fn create_rejects_empty_client_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
-    p.client_id = "".into();
+    p.client_id = String::new();
     assert!(svc.create(p).await.is_err());
 }
 
@@ -277,6 +298,9 @@ async fn oauth2_provider_with_explicit_urls_is_valid() {
     p.authorization_url = Some("https://github.com/login/oauth/authorize".into());
     p.token_url = Some("https://github.com/login/oauth/access_token".into());
     p.userinfo_url = Some("https://api.github.com/user".into());
-    let created = svc.create(p).await.expect("oauth2 provider with explicit urls is valid");
+    let created = svc
+        .create(p)
+        .await
+        .expect("oauth2 provider with explicit urls is valid");
     assert_eq!(created.provider_type, ProviderType::Oauth2);
 }

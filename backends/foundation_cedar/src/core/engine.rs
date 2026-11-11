@@ -14,10 +14,18 @@ pub struct CedarEngine {
 }
 
 impl CedarEngine {
+    /// Build an engine from a schema and policy text.
+    ///
+    /// # Errors
+    /// Returns an error if the schema or policy fails to parse or validate.
     pub fn from_str(schema_text: &str, policy_text: &str) -> Result<Self, CedarError> {
         Self::with_entities(schema_text, policy_text, &Entities::empty())
     }
 
+    /// Build an engine from a schema, policy text, and entities.
+    ///
+    /// # Errors
+    /// Returns an error if the schema or policy fails to parse or validate.
     pub fn with_entities(
         schema_text: &str,
         policy_text: &str,
@@ -33,7 +41,10 @@ impl CedarEngine {
         let result = validator.validate(&policies, ValidationMode::default());
 
         if !result.validation_passed() {
-            let errors: Vec<String> = result.validation_errors().map(|e| e.to_string()).collect();
+            let errors: Vec<String> = result
+                .validation_errors()
+                .map(std::string::ToString::to_string)
+                .collect();
             return Err(CedarError::Validation(errors));
         }
 
@@ -45,6 +56,10 @@ impl CedarEngine {
         })
     }
 
+    /// Build an engine from policy text only, with an empty schema.
+    ///
+    /// # Errors
+    /// Returns an error if the policy fails to parse.
     pub fn from_policy_text_only(policy_text: &str) -> Result<Self, CedarError> {
         let policies =
             PolicySet::from_str(policy_text).map_err(|e| CedarError::PolicyParse(e.to_string()))?;
@@ -68,6 +83,7 @@ impl CedarEngine {
         CedarResponse::from_response(response)
     }
 
+    #[must_use]
     pub fn is_authorized_with_entities(
         &self,
         request: &CedarRequest,

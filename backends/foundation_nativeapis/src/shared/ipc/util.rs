@@ -1,12 +1,13 @@
 /// Utility types for the IPC bus.
-
 use std::ops::{Bound, RangeBounds};
 
-use serde::{Deserialize, Serialize};
 use foundation_core::type_uuid::Bytes;
+use serde::{Deserialize, Serialize};
 
 /// 4-byte alignment utility for wire format padding.
 pub trait Align4 {
+    /// Round up to the next multiple of 4.
+    #[must_use]
     fn align4(self) -> Self;
 }
 
@@ -35,12 +36,21 @@ impl Align4 for u32 {
 pub struct EndpointID(Bytes);
 
 impl EndpointID {
+    /// Create a new random endpoint id.
+    #[must_use]
     pub fn new() -> Self {
         Self(uuid::Uuid::new_v4().into_bytes())
     }
 }
 
-/// Convert a range to (offset, optional_size) tuple.
+impl Default for EndpointID {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Convert a range to an `(offset, optional_size)` tuple.
+#[must_use]
 pub fn range_to_offset_size<S: RangeBounds<usize>>(bounds: S) -> (usize, Option<usize>) {
     let offset = match bounds.start_bound() {
         Bound::Included(&bound) => bound,
@@ -55,4 +65,3 @@ pub fn range_to_offset_size<S: RangeBounds<usize>>(bounds: S) -> (usize, Option<
 
     (offset, size)
 }
-

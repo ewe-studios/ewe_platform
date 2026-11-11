@@ -25,7 +25,7 @@ impl<'a, S: KeyValueStore> KvPolicyStore<'a, S> {
 
     async fn load_optional(&self, suffix: &str) -> Result<Option<String>, CedarError> {
         self.store
-            .get_async::<String>(&self.key(suffix))
+            .get::<String>(&self.key(suffix))
             .await
             .map_err(|e| CedarError::PolicyParse(format!("KV store error: {e}")))
     }

@@ -12,12 +12,14 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{initialize_pool, Stream, BlockingFutureExt};
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt, Stream};
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::{HttpServer, ServerConfig};
+use foundation_http::native::writer::send_text;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::context::Ctx;
+use foundation_http::shared::serve::ConnectionResult;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http3::{H3Connection, H3Request};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::quic::{client_config_trusting_pem, QuicDriver, QuinnBidiStream};
@@ -39,7 +41,7 @@ fn ms(n: u64) -> Duration {
 struct BodyEchoHandler;
 
 impl ServeFactory for BodyEchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -47,19 +49,21 @@ impl ServeFactory for BodyEchoHandler {
 impl Serve for BodyEchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let body = req.body.and_then(|b| try_collect_bytes(b).ok()).unwrap_or_default();
+        let body = req
+            .body
+            .and_then(|b| try_collect_bytes(b).ok())
+            .unwrap_or_default();
         let text = String::from_utf8_lossy(&body);
-        respond::text(&mut conn, 200, &text)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, &text, &foundation_core::valtron::Ctx::host())
     }
 }
 
 struct Backend {
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 impl Drop for Backend {
     fn drop(&mut self) {
@@ -72,8 +76,9 @@ fn start_backend() -> (u16, Backend) {
     let port = listener.local_addr().unwrap().port();
     let mut app = HttpApp::new_serve();
     app.route_any::<BodyEchoHandler>("/*");
-    let server = HttpServer::with_config(app, &format!("127.0.0.1:{port}"), ServerConfig::defaults());
-    let shutdown = Arc::new(OnSignal::new());
+    let server =
+        HttpServer::with_config(app, &format!("127.0.0.1:{port}"), ServerConfig::defaults());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let s = Arc::clone(&shutdown);
     std::thread::spawn(move || server.serve_with_listener(&listener, &s));
     (port, Backend { shutdown })
@@ -99,36 +104,37 @@ fn drive<T>(
     }
 }
 
-fn send_frame(request: &mut H3Request<QuinnBidiStream>, mut pending: Bytes, headers: bool, deadline: Instant) {
+fn send_frame(
+    request: &mut H3Request<QuinnBidiStream>,
+    mut pending: Bytes,
+    headers: bool,
+    deadline: Instant,
+) {
     loop {
         let step = if headers {
             request.poll_send_headers(&mut pending)
         } else {
             request.poll_send_data(&mut pending)
         };
-        match step {
-            Stream::Next(Ok(())) | Stream::Next(Err(_)) => return,
-            _ => {
-                if Instant::now() >= deadline {
-                    return;
-                }
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(Ok(()) | Err(_)) = step {
+            return;
         }
+        if Instant::now() >= deadline {
+            return;
+        }
+        std::thread::sleep(ms(1));
     }
 }
 
 fn finish(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) {
     loop {
-        match request.poll_finish() {
-            Stream::Next(Ok(())) | Stream::Next(Err(_)) => return,
-            _ => {
-                if Instant::now() >= deadline {
-                    return;
-                }
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(Ok(()) | Err(_)) = request.poll_finish() {
+            return;
         }
+        if Instant::now() >= deadline {
+            return;
+        }
+        std::thread::sleep(ms(1));
     }
 }
 
@@ -137,7 +143,7 @@ fn read_body(request: &mut H3Request<QuinnBidiStream>, deadline: Instant) -> Vec
     loop {
         match request.poll_body() {
             Stream::Next(Ok(Some(chunk))) => body.extend_from_slice(&chunk),
-            Stream::Next(Ok(None)) | Stream::Next(Err(_)) => return body,
+            Stream::Next(Ok(None) | Err(_)) => return body,
             _ => {
                 if Instant::now() >= deadline {
                     return body;
@@ -174,13 +180,23 @@ fn h3_proxy_forwards_to_http1_backend() {
         .h3_bind("127.0.0.1:0")
         .service(svc);
 
-    let proxy = ProxyServer::start(config).block().expect("start proxy with H3");
+    let proxy = ProxyServer::start(config, foundation_context::Ctx::host())
+        .block()
+        .expect("start proxy with H3");
     let h3_addr = proxy.h3_local_addr().expect("H3 front end bound");
     std::thread::sleep(ms(300));
 
     // ── H3 client: connect over QUIC and drive one request through the proxy. ──
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(h3_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) = QuicDriver::connect(
+        h3_addr,
+        client_cfg,
+        "localhost",
+        &foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);
@@ -223,7 +239,8 @@ fn h3_proxy_forwards_to_http1_backend() {
 
     let body = read_body(&mut request, deadline);
     assert_eq!(
-        &body, b"h3-proxy-payload",
+        &body,
+        b"h3-proxy-payload",
         "backend echoed the body through the H3 proxy: {:?}",
         String::from_utf8_lossy(&body)
     );

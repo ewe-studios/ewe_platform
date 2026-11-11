@@ -36,6 +36,7 @@ def main [lock: path, dest: path] {
             git-in $dir submodule update --init --recursive --depth 1
         }
     }
-    ^cp $lock ($dest | path join submodules.lock.json)
+    # Use Nu's own copy, not the external `cp`: Windows has no `cp`.
+    open --raw $lock | save --force ($dest | path join submodules.lock.json)
     print $"baked ($entries | length) submodule\(s) into ($dest)"
 }

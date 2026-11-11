@@ -62,18 +62,18 @@ impl WebRtcAnswerer {
     ///
     /// Returns the SDP answer to send back via gossip, or `None` if the
     /// answerer is not in the Idle state.
-    pub fn on_offer(&mut self, peer: PeerId, sdp: String) -> Option<String> {
+    pub fn on_offer(&mut self, peer: PeerId, sdp: &str) -> Option<String> {
         if self.state != AnswererState::Idle {
             return None;
         }
         self.peer = Some(peer);
-        self.offer_sdp = Some(sdp.clone());
+        self.offer_sdp = Some(sdp.to_owned());
 
         // Generate an SDP answer. In a full ICE implementation, this would
         // involve generating a DTLS certificate, choosing codecs, and
         // allocating ICE candidates. For the signaling plane, we produce a
         // minimal valid SDP answer.
-        let answer = generate_sdp_answer(&sdp);
+        let answer = generate_sdp_answer(sdp);
         self.answer_sdp = Some(answer.clone());
         self.state = AnswererState::Answered;
         Some(answer)
@@ -82,8 +82,13 @@ impl WebRtcAnswerer {
     /// Process an ICE candidate from the browser peer.
     ///
     /// Returns local ICE candidates to send back via gossip if state
-    /// transitions to IceExchange.
-    pub fn on_ice_candidate(&mut self, candidate: String, _mid: Option<String>, _mline: Option<u16>) -> Vec<String> {
+    /// transitions to `IceExchange`.
+    pub fn on_ice_candidate(
+        &mut self,
+        candidate: String,
+        _mid: Option<String>,
+        _mline: Option<u16>,
+    ) -> Vec<String> {
         if self.state != AnswererState::Answered && self.state != AnswererState::IceExchange {
             return Vec::new();
         }
@@ -92,8 +97,14 @@ impl WebRtcAnswerer {
         if self.state == AnswererState::Answered {
             // Generate local ICE candidates (host + srflx in a full impl).
             self.local_candidates = vec![
-                format!("candidate:1 1 UDP 2130706431 10.0.0.{} 9000 typ host", self.peer.map_or(1, |_| 1)),
-                format!("candidate:2 1 UDP 1694498815 10.0.0.{} 9001 typ srflx raddr 0.0.0.0 rport 0", self.peer.map_or(1, |_| 1)),
+                format!(
+                    "candidate:1 1 UDP 2130706431 10.0.0.{} 9000 typ host",
+                    self.peer.map_or(1, |_| 1)
+                ),
+                format!(
+                    "candidate:2 1 UDP 1694498815 10.0.0.{} 9001 typ srflx raddr 0.0.0.0 rport 0",
+                    self.peer.map_or(1, |_| 1)
+                ),
             ];
             self.state = AnswererState::IceExchange;
             return self.local_candidates.clone();

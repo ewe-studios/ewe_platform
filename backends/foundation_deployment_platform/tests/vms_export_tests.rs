@@ -5,7 +5,7 @@
 use std::path::Path;
 
 use foundation_deployment_platform::export::compress::{
-    compress_gzip, compress_xz, decompress_gzip, decompress_xz, is_compressed, Compression,
+    Compression, compress_gzip, compress_xz, decompress_gzip, decompress_xz, is_compressed,
 };
 use foundation_deployment_platform::export::manifest::ExportManifest;
 
@@ -36,7 +36,11 @@ fn test_gzip_roundtrip() {
     let decompressed = dir.join("test_restored.qcow2");
 
     // Create a small test file
-    std::fs::write(&src, b"test qcow2 data that should compress and decompress correctly").unwrap();
+    std::fs::write(
+        &src,
+        b"test qcow2 data that should compress and decompress correctly",
+    )
+    .unwrap();
 
     compress_gzip(&src, &compressed).unwrap();
     assert!(compressed.exists());
@@ -44,7 +48,10 @@ fn test_gzip_roundtrip() {
 
     decompress_gzip(&compressed, &decompressed).unwrap();
     assert!(decompressed.exists());
-    assert_eq!(std::fs::read(&src).unwrap(), std::fs::read(&decompressed).unwrap());
+    assert_eq!(
+        std::fs::read(&src).unwrap(),
+        std::fs::read(&decompressed).unwrap()
+    );
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -58,14 +65,21 @@ fn test_xz_roundtrip() {
     let compressed = dir.join("test.qcow2.xz");
     let decompressed = dir.join("test_restored.qcow2");
 
-    std::fs::write(&src, b"test qcow2 data that should compress and decompress correctly with xz").unwrap();
+    std::fs::write(
+        &src,
+        b"test qcow2 data that should compress and decompress correctly with xz",
+    )
+    .unwrap();
 
     compress_xz(&src, &compressed).unwrap();
     assert!(compressed.exists());
 
     decompress_xz(&compressed, &decompressed).unwrap();
     assert!(decompressed.exists());
-    assert_eq!(std::fs::read(&src).unwrap(), std::fs::read(&decompressed).unwrap());
+    assert_eq!(
+        std::fs::read(&src).unwrap(),
+        std::fs::read(&decompressed).unwrap()
+    );
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -90,7 +104,7 @@ fn test_manifest_tools_summary() {
         created_at: "2026-05-03T00:00:00Z".to_string(),
         created_by: "testhost".to_string(),
         git_commit: "abc1234".to_string(),
-        notes: "".to_string(),
+        notes: String::new(),
     };
 
     let summary = manifest.tools_summary();
@@ -104,6 +118,8 @@ fn test_size_ratio_calculation() {
     // Just verify the math works with dummy values
     let orig = 4_000_000_000u64;
     let comp = 800_000_000u64;
+    // file sizes to f64 for a ratio; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
     let expected_ratio = (comp as f64 / orig as f64) * 100.0;
     assert!((expected_ratio - 20.0).abs() < 0.1);
 }

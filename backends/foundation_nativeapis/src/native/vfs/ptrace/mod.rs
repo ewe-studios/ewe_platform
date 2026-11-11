@@ -2,7 +2,6 @@
 ///
 /// Intercepts filesystem syscalls at the kernel boundary via `ptrace(2)` and routes them
 /// through the `VfsFileSystem`. Non-filesystem syscalls pass through unmodified.
-
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
@@ -12,11 +11,12 @@ use nix::libc;
 use foundation_errstacks::ErrorTrace;
 
 // Re-export erased types from shared — ptrace code uses these via `super::ErasedFile` etc.
-pub use crate::shared::vfs::dynfs::{DynFs, ErasedDir, ErasedDirOps, ErasedFile, ErasedSeekableFile};
+pub use crate::shared::vfs::dynfs::{
+    DynFs, ErasedDir, ErasedDirOps, ErasedFile, ErasedSeekableFile,
+};
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
-use crate::shared::vfs::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
-use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+use crate::shared::vfs::types::OpenMode;
 
 pub mod memory;
 pub mod nix_backend;
@@ -92,7 +92,10 @@ pub struct InterceptorHandle {
 
 impl InterceptorHandle {
     pub fn new(child_pid: u32, join_handle: std::thread::JoinHandle<VfsResult<i32>>) -> Self {
-        Self { child_pid, join_handle }
+        Self {
+            child_pid,
+            join_handle,
+        }
     }
 
     pub fn wait(self) -> VfsResult<i32> {
@@ -103,7 +106,9 @@ impl InterceptorHandle {
         })
     }
 
-    pub fn pid(&self) -> u32 { self.child_pid }
+    pub fn pid(&self) -> u32 {
+        self.child_pid
+    }
 }
 
 // ── MountTable ──
@@ -117,33 +122,51 @@ pub struct MountTable {
 impl Clone for MountTable {
     fn clone(&self) -> Self {
         Self {
-            entries: self.entries.iter().map(|(s, f)| (s.clone(), f.clone())).collect(),
+            entries: self
+                .entries
+                .iter()
+                .map(|(s, f)| (s.clone(), f.clone()))
+                .collect(),
             default_fs: self.default_fs.clone(),
         }
     }
 }
 
 impl MountTable {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
     pub fn mount(&mut self, prefix: &str, fs: DynFs) {
         self.entries.push((normalize_prefix(prefix), fs));
     }
-    pub fn set_default(&mut self, fs: DynFs) { self.default_fs = Some(fs); }
+    pub fn set_default(&mut self, fs: DynFs) {
+        self.default_fs = Some(fs);
+    }
     pub fn resolve(&self, path: &str) -> Option<&DynFs> {
         for (prefix, fs) in &self.entries {
-            if path.starts_with(prefix.as_str()) { return Some(fs); }
+            if path.starts_with(prefix.as_str()) {
+                return Some(fs);
+            }
         }
         self.default_fs.as_ref()
     }
     pub fn is_virtual(&self, path: &str) -> bool {
-        self.entries.iter().any(|(p, _)| path.starts_with(p.as_str()))
+        self.entries
+            .iter()
+            .any(|(p, _)| path.starts_with(p.as_str()))
     }
 }
 
 fn normalize_prefix(prefix: &str) -> String {
     let mut p = prefix.to_string();
-    if !p.starts_with('/') { p.insert(0, '/'); }
-    if p.len() > 1 { while p.ends_with('/') { p.pop(); } }
+    if !p.starts_with('/') {
+        p.insert(0, '/');
+    }
+    if p.len() > 1 {
+        while p.ends_with('/') {
+            p.pop();
+        }
+    }
     p
 }
 
@@ -169,19 +192,28 @@ pub enum VirtualFdEntry {
 impl Clone for VirtualFdEntry {
     fn clone(&self) -> Self {
         match self {
-            VirtualFdEntry::File { handle, path, offset, mode, flags } => {
-                VirtualFdEntry::File {
-                    handle: ErasedFile(Arc::clone(&handle.0)),
-                    path: path.clone(), offset: Arc::clone(offset), mode: *mode,
-                    flags: *flags,
-                }
-            }
-            VirtualFdEntry::Directory { handle, path, dir_offset } => {
-                VirtualFdEntry::Directory {
-                    handle: ErasedDir(Arc::clone(&handle.0)),
-                    path: path.clone(), dir_offset: Arc::clone(dir_offset),
-                }
-            }
+            VirtualFdEntry::File {
+                handle,
+                path,
+                offset,
+                mode,
+                flags,
+            } => VirtualFdEntry::File {
+                handle: ErasedFile(Arc::clone(&handle.0)),
+                path: path.clone(),
+                offset: Arc::clone(offset),
+                mode: *mode,
+                flags: *flags,
+            },
+            VirtualFdEntry::Directory {
+                handle,
+                path,
+                dir_offset,
+            } => VirtualFdEntry::Directory {
+                handle: ErasedDir(Arc::clone(&handle.0)),
+                path: path.clone(),
+                dir_offset: Arc::clone(dir_offset),
+            },
         }
     }
 }
@@ -199,7 +231,9 @@ impl VirtualFdTable {
         }
     }
 
-    pub fn alloc_fd(&self) -> u64 { self.next_fd.fetch_add(1, Ordering::Relaxed) }
+    pub fn alloc_fd(&self) -> u64 {
+        self.next_fd.fetch_add(1, Ordering::Relaxed)
+    }
 
     pub fn insert(&self, pid: u32, fd: u64, entry: VirtualFdEntry) {
         self.entries.lock().unwrap().insert((pid, fd), entry);
@@ -213,7 +247,9 @@ impl VirtualFdTable {
         self.entries.lock().unwrap().remove(&(pid, fd))
     }
 
-    pub fn is_virtual_fd(fd: u64) -> bool { fd >= FD_VIRTUAL_BASE }
+    pub fn is_virtual_fd(fd: u64) -> bool {
+        fd >= FD_VIRTUAL_BASE
+    }
 
     /// Clone FD entries from parent to child (for fork).
     pub fn clone_for_child(&self, parent_pid: u32, child_pid: u32) {
@@ -223,7 +259,9 @@ impl VirtualFdTable {
             .filter(|((pid, _), _)| *pid == parent_pid)
             .map(|((_, fd), entry)| ((child_pid, *fd), entry.clone()))
             .collect();
-        for (key, entry) in clones { entries.insert(key, entry); }
+        for (key, entry) in clones {
+            entries.insert(key, entry);
+        }
     }
 
     /// Close all virtual FDs for a process (on exit).
@@ -236,7 +274,9 @@ impl VirtualFdTable {
     pub fn close_cloexec(&self, pid: u32) {
         let mut entries = self.entries.lock().unwrap();
         entries.retain(|(p, _), entry| {
-            if *p != pid { return true; }
+            if *p != pid {
+                return true;
+            }
             match entry {
                 VirtualFdEntry::File { flags, .. } => *flags & libc::O_CLOEXEC == 0,
                 VirtualFdEntry::Directory { .. } => true,

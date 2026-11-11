@@ -45,6 +45,7 @@
 //! let agent = AgentSession::builder(preset).build()?;
 //! ```
 
+use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 
 use crate::agentic::AgenticError;
@@ -58,9 +59,9 @@ use crate::backends::huggingface_candle_provider::{
 use crate::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use crate::types::ModelId;
 
-use super::providers::{CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI};
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use super::providers::{gguf_provider, Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
+use super::providers::{CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI};
 use super::router::{RouterMix, RouterPreset};
 
 /// `ModelId::Name` from a model id string, default quantization.
@@ -97,8 +98,9 @@ impl RouterPreset {
     pub fn hugging_face(
         model: impl Into<ModelId>,
         config: Option<HuggingFaceGGUFConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
-        Self::hugging_face_mix((model.into(), config), None)
+        Self::hugging_face_mix((model.into(), config), None, ctx)
     }
 
     /// [`hugging_face`](Self::hugging_face) on the CPU: `config` (or the
@@ -112,8 +114,9 @@ impl RouterPreset {
     pub fn huggingface_cpu(
         model: impl Into<ModelId>,
         config: Option<HuggingFaceGGUFConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
-        Self::hugging_face(model, Some(config.unwrap_or_default().on_cpu()))
+        Self::hugging_face(model, Some(config.unwrap_or_default().on_cpu()), ctx)
     }
 
     /// [`hugging_face`](Self::hugging_face) on the GPU: `config` (or the
@@ -129,8 +132,9 @@ impl RouterPreset {
     pub fn huggingface_gpu(
         model: impl Into<ModelId>,
         config: Option<HuggingFaceGGUFConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
-        Self::hugging_face(model, Some(config.unwrap_or_default().on_gpu()))
+        Self::hugging_face(model, Some(config.unwrap_or_default().on_gpu()), ctx)
     }
 
     /// The shared base of every local preset: a GGUF primary model and an
@@ -140,11 +144,13 @@ impl RouterPreset {
     fn hugging_face_mix(
         primary: (ModelId, Option<HuggingFaceGGUFConfig>),
         memory: Option<(ModelId, Option<HuggingFaceGGUFConfig>)>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
         let (primary_model, primary_config) = primary;
-        let mut mix = RouterMix::new().primary(gguf_provider(primary_config)?, primary_model);
+        let memory_ctx = ctx.clone();
+        let mut mix = RouterMix::new().primary(gguf_provider(primary_config, ctx)?, primary_model);
         if let Some((memory_model, memory_config)) = memory {
-            mix = mix.memory(gguf_provider(memory_config)?, memory_model);
+            mix = mix.memory(gguf_provider(memory_config, memory_ctx)?, memory_model);
         }
         Ok(mix.build())
     }
@@ -158,10 +164,12 @@ impl RouterPreset {
     pub fn glm52_gemma(
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
         Self::hugging_face_mix(
             (named(Glm52::MODEL_ID), main),
             Some((named(Gemma4E2b::MODEL_ID), memory)),
+            ctx,
         )
     }
 
@@ -175,10 +183,12 @@ impl RouterPreset {
     pub fn qwen36_gemma(
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
         Self::hugging_face_mix(
             (named(Qwen36::MODEL_ID), main),
             Some((named(Gemma4E2b::MODEL_ID), memory)),
+            ctx,
         )
     }
 
@@ -192,10 +202,12 @@ impl RouterPreset {
     pub fn gemma(
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
         Self::hugging_face_mix(
             (named(Gemma4_26b::MODEL_ID), main),
             Some((named(Gemma4E2b::MODEL_ID), memory)),
+            ctx,
         )
     }
 
@@ -208,9 +220,9 @@ impl RouterPreset {
     ///
     /// # Errors
     /// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
-    pub fn claude(api_key: &str) -> Result<Self, ErrorTrace<AgenticError>> {
-        let main_provider = CloudPresets::claude_opus(api_key)?;
-        let memory_provider = CloudPresets::claude_sonnet(api_key)?;
+    pub fn claude(api_key: &str, ctx: Ctx) -> Result<Self, ErrorTrace<AgenticError>> {
+        let main_provider = CloudPresets::claude_opus(api_key, ctx.clone())?;
+        let memory_provider = CloudPresets::claude_sonnet(api_key, ctx)?;
         Ok(RouterMix::new()
             .primary(main_provider, named(CLAUDE_OPUS))
             .memory(memory_provider, named(CLAUDE_SONNET))
@@ -222,9 +234,9 @@ impl RouterPreset {
     ///
     /// # Errors
     /// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
-    pub fn openai_chat(api_key: &str) -> Result<Self, ErrorTrace<AgenticError>> {
-        let main_provider = CloudPresets::openai_gpt4o(api_key)?;
-        let memory_provider = CloudPresets::openai_gpt4o(api_key)?;
+    pub fn openai_chat(api_key: &str, ctx: Ctx) -> Result<Self, ErrorTrace<AgenticError>> {
+        let main_provider = CloudPresets::openai_gpt4o(api_key, ctx.clone())?;
+        let memory_provider = CloudPresets::openai_gpt4o(api_key, ctx)?;
         Ok(RouterMix::new()
             .primary(main_provider, named(OPENAI_GPT4O))
             .memory(memory_provider, named(OPENAI_GPT4O_MINI))
@@ -236,9 +248,9 @@ impl RouterPreset {
     ///
     /// # Errors
     /// Returns [`AgenticError::Provider`] if a provider cannot be constructed.
-    pub fn openai_responses(api_key: &str) -> Result<Self, ErrorTrace<AgenticError>> {
-        let main_provider = CloudPresets::openai_responses(api_key)?;
-        let memory_provider = CloudPresets::openai_responses(api_key)?;
+    pub fn openai_responses(api_key: &str, ctx: Ctx) -> Result<Self, ErrorTrace<AgenticError>> {
+        let main_provider = CloudPresets::openai_responses(api_key, ctx.clone())?;
+        let memory_provider = CloudPresets::openai_responses(api_key, ctx)?;
         Ok(RouterMix::new()
             .primary(main_provider, named(OPENAI_GPT4O))
             .memory(memory_provider, named(OPENAI_GPT4O_MINI))
@@ -265,13 +277,14 @@ impl RouterPreset {
     pub fn candle_llama(
         repo_id: &str,
         config: Option<HuggingFaceCandleConfig>,
+        ctx: Ctx,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
         let config = config.unwrap_or_else(|| {
             HuggingFaceCandleConfig::builder()
                 .architecture(CandleArchitecture::Llama)
                 .build()
         });
-        let provider = HuggingFaceCandleProvider::new(config).map_err(|e| {
+        let provider = HuggingFaceCandleProvider::new(config, ctx).map_err(|e| {
             ErrorTrace::new(AgenticError::Provider(format!(
                 "failed to create Candle provider for {repo_id}: {e}"
             )))

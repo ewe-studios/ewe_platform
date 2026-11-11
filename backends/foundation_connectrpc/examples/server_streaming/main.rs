@@ -9,7 +9,7 @@
 //! One request in, a *stream* of responses out. The handler returns any
 //! `futures::Stream<Item = ConnectResult<Res>>`; the client drains it with
 //! `stream.receive().await` until it yields `None`. On the wire this is the
-//! Connect streaming framing (5-byte enveloped frames + a terminating EndStream
+//! Connect streaming framing (5-byte enveloped frames + a terminating `EndStream`
 //! frame); the library handles all of that for you.
 //!
 //! Because the route registers `ProcedureCodecs::of((JsonCodec,))` — a JSON-only
@@ -21,16 +21,16 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
-    JsonCodec, ProcedureCodecs, Request, Router,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, H1Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Router, RpcCtx,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -58,12 +58,17 @@ fn count_serve() -> Arc<dyn Serve> {
         PROCEDURE,
         // JSON-only codec table → serde-only message types, no protobuf.
         ProcedureCodecs::<CountRequest, CountItem>::of((JsonCodec,)),
-        |_ctx: Ctx, req: Request<CountRequest>| async move {
+        |_ctx: RpcCtx, req: Request<CountRequest>| async move {
             // `.max(0)` floors a negative `count` to 0 (stream nothing), rather
             // than capping — it returns the larger of `count` and `0`.
             let n = req.msg.count.max(0);
             let items: Vec<ConnectResult<CountItem>> = (0..n)
-                .map(|i| Ok(CountItem { index: i, label: format!("item-{i}") }))
+                .map(|i| {
+                    Ok(CountItem {
+                        index: i,
+                        label: format!("item-{i}"),
+                    })
+                })
                 .collect();
             Ok(futures::stream::iter(items))
         },
@@ -72,17 +77,20 @@ fn count_serve() -> Arc<dyn Serve> {
     Arc::new(ConnectRpcServe::new(router.into_handler()))
 }
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     let serve = count_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}
@@ -96,7 +104,8 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 async fn main() {
     let (addr, shutdown) = start_server();
 
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let client: Client<CountRequest, CountItem> = Client::new(
         transport,
@@ -108,7 +117,7 @@ async fn main() {
     )
     .expect("build client");
 
-    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let ctx = RpcCtx::background().with_deadline(Duration::from_secs(10));
     let mut stream = client
         .server_stream(ctx, Request::new(CountRequest { count: 3 }))
         .await
@@ -122,7 +131,10 @@ async fn main() {
 
     assert_eq!(received.len(), 3, "expected 3 streamed items");
     assert_eq!(received[2].label, "item-2");
-    println!("server-stream round-trip verified ✓ ({} items)", received.len());
+    println!(
+        "server-stream round-trip verified ✓ ({} items)",
+        received.len()
+    );
 
     shutdown.turn_on();
 }

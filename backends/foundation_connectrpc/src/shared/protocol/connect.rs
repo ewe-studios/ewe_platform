@@ -20,28 +20,29 @@ use std::time::Duration;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
-use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
+use futures::StreamExt;
 
-use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
+use crate::shared::compression::{
+    negotiate_compression, response_decompressor, CompressionRegistry, Compressor,
+};
 use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
-use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
+use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::transport::{
-    fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
-    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadPublisher, HeadStream,
+    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
     open_response_stream, BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig,
     HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
-use std::sync::Mutex;
 
 /// Connect protocol constants (Decision 05).
 pub mod constants {
@@ -127,6 +128,8 @@ pub fn unary_trailer_headers(trailers: &SimpleHeaders) -> SimpleHeaders {
 ///
 /// # Errors
 /// A compression failure as a trace.
+// A GET query is a few short parts; `format!` reads clearer than `write!`.
+#[allow(clippy::format_push_string)]
 pub fn encode_get_query(
     codec: &str,
     message: &[u8],
@@ -172,6 +175,10 @@ pub fn get_url_exceeds(url_len: usize, get_url_max_bytes: usize) -> bool {
 
 /// Minimal percent-encoding for the GET `message` param (text codecs). Encodes
 /// everything outside the unreserved set (RFC 3986).
+#[allow(
+    clippy::format_push_string,
+    reason = "a GET message is short; `format!` reads clearer than `write!`"
+)]
 fn percent_encode(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len());
     for &b in bytes {
@@ -231,12 +238,11 @@ async fn read_request_envelopes(
                 return Ok(()); // consumer gone
             }
         }
-        match body.receive().await {
-            Some(chunk) => buf.extend_from_slice(&chunk),
-            None => {
-                req_tx.close();
-                return Ok(());
-            }
+        if let Some(chunk) = body.receive().await {
+            buf.extend_from_slice(&chunk);
+        } else {
+            let _ = req_tx.close();
+            return Ok(());
         }
     }
 }
@@ -259,11 +265,11 @@ async fn write_response_frames(
             Some(Frame::EndStream { error, trailers }) => {
                 let bytes = writer.write_end_stream(error.as_ref(), &trailers)?;
                 let _ = sink.send(Bytes::from(bytes)).await;
-                sink.close();
+                let _ = sink.close();
                 return Ok(());
             }
             None => {
-                sink.close();
+                let _ = sink.close();
                 return Ok(());
             }
         }
@@ -278,35 +284,39 @@ async fn read_connect_response(
     mut head: HeadStream,
     mut body: BodyStream,
     resp_tx: PipeSender<Frame>,
-    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    publish: HeadPublisher,
     cancel: CancelSignal,
+    compression: &CompressionRegistry,
     read_max: usize,
 ) -> ConnectResult<()> {
-    if open_response_stream(
-        &mut head,
-        &mut body,
-        &resp_tx,
-        &response_headers,
-        &cancel,
-        read_max,
-    )
-    .await
-    .is_none()
-    {
+    let Some(response_headers) =
+        open_response_stream(&mut head, &mut body, &resp_tx, &publish, &cancel, read_max).await
+    else {
         return Ok(());
-    }
-    match read_response_frames(&mut body, &resp_tx, None, read_max).await {
+    };
+    // Select the decompressor from the response head before the first frame.
+    let decompressor = match response_decompressor(
+        &response_headers,
+        &[constants::HEADER_STREAMING_CONTENT_ENCODING],
+        compression,
+    ) {
+        Ok(decompressor) => decompressor,
+        Err(e) => {
+            fail_stream(&resp_tx, &e, &cancel).await;
+            return Err(e);
+        }
+    };
+    match read_response_frames(&mut body, &resp_tx, decompressor, read_max).await {
         Ok(Some(end)) => {
             // Delivered, the consumer gone, or the call cancelled.
             let _ = race(resp_tx.send(end), cancel.cancelled()).await;
-            resp_tx.close();
+            let _ = resp_tx.close();
             Ok(())
         }
         Ok(None) => {
-            let e = ConnectError::internal(
-                "the response stream ended without an EndStreamResponse",
-            )
-            .into();
+            let e =
+                ConnectError::internal("the response stream ended without an EndStreamResponse")
+                    .into();
             fail_stream(&resp_tx, &e, &cancel).await;
             Err(e)
         }
@@ -384,6 +394,8 @@ async fn write_request_frames(
     }
 }
 
+// The caller keeps the `Arc` and passes a borrowed option through the loop.
+#[allow(clippy::ref_option)]
 fn decompress_if(
     flags: u8,
     payload: Bytes,
@@ -523,13 +535,17 @@ impl ProtocolHandler for ConnectHandler {
             config.cancel,
         ));
         let writer_impl = EnvelopeWriter::new(negotiated.response_compressor, 0, 0);
-        let writer: BoxedTask =
-            Box::pin(write_response_frames(ends.response_rx, responder, writer_impl));
+        let writer: BoxedTask = Box::pin(write_response_frames(
+            ends.response_rx,
+            responder,
+            writer_impl,
+        ));
 
         Ok(HandlerExchange {
             conn: Box::new(conn),
             reader_task: reader,
             writer_task: writer,
+            response_headers: ends.response_headers,
         })
     }
 
@@ -548,8 +564,8 @@ impl ProtocolHandler for ConnectHandler {
     ) -> ConnectResult<Option<Bytes>> {
         // An uncompressed `EndStreamResponse`: valid whatever the stream
         // negotiated, as each envelope carries its own compressed flag.
-        let frame = EnvelopeWriter::new(None, 0, 0)
-            .write_end_stream(Some(error), &SimpleHeaders::new())?;
+        let frame =
+            EnvelopeWriter::new(None, 0, 0).write_end_stream(Some(error), &SimpleHeaders::new())?;
         Ok(Some(Bytes::from(frame)))
     }
 
@@ -608,8 +624,8 @@ impl ProtocolHandler for ConnectHandler {
 
         // Response compression is negotiated from the request's Accept-Encoding.
         let accept = header(&request.headers, "accept-encoding");
-        let compressor = negotiate_compression(compression, None, accept.as_deref())?
-            .response_compressor;
+        let compressor =
+            negotiate_compression(compression, None, accept.as_deref())?.response_compressor;
         let (body, encoding) = match compressor {
             Some(c) if !outcome.frame.is_empty() => {
                 (c.compress(&outcome.frame)?, Some(c.name().to_string()))
@@ -618,7 +634,10 @@ impl ProtocolHandler for ConnectHandler {
         };
 
         let mut headers = outcome.headers;
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![unary_content_type(codec_name)]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![unary_content_type(codec_name)],
+        );
         if let Some(enc) = encoding {
             headers.insert(
                 SimpleHeader::from("content-encoding".to_string()),
@@ -680,6 +699,8 @@ fn decode_get_message(
 }
 
 /// Decode a percent-encoded byte string (inverse of [`percent_encode`]).
+// Two hex digits form a value in 0..=255.
+#[allow(clippy::cast_possible_truncation)]
 fn percent_decode(bytes: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;
@@ -729,7 +750,10 @@ impl ProtocolClient for ConnectClient {
                     constants::HEADER_STREAMING_ACCEPT_ENCODING.to_string(),
                 )
             } else {
-                ("content-encoding".to_string(), "accept-encoding".to_string())
+                (
+                    "content-encoding".to_string(),
+                    "accept-encoding".to_string(),
+                )
             };
             headers.insert(SimpleHeader::from(ce), vec![algo.to_string()]);
             headers.insert(SimpleHeader::from(ae), vec![algo.to_string()]);
@@ -742,10 +766,18 @@ impl ProtocolClient for ConnectClient {
         Bytes::copy_from_slice(body)
     }
 
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
-        // Connect unary: bare body. Compression handled via Content-Encoding
-        // header (already decompressed by the transport if applicable).
-        Ok(body)
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        // Connect unary: bare body, compressed via `content-encoding`.
+        match response_decompressor(head, &["content-encoding"], compression)? {
+            Some(compressor) => Ok(Bytes::from(compressor.decompress(&body, read_max_bytes)?)),
+            None => Ok(body),
+        }
     }
 
     fn new_conn(
@@ -753,7 +785,7 @@ impl ProtocolClient for ConnectClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) = PipeClientConn::new(
             spec.clone(),
@@ -762,19 +794,42 @@ impl ProtocolClient for ConnectClient {
             DEFAULT_PIPE_DEPTH,
         );
 
-        // No compression on the client tasks here (negotiation resolves from the
-        // response head in the client core, F24); identity by default.
-        let writer_impl = EnvelopeWriter::new(None, 0, 0);
-        let writer: BoxedTask =
-            Box::pin(write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl));
-        let reader: BoxedTask = Box::pin(read_connect_response(
-            stream.head,
-            stream.recv_body,
-            ends.response_tx,
-            ends.response_headers,
-            config.cancel,
-            config.read_max_bytes,
-        ));
+        // The reader task is `'static`; the registry is cloned into it rather
+        // than borrowing `config`.
+        let compression = config.compression.clone();
+        let read_max_bytes = config.read_max_bytes;
+        let cancel = config.cancel;
+        let publish = ends.head_publisher();
+        let head_wake = ends.response_head_wake;
+        let writer_impl = EnvelopeWriter::new(
+            config.send_compressor,
+            config.compress_min_bytes,
+            config.send_max_bytes,
+        );
+        // Keep a response-pipe handle so a writer failure reaches the caller as
+        // the stream's terminal error instead of dying with the task.
+        let writer_tx = ends.response_tx.clone();
+        let writer_cancel = cancel.clone();
+        let writer_task =
+            write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl);
+        let writer: BoxedTask = Box::pin(async move {
+            super::write_or_report(writer_task, &writer_tx, &writer_cancel).await
+        });
+        let reader: BoxedTask = Box::pin(async move {
+            // One sender keeps the wake pipe open until the reader ends; the
+            // publisher holds the other.
+            let _head_wake = head_wake;
+            read_connect_response(
+                stream.head,
+                stream.recv_body,
+                ends.response_tx,
+                publish,
+                cancel,
+                &compression,
+                read_max_bytes,
+            )
+            .await
+        });
 
         Ok(ClientExchange {
             conn: Box::new(conn),
@@ -803,8 +858,7 @@ fn request_peer(request: &SimpleIncomingRequest) -> Peer {
         .connection
         .peer_addr
         .as_ref()
-        .map(|a| format!("{a:?}"))
-        .unwrap_or_default();
+        .map_or_default(|a| format!("{a:?}"));
     Peer {
         addr,
         protocol: "connect".to_string(),

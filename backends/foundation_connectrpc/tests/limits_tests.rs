@@ -10,21 +10,18 @@
 //! `futures::executor::block_on` (no connection or valtron pool needed).
 
 use std::io::Write;
-use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use futures::StreamExt;
 
-use foundation_http::shared::context::ContextBag;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
 use foundation_connectrpc::{
-    ConnectRpcHandler, Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
-    Response, Router, SizeLimits,
+    ConnectRpcHandler, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
+    Response, Router, RpcCtx, SizeLimits,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -44,13 +41,13 @@ fn handler(options: impl Fn() -> HandlerOptions) -> ConnectRpcHandler {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move { Ok(Response::new(req.msg)) },
+        |_ctx: RpcCtx, req: Request<Msg>| async move { Ok(Response::new(req.msg)) },
         options(),
     );
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut count = 0;
             while let Some(msg) = reqs.next().await {
                 msg?;
@@ -78,7 +75,7 @@ fn request(path: &str, headers: &[(&str, &str)], body: Vec<u8>) -> SimpleIncomin
 }
 
 fn dispatch(handler: &ConnectRpcHandler, request: SimpleIncomingRequest) -> SimpleOutgoingResponse {
-    futures::executor::block_on(handler.dispatch(Arc::new(ContextBag::new()), request))
+    futures::executor::block_on(handler.dispatch(foundation_context::Ctx::host(), request))
 }
 
 fn body_text(response: &SimpleOutgoingResponse) -> String {
@@ -203,10 +200,15 @@ fn compressed_streaming_envelope_over_the_limit_is_resource_exhausted() {
 
 /// An envelope whose length prefix claims 4 GiB is rejected from its 5-byte
 /// header, before any payload is waited for or buffered.
+///
+/// The two `contains` asserts are the deterministic proof. The reader checks the
+/// declared length against `read_max_bytes` on the header, then rejects with
+/// `resource_exhausted`. A regression that buffered or waited for the full 4 GiB
+/// payload would instead see the body end after 5 bytes and answer with a
+/// truncation error, never "exceeds `read_max_bytes`".
 #[test]
 fn oversized_envelope_prefix_is_rejected_from_its_header() {
     let handler = handler(limited);
-    let start = Instant::now();
     let response = dispatch(
         &handler,
         request(
@@ -218,7 +220,6 @@ fn oversized_envelope_prefix_is_rejected_from_its_header() {
     let body = body_text(&response);
     assert!(body.contains("resource_exhausted"), "body: {body}");
     assert!(body.contains("exceeds read_max_bytes"), "body: {body}");
-    assert!(start.elapsed() < Duration::from_secs(1));
 }
 
 /// `read_max_bytes` has a 4 MiB default, and it applies to a plain unary body.

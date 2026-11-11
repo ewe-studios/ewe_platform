@@ -27,10 +27,21 @@ use foundation_nativeapis::native::fd::{Completion, CompletionSource, Reactor, R
 use foundation_nativeapis::native::poll::Backend;
 use foundation_nativeapis::{Interest, Token};
 
-/// Skip unless the shared reactor actually landed on completion mode.
+mod common;
+
+/// Skip unless the shared reactor actually landed on completion mode, or fail
+/// when `EWE_REQUIRE_IO_URING=1` promises it (CI).
 macro_rules! require_completion_backend {
     ($reactor:expr) => {
+        if common::io_uring_missing("completion source seam", common::Requires::Completion) {
+            return;
+        }
         if $reactor.backend() != Backend::UringCompletion {
+            assert!(
+                std::env::var("EWE_REQUIRE_IO_URING").as_deref() != Ok("1"),
+                "EWE_REQUIRE_IO_URING=1 but the shared reactor is on {}",
+                $reactor.backend()
+            );
             eprintln!(
                 "skipping: reactor is on {} — completion mode unavailable on this kernel",
                 $reactor.backend()
@@ -69,7 +80,12 @@ fn write_all(fd: &OwnedFd, data: &[u8]) {
     use std::os::fd::AsRawFd;
     // SAFETY: writing `data.len()` bytes from a valid slice to an owned fd.
     let n = unsafe { libc::write(fd.as_raw_fd(), data.as_ptr().cast(), data.len()) };
-    assert_eq!(n, data.len() as isize, "write: {}", io::Error::last_os_error());
+    assert_eq!(
+        n,
+        data.len() as isize,
+        "write: {}",
+        io::Error::last_os_error()
+    );
 }
 
 /// Wait for the reactor's drain thread to latch readiness for `fd`.
@@ -90,12 +106,14 @@ fn a_socket_is_a_completion_source_and_a_pipe_is_not() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_01), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_01), Interest::READABLE)
+            .expect("register socket");
 
     let (r, w) = nonblocking_pipe();
-    let pipe = RegisteredFd::with_completion(r, reactor.registry(), Token(0xC0DE_02), Interest::READABLE)
-        .expect("register pipe");
+    let pipe =
+        RegisteredFd::with_completion(r, reactor.registry(), Token(0xC0DE_02), Interest::READABLE)
+            .expect("register pipe");
 
     assert!(
         sock.is_completion_source(),
@@ -118,8 +136,9 @@ fn parked_task_wakes_and_drains_kernel_filled_bytes() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_10), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_10), Interest::READABLE)
+            .expect("register socket");
 
     assert!(!sock.is_ready(None), "an idle socket must not be ready");
     assert!(!sock.has_completions(), "nothing has been sent yet");
@@ -133,7 +152,11 @@ fn parked_task_wakes_and_drains_kernel_filled_bytes() {
     );
 
     let completions = sock.take_completions();
-    assert_eq!(completions.len(), 1, "expected one completion, got {completions:?}");
+    assert_eq!(
+        completions.len(),
+        1,
+        "expected one completion, got {completions:?}"
+    );
     match &completions[0] {
         Completion::Data(buf) => assert_eq!(&buf[..], b"seam bytes"),
         other => panic!("expected Data, got {other:?}"),
@@ -148,11 +171,15 @@ fn draining_the_inbox_clears_readiness_so_the_task_parks_again() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_20), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_20), Interest::READABLE)
+            .expect("register socket");
 
     write_all(&b, b"one");
-    assert!(wait_ready(&sock, Duration::from_secs(2)), "first write must wake");
+    assert!(
+        wait_ready(&sock, Duration::from_secs(2)),
+        "first write must wake"
+    );
 
     let first = sock.take_completions();
     assert_eq!(first.len(), 1);
@@ -190,8 +217,9 @@ fn buffers_return_to_the_pool_when_completions_are_dropped() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_30), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_30), Interest::READABLE)
+            .expect("register socket");
 
     // Round-trip more messages than a naive implementation could serve if it
     // never recycled: a leak shows up as a stall once the pool empties.
@@ -221,12 +249,16 @@ fn read_bytes_serves_a_completion_across_several_small_reads() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_50), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_50), Interest::READABLE)
+            .expect("register socket");
 
     let payload: Vec<u8> = (0..100u8).collect();
     write_all(&b, &payload);
-    assert!(wait_ready(&sock, Duration::from_secs(2)), "payload must arrive");
+    assert!(
+        wait_ready(&sock, Duration::from_secs(2)),
+        "payload must arrive"
+    );
 
     // A `read`-shaped caller with a buffer smaller than the completion must see
     // every byte, in order, across successive calls — the kernel's buffer is
@@ -242,7 +274,10 @@ fn read_bytes_serves_a_completion_across_several_small_reads() {
         }
     }
 
-    assert_eq!(got, payload, "partial reads must reassemble the payload exactly");
+    assert_eq!(
+        got, payload,
+        "partial reads must reassemble the payload exactly"
+    );
 
     drop(b);
 }
@@ -253,11 +288,14 @@ fn read_bytes_reports_would_block_when_the_inbox_is_empty() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_60), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_60), Interest::READABLE)
+            .expect("register socket");
 
     let mut chunk = [0u8; 16];
-    let err = sock.read_bytes(&mut chunk).expect_err("an idle socket has nothing to read");
+    let err = sock
+        .read_bytes(&mut chunk)
+        .expect_err("an idle socket has nothing to read");
     assert_eq!(
         err.kind(),
         io::ErrorKind::WouldBlock,
@@ -274,12 +312,16 @@ fn read_bytes_reports_eof_after_the_peer_closes() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_70), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_70), Interest::READABLE)
+            .expect("register socket");
 
     write_all(&b, b"bye");
     drop(b);
-    assert!(wait_ready(&sock, Duration::from_secs(2)), "data or close must wake");
+    assert!(
+        wait_ready(&sock, Duration::from_secs(2)),
+        "data or close must wake"
+    );
 
     let mut chunk = [0u8; 16];
     let mut got = Vec::new();
@@ -299,7 +341,10 @@ fn read_bytes_reports_eof_after_the_peer_closes() {
     }
 
     assert_eq!(got, b"bye", "the final bytes must precede EOF");
-    assert!(saw_eof, "the peer closed, so read_bytes must eventually return Ok(0)");
+    assert!(
+        saw_eof,
+        "the peer closed, so read_bytes must eventually return Ok(0)"
+    );
 
     // EOF latches: a second read must not go back to WouldBlock, or a transport
     // would park forever on a dead socket.
@@ -316,12 +361,16 @@ fn peer_close_surfaces_as_eof_through_the_seam() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_40), Interest::READABLE)
-        .expect("register socket");
+    let sock =
+        RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_40), Interest::READABLE)
+            .expect("register socket");
 
     drop(b);
 
-    assert!(wait_ready(&sock, Duration::from_secs(2)), "a closed peer must wake the task");
+    assert!(
+        wait_ready(&sock, Duration::from_secs(2)),
+        "a closed peer must wake the task"
+    );
 
     let completions = sock.take_completions();
     assert!(

@@ -5,11 +5,13 @@
 //! - Downloading from prebaked URLs or Vagrant Cloud UTM registry
 //! - Extracting `.utm` bundles
 //! - Rewriting config.plist Name key to match the profile (per-profile copy)
-//! - Importing the bundle into UTM.app via AppleScript
+//! - Importing the bundle into UTM.app via `AppleScript`
 //! - Verifying the bundle was placed on disk by UTM
 
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+
+use foundation_context::Ctx;
 
 use crate::config::{Result, TestbedError, VmProfile};
 use crate::providers::http;
@@ -19,17 +21,23 @@ use super::bundle;
 /// Ensure a UTM VM bundle is available and imported into UTM.
 ///
 /// Returns the path to the extracted `.utm` bundle on disk.
-pub fn ensure_utm_bundle(profile: &VmProfile) -> Result<PathBuf> {
+///
+/// # Errors
+/// Returns an error if the bundle cannot be downloaded, extracted, or imported.
+///
+/// # Panics
+/// Panics if the prepared bundle path is not valid UTF-8.
+pub fn ensure_utm_bundle(profile: &VmProfile, ctx: &Ctx) -> Result<PathBuf> {
     // Already imported under our profile name? Reuse it.
     if super::utmctl::list_vms()?
         .into_iter()
         .any(|e| e.name == profile.name)
     {
-        return Ok(find_existing_bundle_by_name(profile.name).unwrap_or_else(|| {
-            utm_cache_dir()
-                .map(|d| d.join(format!("{}.utm", profile.name)))
-                .unwrap_or_default()
-        }));
+        return Ok(
+            find_existing_bundle_by_name(profile.name).unwrap_or_else(|| {
+                utm_cache_dir().map_or_default(|d| d.join(format!("{}.utm", profile.name)))
+            }),
+        );
     }
 
     // Download
@@ -50,12 +58,14 @@ pub fn ensure_utm_bundle(profile: &VmProfile) -> Result<PathBuf> {
 
     // Import
     eprintln!("  Importing into UTM.app...");
-    let uuid = super::applescript::import_bundle(prepared.to_str().unwrap())?;
+    let uuid = super::applescript::import_bundle(prepared.to_str().unwrap(), ctx)?;
 
     // Verify bundle on disk — orphan cleanup if collision
     let display_name = profile.name;
     if !super::applescript::verify_imported_bundle(display_name) {
-        eprintln!("  Warning: UTM registered '{display_name}' but bundle missing from UTM documents dir — likely a name collision. Cleaning up orphan.");
+        eprintln!(
+            "  Warning: UTM registered '{display_name}' but bundle missing from UTM documents dir — likely a name collision. Cleaning up orphan."
+        );
         let _ = super::utmctl::delete_vm(&uuid);
         let _ = std::fs::remove_dir_all(&prepared);
         return Err(TestbedError::Qcow2Error {
@@ -85,13 +95,11 @@ fn find_existing_bundle_by_name(name: &str) -> Option<PathBuf> {
     for entry in std::fs::read_dir(&cache).ok()? {
         let entry = entry.ok()?;
         let path = entry.path();
-        if path.is_dir() && bundle::is_utm_bundle(&path) {
-            if super::utmctl::get_vm_name(&path)
-                .map(|n| n == name)
-                .unwrap_or(false)
-            {
-                return Some(path);
-            }
+        if path.is_dir()
+            && bundle::is_utm_bundle(&path)
+            && super::utmctl::get_vm_name(&path).is_ok_and(|n| n == name)
+        {
+            return Some(path);
         }
     }
     None
@@ -112,7 +120,10 @@ fn prepare_bundle_for_import(cached: &Path, profile: &VmProfile) -> Result<PathB
     // Wipe stale prepared copy from a prior failed run.
     let _ = std::fs::remove_dir_all(&target);
 
-    eprintln!("  Preparing bundle for import (renaming to '{}')...", profile.name);
+    eprintln!(
+        "  Preparing bundle for import (renaming to '{}')...",
+        profile.name
+    );
     let status = std::process::Command::new("cp")
         .args(["-a"])
         .arg(cached)
@@ -142,17 +153,18 @@ fn rewrite_plist_name(plist_path: &Path, new_name: &str) -> Result<()> {
         message: format!("'<key>Name</key>' not found in {}", plist_path.display()),
     })?;
     let after_key = &xml[key_pos + key.len()..];
-    let str_open_rel = after_key.find("<string>").ok_or_else(|| {
-        TestbedError::Qcow2Error {
+    let str_open_rel = after_key
+        .find("<string>")
+        .ok_or_else(|| TestbedError::Qcow2Error {
             message: "expected <string> after Name key".to_string(),
-        }
-    })?;
+        })?;
     let content_start = key_pos + key.len() + str_open_rel + "<string>".len();
-    let str_close_rel = xml[content_start..].find("</string>").ok_or_else(|| {
-        TestbedError::Qcow2Error {
-            message: "expected </string> closing Name value".to_string(),
-        }
-    })?;
+    let str_close_rel =
+        xml[content_start..]
+            .find("</string>")
+            .ok_or_else(|| TestbedError::Qcow2Error {
+                message: "expected </string> closing Name value".to_string(),
+            })?;
     let content_end = content_start + str_close_rel;
 
     let mut out = String::with_capacity(xml.len() + new_name.len());
@@ -170,7 +182,7 @@ fn rewrite_plist_name(plist_path: &Path, new_name: &str) -> Result<()> {
 fn utm_cache_dir() -> Result<PathBuf> {
     let dir = crate::config::image_cache_dir().join("utm");
     std::fs::create_dir_all(&dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating UTM cache dir {dir:?}: {e}"),
+        message: format!("creating UTM cache dir {}: {e}", dir.display()),
     })?;
     Ok(dir)
 }
@@ -258,17 +270,21 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
         let _ = std::fs::remove_dir_all(&dest_dir);
     }
     std::fs::create_dir_all(&dest_dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating extraction dir {dest_dir:?}: {e}"),
+        message: format!("creating extraction dir {}: {e}", dest_dir.display()),
     })?;
 
     let compressed_size = std::fs::metadata(box_path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("stat {box_path:?}: {e}"),
+        message: format!("stat {}: {e}", box_path.display()),
     })?;
     let size = compressed_size.len();
-    eprintln!(
-        "  Extracting box ({:.1} GB compressed → ~{:.0} GB on disk)...",
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let (size_gb, size_on_disk_gb) = (
         size as f64 / 1_073_741_824.0,
         size as f64 / 1_073_741_824.0 * 2.5,
+    );
+    eprintln!(
+        "  Extracting box ({size_gb:.1} GB compressed → ~{size_on_disk_gb:.0} GB on disk)...",
     );
 
     let pb = indicatif::ProgressBar::new(size);
@@ -284,14 +300,16 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
     pb.enable_steady_tick(Duration::from_secs(5));
 
     let file = std::fs::File::open(box_path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("opening {box_path:?}: {e}"),
+        message: format!("opening {}: {e}", box_path.display()),
     })?;
     let tracked = pb.wrap_read(file);
     let gz = flate2::read::GzDecoder::new(tracked);
     let mut archive = tar::Archive::new(gz);
-    archive.unpack(&dest_dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("extracting box archive: {e}"),
-    })?;
+    archive
+        .unpack(&dest_dir)
+        .map_err(|e| TestbedError::Qcow2Error {
+            message: format!("extracting box archive: {e}"),
+        })?;
     pb.finish_with_message("extracted");
 
     let bundle = find_utm_bundle(&dest_dir)?;
@@ -301,23 +319,22 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
 
 fn find_utm_bundle(dir: &Path) -> Result<PathBuf> {
     for entry in std::fs::read_dir(dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("reading {dir:?}: {e}"),
+        message: format!("reading {}: {e}", dir.display()),
     })? {
         let entry = entry.map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading cache entry: {e}"),
         })?;
         let path = entry.path();
-        if path.is_dir() && path.extension().map(|e| e == "utm").unwrap_or(false) {
+        if path.is_dir() && path.extension().is_some_and(|e| e == "utm") {
             return Ok(path);
         }
-        if path.is_dir() {
-            if let Ok(inner) = find_utm_bundle(&path) {
-                return Ok(inner);
-            }
+        if path.is_dir()
+            && let Ok(inner) = find_utm_bundle(&path)
+        {
+            return Ok(inner);
         }
     }
     Err(TestbedError::Qcow2Error {
         message: format!("no .utm bundle found in extracted box at {}", dir.display()),
     })
 }
-

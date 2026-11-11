@@ -314,9 +314,9 @@ impl<T> EntryList<T> {
                 Some(inner) => tn(inner),
                 None => false,
             })
-            .map(|(index, (gen, value))| {
+            .filter_map(|(index, (gen, value))| {
                 self.free_entries.push(Entry::new(index, *gen));
-                value.take().unwrap()
+                value.take()
             })
             .collect()
     }
@@ -329,9 +329,8 @@ impl<T> EntryList<T> {
         if let Some((gen, value)) = self.items.get_mut(entry.id) {
             if *gen == entry.gen {
                 let new_gen = *gen + 1;
-                if value.is_some() {
-                    // collect old value
-                    let previous_value = value.take();
+                // Collect the old value. A present value must exist here.
+                if let Some(previous_value) = value.take() {
                     tracing::debug!(
                         "Current entry with gen: {} going to new gen: {} for id: {}",
                         gen,
@@ -352,7 +351,7 @@ impl<T> EntryList<T> {
                             gen: new_gen,
                             id: entry.id,
                         },
-                        previous_value.unwrap(),
+                        previous_value,
                     ));
                 }
             }
@@ -413,6 +412,8 @@ impl<T> Clone for ThreadSafeEntry<T> {
 
 #[allow(unused)]
 impl<T> ThreadSafeEntry<T> {
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn active_slots(&self) -> usize {
@@ -420,6 +421,9 @@ impl<T> ThreadSafeEntry<T> {
     }
 
     /// Returns total entries currently parked.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn parked_slots(&self) -> usize {
@@ -427,6 +431,9 @@ impl<T> ThreadSafeEntry<T> {
     }
 
     /// `allocated_slots` returns how many slots have being allocated overall.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn allocated_slots(&self) -> usize {
@@ -434,6 +441,9 @@ impl<T> ThreadSafeEntry<T> {
     }
 
     /// `open_slots` returns how many free entries are now available.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn open_slots(&self) -> usize {
@@ -447,6 +457,9 @@ impl<T> ThreadSafeEntry<T> {
     /// This is useful in those cases where all you really wish to do is
     /// update the underlying value without loosing your key like you would
     /// a regular map.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn get_mut<Func: FnOnce(Option<&mut T>)>(&self, entry: &Entry, fnc: Func) {
         let mut handle = self.0.write().unwrap();
@@ -455,6 +468,9 @@ impl<T> ThreadSafeEntry<T> {
 
     /// get a reference to the relevant value within the
     /// list for the giving `Entry` if its still valid.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn get<Func: FnOnce(Option<&T>)>(&self, entry: &Entry, fnc: Func) {
         let handle = self.0.read().unwrap();
@@ -463,6 +479,9 @@ impl<T> ThreadSafeEntry<T> {
 
     /// `not_valid` returns bool (True/False) indicating if the entry
     /// reference is still valid.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn not_valid(&self, entry: &Entry) -> bool {
@@ -471,6 +490,9 @@ impl<T> ThreadSafeEntry<T> {
 
     /// has returns bool (True/False) indicating if the entry
     /// exists and is still valid.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn has(&self, entry: &Entry) -> bool {
@@ -481,6 +503,9 @@ impl<T> ThreadSafeEntry<T> {
     /// freeing the entry for re-use if not already.
     ///
     /// The old value is dropped if it indeed is valid/has-value.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn vacate(&self, entry: &Entry) {
         self.0.write().unwrap().vacate(entry);
@@ -496,6 +521,9 @@ impl<T> ThreadSafeEntry<T> {
     ///
     /// This allows us support situations where we need to maintain that entry
     /// but cant afford to invalid the entry due to dependency chains built on it.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn park(&self, entry: &Entry) -> Option<T> {
@@ -506,15 +534,22 @@ impl<T> ThreadSafeEntry<T> {
     /// back into the packed entry, if the entry was truly
     /// packaed then true is returned to validate that
     /// the entry was indeed found and updated.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     pub fn unpark(&self, entry: &Entry, item: T) -> bool {
         self.0.write().unwrap().unpark(entry, item)
     }
 
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[must_use]
     pub fn find_packed(&self, entry: &Entry) -> Option<usize> {
         self.0.write().unwrap().find_packed(entry)
     }
 
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn update_packed(&self, entry: &Entry, item: T) -> Option<T> {
         self.0.write().unwrap().update_packed(entry, item)
@@ -523,6 +558,9 @@ impl<T> ThreadSafeEntry<T> {
     /// take collects the value pointed to by the relevant
     /// `Entry` pointer if its still valid and then invalidates
     /// the pointer.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     #[must_use]
     pub fn take(&self, entry: &Entry) -> Option<T> {
@@ -532,18 +570,27 @@ impl<T> ThreadSafeEntry<T> {
     /// update lets you change the underlying data for a giving reference
     /// without invalidating the reference for that object
     /// and returning old value.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn update(&self, entry: &Entry, item: T) -> Option<T> {
         self.0.write().unwrap().update(entry, item)
     }
 
     /// `for_each` loop through all active entries.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn map_with<V>(&self, tn: impl Fn(&T) -> Option<V>) -> Vec<V> {
         self.0.read().unwrap().map_with(tn)
     }
 
     /// `for_each` loop through all active entries.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn for_each(&self, tn: impl Fn(Option<&T>)) {
         self.0.read().unwrap().for_each(tn);
@@ -556,6 +603,9 @@ impl<T> ThreadSafeEntry<T> {
     /// This becomes heavly useful when you wish to take a series of underlying
     /// values that match a condition and vacate the underlying entries to be available
     /// for reuse.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn select_take(&self, tn: impl Fn(&T) -> bool) -> Vec<T> {
         self.0.write().unwrap().select_take(tn)
@@ -564,6 +614,9 @@ impl<T> ThreadSafeEntry<T> {
     /// replace lets you change the underlying data for a giving reference
     /// invalidating the previous reference for that object
     /// and returning the new reference and old value.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn replace(&self, entry: &Entry, item: T) -> Option<(Entry, T)> {
         self.0.write().unwrap().replace(entry, item)
@@ -571,6 +624,9 @@ impl<T> ThreadSafeEntry<T> {
 
     /// inserts a new value into the list receiving the relevant
     /// `Entry` handle for the item.
+    ///
+    /// # Panics
+    /// Panics if the internal `RwLock` is poisoned.
     #[inline]
     pub fn insert(&self, item: T) -> Entry {
         self.0.write().unwrap().insert(item)

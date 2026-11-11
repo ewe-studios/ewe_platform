@@ -34,7 +34,7 @@ pub struct LockSignal {
 // even in the presence of panics, and LockState is a simple enum.
 impl UnwindSafe for LockSignal {}
 impl RefUnwindSafe for LockSignal {}
-
+#[derive(Clone, Copy)]
 pub enum NotifyDirective {
     One,
     All,
@@ -61,6 +61,8 @@ impl LockSignal {
         }
     }
 
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     pub fn signal(&self, directive: NotifyDirective) {
         let mut state = self.lock.lock().unwrap();
         *state = LockState::Released;
@@ -74,6 +76,8 @@ impl LockSignal {
         }
     }
 
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     pub fn probe(&self) -> LockState {
         let current_state_guard = self.lock.lock().unwrap();
         let current_state = current_state_guard.clone();
@@ -81,6 +85,8 @@ impl LockSignal {
         current_state
     }
 
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     pub fn probe_locked(&self) -> bool {
         let current_state = self.lock.lock().unwrap();
         let is_locked = *current_state == LockState::Locked;
@@ -88,6 +94,9 @@ impl LockSignal {
         is_locked
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     /// Attempts to put the latch in a locked state thereby
     /// allowing to block the current thread readying
     /// you to call [`Self::wait`] after.
@@ -109,6 +118,9 @@ impl LockSignal {
         true
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     /// lock will just perform a lock operation on the
     /// `LockSignal` and internally handle when the lock is
     /// locked as a no-op operation.
@@ -128,6 +140,9 @@ impl LockSignal {
         self.signal(NotifyDirective::All);
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     /// [`Self::lock_and_wait`] will lock the `LockSignal` and
     /// block the current thread till it gets a notification
     /// to wakeup.
@@ -138,6 +153,9 @@ impl LockSignal {
         self.wait();
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal mutex is poisoned.
     /// wait blocks the current thread till the signal
     /// is received from the `CondVar`.
     pub fn wait(&self) {

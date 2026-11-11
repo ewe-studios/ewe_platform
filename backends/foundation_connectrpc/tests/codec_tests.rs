@@ -1,6 +1,14 @@
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
 //! Codec-system tests (spec-41 F13 / Decision 02): proto/json round-trips,
 //! zero-length rejection, `marshal_append`, `CodecError` mapping, and the
-//! `ProcedureCodecs` table (of/defaults/only/with_codec/for_request/names + miss).
+//! `ProcedureCodecs` table (`of/defaults/only/with_codec/for_request/names` + miss).
 //!
 //! Uses a hand-written but real buffa `Message` (`TestMsg`) so proto encoding
 //! carries actual data, plus serde derives so `JsonCodec` exercises the same
@@ -8,8 +16,8 @@
 //! buffer in buffa — `write_to`/`merge_field` are the correctness surface.)
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
-use bytes::{Buf, BufMut, Bytes};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
+use bytes::{Buf, Bytes};
 
 use foundation_connectrpc::shared::codec::{Codec, CodecError, CodecFor};
 use foundation_connectrpc::{Code, JsonCodec, ProcedureCodecs, ProtoCodec};
@@ -32,11 +40,14 @@ impl DefaultInstance for TestMsg {
 
 impl Message for TestMsg {
     fn compute_size(&self, _cache: &mut SizeCache) -> u32 {
-        // Presize hint only; BufMut in write_to grows as needed.
-        0
+        // Field 1 (varint id) + field 2 (length-delimited name), matching write_to.
+        let mut size = 0usize;
+        size += 1 + buffa::types::int32_encoded_len(self.id);
+        size += 1 + buffa::types::string_encoded_len(&self.name);
+        size as u32
     }
 
-    fn write_to(&self, _cache: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _cache: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);
@@ -146,7 +157,10 @@ fn defaults_has_proto_and_json_and_rejects_arrow() {
     assert!(codecs.for_request("json").is_ok());
     assert!(codecs.for_response("json").is_ok());
     // A codec not in the table is a miss (rendered 415 by the protocol layer).
-    let miss = codecs.for_request("arrow").err().expect("arrow is unsupported");
+    let miss = codecs
+        .for_request("arrow")
+        .err()
+        .expect("arrow is unsupported");
     assert_eq!(miss.current_context().code(), Code::Unimplemented);
     let names: Vec<&str> = codecs.names().collect();
     assert_eq!(names, vec!["proto", "json"]);

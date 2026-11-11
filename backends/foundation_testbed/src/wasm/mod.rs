@@ -19,8 +19,11 @@ pub mod fwt;
 pub mod fwt_runner;
 pub mod init;
 pub mod server;
-pub mod wasm;
 pub mod wasi_runner;
+// The public path `wasm::wasm` predates this lint. Renaming the module would
+// break that path, so keep the name.
+#[allow(clippy::module_inception)]
+pub mod wasm;
 pub mod wasm_test;
 pub mod wrangler;
 

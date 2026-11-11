@@ -116,11 +116,23 @@ function Add-MachinePath {
 # machine PATH. Locked: downloads come from the lock and are checked against
 # its sha256 (so mise's GitHub attestation lookup, which needs the GitHub
 # API, is skipped for python).
+#
+# A transient download failure must not abort a bake that has already installed
+# most tools, so `mise install` runs up to -InstallAttempts times with linear
+# backoff. -HttpTimeoutSeconds raises mise's 30 s default: a large archive can
+# exceed 30 s on a busy runner, and a retry then starts from a timeout again.
+# A retry skips the tools that already installed.
 function Install-MiseTools {
-    param([Parameter(Mandatory)][string]$ConfigDir)
+    param(
+        [Parameter(Mandatory)][string]$ConfigDir,
+        [int]$InstallAttempts = 3,
+        [int]$RetryDelaySeconds = 15,
+        [int]$HttpTimeoutSeconds = 120
+    )
     $config = Join-Path $ConfigDir 'mise.toml'
     if (-not (Test-Path $config)) { throw ("no mise.toml in {0}" -f $ConfigDir) }
     $env:MISE_YES = '1'
+    $env:MISE_HTTP_TIMEOUT = "$HttpTimeoutSeconds"
     if (Test-Path (Join-Path $ConfigDir 'mise.lock')) {
         $env:MISE_LOCKED = '1'
         $env:MISE_PYTHON_GITHUB_ATTESTATIONS = 'false'
@@ -128,13 +140,26 @@ function Install-MiseTools {
     Push-Location $ConfigDir
     try {
         Invoke-Native -FilePath 'mise' -ArgumentList @('trust', '--yes', $config) | Out-Null
-        Invoke-Native -FilePath 'mise' -ArgumentList @('install', '--yes') | Out-Null
+        $attempt = 0
+        while ($true) {
+            $attempt++
+            try {
+                Invoke-Native -FilePath 'mise' -ArgumentList @('install', '--yes') | Out-Null
+                break
+            } catch {
+                if ($attempt -ge $InstallAttempts) { throw }
+                $delay = $RetryDelaySeconds * $attempt
+                Write-PiLog ("mise install failed ({0}); retrying in {1}s" -f $_.Exception.Message, $delay)
+                Start-Sleep -Seconds $delay
+            }
+        }
         $paths = & mise bin-paths
         if ($LASTEXITCODE -ne 0) { throw 'mise bin-paths failed' }
     } finally {
         Pop-Location
         Remove-Item env:MISE_LOCKED -ErrorAction SilentlyContinue
         Remove-Item env:MISE_PYTHON_GITHUB_ATTESTATIONS -ErrorAction SilentlyContinue
+        Remove-Item env:MISE_HTTP_TIMEOUT -ErrorAction SilentlyContinue
     }
     $count = 0
     foreach ($p in $paths) {

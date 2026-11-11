@@ -101,5 +101,5 @@ fn process_spec_returns_all_fields() {
     let processed = process_spec(&spec);
     assert_eq!(processed.version, Some("2.1.0".to_string()));
     assert_eq!(processed.endpoints.as_ref().map(Vec::len), Some(4));
-    assert!(!processed.content_hash.is_empty());
+    assert_ne!(processed.content_hash, "");
 }

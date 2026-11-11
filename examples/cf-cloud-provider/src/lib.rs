@@ -135,11 +135,15 @@ async fn session(env: &worker::Env) -> Result<AgentSession, String> {
     if let Some(base_url) = setting(env, "OPENROUTER_BASE_URL") {
         config = config.with_base_url(base_url);
     }
-    let provider = OpenAIProvider::with_http_client(HttpClientBuilder::new().build())
-        .create(Some(config))
-        .map_err(|e| e.to_string())?;
+    let ctx = foundation_context::Ctx::try_host().map_err(|e| e.to_string())?;
+    let provider = OpenAIProvider::with_http_client(
+        HttpClientBuilder::new().build(),
+        ctx.clone(),
+    )
+    .create(Some(config))
+    .map_err(|e| e.to_string())?;
     let model = setting(env, "MODEL").unwrap_or_else(|| DEFAULT_MODEL.to_string());
-    let session = AgentSession::builder(provider)
+    let session = AgentSession::builder(provider, ctx)
         .with_model(ModelId::from(model))
         .with_system_prompt(SYSTEM_PROMPT)
         .build()

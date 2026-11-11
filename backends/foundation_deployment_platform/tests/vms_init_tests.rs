@@ -3,7 +3,7 @@
 #![cfg(feature = "vms")]
 
 use foundation_deployment_platform::init::{
-    generate_gitignore, generate_testbed_toml, BUILTIN_DEFENDER_EXCLUSIONS, BUILTIN_MOUNT_CHECK,
+    BUILTIN_DEFENDER_EXCLUSIONS, BUILTIN_MOUNT_CHECK, generate_gitignore, generate_testbed_toml,
 };
 
 #[test]
@@ -26,8 +26,8 @@ fn test_generate_gitignore_ignores_state() {
 
 #[test]
 fn test_builtin_scripts_have_content() {
-    assert!(!BUILTIN_DEFENDER_EXCLUSIONS.is_empty());
-    assert!(!BUILTIN_MOUNT_CHECK.is_empty());
+    assert_ne!(BUILTIN_DEFENDER_EXCLUSIONS, "");
+    assert_ne!(BUILTIN_MOUNT_CHECK, "");
     assert!(BUILTIN_DEFENDER_EXCLUSIONS.contains("Add-MpPreference"));
     assert!(BUILTIN_MOUNT_CHECK.contains("/mnt/project"));
 }

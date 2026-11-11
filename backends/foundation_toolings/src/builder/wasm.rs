@@ -37,14 +37,14 @@ impl ProjectBuilder for WasmBuilder {
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
 
-        let output = cmd.output().map_err(|e| ToolingError::Io(e))?;
+        let output = cmd.output().map_err(ToolingError::Io)?;
 
         if output.status.success() {
             Ok(BuildOutput::BuildComplete {
                 binary: format!("{}.wasm", self.crate_path),
             })
         } else {
-            Err(ToolingError::Build("wasm cargo build failed".into()))
+            Err(ToolingError::Build("wasm cargo build failed".into()).into())
         }
     }
 }

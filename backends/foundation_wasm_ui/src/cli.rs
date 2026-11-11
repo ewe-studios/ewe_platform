@@ -98,7 +98,10 @@ fn generator(args: &ArgMatches) -> Result<WasmBundleGenerator, BoxedError> {
 
 fn run_plan(args: &ArgMatches) -> Result<(), BoxedError> {
     let generator = generator(args)?;
-    println!("Discovered {} entrypoint(s):", generator.entrypoints().len());
+    println!(
+        "Discovered {} entrypoint(s):",
+        generator.entrypoints().len()
+    );
     for ep in generator.entrypoints() {
         println!("  {} ({:?}, {:?})", ep.name, ep.mode, ep.packaging);
     }

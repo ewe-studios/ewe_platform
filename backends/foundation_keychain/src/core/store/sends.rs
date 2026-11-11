@@ -1,12 +1,12 @@
 //! Send persistence (spec-57, F008 Stage 1).
 //!
-//! Ported from OrangeVault `db/queries.rs` (sends). Holds the owner's send plus
+//! Ported from `OrangeVault` `db/queries.rs` (sends). Holds the owner's send plus
 //! the access controls (`password`, `max_access_count`/`access_count`,
 //! `disabled`, `expiration_date`, `deletion_date`) enforced on anonymous access.
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -36,6 +36,8 @@ const COLUMNS: &str = "uuid, user_uuid, atype, name, notes, data, akey, password
      max_access_count, access_count, disabled, hide_email, expiration_date, deletion_date, \
      created_at, updated_at";
 
+// Callers hold the row fields by reference; `&Option` avoids a clone.
+#[allow(clippy::ref_option)]
 fn opt_text(o: &Option<String>) -> DataValue {
     match o {
         Some(s) => DataValue::Text(s.clone()),
@@ -85,8 +87,12 @@ fn map_row(row: &SqlRow) -> AppResult<SendRow> {
 }
 
 /// Insert a new send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO sends \
          (uuid, user_uuid, atype, name, notes, data, akey, password, max_access_count, \
           access_count, disabled, hide_email, expiration_date, deletion_date, created_at, updated_at) \
@@ -116,9 +122,13 @@ pub async fn insert(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
 }
 
 /// All sends owned by a user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<SendRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM sends WHERE user_uuid = ? ORDER BY created_at"),
             &[DataValue::Text(user_uuid.to_string())],
         )
@@ -131,9 +141,13 @@ pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec
 }
 
 /// A single send by uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SendRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM sends WHERE uuid = ?"),
             &[DataValue::Text(uuid.to_string())],
         )
@@ -146,8 +160,12 @@ pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SendRow>>
 }
 
 /// Update the mutable fields of a send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE sends SET name = ?, notes = ?, data = ?, akey = ?, password = ?, \
          max_access_count = ?, disabled = ?, hide_email = ?, expiration_date = ?, \
          deletion_date = ?, updated_at = ? WHERE uuid = ?",
@@ -172,14 +190,17 @@ pub async fn update(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
 }
 
 /// Bump `access_count` (on a successful anonymous access).
-pub async fn increment_access(
-    db: &dyn QueryStore,
-    uuid: &str,
-    new_count: i64,
-) -> AppResult<()> {
-    db.execute_async(
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+pub async fn increment_access(db: &dyn QueryStore, uuid: &str, new_count: i64) -> AppResult<()> {
+    db.execute(
         "UPDATE sends SET access_count = ? WHERE uuid = ?",
-        &[DataValue::Integer(new_count), DataValue::Text(uuid.to_string())],
+        &[
+            DataValue::Integer(new_count),
+            DataValue::Text(uuid.to_string()),
+        ],
     )
     .await
     .map_err(store_err)?;
@@ -187,8 +208,12 @@ pub async fn increment_access(
 }
 
 /// Delete a send.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "DELETE FROM sends WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
     )

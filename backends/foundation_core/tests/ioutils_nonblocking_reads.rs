@@ -192,7 +192,9 @@ fn header_then_payload_reads_leave_nothing_half_consumed() {
 
     // The payload is not there; this must not consume anything.
     let mut payload = [0u8; 16];
-    let err = stream.read_exact(&mut payload).expect_err("payload not ready");
+    let err = stream
+        .read_exact(&mut payload)
+        .expect_err("payload not ready");
     assert_eq!(err.kind(), io::ErrorKind::WouldBlock);
 }
 
@@ -205,11 +207,17 @@ fn header_then_payload_reads_leave_nothing_half_consumed() {
 /// `WouldBlock`; see [`peek_with_buffered_data_returns_short_count_on_stall`].
 #[test]
 fn peek_interrupted_by_would_block_consumes_nothing() {
-    let reader = Chunky::new(vec![Ok(PREFACE[..10].to_vec()), wb(), Ok(PREFACE[10..].to_vec())]);
+    let reader = Chunky::new(vec![
+        Ok(PREFACE[..10].to_vec()),
+        wb(),
+        Ok(PREFACE[10..].to_vec()),
+    ]);
     let mut stream = SharedByteBufferStream::rwrite(reader);
 
     let mut buf = [0u8; 24];
-    let short = stream.peek(&mut buf).expect("a stall with data buffered is not an error");
+    let short = stream
+        .peek(&mut buf)
+        .expect("a stall with data buffered is not an error");
     assert_eq!(short, 10, "peek yields the 10 bytes it holds, not all 24");
 
     let mut buf2 = [0u8; 24];
@@ -235,7 +243,10 @@ fn peek_interrupted_by_would_block_consumes_nothing() {
 #[test]
 fn peek_with_buffered_data_returns_short_count_on_stall() {
     let request = b"GET / HTTP/1.1\r\n\r\n";
-    assert!(request.len() < 24, "fixture must be shorter than the peek request");
+    assert!(
+        request.len() < 24,
+        "fixture must be shorter than the peek request"
+    );
 
     let reader = Chunky::new(vec![Ok(request.to_vec()), wb(), wb()]);
     let mut stream = SharedByteBufferStream::rwrite(reader);
@@ -245,7 +256,11 @@ fn peek_with_buffered_data_returns_short_count_on_stall() {
         let n = stream
             .peek(&mut buf)
             .unwrap_or_else(|e| panic!("peek {attempt} must not fail with buffered data: {e:?}"));
-        assert_eq!(n, request.len(), "peek {attempt} yields every buffered byte");
+        assert_eq!(
+            n,
+            request.len(),
+            "peek {attempt} yields every buffered byte"
+        );
         assert_eq!(&buf[..n], request, "peek {attempt} yields the right bytes");
     }
 }
@@ -263,7 +278,9 @@ fn a_short_peek_does_not_make_read_exact_mistake_a_stall_for_eof() {
     let stalled = Chunky::new(vec![Ok(PREFACE[..10].to_vec()), wb(), wb()]);
     let mut stream = SharedByteBufferStream::rwrite(stalled);
     let mut buf = [0u8; 24];
-    let err = stream.read_exact(&mut buf).expect_err("cannot fill 24 bytes");
+    let err = stream
+        .read_exact(&mut buf)
+        .expect_err("cannot fill 24 bytes");
     assert_eq!(
         err.kind(),
         io::ErrorKind::WouldBlock,
@@ -274,7 +291,9 @@ fn a_short_peek_does_not_make_read_exact_mistake_a_stall_for_eof() {
     let ended = Chunky::new(vec![Ok(PREFACE[..10].to_vec())]);
     let mut stream = SharedByteBufferStream::rwrite(ended);
     let mut buf = [0u8; 24];
-    let err = stream.read_exact(&mut buf).expect_err("cannot fill 24 bytes");
+    let err = stream
+        .read_exact(&mut buf)
+        .expect_err("cannot fill 24 bytes");
     assert_eq!(
         err.kind(),
         io::ErrorKind::UnexpectedEof,
@@ -291,7 +310,9 @@ fn peek_stalled_with_nothing_buffered_still_reports_would_block() {
     let mut stream = SharedByteBufferStream::rwrite(reader);
 
     let mut buf = [0u8; 24];
-    let err = stream.peek(&mut buf).expect_err("an empty stall is WouldBlock");
+    let err = stream
+        .peek(&mut buf)
+        .expect_err("an empty stall is WouldBlock");
     match err {
         foundation_core::io::ioutils::PeekError::IOError(e) => {
             assert_eq!(e.kind(), io::ErrorKind::WouldBlock);
@@ -324,15 +345,19 @@ fn read_exact_after_successful_peek_is_served_from_the_buffer() {
 }
 
 /// `peek` on a closed, drained stream must report end-of-stream rather than
-/// panicking. A peer that connects and immediately disconnects hits this.
+/// panicking — and as `EndOfStream`, not `Ok(0)`, which reads like "no bytes
+/// yet" and left peekers (the h2 server) waiting on a peer that had gone. A
+/// peer that connects and immediately disconnects hits this.
 #[test]
-fn peek_on_a_closed_empty_stream_reports_eof_without_panicking() {
+fn peek_on_a_closed_empty_stream_reports_end_of_stream() {
     let reader = Chunky::new(vec![]); // immediate EOF
     let mut stream = SharedByteBufferStream::rwrite(reader);
 
     let mut buf = [0u8; 24];
-    let n = stream.peek(&mut buf).expect("peek at EOF must not panic or error");
-    assert_eq!(n, 0, "no bytes are available on a closed, drained stream");
+    match stream.peek(&mut buf) {
+        Err(foundation_core::io::ioutils::PeekError::EndOfStream) => {}
+        other => panic!("expected EndOfStream, got {other:?}"),
+    }
 }
 
 // ── the h2 failure, reproduced ───────────────────────────────────────────────
@@ -356,6 +381,9 @@ fn restarting_a_handshake_re_reads_the_following_frame_not_the_preface() {
     let mut buf2 = [0u8; 24];
     stream.read_exact(&mut buf2).expect("second read");
 
-    assert_ne!(&buf2, PREFACE, "a restarted handshake cannot see the preface twice");
+    assert_ne!(
+        &buf2, PREFACE,
+        "a restarted handshake cannot see the preface twice"
+    );
     assert_eq!(&buf2[..], &settings_frame[..]);
 }

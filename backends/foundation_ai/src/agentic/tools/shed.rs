@@ -66,7 +66,7 @@ pub fn shed_definition() -> Tool {
         "required": ["description"]
     });
 
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: SHED_TOOL_NAME.into(),
         description: "Find the tools available for a task. Describe what you need; \
                       every tool returned can be called from then on. Call a tool only \
@@ -77,7 +77,7 @@ pub fn shed_definition() -> Tool {
         )),
         category: "discovery".into(),
         returns: None,
-    })
+    }))
 }
 
 // ---------------------------------------------------------------------------
@@ -136,9 +136,10 @@ impl ToolDiscovery {
         }
     }
 
-    fn embed(&self, text: &str) -> Result<Vec<f32>, ToolError> {
+    async fn embed(&self, text: &str) -> Result<Vec<f32>, ToolError> {
         self.embedder
             .embed(text, &self.embedding_model)
+            .await
             .map(|v| v.data)
             .map_err(|e| ToolError::Execution {
                 tool: SHED_TOOL_NAME.into(),
@@ -150,7 +151,8 @@ impl ToolDiscovery {
     /// # Errors
     /// [`ToolError::Execution`] if embedding or the vector insert fails.
     pub async fn index(&self, def: &ToolDefinition) -> Result<(), ToolError> {
-        self.index_tool(&Tool::SingleCommand(def.clone())).await
+        self.index_tool(&Tool::SingleCommand(Box::new(def.clone())))
+            .await
     }
 
     /// Index a registered tool (single or multi command) under its name.
@@ -158,7 +160,9 @@ impl ToolDiscovery {
     /// [`ToolError::Execution`] if embedding or the vector insert fails.
     pub async fn index_tool(&self, tool: &Tool) -> Result<(), ToolError> {
         let summary = ToolSummary::of(tool);
-        let embedding = self.embed(&format!("{}: {}", summary.name, summary.description))?;
+        let embedding = self
+            .embed(&format!("{}: {}", summary.name, summary.description))
+            .await?;
 
         let store = self.vector_store.get_or_init(|| {
             Arc::new(InMemoryVectorStore::new(VectorStoreConfig::new(
@@ -174,7 +178,7 @@ impl ToolDiscovery {
             .insert("tool_name".into(), summary.name.clone());
 
         store
-            .insert_async(
+            .insert(
                 NAMESPACE,
                 VectorEntry {
                     id: format!("tool:{}", summary.name),
@@ -211,7 +215,7 @@ impl ToolDiscovery {
         let Some(store) = self.vector_store.get() else {
             return Ok(());
         };
-        match store.delete_async(NAMESPACE, &format!("tool:{name}")).await {
+        match store.delete(NAMESPACE, &format!("tool:{name}")).await {
             Ok(()) | Err(VectorStoreError::NotFound { .. }) => Ok(()),
             Err(e) => Err(ToolError::Execution {
                 tool: SHED_TOOL_NAME.into(),
@@ -282,7 +286,7 @@ impl ToolDiscovery {
             // Nothing indexed yet.
             return Ok(Vec::new());
         };
-        let embedding = self.embed(query).map_err(|e| match e {
+        let embedding = self.embed(query).await.map_err(|e| match e {
             ToolError::Execution { tool, reason } => ToolError::Execution {
                 tool,
                 reason: format!("query {reason}"),
@@ -290,13 +294,14 @@ impl ToolDiscovery {
             other => other,
         })?;
 
-        let matches = store
-            .search_async(NAMESPACE, &embedding, k)
-            .await
-            .map_err(|e| ToolError::Execution {
-                tool: SHED_TOOL_NAME.into(),
-                reason: format!("vector search failed: {e}"),
-            })?;
+        let matches =
+            store
+                .search(NAMESPACE, &embedding, k)
+                .await
+                .map_err(|e| ToolError::Execution {
+                    tool: SHED_TOOL_NAME.into(),
+                    reason: format!("vector search failed: {e}"),
+                })?;
 
         let summaries = self.summaries.read().expect("tool summaries poisoned");
         Ok(matches

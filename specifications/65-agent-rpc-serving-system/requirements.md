@@ -37,6 +37,7 @@ related_specs:
   - "specifications/61-llama-vendoring-and-crate-publishing"
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
+  - "specifications/71-durable-streams-in-valtron"
 features:
   completed: 0
   uncompleted: 7
@@ -342,6 +343,25 @@ agent-rpc client token; agent-rpc never sees the registration token.
   `foundation_http::wasm::dispatch_cf`), and the **full native model-server
   agent-rpc** on Sandboxes/Containers. See `05-cloudflare` (consuming
   `00-foundation`).
+
+## Durable streams and the streaming operations
+
+The [Durable Streams research note](../research/edge-data/durable-streams.md) and
+[spec 71](../71-durable-streams-in-valtron) record a contract that applies to
+this spec's streaming operations. The mechanism lives in valtron (spec 71); the
+features here **consume** it once it exists. The mapping:
+
+| Operation | Durable Streams idea | Where it lands here |
+|---|---|---|
+| `chat` / turn streaming | A resumable, offset-addressable stream. The client stores the cursor and reconnects with no skip and no duplicate. | `01-agent-rpc`'s Connect/gRPC/gRPC-Web chat streams; the SSE tail of `05-cloudflare`. |
+| Tool outputs and progress events | Replay from an arbitrary offset; `Stream-Up-To-Date` vs `Stream-Closed` signal "more may come" vs "done". | The turn/progress event stream an instance emits to its watchers. |
+| One conversation that branches | Fork: a new stream shares the prefix and owns only its tail. | A forked `AgentSession` is a fork of the turn log. |
+| Retried RPC writes | An idempotent producer (`producer-id`/`epoch`/`seq`) with epoch fencing and deduplicated acknowledgement. | Any retryable append to a turn log or an instance state feed. |
+| Many watchers of one instance | Cursor-based collapsing: one upstream connection, a CDN absorbs the fan-out. | The relay/fan-out need already noted in the edge-data DO research. |
+
+These are inputs to the design, not new work in this spec. Spec 71 delivers the
+`DurableStream` reader/writer and the `DurableStreamStore` trait; `01-agent-rpc`
+and `05-cloudflare` pick them up when they are built.
 
 # Success Criteria (Spec-Wide)
 

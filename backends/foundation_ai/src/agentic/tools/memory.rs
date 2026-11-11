@@ -16,7 +16,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_compact::SystemTime;
+use foundation_context::Ctx;
 use foundation_db::traits::DocumentStore;
 
 use crate::agentic::memory::MemoryHierarchy;
@@ -46,10 +46,10 @@ fn fact_arg() -> foundation_jsonschema::ValidationOptions {
         .build()
 }
 
-fn new_fact(text: String) -> MemoryFact {
+fn new_fact(text: String, ctx: &Ctx) -> MemoryFact {
     MemoryFact {
         fact: text,
-        asserted_at: SystemTime::now(),
+        asserted_at: ctx.clock().wall_now(),
         source_message_id: foundation_compact::ids::new_scru128(),
         confidence: 1.0,
     }
@@ -65,6 +65,7 @@ fn new_fact(text: String) -> MemoryFact {
 /// doesn't carry the store types.
 pub struct MemoryTool {
     hierarchy: Arc<dyn MemoryAccess>,
+    ctx: Ctx,
 }
 
 impl MemoryTool {
@@ -75,14 +76,19 @@ impl MemoryTool {
         M: MemoryStore + 'static,
         D: DocumentStore + 'static,
     {
-        Self { hierarchy }
+        let ctx = hierarchy.ctx();
+        Self { hierarchy, ctx }
     }
 
     /// The tool over any shared [`MemoryAccess`] — e.g. `SessionParts::memory`
     /// inside a `ToolShed` constructor.
     #[must_use]
     pub fn from_shared(memory: Arc<dyn MemoryAccess>) -> Self {
-        Self { hierarchy: memory }
+        let ctx = memory.ctx();
+        Self {
+            hierarchy: memory,
+            ctx,
+        }
     }
 
     /// Read the latest working-memory facts + version (empty at version 0 when
@@ -110,7 +116,7 @@ impl MemoryTool {
     async fn add(&self, args: ToolArgs<'_>) -> Result<ToolCallResult, ToolError> {
         let fact = args.str("fact")?.to_string();
         let (mut facts, version) = self.current_working().await?;
-        facts.push(new_fact(fact.clone()));
+        facts.push(new_fact(fact.clone(), &self.ctx));
         self.write(facts, version).await?;
         Ok(ToolCallResult::text(format!("Remembered: {fact}")))
     }
@@ -121,7 +127,9 @@ impl MemoryTool {
         let before = facts.len();
         let remaining: Vec<MemoryFact> = facts.into_iter().filter(|f| f.fact != fact).collect();
         if remaining.len() == before {
-            return Err(exec_err(format!("no fact matching '{fact}' in working memory")));
+            return Err(exec_err(format!(
+                "no fact matching '{fact}' in working memory"
+            )));
         }
         self.write(remaining, version).await?;
         Ok(ToolCallResult::text(format!("Forgot: {fact}")))
@@ -134,13 +142,15 @@ impl MemoryTool {
         let mut replaced = false;
         for f in &mut facts {
             if f.fact == old {
-                f.fact = new.clone();
-                f.asserted_at = SystemTime::now();
+                f.fact.clone_from(&new);
+                f.asserted_at = self.ctx.clock().wall_now();
                 replaced = true;
             }
         }
         if !replaced {
-            return Err(exec_err(format!("no fact matching '{old}' in working memory")));
+            return Err(exec_err(format!(
+                "no fact matching '{old}' in working memory"
+            )));
         }
         self.write(facts, version).await?;
         Ok(ToolCallResult::text(format!(

@@ -3,20 +3,49 @@
 //! WHY: MFA for sensitive auth flows and API key protection.
 //!
 //! WHAT: `TOTPSecret` for TOTP generation/verification, backup code support.
-//! HOW: HMAC-SHA1 with time steps. Synchronous — CPU-bound crypto ops.
+//! HOW: HMAC (SHA-1 by default, SHA-256 optional) with time steps. Synchronous — CPU-bound crypto ops.
 
-use hmac::{Hmac, Mac};
 use foundation_compact::rng::Rng;
+use foundation_compact::time;
+use foundation_context::Ctx;
+use hmac::{Hmac, Mac};
+use serde::{Deserialize, Serialize};
+use sha1::Sha1;
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
+type HmacSha1 = Hmac<Sha1>;
 type HmacSha256 = Hmac<Sha256>;
+
+/// The hash a TOTP secret uses. RFC 6238 defaults to SHA-1, and it is the
+/// only one most authenticator apps (Google Authenticator and others)
+/// implement. SHA-256 is for apps that support it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum TotpAlgorithm {
+    /// HMAC-SHA-1, 6 digits, 30 s: the RFC 6238 default.
+    #[default]
+    Sha1,
+    /// HMAC-SHA-256.
+    Sha256,
+}
+
+impl TotpAlgorithm {
+    /// The name in an `otpauth://` URI (`algorithm=`).
+    #[must_use]
+    pub fn uri_name(self) -> &'static str {
+        match self {
+            Self::Sha1 => "SHA1",
+            Self::Sha256 => "SHA256",
+        }
+    }
+}
 
 /// TOTP secret for time-based one-time password generation (RFC 6238).
 pub struct TOTPSecret {
     secret: Zeroizing<Vec<u8>>,
     period: u64,
     digits: usize,
+    algorithm: TotpAlgorithm,
 }
 
 impl TOTPSecret {
@@ -31,7 +60,21 @@ impl TOTPSecret {
             secret: Zeroizing::new(secret),
             period: 30,
             digits: 6,
+            algorithm: TotpAlgorithm::default(),
         }
+    }
+
+    /// Use this hash (default: SHA-1, the RFC 6238 default).
+    #[must_use]
+    pub fn with_algorithm(mut self, algorithm: TotpAlgorithm) -> Self {
+        self.algorithm = algorithm;
+        self
+    }
+
+    /// The hash this secret uses.
+    #[must_use]
+    pub fn algorithm(&self) -> TotpAlgorithm {
+        self.algorithm
     }
 
     /// Create from an existing secret key.
@@ -41,17 +84,15 @@ impl TOTPSecret {
             secret: Zeroizing::new(secret),
             period: 30,
             digits: 6,
+            algorithm: TotpAlgorithm::default(),
         }
     }
 
-    /// Generate a TOTP code for the current time.
+    /// Generate a TOTP code for the clock's current wall time.
     #[must_use]
-    #[allow(clippy::missing_panics_doc)]
-    pub fn now(&self) -> String {
-        let timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock before Unix epoch")
-            .as_secs();
+    pub fn now(&self, ctx: &Ctx) -> String {
+        let timestamp =
+            u64::try_from(time::unix_seconds(ctx.clock().wall_now())).unwrap_or_default();
         self.code_at(timestamp)
     }
 
@@ -60,42 +101,37 @@ impl TOTPSecret {
     #[allow(clippy::missing_panics_doc)]
     pub fn code_at(&self, timestamp: u64) -> String {
         let time_step = timestamp / self.period;
-        Self::generate_code(&self.secret, time_step, self.digits)
+        Self::generate_code(&self.secret, time_step, self.digits, self.algorithm)
     }
 
     /// Verify a TOTP code with time window tolerance (±1 step by default).
     ///
-    /// Checks the current time step and one step before/after to account
-    /// for clock drift.
+    /// Checks the current time step and `tolerance` steps before and after to
+    /// account for clock drift.
+    #[must_use]
+    pub fn verify(&self, code: &str, tolerance: u64, ctx: &Ctx) -> bool {
+        self.verify_step(code, tolerance, ctx).is_some()
+    }
+
+    /// Like [`verify`](Self::verify), but returns the time step the code
+    /// belongs to. A caller that remembers the last accepted step can reject a
+    /// code for the same or an earlier step (replay).
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn verify(&self, code: &str, tolerance: u64) -> bool {
-        let timestamp = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock before Unix epoch")
-            .as_secs();
+    pub fn verify_step(&self, code: &str, tolerance: u64, ctx: &Ctx) -> Option<u64> {
+        let timestamp =
+            u64::try_from(time::unix_seconds(ctx.clock().wall_now())).unwrap_or_default();
         let time_step = timestamp / self.period;
 
-        for delta in 0..=tolerance {
-            if delta > 0 {
-                // Check previous step
-                if time_step >= delta
-                    && code == Self::generate_code(&self.secret, time_step - delta, self.digits)
-                {
-                    return true;
-                }
-                // Check next step
-                if code == Self::generate_code(&self.secret, time_step + delta, self.digits) {
-                    return true;
-                }
-            } else {
-                // Current step
-                if code == Self::generate_code(&self.secret, time_step, self.digits) {
-                    return true;
-                }
+        // Check every step in the window; do not stop at the first match, so
+        // the work does not depend on which step matched.
+        let mut matched = None;
+        for step in time_step.saturating_sub(tolerance)..=time_step + tolerance {
+            if code == Self::generate_code(&self.secret, step, self.digits, self.algorithm) {
+                matched = Some(step);
             }
         }
-        false
+        matched
     }
 
     /// Get the base32-encoded representation of the secret.
@@ -123,16 +159,60 @@ impl TOTPSecret {
         String::from_utf8(bytes[..significant].to_vec()).unwrap_or_default()
     }
 
+    /// Create from a base32 string (RFC 4648, no padding), the inverse of
+    /// [`to_base32`](Self::to_base32). Returns `None` for a character outside
+    /// the base32 alphabet or an empty string.
+    #[must_use]
+    pub fn from_base32(encoded: &str) -> Option<Self> {
+        if encoded.is_empty() {
+            return None;
+        }
+        let mut out = Vec::with_capacity(encoded.len() * 5 / 8);
+        let mut buffer: u32 = 0;
+        let mut bits = 0u32;
+        for ch in encoded.bytes() {
+            let val = match ch {
+                b'A'..=b'Z' => u32::from(ch - b'A'),
+                b'2'..=b'7' => u32::from(ch - b'2') + 26,
+                _ => return None,
+            };
+            buffer = (buffer << 5) | val;
+            bits += 5;
+            if bits >= 8 {
+                bits -= 8;
+                out.push(u8::try_from((buffer >> bits) & 0xFF).ok()?);
+                buffer &= (1 << bits) - 1;
+            }
+        }
+        Some(Self::from_bytes(out))
+    }
+
     /// Generate the HOTP code for a given time step.
     #[allow(clippy::cast_possible_truncation)]
-    fn generate_code(secret: &[u8], time_step: u64, digits: usize) -> String {
+    fn generate_code(
+        secret: &[u8],
+        time_step: u64,
+        digits: usize,
+        algorithm: TotpAlgorithm,
+    ) -> String {
         // Encode time step as 8-byte big-endian counter
         let counter = time_step.to_be_bytes();
 
         // Compute HMAC-SHA256
-        let mut mac = HmacSha256::new_from_slice(secret).expect("HMAC can take key of any size");
-        mac.update(&counter);
-        let result = mac.finalize().into_bytes();
+        let result: Vec<u8> = match algorithm {
+            TotpAlgorithm::Sha1 => {
+                let mut mac =
+                    HmacSha1::new_from_slice(secret).expect("HMAC can take key of any size");
+                mac.update(&counter);
+                mac.finalize().into_bytes().to_vec()
+            }
+            TotpAlgorithm::Sha256 => {
+                let mut mac =
+                    HmacSha256::new_from_slice(secret).expect("HMAC can take key of any size");
+                mac.update(&counter);
+                mac.finalize().into_bytes().to_vec()
+            }
+        };
 
         // Dynamic truncation (RFC 4226 section 5.4)
         let offset = (result[result.len() - 1] & 0x0F) as usize;
@@ -269,7 +349,10 @@ impl BackupCodeSet {
 }
 
 /// Constant-time byte comparison to prevent timing attacks.
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+///
+/// Slices of different length compare as not equal.
+#[must_use]
+pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() {
         return false;
     }
@@ -304,16 +387,3 @@ impl core::fmt::Display for TwoFactorError {
 }
 
 impl std::error::Error for TwoFactorError {}
-
-// Tests internal implementation detail: constant_time_eq is private
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_constant_time_eq() {
-        assert!(constant_time_eq(b"hello", b"hello"));
-        assert!(!constant_time_eq(b"hello", b"world"));
-        assert!(!constant_time_eq(b"short", b"longer"));
-    }
-}

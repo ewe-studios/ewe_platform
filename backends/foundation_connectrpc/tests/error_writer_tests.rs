@@ -1,6 +1,6 @@
-//! ErrorWriter tests (spec-41 F21 / Decision 03): protocol-correct error
+//! `ErrorWriter` tests (spec-41 F21 / Decision 03): protocol-correct error
 //! rendering for Connect unary/streaming + gRPC-Web (binary + text), 304, and a
-//! typed-detail base64 (RawStdEncoding) round-trip.
+//! typed-detail base64 (`RawStdEncoding`) round-trip.
 
 use bytes::Bytes;
 use foundation_netio::shared::http::{
@@ -10,7 +10,9 @@ use foundation_netio::shared::http::{
 
 use foundation_connectrpc::shared::envelope::Envelope;
 use foundation_connectrpc::shared::error::ErrorDetail;
-use foundation_connectrpc::shared::protocol::grpc_web::{parse_status_trailers, parse_trailer_frame_body};
+use foundation_connectrpc::shared::protocol::grpc_web::{
+    parse_status_trailers, parse_trailer_frame_body,
+};
 use foundation_connectrpc::{Code, ConnectError, ErrorWriter};
 
 fn request(content_type: &str, method: SimpleMethod) -> SimpleIncomingRequest {

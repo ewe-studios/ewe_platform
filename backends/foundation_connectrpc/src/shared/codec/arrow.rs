@@ -1,4 +1,4 @@
-//! `ArrowCodec` — columnar Arrow IPC via foundation_arrow (Decision 02).
+//! `ArrowCodec` — columnar Arrow IPC via `foundation_arrow` (Decision 02).
 //!
 //! WHY: Arrow is the strongest zero-copy path — `RecordBatch` buffers are
 //! Arc-backed and columnar, so a batch is `'static + Send + Sync` and read
@@ -65,6 +65,8 @@ impl ArrowCodec {
     ///
     /// # Errors
     /// Returns [`CodecError::Decode`] if the bytes are not valid Arrow IPC.
+    // `Bytes` is a cheap refcounted handle; taking it by value is idiomatic.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn unmarshal_batch(&self, data: Bytes) -> Result<RecordBatch, CodecError> {
         decode_ipc(&data).map_err(|e| CodecError::decode(NAME, e.to_string()))
     }

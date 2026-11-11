@@ -1,19 +1,19 @@
-//! Unit tests for event_source parser module.
+//! Unit tests for `event_source` parser module.
 //!
-//! Tests SseParser functionality for SSE protocol parsing.
+//! Tests `SseParser` functionality for SSE protocol parsing.
 //!
 //! NOTE: Parser uses stateful accumulation - field lines return None,
 //! only complete events (comments, dispatched messages) return Some(Event).
-//! Tests use parse_next() directly or collect_complete_events() helper.
+//! Tests use `parse_next()` directly or `collect_complete_events()` helper.
 
 use foundation_core::io::ioutils::SharedBufferReadStream;
 use foundation_netio::event_source::{Event, ParseResult, SseParser};
 use foundation_testing::io::{SharedBuffer, SharedBufferWriter};
 use std::io::Write;
 
-/// Collect all events from parser by repeatedly calling parse_next() until buffer empty.
+/// Collect all events from parser by repeatedly calling `parse_next()` until buffer empty.
 ///
-/// WHY: Iterator::collect() doesn't work because None means "no event yet" not "exhausted".
+/// WHY: `Iterator::collect()` doesn't work because None means "no event yet" not "exhausted".
 /// WHAT: Helper to gather all events for testing.
 fn collect_complete_events(mut parser: SseParser<SharedBufferReadStream>) -> Vec<Event> {
     let mut events = Vec::new();
@@ -31,7 +31,7 @@ fn collect_complete_events(mut parser: SseParser<SharedBufferReadStream>) -> Vec
 }
 
 /// WHY: Parser must yield single event from minimal input.
-/// WHAT: Verify write + parse_next() pattern works.
+/// WHAT: Verify write + `parse_next()` pattern works.
 #[test]
 fn test_parser_single_event() {
     let (mut writer, reader): (SharedBufferWriter, _) = SharedBuffer::split();
@@ -126,7 +126,7 @@ fn test_parser_retry() {
 }
 
 /// WHY: Parser must handle comment lines (keep-alive).
-/// WHAT: Verify comment lines return Event::Comment immediately.
+/// WHAT: Verify comment lines return `Event::Comment` immediately.
 #[test]
 fn test_parser_comment() {
     let (mut writer, reader): (SharedBufferWriter, _) = SharedBuffer::split();

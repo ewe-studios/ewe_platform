@@ -23,7 +23,10 @@ use foundation_connectrpc::shared::protocol::{grpc, grpc_web};
 /// Valid gRPC content-types resolve to their codec, defaulting to `proto`.
 #[test]
 fn grpc_accepts_its_own_content_types() {
-    assert_eq!(grpc::parse_content_type("application/grpc").as_deref(), Some("proto"));
+    assert_eq!(
+        grpc::parse_content_type("application/grpc").as_deref(),
+        Some("proto")
+    );
     assert_eq!(
         grpc::parse_content_type("application/grpc+proto").as_deref(),
         Some("proto")
@@ -107,7 +110,10 @@ fn grpc_web_binary_does_not_swallow_text() {
     let (codec, is_text) =
         grpc_web::parse_content_type("application/grpc-web-text+json").expect("is gRPC-Web text");
     assert_eq!(codec, "json");
-    assert!(is_text, "the -text subtype must be recognised as text framing");
+    assert!(
+        is_text,
+        "the -text subtype must be recognised as text framing"
+    );
 }
 
 /// gRPC-Web must not claim plain gRPC either — the confusion runs both ways.

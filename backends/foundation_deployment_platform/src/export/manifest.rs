@@ -5,6 +5,7 @@
 
 use std::path::Path;
 
+use foundation_context::Ctx;
 use serde::Serialize;
 
 use crate::config::{GuestOs, Result, TestbedError, VmProfile};
@@ -29,6 +30,10 @@ pub struct ExportManifest {
 
 impl ExportManifest {
     /// Build a manifest from a profile, exported image path, and optional tool versions.
+    ///
+    /// # Errors
+    /// Returns an error if the image metadata cannot be read. Returns an error if the
+    /// SHA256 cannot be computed.
     pub fn new(
         profile: &VmProfile,
         image_path: &Path,
@@ -36,16 +41,17 @@ impl ExportManifest {
         installed_tools: std::collections::HashMap<String, String>,
         bootstrap_version: u32,
         notes: &str,
+        ctx: &Ctx,
     ) -> Result<Self> {
         let meta = std::fs::metadata(image_path).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading exported image metadata: {e}"),
         })?;
 
         let sha256 = compute_sha256(image_path)?;
-        let image_file = image_path
-            .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| "export.qcow2".to_string());
+        let image_file = image_path.file_name().map_or_else(
+            || "export.qcow2".to_string(),
+            |n| n.to_string_lossy().to_string(),
+        );
 
         let arch = std::env::consts::ARCH.to_string();
         let os_str = match profile.os {
@@ -54,7 +60,7 @@ impl ExportManifest {
             GuestOs::MacOS => "macos".to_string(),
         };
 
-        let created_at = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let created_at = crate::clock::wall_now_rfc3339_secs(ctx);
         let created_by = whoami::hostname().unwrap_or("unknown".to_string());
         let git_commit = get_git_commit();
 
@@ -76,6 +82,10 @@ impl ExportManifest {
     }
 
     /// Write the manifest to `<image_path>.manifest.json` (sibling file).
+    ///
+    /// # Errors
+    /// Returns an error if the manifest cannot be serialized. Returns an error if the
+    /// manifest cannot be written.
     pub fn write_to(&self, image_path: &Path) -> Result<()> {
         let manifest_path = image_path.with_extension("qcow2.manifest.json");
         let json = serde_json::to_string_pretty(self).map_err(|e| TestbedError::Qcow2Error {
@@ -88,6 +98,7 @@ impl ExportManifest {
     }
 
     /// Display a summary of installed tools for import feedback.
+    #[must_use]
     pub fn tools_summary(&self) -> String {
         if self.installed_tools.is_empty() {
             return "no tools detected".to_string();
@@ -103,21 +114,22 @@ impl ExportManifest {
 }
 
 fn compute_sha256(path: &Path) -> Result<String> {
+    use sha2::Digest;
     use std::io::Read;
     let mut file = std::fs::File::open(path).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening image for SHA256: {e}"),
     })?;
     let mut hasher = sha2::Sha256::new();
-    let mut buf = [0u8; 65536];
+    let mut buf = vec![0u8; 65536];
     loop {
         let n = file.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading image for SHA256: {e}"),
         })?;
-        if n == 0 { break; }
-        use sha2::Digest;
+        if n == 0 {
+            break;
+        }
         hasher.update(&buf[..n]);
     }
-    use sha2::Digest;
     Ok(format!("{:x}", hasher.finalize()))
 }
 
@@ -127,7 +139,5 @@ fn get_git_commit() -> String {
         .output()
         .ok()
         .and_then(|out| String::from_utf8(out.stdout).ok())
-        .map(|s| s.trim().to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+        .map_or_else(|| "unknown".to_string(), |s| s.trim().to_string())
 }
-

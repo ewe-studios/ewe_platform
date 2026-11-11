@@ -24,6 +24,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
+use foundation_context::Ctx;
 use foundation_core::valtron::Stream;
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
@@ -166,6 +167,8 @@ where
     child_tools: Vec<Arc<dyn ToolImpl>>,
     /// Builds each sub-agent's stores.
     stores: Arc<dyn SessionStoreFactory<D, M>>,
+    /// The context. Every child session's memory reads its clock from it.
+    ctx: Ctx,
 }
 
 impl<D, M> AgentTool<D, M>
@@ -188,6 +191,7 @@ where
         output_base: String,
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
+        ctx: Ctx,
     ) -> Self {
         Self::with_store_factory(
             router,
@@ -198,6 +202,7 @@ where
             user,
             child_tools,
             Arc::new(DefaultStores),
+            ctx,
         )
     }
 }
@@ -223,6 +228,7 @@ where
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
         stores: Arc<dyn SessionStoreFactory<D, M>>,
+        ctx: Ctx,
     ) -> Self {
         Self {
             router,
@@ -234,6 +240,7 @@ where
             user,
             child_tools,
             stores,
+            ctx,
         }
     }
 
@@ -296,12 +303,16 @@ where
         let delegate_id = Self::new_id();
         let output_location = format!("{}/{}.json", self.output_base, delegate_id);
 
-        let (doc_store, memory_store) = self.stores.create().await.map_err(|e| ToolError::Execution {
-            tool: TOOL.into(),
-            reason: format!("failed to create the sub-agent's stores: {e}"),
-        })?;
+        let (doc_store, memory_store) =
+            self.stores
+                .create()
+                .await
+                .map_err(|e| ToolError::Execution {
+                    tool: TOOL.into(),
+                    reason: format!("failed to create the sub-agent's stores: {e}"),
+                })?;
 
-        let mut builder = AgentSession::builder(self.router.clone())
+        let mut builder = AgentSession::builder(self.router.clone(), self.ctx.clone())
             .with_session_id(child_session_id.clone())
             .with_doc_store(doc_store)
             .with_memory_store(memory_store)
@@ -345,12 +356,12 @@ where
             }),
             signature: None,
         };
-        let stream = child_session.run_turn_stream(prompt).map_err(|e| {
-            ToolError::Execution {
+        let stream = child_session
+            .run_turn_stream(prompt)
+            .map_err(|e| ToolError::Execution {
                 tool: TOOL.into(),
                 reason: format!("failed to schedule sub-agent: {e}"),
-            }
-        })?;
+            })?;
 
         let run_session_id = child_session.session_id().clone();
 
@@ -391,17 +402,13 @@ where
     fn check(&self, args: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         let id = ToolArgs::new(TOOL, args).str("id")?.to_string();
         let mut runs = self.runs.lock().unwrap();
-        let run = runs
-            .get_mut(&id)
-            .ok_or_else(|| unknown_id(&id))?;
+        let run = runs.get_mut(&id).ok_or_else(|| unknown_id(&id))?;
 
         Self::drain_run(run);
 
-        let content = serde_json::to_string(&run.latest).map_err(|e| {
-            ToolError::Execution {
-                tool: TOOL.into(),
-                reason: format!("serialization failed: {e}"),
-            }
+        let content = serde_json::to_string(&run.latest).map_err(|e| ToolError::Execution {
+            tool: TOOL.into(),
+            reason: format!("serialization failed: {e}"),
         })?;
 
         Ok(ToolCallResult {
@@ -421,9 +428,7 @@ where
         // Drain and extract under one mutable borrow.
         let (status, keep_session) = {
             let mut runs = self.runs.lock().unwrap();
-            let run = runs
-                .get_mut(&id)
-                .ok_or_else(|| unknown_id(&id))?;
+            let run = runs.get_mut(&id).ok_or_else(|| unknown_id(&id))?;
             Self::drain_run(run);
             (run.latest.clone(), run.keep_session)
         };
@@ -575,13 +580,16 @@ where
                         run.iteration += 1;
                     }
                 },
-                Some(Stream::Pending(_)) => {
+                Some(Stream::Pending(_) | Stream::Wait) => {
+                    // No record is ready yet: report Working and return so the
+                    // caller parks or re-polls later. A `continue` here would
+                    // busy-loop — `Wait` means "queue open, nothing available".
                     run.latest = AgentStatus::Working {
                         iteration: run.iteration,
                     };
                     break;
                 }
-                Some(Stream::Init | Stream::Ignore | Stream::Wait | Stream::Delayed(_)) => {
+                Some(Stream::Init | Stream::Ignore | Stream::Delayed(_)) => {
                     continue;
                 }
                 Some(Stream::Spread(_)) => {
@@ -618,20 +626,18 @@ where
     M: MemoryStore + 'static,
 {
     fn definition(&self) -> Tool {
-        let start_opts = foundation_jsonschema::ValidationOptions::with_schema(
-            serde_json::json!({
-                "type": "object",
-                "properties": {
-                    "command": { "const": "start" },
-                    "task": { "type": "string", "description": "The self-contained sub-task the sub-agent must accomplish" },
-                    "model": { "type": "string", "description": "Model id to run the sub-agent on. When omitted, inherits the parent session's model." },
-                    "system": { "type": "string", "description": "Extra system/role guidance prepended to the sub-agent's prompt" },
-                    "keep_session": { "type": "boolean", "description": "Keep the sub-agent session after result instead of deleting it", "default": false },
-                    "max_iterations": { "type": "integer", "description": "Hard cap on sub-agent loop iterations (runaway guard)" }
-                },
-                "required": ["command", "task"]
-            }),
-        );
+        let start_opts = foundation_jsonschema::ValidationOptions::with_schema(serde_json::json!({
+            "type": "object",
+            "properties": {
+                "command": { "const": "start" },
+                "task": { "type": "string", "description": "The self-contained sub-task the sub-agent must accomplish" },
+                "model": { "type": "string", "description": "Model id to run the sub-agent on. When omitted, inherits the parent session's model." },
+                "system": { "type": "string", "description": "Extra system/role guidance prepended to the sub-agent's prompt" },
+                "keep_session": { "type": "boolean", "description": "Keep the sub-agent session after result instead of deleting it", "default": false },
+                "max_iterations": { "type": "integer", "description": "Hard cap on sub-agent loop iterations (runaway guard)" }
+            },
+            "required": ["command", "task"]
+        }));
 
         Tool::MultiCommands(
             TOOL.to_string(),
@@ -760,6 +766,7 @@ pub fn register_agent_tool<D, M>(
     output_base: &str,
     user: UserId,
     child_tools: Vec<Arc<dyn ToolImpl>>,
+    ctx: Ctx,
 ) where
     D: DocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
@@ -774,6 +781,7 @@ pub fn register_agent_tool<D, M>(
         user,
         child_tools,
         Arc::new(DefaultStores),
+        ctx,
     );
 }
 
@@ -790,6 +798,7 @@ pub fn register_agent_tool_with_stores<D, M>(
     user: UserId,
     child_tools: Vec<Arc<dyn ToolImpl>>,
     stores: Arc<dyn SessionStoreFactory<D, M>>,
+    ctx: Ctx,
 ) where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
@@ -803,6 +812,7 @@ pub fn register_agent_tool_with_stores<D, M>(
         user,
         child_tools,
         stores,
+        ctx,
     );
     manager.register(Arc::new(tool));
 }

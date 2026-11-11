@@ -26,10 +26,13 @@ fn embedded_v8_evaluates_js() {
 /// W1: the embedded V8 isolate compiles + instantiates a wasm module.
 #[test]
 fn embedded_v8_runs_webassembly() {
-    assert!(spike_wasm_instantiate(), "in-process V8 instantiated a wasm module");
+    assert!(
+        spike_wasm_instantiate(),
+        "in-process V8 instantiated a wasm module"
+    );
 }
 
-/// W2: the FS module loader resolves a relative-import ESM graph, and the deno_web
+/// W2: the FS module loader resolves a relative-import ESM graph, and the `deno_web`
 /// globals (`TextEncoder`/`TextDecoder`) + timers (`setTimeout`, driven by the event
 /// loop) all work in-process — the capabilities the harness needs.
 #[test]
@@ -56,7 +59,7 @@ fn loader_runs_relative_import_graph_with_web_globals() {
     run_module(&dir.path().join("entry.mjs")).expect("embedded module ran to completion");
 }
 
-/// `fetch` is wired (deno_fetch) and globalized by the bootstrap; a `data:` URL is a
+/// `fetch` is wired (`deno_fetch`) and globalized by the bootstrap; a `data:` URL is a
 /// hermetic round-trip (no network), proving the global + permissions + body decode.
 #[test]
 fn fetch_data_url_round_trips_in_process() {
@@ -162,10 +165,19 @@ fn embedded_runs_sample_fixture_end_to_end() {
     assert_eq!(report.exit_code(), 1);
     assert!(report.output.contains("FAILED  fails_with_assertion"));
     assert!(report.output.contains("ok      passes_simple"));
-    assert!(report.output.contains("ok      panics_as_expected"), "should_panic is inverted");
-    assert!(report.output.contains("ok      async_completes_after_yield"));
+    assert!(
+        report.output.contains("ok      panics_as_expected"),
+        "should_panic is inverted"
+    );
+    assert!(
+        report
+            .output
+            .contains("ok      async_completes_after_yield")
+    );
     assert!(report.output.contains("ignored ignored_case"));
-    assert!(report
-        .output
-        .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored"));
+    assert!(
+        report
+            .output
+            .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored")
+    );
 }

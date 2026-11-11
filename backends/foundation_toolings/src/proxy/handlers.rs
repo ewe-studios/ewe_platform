@@ -1,14 +1,18 @@
 // Proxy handlers: SseReloadHandler.
 
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
-use foundation_netio::event_source::{SseEvent, EventWriter, SseResponse};
-use foundation_netio::shared::http::{Http11, RenderHttp};
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::valtron::timer;
+use foundation_http::native::serve::{Serve, ServeFactory};
+use foundation_http::native::upgrade::SseWriter;
+use foundation_http::native::writer::{render_message, ResponseWriter, WriterConfig};
+use foundation_http::shared::context::Ctx;
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
+use foundation_netio::event_source::{SseEvent, SseResponse};
 use foundation_netio::netcap::RawStream;
+use foundation_netio::shared::http::SimpleIncomingRequest;
 
 use concurrent_queue::ConcurrentQueue;
 
@@ -18,60 +22,87 @@ use crate::watcher::FileChange;
 
 pub struct SseReloadHandler {
     reload_rx: Arc<ConcurrentQueue<FileChange>>,
+    ctx: Ctx,
 }
 
 impl ServeFactory for SseReloadHandler {
-    fn create(bag: &ContextBag) -> Self {
-        let tx = bag.get::<Arc<ConcurrentQueue<FileChange>>>()
-            .expect("reload queue in ContextBag");
-        // bag.get() returns Arc<T>, T is already Arc<ConcurrentQueue>
+    /// # Panics
+    ///
+    /// Panics when the ctx has no reload queue or no clock. The host that
+    /// builds the ctx must store both; a missing clock is a design fault, not
+    /// a reason to fall back to the real clock.
+    fn create(ctx: &Ctx) -> Self {
+        let tx = ctx
+            .get::<Arc<ConcurrentQueue<FileChange>>>()
+            .expect("reload queue in the Ctx");
+        // ctx.get() returns Arc<T>, T is already Arc<ConcurrentQueue>
         // We need to get the inner Arc via deref
         let queue: &Arc<ConcurrentQueue<FileChange>> = &tx;
-        Self { reload_rx: (*queue).clone() }
+
+        // Keep the ctx; the clock is a field of it, so `serve` cannot miss it.
+        Self {
+            reload_rx: (*queue).clone(),
+            ctx: ctx.clone(),
+        }
     }
 }
 
 impl Serve for SseReloadHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
-        _req: foundation_netio::shared::http::SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        _ctx: Ctx,
+        _req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        // 1. Send SSE response headers
-        let sse_response = SseResponse::new().build();
-        if Http11::response(sse_response)
-            .http_render_to_writer(&mut conn)
-            .is_err()
-        {
-            return ConnectionResult::Close(None);
-        }
+        let reload_rx = Arc::clone(&self.reload_rx);
+        let ctx = self.ctx.clone();
+        let clock = ctx.clock();
 
-        // 2. Create event writer
-        let mut writer = EventWriter::new(&mut conn);
-        let mut last_keepalive = Instant::now();
-
-        // 3. Loop: send events, send keepalive every 1s
-        loop {
-            // Check for new reload events
-            while let Ok(_change) = self.reload_rx.pop() {
-                if writer
-                    .send(&SseEvent::new().event("reload").data("ready").build())
-                    .is_err()
-                {
-                    return ConnectionResult::Take;
+        // The response head and every event go through the async
+        // `ResponseWriter`: a slow client parks on write readiness instead of
+        // truncating an event with `WouldBlock`. The old handler looped on this
+        // worker thread with a synchronous `EventWriter`; it now runs as the
+        // connection's async continuation, so no worker thread is blocked.
+        ConnectionResult::Async(Box::pin(async move {
+            let head = match render_message(SseResponse::new().build()) {
+                Ok(head) => head,
+                Err(e) => {
+                    tracing::error!("Failed to render the SSE response head: {e}");
+                    return ServeOutcome::Close(None);
                 }
-            }
+            };
 
-            // Send keepalive every 1 second
-            if Instant::now() - last_keepalive >= Duration::from_secs(1) {
-                if writer.comment("keep-alive").is_err() {
-                    return ConnectionResult::Take;
+            let mut response = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
+            if let Err(e) = response.write_all(&head).await {
+                tracing::debug!("SSE head write failed: {e}");
+                return ServeOutcome::Take;
+            }
+            if let Err(e) = response.flush().await {
+                tracing::debug!("SSE head flush failed: {e}");
+                return ServeOutcome::Take;
+            }
+            let mut writer = SseWriter::from_writer(response);
+
+            let mut next_keepalive = clock.now() + Duration::from_secs(1);
+            loop {
+                // Send every queued reload event.
+                while reload_rx.pop().is_ok() {
+                    let event = SseEvent::new().event("reload").data("ready").build();
+                    if writer.send(&event).await.is_err() {
+                        return ServeOutcome::Take;
+                    }
                 }
-                last_keepalive = Instant::now();
-            }
 
-            std::thread::sleep(Duration::from_millis(50));
-        }
+                // Send a keep-alive every second, timed by the injected clock.
+                if clock.now() >= next_keepalive {
+                    if writer.comment("keep-alive").await.is_err() {
+                        return ServeOutcome::Take;
+                    }
+                    next_keepalive = clock.now() + Duration::from_secs(1);
+                }
+
+                timer::sleep_for(Duration::from_millis(50), &ctx).await;
+            }
+        }))
     }
 }

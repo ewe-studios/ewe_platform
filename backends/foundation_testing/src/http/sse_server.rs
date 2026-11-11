@@ -26,8 +26,8 @@ use foundation_netio::shared::http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
 };
 
-use crate::http::HttpRequest;
 use super::server::{expects_continue, set_request_read_mode, REQUEST_READ_TIMEOUT};
+use crate::http::HttpRequest;
 
 /// Set SO_LINGER=0 on the socket to force TCP RST on close.
 ///
@@ -222,14 +222,15 @@ impl SseTestServer {
     where
         F: Fn(&HttpRequest, &mut SseStreamWriter, usize) -> SseConnectionResult + Send + 'static,
     {
-        let listener = TcpListener::bind("127.0.0.1:0")
-            .expect("Failed to bind SSE test server to localhost");
+        let listener =
+            TcpListener::bind("127.0.0.1:0").expect("Failed to bind SSE test server to localhost");
         let addr = format!("http://{}", listener.local_addr().unwrap());
         let running = Arc::new(AtomicBool::new(true));
         let connect_count = Arc::new(AtomicUsize::new(0));
-        let handler = Arc::new(std::sync::Mutex::new(
-            Box::new(handler) as Box<dyn Fn(&HttpRequest, &mut SseStreamWriter, usize) -> SseConnectionResult + Send>,
-        ));
+        let handler = Arc::new(std::sync::Mutex::new(Box::new(handler)
+            as Box<
+                dyn Fn(&HttpRequest, &mut SseStreamWriter, usize) -> SseConnectionResult + Send,
+            >));
 
         let running_clone = Arc::clone(&running);
         let handler_clone = Arc::clone(&handler);
@@ -275,14 +276,16 @@ impl SseTestServer {
     /// Each event is `{{"seq": N}}` where N is 0-based within the connection.
     #[must_use]
     pub fn events_then_close(count: usize) -> Self {
-        Self::with_handler(move |_req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
-            for i in 0..count {
-                if writer.event(&format!("{{\"seq\": {i}}}")).is_err() {
-                    break;
+        Self::with_handler(
+            move |_req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
+                for i in 0..count {
+                    if writer.event(&format!("{{\"seq\": {i}}}")).is_err() {
+                        break;
+                    }
                 }
-            }
-            SseConnectionResult::clean_close()
-        })
+                SseConnectionResult::clean_close()
+            },
+        )
     }
 
     /// Convenience: server that sends one event then abruptly drops.
@@ -381,10 +384,7 @@ impl SseTestServer {
         };
 
         if let Err(part_err) = parts {
-            tracing::error!(
-                "SseTestServer: Failed to parse request: {:?}",
-                part_err
-            );
+            tracing::error!("SseTestServer: Failed to parse request: {:?}", part_err);
             return Ok(());
         }
 
@@ -487,70 +487,5 @@ impl Drop for SseTestServer {
         if let Some(handle) = self.handle.take() {
             let _ = handle.join();
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::{BufReader, Read, Write};
-
-    #[test]
-    fn test_server_start() {
-        let server = SseTestServer::events_then_close(1);
-        assert!(server.base_url().starts_with("http://127.0.0.1:"));
-        assert_eq!(server.connect_count(), 0);
-    }
-
-    #[test]
-    fn test_server_drop() {
-        {
-            let _server = SseTestServer::events_then_close(1);
-        }
-        // Server should have stopped cleanly
-    }
-
-    #[test]
-    fn test_custom_handler() {
-        let server = SseTestServer::with_handler(
-            |_req: &HttpRequest, _writer: &mut SseStreamWriter, _conn: usize| {
-                SseConnectionResult::clean_close()
-            },
-        );
-        assert!(server.base_url().starts_with("http://"));
-    }
-
-    /// End-to-end: connect via raw TCP and verify SSE events are received.
-    #[test]
-    fn test_sse_events_received() {
-        let server = SseTestServer::events_then_close(2);
-        let port = server
-            .base_url()
-            .strip_prefix("http://127.0.0.1:")
-            .unwrap()
-            .parse::<u16>()
-            .unwrap();
-
-        // Connect with raw TCP
-        let stream = TcpStream::connect(("127.0.0.1", port)).unwrap();
-        let mut reader = BufReader::new(stream.try_clone().unwrap());
-        let mut writer = stream;
-
-        // Send a minimal HTTP/1.1 GET request
-        write!(
-            writer,
-            "GET /test HTTP/1.1\r\nHost: localhost\r\n\r\n"
-        )
-        .unwrap();
-        writer.flush().unwrap();
-
-        // Read the full response
-        let mut response = String::new();
-        reader.read_to_string(&mut response).unwrap();
-
-        // Should contain HTTP 200 + SSE events
-        assert!(response.contains("200 OK"));
-        assert!(response.contains("data: {\"seq\": 0}"));
-        assert!(response.contains("data: {\"seq\": 1}"));
     }
 }

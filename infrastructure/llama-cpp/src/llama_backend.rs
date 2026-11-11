@@ -252,33 +252,3 @@ impl Drop for LlamaBackend {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn numa_from_and_to() {
-        let numas = [
-            NumaStrategy::DISABLED,
-            NumaStrategy::DISTRIBUTE,
-            NumaStrategy::ISOLATE,
-            NumaStrategy::NUMACTL,
-            NumaStrategy::MIRROR,
-            NumaStrategy::COUNT,
-        ];
-
-        for numa in &numas {
-            let from = infrastructure_llama_bindings::ggml_numa_strategy::from(*numa);
-            let to = NumaStrategy::try_from(from).expect("Failed to convert from and to");
-            assert_eq!(*numa, to);
-        }
-    }
-
-    #[test]
-    fn check_invalid_numa() {
-        let invalid = 800;
-        let invalid = NumaStrategy::try_from(invalid);
-        assert_eq!(invalid, Err(InvalidNumaStrategy(invalid.unwrap_err().0)));
-    }
-}

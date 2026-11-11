@@ -16,8 +16,9 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
+use foundation_core::valtron::{execute, task, valtron, StreamIteratorExt, TaskStatus};
 
 /// A tiny future that simulates a unit of async work: it yields `steps` times
 /// (each yield is one `Poll::Pending` with a self-wake) before completing.
@@ -62,11 +63,17 @@ async fn regulate(ctx: Ctx, state: Thermostat) -> Option<(Thermostat, TaskStatus
         Thermostat::Done => None,
         Thermostat::Heating { current, target } => {
             if current == target {
-                Some((Thermostat::Done, TaskStatus::Ready(Reading { reached: current })))
+                Some((
+                    Thermostat::Done,
+                    TaskStatus::Ready(Reading { reached: current }),
+                ))
             } else {
                 Work(2).await; // async work happens *inside* the transition
                 Some((
-                    Thermostat::Heating { current: current + 1, target },
+                    Thermostat::Heating {
+                        current: current + 1,
+                        target,
+                    },
                     TaskStatus::Ignore,
                 ))
             }
@@ -76,7 +83,10 @@ async fn regulate(ctx: Ctx, state: Thermostat) -> Option<(Thermostat, TaskStatus
 
 #[valtron]
 async fn main() {
-    let start = Thermostat::Heating { current: 18, target: 21 };
+    let start = Thermostat::Heating {
+        current: 18,
+        target: 21,
+    };
     let (reading, _rest) = execute(regulate::new(start), None)
         .expect("engine live")
         .into_ready_future()

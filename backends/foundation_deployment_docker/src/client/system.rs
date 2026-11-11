@@ -1,25 +1,26 @@
 //! Hand-written `DockerClient` wrappers for the System endpoints.
 //!
-//! WHY: The generated functions for system endpoints either discard the
-//! response body (system_data_usage), fail on non-JSON responses
-//! (system_ping); `system_events` is a feed, returned unread. This module
-//! provides ergonomic wrappers that handle these cases.
+//! WHY: `system_events` is a feed, returned unread; the other endpoints
+//! (`system_info`, `system_ping`, `system_data_usage`, `system_auth`) are
+//! ergonomic wrappers over their generated `*_request` functions.
 //!
 //! WHAT: `system_info`, `system_ping`, `system_events`, `system_data_usage`,
 //! `system_auth`. (`system_version` lives in `client.rs`.)
 //!
 //! HOW: Functions take `&DockerClient` + params, construct the args struct,
-//! call the generated async fn (or build a manual request where needed), and
-//! map errors to `DockerError`.
+//! call the generated async fn, and map errors to `DockerError`.
 
 use foundation_netio::PreparedRequestBuilder;
 
 use crate::client::body::EventStream;
 use crate::error::DockerError;
-use crate::generated::events::{system_events_request, SystemEventsArgs};
-use crate::generated::auth::{
-    system_auth_request, AuthConfig, AuthResponse, SystemAuthArgs,
+use crate::generated::auth::{system_auth_request, AuthConfig, AuthResponse, SystemAuthArgs};
+use crate::generated::df::{
+    system_data_usage_request, SystemDataUsageArgs, SystemDataUsageResponse,
 };
+use crate::generated::events::{system_events_request, SystemEventsArgs};
+use crate::generated::info::{system_info_request, SystemInfo, SystemInfoArgs};
+use crate::generated::ping::{system_ping_request, SystemPingArgs};
 
 /// A closure type for the (empty) `builder_mod` argument — no request mutation.
 type NoMod = fn(&mut PreparedRequestBuilder);
@@ -28,77 +29,45 @@ type NoMod = fn(&mut PreparedRequestBuilder);
 ///
 /// WHY: Returns daemon metadata: container counts, OS, kernel version, etc.
 ///
-/// WHAT: Calls the generated `system_info_request`.
+/// WHAT: Calls the generated `system_info_request` and returns the generated
+/// [`SystemInfo`].
 ///
 /// HOW: `SystemInfoArgs::default()` — no query params needed.
 ///
 /// # Errors
 ///
 /// Returns [`DockerError`] on transport failure or non-2xx status.
-/// Get system info (`GET /info`).
-///
-/// WHY: The generated `SystemInfo` struct fails to deserialize Docker's
-/// `LocalNodeState` field (a raw string like `"inactive"`, not a struct).
-/// We return `serde_json::Value` so the caller can inspect what's available.
-///
-/// WHAT: Manual `PreparedRequestBuilder::get` + `send_async` returning the
-/// raw JSON body.
-///
-/// HOW: Avoids the generated `system_info_request` which uses the broken type.
-///
-/// # Errors
-///
-/// Returns [`DockerError`] on transport failure or non-2xx status.
-pub async fn system_info(client: &super::DockerClient) -> Result<serde_json::Value, DockerError> {
-    use crate::error::DockerError;
-    use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
-
-    let base = client.api_url().await?;
-    let endpoint_url = format!("{base}/info");
-    let builder = foundation_netio::PreparedRequestBuilder::get(&endpoint_url)
-        .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    let response = client.http().send_async(builder.build()).await
-        .map_err(|e| crate::generated::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    if status < 200 || status >= 300 {
-        return Err(DockerError::Api { status: status as u16, message: "(no body)".into() });
-    }
-    let body_bytes = collect_bytes_from_send_safe(response.take_body());
-    serde_json::from_slice(&body_bytes).map_err(|e| DockerError::JsonParse(e.to_string()))
+pub async fn system_info(client: &super::DockerClient) -> Result<SystemInfo, DockerError> {
+    let response = system_info_request(
+        client.api(),
+        &SystemInfoArgs::default(),
+        &client.api_url().await?,
+        None::<NoMod>,
+    )
+    .await?;
+    Ok(response.body)
 }
 
 /// Ping the daemon (`GET /_ping`).
 ///
 /// WHY: The daemon returns the text `"OK"` with `Content-Type: text/plain`.
-/// The generated function tries to parse the body as `serde_json::Value`,
-/// which fails on plain text. This wrapper builds the request manually.
 ///
-/// WHAT: Sends a simple `GET /_ping`, verifies 2xx status, discards body.
+/// WHAT: Calls the generated `system_ping_request` and drains the `"OK"` body.
 ///
-/// HOW: Manual `PreparedRequestBuilder::get` + `send_async`.
+/// HOW: `SystemPingArgs::default()` — no query params needed.
 ///
 /// # Errors
 ///
 /// Returns [`DockerError`] on transport failure or non-2xx status.
 pub async fn system_ping(client: &super::DockerClient) -> Result<(), DockerError> {
-    let base = client.api_url().await?;
-    let endpoint_url = format!("{base}/_ping");
-    let builder = PreparedRequestBuilder::get(&endpoint_url)
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let response = client
-        .http()
-        .send_async(builder.build())
-        .await
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let status: usize = response.get_status().into();
-    if status < 200 || status >= 300 {
-        return Err(DockerError::Api {
-            status: status as u16,
-            message: format!("system_ping failed with status {status}"),
-        });
-    }
+    let response = system_ping_request(
+        client.api(),
+        &SystemPingArgs::default(),
+        &client.api_url().await?,
+        None::<NoMod>,
+    )
+    .await?;
+    let _ = response.body.drain().await;
     Ok(())
 }
 
@@ -133,47 +102,31 @@ pub async fn system_events(
 
 /// Get data usage information (`GET /system/df`).
 ///
-/// WHY: The generated `system_data_usage_request` returns `ApiResponse<()>`
-/// and discards the JSON body. This wrapper builds the request manually to
-/// return the parsed JSON.
+/// WHY: Returns how much disk the daemon's images, containers, volumes and
+/// build cache use.
 ///
-/// WHAT: Sends `GET /system/df` with optional `types` filter and returns the
-/// parsed JSON as a [`serde_json::Value`].
+/// WHAT: Calls the generated `system_data_usage_request` and returns the
+/// generated [`SystemDataUsageResponse`]. `types` is the optional single
+/// `type` filter (image, container, volume, build-cache).
 ///
-/// HOW: Manual `PreparedRequestBuilder::get` + `send_async` + JSON parse.
+/// HOW: `SystemDataUsageArgs` with the optional filter.
 ///
 /// # Errors
 ///
-/// Returns [`DockerError`] on transport failure, non-2xx status, or JSON parse
-/// failure.
+/// Returns [`DockerError`] on transport failure, non-2xx status, or a body
+/// that is not a `SystemDataUsageResponse`.
 pub async fn system_data_usage(
     client: &super::DockerClient,
     types: Option<&str>,
-) -> Result<serde_json::Value, DockerError> {
-    let base = client.api_url().await?;
-    let endpoint_url = format!("{base}/system/df");
-    let mut builder = PreparedRequestBuilder::get(&endpoint_url)
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    builder = builder.query("type", types);
-    let response = client
-        .http()
-        .send_async(builder.build())
-        .await
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let status: usize = response.get_status().into();
-    if status < 200 || status >= 300 {
-        return Err(DockerError::Api {
-            status: status as u16,
-            message: format!("system_data_usage failed with status {status}"),
-        });
-    }
-    let body_bytes =
-        foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(
-            response.take_body(),
-        );
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes)
-        .map_err(|e| DockerError::JsonParse(format!("system_data_usage: {e}")))?;
-    Ok(parsed)
+) -> Result<SystemDataUsageResponse, DockerError> {
+    let args = SystemDataUsageArgs {
+        r#type: types.map_or_default(|t| vec![t.to_string()]),
+        verbose: None,
+    };
+    let response =
+        system_data_usage_request(client.api(), &args, &client.api_url().await?, None::<NoMod>)
+            .await?;
+    Ok(response.body)
 }
 
 /// Check auth configuration (`POST /auth`).
@@ -200,6 +153,7 @@ pub async fn system_auth(
             serveraddress: None,
         },
     };
-    let response = system_auth_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    let response =
+        system_auth_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)
 }

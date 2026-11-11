@@ -7,7 +7,7 @@ keywords = [
     "infrastructure",
 ]
 name = "foundation_deployment"
-version = "0.0.3"
+version = "0.0.5"
 
 [package.authors]
 workspace = true
@@ -28,18 +28,17 @@ workspace = true
 base85rs = "0.1"
 bytes = "1"
 futures-core = "0.3"
-dirs = "5.0"
+# `StreamExt` (`.next().await`) for the async body streams in providers/common/body.rs.
+futures-lite = { version = "2", default-features = false, features = ["alloc"] }
 http = "1.4.0"
 regex = "1.10"
-serde_yaml = "0.9"
 sha2 = "0.10"
-toml = "0.8"
-urlencoding = "2.1"
-walkdir = "2.5"
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
-foundation_db = { path = "../foundation_db", version = "0.0.4" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.5" }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.13", features = ["ssl", "multi"] }
+foundation_db = { path = "../foundation_db", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
 
 [dependencies.chrono]
 workspace = true
@@ -60,6 +59,12 @@ workspace = true
 [dev-dependencies]
 tracing-subscriber = "0.3"
 tracing-test = "0.2"
+
+# `SimulatedClock` for the clock-injection test (spec 70 feature 134).
+[dev-dependencies.foundation_core]
+path = "../foundation_core"
+version = "0.0.20"
+features = ["test-clock"]
 
 [features]
 default = []

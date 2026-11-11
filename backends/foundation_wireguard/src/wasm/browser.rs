@@ -55,7 +55,7 @@ impl WsRelayClient {
 
     /// Drain all queued outbound relay frames for the JS bridge.
     pub fn drain_outbound(&mut self) -> Vec<Vec<u8>> {
-        self.outbound.drain(..).collect()
+        std::mem::take(&mut self.outbound)
     }
 
     /// Feed an inbound relay frame from the JS bridge.
@@ -68,7 +68,7 @@ impl WsRelayClient {
 
     /// Drain all queued inbound WG packets.
     pub fn drain_inbound(&mut self) -> Vec<(PeerId, Vec<u8>)> {
-        self.inbound.drain(..).collect()
+        std::mem::take(&mut self.inbound)
     }
 }
 
@@ -82,9 +82,9 @@ impl Default for WsRelayClient {
 // BrowserWgNode — the browser peer
 // ---------------------------------------------------------------------------
 
-/// A browser-side WireGuard mesh node.
+/// A browser-side `WireGuard` mesh node.
 ///
-/// WHY: The browser peer runs `boringtun::Tunn` + smoltcp `NetStack` in wasm —
+/// WHY: The browser peer runs `foundation_boringtun::Tunn` + smoltcp `NetStack` in wasm —
 /// no kernel module, no privileges, no UDP socket.
 ///
 /// WHAT: Wraps a `WgTunnel`, `JsDevice`, and `WsRelayClient`. After `tick()`,
@@ -101,7 +101,7 @@ pub struct BrowserWgNode {
     identity: Option<IdentityKeypair>,
     /// This peer's overlay IP.
     overlay_ip: IpAddr,
-    /// Known peers: overlay IP → PeerId. Populated by the JS bridge
+    /// Known peers: overlay IP → `PeerId`. Populated by the JS bridge
     /// from SWIM membership data received over wss.
     peers: std::collections::HashMap<IpAddr, PeerId>,
 }
@@ -126,8 +126,8 @@ impl BrowserWgNode {
     ///
     /// WHAT: Derive bootstrap keys from `seed`, create a `WgTunnel`, set up
     /// the `JsDevice`, and set the overlay IP.
+    #[must_use]
     pub fn join(seed: &WgSeed, network_id: &NetworkId, mtu: usize) -> Self {
-        
         let boot = seed.derive_bootstrap(network_id);
         let overlay_ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, 1));
         Self::new(
@@ -146,10 +146,9 @@ impl BrowserWgNode {
     pub fn tick(&mut self) {
         // Process inbound relayed WG packets → decapsulate → inject into device.
         for (_src, wg_bytes) in self.relay.drain_inbound() {
-            let outcome = self.tunnel.decapsulate(
-                Some(IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0))),
-                &wg_bytes,
-            );
+            let outcome = self
+                .tunnel
+                .decapsulate(Some(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED)), &wg_bytes);
             if let WgOutcome::WriteToTunnel(ip_pkt) = outcome {
                 self.device.inject(ip_pkt);
             }
@@ -174,15 +173,19 @@ impl BrowserWgNode {
         }
     }
 
-    /// Register a peer's overlay IP → PeerId mapping (from SWIM membership).
+    /// Register a peer's overlay IP → `PeerId` mapping (from SWIM membership).
     pub fn add_peer(&mut self, ip: IpAddr, id: PeerId) {
         self.peers.insert(ip, id);
     }
 
-    /// Resolve an overlay IP to a PeerId for relay routing.
+    /// Resolve an overlay IP to a `PeerId` for relay routing.
     /// Returns the first known peer as a fallback for single-peer setups.
     fn resolve_peer(&self) -> PeerId {
-        self.peers.values().next().copied().unwrap_or(PeerId([0; 32]))
+        self.peers
+            .values()
+            .next()
+            .copied()
+            .unwrap_or(PeerId([0; 32]))
     }
 
     /// Create a pre-joined node from an existing tunnel (for testing).

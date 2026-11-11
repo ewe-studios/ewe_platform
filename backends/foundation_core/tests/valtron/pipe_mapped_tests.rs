@@ -1,4 +1,4 @@
-//! Tests for `MappedSender` + `FilterMapReceiver` (pipe_mapped.rs, F39).
+//! Tests for `MappedSender` + `FilterMapReceiver` (`pipe_mapped.rs`, F39).
 
 use bytes::Bytes;
 use foundation_core::valtron::{self as v, Pipe};
@@ -20,12 +20,12 @@ fn mapped_sender_stash_on_full() {
     // Depth=1: every fresh item also hits Full after stash drain.
     let (tx, rx) = Pipe::<String>::with_depth(1);
     let mapped = tx.map_to(|n: &u32| format!("val-{n}"));
-    mapped.try_send(&1).unwrap();               // queue: [val-1]
-    assert!(mapped.try_send(&2).is_err());      // stash: val-2
+    mapped.try_send(&1).unwrap(); // queue: [val-1]
+    assert!(mapped.try_send(&2).is_err()); // stash: val-2
     assert_eq!(rx.try_recv().unwrap(), "val-1"); // drain
-    assert!(mapped.try_send(&3).is_err());      // stash val-2 drains → queue [val-2]; val-3 → stash
+    assert!(mapped.try_send(&3).is_err()); // stash val-2 drains → queue [val-2]; val-3 → stash
     assert_eq!(rx.try_recv().unwrap(), "val-2"); // drain val-2
-    assert!(mapped.try_send(&4).is_err());      // stash val-3 drains → queue [val-3]; val-4 → stash
+    assert!(mapped.try_send(&4).is_err()); // stash val-3 drains → queue [val-3]; val-4 → stash
     assert_eq!(rx.try_recv().unwrap(), "val-3"); // drain val-3
 }
 
@@ -35,8 +35,8 @@ fn mapped_sender_stash_depth2_multiple_items() {
     let (tx, rx) = Pipe::<String>::with_depth(2);
     let mapped = tx.map_to(|n: &u32| format!("X{n}"));
 
-    mapped.try_send(&1).unwrap();          // queue: [X1]
-    mapped.try_send(&2).unwrap();          // queue: [X1, X2]
+    mapped.try_send(&1).unwrap(); // queue: [X1]
+    mapped.try_send(&2).unwrap(); // queue: [X1, X2]
     assert!(mapped.try_send(&3).is_err()); // stash: X3
 
     rx.try_recv().unwrap(); // drain X1
@@ -84,7 +84,13 @@ fn filter_map_passes_even() {
     // Filter: odd → None → skipped (item consumed, Empty returned).
     //         even → Some(n) → Ok(n).
     let (tx, rx) = Pipe::<u32>::with_depth(4);
-    let filtered = rx.filter_map_to(|n: &u32| if *n % 2 == 0 { Some(*n) } else { None });
+    let filtered = rx.filter_map_to(|n: &u32| {
+        if (*n).is_multiple_of(2) {
+            Some(*n)
+        } else {
+            None
+        }
+    });
 
     tx.try_send(1).unwrap(); // → filtered → Empty
     assert_eq!(filtered.try_recv(), Err(v::TryRecvError::Empty));
@@ -122,7 +128,11 @@ fn filter_map_empty() {
 #[test]
 fn filter_map_ws_binary_extraction() {
     #[derive(Debug, PartialEq)]
-    enum Msg { Binary(Vec<u8>), Text(String), Ping(Vec<u8>) }
+    enum Msg {
+        Binary(Vec<u8>),
+        Text(String),
+        Ping(Vec<u8>),
+    }
 
     let (tx, rx) = Pipe::<Msg>::with_depth(4);
     let body = rx.filter_map_to(|m: &Msg| match m {

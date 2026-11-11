@@ -26,7 +26,8 @@ impl<T> WrappedItem<T> {
     }
 }
 
-impl<T: Clone> Clone for WrappedItem<T> {
+// A clone shares the item (the `Rc`/`Arc`), so `T` itself need not be `Clone`.
+impl<T> Clone for WrappedItem<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }

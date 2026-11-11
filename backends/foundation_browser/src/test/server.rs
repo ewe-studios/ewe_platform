@@ -1,4 +1,4 @@
-//! # TestServer (spec-43 phase-1 §6 + feature 01) — on `foundation_http`
+//! # `TestServer` (spec-43 phase-1 §6 + feature 01) — on `foundation_http`
 //!
 //! WHY: The page under test must be served somewhere the browser can load it,
 //! torn down with the test. We dogfood our OWN server (`foundation_http`) — its
@@ -11,11 +11,11 @@
 //! the channel-A stream at [`STREAM_PATH`](crate::test::stream::STREAM_PATH);
 //! `broadcaster()` pushes frames; RAII `Drop` stops the server.
 //!
-//! HOW: A `PageHandler` (`Serve`) reads the page + headers from the `ContextBag`
+//! HOW: A `PageHandler` (`Serve`) reads the page + headers from the `Ctx`
 //! and writes them; `StaticFileHandler` serves a directory; [`StreamHandler`]
 //! upgrades the owned connection to SSE and registers it with the
 //! [`Broadcaster`]. Served via `serve_with_listener` on an ephemeral
-//! `TcpListener` on a background thread, stopped by an `OnSignal`.
+//! `TcpListener` on a background thread, stopped by a `ShutdownSignal`.
 
 use std::net::TcpListener;
 use std::path::PathBuf;
@@ -25,11 +25,12 @@ use std::thread::JoinHandle;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::handlers::static_asset::StaticAssetHandler;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
+use foundation_http::native::serve::{Serve, ServeFactory};
 use foundation_http::native::server::ServerConfig;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
-use foundation_http::OnSignal;
+use foundation_http::shared::context::Ctx;
+use foundation_http::shared::serve::ConnectionResult;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
@@ -121,8 +122,12 @@ impl PageSource {
     fn render(&self) -> String {
         match self {
             PageSource::Html(s) => s.clone(),
-            PageSource::File(path) => std::fs::read_to_string(path)
-                .unwrap_or_else(|e| format!("<!-- wasm_ui_server: failed to read {}: {e} -->", path.display())),
+            PageSource::File(path) => std::fs::read_to_string(path).unwrap_or_else(|e| {
+                format!(
+                    "<!-- wasm_ui_server: failed to read {}: {e} -->",
+                    path.display()
+                )
+            }),
         }
     }
 }
@@ -136,7 +141,7 @@ pub struct StaticMount {
     pub dir: PathBuf,
 }
 
-/// The mountable page + response headers, parked in the `ContextBag`.
+/// The mountable page + response headers, parked in the `Ctx`.
 struct PageState {
     page: Mutex<PageSource>,
     headers: Vec<(String, String)>,
@@ -146,7 +151,7 @@ struct PageState {
 struct PageHandler;
 
 impl ServeFactory for PageHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         PageHandler
     }
 }
@@ -154,11 +159,11 @@ impl ServeFactory for PageHandler {
 impl Serve for PageHandler {
     fn serve(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         _req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let Some(state) = bag.get::<SharedState>() else {
+        let Some(state) = ctx.get::<SharedState>() else {
             return ConnectionResult::Close(None);
         };
         let html = state.page.lock().expect("page poisoned").render();
@@ -183,7 +188,7 @@ pub struct TestServer {
     https: bool,
     page: Arc<PageState>,
     broadcaster: Broadcaster,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     handle: Option<JoinHandle<()>>,
 }
 
@@ -208,11 +213,14 @@ impl TestServer {
         let addr = listener.local_addr()?;
 
         headers.push(("X-Primal-Encoding".into(), encoding.token().into()));
-        let page_state = Arc::new(PageState { page: Mutex::new(page), headers });
+        let page_state = Arc::new(PageState {
+            page: Mutex::new(page),
+            headers,
+        });
         let broadcaster = Broadcaster::new();
 
         let mut app = HttpApp::new_serve();
-        // PageState + Broadcaster are read out of the bag by the handlers; the
+        // PageState + Broadcaster are read out of the ctx by the handlers; the
         // Arc/clone share the same state the TestServer holds.
         app.context().store(SharedState(page_state.clone()));
         app.context().store(broadcaster.clone());
@@ -221,18 +229,22 @@ impl TestServer {
         // Embedded JS assets via foundation_http's StaticAssetHandler — supply the
         // bytes + content type, register on a path. No per-asset Serve impl.
         let js_ct = "text/javascript; charset=utf-8";
-        let runtime: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(RUNTIME_JS.as_bytes(), js_ct));
-        let arrow_lib: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(APACHE_ARROW_JS.as_bytes(), js_ct));
-        let primal_test: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
+        let runtime: Arc<dyn Serve> =
+            Arc::new(StaticAssetHandler::new(RUNTIME_JS.as_bytes(), js_ct));
+        let arrow_lib: Arc<dyn Serve> =
+            Arc::new(StaticAssetHandler::new(APACHE_ARROW_JS.as_bytes(), js_ct));
+        let primal_test: Arc<dyn Serve> =
+            Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
         app.router.add_route_any(ARROW_LIB_PATH, &arrow_lib);
         app.router.add_route_any(PRIMAL_TEST_PATH, &primal_test);
         for sm in statics {
             let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(sm.dir.clone()));
-            app.router.add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);
+            app.router
+                .add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);
         }
 
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
         let addr_str = addr.to_string();
         let handle = {
             let shutdown = shutdown.clone();
@@ -244,8 +256,10 @@ impl TestServer {
                     Zeroizing::new(DEV_KEY_PEM.to_vec()),
                 )
                 .map_err(|e| BrowserError::Launch(format!("dev TLS acceptor: {e}")))?;
-                let server =
-                    app.server_with_config(&addr_str, ServerConfig::default().with_tls(Arc::new(acceptor)));
+                let server = app.server_with_config(
+                    &addr_str,
+                    ServerConfig::default().with_tls(Arc::new(acceptor)),
+                );
                 builder
                     .spawn(move || server.serve_tls_with_listener(&listener, &shutdown))
                     .map_err(|e| BrowserError::Launch(e.to_string()))?
@@ -257,7 +271,14 @@ impl TestServer {
             }
         };
 
-        Ok(Self { addr, https, page: page_state, broadcaster, shutdown, handle: Some(handle) })
+        Ok(Self {
+            addr,
+            https,
+            page: page_state,
+            broadcaster,
+            shutdown,
+            handle: Some(handle),
+        })
     }
 
     /// The base URL (e.g. `http://127.0.0.1:54321/`, or `https://…` in `https` mode).
@@ -268,6 +289,9 @@ impl TestServer {
     }
 
     /// Replace the served page (takes effect on the next navigation).
+    ///
+    /// # Panics
+    /// Panics if the page lock is poisoned.
     pub fn mount(&self, page: PageSource) {
         *self.page.page.lock().expect("page poisoned") = page;
     }
@@ -311,10 +335,10 @@ impl TestServer {
     }
 }
 
-/// Newtype so `PageState` (which itself isn't the bag key) stores cleanly.
+/// Newtype so `PageState` (which itself isn't the ctx key) stores cleanly.
 struct SharedState(Arc<PageState>);
 
-// The bag stores `SharedState`; `PageHandler` looks up `PageState` via it.
+// The ctx stores `SharedState`; `PageHandler` looks up `PageState` via it.
 impl core::ops::Deref for SharedState {
     type Target = PageState;
     fn deref(&self) -> &PageState {

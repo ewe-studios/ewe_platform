@@ -29,6 +29,13 @@ fn reason(err: ToolError) -> String {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 #[test]
 fn strings() {
     let map = args(&[
@@ -167,7 +174,9 @@ fn edit_accepts_replace_all_in_either_spelling() {
             serde_json::json!(true),
             serde_json::Value::String("true".into()),
         ] {
-            let fs = Arc::new(MemoryFs::new());
+            let fs = Arc::new(MemoryFs::new(foundation_context::Ctx::fixed(
+                std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+            )));
             fs.write_file_async("f.txt".into(), b"a a a".to_vec())
                 .await
                 .expect("seed file");
@@ -250,7 +259,7 @@ async fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
     use foundation_ai::agentic::{AgentSession, ToolShed};
     use foundation_ai::types::{ExecutionHint, ProviderRouter};
 
-    let session = AgentSession::builder(ProviderRouter::builder().build())
+    let session = AgentSession::builder(ProviderRouter::builder().build(), test_clock())
         .with_model("test-model")
         .with_toolshed(ToolShed::new().tool(greet_tool()))
         .build()

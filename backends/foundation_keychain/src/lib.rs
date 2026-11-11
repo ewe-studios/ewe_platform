@@ -5,12 +5,12 @@
 //! `foundation_auth` (JWT/TOTP/PBKDF2/middleware). No custom traits, no
 //! reinvented crypto, no tokio.
 //!
-//! WHAT: Bitwarden HTTP API (~150 routes), portable domain models, SignalR
-//! MessagePack notifications, and SSH key generation + at-rest encryption.
+//! WHAT: Bitwarden HTTP API (~150 routes), portable domain models, `SignalR`
+//! `MessagePack` notifications, and SSH key generation + at-rest encryption.
 //!
 //! HOW: `core/` holds portable domain logic. `server/` holds platform-gated
-//! HTTP entry points (Workers via foundation_deployment_cloudflare, native via
-//! foundation_http). All storage through `foundation_db` traits; all auth
+//! HTTP entry points (Workers via `foundation_deployment_cloudflare`, native via
+//! `foundation_http`). All storage through `foundation_db` traits; all auth
 //! through `foundation_auth`.
 
 pub mod core;
@@ -26,5 +26,5 @@ pub use core::models::cipher::{
 pub use core::models::folder::{Folder, FolderCreateRequest, FolderUpdateRequest};
 pub use core::models::org::{Organization, OrganizationCreateRequest, OrganizationUserType};
 pub use core::models::send::{Send, SendCreateRequest, SendType, SendUpdateRequest};
-pub use core::models::user::{KdfType, PreloginResponse, RegisterRequest, UserAccount};
 pub use core::models::sync::SyncData;
+pub use core::models::user::{KdfType, PreloginResponse, RegisterRequest, UserAccount};

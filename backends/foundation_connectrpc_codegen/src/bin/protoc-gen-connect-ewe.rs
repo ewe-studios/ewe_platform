@@ -1,4 +1,4 @@
-//! Protoc plugin for ConnectRPC code generation (Decision 10 Mode 2).
+//! Protoc plugin for `ConnectRPC` code generation (Decision 10 Mode 2).
 //!
 //! Implements the protoc plugin protocol:
 //! 1. Reads `CodeGeneratorRequest` from stdin (protobuf binary).
@@ -22,12 +22,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ── Read CodeGeneratorRequest from stdin ──────────────────────────────
     let mut buf = Vec::new();
     std::io::stdin().read_to_end(&mut buf)?;
-    let request =
-        prost_types::compiler::CodeGeneratorRequest::decode(buf.as_slice())?;
+    let request = prost_types::compiler::CodeGeneratorRequest::decode(buf.as_slice())?;
 
     // ── Generate ConnectRPC service code ──────────────────────────────────
-    let code =
-        foundation_connectrpc_codegen::generate_services(&request.proto_file);
+    let code = foundation_connectrpc_codegen::generate_services(&request.proto_file);
 
     // ── Build CodeGeneratorResponse ───────────────────────────────────────
     let response = prost_types::compiler::CodeGeneratorResponse {

@@ -18,18 +18,19 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_http::native::server::HttpServer;
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::native::server::HttpServer;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::connection::H2Request;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
 
 use foundation_proxy::config::ServiceConfig;
@@ -60,11 +61,8 @@ fn build_deadline_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |ctx: Ctx, _req: Request<Msg>| async move {
-            let ms = ctx
-                .remaining_timeout()
-                .map(|d| d.as_millis())
-                .unwrap_or(0);
+        |ctx: RpcCtx, _req: Request<Msg>| async move {
+            let ms = ctx.remaining_timeout().map_or(0, |d| d.as_millis());
             Ok(Response::new(Msg::of(ms.to_string())))
         },
         HandlerOptions::new(),
@@ -72,18 +70,18 @@ fn build_deadline_router() -> Router {
     router
 }
 
-/// Where a handler leaves its `Ctx` for the test to watch (mirrors
+/// Where a handler leaves its `RpcCtx` for the test to watch (mirrors
 /// `foundation_connectrpc`'s `cancellation_tests`).
 #[derive(Clone, Default)]
-struct Slot(Arc<Mutex<Option<Ctx>>>);
+struct Slot(Arc<Mutex<Option<RpcCtx>>>);
 
 impl Slot {
-    fn put(&self, ctx: &Ctx) {
+    fn put(&self, ctx: &RpcCtx) {
         *self.0.lock().unwrap() = Some(ctx.clone());
     }
 
-    /// Wait until a handler parked its `Ctx`.
-    fn wait_entered(&self) -> Ctx {
+    /// Wait until a handler parked its `RpcCtx`.
+    fn wait_entered(&self) -> RpcCtx {
         let start = Instant::now();
         loop {
             if let Some(ctx) = self.0.lock().unwrap().clone() {
@@ -99,12 +97,12 @@ impl Slot {
 }
 
 /// Wait until `ctx` is cancelled; panics after `limit`.
-fn assert_cancelled_within(ctx: &Ctx, limit: Duration) {
+fn assert_cancelled_within(ctx: &RpcCtx, limit: Duration) {
     let start = Instant::now();
     while !ctx.is_canceled() {
         assert!(
             start.elapsed() < limit,
-            "the handler's Ctx was not cancelled within {limit:?}"
+            "the handler's RpcCtx was not cancelled within {limit:?}"
         );
         std::thread::sleep(Duration::from_millis(5));
     }
@@ -112,28 +110,26 @@ fn assert_cancelled_within(ctx: &Ctx, limit: Duration) {
 
 /// A server-stream handler that yields one item (which flushes the response head,
 /// withheld until the first frame) and then parks until the call is cancelled.
-/// It leaves its `Ctx` in `slot` so the test can watch `is_canceled()` flip.
+/// It leaves its `RpcCtx` in `slot` so the test can watch `is_canceled()` flip.
 fn build_cancel_router(slot: Slot) -> Router {
     let mut router = Router::new();
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let slot = slot.clone();
             async move {
                 slot.put(&ctx);
                 let stream = futures_util::stream::unfold(0u8, move |state| async move {
-                    match state {
-                        // The first item flushes the response head so the
-                        // client gets the stream before it cancels.
-                        0 => Some((Ok(Msg::of("first")), 1u8)),
-                        // Then park forever; the test watches the parked `Ctx`
-                        // (not the stream) for cancellation.
-                        _ => {
-                            futures_util::future::pending::<()>().await;
-                            None
-                        }
+                    // The first item flushes the response head so the client
+                    // gets the stream before it cancels.
+                    if state == 0 {
+                        return Some((Ok(Msg::of("first")), 1u8));
                     }
+                    // Then park forever; the test watches the parked `RpcCtx`
+                    // (not the stream) for cancellation.
+                    futures_util::future::pending::<()>().await;
+                    None
                 });
                 Ok(stream)
             }
@@ -144,7 +140,7 @@ fn build_cancel_router(slot: Slot) -> Router {
 }
 
 /// Start an HTTP/2-only backend (native gRPC) serving `router`.
-fn start_grpc_backend(router: Router) -> (u16, Arc<OnSignal>) {
+fn start_grpc_backend(router: Router) -> (u16, Arc<ShutdownSignal>) {
     let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2.clone());
@@ -154,7 +150,7 @@ fn start_grpc_backend(router: Router) -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {
@@ -166,8 +162,8 @@ fn start_grpc_backend(router: Router) -> (u16, Arc<OnSignal>) {
 
 /// A proxy whose service routes to a `grpc://` backend (the D-leg relay).
 fn proxy_config_grpc(backend_port: u16) -> ProxyConfig {
-    let svc = ServiceConfig::new("rpc", "127.0.0.1")
-        .backend(&format!("grpc://127.0.0.1:{backend_port}"));
+    let svc =
+        ServiceConfig::new("rpc", "127.0.0.1").backend(&format!("grpc://127.0.0.1:{backend_port}"));
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
         .service(svc)
@@ -193,12 +189,17 @@ fn connect_h2_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
 #[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
 async fn connect_deadline_is_observed_at_grpc_backend() {
     let (backend_port, backend_shutdown) = start_grpc_backend(build_deadline_router());
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
     let deadline = Duration::from_secs(3);
-    let ctx = Ctx::background().with_deadline(deadline);
+    let ctx = RpcCtx::background().with_deadline(deadline);
     let resp = client
         .unary(ctx, Request::new(Msg::of("deadline")))
         .await
@@ -220,6 +221,8 @@ async fn connect_deadline_is_observed_at_grpc_backend() {
 
 /// A single Connect envelope around a JSON `Msg` (flag byte + 4-byte big-endian
 /// length + payload), the request shape `ConnectHandler` de-frames.
+// An envelope length is capped by the message size, which fits in u32.
+#[allow(clippy::cast_possible_truncation)]
 fn connect_envelope(text: &str) -> Vec<u8> {
     let payload = serde_json::to_vec(&Msg::of(text)).expect("marshal Msg");
     let mut buf = vec![0u8];
@@ -238,6 +241,9 @@ fn connect_envelope(text: &str) -> Vec<u8> {
 /// represent "the client cancelled" here. An explicit `RST_STREAM` is exactly
 /// what an HTTP/2 client does when it aborts a call, so it is the faithful
 /// signal the proxy's `feed_request_body` turns into the shared cancel.
+// The channel ends are used by reference; passing them by value keeps the
+// call sites short.
+#[allow(clippy::needless_pass_by_value)]
 fn drive_raw_h2_cancel(
     addr: &str,
     flowing: std::sync::mpsc::Sender<bool>,
@@ -329,7 +335,7 @@ fn drive_raw_h2_cancel(
         }
     }
 
-    // The stream is flowing; the test waits for the handler's `Ctx` before
+    // The stream is flowing; the test waits for the handler's `RpcCtx` before
     // granting the reset so it can assert the call is still live.
     let _ = flowing.send(true);
     if reset.recv_timeout(Duration::from_secs(10)).is_err() {
@@ -349,9 +355,13 @@ fn drive_raw_h2_cancel(
 #[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
 async fn cancelled_connect_stream_tears_down_grpc_backend() {
     let slot = Slot::default();
-    let (backend_port, backend_shutdown) =
-        start_grpc_backend(build_cancel_router(slot.clone()));
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let (backend_port, backend_shutdown) = start_grpc_backend(build_cancel_router(slot.clone()));
+    let proxy = ProxyServer::start(
+        proxy_config_grpc(backend_port),
+        foundation_context::Ctx::host(),
+    )
+    .await
+    .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     // The raw client reports once it has read the first item, then waits for the
@@ -361,13 +371,18 @@ async fn cancelled_connect_stream_tears_down_grpc_backend() {
     let client_addr = addr.clone();
     std::thread::spawn(move || drive_raw_h2_cancel(&client_addr, flowing_tx, reset_rx));
 
-    let flowing = flowing_rx.recv_timeout(Duration::from_secs(10)).unwrap_or(false);
+    let flowing = flowing_rx
+        .recv_timeout(Duration::from_secs(10))
+        .unwrap_or(false);
     assert!(flowing, "the stream must flow before the reset");
 
-    // The handler parked its `Ctx` before yielding the first item; the call is
+    // The handler parked its `RpcCtx` before yielding the first item; the call is
     // still live (the reset has not been granted yet).
     let ctx = slot.wait_entered();
-    assert!(!ctx.is_canceled(), "the call must still be live before the reset");
+    assert!(
+        !ctx.is_canceled(),
+        "the call must still be live before the reset"
+    );
 
     // Abort the client call; the relay's cancel signal must reach the backend.
     reset_tx.send(()).expect("grant the reset");

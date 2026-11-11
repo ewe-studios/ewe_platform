@@ -1,21 +1,23 @@
-//! Serve trait — core handler abstraction.
+//! Shared serve types — outcomes, errors and buffer-writer handlers.
 //!
-//! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
-//! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
+//! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any
+//! writable stream.
 //!
-//! The HTTP/2 serve trait (`H2Serve`) is native-only (it drives the native
-//! `foundation_netio::http2` substrate) and lives at [`crate::native::serve`].
+//! The native `Serve` and `ServeFactory` traits take
+//! `SharedByteBufferStream<RawStream>` for TCP connections. They are
+//! native-only and live at [`crate::native::serve`]. The HTTP/2 and HTTP/3 serve
+//! traits are native-only too, in the same module.
 
-#[cfg(not(target_family = "wasm"))]
-use std::sync::Arc;
+use std::future::Future;
+use std::pin::Pin;
 
-use foundation_netio::shared::http::{
-    Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
-    SimpleHeader, SendSafeBody,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::shared::http::{
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
+    Status,
+};
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 
 // ---------------------------------------------------------------------------
 // ServeError
@@ -53,6 +55,21 @@ impl From<ServeError> for ErrorTrace<ServeError> {
 // ---------------------------------------------------------------------------
 // ConnectionResult
 
+/// How a handler's async continuation ends. It has no `Async` variant: a
+/// future resolves once, to one of the three connection actions.
+pub enum ServeOutcome {
+    /// The handler wrote a response; the connection carries the next request.
+    Keep,
+    /// The handler owns the connection permanently (WebSocket, SSE, long poll).
+    Take,
+    /// Close the connection, optionally with an error for the log.
+    Close(Option<ErrorTrace<ServeError>>),
+}
+
+/// A handler's async continuation. It owns everything it needs (`'static`) and
+/// resolves once to what the connection does next.
+pub type ServeFuture = Pin<Box<dyn Future<Output = ServeOutcome> + Send + 'static>>;
+
 /// Three outcomes telling the worker what to do after a handler runs.
 pub enum ConnectionResult {
     /// Handler wrote a response; connection kept alive for next request.
@@ -62,28 +79,38 @@ pub enum ConnectionResult {
     Take,
     /// Close the connection, optionally carrying an error for logging.
     Close(Option<ErrorTrace<ServeError>>),
+    /// The handler continues asynchronously. The connection task parks on the
+    /// future and applies its result (Keep / Take / Close) when it completes.
+    Async(ServeFuture),
 }
 
-// ---------------------------------------------------------------------------
-// Serve (native-only — uses RawStream)
-
-/// Core handler trait — executed at request time (native TCP connections).
-#[cfg(not(target_family = "wasm"))]
-pub trait Serve: Send + Sync + 'static {
-    /// Handle an incoming request.
-    fn serve(
-        &self,
-        bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
-    ) -> ConnectionResult;
+impl From<ServeOutcome> for ConnectionResult {
+    fn from(outcome: ServeOutcome) -> Self {
+        match outcome {
+            ServeOutcome::Keep => ConnectionResult::Keep,
+            ServeOutcome::Take => ConnectionResult::Take,
+            ServeOutcome::Close(err) => ConnectionResult::Close(err),
+        }
+    }
 }
 
-/// Factory trait for creating handler instances.
-#[cfg(not(target_family = "wasm"))]
-pub trait ServeFactory: Serve + Sized {
-    /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
+impl ConnectionResult {
+    /// Split the result into the future to await, or the ready outcome.
+    ///
+    /// `Ok(future)` for `Async`, `Err(outcome)` for the three ready variants. A
+    /// wrapper uses it to observe both cases without a four-arm match.
+    ///
+    /// # Errors
+    /// Returns the ready outcome when the handler did not continue
+    /// asynchronously.
+    pub fn split(self) -> Result<ServeFuture, ServeOutcome> {
+        match self {
+            ConnectionResult::Async(future) => Ok(future),
+            ConnectionResult::Keep => Err(ServeOutcome::Keep),
+            ConnectionResult::Take => Err(ServeOutcome::Take),
+            ConnectionResult::Close(err) => Err(ServeOutcome::Close(err)),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -97,7 +124,7 @@ pub trait ServeWriter: Send + Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
     fn serve_writer(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: SimpleIncomingRequest,
         conn: &mut dyn std::io::Write,
     ) -> ConnectionResult;
@@ -106,14 +133,14 @@ pub trait ServeWriter: Send + Sync + 'static {
 /// Factory trait for creating `ServeWriter` handler instances.
 pub trait ServeWriterFactory: ServeWriter + Sized {
     /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
+    fn create(ctx: &Ctx) -> Self;
 }
 
 // ---------------------------------------------------------------------------
 // respond helpers
 
 /// Convert a u16 status code to a `Status` enum.
-fn status_from_code(code: u16) -> Status {
+pub(crate) fn status_from_code(code: u16) -> Status {
     match code {
         100 => Status::Continue,
         101 => Status::SwitchingProtocols,
@@ -159,36 +186,58 @@ fn render_response(
         .add_header(SimpleHeader::CONNECTION, "close")
         .with_body(body)
         .build()
-        .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        .map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
 
     Http11::response(response)
         .http_render_to_writer(conn)
-        .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        .map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
 
     Ok(())
 }
 
-/// Quick-response helpers for common HTTP patterns.
-pub mod respond {
+/// Quick-response helpers for in-memory writers.
+///
+/// These write synchronously to any `impl Write` that cannot block: a `Vec<u8>`
+/// in a test, or a wasm response buffer. They are **not** safe for a body larger
+/// than the send buffer of a **non-blocking** connection socket: the write fails
+/// with `WouldBlock` after a partial write. For any native `Serve` handler, use
+/// `native::writer::send_text` / `send_json` / `send_bytes` instead; they write
+/// through `ResponseWriter`. The name says which writers these are for.
+pub mod respond_to_buffer {
     use serde::Serialize;
 
     use super::{
-        ErrorTrace, Http11, RenderHttp, SendSafeBody, ServeError, SimpleHeader,
-        SimpleOutgoingResponse, render_response, status_from_code,
+        render_response, status_from_code, ErrorTrace, Http11, RenderHttp, SendSafeBody,
+        ServeError, SimpleHeader, SimpleOutgoingResponse,
     };
 
     /// Write a JSON response with the given status code.
+    ///
+    /// # Errors
+    /// Returns an error when the body cannot be serialized, or the response
+    /// cannot be built or written.
     pub fn json<T: Serialize>(
         conn: &mut impl std::io::Write,
         status: u16,
         body: &T,
     ) -> Result<(), ErrorTrace<ServeError>> {
-        let bytes = serde_json::to_vec(body)
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        let bytes = serde_json::to_vec(body).map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
         render_response(conn, status, "application/json", SendSafeBody::Bytes(bytes))
     }
 
     /// Write a plain text response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn text(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -198,6 +247,9 @@ pub mod respond {
     }
 
     /// Write an HTML response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn html(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -207,6 +259,9 @@ pub mod respond {
     }
 
     /// Write a redirect response (301 or 302).
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn redirect(
         conn: &mut impl std::io::Write,
         status: u16,
@@ -217,21 +272,33 @@ pub mod respond {
             .add_header(SimpleHeader::LOCATION, location)
             .with_body(SendSafeBody::None)
             .build()
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         Http11::response(response)
             .http_render_to_writer(conn)
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         Ok(())
     }
 
     /// Write a 404 Not Found response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn not_found(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
         text(conn, 404, "Not Found")
     }
 
     /// Write a 500 Internal Server Error response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built or written.
     pub fn server_error(
         conn: &mut impl std::io::Write,
         reason: Option<&str>,
@@ -241,6 +308,9 @@ pub mod respond {
     }
 
     /// Write a 100 Continue interim response.
+    ///
+    /// # Errors
+    /// Returns an error when the response cannot be built, written or flushed.
     #[tracing::instrument(skip(conn))]
     pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
         // A `100 Continue` interim response is header-less. The `Http11` renderer
@@ -251,18 +321,26 @@ pub mod respond {
             .with_status(status_from_code(100))
             .with_body(SendSafeBody::None)
             .build()
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         tracing::trace!("Rendering 100 Continue response to connection");
         Http11::response(response)
             .http_render_to_writer(conn)
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         // Flush so the interim response reaches the client immediately — the client
         // blocks reading it before it will send the request body, so any buffering
         // here would stall the whole exchange.
-        conn.flush()
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        conn.flush().map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
 
         tracing::trace!("100 Continue response sent successfully");
         Ok(())

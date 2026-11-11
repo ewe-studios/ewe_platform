@@ -3,9 +3,15 @@
 //! CRUD + soft-delete/restore + ownership over a real Turso store, verifying the
 //! client-encrypted content round-trips through the `data` JSON column.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::ciphers;
@@ -34,13 +40,22 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 fn login_req(name: &str, username: &str) -> CipherCreateRequest {
@@ -71,12 +86,16 @@ fn create_list_get_roundtrips_content() {
     let (ctx, _dir) = fresh_ctx();
 
     let c = ctx.clone();
-    let created = drive(async move {
-        ciphers::create(&c, USER_A, login_req("2.name|enc", "2.user|enc")).await
-    })
-    .expect("create");
+    let created =
+        drive(
+            async move { ciphers::create(&c, USER_A, login_req("2.name|enc", "2.user|enc")).await },
+        )
+        .expect("create");
     assert_eq!(created.cipher_type, CipherType::Login);
-    assert_eq!(created.login.as_ref().unwrap().username.as_deref(), Some("2.user|enc"));
+    assert_eq!(
+        created.login.as_ref().unwrap().username.as_deref(),
+        Some("2.user|enc")
+    );
     assert!(created.deleted_date.is_none());
 
     let c = ctx.clone();
@@ -129,7 +148,10 @@ fn update_changes_content_and_favorite() {
     .expect("update");
     assert_eq!(updated.name, "2.renamed|enc");
     assert!(updated.favorite);
-    assert_eq!(updated.login.unwrap().username.as_deref(), Some("2.newuser|enc"));
+    assert_eq!(
+        updated.login.unwrap().username.as_deref(),
+        Some("2.newuser|enc")
+    );
     assert!(updated.revision_date >= created.revision_date);
 }
 
@@ -144,12 +166,18 @@ fn soft_delete_then_restore() {
     let c = ctx.clone();
     let id2 = id.clone();
     let trashed = drive(async move { ciphers::soft_delete(&c, USER_A, &id2).await }).expect("soft");
-    assert!(trashed.deleted_date.is_some(), "soft-deleted cipher has deleted_date");
+    assert!(
+        trashed.deleted_date.is_some(),
+        "soft-deleted cipher has deleted_date"
+    );
 
     let c = ctx.clone();
     let id3 = id.clone();
     let restored = drive(async move { ciphers::restore(&c, USER_A, &id3).await }).expect("restore");
-    assert!(restored.deleted_date.is_none(), "restored cipher clears deleted_date");
+    assert!(
+        restored.deleted_date.is_none(),
+        "restored cipher clears deleted_date"
+    );
 }
 
 #[valtron_test]
@@ -166,7 +194,7 @@ fn hard_delete_removes() {
 
     let c = ctx.clone();
     let got = drive(async move { ciphers::get(&c, USER_A, &id).await });
-    assert!(matches!(got, Err(AppError::NotFound(_))));
+    assert!(matches!(got, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))));
 }
 
 #[valtron_test]
@@ -180,11 +208,11 @@ fn ownership_is_enforced() {
     let c = ctx.clone();
     let id2 = id.clone();
     let got = drive(async move { ciphers::get(&c, USER_B, &id2).await });
-    assert!(matches!(got, Err(AppError::Forbidden)));
+    assert!(matches!(got, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)));
 
     let c = ctx.clone();
     let del = drive(async move { ciphers::delete(&c, USER_B, &id).await });
-    assert!(matches!(del, Err(AppError::Forbidden)));
+    assert!(matches!(del, Err(trace) if matches!(trace.current_context(), AppError::Forbidden)));
 }
 
 #[valtron_test]
@@ -192,5 +220,7 @@ fn empty_name_rejected() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
     let res = drive(async move { ciphers::create(&c, USER_A, login_req("   ", "u")).await });
-    assert!(matches!(res, Err(AppError::BadRequest(_))));
+    assert!(
+        matches!(res, Err(trace) if matches!(trace.current_context(), AppError::BadRequest(_)))
+    );
 }

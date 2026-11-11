@@ -4,6 +4,7 @@
 //! promoted-column INSERT/SELECT and scru128 `doc_id` ordering are validated
 //! end-to-end, not just against the in-memory backend.
 
+use foundation_compact::ids::new_scru128_string;
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::{MigrationRunner, SqlDocumentStore, TursoStorage, MIGRATIONS};
@@ -17,7 +18,9 @@ use tempfile::TempDir;
 async fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("docs.db").to_str().unwrap().to_owned();
-    let storage = TursoStorage::new(&url).await.unwrap();
+    let storage = TursoStorage::new(&url, foundation_context::Ctx::host())
+        .await
+        .unwrap();
     storage.init_schema().await.unwrap();
     (dir, SqlDocumentStore::new(storage))
 }
@@ -41,7 +44,7 @@ impl PromotableDocument for Note {
 async fn append_promotable_round_trips_through_sqlite() {
     let (_dir, store) = make_store().await;
     let doc = store
-        .append_promotable_async(
+        .append_promotable(
             "k",
             Note {
                 kind: "observation".into(),
@@ -56,7 +59,7 @@ async fn append_promotable_round_trips_through_sqlite() {
     assert_eq!(doc.title, None);
 
     // Re-read through scan_documents — promoted columns survive the round-trip.
-    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    let docs = store.scan_documents("k", 10).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].id, doc.id);
     assert_eq!(docs[0].record_type.as_deref(), Some("observation"));
@@ -67,12 +70,39 @@ async fn append_promotable_round_trips_through_sqlite() {
 #[valtron_test]
 async fn plain_append_leaves_promoted_columns_null() {
     let (_dir, store) = make_store().await;
-    store.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    store
+        .append("k", serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let docs = store.scan_documents("k", 10).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].record_type, None);
     assert_eq!(docs[0].title, None);
     assert_eq!(docs[0].summary, None);
+}
+
+#[valtron_test]
+async fn append_with_id_is_idempotent_over_sqlite() {
+    let (_dir, store) = make_store().await;
+    let id = new_scru128_string();
+    let first = store
+        .append_with_id("k", &id, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    assert_eq!(first.id, id);
+    let second = store
+        .append_with_id("k", &id, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    assert_eq!(second.id, id);
+    assert_eq!(
+        store.count("k").await.unwrap(),
+        1,
+        "re-append must not duplicate"
+    );
+    let docs = store.scan_documents("k", 10).await.unwrap();
+    assert_eq!(docs.len(), 1);
+    assert_eq!(docs[0].id, id);
 }
 
 #[valtron_test]
@@ -81,7 +111,7 @@ async fn scan_documents_from_is_inclusive_and_ordered_by_doc_id() {
     let mut ids = Vec::new();
     for n in 0..4 {
         let doc = store
-            .append_promotable_async(
+            .append_promotable(
                 "k",
                 Note {
                     kind: "n".into(),
@@ -94,14 +124,14 @@ async fn scan_documents_from_is_inclusive_and_ordered_by_doc_id() {
     }
 
     // Inclusive from the 2nd id, oldest-first.
-    let docs = store.scan_documents_from_async("k", &ids[1], 0).await.unwrap();
+    let docs = store.scan_documents_from("k", &ids[1], 0).await.unwrap();
     assert_eq!(docs.len(), 3);
     assert_eq!(docs[0].id, ids[1]);
     assert_eq!(docs[0].summary.as_deref(), Some("t1"));
     assert_eq!(docs[2].summary.as_deref(), Some("t3"));
 
     // limit caps results.
-    let limited = store.scan_documents_from_async("k", &ids[0], 2).await.unwrap();
+    let limited = store.scan_documents_from("k", &ids[0], 2).await.unwrap();
     assert_eq!(limited.len(), 2);
 }
 
@@ -112,13 +142,13 @@ async fn scan_documents_is_newest_first() {
     for n in 0..3 {
         ids.push(
             store
-                .append_async("k", serde_json::json!({ "n": n }))
+                .append("k", serde_json::json!({ "n": n }))
                 .await
                 .unwrap()
                 .id,
         );
     }
-    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    let docs = store.scan_documents("k", 10).await.unwrap();
     let got: Vec<&String> = docs.iter().map(|d| &d.id).collect();
     assert_eq!(got, vec![&ids[2], &ids[1], &ids[0]]);
 }
@@ -131,17 +161,29 @@ async fn migration_runner_applies_all_then_is_idempotent() {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("migrate.db").to_str().unwrap().to_owned();
     {
-        let storage = TursoStorage::new(&url).await.unwrap();
+        let storage = TursoStorage::new(&url, foundation_context::Ctx::host())
+            .await
+            .unwrap();
 
         // First run applies every migration; second run applies none.
-        let applied = MigrationRunner::new(MIGRATIONS).run_async(&storage).await.unwrap();
-        assert_eq!(applied, MIGRATIONS.len(), "first run applies all migrations");
-        let reapplied = MigrationRunner::new(MIGRATIONS).run_async(&storage).await.unwrap();
+        let applied = MigrationRunner::new(MIGRATIONS)
+            .run_async(&storage)
+            .await
+            .unwrap();
+        assert_eq!(
+            applied,
+            MIGRATIONS.len(),
+            "first run applies all migrations"
+        );
+        let reapplied = MigrationRunner::new(MIGRATIONS)
+            .run_async(&storage)
+            .await
+            .unwrap();
         assert_eq!(reapplied, 0, "re-run is a no-op (tracked in _migrations)");
 
         // The documents table + promoted columns from 020/021 are usable.
         let docs = SqlDocumentStore::new(storage);
-        docs.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-        assert_eq!(docs.scan_documents_async("k", 10).await.unwrap().len(), 1);
+        docs.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        assert_eq!(docs.scan_documents("k", 10).await.unwrap().len(), 1);
     }
 }

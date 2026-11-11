@@ -1,7 +1,7 @@
 //! `foundation_iogate` — the I/O gate between netio transports and the
 //! nativeapis reactor.
 //!
-//! WHY: the io_uring completion read path (Decision 14 F4 / Feature 48) needs a
+//! WHY: the `io_uring` completion read path (Decision 14 F4 / Feature 48) needs a
 //! type that owns *both* `foundation_netio` (the `Connection` enum and its
 //! `CompletionReadWrite` seam) and `foundation_nativeapis` (the `Reactor`,
 //! `RegisteredFd`, and the completion buffer ring). netio cannot depend on
@@ -33,5 +33,13 @@ pub mod wasm;
 
 pub use shared::ServerIo;
 
+// `ShutdownSignal` lives in `foundation_reactor` (below netio) but is a plain
+// cross-platform flag; re-export it here so `foundation_http` reaches it through
+// the same facade as `FdReadiness`.
+pub use foundation_reactor::ShutdownSignal;
+
 #[cfg(all(not(target_family = "wasm"), unix))]
-pub use native::{accept_connection, connect_completion, init_reactor_for, CompletionSocket};
+pub use native::{
+    accept_connection, adopt_connected, connect_completion, init_reactor_for, CompletionSocket,
+    FdReadiness,
+};

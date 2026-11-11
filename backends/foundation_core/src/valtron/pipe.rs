@@ -33,17 +33,17 @@ use core::task::{Context, Poll, Waker};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use concurrent_queue::{ConcurrentQueue, PopError, PushError};
+use concurrent_queue::{PopError, PushError};
 
 use crate::compati::Mutex;
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 
 /// Shared state behind both pipe halves: the bounded queue plus the two waker
 /// stashes fired by the opposite end.
 pub(crate) struct PipeInner<T> {
     /// Bounded queue. Held behind its own `Arc` so the readiness accessors can
     /// hand out `QueueReadiness`/`QueueVacancyReadiness` over the same queue.
-    pub(crate) queue: Arc<ConcurrentQueue<T>>,
+    pub(crate) queue: crate::valtron::EventQueue<T>,
     /// Number of live sender handles sharing this pipe. The send direction
     /// closes only when the last one drops, so a `PipeSender` clone handing a
     /// second producer the pipe can drop without EOF-ing the stream.
@@ -110,6 +110,9 @@ impl<T> Pipe<T> {
     ///
     /// # Panics
     /// Never panics.
+    // Renaming this to a split-style constructor changes the public API; that
+    // change also bumps the crate version and is not part of a lint-only fix.
+    #[allow(clippy::new_ret_no_self)]
     #[must_use]
     pub fn new() -> (PipeSender<T>, PipeReceiver<T>) {
         Self::with_depth(Self::DEFAULT_DEPTH)
@@ -123,7 +126,7 @@ impl<T> Pipe<T> {
     #[must_use]
     pub fn with_depth(depth: usize) -> (PipeSender<T>, PipeReceiver<T>) {
         let inner = Arc::new(PipeInner {
-            queue: Arc::new(ConcurrentQueue::bounded(depth.max(1))),
+            queue: crate::valtron::EventQueue::bounded(depth.max(1)),
             sender_count: AtomicUsize::new(1),
             receiver_count: AtomicUsize::new(1),
             consumer_waker: Mutex::new(None),
@@ -153,7 +156,9 @@ pub struct PipeSender<T> {
 impl<T> Clone for PipeSender<T> {
     fn clone(&self) -> Self {
         self.inner.sender_count.fetch_add(1, Ordering::Relaxed);
-        Self { inner: self.inner.clone() }
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 
@@ -207,7 +212,34 @@ impl<T> PipeSender<T> {
     where
         T: Send,
     {
-        QueueVacancyReadiness::new(self.inner.queue.clone())
+        self.inner.queue.vacancy()
+    }
+
+    /// Producer-side readiness for "the consumer dropped the pipe", for the
+    /// valtron-task path: park with `Depends(sender.closed_readiness())`.
+    ///
+    /// WHY: [`vacancy`](Self::vacancy) is ready on "not full", which is true for
+    /// any pipe with room, so a producer that parks on it wakes on every
+    /// consumer pop. This signal is ready only once the pipe closes, and a pop
+    /// does not wake a task parked on it. A close wakes it exactly once.
+    #[must_use]
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<T>
+    where
+        T: Send,
+    {
+        self.inner.queue.closed_readiness()
+    }
+
+    /// Wake `waker` when an item is popped or the pipe closes. For a producer
+    /// that is not a future (a valtron task): register, then `try_send`, and
+    /// park on what the waker sets when the pipe is full. The pipe holds one
+    /// producer waker; this replaces any other (a pending
+    /// [`send`](Self::send)'s included), so use one producer style per pipe.
+    ///
+    /// # Panics
+    /// Panics if the waker lock is poisoned.
+    pub fn register_waker(&self, waker: &Waker) {
+        *self.inner.producer_waker.lock().unwrap() = Some(waker.clone());
     }
 
     /// `true` if the pipe is currently at capacity.
@@ -248,6 +280,7 @@ impl<T> PipeSender<T> {
 
     /// Explicitly close the send direction (also done on drop). Wakes a parked
     /// consumer so it observes end-of-stream. Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.inner.close_queue();
         self.inner.wake_consumer();
@@ -368,7 +401,9 @@ pub struct PipeReceiver<T> {
 impl<T> Clone for PipeReceiver<T> {
     fn clone(&self) -> Self {
         self.inner.receiver_count.fetch_add(1, Ordering::Relaxed);
-        Self { inner: self.inner.clone() }
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 
@@ -413,7 +448,20 @@ impl<T> PipeReceiver<T> {
     where
         T: Send,
     {
-        QueueReadiness::new(self.inner.queue.clone())
+        self.inner.queue.readiness()
+    }
+
+    /// Wake `waker` on the next push or close. For a consumer that is not a
+    /// future (a valtron task): register, then `try_recv`, and park on what the
+    /// waker sets when the pipe is empty — a push between the two still wakes
+    /// it. The pipe holds one consumer waker; this replaces any other (the
+    /// parked waker of a pending [`receive`](Self::receive) included), so use
+    /// one consumer style per pipe.
+    ///
+    /// # Panics
+    /// Panics if the waker lock is poisoned.
+    pub fn register_waker(&self, waker: &Waker) {
+        *self.inner.consumer_waker.lock().unwrap() = Some(waker.clone());
     }
 
     /// `true` if no items are currently buffered.
@@ -436,6 +484,7 @@ impl<T> PipeReceiver<T> {
 
     /// Explicitly close the receive direction (also done on drop). Wakes a parked
     /// producer so it observes the close. Returns `true` if this call closed it.
+    #[must_use]
     pub fn close(&self) -> bool {
         let closed = self.inner.close_queue();
         self.inner.wake_producer();
@@ -591,4 +640,3 @@ impl<T> fmt::Display for SendError<T> {
 
 #[cfg(feature = "std")]
 impl<T> std::error::Error for SendError<T> {}
-

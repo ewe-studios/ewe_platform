@@ -40,8 +40,8 @@ fn write_byte(fd: RawFd) {
 fn wait_for_events_wakes_when_a_registered_fd_becomes_readable() {
     let reactor = Reactor::get().expect("shared reactor");
     let (reader, writer) = nonblocking_pipe();
-    let _reg = RegisteredFd::new(reader, reactor.registry(), Token(0x5002_0001))
-        .expect("register reader");
+    let _reg =
+        RegisteredFd::new(reader, reactor.registry(), Token(0x5002_0001)).expect("register reader");
 
     // Snapshot the generation before the event.
     let gen = reactor.events_generation();
@@ -60,7 +60,10 @@ fn wait_for_events_wakes_when_a_registered_fd_becomes_readable() {
     let elapsed = start.elapsed();
     h.join().ok();
 
-    assert_ne!(new_gen, gen, "generation must advance when the fd becomes readable");
+    assert_ne!(
+        new_gen, gen,
+        "generation must advance when the fd becomes readable"
+    );
     assert!(
         elapsed < Duration::from_secs(3),
         "woke on the event ({elapsed:?}), not by the timeout"
@@ -84,7 +87,11 @@ fn wait_for_events_returns_immediately_for_a_stale_generation() {
     while reactor.events_generation() == gen && Instant::now() < deadline {
         thread::sleep(Duration::from_millis(5));
     }
-    assert_ne!(reactor.events_generation(), gen, "drain thread advanced the generation");
+    assert_ne!(
+        reactor.events_generation(),
+        gen,
+        "drain thread advanced the generation"
+    );
 
     // Waiting on the now-stale `gen` must return at once, not block for the timeout
     // — the lost-wakeup guard.

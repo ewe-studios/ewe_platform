@@ -21,5 +21,8 @@ pub use arrow_ipc;
 pub use arrow_schema;
 
 pub use dom_ops::{ArrowIpcEncoder, ARROW_IPC_VERSION};
-pub use ipc::{decode_ipc, decode_ipc_batches, decode_ipc_schema, encode_ipc, encode_ipc_batches, IpcResult};
+pub use ipc::{
+    arrow_err, decode_ipc, decode_ipc_batches, decode_ipc_schema, encode_ipc, encode_ipc_batches,
+    ArrowIpcError, IpcResult,
+};
 pub use traits::{ArrowJsonSchema, ArrowMessageBox, ArrowSchema, ArrowValue, FromArrow, ToArrow};

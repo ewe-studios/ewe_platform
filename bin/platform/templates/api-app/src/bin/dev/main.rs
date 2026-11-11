@@ -1,15 +1,10 @@
 use core::time;
-use ewe_devserver::{
-    types::{Http1, ProxyRemoteConfig},
-    HttpDevService, ProjectDefinition, ProxyType, VecStringExt,
-};
-use std::collections::HashMap;
-use tokio::sync::broadcast;
+
+use foundation_toolings::{Http1, ProjectDefinition, ProxyRemoteConfig, ProxyType, VecStringExt};
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();
@@ -27,30 +22,21 @@ async fn main() {
     let source = ProxyRemoteConfig::new(String::from("0.0.0.0"), 3600);
     let destination = ProxyRemoteConfig::new(String::from("0.0.0.0"), 3200);
 
-    let tunnel_config = ProxyType::Http1(Http1::new(source, destination, Some(HashMap::new())));
+    let tunnel_config = ProxyType::Http1(Http1::new(source, destination));
 
     let definition = ProjectDefinition {
         proxy: tunnel_config,
         crate_name: binary_name.clone(),
         workspace_root: project_directory.clone(),
-        watch_directory: project_directory.clone(),
+        reload_directories: vec![project_directory.clone()],
+        build_directories: vec![project_directory.clone()],
         wait_before_reload: time::Duration::from_millis(300), // magic number that works
-        run_arguments: vec!["cargo", "run", "--bin", &binary_name].to_vec_string(),
-        build_arguments: vec!["cargo", "build", "--bin", &binary_name].to_vec_string(),
-        target_directory: String::from(format!("{}/target", project_directory.clone())),
+        run_arguments: vec!["cargo", "run", "--bin", binary_name.as_str()].to_vec_string(),
+        build_arguments: vec!["cargo", "build", "--bin", binary_name.as_str()].to_vec_string(),
+        target_directory: format!("{}/target", project_directory),
+        skip_rust_checks: false,
+        stop_on_failure: false,
     };
 
-    let mut dev_service = HttpDevService::new(definition);
-
-    let (_cancel_sender, cancel_receiver) = broadcast::channel::<()>(1);
-
-    let waiter = dev_service
-        .start(cancel_receiver)
-        .await
-        .expect("safely instantiated");
-
-    waiter
-        .await
-        .expect("safely closed")
-        .expect("should safely be cleanedup");
+    foundation_toolings::run_dev_server(definition).expect("dev server ran cleanly");
 }

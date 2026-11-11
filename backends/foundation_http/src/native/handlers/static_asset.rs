@@ -17,13 +17,13 @@ use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
-    Status,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
-use crate::shared::context::ContextBag;
-use crate::shared::serve::{ConnectionResult, Serve};
+use crate::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
+
+use crate::native::serve::Serve;
+use crate::shared::context::Ctx;
+use crate::shared::serve::ConnectionResult;
 
 /// Serves a fixed in-memory asset (bytes + content type + optional headers) on
 /// the route it is registered for. Register it as an `Arc<dyn Serve>`:
@@ -37,13 +37,19 @@ pub struct StaticAssetHandler {
     body: Arc<[u8]>,
     content_type: String,
     headers: Vec<(String, String)>,
+    writer_config: WriterConfig,
 }
 
 impl StaticAssetHandler {
     /// A handler serving `body` with the given `Content-Type`.
     #[must_use]
     pub fn new(body: impl Into<Arc<[u8]>>, content_type: impl Into<String>) -> Self {
-        Self { body: body.into(), content_type: content_type.into(), headers: Vec::new() }
+        Self {
+            body: body.into(),
+            content_type: content_type.into(),
+            headers: Vec::new(),
+            writer_config: WriterConfig::default(),
+        }
     }
 
     /// Attach an extra response header (e.g. `Cache-Control`). Chainable.
@@ -52,26 +58,40 @@ impl StaticAssetHandler {
         self.headers.push((name.into(), value.into()));
         self
     }
+
+    /// Set the write limits (`send_timeout`, the poll fallback). The default is
+    /// [`WriterConfig::default`]. Chainable.
+    #[must_use]
+    pub fn with_writer_config(mut self, config: WriterConfig) -> Self {
+        self.writer_config = config;
+        self
+    }
 }
 
 impl Serve for StaticAssetHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        ctx: Ctx,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let mut builder = SimpleOutgoingResponse::builder()
-            .with_status(Status::OK)
-            .add_header(SimpleHeader::CONTENT_TYPE, self.content_type.clone());
+        let mut headers = vec![(SimpleHeader::CONTENT_TYPE, self.content_type.clone())];
         for (name, value) in &self.headers {
-            builder = builder.add_header(SimpleHeader::custom(name), value);
+            headers.push((SimpleHeader::custom(name), value.clone()));
         }
-        let Ok(response) = builder.with_body(SendSafeBody::Bytes(self.body.to_vec())).build() else {
-            return ConnectionResult::Close(None);
+        // The body is written from the shared slice: it is never copied.
+        let head = match render_head(200, &headers, self.body.len()) {
+            Ok(head) => head,
+            Err(e) => {
+                tracing::error!("Failed to build static asset response: {e}");
+                return ConnectionResult::Close(None);
+            }
         };
-        Http11::response(response)
-            .http_render_to_writer(&mut conn)
-            .map_or(ConnectionResult::Close(None), |_| ConnectionResult::Keep)
+        let writer = ResponseWriter::new(conn, self.writer_config, ctx);
+        ConnectionResult::Async(Box::pin(write_response(
+            writer,
+            head,
+            Arc::clone(&self.body),
+        )))
     }
 }

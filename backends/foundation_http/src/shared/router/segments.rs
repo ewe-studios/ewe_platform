@@ -77,8 +77,7 @@ impl std::str::FromStr for ParamStaticValidation {
             "ascii" | "ASCII" => Ok(ParamStaticValidation::ASCII),
             "numbers" | "Numbers" | "NUMBERS" => Ok(ParamStaticValidation::Numbers),
             "letter" | "letters" | "LETTERS" => Ok(ParamStaticValidation::Letters),
-            "alpha" | "Alpha" | "ALPHA"
-            | "alphaneumeric" | "Alphaneumeric" | "ALPHANEUMERIC" => {
+            "alpha" | "Alpha" | "ALPHA" | "alphaneumeric" | "Alphaneumeric" | "ALPHANEUMERIC" => {
                 Ok(ParamStaticValidation::Alphaneumeric)
             }
             _ => Err(RouteOp::InvalidParamRestraintMatcher(s.into())),
@@ -108,9 +107,10 @@ impl PartialEq for SegmentType {
             | (SegmentType::AnyPath, SegmentType::AnyPath)
             | (SegmentType::Index, SegmentType::Index)
             | (SegmentType::Regex(_), SegmentType::Regex(_)) => true,
-            (SegmentType::Static(a) | SegmentType::Param(a), SegmentType::Static(b) | SegmentType::Param(b)) => {
-                a == b
-            }
+            (
+                SegmentType::Static(a) | SegmentType::Param(a),
+                SegmentType::Static(b) | SegmentType::Param(b),
+            ) => a == b,
             (SegmentType::Restricted(a_name, a_val), SegmentType::Restricted(b_name, b_val)) => {
                 a_name == b_name && a_val == b_val
             }
@@ -128,8 +128,7 @@ static REGEX_ONLY_CAPTURE_ROUTES: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\(.+\)$").unwrap());
 static PARAM_REGEX_CAPTURE_ROUTES: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"::\(.+\)").unwrap());
-static PARAM_ROUTE_STARTER: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^:(\w+|\d+)").unwrap());
+static PARAM_ROUTE_STARTER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^:(\w+|\d+)").unwrap());
 
 impl<'a> TryFrom<&'a str> for SegmentType {
     type Error = RouteOp;
@@ -157,7 +156,10 @@ impl<'a> TryFrom<&'a str> for SegmentType {
         let (first_part, second_part) = (parts[0], parts[2]);
 
         if PARAM_REGEX_CAPTURE_ROUTES.is_match(text) {
-            return Ok(SegmentType::ParamRegex(first_part[1..].into(), Regex::new(second_part)?));
+            return Ok(SegmentType::ParamRegex(
+                first_part[1..].into(),
+                Regex::new(second_part)?,
+            ));
         }
 
         Ok(SegmentType::Restricted(
@@ -199,13 +201,19 @@ impl SegmentType {
             }
             (SegmentType::Regex(matcher), SegmentType::Static(right)) => {
                 if !matcher.is_match(right) {
-                    return Err(RouteOp::DidNotMatchExpected(self.as_string(), other.as_string()));
+                    return Err(RouteOp::DidNotMatchExpected(
+                        self.as_string(),
+                        other.as_string(),
+                    ));
                 }
                 Ok(None)
             }
             (SegmentType::ParamRegex(param, matcher), SegmentType::Static(right)) => {
                 if !matcher.is_match(right) {
-                    return Err(RouteOp::DidNotMatchExpected(self.as_string(), other.as_string()));
+                    return Err(RouteOp::DidNotMatchExpected(
+                        self.as_string(),
+                        other.as_string(),
+                    ));
                 }
                 Ok(Some((param.clone(), right.clone())))
             }
@@ -217,12 +225,17 @@ impl SegmentType {
                     ParamStaticValidation::ASCII => right.is_ascii(),
                     ParamStaticValidation::Letters => right.chars().all(char::is_alphabetic),
                     ParamStaticValidation::Numbers => right.chars().all(char::is_numeric),
-                    ParamStaticValidation::Alphaneumeric => right.chars().all(char::is_alphanumeric),
+                    ParamStaticValidation::Alphaneumeric => {
+                        right.chars().all(char::is_alphanumeric)
+                    }
                 };
                 if ok {
                     Ok(Some((key.clone(), right.clone())))
                 } else {
-                    Err(RouteOp::DidNotMatchExpected(self.as_string(), other.as_string()))
+                    Err(RouteOp::DidNotMatchExpected(
+                        self.as_string(),
+                        other.as_string(),
+                    ))
                 }
             }
             _ => Err(RouteOp::NoMatchingRoute(other.as_string())),
@@ -460,8 +473,7 @@ impl<S> RouteSegment<S> {
         other: RouteSegment<S>,
         method: &SimpleMethod,
         handler: &S,
-    )
-    where
+    ) where
         S: Clone,
     {
         if let Some(existing) = self.static_routes.get_mut(&key) {
@@ -478,12 +490,14 @@ impl<S> RouteSegment<S> {
         other: RouteSegment<S>,
         method: &SimpleMethod,
         handler: &S,
-    )
-    where
+    ) where
         S: Clone,
     {
         // Check if an equivalent dynamic route already exists
-        let existing_idx = self.dynamic_routes.iter().position(|d| d.segment == other.segment);
+        let existing_idx = self
+            .dynamic_routes
+            .iter()
+            .position(|d| d.segment == other.segment);
 
         if let Some(idx) = existing_idx {
             let existing = &mut self.dynamic_routes[idx];
@@ -639,7 +653,11 @@ impl<S> RouteSegment<S> {
                 params.entry(key).or_insert(value);
                 return Ok(subroute);
             }
-            if subroute.segment.match_value_from(segment).is_ok_and(|v| v.is_none()) {
+            if subroute
+                .segment
+                .match_value_from(segment)
+                .is_ok_and(|v| v.is_none())
+            {
                 return Ok(subroute);
             }
         }

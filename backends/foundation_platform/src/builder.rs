@@ -2,6 +2,7 @@ use std::env;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_wasm::{CapabilityContentType, CapabilityRequest};
 use tauri::{App, Context, Manager, Runtime};
 
@@ -27,6 +28,9 @@ pub struct PlatformBuilder<R: Runtime = tauri::Wry> {
     script_injector: ScriptInjector,
     /// Whether platform runtimes have been auto-registered.
     runtimes_injected: bool,
+    /// The host side-effect bundle. Every session reads its clock and RNG from
+    /// it. [`Self::build`] requires it; there is no fallback to the real clock.
+    ctx: Option<Ctx>,
 }
 
 impl<R: Runtime> PlatformBuilder<R> {
@@ -39,12 +43,27 @@ impl<R: Runtime> PlatformBuilder<R> {
             index_url: None,
             script_injector: ScriptInjector::new(PathBuf::new()),
             runtimes_injected: false,
+            ctx: None,
         }
+    }
+
+    /// Set the host side-effect bundle. Every session reads its clock from it.
+    ///
+    /// [`Self::build`] panics when the builder was not given a context: a
+    /// missing context is a wiring fault, never a reason to read the real clock.
+    #[must_use]
+    pub fn ctx(mut self, ctx: Ctx) -> Self {
+        self.ctx = Some(ctx);
+        self
     }
 
     #[must_use]
     pub fn route(mut self, pattern: &str, decision: foundation_ui_traits::RouteDecision) -> Self {
-        self.routes.push(RouteEntry { pattern: pattern.to_string(), decision, responder: None });
+        self.routes.push(RouteEntry {
+            pattern: pattern.to_string(),
+            decision,
+            responder: None,
+        });
         self
     }
 
@@ -120,12 +139,20 @@ impl<R: Runtime> PlatformBuilder<R> {
     /// # Errors
     ///
     /// Returns [`tauri::Error`] if Tauri initialisation fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the builder has no context; call [`Self::ctx`] first.
     #[allow(clippy::needless_pass_by_value)]
     pub fn build(mut self, context: Context<R>) -> tauri::Result<App<R>> {
         let mut routes = std::mem::take(&mut self.routes);
         let setups = std::mem::take(&mut self.setups);
         let _index_url = self.index_url.clone();
         let script_injector = std::mem::take(&mut self.script_injector);
+        let ctx = self
+            .ctx
+            .take()
+            .expect("PlatformBuilder::build needs a context: call PlatformBuilder::ctx(ctx)");
 
         self.inner = self.inner.setup(move |app| {
             let resource_root = app
@@ -140,7 +167,7 @@ impl<R: Runtime> PlatformBuilder<R> {
                 script_injector
             };
 
-            let session = PlatformSession::new(resource_root, injector);
+            let session = PlatformSession::new(resource_root, injector, ctx);
 
             for entry in routes.drain(..) {
                 let mut d = entry.decision.clone();
@@ -158,13 +185,15 @@ impl<R: Runtime> PlatformBuilder<R> {
                 }
             }
 
-            for setup in &setups { setup(&session); }
+            for setup in &setups {
+                setup(&session);
+            }
 
             // F35: Inject Tauri window manager into the session.
             // The pool tracks labels; the manager creates real Tauri windows.
-            session.window_manager().set_ops(
-                crate::window::TauriWindowOps::new(app.handle().clone()).into_boxed()
-            );
+            session
+                .window_manager()
+                .set_ops(crate::window::TauriWindowOps::new(app.handle().clone()).into_boxed());
 
             // F24: resolve and eval all platform runtime scripts.
             // On mobile (Android/iOS), `window.eval()` treats the injected JS as a
@@ -203,13 +232,23 @@ impl<R: Runtime> PlatformBuilder<R> {
 
     #[must_use]
     pub fn invoke_handler<H>(mut self, handler: H) -> Self
-    where H: Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static,
-    { self.inner = self.inner.invoke_handler(handler); self }
+    where
+        H: Fn(tauri::ipc::Invoke<R>) -> bool + Send + Sync + 'static,
+    {
+        self.inner = self.inner.invoke_handler(handler);
+        self
+    }
 
-    pub fn inner_mut(&mut self) -> &mut tauri::Builder<R> { &mut self.inner }
+    pub fn inner_mut(&mut self) -> &mut tauri::Builder<R> {
+        &mut self.inner
+    }
 }
 
-impl<R: Runtime> Default for PlatformBuilder<R> { fn default() -> Self { Self::new() } }
+impl<R: Runtime> Default for PlatformBuilder<R> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 // ── F23 Tauri command: __ewe_capabilities ────────────────────────────────
 
@@ -264,9 +303,7 @@ fn __ewe_ipc(
         Some("arrow" | "application/vnd.apache.arrow.batch") => {
             foundation_wasm::ipc::IpcContentType::Arrow
         }
-        Some("binary" | "application/octet-stream") => {
-            foundation_wasm::ipc::IpcContentType::Binary
-        }
+        Some("binary" | "application/octet-stream") => foundation_wasm::ipc::IpcContentType::Binary,
         _ => foundation_wasm::ipc::IpcContentType::Json,
     };
 
@@ -303,8 +340,8 @@ async fn __ewe_ipc_stream(
     payload: Vec<u8>,
     stream_channel: tauri::ipc::Channel<crate::ipc::streaming::IpcStreamChunk>,
 ) -> Result<(), String> {
-    use foundation_wasm::ipc::{IpcContentType, IpcRequest};
     use crate::ipc::streaming::IpcStreamReceiver;
+    use foundation_wasm::ipc::{IpcContentType, IpcRequest};
 
     let request = IpcRequest {
         ipc: ipc.clone(),
@@ -314,31 +351,33 @@ async fn __ewe_ipc_stream(
         target: None,
     };
 
-    let handler = session.stream_registry().get(&request.ipc)
+    let handler = session
+        .stream_registry()
+        .get(&request.ipc)
         .ok_or_else(|| format!("unknown streaming ipc: {ipc}"))?;
 
-    let ipc_stream = handler.stream(&session, &request)
+    let ipc_stream = handler
+        .stream(&session, &request)
         .map_err(|e| format!("stream error: {e:?}"))?;
 
     loop {
         match &ipc_stream.receiver {
-            IpcStreamReceiver::Sync(queue) => {
-                match queue.pop() {
-                    Ok(Ok(chunk)) => {
-                        stream_channel.send(chunk)
-                            .map_err(|_| "channel closed".to_string())?;
-                    }
-                    Ok(Err(e)) => {
-                        let _ = stream_channel.send(crate::ipc::streaming::IpcStreamChunk {
-                            data: format!("error: {e:?}").into_bytes(),
-                            sequence: u64::MAX,
-                            progress: None,
-                        });
-                        return Err(format!("stream error: {e:?}"));
-                    }
-                    Err(_) => return Ok(()),
+            IpcStreamReceiver::Sync(queue) => match queue.pop() {
+                Ok(Ok(chunk)) => {
+                    stream_channel
+                        .send(chunk)
+                        .map_err(|_| "channel closed".to_string())?;
                 }
-            }
+                Ok(Err(e)) => {
+                    let _ = stream_channel.send(crate::ipc::streaming::IpcStreamChunk {
+                        data: format!("error: {e:?}").into_bytes(),
+                        sequence: u64::MAX,
+                        progress: None,
+                    });
+                    return Err(format!("stream error: {e:?}"));
+                }
+                Err(_) => return Ok(()),
+            },
         }
     }
 }

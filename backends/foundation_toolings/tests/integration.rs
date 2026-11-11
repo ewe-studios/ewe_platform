@@ -1,14 +1,18 @@
 // Integration tests for foundation_toolings.
 
 use foundation_toolings::builder::{CargoBuilder, ProjectBuilder};
+use foundation_toolings::proxy::copy_bidirectional;
+use foundation_toolings::runner::DurationSleeper;
 use foundation_toolings::watcher::FileChange;
 use foundation_toolings::VecStringExt;
-use foundation_toolings::{ProjectDefinition, ProxyRemoteConfig, ProxyType, Http1, Tunnel};
-use foundation_toolings::runner::DurationSleeper;
-use foundation_toolings::proxy::{TunnelProxyTrait, copy_bidirectional};
+use foundation_toolings::{Http1, ProjectDefinition, ProxyRemoteConfig, ProxyType, Tunnel};
 
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
+
+use foundation_context::Ctx;
+use foundation_core::valtron::SimulatedClock;
 
 // -- VecStringExt
 
@@ -111,16 +115,30 @@ fn test_tunnel_type() {
 
 // -- DurationSleeper
 
+/// The sleeper follows the injected clock, so a test drives it without a wait.
 #[test]
-fn test_duration_sleeper() {
-    let mut sleeper = DurationSleeper::new();
-    assert!(!sleeper.is_done());
+fn the_sleeper_follows_the_simulated_clock() {
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let mut sleeper = DurationSleeper::new(Ctx::fixed(clock.clone()));
+    assert!(
+        !sleeper.is_done(),
+        "a sleeper that has not started is not done"
+    );
 
     sleeper.start(Duration::from_millis(50));
-    assert!(!sleeper.is_done());
+    assert!(!sleeper.is_done(), "the deadline is 50 ms away");
 
-    std::thread::sleep(Duration::from_millis(100));
-    assert!(sleeper.is_done());
+    clock.advance(Duration::from_millis(49));
+    assert!(!sleeper.is_done(), "the deadline is 1 ms away");
+
+    clock.advance(Duration::from_millis(1));
+    assert!(sleeper.is_done(), "the clock reached the deadline");
+
+    clock.advance(Duration::from_millis(1));
+    assert!(
+        sleeper.is_done(),
+        "the sleeper stays done past the deadline"
+    );
 }
 
 // -- copy_bidirectional (quick smoke)

@@ -1,40 +1,45 @@
 use std::io;
 
-use derive_more::From;
+use derive_more::{Display, Error, From};
+use foundation_errstacks::ErrorTrace;
+
+/// Result type of the crate's public fallible API.
+pub type ToolingResult<T> = Result<T, ErrorTrace<ToolingError>>;
 
 /// Aggregate error type for all tooling operations.
-#[derive(Debug, From)]
+#[derive(Debug, Display, Error, From)]
 pub enum ToolingError {
     /// I/O error during file or process operations.
+    #[display("Io: {_0}")]
     Io(io::Error),
     /// File watcher failed to initialize or poll.
+    #[display("Watch: {_0}")]
     #[from(ignore)]
-    Watch(String),
+    Watch(#[error(not(source))] String),
     /// Build command failed (cargo, wasm-pack, etc.).
+    #[display("Build: {_0}")]
     #[from(ignore)]
-    Build(String),
+    Build(#[error(not(source))] String),
+    /// The background job pool is missing or closed, so a build cannot start.
+    #[display("Background job unavailable: {_0}")]
+    #[from(ignore)]
+    BackgroundJob(#[error(not(source))] String),
     /// Binary spawn or kill failed.
+    #[display("Run: {_0}")]
     #[from(ignore)]
-    Run(String),
+    Run(#[error(not(source))] String),
     /// Proxy connection or forwarding failed.
+    #[display("Proxy: {_0}")]
     #[from(ignore)]
-    Proxy(String),
+    Proxy(#[error(not(source))] String),
     /// SSE endpoint failed to write or client disconnected.
+    #[display("Sse: {_0}")]
     #[from(ignore)]
-    Sse(String),
+    Sse(#[error(not(source))] String),
 }
 
-impl std::error::Error for ToolingError {}
-
-impl core::fmt::Display for ToolingError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ToolingError::Io(e) => write!(f, "Io: {e}"),
-            ToolingError::Watch(m) => write!(f, "Watch: {m}"),
-            ToolingError::Build(m) => write!(f, "Build: {m}"),
-            ToolingError::Run(m) => write!(f, "Run: {m}"),
-            ToolingError::Proxy(m) => write!(f, "Proxy: {m}"),
-            ToolingError::Sse(m) => write!(f, "Sse: {m}"),
-        }
+impl From<ToolingError> for ErrorTrace<ToolingError> {
+    fn from(err: ToolingError) -> Self {
+        ErrorTrace::new(err)
     }
 }

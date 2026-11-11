@@ -39,13 +39,14 @@ fn deser_socket_addr<'de, D: serde::Deserializer<'de>>(d: D) -> Result<SocketAdd
     }
 
     match Repr::deserialize(d)? {
-        Repr::Bare(s) => s
-            .parse::<SocketAddr>()
-            .or_else(|_| {
-                // Try "host:port" via DNS for named endpoints (common in TOML).
-                (s.as_str(), 0).to_socket_addrs().ok().and_then(|mut it| it.next())
-                    .ok_or_else(|| de::Error::custom(format!("invalid socket address: {s}")))
-            }),
+        Repr::Bare(s) => s.parse::<SocketAddr>().or_else(|_| {
+            // Try "host:port" via DNS for named endpoints (common in TOML).
+            (s.as_str(), 0)
+                .to_socket_addrs()
+                .ok()
+                .and_then(|mut it| it.next())
+                .ok_or_else(|| de::Error::custom(format!("invalid socket address: {s}")))
+        }),
         Repr::Full { host, port } => {
             let addr: std::net::IpAddr = host
                 .parse()
@@ -56,9 +57,7 @@ fn deser_socket_addr<'de, D: serde::Deserializer<'de>>(d: D) -> Result<SocketAdd
 }
 
 /// Deserialise a `Vec<SocketAddr>` from a TOML array of bare strings or tables.
-fn deser_socket_addrs<'de, D: serde::Deserializer<'de>>(
-    d: D,
-) -> Result<Vec<SocketAddr>, D::Error> {
+fn deser_socket_addrs<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<SocketAddr>, D::Error> {
     use serde::de;
 
     #[derive(Deserialize)]
@@ -72,9 +71,9 @@ fn deser_socket_addrs<'de, D: serde::Deserializer<'de>>(
     items
         .into_iter()
         .map(|i| match i {
-            Item::Bare(s) => s.parse::<SocketAddr>().map_err(|e| {
-                de::Error::custom(format!("{s}: {e}"))
-            }),
+            Item::Bare(s) => s
+                .parse::<SocketAddr>()
+                .map_err(|e| de::Error::custom(format!("{s}: {e}"))),
             Item::Full { host, port } => {
                 let ip: std::net::IpAddr = host
                     .parse()
@@ -114,18 +113,16 @@ impl NetworkConfig {
     /// Derive or return the resolved network id.
     #[must_use]
     pub fn resolve_network_id(&self) -> NetworkId {
-        self.network_id.unwrap_or_else(|| self.seed.derive_network_id())
+        self.network_id
+            .unwrap_or_else(|| self.seed.derive_network_id())
     }
 }
 
 /// Node-local settings (ports, capabilities, persistence).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConfig {
-    /// Outer WireGuard UDP socket bind address.
-    #[serde(
-        default = "default_udp_listen",
-        deserialize_with = "deser_socket_addr"
-    )]
+    /// Outer `WireGuard` UDP socket bind address.
+    #[serde(default = "default_udp_listen", deserialize_with = "deser_socket_addr")]
     pub udp_listen: SocketAddr,
 
     /// Noise-PSK bootstrap listener bind address.
@@ -150,11 +147,11 @@ pub struct NodeConfig {
 }
 
 fn default_udp_listen() -> SocketAddr {
-    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0))
+    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
 }
 
 fn default_bootstrap_listen() -> SocketAddr {
-    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0))
+    SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
 }
 
 impl Default for NodeConfig {
@@ -172,20 +169,16 @@ impl Default for NodeConfig {
 /// Data plane mode — which TCP/IP stack backs the overlay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "mode", rename_all = "lowercase")]
+#[derive(Default)]
 pub enum DataPlaneMode {
     /// smoltcp userspace netstack (default — no privileges, cross-platform).
     #[serde(alias = "smoltcp")]
+    #[default]
     Netstack,
-    /// Kernel TUN device (Linux/Darwin, requires CAP_NET_ADMIN or TUN ownership).
+    /// Kernel TUN device (Linux/Darwin, requires `CAP_NET_ADMIN` or TUN ownership).
     #[serde(alias = "tun")]
     #[cfg(not(target_family = "wasm"))]
     Tun { name: String, mtu: u32 },
-}
-
-impl Default for DataPlaneMode {
-    fn default() -> Self {
-        Self::Netstack
-    }
 }
 
 /// Data plane settings (smoltcp netstack, kernel TUN).
@@ -199,13 +192,17 @@ pub struct DataPlaneConfig {
     #[serde(default = "default_mtu")]
     pub mtu: u16,
 
-    /// WireGuard persistent-keepalive interval in seconds. Default 25.
+    /// `WireGuard` persistent-keepalive interval in seconds. Default 25.
     #[serde(default = "default_keepalive")]
     pub keepalive_secs: u16,
 }
 
-const fn default_mtu() -> u16 { 1380 }
-const fn default_keepalive() -> u16 { 25 }
+const fn default_mtu() -> u16 {
+    1380
+}
+const fn default_keepalive() -> u16 {
+    25
+}
 
 impl Default for DataPlaneConfig {
     fn default() -> Self {
@@ -237,9 +234,15 @@ pub struct RelayConfig {
     pub idle_timeout_secs: u64,
 }
 
-const fn default_max_relay_sessions() -> u32 { 4096 }
-const fn default_rate_limit_pps() -> u32 { 1000 }
-const fn default_idle_timeout_secs() -> u64 { 120 }
+const fn default_max_relay_sessions() -> u32 {
+    4096
+}
+const fn default_rate_limit_pps() -> u32 {
+    1000
+}
+const fn default_idle_timeout_secs() -> u64 {
+    120
+}
 
 impl Default for RelayConfig {
     fn default() -> Self {
@@ -307,11 +310,7 @@ impl WgConfig {
     ///
     /// HOW: Ephemeral loopback listeners; `seed_endpoints` supplies the join target(s).
     #[must_use]
-    pub fn joiner(
-        seed: WgSeed,
-        network_id: NetworkId,
-        seed_endpoints: Vec<SocketAddr>,
-    ) -> Self {
+    pub fn joiner(seed: WgSeed, network_id: NetworkId, seed_endpoints: Vec<SocketAddr>) -> Self {
         Self {
             network: NetworkConfig {
                 seed,
@@ -377,9 +376,9 @@ impl WgConfig {
 
     /// WHY: Start a programmatic builder from a seed.
     ///
-    /// WHAT: Returns a [`WgConfigBuilder`] initialised with the seed + network_id.
+    /// WHAT: Returns a [`WgConfigBuilder`] initialised with the seed + `network_id`.
     ///
-    /// HOW: The seed and optional network_id are the only truly required fields.
+    /// HOW: The seed and optional `network_id` are the only truly required fields.
     #[must_use]
     pub fn builder() -> WgConfigBuilder {
         WgConfigBuilder::default()
@@ -403,7 +402,10 @@ impl WgConfig {
             WgError::Config(format!("cannot read {}: {e}", path.as_ref().display()))
         })?;
         toml::from_str(&contents)
-            .map_err(|e| WgError::Config(format!("invalid TOML in {}: {e}", path.as_ref().display())))
+            .map_err(|e| {
+                WgError::Config(format!("invalid TOML in {}: {e}", path.as_ref().display()))
+            })
+            .map_err(Into::into)
     }
 
     /// WHY: Build a config from environment variables — the self-assembly path for
@@ -419,15 +421,15 @@ impl WgConfig {
     /// # Errors
     /// [`WgError::Config`] if `WG_SECRET` is missing or the seed cannot be parsed.
     pub fn from_env() -> WgResult<Self> {
-        let seed_str = std::env::var("WG_SECRET").map_err(|_| {
-            WgError::Config("WG_SECRET not set in environment".into())
-        })?;
+        let seed_str = std::env::var("WG_SECRET")
+            .map_err(|_| WgError::Config("WG_SECRET not set in environment".into()))?;
         let seed = WgSeed::from_base64url(&seed_str)?;
 
         let network_id = if let Ok(hex) = std::env::var("WG_NETWORK") {
-            Some(NetworkId::from_hex(&hex).map_err(|_| {
-                WgError::Config(format!("invalid WG_NETWORK hex: {hex}"))
-            })?)
+            Some(
+                NetworkId::from_hex(&hex)
+                    .map_err(|_| WgError::Config(format!("invalid WG_NETWORK hex: {hex}")))?,
+            )
         } else {
             None
         };
@@ -440,14 +442,12 @@ impl WgConfig {
                         WgError::Config(format!("invalid WG_SEED_ENDPOINTS item '{s}': {e}"))
                     })
                 })
-                .collect::<WgResult<Vec<_>>>()?
+                .collect::<Result<Vec<_>, WgError>>()?
         } else {
             Vec::new()
         };
 
-        let relay_advertise = std::env::var("WG_RELAY")
-            .map(|v| v == "true" || v == "1")
-            .unwrap_or(false);
+        let relay_advertise = std::env::var("WG_RELAY").is_ok_and(|v| v == "true" || v == "1");
 
         Ok(Self {
             network: NetworkConfig {
@@ -531,7 +531,7 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Bind the WireGuard UDP socket to this address.
+    /// Bind the `WireGuard` UDP socket to this address.
     #[must_use]
     pub fn udp_listen(mut self, addr: SocketAddr) -> Self {
         self.udp_listen = Some(addr);
@@ -573,13 +573,12 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Set the WireGuard keepalive interval in seconds.
+    /// Set the `WireGuard` keepalive interval in seconds.
     #[must_use]
     pub fn keepalive_secs(mut self, secs: u16) -> Self {
         self.keepalive_secs = Some(secs);
         self
     }
-
 
     /// Advertise this node as a relay (feature 05).
     #[must_use]
@@ -616,7 +615,7 @@ impl WgConfigBuilder {
         self
     }
 
-    /// Use a kernel TUN device. Requires CAP_NET_ADMIN or TUN ownership.
+    /// Use a kernel TUN device. Requires `CAP_NET_ADMIN` or TUN ownership.
     #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn dataplane_tun(mut self, name: &str, mtu: u32) -> Self {

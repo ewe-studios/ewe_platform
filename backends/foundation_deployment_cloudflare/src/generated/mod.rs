@@ -4,7 +4,12 @@
 //! DO NOT EDIT MANUALLY.
 
 #![cfg(feature = "cloudflare")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -12,91 +17,186 @@
 )]
 #![allow(unused_imports)]
 
-pub mod shared;
+pub mod shared {
+    pub use foundation_cloudflare_types::generated::*;
+    pub use foundation_deployment::providers::common::{
+        read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body,
+        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,
+    };
+    pub use foundation_deployment::providers::common::{
+        ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
+    };
+}
 
 #[cfg(feature = "cloudflare_access")]
-pub mod access;
+pub mod access {
+    pub use foundation_cloudflare_access::access::*;
+}
 #[cfg(feature = "cloudflare_accounts")]
-pub mod accounts;
+pub mod accounts {
+    pub use foundation_cloudflare_accounts::accounts::*;
+}
 #[cfg(feature = "cloudflare_ai")]
-pub mod ai;
+pub mod ai {
+    pub use foundation_cloudflare_ai::ai::*;
+}
 #[cfg(feature = "cloudflare_analytics")]
-pub mod analytics;
+pub mod analytics {
+    pub use foundation_cloudflare_analytics::analytics::*;
+}
 #[cfg(feature = "cloudflare_apps")]
-pub mod apps;
+pub mod apps {
+    pub use foundation_cloudflare_apps::apps::*;
+}
 #[cfg(feature = "cloudflare_billing")]
-pub mod billing;
+pub mod billing {
+    pub use foundation_cloudflare_billing::billing::*;
+}
 #[cfg(feature = "cloudflare_cache")]
-pub mod cache;
+pub mod cache {
+    pub use foundation_cloudflare_cache::cache::*;
+}
 #[cfg(feature = "cloudflare_certificates")]
-pub mod certificates;
+pub mod certificates {
+    pub use foundation_cloudflare_certificates::certificates::*;
+}
 #[cfg(feature = "cloudflare_data")]
-pub mod data;
+pub mod data {
+    pub use foundation_cloudflare_data::data::*;
+}
 #[cfg(feature = "cloudflare_devices")]
-pub mod devices;
+pub mod devices {
+    pub use foundation_cloudflare_devices::devices::*;
+}
 #[cfg(feature = "cloudflare_dns")]
-pub mod dns;
+pub mod dns {
+    pub use foundation_cloudflare_dns::dns::*;
+}
 #[cfg(feature = "cloudflare_domains")]
-pub mod domains;
+pub mod domains {
+    pub use foundation_cloudflare_domains::domains::*;
+}
 #[cfg(feature = "cloudflare_email")]
-pub mod email;
+pub mod email {
+    pub use foundation_cloudflare_email::email::*;
+}
 #[cfg(feature = "cloudflare_entitlements")]
-pub mod entitlements;
+pub mod entitlements {
+    pub use foundation_cloudflare_entitlements::entitlements::*;
+}
 #[cfg(feature = "cloudflare_events")]
-pub mod events;
+pub mod events {
+    pub use foundation_cloudflare_events::events::*;
+}
 #[cfg(feature = "cloudflare_ips")]
-pub mod ips;
+pub mod ips {
+    pub use foundation_cloudflare_ips::ips::*;
+}
 #[cfg(feature = "cloudflare_load_balancers")]
-pub mod load_balancers;
+pub mod load_balancers {
+    pub use foundation_cloudflare_load_balancers::load_balancers::*;
+}
 #[cfg(feature = "cloudflare_logs")]
-pub mod logs;
+pub mod logs {
+    pub use foundation_cloudflare_logs::logs::*;
+}
 #[cfg(feature = "cloudflare_magic_wan")]
-pub mod magic_wan;
+pub mod magic_wan {
+    pub use foundation_cloudflare_magic_wan::magic_wan::*;
+}
 #[cfg(feature = "cloudflare_media")]
-pub mod media;
+pub mod media {
+    pub use foundation_cloudflare_media::media::*;
+}
 #[cfg(feature = "cloudflare_migration")]
-pub mod migration;
+pub mod migration {
+    pub use foundation_cloudflare_migration::migration::*;
+}
 #[cfg(feature = "cloudflare_network")]
-pub mod network;
+pub mod network {
+    pub use foundation_cloudflare_network::network::*;
+}
 #[cfg(feature = "cloudflare_profile")]
-pub mod profile;
+pub mod profile {
+    pub use foundation_cloudflare_profile::profile::*;
+}
 #[cfg(feature = "cloudflare_queues")]
-pub mod queues;
+pub mod queues {
+    pub use foundation_cloudflare_queues::queues::*;
+}
 #[cfg(feature = "cloudflare_radar")]
-pub mod radar;
+pub mod radar {
+    pub use foundation_cloudflare_radar::radar::*;
+}
 #[cfg(feature = "cloudflare_reports")]
-pub mod reports;
+pub mod reports {
+    pub use foundation_cloudflare_reports::reports::*;
+}
 #[cfg(feature = "cloudflare_resources")]
-pub mod resources;
+pub mod resources {
+    pub use foundation_cloudflare_resources::resources::*;
+}
 #[cfg(feature = "cloudflare_routes")]
-pub mod routes;
+pub mod routes {
+    pub use foundation_cloudflare_routes::routes::*;
+}
 #[cfg(feature = "cloudflare_rules")]
-pub mod rules;
+pub mod rules {
+    pub use foundation_cloudflare_rules::rules::*;
+}
 #[cfg(feature = "cloudflare_secrets")]
-pub mod secrets;
+pub mod secrets {
+    pub use foundation_cloudflare_secrets::secrets::*;
+}
 #[cfg(feature = "cloudflare_security")]
-pub mod security;
+pub mod security {
+    pub use foundation_cloudflare_security::security::*;
+}
 #[cfg(feature = "cloudflare_security_center")]
-pub mod security_center;
+pub mod security_center {
+    pub use foundation_cloudflare_security_center::security_center::*;
+}
 #[cfg(feature = "cloudflare_shares")]
-pub mod shares;
+pub mod shares {
+    pub use foundation_cloudflare_shares::shares::*;
+}
 #[cfg(feature = "cloudflare_storage")]
-pub mod storage;
+pub mod storage {
+    pub use foundation_cloudflare_storage::storage::*;
+}
 #[cfg(feature = "cloudflare_stream")]
-pub mod stream;
+pub mod stream {
+    pub use foundation_cloudflare_stream::stream::*;
+}
 #[cfg(feature = "cloudflare_targets")]
-pub mod targets;
+pub mod targets {
+    pub use foundation_cloudflare_targets::targets::*;
+}
 #[cfg(feature = "cloudflare_tasks")]
-pub mod tasks;
+pub mod tasks {
+    pub use foundation_cloudflare_tasks::tasks::*;
+}
 #[cfg(feature = "cloudflare_tenants")]
-pub mod tenants;
+pub mod tenants {
+    pub use foundation_cloudflare_tenants::tenants::*;
+}
 #[cfg(feature = "cloudflare_tokens")]
-pub mod tokens;
+pub mod tokens {
+    pub use foundation_cloudflare_tokens::tokens::*;
+}
 #[cfg(feature = "cloudflare_tracer")]
-pub mod tracer;
+pub mod tracer {
+    pub use foundation_cloudflare_tracer::tracer::*;
+}
 #[cfg(feature = "cloudflare_waiting_rooms")]
-pub mod waiting_rooms;
+pub mod waiting_rooms {
+    pub use foundation_cloudflare_waiting_rooms::waiting_rooms::*;
+}
 #[cfg(feature = "cloudflare_workers")]
-pub mod workers;
+pub mod workers {
+    pub use foundation_cloudflare_workers::workers::*;
+}
 #[cfg(feature = "cloudflare_zones")]
-pub mod zones;
+pub mod zones {
+    pub use foundation_cloudflare_zones::zones::*;
+}

@@ -7,11 +7,9 @@
 //! response wrapping, which is complex. This version validates Accept-Encoding and
 //! could be extended to compress response bodies.
 
-use std::sync::Arc;
-
 use foundation_netio::shared::http::SimpleIncomingRequest;
 
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 
 /// Compression algorithm.
@@ -29,7 +27,17 @@ pub enum CompressionAlgorithm {
 
 impl CompressionAlgorithm {
     /// Parse from Accept-Encoding header value.
-    fn from_str(s: &str) -> Option<Self> {
+    ///
+    /// # Note
+    /// This is an inherent parser, not the `FromStr` trait: it accepts only
+    /// the four encodings the middleware serves and returns `None` for the
+    /// rest.
+    #[must_use]
+    #[allow(
+        clippy::should_implement_trait,
+        reason = "a fallible lookup over four known values, not a total parser"
+    )]
+    pub fn from_str(s: &str) -> Option<Self> {
         match s.trim().to_lowercase().as_str() {
             "gzip" => Some(CompressionAlgorithm::Gzip),
             "br" => Some(CompressionAlgorithm::Brotli),
@@ -71,7 +79,7 @@ impl CompressionConfig {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            min_size: 1024,     // 1KB
+            min_size: 1024,       // 1KB
             max_size: 10_485_760, // 10MB
             level: 6,
             mime_types: vec![
@@ -131,9 +139,9 @@ impl CompressionConfig {
     /// Check if a MIME type should be compressed.
     #[allow(dead_code)]
     fn should_compress(&self, mime_type: &str) -> bool {
-        self.mime_types.iter().any(|m| {
-            mime_type.starts_with(m) || m.starts_with(mime_type)
-        })
+        self.mime_types
+            .iter()
+            .any(|m| mime_type.starts_with(m) || m.starts_with(mime_type))
     }
 }
 
@@ -165,7 +173,8 @@ impl CompressionMiddleware {
     }
 
     /// Parse Accept-Encoding header and select best algorithm.
-    fn select_algorithm(&self, accept_encoding: &str) -> Option<CompressionAlgorithm> {
+    #[must_use]
+    pub fn select_algorithm(&self, accept_encoding: &str) -> Option<CompressionAlgorithm> {
         // Parse qvalues: gzip;q=0.8, br;q=1.0, *;q=0
         let mut candidates: Vec<(CompressionAlgorithm, f32)> = Vec::new();
 
@@ -210,8 +219,16 @@ impl CompressionMiddleware {
             }
 
             // Tie-break by preferred order
-            let a_idx = self.config.preferred_algorithms.iter().position(|p| p == &a.0);
-            let b_idx = self.config.preferred_algorithms.iter().position(|p| p == &b.0);
+            let a_idx = self
+                .config
+                .preferred_algorithms
+                .iter()
+                .position(|p| p == &a.0);
+            let b_idx = self
+                .config
+                .preferred_algorithms
+                .iter()
+                .position(|p| p == &b.0);
             a_idx.cmp(&b_idx)
         });
 
@@ -248,14 +265,10 @@ pub struct CompressionPreference {
 }
 
 impl RequestMiddleware for CompressionMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Parse Accept-Encoding header
-        let algorithm = Self::extract_accept_encoding(req)
-            .and_then(|enc| self.select_algorithm(&enc));
+        let algorithm =
+            Self::extract_accept_encoding(req).and_then(|enc| self.select_algorithm(&enc));
 
         // Store compression preference in request extensions
         // This would require modifying SimpleIncomingRequest.extensions
@@ -275,54 +288,5 @@ impl RequestMiddleware for CompressionMiddleware {
 
         // Always continue — compression happens at response time
         MiddlewareResult::Continue
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_compression_algorithm_from_str() {
-        assert_eq!(CompressionAlgorithm::from_str("gzip"), Some(CompressionAlgorithm::Gzip));
-        assert_eq!(CompressionAlgorithm::from_str("GZIP"), Some(CompressionAlgorithm::Gzip));
-        assert_eq!(CompressionAlgorithm::from_str("br"), Some(CompressionAlgorithm::Brotli));
-        assert_eq!(CompressionAlgorithm::from_str("deflate"), Some(CompressionAlgorithm::Deflate));
-        assert_eq!(CompressionAlgorithm::from_str("identity"), Some(CompressionAlgorithm::Identity));
-        assert_eq!(CompressionAlgorithm::from_str("unknown"), None);
-    }
-
-    #[test]
-    fn test_compression_config_default() {
-        let config = CompressionConfig::default();
-        assert_eq!(config.min_size, 1024);
-        assert_eq!(config.max_size, 10_485_760);
-        assert_eq!(config.level, 6);
-        assert!(!config.mime_types.is_empty());
-    }
-
-    #[test]
-    fn test_compression_select_algorithm() {
-        let mw = CompressionMiddleware::default();
-
-        // Prefer brotli
-        let alg = mw.select_algorithm("gzip, br");
-        assert_eq!(alg, Some(CompressionAlgorithm::Brotli));
-
-        // Only gzip
-        let alg = mw.select_algorithm("gzip");
-        assert_eq!(alg, Some(CompressionAlgorithm::Gzip));
-
-        // With qvalues
-        let alg = mw.select_algorithm("gzip;q=0.5, br;q=1.0");
-        assert_eq!(alg, Some(CompressionAlgorithm::Brotli));
-
-        // Identity only
-        let alg = mw.select_algorithm("identity");
-        assert_eq!(alg, Some(CompressionAlgorithm::Identity));
-
-        // Identity;q=0 means no compression
-        let alg = mw.select_algorithm("identity;q=0");
-        assert_eq!(alg, None);
     }
 }

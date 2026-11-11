@@ -9,10 +9,12 @@
 use std::thread;
 use std::time::Duration;
 
+use foundation_context::Ctx;
+
 use crate::config::{GuestOs, Result, VmProfile};
 use crate::ssh::VmSession;
-use crate::winrm::elevated::ProgressCallback;
 use crate::winrm::WinRM;
+use crate::winrm::elevated::ProgressCallback;
 
 pub mod boot_wait;
 pub mod linux;
@@ -28,11 +30,12 @@ const LINUX_MARKER: &str = "/home/vagrant/.testbed-bootstrapped";
 const MACOS_MARKER: &str = "/Users/vagrant/.testbed-bootstrapped";
 
 /// Check if a profile's VM has already been bootstrapped.
-pub fn is_bootstrapped(profile: &VmProfile) -> bool {
+#[must_use]
+pub fn is_bootstrapped(profile: &VmProfile, ctx: &Ctx) -> bool {
     match profile.os {
         GuestOs::Windows => {
             // Try WinRM first, fall back to SSH (WinRM may be down after nushell setup)
-            if let Ok(winrm) = WinRM::from_profile(profile) {
+            if let Ok(winrm) = WinRM::from_profile(profile, ctx.clone()) {
                 let result = winrm.run_ps_quiet(&format!(
                     "if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}"
                 ));
@@ -42,8 +45,9 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
             }
             // Fall back to SSH
             if let Ok(mut session) = crate::ssh::connect(profile) {
-                let result = crate::ssh::exec_ps_windows(&mut session,
-                    &format!("if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}")
+                let result = crate::ssh::exec_ps_windows(
+                    &mut session,
+                    &format!("if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}"),
                 );
                 if let Ok((output, _)) = result {
                     return output.trim() == "YES";
@@ -53,7 +57,10 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
         }
         GuestOs::Linux => {
             if let Ok(mut session) = crate::ssh::connect(profile) {
-                let result = crate::ssh::exec(&mut session, &format!("[ -f {LINUX_MARKER} ] && echo YES || echo NO"));
+                let result = crate::ssh::exec(
+                    &mut session,
+                    &format!("[ -f {LINUX_MARKER} ] && echo YES || echo NO"),
+                );
                 if let Ok(output) = result {
                     return output.trim() == "YES";
                 }
@@ -62,7 +69,10 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
         }
         GuestOs::MacOS => {
             if let Ok(mut session) = crate::ssh::connect(profile) {
-                let result = crate::ssh::exec(&mut session, &format!("[ -f {MACOS_MARKER} ] && echo YES || echo NO"));
+                let result = crate::ssh::exec(
+                    &mut session,
+                    &format!("[ -f {MACOS_MARKER} ] && echo YES || echo NO"),
+                );
                 if let Ok(output) = result {
                     return output.trim() == "YES";
                 }
@@ -77,31 +87,39 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
 /// Log file is written to `$PWD/.testbed/<vm-name>/bootstrap.log`.
 ///
 /// For Windows, this handles the two-phase flow automatically:
-/// 1. WinRM phase — installs OpenSSH, configures keys/autologin
+/// 1. `WinRM` phase — installs OpenSSH, configures keys/autologin
 /// 2. Waits for SSH to become available
 /// 3. SSH phase — installs mise, build tools, runtimes
 ///
 /// For Linux/macOS, runs SSH-only bootstrap directly.
-pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
-    if is_bootstrapped(profile) {
+///
+/// # Errors
+/// Returns an error if a bootstrap step fails or the VM does not become bootstrapped.
+pub fn bootstrap(
+    profile: &VmProfile,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+) -> Result<()> {
+    if is_bootstrapped(profile, logger.ctx()) {
         logger.message("already bootstrapped, skipping");
         return Ok(());
     }
 
     match profile.os {
         GuestOs::Windows => {
-            let winrm = WinRM::from_profile(profile)?;
+            let winrm = WinRM::from_profile(profile, logger.ctx().clone())?;
 
             // Phase 1: WinRM-only (installs OpenSSH)
-            if !is_bootstrapped(profile) {
+            if !is_bootstrapped(profile, logger.ctx()) {
                 windows::bootstrap_windows_winrm_phase(profile, &winrm, logger, progress)?;
             }
 
             // Wait for SSH to come up
             thread::sleep(Duration::from_secs(10));
-            let deadline = std::time::Instant::now() + Duration::from_secs(120);
+            let deadline = logger.clock().now() + Duration::from_secs(120);
             loop {
-                if std::time::Instant::now() > deadline {
+                if logger.clock().now() > deadline {
                     return Err(crate::config::TestbedError::BootstrapFailed {
                         step: "wait for SSH".to_string(),
                         message: "timed out waiting for SSH after WinRM bootstrap".to_string(),
@@ -117,7 +135,9 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &Bootstra
             *session = crate::ssh::connect(profile)?;
 
             // Phase 2: SSH-required (installs dev tools)
-            windows::bootstrap_windows_ssh_phase(profile, &winrm, session, logger, progress, false)?;
+            windows::bootstrap_windows_ssh_phase(
+                profile, &winrm, session, logger, progress, false,
+            )?;
         }
         GuestOs::Linux => {
             linux::bootstrap_linux(profile, session, logger)?;
@@ -128,7 +148,7 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &Bootstra
     }
 
     // Verify bootstrap succeeded
-    if !is_bootstrapped(profile) {
+    if !is_bootstrapped(profile, logger.ctx()) {
         return Err(crate::config::TestbedError::BootstrapFailed {
             step: "verification".to_string(),
             message: "bootstrap marker not found after completion".to_string(),
@@ -139,7 +159,11 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &Bootstra
 }
 
 /// Bootstrap a macOS VM with development tools via SSH.
-fn bootstrap_macos(profile: &crate::config::VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
+fn bootstrap_macos(
+    profile: &crate::config::VmProfile,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+) -> Result<()> {
     macos::bootstrap_macos(profile, session, logger)
 }
 
@@ -147,4 +171,3 @@ fn bootstrap_macos(profile: &crate::config::VmProfile, session: &mut VmSession, 
 ///
 /// Installed during initial VM setup to provide the dev toolchain.
 pub const BOOTSTRAP_MISE_TOML: &str = include_str!("../../scripts/bootstrap_mise.toml");
-

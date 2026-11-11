@@ -30,15 +30,9 @@ bench = false
 [dependencies]
 
 # -- ewe platform dependencies
-ewe_devserver = { version = "0.0.1"}
-ewe_watch_utils = { version = "0.0.1" }
-
-# -- tokio & axum
-axum = { version = "0.7.5" }
-tokio = { version = "1.36", features = ["full"], default-features = true }
+foundation_toolings = { version = "0.0.9" }
+foundation_core = { version = "0.0.20", features = ["multi"] }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
-
-[lints]

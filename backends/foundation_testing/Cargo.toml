@@ -1,8 +1,8 @@
 [package]
 name = "foundation_testing"
-version = "0.0.3"
+version = "0.0.6"
 edition = "2021"
-rust-version = "1.75"
+rust-version.workspace = true
 authors = ["Foundation AI Team"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/darkvoid/ewe_platform"
@@ -12,10 +12,11 @@ categories = ["development-tools::testing"]
 
 [dependencies]
 # Foundation primitives being tested
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", features = ["std"] }
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
-foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.2", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.8", features = ["std"] }
+foundation_core = { path = "../foundation_core", version = "0.0.20" }
+foundation_context = { path = "../foundation_context", version = "0.0.2" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.13" }
+foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.4", optional = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }
 
@@ -36,6 +37,12 @@ socket2 = "0.6"
 [dev-dependencies]
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
+
+# `SimulatedClock` for the clock-injection test (spec 70 feature 134).
+[dev-dependencies.foundation_core]
+path = "../foundation_core"
+version = "0.0.20"
+features = ["test-clock"]
 
 
 [features]

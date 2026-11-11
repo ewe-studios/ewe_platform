@@ -1,8 +1,14 @@
 //! Events audit-log tests (spec-57, F008 Stage 1).
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::events::{self, EventRequest};
@@ -27,13 +33,22 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 #[valtron_test]
@@ -46,8 +61,16 @@ fn collect_then_list() {
             &c,
             USER,
             vec![
-                EventRequest { event_type: 1114, cipher_id: Some("cid-1".into()), date: None },
-                EventRequest { event_type: 1107, cipher_id: None, date: None },
+                EventRequest {
+                    event_type: 1114,
+                    cipher_id: Some("cid-1".into()),
+                    date: None,
+                },
+                EventRequest {
+                    event_type: 1107,
+                    cipher_id: None,
+                    date: None,
+                },
             ],
         )
         .await
@@ -57,9 +80,13 @@ fn collect_then_list() {
     let c = ctx.clone();
     let listed = drive(async move { events::list(&c, USER).await }).expect("list");
     assert_eq!(listed.len(), 2);
-    assert!(listed.iter().any(|e| e.event_type == 1114 && e.cipher_id.as_deref() == Some("cid-1")));
+    assert!(listed
+        .iter()
+        .any(|e| e.event_type == 1114 && e.cipher_id.as_deref() == Some("cid-1")));
 
     // Another user sees none.
     let c = ctx.clone();
-    assert!(drive(async move { events::list(&c, "other").await }).expect("list other").is_empty());
+    assert!(drive(async move { events::list(&c, "other").await })
+        .expect("list other")
+        .is_empty());
 }

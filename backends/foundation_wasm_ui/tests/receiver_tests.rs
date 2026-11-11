@@ -26,10 +26,7 @@ fn set_text(node_id: u32, text: &str) -> DomOp {
 }
 
 /// A mock-backed receiver plus the shared recorders.
-fn mock_receiver() -> (
-    InstructionReceiver,
-    Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>,
-) {
+fn mock_receiver() -> (InstructionReceiver, Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>) {
     let mock = MockProtocol::new();
     let sent = mock.sent_batches();
     let receiver = InstructionReceiver::new(Box::new(mock), MemoryAllocations::new());
@@ -174,7 +171,11 @@ fn batch_instructions_payload_is_one_slot_with_text_pool() {
     // Exactly one LIVE slot (the batch scratch slots are recycled).
     assert_eq!(memory.total_allocated() - memory.total_free(), 1);
 
-    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let bytes = memory
+        .get(result.memory_id)
+        .unwrap()
+        .clone_memory()
+        .unwrap();
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(envelope.protocol, 0);
     let texts_off = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]) as usize;
@@ -188,7 +189,11 @@ fn batch_instructions_payload_is_one_slot_with_text_pool() {
 fn json_payload_is_valid_json() {
     let mut memory = MemoryAllocations::new();
     let result = JsonV1::new().encode_and_send(five_ops(), &mut memory);
-    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let bytes = memory
+        .get(result.memory_id)
+        .unwrap()
+        .clone_memory()
+        .unwrap();
     let (_, payload) = WasmEnvelope::parse(&bytes);
     let value: serde_json::Value = serde_json::from_slice(payload).expect("valid JSON payload");
     assert_eq!(value.as_array().map(Vec::len), Some(5));
@@ -229,7 +234,11 @@ fn slot_contains_exact_encoded_body() {
     let expected_body = &expected[1 + expected[0] as usize..];
 
     let result = ColumnarV1::new().encode_and_send(ops, &mut memory);
-    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let bytes = memory
+        .get(result.memory_id)
+        .unwrap()
+        .clone_memory()
+        .unwrap();
     let (_, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(result.encoded_bytes, payload.len());
     let body = &payload[1 + payload[0] as usize..];
@@ -361,7 +370,11 @@ fn signals_stabilize_flushes_one_batch_through_the_attached_runtime() {
     // Decision 008: creation queued the initial renders; they are still pending
     // (no stabilize yet), so flush them through the loop once.
     signals.stabilize();
-    assert_eq!(sent.borrow().len(), 1, "initial renders flushed as one batch");
+    assert_eq!(
+        sent.borrow().len(),
+        1,
+        "initial renders flushed as one batch"
+    );
     assert_eq!(sent.borrow()[0].len(), 2);
 
     set_count.set(42);
@@ -414,7 +427,10 @@ fn builder_and_encoder_emit_identical_bodies() {
     }
     let built = batch.serialize();
     let encoded = foundation_ui_traits::ColumnarEncoder.encode(ops);
-    assert_eq!(built, encoded, "builder output == encoder output, shim included");
+    assert_eq!(
+        built, encoded,
+        "builder output == encoder output, shim included"
+    );
 }
 
 /// Spec §5 test 3 — the framing layer's shim puts the 8-byte columnar header
@@ -428,7 +444,11 @@ fn framed_columnar_header_is_absolutely_aligned() {
     }
     let (result, ptr, _len) = ColumnarV1::new().write_batch(&batch, &mut memory);
 
-    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let bytes = memory
+        .get(result.memory_id)
+        .unwrap()
+        .clone_memory()
+        .unwrap();
     let (_, payload) = WasmEnvelope::parse(&bytes);
     let pad = payload[0] as usize;
     let header_addr = ptr as usize + 14 /* WasmEnvelope */ + 1 + pad;
@@ -453,7 +473,11 @@ fn columnar_receiver_round_trips() {
     assert_eq!(receiver.flush_count(), 1);
 
     let memory = receiver.memory().expect("owned arena");
-    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let bytes = memory
+        .get(result.memory_id)
+        .unwrap()
+        .clone_memory()
+        .unwrap();
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(envelope.protocol, 1);
     let decoded = ColumnarV1::new()
@@ -490,4 +514,3 @@ fn builder_columnar_mode_e2e() {
     assert_eq!(receiver.flush_count(), 2, "initial render + update flushed");
     assert_eq!(receiver.pending_count(), 0);
 }
-

@@ -17,8 +17,9 @@ use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResu
 use crate::shared::client::DnsResolver;
 use crate::shared::http::timeout::TimeoutCalculator;
 use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod, TryClone};
+use foundation_context::Ctx;
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskSpread, TaskStatus};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -139,7 +140,7 @@ where
                 Duration::from_secs(1),
                 Some(Duration::from_secs(30)),
             ),
-            start_time: Some(Instant::now()),
+            start_time: None,
         })
     }
 
@@ -302,7 +303,12 @@ where
     type Ready = ParseResult;
     type Pending = ReconnectingProgress;
 
+    // Long by design: one match over every reconnect/parse state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        // The reconnect budget starts at the first poll and runs on the engine
+        // clock, so a simulated clock controls it.
+        let now = ctx.clock().now();
         let state = self.state.take()?;
 
         match state {
@@ -396,17 +402,16 @@ where
 
                             // Check max reconnect duration first
                             if let Some(max_duration) = self.config.max_reconnect_duration {
-                                if let Some(start) = self.start_time {
-                                    if start.elapsed() > max_duration {
-                                        error!(
-                                            elapsed_secs = ?start.elapsed().as_secs(),
-                                            max_secs = ?max_duration.as_secs(),
-                                            "Max reconnect duration exceeded"
-                                        );
-                                        // Max duration exceeded - exhaust
-                                        self.state = Some(ReconnectingState::Exhausted);
-                                        return None;
-                                    }
+                                let start = *self.start_time.get_or_insert(now);
+                                if now.saturating_duration_since(start) > max_duration {
+                                    error!(
+                                        elapsed_secs = ?now.saturating_duration_since(start).as_secs(),
+                                        max_secs = ?max_duration.as_secs(),
+                                        "Max reconnect duration exceeded"
+                                    );
+                                    // Max duration exceeded - exhaust
+                                    self.state = Some(ReconnectingState::Exhausted);
+                                    return None;
                                 }
                             }
 
@@ -451,7 +456,15 @@ where
                 // Create new inner task
                 if let Some(inner) = self.create_inner_task() {
                     self.state = Some(ReconnectingState::Connected(Box::new(inner)));
-                    Some(TaskStatus::Pending(ReconnectingProgress::Connecting))
+                    // Tell the consumer the stream starts again. A server that
+                    // ignores `Last-Event-ID` replays the response from the
+                    // start, so a consumer that accumulates (text, tool-call
+                    // arguments) must discard what it holds, or the replay is
+                    // appended to it.
+                    Some(TaskStatus::Ready(ParseResult::new(
+                        Event::Reconnect,
+                        self.last_event_id.clone(),
+                    )))
                 } else {
                     error!("Failed to create inner task");
                     // Failed to create task — exhaust

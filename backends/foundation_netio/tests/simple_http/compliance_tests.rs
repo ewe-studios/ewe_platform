@@ -3958,7 +3958,7 @@ Hello world!";
             let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
             let contents = content_result.expect("extracted all feeds");
 
-            println!("LineFeeds: {:?}", contents);
+            println!("LineFeeds: {contents:?}");
             assert_eq!(
                 contents,
                 vec![
@@ -4031,7 +4031,7 @@ Hello world!";
             let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
             let contents = content_result.expect("extracted all feeds");
 
-            println!("LineFeeds: {:?}", contents);
+            println!("LineFeeds: {contents:?}");
             assert_eq!(
                 contents,
                 vec![
@@ -4104,7 +4104,7 @@ Hello world!";
             let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
             let contents = content_result.expect("extracted all feeds");
 
-            println!("LineFeeds: {:?}", contents);
+            println!("LineFeeds: {contents:?}");
             assert_eq!(
                 contents,
                 vec![LineFeed::Line("event: 0123456789".into()), LineFeed::SKIP,],
@@ -4173,7 +4173,7 @@ Hello world!";
             let content_result: Result<Vec<LineFeed>, BoxedError> = body_iter.collect();
             let contents = content_result.expect("extracted all feeds");
 
-            println!("LineFeeds: {:?}", contents);
+            println!("LineFeeds: {contents:?}");
             assert_eq!(
                 contents,
                 vec![LineFeed::Line("event: 0123456789".into()), LineFeed::SKIP,],
@@ -6938,6 +6938,8 @@ Hello world!";
 
         use super::*;
 
+        // Long by design: one test drives a full multi-event request round trip.
+        #[allow(clippy::too_many_lines)]
         #[test]
         fn should_parse_multiple_events() {
             let message = "POST /aaa HTTP/1.1\nContent-Length: 3\n\nAAA\nPUT /bbb HTTP/1.1\nContent-Length: 4\n\nBBBB\nPATCH /ccc HTTP/1.1\nContent-Length: 5\n\nCCCC\n";
@@ -9133,7 +9135,7 @@ Hello world!";
 
         #[test]
         fn invalid_header_token_2() {
-            let message = r#"GET / HTTP/1.1\nFoo\01\test: Bar\n\n\n"#;
+            let message = r"GET / HTTP/1.1\nFoo\01\test: Bar\n\n\n";
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
@@ -9244,7 +9246,7 @@ Hello world!";
 
         #[test]
         fn corrupted_connection_header() {
-            let message = r#"GET / HTTP/1.1\nHost: www.example.com\nConnection\r\033\065\325eep-Alive\nAccept-Encoding: gzip\n\n\n"#;
+            let message = r"GET / HTTP/1.1\nHost: www.example.com\nConnection\r\033\065\325eep-Alive\nAccept-Encoding: gzip\n\n\n";
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
@@ -9271,7 +9273,7 @@ Hello world!";
 
         #[test]
         fn corrupted_header_name() {
-            let message = r#"GET / HTTP/1.1\nHost: www.example.com\nX-Some-Header\r\033\065\325eep-Alive\nAccept-Encoding: gzip\n\n\n"#;
+            let message = r"GET / HTTP/1.1\nHost: www.example.com\nX-Some-Header\r\033\065\325eep-Alive\nAccept-Encoding: gzip\n\n\n";
             // Test implementation would go here
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
             let addr = listener.local_addr().expect("should return address");
@@ -9505,7 +9507,7 @@ mod hardening_tests {
     //! HTTP/1.1 Hardening Tests
     //!
     //! These tests validate security hardening features:
-    //! - Total header size limits (DoS protection)
+    //! - Total header size limits (`DoS` protection)
     //! - URI length limits (414 URI Too Long)
     //! - Max chunk size limits
     //! - Slowloris protection (read timeouts)
@@ -9518,6 +9520,7 @@ mod hardening_tests {
         http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,
     };
 
+    use std::fmt::Write as _;
     use std::io::Write;
     use std::{
         net::{TcpListener, TcpStream},
@@ -9528,7 +9531,7 @@ mod hardening_tests {
     /// Test: Total header size limit
     ///
     /// Sends a request with many headers totaling >64KB.
-    /// Expected: Should reject with TotalHeaderSizeTooLarge error
+    /// Expected: Should reject with `TotalHeaderSizeTooLarge` error
     #[test]
     fn test_total_header_size_limit() {
         let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -9538,7 +9541,7 @@ mod hardening_tests {
         let mut message = String::from("GET / HTTP/1.1\r\n");
         let header_value = "x".repeat(1000); // 1KB per header
         for i in 0..80 {
-            message.push_str(&format!("X-Custom-Header-{}: {}\r\n", i, header_value));
+            let _ = write!(message, "X-Custom-Header-{i}: {header_value}\r\n");
         }
         message.push_str("\r\n");
 
@@ -9562,8 +9565,7 @@ mod hardening_tests {
         );
         assert!(
             matches!(result, Err(HttpReaderError::TotalHeaderSizeTooLarge(_))),
-            "Should return TotalHeaderSizeTooLarge error, got: {:?}",
-            result
+            "Should return TotalHeaderSizeTooLarge error, got: {result:?}"
         );
 
         req_thread.join().expect("should be closed");
@@ -9572,7 +9574,7 @@ mod hardening_tests {
     /// Test: URI length limit (414 URI Too Long)
     ///
     /// Sends a request with URI >8KB.
-    /// Expected: Should reject with UriTooLong error
+    /// Expected: Should reject with `UriTooLong` error
     #[test]
     fn test_uri_length_limit() {
         let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -9580,7 +9582,7 @@ mod hardening_tests {
 
         // Build a request with a very long URI (>8KB)
         let long_path = "/".to_string() + &"a".repeat(9000);
-        let message = format!("GET {} HTTP/1.1\r\nHost: localhost\r\n\r\n", long_path);
+        let message = format!("GET {long_path} HTTP/1.1\r\nHost: localhost\r\n\r\n");
 
         let req_thread = thread::spawn(move || {
             let mut client = panic_if_failed!(TcpStream::connect(addr));
@@ -9608,7 +9610,7 @@ mod hardening_tests {
     /// Test: Max chunk size limit
     ///
     /// Sends a chunked response with a chunk >16MB.
-    /// Expected: Should reject with ChunkSizeTooLarge error
+    /// Expected: Should reject with `ChunkSizeTooLarge` error
     #[test]
     fn test_max_chunk_size_limit() {
         let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -9647,8 +9649,7 @@ mod hardening_tests {
                     // Verify it's a chunk size related error
                     assert!(
                         matches!(e, HttpReaderError::ChunkSizeTooLarge(_)),
-                        "Expected ChunkSizeTooLarge error, got: {:?}",
-                        e
+                        "Expected ChunkSizeTooLarge error, got: {e:?}"
                     );
                     return;
                 }
@@ -9661,8 +9662,7 @@ mod hardening_tests {
                 // Should get an error when trying to parse the oversized chunk
                 assert!(
                     result.is_err(),
-                    "Should reject chunk >16MB, got: {:?}",
-                    result
+                    "Should reject chunk >16MB, got: {result:?}"
                 );
             } else {
                 panic!("Expected error from chunked stream, but got None");
@@ -9789,8 +9789,7 @@ mod hardening_tests {
         // The key is that the read does not hang indefinitely
         assert!(
             result.is_err(),
-            "Expected error due to timeout or incomplete data, got: {:?}",
-            result
+            "Expected error due to timeout or incomplete data, got: {result:?}"
         );
 
         req_thread.join().expect("should be closed");

@@ -28,21 +28,21 @@
 //!     // (a closure would silently capture `return`).
 //!     fn __valtron_body() { /* spawn tasks, … */ }
 //!
-//!     // Engine up. `initialize_pool` is the unified entry — it picks the
-//!     // multi-threaded pool (feature "multi") or the single-threaded/wasm pool
-//!     // automatically, and returns the matching PoolGuard.
-//!     let __valtron_guard = ::foundation_core::valtron::initialize_pool(
-//!         /* seed */    …,        // explicit `seed = N`, or a RandomState-derived u64
-//!         /* threads */ None,     // explicit `threads = N`, or the engine default
-//!     );
+//!     // Engine up inside a block scope. `initialize_pool` is the unified entry —
+//!     // it picks the multi-threaded pool (feature "multi") or the
+//!     // single-threaded/wasm pool automatically, and returns the matching
+//!     // PoolGuard.
+//!     {
+//!         let __valtron_guard = ::foundation_core::valtron::initialize_pool(
+//!             /* seed */    …,        // explicit `seed = N`, or a RandomState-derived u64
+//!             /* threads */ None,     // explicit `threads = N`, or the engine default
+//!         );
 //!
-//!     // Run the user's code WHILE the guard lives…
-//!     let __valtron_out = __valtron_body();
-//!
-//!     // …and only shut the engine down (PoolGuard::drop joins/kills the pool
-//!     // threads under feature "multi") AFTER the body has fully returned.
-//!     ::core::mem::drop(__valtron_guard);
-//!     __valtron_out
+//!         // Run the user's code WHILE the guard lives. The block ends, and so
+//!         // drops the guard, AFTER the body has fully returned. PoolGuard::drop
+//!         // joins/kills the pool threads under feature "multi".
+//!         __valtron_body()
+//!     }
 //! }
 //! ```
 //!
@@ -82,14 +82,34 @@
 //! absent → `None` (engine default); `seed = N` → that seed, absent → a random
 //! one (see "The default seed" below).
 //!
+//! Both macros also take `ctx = expr`, the root `Ctx` the engine starts with.
+//! With it, the expansion calls `initialize_pool_with_ctx`; without it, the
+//! expansion is the same as before this argument existed. A `timeout` body runs
+//! on a new thread and receives the same root through
+//! `initialize_current_thread_with_ctx`.
+//!
+//! Both macros take `slow_poll = ms`: warn when one task poll holds a worker
+//! longer than `ms` milliseconds. The default is 100 ms, so a blocked test
+//! reports itself. A warning names the task and the elapsed microseconds, at
+//! most once per task per second.
+//!
+//! **A task poll must not block.** Do not call `join()`, `recv()` on a blocking
+//! socket, or a blocking file read inside a task body or a future. The call
+//! holds the worker that polls it, so a small pool starves and the effect looks
+//! like a flaky test. Wait with a readiness signal, a timer, or an async
+//! equivalent instead. `slow_poll` reports the next violation.
+//!
 //! # Why the guard handling is the whole point
 //!
 //! `initialize_pool` returns a `PoolGuard` whose `Drop` tears the engine down.
 //! The classic footgun is `let _ = initialize_pool(…)` — the guard drops on THAT
 //! LINE and the pool dies before any task runs. The macro makes the correct
-//! lifetime structural: the guard is a named local that provably outlives the
-//! entire body, and is dropped explicitly afterwards (rather than relying on
-//! scope order) so the sequencing is visible in the expansion.
+//! lifetime structural: the guard is a named local in a block that encloses the
+//! body, so it provably outlives the entire body and drops when the block ends,
+//! after the body has returned. A block scope is used instead of an explicit
+//! `drop(guard)` because the guard has a `Drop` impl only under feature
+//! "multi"; in the single-threaded build `drop()` is a no-op that
+//! `clippy::drop_non_drop` reports.
 //!
 //! # The default seed
 //!
@@ -111,6 +131,12 @@ struct Args {
     seed: Option<syn::Expr>,
     threads: Option<syn::Expr>,
     timeout: Option<syn::Expr>,
+    /// `slow_poll = ms` — warn when one task poll blocks a worker longer than
+    /// this. Default 100 ms.
+    slow_poll: Option<syn::Expr>,
+    /// `ctx = expr` — the `Ctx` the engine starts with. Absent → the engine
+    /// uses `Ctx::with_seed` with the real clock and the pool seed.
+    ctx: Option<syn::Expr>,
     /// `shutdown_grace = ms` — after a `timeout`, how long the pool gets to stop
     /// before stuck workers are detached. Default
     /// `foundation_core::valtron::DEFAULT_TEST_SHUTDOWN_GRACE`.
@@ -135,9 +161,19 @@ struct Args {
 }
 
 const KNOWN_ARGS: &[&str] = &[
-    "seed", "threads", "timeout", "shutdown_grace",
-    "tracing", "tracing_targets", "tracing_ids",
-    "tracing_names", "tracing_files", "tracing_lines", "tracing_ansi",
+    "seed",
+    "threads",
+    "timeout",
+    "slow_poll",
+    "ctx",
+    "shutdown_grace",
+    "tracing",
+    "tracing_targets",
+    "tracing_ids",
+    "tracing_names",
+    "tracing_files",
+    "tracing_lines",
+    "tracing_ansi",
     "tracing_writer",
 ];
 
@@ -159,19 +195,17 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `key = value` pairs (seed, threads, timeout, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
+            "expected `key = value` pairs (seed, threads, timeout, slow_poll, ctx, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi, tracing_writer)",
         )
     })?;
     for pair in pairs {
-        let name = pair
-            .path
-            .get_ident()
-            .map(ToString::to_string)
-            .unwrap_or_default();
+        let name = pair.path.get_ident().map_or_default(ToString::to_string);
         match name.as_str() {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),
             "timeout" => args.timeout = Some(pair.value),
+            "slow_poll" => args.slow_poll = Some(pair.value),
+            "ctx" => args.ctx = Some(pair.value),
             "shutdown_grace" => args.shutdown_grace = Some(pair.value),
             "tracing" => args.tracing = Some(pair.value),
             "tracing_targets" => args.tracing_targets = Some(pair.value),
@@ -181,18 +215,17 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "tracing_lines" => args.tracing_lines = Some(pair.value),
             "tracing_ansi" => args.tracing_ansi = Some(pair.value),
             "tracing_writer" => {
-                let lit = match pair.value {
-                    syn::Expr::Lit(syn::ExprLit {
-                        lit: syn::Lit::Str(s),
-                        ..
-                    }) => s.value(),
-                    other => {
-                        return Err(syn::Error::new_spanned(
+                let lit =
+                    match pair.value {
+                        syn::Expr::Lit(syn::ExprLit {
+                            lit: syn::Lit::Str(s),
+                            ..
+                        }) => s.value(),
+                        other => return Err(syn::Error::new_spanned(
                             other,
                             "tracing_writer expects a string literal: \"console\" or \"stdout\"",
-                        ))
-                    }
-                };
+                        )),
+                    };
                 args.tracing_writer = Some(match lit.as_str() {
                     "console" => true,
                     "stdout" => false,
@@ -221,13 +254,18 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
 /// call from the parsed macro args. Called at macro expansion time (not inside
 /// `quote!`), so the returned tokens are spliced directly into the test body.
 ///
-/// For `#[valtron_test]` (is_test=true): tracing is always on (defaults to "info").
-/// For `#[valtron]` (is_test=false): tracing is OFF unless explicitly requested
+/// For `#[valtron_test]` (`is_test = true`): tracing is always on (defaults to "info").
+/// For `#[valtron]` (`is_test = false`): tracing is OFF unless explicitly requested
 /// via `tracing = "debug"` or similar.
-fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream, is_test: bool) -> proc_macro2::TokenStream {
+fn expand_tracing_init(
+    args: &Args,
+    fc: &proc_macro2::TokenStream,
+    is_test: bool,
+) -> proc_macro2::TokenStream {
     // For #[valtron] (non-test), skip tracing unless explicitly requested.
     // For #[valtron_test], always initialize with defaults.
-    if !is_test && args.tracing.is_none()
+    if !is_test
+        && args.tracing.is_none()
         && args.tracing_targets.is_none()
         && args.tracing_ids.is_none()
         && args.tracing_names.is_none()
@@ -256,9 +294,10 @@ fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream, is_test: bool
     let files = field(&args.tracing_files, false);
     let line_numbers = field(&args.tracing_lines, false);
     let ansi = field(&args.tracing_ansi, false);
-    let writer = match args.tracing_writer {
-        Some(true) => quote! { #fc::valtron::trace::TraceWriter::Console },
-        _ => quote! { #fc::valtron::trace::TraceWriter::Stdout },
+    let writer = if let Some(true) = args.tracing_writer {
+        quote! { #fc::valtron::trace::TraceWriter::Console }
+    } else {
+        quote! { #fc::valtron::trace::TraceWriter::Stdout }
     };
 
     quote! {
@@ -279,6 +318,10 @@ fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream, is_test: bool
 ///
 /// `is_test` controls the two differences: emitting `#[test]`, and the
 /// `Some(3)`-minimum thread default.
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear expansion that emits the runtime wrapper in order"
+)]
 fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     let args = match parse_args(attr) {
         Ok(args) => args,
@@ -294,11 +337,8 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     // keeps today's expansion byte-for-byte.
     let is_async = func.sig.asyncness.is_some();
     if !func.sig.inputs.is_empty() {
-        return syn::Error::new_spanned(
-            &func.sig.inputs,
-            "#[valtron] functions take no arguments",
-        )
-        .to_compile_error();
+        return syn::Error::new_spanned(&func.sig.inputs, "#[valtron] functions take no arguments")
+            .to_compile_error();
     }
 
     let fc = foundation_core_path();
@@ -372,6 +412,96 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         Some(expr) => quote! { ::core::option::Option::Some((#expr) as usize) },
     };
 
+    // Slow-poll watchdog: on by default in BOTH macros, because a blocking
+    // call in a task body holds the worker and starves the pool with no trace.
+    // 100 ms is ten times the executor's 10 ms readiness quantum, and well under
+    // the 2 s peer bound of the 2026-11-06 failure. `slow_poll = ms` overrides.
+    let slow_poll = match &args.slow_poll {
+        None => quote! { ::core::option::Option::Some(std::time::Duration::from_millis(100)) },
+        Some(expr) => quote! {
+            ::core::option::Option::Some(std::time::Duration::from_millis((#expr) as u64))
+        },
+    };
+
+    // `ctx = expr`: the engine root. Absent → the expansion is the same as
+    // before this argument existed. With `timeout`, the body runs on a new
+    // thread that must bring its own (single-threaded) engine up, so bind the
+    // root once and clone it for the outer pool.
+    let ctx_expr = args.ctx.as_ref();
+    let ctx_binding = match ctx_expr {
+        None => quote! {},
+        Some(expr) => quote! { let __valtron_ctx: #fc::valtron::Ctx = (#expr); },
+    };
+    let init_pool_direct = match ctx_expr {
+        // The root RNG takes the pool seed (`Ctx::with_seed`), so one seed
+        // drives the whole run. Bind the seed once: the default seed
+        // expression draws a new value each time it runs.
+        None => quote! {
+            {
+                let __valtron_seed: u64 = #seed;
+                #fc::valtron::initialize_pool_with_slow_poll_warning(
+                    __valtron_seed,
+                    #threads,
+                    #slow_poll,
+                    #fc::valtron::Ctx::with_seed(
+                        ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
+                        __valtron_seed,
+                    ),
+                )
+            }
+        },
+        Some(expr) => quote! {
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
+                #seed,
+                #threads,
+                #slow_poll,
+                (#expr),
+            )
+        },
+    };
+    let init_pool_timeout = if ctx_expr.is_some() {
+        quote! {
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
+                __valtron_seed,
+                #threads,
+                #slow_poll,
+                __valtron_ctx.clone(),
+            )
+        }
+    } else {
+        quote! {
+            #fc::valtron::initialize_pool_with_slow_poll_warning(
+                __valtron_seed,
+                #threads,
+                #slow_poll,
+                #fc::valtron::Ctx::with_seed(
+                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
+                    __valtron_seed,
+                ),
+            )
+        }
+    };
+    let init_current_thread_timeout = if ctx_expr.is_some() {
+        quote! {
+            #fc::valtron::initialize_current_thread_with_slow_poll_warning(
+                __valtron_seed,
+                #slow_poll,
+                __valtron_ctx,
+            )
+        }
+    } else {
+        quote! {
+            #fc::valtron::initialize_current_thread_with_slow_poll_warning(
+                __valtron_seed,
+                #slow_poll,
+                #fc::valtron::Ctx::with_seed(
+                    ::std::sync::Arc::new(#fc::valtron::MonotonicClock::new()),
+                    __valtron_seed,
+                ),
+            )
+        }
+    };
+
     let test_attr = if is_test {
         quote! { #[test] }
     } else {
@@ -390,56 +520,56 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     // wait with recv_timeout. Without timeout, direct call (no thread overhead).
     let body_with_timeout = if let Some(timeout_ms) = &args.timeout {
         quote! {
-            // Sync: the original body as an inner fn (`return`/`?` keep their exact
-            // meaning). Async: empty — the body is driven via `run_call` below.
-            #inner_def
+            {
+                // Sync: the original body as an inner fn (`return`/`?` keep their exact
+                // meaning). Async: empty — the body is driven via `run_call` below.
+                #inner_def
 
-            // Before `initialize_pool` — workers pin the ambient dispatcher at
-            // spawn time, so a later init leaves every worker thread silent.
-            #tracing_init;
-            let __valtron_seed: u64 = #seed;
-            let __valtron_guard = #fc::valtron::initialize_pool(__valtron_seed, #threads);
-            let __timeout_ms: u64 = #timeout_ms;
-            let __timeout_start = std::time::Instant::now();
-            type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
-            let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
-            std::thread::spawn(move || {
-                // The body runs on this thread. Without `multi` the engine is
-                // thread-local, so bring it up here too (a no-op under `multi`).
-                #fc::valtron::initialize_current_thread(__valtron_seed);
-                let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    #run_call
-                }));
-                let _ = __sender.send(panic_result);
-            });
-            match __receiver.recv_timeout(std::time::Duration::from_millis(__timeout_ms)) {
-                std::result::Result::Ok(std::result::Result::Ok(t)) => {
-                    ::core::mem::drop(__valtron_guard);
-                    t
-                },
-                std::result::Result::Ok(std::result::Result::Err(payload)) => {
-                    ::core::mem::drop(__valtron_guard);
-                    std::panic::resume_unwind(payload);
-                },
-                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    // The body is hung, often because pool workers are blocked
-                    // (a deadlock, a blocking syscall). Dropping the guard would
-                    // wait for those workers forever and keep the process-wide
-                    // pool gate shut, hanging every later test too. Tear the pool
-                    // down with a deadline instead: stuck workers (and the body
-                    // thread) are detached, and the gate is released on drop.
-                    let __stopped = __valtron_guard.shutdown_within(#shutdown_grace);
-                    ::core::mem::drop(__valtron_guard);
-                    panic!(
-                        "timeout: the test took {} ms. Max {} ms.{}",
-                        __timeout_start.elapsed().as_millis(),
-                        __timeout_ms,
-                        if __stopped { "" } else { " Pool workers were still blocked and were detached." },
-                    );
-                },
-                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
-                    panic!("timeout: test thread disconnected unexpectedly");
-                },
+                // Before `initialize_pool` — workers pin the ambient dispatcher at
+                // spawn time, so a later init leaves every worker thread silent.
+                #tracing_init;
+                let __valtron_seed: u64 = #seed;
+                #ctx_binding
+                let __valtron_guard = #init_pool_timeout;
+                let __timeout_ms: u64 = #timeout_ms;
+                type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
+                let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
+                std::thread::spawn(move || {
+                    // The body runs on this thread. Without `multi` the engine is
+                    // thread-local, so bring it up here too (a no-op under `multi`).
+                    #init_current_thread_timeout;
+                    let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        #run_call
+                    }));
+                    let _ = __sender.send(panic_result);
+                });
+                // The guard lives in this block scope, so it drops after the match
+                // has produced its value, or during the unwind of a panic arm. It
+                // is never dropped with `mem::drop`: under the single-threaded
+                // build that is a no-op that `clippy::drop_non_drop` reports.
+                match __receiver.recv_timeout(std::time::Duration::from_millis(__timeout_ms)) {
+                    std::result::Result::Ok(std::result::Result::Ok(t)) => t,
+                    std::result::Result::Ok(std::result::Result::Err(payload)) => {
+                        std::panic::resume_unwind(payload);
+                    },
+                    Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                        // The body is hung, often because pool workers are blocked
+                        // (a deadlock, a blocking syscall). Dropping the guard would
+                        // wait for those workers forever and keep the process-wide
+                        // pool gate shut, hanging every later test too. Tear the pool
+                        // down with a deadline instead: stuck workers (and the body
+                        // thread) are detached, and the gate is released on drop.
+                        let __stopped = __valtron_guard.shutdown_within(#shutdown_grace);
+                        panic!(
+                            "timeout: the test did not finish within {} ms.{}",
+                            __timeout_ms,
+                            if __stopped { "" } else { " Pool workers were still blocked and were detached." },
+                        );
+                    },
+                    Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                        panic!("timeout: test thread disconnected unexpectedly");
+                    },
+                }
             }
         }
     } else {
@@ -459,19 +589,19 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // matter what subscriber is installed afterwards.
             #tracing_init;
 
-            // Engine up — the guard is a NAMED local so it provably lives across
-            // the whole body (a `let _ =` would drop it immediately and kill the
-            // pool before anything ran).
-            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            // Engine up inside a block scope: the guard is a NAMED local in the
+            // block, so it provably lives across the whole body (a `let _ =` would
+            // drop it immediately and kill the pool before anything ran) and drops
+            // when the block ends, AFTER the body has returned. No `mem::drop`:
+            // without feature "multi" the guard has no `Drop` impl, and that call
+            // is the no-op `clippy::drop_non_drop` reports.
+            {
+                let __valtron_guard = #init_pool_direct;
 
-            // Sync: call the inner fn. Async: drive the body future to completion
-            // (`.await` points park on the engine — Decision 00).
-            let __valtron_out = #run_call;
-
-            // Engine down — explicit, AFTER the body has fully returned, so the
-            // shutdown ordering is visible rather than implied by scope.
-            ::core::mem::drop(__valtron_guard);
-            __valtron_out
+                // Sync: call the inner fn. Async: drive the body future to
+                // completion (`.await` points park on the engine — Decision 00).
+                #run_call
+            }
         }
     };
 

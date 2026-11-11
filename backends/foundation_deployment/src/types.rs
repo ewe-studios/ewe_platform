@@ -12,7 +12,10 @@
 //!      destroy the deployed resource.
 
 use chrono::{DateTime, Utc};
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
+
+use crate::clock::wall_now_utc;
 
 /// Cloudflare Worker deployment output.
 ///
@@ -50,13 +53,14 @@ impl WorkerDeployment {
         script_name: impl Into<String>,
         deployment_id: impl Into<String>,
         url: impl Into<String>,
+        ctx: &Ctx,
     ) -> Self {
         Self {
             account_id: account_id.into(),
             script_name: script_name.into(),
             deployment_id: deployment_id.into(),
             url: url.into(),
-            deployed_at: Utc::now(),
+            deployed_at: wall_now_utc(ctx),
         }
     }
 }
@@ -105,6 +109,7 @@ impl CloudRunDeployment {
         project_id: impl Into<String>,
         url: impl Into<String>,
         image: impl Into<String>,
+        ctx: &Ctx,
     ) -> Self {
         Self {
             resource_name: resource_name.into(),
@@ -113,7 +118,7 @@ impl CloudRunDeployment {
             project_id: project_id.into(),
             url: url.into(),
             image: image.into(),
-            deployed_at: Utc::now(),
+            deployed_at: wall_now_utc(ctx),
         }
     }
 }
@@ -154,13 +159,14 @@ impl CloudRunJobDeployment {
         job_name: impl Into<String>,
         region: impl Into<String>,
         project_id: impl Into<String>,
+        ctx: &Ctx,
     ) -> Self {
         Self {
             resource_name: resource_name.into(),
             job_name: job_name.into(),
             region: region.into(),
             project_id: project_id.into(),
-            deployed_at: Utc::now(),
+            deployed_at: wall_now_utc(ctx),
         }
     }
 }
@@ -194,13 +200,13 @@ impl DeploymentOutput {
     /// * `id` - Unique identifier
     /// * `name` - Human-readable name
     #[must_use]
-    pub fn new(id: impl Into<String>, name: impl Into<String>) -> Self {
+    pub fn new(id: impl Into<String>, name: impl Into<String>, ctx: &Ctx) -> Self {
         Self {
             id: id.into(),
             name: name.into(),
             url: None,
             metadata: serde_json::Value::Null,
-            deployed_at: Utc::now(),
+            deployed_at: wall_now_utc(ctx),
         }
     }
 

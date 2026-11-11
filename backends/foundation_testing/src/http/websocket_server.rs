@@ -27,7 +27,11 @@ use sha1::{Digest, Sha1};
 const WEBSOCKET_GUID: &str = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 /// Compute Sec-WebSocket-Accept from client key.
-fn compute_accept_key(client_key: &str) -> String {
+///
+/// This is the server half of the WebSocket handshake (RFC 6455 section
+/// 4.2.2). It is public so the RFC test vector can be checked from `tests/`.
+#[must_use]
+pub fn compute_accept_key(client_key: &str) -> String {
     let mut hasher = Sha1::new();
     hasher.update(client_key.as_bytes());
     hasher.update(WEBSOCKET_GUID.as_bytes());
@@ -560,24 +564,5 @@ impl WebSocketEchoServer {
 impl Drop for WebSocketEchoServer {
     fn drop(&mut self) {
         self.running.store(false, Ordering::Relaxed);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_server_start() {
-        let server = WebSocketEchoServer::start();
-        assert!(server.base_url().starts_with("ws://127.0.0.1:"));
-    }
-
-    #[test]
-    fn test_compute_accept_key_rfc_vector() {
-        let client_key = "dGhlIHNhbXBsZSBub25jZQ==";
-        let expected = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
-        let result = compute_accept_key(client_key);
-        assert_eq!(result, expected);
     }
 }

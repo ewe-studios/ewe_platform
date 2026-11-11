@@ -10,11 +10,8 @@
 
 use std::collections::HashMap;
 
-use petgraph::graph::NodeIndex;
-use petgraph::visit::EdgeRef;
-
 use super::graph::CodeGraph;
-use super::types::{GraphEdge, GraphNode};
+use super::types::GraphEdge;
 
 /// A node ranked by centrality (degree).
 #[derive(Debug, Clone)]
@@ -45,13 +42,20 @@ impl CodeGraph {
     ///
     /// High in-degree = many things depend on this node. High out-degree = this
     /// node depends on many things. Both are structurally significant.
+    #[must_use]
     pub fn god_nodes(&self, k: usize) -> Vec<GodNode> {
         let mut scored: Vec<GodNode> = Vec::with_capacity(self.graph.node_count());
 
         for idx in self.graph.node_indices() {
             let node = &self.graph[idx];
-            let in_degree = self.graph.edges_directed(idx, petgraph::Direction::Incoming).count();
-            let out_degree = self.graph.edges_directed(idx, petgraph::Direction::Outgoing).count();
+            let in_degree = self
+                .graph
+                .edges_directed(idx, petgraph::Direction::Incoming)
+                .count();
+            let out_degree = self
+                .graph
+                .edges_directed(idx, petgraph::Direction::Outgoing)
+                .count();
             scored.push(GodNode {
                 id: node.id.clone(),
                 label: node.label.clone(),
@@ -73,6 +77,7 @@ impl CodeGraph {
     ///
     /// If `communities` is None, returns an empty vec (no clustering has been
     /// performed). A community map maps node id → community id (0 = largest).
+    #[must_use]
     pub fn surprising_connections(
         &self,
         communities: Option<&HashMap<String, usize>>,
@@ -84,7 +89,9 @@ impl CodeGraph {
         let mut result = Vec::new();
 
         for edge_idx in self.graph.edge_indices() {
-            let (src, tgt) = self.graph.edge_endpoints(edge_idx).unwrap();
+            let Some((src, tgt)) = self.graph.edge_endpoints(edge_idx) else {
+                continue;
+            };
             let src_node = &self.graph[src];
             let tgt_node = &self.graph[tgt];
             let edge = &self.graph[edge_idx];
@@ -92,10 +99,7 @@ impl CodeGraph {
             let src_comm = comm.get(&src_node.id).copied().unwrap_or(usize::MAX);
             let tgt_comm = comm.get(&tgt_node.id).copied().unwrap_or(usize::MAX);
 
-            if src_comm != tgt_comm
-                && src_comm != usize::MAX
-                && tgt_comm != usize::MAX
-            {
+            if src_comm != tgt_comm && src_comm != usize::MAX && tgt_comm != usize::MAX {
                 result.push(SurprisingConnection {
                     source_id: src_node.id.clone(),
                     source_label: src_node.label.clone(),
@@ -110,7 +114,8 @@ impl CodeGraph {
 
         // Sort by source community (0 = largest first), then target
         result.sort_by(|a, b| {
-            a.source_community.cmp(&b.source_community)
+            a.source_community
+                .cmp(&b.source_community)
                 .then_with(|| a.target_community.cmp(&b.target_community))
         });
         result

@@ -1,32 +1,32 @@
 use proc_macro::TokenStream;
 
-mod connectrpc_service;
 mod arrow_json_schema;
 mod arrow_schema;
+mod bindgen_test;
+mod connectrpc_service;
 mod crate_paths;
 mod docker_container;
-mod proxy;
 mod embedders;
-mod mobile_directory;
 mod from_arrow;
-mod platform_test;
+mod html_macro;
 mod json_hash;
 mod json_schema;
+mod mobile_directory;
+mod platform_test;
+mod proxy;
 mod scaffold;
 mod schema_fields;
-mod to_arrow;
-mod type_uuid;
-mod wasm_entrypoint;
-mod wasm_logs;
-mod html_macro;
-mod theme_macro;
-mod theme_tokens;
-mod wasm_modes;
 mod serial_test;
 mod state_task;
+mod theme_macro;
+mod theme_tokens;
+mod to_arrow;
+mod type_uuid;
 mod valtron_entry;
+mod wasm_entrypoint;
+mod wasm_logs;
+mod wasm_modes;
 mod wasm_test;
-mod bindgen_test;
 mod wasm_ui_server_entry;
 mod wasmbin_codec;
 mod wireguard;
@@ -201,7 +201,7 @@ pub fn embed_file_as(item: TokenStream) -> TokenStream {
 /// Never panics. Returns compile errors for invalid usage.
 #[proc_macro_attribute]
 pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
-    platform_test::platform_test(attr, item)
+    platform_test::platform_test(&attr, item)
 }
 
 #[proc_macro_attribute]
@@ -608,7 +608,9 @@ pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
-    wasm_test::valtron_wasm_test(attr.into(), item.into()).into()
+    let attr: proc_macro2::TokenStream = attr.into();
+    let item: proc_macro2::TokenStream = item.into();
+    wasm_test::valtron_wasm_test(&attr, &item).into()
 }
 
 /// `#[valtron_bindgen]` — wasm-bindgen browser test with valtron pool (F52).
@@ -636,22 +638,32 @@ pub fn valtron_bindgen(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 /// Runs a function with the valtron execution engine live around it (the
 /// `#[tokio::main]` analogue): initializes the pool via
-/// `foundation_core::valtron::initialize_pool(seed, threads)` and holds the
-/// returned `PoolGuard` until the function body has fully returned.
+/// `foundation_core::valtron::initialize_pool_with_slow_poll_warning` and holds
+/// the returned `PoolGuard` until the function body has fully returned.
 ///
-/// Arguments (both optional): `#[valtron(seed = 42, threads = 4)]`. `threads`
-/// supplied → `Some(N)`, absent → `None` (engine default). Without `seed`, a
-/// random `RandomState`-derived u64 is used. Also exported as
-/// `foundation_core::valtron::valtron`.
+/// Arguments (all optional): `#[valtron(seed = 42, threads = 4, slow_poll = 50)]`.
+/// `threads` supplied → `Some(N)`, absent → `None` (engine default). Without
+/// `seed`, a random `RandomState`-derived u64 is used. `slow_poll = ms` warns
+/// when one task poll holds a worker longer than `ms`; the default is 100 ms.
+/// A task poll must not block: wait with a readiness signal, a timer or an async
+/// equivalent, never with `join()`, a blocking socket `recv()` or a blocking
+/// file call. Also exported as `foundation_core::valtron::valtron`.
 #[proc_macro_attribute]
 pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron(attr.into(), item.into()).into()
 }
 
 /// `#[test]` + a live valtron engine around the case (the `#[tokio::test]`
-/// analogue). Same `seed`/`threads` rules as `#[valtron]`: `threads = N` →
-/// `Some(N)`, absent → `None`; `seed` absent → random. Also exported as
-/// `foundation_core::valtron::valtron_test`.
+/// analogue). Same `seed`/`threads`/`slow_poll` rules as `#[valtron]`:
+/// `threads = N` → `Some(N)`, absent → `None`; `seed` absent → random;
+/// `slow_poll = ms` → warn on a poll that holds a worker longer than `ms`,
+/// default 100 ms. Also exported as `foundation_core::valtron::valtron_test`.
+///
+/// **A task poll must not block.** Do not call `join()`, `recv()` on a blocking
+/// socket, or a blocking file read inside a task body or a future: the call
+/// holds the worker that polls it, so a small pool starves and the case looks
+/// flaky. Wait with a readiness signal, a timer or an async equivalent instead.
+/// The `slow_poll` warning names the next violation.
 ///
 /// `timeout = ms` (any `u64` expression, so a suite can read it from its own
 /// config) fails the test once the body runs longer than `ms`. The pool is then
@@ -674,7 +686,8 @@ pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Also exported as `foundation_core::valtron::task`.
 #[proc_macro_attribute]
 pub fn task(attr: TokenStream, item: TokenStream) -> TokenStream {
-    state_task::task(attr.into(), item.into()).into()
+    let attr: proc_macro2::TokenStream = attr.into();
+    state_task::task(&attr, item.into()).into()
 }
 
 /// `#[serial_test]` — serialize tests that share process-global state.
@@ -701,6 +714,10 @@ pub fn serial_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Spawns the test body in a thread and waits with `recv_timeout`. On timeout,
 /// panics with a message showing actual vs allowed duration.
 ///
+/// # Panics
+///
+/// Panics when the attribute is not an integer number of milliseconds.
+///
 /// ```ignore
 /// #[timeout(60000)]
 /// fn test_slow_operation() {
@@ -712,9 +729,8 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
     use quote::quote;
 
     let input = syn::parse_macro_input!(item as syn::ItemFn);
-    let time_ms: syn::LitInt = syn::parse(attr).unwrap_or_else(|_| {
-        panic!("timeout: integer in ms expected. Example: #[timeout(60000)]")
-    });
+    let time_ms: syn::LitInt = syn::parse(attr)
+        .unwrap_or_else(|_| panic!("timeout: integer in ms expected. Example: #[timeout(60000)]"));
     let vis = &input.vis;
     let sig = &input.sig;
     let output = &sig.output;
@@ -726,7 +742,6 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
         #vis #sig {
             fn __timeout_callback() #output
             #body
-            let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (sender, receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
             std::thread::spawn(move || {
@@ -741,7 +756,7 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
                     std::panic::resume_unwind(payload);
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    panic!("timeout: the test took {} ms. Max {} ms", __timeout_start.elapsed().as_millis(), #time_ms);
+                    panic!("timeout: the test did not finish within {} ms", #time_ms);
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
                     panic!("timeout: test thread disconnected unexpectedly");
@@ -798,6 +813,13 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// unless `required = true`, which makes a missing daemon a panic. A daemon
 /// that is reachable but fails a request is never skipped.
 ///
+/// Every container takes its context from the valtron pool the function runs on
+/// (a `#[valtron_test]` provides one). `ctx = <expr>` injects a specific
+/// `Ctx` instead, for a host that has one (rule 11). Without either, the
+/// function never falls back to the real clock: a plain function logs a skip,
+/// and a function returning `DockerResult<()>` returns
+/// `DockerError::MissingClock`.
+///
 /// # Examples
 ///
 /// A single container — the bare `key = value` list is shorthand:
@@ -812,6 +834,19 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// fn test_redis(containers: ContainerGroup) {
 ///     let addr = containers.container("cache").unwrap().address(6379).unwrap();
 ///     // Redis is serving at `addr` (127.0.0.1:<auto-assigned port>).
+/// }
+/// ```
+///
+/// An injected context, for a caller outside a pool:
+///
+/// ```ignore
+/// use std::sync::Arc;
+/// use foundation_core::valtron::{Ctx, SimulatedClock};
+///
+/// #[docker_container(image = "redis:7", as = "cache", port = 6379,
+///                    ctx = Ctx::fixed(Arc::new(SimulatedClock::new(Default::default()))))]
+/// fn test_redis(containers: ContainerGroup) {
+///     // ...
 /// }
 /// ```
 ///
@@ -834,7 +869,7 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
     docker_container::docker_container(attr, item)
 }
 
-/// `wireguard!` — compile-time WireGuard mesh configuration (spec-55, feature 09).
+/// `wireguard!` — compile-time `WireGuard` mesh configuration (spec-55, feature 09).
 ///
 /// Desugars a custom block syntax into a `WgConfig` builder chain.
 /// Unknown keys and missing required fields are compile errors.
@@ -848,7 +883,10 @@ pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     udp_listen: "0.0.0.0:51820",
 ///     relay: { advertise: true },
 /// };
-/// let node = foundation_wireguard::native::WgNode::from_config(config);
+/// let node = foundation_wireguard::native::WgNode::from_config(
+///     config,
+///     foundation_core::valtron::Ctx::host(),
+/// );
 /// ```
 #[proc_macro]
 pub fn wireguard(input: TokenStream) -> TokenStream {
@@ -869,7 +907,7 @@ pub fn wireguard(input: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
-    wireguard::wireguard_main_impl(attr, item)
+    wireguard::wireguard_main_impl(&attr, item)
 }
 
 /// `proxy!` — compile-time proxy configuration (Decision 19).
@@ -892,7 +930,8 @@ pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///         },
 ///     },
 /// };
-/// config.start()?;
+/// // The host entry point builds the context once with the real clock.
+/// let server = config.start(::foundation_core::valtron::Ctx::host()).await?;
 /// ```
 #[proc_macro]
 pub fn proxy(input: TokenStream) -> TokenStream {
@@ -965,9 +1004,9 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 // ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
 
-/// `#[service]` — code-first ConnectRPC (Decision 10 Mode 3).
+/// `#[service]` — code-first `ConnectRPC` (Decision 10 Mode 3).
 ///
-/// Transforms a Rust trait definition into a full ConnectRPC service:
+/// Transforms a Rust trait definition into a full `ConnectRPC` service:
 /// service name constant, procedure path constants (R1), the trait with
 /// default unimplemented bodies, registration fn, `UnimplementedXxxHandler`
 /// (R2), typed client (R4), and an exported descriptor macro for cross-crate
@@ -981,11 +1020,11 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// # Example
 ///
 /// ```ignore
-/// use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+/// use foundation_connectrpc::{service, RpcCtx, Request, Response, ConnectResult};
 ///
 /// #[service(package = "my.api.v1")]
 /// trait MyService {
-///     async fn unary(&self, ctx: Ctx, req: Request<MyReq>)
+///     async fn unary(&self, ctx: RpcCtx, req: Request<MyReq>)
 ///         -> ConnectResult<Response<MyRes>>;
 /// }
 /// ```
@@ -994,7 +1033,7 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
     connectrpc_service::expand_service(attr.into(), item.into()).into()
 }
 
-/// `generate!` — cross-crate ConnectRPC artifact generation.
+/// `generate!` — cross-crate `ConnectRPC` artifact generation.
 ///
 /// Re-expands a descriptor macro exported by `#[service]` in
 /// another crate inside a new module.
@@ -1011,4 +1050,3 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn generate(input: TokenStream) -> TokenStream {
     connectrpc_service::expand_generate(input.into()).into()
 }
-

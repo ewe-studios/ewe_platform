@@ -11,6 +11,7 @@
 
 use std::sync::Arc;
 
+use foundation_context::{Clock, Ctx};
 use foundation_db::core::state::traits::StateStore;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 
@@ -38,6 +39,11 @@ where
     /// HTTP client for API calls. A clone is cheap (`Arc`) and shares the
     /// client's connection pool.
     pub http_client: DynNetClient,
+    /// The context whose clock stamps the state a deploy records.
+    ///
+    /// The host builds the context once and passes it in. A test passes a `Ctx`
+    /// over a `SimulatedClock`, so a recorded `created_at` is deterministic.
+    pub ctx: Ctx,
 }
 
 impl<S> Clone for ProviderClient<S>
@@ -50,6 +56,7 @@ where
             project: self.project.clone(),
             stage: self.stage.clone(),
             http_client: self.http_client.clone(),
+            ctx: self.ctx.clone(),
         }
     }
 }
@@ -66,19 +73,32 @@ where
     /// * `project` - Project name for state namespacing
     /// * `stage` - Stage name (dev, staging, prod)
     /// * `state_store` - State store implementation
+    /// * `ctx` - The context whose clock stamps the state a deploy records
     ///
     /// # Example
     ///
     /// ```rust,no_run
     /// use std::path::Path;
+    /// use foundation_context::Ctx;
     /// use foundation_deployment::provider_client::ProviderClient;
     /// use foundation_db::core::state::FileStateStore;
     ///
     /// let state_store = FileStateStore::new(Path::new("/path"), "my-project", "dev");
-    /// let client = ProviderClient::new("my-project", "dev", state_store);
+    /// let client = ProviderClient::new(
+    ///     "my-project",
+    ///     "dev",
+    ///     state_store,
+    ///     Ctx::host(),
+    /// );
     /// ```
-    pub fn new(project: &str, stage: &str, state_store: S) -> Self {
-        Self::with_client(HttpClientBuilder::new().build(), project, stage, state_store)
+    pub fn new(project: &str, stage: &str, state_store: S, ctx: Ctx) -> Self {
+        Self::with_client(
+            HttpClientBuilder::new().build(),
+            project,
+            stage,
+            state_store,
+            ctx,
+        )
     }
 
     /// Create a provider client that sends its HTTP calls through
@@ -88,12 +108,14 @@ where
         project: &str,
         stage: &str,
         state_store: S,
+        ctx: Ctx,
     ) -> Self {
         Self {
             state_store: Arc::new(state_store),
             project: project.to_string(),
             stage: stage.to_string(),
             http_client,
+            ctx,
         }
     }
 
@@ -119,6 +141,18 @@ where
     #[must_use]
     pub fn http_client(&self) -> &DynNetClient {
         &self.http_client
+    }
+
+    /// Get the clock that stamps recorded state.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.ctx.clock()
+    }
+
+    /// Get the context that carries the clock.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 }
 

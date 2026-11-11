@@ -12,7 +12,9 @@
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::EventReadiness;
+use foundation_core::valtron::{EventReadiness, ReadinessWaker};
+
+use foundation_context::Ctx;
 
 /// A wall-clock `EventReadiness` fallback for when no kernel reactor is available.
 ///
@@ -20,19 +22,30 @@ use foundation_core::valtron::EventReadiness;
 /// instead of polling with `Delayed`. The interval is the maximum time the task
 /// stays parked before being re-polled — a shorter interval means lower latency
 /// but more executor wake-ups.
-#[derive(Debug)]
 pub struct TimerReadiness {
     interval: Duration,
     last_ready: Mutex<Instant>,
+    /// The engine clock that decides when the interval has passed.
+    ctx: Ctx,
+}
+
+impl core::fmt::Debug for TimerReadiness {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("TimerReadiness")
+            .field("interval", &self.interval)
+            .finish_non_exhaustive()
+    }
 }
 
 impl TimerReadiness {
-    /// Create a timer that returns `true` every `interval`.
+    /// Create a timer that returns `true` every `interval`, measured on `clock`.
     #[must_use]
-    pub fn new(interval: Duration) -> Self {
+    pub fn new(interval: Duration, ctx: Ctx) -> Self {
+        let now = ctx.clock().now();
         Self {
             interval,
-            last_ready: Mutex::new(Instant::now()),
+            last_ready: Mutex::new(now),
+            ctx,
         }
     }
 }
@@ -40,44 +53,20 @@ impl TimerReadiness {
 impl EventReadiness for TimerReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         let mut last = self.last_ready.lock().unwrap();
-        if last.elapsed() >= self.interval {
-            *last = Instant::now();
+        let now = self.ctx.clock().now();
+        if now.saturating_duration_since(*last) >= self.interval {
+            *last = now;
             true
         } else {
             false
         }
     }
-}
 
-// ── tests ───────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Arc;
-    use std::thread;
-
-    #[test]
-    fn timer_readiness_fires_after_interval() {
-        let timer = TimerReadiness::new(Duration::from_millis(50));
-        // First call: last_ready is now(), elapsed ≈ 0. Not ready yet.
-        assert!(!timer.is_ready(None));
-
-        // After the interval: should fire.
-        thread::sleep(Duration::from_millis(60));
-        assert!(timer.is_ready(None));
-
-        // Resets on fire — next immediate call should be false.
-        assert!(!timer.is_ready(None));
+    fn deadline(&self) -> Option<Instant> {
+        Some(*self.last_ready.lock().unwrap() + self.interval)
     }
 
-    #[test]
-    fn timer_readiness_implements_event_readiness() {
-        let timer = Arc::new(TimerReadiness::new(Duration::from_millis(0)));
-        // 0ms interval — always fires immediately.
-        let ready: Arc<dyn EventReadiness + Send + Sync> = timer;
-        assert!(ready.is_ready(None));
-        // Also fires on second call — 0ms interval is always ready.
-        assert!(ready.is_ready(None));
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
     }
 }

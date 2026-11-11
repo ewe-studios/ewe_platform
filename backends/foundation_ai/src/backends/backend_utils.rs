@@ -1,5 +1,8 @@
+use std::io::Write;
+
+use foundation_netio::shared::client::body_reader::collect_bytes_into;
 use foundation_netio::shared::client::request::PreparedRequest;
-use foundation_netio::shared::http::{SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeaders, SimpleMethod};
 use foundation_netio::PreparedRequestBuilder;
 
 use crate::errors::{GenerationError, GenerationResult};
@@ -9,6 +12,52 @@ use crate::types::{Tool, ToolArguments};
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/// An [`std::io::Write`] sink that keeps at most `limit` bytes.
+///
+/// A write past the cap accepts the remaining room and then reports zero bytes,
+/// which makes [`std::io::Write::write_all`] stop with `WriteZero`. The
+/// caller's collector stops pulling from the body at that point.
+struct CappedWriter {
+    buf: Vec<u8>,
+    limit: usize,
+}
+
+impl CappedWriter {
+    fn new(limit: usize) -> Self {
+        Self {
+            buf: Vec::with_capacity(limit.min(4096)),
+            limit,
+        }
+    }
+}
+
+impl Write for CappedWriter {
+    fn write(&mut self, src: &[u8]) -> std::io::Result<usize> {
+        let room = self.limit.saturating_sub(self.buf.len());
+        if room == 0 {
+            return Ok(0);
+        }
+        let take = src.len().min(room);
+        self.buf.extend_from_slice(&src[..take]);
+        Ok(take)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/// Read at most `limit` bytes of a sync [`SendSafeBody`] as a lossy UTF-8
+/// string. The rest of the body is never read: the capped sink stops the
+/// collector once the limit is reached.
+pub(crate) fn capped_error_body(body: SendSafeBody, limit: usize) -> String {
+    let mut sink = CappedWriter::new(limit);
+    // A `WriteZero` error past the cap is expected; the bytes kept so far are
+    // what the caller wants.
+    let _ = collect_bytes_into(body, &mut sink);
+    String::from_utf8_lossy(&sink.buf).into_owned()
+}
 
 /// Sleep for `duration` during provider retry backoff without blocking the
 /// runtime.

@@ -6,3 +6,5 @@ mod frame_tests;
 mod qpack_tests;
 mod types_tests;
 mod varint_tests;
+mod waker_tests;
+mod webtransport_accept_tests;

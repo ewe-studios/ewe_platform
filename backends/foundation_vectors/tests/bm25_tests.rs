@@ -19,7 +19,7 @@ fn insert_and_search_basic() {
     idx.insert("doc3", "completely unrelated content about rockets");
 
     let results = idx.search("brown fox", 5);
-    assert!(!results.is_empty());
+    assert_ne!(results, [] as [foundation_vectors::VectorMatch; 0]);
     assert_eq!(results[0].id, "doc1");
 }
 
@@ -27,7 +27,7 @@ fn insert_and_search_basic() {
 fn empty_index_returns_empty() {
     let idx = make_index();
     let results = idx.search("anything", 5);
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
@@ -41,7 +41,7 @@ fn remove_document() {
     assert_eq!(idx.len(), 1);
 
     let results = idx.search("rust", 5);
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn update_existing_document() {
     idx.insert("doc1", "new content about dogs");
 
     let cat_results = idx.search("cats", 5);
-    assert!(cat_results.is_empty());
+    assert_eq!(cat_results, [] as [foundation_vectors::VectorMatch; 0]);
 
     let dog_results = idx.search("dogs", 5);
     assert_eq!(dog_results.len(), 1);

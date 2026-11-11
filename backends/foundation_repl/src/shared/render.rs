@@ -156,8 +156,7 @@ impl<H: ReplHost> ReplRenderer<H> {
         self.viewport_height = height;
         let backend = self.host.create_backend()?;
         self.terminal = Some(
-            Terminal::with_options(backend, TerminalOptions { viewport })
-                .map_err(backend_error)?,
+            Terminal::with_options(backend, TerminalOptions { viewport }).map_err(backend_error)?,
         );
 
         Ok(())
@@ -230,7 +229,11 @@ impl<H: ReplHost> ReplRenderer<H> {
         let (_, surface_height) = self.size();
         let fullscreen = self.keeps_own_transcript();
 
-        let requested = if fullscreen { surface_height } else { body_height };
+        let requested = if fullscreen {
+            surface_height
+        } else {
+            body_height
+        };
         if let Err(error) = self.attach(requested.min(surface_height).max(1)) {
             tracing::error!(%error, "repl: could not prepare the viewport");
             return;
@@ -264,7 +267,9 @@ impl<H: ReplHost> ReplRenderer<H> {
                 };
                 // Only the tail fits, and the tail is what matters — the rest
                 // has already scrolled out of reach.
-                let skip = transcript.len().saturating_sub(usize::from(history_area.height));
+                let skip = transcript
+                    .len()
+                    .saturating_sub(usize::from(history_area.height));
                 Paragraph::new(Text::from(transcript[skip..].to_vec()))
                     .style(output_style)
                     .render(history_area, target.buffer_mut());
@@ -296,7 +301,9 @@ impl<H: ReplHost> ReplRenderer<H> {
                     height: tail_rows,
                     ..area
                 };
-                Paragraph::new(tail).style(output_style).render(tail_area, buffer);
+                Paragraph::new(tail)
+                    .style(output_style)
+                    .render(tail_area, buffer);
                 Rect {
                     y: area.y.saturating_add(tail_rows),
                     height: area.height.saturating_sub(tail_rows),
@@ -605,14 +612,10 @@ impl InputFrame {
 
         let layout = layout_input(view, inner_width);
 
-        let chrome_rows =
-            border_thickness(theme) * 2 + theme.padding.vertical() + hint_rows(theme);
+        let chrome_rows = border_thickness(theme) * 2 + theme.padding.vertical() + hint_rows(theme);
         // The box never takes the whole surface: leaving a row means output
         // inserted above it still has somewhere to land.
-        let room_for_text = height
-            .saturating_sub(chrome_rows)
-            .saturating_sub(1)
-            .max(1);
+        let room_for_text = height.saturating_sub(chrome_rows).saturating_sub(1).max(1);
         let max_rows = usize::from(theme.max_input_rows.max(1).min(room_for_text));
 
         let (first, count) = visible_window(layout.rows.len(), layout.cursor_row, max_rows);

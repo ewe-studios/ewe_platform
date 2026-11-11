@@ -11,8 +11,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 /// A cheap, widely-available OpenRouter model with tool support.
 ///
@@ -45,7 +45,7 @@ fn provider_or_skip() -> Option<impl Model> {
                 .unwrap_or_else(|_| "https://openrouter.ai/api".to_string()),
         )
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(key)));
-    let provider = OpenAIProvider::with_http_client(http)
+    let provider = OpenAIProvider::with_http_client(http, test_clock())
         .create(Some(config))
         .expect("provider builds");
     Some(
@@ -91,6 +91,13 @@ fn params() -> ModelParams {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 #[valtron_test]
 fn openrouter_generate_returns_text() {
     let Some(model) = provider_or_skip() else {
@@ -98,7 +105,10 @@ fn openrouter_generate_returns_text() {
         return;
     };
     let out = model
-        .generate(interaction("Reply with the single word: pong."), Some(params()))
+        .generate(
+            interaction("Reply with the single word: pong."),
+            Some(params()),
+        )
         .expect("openrouter generate should succeed");
     let text: String = out
         .iter()
@@ -110,7 +120,10 @@ fn openrouter_generate_returns_text() {
             _ => None,
         })
         .collect();
-    assert!(!text.trim().is_empty(), "openrouter must return text: {out:?}");
+    assert!(
+        !text.trim().is_empty(),
+        "openrouter must return text: {out:?}"
+    );
     println!("openrouter generate: {text:?}");
 }
 

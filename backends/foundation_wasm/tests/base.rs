@@ -28,17 +28,17 @@ fn can_quantize_ptr() {
             quantization: TypeOptimization::QuantizedPtrAsU16,
         },
         TestCase {
-            value: 2147483647 as *const u8,
+            value: 2_147_483_647 as *const u8,
             expected_bytes: vec![255, 255, 255, 127],
             quantization: TypeOptimization::QuantizedPtrAsU32,
         },
         TestCase {
-            value: 6294967296 as *const u8,
+            value: 6_294_967_296 as *const u8,
             expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
             quantization: TypeOptimization::None,
         },
         TestCase {
-            value: 9223372036854775809 as *const u8,
+            value: 9_223_372_036_854_775_809 as *const u8,
             expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 128],
             quantization: TypeOptimization::None,
         },
@@ -74,17 +74,17 @@ fn can_quantize_i128() {
             quantization: TypeOptimization::QuantizedInt128AsI16,
         },
         TestCase {
-            value: 2147483647,
+            value: 2_147_483_647,
             expected_bytes: vec![255, 255, 255, 127],
             quantization: TypeOptimization::QuantizedInt128AsI32,
         },
         TestCase {
-            value: 6294967296,
+            value: 6_294_967_296,
             expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
             quantization: TypeOptimization::QuantizedInt128AsI64,
         },
         TestCase {
-            value: 9223372036854775809,
+            value: 9_223_372_036_854_775_809,
             expected_bytes: vec![0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 128],
             quantization: TypeOptimization::None,
         },
@@ -120,17 +120,17 @@ fn can_quantize_u128() {
             quantization: TypeOptimization::QuantizedUint128AsU16,
         },
         TestCase {
-            value: 4294967295,
+            value: 4_294_967_295,
             expected_bytes: vec![255, 255, 255, 255],
             quantization: TypeOptimization::QuantizedUint128AsU32,
         },
         TestCase {
-            value: 6294967296,
+            value: 6_294_967_296,
             expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
             quantization: TypeOptimization::QuantizedUint128AsU64,
         },
         TestCase {
-            value: 18446744073709551619,
+            value: 18_446_744_073_709_551_619,
             expected_bytes: vec![1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0],
             quantization: TypeOptimization::None,
         },
@@ -166,17 +166,17 @@ fn can_quantize_u64() {
             quantization: TypeOptimization::QuantizedUint64AsU16,
         },
         TestCase {
-            value: 4294967295,
+            value: 4_294_967_295,
             expected_bytes: vec![255, 255, 255, 255],
             quantization: TypeOptimization::QuantizedUint64AsU32,
         },
         TestCase {
-            value: 6294967296,
+            value: 6_294_967_296,
             expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
             quantization: TypeOptimization::None,
         },
         TestCase {
-            value: 4294967296,
+            value: 4_294_967_296,
             expected_bytes: vec![0, 0, 0, 0, 1, 0, 0, 0],
             quantization: TypeOptimization::None,
         },
@@ -212,12 +212,12 @@ fn can_quantize_i64() {
             quantization: TypeOptimization::QuantizedInt64AsI16,
         },
         TestCase {
-            value: 2147483647,
+            value: 2_147_483_647,
             expected_bytes: vec![255, 255, 255, 127],
             quantization: TypeOptimization::QuantizedInt64AsI32,
         },
         TestCase {
-            value: 6294967296,
+            value: 6_294_967_296,
             expected_bytes: vec![0, 148, 53, 119, 1, 0, 0, 0],
             quantization: TypeOptimization::None,
         },

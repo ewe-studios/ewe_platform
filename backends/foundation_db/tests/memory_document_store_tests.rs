@@ -4,8 +4,8 @@
 //! ready at once, so these run as plain `#[test]`s driven with
 //! `futures_lite::future::block_on`.
 
-use foundation_db::traits::{DocumentStore, AsyncStorageItemStream, PromotableDocument};
 use foundation_compact::ids::new_scru128_string;
+use foundation_db::traits::{AsyncStorageItemStream, DocumentStore, PromotableDocument};
 use foundation_db::MemoryDocumentStore;
 use futures_lite::future::block_on;
 use futures_lite::StreamExt;
@@ -38,8 +38,14 @@ async fn values<V>(mut stream: AsyncStorageItemStream<'_, V>) -> Vec<V> {
 fn append_mints_scru128_ids_and_orders_by_id() {
     block_on(async {
         let store = MemoryDocumentStore::new();
-        let a = store.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-        let b = store.append_async("k", serde_json::json!({"n": 2})).await.unwrap();
+        let a = store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        let b = store
+            .append("k", serde_json::json!({"n": 2}))
+            .await
+            .unwrap();
         assert_eq!(a.id.len(), 25, "scru128 id, not \"mem-N\"");
         assert!(b.id > a.id, "later append has a greater scru128 id");
     });
@@ -51,17 +57,35 @@ fn scan_from_is_inclusive_and_ordered() {
         let store = MemoryDocumentStore::new();
         let mut ids = Vec::new();
         for n in 0..5 {
-            ids.push(store.append_async("k", serde_json::json!({ "n": n })).await.unwrap().id);
+            ids.push(
+                store
+                    .append("k", serde_json::json!({ "n": n }))
+                    .await
+                    .unwrap()
+                    .id,
+            );
         }
 
         // scan_from the 3rd id (inclusive) → ids[2..] in order.
-        let got = values(store.scan_from_async::<serde_json::Value>("k", &ids[2], 0).await.unwrap()).await;
+        let got = values(
+            store
+                .scan_from::<serde_json::Value>("k", &ids[2], 0)
+                .await
+                .unwrap(),
+        )
+        .await;
         assert_eq!(got.len(), 3);
         assert_eq!(got[0]["n"], 2);
         assert_eq!(got[2]["n"], 4);
 
         // limit caps the result.
-        let limited = values(store.scan_from_async::<serde_json::Value>("k", &ids[0], 2).await.unwrap()).await;
+        let limited = values(
+            store
+                .scan_from::<serde_json::Value>("k", &ids[0], 2)
+                .await
+                .unwrap(),
+        )
+        .await;
         assert_eq!(limited.len(), 2);
     });
 }
@@ -72,12 +96,84 @@ fn append_with_id_uses_caller_id() {
         let store = MemoryDocumentStore::new();
         let id = new_scru128_string();
         let doc = store
-            .append_with_id_async("k", &id, serde_json::json!({"x": 1}))
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
             .await
             .unwrap();
         assert_eq!(doc.id, id);
-        let got = values(store.scan_from_async::<serde_json::Value>("k", &id, 0).await.unwrap()).await;
+        let got = values(
+            store
+                .scan_from::<serde_json::Value>("k", &id, 0)
+                .await
+                .unwrap(),
+        )
+        .await;
         assert_eq!(got.len(), 1);
+    });
+}
+
+#[test]
+fn append_with_id_is_idempotent() {
+    block_on(async {
+        let store = MemoryDocumentStore::new();
+        let id = new_scru128_string();
+        let first = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .await
+            .unwrap();
+        assert_eq!(first.id, id, "the stable caller id is kept");
+        let second = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .await
+            .unwrap();
+        assert_eq!(second.id, id);
+        assert_eq!(
+            store.count("k").await.unwrap(),
+            1,
+            "re-append must not duplicate"
+        );
+        let got = values(
+            store
+                .scan_from::<serde_json::Value>("k", &id, 0)
+                .await
+                .unwrap(),
+        )
+        .await;
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0]["x"], 1);
+    });
+}
+
+#[test]
+fn append_promotable_with_id_is_idempotent() {
+    block_on(async {
+        let store = MemoryDocumentStore::new();
+        let id = new_scru128_string();
+        let note = Note {
+            kind: "observation".into(),
+            text: "saw a cat".into(),
+        };
+        let first = store
+            .append_promotable_with_id("k", &id, note)
+            .await
+            .unwrap();
+        assert_eq!(first.id, id);
+        let again = store
+            .append_promotable_with_id(
+                "k",
+                &id,
+                Note {
+                    kind: "observation".into(),
+                    text: "saw a cat".into(),
+                },
+            )
+            .await
+            .unwrap();
+        assert_eq!(again.id, id);
+        assert_eq!(
+            store.count("k").await.unwrap(),
+            1,
+            "re-append must not duplicate"
+        );
     });
 }
 
@@ -86,7 +182,7 @@ fn append_promotable_round_trips_columns() {
     block_on(async {
         let store = MemoryDocumentStore::new();
         let doc = store
-            .append_promotable_async(
+            .append_promotable(
                 "k",
                 Note {
                     kind: "observation".into(),
@@ -99,7 +195,7 @@ fn append_promotable_round_trips_columns() {
         assert_eq!(doc.summary.as_deref(), Some("saw a cat"));
         assert_eq!(doc.title, None);
 
-        let docs = store.scan_documents_async("k", 10).await.unwrap();
+        let docs = store.scan_documents("k", 10).await.unwrap();
         assert_eq!(docs.len(), 1);
         assert_eq!(docs[0].record_type.as_deref(), Some("observation"));
         assert_eq!(docs[0].summary.as_deref(), Some("saw a cat"));
@@ -110,8 +206,11 @@ fn append_promotable_round_trips_columns() {
 fn plain_append_leaves_promoted_columns_null() {
     block_on(async {
         let store = MemoryDocumentStore::new();
-        store.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-        let docs = store.scan_documents_async("k", 10).await.unwrap();
+        store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        let docs = store.scan_documents("k", 10).await.unwrap();
         assert_eq!(docs[0].record_type, None);
         assert_eq!(docs[0].title, None);
         assert_eq!(docs[0].summary, None);
@@ -128,9 +227,9 @@ fn scan_documents_from_is_inclusive_and_ordered() {
                 kind: "n".into(),
                 text: format!("t{n}"),
             };
-            ids.push(store.append_promotable_async("k", note).await.unwrap().id);
+            ids.push(store.append_promotable("k", note).await.unwrap().id);
         }
-        let docs = store.scan_documents_from_async("k", &ids[1], 0).await.unwrap();
+        let docs = store.scan_documents_from("k", &ids[1], 0).await.unwrap();
         assert_eq!(docs.len(), 3);
         assert_eq!(docs[0].id, ids[1]);
         assert_eq!(docs[0].summary.as_deref(), Some("t1"));
@@ -143,20 +242,20 @@ fn async_store_streams_and_deletes() {
     block_on(async {
         let store = MemoryDocumentStore::new();
         let a = store
-            .append_async("k", serde_json::json!({"n": 0}))
+            .append("k", serde_json::json!({"n": 0}))
             .await
             .unwrap();
         let b = store
-            .append_async("k", serde_json::json!({"n": 1}))
+            .append("k", serde_json::json!({"n": 1}))
             .await
             .unwrap();
         assert!(b.id > a.id, "async append preserves scru128 ordering");
-        assert_eq!(store.count_async("k").await.unwrap(), 2);
+        assert_eq!(store.count("k").await.unwrap(), 2);
 
-        // scan_from_async yields a lazily-pulled stream (inclusive, oldest-first)
+        // scan_from yields a lazily-pulled stream (inclusive, oldest-first)
         // — drain it via `.next().await`, no Vec return.
         let mut stream = store
-            .scan_from_async::<serde_json::Value>("k", &a.id, 0)
+            .scan_from::<serde_json::Value>("k", &a.id, 0)
             .await
             .unwrap();
         let mut got = Vec::new();
@@ -167,7 +266,7 @@ fn async_store_streams_and_deletes() {
         assert_eq!(got[0]["n"], 0);
         assert_eq!(got[1]["n"], 1);
 
-        store.delete_async("k", &a.id).await.unwrap();
-        assert_eq!(store.count_async("k").await.unwrap(), 1);
+        store.delete("k", &a.id).await.unwrap();
+        assert_eq!(store.count("k").await.unwrap(), 1);
     });
 }

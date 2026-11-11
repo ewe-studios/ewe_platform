@@ -38,11 +38,11 @@ fn test_threaded_future_basic() {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
     });
 
-    let iter = threaded.execute();
+    let iter = threaded.execute(crate::valtron::real_ctx());
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            ThreadedValue::Value(Err(_)) | ThreadedValue::Waiting => None,
+            ThreadedValue::Value(Err(())) | ThreadedValue::Waiting => None,
         })
         .collect();
 
@@ -55,7 +55,7 @@ fn test_threaded_future_error() {
         Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
     });
 
-    let iter = threaded.execute();
+    let iter = threaded.execute(crate::valtron::real_ctx());
     let results: Vec<Result<i32, &'static str>> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(result) => Some(result),
@@ -71,7 +71,7 @@ fn test_threaded_future_error() {
 fn test_threaded_future_empty_iterator() {
     let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
-    let iter = threaded.execute();
+    let iter = threaded.execute(crate::valtron::real_ctx());
     let results: Vec<Result<i32, ()>> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(result) => Some(result),
@@ -79,7 +79,7 @@ fn test_threaded_future_empty_iterator() {
         })
         .collect();
 
-    assert!(results.is_empty());
+    assert_eq!(results, Vec::<Result<i32, ()>>::new());
 }
 
 #[test]
@@ -88,11 +88,11 @@ fn test_threaded_future_large_iterator() {
         Ok::<_, ()>((0..1000).map(Ok).collect::<Vec<_>>().into_iter())
     });
 
-    let iter = threaded.execute();
+    let iter = threaded.execute(crate::valtron::real_ctx());
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            ThreadedValue::Value(Err(_)) | ThreadedValue::Waiting => None,
+            ThreadedValue::Value(Err(())) | ThreadedValue::Waiting => None,
         })
         .collect();
 
@@ -115,7 +115,7 @@ fn test_threaded_future_survives_pending() {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2)].into_iter())
     });
 
-    let mut iter = threaded.execute();
+    let mut iter = threaded.execute(crate::valtron::real_ctx());
 
     // Two `Pending` polls surface as two `Waiting` items, then the values flow.
     assert!(matches!(iter.next(), Some(ThreadedValue::Waiting)));

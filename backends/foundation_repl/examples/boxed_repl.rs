@@ -41,6 +41,7 @@ fn main() {
         ))
         .goodbye("Goodbye!")
         .theme(theme)
+        .ctx(foundation_context::Ctx::host())
         .build();
 
     for input in repl.messages() {

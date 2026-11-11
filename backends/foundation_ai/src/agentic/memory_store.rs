@@ -100,7 +100,7 @@ impl SessionMemory {
 #[async_trait::async_trait]
 pub trait MemoryStore: Send + Sync {
     /// Latest memory record of a tier (None if never written).
-    async fn get_async(
+    async fn get(
         &self,
         session: &SessionId,
         tier: MemoryTier,
@@ -109,13 +109,13 @@ pub trait MemoryStore: Send + Sync {
     /// Overwrite the latest record for that session+tier. `record` MUST be a
     /// memory variant (WorkingMemory/Observation/Reflection); non-memory
     /// variants are rejected.
-    async fn set_async(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()>;
+    async fn set(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()>;
 
     /// Load all tiers at once (resume fast-path) — one get on the KV backend.
-    async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory>;
+    async fn hydrate(&self, session: &SessionId) -> StorageResult<SessionMemory>;
 
     /// Clear a session's cached memory.
-    async fn clear_async(&self, session: &SessionId) -> StorageResult<()>;
+    async fn clear(&self, session: &SessionId) -> StorageResult<()>;
 }
 
 // ---------------------------------------------------------------------------
@@ -143,36 +143,36 @@ impl<K: Default> Default for KvMemoryStore<K> {
 
 #[async_trait::async_trait]
 impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
-    async fn get_async(
+    async fn get(
         &self,
         session: &SessionId,
         tier: MemoryTier,
     ) -> StorageResult<Option<SessionRecord>> {
         let key = SessionMemory::key(session);
-        let mem: Option<SessionMemory> = self.kv.get_async(&key).await?;
+        let mem: Option<SessionMemory> = self.kv.get(&key).await?;
         Ok(mem.and_then(|m| m.get(tier).cloned()))
     }
 
-    async fn set_async(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()> {
+    async fn set(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()> {
         let tier = MemoryTier::of(record).ok_or_else(|| {
             StorageError::Backend(
-                "set_async: record is not a memory variant (Working/Observation/Reflection)".into(),
+                "set: record is not a memory variant (Working/Observation/Reflection)".into(),
             )
         })?;
         let key = SessionMemory::key(session);
-        let mem: SessionMemory = self.kv.get_async(&key).await?.unwrap_or_default();
-        self.kv.set_async(&key, mem.set(tier, record.clone())).await
+        let mem: SessionMemory = self.kv.get(&key).await?.unwrap_or_default();
+        self.kv.set(&key, mem.set(tier, record.clone())).await
     }
 
-    async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
+    async fn hydrate(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let key = SessionMemory::key(session);
         self.kv
-            .get_async(&key)
+            .get(&key)
             .await
             .map(std::option::Option::unwrap_or_default)
     }
 
-    async fn clear_async(&self, session: &SessionId) -> StorageResult<()> {
-        self.kv.delete_async(&SessionMemory::key(session)).await
+    async fn clear(&self, session: &SessionId) -> StorageResult<()> {
+        self.kv.delete(&SessionMemory::key(session)).await
     }
 }

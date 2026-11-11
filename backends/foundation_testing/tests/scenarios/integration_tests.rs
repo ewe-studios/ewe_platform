@@ -1,7 +1,8 @@
-//! Comprehensive integration tests for CondVar functionality.
+//! Comprehensive integration tests for `CondVar` functionality.
 //!
 //! These tests verify complex multi-threaded scenarios and edge cases.
 
+use foundation_context::Ctx;
 use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};
 use foundation_testing::stress::{StressConfig, StressHarness};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -121,7 +122,7 @@ fn test_barrier_reuse() {
                 let is_leader = barrier_clone.wait();
                 // Only one thread should be leader each iteration
                 if is_leader {
-                    println!("Thread {} is leader at iteration {}", thread_id, iteration);
+                    println!("Thread {thread_id} is leader at iteration {iteration}");
                 }
             }
         }));
@@ -179,7 +180,7 @@ fn test_thread_pool_ordering() {
 fn test_stress_with_rapid_notifications() {
     // Test rapid notify_one calls
     let config = StressConfig::new().threads(8).iterations(500);
-    let harness = StressHarness::new(config);
+    let harness = StressHarness::new(config, Ctx::host());
 
     let success_count = Arc::new(AtomicUsize::new(0));
 
@@ -202,7 +203,7 @@ fn test_stress_with_timeout() {
         .iterations(1_000_000) // Very high, should be stopped by timeout
         .duration_secs(1);
 
-    let harness = StressHarness::new(config);
+    let harness = StressHarness::new(config, Ctx::host());
 
     let result = harness.run(|_thread_id, _iteration| {
         thread::sleep(Duration::from_micros(10));
@@ -425,7 +426,7 @@ fn test_zero_capacity_queue() {
     assert_eq!(items, vec![0, 1, 2, 3, 4]);
 }
 
-/// WHY: Tests multiple CondVars with single Mutex (event flags pattern)
+/// WHY: Tests multiple `CondVar`s with single `Mutex` (event flags pattern)
 /// WHAT: Multiple condition variables can coordinate different events on same data
 #[test]
 fn test_multiple_condvars_single_mutex() {
@@ -465,13 +466,13 @@ fn test_multiple_condvars_single_mutex() {
 
     // Thread waiting for event B
     let mutex_clone = Arc::clone(&mutex);
-    let condvar_b_clone = Arc::clone(&condvar_b);
+    let second_condvar = Arc::clone(&condvar_b);
     let thread_b = thread::spawn(move || {
         let mut guard = mutex_clone.lock().unwrap();
 
         // Wait for event B
         while !guard.event_b_ready {
-            guard = condvar_b_clone.wait(guard).unwrap();
+            guard = second_condvar.wait(guard).unwrap();
         }
 
         guard.count += 10;

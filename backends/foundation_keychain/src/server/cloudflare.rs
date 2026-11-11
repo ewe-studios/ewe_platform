@@ -21,6 +21,7 @@
 use std::sync::{Arc, Mutex};
 
 use foundation_auth::shared::jwt::JwtSigningKey;
+use foundation_context::Ctx;
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use worker::{event, Context, Env, Request, Response, Result as WorkerResult};
@@ -64,7 +65,10 @@ pub async fn fetch(mut req: Request, env: Env, _ctx: Context) -> WorkerResult<Re
 
     let (status, json) = match route(&ctx, &method, &path, &body, bearer.as_deref()).await {
         Ok((status, json)) => (status, json),
-        Err(err) => (err.status(), err.to_json()),
+        Err(err) => (
+            err.current_context().status(),
+            err.current_context().to_json(),
+        ),
     };
 
     Ok(Response::from_json(&json)?.with_status(status))
@@ -119,7 +123,8 @@ async fn build_context(env: &Env) -> Result<KeychainContext, String> {
     // ── JWT signing key (KV-backed) ────────────────────────────────────
     let signing_key = load_or_create_signing_key(env).await?;
 
-    Ok(KeychainContext::with_signing_key(store, signing_key))
+    let ctx = Ctx::try_host().map_err(|e| format!("entropy source: {e}"))?;
+    Ok(KeychainContext::with_signing_key(store, signing_key, ctx))
 }
 
 /// Load the Ed25519 JWT signing key from KV, or generate a new one and

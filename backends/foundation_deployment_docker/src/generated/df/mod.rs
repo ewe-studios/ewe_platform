@@ -71,8 +71,8 @@ pub type VolumesDiskUsage = super::shared::BuildCacheDiskUsageShape;
 pub struct SystemDataUsageArgs {
     /// Query parameter: `type` (one per value).
     pub r#type: Vec<String>,
-    /// Query parameter: `verbose`.
-    pub verbose: Option<String>,
+    /// Query parameter: `verbose` (true/false).
+    pub verbose: Option<bool>,
 }
 
 // =============================================================================
@@ -110,8 +110,8 @@ pub async fn system_data_usage_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/df",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/system/df");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -119,7 +119,10 @@ where
     for value in &args.r#type {
         builder = builder.query("type", Some(value.as_str()));
     }
-    builder = builder.query("verbose", args.verbose.as_deref());
+    builder = builder.query(
+        "verbose",
+        args.verbose.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

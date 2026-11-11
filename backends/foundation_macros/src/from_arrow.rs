@@ -50,8 +50,10 @@ pub fn from_arrow_derive(item: TokenStream2) -> TokenStream2 {
             fn from_arrow(batch: &#arrow::arrow_array::RecordBatch) -> #arrow::ipc::IpcResult<Self> {
                 use #arrow::ArrowValue;
                 if batch.num_rows() == 0 {
-                    return Err(#arrow::arrow_schema::ArrowError::InvalidArgumentError(
-                        "empty batch".to_string(),
+                    return Err(#arrow::ipc::arrow_err(
+                        #arrow::arrow_schema::ArrowError::InvalidArgumentError(
+                            "empty batch".to_string(),
+                        ),
                     ));
                 }
                 #( #field_extractions )*
@@ -128,8 +130,10 @@ fn value_extraction_required(
     let field_name = field_ident.to_string();
     quote! {
         let #field_ident: #value_type = #arrow::ArrowValue::<#value_type>::arrow_value(#col_access, #idx)
-            .ok_or_else(|| #arrow::arrow_schema::ArrowError::InvalidArgumentError(
-                format!("null value in non-nullable field '{}'", #field_name),
+            .ok_or_else(|| #arrow::ipc::arrow_err(
+                #arrow::arrow_schema::ArrowError::InvalidArgumentError(
+                    format!("null value in non-nullable field '{}'", #field_name),
+                ),
             ))?;
     }
 }

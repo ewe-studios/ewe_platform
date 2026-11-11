@@ -1,6 +1,6 @@
-//! Bitwarden-specific auth adapters over foundation_auth (spec-57, F008).
+//! Bitwarden-specific auth adapters over `foundation_auth` (spec-57, F008).
 //!
-//! WHY: foundation_auth provides general JWT/TOTP/PBKDF2; Bitwarden adds
+//! WHY: `foundation_auth` provides general JWT/TOTP/PBKDF2; Bitwarden adds
 //! specific claims (`sstamp` for security stamp, `orgowner`/`orgadmin` for
 //! org roles) and a distinctive login response shape (`Key`, `PrivateKey`,
 //! `Kdf`, `UserDecryptionOptions`).
@@ -9,7 +9,8 @@
 //! stamp middleware checks `sstamp` against the DB after JWT verify. The
 //! token response adapter builds the full `LoginResponse`.
 
-use chrono::Utc;
+use foundation_compact::time;
+use foundation_context::Ctx;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -38,8 +39,9 @@ pub fn mint_access_token(
     signing_key: &JwtSigningKey,
     user: &UserRow,
     device_identifier: &str,
+    ctx: &Ctx,
 ) -> AppResult<String> {
-    let now = Utc::now().timestamp();
+    let now = time::unix_seconds(ctx.clock().wall_now());
     let claims = json!({
         "sub": user.uuid,
         "iss": ISSUER,
@@ -55,8 +57,9 @@ pub fn mint_access_token(
         "scope": ["api", "offline_access"],
     });
     signing_key
-        .sign_claims(&claims)
+        .sign_claims(&claims, ctx)
         .map_err(|e| AppError::Internal(format!("sign access token: {e}")))
+        .map_err(Into::into)
 }
 
 /// Mint a Bitwarden refresh token for `user_uuid` on `device_identifier`.
@@ -68,8 +71,9 @@ pub fn mint_refresh_token(
     signing_key: &JwtSigningKey,
     user_uuid: &str,
     device_identifier: &str,
+    ctx: &Ctx,
 ) -> AppResult<String> {
-    let now = Utc::now().timestamp();
+    let now = time::unix_seconds(ctx.clock().wall_now());
     let claims = json!({
         "sub": user_uuid,
         "iss": ISSUER,
@@ -79,8 +83,9 @@ pub fn mint_refresh_token(
         "device": device_identifier,
     });
     signing_key
-        .sign_claims(&claims)
+        .sign_claims(&claims, ctx)
         .map_err(|e| AppError::Internal(format!("sign refresh token: {e}")))
+        .map_err(Into::into)
 }
 
 /// The authenticated principal extracted from a verified access token.
@@ -91,11 +96,12 @@ pub struct AuthedToken {
     pub device: Option<String>,
 }
 
-fn custom_str(
-    claims: &foundation_auth::shared::jwt::VerifiedClaims,
-    key: &str,
-) -> Option<String> {
-    claims.custom.get(key).and_then(|v| v.as_str()).map(String::from)
+fn custom_str(claims: &foundation_auth::shared::jwt::VerifiedClaims, key: &str) -> Option<String> {
+    claims
+        .custom
+        .get(key)
+        .and_then(|v| v.as_str())
+        .map(String::from)
 }
 
 /// Verify an access token and extract the authenticated principal.
@@ -111,7 +117,7 @@ fn custom_str(
 pub fn verify_access_token(verifier: &JwtVerifier, token: &str) -> AppResult<AuthedToken> {
     let claims = verifier.verify(token).map_err(|_| AppError::Unauthorized)?;
     if custom_str(&claims, "type").as_deref() != Some(TYPE_ACCESS) {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Unauthorized.into());
     }
     let security_stamp = custom_str(&claims, "sstamp");
     let device = custom_str(&claims, "device");
@@ -133,7 +139,7 @@ pub fn verify_refresh_token(
 ) -> AppResult<(String, Option<String>)> {
     let claims = verifier.verify(token).map_err(|_| AppError::Unauthorized)?;
     if custom_str(&claims, "type").as_deref() != Some(TYPE_REFRESH) {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Unauthorized.into());
     }
     let device = custom_str(&claims, "device");
     Ok((claims.sub, device))

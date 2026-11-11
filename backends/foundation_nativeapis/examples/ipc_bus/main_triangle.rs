@@ -37,14 +37,21 @@ fn main() {
         let bus = bus.clone();
         handles.push(thread::spawn(move || {
             let opts = Options::new(&bus, Label::new(name)).controller_affinity(true);
-            let (sender, mut receiver) =
-                ipc::join::<Ping, Ping>(opts, Some(Duration::from_secs(5))).expect("join");
+            let (sender, mut receiver) = ipc::join::<Ping, Ping>(
+                opts,
+                Some(Duration::from_secs(5)),
+                foundation_context::Ctx::host(),
+            )
+            .expect("join");
 
             // Send 2 messages with a MemoryRegion
             for seq in 0..2 {
                 let mut msg = Message::new(
                     Selector::multicast(targets.clone()),
-                    Ping { from: name.into(), seq },
+                    Ping {
+                        from: name.into(),
+                        seq,
+                    },
                 );
                 if let Some(mut region) = MemoryRegion::new(64) {
                     let buf = region.map(..).unwrap();

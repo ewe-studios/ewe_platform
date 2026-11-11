@@ -1,21 +1,28 @@
 use std::{collections, sync};
 
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use ewe_channels::mspc::{self};
 
 use crate::domains;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum PendingChannelError {
-    #[error("Failed to find any pending channels registered with {0}")]
-    NotFound(String),
+    #[display("Failed to find any pending channels registered with {_0}")]
+    NotFound(#[error(not(source))] String),
 
-    #[error("Corresponding channel sender for {0} was closed")]
-    ClosedSender(domains::Id),
+    #[display("Corresponding channel sender for {_0} was closed")]
+    ClosedSender(#[error(not(source))] domains::Id),
 }
 
-pub type PendingChannelResult<E> = std::result::Result<E, PendingChannelError>;
+impl From<PendingChannelError> for ErrorTrace<PendingChannelError> {
+    fn from(err: PendingChannelError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+pub type PendingChannelResult<E> = std::result::Result<E, ErrorTrace<PendingChannelError>>;
 
 /// `PendingChannelsRegistry` provide a way to register a target channel
 /// which is to carry provides a temporary storage of a [`ChannelGroup`]
@@ -103,7 +110,7 @@ impl<E> PendingChannelsRegistry<E> {
     pub fn resolve(&mut self, id: domains::Id) -> PendingChannelResult<mspc::SendChannel<E>> {
         let mut registry = self.pending.lock().unwrap();
         if !registry.contains_key(&id) {
-            return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.clone()));
+            return PendingChannelResult::Err(PendingChannelError::NotFound(id.0.clone()).into());
         }
 
         if let Some((_, entry)) = registry.remove_entry(&id) {
@@ -112,7 +119,7 @@ impl<E> PendingChannelsRegistry<E> {
             }
         }
 
-        PendingChannelResult::Err(PendingChannelError::ClosedSender(id))
+        PendingChannelResult::Err(PendingChannelError::ClosedSender(id).into())
     }
 
     /// Clears all pending channels.
@@ -128,75 +135,5 @@ impl<E> PendingChannelsRegistry<E> {
             }
             _ = entry.1.take();
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ewe_channels::mspc;
-
-    use crate::{domains, pending_chan};
-
-    #[test]
-    fn pending_channels_can_clear_all_registered_channels() {
-        let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
-
-        let target_id = domains::Id(String::from("server_1"));
-
-        let grp = registry.register(target_id.clone());
-
-        assert!(registry.has(&target_id));
-
-        registry.clear();
-
-        assert!(!registry.has(&target_id));
-
-        drop(grp);
-    }
-
-    #[test]
-    fn pending_channels_registry_should_be_able_to_register_request_id() {
-        let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
-
-        let target_id = domains::Id(String::from("server_1"));
-
-        _ = registry.register(target_id.clone());
-
-        assert!(registry.has(&target_id));
-    }
-
-    #[test]
-    fn pending_channels_registry_should_be_able_to_retrieve_channel_grp() {
-        let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
-
-        let target_id = domains::Id(String::from("server_1"));
-
-        _ = registry.register(target_id.clone());
-
-        assert!(registry.has(&target_id));
-
-        assert!(registry.retrieve(&target_id).is_some());
-    }
-
-    #[test]
-    fn pending_channels_registry_should_be_able_to_resolve_a_pending_grp() {
-        let mut registry = pending_chan::PendingChannelsRegistry::<String>::new();
-
-        let target_id = domains::Id(String::from("server_1"));
-
-        let grp = registry.register(target_id.clone());
-
-        assert!(registry.has(&target_id));
-
-        let result = registry
-            .resolve(target_id.clone())
-            .unwrap()
-            .block_send(String::from("server_2"));
-
-        assert!(matches!(result, mspc::ChannelResult::Ok(())));
-
-        drop(grp);
-
-        assert!(!registry.has(&target_id));
     }
 }

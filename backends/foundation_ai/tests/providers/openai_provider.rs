@@ -31,9 +31,8 @@ use foundation_ai::types::*;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
-use foundation_netio::{DynNetClient, HttpClientBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::shared::http::SimpleMethod;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_testing::http::HttpRequest;
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
@@ -69,6 +68,9 @@ fn sse_response(body: &[u8]) -> HttpResponse {
             ("Content-Type".to_string(), "text/event-stream".to_string()),
             ("Cache-Control".to_string(), "no-cache".to_string()),
             ("Content-Length".to_string(), body.len().to_string()),
+            // Close after the body. The SSE client then sees EOF and does not
+            // reconnect and replay the deltas.
+            ("Connection".to_string(), "close".to_string()),
         ],
         body: body.to_vec(),
     }
@@ -114,20 +116,27 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 
     provider
         .get_model(ModelId::Name("gpt-4".into(), None))
         .unwrap()
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }
 
 #[valtron_test]
@@ -221,7 +230,7 @@ data: [DONE]\n\n";
     }
 }
 
-/// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
+/// Verify SSE streaming accumulates tool call deltas into a final `ToolCall` message.
 #[valtron_test]
 fn test_provider_streaming_tool_calls() {
     let sse_body = b"data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"tool_calls\":[{\"index\":0,\"id\":\"call_abc\",\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}\n\n\
@@ -278,12 +287,12 @@ data: [DONE]\n\n";
 // SSE streaming with reconnection (SseTestServer)
 // ============================================================================
 
-/// WHY: Verify that the OpenAI provider's SSE stream correctly sends
+/// WHY: Verify that the `OpenAI` provider's SSE stream correctly sends
 /// POST with body and headers, and parses streaming responses. Reconnection
 /// behavior is tested at the SSE event source level in
-/// foundation_core's integration tests (which use the same SseTestServer
-/// with abrupt_drop — the EOF-from-RST timing doesn't survive the valtron
-/// executor's scheduling, so we use clean_close here).
+/// `foundation_core`'s integration tests (which use the same `SseTestServer`
+/// with `abrupt_drop` — the EOF-from-RST timing doesn't survive the valtron
+/// executor's scheduling, so we use `clean_close` here).
 ///
 /// WHAT: Uses `SseTestServer` with clean close to verify:
 /// 1. POST method is used (not GET)
@@ -319,7 +328,6 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             let body_len = match &req.body {
                 foundation_netio::shared::http::SendSafeBody::Text(s) => s.len(),
                 foundation_netio::shared::http::SendSafeBody::Bytes(v) => v.len(),
-                foundation_netio::shared::http::SendSafeBody::None => 0,
                 _ => 0,
             };
 
@@ -357,7 +365,7 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
         .unwrap()
         .parse()
         .unwrap();
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
 
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
@@ -365,7 +373,7 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 
@@ -377,19 +385,16 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
 
     let mut final_text: Option<String> = None;
     for item in &mut stream {
-        match &item {
-            Stream::Next(msg) => {
-                if let Messages::Assistant { content, .. } = msg {
-                    if let ModelOutput::Text(tc) = content {
-                        final_text = Some(tc.content.clone());
-                    }
-                }
-            }
-            _ => {}
+        if let Stream::Next(Messages::Assistant {
+            content: ModelOutput::Text(tc),
+            ..
+        }) = &item
+        {
+            final_text = Some(tc.content.clone());
         }
     }
     for (i, (m, p, b)) in captured_clone.requests.lock().unwrap().iter().enumerate() {
-        eprintln!("  [{}] {} {} (body_len={})", i, m, p, b);
+        eprintln!("  [{i}] {m} {p} (body_len={b})");
     }
 
     // Verify streamed content
@@ -441,12 +446,6 @@ fn test_provider_streaming_error_emits_partial_then_failure() {
         },
     );
 
-    let addr: SocketAddr = server
-        .base_url()
-        .strip_prefix("http://")
-        .unwrap()
-        .parse()
-        .unwrap();
     let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
@@ -454,7 +453,7 @@ fn test_provider_streaming_error_emits_partial_then_failure() {
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config, test_clock())
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
     let model = provider
@@ -687,10 +686,12 @@ fn test_build_response_input_from_messages() {
                     assert_eq!(role, "user");
                     assert!(matches!(content, ResponseInputContent::Text(_)));
                 }
-                _ => panic!("Expected Message item"),
+                ResponseInputItem::FunctionCallOutput { .. } => {
+                    panic!("Expected Message item")
+                }
             }
         }
-        _ => panic!("Expected Items input"),
+        ResponseInput::Text(_) => panic!("Expected Items input"),
     }
 }
 
@@ -1020,8 +1021,13 @@ fn test_parse_chat_response_tool_calls() {
     };
 
     let model_id = ModelId::Name("gpt-4".into(), None);
-    let (msg, _report) =
-        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msg, _report) = parse_chat_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &test_clock(),
+    )
+    .unwrap();
 
     if let Messages::Assistant {
         content,
@@ -1077,14 +1083,18 @@ fn test_parse_chat_response_text() {
     };
 
     let model_id = ModelId::Name("gpt-4".into(), None);
-    let (msg, _report) =
-        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msg, _report) = parse_chat_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &test_clock(),
+    )
+    .unwrap();
 
     if let Messages::Assistant {
         content,
         stop_reason,
         usage,
-        metadata: _,
         ..
     } = &msg
     {
@@ -1226,10 +1236,12 @@ fn test_build_chat_request_with_new_fields() {
         chat_template: None,
         tool_choice: Some(ToolChoice::Auto),
     };
-    let mut params = ModelParams::default();
-    params.output_format = Some(OutputFormat::JsonObject);
-    params.frequency_penalty = Some(0.5);
-    params.presence_penalty = Some(0.3);
+    let mut params = ModelParams {
+        output_format: Some(OutputFormat::JsonObject),
+        frequency_penalty: Some(0.5),
+        presence_penalty: Some(0.3),
+        ..ModelParams::default()
+    };
     let mut logit_bias = std::collections::HashMap::new();
     logit_bias.insert("50256".to_string(), -100.0);
     params.logit_bias = Some(logit_bias);
@@ -1355,9 +1367,9 @@ fn responses_provider_constructors() {
     use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 
     // Default constructor + config-carrying constructor both build.
-    let _default = ResponsesProvider::new();
+    let _default = ResponsesProvider::new(test_clock());
     let cfg = ResponsesConfig::new().with_max_retries(3);
-    let _with_config = ResponsesProvider::with_config(cfg);
+    let _with_config = ResponsesProvider::with_config(cfg, test_clock());
 }
 
 // ---------------------------------------------------------------------------
@@ -1416,8 +1428,13 @@ fn parse_chat_response_populates_logprobs_fingerprint_and_refusal() {
     .expect("response deserializes");
 
     let model_id = ModelId::Name("gpt-4o-mini".to_string(), None);
-    let (msg, _usage) =
-        parse_chat_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msg, _usage) = parse_chat_response(
+        &response,
+        &model_id,
+        &ModelUsageCosting::default(),
+        &test_clock(),
+    )
+    .unwrap();
 
     let Messages::Assistant { metadata, .. } = msg else {
         panic!("expected assistant message");
@@ -1450,6 +1467,7 @@ fn parse_chat_response_populates_logprobs_fingerprint_and_refusal() {
 // ---------------------------------------------------------------------------
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn build_chat_request_covers_tool_and_format_branches() {
     use std::time::SystemTime;
 
@@ -1476,13 +1494,13 @@ fn build_chat_request_covers_tool_and_format_branches() {
         },
     };
 
-    let read_tool = Tool::SingleCommand(ToolDefinition {
+    let read_tool = Tool::SingleCommand(Box::new(ToolDefinition {
         name: "read".to_string(),
         category: "test".into(),
         description: "read a file".to_string(),
         arguments: foundation_ai::types::Args::empty(),
         returns: None,
-    });
+    }));
 
     let interaction = ModelInteraction {
         system_prompt: None,
@@ -1561,7 +1579,10 @@ fn build_chat_request_covers_tool_and_format_branches() {
     // Tools array built from the populated shed.
     assert!(request.tools.is_some(), "tools array present");
     // response_format + tool_choice populated (Function arm).
-    assert!(request.response_format.is_some(), "json-schema response format");
+    assert!(
+        request.response_format.is_some(),
+        "json-schema response format"
+    );
     assert!(request.tool_choice.is_some(), "function tool_choice");
 }
 
@@ -1614,13 +1635,13 @@ fn build_chat_request_output_format_and_tool_choice_simple_arms() {
 
 #[test]
 fn build_response_input_covers_all_message_branches() {
-    use std::time::SystemTime;
     use foundation_ai::backends::openai_responses_provider::{
         build_response_input, ResponseInput, ResponseInputItem,
     };
     use foundation_ai::types::{
         ImageContent, MessageRole, MimeType, ModelInteraction, ModelOutput, ToolDeclarations,
     };
+    use std::time::SystemTime;
 
     let interaction = ModelInteraction {
         system_prompt: None,
@@ -1670,7 +1691,7 @@ fn build_response_input_covers_all_message_branches() {
                     arguments: None,
                     signature: None,
                     depends_on: Vec::new(),
-                    execution_hint: Default::default(),
+                    execution_hint: foundation_ai::types::ExecutionHint::default(),
                 },
                 stop_reason: StopReason::ToolUse,
                 provider: ModelProviders::OPENAIRESPONSES,
@@ -1702,7 +1723,9 @@ fn build_response_input_covers_all_message_branches() {
     };
     // user text, user image, assistant thinking, tool-call, tool-result.
     assert_eq!(items.len(), 5, "every message maps to an input item");
-    assert!(items.iter().any(|i| matches!(i, ResponseInputItem::FunctionCallOutput { .. })));
+    assert!(items
+        .iter()
+        .any(|i| matches!(i, ResponseInputItem::FunctionCallOutput { .. })));
 
     // Empty interaction → Text("") fallback.
     let empty = ModelInteraction {
@@ -1713,22 +1736,28 @@ fn build_response_input_covers_all_message_branches() {
         chat_template: None,
         tool_choice: None,
     };
-    assert!(matches!(build_response_input(&empty), ResponseInput::Text(_)));
+    assert!(matches!(
+        build_response_input(&empty),
+        ResponseInput::Text(_)
+    ));
 }
 
 fn setup_responses_model(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
     use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 
     let addr = server_addr(server);
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
             "test-key".to_string(),
         )));
-    let provider = ResponsesProvider::with_http_client_and_config(http_client, config);
-    provider.get_model(ModelId::Name("o1".into(), None)).unwrap()
+    let provider =
+        ResponsesProvider::with_http_client_and_config(http_client, config, test_clock());
+    provider
+        .get_model(ModelId::Name("o1".into(), None))
+        .unwrap()
 }
 
 #[valtron_test]
@@ -1761,7 +1790,11 @@ fn responses_generate_via_server() {
     assert_eq!(result.len(), 1);
     if let Messages::Assistant { content, .. } = &result[0] {
         if let ModelOutput::Text(tc) = content {
-            assert!(tc.content.contains("responses API"), "parsed text: {}", tc.content);
+            assert!(
+                tc.content.contains("responses API"),
+                "parsed text: {}",
+                tc.content
+            );
         } else {
             panic!("expected text output");
         }
@@ -1813,7 +1846,9 @@ data: [DONE]\n\n";
     }
     assert!(!texts.is_empty(), "stream must yield text messages");
     assert!(
-        texts.iter().any(|t| t.contains("Hello") || t.contains("Hel")),
+        texts
+            .iter()
+            .any(|t| t.contains("Hello") || t.contains("Hel")),
         "accumulated text seen: {texts:?}"
     );
 }

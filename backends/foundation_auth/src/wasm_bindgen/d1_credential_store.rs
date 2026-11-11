@@ -27,60 +27,60 @@ impl D1CredentialStore {
 
 #[async_trait::async_trait(?Send)]
 impl CredentialStore for D1CredentialStore {
-    async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
+    async fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        CredentialStore::get_async(self.storage.as_ref(), key).await
+        CredentialStore::get(self.storage.as_ref(), key).await
     }
 
-    async fn set_async<V: Serialize + Send + 'static>(
+    async fn set<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        CredentialStore::set_async(self.storage.as_ref(), key, value).await
+        CredentialStore::set(self.storage.as_ref(), key, value).await
     }
 
-    async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError> {
-        CredentialStore::delete_async(self.storage.as_ref(), key).await
+    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+        CredentialStore::delete(self.storage.as_ref(), key).await
     }
 
-    async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        CredentialStore::exists_async(self.storage.as_ref(), key).await
+    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        CredentialStore::exists(self.storage.as_ref(), key).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        CredentialStore::list_keys_async(self.storage.as_ref(), prefix).await
+    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        CredentialStore::list_keys(self.storage.as_ref(), prefix).await
     }
 }
 
 #[async_trait::async_trait(?Send)]
 impl CredentialStore for Arc<D1CredentialStore> {
-    async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
+    async fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        CredentialStore::get_async(self.as_ref(), key).await
+        CredentialStore::get(self.as_ref(), key).await
     }
 
-    async fn set_async<V: Serialize + Send + 'static>(
+    async fn set<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        CredentialStore::set_async(self.as_ref(), key, value).await
+        CredentialStore::set(self.as_ref(), key, value).await
     }
 
-    async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError> {
-        CredentialStore::delete_async(self.as_ref(), key).await
+    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+        CredentialStore::delete(self.as_ref(), key).await
     }
 
-    async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        CredentialStore::exists_async(self.as_ref(), key).await
+    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        CredentialStore::exists(self.as_ref(), key).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        CredentialStore::list_keys_async(self.as_ref(), prefix).await
+    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        CredentialStore::list_keys(self.as_ref(), prefix).await
     }
 }

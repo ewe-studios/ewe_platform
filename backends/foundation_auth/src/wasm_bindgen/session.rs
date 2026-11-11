@@ -9,7 +9,7 @@
 //! WHAT: Lightweight session management with HMAC-SHA256 signed tokens,
 //! storing sessions via `CredentialStore`.
 //!
-//! HOW: Generic over `S: CredentialStore`, delegates to its `*_async` methods.
+//! HOW: Generic over `S: CredentialStore`, delegates to its methods.
 
 use std::sync::Arc;
 
@@ -17,7 +17,9 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use crate::shared::clock::now_seconds;
 use crate::shared::credential_store::CredentialStore;
+use foundation_context::Ctx;
 
 const COOKIE_NAME: &str = "session";
 const DEFAULT_SESSION_DURATION_SECS: i64 = 86_400;
@@ -34,27 +36,36 @@ pub struct SessionPayload {
 pub struct WasmSessionManager<S: CredentialStore> {
     store: Arc<S>,
     signing_key: [u8; 32],
+    ctx: Ctx,
 }
 
 impl<S: CredentialStore> WasmSessionManager<S> {
     pub const COOKIE_NAME: &'static str = COOKIE_NAME;
     pub const DEFAULT_SESSION_DURATION_SECS: i64 = DEFAULT_SESSION_DURATION_SECS;
 
-    pub fn new(store: Arc<S>, signing_key: [u8; 32]) -> Self {
-        Self { store, signing_key }
+    pub fn new(store: Arc<S>, signing_key: [u8; 32], ctx: Ctx) -> Self {
+        Self {
+            store,
+            signing_key,
+            ctx,
+        }
     }
 
     /// Create a session and return the signed token.
     pub async fn create_session(&self, user_id: &str) -> Result<String, String> {
         let id = uuid::Uuid::new_v4().to_string();
-        let exp = chrono::Utc::now().timestamp() + DEFAULT_SESSION_DURATION_SECS;
+        let exp = now_seconds(&self.ctx) + DEFAULT_SESSION_DURATION_SECS;
 
-        let payload = SessionPayload { id: id.clone(), uid: user_id.to_string(), exp };
+        let payload = SessionPayload {
+            id: id.clone(),
+            uid: user_id.to_string(),
+            exp,
+        };
         let json = serde_json::to_string(&payload).map_err(|e| e.to_string())?;
         let token = Self::create_token(&self.signing_key, json.as_bytes());
 
         self.store
-            .set_async(&format!("session:{id}"), payload)
+            .set(&format!("session:{id}"), payload)
             .await
             .map_err(|e| format!("D1 insert failed: {e:?}"))?;
 
@@ -63,10 +74,10 @@ impl<S: CredentialStore> WasmSessionManager<S> {
 
     /// Validate a session token and return the user ID.
     pub async fn validate_session(&self, token: &str) -> Result<String, String> {
-        let payload = Self::verify_token(&self.signing_key, token)?;
+        let payload = Self::verify_token(&self.signing_key, token, &self.ctx)?;
         let stored: Option<SessionPayload> = self
             .store
-            .get_async(&format!("session:{}", payload.id))
+            .get(&format!("session:{}", payload.id))
             .await
             .map_err(|e| format!("D1 query failed: {e:?}"))?;
         if stored.is_none() {
@@ -77,12 +88,12 @@ impl<S: CredentialStore> WasmSessionManager<S> {
 
     /// Revoke a session.
     pub async fn revoke_session(&self, token: &str) -> Result<(), String> {
-        let payload = match Self::verify_token(&self.signing_key, token) {
+        let payload = match Self::verify_token(&self.signing_key, token, &self.ctx) {
             Ok(p) => p,
             Err(_) => return Ok(()),
         };
         self.store
-            .delete_async(&format!("session:{}", payload.id))
+            .delete(&format!("session:{}", payload.id))
             .await
             .map_err(|e| format!("D1 delete failed: {e:?}"))?;
         Ok(())
@@ -92,15 +103,16 @@ impl<S: CredentialStore> WasmSessionManager<S> {
     pub fn session_cookie(token: &str) -> String {
         format!(
             "{}={}; Path=/; HttpOnly; Max-Age={}; SameSite=Lax",
-            COOKIE_NAME,
-            token,
-            DEFAULT_SESSION_DURATION_SECS
+            COOKIE_NAME, token, DEFAULT_SESSION_DURATION_SECS
         )
     }
 
     /// Clear the session cookie.
     pub fn clear_cookie() -> String {
-        format!("{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax", COOKIE_NAME)
+        format!(
+            "{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax",
+            COOKIE_NAME
+        )
     }
 
     // ========================================================================
@@ -118,8 +130,10 @@ impl<S: CredentialStore> WasmSessionManager<S> {
         base64_encode(&sig)
     }
 
-    fn verify_token(key: &[u8; 32], token: &str) -> Result<SessionPayload, String> {
-        let dot = token.rfind('.').ok_or_else(|| "invalid token format".to_string())?;
+    fn verify_token(key: &[u8; 32], token: &str, ctx: &Ctx) -> Result<SessionPayload, String> {
+        let dot = token
+            .rfind('.')
+            .ok_or_else(|| "invalid token format".to_string())?;
         let encoded = &token[..dot];
         let sig = &token[dot + 1..];
         let payload_bytes = base64_decode(encoded)?;
@@ -129,7 +143,7 @@ impl<S: CredentialStore> WasmSessionManager<S> {
         }
         let payload: SessionPayload =
             serde_json::from_slice(&payload_bytes).map_err(|e| e.to_string())?;
-        let now = chrono::Utc::now().timestamp();
+        let now = now_seconds(ctx);
         if payload.exp < now {
             return Err("session expired".to_string());
         }

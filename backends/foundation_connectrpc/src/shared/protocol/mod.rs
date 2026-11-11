@@ -19,6 +19,7 @@ pub mod connect;
 pub mod grpc;
 pub mod grpc_web;
 
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use bytes::Bytes;
@@ -26,17 +27,16 @@ use foundation_netio::shared::http::{
     SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
-use crate::shared::compression::CompressionRegistry;
+use crate::shared::compression::{CompressionRegistry, Compressor};
 use crate::shared::context::{CancelSignal, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
-use foundation_errstacks::ErrorTrace;
 use crate::shared::transport::{
-    fail_stream, race, BodyStream, BoxFuture, ByteSink, ByteSource, ClientConn, Frame,
-    HandlerConn, HeadStream, ProtocolKind, TransportStream,
+    fail_stream, race, BodyStream, BoxFuture, ByteSink, ByteSource, ClientConn, Frame, HandlerConn,
+    HeadPublisher, HeadStream, ProtocolKind, TransportStream,
 };
 use foundation_core::valtron::PipeSender;
+use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::Status;
-use std::sync::Mutex;
 
 /// A per-call reader/writer task — an async loop the framework spawns on valtron.
 pub type BoxedTask = BoxFuture<'static, ConnectResult<()>>;
@@ -62,6 +62,9 @@ pub struct HandlerExchange {
     pub reader_task: BoxedTask,
     /// response `FramePipe` → envelope/compress → bytes (flush per frame).
     pub writer_task: BoxedTask,
+    /// The map a handler installs with `MessageSink::set_headers`, shared with
+    /// the conn's sender. The pump merges it into the response head.
+    pub response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
 }
 
 /// The client mirror of [`HandlerExchange`].
@@ -79,7 +82,7 @@ pub struct ClientExchange {
 pub struct ExchangeConfig<'a> {
     /// The compressors to negotiate the call's compression from.
     pub compression: &'a CompressionRegistry,
-    /// The call's cancel signal (the handler's `Ctx` carries the same one).
+    /// The call's cancel signal (the handler's `RpcCtx` carries the same one).
     /// The seam's parked receives and sends wake on it, so a cancelled call
     /// stops a handler that is waiting on its request or response stream.
     pub cancel: CancelSignal,
@@ -235,10 +238,21 @@ pub trait ProtocolClient: Send + Sync {
     /// **unary** call. Protocol-specific unwrapping — Connect is the identity
     /// (bare bytes), gRPC and gRPC-Web strip the 5-byte envelope frame.
     ///
+    /// `head` is the response head, used to pick the decompressor from the
+    /// protocol's encoding header; `compression` is the registry the client
+    /// accepts. `read_max_bytes` bounds the decompressed output (`0` =
+    /// unlimited).
+    ///
     /// # Errors
     /// A trace on a malformed envelope (truncated frame, missing compression
-    /// handler).
-    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes>;
+    /// handler) or an unregistered response encoding.
+    fn decode_unary_response(
+        &self,
+        head: &SimpleHeaders,
+        body: Bytes,
+        compression: &CompressionRegistry,
+        read_max_bytes: usize,
+    ) -> ConnectResult<Bytes>;
     /// Build the per-call exchange over a live transport stream.
     ///
     /// The reader task consumes the whole stream: the response head (its
@@ -253,13 +267,13 @@ pub trait ProtocolClient: Send + Sync {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        config: ClientExchangeConfig,
+        config: ClientExchangeConfig<'_>,
     ) -> ConnectResult<ClientExchange>;
 }
 
 /// What a protocol needs, beyond the stream, to build a client exchange
 /// ([`ProtocolClient::new_conn`]).
-pub struct ClientExchangeConfig {
+pub struct ClientExchangeConfig<'a> {
     /// Linked into the conn's sender/receiver halves so caller cancellation
     /// wakes parked pipe ops. The framework passes
     /// `CancelSignal::linked(&caller_signal)`; tests and base contexts pass
@@ -269,6 +283,41 @@ pub struct ClientExchangeConfig {
     /// whose length prefix claims more fails the stream before its payload is
     /// read. Also bounds how much of an error body is read.
     pub read_max_bytes: usize,
+    /// The compressors the client accepts, for the response head. The protocol
+    /// reader picks the decompressor from it before the first frame.
+    pub compression: &'a CompressionRegistry,
+    /// The compressor for outgoing request frames (`None` = identity). The
+    /// protocol writer applies it to each frame and sets the compressed flag.
+    pub send_compressor: Option<Arc<dyn Compressor>>,
+    /// The smallest payload the writer compresses (`0` = always compress).
+    /// Payloads below this size go out with the compressed flag clear.
+    pub compress_min_bytes: usize,
+    /// The largest request frame the writer sends, checked after compression
+    /// (`0` = unlimited). A larger frame fails with `ResourceExhausted`.
+    pub send_max_bytes: usize,
+}
+
+/// Run a streaming request writer and report its failure to the response side.
+///
+/// The caller reads the call through the conn's receiver half. A writer task
+/// that fails (for example a request frame over `send_max_bytes`) used to drop
+/// its error with the task: the caller saw a clean end of stream, or the peer's
+/// empty response, and the typed `ResourceExhausted` was lost. Push the same
+/// error as the response pipe's terminal frame, so the receiver half returns it
+/// to the caller.
+///
+/// The end-of-stream frame keeps its order in the pipe. A response frame the
+/// reader pushed first still reaches the caller first.
+pub(crate) async fn write_or_report(
+    writer: impl core::future::Future<Output = ConnectResult<()>>,
+    response_tx: &PipeSender<Frame>,
+    cancel: &CancelSignal,
+) -> ConnectResult<()> {
+    let result = writer.await;
+    if let Err(ref error) = result {
+        fail_stream(response_tx, error, cancel).await;
+    }
+    result
 }
 
 /// Start reading a streaming response: take its head, publish the headers for
@@ -280,7 +329,7 @@ pub(crate) async fn open_response_stream(
     head: &mut HeadStream,
     body: &mut BodyStream,
     tx: &PipeSender<Frame>,
-    response_headers: &Mutex<Option<SimpleHeaders>>,
+    publish: &HeadPublisher,
     cancel: &CancelSignal,
     read_max_bytes: usize,
 ) -> Option<SimpleHeaders> {
@@ -298,9 +347,7 @@ pub(crate) async fn open_response_stream(
             return None;
         }
     };
-    *response_headers
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers.clone());
+    publish.publish(headers.clone());
     if status == Status::OK {
         return Some(headers);
     }
@@ -319,15 +366,18 @@ pub(crate) async fn open_response_stream(
     } else {
         String::from_utf8_lossy(&message).to_string()
     };
-    let error: ErrorTrace<ConnectError> =
-        ConnectError::new(crate::shared::client::code_from_http_status(&status), message).into();
+    let error: ErrorTrace<ConnectError> = ConnectError::new(
+        crate::shared::client::code_from_http_status(&status),
+        message,
+    )
+    .into();
     let end = Frame::EndStream {
         error: Some(error),
         trailers: headers,
     };
     // Delivered, the consumer gone, or the call cancelled: the stream is over.
     let _ = race(tx.send(end), cancel.cancelled()).await;
-    tx.close();
+    let _ = tx.close();
     None
 }
 
@@ -386,22 +436,21 @@ pub fn codec_for_content_type<'a>(canonical: &'a str, prefix: &str) -> Option<&'
 pub fn parse_connect_content_type(content_type: &str) -> Option<(String, bool)> {
     let canonical = canonicalize_content_type(content_type);
     let rest = canonical.strip_prefix("application/")?;
-    match rest.strip_prefix("connect+") {
-        Some(codec) => Some((codec.to_string(), true)),
-        None => {
-            let codec = rest.to_string();
-            // Reject compound content types (e.g. grpc-web+proto) that contain '+'
-            // but don't start with 'connect+' — those belong to other protocols such
-            // as gRPC-Web. Likewise the bare `grpc` / `grpc-web` subtypes: plain
-            // `application/grpc` is a gRPC request with the default (proto) codec,
-            // not a Connect request with a codec named "grpc". Claiming it here
-            // starves the gRPC handler in dispatch and 415s every grpc-go client
-            // (e.g. buildkitd's session health check / FileSync calls).
-            if codec.contains('+') || codec == "grpc" || codec == "grpc-web" {
-                None
-            } else {
-                Some((codec, false))
-            }
+    if let Some(codec) = rest.strip_prefix("connect+") {
+        Some((codec.to_string(), true))
+    } else {
+        let codec = rest.to_string();
+        // Reject compound content types (e.g. grpc-web+proto) that contain '+'
+        // but don't start with 'connect+' — those belong to other protocols such
+        // as gRPC-Web. Likewise the bare `grpc` / `grpc-web` subtypes: plain
+        // `application/grpc` is a gRPC request with the default (proto) codec,
+        // not a Connect request with a codec named "grpc". Claiming it here
+        // starves the gRPC handler in dispatch and 415s every grpc-go client
+        // (e.g. buildkitd's session health check / FileSync calls).
+        if codec.contains('+') || codec == "grpc" || codec == "grpc-web" {
+            None
+        } else {
+            Some((codec, false))
         }
     }
 }

@@ -2,17 +2,20 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
-use crate::native::connection::Connector;
 use crate::http::pool::ConnectionPool;
+use crate::native::connection::Connector;
 use crate::shared::client::SystemDnsResolver;
+use foundation_context::Ctx;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use crate::netcap::{Connection, RawStream};
-use crate::shared::client::dns::DnsResolver;
+use crate::shared::client::dns::{resolve_blocking, DnsResolver};
 use crate::shared::http::HttpClientError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use std::future::Future;
+use std::pin::Pin;
 use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;
@@ -134,15 +137,22 @@ impl HttpClientConnection {
         url: &Uri,
         resolver: &R,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
-        Self::connect_with_tls_config(url, resolver, timeout, None)
+        Self::connect_with_tls_config(url, resolver, timeout, None, ctx)
     }
 
+    /// Connect to a URL with a custom TLS connector.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] for DNS, TCP, TLS, or timeout failures.
     pub fn connect_with_tls_config<R: DnsResolver>(
         url: &Uri,
         resolver: &R,
         timeout: Option<Duration>,
         tls_connector: Option<&SSLConnector>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         // Get host as string (required for DNS resolution)
         let host = url
@@ -153,7 +163,7 @@ impl HttpClientConnection {
         let port = url.port_or_default();
 
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&host, port)?;
+        let addrs = resolve_blocking(resolver, &host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
@@ -166,9 +176,9 @@ impl HttpClientConnection {
 
         for addr in addrs {
             let conn_result = if let Some(timeout_duration) = timeout {
-                Connection::with_timeout(addr, timeout_duration)
+                Connection::with_timeout(addr, timeout_duration, ctx)
             } else {
-                Connection::without_timeout(addr)
+                Connection::without_timeout(addr, ctx)
             };
 
             match conn_result {
@@ -179,7 +189,9 @@ impl HttpClientConnection {
                             connection,
                             &host,
                             port,
+                            timeout,
                             tls_connector,
+                            ctx,
                         );
                     }
                     // Create plain RawStream from Connection (for http:// and ws://)
@@ -219,8 +231,10 @@ impl HttpClientConnection {
         connection: Connection,
         host: &str,
         port: u16,
+        timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
-        Self::upgrade_to_tls_with_config(connection, host, port, None)
+        Self::upgrade_to_tls_with_config(connection, host, port, timeout, None, ctx)
     }
 
     #[cfg(any(
@@ -232,7 +246,9 @@ impl HttpClientConnection {
         connection: Connection,
         host: &str,
         port: u16,
+        timeout: Option<Duration>,
         tls_connector: Option<&SSLConnector>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         let default_connector;
         let connector = if let Some(c) = tls_connector {
@@ -241,8 +257,10 @@ impl HttpClientConnection {
             default_connector = SSLConnector::new();
             &default_connector
         };
+        // Finish the handshake here: this constructor is synchronous, and the
+        // caller reads and writes the stream next.
         let (tls_stream, _addr) = connector
-            .from_tcp_stream(host.to_string(), connection)
+            .from_tcp_stream_complete(host.to_string(), connection, timeout, ctx)
             .map_err(|e: Box<dyn std::error::Error + Send + Sync>| {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
@@ -265,7 +283,13 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
-    fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
+    fn upgrade_to_tls(
+        _connection: Connection,
+        _host: &str,
+        _port: u16,
+        _timeout: Option<Duration>,
+        ctx: &Ctx,
+    ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
 
@@ -278,7 +302,9 @@ impl HttpClientConnection {
         _connection: Connection,
         _host: &str,
         _port: u16,
+        _timeout: Option<Duration>,
         _tls_connector: Option<&SSLConnector>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -303,18 +329,28 @@ impl HttpClientConnection {
         self.stream.clone()
     }
 
+    /// Wrap an already-connected stream for `host:port`.
+    ///
+    /// WHY: the non-blocking connect and TLS handshake path (feature 04) builds
+    /// the `RawStream` itself and needs a public way to turn it into an
+    /// `HttpClientConnection` without going through the blocking `connect`.
+    #[must_use]
+    pub fn from_stream(stream: SharedByteBufferStream<RawStream>, host: String, port: u16) -> Self {
+        Self { stream, host, port }
+    }
+
     /// Register a wake callback fired when this connection becomes readable.
     ///
-    /// Returns `true` if the transport supports readiness wakeups (the WireGuard
+    /// Returns `true` if the transport supports readiness wakeups (the `WireGuard`
     /// overlay), `false` for blocking transports. A reader task that hits
     /// `WouldBlock` uses the result to choose between parking
     /// (`TaskStatus::Depends`) and failing. Registers on the same underlying
     /// `RawStream` the reader reads from (clones share it via `Arc`).
     #[must_use]
-    pub fn register_read_waker(
-        &self,
-        waker: crate::native::connection::ConnWaker,
-    ) -> bool {
+    // Public API: `ConnWaker` is handed over by value by callers; changing to a
+    // reference would break the crate's public API surface.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
         self.stream
             .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()))
     }
@@ -360,7 +396,10 @@ impl HttpClientConnection {
             Ok(true) => self.readiness(interest),
             Ok(false) => None,
             Err(err) => {
-                tracing::error!(?err, "cannot read socket mode; treating WouldBlock as terminal");
+                tracing::error!(
+                    ?err,
+                    "cannot read socket mode; treating WouldBlock as terminal"
+                );
                 None
             }
         }
@@ -375,6 +414,14 @@ impl HttpClientConnection {
     ) -> Option<foundation_core::valtron::EventReadinessPtr> {
         self.stream
             .with_inner_ref(|raw: &RawStream| raw.readiness(interest))
+    }
+
+    /// Build the [`ReadWakeSource`](crate::shared::client::body_reader::ReadWakeSource)
+    /// that wakes a `std::task::Waker` when this connection becomes readable
+    /// (Feature 29 / Feature 03). See [`RawStream::read_wake_source`].
+    #[must_use]
+    pub fn read_wake_source(&self) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
+        self.stream.with_inner_ref(RawStream::read_wake_source)
     }
 
     /// Takes ownership of the underlying stream, consuming the connection.
@@ -422,11 +469,12 @@ impl HttpClientConnection {
         port: u16,
         resolver: &R,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         let host = host.into();
 
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&host, port)?;
+        let addrs = resolve_blocking(resolver, &host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
@@ -439,9 +487,9 @@ impl HttpClientConnection {
 
         for addr in addrs {
             let conn_result = if let Some(timeout_duration) = timeout {
-                Connection::with_timeout(addr, timeout_duration)
+                Connection::with_timeout(addr, timeout_duration, ctx)
             } else {
-                Connection::without_timeout(addr)
+                Connection::without_timeout(addr, ctx)
             };
 
             match conn_result {
@@ -510,11 +558,12 @@ impl HttpClientConnection {
         port: u16,
         resolver: &R,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         let host = host.into();
 
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&host, port)?;
+        let addrs = resolve_blocking(resolver, &host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
@@ -527,15 +576,15 @@ impl HttpClientConnection {
 
         for addr in addrs {
             let conn_result = if let Some(timeout_duration) = timeout {
-                Connection::with_timeout(addr, timeout_duration)
+                Connection::with_timeout(addr, timeout_duration, ctx)
             } else {
-                Connection::without_timeout(addr)
+                Connection::without_timeout(addr, ctx)
             };
 
             match conn_result {
                 Ok(connection) => {
                     // Upgrade to TLS
-                    return Self::upgrade_to_tls(connection, &host, port);
+                    return Self::upgrade_to_tls(connection, &host, port, timeout, ctx);
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -568,6 +617,7 @@ impl HttpClientConnection {
         _port: u16,
         _resolver: &R,
         _timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -657,6 +707,61 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         self.tls_connector.as_ref()
     }
 
+    /// Resolve `host:port` with the pool's resolver, as a future (feature 36).
+    ///
+    /// WHY: the non-blocking connect path (feature 04) must resolve DNS before
+    /// it can start `connect(2)` on each address. The future owns its data (an
+    /// `Arc` of the resolver and an owned host string), so the request task can
+    /// await it in its `Resolving` state without holding a valtron worker.
+    ///
+    /// # Errors
+    /// The resolver's error, or `ConnectionFailed` if nothing resolved.
+    pub fn resolve_host(
+        &self,
+        host: &str,
+        port: u16,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>> + Send>>
+    where
+        R: 'static,
+    {
+        let resolver = self.resolver.clone();
+        let host = host.to_owned();
+        Box::pin(async move {
+            let addrs = resolver
+                .as_ref()
+                .resolve(&host, port)
+                .await
+                .map_err(HttpClientError::DnsError)?;
+            if addrs.is_empty() {
+                return Err(HttpClientError::ConnectionFailed(format!(
+                    "No addresses resolved for {host}"
+                )));
+            }
+            Ok(addrs)
+        })
+    }
+
+    /// Check out a pooled connection for `host:port`, if one is idle.
+    ///
+    /// WHY: the non-blocking connect path must reuse pooled connections exactly
+    /// as the blocking path does, without re-dialing. This wraps the private pool
+    /// so the request task can reach it.
+    #[must_use]
+    pub fn checkout_connection(
+        &self,
+        host: &str,
+        port: u16,
+        ctx: &Ctx,
+    ) -> Option<HttpClientConnection> {
+        self.pool
+            .checkout(host, port, ctx)
+            .map(|stream| HttpClientConnection {
+                stream,
+                host: host.to_string(),
+                port,
+            })
+    }
+
     /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.
     #[must_use]
     pub fn from_arc(pool: Arc<ConnectionPool>, resolver: Arc<R>) -> Self {
@@ -689,6 +794,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         &self,
         url: &Uri,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
         // Extract host/port for pool lookup
         let host = url
@@ -701,7 +807,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         //
         // If your actual `ConnectionPool` API uses different method names, update
         // the calls here to match the real signatures.
-        if let Some(stream) = self.pool.checkout(host.as_str(), port) {
+        if let Some(stream) = self.pool.checkout(host.as_str(), port, ctx) {
             // Wrap the pooled RawStream into our HttpClientConnection and return.
             return Ok(HttpClientConnection { stream, host, port });
         }
@@ -723,7 +829,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                     conn,
                     &host,
                     port,
+                    timeout,
                     self.tls_connector.as_deref(),
+                    ctx,
                 );
             }
             let stream = SharedByteBufferStream::rwrite(
@@ -738,14 +846,14 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             &*self.resolver,
             timeout,
             self.tls_connector.as_deref(),
+            ctx,
         )
     }
 
     /// Return a `RawStream` back into the pool for reuse.
     ///
-    /// This is a best-effort helper that calls into the pool's `put`/`release`
-    /// style API. Adjust the call if your pool uses a different method name.
-    pub fn return_to_pool(&self, conn: HttpClientConnection) {
+    /// The pool stamps the connection with the clock of `ctx`.
+    pub fn return_to_pool(&self, conn: HttpClientConnection, ctx: &Ctx) {
         // WHY: Some transports must never be pooled — Unix sockets (Docker,
         // BuildKitd) close after every response, and an SSH `docker system
         // dial-stdio` channel is a one-shot bridge. The next checkout would get
@@ -760,7 +868,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         // Destructure to move fields out without partially borrowing `conn`.
         let HttpClientConnection { host, port, stream } = conn;
         // Attempt to put the stream back; ignore failures to avoid panics.
-        self.pool.checkin(host.as_str(), port, stream);
+        self.pool.checkin(host.as_str(), port, stream, ctx);
     }
 
     /// Clears all pooled connections. Useful for tests to force fresh connections.
@@ -800,15 +908,19 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// - CONNECT request send failures
     /// - Non-200 proxy responses
     /// - Invalid proxy responses
+    // Long by design: performs the full CONNECT handshake and parses the proxy
+    // response in one place.
+    #[allow(clippy::too_many_lines)]
     pub fn connect_via_http_proxy(
         &self,
         proxy: &crate::shared::client::ProxyConfig,
         target_host: &str,
         target_port: u16,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<Connection, HttpClientError> {
         use crate::shared::client::ProxyProtocol;
-        use crate::shared::http::{HttpResponseReader, SimpleHttpBody};
+        use crate::shared::http::{HttpResponseReader, IncomingResponseParts, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol
@@ -819,7 +931,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
 
         // Step 1: DNS resolution for proxy
-        let addrs = self.resolver.resolve(&proxy.host, proxy.port)?;
+        let addrs = resolve_blocking(self.resolver.as_ref(), &proxy.host, proxy.port)?;
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
                 "No addresses resolved for proxy {}",
@@ -833,9 +945,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         for addr in addrs {
             let conn_result = if let Some(timeout_duration) = timeout {
-                Connection::with_timeout(addr, timeout_duration)
+                Connection::with_timeout(addr, timeout_duration, ctx)
             } else {
-                Connection::without_timeout(addr)
+                Connection::without_timeout(addr, ctx)
             };
 
             match conn_result {
@@ -851,7 +963,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             HttpClientError::ProxyConnectionFailed(format!(
                 "Failed to connect to proxy {}: {}",
                 proxy.host,
-                last_error.map(|e| e.to_string()).unwrap_or_default()
+                last_error.map_or_default(|e| e.to_string())
             ))
         })?;
 
@@ -909,11 +1021,13 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             })?;
 
         // Extract status code from Intro variant
-        use crate::shared::http::IncomingResponseParts;
         let status_code = match intro_response {
             IncomingResponseParts::Intro(status, _proto, _text) => {
                 let code: usize = status.into();
-                code as u16
+                // HTTP status codes never exceed 599, so usize -> u16 is lossless.
+                #[allow(clippy::cast_possible_truncation)]
+                let code_u16 = code as u16;
+                code_u16
             }
             _ => {
                 return Err(HttpClientError::ProxyTunnelFailed {
@@ -933,10 +1047,8 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         // Step 7: Drain headers from reader
         while let Some(Ok(part)) = reader.next() {
-            use crate::shared::http::IncomingResponseParts;
             match part {
-                IncomingResponseParts::Headers(_) => continue,
-                IncomingResponseParts::NoBody | IncomingResponseParts::SKIP => break,
+                IncomingResponseParts::Headers(_) => {}
                 _ => break,
             }
         }
@@ -983,9 +1095,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         target_host: &str,
         target_port: u16,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
         use crate::shared::client::ProxyProtocol;
-        use crate::shared::http::{HttpResponseReader, SimpleHttpBody};
+        use crate::shared::http::{HttpResponseReader, IncomingResponseParts, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol
@@ -1001,6 +1114,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             proxy.port,
             &*self.resolver,
             timeout,
+            ctx,
         )?;
 
         // Step 2: Send CONNECT request
@@ -1049,11 +1163,13 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             })?;
 
         // Extract status code from Intro variant
-        use crate::shared::http::IncomingResponseParts;
         let status_code = match intro_response {
             IncomingResponseParts::Intro(status, _proto, _text) => {
                 let code: usize = status.into();
-                code as u16
+                // HTTP status codes never exceed 599, so usize -> u16 is lossless.
+                #[allow(clippy::cast_possible_truncation)]
+                let code_u16 = code as u16;
+                code_u16
             }
             _ => {
                 return Err(HttpClientError::ProxyTunnelFailed {
@@ -1091,8 +1207,50 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         _target_host: &str,
         _target_port: u16,
         _timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
         Err(HttpClientError::NotSupported)
+    }
+
+    /// Establish an HTTP connection over a Unix domain socket.
+    ///
+    /// WHY: The Docker daemon and `BuildKitd` serve HTTP over a Unix socket
+    /// (`/var/run/docker.sock`) — no DNS, no proxy, no TLS. When
+    /// `ClientConfig::unix_socket` is set, the request task routes here instead
+    /// of the TCP/proxy path.
+    ///
+    /// WHAT: Dials `socket_path`, applies `read_timeout` to the socket, and
+    /// wraps the stream as an `HttpClientConnection`, carrying the URL's host
+    /// (for the `Host` header). Port is reported as `0` since Unix sockets have
+    /// none.
+    ///
+    /// HOW: [`Connection::connect_unix`] → [`RawStream::from_connection`] →
+    /// [`SharedByteBufferStream`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError::ConnectionFailed`] if the socket cannot be
+    /// dialed or wrapped.
+    #[cfg(unix)]
+    pub fn create_connection_unix(
+        &self,
+        url: &Uri,
+        socket_path: &std::path::Path,
+        read_timeout: Duration,
+        ctx: &Ctx,
+    ) -> Result<HttpClientConnection, HttpClientError> {
+        let host = url.host_str().unwrap_or_else(|| "localhost".to_string());
+        let connection = Connection::connect_unix(socket_path, read_timeout, ctx)
+            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
+        let stream = SharedByteBufferStream::rwrite(
+            RawStream::from_connection(connection)
+                .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
+        );
+        Ok(HttpClientConnection {
+            stream,
+            host,
+            port: 0,
+        })
     }
 
     /// Creates an HTTP connection, optionally through a proxy.
@@ -1130,62 +1288,30 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// // Direct connection (no proxy)
-    /// let conn = pool.create_connection_with_proxy(&url, None, timeout)?;
+    /// ```no_run
+    /// use foundation_netio::http::{ConnectionPool, HttpConnectionPool, Uri};
+    /// use foundation_netio::shared::client::{ProxyConfig, SystemDnsResolver};
+    /// use std::time::Duration;
     ///
-    /// // Through HTTP proxy
-    /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080")?;
-    /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
+    /// let pool = HttpConnectionPool::new(
+    ///     ConnectionPool::new(8, Duration::from_secs(30)),
+    ///     SystemDnsResolver,
+    /// );
+    /// let url = Uri::parse("http://example.com").unwrap();
     ///
-    /// // Proxy with NO_PROXY bypass
-    /// std::env::set_var("NO_PROXY", "localhost,.internal.com");
-    /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
-    /// // Will bypass proxy for localhost and *.internal.com
+    /// // Direct connection (no proxy).
+    /// let _conn = pool.create_connection_with_proxy(&url, None, None, &foundation_context::Ctx::host());
+    ///
+    /// // Through an HTTP proxy.
+    /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080").unwrap();
+    /// let _conn = pool.create_connection_with_proxy(&url, Some(&proxy), None, &foundation_context::Ctx::host());
     /// ```
-    /// Establish an HTTP connection over a Unix domain socket.
-    ///
-    /// WHY: The Docker daemon and BuildKitd serve HTTP over a Unix socket
-    /// (`/var/run/docker.sock`) — no DNS, no proxy, no TLS. When
-    /// `ClientConfig::unix_socket` is set, the request task routes here instead
-    /// of the TCP/proxy path.
-    ///
-    /// WHAT: Dials `socket_path`, wraps the stream as an `HttpClientConnection`,
-    /// carrying the URL's host (for the `Host` header). Port is reported as `0`
-    /// since Unix sockets have none.
-    ///
-    /// HOW: [`Connection::connect_unix`] → [`RawStream::from_connection`] →
-    /// [`SharedByteBufferStream`].
-    ///
-    /// # Errors
-    ///
-    /// Returns [`HttpClientError::ConnectionFailed`] if the socket cannot be
-    /// dialed or wrapped.
-    #[cfg(unix)]
-    pub fn create_connection_unix(
-        &self,
-        url: &Uri,
-        socket_path: &std::path::Path,
-    ) -> Result<HttpClientConnection, HttpClientError> {
-        let host = url.host_str().unwrap_or_else(|| "localhost".to_string());
-        let connection = Connection::connect_unix(socket_path)
-            .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
-        let stream = SharedByteBufferStream::rwrite(
-            RawStream::from_connection(connection)
-                .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
-        );
-        Ok(HttpClientConnection {
-            stream,
-            host,
-            port: 0,
-        })
-    }
-
     pub fn create_connection_with_proxy(
         &self,
         url: &Uri,
         proxy: Option<&crate::shared::client::ProxyConfig>,
         timeout: Option<Duration>,
+        ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
         use crate::http::{ProxyConfig, ProxyProtocol};
 
@@ -1199,7 +1325,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         if let Some(proxy_config) = proxy {
             if ProxyConfig::should_bypass(&target_host) {
                 // Bypass proxy, create direct connection
-                return self.create_http_connection(url, timeout);
+                return self.create_http_connection(url, timeout, ctx);
             }
 
             // Establish proxy tunnel based on protocol
@@ -1211,6 +1337,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                         &target_host,
                         target_port,
                         timeout,
+                        ctx,
                     )?;
 
                     // If target is HTTPS, upgrade the tunnel Connection to TLS
@@ -1219,7 +1346,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                             tunnel_connection,
                             &target_host,
                             target_port,
+                            timeout,
                             self.tls_connector.as_deref(),
+                            ctx,
                         );
                     }
 
@@ -1241,6 +1370,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                         &target_host,
                         target_port,
                         timeout,
+                        ctx,
                     )?;
 
                     // HTTPS targets through HTTPS proxy would require double-TLS (not yet supported)
@@ -1258,7 +1388,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             }
         } else {
             // No proxy, create direct connection
-            self.create_http_connection(url, timeout)
+            self.create_http_connection(url, timeout, ctx)
         }
     }
 }

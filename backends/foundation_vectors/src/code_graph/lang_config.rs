@@ -3,13 +3,16 @@
 use tree_sitter::{Node, Parser};
 
 use super::types::{
-    Confidence, FileExtraction, GraphEdge, GraphNode, NodeKind, RawCall, Relation,
-    file_stem_qualified, make_id,
+    file_stem_qualified, make_id, Confidence, FileExtraction, GraphEdge, GraphNode, NodeKind,
+    RawCall, Relation,
 };
 
 // ---------------------------------------------------------------------------
 // LanguageConfig
 // ---------------------------------------------------------------------------
+
+/// A language-specific walk step: `(node, source, file path, file stem, parent id, extraction)`.
+pub type ExtraWalkFn = fn(Node, &str, &str, &str, &str, &mut FileExtraction);
 
 pub struct LanguageConfig {
     pub language: fn() -> tree_sitter::Language,
@@ -23,7 +26,7 @@ pub struct LanguageConfig {
     pub body_field: &'static str,
     pub call_function_field: &'static str,
     pub call_accessor_field: &'static str,
-    pub extra_walk_fn: Option<fn(Node, &str, &str, &str, &str, &mut FileExtraction)>,
+    pub extra_walk_fn: Option<ExtraWalkFn>,
 }
 
 // ---------------------------------------------------------------------------
@@ -34,7 +37,11 @@ pub fn javascript_config() -> LanguageConfig {
     LanguageConfig {
         language: || tree_sitter_javascript::LANGUAGE.into(),
         class_types: &["class_declaration", "class"],
-        function_types: &["function_declaration", "method_definition", "generator_function_declaration"],
+        function_types: &[
+            "function_declaration",
+            "method_definition",
+            "generator_function_declaration",
+        ],
         import_types: &["import_statement", "import_declaration"],
         call_types: &["call_expression"],
         accessor_types: &["member_expression"],
@@ -51,7 +58,12 @@ pub fn typescript_config() -> LanguageConfig {
     LanguageConfig {
         language: || tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
         class_types: &["class_declaration", "abstract_class_declaration", "class"],
-        function_types: &["function_declaration", "method_definition", "generator_function_declaration", "abstract_method_signature"],
+        function_types: &[
+            "function_declaration",
+            "method_definition",
+            "generator_function_declaration",
+            "abstract_method_signature",
+        ],
         import_types: &["import_statement", "import_declaration"],
         call_types: &["call_expression"],
         accessor_types: &["member_expression"],
@@ -64,6 +76,7 @@ pub fn typescript_config() -> LanguageConfig {
     }
 }
 
+#[must_use]
 pub fn python_config() -> LanguageConfig {
     LanguageConfig {
         language: || tree_sitter_python::LANGUAGE.into(),
@@ -142,7 +155,14 @@ fn js_extra_walk(
             },
         ));
         if let Some(body) = func.child_by_field_name("body") {
-            extract_calls(&body, source, file_path, &id, extraction, &javascript_config());
+            extract_calls(
+                &body,
+                source,
+                file_path,
+                &id,
+                extraction,
+                &javascript_config(),
+            );
         }
     }
 }
@@ -151,14 +171,29 @@ fn js_extra_walk(
 // Public extract entry points
 // ---------------------------------------------------------------------------
 
+/// Extract the code graph of one JavaScript file.
+///
+/// # Errors
+///
+/// Returns a message when the JavaScript grammar can not be loaded or the source can not be parsed.
 pub fn extract_js_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     extract_with_config(path, source, &javascript_config())
 }
 
+/// Extract the code graph of one TypeScript file.
+///
+/// # Errors
+///
+/// Returns a message when the TypeScript grammar can not be loaded or the source can not be parsed.
 pub fn extract_ts_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     extract_with_config(path, source, &typescript_config())
 }
 
+/// Extract the code graph of one Python file.
+///
+/// # Errors
+///
+/// Returns a message when the Python grammar can not be loaded or the source can not be parsed.
 pub fn extract_py_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     extract_with_config(path, source, &python_config())
 }
@@ -196,7 +231,15 @@ fn extract_with_config(
     });
     extraction.seen_ids.insert(file_id.clone(), true);
 
-    walk_node(tree.root_node(), source, path, &stem, &file_id, &mut extraction, config);
+    walk_node(
+        tree.root_node(),
+        source,
+        path,
+        &stem,
+        &file_id,
+        &mut extraction,
+        config,
+    );
 
     Ok(extraction)
 }
@@ -219,17 +262,32 @@ fn walk_node(
         let kind = child.kind();
 
         if config.class_types.contains(&kind) {
-            extract_class(&child, source, file_path, stem, parent_id, extraction, config);
+            extract_class(
+                &child, source, file_path, stem, parent_id, extraction, config,
+            );
             continue;
         }
 
         if config.function_types.contains(&kind) {
-            extract_function(&child, source, file_path, stem, parent_id, extraction, config, NodeKind::Function);
+            extract_function(
+                &child,
+                &FileContext {
+                    source,
+                    file_path,
+                    stem,
+                },
+                parent_id,
+                extraction,
+                config,
+                NodeKind::Function,
+            );
             continue;
         }
 
         if config.import_types.contains(&kind) {
-            extract_import(&child, source, file_path, stem, parent_id, extraction, config);
+            extract_import(
+                &child, source, file_path, stem, parent_id, extraction, config,
+            );
             continue;
         }
 
@@ -237,7 +295,9 @@ fn walk_node(
             extra(child, source, file_path, stem, parent_id, extraction);
         }
 
-        walk_node(child, source, file_path, stem, parent_id, extraction, config);
+        walk_node(
+            child, source, file_path, stem, parent_id, extraction, config,
+        );
     }
 }
 
@@ -255,9 +315,13 @@ fn extract_class(
     extraction: &mut FileExtraction,
     config: &LanguageConfig,
 ) {
-    let Some(name) = node_name(node, source, config) else { return };
+    let Some(name) = node_name(node, source, config) else {
+        return;
+    };
     let id = make_id(stem, &name);
-    if extraction.seen_ids.contains_key(&id) { return }
+    if extraction.seen_ids.contains_key(&id) {
+        return;
+    }
     extraction.seen_ids.insert(id.clone(), true);
 
     let line = node.start_position().row + 1;
@@ -284,7 +348,9 @@ fn extract_class(
     ));
 
     // Inheritance: try named fields (Python: superclasses) first, then unnamed children (JS/TS: class_heritage)
-    let heritage = config.inheritance_fields.iter()
+    let heritage = config
+        .inheritance_fields
+        .iter()
         .find_map(|&f| node.child_by_field_name(f));
     let heritage = heritage.or_else(|| {
         node.children(&mut node.walk())
@@ -292,8 +358,13 @@ fn extract_class(
     });
     if let Some(heritage) = heritage {
         if let Some(super_name) = find_type_identifier(&heritage, source.as_bytes()) {
-            let super_label = super_name.split("::").last().unwrap_or(&super_name)
-                .split('.').last().unwrap_or(&super_name);
+            let super_label = super_name
+                .split("::")
+                .last()
+                .unwrap_or(&super_name)
+                .split('.')
+                .next_back()
+                .unwrap_or(&super_name);
             let super_id = make_id(stem, super_label);
             extraction.edges.push((
                 id.clone(),
@@ -314,7 +385,18 @@ fn extract_class(
         let mut cursor = body.walk();
         for child in body.children(&mut cursor) {
             if config.function_types.contains(&child.kind()) {
-                extract_function(&child, source, file_path, stem, &id, extraction, config, NodeKind::Method);
+                extract_function(
+                    &child,
+                    &FileContext {
+                        source,
+                        file_path,
+                        stem,
+                    },
+                    &id,
+                    extraction,
+                    config,
+                    NodeKind::Method,
+                );
             } else {
                 walk_node(child, source, file_path, stem, &id, extraction, config);
             }
@@ -325,7 +407,10 @@ fn extract_class(
 fn find_type_identifier(node: &Node, source: &[u8]) -> Option<String> {
     let kind = node.kind();
     if kind == "type_identifier" || kind == "identifier" || kind == "scoped_type_identifier" {
-        return node.utf8_text(source).ok().map(|s| s.to_string());
+        return node
+            .utf8_text(source)
+            .ok()
+            .map(std::string::ToString::to_string);
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
@@ -336,19 +421,39 @@ fn find_type_identifier(node: &Node, source: &[u8]) -> Option<String> {
     None
 }
 
+/// The file a walk step reads: its source text, path and id stem.
+struct FileContext<'a> {
+    source: &'a str,
+    file_path: &'a str,
+    stem: &'a str,
+}
+
 fn extract_function(
     node: &Node,
-    source: &str,
-    file_path: &str,
-    stem: &str,
+    file: &FileContext,
     parent_id: &str,
     extraction: &mut FileExtraction,
     config: &LanguageConfig,
     kind: NodeKind,
 ) {
-    let Some(name) = node_name(node, source, config) else { return };
-    let id = make_id(stem, &name);
-    if extraction.seen_ids.contains_key(&id) { return }
+    let FileContext {
+        source,
+        file_path,
+        stem,
+    } = *file;
+    let Some(name) = node_name(node, source, config) else {
+        return;
+    };
+    // A method's id includes its class (the parent), so two classes can have
+    // a method of the same name.
+    let id = if kind == NodeKind::Method {
+        make_id(parent_id, &name)
+    } else {
+        make_id(stem, &name)
+    };
+    if extraction.seen_ids.contains_key(&id) {
+        return;
+    }
     extraction.seen_ids.insert(id.clone(), true);
 
     let line = node.start_position().row + 1;
@@ -448,12 +553,17 @@ fn extract_calls(
                 let is_member_call = config.accessor_types.contains(&func.kind());
                 let callee_name = if is_member_call {
                     func.child_by_field_name(config.call_accessor_field)
-                        .map(|f| f.utf8_text(source.as_bytes()).unwrap_or("").to_string())
-                        .unwrap_or_default()
+                        .map_or_default(|f| {
+                            f.utf8_text(source.as_bytes()).unwrap_or("").to_string()
+                        })
                 } else {
                     let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
-                    text.split('.').last().unwrap_or(&text)
-                        .split("::").last().unwrap_or(&text)
+                    text.split('.')
+                        .next_back()
+                        .unwrap_or(&text)
+                        .split("::")
+                        .last()
+                        .unwrap_or(&text)
                         .to_string()
                 };
 

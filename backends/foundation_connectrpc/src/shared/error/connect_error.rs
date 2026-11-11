@@ -24,7 +24,7 @@ use super::code::Code;
 use super::detail::ErrorDetail;
 use super::wire::{WireError, WireErrorDetail};
 
-/// A ConnectRPC error: code + message (+ optional details, metadata, source).
+/// A `ConnectRPC` error: code + message (+ optional details, metadata, source).
 #[derive(Debug)]
 pub struct ConnectError {
     code: Code,
@@ -36,6 +36,11 @@ pub struct ConnectError {
     /// GET-only 304 signalling sentinel (Decision 03 P15). Never on the wire as
     /// an error payload; `ErrorWriter` renders it as HTTP 304 with headers only.
     not_modified: bool,
+    /// The HTTP status that produced this error, when a transport response did.
+    ///
+    /// Internal: the client uses it to recognize a retryable 405 or 415 without
+    /// parsing the message text. It stays off the wire.
+    http_status: Option<u16>,
 }
 
 /// Generates the per-code convenience constructors (`ConnectError::not_found(..)`).
@@ -63,7 +68,19 @@ impl ConnectError {
             source: None,
             wire_error: false,
             not_modified: false,
+            http_status: None,
         }
+    }
+
+    /// Create an error that carries the HTTP status of the response.
+    ///
+    /// Internal. The GET fallback checks the status to decide whether a POST
+    /// retry is safe. Do not read the status from the message text.
+    #[must_use]
+    pub(crate) fn from_http_status(status: u16, code: Code, message: impl Into<String>) -> Self {
+        let mut e = Self::new(code, message);
+        e.http_status = Some(status);
+        e
     }
 
     /// Create an error wrapping an underlying source error. The message is the
@@ -79,6 +96,7 @@ impl ConnectError {
             source: Some(Box::new(source)),
             wire_error: false,
             not_modified: false,
+            http_status: None,
         }
     }
 
@@ -176,6 +194,14 @@ impl ConnectError {
         self.not_modified
     }
 
+    /// The HTTP status that produced this error, when a response did.
+    ///
+    /// Internal. The GET fallback uses it to recognize 405 and 415.
+    #[must_use]
+    pub(crate) fn http_status(&self) -> Option<u16> {
+        self.http_status
+    }
+
     // ── Wire rendering ───────────────────────────────────────────────────────
 
     /// Build the Connect JSON error shape from this error.
@@ -189,7 +215,12 @@ impl ConnectError {
         let details = if self.details.is_empty() {
             None
         } else {
-            Some(self.details.iter().map(WireErrorDetail::from_detail).collect())
+            Some(
+                self.details
+                    .iter()
+                    .map(WireErrorDetail::from_detail)
+                    .collect(),
+            )
         };
         WireError {
             code: self.code.as_str().to_string(),
@@ -216,7 +247,9 @@ impl core::fmt::Display for ConnectError {
 
 impl StdError for ConnectError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.source.as_ref().map(|s| s.as_ref() as &(dyn StdError + 'static))
+        self.source
+            .as_ref()
+            .map(|s| s.as_ref() as &(dyn StdError + 'static))
     }
 }
 

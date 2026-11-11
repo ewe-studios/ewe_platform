@@ -16,11 +16,11 @@
 use std::prelude::rust_2021::*;
 
 /// The fetch-based load block (replaced by the bundler for single-file).
-const FETCH_LOAD: &str = "  // __EWE_WASM_LOAD__\n  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();";
+const FETCH_LOAD: &str =
+    "  // __EWE_WASM_LOAD__\n  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();";
 
 /// The protocol-1 (columnar) → DOM wiring injected after `rt.init(instance)`.
-const REGISTER_WASM_APP: &str =
-    "  FoundationWasmUiRuntime.registerWasmApp(rt);";
+const REGISTER_WASM_APP: &str = "  FoundationWasmUiRuntime.registerWasmApp(rt);";
 
 /// `wasm_bin` — main-thread wrapper (`{name}.js`).
 #[must_use]

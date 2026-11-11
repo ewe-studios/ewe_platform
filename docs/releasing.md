@@ -48,9 +48,18 @@ binaries and attaches them to that GitHub release.
   anything.
 - `semver_check` is off: most crates are 0.0.x, where every bump is already
   breaking.
-- `cargo publish --workspace --dry-run` (the **Publish dry-run** job in
-  `check.yaml`) runs on every push to `master`; keep it green, because the
-  release job publishes the same packages.
+- The **Publish dry-run** job in `check.yaml` runs
+  `scripts/ci/package_workspace.py` on every push to `master`. It packages
+  each publishable crate against a local `[patch.crates-io]` table. Keep it
+  green, because the release job publishes the same packages.
+- A dev-dependency on a workspace crate must not have a `version` when that
+  crate depends back on this one (a publish cycle). Example:
+  `foundation_core` depends on `foundation_nostd`, so the `foundation_core`
+  dev-dependency of `foundation_nostd` is path-only. Cargo removes a
+  path-only dev-dependency from the published manifest. With a `version`,
+  `cargo package` must find the dependent on crates.io first, and the
+  publish fails. The patch table hides this, so `package_workspace.py`
+  checks for these cycles before it packages.
 - Running release-plz locally inside a `git worktree` is not supported: it
   copies the repository to a temp dir whose `.git` still points at the
   worktree, so its checkouts move the worktree's `HEAD`. Use a normal clone.
@@ -61,3 +70,11 @@ binaries and attaches them to that GitHub release.
   `.cargo/config.toml`. Dev's Cranelift backend (`codegen-backend`, nightly
   only) is set through mise's `[env]` instead (`CARGO_PROFILE_DEV_CODEGEN_BACKEND`
   and `CARGO_UNSTABLE_CODEGEN_BACKEND`), so stable cargo never sees it.
+- One exception: the **Open or update the release PR** job uses the pinned
+  nightly from `rust-toolchain.toml`. release-plz runs `cargo package` at the
+  commit of each crate's last release. Commits before `df86d7e6`
+  (21 October 2026) have the nightly-only `codegen-backend` key in the root
+  `Cargo.toml`, and stable cargo refuses to load them. That job only
+  computes versions and changelogs and publishes nothing. The **Publish to
+  crates.io** job stays on stable. When every crate has a release after
+  `df86d7e6`, the release PR job can move back to stable.

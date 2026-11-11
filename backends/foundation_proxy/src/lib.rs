@@ -23,6 +23,8 @@
 //! server's lifetime.
 
 pub mod acme;
+pub mod aio;
+mod clock;
 pub mod config;
 pub mod control;
 pub mod forward;
@@ -32,8 +34,8 @@ pub mod handler;
 pub mod health;
 pub mod passthrough;
 pub mod persistence;
-pub mod rpc_relay;
 pub mod router;
+pub mod rpc_relay;
 pub mod runtime;
 pub mod server;
 pub mod state;
@@ -41,14 +43,14 @@ pub mod tls;
 
 pub use config::{
     BackendProtocol, BackendState, BackendTarget, HealthCheckConfig, ProxyConfig, ProxyError,
-    ServiceConfig, SslConfig, SslProvider,
+    ProxyResult, ServiceConfig, SslConfig, SslProvider,
 };
 pub use forward::SharedHttpClient;
+pub use foundation_macros::proxy;
 pub use handler::ProxyHandler;
 pub use health::{HealthMonitor, ProbeState};
-pub use passthrough::{TcpPassthrough, UdpPassthrough};
+pub use passthrough::{PassthroughConfig, TcpPassthrough, UdpPassthrough};
 pub use router::Router;
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};
 pub use server::ProxyServer;
-pub use state::ProxyState;
-pub use foundation_macros::proxy;
+pub use state::{BufferedBytesGauge, ProxyState};

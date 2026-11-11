@@ -18,6 +18,7 @@ crate-type = ["cdylib", "rlib"]
 # the workspace, so `edition.workspace` / `[lints] workspace = true` would fail).
 foundation_ai = { path = "../../backends/foundation_ai", default-features = false }
 foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["js-wasmbindgen", "std"] }
+foundation_context = { path = "../../backends/foundation_context" }
 foundation_netio = { path = "../../backends/foundation_netio", default-features = false, features = ["wasm-fetch"] }
 foundation_http = { path = "../../backends/foundation_http", default-features = false, features = ["wasm-bindgen-http"] }
 

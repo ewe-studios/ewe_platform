@@ -7,7 +7,7 @@
 //! filter bug here resolves the *wrong* model silently; a broken cache re-fetches
 //! the catalog on every call.
 //!
-//! WHAT: serves an OpenAI `/models` list from a `TestHttpServer` and asserts the
+//! WHAT: serves an `OpenAI` `/models` list from a `TestHttpServer` and asserts the
 //! filter, ordering, empty result, `NotFound` mapping, and that a repeat
 //! `get_model` is served from cache rather than re-hitting the network.
 //!
@@ -26,7 +26,6 @@ use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 // ---------------------------------------------------------------------------
@@ -66,7 +65,9 @@ const CATALOG: &[u8] = br#"{
 }"#;
 
 fn provider_for(server: &TestHttpServer) -> OpenAIProvider {
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -74,7 +75,7 @@ fn provider_for(server: &TestHttpServer) -> OpenAIProvider {
             "test-key".to_string(),
         )));
 
-    OpenAIProvider::with_http_client_and_config(http_client, config.clone())
+    OpenAIProvider::with_http_client_and_config(http_client, config.clone(), test_clock())
         .create(Some(config))
         .expect("provider builds")
 }
@@ -86,6 +87,13 @@ fn catalog_server() -> TestHttpServer {
 // ---------------------------------------------------------------------------
 // get_all — the substring filter
 // ---------------------------------------------------------------------------
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
 
 #[valtron_test]
 fn get_all_returns_every_model_matching_the_pattern() {
@@ -116,7 +124,11 @@ fn get_all_filter_is_case_insensitive() {
     let specs = provider
         .get_all(ModelId::Name("GPT-4O".into(), None))
         .expect("catalog fetch succeeds");
-    assert_eq!(specs.len(), 2, "uppercase must match lowercase ids: {specs:?}");
+    assert_eq!(
+        specs.len(),
+        2,
+        "uppercase must match lowercase ids: {specs:?}"
+    );
 }
 
 #[valtron_test]
@@ -168,7 +180,9 @@ fn get_all_surfaces_a_transport_failure_as_not_found() {
     let provider = provider_for(&server);
 
     assert!(
-        provider.get_all(ModelId::Name("gpt-4o".into(), None)).is_err(),
+        provider
+            .get_all(ModelId::Name("gpt-4o".into(), None))
+            .is_err(),
         "a failing catalog fetch must be an error, not an empty list"
     );
 }
@@ -280,7 +294,7 @@ fn anthropic_provider() -> AnthropicMessagesProvider {
     let config = AnthropicConfig::new().with_auth(AuthCredential::SecretOnly(
         ConfidentialText::new("test-key".to_string()),
     ));
-    AnthropicMessagesProvider::new()
+    AnthropicMessagesProvider::new(test_clock())
         .create(Some(config))
         .expect("provider builds")
 }
@@ -325,7 +339,9 @@ fn anthropic_get_one_resolves_the_synthesised_spec() {
 // ---------------------------------------------------------------------------
 
 fn responses_provider_for(server: &TestHttpServer) -> ResponsesProvider {
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -333,7 +349,7 @@ fn responses_provider_for(server: &TestHttpServer) -> ResponsesProvider {
             "test-key".to_string(),
         )));
 
-    ResponsesProvider::with_http_client_and_config(http_client, config.clone())
+    ResponsesProvider::with_http_client_and_config(http_client, config.clone(), test_clock())
         .create(Some(config))
         .expect("provider builds")
 }
@@ -377,7 +393,9 @@ fn responses_get_all_surfaces_a_transport_failure() {
     let provider = responses_provider_for(&server);
 
     assert!(
-        provider.get_all(ModelId::Name("gpt-4o".into(), None)).is_err(),
+        provider
+            .get_all(ModelId::Name("gpt-4o".into(), None))
+            .is_err(),
         "a failing catalog fetch must error, not yield an empty list"
     );
 }
@@ -397,7 +415,9 @@ fn responses_get_one_with_no_match_is_not_found() {
     let server = catalog_server();
     let provider = responses_provider_for(&server);
     assert!(
-        provider.get_one(ModelId::Name("absent".into(), None)).is_err(),
+        provider
+            .get_one(ModelId::Name("absent".into(), None))
+            .is_err(),
         "an unmatched model must be NotFound, not an empty success"
     );
 }

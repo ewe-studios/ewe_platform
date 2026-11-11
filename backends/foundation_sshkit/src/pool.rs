@@ -1,11 +1,13 @@
 //! Connection pool for SSH sessions.
 
+use crate::error::{SshKitError, SshKitResult};
 use crate::host::Host;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use foundation_context::{Clock, Ctx};
 use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 
 /// A pool of SSH sessions, keyed by (hostname, port, user).
@@ -13,11 +15,29 @@ use ssh2::{CheckResult, KnownHostFileKind, KnownHostKeyFormat, Session};
 pub struct ConnectionPool {
     sessions: Mutex<HashMap<String, (Instant, ssh2::Session)>>,
     idle_timeout: Duration,
+    /// The context whose clock stamps a session and measures its idle age.
+    ctx: Ctx,
 }
 
 impl ConnectionPool {
-    pub fn new(idle_timeout: Duration) -> Self {
-        Self { sessions: Mutex::new(HashMap::new()), idle_timeout }
+    pub fn new(idle_timeout: Duration, ctx: Ctx) -> Self {
+        Self {
+            sessions: Mutex::new(HashMap::new()),
+            idle_timeout,
+            ctx,
+        }
+    }
+
+    /// The clock that stamps a session and measures its idle age.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.ctx.clock()
+    }
+
+    /// The context that carries the clock.
+    #[must_use]
+    pub fn ctx(&self) -> &Ctx {
+        &self.ctx
     }
 
     fn key(host: &Host) -> String {
@@ -25,9 +45,12 @@ impl ConnectionPool {
     }
 
     /// Get or create a session for the given host.
-    pub fn get(&self, host: &Host) -> Result<ssh2::Session, String> {
+    pub fn get(&self, host: &Host) -> SshKitResult<ssh2::Session> {
         let key = Self::key(host);
-        let mut sessions = self.sessions.lock().map_err(|e| format!("lock: {e}"))?;
+        let mut sessions = self
+            .sessions
+            .lock()
+            .map_err(|e| SshKitError::Operation(format!("lock: {e}")))?;
 
         if let Some((_ts, session)) = sessions.get(&key) {
             if session.authenticated() {
@@ -36,14 +59,16 @@ impl ConnectionPool {
         }
 
         let session = connect_session(host)?;
-        sessions.insert(key.clone(), (Instant::now(), session.clone()));
+        sessions.insert(key.clone(), (self.ctx.clock().now(), session.clone()));
         Ok(session)
     }
 
     /// Evict idle sessions.
     pub fn evict_idle(&self) {
         if let Ok(mut sessions) = self.sessions.lock() {
-            sessions.retain(|_, (ts, _)| ts.elapsed() < self.idle_timeout);
+            sessions.retain(|_, (ts, _)| {
+                self.ctx.clock().now().saturating_duration_since(*ts) < self.idle_timeout
+            });
         }
     }
 }
@@ -67,14 +92,17 @@ impl ConnectionPool {
 ///
 /// Returns a message if the TCP connect, handshake, host-key check, or
 /// authentication fails (including when no auth method succeeds).
-pub fn connect_session(host: &Host) -> Result<Session, String> {
+pub fn connect_session(host: &Host) -> SshKitResult<Session> {
     let tcp = std::net::TcpStream::connect(format!("{}:{}", host.hostname, host.port))
-        .map_err(|e| format!("connect: {e}"))?;
+        .map_err(|e| SshKitError::Operation(format!("connect: {e}")))?;
     tcp.set_read_timeout(Some(Duration::from_secs(10))).ok();
 
-    let mut session = Session::new().map_err(|e| format!("session: {e}"))?;
+    let mut session =
+        Session::new().map_err(|e| SshKitError::Operation(format!("session: {e}")))?;
     session.set_tcp_stream(tcp);
-    session.handshake().map_err(|e| format!("handshake: {e}"))?;
+    session
+        .handshake()
+        .map_err(|e| SshKitError::Operation(format!("handshake: {e}")))?;
 
     verify_host_key(&session, host)?;
     authenticate(&session, host)?;
@@ -92,7 +120,7 @@ pub fn connect_session(host: &Host) -> Result<Session, String> {
 ///
 /// Best-effort on the filesystem: a missing `~/.ssh` / `known_hosts` is fine
 /// (treated as first use); an unwritable file only forgoes persistence.
-fn verify_host_key(session: &Session, host: &Host) -> Result<(), String> {
+fn verify_host_key(session: &Session, host: &Host) -> SshKitResult<()> {
     let Some(ssh_dir) = dirs::home_dir().map(|h| h.join(".ssh")) else {
         // No home directory to anchor known_hosts — cannot verify; skip.
         return Ok(());
@@ -101,13 +129,13 @@ fn verify_host_key(session: &Session, host: &Host) -> Result<(), String> {
 
     let mut known = session
         .known_hosts()
-        .map_err(|e| format!("known_hosts init: {e}"))?;
+        .map_err(|e| SshKitError::Operation(format!("known_hosts init: {e}")))?;
     // A missing file just means "no known hosts yet".
     let _ = known.read_file(&kh_path, KnownHostFileKind::OpenSSH);
 
     let (key, key_type) = session
         .host_key()
-        .ok_or("server presented no host key")?;
+        .ok_or_else(|| SshKitError::Operation("server presented no host key".to_string()))?;
 
     match known.check_port(&host.hostname, host.port, key) {
         CheckResult::Match => Ok(()),
@@ -120,22 +148,24 @@ fn verify_host_key(session: &Session, host: &Host) -> Result<(), String> {
                 known_hosts = %kh_path.display(),
                 "SSH host key MISMATCH — possible MITM; refusing connection"
             );
-            Err(format!(
+            Err(SshKitError::HostKey(format!(
                 "host key mismatch for {}:{} — possible MITM; refusing. If the host \
                  legitimately changed, remove its entry from {}",
                 host.hostname,
                 host.port,
                 kh_path.display()
             ))
+            .into())
         }
         CheckResult::NotFound => {
             // Trust on first use: record the key and persist it.
             let fmt = KnownHostKeyFormat::from(key_type);
             if matches!(fmt, KnownHostKeyFormat::Unknown) {
-                return Err(format!(
+                return Err(SshKitError::HostKey(format!(
                     "server host key type for {} is unrecognized; refusing",
                     host.hostname
-                ));
+                ))
+                .into());
             }
             // known_hosts encodes non-default ports as "[host]:port".
             let entry = if host.port == 22 {
@@ -145,24 +175,26 @@ fn verify_host_key(session: &Session, host: &Host) -> Result<(), String> {
             };
             known
                 .add(&entry, key, "added by foundation_sshkit", fmt)
-                .map_err(|e| format!("known_hosts add: {e}"))?;
+                .map_err(|e| SshKitError::Operation(format!("known_hosts add: {e}")))?;
             let _ = std::fs::create_dir_all(&ssh_dir);
             let _ = known.write_file(&kh_path, KnownHostFileKind::OpenSSH);
             tracing::info!(host = %host.hostname, port = host.port, "TOFU: added new host key to known_hosts");
             Ok(())
         }
-        CheckResult::Failure => Err("known_hosts check failed".to_string()),
+        CheckResult::Failure => {
+            Err(SshKitError::HostKey("known_hosts check failed".to_string()).into())
+        }
     }
 }
 
 /// Authenticate `session` for `host`, trying methods in OpenSSH order.
-fn authenticate(session: &Session, host: &Host) -> Result<(), String> {
+fn authenticate(session: &Session, host: &Host) -> SshKitResult<()> {
     let user = &host.user;
 
     if let Some(pw) = &host.password {
         return session
             .userauth_password(user, pw)
-            .map_err(|e| format!("password auth: {e}"));
+            .map_err(|e| SshKitError::Operation(format!("password auth: {e}")).into());
     }
 
     // 1) SSH agent — try every identity it holds.
@@ -177,10 +209,7 @@ fn authenticate(session: &Session, host: &Host) -> Result<(), String> {
         host.key_paths.clone()
     };
     for key in &keys {
-        if session
-            .userauth_pubkey_file(user, None, key, None)
-            .is_ok()
-        {
+        if session.userauth_pubkey_file(user, None, key, None).is_ok() {
             return Ok(());
         }
     }
@@ -188,12 +217,13 @@ fn authenticate(session: &Session, host: &Host) -> Result<(), String> {
     if session.authenticated() {
         return Ok(());
     }
-    Err(format!(
+    Err(SshKitError::Operation(format!(
         "no working SSH authentication for {user}@{}:{} (tried agent + {} key file(s))",
         host.hostname,
         host.port,
         keys.len()
     ))
+    .into())
 }
 
 /// Try each identity the SSH agent holds; `true` on the first that authenticates.
@@ -207,9 +237,7 @@ fn authenticate_via_agent(session: &Session, user: &str) -> bool {
     let Ok(identities) = agent.identities() else {
         return false;
     };
-    identities
-        .iter()
-        .any(|id| agent.userauth(user, id).is_ok())
+    identities.iter().any(|id| agent.userauth(user, id).is_ok())
 }
 
 /// The default identity files OpenSSH tries, in preference order, that exist.

@@ -69,7 +69,10 @@ pub extern "C" fn invoke_signal_callback(callback_id: u64, allocation_id: u64) {
     // bails (the JS contract says Rust owns this cleanup).
     let json: Option<String> = {
         let bytes = internal_api::with_global_allocations(|memory| {
-            let bytes = memory.get(memory_id).ok().and_then(|slot| slot.clone_memory().ok());
+            let bytes = memory
+                .get(memory_id)
+                .ok()
+                .and_then(|slot| slot.clone_memory().ok());
             let _ = memory.deallocate(memory_id);
             bytes
         });
@@ -80,7 +83,10 @@ pub extern "C" fn invoke_signal_callback(callback_id: u64, allocation_id: u64) {
         .lock()
         .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
     let Some(bridge) = guard.as_ref() else {
-        tracing::warn!(callback_id, "invoke_signal_callback: no event bridge installed");
+        tracing::warn!(
+            callback_id,
+            "invoke_signal_callback: no event bridge installed"
+        );
         return;
     };
     let Some(json) = json else {

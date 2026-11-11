@@ -11,9 +11,9 @@ use core::task::{Context, Poll};
 
 use std::sync::Mutex;
 
+use crate::valtron::pipe::{PipeReceiver, PipeSender, SendError};
+use crate::valtron::{QueueClosedReadiness, QueueReadiness, QueueVacancyReadiness};
 use concurrent_queue::{PopError, PushError};
-use crate::valtron::pipe::{PipeSender, PipeReceiver, SendError};
-use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MappedSender — PipeSender<Inner> → PipeSender<Outer> via &Outer → Inner
@@ -40,6 +40,16 @@ where
     ///
     /// Returns `Err(())` on `Full` (caller retries next poll — `outer` was not
     /// consumed). Returns `Ok(())` on success. The stash absorbs transient Fulls.
+    // A named error type would change this public signature; the feature that
+    // does that also bumps the crate version. Until then, `()` has one meaning.
+    ///
+    /// # Errors
+    /// Returns `Err(())` when the inner pipe is full. The item stays in the
+    /// stash and the caller retries at the next poll.
+    ///
+    /// # Panics
+    /// Panics if the internal stash mutex is poisoned.
+    #[allow(clippy::result_unit_err)]
     pub fn try_send(&self, outer: &Outer) -> Result<(), ()> {
         // Drain stash first.
         if let Some(inner) = self.stashed.lock().unwrap().take() {
@@ -69,14 +79,40 @@ where
         }
     }
 
-    pub fn close(&self) -> bool { self.inner.close() }
-    pub fn is_full(&self) -> bool { self.inner.is_full() }
-    pub fn is_closed(&self) -> bool { self.inner.is_closed() }
-    pub fn len(&self) -> usize { self.inner.len() }
-    pub fn capacity(&self) -> usize { self.inner.capacity() }
+    pub fn close(&self) -> bool {
+        self.inner.close()
+    }
+    pub fn is_full(&self) -> bool {
+        self.inner.is_full()
+    }
+    pub fn is_closed(&self) -> bool {
+        self.inner.is_closed()
+    }
+    // `is_empty` is a new public method; it needs a crate version bump, which a
+    // lint-only feature must not make. Add both together in that change.
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
 
     pub fn vacancy(&self) -> QueueVacancyReadiness<Inner>
-    where Inner: Send { self.inner.vacancy() }
+    where
+        Inner: Send,
+    {
+        self.inner.vacancy()
+    }
+
+    /// Ready only once the inner pipe closes, so a task parked on it is not
+    /// woken by every consumer pop. See [`PipeSender::closed_readiness`].
+    pub fn closed_readiness(&self) -> QueueClosedReadiness<Inner>
+    where
+        Inner: Send,
+    {
+        self.inner.closed_readiness()
+    }
 }
 
 impl<Inner, Outer, F: Clone> Clone for MappedSender<Inner, Outer, F> {
@@ -93,16 +129,32 @@ impl<Inner, Outer, F: Clone> Clone for MappedSender<Inner, Outer, F> {
 impl<T> PipeSender<T> {
     /// Wrap with a borrow-based transform: caller sends `&Outer`, pipe sees `Inner`.
     ///
-    /// ```ignore
-    /// let ws_tx: PipeSender<WebSocketMessage> = ...;
-    /// let byte_tx = ws_tx.map_to(|bytes: &Bytes| WebSocketMessage::Binary(bytes.to_vec()));
-    /// byte_tx.try_send(&bytes)?;
-    /// byte_tx.send(bytes).await?;
     /// ```
-    pub fn map_to<Outer, F: Fn(&Outer) -> T>(
-        self,
-        f: F,
-    ) -> MappedSender<T, Outer, F> {
+    /// use foundation_core::valtron::Pipe;
+    ///
+    /// enum Message {
+    ///     Binary(Vec<u8>),
+    ///     Text(String),
+    /// }
+    ///
+    /// let (ws_tx, ws_rx) = Pipe::<Message>::with_depth(4);
+    /// // The caller sends `&Vec<u8>`; the pipe holds a `Message`.
+    /// let byte_tx = ws_tx.map_to(|bytes: &Vec<u8>| Message::Binary(bytes.clone()));
+    ///
+    /// byte_tx.try_send(&b"hello".to_vec()).expect("send");
+    /// match ws_rx.try_recv().expect("receive") {
+    ///     Message::Binary(bytes) => assert_eq!(bytes, b"hello".to_vec()),
+    ///     Message::Text(_) => panic!("the transform wraps bytes"),
+    /// }
+    ///
+    /// // The same transform on the async path.
+    /// futures_lite::future::block_on(byte_tx.send(b"world".to_vec())).expect("send");
+    /// match ws_rx.try_recv().expect("receive") {
+    ///     Message::Binary(bytes) => assert_eq!(bytes, b"world".to_vec()),
+    ///     Message::Text(_) => panic!("the transform wraps bytes"),
+    /// }
+    /// ```
+    pub fn map_to<Outer, F: Fn(&Outer) -> T>(self, f: F) -> MappedSender<T, Outer, F> {
         MappedSender {
             inner: self,
             f,
@@ -129,12 +181,11 @@ where
     type Output = Result<(), SendError<Outer>>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let item: Inner = match self.stashed.take() {
-            Some(inner) => inner,
-            None => {
-                let outer = self.outer.as_ref().expect("polled after Ready");
-                (self.sender.f)(outer)
-            }
+        let item: Inner = if let Some(inner) = self.stashed.take() {
+            inner
+        } else {
+            let outer = self.outer.as_ref().expect("polled after Ready");
+            (self.sender.f)(outer)
         };
 
         match self.sender.inner.inner.queue.push(item) {
@@ -184,6 +235,11 @@ where
 {
     /// Non-blocking pop through the transform. Returns `Err(Empty)` if the inner
     /// pipe is empty, or if the transform returns `None` for the popped item.
+    ///
+    /// # Errors
+    /// Returns `TryRecvError::Empty` when the inner pipe is empty or the
+    /// transform returns `None`, and `TryRecvError::Closed` when the pipe is
+    /// closed.
     pub fn try_recv(&self) -> Result<Outer, crate::valtron::pipe::TryRecvError> {
         let inner = self.inner.try_recv()?;
         (self.f)(&inner).ok_or(crate::valtron::pipe::TryRecvError::Empty)
@@ -194,38 +250,74 @@ where
         FilterMapRecvFuture { receiver: self }
     }
 
-    pub fn close(&self) -> bool { self.inner.close() }
-    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
-    pub fn is_closed(&self) -> bool { self.inner.is_closed() }
-    pub fn len(&self) -> usize { self.inner.len() }
+    pub fn close(&self) -> bool {
+        self.inner.close()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+    pub fn is_closed(&self) -> bool {
+        self.inner.is_closed()
+    }
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
 
     pub fn readiness(&self) -> QueueReadiness<Inner>
-    where Inner: Send { self.inner.readiness() }
+    where
+        Inner: Send,
+    {
+        self.inner.readiness()
+    }
 }
 
 impl<Inner, Outer, F: Clone> Clone for FilterMapReceiver<Inner, Outer, F> {
     fn clone(&self) -> Self {
-        Self { inner: self.inner.clone(), f: self.f.clone(), _p: core::marker::PhantomData }
+        Self {
+            inner: self.inner.clone(),
+            f: self.f.clone(),
+            _p: core::marker::PhantomData,
+        }
     }
 }
 
 impl<T> PipeReceiver<T> {
     /// Wrap with a borrow-based filter: pipe yields `&Inner`, caller sees `Outer`.
     ///
-    /// ```ignore
-    /// let ws_rx: PipeReceiver<WebSocketMessage> = ...;
-    /// let body_rx = ws_rx.filter_map_to(|msg: &WebSocketMessage| match msg {
-    ///     WebSocketMessage::Binary(data) => Some(Bytes::from(data.clone())),
+    /// ```
+    /// use foundation_core::valtron::{Pipe, TryRecvError};
+    ///
+    /// enum Message {
+    ///     Binary(Vec<u8>),
+    ///     Text(String),
+    /// }
+    ///
+    /// let (ws_tx, ws_rx) = Pipe::<Message>::with_depth(4);
+    /// // The pipe holds `Message`; the caller sees only binary bodies.
+    /// let body_rx = ws_rx.filter_map_to(|msg: &Message| match msg {
+    ///     Message::Binary(data) => Some(data.clone()),
     ///     _ => None,
     /// });
-    /// body_rx.try_recv()?;    // Bytes
-    /// body_rx.receive().await; // Option<Bytes>
+    ///
+    /// // A filtered item is consumed and reported as empty.
+    /// ws_tx.try_send(Message::Text("ignored".into())).expect("send");
+    /// assert_eq!(body_rx.try_recv(), Err(TryRecvError::Empty));
+    ///
+    /// ws_tx.try_send(Message::Binary(b"data".to_vec())).expect("send");
+    /// assert_eq!(body_rx.try_recv().expect("body"), b"data".to_vec());
+    ///
+    /// // The same filter on the async path: a non-matching item is skipped.
+    /// ws_tx.try_send(Message::Text("ignored".into())).expect("send");
+    /// ws_tx.try_send(Message::Binary(b"body".to_vec())).expect("send");
+    /// let body = futures_lite::future::block_on(body_rx.receive());
+    /// assert_eq!(body, Some(b"body".to_vec()));
     /// ```
-    pub fn filter_map_to<Outer, F>(
-        self,
-        f: F,
-    ) -> FilterMapReceiver<T, Outer, F> {
-        FilterMapReceiver { inner: self, f, _p: core::marker::PhantomData }
+    pub fn filter_map_to<Outer, F>(self, f: F) -> FilterMapReceiver<T, Outer, F> {
+        FilterMapReceiver {
+            inner: self,
+            f,
+            _p: core::marker::PhantomData,
+        }
     }
 }
 

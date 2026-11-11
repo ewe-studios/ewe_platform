@@ -4,48 +4,83 @@
 //! The regression these pin: a record used to restart the window on every
 //! hit, so a key hit at least once per window never reset and its count
 //! grew for good.
+//!
+//! Every check takes the wall time from an injected `SimulatedClock`, so the
+//! window tests move time explicitly instead of sleeping.
 
+use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::valtron_test;
-use foundation_db::{RateLimiterStore, MemoryJsonStore, MemoryStorage, TursoStorage};
+use foundation_core::valtron::{valtron_test, SimulatedClock};
+
+use foundation_context::Ctx;
+use foundation_db::{MemoryJsonStore, MemoryStorage, RateLimiterStore, TursoStorage};
 
 #[cfg(feature = "libsql")]
 use foundation_db::LibsqlStore;
 
+/// A simulated wall clock parked one million seconds after the UNIX epoch.
+///
+/// The offset keeps the window arithmetic away from `0`, where saturating
+/// subtraction would treat every window as elapsed.
+fn clock() -> SimulatedClock {
+    let clock = SimulatedClock::new(Duration::ZERO);
+    clock.advance_wall(Duration::from_secs(1_000_000));
+    clock
+}
+
 /// Counts within one window, the limit, and reset.
 async fn counts_and_limits<S: RateLimiterStore>(store: &S) {
-    assert!(store.check_rate_limit_async("k", 2, 60).await.unwrap());
-    assert_eq!(store.record_rate_limit_async("k", 60).await.unwrap(), 1);
-    assert_eq!(store.record_rate_limit_async("k", 60).await.unwrap(), 2);
-    assert!(!store.check_rate_limit_async("k", 2, 60).await.unwrap(), "limit reached");
-    assert!(store.check_rate_limit_async("other", 2, 60).await.unwrap(), "keys are independent");
+    let clock = Arc::new(clock());
+    let ctx = Ctx::fixed(clock.clone());
+    assert!(store.check_rate_limit(&ctx, "k", 2, 60).await.unwrap());
+    assert_eq!(store.record_rate_limit(&ctx, "k", 60).await.unwrap(), 1);
+    assert_eq!(store.record_rate_limit(&ctx, "k", 60).await.unwrap(), 2);
+    assert!(
+        !store.check_rate_limit(&ctx, "k", 2, 60).await.unwrap(),
+        "limit reached"
+    );
+    assert!(
+        store.check_rate_limit(&ctx, "other", 2, 60).await.unwrap(),
+        "keys are independent"
+    );
 
-    store.reset_rate_limit_async("k").await.unwrap();
-    assert!(store.check_rate_limit_async("k", 2, 60).await.unwrap());
-    assert_eq!(store.record_rate_limit_async("k", 60).await.unwrap(), 1);
+    store.reset_rate_limit("k").await.unwrap();
+    assert!(store.check_rate_limit(&ctx, "k", 2, 60).await.unwrap());
+    assert_eq!(store.record_rate_limit(&ctx, "k", 60).await.unwrap(), 1);
 }
 
 /// A zero-length window has always elapsed: every record starts a new one.
 async fn zero_window_never_accumulates<S: RateLimiterStore>(store: &S) {
+    let clock = Arc::new(clock());
+    let ctx = Ctx::fixed(clock.clone());
     for _ in 0..3 {
-        assert_eq!(store.record_rate_limit_async("z", 0).await.unwrap(), 1);
+        assert_eq!(store.record_rate_limit(&ctx, "z", 0).await.unwrap(), 1);
     }
-    assert!(store.check_rate_limit_async("z", 1, 0).await.unwrap());
+    assert!(store.check_rate_limit(&ctx, "z", 1, 0).await.unwrap());
 }
 
 /// A key hit inside its window keeps the window's start, so it still resets
 /// once the window has elapsed. Window: 2s; hits at ~0s, ~0.5s and ~3.1s.
 /// (The old code moved the start on every hit and answered 3 here.)
 async fn busy_key_resets_after_the_window<S: RateLimiterStore>(store: &S) {
-    assert_eq!(store.record_rate_limit_async("busy", 2).await.unwrap(), 1);
-    std::thread::sleep(Duration::from_millis(500));
-    assert_eq!(store.record_rate_limit_async("busy", 2).await.unwrap(), 2);
-    assert!(!store.check_rate_limit_async("busy", 2, 2).await.unwrap());
+    let clock = Arc::new(clock());
+    let ctx = Ctx::fixed(clock.clone());
+    assert_eq!(store.record_rate_limit(&ctx, "busy", 2).await.unwrap(), 1);
+    clock.advance_wall(Duration::from_millis(500));
+    assert_eq!(store.record_rate_limit(&ctx, "busy", 2).await.unwrap(), 2);
+    assert!(!store.check_rate_limit(&ctx, "busy", 2, 2).await.unwrap());
 
-    std::thread::sleep(Duration::from_millis(2600));
-    assert!(store.check_rate_limit_async("busy", 2, 2).await.unwrap(), "window elapsed");
-    assert_eq!(store.record_rate_limit_async("busy", 2).await.unwrap(), 1, "new window");
+    clock.advance_wall(Duration::from_millis(2600));
+    assert!(
+        store.check_rate_limit(&ctx, "busy", 2, 2).await.unwrap(),
+        "window elapsed"
+    );
+    assert_eq!(
+        store.record_rate_limit(&ctx, "busy", 2).await.unwrap(),
+        1,
+        "new window"
+    );
 }
 
 async fn all<S: RateLimiterStore>(store: &S) {
@@ -66,20 +101,51 @@ async fn memory_json_store() {
 
 #[valtron_test]
 async fn turso_storage() {
-    all(&TursoStorage::in_memory().await.unwrap()).await;
+    all(&TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap())
+    .await;
 }
 
 #[cfg(feature = "libsql")]
 #[valtron_test]
 async fn libsql_store() {
-    all(&LibsqlStore::in_memory().await.unwrap()).await;
+    all(&LibsqlStore::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap())
+    .await;
 }
 
 /// A store without the core migrations creates the same `rate_limits` table
 /// itself.
 #[valtron_test]
 async fn turso_storage_without_migrations() {
-    let store = TursoStorage::new(":memory:").await.unwrap();
+    let store = TursoStorage::new(":memory:", foundation_context::Ctx::host())
+        .await
+        .unwrap();
     counts_and_limits(&store).await;
     zero_window_never_accumulates(&store).await;
+}
+
+/// Fifty concurrent records against the serialised SQL path: the atomic
+/// upsert (`RETURNING count`) turns them into counts 1..=50 with no lost
+/// updates, so exactly ten are within a limit of ten.
+#[valtron_test]
+async fn rate_limit_counts_concurrent_hits() {
+    let store = TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
+    let clock = Arc::new(clock());
+    let ctx = Ctx::fixed(clock.clone());
+    let futures = (0..50).map(|_| store.record_rate_limit(&ctx, "k", 60));
+    let counts: Vec<u32> = futures_util::future::join_all(futures)
+        .await
+        .into_iter()
+        .map(|r| r.unwrap())
+        .collect();
+
+    let mut sorted = counts.clone();
+    sorted.sort_unstable();
+    assert_eq!(sorted, (1..=50).collect::<Vec<u32>>());
+    assert_eq!(counts.iter().filter(|&&c| c <= 10).count(), 10);
 }

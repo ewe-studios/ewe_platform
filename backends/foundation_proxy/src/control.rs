@@ -13,7 +13,7 @@
 //! - `pause <service> <url>` — set backend to Paused
 //! - `activate <service> <url>` — set backend to Active
 //! - `status` — aggregate counts: total, healthy, draining, paused
-//! - `reload` — trigger OnSignal for graceful reload
+//! - `reload` — trigger `ShutdownSignal` for graceful reload
 //! - `shutdown` — trigger the proxy shutdown signal
 //!
 //! HOW: Each connection reads one line of JSON, dispatches to the matching
@@ -21,56 +21,138 @@
 //! protocol — no persistent connection, no framing protocol. Simple enough
 //! for `nc -U` / `socat` at the CLI.
 
-use std::io::{BufRead, BufReader, Write};
+use std::io::{Read, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
+use std::sync::mpsc::Receiver;
 use std::sync::Arc;
-use std::thread::{self, JoinHandle};
+use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
-// The control connections are OS threads that wait on the async dispatch.
-foundation_core::blocking_boundary! {
-    use foundation_core::valtron::block_on_future;
-}
+use foundation_core::valtron::{from_future, send, sleep_async};
+use foundation_http::ShutdownSignal;
+use futures_util::future::{select, Either};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::aio::AsyncFd;
 use crate::config::BackendState;
 use crate::state::ProxyState;
+use foundation_context::Ctx;
+
+/// Limits for the control socket.
+#[derive(Debug, Clone, Copy)]
+pub struct ControlConfig {
+    /// How often the idle accept loop wakes to check for shutdown. A timer wake,
+    /// not a thread sleep. Default 50 ms.
+    pub shutdown_poll: Duration,
+    /// The longest a client may take to send its request line before the
+    /// connection is closed. Default 30 seconds.
+    pub read_timeout: Duration,
+    /// The longest request line, in bytes. A longer line is refused. Default
+    /// 64 KiB (a control request is a short JSON object).
+    pub max_request_bytes: usize,
+}
+
+impl Default for ControlConfig {
+    fn default() -> Self {
+        Self {
+            shutdown_poll: Duration::from_millis(50),
+            read_timeout: Duration::from_secs(30),
+            max_request_bytes: 64 * 1024,
+        }
+    }
+}
+
+impl ControlConfig {
+    /// The defaults documented on each field.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set [`Self::shutdown_poll`].
+    #[must_use]
+    pub fn with_shutdown_poll(mut self, poll: Duration) -> Self {
+        self.shutdown_poll = poll;
+        self
+    }
+
+    /// Set [`Self::read_timeout`].
+    #[must_use]
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::max_request_bytes`].
+    #[must_use]
+    pub fn with_max_request_bytes(mut self, max: usize) -> Self {
+        self.max_request_bytes = max;
+        self
+    }
+}
 
 /// RPC request from the CLI.
+///
+/// Public so an integration test can pin the control-socket wire format.
 #[derive(Debug, Deserialize)]
-struct Request {
-    command: String,
+pub struct Request {
+    /// The command name.
+    pub command: String,
+    /// Command parameters; empty when the CLI sends none.
     #[serde(default)]
-    params: Value,
+    pub params: Value,
 }
 
 /// RPC response to the CLI.
+///
+/// Public so an integration test can pin the control-socket wire format.
 #[derive(Debug, Serialize)]
-struct Response {
-    ok: bool,
+pub struct Response {
+    /// Whether the command succeeded.
+    pub ok: bool,
+    /// The error message when `ok` is false.
     #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
+    pub error: Option<String>,
+    /// The command result on success.
     #[serde(skip_serializing_if = "Option::is_none")]
-    data: Option<Value>,
+    pub data: Option<Value>,
 }
 
 /// A running control socket.
 pub struct ControlSocket {
     socket_path: String,
-    thread: JoinHandle<()>,
+    done: Receiver<()>,
+    poll: Duration,
+    shutdown: Arc<ShutdownSignal>,
 }
 
 impl ControlSocket {
     /// Bind a Unix-domain control socket at `socket_path`, serving commands against
-    /// `state`. `shutdown` signals the control socket to stop accepting.
+    /// `state`, with the default [`ControlConfig`]. `shutdown` signals the control
+    /// socket to stop accepting.
+    ///
+    /// The valtron pool must be initialised: the accept loop and each connection
+    /// are futures on it.
     ///
     /// # Panics
-    /// Panics if the socket cannot be bound.
+    /// Panics if the socket cannot be bound or the loop cannot be started.
     pub fn start(
         socket_path: String,
         state: Arc<ProxyState>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
+    ) -> Self {
+        Self::start_with(socket_path, state, shutdown, ControlConfig::default())
+    }
+
+    /// Like [`Self::start`], with explicit limits.
+    ///
+    /// # Panics
+    /// As [`Self::start`].
+    pub fn start_with(
+        socket_path: String,
+        state: Arc<ProxyState>,
+        shutdown: Arc<ShutdownSignal>,
+        config: ControlConfig,
     ) -> Self {
         // Clean up stale socket file
         let _ = std::fs::remove_file(&socket_path);
@@ -84,36 +166,30 @@ impl ControlSocket {
             use std::os::unix::fs::PermissionsExt;
             let _ = std::fs::set_permissions(&socket_path, std::fs::Permissions::from_mode(0o600));
         }
+        listener
+            .set_nonblocking(true)
+            .unwrap_or_else(|e| panic!("control socket nonblocking {socket_path}: {e}"));
+        let listener = AsyncFd::new(listener)
+            .unwrap_or_else(|e| panic!("control socket reactor {socket_path}: {e}"));
 
-        let path_for_thread = socket_path.clone();
-        let thread = thread::spawn(move || {
-            let _ = listener.set_nonblocking(true);
-            tracing::info!(path = %path_for_thread, "control socket listening");
+        let (done_tx, done_rx) = std::sync::mpsc::channel();
+        let path_for_loop = socket_path.clone();
+        let loop_shutdown = Arc::clone(&shutdown);
+        send(from_future(async move {
+            tracing::info!(path = %path_for_loop, "control socket listening");
+            accept_loop(&listener, &state, &loop_shutdown, config).await;
+            drop(listener);
+            let _ = std::fs::remove_file(&path_for_loop);
+            let _ = done_tx.send(());
+        }))
+        .unwrap_or_else(|e| panic!("control socket cannot start its loop: {e}"));
 
-            loop {
-                if shutdown.probe() {
-                    let _ = std::fs::remove_file(&path_for_thread);
-                    return;
-                }
-
-                match listener.accept() {
-                    Ok((stream, _)) => {
-                        let state = state.clone();
-                        thread::spawn(move || handle_connection(stream, &state));
-                    }
-                    Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                        thread::sleep(std::time::Duration::from_millis(50));
-                    }
-                    Err(e) => {
-                        tracing::error!(%e, "control socket accept error");
-                        break;
-                    }
-                }
-            }
-            let _ = std::fs::remove_file(&path_for_thread);
-        });
-
-        Self { socket_path, thread }
+        Self {
+            socket_path,
+            done: done_rx,
+            poll: config.shutdown_poll,
+            shutdown,
+        }
     }
 
     #[must_use]
@@ -121,41 +197,125 @@ impl ControlSocket {
         &self.socket_path
     }
 
-    /// Shut down the control socket thread.
+    /// Wait (bounded) for the accept loop to end. The caller has set the
+    /// shutdown signal; the loop sees it within one `shutdown_poll`.
     pub fn shutdown(self) {
-        let _ = self.thread.join();
+        let _ = self
+            .done
+            .recv_timeout(self.poll.saturating_mul(4) + Duration::from_secs(1));
         let _ = std::fs::remove_file(&self.socket_path);
+        // Make sure a caller that did not set the signal still stops the loop.
+        let _ = &self.shutdown;
+    }
+}
+
+/// Accept connections until shutdown; each connection is its own future.
+async fn accept_loop(
+    listener: &AsyncFd<UnixListener>,
+    state: &Arc<ProxyState>,
+    shutdown: &Arc<ShutdownSignal>,
+    config: ControlConfig,
+) {
+    let ctx = state.ctx().clone();
+    while !shutdown.probe() {
+        let accepted = match select(
+            Box::pin(listener.read_with(std::os::unix::net::UnixListener::accept)),
+            Box::pin(sleep_async(config.shutdown_poll, &ctx)),
+        )
+        .await
+        {
+            Either::Left((accepted, _)) => accepted,
+            Either::Right(((), _)) => continue,
+        };
+        match accepted {
+            Ok((stream, _)) => {
+                let state = Arc::clone(state);
+                if let Err(e) = send(from_future(handle_connection(stream, state, config))) {
+                    tracing::error!(%e, "control socket cannot start a connection task");
+                }
+            }
+            Err(e) => {
+                tracing::error!(%e, "control socket accept error");
+                break;
+            }
+        }
     }
 }
 
 /// Handle one control-socket connection: read → dispatch → respond → close.
-fn handle_connection(mut stream: UnixStream, state: &Arc<ProxyState>) {
-    let mut reader = BufReader::new(stream.try_clone().unwrap_or_else(|_| {
-        // If clone fails, create a new unconnected stream (won't happen in practice).
-        panic!("control socket clone failed")
-    }));
-
-    let mut line = String::new();
-    if reader.read_line(&mut line).is_err() || line.trim().is_empty() {
-        let _ = respond(&mut stream, false, Some("empty request".into()), None);
+async fn handle_connection(stream: UnixStream, state: Arc<ProxyState>, config: ControlConfig) {
+    if stream.set_nonblocking(true).is_err() {
         return;
     }
+    let Ok(io) = AsyncFd::new(stream) else { return };
 
-    let req: Request = match serde_json::from_str(&line) {
-        Ok(r) => r,
-        Err(e) => {
-            let _ = respond(&mut stream, false, Some(format!("invalid JSON: {e}")), None);
+    let line = match read_request_line(&io, config, state.ctx()).await {
+        Ok(line) if !line.trim().is_empty() => line,
+        Ok(_) | Err(_) => {
+            let _ = respond(&io, false, Some("empty request".into()), None).await;
             return;
         }
     };
 
-    // Each control connection runs on its own OS thread (not a valtron
-    // task), so this is a sync boundary: wait for the async dispatch here.
-    let result = block_on_future(dispatch(req, Arc::clone(state)));
-    let _ = respond(&mut stream, result.0, result.1, result.2);
+    let req: Request = match serde_json::from_str(&line) {
+        Ok(r) => r,
+        Err(e) => {
+            let _ = respond(&io, false, Some(format!("invalid JSON: {e}")), None).await;
+            return;
+        }
+    };
+
+    let result = dispatch(req, state).await;
+    let _ = respond(&io, result.0, result.1, result.2).await;
+}
+
+/// Read bytes until the first newline (or end of stream), at most
+/// `max_request_bytes`, within `read_timeout`.
+async fn read_request_line(
+    io: &AsyncFd<UnixStream>,
+    config: ControlConfig,
+    ctx: &Ctx,
+) -> std::io::Result<String> {
+    let read = async {
+        let mut line = Vec::new();
+        let mut buf = [0u8; 1024];
+        loop {
+            let n = io.read_with(|s| (&*s).read(&mut buf)).await?;
+            if n == 0 {
+                break;
+            }
+            line.extend_from_slice(&buf[..n]);
+            if line.contains(&b'\n') {
+                break;
+            }
+            if line.len() > config.max_request_bytes {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "control request line too long",
+                ));
+            }
+        }
+        if let Some(end) = line.iter().position(|b| *b == b'\n') {
+            line.truncate(end);
+        }
+        String::from_utf8(line).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    };
+    match select(
+        Box::pin(read),
+        Box::pin(sleep_async(config.read_timeout, ctx)),
+    )
+    .await
+    {
+        Either::Left((line, _)) => line,
+        Either::Right(((), _)) => Err(std::io::ErrorKind::TimedOut.into()),
+    }
 }
 
 /// Route a command to its handler.
+#[allow(
+    clippy::too_many_lines,
+    reason = "the control command table reads best as one ordered match"
+)]
 async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>, Option<Value>) {
     match req.command.as_str() {
         "list" => {
@@ -200,16 +360,20 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                     match b.state() {
                         BackendState::Draining => draining += 1,
                         BackendState::Paused => paused += 1,
-                        _ => {}
+                        BackendState::Active => {}
                     }
                 }
             }
-            (true, None, Some(serde_json::json!({
-                "total": total,
-                "healthy": healthy,
-                "draining": draining,
-                "paused": paused,
-            })))
+            (
+                true,
+                None,
+                Some(serde_json::json!({
+                    "total": total,
+                    "healthy": healthy,
+                    "draining": draining,
+                    "paused": paused,
+                })),
+            )
         }
 
         "drain" | "pause" | "activate" => {
@@ -218,7 +382,11 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                 "pause" => BackendState::Paused,
                 _ => BackendState::Active,
             };
-            let service_name = req.params.get("service").and_then(|v| v.as_str()).unwrap_or("");
+            let service_name = req
+                .params
+                .get("service")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             let backend_url = req.params.get("url").and_then(|v| v.as_str()).unwrap_or("");
 
             let mut found = false;
@@ -231,26 +399,40 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                         b.set_state(target_state);
                         // Persist the change so it survives a restart (F14, no-op
                         // when no store is attached).
-                        state.persist_backend_state(service_name, backend_url, target_state).await;
+                        state
+                            .persist_backend_state(service_name, backend_url, target_state)
+                            .await;
                         found = true;
                         break;
                     }
                 }
             }
             if found {
-                (true, None, Some(serde_json::json!({"state": format!("{:?}", target_state)})))
+                (
+                    true,
+                    None,
+                    Some(serde_json::json!({"state": format!("{:?}", target_state)})),
+                )
             } else {
-                (false, Some(format!("backend {service_name}/{backend_url} not found")), None)
+                (
+                    false,
+                    Some(format!("backend {service_name}/{backend_url} not found")),
+                    None,
+                )
             }
         }
 
-        _ => (false, Some(format!("unknown command: {}", req.command)), None),
+        _ => (
+            false,
+            Some(format!("unknown command: {}", req.command)),
+            None,
+        ),
     }
 }
 
-/// Write a JSON response line to the stream.
-fn respond(
-    stream: &mut UnixStream,
+/// Write a JSON response line to the stream, parking on write readiness.
+async fn respond(
+    io: &AsyncFd<UnixStream>,
     ok: bool,
     error: Option<String>,
     data: Option<Value>,
@@ -258,51 +440,13 @@ fn respond(
     let resp = Response { ok, error, data };
     let mut json = serde_json::to_vec(&resp).unwrap_or_default();
     json.push(b'\n');
-    stream.write_all(&json)?;
-    stream.flush()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn request_parse_valid() {
-        let req: Request = serde_json::from_str(
-            r#"{"command":"status","params":{}}"#,
-        )
-        .expect("valid request");
-        assert_eq!(req.command, "status");
+    let mut offset = 0;
+    while offset < json.len() {
+        let n = io.write_with(|s| (&*s).write(&json[offset..])).await?;
+        if n == 0 {
+            return Err(std::io::ErrorKind::WriteZero.into());
+        }
+        offset += n;
     }
-
-    #[test]
-    fn request_parse_invalid_returns_err() {
-        let err = serde_json::from_str::<Request>("not json").unwrap_err();
-        assert!(!err.to_string().is_empty(), "should produce error message");
-    }
-
-    #[test]
-    fn response_ok_format() {
-        let resp = Response {
-            ok: true,
-            error: None,
-            data: Some(serde_json::json!({"count": 3})),
-        };
-        let json = serde_json::to_string(&resp).expect("serialize");
-        assert!(json.contains("\"ok\":true"));
-        assert!(json.contains("\"data\""));
-    }
-
-    #[test]
-    fn response_error_format() {
-        let resp = Response {
-            ok: false,
-            error: Some("bad command".into()),
-            data: None,
-        };
-        let json = serde_json::to_string(&resp).expect("serialize");
-        assert!(json.contains("\"ok\":false"));
-        assert!(json.contains("bad command"));
-        assert!(!json.contains("\"data\""));
-    }
+    Ok(())
 }

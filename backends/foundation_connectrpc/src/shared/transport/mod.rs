@@ -31,6 +31,7 @@ pub use base::{
 pub use capabilities::{
     check_compatible, requirements, CallRequirements, ProtocolKind, TransportCapabilities,
 };
+pub(crate) use conn::HeadPublisher;
 pub use conn::{
     ClientConn, ClientConnEnds, ClientReceiver, ClientSender, ConnReceiver, ConnSender,
     HandlerConn, HandlerConnEnds, PipeClientConn, PipeHandlerConn,

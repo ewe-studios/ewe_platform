@@ -14,15 +14,13 @@
 use core::future::Future;
 use core::marker::PhantomData;
 use core::pin::Pin;
-use core::task::{Context, Poll};
+use core::task::{Context, Poll, Waker};
 use std::boxed::Box;
 use std::sync::Arc;
 
-use concurrent_queue::ConcurrentQueue;
+use crate::valtron::{queue_waker, TaskIterator, TaskStatus, WakeToken};
 
-use crate::valtron::{
-    queue_waker, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken,
-};
+use foundation_context::Ctx;
 
 /// The async transition's return: the next state plus a [`TaskStatus`].
 pub type TransitionOutput<T, R, P> = Option<(T, TaskStatus<R, P>)>;
@@ -70,17 +68,14 @@ where
             return None;
         }
         let state = self.state.take()?;
-        match (self.transition)(ctx, state) {
-            // `Ready` is NOT terminal: `next` is threaded back into `state`, so a
-            // single machine may emit `Ready` many times. Only `None` ends it.
-            Some((next, status)) => {
-                self.state = Some(next);
-                Some(status)
-            }
-            None => {
-                self.completed = true;
-                None
-            }
+        // `Ready` is NOT terminal: `next` is threaded back into `state`, so a
+        // single machine may emit `Ready` many times. Only `None` ends it.
+        if let Some((next, status)) = (self.transition)(ctx, state) {
+            self.state = Some(next);
+            Some(status)
+        } else {
+            self.completed = true;
+            None
         }
     }
 }
@@ -90,9 +85,8 @@ where
 /// `Send` under `multi` so the iterator crosses threads; `!Send` under `!multi`
 /// so `!Send` futures (e.g. a `JsFuture` body) still work.
 #[cfg(feature = "multi")]
-pub type AsyncTransition<T, R, P> = Box<
-    dyn Fn(Ctx, T) -> Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>> + Send>> + Send,
->;
+pub type AsyncTransition<T, R, P> =
+    Box<dyn Fn(Ctx, T) -> Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>> + Send>> + Send>;
 
 #[cfg(not(feature = "multi"))]
 pub type AsyncTransition<T, R, P> =
@@ -105,8 +99,7 @@ pub type AsyncStateFuture<T, R, P> =
     Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>> + Send>>;
 
 #[cfg(not(feature = "multi"))]
-pub type AsyncStateFuture<T, R, P> =
-    Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>>>>;
+pub type AsyncStateFuture<T, R, P> = Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>>>>;
 
 /// Asynchronous state machine: a [`TaskIterator`] driving an `async fn` transition
 /// through the [`crate::valtron::FutureTask`] wake-queue seam.
@@ -122,7 +115,13 @@ where
     state: Option<T>,
     transition: AsyncTransition<T, R, P>,
     future: Option<AsyncStateFuture<T, R, P>>,
-    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+    wake_queue: crate::valtron::EventQueue<WakeToken>,
+    /// The one waker this task hands to the transition's future on every poll.
+    ///
+    /// WHY: a source that keeps the waker deduplicates by waker identity. A
+    /// fresh waker per poll defeats that deduplication and grows the source's
+    /// registration list on every poll.
+    waker: Waker,
     completed: bool,
 }
 
@@ -134,11 +133,14 @@ where
 {
     /// Wrap `state` and a boxed `async` transition into a runnable state machine.
     pub fn new(state: T, transition: AsyncTransition<T, R, P>) -> Self {
+        let wake_queue = crate::valtron::EventQueue::unbounded();
+        let waker = queue_waker(wake_queue.clone(), 0);
         Self {
             state: Some(state),
             transition,
             future: None,
-            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            wake_queue,
+            waker,
             completed: false,
         }
     }
@@ -171,7 +173,7 @@ where
         //    the readiness ready (the wake-before-park race is harmless).
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {
@@ -192,9 +194,7 @@ where
                 //  - self-wake (token pushed during poll): `Ignore` (requeue, no park);
                 //  - external-wake (no token): park on the queue readiness.
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }
@@ -226,7 +226,7 @@ where
 
         while self.wake_queue.pop().is_ok() {}
 
-        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let waker = self.waker.clone();
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {
@@ -243,9 +243,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
-                        self.wake_queue.clone(),
-                    ))))
+                    Some(TaskStatus::Depends(Arc::new(self.wake_queue.readiness())))
                 } else {
                     Some(TaskStatus::Ignore)
                 }

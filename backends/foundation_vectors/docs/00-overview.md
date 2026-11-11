@@ -27,13 +27,13 @@ backend-agnostic — swap storage without touching call sites.
 ```rust
 #[async_trait]
 pub trait VectorStore: Send + Sync {
-    async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), E>;
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), E>;
-    async fn search_async(&self, namespace: &str, query: &[f32], k: usize)
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), E>;
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), E>;
+    async fn search(&self, namespace: &str, query: &[f32], k: usize)
         -> Result<Vec<VectorMatch>, E>;
-    async fn get_async(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, E>;
-    async fn len_async(&self, namespace: &str) -> Result<usize, E>;
-    async fn is_empty_async(&self, namespace: &str) -> Result<bool, E>; // has a default
+    async fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, E>;
+    async fn len(&self, namespace: &str) -> Result<usize, E>;
+    async fn is_empty(&self, namespace: &str) -> Result<bool, E>; // has a default
     fn config(&self) -> &VectorStoreConfig;
 }
 ```
@@ -59,7 +59,7 @@ them for each store:
 | Delete | Deleting an id that is not in the namespace is `NotFound`. |
 | Search | At most `k` matches, best first. A higher score is closer. |
 | Empty | An unknown namespace gives no matches, `get` gives `None`, `len` gives 0. |
-| Errors | A backend failure is an error. `len_async` never reads a failure as 0. |
+| Errors | A backend failure is an error. `len` never reads a failure as 0. |
 | Isolation | One namespace never sees the entries of another. |
 
 ### 2.2 Where each store waits
@@ -99,7 +99,7 @@ Managed vector DBs differ wildly — Chroma has *collections* with their own
 dimension/metric, Pinecone/TurboPuffer have *namespaces* (partitions of one index),
 dimension is checked server-side and fails async. If those differences leaked into
 the agent, swapping providers would be a rewrite. The trait absorbs them: the agent
-says `search_async(namespace, query, k)`; each adapter maps `namespace` to the
+says `search(namespace, query, k)`; each adapter maps `namespace` to the
 provider's native concept and handles the provider's quirks (Doc 01).
 
 ---

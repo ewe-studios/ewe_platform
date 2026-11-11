@@ -16,4 +16,4 @@ mod websocket_server;
 pub use server::{HttpRequest, HttpResponse, TestHttpServer};
 pub use sse_server::{SseCloseBehavior, SseConnectionResult, SseStreamWriter, SseTestServer};
 pub use tls_server::{test_tls_connector, TestHttpsServer};
-pub use websocket_server::WebSocketEchoServer;
+pub use websocket_server::{compute_accept_key, WebSocketEchoServer};

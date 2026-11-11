@@ -8,7 +8,6 @@
 /// On level-triggered platforms (Linux, macOS/BSD), `is_ready()` performs
 /// a readiness check with zero-timeout that doesn't consume events.
 /// On Windows (IOCP), it peeks the internal event cache.
-
 use std::path::Path;
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
 use std::time::Duration;
@@ -37,6 +36,7 @@ impl<T: NativeWatcher> SharedNativeWatcher<T> {
     }
 
     /// Clone this handle — shares the same underlying watcher.
+    #[must_use]
     pub fn clone_handle(&self) -> Self {
         Self {
             inner: self.inner.clone(),
@@ -44,6 +44,9 @@ impl<T: NativeWatcher> SharedNativeWatcher<T> {
     }
 
     /// Acquire a write lock for mutating access (e.g., `poll()`, `has_events()`, `watch()`).
+    ///
+    /// # Panics
+    /// Panics if the lock is poisoned.
     pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, T> {
         self.inner.write().unwrap()
     }
@@ -51,6 +54,7 @@ impl<T: NativeWatcher> SharedNativeWatcher<T> {
     /// Check if events are ready WITHOUT consuming them.
     ///
     /// Uses a write lock since scanning and caching is inherently mutating.
+    #[must_use]
     pub fn has_events(&self, timeout: Option<Duration>) -> bool {
         self.write().has_events(timeout)
     }
@@ -58,21 +62,33 @@ impl<T: NativeWatcher> SharedNativeWatcher<T> {
     /// Poll for events, consuming them.
     ///
     /// Uses an exclusive write lock. Only one thread can poll at a time.
+    ///
+    /// # Errors
+    /// Returns a watcher error if polling fails.
     pub fn poll(&self, timeout: Duration) -> Result<Vec<WatchEvent>> {
         self.write().poll(timeout)
     }
 
     /// Add a path to watch.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be watched.
     pub fn watch(&self, path: &Path, recursive: bool) -> Result<()> {
         self.write().watch(path, recursive)
     }
 
     /// Remove a watched path.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be unwatched.
     pub fn unwatch(&self, path: &Path) -> Result<()> {
         self.write().unwatch(path)
     }
 
     /// Remove all watches and release resources.
+    ///
+    /// # Errors
+    /// Returns a watcher error if a watch cannot be released.
     pub fn clear(&self) -> Result<()> {
         self.write().clear()
     }
@@ -108,6 +124,7 @@ impl SharedWatcher {
     }
 
     /// Wrap an already-boxed `dyn NativeWatcher` in a shared handle.
+    #[must_use]
     pub fn from_boxed(watcher: Box<dyn NativeWatcher>) -> Self {
         Self {
             inner: Arc::new(RwLock::new(watcher)),
@@ -115,6 +132,7 @@ impl SharedWatcher {
     }
 
     /// Clone this handle — shares the same underlying watcher.
+    #[must_use]
     pub fn clone_handle(&self) -> Self {
         Self {
             inner: self.inner.clone(),
@@ -122,6 +140,9 @@ impl SharedWatcher {
     }
 
     /// Acquire a write lock.
+    ///
+    /// # Panics
+    /// Panics if the lock is poisoned.
     pub fn write(&self) -> RwLockWriteGuard<'_, Box<dyn NativeWatcher>> {
         self.inner.write().unwrap()
     }
@@ -129,26 +150,39 @@ impl SharedWatcher {
     /// Check if events are ready WITHOUT consuming them.
     ///
     /// Uses a write lock since scanning and caching is inherently mutating.
+    #[must_use]
     pub fn has_events(&self, timeout: Option<Duration>) -> bool {
         self.write().has_events(timeout)
     }
 
     /// Poll for events, consuming them.
+    ///
+    /// # Errors
+    /// Returns a watcher error if polling fails.
     pub fn poll(&self, timeout: Duration) -> Result<Vec<WatchEvent>> {
         self.write().poll(timeout)
     }
 
     /// Add a path to watch.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be watched.
     pub fn watch(&self, path: &Path, recursive: bool) -> Result<()> {
         self.write().watch(path, recursive)
     }
 
     /// Remove a watched path.
+    ///
+    /// # Errors
+    /// Returns a watcher error if the path cannot be unwatched.
     pub fn unwatch(&self, path: &Path) -> Result<()> {
         self.write().unwatch(path)
     }
 
     /// Remove all watches and release resources.
+    ///
+    /// # Errors
+    /// Returns a watcher error if a watch cannot be released.
     pub fn clear(&self) -> Result<()> {
         self.write().clear()
     }

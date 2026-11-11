@@ -1,5 +1,5 @@
 //! Compression + buffer-pool tests (spec-41 F14 / Decision 06): gzip round-trip,
-//! size limits (compress_min / send_max / read_max bomb guard), negotiation, the
+//! size limits (`compress_min` / `send_max` / `read_max` bomb guard), negotiation, the
 //! reset-able streaming form, and the origin-return buffer pool.
 
 use std::sync::Arc;
@@ -18,7 +18,10 @@ fn gzip_roundtrip() {
     let gz = GzipCompressor::default();
     let data = b"the quick brown fox jumps over the lazy dog".repeat(20);
     let compressed = gz.compress(&data).unwrap();
-    assert!(compressed.len() < data.len(), "should shrink repetitive data");
+    assert!(
+        compressed.len() < data.len(),
+        "should shrink repetitive data"
+    );
     let back = gz.decompress(&compressed, 0).unwrap();
     assert_eq!(back, data);
     assert_eq!(gz.name(), "gzip");
@@ -30,7 +33,10 @@ fn gzip_decompress_bomb_is_bounded_by_read_max() {
     // 1 MiB of zeros compresses to a tiny payload — a classic bomb shape.
     let bomb = gz.compress(&vec![0u8; 1_000_000]).unwrap();
     let err = gz.decompress(&bomb, 4096).unwrap_err();
-    assert!(matches!(err, CompressionError::TooLarge { limit: 4096, .. }));
+    assert!(matches!(
+        err,
+        CompressionError::TooLarge { limit: 4096, .. }
+    ));
     // Unlimited (0) decompresses fully.
     assert_eq!(gz.decompress(&bomb, 0).unwrap().len(), 1_000_000);
 }
@@ -62,7 +68,7 @@ fn size_limits_compress_min_and_send_max() {
     assert!(limits.should_compress(50), "at compress_min: compress");
 
     assert!(limits.check_send(100).is_ok());
-    let err = limits.check_send(101).err().expect("over send_max");
+    let err = limits.check_send(101).expect_err("over send_max");
     assert_eq!(
         err.current_context().code(),
         foundation_connectrpc::Code::ResourceExhausted
@@ -115,7 +121,9 @@ fn negotiate_request_and_response() {
     assert!(n.response_compressor.is_some());
 
     // Unsupported request encoding is an error (Unimplemented).
-    let err = negotiate_compression(&reg, Some("br"), None).err().expect("unsupported");
+    let err = negotiate_compression(&reg, Some("br"), None)
+        .err()
+        .expect("unsupported");
     assert_eq!(
         err.current_context().code(),
         foundation_connectrpc::Code::Unimplemented
@@ -133,7 +141,7 @@ fn buffer_pool_recycles_locally() {
     assert_eq!(pool.free_list_len(), 1);
     // Next get reuses it, cleared.
     let reused = pool.get();
-    assert!(reused.is_empty());
+    assert_eq!(reused, [] as [u8; 0]);
     assert_eq!(pool.free_list_len(), 0);
 }
 
@@ -155,7 +163,11 @@ fn frozen_frame_final_drop_returns_to_origin_pool_across_threads() {
     });
     handle.join().unwrap();
 
-    assert_eq!(pool.pending_returns(), 1, "final drop returned to origin lane");
+    assert_eq!(
+        pool.pending_returns(),
+        1,
+        "final drop returned to origin lane"
+    );
 
     // get() drains the lane and hands back the recycled allocation.
     let recycled = pool.get();

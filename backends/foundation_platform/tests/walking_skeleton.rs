@@ -12,18 +12,58 @@
 //! 9. Post-render (page identity tracking)
 //!
 //! EVERY subsystem gets exercised. No mocks — every component is the
-//! real implementation: PlatformSession, PatternRouter, CacheManager,
-//! MutationQueue, CapabilityRegistry, ProfileGate, WebViewStack.
+//! real implementation: `PlatformSession`, `PatternRouter`, `CacheManager`,
+//! `MutationQueue`, `CapabilityRegistry`, `ProfileGate`, `WebViewStack`.
 
 use std::sync::Arc;
 
+use foundation_platform::capability::PlatformCapability;
 use foundation_platform::*;
+use foundation_wasm::{
+    CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
+};
+
+/// A capability the registry test registers.
+struct GreetCap;
+
+impl WasmCapability for GreetCap {
+    fn name(&self) -> &'static str {
+        "greet"
+    }
+    fn invoke_capability(
+        &self,
+        request: &CapabilityRequest<Vec<u8>>,
+    ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
+        let action = &request.action;
+        let payload = format!("hello, {action}");
+        Ok(CapabilityResponse {
+            capability: request.capability.clone(),
+            action: request.action.clone(),
+            payload: payload.into_bytes(),
+            content_type: request.content_type,
+        })
+    }
+}
+
+impl PlatformCapability for GreetCap {
+    fn capability_id(&self) -> &CapabilityId {
+        Box::leak(Box::new(CapabilityId("greet".into())))
+    }
+    fn min_profile(&self) -> Profile {
+        Profile::App
+    }
+}
 
 // ── Full session bootstrap ──────────────────────────────────────────
 
 #[test]
 fn session_bootstraps_with_all_subsystems() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     // All subsystems are immediately available
     let _cache = session.cache();
@@ -40,13 +80,21 @@ fn session_bootstraps_with_all_subsystems() {
 
 #[test]
 fn route_through_handler_chain_with_protocol_selection() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     // Step 1-2: Register routes and resolve
     session.route("/app/*", webview_app().with_profile(Profile::App));
-    session.route("/remote/*", remote_fetch()
-        .with_profile(Profile::TrustedRemote)
-        .with_cache_policy(CachePolicy::NetworkFirst));
+    session.route(
+        "/remote/*",
+        remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::NetworkFirst),
+    );
 
     // Navigation intent matches /app/* → WebviewApp
     let intent = NavigationIntent {
@@ -60,11 +108,7 @@ fn route_through_handler_chain_with_protocol_selection() {
     assert_eq!(decision.profile, Profile::App);
 
     // Steps 6-7: Protocol selection and encoding
-    let protocol = select_protocol(
-        &decision.protocol,
-        None,
-        b"hello world",
-    );
+    let protocol = select_protocol(&decision.protocol, None, b"hello world");
     let (encoded, ct) = encode_protocol(&protocol, b"hello world");
     assert_eq!(encoded, b"hello world");
     assert_eq!(ct, "application/primal-columnar"); // default
@@ -74,10 +118,20 @@ fn route_through_handler_chain_with_protocol_selection() {
 
 #[test]
 fn cache_serves_cached_content_with_correct_policy() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     // Cache a response for /cached/data
-    session.cache().store(Profile::App, "/cached/data", b"cached-response", "text/html");
+    session.cache().store(
+        Profile::App,
+        "/cached/data",
+        b"cached-response",
+        "text/html",
+    );
 
     // Create a CacheFirst decision
     let decision = webview_app()
@@ -85,31 +139,54 @@ fn cache_serves_cached_content_with_correct_policy() {
         .with_cache_policy(CachePolicy::CacheFirst);
 
     // Should serve cached
-    assert!(session.cache().should_serve_cached(&decision, "/cached/data"));
+    assert!(session
+        .cache()
+        .should_serve_cached(&decision, "/cached/data"));
 
     // Should NOT serve cached for CacheFirst on miss
-    assert!(!session.cache().should_serve_cached(&decision, "/cached/missing"));
+    assert!(!session
+        .cache()
+        .should_serve_cached(&decision, "/cached/missing"));
 
     // NetworkFirst never serves cache
     let nf_decision = remote_fetch()
         .with_profile(Profile::App)
         .with_cache_policy(CachePolicy::NetworkFirst);
-    assert!(!session.cache().should_serve_cached(&nf_decision, "/cached/data"));
+    assert!(!session
+        .cache()
+        .should_serve_cached(&nf_decision, "/cached/data"));
 
     // Offline serves stale for NetworkFirst
     session.set_online(false);
-    assert!(session.cache().can_serve_offline(&nf_decision, "/cached/data"));
+    assert!(session
+        .cache()
+        .can_serve_offline(&nf_decision, "/cached/data"));
 }
 
 #[test]
 fn cache_is_profile_scoped() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
-    session.cache().store(Profile::App, "/shared", b"app-data", "text/plain");
-    session.cache().store(Profile::UntrustedRemote, "/shared", b"untrusted-data", "text/plain");
+    session
+        .cache()
+        .store(Profile::App, "/shared", b"app-data", "text/plain");
+    session.cache().store(
+        Profile::UntrustedRemote,
+        "/shared",
+        b"untrusted-data",
+        "text/plain",
+    );
 
     let app_entry = session.cache().get(Profile::App, "/shared").unwrap();
-    let untrusted_entry = session.cache().get(Profile::UntrustedRemote, "/shared").unwrap();
+    let untrusted_entry = session
+        .cache()
+        .get(Profile::UntrustedRemote, "/shared")
+        .unwrap();
 
     assert_eq!(app_entry.body, b"app-data");
     assert_eq!(untrusted_entry.body, b"untrusted-data");
@@ -120,36 +197,12 @@ fn cache_is_profile_scoped() {
 
 #[test]
 fn capability_invocation_through_registry() {
-    use foundation_platform::capability::PlatformCapability;
-    use foundation_wasm::{
-        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
-    };
-
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-
-    struct GreetCap;
-    impl WasmCapability for GreetCap {
-        fn name(&self) -> &str { "greet" }
-        fn invoke_capability(
-            &self,
-            request: &CapabilityRequest<Vec<u8>>,
-        ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
-            let action = &request.action;
-            let payload = format!("hello, {action}");
-            Ok(CapabilityResponse {
-                capability: request.capability.clone(),
-                action: request.action.clone(),
-                payload: payload.into_bytes(),
-                content_type: request.content_type,
-            })
-        }
-    }
-    impl PlatformCapability for GreetCap {
-        fn capability_id(&self) -> &CapabilityId {
-            Box::leak(Box::new(CapabilityId("greet".into())))
-        }
-        fn min_profile(&self) -> Profile { Profile::App }
-    }
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     session.capabilities().register(GreetCap);
 
@@ -167,7 +220,9 @@ fn capability_invocation_through_registry() {
         content_type: CapabilityContentType::Json,
     };
 
-    let result = session.capabilities().invoke(&session, &request, &page, Some(&route));
+    let result = session
+        .capabilities()
+        .invoke(&session, &request, &page, Some(&route));
     assert!(result.is_ok());
     let resp = result.unwrap();
     assert_eq!(resp.payload, b"hello, world");
@@ -177,12 +232,21 @@ fn capability_invocation_through_registry() {
 
 #[test]
 fn mutation_queue_enqueue_and_replay() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     // Enqueue mutations while "offline"
     session.set_online(false);
-    let _ = session.mutation_queue().enqueue("create_order", serde_json::json!({"item": "widget"}));
-    let _ = session.mutation_queue().enqueue("update_profile", serde_json::json!({"name": "alex"}));
+    let _ = session
+        .mutation_queue()
+        .enqueue("create_order", serde_json::json!({"item": "widget"}));
+    let _ = session
+        .mutation_queue()
+        .enqueue("update_profile", serde_json::json!({"name": "alex"}));
     assert_eq!(session.mutation_queue().pending_count(), 2);
 
     // Replay when "online"
@@ -195,7 +259,10 @@ fn mutation_queue_enqueue_and_replay() {
 
     assert_eq!(result.applied.len(), 2);
     assert_eq!(session.mutation_queue().pending_count(), 0);
-    assert_eq!(*applied.lock().unwrap(), vec!["create_order", "update_profile"]);
+    assert_eq!(
+        *applied.lock().unwrap(),
+        vec!["create_order", "update_profile"]
+    );
 }
 
 // ── Profile gate integration ────────────────────────────────────────
@@ -225,13 +292,19 @@ fn webview_stack_navigation_flow() {
         navs: Mutex<Vec<String>>,
     }
     impl WebViewOps for TestWV {
-        fn navigate(&self, url: &str) { self.navs.lock().unwrap().push(url.to_string()); }
-        fn screenshot(&self) -> Vec<u8> { vec![1, 2, 3] }
+        fn navigate(&self, url: &str) {
+            self.navs.lock().unwrap().push(url.to_string());
+        }
+        fn screenshot(&self) -> Vec<u8> {
+            vec![1, 2, 3]
+        }
         fn eval(&self, _: &str) {}
         fn reload(&self) {}
     }
 
-    let wv = TestWV { navs: Mutex::new(vec![]) };
+    let wv = TestWV {
+        navs: Mutex::new(vec![]),
+    };
     let mut stack = WebViewStack::new(StackConfig::default());
     stack.init("/app/home");
     stack.push("/app/items", &wv);
@@ -248,10 +321,18 @@ fn webview_stack_navigation_flow() {
 
 #[test]
 fn session_events_notify_listeners() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     let fired = Arc::new(std::sync::atomic::AtomicBool::new(false));
     let f = fired.clone();
-    session.on_event(move |_| { f.store(true, std::sync::atomic::Ordering::SeqCst); true });
+    session.on_event(move |_| {
+        f.store(true, std::sync::atomic::Ordering::SeqCst);
+        true
+    });
 
     session.on_suspend();
     assert!(fired.load(std::sync::atomic::Ordering::SeqCst));
@@ -261,7 +342,12 @@ fn session_events_notify_listeners() {
 
 #[test]
 fn full_execution_contract_walking_skeleton() {
-    let session = PlatformSession::new_test(std::path::PathBuf::from("."));
+    let session = PlatformSession::new_test(
+        std::path::PathBuf::from("."),
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
 
     // Step 1: Navigation interception — simulate a link click
     // (in production: Tauri's on_navigation fires, constructs NavigationIntent)
@@ -273,10 +359,13 @@ fn full_execution_contract_walking_skeleton() {
     };
 
     // Step 2: Route handler chain — register and resolve
-    session.route("/remote/*", remote_fetch()
-        .with_profile(Profile::TrustedRemote)
-        .with_cache_policy(CachePolicy::NetworkFirst)
-        .with_allowed_capabilities(&[CapabilityId("camera".into())]));
+    session.route(
+        "/remote/*",
+        remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::NetworkFirst)
+            .with_allowed_capabilities(&[CapabilityId("camera".into())]),
+    );
     session.route("/app/*", webview_app().with_profile(Profile::App));
 
     let decision = session.resolve_route(&intent);
@@ -285,7 +374,9 @@ fn full_execution_contract_walking_skeleton() {
     assert_eq!(decision.cache_policy, CachePolicy::NetworkFirst);
 
     // Step 3: Cache check — NetworkFirst skips cache
-    let cache_should_serve = session.cache().should_serve_cached(&decision, "/remote/dashboard");
+    let cache_should_serve = session
+        .cache()
+        .should_serve_cached(&decision, "/remote/dashboard");
     assert!(!cache_should_serve); // NetworkFirst never serves cache online
 
     // Step 4: Presentation — record navigation (used by stack manager)
@@ -295,11 +386,7 @@ fn full_execution_contract_walking_skeleton() {
 
     // Steps 6-7: Protocol selection and encoding
     // Priority 2: ?proto=json query parameter
-    let protocol = select_protocol(
-        &ProtocolHint::Default,
-        Some(&"json".to_string()),
-        b"hello",
-    );
+    let protocol = select_protocol(&ProtocolHint::Default, Some(&"json".to_string()), b"hello");
     assert_eq!(protocol, Protocol::Json);
     let (body, ct) = encode_protocol(&protocol, b"{\"status\":\"ok\"}");
     assert_eq!(body, b"{\"status\":\"ok\"}");

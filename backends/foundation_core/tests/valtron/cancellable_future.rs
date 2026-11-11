@@ -1,9 +1,11 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, 
-    CancellableFutureTask, CancelOutcome, Stream, TaskIterator, TaskStatus,
+use foundation_core::valtron::{
+    CancelOutcome, CancellableFutureTask, Stream, TaskIterator, TaskStatus,
 };
+
+use foundation_context::Ctx;
 
 // ============================================================================
 // Raw TaskIterator-level tests (no executor involved)
@@ -11,7 +13,7 @@ use foundation_core::valtron::{Ctx,
 
 #[test]
 fn immediate_ready_wraps_in_ok() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let cancel = Arc::new(AtomicBool::new(false));
     let future = core::future::ready(42);
     let mut task = CancellableFutureTask::new(future, cancel);
@@ -30,7 +32,6 @@ fn pending_then_ready() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
-    let ctx = Ctx::new();
     struct PendingOnce(bool);
 
     impl Future for PendingOnce {
@@ -44,6 +45,7 @@ fn pending_then_ready() {
             }
         }
     }
+    let ctx = Ctx::host();
 
     let cancel = Arc::new(AtomicBool::new(false));
     let mut task = CancellableFutureTask::new(PendingOnce(false), cancel);
@@ -51,7 +53,10 @@ fn pending_then_ready() {
     // Pending now parks via Depends (composed with the not-set cancel signal).
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
-            assert!(!signal.is_ready(None), "not cancelled + inner parked -> not ready");
+            assert!(
+                !signal.is_ready(None),
+                "not cancelled + inner parked -> not ready"
+            );
         }
         other => panic!("expected Depends, got {other:?}"),
     }
@@ -66,7 +71,7 @@ fn pending_then_ready() {
 
 #[test]
 fn cancel_before_first_poll() {
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let cancel = Arc::new(AtomicBool::new(true));
     let future = core::future::ready(99);
     let mut task = CancellableFutureTask::new(future, cancel);
@@ -83,7 +88,6 @@ fn cancel_after_pending() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
-    let ctx = Ctx::new();
     struct AlwaysPending;
     impl Future for AlwaysPending {
         type Output = i32;
@@ -91,6 +95,7 @@ fn cancel_after_pending() {
             Poll::Pending
         }
     }
+    let ctx = Ctx::host();
 
     let cancel = Arc::new(AtomicBool::new(false));
     let mut task = CancellableFutureTask::new(AlwaysPending, Arc::clone(&cancel));
@@ -101,12 +106,18 @@ fn cancel_after_pending() {
         Some(TaskStatus::Depends(signal)) => signal,
         other => panic!("expected Depends, got {other:?}"),
     };
-    assert!(!signal.is_ready(None), "not cancelled -> parked signal not ready");
+    assert!(
+        !signal.is_ready(None),
+        "not cancelled -> parked signal not ready"
+    );
 
     // Setting cancel makes the composed signal ready — the executor would re-run
     // the task, which then observes the cancel flag before polling.
     cancel.store(true, Ordering::Release);
-    assert!(signal.is_ready(None), "cancel flips the composed signal ready");
+    assert!(
+        signal.is_ready(None),
+        "cancel flips the composed signal ready"
+    );
 
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled))) => {}
@@ -162,8 +173,6 @@ fn drive_cancellable_future_completes() {
 
 #[test]
 fn drive_cancellable_future_cancel_via_signal() {
-    let _guard = foundation_core::valtron::initialize_pool(43, None);
-
     use core::future::Future;
     use core::pin::Pin;
     use core::task::{Context, Poll};
@@ -175,6 +184,7 @@ fn drive_cancellable_future_cancel_via_signal() {
             Poll::Pending
         }
     }
+    let _guard = foundation_core::valtron::initialize_pool(43, None);
 
     let (mut stream, signal) =
         foundation_core::valtron::drive_cancellable_future(AlwaysPending, None)
@@ -184,7 +194,7 @@ fn drive_cancellable_future_cancel_via_signal() {
     let mut saw_pending = false;
     for item in &mut stream {
         match item {
-            Stream::Pending(_) | Stream::Wait | Stream::Ignore | Stream::Init => {
+            Stream::Pending(()) | Stream::Wait | Stream::Ignore | Stream::Init => {
                 saw_pending = true;
                 // Set cancel after seeing executor is running.
                 signal.store(true, Ordering::Release);
@@ -240,15 +250,13 @@ fn execute_cancellable_futures_parallel() {
             }
         }
     }
-    collected.sort();
+    collected.sort_unstable();
     assert_eq!(collected, vec![1, 2, 3]);
 }
 
 #[cfg(feature = "multi")]
 #[test]
 fn execute_cancellable_futures_cancel_one() {
-    let _guard = foundation_core::valtron::initialize_pool(46, None);
-
     use core::future::Future;
     use core::pin::Pin;
     use core::task::{Context, Poll};
@@ -260,11 +268,10 @@ fn execute_cancellable_futures_cancel_one() {
             Poll::Pending
         }
     }
+    let _guard = foundation_core::valtron::initialize_pool(46, None);
 
-    let futures: Vec<core::pin::Pin<Box<dyn Future<Output = i32> + Send>>> = vec![
-        Box::pin(core::future::ready(10)),
-        Box::pin(AlwaysPending),
-    ];
+    let futures: Vec<core::pin::Pin<Box<dyn Future<Output = i32> + Send>>> =
+        vec![Box::pin(core::future::ready(10)), Box::pin(AlwaysPending)];
 
     let (mut stream, signals) =
         foundation_core::valtron::execute_cancellable_futures(futures, None)
@@ -286,6 +293,6 @@ fn execute_cancellable_futures_cancel_one() {
             break;
         }
     }
-    results.sort();
+    results.sort_unstable();
     assert_eq!(results, vec![-1, 10]);
 }

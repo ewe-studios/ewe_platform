@@ -19,7 +19,9 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator};
+
+use foundation_context::Ctx;
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -27,9 +29,7 @@ use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
     QuinnConnection,
 };
-use foundation_netio::shared::http::{
-    SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status};
 
 const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
@@ -38,8 +38,8 @@ const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 const BUDGET: Duration = Duration::from_secs(5);
 
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status(Ctx::new());
-    let _ = client.next_status(Ctx::new());
+    let _ = server.next_status(Ctx::host());
+    let _ = client.next_status(Ctx::host());
 }
 
 /// Drive both QUIC drivers until `done` yields.
@@ -69,7 +69,7 @@ fn quic_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection) {
     let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = server.local_addr().expect("addr");
     let (mut client, client_conn) =
-        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+        QuicDriver::connect(addr, client_cfg, "localhost", &ctx()).expect("connect");
 
     let server_conn =
         drive_until(&mut server, &mut client, QuicDriver::take_accepted).expect("server accepted");
@@ -88,8 +88,8 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status(Ctx::new());
-            let _ = $client.next_status(Ctx::new());
+            let _ = $server.next_status(Ctx::host());
+            let _ = $client.next_status(Ctx::host());
         }
     }};
 }
@@ -237,6 +237,54 @@ fn a_request_stream_that_opens_with_data_is_a_frame_unexpected_error() {
 }
 
 #[test]
+fn frame_over_configured_cap_is_rejected() {
+    // A frame announcing more than the configured cap is refused on the length
+    // alone — `H3_FRAME_ERROR`, not an allocation of the oversized payload.
+    use foundation_netio::http3::frame::Frame;
+    use foundation_netio::quic::{QuicConnection, QuicSendStream};
+
+    let (mut sq, mut cq, server_conn, mut client_conn) = quic_pair();
+
+    // 1 KiB cap.
+    let mut server = H3Connection::new(server_conn).max_frame_size(1024);
+    until!(sq, cq, server.poll_setup());
+
+    // The client hand-rolls a 2 KiB HEADERS frame and sends it on a request
+    // stream, bypassing its own (16 MiB) framing.
+    let mut stream = until!(sq, cq, client_conn.open_bidi());
+    let frame = Frame::Headers(Bytes::from(vec![0u8; 2048]));
+    let mut bytes = Bytes::from(frame.to_bytes());
+    let deadline = Instant::now() + BUDGET;
+    while !bytes.is_empty() {
+        if let Stream::Next(Err(e)) = stream.send(&mut bytes) {
+            panic!("{e}");
+        }
+        assert!(Instant::now() < deadline, "timed out sending");
+        pump(&mut sq, &mut cq);
+    }
+
+    // The server accepts the stream and reads its HEADERS — which must fail on
+    // the cap, not allocate 2 KiB.
+    let mut inbound = until!(sq, cq, server.poll_accept());
+    let deadline = Instant::now() + BUDGET;
+    let err = loop {
+        match inbound.poll_headers() {
+            Stream::Next(Err(e)) => break e,
+            Stream::Next(Ok(_)) => panic!("an over-cap frame must be rejected"),
+            _ => {}
+        }
+        assert!(Instant::now() < deadline, "timed out");
+        pump(&mut sq, &mut cq);
+    };
+
+    let text = err.to_string();
+    assert!(
+        text.contains(&format!("{:#06x}", error_code::H3_FRAME_ERROR)),
+        "must be H3_FRAME_ERROR: {text}"
+    );
+}
+
+#[test]
 fn a_control_stream_whose_first_frame_is_not_settings_is_rejected() {
     // RFC 9114 §6.2.1: SETTINGS must be the first frame on the control stream.
     // Anything else is H3_MISSING_SETTINGS.
@@ -258,11 +306,9 @@ fn a_control_stream_whose_first_frame_is_not_settings_is_rejected() {
     let mut bytes = Bytes::from(preamble);
 
     let deadline = Instant::now() + BUDGET;
-    while bytes.len() > 0 {
-        match control.send(&mut bytes) {
-            Stream::Next(Ok(_)) => {}
-            Stream::Next(Err(e)) => panic!("{e}"),
-            _ => {}
+    while !bytes.is_empty() {
+        if let Stream::Next(Err(e)) = control.send(&mut bytes) {
+            panic!("{e}");
         }
         assert!(Instant::now() < deadline, "timed out sending");
         pump(&mut sq, &mut cq);
@@ -339,4 +385,10 @@ fn a_trailing_headers_frame_is_surfaced_as_trailers() {
             .any(|(n, v)| &n[..] == b"grpc-status" && &v[..] == b"0"),
         "gRPC's status lives in the trailers: {trailers:?}"
     );
+}
+
+fn ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }

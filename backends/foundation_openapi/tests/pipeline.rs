@@ -83,7 +83,10 @@ fn a_moved_spec_version_is_fatal_and_names_both() {
 
     // The message has to say what to do, not just that something is wrong.
     let msg = err.to_string();
-    assert!(msg.contains("4.229.1") && msg.contains("4.230.0"), "names both: {msg}");
+    assert!(
+        msg.contains("4.229.1") && msg.contains("4.230.0"),
+        "names both: {msg}"
+    );
     assert!(msg.contains("bump the pin"), "says the fix: {msg}");
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -145,7 +148,10 @@ fn resolve_runs_select_then_canonicalize_then_prune() {
 
     // selected
     assert!(resolved["paths"]["/instances"].is_object());
-    assert!(resolved["paths"]["/kubernetes"].is_null(), "unselected path is gone");
+    assert!(
+        resolved["paths"]["/kubernetes"].is_null(),
+        "unselected path is gone"
+    );
 
     // canonicalised — the inline response became a named type
     assert_eq!(
@@ -179,8 +185,14 @@ fn resolve_output_is_canonical_and_self_contained() {
         .expect("resolves");
 
     assert_eq!(foundation_openapi::validate_canonical(&resolved), Ok(()));
-    assert_eq!(foundation_openapi::dangling_refs(&resolved), Vec::<String>::new());
-    assert_eq!(foundation_openapi::unreachable_components(&resolved), Vec::<String>::new());
+    assert_eq!(
+        foundation_openapi::dangling_refs(&resolved),
+        Vec::<String>::new()
+    );
+    assert_eq!(
+        foundation_openapi::unreachable_components(&resolved),
+        Vec::<String>::new()
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -204,7 +216,8 @@ fn write_then_check_agrees() {
 
     let written = p.write(&out).expect("writes");
     assert!(written.exists());
-    p.check(&out).expect("what was just written matches the declaration");
+    p.check(&out)
+        .expect("what was just written matches the declaration");
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -227,7 +240,10 @@ fn check_fails_when_the_declaration_changes_under_the_output() {
         .expect_err("the committed output no longer matches");
 
     assert!(matches!(err, PipelineError::Stale { .. }), "{err:?}");
-    assert!(err.to_string().contains("regenerate"), "says the fix: {err}");
+    assert!(
+        err.to_string().contains("regenerate"),
+        "says the fix: {err}"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -276,7 +292,10 @@ fn check_catches_a_moved_spec_too() {
         .spec_version("1.0.0")
         .check(&out)
         .expect_err("the pin no longer holds");
-    assert!(matches!(err, PipelineError::SpecVersionMismatch { .. }), "{err:?}");
+    assert!(
+        matches!(err, PipelineError::SpecVersionMismatch { .. }),
+        "{err:?}"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -307,7 +326,10 @@ fn the_real_linode_declaration() {
 
     assert_eq!(resolved["paths"].as_object().unwrap().len(), 3, "3 of 334");
     assert_eq!(foundation_openapi::validate_canonical(&resolved), Ok(()));
-    assert_eq!(foundation_openapi::dangling_refs(&resolved), Vec::<String>::new());
+    assert_eq!(
+        foundation_openapi::dangling_refs(&resolved),
+        Vec::<String>::new()
+    );
 
     let schemas = foundation_openapi::component_count(&resolved, "schemas");
     assert!(schemas < 60, "a bounded surface, got {schemas}");
@@ -395,7 +417,10 @@ fn a_ref_we_break_ourselves_is_fatal() {
     // Nothing dangles in the source, and nothing must dangle after we prune: the
     // closure has to follow Thing -> Other.
     let resolved = Pipeline::new("fine", &path).resolve().expect("resolves");
-    assert_eq!(foundation_openapi::dangling_refs(&resolved), Vec::<String>::new());
+    assert_eq!(
+        foundation_openapi::dangling_refs(&resolved),
+        Vec::<String>::new()
+    );
     assert!(
         resolved["components"]["schemas"]["Other"].is_object(),
         "a transitively-referenced schema survives pruning"

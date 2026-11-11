@@ -8,7 +8,7 @@ use std::sync::Arc;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 use crate::shared::app::HttpApp;
-use crate::shared::context::ContextBag;
+use crate::shared::context::Ctx;
 use crate::shared::web_conn::{WebConn, WebConnectionResult};
 
 /// Web/browser handler — receives a typed `WebConn` for building
@@ -18,7 +18,7 @@ pub trait WebServe: Sync + 'static {
     /// Handle an incoming request, writing the response to `conn`.
     async fn serve_web(
         &self,
-        bag: Arc<ContextBag>,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: &mut WebConn,
     ) -> WebConnectionResult;
@@ -27,22 +27,20 @@ pub trait WebServe: Sync + 'static {
 /// Factory trait for creating `WebServe` handler instances.
 pub trait WebServeFactory: WebServe + Sized {
     /// Create a new instance of this handler.
-    fn create(bag: &ContextBag) -> Self;
+    fn create(ctx: &Ctx) -> Self;
 }
 
 // ---------------------------------------------------------------------------
 // HttpApp<Arc<dyn WebServe>> convenience methods
 
 impl HttpApp<Arc<dyn WebServe>> {
-    /// Create a new empty `HttpApp` for WebServe handlers.
+    /// Create a new empty `HttpApp` for `WebServe` handlers.
+    ///
+    /// This is a host entry point: it uses the real host clock. Use
+    /// [`HttpApp::with_ctx`] in a deterministic test.
     #[must_use]
     pub fn new_web() -> Self {
-        use crate::shared::router::Router;
-        Self {
-            ctx: Arc::new(ContextBag::new()),
-            router: Router::new(),
-            middleware: Vec::new(),
-        }
+        Self::with_ctx(foundation_context::Ctx::host())
     }
 
     /// Register a web handler for a specific HTTP method and path.

@@ -36,10 +36,11 @@ impl Backend for CdpBackend<'_> {
         // Subscribe BEFORE navigating so the load event isn't missed.
         let load = self.engine.subscribe("Page.loadEventFired");
         self.call("Page.navigate", json!({ "url": url }))?;
-        load.recv_timeout(Duration::from_secs(30)).map_err(|_| BrowserError::Timeout {
-            op: format!("load {url}"),
-            after_ms: 30_000,
-        })?;
+        load.recv_timeout(Duration::from_secs(30))
+            .map_err(|_| BrowserError::Timeout {
+                op: format!("load {url}"),
+                after_ms: 30_000,
+            })?;
         Ok(())
     }
 
@@ -58,18 +59,28 @@ impl Backend for CdpBackend<'_> {
                     .to_string(),
             });
         }
-        Ok(res.get("result").and_then(|r| r.get("value")).cloned().unwrap_or(Value::Null))
+        Ok(res
+            .get("result")
+            .and_then(|r| r.get("value"))
+            .cloned()
+            .unwrap_or(Value::Null))
     }
 
     fn screenshot_png(&self) -> Result<Vec<u8>> {
         let res = self.call("Page.captureScreenshot", json!({ "format": "png" }))?;
-        let data = res.get("data").and_then(Value::as_str).ok_or_else(|| BrowserError::Protocol {
-            code: 0,
-            message: "captureScreenshot returned no data".into(),
-        })?;
+        let data =
+            res.get("data")
+                .and_then(Value::as_str)
+                .ok_or_else(|| BrowserError::Protocol {
+                    code: 0,
+                    message: "captureScreenshot returned no data".into(),
+                })?;
         base64::engine::general_purpose::STANDARD
             .decode(data)
-            .map_err(|e| BrowserError::Protocol { code: 0, message: format!("bad base64: {e}") })
+            .map_err(|e| BrowserError::Protocol {
+                code: 0,
+                message: format!("bad base64: {e}"),
+            })
     }
 
     fn click_at(&self, x: f64, y: f64) -> Result<()> {
@@ -83,7 +94,10 @@ impl Backend for CdpBackend<'_> {
     }
 
     fn hover_at(&self, x: f64, y: f64) -> Result<()> {
-        self.call("Input.dispatchMouseEvent", json!({ "type": "mouseMoved", "x": x, "y": y }))?;
+        self.call(
+            "Input.dispatchMouseEvent",
+            json!({ "type": "mouseMoved", "x": x, "y": y }),
+        )?;
         Ok(())
     }
 

@@ -41,19 +41,39 @@ fn main() {
     // `src/`, that would rebuild forever.
     println!("cargo:rerun-if-changed={}", spec.display());
     println!("cargo:rerun-if-changed=build.rs");
+    let workspace_root = Path::new(&manifest).join("../..");
+    // The overlays are part of the declaration: a changed overlay changes the
+    // generated types.
+    println!(
+        "cargo:rerun-if-changed={}",
+        workspace_root
+            .join(foundation_codegentools::codegen::CLOUDFLARE_OVERLAYS_DIR)
+            .display()
+    );
 
     let codegen = foundation_codegentools::generate()
         .provider("cloudflare")
         .spec(&spec)
+        .split_groups(
+            Path::new(&manifest).join("../../backends"),
+            Path::new(&manifest).join("../../backends/foundation_cloudflare_types"),
+        )
         .crate_dir(&manifest);
+    let codegen = foundation_codegentools::cloudflare_wire_types(codegen, &workspace_root)
+        .expect("read the cloudflare overlays");
 
     match codegen.check() {
         // Already what this declaration produces.
         Ok(()) => {}
         // The selection or the spec's shape moved — regenerate.
         Err(foundation_codegentools::CodegenError::Stale { .. }) => {
-            codegen.write().expect("regenerate cloudflare's API surface");
-            println!("cargo:warning=regenerated cloudflare's src/generated/ from {}", spec.display());
+            codegen
+                .write()
+                .expect("regenerate cloudflare's API surface");
+            println!(
+                "cargo:warning=regenerated cloudflare's src/generated/ from {}",
+                spec.display()
+            );
         }
         // A moved pin, an unreadable spec, a spec that will not canonicalise.
         Err(e) => panic!("{e}"),

@@ -1,18 +1,51 @@
-/// Integration test: FileWatcherTask with valtron execution engine.
+/// Integration test: `FileWatcherTask` with valtron execution engine.
 ///
 /// Tests the full valtron task lifecycle:
-/// - Create FileWatcherTask, subscribe, spawn into valtron
+/// - Create `FileWatcherTask`, subscribe, spawn into valtron
 /// - Touch a file in watched directory
 /// - Run engine for a few ticks
 /// - Verify event received via mpp Receiver channel
 /// - Test multiple subscribers receive the same events
-
 use std::fs::File;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, TaskIterator};
-use foundation_nativeapis::{EventBroadcaster, FileWatcherTask};
-use foundation_nativeapis::{NativeWatcher, PollWatcher};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_nativeapis::{
+    EventBroadcaster, FileWatcherTask, NativeWatcher, PollWatcher, Result as WatchResult,
+    WatchEvent, WatchEventKind,
+};
+
+/// A mock watcher with a fixed first poll and empty polls after that.
+struct ScriptedWatcher {
+    polls: usize,
+    first_poll: Vec<WatchEvent>,
+}
+
+impl NativeWatcher for ScriptedWatcher {
+    fn watch(&mut self, _path: &Path, _recursive: bool) -> WatchResult<()> {
+        Ok(())
+    }
+
+    fn unwatch(&mut self, _path: &Path) -> WatchResult<()> {
+        Ok(())
+    }
+
+    fn poll(&mut self, _timeout: Duration) -> WatchResult<Vec<WatchEvent>> {
+        let poll_index = self.polls;
+        self.polls += 1;
+        if poll_index == 0 {
+            Ok(self.first_poll.clone())
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
+    fn clear(&mut self) -> WatchResult<()> {
+        Ok(())
+    }
+}
 
 /// Create a temp directory that cleans up on drop.
 struct TempDir(PathBuf);
@@ -43,7 +76,7 @@ impl Drop for TempDir {
     }
 }
 
-/// Test: EventBroadcaster delivers to multiple subscribers
+/// Test: `EventBroadcaster` delivers to multiple subscribers
 #[test]
 fn event_broadcast_to_multiple_subscribers() {
     let mut broadcaster = EventBroadcaster::new(64);
@@ -58,7 +91,7 @@ fn event_broadcast_to_multiple_subscribers() {
     assert_eq!(rx3.recv().unwrap(), "test_event");
 }
 
-/// Test: EventBroadcaster cleans up dead subscribers on broadcast
+/// Test: `EventBroadcaster` cleans up dead subscribers on broadcast
 #[test]
 fn event_broadcast_cleans_up_dead_subscribers() {
     let mut broadcaster = EventBroadcaster::new(64);
@@ -76,11 +109,9 @@ fn event_broadcast_cleans_up_dead_subscribers() {
     assert_eq!(rx1.recv().unwrap(), "event");
 }
 
-/// Test: FileWatcherTask with PollWatcher delivers events
+/// Test: `FileWatcherTask` with `PollWatcher` delivers events
 #[test]
 fn file_watcher_task_delivers_events() {
-    
-
     let dir = TempDir::new();
 
     // Create FileWatcherTask with PollWatcher
@@ -97,11 +128,8 @@ fn file_watcher_task_delivers_events() {
     File::create(&file_path).expect("create failed");
 
     // Manually tick the task via TaskIterator
-    let status = task.next_status(Ctx::new());
-    assert!(
-        status.is_some(),
-        "task should not terminate"
-    );
+    let status = task.next_status(Ctx::host());
+    assert!(status.is_some(), "task should not terminate");
 
     // Verify subscriber received events
     // PollWatcher detects directory-level changes, so the event path may be
@@ -116,16 +144,16 @@ fn file_watcher_task_delivers_events() {
     }
 }
 
-/// Test: FileWatcherTask handles poll error gracefully
+/// Test: `FileWatcherTask` handles poll error gracefully
 #[test]
 fn file_watcher_task_handles_poll_error() {
     // Create a task that will poll — even with no watches, it shouldn't panic
     let mut task = FileWatcherTask::with_watcher(Box::new(PollWatcher::new()));
-    let _ = task.next_status(Ctx::new()); // Should not panic
-    let _ = task.next_status(Ctx::new()); // Should not panic
+    let _ = task.next_status(Ctx::host()); // Should not panic
+    let _ = task.next_status(Ctx::host()); // Should not panic
 }
 
-/// Test: FileWatcherTask with no subscribers works fine
+/// Test: `FileWatcherTask` with no subscribers works fine
 #[test]
 fn file_watcher_task_no_subscribers() {
     let dir = TempDir::new();
@@ -137,12 +165,12 @@ fn file_watcher_task_no_subscribers() {
     }));
 
     // Don't subscribe — just tick
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     // Should still work even with no subscribers
     assert!(status.is_some());
 }
 
-/// Test: FileWatcherTask unwatch works
+/// Test: `FileWatcherTask` unwatch works
 #[test]
 fn file_watcher_task_unwatch() {
     let dir = TempDir::new();
@@ -158,6 +186,65 @@ fn file_watcher_task_unwatch() {
     // Create file after unwatch — should not generate events
     File::create(dir.path().join("after_unwatch.txt")).expect("create failed");
 
-    let status = task.next_status(Ctx::new());
+    let status = task.next_status(Ctx::host());
     assert!(status.is_some());
+}
+
+/// Test: one poll that returns many events delivers every event.
+///
+/// Regression test for issue #347. The task must return the first event as
+/// `Ready` and keep the other events for the later calls. It must not poll
+/// again before the queue is empty.
+#[test]
+fn file_watcher_task_queues_every_event_from_one_poll() {
+    let event1 = WatchEvent {
+        kind: WatchEventKind::Created,
+        path: PathBuf::from("/tmp/issue_347_event_one"),
+    };
+    let event2 = WatchEvent {
+        kind: WatchEventKind::Modified,
+        path: PathBuf::from("/tmp/issue_347_event_two"),
+    };
+
+    let mut task = FileWatcherTask::with_watcher(Box::new(ScriptedWatcher {
+        polls: 0,
+        first_poll: vec![event1.clone(), event2.clone()],
+    }));
+    let rx = task.subscribe();
+
+    let first = match task.next_status(Ctx::host()) {
+        Some(TaskStatus::Ready(event)) => event,
+        Some(_) => panic!("first call must return Ready(event1)"),
+        None => panic!("task must not terminate on the first call"),
+    };
+    assert_eq!(first.kind, WatchEventKind::Created);
+    assert_eq!(first.path, event1.path);
+
+    // The old code polled the watcher again here and returned Depends.
+    // That dropped event2 from the task stream.
+    let second = match task.next_status(Ctx::host()) {
+        Some(TaskStatus::Ready(event)) => event,
+        Some(_) => panic!("second call must return Ready(event2)"),
+        None => panic!("task must not terminate on the second call"),
+    };
+    assert_eq!(second.kind, WatchEventKind::Modified);
+    assert_eq!(second.path, event2.path);
+
+    // The next call polls again, gets an empty batch and reports Depends.
+    match task.next_status(Ctx::host()) {
+        Some(TaskStatus::Depends(_)) => {}
+        Some(_) => panic!("third call must return Depends"),
+        None => panic!("task must not terminate on the third call"),
+    }
+
+    // The subscriber received both events exactly once.
+    let received1 = rx.recv().expect("subscriber must get event1");
+    assert_eq!(received1.kind, WatchEventKind::Created);
+    assert_eq!(received1.path, event1.path);
+
+    let received2 = rx.recv().expect("subscriber must get event2");
+    assert_eq!(received2.kind, WatchEventKind::Modified);
+    assert_eq!(received2.path, event2.path);
+
+    assert!(rx.recv().is_err(), "subscriber must not get a third event");
 }

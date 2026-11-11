@@ -18,9 +18,9 @@ metadata:
   tools: []
 has_features: false
 has_fundamentals: false
-builds_on: "49-crates-io-publishing"
+builds_on: "specifications/completed/49-crates-io-publishing"
 related_specs:
-  - "49-crates-io-publishing"
+  - "specifications/completed/49-crates-io-publishing"
   - "60-agentic-reliability"
 ---
 

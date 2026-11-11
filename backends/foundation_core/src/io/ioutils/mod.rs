@@ -373,11 +373,18 @@ impl<T: Write + BufRead + BufferCapacity> PeekableReadStream for BufferedWriter<
         }
 
         let buffer = self.get_inner_ref().read_buffer();
+        if buf.is_empty() {
+            return Err(PeekError::ZeroLengthNotAllowed);
+        }
         let ending = if buffer.len() < buf.len() {
             buffer.len()
         } else {
             buf.len()
         };
+        // An empty buffer after `fill_buf` is the end of the stream.
+        if ending == 0 {
+            return Err(PeekError::EndOfStream);
+        }
 
         for (index, elem) in buffer[0..ending].iter().enumerate() {
             buf[index] = *elem;
@@ -405,6 +412,9 @@ pub fn buffered_stream_with_capacity<T: Write + Read>(
 
 #[derive(From, Debug)]
 pub enum PeekError {
+    /// The stream ended (the peer closed it) and nothing is left to peek.
+    /// Distinct from "nothing yet", which is `IOError` of kind `WouldBlock`.
+    EndOfStream,
     ZeroLengthNotAllowed,
     NotSupported,
     LockAcquisitionError,
@@ -448,7 +458,12 @@ pub trait PeekableReadStream: Read {
     /// exceeds the read buffer capacity of the underlying stream.
     ///
     /// Returns `PeekError::IOError(e)` if an underlying I/O error occurs while
-    /// attempting to fill or inspect the buffer.
+    /// attempting to fill or inspect the buffer; a non-blocking stream with
+    /// nothing buffered yet reports `WouldBlock` this way.
+    ///
+    /// Returns `PeekError::EndOfStream` when the stream has ended and nothing
+    /// is left to peek — never `Ok(0)`, which a caller would read as "not
+    /// enough yet" and wait on for ever.
     ///
     /// Other `PeekError` variants may be returned for implementation-specific
     /// error conditions (for example locking failures or unsupported operations).
@@ -485,11 +500,18 @@ impl<T: Read> PeekableReadStream for BufferedReader<T> {
 
         let buffer = self.inner.buffer();
 
+        if buf.is_empty() {
+            return Err(PeekError::ZeroLengthNotAllowed);
+        }
         let ending = if buffer.len() < buf.len() {
             buffer.len()
         } else {
             buf.len()
         };
+        // An empty buffer after `fill_buf` is the end of the stream.
+        if ending == 0 {
+            return Err(PeekError::EndOfStream);
+        }
 
         for (index, elem) in buffer[0..ending].iter().enumerate() {
             buf[index] = *elem;
@@ -924,9 +946,6 @@ pub const DEFAULT_READ_SIZE: usize = if cfg!(target_os = "espidf") {
     8 * 1024
 };
 
-/// `SharedPointerReader` defines a shared buffer reader pointer that allows reading through
-/// a underlying buffered stream.
-
 /// Marker trait for transport types that can report whether they are
 /// Unix-domain sockets (and thus non-poolable after a single HTTP exchange).
 pub trait IsUnixTransport {
@@ -1009,7 +1028,7 @@ impl<T: Read> SharedByteBufferStream<T> {
     /// Otherwise calls `fill_up()` to try pulling more bytes from the underlying reader.
     ///
     /// # Errors
-    /// Returns the underlying `io::Error` if the fill fails (e.g. WouldBlock,
+    /// Returns the underlying `io::Error` if the fill fails (e.g. `WouldBlock`,
     /// connection reset, etc.).
     pub fn probe(&mut self) -> std::io::Result<usize> {
         self.0.do_once_mut(|inner| {
@@ -1029,7 +1048,8 @@ impl<T: Read> SharedByteBufferStream<T> {
     where
         T: IsUnixTransport,
     {
-        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.is_unix()))
+        self.0
+            .do_ref(|bbp| bbp.with_inner(IsUnixTransport::is_unix))
     }
 
     /// Whether an HTTP connection over this stream may be returned to the pool.
@@ -1041,7 +1061,8 @@ impl<T: Read> SharedByteBufferStream<T> {
     where
         T: IsUnixTransport,
     {
-        self.0.do_ref(|bbp| bbp.with_inner(|raw| raw.should_pool()))
+        self.0
+            .do_ref(|bbp| bbp.with_inner(IsUnixTransport::should_pool))
     }
 
     /// Run `f` against the innermost reader `T` by shared reference.
@@ -1113,6 +1134,36 @@ impl<T: Read> SharedByteBufferStream<BufferedReader<T>> {
 
 // Public Methods
 
+impl<T: Read> SharedByteBufferStream<T> {
+    /// Whether `n` bytes are buffered (reading more from the stream as needed),
+    /// without consuming any.
+    ///
+    /// `Ok(true)`: they are. `Ok(false)`: fewer are, and more may still come
+    /// (the reader stalled). `Err(PeekError::EndOfStream)`: the stream ended
+    /// before `n` bytes arrived, so they never will — what a peek's short
+    /// `Ok(len)` cannot say.
+    ///
+    /// # Errors
+    /// `EndOfStream` as above; `ZeroLengthNotAllowed` for `n == 0`; any other
+    /// read error as `IOError`.
+    pub fn has_buffered(&mut self, n: usize) -> std::result::Result<bool, PeekError> {
+        self.0.do_once_mut(|binding| match binding.peekby(n) {
+            Ok(PeekState::Request(data)) if data.len() >= n => Ok(true),
+            // A short `Request` means the stream ended early.
+            Ok(PeekState::Request(_) | PeekState::NoNext | PeekState::EndOfFile) => {
+                Err(PeekError::EndOfStream)
+            }
+            Ok(PeekState::Stalled(_)) => Ok(false),
+            Ok(PeekState::ZeroLengthInput) => Err(PeekError::ZeroLengthNotAllowed),
+            Ok(PeekState::LessThanRequested | PeekState::EndOfBuffered | PeekState::Continue) => {
+                Ok(false)
+            }
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => Ok(false),
+            Err(err) => Err(PeekError::IOError(err)),
+        })
+    }
+}
+
 impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         self.0
@@ -1134,15 +1185,15 @@ impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
                         }
                         Ok(data.len())
                     }
-                    // No bytes are currently peekable. `NoNext` in particular is
-                    // reached when the reader is drained and reported EOF — a
-                    // peer that connects and immediately disconnects hits it, so
-                    // it is an ordinary end-of-stream, not an unreachable state.
-                    PeekState::ZeroLengthInput
-                    | PeekState::NoNext
-                    | PeekState::LessThanRequested
+                    // `NoNext` is reached when the reader is drained and
+                    // reported EOF — a peer that connected and disconnected, or
+                    // one that half-closed after its last frame. That must not
+                    // read like "no bytes yet" (`WouldBlock`), or a peeker waits
+                    // for bytes that will never come.
+                    PeekState::NoNext | PeekState::EndOfFile => Err(PeekError::EndOfStream),
+                    PeekState::ZeroLengthInput => Err(PeekError::ZeroLengthNotAllowed),
+                    PeekState::LessThanRequested
                     | PeekState::EndOfBuffered
-                    | PeekState::EndOfFile
                     | PeekState::Continue => Ok(0),
                 },
                 Err(err) => Err(PeekError::IOError(err)),
@@ -1463,9 +1514,8 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let buffer_length = self.buffer.len();
-        #[allow(clippy::cast_precision_loss)]
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        percentage > 0.4
+        // 0.4 is 2/5: compare the cross-products exactly, without floats.
+        buffer_length as u128 * 5 > self.pos as u128 * 2
     }
 
     #[inline]
@@ -1477,18 +1527,15 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let distance = self.peek_pos - self.pos;
         let buffer_length = self.buffer.len();
-        #[allow(clippy::cast_precision_loss)]
-        let percentage = (buffer_length as f64 / self.pos as f64);
-        let should_truncate = percentage > 0.7 || force;
+        // 0.7 is 7/10: compare the cross-products exactly, without floats.
+        let should_truncate = buffer_length as u128 * 10 > self.pos as u128 * 7 || force;
 
         if !should_truncate {
             return;
         }
 
         let slice = &self.buffer[self.pos..buffer_length];
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
+        let slice_copy = slice.to_vec();
         let slice_length = slice_copy.len();
 
         // move the slice to the start of the buffer.
@@ -1649,11 +1696,7 @@ impl<T: Read> ByteBufferPointer<T> {
         let slice_string = String::from_utf8(slice.to_vec());
         self.pos = self.peek_pos;
 
-        let mut slice_copy = vec![0; slice.len()];
-        slice_copy.truncate(0);
-        slice_copy.extend_from_slice(slice);
-
-        Some(slice_copy)
+        Some(slice.to_vec())
     }
 
     /// [`Self::consume`] consumes the amount of data that has been peeked over-so far, returning
@@ -2300,10 +2343,11 @@ impl<T: Read> ByteBufferPointer<T> {
                     let slice = &self.buffer[self.pos..self.peek_pos];
                     let slice_length = slice.len();
 
-                    unsafe {
-                        let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(slice);
-                    };
+                    // Decode as the line branch does: a `String` must stay UTF-8.
+                    match std::str::from_utf8(slice) {
+                        Ok(text) => buf.push_str(text),
+                        Err(_) => buf.extend(slice.iter().map(|b| char::from(*b))),
+                    }
 
                     self.skip();
                     return Ok(slice_length);
@@ -2366,7 +2410,8 @@ impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
     /// so when no `next*`/`forward*` peek is outstanding, a following
     /// [`Read::read`] returns the same bytes.
     ///
-    /// Returns `Ok(0)` once the stream is drained and at EOF.
+    /// Returns [`PeekError::EndOfStream`] once the stream is drained and at
+    /// EOF, so it never reads like "nothing yet".
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         match self.peekby(buf.len()) {
             Ok(PeekState::Request(data) | PeekState::Stalled(data)) => {
@@ -2376,14 +2421,12 @@ impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
             }
             Ok(PeekState::ZeroLengthInput) => Err(PeekError::ZeroLengthNotAllowed),
             // `peekby` returns `NoNext` when nothing is buffered and the reader
-            // is at EOF; the remaining states carry no bytes either.
-            Ok(
-                PeekState::NoNext
-                | PeekState::LessThanRequested
-                | PeekState::EndOfBuffered
-                | PeekState::EndOfFile
-                | PeekState::Continue,
-            ) => Ok(0),
+            // is at EOF.
+            Ok(PeekState::NoNext | PeekState::EndOfFile) => Err(PeekError::EndOfStream),
+            // The remaining states carry no bytes.
+            Ok(PeekState::LessThanRequested | PeekState::EndOfBuffered | PeekState::Continue) => {
+                Ok(0)
+            }
             Err(err) => Err(PeekError::IOError(err)),
         }
     }

@@ -1,0 +1,103 @@
+{
+  "description": "Adds the R2 object-listing endpoint (GET .../r2/buckets/{bucket_name}/objects) and its response types. The vendored Cloudflare spec has no such endpoint; foundation_db's R2Store calls it, and the local wrangler stub (worker-stub.js) answers it. Generating the types here replaces the hand-written R2 listing types that used to live in foundation_cloudflare_types/src/lib.rs.",
+  "source": "Cloudflare R2 REST object listing: GET /accounts/{account_id}/r2/buckets/{bucket_name}/objects with `prefix` and `cursor` query parameters, answered in the v4 envelope with `result` (objects) and `result_info` (`is_truncated`, `cursor`). Cloudflare publishes no OpenAPI entry for it; the shape is the one foundation_db/src/native/r2_blobstore.rs reads and worker-stub.js returns.",
+  "patch": {
+    "paths": {
+      "/accounts/{account_id}/r2/buckets/{bucket_name}/objects": {
+        "get": {
+          "description": "Lists the objects of an R2 bucket, one page at a time.",
+          "operationId": "r2-list-objects",
+          "parameters": [
+            {
+              "in": "path",
+              "name": "account_id",
+              "required": true,
+              "schema": { "$ref": "#/components/schemas/r2_account_identifier" }
+            },
+            {
+              "in": "path",
+              "name": "bucket_name",
+              "required": true,
+              "schema": { "$ref": "#/components/schemas/r2_bucket_name" }
+            },
+            {
+              "in": "query",
+              "name": "prefix",
+              "description": "Only objects whose key starts with this prefix are listed.",
+              "schema": { "type": "string" }
+            },
+            {
+              "in": "query",
+              "name": "cursor",
+              "description": "The `result_info.cursor` of the previous page.",
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List Objects response.",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/r2_list_objects_response" }
+                }
+              }
+            },
+            "4XX": {
+              "description": "List Objects response failure.",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/r2_v4_response_failure" }
+                }
+              }
+            }
+          },
+          "security": [{ "api_token": [] }],
+          "summary": "List Objects",
+          "tags": ["R2 Bucket"]
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "r2_object_info": {
+          "description": "One object in an R2 object-listing page.",
+          "type": "object",
+          "required": ["key"],
+          "properties": {
+            "key": { "description": "The object key.", "type": "string" },
+            "size": { "description": "Object size in bytes.", "type": "integer" },
+            "etag": { "type": "string" },
+            "uploaded": { "description": "RFC 3339 upload time.", "type": "string" },
+            "version": { "type": "string" },
+            "http_metadata": { "type": "object" },
+            "custom_metadata": { "type": "object" }
+          }
+        },
+        "r2_list_objects_result_info": {
+          "description": "Paging state of an R2 object listing.",
+          "type": "object",
+          "properties": {
+            "is_truncated": { "description": "True when more pages follow.", "type": "boolean" },
+            "cursor": { "description": "The cursor of the next page.", "type": "string" }
+          }
+        },
+        "r2_list_objects_response": {
+          "description": "An R2 object-listing response.",
+          "type": "object",
+          "required": ["success", "errors", "messages", "result"],
+          "properties": {
+            "success": { "type": "boolean" },
+            "errors": { "type": "array", "items": { "type": "object" } },
+            "messages": { "type": "array", "items": { "type": "object" } },
+            "result": {
+              "description": "The objects on this page.",
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/r2_object_info" }
+            },
+            "result_info": { "$ref": "#/components/schemas/r2_list_objects_result_info" }
+          }
+        }
+      }
+    }
+  }
+}

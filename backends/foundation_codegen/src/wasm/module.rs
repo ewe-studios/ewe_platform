@@ -18,7 +18,7 @@
 #![warn(missing_docs)]
 
 use crate::wasm::builtins::Blob;
-use crate::wasm::io::{Decode, DecodeError, DecodeErrorKind, Encode, Wasmbin, encode_decode_as};
+use crate::wasm::io::{encode_decode_as, Decode, DecodeError, DecodeErrorKind, Encode, Wasmbin};
 use crate::wasm::sections::{Section, StdPayload};
 use crate::wasm::visit::Visit;
 #[cfg(feature = "wasm-serde")]

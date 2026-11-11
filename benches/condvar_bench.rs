@@ -39,7 +39,7 @@ fn bench_condvar_uncontended(c: &mut Criterion) {
     });
 }
 
-/// Benchmark notify_one with multiple waiters.
+/// Benchmark `notify_one` with multiple waiters.
 fn bench_condvar_notify_one_contended(c: &mut Criterion) {
     c.bench_function("condvar_notify_one_10_waiters", |b| {
         b.iter_batched(
@@ -83,12 +83,12 @@ fn bench_condvar_notify_one_contended(c: &mut Criterion) {
     });
 }
 
-/// Benchmark notify_all scaling.
+/// Benchmark `notify_all` scaling.
 fn bench_condvar_notify_all_scaling(c: &mut Criterion) {
     let mut group = c.benchmark_group("condvar_notify_all_scaling");
 
     for num_threads in [10, 50, 100] {
-        group.bench_function(format!("{}_threads", num_threads), |b| {
+        group.bench_function(format!("{num_threads}_threads"), |b| {
             b.iter_batched(
                 || {
                     let mutex = Arc::new(CondVarMutex::new(false));
@@ -130,7 +130,7 @@ fn bench_condvar_notify_all_scaling(c: &mut Criterion) {
     group.finish();
 }
 
-/// Benchmark wait_timeout accuracy.
+/// Benchmark `wait_timeout` accuracy.
 fn bench_condvar_timeout(c: &mut Criterion) {
     c.bench_function("condvar_wait_timeout_100us", |b| {
         let mutex = Arc::new(CondVarMutex::new(0u32));
@@ -146,7 +146,7 @@ fn bench_condvar_timeout(c: &mut Criterion) {
     });
 }
 
-/// Compare CondVar vs CondVarNonPoisoning performance.
+/// Compare `CondVar` vs `CondVarNonPoisoning` performance.
 fn bench_condvar_vs_nonpoisoning(c: &mut Criterion) {
     let mut group = c.benchmark_group("condvar_poisoning_comparison");
 

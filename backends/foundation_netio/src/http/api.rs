@@ -12,14 +12,15 @@
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, ResponseIntro};
 use crate::http::{
     HttpClientConnection, HttpConnectionPool, HttpRequestPending, RequestIntro, SendRequestTask,
 };
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, ResponseIntro};
 use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
 };
+use foundation_context::Ctx;
 use foundation_core::valtron::{
     self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
     Stream, StreamIteratorExt, TaskIteratorExt,
@@ -68,6 +69,26 @@ pub struct FinalizedResponse<T, R: DnsResolver + 'static>(
     Option<SimpleResponse<T>>,
     Option<Arc<HttpConnectionPool<R>>>,
     Option<HttpClientConnection>,
+    /// The context whose clock stamps the connection when it returns to the pool.
+    Option<Ctx>,
+);
+
+/// The result of [`ClientRequest::send_detached`]: the response, the
+/// connection and the pool. No guard returns the connection to the pool.
+pub type DetachedResponse<R> = (
+    SimpleResponse<SendSafeBody>,
+    HttpClientConnection,
+    Arc<HttpConnectionPool<R>>,
+);
+
+/// The parts returned by [`FinalizedResponse::into_parts`]: status, headers,
+/// body, connection pool and connection.
+pub type FinalizedResponseParts<T, R> = (
+    Status,
+    SimpleHeaders,
+    T,
+    Option<Arc<HttpConnectionPool<R>>>,
+    Option<HttpClientConnection>,
 );
 
 impl<T, R: DnsResolver + 'static> core::fmt::Display for FinalizedResponse<T, R> {
@@ -93,8 +114,9 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
         response: SimpleResponse<T>,
         conn: HttpClientConnection,
         pool: Arc<HttpConnectionPool<R>>,
+        ctx: Ctx,
     ) -> Self {
-        Self(Some(response), Some(pool), Some(conn))
+        Self(Some(response), Some(pool), Some(conn), Some(ctx))
     }
 
     /// Check if the response status is successful (2xx).
@@ -174,19 +196,21 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_body_mut()
     }
 
+    /// The context of the call that made this response.
+    ///
+    /// A caller that takes the parts with [`Self::into_parts`] passes this
+    /// context to [`HttpConnectionPool::return_to_pool`]. The pool then stamps
+    /// the connection with the clock of the call. `None` after `into_parts`.
+    #[must_use]
+    pub fn ctx(&self) -> Option<&Ctx> {
+        self.3.as_ref()
+    }
+
     ///
     /// # Panics
     ///
     /// This function does not panic.
-    pub fn into_parts(
-        mut self,
-    ) -> (
-        Status,
-        SimpleHeaders,
-        T,
-        Option<Arc<HttpConnectionPool<R>>>,
-        Option<HttpClientConnection>,
-    ) {
+    pub fn into_parts(mut self) -> FinalizedResponseParts<T, R> {
         let response = self.0.take().expect("response already taken");
         let status = response.get_status();
         let headers = response.get_headers_ref().clone();
@@ -205,14 +229,16 @@ impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
             .and_then(|resp| resp.get_headers_ref().get(&SimpleHeader::CONNECTION))
             .is_some_and(|vals| vals.iter().any(|v| v.eq_ignore_ascii_case("close")));
 
-        if let (Some(pool), Some(mut stream)) = (self.1.take(), self.2.take()) {
+        if let (Some(pool), Some(mut stream), Some(ctx)) =
+            (self.1.take(), self.2.take(), self.3.take())
+        {
             if connection_close {
                 tracing::debug!("[pool] Connection: close header found, dropping connection");
                 return;
             }
             tracing::debug!("[pool] draining stream and returning to pool");
             stream.drain_stream();
-            pool.return_to_pool(stream);
+            pool.return_to_pool(stream, &ctx);
         }
         let _ = self.0.take();
     }
@@ -239,23 +265,19 @@ impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// // Progressive reading
-/// let mut request = client.get("http://example.com")?;
-/// let (intro, headers) = request.introduction()?;
-/// let body = request.body()?;
+/// ```no_run
+/// use foundation_netio::http::NativeHttpClient;
 ///
-/// // One-shot execution
-/// let response = client.get("http://example.com")?.send()?;
-///
-/// // Streaming parts
-/// for part in client.get("http://example.com")?.parts() {
-///     match part? {
-///         IncomingResponseParts::Intro(status, proto, reason) => { /* ... */ }
-///         IncomingResponseParts::Headers(headers) => { /* ... */ }
-///         // ...
-///     }
-/// }
+/// let ctx = foundation_context::Ctx::try_host().unwrap();
+/// let client = NativeHttpClient::from_system();
+/// let response = client
+///     .get("http://example.com")
+///     .unwrap()
+///     .build_client()
+///     .unwrap()
+///     .send(&ctx)
+///     .unwrap();
+/// assert_eq!(response.get_status().into_usize(), 200);
 /// ```
 pub struct ClientRequest<R: DnsResolver + 'static> {
     /// Client configuration (timeouts, redirects, etc.)
@@ -274,7 +296,7 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
 impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// Creates a new client request (internal constructor).
     ///
-    /// WHY: `SimpleHttpClient` needs to construct `ClientRequest` instances from
+    /// WHY: `NativeHttpClient` needs to construct `ClientRequest` instances from
     /// `PreparedRequest`. This constructor is internal to the client module.
     ///
     /// WHAT: Initializes request in `NotStarted` state with all necessary data.
@@ -323,6 +345,11 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// collects all `IncomingResponseParts`, assembles `SimpleResponse`, handles
     /// connection pooling if configured.
     ///
+    /// # Arguments
+    ///
+    /// * `ctx` - The caller context. Its clock stamps the connection when the
+    ///   response returns it to the pool.
+    ///
     /// # Returns
     ///
     /// `SimpleResponse<SimpleBody>` with status, headers, and body.
@@ -341,12 +368,43 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// let response = client.get("http://example.com")?.send()?;
+    /// ```no_run
+    /// use foundation_netio::http::NativeHttpClient;
+    /// use foundation_netio::shared::http::Status;
+    ///
+    /// let ctx = foundation_context::Ctx::try_host().unwrap();
+    /// let client = NativeHttpClient::from_system();
+    /// let response = client
+    ///     .get("http://example.com")
+    ///     .unwrap()
+    ///     .build_client()
+    ///     .unwrap()
+    ///     .send(&ctx)
+    ///     .unwrap();
     /// assert_eq!(response.get_status(), Status::OK);
     /// ```
+    #[tracing::instrument(skip(self, ctx))]
+    pub fn send(self, ctx: &Ctx) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+        let (response, conn, pool) = self.send_detached()?;
+        Ok(FinalizedResponse::new(response, conn, pool, ctx.clone()))
+    }
+
+    /// Executes the request and returns the response, the connection and the pool.
+    ///
+    /// Unlike [`Self::send`], no guard returns the connection to the pool when
+    /// the response drops. The caller owns the connection. The caller that
+    /// returns it to the pool passes its own `Ctx` to
+    /// [`HttpConnectionPool::return_to_pool`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the request fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the response intro or body is missing after success.
     #[tracing::instrument(skip(self))]
-    pub fn send(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+    pub fn send_detached(mut self) -> Result<DetachedResponse<R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
         // IMPORTANT: We need to drive the body_stream first has
@@ -393,7 +451,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         let (conn, body) = response_body.expect("should have body");
         let response = SimpleResponse::new(intro.status, headers, body);
 
-        Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
+        Ok((response, conn, self.pool.clone()))
     }
 
     /// Internal helper to start request execution.
@@ -516,14 +574,36 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// Asynchronous version of `send()`. Drives both intro and body streams
     /// to completion using valtron's `into_ready_future()`, allowing the
     /// caller to `.await` without blocking the current thread.
-    #[tracing::instrument(skip(self))]
+    ///
+    /// The response socket is handed back in **blocking** mode, because the
+    /// synchronous body readers budget a blocking read with a read timeout. A
+    /// caller that streams the response body asynchronously must call
+    /// `set_nonblocking(true)` on the returned connection and attach
+    /// `read_wake_source()`; otherwise the first body read blocks the valtron
+    /// worker that polls it (spec 70 feature 121).
+    ///
+    /// The `ctx` argument is the caller context. Its clock stamps the
+    /// connection when the response returns it to the pool.
+    #[tracing::instrument(skip(self, ctx))]
     ///
     /// # Errors
     ///
     /// Returns an error if the operation fails.
     pub async fn send_async(
-        mut self,
+        self,
+        ctx: &Ctx,
     ) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+        let (response, conn, pool) = self.send_detached_async().await?;
+        Ok(FinalizedResponse::new(response, conn, pool, ctx.clone()))
+    }
+
+    /// Asynchronous version of [`Self::send_detached`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub async fn send_detached_async(mut self) -> Result<DetachedResponse<R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
         // Drive body first — required by split_collect_one_map ordering:
@@ -543,6 +623,6 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
         let response = SimpleResponse::new(intro.status, headers, body);
 
-        Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
+        Ok((response, conn, self.pool.clone()))
     }
 }

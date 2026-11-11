@@ -306,7 +306,9 @@ mod json {
             }
             let text = core::str::from_utf8(&self.bytes[start..self.pos])
                 .map_err(|_| self.error("number"))?;
-            let n = text.parse::<u32>().map_err(|_| self.error("number range"))?;
+            let n = text
+                .parse::<u32>()
+                .map_err(|_| self.error("number range"))?;
             Ok(Value::Number(n))
         }
 

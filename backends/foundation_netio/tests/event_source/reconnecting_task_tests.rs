@@ -3,7 +3,9 @@
 //! Tests reconnection logic, backoff, Last-Event-ID tracking, and max retries.
 //! Uses `MockDnsResolver` — no real network connections.
 
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{TaskIterator, TaskStatus};
+
+use foundation_context::Ctx;
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::shared::client::MockDnsResolver;
 use foundation_netio::shared::http::DnsError;
@@ -68,14 +70,17 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
 
     // Drive the task until it exhausts
     let mut steps = 0;
-    while task.next_status(Ctx::new()).is_some() {
+    while task.next_status(Ctx::host()).is_some() {
         steps += 1;
         // Safety: prevent infinite loop
         assert!(steps < 100, "Task did not exhaust within 100 steps");
     }
 
     // Should be exhausted now
-    assert!(task.next_status(Ctx::new()).is_none(), "Task should stay exhausted");
+    assert!(
+        task.next_status(Ctx::host()).is_none(),
+        "Task should stay exhausted"
+    );
 }
 
 /// WHY: When DNS has no configured response, initial connection fails.
@@ -93,7 +98,7 @@ fn test_reconnecting_task_attempts_reconnection_on_failure() {
     let mut saw_delayed = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let foundation_core::valtron::TaskStatus::Delayed(_) = status {
             saw_delayed = true;
         }
@@ -150,11 +155,11 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
 
     let mut states: Vec<String> = Vec::new();
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         let label = match status {
             foundation_core::valtron::TaskStatus::Init => "Init".to_string(),
-            foundation_core::valtron::TaskStatus::Pending(p) => format!("Pending({:?})", p),
-            foundation_core::valtron::TaskStatus::Delayed(d) => format!("Delayed({:?})", d),
+            foundation_core::valtron::TaskStatus::Pending(p) => format!("Pending({p:?})"),
+            foundation_core::valtron::TaskStatus::Delayed(d) => format!("Delayed({d:?})"),
             foundation_core::valtron::TaskStatus::Ready(_) => "Ready".to_string(),
             foundation_core::valtron::TaskStatus::Ignore => "Ignore".to_string(),
             foundation_core::valtron::TaskStatus::Spawn(_) => "Spawn".to_string(),
@@ -164,13 +169,12 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
         };
         states.push(label);
         // Safety valve
-        assert!(states.len() < 100, "Too many steps: {:?}", states);
+        assert!(states.len() < 100, "Too many steps: {states:?}");
     }
 
     // Should have seen at least Pending (Connecting attempt) and Delayed (backoff)
     assert!(
         states.iter().any(|s| s.contains("Connecting")),
-        "Should have attempted connecting, saw states: {:?}",
-        states
+        "Should have attempted connecting, saw states: {states:?}"
     );
 }

@@ -288,19 +288,19 @@ enum DecompressorKind<R: Read> {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use foundation_netio::shared::client::{DecompressingReader, ContentEncoding};
+/// ```rust
+/// use foundation_netio::shared::client::{ContentEncoding, DecompressingReader};
 /// use std::io::Read;
 ///
-/// // Gzip decompression
-/// let compressed_data = /* ... gzip compressed bytes ... */;
 /// let mut reader = DecompressingReader::new(
-///     std::io::Cursor::new(compressed_data),
-///     ContentEncoding::Gzip
-/// )?;
+///     std::io::Cursor::new(b"plain text".to_vec()),
+///     &ContentEncoding::Identity,
+/// )
+/// .unwrap();
 ///
-/// let mut decompressed = String::new();
-/// reader.read_to_string(&mut decompressed)?;
+/// let mut decoded = String::new();
+/// reader.read_to_string(&mut decoded).unwrap();
+/// assert_eq!(decoded, "plain text");
 /// ```
 pub struct DecompressingReader<R: Read> {
     inner: DecompressorKind<R>,

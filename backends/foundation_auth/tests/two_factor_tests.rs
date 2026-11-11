@@ -1,24 +1,34 @@
+use std::sync::Arc;
+
 use foundation_auth::{BackupCodeSet, TOTPSecret, TwoFactorChallenge};
+use foundation_context::{Ctx, MonotonicClock};
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 #[test]
 fn test_totp_secret_generation() {
+    let ctx = test_clock();
     let secret = TOTPSecret::generate();
-    let code = secret.now();
+    let code = secret.now(&ctx);
     assert_eq!(code.len(), 6);
     assert!(code.chars().all(char::is_numeric));
 }
 
 #[test]
 fn test_totp_verify_current_code() {
+    let ctx = test_clock();
     let secret = TOTPSecret::generate();
-    let code = secret.now();
-    assert!(secret.verify(&code, 1));
+    let code = secret.now(&ctx);
+    assert!(secret.verify(&code, 1, &ctx));
 }
 
 #[test]
 fn test_totp_verify_wrong_code() {
+    let ctx = test_clock();
     let secret = TOTPSecret::generate();
-    assert!(!secret.verify("000000", 1));
+    assert!(!secret.verify("000000", 1, &ctx));
 }
 
 #[test]
@@ -34,7 +44,7 @@ fn test_totp_deterministic() {
 fn test_totp_base32() {
     let secret = TOTPSecret::generate();
     let b32 = secret.to_base32();
-    assert!(!b32.is_empty());
+    assert_ne!(b32, "");
     assert!(b32.chars().all(|c| c.is_ascii_alphanumeric()));
 }
 

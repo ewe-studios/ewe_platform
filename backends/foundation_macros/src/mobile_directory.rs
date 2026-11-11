@@ -31,16 +31,21 @@ pub fn mobile_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::
     let ast = syn::parse_macro_input!(item as syn::DeriveInput);
     let struct_name = &ast.ident;
 
-    if !matches!(&ast.data, syn::Data::Struct(_)) {
-        panic!("MobileDirectory must be used on a struct with a `root: PathBuf` field");
-    }
+    assert!(
+        matches!(&ast.data, syn::Data::Struct(_)),
+        "MobileDirectory must be used on a struct with a `root: PathBuf` field"
+    );
 
     let source = get_attr(&ast, "source")
         .expect("A #[source = \"...\"] attribute is required for MobileDirectory");
 
-    proc_macro::TokenStream::from(impl_mobile_directory(struct_name, &source))
+    impl_mobile_directory(struct_name, &source)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "one linear directory-walk expansion that emits the generated impl in order"
+)]
 fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> TokenStream {
     let cargo_manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
@@ -48,8 +53,7 @@ fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> Token
     let manifest_dir = Path::new(&cargo_manifest_dir);
     let working_dir = std::env::current_dir().expect("get current working directory");
 
-    let (root_workspace, _) = find_root_cargo(manifest_dir, None)
-        .expect("find root workspace");
+    let (root_workspace, _) = find_root_cargo(manifest_dir, None).expect("find root workspace");
 
     let root_workspace_str = root_workspace.to_str().expect("root workspace path");
 
@@ -66,8 +70,8 @@ fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> Token
         manifest_dir.join(&target_directory)
     };
 
-    let embed_directory_path = std::fs::canonicalize(&embed_directory_candidate)
-        .unwrap_or_else(|e| {
+    let embed_directory_path =
+        std::fs::canonicalize(&embed_directory_candidate).unwrap_or_else(|e| {
             panic!(
                 "MobileDirectory: failed to resolve source '{}': {:?}",
                 embed_directory_candidate.display(),
@@ -88,16 +92,18 @@ fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> Token
         .map(|item| match item {
             FsInfo::File(info) => {
                 let source_file_path = PathBuf::from(&info.source_file_path);
-                let file_data = get_file(&source_file_path, false)
-                    .expect("Failed to read file for metadata");
+                let file_data =
+                    get_file(&source_file_path, false).expect("Failed to read file for metadata");
                 let file_index = syn::LitInt::new(
                     &info.index.expect("should have index").to_string(),
                     proc_macro2::Span::call_site(),
                 );
                 let file_name = syn::LitStr::new(&info.source_name, proc_macro2::Span::call_site());
                 let file_path = syn::LitStr::new(&info.source_path, proc_macro2::Span::call_site());
-                let file_path_parent =
-                    syn::LitStr::new(&info.source_path_from_parent, proc_macro2::Span::call_site());
+                let file_path_parent = syn::LitStr::new(
+                    &info.source_path_from_parent,
+                    proc_macro2::Span::call_site(),
+                );
                 let disk_path =
                     syn::LitStr::new(&info.source_file_path, proc_macro2::Span::call_site());
                 let etag = syn::LitStr::new(&file_data.etag, proc_macro2::Span::call_site());
@@ -106,7 +112,8 @@ fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> Token
                     project_dir.to_str().expect("project dir to str"),
                     proc_macro2::Span::call_site(),
                 );
-                let date_tokens: proc_macro2::TokenStream = if let Some(d) = file_data.date_modified {
+                let date_tokens: proc_macro2::TokenStream = if let Some(d) = file_data.date_modified
+                {
                     quote! { Some(#d) }
                 } else {
                     quote! { None }
@@ -139,12 +146,9 @@ fn impl_mobile_directory(struct_name: &syn::Ident, target_source: &str) -> Token
                     &info.index.expect("should have index").to_string(),
                     proc_macro2::Span::call_site(),
                 );
-                let dir_name =
-                    syn::LitStr::new(&info.dir_name, proc_macro2::Span::call_site());
-                let dir_path =
-                    syn::LitStr::new(&info.dir_path, proc_macro2::Span::call_site());
-                let disk_path =
-                    syn::LitStr::new(&info.root_dir, proc_macro2::Span::call_site());
+                let dir_name = syn::LitStr::new(&info.dir_name, proc_macro2::Span::call_site());
+                let dir_path = syn::LitStr::new(&info.dir_path, proc_macro2::Span::call_site());
+                let disk_path = syn::LitStr::new(&info.root_dir, proc_macro2::Span::call_site());
                 let project = syn::LitStr::new(
                     project_dir.to_str().expect("project dir to str"),
                     proc_macro2::Span::call_site(),

@@ -23,14 +23,25 @@ use crate::ipc::{IpcError, IpcRequest, IpcResponse};
 // ── Internal handler types ─────────────────────────────────────────────
 
 #[cfg(not(target_family = "wasm"))]
-type CapHandler = Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + Send + Sync + 'static>;
+type CapHandler = Box<
+    dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>
+        + Send
+        + Sync
+        + 'static,
+>;
 #[cfg(target_family = "wasm")]
-type CapHandler = Box<dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> + 'static>;
+type CapHandler = Box<
+    dyn Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>
+        + 'static,
+>;
 
 #[cfg(not(target_family = "wasm"))]
-type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static>;
+type IpcHandlerBox = Box<
+    dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + Send + Sync + 'static,
+>;
 #[cfg(target_family = "wasm")]
-type IpcHandlerBox = Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static>;
+type IpcHandlerBox =
+    Box<dyn Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static>;
 
 // ── TriggerRegistry ─────────────────────────────────────────────────────
 
@@ -48,7 +59,10 @@ impl TriggerRegistry {
     /// Create an empty registry. No handlers registered initially.
     #[must_use]
     pub const fn new() -> Self {
-        Self { capability: None, ipc: None }
+        Self {
+            capability: None,
+            ipc: None,
+        }
     }
 
     /// Register the capability trigger handler. Replaces any previous handler.
@@ -56,7 +70,9 @@ impl TriggerRegistry {
     pub fn set_capability_handler(
         &mut self,
         handler: impl Fn(CapabilityRequest<Vec<u8>>) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError>
-            + Send + Sync + 'static,
+            + Send
+            + Sync
+            + 'static,
     ) {
         self.capability = Some(Box::new(handler));
     }
@@ -75,7 +91,9 @@ impl TriggerRegistry {
     pub fn set_ipc_handler(
         &mut self,
         handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError>
-            + Send + Sync + 'static,
+            + Send
+            + Sync
+            + 'static,
     ) {
         self.ipc = Some(Box::new(handler));
     }
@@ -83,8 +101,7 @@ impl TriggerRegistry {
     #[cfg(target_family = "wasm")]
     pub fn set_ipc_handler(
         &mut self,
-        handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError>
-            + 'static,
+        handler: impl Fn(IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> + 'static,
     ) {
         self.ipc = Some(Box::new(handler));
     }

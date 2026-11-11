@@ -7,43 +7,19 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore, SqlRow,
 };
-use crate::wasm::bindgen::D1Database;
+use crate::wasm::bindgen::{D1Database, D1PreparedStatement};
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_compact::SendWrapper;
+use foundation_context::Ctx;
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use foundation_compact::SendWrapper;
-
-// ===========================================================================
-// Inline valtron helpers (no async_utils — use valtron directly)
-// ===========================================================================
-
-/// The valtron stream `schedule_future` returns: one `Stream::Next` with the
-/// future's result.
-type ValtronResultStream<T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>>>;
-
-fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
-    future: F,
-) -> StorageResult<ValtronResultStream<T>>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-    Ok(Box::new(
-        stream
-            .map_done(|r: Result<T, E>| r.map_err(Into::into))
-            .map_pending(|_| ()),
-    ))
-}
 
 // ===========================================================================
 // D1WasmStorage
@@ -82,7 +58,7 @@ impl D1WasmStorage {
     }
 
     /// Initialize the KV table schema.
-    pub async fn init_schema_async(&self) -> Result<(), StorageError> {
+    pub(crate) async fn init_schema_async(&self) -> Result<(), StorageError> {
         let sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))",
             self.table_name()
@@ -97,20 +73,11 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<(), StorageError> {
-        let stmt = self.db.prepare(sql);
-        if params.is_empty() {
-            let promise = stmt.run();
-            SendWrapper::new(JsFuture::from(promise))
-                .await
-                .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            let promise = bound.run();
-            SendWrapper::new(JsFuture::from(promise))
-                .await
-                .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-        }
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let promise = stmt.run();
+        SendWrapper::new(JsFuture::from(promise))
+            .await
+            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
         Ok(())
     }
 
@@ -121,14 +88,8 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<Option<js_sys::Object>, StorageError> {
-        let stmt = self.db.prepare(sql);
-        let first_result = if params.is_empty() {
-            stmt.first(None)
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            bound.first(None)
-        };
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let first_result = stmt.first(None);
         let result = SendWrapper::new(JsFuture::from(first_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
@@ -150,14 +111,8 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<Vec<js_sys::Object>, StorageError> {
-        let stmt = self.db.prepare(sql);
-        let all_result = if params.is_empty() {
-            stmt.all()
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            bound.all()
-        };
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let all_result = stmt.all();
         let result = SendWrapper::new(JsFuture::from(all_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
@@ -191,14 +146,8 @@ impl D1WasmStorage {
         sql: &str,
         params: &[DataValue],
     ) -> Result<u64, StorageError> {
-        let stmt = self.db.prepare(sql);
-        let run_result = if params.is_empty() {
-            stmt.run()
-        } else {
-            let array = data_values_to_js_array(params);
-            let bound = stmt.bind(array);
-            bound.run()
-        };
+        let stmt = prepared_statement(&self.db, sql, params)?;
+        let run_result = stmt.run();
         let result = SendWrapper::new(JsFuture::from(run_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
@@ -234,7 +183,7 @@ impl D1WasmStorage {
 
 impl D1WasmStorage {
     /// Get a value by key from D1.
-    pub async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
+    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, StorageError> {
@@ -264,7 +213,7 @@ impl D1WasmStorage {
     }
 
     /// Set a key-value pair in D1.
-    pub async fn set_async<V: serde::Serialize>(
+    async fn set_async<V: serde::Serialize>(
         &self,
         key: &str,
         value: V,
@@ -299,7 +248,7 @@ impl D1WasmStorage {
     }
 
     /// Delete a key from D1.
-    pub async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
         Self::do_delete_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -314,7 +263,7 @@ impl D1WasmStorage {
     }
 
     /// Check if a key exists in D1.
-    pub async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
         Self::do_exists_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -330,7 +279,7 @@ impl D1WasmStorage {
     }
 
     /// List all keys with optional prefix filter.
-    pub async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
+    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
         Self::do_list_keys_async(&self.db, &self.table_prefix, prefix).await
     }
 
@@ -363,14 +312,14 @@ impl D1WasmStorage {
 
 #[async_trait::async_trait]
 impl KeyValueStore for D1WasmStorage {
-    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
+    async fn get<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<Option<V>> {
         foundation_compact::SendWrapper::new(async move { self.get_async(key).await }).await
     }
 
-    async fn set_async<V: serde::Serialize + Send + 'static>(
+    async fn set<V: serde::Serialize + Send + 'static>(
         &self,
         key: &str,
         value: V,
@@ -378,67 +327,49 @@ impl KeyValueStore for D1WasmStorage {
         foundation_compact::SendWrapper::new(async move { self.set_async(key, value).await }).await
     }
 
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
+    async fn take<V: serde::de::DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One statement: D1 runs it atomically, so only one caller gets the row.
+        foundation_compact::SendWrapper::new(async move {
+            let table = format!("{}_kv", self.table_prefix);
+            let sql = format!("DELETE FROM {table} WHERE key = ? RETURNING value");
+            let row = do_query_first(&self.db, &sql, &[DataValue::Text(key.to_string())]).await?;
+            match row {
+                Some(obj) => {
+                    let value = Self::get_str_field(&obj, "value").ok_or_else(|| {
+                        StorageError::SqlConversion("missing or invalid value field".to_string())
+                    })?;
+                    let deserialized: V = serde_json::from_str(&value)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                    Ok(Some(deserialized))
+                }
+                None => Ok(None),
+            }
+        })
+        .await
+    }
+
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
-        let keys = foundation_compact::SendWrapper::new(async move {
-            self.list_keys_async(prefix).await
-        }).await?;
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let keys =
+            foundation_compact::SendWrapper::new(async move { self.list_keys_async(prefix).await })
+                .await?;
         Ok(AsyncListStream::new(futures_lite::stream::iter(
             keys.into_iter().map(Ok),
         )))
-    }
-}
-
-// ===========================================================================
-// Valtron-driven async methods — exercises JSThreadYielder
-//
-// These use `set_valtron_async`/`get_valtron_async` which go through
-// `schedule_future` → valtron stream → `StreamReadyFuture` → `.await`.
-// The valtron executor drives the D1 Promise, JSThreadYielder yields via
-// setTimeout, and the Future polls back when repolled by the async runtime.
-// ===========================================================================
-
-impl D1WasmStorage {
-    /// Set a key-value pair via valtron executor (exercises JSThreadYielder).
-    pub async fn set_valtron_async(&self, key: &str, value: impl serde::Serialize + Send + 'static) -> Result<(), StorageError> {
-        let this = self.clone();
-        let key = key.to_string();
-        let stream = schedule_future(async move {
-            Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
-        })?;
-        let future = StreamReadyFuture::new(stream.into_stream_iter());
-        let result = future.await;
-        match result {
-            Some((Ok(()), _)) => Ok(()),
-            Some((Err(e), _)) => Err(e),
-            None => Err(StorageError::Generic("valtron stream ended without result".into())),
-        }
-    }
-
-    /// Get a value via valtron executor (exercises JSThreadYielder).
-    pub async fn get_valtron_async<V: serde::de::DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, StorageError> {
-        let this = self.clone();
-        let key = key.to_string();
-        let stream = schedule_future(async move {
-            Self::do_get_async::<V>(&this.db, &this.table_prefix, &key).await
-        })?;
-        let future = StreamReadyFuture::new(stream.into_stream_iter());
-        let result = future.await;
-        match result {
-            Some((Ok(v), _)) => Ok(v),
-            Some((Err(e), _)) => Err(e),
-            None => Err(StorageError::Generic("valtron stream ended without result".into())),
-        }
     }
 }
 
@@ -448,7 +379,7 @@ impl D1WasmStorage {
 
 impl D1WasmStorage {
     /// Execute a SQL query and return rows as `Vec<SqlRow>`.
-    pub async fn query_async(
+    async fn query_async(
         &self,
         sql: &str,
         params: &[DataValue],
@@ -475,11 +406,7 @@ impl D1WasmStorage {
     }
 
     /// Execute a SQL statement and return the number of rows affected.
-    pub async fn execute_async(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> Result<u64, StorageError> {
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> Result<u64, StorageError> {
         Self::do_execute_async(&self.db, sql, params).await
     }
 
@@ -492,7 +419,7 @@ impl D1WasmStorage {
     }
 
     /// Execute a batch of SQL statements.
-    pub async fn execute_batch_async(&self, sql: &str) -> Result<(), StorageError> {
+    async fn execute_batch_async(&self, sql: &str) -> Result<(), StorageError> {
         Self::do_execute_batch_async(&self.db, sql).await
     }
 
@@ -507,21 +434,25 @@ impl D1WasmStorage {
 
 #[async_trait::async_trait]
 impl QueryStore for D1WasmStorage {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        let rows = foundation_compact::SendWrapper::new(async move {
-            self.query_async(sql, params).await
-        }).await?;
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        let rows =
+            foundation_compact::SendWrapper::new(
+                async move { self.query_async(sql, params).await },
+            )
+            .await?;
         Ok(AsyncQueryStream::new(futures_lite::stream::iter(
             rows.into_iter().map(Ok),
         )))
     }
 
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        foundation_compact::SendWrapper::new(async move { self.execute_async(sql, params).await }).await
+    async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        foundation_compact::SendWrapper::new(async move { self.execute_async(sql, params).await })
+            .await
     }
 
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.execute_batch_async(sql).await }).await
+    async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
+        foundation_compact::SendWrapper::new(async move { self.execute_batch_async(sql).await })
+            .await
     }
 }
 
@@ -531,20 +462,34 @@ impl QueryStore for D1WasmStorage {
 
 #[async_trait::async_trait]
 impl RateLimiterStore for D1WasmStorage {
-    async fn check_rate_limit_async(
+    async fn check_rate_limit(
         &self,
+        ctx: &Ctx,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        foundation_compact::SendWrapper::new(rate_limit::sql_check(self, key, max_count, window_seconds)).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_check(
+            self,
+            ctx,
+            key,
+            max_count,
+            window_seconds,
+        ))
+        .await
     }
 
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, key, window_seconds)).await
+    async fn record_rate_limit(
+        &self,
+        ctx: &Ctx,
+        key: &str,
+        window_seconds: u64,
+    ) -> StorageResult<u32> {
+        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, ctx, key, window_seconds))
+            .await
     }
 
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(rate_limit::sql_reset(self, key)).await
     }
 }
@@ -555,7 +500,7 @@ impl RateLimiterStore for D1WasmStorage {
 
 impl D1WasmStorage {
     /// Put a blob into D1 (base64-encoded in the KV table).
-    pub async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
         Self::do_put_blob_async(&self.db, &self.table_prefix, key, data).await
     }
 
@@ -591,7 +536,7 @@ impl D1WasmStorage {
     }
 
     /// Get a blob from D1 (base64-decoded).
-    pub async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
         Self::do_get_blob_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -622,7 +567,9 @@ impl D1WasmStorage {
                     .get("data")
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| {
-                        StorageError::Serialization("missing data field in blob wrapper".to_string())
+                        StorageError::Serialization(
+                            "missing data field in blob wrapper".to_string(),
+                        )
                     })?;
 
                 let decoded = STANDARD
@@ -636,7 +583,7 @@ impl D1WasmStorage {
     }
 
     /// Delete a blob from D1.
-    pub async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
         Self::do_delete_blob_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -651,7 +598,7 @@ impl D1WasmStorage {
     }
 
     /// Check if a blob exists in D1.
-    pub async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
         Self::do_blob_exists_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -669,19 +616,20 @@ impl D1WasmStorage {
 
 #[async_trait::async_trait]
 impl BlobStore for D1WasmStorage {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await })
+            .await
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         foundation_compact::SendWrapper::new(async move { self.get_blob_async(key).await }).await
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.delete_blob_async(key).await }).await
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move { self.blob_exists_async(key).await }).await
     }
 }
@@ -690,25 +638,193 @@ impl BlobStore for D1WasmStorage {
 // Helpers
 // ===========================================================================
 
+/// One [`DataValue`] as the JS value the D1 binding takes.
+fn data_value_to_js(value: &DataValue) -> wasm_bindgen::JsValue {
+    match value {
+        DataValue::Null => wasm_bindgen::JsValue::null(),
+        // Integers bind as decimal text; `typed_sql` wraps the placeholder
+        // in `CAST(? AS INTEGER)` so the value lands as an exact INTEGER.
+        // A JS Number is always a double and loses precision past 2^53.
+        DataValue::Integer(i) => wasm_bindgen::JsValue::from_str(&i.to_string()),
+        DataValue::Real(f) => wasm_bindgen::JsValue::from_f64(*f),
+        DataValue::Text(s) => wasm_bindgen::JsValue::from_str(s),
+        DataValue::Blob(b) => {
+            // Use Uint8Array for binary data
+            let buf = Uint8Array::new_with_length(b.len() as u32);
+            buf.copy_from(b);
+            buf.into()
+        }
+    }
+}
+
 /// Convert a slice of `DataValue` into a `js_sys::Array` for D1 bind().
 fn data_values_to_js_array(values: &[DataValue]) -> Array {
     let array = Array::new();
-    for v in values {
-        let js_val = match v {
-            DataValue::Null => wasm_bindgen::JsValue::null(),
-            DataValue::Integer(i) => wasm_bindgen::JsValue::from_f64(*i as f64),
-            DataValue::Real(f) => wasm_bindgen::JsValue::from_f64(*f),
-            DataValue::Text(s) => wasm_bindgen::JsValue::from_str(s),
-            DataValue::Blob(b) => {
-                // Use Uint8Array for binary data
-                let buf = Uint8Array::new_with_length(b.len() as u32);
-                buf.copy_from(b);
-                buf.into()
-            }
-        };
-        array.push(&js_val);
+    for value in values {
+        array.push(&data_value_to_js(value));
     }
     array
+}
+
+/// Rewrite the SQL placeholders for the D1 binding and return the values to
+/// bind, in order.
+///
+/// WHY: the D1 binding takes a JS Number for a numeric parameter, and a Number
+/// is always a double: `i64::MAX` and 2^53+1 lose precision, and in an untyped
+/// column the value is stored as REAL. D1 rejects BigInt with `D1_TYPE_ERROR`.
+/// WHAT:
+///
+/// - `DataValue::Integer(i)`: the value binds as decimal text and the
+///   placeholder becomes `CAST(? AS INTEGER)`, so the stored value is an exact
+///   INTEGER.
+/// - `DataValue::Null`: the `NULL` literal replaces the placeholder, so no
+///   parameter is bound (a JS `null` parameter reaches the binding as an
+///   object in workerd).
+/// - the other types bind as their JS value.
+///
+/// Only `?` and `?N` placeholders outside string literals, quoted names and
+/// comments are rewritten. A dropped `NULL` parameter renumbers later `?N`
+/// placeholders to their place among the values that stay.
+///
+/// # Errors
+///
+/// Returns [`StorageError::SqlConversion`] when the placeholders do not name
+/// exactly the given parameters.
+fn typed_sql(sql: &str, params: &[DataValue]) -> Result<(String, Array), StorageError> {
+    let rewrite = params
+        .iter()
+        .any(|value| matches!(value, DataValue::Null | DataValue::Integer(_)));
+    if !rewrite {
+        return Ok((sql.to_string(), data_values_to_js_array(params)));
+    }
+
+    // The 1-based place of each kept parameter among the bound values.
+    let mut slots = Vec::with_capacity(params.len());
+    let bound = Array::new();
+    let mut count = 0usize;
+    for value in params {
+        if !matches!(value, DataValue::Null) {
+            count += 1;
+            bound.push(&data_value_to_js(value));
+        }
+        slots.push(count);
+    }
+
+    let mismatch = || {
+        StorageError::SqlConversion(format!(
+            "the SQL has a different number of `?` placeholders than the {} parameters",
+            params.len()
+        ))
+    };
+    let mut out = String::with_capacity(sql.len() + params.len() * 16);
+    let mut next_anonymous = 0usize;
+    let mut used = 0usize;
+    let mut chars = sql.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            // Quoted text and names: copy to the closing quote (doubled quote = escaped).
+            '\'' | '"' | '`' => {
+                out.push(c);
+                while let Some(q) = chars.next() {
+                    out.push(q);
+                    if q == c {
+                        if chars.peek() == Some(&c) {
+                            out.extend(chars.next());
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            '[' => {
+                out.push(c);
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if q == ']' {
+                        break;
+                    }
+                }
+            }
+            '-' if chars.peek() == Some(&'-') => {
+                out.push(c);
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if q == '\n' {
+                        break;
+                    }
+                }
+            }
+            '/' if chars.peek() == Some(&'*') => {
+                out.push(c);
+                out.extend(chars.next());
+                let mut prev = '\0';
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if prev == '*' && q == '/' {
+                        break;
+                    }
+                    prev = q;
+                }
+            }
+            '?' => {
+                let mut digits = String::new();
+                while let Some(d) = chars.peek().copied().filter(char::is_ascii_digit) {
+                    digits.push(d);
+                    chars.next();
+                }
+                let index = if digits.is_empty() {
+                    let index = next_anonymous;
+                    next_anonymous += 1;
+                    index
+                } else {
+                    digits
+                        .parse::<usize>()
+                        .ok()
+                        .and_then(|n| n.checked_sub(1))
+                        .ok_or_else(mismatch)?
+                };
+                let Some(value) = params.get(index) else {
+                    return Err(mismatch());
+                };
+                used = used.max(index + 1);
+                match value {
+                    DataValue::Null => out.push_str("NULL"),
+                    DataValue::Integer(_) => {
+                        out.push_str("CAST(?");
+                        if !digits.is_empty() {
+                            out.push_str(&slots[index].to_string());
+                        }
+                        out.push_str(" AS INTEGER)");
+                    }
+                    _ => {
+                        out.push('?');
+                        if !digits.is_empty() {
+                            out.push_str(&slots[index].to_string());
+                        }
+                    }
+                }
+            }
+            other => out.push(other),
+        }
+    }
+    if used != params.len() {
+        return Err(mismatch());
+    }
+    Ok((out, bound))
+}
+
+fn prepared_statement(
+    db: &D1Database,
+    sql: &str,
+    params: &[DataValue],
+) -> Result<D1PreparedStatement, StorageError> {
+    let (sql, bound) = typed_sql(sql, params)?;
+    let statement = db.prepare(&sql);
+    if bound.length() == 0 {
+        Ok(statement)
+    } else {
+        Ok(statement.bind(bound))
+    }
 }
 
 /// Extract columns from a JS object (row from D1).
@@ -763,20 +879,11 @@ async fn do_execute_sql(
     sql: &str,
     params: &[DataValue],
 ) -> Result<(), StorageError> {
-    let stmt = db.prepare(sql);
-    if params.is_empty() {
-        let promise = stmt.run();
-        SendWrapper::new(JsFuture::from(promise))
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        let promise = bound.run();
-        SendWrapper::new(JsFuture::from(promise))
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
-    }
+    let stmt = prepared_statement(db, sql, params)?;
+    let promise = stmt.run();
+    SendWrapper::new(JsFuture::from(promise))
+        .await
+        .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
     Ok(())
 }
 
@@ -785,14 +892,8 @@ async fn do_query_first(
     sql: &str,
     params: &[DataValue],
 ) -> Result<Option<js_sys::Object>, StorageError> {
-    let stmt = db.prepare(sql);
-    let first_result = if params.is_empty() {
-        stmt.first(None)
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        bound.first(None)
-    };
+    let stmt = prepared_statement(db, sql, params)?;
+    let first_result = stmt.first(None);
     let result = SendWrapper::new(JsFuture::from(first_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
@@ -812,14 +913,8 @@ async fn do_query_all(
     sql: &str,
     params: &[DataValue],
 ) -> Result<Vec<js_sys::Object>, StorageError> {
-    let stmt = db.prepare(sql);
-    let all_result = if params.is_empty() {
-        stmt.all()
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        bound.all()
-    };
+    let stmt = prepared_statement(db, sql, params)?;
+    let all_result = stmt.all();
     let result = SendWrapper::new(JsFuture::from(all_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
@@ -851,14 +946,8 @@ async fn do_execute_with_changes(
     sql: &str,
     params: &[DataValue],
 ) -> Result<u64, StorageError> {
-    let stmt = db.prepare(sql);
-    let run_result = if params.is_empty() {
-        stmt.run()
-    } else {
-        let array = data_values_to_js_array(params);
-        let bound = stmt.bind(array);
-        bound.run()
-    };
+    let stmt = prepared_statement(db, sql, params)?;
+    let run_result = stmt.run();
     let result = SendWrapper::new(JsFuture::from(run_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;

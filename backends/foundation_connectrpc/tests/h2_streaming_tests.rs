@@ -1,4 +1,12 @@
-//! All four ConnectRPC modes over HTTP/2 cleartext, end-to-end (F47).
+// Test/example code casts small, known values (lengths, counters, status
+// codes), so the value is always in range for the target type.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss
+)]
+
+//! All four `ConnectRPC` modes over HTTP/2 cleartext, end-to-end (F47).
 //!
 //! WHY: `h2_echo` proves unary over h2c. F47's acceptance criteria also require
 //! server-stream, client-stream and bidi, plus evidence that the h2 connection
@@ -19,17 +27,18 @@ use std::time::Duration;
 
 use futures::StreamExt;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_http::native::server::HttpServer;
-use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
+use foundation_http::native::server::HttpServer;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    Client, ClientOptions, ConnectRpcServeH2, H2Transport, HandlerOptions, JsonCodec,
+    ProcedureCodecs, Request, RequestStream, Response, Router, RpcCtx,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -59,7 +68,7 @@ fn build_router() -> Router {
     router.unary(
         UNARY,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
         },
         HandlerOptions::new(),
@@ -69,7 +78,7 @@ fn build_router() -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        |_ctx: Ctx, req: Request<Msg>| async move {
+        |_ctx: RpcCtx, req: Request<Msg>| async move {
             let items: Vec<ConnectResult<Msg>> = (0..3)
                 .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
                 .collect();
@@ -82,7 +91,7 @@ fn build_router() -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        |_ctx: Ctx, mut reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, mut reqs: RequestStream<Msg>| async move {
             let mut parts = Vec::new();
             while let Some(msg) = reqs.next().await {
                 parts.push(msg?.text);
@@ -96,7 +105,7 @@ fn build_router() -> Router {
     router.bidi_stream(
         BIDI,
         codecs(),
-        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+        |_ctx: RpcCtx, reqs: RequestStream<Msg>| async move {
             Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
         },
         HandlerOptions::new(),
@@ -108,7 +117,7 @@ fn build_router() -> Router {
 /// Start a real `HttpServer` speaking h2 only. Returns its address and a
 /// shutdown signal. Binding happens before the thread spawns, so the client can
 /// never race the listener.
-fn start_h2_server() -> (String, Arc<OnSignal>) {
+fn start_h2_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
@@ -119,7 +128,7 @@ fn start_h2_server() -> (String, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
@@ -143,8 +152,8 @@ fn client_for(addr: &str, procedure: &str) -> Client<Msg, Msg> {
     .expect("build client")
 }
 
-fn ctx() -> Ctx {
-    Ctx::background().with_deadline(Duration::from_secs(15))
+fn ctx() -> RpcCtx {
+    RpcCtx::background().with_deadline(Duration::from_secs(15))
 }
 
 #[valtron_test]
@@ -229,7 +238,7 @@ async fn server_stream_client_sees_the_http_status() {
 
 /// The client sends three messages as separate h2 DATA frames before closing the
 /// request direction; the handler folds them into one response. This is the mode
-/// that the old pump could not express — it committed END_STREAM on HEADERS.
+/// that the old pump could not express — it committed `END_STREAM` on HEADERS.
 #[valtron_test]
 async fn client_stream_over_h2c() {
     let (addr, shutdown) = start_h2_server();
@@ -253,10 +262,7 @@ async fn bidi_stream_over_h2c() {
     let (addr, shutdown) = start_h2_server();
 
     let client = client_for(&addr, BIDI);
-    let mut stream = client
-        .bidi_stream(ctx(), futures::stream::iter(Vec::<Msg>::new()))
-        .await
-        .expect("open bidi");
+    let mut stream = client.bidi_stream(ctx()).await.expect("open bidi");
 
     for text in ["x", "y", "z"] {
         stream.send(&Msg::of(text)).await.expect("send");
@@ -284,10 +290,7 @@ async fn bidi_stream_interleaves_send_and_receive() {
     let (addr, shutdown) = start_h2_server();
 
     let client = client_for(&addr, BIDI);
-    let mut stream = client
-        .bidi_stream(ctx(), futures::stream::iter(Vec::<Msg>::new()))
-        .await
-        .expect("open bidi");
+    let mut stream = client.bidi_stream(ctx()).await.expect("open bidi");
 
     for text in ["x", "y", "z"] {
         stream.send(&Msg::of(text)).await.expect("send");
@@ -334,7 +337,6 @@ async fn two_concurrent_calls_both_complete() {
 
     shutdown.turn_on();
 }
-
 
 /// End-of-stream must come from the pump, not from the peer's idle timeout.
 ///

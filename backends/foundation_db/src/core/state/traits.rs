@@ -70,12 +70,54 @@ pub trait StateStore: Send + Sync {
     /// Returns an error if the query can't start.
     async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>>;
 
-    /// Create or update a resource's state.
+    /// Create or update a resource's state, keyed by `resource_id`.
+    ///
+    /// The stored state's `id` is set to `resource_id`, whatever `state.id`
+    /// holds.
     ///
     /// # Errors
     ///
     /// Returns an error if serialization or I/O fails.
     async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()>;
+
+    /// Write `state` only if the stored state is still the one the caller read
+    /// (compare-and-set). The version is the stored `updated_at`:
+    ///
+    /// - `expected = None`: write only if the resource is absent;
+    /// - `expected = Some(t)`: write only if the resource exists and its stored
+    ///   `updated_at` equals `t`.
+    ///
+    /// Returns `true` if it wrote, `false` if the condition failed (nothing
+    /// changed). The caller gives the new state a new `updated_at`, so the
+    /// next compare-and-set sees a new version. Use it instead of an external
+    /// lock when several writers share one store.
+    ///
+    /// Atomic (two writers with the same expected version: one wins) on:
+    /// `FileStateStore` (an exclusive file lock around read, compare and
+    /// rename, so also across processes), `LibsqlStore` and `D1Store` (one
+    /// `INSERT ... DO NOTHING` or `UPDATE ... WHERE updated_at = ?`
+    /// statement), `R2Store` (a conditional object PUT with `If-None-Match`
+    /// for an absent resource, or one GET that returns the object `ETag`
+    /// followed by `If-Match` on the PUT), and `NamespacedStore` over any of
+    /// them. Stores that do not override this method use a read, a compare and
+    /// a write, which is **not atomic** (two writers can both pass).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the I/O or encoding fails.
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        let current = self.get(resource_id).await?.map(|s| s.updated_at);
+        if current != expected {
+            return Ok(false);
+        }
+        self.set(resource_id, state).await?;
+        Ok(true)
+    }
 
     /// Delete a resource's state (absent is not an error).
     ///
@@ -134,7 +176,8 @@ pub trait StateStore: Send + Sync {
         let prefix = prefix.to_string();
         let all = self.all().await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |state| state.id.starts_with(&prefix))
+            item.as_ref()
+                .map_or(true, |state| state.id.starts_with(&prefix))
         })))
     }
 
@@ -160,7 +203,8 @@ pub trait StateStore: Send + Sync {
         let status = status.to_string();
         let all = self.all().await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |state| state.status.to_string() == status)
+            item.as_ref()
+                .map_or(true, |state| state.status.to_string() == status)
         })))
     }
 
@@ -169,11 +213,15 @@ pub trait StateStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+    async fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
         let provider = provider.to_string();
         let all = self.all().await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |state| state.provider == provider)
+            item.as_ref()
+                .map_or(true, |state| state.provider == provider)
         })))
     }
 
@@ -189,9 +237,13 @@ pub trait StateStore: Send + Sync {
         // Collect the IDs first: deleting while a listing is open would mutate
         // what the listing reads.
         let mut ids = Vec::new();
-        let mut stream = self.list_by_prefix(prefix).await?;
-        while let Some(id) = stream.next().await {
-            ids.push(id?);
+        {
+            // The stream ends here, before the deletes: a store that locks
+            // its connection for a stream would make `delete` wait for it.
+            let mut stream = self.list_by_prefix(prefix).await?;
+            while let Some(id) = stream.next().await {
+                ids.push(id?);
+            }
         }
         for id in &ids {
             self.delete(id).await?;

@@ -317,7 +317,7 @@ by the executor's existing `catch_unwind`, as with `FutureTask`.
 - A multi-state machine drives to `Ready` through `StateTask`; the async variant
   parks on `Depends` (no busy-poll) and resumes on wake.
 - `#[valtron::task]` generates `struct build_house` with `new(T)` for both `fn`
-  and `async fn`; the transition runs as `build_house(Ctx::new(), state)`.
+  and `async fn`; the transition runs as `build_house(Ctx::fixed(), state)`.
 - Generated struct is `Send` when `T,R,P` are `Send`; compiles under `multi`.
 - `execute(build_house::new(state), None)` schedules the generated struct like
   any other task, and `build_house::new(state).with_ctx(ctx)` drives it manually.

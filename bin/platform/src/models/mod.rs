@@ -32,7 +32,8 @@ pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let result = foundation_ai::models::generator::generate_model_descriptors()?;
+    let ctx = foundation_context::Ctx::try_host()?;
+    let result = foundation_ai::models::generator::generate_model_descriptors(&ctx)?;
 
     let providers_dir = PathBuf::from("backends/foundation_ai/src/models/providers");
     std::fs::create_dir_all(&providers_dir)?;

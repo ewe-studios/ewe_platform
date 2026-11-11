@@ -1,4 +1,4 @@
-//! Tests for WebView profiles and access gates.
+//! Tests for `WebView` profiles and access gates.
 
 use foundation_platform::*;
 
@@ -23,18 +23,24 @@ fn app_allows_everything() {
 
 #[test]
 fn trusted_remote_allows_db_read() {
-    assert!(gate(Profile::TrustedRemote).check(Service::Database, Access::Read).is_ok());
+    assert!(gate(Profile::TrustedRemote)
+        .check(Service::Database, Access::Read)
+        .is_ok());
 }
 
 #[test]
 fn trusted_remote_denies_db_write() {
-    assert!(gate(Profile::TrustedRemote).check(Service::Database, Access::Write).is_err());
+    assert!(gate(Profile::TrustedRemote)
+        .check(Service::Database, Access::Write)
+        .is_err());
 }
 
 #[test]
 fn trusted_remote_allows_native_api() {
     // Per-route allowlisting is checked separately by the capability registry
-    assert!(gate(Profile::TrustedRemote).check(Service::NativeApi, Access::Execute).is_ok());
+    assert!(gate(Profile::TrustedRemote)
+        .check(Service::NativeApi, Access::Execute)
+        .is_ok());
 }
 
 // ── UntrustedRemote profile ──────────────────────────────────
@@ -53,13 +59,19 @@ fn untrusted_remote_allows_only_http_read() {
 
 #[test]
 fn auth_allows_auth_apis() {
-    assert!(gate(Profile::Auth).check(Service::Auth, Access::Read).is_ok());
-    assert!(gate(Profile::Auth).check(Service::Auth, Access::Write).is_ok());
+    assert!(gate(Profile::Auth)
+        .check(Service::Auth, Access::Read)
+        .is_ok());
+    assert!(gate(Profile::Auth)
+        .check(Service::Auth, Access::Write)
+        .is_ok());
 }
 
 #[test]
 fn auth_denies_database() {
-    assert!(gate(Profile::Auth).check(Service::Database, Access::Read).is_err());
+    assert!(gate(Profile::Auth)
+        .check(Service::Database, Access::Read)
+        .is_err());
 }
 
 // ── Devtools ─────────────────────────────────────────────────
@@ -75,7 +87,16 @@ fn devtools_allows_everything_in_debug() {
 
 #[test]
 fn default_profiles_by_source() {
-    assert_eq!(default_profile_for_source(RouteSource::WebviewApp), Profile::App);
-    assert_eq!(default_profile_for_source(RouteSource::IpcShell), Profile::TrustedRemote);
-    assert_eq!(default_profile_for_source(RouteSource::RemoteServer), Profile::TrustedRemote);
+    assert_eq!(
+        default_profile_for_source(RouteSource::WebviewApp),
+        Profile::App
+    );
+    assert_eq!(
+        default_profile_for_source(RouteSource::IpcShell),
+        Profile::TrustedRemote
+    );
+    assert_eq!(
+        default_profile_for_source(RouteSource::RemoteServer),
+        Profile::TrustedRemote
+    );
 }

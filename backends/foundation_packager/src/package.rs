@@ -3,7 +3,6 @@
 // for a project.
 
 use core::str;
-use minijinja;
 use foundation_core::extensions::strings_ext::{TryIntoStr, TryIntoString};
 use foundation_nostd::embeddable::EmbeddableDirectory;
 use std::{io::Write, path::PathBuf, sync};
@@ -148,58 +147,6 @@ impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
     }
 }
 
-#[cfg(test)]
-mod directorate_tests {
-
-    use super::*;
-    use foundation_macros::EmbedDirectoryAs;
-
-    #[derive(EmbedDirectoryAs, Default)]
-    #[source = "$ARTEFACTS_DIR/temples/templates/test_directory/"]
-    struct Directory;
-
-    #[test]
-    fn validate_can_create_directorate_generator_safely() {
-        let generator = Directorate::<Directory>::default();
-        assert!(generator.get_file("README.md").is_some());
-    }
-
-    #[test]
-    fn validate_can_read_top_directories() {
-        let generator = Directorate::<Directory>::default();
-        let _files: Vec<String> = generator.files();
-        let directories: Vec<String> = generator.root_directories();
-        assert_eq!(directories, vec! {"docs", "schema"});
-    }
-
-    #[test]
-    fn validate_can_read_only_files_for_top_directory() {
-        let generator = Directorate::<Directory>::default();
-        let files: Option<Vec<String>> = generator.files_for("schema");
-        assert!(files.is_some());
-        assert_eq!(
-            files.unwrap(),
-            vec! {"schema/partials/partial_1.sql", "schema/schema.sql"}
-        );
-    }
-
-    #[test]
-    fn validate_can_read_all_directories() {
-        let generator = Directorate::<Directory>::default();
-        let mut files: Vec<String> = generator.files();
-        files.sort();
-        let mut expected = vec![
-            "docs/runner.sh",
-            "schema/partials/partial_1.sql",
-            "schema/schema.sql",
-            "README.md",
-            "elem.js",
-        ];
-        expected.sort();
-        assert_eq!(files, expected);
-    }
-}
-
 /// [`PackageConfig`] defines underlying default configuration that
 /// the [`PackageGenerator`] will use in it's underlying behavior of
 /// outputting the final package out.
@@ -244,6 +191,11 @@ pub trait PackageConfigurator {
     fn directory(&self) -> std::path::PathBuf;
     fn config(&self) -> PackageConfig;
     fn params(&self) -> serde_json::Map<String, serde_json::Value>;
+    /// Applies the final changes after package generation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the final step cannot update the project files.
     fn finalize(&self) -> std::result::Result<(), BoxedError>;
 }
 
@@ -357,6 +309,11 @@ impl RustProjectConfigurator {
     /// template in an existing rust workspace project, else assume we are generating a
     /// standalone rust project when we replicate the relevant template into the
     /// codebase.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RustProjectConfiguratorError::BadRustWorkspace`] when the workspace
+    /// manifest cannot be read.
     pub fn new(
         package_config: PackageConfig,
         rust_config: Option<RustConfig>,
@@ -386,6 +343,17 @@ impl RustProjectConfigurator {
             }
         }
         Ok(self)
+    }
+
+    fn output_directory_name(&self) -> String {
+        String::from(
+            self.package_config
+                .output_directory
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap(),
+        )
     }
 }
 
@@ -435,15 +403,7 @@ When not a workspace:
 "]
     fn params(&self) -> serde_json::Map<String, serde_json::Value> {
         let mut params = self.package_config.params.clone();
-
-        let output_directory_name = String::from(
-            self.package_config
-                .output_directory
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap(),
-        );
+        let output_directory_name = self.output_directory_name();
 
         params
             .entry("TEMPLATE_NAME")
@@ -462,135 +422,16 @@ When not a workspace:
         );
 
         if let Some(manifest) = &self.manifest {
-            // when its not a workspace
             if let Some(package) = &manifest.package {
-                params.entry("IS_WORKSPACE").or_insert(false.into());
-
-                params
-                    .entry("PACKAGE_DIRECTORY_NAME")
-                    .or_insert(output_directory_name.clone().into());
-
-                params
-                    .entry("ROOT_PACKAGE_DOCUMENTATION")
-                    .or_insert(package.documentation().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_NAME")
-                    .or_insert(package.name().into());
-
-                params
-                    .entry("ROOT_PACKAGE_LICENSE_FILE")
-                    .or_insert(package.license().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_EDITION")
-                    .or_insert(format!("{:?}", package.edition()).into());
-
-                params
-                    .entry("ROOT_PACKAGE_REPOSITORY")
-                    .or_insert(package.repository().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_VERSION")
-                    .or_insert(package.version().into());
-
-                params
-                    .entry("ROOT_PACKAGE_RUST_VERSION")
-                    .or_insert(package.rust_version().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_LICENSE")
-                    .or_insert(package.license().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_DESCRIPTIONS")
-                    .or_insert(package.description().unwrap_or("").into());
-
-                params
-                    .entry("ROOT_PACKAGE_AUTHORS")
-                    .or_insert(package.authors().into());
-
-                params
-                    .entry("ROOT_PACKAGE_KEYWORDS")
-                    .or_insert(package.keywords().into());
+                add_manifest_package_params(&mut params, package, &output_directory_name);
             }
-
-            // when its a workspace
             if let Some(workspace) = &manifest.workspace {
                 if let Some(package) = &workspace.package {
-                    params.entry("IS_WORKSPACE").or_insert(true.into());
-
-                    println!("Package name: {output_directory_name}");
-
-                    params
-                        .entry("ROOT_PACKAGE_NAME")
-                        .or_insert(output_directory_name.clone().into());
-
-                    params.entry("ROOT_PACKAGE_DOCUMENTATION").or_insert(
-                        package
-                            .documentation
-                            .clone()
-                            .unwrap_or(String::new())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_LICENSE_FILE").or_insert(
-                        package
-                            .license_file
-                            .clone()
-                            .unwrap_or(PathBuf::new())
-                            .try_into_string()
-                            .unwrap()
-                            .into(),
-                    );
-                    if let Some(edition) = package.edition {
-                        params
-                            .entry("ROOT_PACKAGE_EDITION")
-                            .or_insert(format!("{edition:?}").into());
-                    }
-                    params.entry("ROOT_PACKAGE_REPOSITORY").or_insert(
-                        package
-                            .repository
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_VERSION").or_insert(
-                        package
-                            .rust_version
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_RUST_VERSION").or_insert(
-                        package
-                            .rust_version
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_LICENSE").or_insert(
-                        package
-                            .license
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params.entry("ROOT_PACKAGE_DESCRIPTIONS").or_insert(
-                        package
-                            .description
-                            .clone()
-                            .unwrap_or("".try_into_string().unwrap())
-                            .into(),
-                    );
-                    params
-                        .entry("ROOT_PACKAGE_AUTHORS")
-                        .or_insert(package.authors.clone().unwrap_or(vec![]).into());
-                    params
-                        .entry("ROOT_PACKAGE_KEYWORDS")
-                        .or_insert(package.keywords.clone().unwrap_or(vec![]).into());
+                    add_workspace_package_params(&mut params, package, &output_directory_name);
                 }
             }
         }
+
         params
     }
 
@@ -643,7 +484,9 @@ When not a workspace:
                     return Ok(());
                 }
 
-                manifest_package.name = self.package_config.package_name.clone();
+                manifest_package
+                    .name
+                    .clone_from(&self.package_config.package_name);
 
                 cloned_manifest.package = Some(manifest_package);
 
@@ -669,6 +512,135 @@ When not a workspace:
             Err(err) => Err(Box::new(err)),
         }
     }
+}
+
+fn add_manifest_package_params(
+    params: &mut serde_json::Map<String, serde_json::Value>,
+    package: &cargo_toml::Package,
+    output_directory_name: &str,
+) {
+    params.entry("IS_WORKSPACE").or_insert(false.into());
+
+    params
+        .entry("PACKAGE_DIRECTORY_NAME")
+        .or_insert(output_directory_name.into());
+
+    params
+        .entry("ROOT_PACKAGE_DOCUMENTATION")
+        .or_insert(package.documentation().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_NAME")
+        .or_insert(package.name().into());
+
+    params
+        .entry("ROOT_PACKAGE_LICENSE_FILE")
+        .or_insert(package.license().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_EDITION")
+        .or_insert(format!("{:?}", package.edition()).into());
+
+    params
+        .entry("ROOT_PACKAGE_REPOSITORY")
+        .or_insert(package.repository().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_VERSION")
+        .or_insert(package.version().into());
+
+    params
+        .entry("ROOT_PACKAGE_RUST_VERSION")
+        .or_insert(package.rust_version().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_LICENSE")
+        .or_insert(package.license().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_DESCRIPTIONS")
+        .or_insert(package.description().unwrap_or("").into());
+
+    params
+        .entry("ROOT_PACKAGE_AUTHORS")
+        .or_insert(package.authors().into());
+
+    params
+        .entry("ROOT_PACKAGE_KEYWORDS")
+        .or_insert(package.keywords().into());
+}
+
+fn add_workspace_package_params(
+    params: &mut serde_json::Map<String, serde_json::Value>,
+    package: &cargo_toml::PackageTemplate,
+    output_directory_name: &str,
+) {
+    params.entry("IS_WORKSPACE").or_insert(true.into());
+
+    println!("Package name: {output_directory_name}");
+
+    params
+        .entry("ROOT_PACKAGE_NAME")
+        .or_insert(output_directory_name.into());
+
+    params
+        .entry("ROOT_PACKAGE_DOCUMENTATION")
+        .or_insert(package.documentation.clone().unwrap_or_default().into());
+    params.entry("ROOT_PACKAGE_LICENSE_FILE").or_insert(
+        package
+            .license_file
+            .clone()
+            .unwrap_or_default()
+            .try_into_string()
+            .unwrap()
+            .into(),
+    );
+    if let Some(edition) = package.edition {
+        params
+            .entry("ROOT_PACKAGE_EDITION")
+            .or_insert(format!("{edition:?}").into());
+    }
+    params.entry("ROOT_PACKAGE_REPOSITORY").or_insert(
+        package
+            .repository
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_VERSION").or_insert(
+        package
+            .rust_version
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_RUST_VERSION").or_insert(
+        package
+            .rust_version
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_LICENSE").or_insert(
+        package
+            .license
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params.entry("ROOT_PACKAGE_DESCRIPTIONS").or_insert(
+        package
+            .description
+            .clone()
+            .unwrap_or("".try_into_string().unwrap())
+            .into(),
+    );
+    params
+        .entry("ROOT_PACKAGE_AUTHORS")
+        .or_insert(package.authors.clone().unwrap_or(vec![]).into());
+    params
+        .entry("ROOT_PACKAGE_KEYWORDS")
+        .or_insert(package.keywords.clone().unwrap_or(vec![]).into());
 }
 
 pub type PackageGenResult<T> = core::result::Result<T, PackageGenError>;
@@ -707,8 +679,20 @@ impl<T: PackageDirectorate + Default> Default for PackageGenerator<T> {
 }
 
 impl<T: PackageDirectorate> PackageGenerator<T> {
-    /// create will begin to setup the underlying specified project
-    /// defined in the provided configurator.
+    /// Creates the project from the template selected by the configurator.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PackageGenError::NoTemplateFound`] when the template has no files or no Jinja
+    /// environment.
+    /// Returns [`PackageGenError::Failed`] when writing a file or finalizing the project fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics when a template path is not under the template name or has no file name.
+    // The public API takes the configurator by value. Changing it to a reference
+    // would break the existing callers.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn create<S: PackageConfigurator>(&self, configurator: S) -> PackageGenResult<()> {
         let config = configurator.config();
 
@@ -797,251 +781,5 @@ impl<T: PackageDirectorate> PackageGenerator<T> {
             .map_err(|err| PackageGenError::Failed(err.into()))?;
 
         configurator.finalize().map_err(PackageGenError::Failed)
-    }
-}
-
-#[cfg(test)]
-mod package_generator_tests {
-
-    use std::fs;
-    use std::path;
-
-    use foundation_core::extensions::strings_ext::TryIntoString;
-    use foundation_core::extensions::vec_ext::VecExt;
-    use foundation_macros::EmbedDirectoryAs;
-
-    use tracing_test::traced_test;
-
-    use super::*;
-
-    #[derive(EmbedDirectoryAs, Default)]
-    #[source = "$ARTEFACTS_DIR/temples/templates/"]
-    struct TemplateDefinitions;
-
-    /// Root manifest of a standalone (non-workspace) project the package is
-    /// generated into.
-    const STANDARD_ROOT_MANIFEST: &str = r#"[package]
-name = "standard_project"
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
-repository = "https://github.com/ewe-studios/ewe_platform"
-"#;
-
-    /// Root manifest of a cargo workspace the package is generated into;
-    /// `finalize` adds the generated package to `members`.
-    const WORKSPACE_ROOT_MANIFEST: &str = r#"[workspace]
-resolver = "2"
-members = []
-
-[workspace.package]
-version = "0.1.0"
-edition = "2021"
-license = "MIT"
-repository = "https://github.com/ewe-studios/ewe_platform"
-rust-version = "1.75"
-"#;
-
-    /// Puts `project_directory` into a known state before a generator run:
-    /// removes the package an earlier run generated and (re)writes the root
-    /// `Cargo.toml` the generator reads and `finalize` rewrites. Both are
-    /// ignored build outputs, so they are created here rather than committed.
-    fn prepare_project_directory(
-        project_directory: &path::Path,
-        package_name: &str,
-        root_manifest: &str,
-    ) {
-        let generated_package = project_directory.join(package_name);
-        if generated_package.exists() {
-            fs::remove_dir_all(&generated_package)
-                .expect("should remove the package generated by an earlier run");
-        }
-        fs::create_dir_all(project_directory).expect("should create project directory");
-        fs::write(project_directory.join("Cargo.toml"), root_manifest)
-            .expect("should write root Cargo.toml fixture");
-    }
-
-    fn list_dir(target_path: &path::Path) -> Vec<String> {
-        fs::read_dir(target_path)
-            .expect("directory should exists")
-            .map(|entry| entry.unwrap())
-            .flat_map(|entry| {
-                if entry.file_type().unwrap().is_dir() {
-                    return list_dir(&entry.path());
-                }
-
-                vec![entry.path().try_into_string().unwrap()]
-            })
-            .collect()
-    }
-
-    fn shorten_path(target: Vec<String>, path: String) -> Vec<String> {
-        target
-            .iter()
-            .map(|value| value.replace(path.as_str(), "").replacen('/', "", 1))
-            .collect()
-    }
-
-    #[test]
-    #[traced_test]
-    fn package_generator_can_create_package_for_standard() {
-        let template_directories = Directorate::<TemplateDefinitions>::default();
-        let packager = PackageGenerator::new(template_directories);
-
-        let current_dir = std::fs::canonicalize(std::path::Path::new(
-            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
-        ))
-        .expect("failed to collect path");
-
-        let output_directory = current_dir.join("output_directory");
-        let project_directory = output_directory.join("standard_project");
-        let project_cargo_file = project_directory.join("Cargo.toml");
-        prepare_project_directory(&project_directory, "retro_project", STANDARD_ROOT_MANIFEST);
-
-        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-        params
-            .entry(String::from("PROJECT_DIRECTORY"))
-            .or_insert(serde_json::Value::from(
-                project_directory
-                    .try_into_string()
-                    .expect("should convert into string"),
-            ));
-
-        let rust_config = RustConfig::new(Some(project_cargo_file), false);
-        let package_config = PackageConfig::new(
-            project_directory.clone(),
-            params,
-            "CustomRustProject",
-            "retro_project",
-        );
-
-        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
-            .expect("should generate rust configurator");
-
-        let result = packager.create(rust_configurator);
-        tracing::debug!("Result: {:?}", result);
-        assert!(matches!(result, Ok(())));
-
-        let mut actual = shorten_path(
-            list_dir(&project_directory),
-            project_directory.try_into_string().unwrap(),
-        );
-        actual.sort();
-        let mut expected = vec![
-            "retro_project/Cargo.toml",
-            "retro_project/src/lib.rs",
-            "retro_project/src/page.rs",
-            ".gitignore",
-            "Cargo.toml",
-        ]
-        .to_vec_string();
-        expected.sort();
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    #[traced_test]
-    fn package_generator_can_create_package_for_workspace() {
-        let template_directories = Directorate::<TemplateDefinitions>::default();
-        let packager = PackageGenerator::new(template_directories);
-
-        let current_dir = std::fs::canonicalize(std::path::Path::new(
-            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
-        ))
-        .expect("failed to collect path");
-
-        let output_directory = current_dir.join("output_directory");
-        let project_directory = output_directory.join("workspace_project");
-        let project_cargo_file = project_directory.join("Cargo.toml");
-        prepare_project_directory(&project_directory, "retro_project", WORKSPACE_ROOT_MANIFEST);
-
-        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-        params
-            .entry(String::from("PROJECT_DIRECTORY"))
-            .or_insert(serde_json::Value::from(
-                project_directory
-                    .try_into_string()
-                    .expect("should convert into string"),
-            ));
-
-        let rust_config = RustConfig::new(Some(project_cargo_file), false);
-        let package_config = PackageConfig::new(
-            project_directory.clone(),
-            params,
-            "CustomRustProject",
-            "retro_project",
-        );
-
-        let rust_configurator = RustProjectConfigurator::new(package_config, Some(rust_config))
-            .expect("should generate rust configurator");
-
-        let result = packager.create(rust_configurator);
-        tracing::debug!("Result: {:?}", result);
-        assert!(matches!(result, Ok(())));
-
-        let mut actual = shorten_path(
-            list_dir(&project_directory),
-            project_directory.try_into_string().unwrap(),
-        );
-        actual.sort();
-        let mut expected = vec![
-            "retro_project/Cargo.toml",
-            "retro_project/src/lib.rs",
-            "retro_project/src/page.rs",
-            ".gitignore",
-            "Cargo.toml",
-        ]
-        .to_vec_string();
-        expected.sort();
-        assert_eq!(actual, expected);
-
-        // finalize registers the generated package in the root workspace.
-        let root_manifest = cargo_toml::Manifest::from_path(project_directory.join("Cargo.toml"))
-            .expect("root Cargo.toml should still parse");
-        let workspace = root_manifest
-            .workspace
-            .expect("root Cargo.toml should still be a workspace");
-        assert_eq!(workspace.members, vec![String::from("retro_project")]);
-    }
-
-    #[test]
-    #[traced_test]
-    fn package_generator_can_create_non_rust_package_from_template() {
-        let template_directories = Directorate::<TemplateDefinitions>::default();
-        let packager = PackageGenerator::new(template_directories);
-
-        let current_dir = std::fs::canonicalize(std::path::Path::new(
-            &std::env::var("ARTEFACTS_TEMPLES_DIR").expect("get ARTEFACTS_DIR environment"),
-        ))
-        .expect("failed to collect path");
-
-        let output_directory = current_dir.join("output_directory");
-        let project_directory = output_directory.join("static_pages");
-
-        let mut params: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-        params
-            .entry(String::from("PROJECT_DIRECTORY"))
-            .or_insert(serde_json::Value::from(
-                project_directory
-                    .try_into_string()
-                    .expect("should convert into string"),
-            ));
-
-        let package_config = PackageConfig::new(
-            project_directory.clone(),
-            params,
-            "SimpleHTMLPage",
-            "retro_project",
-        );
-
-        assert!(matches!(packager.create(package_config), Ok(())));
-
-        assert_eq!(
-            shorten_path(
-                list_dir(&project_directory),
-                project_directory.clone().try_into_string().unwrap()
-            ),
-            vec!["retro_project/index.html"].to_vec_string()
-        );
     }
 }

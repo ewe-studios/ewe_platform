@@ -23,6 +23,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use foundation_context::Ctx;
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 
@@ -80,6 +81,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ContextSearch for Con
 pub trait MemoryAccess: Send + Sync {
     /// The session whose memory this is.
     fn session_id(&self) -> &SessionId;
+    /// The context the memory records read their clock from.
+    fn ctx(&self) -> Ctx;
     /// The latest working memory, observation and reflection records.
     async fn hydrate(&self) -> StorageResult<SessionMemory>;
     /// Write a new working-memory version (`prev_version + 1`) holding `facts`.
@@ -96,9 +99,13 @@ impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryAccess for Memo
         MemoryHierarchy::session_id(self)
     }
 
+    fn ctx(&self) -> Ctx {
+        MemoryHierarchy::ctx(self)
+    }
+
     async fn hydrate(&self) -> StorageResult<SessionMemory> {
         self.coordinator()
-            .hydrate_async(MemoryHierarchy::session_id(self))
+            .hydrate(MemoryHierarchy::session_id(self))
             .await
     }
 

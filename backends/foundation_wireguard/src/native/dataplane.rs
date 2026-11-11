@@ -18,7 +18,10 @@ use std::time::Instant;
 
 use std::net::IpAddr;
 
-use foundation_nativeapis::dataplane::netstack::{NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp};
+use foundation_context::Ctx;
+use foundation_nativeapis::dataplane::netstack::{
+    NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp,
+};
 use foundation_nativeapis::dataplane::tun::{TunConfig, TunDataPlane};
 use foundation_nativeapis::dataplane::DataPlane;
 
@@ -28,7 +31,7 @@ use crate::shared::config::DataPlaneMode;
 pub enum MeshDataPlane {
     /// smoltcp userspace TCP/IP stack (default, no privileges, cross-platform).
     Stack(NetStack),
-    /// Kernel TUN device (Linux/Darwin, requires CAP_NET_ADMIN or TUN ownership).
+    /// Kernel TUN device (Linux/Darwin, requires `CAP_NET_ADMIN` or TUN ownership).
     #[allow(dead_code)]
     Tun(TunDataPlane),
 }
@@ -36,41 +39,48 @@ pub enum MeshDataPlane {
 impl MeshDataPlane {
     /// Create a data plane from config. Returns an error if TUN open fails
     /// (missing device, no permissions, etc.).
-    pub fn from_config(mode: &DataPlaneMode, my_ip: IpAddr, prefix_len: u8) -> Result<Self, crate::shared::error::WgError> {
+    ///
+    /// `clock` is the injected clock; the smoltcp stack seeds its poll time from
+    /// it, so a simulation can drive the data plane deterministically.
+    ///
+    /// # Errors
+    /// Returns [`crate::shared::error::WgError::Config`] if the kernel TUN device
+    /// cannot be opened (missing device, no permission).
+    pub fn from_config(
+        mode: &DataPlaneMode,
+        my_ip: IpAddr,
+        prefix_len: u8,
+        ctx: &Ctx,
+    ) -> crate::shared::error::WgResult<Self> {
         Ok(match mode {
-            #[cfg(not(target_family = "wasm"))]
             DataPlaneMode::Tun { name, mtu } => {
                 let tun = TunDataPlane::open(&TunConfig {
                     name: name.clone(),
                     mtu: *mtu,
-                    ipv6: false,
                 })
-                .map_err(|e| crate::shared::error::WgError::Config(
-                    format!("TUN device '{}': {e}", name)
-                ))?;
+                .map_err(|e| {
+                    crate::shared::error::WgError::Config(format!("TUN device '{name}': {e}"))
+                })?;
                 #[cfg(target_os = "linux")]
                 add_tun_route(name);
                 tracing::info!(name = name, mtu = mtu, "kernel TUN data plane active");
                 Self::Tun(tun)
             }
-            #[cfg(target_family = "wasm")]
-            DataPlaneMode::Tun { .. } => {
-                panic!("kernel TUN is not available on wasm targets");
-            }
-            DataPlaneMode::Netstack => {
-                Self::Stack(NetStack::new(
-                    NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
-                ))
-            }
+            DataPlaneMode::Netstack => Self::Stack(NetStack::new(
+                NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
+                ctx,
+            )),
         })
     }
 
     /// Whether this is a kernel TUN data plane (apps use OS sockets).
+    #[must_use]
     pub fn is_tun(&self) -> bool {
         matches!(self, Self::Tun(_))
     }
 
-    /// Access the smoltcp NetStack, if this is the Stack variant.
+    /// Access the smoltcp `NetStack`, if this is the Stack variant.
+    #[must_use]
     pub fn netstack(&self) -> Option<&NetStack> {
         match self {
             Self::Stack(ns) => Some(ns),

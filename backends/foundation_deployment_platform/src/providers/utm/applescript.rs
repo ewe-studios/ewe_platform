@@ -1,16 +1,18 @@
-//! AppleScript wrapper for UTM configuration via `osascript`.
+//! `AppleScript` wrapper for UTM configuration via `osascript`.
 //!
 //! UTM doesn't expose a CLI for network/resource config or bundle import.
-//! We use AppleScript to drive UTM's internal configuration:
+//! We use `AppleScript` to drive UTM's internal configuration:
 //! - Network: discover emulated NICs, configure port forwards
 //! - Resources: set CPU, memory via `update configuration`
 //! - Bundle import: `import new virtual machine from POSIX file`
 
 use std::process::Command;
 
+use foundation_context::Ctx;
+
 use crate::config::{Result, TestbedError};
 
-/// Run an AppleScript snippet via `osascript`.
+/// Run an `AppleScript` snippet via `osascript`.
 fn run_applescript(script: &str) -> Result<String> {
     let output = Command::new("osascript")
         .arg("-e")
@@ -52,11 +54,12 @@ fn find_emulated_nic(uuid: &str) -> Result<u32> {
         "#
     );
     let result = run_applescript(&script)?;
-    let idx = result.trim().parse::<u32>().map_err(|_| {
-        TestbedError::Qcow2Error {
+    let idx = result
+        .trim()
+        .parse::<u32>()
+        .map_err(|_| TestbedError::Qcow2Error {
             message: format!("parsing emulated NIC index from osascript output: {result:?}"),
-        }
-    })?;
+        })?;
     if idx == u32::MAX || idx == 0 {
         // osascript may return -1 as "4294967295" or similar
     }
@@ -72,7 +75,10 @@ fn find_emulated_nic(uuid: &str) -> Result<u32> {
 /// Arguments:
 /// - `uuid`: UTM VM UUID
 /// - `ssh_port`: Host port to forward to guest :22
-/// - `extra_forwards`: Additional (guest_port, host_port) pairs
+/// - `extra_forwards`: Additional (`guest_port`, `host_port`) pairs
+///
+/// # Errors
+/// Returns an error if the NIC cannot be found. Returns an error if the `AppleScript` fails.
 pub fn configure_port_forwards(
     uuid: &str,
     ssh_port: u16,
@@ -90,10 +96,14 @@ pub fn configure_port_forwards(
         ));
     }
 
-    let set_rules: String = rules
-        .iter()
-        .map(|r| format!("\n      {r}\n      copy newPortForward to the end of portForwards"))
-        .collect();
+    let set_rules = rules.iter().fold(String::new(), |mut acc, r| {
+        use std::fmt::Write as _;
+        let _ = write!(
+            acc,
+            "\n      {r}\n      copy newPortForward to the end of portForwards"
+        );
+        acc
+    });
 
     let script = format!(
         r#"
@@ -119,7 +129,10 @@ pub fn configure_port_forwards(
 /// Configure CPU and memory resources for a UTM VM.
 ///
 /// Uses `update configuration` pattern which is the correct UTM
-/// AppleScript API — not direct property assignment.
+/// `AppleScript` API — not direct property assignment.
+///
+/// # Errors
+/// Returns an error if the `AppleScript` fails.
 pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Result<()> {
     let script = format!(
         r#"
@@ -138,12 +151,16 @@ pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Resul
 
 /// Import a .utm bundle into UTM.app.
 ///
-/// Uses the correct AppleScript API: `import new virtual machine from POSIX file`.
+/// Uses the correct `AppleScript` API: `import new virtual machine from POSIX file`.
 /// Returns the UUID of the imported VM.
 ///
 /// Arguments:
 /// - `bundle_path`: Absolute path to the .utm bundle directory
-pub fn import_bundle(bundle_path: &str) -> Result<String> {
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read. Returns an error if the `AppleScript`
+/// fails. Returns an error if no new VM appears within 30 seconds.
+pub fn import_bundle(bundle_path: &str, ctx: &Ctx) -> Result<String> {
     // Snapshot existing VM UUIDs so we can find the newly imported one
     let before: std::collections::HashSet<String> = super::utmctl::list_vms()?
         .into_iter()
@@ -152,14 +169,13 @@ pub fn import_bundle(bundle_path: &str) -> Result<String> {
 
     // Import via correct AppleScript API
     let script = format!(
-        r#"tell application "UTM" to import new virtual machine from POSIX file "{}""#,
-        bundle_path
+        r#"tell application "UTM" to import new virtual machine from POSIX file "{bundle_path}""#
     );
     run_applescript(&script)?;
 
     // Wait for the new VM to appear (up to 30s)
-    let start = std::time::Instant::now();
-    while start.elapsed().as_secs() < 30 {
+    let start = ctx.clock().now();
+    while ctx.clock().now().duration_since(start).as_secs() < 30 {
         std::thread::sleep(std::time::Duration::from_secs(2));
         for entry in super::utmctl::list_vms()? {
             if !before.contains(&entry.uuid) {
@@ -177,14 +193,13 @@ pub fn import_bundle(bundle_path: &str) -> Result<String> {
 ///
 /// After import, UTM stores bundles at:
 /// `~/Library/Containers/com.utmapp.UTM/Data/Documents/{display_name}.utm`
+#[must_use]
 pub fn verify_imported_bundle(display_name: &str) -> bool {
-    dirs::home_dir()
-        .map(|home| {
-            home.join("Library/Containers/com.utmapp.UTM/Data/Documents")
-                .join(format!("{display_name}.utm"))
-                .exists()
-        })
-        .unwrap_or(false)
+    dirs::home_dir().is_some_and(|home| {
+        home.join("Library/Containers/com.utmapp.UTM/Data/Documents")
+            .join(format!("{display_name}.utm"))
+            .exists()
+    })
 }
 
 /// Configure a shared directory for a UTM VM.
@@ -198,7 +213,15 @@ pub fn verify_imported_bundle(display_name: &str) -> bool {
 /// - `host_path`: Absolute path on the host
 /// - `mount_tag`: Tag name used to identify the mount inside the guest
 /// - `readonly`: If true, guest has read-only access
-pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, readonly: bool) -> Result<()> {
+///
+/// # Errors
+/// Returns an error if the `AppleScript` fails.
+pub fn configure_shared_directory(
+    uuid: &str,
+    host_path: &str,
+    mount_tag: &str,
+    readonly: bool,
+) -> Result<()> {
     let read_only_str = if readonly { "true" } else { "false" };
     let script = format!(
         r#"
@@ -212,4 +235,3 @@ pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, 
     run_applescript(&script)?;
     Ok(())
 }
-

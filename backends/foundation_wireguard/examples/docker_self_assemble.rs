@@ -26,8 +26,14 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use foundation_wireguard::{WgConfig, WgSeed};
+use foundation_context::Ctx;
 use foundation_wireguard::native::WgNode;
+use foundation_wireguard::WgConfig;
+
+/// The host context: this example is the host entry point that builds it.
+fn host_ctx() -> Ctx {
+    Ctx::host()
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
@@ -37,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = WgConfig::from_env()?;
     let is_seed = config.seed_endpoints().is_empty();
 
-    let identity_hint = config.wg_seed().derive_bootstrap(&config.network_id());
+    let _identity_hint = config.wg_seed().derive_bootstrap(&config.network_id());
     tracing::info!(
         network = %config.network_id(),
         seed = is_seed,
@@ -45,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "🚀 booting mesh node"
     );
 
-    let node = WgNode::from_config(config);
+    let node = WgNode::from_config(config, host_ctx());
     let handle = node.join()?;
 
     tracing::info!(
@@ -64,7 +70,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             tracing::info!("👥 {} peers in mesh:", members.len() - 1);
             for m in &members {
                 if m.identity != handle.identity() {
-                    tracing::info!("  peer {} at {} (relay={})", m.identity, m.tunnel_ip, m.caps.relay);
+                    tracing::info!(
+                        "  peer {} at {} (relay={})",
+                        m.identity,
+                        m.tunnel_ip,
+                        m.caps.relay
+                    );
                 }
             }
             break;

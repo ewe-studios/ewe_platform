@@ -11,7 +11,9 @@
 
 use foundation_ui_traits::DomOp;
 use foundation_wasm::{MemoryAllocations, WasmEnvelope};
-use foundation_wasm_ui::{ColumnarV1, BatchInstructionsV1, InstructionReceiver, JsonV1, ProtocolMethods};
+use foundation_wasm_ui::{
+    BatchInstructionsV1, ColumnarV1, InstructionReceiver, JsonV1, ProtocolMethods,
+};
 
 fn sample_ops() -> Vec<DomOp> {
     vec![
@@ -202,7 +204,8 @@ fn batch_instructions_round_trips_all_nineteen_variants() {
 #[test]
 fn instruction_receiver_batches_and_flushes_once() {
     let ops = sample_ops();
-    let mut receiver = InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
+    let mut receiver =
+        InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
 
     // Empty flush is a no-op: no encoding, no slot.
     assert!(receiver.flush().is_none());
@@ -222,7 +225,11 @@ fn instruction_receiver_batches_and_flushes_once() {
     );
 
     // The single slot decodes back to all queued ops.
-    let slot = receiver.memory().expect("owned arena").get(result.memory_id).expect("slot live");
+    let slot = receiver
+        .memory()
+        .expect("owned arena")
+        .get(result.memory_id)
+        .expect("slot live");
     let bytes = slot.clone_memory().expect("read bytes");
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(envelope.protocol, 1); // columnar (Arrow slot, wire v1)
@@ -232,7 +239,11 @@ fn instruction_receiver_batches_and_flushes_once() {
     assert_eq!(decoded, ops);
 
     receiver.ack(result.memory_id);
-    assert!(receiver.memory().expect("owned arena").get(result.memory_id).is_err());
+    assert!(receiver
+        .memory()
+        .expect("owned arena")
+        .get(result.memory_id)
+        .is_err());
 }
 
 #[test]
@@ -259,7 +270,9 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     let result = receiver.flush().expect("flush ships a batch");
 
     let slot = foundation_wasm::internal_api::get_memory(result.memory_id);
-    let bytes = slot.clone_memory().expect("read slot bytes from the GLOBAL arena");
+    let bytes = slot
+        .clone_memory()
+        .expect("read slot bytes from the GLOBAL arena");
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(envelope.protocol, 1);
     assert_eq!(envelope.memory_id, result.memory_id.as_u64());
@@ -272,7 +285,10 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     // ACK through the receiver (host-side path) — the global slot is freed.
     receiver.ack(result.memory_id);
     foundation_wasm::internal_api::with_global_allocations(|memory| {
-        assert!(memory.get(result.memory_id).is_err(), "global slot freed after ack");
+        assert!(
+            memory.get(result.memory_id).is_err(),
+            "global slot freed after ack"
+        );
     });
 }
 
@@ -284,7 +300,9 @@ fn embedded_js_assets_carry_both_runtimes() {
     assert!(FOUNDATION_WASM_JS.contains("globalThis.FoundationWasmRuntime"));
     assert!(FOUNDATION_WASM_UI_JS.contains("globalThis.FoundationWasmUiRuntime"));
     // Feature 20: the bundled Apache Arrow JS reader (wire v2 consumers).
-    assert!(foundation_wasm_ui::embedded::APACHE_ARROW_JS.contains("apache-arrow")
-        || foundation_wasm_ui::embedded::APACHE_ARROW_JS.len() > 100_000);
+    assert!(
+        foundation_wasm_ui::embedded::APACHE_ARROW_JS.contains("apache-arrow")
+            || foundation_wasm_ui::embedded::APACHE_ARROW_JS.len() > 100_000
+    );
     assert!(FOUNDATION_WASM_UI_JS.contains("class DomHeap"));
 }

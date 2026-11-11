@@ -4,53 +4,115 @@
 ///
 /// ## ptrace semantics
 ///
-/// `PTRACE_SEIZE` with `PTRACE_O_TRACESYSGOOD` is used. The execve transition:
-/// SEIZE → waitpid (SIGTRAP) → SYSCALL → waitpid (PtraceSyscall, execve entry) →
-/// SYSCALL → waitpid (PTRACE_EVENT_EXEC) → SYSCALL → ptrace_loop handles the rest.
-
+/// The interceptor thread forks the child and runs the whole trace itself.
+/// A ptrace request must come from the thread that forked (and attached to)
+/// the tracee; a request from another thread fails with `ESRCH`, and the
+/// tracee stays stopped. The child calls `PTRACE_TRACEME` and stops itself
+/// with `SIGSTOP` before `execve`, so the tracer never races the exec:
+///
+/// `fork` → child `SIGSTOP` stop → `PTRACE_SETOPTIONS` → `PTRACE_SYSCALL` →
+/// `PTRACE_EVENT_EXEC` → the syscall loop handles the rest.
 use std::collections::HashMap;
+use std::ffi::CString;
 use std::sync::Arc;
 
-use nix::libc::{PTRACE_O_TRACECLONE, PTRACE_O_TRACEEXEC, PTRACE_O_TRACEEXIT,
-                PTRACE_O_TRACEFORK, PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK,
-                PTRACE_O_TRACEVFORKDONE};
+use nix::libc::{
+    PTRACE_O_TRACECLONE, PTRACE_O_TRACEEXEC, PTRACE_O_TRACEEXIT, PTRACE_O_TRACEFORK,
+    PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK, PTRACE_O_TRACEVFORKDONE,
+};
 use nix::sys::ptrace::{self, Options};
-use nix::sys::wait::{WaitStatus, waitpid};
+use nix::sys::signal::Signal;
+use nix::sys::wait::{waitpid, WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
 
 use super::syscall_dispatch::{self, SyscallAction, SyscallArgs};
+use super::syscall_nr::CLOSE;
 use super::{InterceptorHandle, MountTable, SyscallInterceptor, VirtualFdTable};
 
-/// All ptrace options set atomically via PTRACE_SEIZE.
-/// Includes TRACEVFORKDONE so we can properly handle the parent unblock
-/// after a vfork exec/exit sequence.
+/// All ptrace options, set with `PTRACE_SETOPTIONS` after the child stops.
+/// Includes TRACEVFORKDONE so the parent is resumed after a vfork exec/exit.
 const PTRACE_OPTIONS: Options = Options::from_bits_truncate(
     PTRACE_O_TRACESYSGOOD
-    | PTRACE_O_TRACEFORK
-    | PTRACE_O_TRACEVFORK
-    | PTRACE_O_TRACEVFORKDONE
-    | PTRACE_O_TRACECLONE
-    | PTRACE_O_TRACEEXEC
-    | PTRACE_O_TRACEEXIT,
+        | PTRACE_O_TRACEFORK
+        | PTRACE_O_TRACEVFORK
+        | PTRACE_O_TRACEVFORKDONE
+        | PTRACE_O_TRACECLONE
+        | PTRACE_O_TRACEEXEC
+        | PTRACE_O_TRACEEXIT,
 );
 
-/// Read registers using raw libc::ptrace (PTRACE_GETREGS).
+/// Wait for any child of this tracer thread, including children created with
+/// `CLONE_THREAD`. `__WALL` makes `waitpid` see a clone child's stop.
+/// `__WNOTHREAD` keeps each tracer on the child it forked: tests run in
+/// parallel, and a plain `waitpid(-1)` would reap another test's tracee.
+const WAIT_FLAGS: Option<WaitPidFlag> = Some(WaitPidFlag::__WALL.union(WaitPidFlag::__WNOTHREAD));
+
+/// Read registers using raw `libc::ptrace` (`PTRACE_GETREGS`).
 fn get_regs(pid: Pid) -> Option<libc::user_regs_struct> {
     let mut regs: libc::user_regs_struct = unsafe { std::mem::zeroed() };
     let ret = unsafe {
-        libc::ptrace(libc::PTRACE_GETREGS, pid.as_raw(), std::ptr::null_mut::<libc::c_void>(),
-                     &mut regs as *mut _ as *mut libc::c_void)
+        libc::ptrace(
+            libc::PTRACE_GETREGS,
+            pid.as_raw(),
+            std::ptr::null_mut::<libc::c_void>(),
+            &mut regs as *mut _ as *mut libc::c_void,
+        )
     };
-    if ret == 0 { Some(regs) } else { None }
+    if ret == 0 {
+        Some(regs)
+    } else {
+        None
+    }
+}
+
+/// Report `value` as the syscall result in the tracee's return register.
+///
+/// The helper sets `rax` and calls `PTRACE_SETREGS`. A caller that ignores the
+/// failure lets the tracee see the kernel result instead of the emulated one.
+///
+/// # Errors
+///
+/// Returns `VfsError::Backend` when `PTRACE_SETREGS` fails. The message names
+/// the value and the tracee pid.
+pub fn report_return_value(
+    pid: Pid,
+    mut regs: libc::user_regs_struct,
+    value: u64,
+) -> VfsResult<()> {
+    regs.rax = value;
+    ptrace::setregs(pid, regs).map_err(|e| VfsError::Backend {
+        message: format!("ptrace setregs to report {value} failed for {pid}: {e}"),
+    })?;
+    Ok(())
+}
+
+/// Resume a tracee with `PTRACE_SYSCALL`.
+///
+/// A failed resume leaves the tracee stopped. The tracer then waits for a stop
+/// that cannot happen. Return [`VfsError::Backend`] with the process
+/// identifier and the errno, so the caller reports the error.
+fn resume_syscall(pid: Pid, deliver: Option<Signal>) -> VfsResult<()> {
+    ptrace::syscall(pid, deliver).map_err(|e| VfsError::Backend {
+        message: format!("ptrace syscall resume failed for {pid}: {e}"),
+    })?;
+    Ok(())
 }
 
 /// nix-based raw ptrace interceptor.
 pub struct NixInterceptor;
 
 impl NixInterceptor {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Default for NixInterceptor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SyscallInterceptor for NixInterceptor {
@@ -60,88 +122,97 @@ impl SyscallInterceptor for NixInterceptor {
         command: &str,
         args: &[&str],
     ) -> VfsResult<InterceptorHandle> {
-        let child = spawn_child(command, args)?;
-        let child_pid = child.as_raw() as u32;
-
         let mount_table = Arc::new(mount_table);
         let fd_table = Arc::new(VirtualFdTable::new());
+        let command = command.to_owned();
+        let args: Vec<String> = args.iter().map(|arg| (*arg).to_owned()).collect();
 
-        let join_handle = std::thread::spawn(move || {
-            ptrace_loop(child, &mount_table, &fd_table)
+        // The thread that forks must also run every ptrace request. It sends
+        // the child pid back before it starts tracing.
+        let (pid_tx, pid_rx) = std::sync::mpsc::channel();
+        let join_handle = std::thread::spawn(move || match fork_child(&command, &args) {
+            Ok(child) => {
+                let _ = pid_tx.send(Ok(child.as_raw() as u32));
+                trace_child(child, &mount_table, &fd_table)
+            }
+            Err(message) => {
+                let _ = pid_tx.send(Err(message.clone()));
+                Err(VfsError::Backend { message }.into())
+            }
         });
+
+        let child_pid = match pid_rx.recv() {
+            Ok(Ok(pid)) => pid,
+            Ok(Err(message)) => return Err(VfsError::Backend { message }.into()),
+            Err(_) => {
+                return Err(VfsError::Backend {
+                    message: "interceptor thread stopped before the child started".into(),
+                }
+                .into())
+            }
+        };
 
         Ok(InterceptorHandle::new(child_pid, join_handle))
     }
 }
 
-fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
-    let child = match unsafe { nix::unistd::fork() } {
-        Ok(nix::unistd::ForkResult::Child) => {
-            let command_c = std::ffi::CString::new(command).unwrap();
-            let args_c: Vec<std::ffi::CString> = args.iter()
-                .map(|s| std::ffi::CString::new(*s).unwrap())
-                .collect();
+/// Fork the child. The child traces itself and stops with `SIGSTOP`.
+///
+/// All buffers are built before the fork. Between `fork` and `execve` the
+/// child calls only async-signal-safe functions, because another thread in
+/// the parent may hold the allocator lock.
+fn fork_child(command: &str, args: &[String]) -> Result<Pid, String> {
+    let command_c =
+        CString::new(command).map_err(|e| format!("invalid command {command:?}: {e}"))?;
+    let mut cstrings: Vec<CString> = Vec::with_capacity(args.len() + 1);
+    cstrings.push(command_c.clone());
+    for arg in args {
+        cstrings.push(
+            CString::new(arg.as_str()).map_err(|e| format!("invalid argument {arg:?}: {e}"))?,
+        );
+    }
+    // The argument vector must include the program name and end with a null
+    // pointer.
+    let mut argv_ptr: Vec<*const libc::c_char> = cstrings.iter().map(|arg| arg.as_ptr()).collect();
+    argv_ptr.push(std::ptr::null());
 
-            nix::unistd::execvp(&command_c, &args_c)
-                .map_err(|e| VfsError::Backend {
-                    message: format!("execvp failed for {command}: {e}"),
-                })?;
+    match unsafe { nix::unistd::fork() } {
+        Ok(nix::unistd::ForkResult::Child) => unsafe {
+            libc::ptrace(libc::PTRACE_TRACEME);
+            libc::raise(libc::SIGSTOP);
+            // `execvp` replaces the child image on success and never returns.
+            libc::execvp(command_c.as_ptr(), argv_ptr.as_ptr());
+            // exec failed: exit without running the parent's atexit handlers.
+            libc::_exit(1)
+        },
+        Ok(nix::unistd::ForkResult::Parent { child }) => Ok(child),
+        Err(e) => Err(format!("fork failed: {e}")),
+    }
+}
 
-            std::process::exit(1);
-        }
-        Ok(nix::unistd::ForkResult::Parent { child, .. }) => child,
-        Err(e) => return Err(VfsError::Backend {
-            message: format!("fork failed: {e}"),
-        }.into()),
-    };
-
-    // PTRACE_SEIZE stops the child immediately with a SIGTRAP.
-    ptrace::seize(child, PTRACE_OPTIONS).map_err(|e| VfsError::Backend {
-        message: format!("ptrace seize failed: {e}"),
+/// Wait for the child's first stop, then trace it until it exits.
+fn trace_child(
+    child: Pid,
+    mount_table: &Arc<MountTable>,
+    fd_table: &Arc<VirtualFdTable>,
+) -> VfsResult<i32> {
+    // The child stops with SIGSTOP after PTRACE_TRACEME and raise(SIGSTOP).
+    let status = waitpid(child, WAIT_FLAGS).map_err(|e| VfsError::Backend {
+        message: format!("waitpid for the first child stop failed: {e}"),
     })?;
 
-    // Wait for the initial SIGTRAP stop from PTRACE_SEIZE
-    let _ = waitpid(child, None).map_err(|e| VfsError::Backend {
-        message: format!("waitpid after seize failed: {e}"),
-    })?;
-
-    // Use PTRACE_SYSCALL to continue. This will stop at the execve ENTRY.
-    ptrace::syscall(child, None).map_err(|e| VfsError::Backend {
-        message: format!("ptrace syscall after seize failed: {e}"),
-    })?;
-
-    // Wait for execve ENTRY stop (PtraceSyscall)
-    let _exec_entry = waitpid(child, None).map_err(|e| VfsError::Backend {
-        message: format!("waitpid for execve entry failed: {e}"),
-    })?;
-
-    // Continue through execve. Use PTRACE_CONT (not SYSCALL) to avoid
-    // stopping at the execve exit — we want the PTRACE_EVENT_EXEC event.
-    ptrace::cont(child, None).map_err(|e| VfsError::Backend {
-        message: format!("ptrace cont to complete execve failed: {e}"),
-    })?;
-
-    // Wait for PTRACE_EVENT_EXEC
-    let exec_status = waitpid(child, None).map_err(|e| VfsError::Backend {
-        message: format!("waitpid for exec event failed: {e}"),
-    })?;
-
-    // Start tracing the new program
-    match exec_status {
-        WaitStatus::PtraceEvent(pid, _sig, _event) => {
-            ptrace::syscall(pid, None).map_err(|e| VfsError::Backend {
-                message: format!("ptrace syscall after exec event failed: {e}"),
-            })?;
-        }
-        WaitStatus::Exited(pid, _code) => {
-            return Ok(Pid::from_raw(pid.as_raw()));
-        }
-        _ => {
-            ptrace::cont(child, None).ok();
-        }
+    match status {
+        WaitStatus::Exited(_, code) => return Ok(code),
+        WaitStatus::Signaled(_, signal, _) => return Ok(128 + signal as i32),
+        _ => {}
     }
 
-    Ok(child)
+    ptrace::setoptions(child, PTRACE_OPTIONS).map_err(|e| VfsError::Backend {
+        message: format!("ptrace setoptions failed: {e}"),
+    })?;
+    resume_syscall(child, None)?;
+
+    ptrace_loop(child, mount_table, fd_table)
 }
 
 fn ptrace_loop(
@@ -152,16 +223,16 @@ fn ptrace_loop(
     let mut pending_actions: HashMap<i32, (SyscallAction, i64)> = HashMap::new();
 
     loop {
-        let status = match waitpid(Pid::from_raw(-1), None) {
+        let status = match waitpid(Pid::from_raw(-1), WAIT_FLAGS) {
             Ok(s) => s,
             Err(nix::errno::Errno::ECHILD) => return Ok(0),
             Err(e) => {
                 return Err(VfsError::Backend {
                     message: format!("waitpid failed: {e}"),
-                }.into());
+                }
+                .into());
             }
         };
-
         match status {
             WaitStatus::Exited(pid, exit_code) => {
                 fd_table.close_all(pid.as_raw() as u32);
@@ -178,16 +249,18 @@ fn ptrace_loop(
                 }
             }
             WaitStatus::Stopped(pid, sig) => {
-                if sig == nix::sys::signal::Signal::SIGSTOP {
-                    // Group-stop or new child stop — continue with syscall tracing
-                    ptrace::syscall(pid, None).ok();
+                // A new child from TRACEFORK/TRACEVFORK/TRACECLONE stops here
+                // the first time with SIGSTOP. Consume that stop and let the
+                // child run. Any other signal is delivered to the tracee.
+                let deliver = if sig == Signal::SIGSTOP {
+                    None
                 } else {
-                    // Real signal — deliver it and continue with tracing
-                    ptrace::syscall(pid, Some(sig)).ok();
-                }
+                    Some(sig)
+                };
+                resume_syscall(pid, deliver)?;
             }
             WaitStatus::PtraceSyscall(pid) => {
-                // Syscall stop — dispatch using raw getregs
+                // Syscall stop — dispatch using raw getregs.
                 if let Some(regs) = get_regs(pid) {
                     let is_exit = pending_actions.contains_key(&pid.as_raw());
 
@@ -196,18 +269,19 @@ fn ptrace_loop(
                             match action {
                                 SyscallAction::Passthrough => {}
                                 SyscallAction::Skip { return_value } => {
-                                    let mut r = regs;
-                                    r.rax = return_value as u64;
-                                    ptrace::setregs(pid, r).ok();
+                                    report_return_value(pid, regs, return_value as u64)?;
                                 }
                                 SyscallAction::SkipError { errno } => {
-                                    let mut r = regs;
-                                    r.rax = (-errno) as u64;
-                                    ptrace::setregs(pid, r).ok();
+                                    report_return_value(pid, regs, (-errno) as u64)?;
+                                }
+                                SyscallAction::CloseThenSkip { return_value, .. } => {
+                                    // The replaced `close` has run. Report the
+                                    // result of the original syscall.
+                                    report_return_value(pid, regs, return_value as u64)?;
                                 }
                             }
                         }
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     } else {
                         let syscall_args = SyscallArgs {
                             nr: regs.orig_rax as i64,
@@ -226,61 +300,65 @@ fn ptrace_loop(
                             fd_table,
                         );
 
+                        // `CloseThenSkip` replaces the syscall with
+                        // `close(fd)`. The entry stop is where the kernel has
+                        // not run the call yet, so `orig_rax` and `rdi` decide
+                        // what it runs.
+                        if let SyscallAction::CloseThenSkip { fd, .. } = &action {
+                            let mut rewritten = regs;
+                            rewritten.orig_rax = CLOSE as u64;
+                            rewritten.rdi = *fd;
+                            ptrace::setregs(pid, rewritten).map_err(|e| VfsError::Backend {
+                                message: format!(
+                                    "ptrace setregs to run close({fd}) in place of the syscall failed for {pid}: {e}"
+                                ),
+                            })?;
+                        }
+
                         pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                 } else {
-                    // Process gone — continue
-                    ptrace::syscall(pid, None).ok();
+                    // The tracer cannot read the registers, so it cannot
+                    // dispatch the syscall. Report it; do not leave the
+                    // tracee stopped.
+                    return Err(VfsError::Backend {
+                        message: format!(
+                            "PTRACE_GETREGS failed for {pid}: {}",
+                            nix::errno::Errno::last()
+                        ),
+                    }
+                    .into());
                 }
             }
             WaitStatus::PtraceEvent(pid, _sig, event) => {
                 match event {
-                    libc::PTRACE_EVENT_STOP => {
-                        // Vforked child receives EVENT_STOP immediately after birth.
-                        // Detach lets it run free to unblock the parent's vfork wait.
-                        ptrace::detach(pid, None).ok();
+                    libc::PTRACE_EVENT_FORK
+                    | libc::PTRACE_EVENT_VFORK
+                    | libc::PTRACE_EVENT_CLONE => {
+                        let new_pid_raw = ptrace::getevent(pid).map_err(|e| VfsError::Backend {
+                            message: format!("ptrace getevent failed for {pid}: {e}"),
+                        })?;
+                        let new_pid = Pid::from_raw(new_pid_raw as i32);
+                        fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
+                        // Do not resume the new child here. Its own first
+                        // stop arrives in this loop and is consumed there.
+                        resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_VFORK_DONE => {
                         // The child has completed exec/exit and the parent is
                         // unblocked. Resume the parent with syscall tracing.
-                        ptrace::syscall(pid, None).ok();
-                    }
-                    libc::PTRACE_EVENT_FORK
-                    | libc::PTRACE_EVENT_CLONE => {
-                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
-                            let new_pid = Pid::from_raw(new_pid_raw as i32);
-                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
-                            ptrace::syscall(new_pid, None).ok();
-                        }
-                        ptrace::syscall(pid, None).ok();
-                    }
-                    libc::PTRACE_EVENT_VFORK => {
-                        // During vfork the parent is blocked in the kernel.
-                        // Continue with SYSCALL; when the child execs the
-                        // parent resumes and hits syscall boundaries.
-                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
-                            let new_pid = Pid::from_raw(new_pid_raw as i32);
-                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
-                            ptrace::syscall(new_pid, None).ok();
-                        }
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_EXEC => {
                         fd_table.close_cloexec(pid.as_raw() as u32);
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                     libc::PTRACE_EVENT_EXIT => {
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                     _ => {
-                        // Unknown ptrace event. May include a child pid — continue it if so.
-                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
-                            let new_pid = Pid::from_raw(new_pid_raw as i32);
-                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
-                            ptrace::syscall(new_pid, None).ok();
-                        }
-                        ptrace::syscall(pid, None).ok();
+                        resume_syscall(pid, None)?;
                     }
                 }
             }

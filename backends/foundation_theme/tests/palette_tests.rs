@@ -3,7 +3,7 @@
 //! correct and `no_std`-safe (spec-39 theme system).
 //!
 //! WHAT: known-value HSL conversions, Bézier endpoints/easing, and the shape of
-//! the pastel/gaming/ramp/dual_theme outputs.
+//! the `pastel`/`gaming`/`ramp`/`dual_theme` outputs.
 
 use foundation_theme::curve::{cubic_bezier, ease, sample, svg_path, Point};
 use foundation_theme::palette::{dual_theme, gaming, pastel, ramp, Hsl};
@@ -46,7 +46,11 @@ fn cubic_bezier_hits_endpoints() {
 fn ease_is_pinned_and_monotonic() {
     assert!((ease(0.0, 0.42, 1.0) - 0.0).abs() < 1e-6, "ease(0)=0");
     assert!((ease(1.0, 0.42, 1.0) - 1.0).abs() < 1e-6, "ease(1)=1");
-    let (a, b, c) = (ease(0.25, 0.42, 1.0), ease(0.5, 0.42, 1.0), ease(0.75, 0.42, 1.0));
+    let (a, b, c) = (
+        ease(0.25, 0.42, 1.0),
+        ease(0.5, 0.42, 1.0),
+        ease(0.75, 0.42, 1.0),
+    );
     assert!(a < b && b < c, "monotonic increasing: {a} {b} {c}");
 }
 
@@ -64,14 +68,23 @@ fn palettes_have_shape_and_valid_hex() {
     let r = ramp(210.0, 0.6, 5, 0.42, 1.0);
     assert_eq!(r.len(), 5);
     assert!(r.iter().all(|c| is_hex(c)));
-    assert!(channel_sum(&r[0]) > channel_sum(&r[4]), "ramp goes light→dark");
+    assert!(
+        channel_sum(&r[0]) > channel_sum(&r[4]),
+        "ramp goes light→dark"
+    );
 
     // Dual theme: two mirrored ramps, opposite lightness direction.
     let (light, dark) = dual_theme(210.0, 0.6, 4);
     assert_eq!(light.len(), 4);
     assert_eq!(dark.len(), 4);
-    assert!(channel_sum(&light[0]) > channel_sum(&light[3]), "light: bright→mid");
-    assert!(channel_sum(&dark[0]) < channel_sum(&dark[3]), "dark: dim→bright");
+    assert!(
+        channel_sum(&light[0]) > channel_sum(&light[3]),
+        "light: bright→mid"
+    );
+    assert!(
+        channel_sum(&dark[0]) < channel_sum(&dark[3]),
+        "dark: dim→bright"
+    );
 }
 
 fn channel_sum(hex: &str) -> u32 {

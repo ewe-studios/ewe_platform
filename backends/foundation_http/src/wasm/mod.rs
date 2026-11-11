@@ -1,8 +1,8 @@
 //! Wasm modules (request dispatch, memory-backed streams).
 
-pub mod stream;
-pub mod serve_writer;
 pub mod response;
+pub mod serve_writer;
+pub mod stream;
 
 // Re-export WebServe/WebConn/WebConnectionResult from shared (moved from wasm)
 pub use crate::shared::serve_web::{WebServe, WebServeFactory};

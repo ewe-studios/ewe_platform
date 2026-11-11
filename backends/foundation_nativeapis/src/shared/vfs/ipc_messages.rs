@@ -8,58 +8,140 @@ use super::types::{
     Checksum, OpenMode, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
-#[uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
-pub enum VfsRequest {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum VfsRequestBody {
     // File operations
-    Open { path: String, mode: IpcOpenMode, seekable: bool },
-    Create { path: String, mode: u32 },
-    ReadAt { handle: u64, offset: u64, size: u32 },
-    WriteAt { handle: u64, #[serde(with = "serde_bytes")] data: Vec<u8>, offset: u64 },
-    Seek { handle: u64, pos: IpcSeekFrom },
-    Truncate { handle: u64, size: u64 },
-    SyncData { handle: u64 },
-    CloseFile { handle: u64 },
-    FileSize { handle: u64 },
-    FileMetadata { handle: u64 },
+    Open {
+        path: String,
+        mode: IpcOpenMode,
+        seekable: bool,
+    },
+    Create {
+        path: String,
+        mode: u32,
+    },
+    ReadAt {
+        handle: u64,
+        offset: u64,
+        size: u64,
+    },
+    WriteAt {
+        handle: u64,
+        #[serde(with = "serde_bytes")]
+        data: Vec<u8>,
+        offset: u64,
+    },
+    Seek {
+        handle: u64,
+        pos: IpcSeekFrom,
+    },
+    Truncate {
+        handle: u64,
+        size: u64,
+    },
+    SyncData {
+        handle: u64,
+    },
+    CloseFile {
+        handle: u64,
+    },
+    FileSize {
+        handle: u64,
+    },
+    FileMetadata {
+        handle: u64,
+    },
 
     // Path operations
-    Stat { path: String },
-    Exists { path: String },
-    Mkdir { path: String },
-    Remove { path: String },
-    Rename { from: String, to: String },
-    Chmod { path: String, mode: u32 },
-    Symlink { target: String, link: String },
-    ReadLink { path: String },
+    Stat {
+        path: String,
+    },
+    Exists {
+        path: String,
+    },
+    Mkdir {
+        path: String,
+    },
+    Remove {
+        path: String,
+    },
+    Rename {
+        from: String,
+        to: String,
+    },
+    Chmod {
+        path: String,
+        mode: u32,
+    },
+    Symlink {
+        target: String,
+        link: String,
+    },
+    ReadLink {
+        path: String,
+    },
 
     // Inode operations
-    Inode { path: String },
-    PathByInode { ino: u64 },
-    StatByInode { ino: u64 },
+    Inode {
+        path: String,
+    },
+    PathByInode {
+        ino: u64,
+    },
+    StatByInode {
+        ino: u64,
+    },
 
     // Directory handle operations
-    OpenDir { path: String },
-    DirList { handle: u64 },
-    DirGetEntry { handle: u64, name: String },
-    DirPath { handle: u64 },
-    DirMetadata { handle: u64 },
-    DirCreateFile { handle: u64, name: String, mode: u32 },
-    DirCreateDir { handle: u64, name: String },
-    DirRemoveEntry { handle: u64, name: String },
-    CloseDir { handle: u64 },
+    OpenDir {
+        path: String,
+    },
+    DirList {
+        handle: u64,
+    },
+    DirGetEntry {
+        handle: u64,
+        name: String,
+    },
+    DirPath {
+        handle: u64,
+    },
+    DirMetadata {
+        handle: u64,
+    },
+    DirCreateFile {
+        handle: u64,
+        name: String,
+        mode: u32,
+    },
+    DirCreateDir {
+        handle: u64,
+        name: String,
+    },
+    DirRemoveEntry {
+        handle: u64,
+        name: String,
+    },
+    CloseDir {
+        handle: u64,
+    },
 
     // Convenience
-    ReadFile { path: String },
-    WriteFile { path: String, #[serde(with = "serde_bytes")] data: Vec<u8> },
+    ReadFile {
+        path: String,
+    },
+    WriteFile {
+        path: String,
+        #[serde(with = "serde_bytes")]
+        data: Vec<u8>,
+    },
 
     // Capabilities
     Capabilities,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
-#[uuid = "b2c3d4e5-f6a7-8901-bcde-f12345678901"]
-pub enum VfsResponse {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum VfsResponseBody {
     FileHandle(u64),
     DirHandle(u64),
     Data(#[serde(with = "serde_bytes")] Vec<u8>),
@@ -75,6 +157,24 @@ pub enum VfsResponse {
     Path(String),
     Ok,
     Error(String),
+}
+
+/// A request on the wire: a unique id plus the body. The daemon copies the id
+/// into the response so the client can match responses to requests by id, not
+/// by arrival order.
+#[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
+#[uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
+pub struct VfsRequest {
+    pub id: u64,
+    pub body: VfsRequestBody,
+}
+
+/// A response on the wire: the id of the request it answers plus the body.
+#[derive(Debug, Clone, Serialize, Deserialize, TypeUuid)]
+#[uuid = "b2c3d4e5-f6a7-8901-bcde-f12345678901"]
+pub struct VfsResponse {
+    pub id: u64,
+    pub body: VfsResponseBody,
 }
 
 // ── Serializable mirror types ──

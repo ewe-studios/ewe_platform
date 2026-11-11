@@ -260,4 +260,3 @@ fn cost_of(usage: &UsageReport) -> f64 {
     let c = &usage.cost;
     (c.input + c.output + c.cache_read + c.cache_write).max(0.0)
 }
-

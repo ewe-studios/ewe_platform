@@ -10,18 +10,37 @@
 //!   - `R2Store::new_blob()` — `BlobStore` (raw binary, key: `{prefix}/key`)
 //!   - `R2Store::new_state()` — `StateStore` (JSON objects, key: `{project}/{stage}/{id}.json`)
 
-use futures_lite::{StreamExt, stream};
-use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+use std::collections::VecDeque;
+
+use foundation_cloudflare_types::R2ListObjectsResponse;
+use foundation_netio::shared::client::body_reader::{
+    collect_bytes_async, collect_string_async, AsyncSendSafeBody,
+};
+use foundation_netio::shared::http::pushable_body::pushable_request_body;
 use foundation_netio::shared::http::{SimpleHeader, Status};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+use futures_lite::{stream, StreamExt};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::ResourceState;
-use crate::core::storage_provider::BlobStore;
+use crate::core::storage_provider::{
+    BlobListStream, BlobPutCondition, BlobRange, BlobStore, BlobStream,
+};
 
-/// Default Cloudflare API base. Tests override via `R2Store::with_base_url`.
+/// Default Cloudflare API base (hosted). `R2Store::new_*` put
+/// `/accounts/{account_id}` after it; the `*_with_base_url` constructors take
+/// the whole prefix instead (see [`hosted_api_prefix`]).
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
+
+/// The API prefix of the hosted Cloudflare API for `account_id`. Pass it, or the
+/// prefix of wrangler's local explorer API
+/// (`http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`, no account segment),
+/// as the `base_url` of the `*_with_base_url` constructors.
+#[must_use]
+pub fn hosted_api_prefix(account_id: &str) -> String {
+    format!("{CF_API_BASE}/accounts/{account_id}")
+}
 
 // ---- Mode enum ----
 
@@ -30,7 +49,11 @@ enum R2Mode {
     /// `BlobStore`. Keys prefixed with `{prefix}/` (slashes replaced by colons).
     Blob { bucket: String, prefix: String },
     /// `StateStore`. Keys prefixed with `{project}/{stage}/`, stored as `{id}.json`.
-    State { bucket: String, project: String, stage: String },
+    State {
+        bucket: String,
+        project: String,
+        stage: String,
+    },
 }
 
 // ---- R2Store ----
@@ -38,8 +61,8 @@ enum R2Mode {
 #[derive(Clone)]
 pub struct R2Store {
     api_token: String,
-    account_id: String,
-    base_url: String,
+    /// Everything before `/r2/buckets/...` in the request URL.
+    api_prefix: String,
     client: DynNetClient,
     mode: R2Mode,
 }
@@ -50,20 +73,35 @@ impl R2Store {
     /// `BlobStore` at production Cloudflare API.
     #[must_use]
     pub fn new_blob(api_token: &str, account_id: &str, bucket_name: &str, prefix: &str) -> Self {
-        Self::new_blob_with_base_url(api_token, account_id, bucket_name, prefix, CF_API_BASE)
+        Self::new_blob_with_base_url(
+            api_token,
+            account_id,
+            bucket_name,
+            prefix,
+            &hosted_api_prefix(account_id),
+        )
     }
 
-    /// `BlobStore` with custom base URL (for tests).
+    /// `BlobStore` with a custom API prefix: everything before `/r2/buckets/...`.
+    /// For the hosted API that is [`hosted_api_prefix`]; for wrangler's local
+    /// explorer API it is `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`.
+    /// `account_id` is not used in the URL then.
     #[must_use]
     pub fn new_blob_with_base_url(
-        api_token: &str, account_id: &str, bucket_name: &str, prefix: &str, base_url: &str,
+        api_token: &str,
+        _account_id: &str,
+        bucket_name: &str,
+        prefix: &str,
+        base_url: &str,
     ) -> Self {
         Self {
             api_token: api_token.to_string(),
-            account_id: account_id.to_string(),
-            base_url: base_url.trim_end_matches('/').to_string(),
+            api_prefix: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
-            mode: R2Mode::Blob { bucket: bucket_name.to_string(), prefix: prefix.to_string() },
+            mode: R2Mode::Blob {
+                bucket: bucket_name.to_string(),
+                prefix: prefix.to_string(),
+            },
         }
     }
 
@@ -91,21 +129,43 @@ impl R2Store {
 
     /// `StateStore` at production Cloudflare API.
     #[must_use]
-    pub fn new_state(api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str) -> Self {
-        Self::new_state_with_base_url(api_token, account_id, bucket_name, project, stage, CF_API_BASE)
+    pub fn new_state(
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        project: &str,
+        stage: &str,
+    ) -> Self {
+        Self::new_state_with_base_url(
+            api_token,
+            account_id,
+            bucket_name,
+            project,
+            stage,
+            &hosted_api_prefix(account_id),
+        )
     }
 
-    /// `StateStore` with custom base URL (for tests).
+    /// `StateStore` with a custom API prefix (see
+    /// [`new_blob_with_base_url`](Self::new_blob_with_base_url)).
     #[must_use]
     pub fn new_state_with_base_url(
-        api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str, base_url: &str,
+        api_token: &str,
+        _account_id: &str,
+        bucket_name: &str,
+        project: &str,
+        stage: &str,
+        base_url: &str,
     ) -> Self {
         Self {
             api_token: api_token.to_string(),
-            account_id: account_id.to_string(),
-            base_url: base_url.trim_end_matches('/').to_string(),
+            api_prefix: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
-            mode: R2Mode::State { bucket: bucket_name.to_string(), project: project.to_string(), stage: stage.to_string() },
+            mode: R2Mode::State {
+                bucket: bucket_name.to_string(),
+                project: project.to_string(),
+                stage: stage.to_string(),
+            },
         }
     }
 
@@ -153,10 +213,16 @@ impl R2Store {
     }
 
     fn object_url(&self, key: &str) -> String {
-        let (bucket, account_id, base_url) = match &self.mode {
-            R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => (bucket, &self.account_id, &self.base_url),
+        let bucket = match &self.mode {
+            R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => bucket,
         };
-        format!("{base_url}/accounts/{account_id}/r2/buckets/{bucket}/objects/{key}")
+        // The key is one path segment: `/` inside it is `%2F` (the local explorer
+        // API matches `objects/:key` as a single segment).
+        format!(
+            "{}/r2/buckets/{bucket}/objects/{}",
+            self.api_prefix,
+            query_escape(key)
+        )
     }
 
     fn bucket(&self) -> &str {
@@ -181,7 +247,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::get(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .build(),
             )
@@ -192,23 +260,76 @@ impl R2Store {
             return Ok(None);
         }
         if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 GET failed with status {}",
+                response.get_status()
+            )));
         }
-        let (_, _, body) = response.into_parts();
-        let bytes = collect_bytes_async(AsyncSendSafeBody::from(body))
+        let (_, _, body) = response.into_async_parts();
+        let bytes = collect_bytes_async(body)
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
         Ok(Some(bytes))
     }
 
+    /// Async GET — returns the object bytes and the response `ETag` header, or
+    /// `None` when the object is absent.
+    ///
+    /// The conditional state write compares the stored `updated_at` and then
+    /// sends the `ETag` with `If-Match`, so the write applies to the exact
+    /// object that was compared. The body is a small state JSON object.
+    async fn get_object_with_etag_async(
+        &self,
+        key: &str,
+    ) -> Result<Option<(Vec<u8>, Option<String>)>, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .send_async(
+                PreparedRequestBuilder::get(&url)
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .build(),
+            )
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
+
+        if response.get_status() == Status::NotFound {
+            return Ok(None);
+        }
+        if response.get_status() != Status::OK {
+            return Err(StorageError::Backend(format!(
+                "R2 GET failed with status {}",
+                response.get_status()
+            )));
+        }
+        let (_, headers, body) = response.into_async_parts();
+        let bytes = collect_bytes_async(body)
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
+        let etag = headers
+            .get(&SimpleHeader::ETAG)
+            .and_then(|values| values.first().cloned());
+        Ok(Some((bytes, etag)))
+    }
+
     /// Async PUT — stores data at the given key.
-    async fn put_object_async(&self, key: &str, data: &[u8], content_type: &str) -> Result<(), StorageError> {
+    async fn put_object_async(
+        &self,
+        key: &str,
+        data: &[u8],
+        content_type: &str,
+    ) -> Result<(), StorageError> {
         let url = self.object_url(key);
         let response = self
             .client
             .send_async(
                 PreparedRequestBuilder::put(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 PUT request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONTENT_TYPE, content_type)
                     .body_bytes(data.to_vec())
@@ -219,7 +340,10 @@ impl R2Store {
 
         let status: usize = response.get_status().into();
         if status >= 400 {
-            return Err(StorageError::Backend(format!("R2 PUT failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 PUT failed with status {}",
+                response.get_status()
+            )));
         }
         Ok(())
     }
@@ -231,7 +355,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::delete(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 DELETE request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONNECTION, "close")
                     .build(),
@@ -241,7 +367,10 @@ impl R2Store {
 
         let status: usize = response.get_status().into();
         if status >= 400 && response.get_status() != Status::NotFound {
-            return Err(StorageError::Backend(format!("R2 DELETE failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 DELETE failed with status {}",
+                response.get_status()
+            )));
         }
         Ok(())
     }
@@ -253,7 +382,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::head(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 HEAD request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONNECTION, "close")
                     .build(),
@@ -262,6 +393,186 @@ impl R2Store {
             .map_err(|e| StorageError::Backend(format!("R2 HEAD request failed: {e}")))?;
 
         Ok(response.get_status() == Status::OK)
+    }
+
+    /// Async HEAD — returns the object's `etag` header, or `None` if missing.
+    async fn head_object_etag_async(&self, key: &str) -> Result<Option<String>, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .send_async(
+                PreparedRequestBuilder::head(&url)
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 HEAD request build failed: {e}"))
+                    })?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .header(SimpleHeader::CONNECTION, "close")
+                    .build(),
+            )
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 HEAD request failed: {e}")))?;
+
+        if response.get_status() != Status::OK {
+            return Ok(None);
+        }
+        let (_, headers, _body) = response.into_async_parts();
+        Ok(headers
+            .get(&SimpleHeader::ETAG)
+            .and_then(|values| values.first().cloned()))
+    }
+
+    /// Async GET — returns the object body as a byte-chunk stream.
+    async fn get_object_stream_async(&self, key: &str) -> Result<Option<BlobStream>, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .send_async(
+                PreparedRequestBuilder::get(&url)
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .build(),
+            )
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
+
+        if response.get_status() == Status::NotFound {
+            return Ok(None);
+        }
+        if response.get_status() != Status::OK {
+            return Err(StorageError::Backend(format!(
+                "R2 GET failed with status {}",
+                response.get_status()
+            )));
+        }
+        let (_, _, body) = response.into_async_parts();
+        Ok(Some(body_to_blob_stream(body)))
+    }
+
+    /// Async ranged GET — returns one byte range as a stream.
+    async fn get_object_range_async(
+        &self,
+        key: &str,
+        range: BlobRange,
+    ) -> Result<BlobStream, StorageError> {
+        let url = self.object_url(key);
+        let response = self
+            .client
+            .send_async(
+                PreparedRequestBuilder::get(&url)
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .header(SimpleHeader::RANGE, range_header_value(range))
+                    .build(),
+            )
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
+
+        if response.get_status() == Status::NotFound {
+            return Ok(empty_blob_stream());
+        }
+        if response.get_status() != Status::PartialContent {
+            return Err(StorageError::Backend(format!(
+                "R2 range GET failed with status {}",
+                response.get_status()
+            )));
+        }
+        let (_, _, body) = response.into_async_parts();
+        Ok(body_to_blob_stream(body))
+    }
+
+    /// Async PUT with optional conditional headers (`If-None-Match` / `If-Match`).
+    #[allow(clippy::too_many_arguments)]
+    async fn put_object_conditional_async(
+        &self,
+        key: &str,
+        data: &[u8],
+        content_type: &str,
+        if_none_match: Option<&str>,
+        if_match: Option<&str>,
+    ) -> Result<(), StorageError> {
+        let url = self.object_url(key);
+        let mut builder = PreparedRequestBuilder::put(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .header(SimpleHeader::CONTENT_TYPE, content_type);
+        if let Some(value) = if_none_match {
+            builder = builder.header(SimpleHeader::IF_NONE_MATCH, value);
+        }
+        if let Some(value) = if_match {
+            builder = builder.header(SimpleHeader::IF_MATCH, value);
+        }
+        let response = self
+            .client
+            .send_async(builder.body_bytes(data.to_vec()).build())
+            .await
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
+
+        let status = response.get_status();
+        if status == Status::PreconditionFailed {
+            return Err(StorageError::PreconditionFailed(key.to_string()));
+        }
+        let status_code: usize = status.into();
+        if status_code >= 400 {
+            return Err(StorageError::Backend(format!(
+                "R2 PUT failed with status {status_code}"
+            )));
+        }
+        Ok(())
+    }
+
+    /// Async streamed PUT — pushes chunks through a bounded pipe so the body
+    /// is never buffered whole.
+    async fn put_object_stream_async(
+        &self,
+        key: &str,
+        content_type: &str,
+        length: Option<u64>,
+        chunks: BlobStream,
+    ) -> Result<(), StorageError> {
+        let (producer, body) = pushable_request_body();
+        let url = self.object_url(key);
+        let mut builder = PreparedRequestBuilder::put(&url)
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
+            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+            .header(SimpleHeader::CONTENT_TYPE, content_type);
+        if let Some(len) = length {
+            builder = builder.header(SimpleHeader::CONTENT_LENGTH, len.to_string());
+        }
+        let request = builder.body(body).build();
+
+        let send_fut = self.client.send_async(request);
+        let push_fut = async move {
+            let mut chunks = chunks;
+            while let Some(chunk) = chunks.next().await {
+                let chunk = chunk?;
+                producer
+                    .push(chunk)
+                    .await
+                    .map_err(|e| StorageError::Backend(format!("R2 PUT body push failed: {e}")))?;
+            }
+            producer.close();
+            Ok::<(), StorageError>(())
+        };
+
+        let (push_result, send_result) = futures_lite::future::zip(push_fut, send_fut).await;
+        let response = send_result
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
+        let status = response.get_status();
+        if status == Status::PreconditionFailed {
+            return Err(StorageError::PreconditionFailed(key.to_string()));
+        }
+        push_result?;
+        let status_code: usize = status.into();
+        if status_code >= 400 {
+            return Err(StorageError::Backend(format!(
+                "R2 PUT failed with status {status_code}"
+            )));
+        }
+        Ok(())
     }
 
     /// Async LIST — one page of the object listing under `prefix`, starting
@@ -273,9 +584,8 @@ impl R2Store {
         cursor: Option<&str>,
     ) -> Result<(Vec<String>, Option<String>), StorageError> {
         let mut url = format!(
-            "{}/accounts/{}/r2/buckets/{}/objects?prefix={}",
-            self.base_url,
-            self.account_id,
+            "{}/r2/buckets/{}/objects?prefix={}",
+            self.api_prefix,
             self.bucket(),
             query_escape(prefix)
         );
@@ -287,7 +597,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::get(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 LIST request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .build(),
             )
@@ -295,35 +607,36 @@ impl R2Store {
             .map_err(|e| StorageError::Backend(format!("R2 LIST request failed: {e}")))?;
 
         if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 LIST failed with status {}",
+                response.get_status()
+            )));
         }
-        let (_, _, body) = response.into_parts();
-        let text = collect_string_async(AsyncSendSafeBody::from(body))
+        let (_, _, body) = response.into_async_parts();
+        let text = collect_string_async(body)
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
-        let parsed: serde_json::Value = serde_json::from_str(&text)
-            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))?;
+        let parsed = parse_list_response(&text)?;
 
-        // The Cloudflare API returns `result` as the object array; older
-        // responses nest it under `result.objects`. Accept both.
-        let objects = parsed
-            .pointer("/result")
-            .and_then(|r| r.as_array().or_else(|| r.get("objects").and_then(serde_json::Value::as_array)))
-            .ok_or_else(|| StorageError::Serialization("R2 LIST: response has no object list".to_string()))?;
-        let keys = objects
+        let keys = parsed
+            .result
             .iter()
-            .filter_map(|obj| obj.get("key").and_then(serde_json::Value::as_str).map(str::to_string))
+            .map(|object| object.key.clone())
             .collect();
         let truncated = parsed
-            .pointer("/result_info/is_truncated")
-            .and_then(serde_json::Value::as_bool)
+            .result_info
+            .as_ref()
+            .and_then(|info| info.is_truncated)
             .unwrap_or(false);
         let next = if truncated {
             let cursor = parsed
-                .pointer("/result_info/cursor")
-                .and_then(serde_json::Value::as_str)
+                .result_info
+                .as_ref()
+                .and_then(|info| info.cursor.as_deref())
                 .filter(|c| !c.is_empty())
-                .ok_or_else(|| StorageError::Serialization("R2 LIST: truncated page has no cursor".to_string()))?;
+                .ok_or_else(|| {
+                    StorageError::Serialization("R2 LIST: truncated page has no cursor".to_string())
+                })?;
             Some(cursor.to_string())
         } else {
             None
@@ -331,27 +644,70 @@ impl R2Store {
         Ok((keys, next))
     }
 
-    /// State IDs whose ID starts with `id_prefix`, sorted, across every page
-    /// of the listing. Only IDs are held, never the state objects.
-    async fn state_ids(&self, id_prefix: &str) -> Result<Vec<String>, StorageError> {
+    /// A cursor-driven stream of state IDs whose ID starts with `id_prefix`.
+    ///
+    /// Each page is fetched only when the previous page's IDs have all been
+    /// pulled, so the first ID is yielded after one LIST request and the rest
+    /// never materialize into a `Vec`. R2 returns object keys in order, so the
+    /// stream keeps that order and does not sort.
+    fn state_id_stream(&self, id_prefix: &str) -> StateStoreStream<String> {
+        let store = self.clone();
         let store_prefix = self.state_prefix();
         let list_prefix = format!("{store_prefix}{}", id_prefix.replace('/', ":"));
-        let mut ids = Vec::new();
-        let mut cursor: Option<String> = None;
-        loop {
-            let (keys, next) = self.list_objects_page(&list_prefix, cursor.as_deref()).await?;
-            ids.extend(keys.iter().filter_map(|key| {
-                key.strip_prefix(&store_prefix)
-                    .and_then(|rest| rest.strip_suffix(".json"))
-                    .map(|id| id.replace(':', "/"))
-            }));
-            match next {
-                Some(c) => cursor = Some(c),
-                None => break,
+        let seed = PageState::Pending {
+            pending: VecDeque::new(),
+            cursor: None,
+            done: false,
+        };
+        Box::pin(stream::unfold(seed, move |state| {
+            let store = store.clone();
+            let store_prefix = store_prefix.clone();
+            let list_prefix = list_prefix.clone();
+            async move {
+                match state {
+                    PageState::Done => None,
+                    PageState::Pending {
+                        mut pending,
+                        mut cursor,
+                        mut done,
+                    } => loop {
+                        if let Some(id) = pending.pop_front() {
+                            return Some((
+                                Ok(id),
+                                PageState::Pending {
+                                    pending,
+                                    cursor,
+                                    done,
+                                },
+                            ));
+                        }
+                        if done {
+                            return None;
+                        }
+                        match store
+                            .list_objects_page(&list_prefix, cursor.as_deref())
+                            .await
+                        {
+                            Err(e) => return Some((Err(e), PageState::Done)),
+                            Ok((keys, next)) => {
+                                pending = keys
+                                    .into_iter()
+                                    .filter_map(|key| {
+                                        key.strip_prefix(&store_prefix)
+                                            .and_then(|rest| rest.strip_suffix(".json"))
+                                            .map(|id| id.replace(':', "/"))
+                                    })
+                                    .collect();
+                                match next {
+                                    Some(c) => cursor = Some(c),
+                                    None => done = true,
+                                }
+                            }
+                        }
+                    },
+                }
             }
-        }
-        ids.sort();
-        Ok(ids)
+        }))
     }
 
     /// A stream that fetches each of `ids` as it is pulled, skipping IDs
@@ -367,6 +723,56 @@ impl R2Store {
                 .filter_map(Result::transpose),
         )
     }
+
+    /// Like [`states_for`](Self::states_for), from a stream of IDs.
+    fn states_for_stream(&self, ids: StateStoreStream<String>) -> StateStoreStream<ResourceState> {
+        let store = self.clone();
+        Box::pin(
+            ids.then(move |id| {
+                let store = store.clone();
+                async move {
+                    match id {
+                        Ok(id) => store.get(&id).await,
+                        Err(e) => Err(e),
+                    }
+                }
+            })
+            .filter_map(Result::transpose),
+        )
+    }
+}
+
+/// The cursor state for the state-ID paging stream.
+enum PageState {
+    /// A page of decoded IDs is pending, and `cursor` points at the next page
+    /// (or `None` when the last page has been requested).
+    Pending {
+        pending: VecDeque<String>,
+        cursor: Option<String>,
+        /// True once the last page has been fetched, so the stream stops
+        /// instead of restarting the listing from `cursor == None`.
+        done: bool,
+    },
+    /// The stream ended, or a page failed.
+    Done,
+}
+
+/// Parse an R2 object-listing response.
+///
+/// Wrangler's local explorer API (beta) writes `result_info.is_truncated` as
+/// the string `"false"`/`"true"`; the published spec and the hosted API use a
+/// boolean. Both are accepted: a string is turned into a boolean before the
+/// typed parse.
+fn parse_list_response(text: &str) -> Result<R2ListObjectsResponse, StorageError> {
+    let parse_err =
+        |e: serde_json::Error| StorageError::Serialization(format!("R2 LIST parse failed: {e}"));
+    let mut value: serde_json::Value = serde_json::from_str(text).map_err(parse_err)?;
+    if let Some(flag) = value.pointer_mut("/result_info/is_truncated") {
+        if let Some(text) = flag.as_str() {
+            *flag = serde_json::Value::Bool(text.eq_ignore_ascii_case("true"));
+        }
+    }
+    serde_json::from_value(value).map_err(parse_err)
 }
 
 /// Percent-encode a query-string value (everything but RFC 3986 unreserved
@@ -386,26 +792,146 @@ fn query_escape(value: &str) -> String {
     out
 }
 
+/// Wrap an [`AsyncSendSafeBody`] as a [`BlobStream`], mapping transport chunk
+/// errors to [`StorageError::Backend`]. The body is pulled one chunk at a time;
+/// it is never buffered whole.
+fn body_to_blob_stream(body: AsyncSendSafeBody) -> BlobStream {
+    Box::pin(body.map(|result| {
+        result.map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))
+    }))
+}
+
+/// An already-finished [`BlobStream`] with no chunks.
+fn empty_blob_stream() -> BlobStream {
+    Box::pin(futures_lite::stream::empty())
+}
+
+/// The `Range` header value for a half-open `[start, end)` [`BlobRange`]:
+/// `bytes={start}-{end-1}`, or `bytes={start}-` when the end is unbounded.
+fn range_header_value(range: BlobRange) -> String {
+    match range.end {
+        Some(end) if end > range.start => format!("bytes={}-{}", range.start, end - 1),
+        _ => format!("bytes={}-", range.start),
+    }
+}
+
 // ===========================================================================
 // BlobStore
 // ===========================================================================
 
 #[async_trait::async_trait]
 impl BlobStore for R2Store {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream").await
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream")
+            .await
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         self.get_object_async(&self.blob_object_key(key)).await
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         self.delete_object_async(&self.blob_object_key(key)).await
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         self.head_object_async(&self.blob_object_key(key)).await
+    }
+
+    async fn get_blob_stream(&self, key: &str) -> StorageResult<BlobStream> {
+        match self
+            .get_object_stream_async(&self.blob_object_key(key))
+            .await?
+        {
+            Some(stream) => Ok(stream),
+            None => Ok(empty_blob_stream()),
+        }
+    }
+
+    async fn put_blob_stream(
+        &self,
+        key: &str,
+        length: Option<u64>,
+        chunks: BlobStream,
+    ) -> StorageResult<()> {
+        self.put_object_stream_async(
+            &self.blob_object_key(key),
+            "application/octet-stream",
+            length,
+            chunks,
+        )
+        .await
+    }
+
+    async fn blob_etag(&self, key: &str) -> StorageResult<Option<String>> {
+        self.head_object_etag_async(&self.blob_object_key(key))
+            .await
+    }
+
+    async fn get_blob_range(&self, key: &str, range: BlobRange) -> StorageResult<BlobStream> {
+        if range.end.is_some_and(|end| end <= range.start) {
+            return Ok(empty_blob_stream());
+        }
+        self.get_object_range_async(&self.blob_object_key(key), range)
+            .await
+    }
+
+    async fn put_blob_conditionally(
+        &self,
+        key: &str,
+        data: &[u8],
+        condition: BlobPutCondition,
+    ) -> StorageResult<()> {
+        let (if_none_match, if_match) = match condition {
+            BlobPutCondition::IfNoneMatch => (Some("*"), None),
+            BlobPutCondition::IfMatch(expected) => (None, Some(expected)),
+        };
+        self.put_object_conditional_async(
+            &self.blob_object_key(key),
+            data,
+            "application/octet-stream",
+            if_none_match,
+            if_match.as_deref(),
+        )
+        .await
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        // The object-key form of an empty blob key is the directory prefix
+        // (`{blob_prefix}/`); the listing prefix is the object-key form of
+        // `prefix`. R2 pages are pulled until the cursor ends.
+        let strip = self.blob_object_key("");
+        let list_prefix = self.blob_object_key(prefix);
+        let mut keys: Vec<String> = Vec::new();
+        let mut cursor: Option<String> = None;
+        loop {
+            let (page, next) = self
+                .list_objects_page(&list_prefix, cursor.as_deref())
+                .await?;
+            keys.extend(page.into_iter().filter_map(|object_key| {
+                object_key
+                    .strip_prefix(&strip)
+                    .map(|rest| rest.replace(':', "/"))
+            }));
+            match next {
+                Some(next_cursor) => cursor = Some(next_cursor),
+                None => break,
+            }
+        }
+        keys.retain(|k| start_after.is_none_or(|s| k.as_str() > s));
+        keys.sort();
+        keys.dedup();
+        if let Some(limit) = limit {
+            keys.truncate(limit);
+        }
+        Ok(Box::pin(futures_lite::stream::iter(
+            keys.into_iter().map(Ok),
+        )))
     }
 }
 
@@ -425,11 +951,14 @@ impl StateStore for R2Store {
     }
 
     async fn count(&self) -> StorageResult<usize> {
-        Ok(self.state_ids("").await?.len())
+        self.count_by_prefix("").await
     }
 
     async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
-        let Some(bytes) = self.get_object_async(&self.state_object_key(resource_id)).await? else {
+        let Some(bytes) = self
+            .get_object_async(&self.state_object_key(resource_id))
+            .await?
+        else {
             return Ok(None);
         };
         let state = serde_json::from_slice(&bytes)
@@ -445,28 +974,95 @@ impl StateStore for R2Store {
         self.all_by_prefix("").await
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        let body = serde_json::to_vec_pretty(state).map_err(|e| StorageError::Serialization(e.to_string()))?;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let state = state.with_id(resource_id);
+        let body = serde_json::to_vec_pretty(&state)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         self.put_object_async(&self.state_object_key(&state.id), &body, "application/json")
             .await
     }
 
+    /// Conditional write through R2's object conditional PUT.
+    ///
+    /// `expected = None` writes only when the object is absent
+    /// (`If-None-Match: *`). `expected = Some(t)` reads the state and its
+    /// `ETag` in one GET, compares `updated_at`, then writes with
+    /// `If-Match: <etag>`. R2 returns `412 Precondition Failed` when the
+    /// condition does not hold, which becomes `Ok(false)`. The `ETag` pins the
+    /// exact object that was compared, so two writers cannot both win.
+    ///
+    /// Cloudflare documents both request headers on the R2 object PUT
+    /// (`If-Match`, `If-None-Match`):
+    /// <https://developers.cloudflare.com/api/resources/r2/subresources/buckets/subresources/objects/methods/put/>.
+    /// Wrangler's local explorer REST API ignores them; the wasm testbed runs
+    /// the conditional-write test on the real R2 binding.
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        let state = state.with_id(resource_id);
+        let key = self.state_object_key(&state.id);
+        let body = serde_json::to_vec_pretty(&state)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+
+        let Some(expected) = expected else {
+            return match self
+                .put_object_conditional_async(&key, &body, "application/json", Some("*"), None)
+                .await
+            {
+                Ok(()) => Ok(true),
+                Err(StorageError::PreconditionFailed(_)) => Ok(false),
+                Err(error) => Err(error),
+            };
+        };
+
+        let Some((stored, etag)) = self.get_object_with_etag_async(&key).await? else {
+            return Ok(false);
+        };
+        let stored: ResourceState = serde_json::from_slice(&stored)
+            .map_err(|e| StorageError::Serialization(format!("R2 GET parse failed: {e}")))?;
+        if stored.updated_at != expected {
+            return Ok(false);
+        }
+        let Some(etag) = etag else {
+            return Err(StorageError::Backend(
+                "R2 GET returned no ETag, so the conditional write cannot be atomic".to_string(),
+            ));
+        };
+        match self
+            .put_object_conditional_async(&key, &body, "application/json", None, Some(&etag))
+            .await
+        {
+            Ok(()) => Ok(true),
+            Err(StorageError::PreconditionFailed(_)) => Ok(false),
+            Err(error) => Err(error),
+        }
+    }
+
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {
-        self.delete_object_async(&self.state_object_key(resource_id)).await
+        self.delete_object_async(&self.state_object_key(resource_id))
+            .await
     }
 
     async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
-        let ids = self.state_ids(prefix).await?;
-        Ok(Box::pin(stream::iter(ids.into_iter().map(Ok))))
+        Ok(self.state_id_stream(prefix))
     }
 
     async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        Ok(self.state_ids(prefix).await?.len())
+        let mut ids = self.state_id_stream(prefix);
+        let mut count = 0;
+        while let Some(id) = ids.next().await {
+            id?;
+            count += 1;
+        }
+        Ok(count)
     }
 
     async fn all_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let ids = self.state_ids(prefix).await?;
-        Ok(self.states_for(ids))
+        let ids = self.state_id_stream(prefix);
+        Ok(self.states_for_stream(ids))
     }
 
     // `find_by_*` and `delete_by_prefix` use the trait defaults: R2 can't

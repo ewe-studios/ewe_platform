@@ -4,10 +4,11 @@
 //! Client hashes `(challenge + nonce)` until hash has enough leading zeros.
 //! Server validates by hashing once.
 
-use chrono::Utc;
+use crate::shared::clock::now_seconds;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_db::{KeyValueStore, StorageError};
 use foundation_compact::rng::Rng;
+use foundation_context::Ctx;
+use foundation_db::{KeyValueStore, StorageError};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -32,22 +33,26 @@ pub struct PowSolution {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ChallengeEntry {
     difficulty: u32,
+    /// Unix timestamp at which the challenge was issued.
+    #[serde(default)]
+    issued_at: i64,
     /// Unix timestamp after which the challenge is no longer valid.
     expires_at: i64,
     solved: bool,
 }
 
-/// Cache key for a PoW challenge.
+/// Cache key for a `PoW` challenge.
 fn challenge_key(challenge: &str) -> String {
     format!("pow:challenge:{challenge}")
 }
 
-/// Issues and verifies PoW challenges, keeping them in a shared async cache.
+/// Issues and verifies `PoW` challenges, keeping them in a shared async cache.
 pub struct PowService<KV: KeyValueStore> {
     cache: KV,
     difficulty: u32,
     validity_secs: u64,
     solve_validity_secs: u64,
+    ctx: Ctx,
 }
 
 impl<KV: KeyValueStore> PowService<KV> {
@@ -57,16 +62,18 @@ impl<KV: KeyValueStore> PowService<KV> {
         difficulty: u32,
         challenge_validity_secs: u64,
         solve_validity_secs: u64,
+        ctx: Ctx,
     ) -> Self {
         Self {
             cache,
             difficulty,
             validity_secs: challenge_validity_secs,
             solve_validity_secs,
+            ctx,
         }
     }
 
-    /// Generate a new PoW challenge and persist it in the shared cache.
+    /// Generate a new `PoW` challenge and persist it in the shared cache.
     ///
     /// # Errors
     ///
@@ -77,12 +84,15 @@ impl<KV: KeyValueStore> PowService<KV> {
         foundation_compact::rng::rng().fill_bytes(&mut bytes);
         let challenge = URL_SAFE_NO_PAD.encode(bytes);
 
+        let issued_at = now_seconds(&self.ctx);
         let entry = ChallengeEntry {
             difficulty: self.difficulty,
-            expires_at: Utc::now().timestamp() + self.validity_secs as i64,
+            issued_at,
+            expires_at: issued_at
+                .saturating_add(i64::try_from(self.validity_secs).unwrap_or(i64::MAX)),
             solved: false,
         };
-        self.cache.set_async(&challenge_key(&challenge), entry).await?;
+        self.cache.set(&challenge_key(&challenge), entry).await?;
 
         Ok(PowChallenge {
             difficulty: self.difficulty,
@@ -91,13 +101,13 @@ impl<KV: KeyValueStore> PowService<KV> {
         })
     }
 
-    /// Verify a PoW solution. Returns true if valid.
+    /// Verify a `PoW` solution. Returns true if valid.
     ///
     /// Single-use: a solved challenge is marked solved so it can't be replayed.
     /// Cache errors are logged and treated as a verification failure.
     pub async fn verify_solution(&self, solution: &PowSolution) -> bool {
         let key = challenge_key(&solution.challenge);
-        let mut entry: ChallengeEntry = match self.cache.get_async(&key).await {
+        let mut entry: ChallengeEntry = match self.cache.get(&key).await {
             Ok(Some(e)) => e,
             Ok(None) => return false,
             Err(e) => {
@@ -107,11 +117,18 @@ impl<KV: KeyValueStore> PowService<KV> {
         };
 
         // Lazy expiry check.
-        if Utc::now().timestamp() >= entry.expires_at {
+        if now_seconds(&self.ctx) >= entry.expires_at {
             // Best-effort eviction: the entry is already unusable.
-            if let Err(e) = self.cache.delete_async(&key).await {
+            if let Err(e) = self.cache.delete(&key).await {
                 eprintln!("PoW: failed to evict expired challenge: {e}");
             }
+            return false;
+        }
+
+        // Solve window: a solution must arrive within solve_validity_secs of issue.
+        if now_seconds(&self.ctx) - entry.issued_at
+            > i64::try_from(self.solve_validity_secs).unwrap_or(i64::MAX)
+        {
             return false;
         }
 
@@ -120,14 +137,14 @@ impl<KV: KeyValueStore> PowService<KV> {
             return false;
         }
 
-        // Hash (challenge + solution) and check leading zeros.
+        // Hash (challenge + solution) and check leading zero bits.
         let input = format!("{}{}", solution.challenge, solution.solution);
         let hash = Sha256::digest(input.as_bytes());
-        let valid = count_leading_zero_bytes(&hash) >= entry.difficulty / 8;
+        let valid = count_leading_zero_bits(&hash) >= entry.difficulty;
 
         if valid {
             entry.solved = true;
-            if let Err(e) = self.cache.set_async(&key, entry).await {
+            if let Err(e) = self.cache.set(&key, entry).await {
                 eprintln!("cache error: {e}");
                 return false;
             }
@@ -136,7 +153,7 @@ impl<KV: KeyValueStore> PowService<KV> {
     }
 }
 
-fn count_leading_zero_bytes(hash: &[u8]) -> u32 {
+fn count_leading_zero_bits(hash: &[u8]) -> u32 {
     let mut count = 0;
     for &byte in hash {
         if byte == 0 {

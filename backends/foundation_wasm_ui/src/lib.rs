@@ -30,42 +30,42 @@ pub mod cli;
 #[cfg(not(target_family = "wasm"))]
 pub mod server;
 #[cfg(not(target_family = "wasm"))]
-pub use server::{Broadcaster, BroadcastSink, BroadcastTx, FrameTransport};
+pub use server::{BroadcastSink, BroadcastTx, Broadcaster, FrameTransport};
 
 pub mod app;
 pub mod events;
-pub mod reactive;
 pub mod html_macro;
-pub mod slots;
 pub mod instruction;
 pub mod protocol;
+pub mod reactive;
 pub mod runtime;
+pub mod slots;
 pub mod theme;
 pub mod wasm;
 
 #[cfg(feature = "embedded-js")]
 pub mod embedded;
 
+pub use app::{App, SentBatches};
 pub use events::{install_event_bridge, invoke_signal_callback, uninstall_event_bridge};
 pub use html_macro::MaybeCallback;
-pub use app::{App, SentBatches};
+pub use instruction::{ColumnarReceiver, InstructionReceiver};
 pub use reactive::{mount_for, mount_show};
 pub use slots::{mount_before, mount_fragment, mount_into, Render, Slot};
-pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write
 // `use foundation_wasm_ui::html;`.
 pub use foundation_macros::{html, theme, ThemeTokens};
 // Theme token model + runtime builder, re-exported so `theme!{}` output and
 // the no-macro `Theme` builder are reachable from one import path.
 pub use foundation_theme::{GeneratedTheme, Theme, ThemeToken};
-pub use theme::{inject_theme_css, BODY_NODE_ID, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
-pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
-pub use protocol::{
-    ColumnarV1, BatchInstructionsV1, CollectedFrames, DomOpsBatch, FrameSinkV1, HandleResult,
-    JsonV1, MockProtocol, ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
-};
 #[cfg(feature = "arrow")]
 pub use protocol::ArrowIpcV2;
+pub use protocol::{
+    BatchInstructionsV1, CollectedFrames, ColumnarV1, DomOpsBatch, FrameSinkV1, HandleResult,
+    JsonV1, MockProtocol, ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
+};
+pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
+pub use theme::{inject_theme_css, BODY_NODE_ID, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
 // The Arrow IPC Layer-1 encoder (wire v2), re-exported so a server sink can pick
 // it without a direct foundation_arrow dependency.
 #[cfg(feature = "arrow")]

@@ -1,29 +1,33 @@
 //! Provider admin API handler tests (spec-57, F006).
 //!
 //! Tests the handler functions directly — no HTTP server needed.
-//! Each handler takes a ProviderService + JSON body and returns HandlerResponse.
+//! Each handler takes a `ProviderService` + JSON body and returns `HandlerResponse`.
 
 #![cfg(feature = "server-test")]
 
 use std::sync::Arc;
 
+use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::handlers::provider_admin::{
     self, CreateProviderRequest, ProviderEntry, SetSecretRequest,
 };
 use foundation_auth::server::models::provider::{ProviderType, UpstreamProvider};
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
+use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::valtron_test;
 use foundation_db::StorageProvider;
 use tempfile::TempDir;
 
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
+
 fn make_service() -> (ProviderService<StorageProvider>, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("admin_test.db");
-    let store = Arc::new(
-        super::turso_provider(db_path.to_str().unwrap().to_string()),
-    );
+    let store = Arc::new(super::turso_provider(db_path.to_str().unwrap().to_string()));
     let crypto = ProviderCrypto::from_passphrase("test-key", "default");
-    (ProviderService::new(store, crypto), dir)
+    (ProviderService::new(store, crypto, test_clock()), dir)
 }
 
 // ── Discovery ───────────────────────────────────────────────────────────
@@ -43,7 +47,6 @@ async fn extended_discovery_lists_active_providers() {
     let providers = svc.find_active().await.expect("find_active");
     assert_eq!(providers.len(), 1, "only google is active");
 
-    use foundation_auth::server::config::IdpConfig;
     let config = IdpConfig::new("https://auth.example.com".into());
     let resp = provider_admin::extended_discovery(&config, "/idp", &providers).expect("discovery");
     assert_eq!(resp.status, 200);
@@ -51,7 +54,10 @@ async fn extended_discovery_lists_active_providers() {
     let doc: serde_json::Value = resp.body;
     assert_eq!(doc["providers_supported"].as_array().unwrap().len(), 1);
     assert_eq!(doc["providers_supported"][0]["id"], "google");
-    assert!(doc["social_login_endpoint"].as_str().unwrap().contains("/authorize"));
+    assert!(doc["social_login_endpoint"]
+        .as_str()
+        .unwrap()
+        .contains("/authorize"));
 }
 
 // ── List all ────────────────────────────────────────────────────────────
@@ -76,8 +82,7 @@ async fn get_one_returns_provider() {
     svc.create(sample_google()).await.expect("create");
 
     let resp = provider_admin::get_one(&svc, "google").await.expect("get");
-    let entry: ProviderEntry =
-        serde_json::from_value(resp.body).expect("deserialize");
+    let entry: ProviderEntry = serde_json::from_value(resp.body).expect("deserialize");
     assert_eq!(entry.id, "google");
     assert_eq!(entry.name, "Google");
     assert_eq!(entry.provider_type, "oidc");
@@ -110,8 +115,7 @@ async fn create_provider_with_discovery_url() {
     };
 
     let resp = provider_admin::create(&svc, req).await.expect("create");
-    let entry: ProviderEntry =
-        serde_json::from_value(resp.body).expect("deserialize");
+    let entry: ProviderEntry = serde_json::from_value(resp.body).expect("deserialize");
     assert_eq!(entry.id, "google");
     assert!(entry.is_active);
 }
@@ -145,9 +149,10 @@ async fn update_changes_name_and_scopes() {
         client_secret: None,
     };
 
-    let resp = provider_admin::update(&svc, "google", req).await.expect("update");
-    let entry: ProviderEntry =
-        serde_json::from_value(resp.body).expect("deserialize");
+    let resp = provider_admin::update(&svc, "google", req)
+        .await
+        .expect("update");
+    let entry: ProviderEntry = serde_json::from_value(resp.body).expect("deserialize");
     assert_eq!(entry.name, "Google SSO Updated");
     assert_eq!(entry.scopes, vec!["openid"]);
 }
@@ -159,7 +164,9 @@ async fn delete_deactivates_provider() {
     let (svc, _tmp) = make_service();
     svc.create(sample_google()).await.expect("create");
 
-    let resp = provider_admin::delete(&svc, "google").await.expect("delete");
+    let resp = provider_admin::delete(&svc, "google")
+        .await
+        .expect("delete");
     let body: serde_json::Value = resp.body;
     assert_eq!(body["deleted"], "google");
 
@@ -176,7 +183,9 @@ async fn set_secret_encrypts_and_stores() {
     let req = SetSecretRequest {
         secret: "my-secret".into(),
     };
-    let resp = provider_admin::set_secret(&svc, "google", req).await.expect("set_secret");
+    let resp = provider_admin::set_secret(&svc, "google", req)
+        .await
+        .expect("set_secret");
     assert_eq!(resp.body["ok"], true);
 
     let stored = svc.get_secret("google").await.expect("get_secret");
@@ -189,7 +198,9 @@ async fn set_secret_on_missing_provider_errors() {
     let req = SetSecretRequest {
         secret: "secret".into(),
     };
-    let err = provider_admin::set_secret(&svc, "nope", req).await.unwrap_err();
+    let err = provider_admin::set_secret(&svc, "nope", req)
+        .await
+        .unwrap_err();
     assert!(err.to_string().contains("not found") || err.to_string().contains("Not"));
 }
 
@@ -206,12 +217,10 @@ fn sample_google() -> UpstreamProvider {
         authorization_url: None,
         token_url: None,
         userinfo_url: None,
-        discovery_url: Some(
-            "https://accounts.google.com/.well-known/openid-configuration".into(),
-        ),
+        discovery_url: Some("https://accounts.google.com/.well-known/openid-configuration".into()),
         scopes: vec!["openid".into(), "email".into(), "profile".into()],
         is_active: true,
-        mapping_config: Default::default(),
+        mapping_config: foundation_auth::ProviderMapping::default(),
         created_at: 0,
         updated_at: 0,
     }
@@ -231,7 +240,7 @@ fn sample_github() -> UpstreamProvider {
         discovery_url: None,
         scopes: vec!["user:email".into()],
         is_active: false,
-        mapping_config: Default::default(),
+        mapping_config: foundation_auth::ProviderMapping::default(),
         created_at: 0,
         updated_at: 0,
     }

@@ -37,8 +37,10 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use foundation_core::valtron::{Ctx,
-    EventReadinessPtr, TaskIterator, TaskStatus,
+use foundation_context::Ctx;
+use foundation_core::valtron::{
+    AnyReadiness, EventReadiness, EventReadinessPtr, ReadinessWaker, ResumeSignal, TaskIterator,
+    TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -70,6 +72,26 @@ pub enum QuicEvent {
     },
 }
 
+/// Ready once an [`Instant`] has passed. Mirrors the h2 handler's deadline
+/// signal so a driver parked on socket readiness still wakes for QUIC timers
+/// (loss detection, idle timeout, keep-alive) — a `Depends` sleeper has no
+/// deadline of its own, so the driver composes this with the socket signal.
+struct DeadlinePassed(Instant, Ctx);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.1.clock().now() >= self.0
+    }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    fn register(&self, _waker: &ReadinessWaker) -> bool {
+        true
+    }
+}
+
 /// Drives one `quinn_proto::Endpoint` and every connection it routes.
 pub struct QuicDriver {
     endpoint: Endpoint,
@@ -78,13 +100,21 @@ pub struct QuicDriver {
     conns: HashMap<ConnectionHandle, SharedConn>,
     /// Connections that finished their handshake and have not been taken yet.
     accepted: Arc<Mutex<VecDeque<QuinnConnection>>>,
+    /// Woken when a connection lands in `accepted`.
+    accept_wakers: Arc<Mutex<Vec<std::task::Waker>>>,
     /// Scratch buffer for endpoint responses (retry, version negotiation).
     scratch: Vec<u8>,
     /// Scratch buffer for connection transmits.
     tx_buf: Vec<u8>,
+    /// Heap buffer for one inbound datagram. A stack array of the maximum
+    /// datagram size would overflow the worker's stack.
+    rx_buf: Vec<u8>,
     /// Caller-injected fd readiness. When `Some`, an idle poll returns
     /// `TaskStatus::Depends(fd)` — parking on the reactor rather than spinning.
     fd_readiness: Option<EventReadinessPtr>,
+    /// A self-wake shared into every connection: a stream handle sets it after
+    /// queueing outgoing data, so a parked driver transmits that data at once.
+    driver_woken: ResumeSignal,
     idle: Duration,
     /// A server driver keeps listening with no connections; a client driver ends.
     is_server: bool,
@@ -97,7 +127,7 @@ impl std::fmt::Debug for QuicDriver {
         f.debug_struct("QuicDriver")
             .field("connections", &self.conns.len())
             .field("parks_on_reactor", &self.fd_readiness.is_some())
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -108,9 +138,12 @@ impl QuicDriver {
             socket: Arc::new(socket),
             conns: HashMap::new(),
             accepted: Arc::new(Mutex::new(VecDeque::new())),
+            accept_wakers: Arc::new(Mutex::new(Vec::new())),
             scratch: Vec::with_capacity(MAX_DATAGRAM),
             tx_buf: Vec::with_capacity(MAX_DATAGRAM),
+            rx_buf: vec![0u8; MAX_DATAGRAM],
             fd_readiness: None,
+            driver_woken: ResumeSignal::new(false),
             idle: IDLE_POLL,
             is_server,
             done: false,
@@ -133,6 +166,7 @@ impl QuicDriver {
         addr: SocketAddr,
         cfg: ClientConfig,
         server_name: &str,
+        ctx: &Ctx,
     ) -> io::Result<(Self, QuinnConnection)> {
         let socket = UdpSocket::bind(if addr.is_ipv4() {
             "0.0.0.0:0"
@@ -144,13 +178,13 @@ impl QuicDriver {
         let endpoint = Endpoint::new(Arc::new(EndpointConfig::default()), None, true, None);
         let mut driver = Self::new(endpoint, socket, false);
 
-        let now = Instant::now();
+        let now = ctx.clock().now();
         let (handle, conn) = driver
             .endpoint
             .connect(now, cfg, addr, server_name)
             .map_err(|e| io::Error::new(io::ErrorKind::ConnectionRefused, e.to_string()))?;
 
-        let state = driver.insert_conn(handle, conn, addr);
+        let state = driver.insert_conn(handle, conn, addr, ctx.clone());
         Ok((driver, QuinnConnection::new(state)))
     }
 
@@ -197,6 +231,7 @@ impl QuicDriver {
     ///
     /// # Panics
     /// Never panics; a poisoned queue yields `None`.
+    #[must_use]
     pub fn take_accepted(&self) -> Option<QuinnConnection> {
         self.accepted.lock().ok()?.pop_front()
     }
@@ -206,8 +241,20 @@ impl QuicDriver {
     ///
     /// # Panics
     /// Never panics.
+    #[must_use]
     pub fn accept_queue(&self) -> Arc<Mutex<VecDeque<QuinnConnection>>> {
         Arc::clone(&self.accepted)
+    }
+
+    /// WHY: an accept loop should park until a connection is ready rather than
+    /// poll the accept queue on a timer.
+    ///
+    /// WHAT: a list the driver wakes (and empties) whenever a connection lands
+    /// in [`Self::accept_queue`]. Register before checking the queue, so a
+    /// connection queued in between still wakes you.
+    #[must_use]
+    pub fn accept_wakers(&self) -> Arc<Mutex<Vec<std::task::Waker>>> {
+        Arc::clone(&self.accept_wakers)
     }
 
     /// WHY: an idle QUIC connection should cost nothing. Wrap the UDP socket's fd
@@ -235,105 +282,153 @@ impl QuicDriver {
         handle: ConnectionHandle,
         conn: quinn_proto::Connection,
         peer: SocketAddr,
+        ctx: Ctx,
     ) -> SharedConn {
         let state = Arc::new(Mutex::new(ConnState {
             handle,
             conn,
             peer,
+            ctx,
             inbound_bidi: VecDeque::new(),
             inbound_uni: VecDeque::new(),
             closed: None,
             recv_datagrams: VecDeque::new(),
             datagrams_supported: false,
             max_datagram_size: None,
+            wakers: Vec::new(),
+            driver_wake: self.driver_woken.clone(),
         }));
         self.conns.insert(handle, Arc::clone(&state));
         state
     }
 
-    /// Read one datagram, if any, and route it. Returns whether work was done.
-    fn pump_recv(&mut self, now: Instant) -> bool {
-        let mut buf = [0u8; MAX_DATAGRAM];
-        let (n, from) = match self.socket.recv_from(&mut buf) {
-            Ok(v) => v,
-            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return false,
-            Err(e) => {
-                tracing::debug!(error = %e, "QUIC socket recv failed");
-                return false;
-            }
-        };
+    /// Send one datagram and log a failure.
+    ///
+    /// WHY: a dropped `send_to` result hides a lost datagram. QUIC retransmits a
+    /// lost datagram after loss detection, so the send does not need a retry
+    /// here, but the failure must appear in the log.
+    fn send_datagram(&self, buf: &[u8], dest: SocketAddr, what: &str) {
+        if let Err(e) = self.socket.send_to(buf, dest) {
+            tracing::debug!(error = %e, %dest, kind = what, "QUIC datagram send failed");
+        }
+    }
 
-        let data = BytesMut::from(&buf[..n]);
-        self.scratch.clear();
-        let local_ip = self.socket.local_addr().ok().map(|a| a.ip());
+    /// Drain every datagram the socket has queued and route it. Returns whether
+    /// work was done.
+    ///
+    /// WHY: the driver parks on edge-triggered socket readiness and clears the
+    /// latched flag before each read (see `next_status`). Reading only one
+    /// datagram leaves the rest of the queue unseen: the edge is already
+    /// consumed, and the selector reports nothing more until a *new* datagram
+    /// arrives. A datagram that arrived together with another can then sit
+    /// unread until the peer retransmits (issue #290: a request body stayed
+    /// unread for the whole idle timeout behind an acknowledgement).
+    ///
+    /// WHAT: loop `recv_from` and route every datagram until it returns
+    /// `WouldBlock`.
+    fn pump_recv(&mut self, now: Instant, ctx: &Ctx) -> bool {
+        let mut worked = false;
+        loop {
+            let (n, from) = match self.socket.recv_from(&mut self.rx_buf) {
+                Ok(v) => v,
+                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return worked,
+                Err(e) => {
+                    tracing::debug!(error = %e, "QUIC socket recv failed");
+                    return worked;
+                }
+            };
+            worked = true;
+            let data = BytesMut::from(&self.rx_buf[..n]);
+            self.scratch.clear();
+            let local_ip = self.socket.local_addr().ok().map(|a| a.ip());
 
-        let Some(event) = self
-            .endpoint
-            .handle(now, from, local_ip, None, data, &mut self.scratch)
-        else {
-            return true;
-        };
+            let Some(event) =
+                self.endpoint
+                    .handle(now, from, local_ip, None, data, &mut self.scratch)
+            else {
+                continue;
+            };
 
-        match event {
-            DatagramEvent::ConnectionEvent(handle, event) => {
-                if let Some(state) = self.conns.get(&handle) {
-                    if let Ok(mut guard) = state.lock() {
-                        guard.conn.handle_event(event);
+            match event {
+                DatagramEvent::ConnectionEvent(handle, event) => {
+                    if let Some(state) = self.conns.get(&handle) {
+                        if let Ok(mut guard) = state.lock() {
+                            guard.conn.handle_event(event);
+                        }
                     }
                 }
-            }
-            // A stateless reply (retry / version negotiation). Send it verbatim.
-            DatagramEvent::Response(transmit) => {
-                let len = transmit.size.min(self.scratch.len());
-                let _ = self
-                    .socket
-                    .send_to(&self.scratch[..len], transmit.destination);
-            }
-            DatagramEvent::NewConnection(incoming) => {
-                self.scratch.clear();
-                match self.endpoint.accept(incoming, now, &mut self.scratch, None) {
-                    Ok((handle, conn)) => {
-                        tracing::debug!(?handle, %from, "QUIC connection accepted");
-                        self.insert_conn(handle, conn, from);
-                    }
-                    Err(err) => {
-                        // The endpoint may want to send a rejection datagram.
-                        if let Some(transmit) = err.response {
-                            let len = transmit.size.min(self.scratch.len());
-                            let _ = self
-                                .socket
-                                .send_to(&self.scratch[..len], transmit.destination);
+                // A stateless reply (retry / version negotiation). Send it verbatim.
+                DatagramEvent::Response(transmit) => {
+                    let len = transmit.size.min(self.scratch.len());
+                    self.send_datagram(
+                        &self.scratch[..len],
+                        transmit.destination,
+                        "stateless reply",
+                    );
+                }
+                DatagramEvent::NewConnection(incoming) => {
+                    self.scratch.clear();
+                    match self.endpoint.accept(incoming, now, &mut self.scratch, None) {
+                        Ok((handle, conn)) => {
+                            tracing::debug!(?handle, %from, "QUIC connection accepted");
+                            self.insert_conn(handle, conn, from, ctx.clone());
                         }
-                        tracing::debug!(error = %err.cause, "QUIC accept rejected");
+                        Err(err) => {
+                            // The endpoint may want to send a rejection datagram.
+                            if let Some(transmit) = err.response {
+                                let len = transmit.size.min(self.scratch.len());
+                                self.send_datagram(
+                                    &self.scratch[..len],
+                                    transmit.destination,
+                                    "accept rejection",
+                                );
+                            }
+                            tracing::debug!(error = %err.cause, "QUIC accept rejected");
+                        }
                     }
                 }
             }
         }
-        true
     }
 
     /// Drain every connection's pending transmits. Returns whether work was done.
+    ///
+    /// WHY: `poll_transmit` yields one datagram per call, and a connection with
+    /// more queued than one datagram holds (a request body behind its headers)
+    /// keeps the rest until the next call. Sending one datagram and parking
+    /// leaves that data unsent until an unrelated wake (issue #290). Draining to
+    /// `None` sends it in this pass.
+    ///
+    /// WHAT: round-robin over the connections, one datagram each per round, until
+    /// a whole round sends nothing. Round-robin keeps one busy connection from
+    /// starving the others. The loop ends because `poll_transmit` returns `None`
+    /// once the send buffer or the congestion window is empty.
     fn pump_transmit(&mut self, now: Instant) -> bool {
         let mut worked = false;
-        for state in self.conns.values() {
-            let Ok(mut guard) = state.lock() else {
-                continue;
-            };
-            let peer = guard.peer;
-            // Bounded: one transmit per connection per poll keeps the task fair.
-            self.tx_buf.clear();
-            if let Some(transmit) = guard.conn.poll_transmit(now, 1, &mut self.tx_buf) {
-                let len = transmit.size.min(self.tx_buf.len());
-                let dest = if transmit.destination.port() == 0 {
-                    peer
-                } else {
-                    transmit.destination
+        loop {
+            let mut progressed = false;
+            for state in self.conns.values() {
+                let Ok(mut guard) = state.lock() else {
+                    continue;
                 };
-                let _ = self.socket.send_to(&self.tx_buf[..len], dest);
-                worked = true;
+                let peer = guard.peer;
+                self.tx_buf.clear();
+                if let Some(transmit) = guard.conn.poll_transmit(now, 1, &mut self.tx_buf) {
+                    let len = transmit.size.min(self.tx_buf.len());
+                    let dest = if transmit.destination.port() == 0 {
+                        peer
+                    } else {
+                        transmit.destination
+                    };
+                    self.send_datagram(&self.tx_buf[..len], dest, "transmit");
+                    worked = true;
+                    progressed = true;
+                }
+            }
+            if !progressed {
+                return worked;
             }
         }
-        worked
     }
 
     /// Fire any connection timers that are due. Returns whether work was done.
@@ -358,17 +453,30 @@ impl QuicDriver {
         worked
     }
 
+    /// The earliest connection timer deadline, if any. `None` when no connection
+    /// has a pending timer (or the driver has no connections). A parked driver
+    /// composes this with its socket readiness so timers still fire.
+    fn next_timeout(&self) -> Option<Instant> {
+        self.conns
+            .values()
+            .filter_map(|state| state.lock().ok().and_then(|mut g| g.conn.poll_timeout()))
+            .min()
+    }
+
     /// Process one event from each connection. Returns an event to surface, if any.
     fn pump_events(&mut self) -> Option<QuicEvent> {
         let mut surfaced = None;
         let mut closed_handles = Vec::new();
 
+        let mut to_wake = Vec::new();
         for (handle, state) in &self.conns {
             let Ok(mut guard) = state.lock() else {
                 continue;
             };
 
+            let mut progressed = false;
             while let Some(event) = guard.conn.poll() {
+                progressed = true;
                 match event {
                     quinn_proto::Event::Connected => {
                         // For a server this is the accept point.
@@ -389,7 +497,7 @@ impl QuicDriver {
                     quinn_proto::Event::DatagramReceived => {
                         // Drain all queued datagrams into ConnState's buffer.
                         while let Some(data) = guard.conn.datagrams().recv() {
-                            guard.recv_datagrams.push_back(bytes::Bytes::from(data));
+                            guard.recv_datagrams.push_back(data);
                         }
                     }
                     quinn_proto::Event::ConnectionLost { reason } => {
@@ -400,8 +508,25 @@ impl QuicDriver {
                         });
                     }
                     // Readable/Writable/Finished/Stopped/DatagramsUnblocked are
-                    // observed by the stream/datagram handles on their next call.
+                    // observed by the stream/datagram handles on their next call,
+                    // which the wake below triggers.
                     _ => {}
+                }
+            }
+            if progressed {
+                to_wake.extend(guard.take_wakers());
+            }
+        }
+
+        // Woken outside every connection lock: a woken future may run at once
+        // on another worker and take the lock itself.
+        for waker in to_wake {
+            waker.wake();
+        }
+        if let Ok(mut accept_wakers) = self.accept_wakers.lock() {
+            if !self.accepted.lock().map_or(true, |q| q.is_empty()) {
+                for waker in accept_wakers.drain(..) {
+                    waker.wake();
                 }
             }
         }
@@ -429,15 +554,28 @@ impl TaskIterator for QuicDriver {
     type Ready = QuicEvent;
     type Pending = ();
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }
 
-        let now = Instant::now();
+        let now = ctx.clock().now();
+
+        // Clear edge-triggered readiness before reading, so a datagram that
+        // arrives after a `WouldBlock` re-latches and wakes us again — the same
+        // clear-before-read the h2 handler uses. Clearing after the read would
+        // erase that edge and leave the socket "ready" forever.
+        if let Some(fd) = &self.fd_readiness {
+            fd.clear();
+        }
+
+        // Clear the self-wake latch the same way. A stream handle sets it while
+        // we work; the pending transmit is re-discovered by `pump_transmit` on
+        // the next pass, so clearing it here can never lose data.
+        self.driver_woken.set(false);
 
         // Ordering matters: feed the state machine before asking it for output.
-        let recv = self.pump_recv(now);
+        let recv = self.pump_recv(now, &ctx);
         let timers = self.pump_timeouts(now);
         let event = self.pump_events();
         let tx = self.pump_transmit(now);
@@ -456,9 +594,28 @@ impl TaskIterator for QuicDriver {
             return None;
         }
 
-        match &self.fd_readiness {
-            Some(fd) => Some(TaskStatus::Depends(Arc::clone(fd))),
-            None => Some(TaskStatus::Delayed(self.idle)),
+        // Park on the socket when one is injected; without one, fall back to a
+        // short poll so QUIC timers still fire. A parked driver must also wake
+        // for the next connection timer, so the socket readiness is composed
+        // with a deadline signal, exactly as the h2 handler does.
+        let Some(fd) = &self.fd_readiness else {
+            return Some(TaskStatus::Delayed(self.idle));
+        };
+        // Compose the socket edge, the next timer, and the stream-handle wake
+        // into one `Depends`: any of them may make the driver runnable.
+        let woken: EventReadinessPtr = Arc::new(self.driver_woken.clone());
+        match self.next_timeout() {
+            Some(deadline) => Some(TaskStatus::Depends(Arc::new(
+                AnyReadiness::either(
+                    Arc::clone(fd),
+                    Arc::new(DeadlinePassed(deadline, ctx.clone())),
+                )
+                .with(woken),
+            ))),
+            None => Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
+                Arc::clone(fd),
+                woken,
+            )))),
         }
     }
 }

@@ -15,19 +15,15 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::shared::http::{
-    Proto, RequestDescriptor, SimpleHeaders, Status,
-};
-use foundation_netio::websocket::shared::client::WebSocketConnectConfig;
 use foundation_netio::network_client::DynNetClient;
-#[cfg(all(feature = "rpc_multi", not(target_family = "wasm")))]
-use foundation_netio::HttpClientBuilder;
+use foundation_netio::shared::http::{Proto, RequestDescriptor, SimpleHeaders, Status};
+use foundation_netio::websocket::shared::client::WebSocketConnectConfig;
 use foundation_netio::websocket::shared::error::WebSocketError;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
+#[cfg(all(feature = "rpc_multi", not(target_family = "wasm")))]
+use foundation_netio::HttpClientBuilder;
 
-use super::{
-    SendBody, Transport, TransportCapabilities, TransportError, TransportStream,
-};
+use super::{SendBody, Transport, TransportCapabilities, TransportError, TransportStream};
 
 const WS_CAPS: TransportCapabilities = TransportCapabilities {
     request_streaming: true,
@@ -46,7 +42,7 @@ pub struct WsTransport {
 }
 
 impl WsTransport {
-    /// Create a WsTransport backed by any `WebSocketConnector`.
+    /// Create a `WsTransport` backed by any `WebSocketConnector`.
     ///
     /// The transport is platform-agnostic — it holds a `DynNetClient`
     /// so the same code works with a native client or a wasm client. Typically
@@ -73,7 +69,7 @@ impl WsTransport {
             "ws"
         };
         let host = uri.host_str().unwrap_or_else(|| "localhost".to_string());
-        let port = uri.port().map(|p| format!(":{p}")).unwrap_or_default();
+        let port = uri.port().map_or_default(|p| format!(":{p}"));
         let path = uri.path_and_query().to_string();
         Ok(format!("{ws_scheme}://{host}{port}{path}"))
     }
@@ -102,9 +98,8 @@ impl Transport for WsTransport {
         // 2. Outbound: MappedSender converts Bytes → Binary → delivery's pipe.
         //    Zero bridge tasks.
         let outbound_pipe = delivery.pipe().clone();
-        let send_body: Arc<dyn SendBody> = Arc::new(
-            outbound_pipe.map_to(|b: &Bytes| WebSocketMessage::Binary(b.to_vec()))
-        );
+        let send_body: Arc<dyn SendBody> =
+            Arc::new(outbound_pipe.map_to(|b: &Bytes| WebSocketMessage::Binary(b.to_vec())));
 
         // 3. Inbound: split the task's Ready values into head + body observers
         //    (same pattern as h1.rs — split_collector_map fans output into pipes).
@@ -118,10 +113,9 @@ impl Transport for WsTransport {
                 ),
                 Err(e) => (
                     CollectionState::Close(true),
-                    Some(Err(TransportError::Connect(Arc::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        format!("ws handshake failed: {e}"),
-                    ))))),
+                    Some(Err(TransportError::Connect(Arc::new(
+                        std::io::Error::other(format!("ws handshake failed: {e}")),
+                    )))),
                 ),
                 _ => (CollectionState::Skip, None),
             },
@@ -131,17 +125,13 @@ impl Transport for WsTransport {
         //    Second split: body (Binary → Bytes).
         let (body_obs, body_tail) = head_tail.split_collector_map(
             |item: &Result<WebSocketMessage, WebSocketError>| match item {
-                Ok(WebSocketMessage::Binary(data)) => (
-                    true,
-                    Some(Ok(Bytes::from(data.clone()))),
-                ),
+                Ok(WebSocketMessage::Binary(data)) => (true, Some(Ok(Bytes::from(data.clone())))),
                 Ok(WebSocketMessage::Close(..)) => (true, None),
                 Err(e) => (
                     true,
-                    Some(Err(TransportError::Connect(Arc::new(std::io::Error::new(
-                        std::io::ErrorKind::Other,
-                        format!("ws stream error: {e}"),
-                    ))))),
+                    Some(Err(TransportError::Connect(Arc::new(
+                        std::io::Error::other(format!("ws stream error: {e}")),
+                    )))),
                 ),
                 _ => (false, None),
             },
@@ -151,18 +141,14 @@ impl Transport for WsTransport {
         //    Drive: the final continuation must still be consumed. map_ready(|_| ())
         //    terminates it — no buffered delivery queue leaking.
         let drive = body_tail.map_ready(|_| ());
-        valtron::send(drive).map_err(|e| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            )))
-        })?;
+        valtron::send(drive)
+            .map_err(|e| TransportError::Connect(Arc::new(std::io::Error::other(e.to_string()))))?;
 
         // 4. TransportStream — head/body as erased streams, send_body as Arc<dyn SendBody>.
         let head = Box::pin(head_obs.into_next_stream());
         let recv_body = Box::pin(body_obs.into_next_stream());
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        trailer_tx.close(); // WS has no h2 trailers
+        let _ = trailer_tx.close(); // WS has no h2 trailers
 
         Ok(TransportStream {
             send_body,

@@ -32,8 +32,8 @@ use super::shared::ApiResponse;
 /// Arguments for [`SwarmLeave_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SwarmLeaveArgs {
-    /// Query parameter: `force`.
-    pub force: Option<String>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
 }
 
 // =============================================================================
@@ -71,13 +71,16 @@ pub async fn swarm_leave_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/swarm/leave",);
-    let endpoint_url = format!("{}{}", base_url, path);
+    let path = format!("/swarm/leave");
+    let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("force", args.force.as_deref());
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

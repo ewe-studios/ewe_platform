@@ -1,4 +1,4 @@
-//! ObservableFs — decorator that wraps any AsyncVfsFileSystem and emits typed audit events.
+//! `ObservableFs` — decorator that wraps any `AsyncVfsFileSystem` and emits typed audit events.
 //!
 //! # Overview
 //!
@@ -12,7 +12,7 @@
 //! ```ignore
 //! use foundation_nativeapis::vfs::{ObservableFs, MemoryFs};
 //!
-//! let fs = ObservableFs::new(MemoryFs::new());
+//! let fs = ObservableFs::new(MemoryFs::new(foundation_context::Ctx::host()));
 //! let rx = fs.subscribe();
 //!
 //! fs.write_file_async("/hello.txt".into(), b"world".to_vec()).await.unwrap();
@@ -156,12 +156,12 @@ pub struct ObservableFs<F: AsyncVfsFileSystem> {
 }
 
 impl<F: AsyncVfsFileSystem> ObservableFs<F> {
-    /// WHY: Wrap any AsyncVfsFileSystem to emit typed audit events for all operations.
+    /// WHY: Wrap any `AsyncVfsFileSystem` to emit typed audit events for all operations.
     ///
-    /// WHAT: Creates an ObservableFs around the given inner filesystem.
+    /// WHAT: Creates an `ObservableFs` around the given inner filesystem.
     ///
     /// HOW: Stores the inner fs, creates a default-capacity Broadcaster wrapped
-    /// in a Mutex for interior mutability (since VfsFileSystem trait uses &self).
+    /// in a Mutex for interior mutability (since `VfsFileSystem` trait uses &self).
     pub fn new(inner: F) -> Self {
         Self {
             inner,
@@ -173,6 +173,9 @@ impl<F: AsyncVfsFileSystem> ObservableFs<F> {
     /// Subscribe to the audit event stream.
     ///
     /// Returns a `Receiver<VfsEvent>` that receives all subsequent events.
+    ///
+    /// # Panics
+    /// Panics if the operation cannot complete.
     pub fn subscribe(&self) -> Receiver<VfsEvent> {
         self.broadcaster.lock().unwrap().subscribe()
     }
@@ -209,14 +212,11 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.stat_async(path.clone()).await {
             Ok(meta) => {
-                self.emit(VfsEvent::StatQueried {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::StatQueried { path, version });
                 Ok(meta)
             }
             Err(e) => {
-                self.emit_error("stat", &path, &format!("{:?}", e));
+                self.emit_error("stat", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -234,7 +234,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(exists)
             }
             Err(e) => {
-                self.emit_error("exists", &path, &format!("{:?}", e));
+                self.emit_error("exists", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -264,7 +264,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("chmod", &path, &format!("{:?}", e));
+                self.emit_error("chmod", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -282,7 +282,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("symlink", &link, &format!("{:?}", e));
+                self.emit_error("symlink", &link, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -300,7 +300,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(target)
             }
             Err(e) => {
-                self.emit_error("readlink", &path, &format!("{:?}", e));
+                self.emit_error("readlink", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -310,15 +310,11 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.rename_async(from.clone(), to.clone()).await {
             Ok(()) => {
-                self.emit(VfsEvent::Renamed {
-                    from,
-                    to,
-                    version,
-                });
+                self.emit(VfsEvent::Renamed { from, to, version });
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("rename", &from, &format!("{:?}", e));
+                self.emit_error("rename", &from, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -328,14 +324,11 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.remove_async(path.clone()).await {
             Ok(()) => {
-                self.emit(VfsEvent::Removed {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::Removed { path, version });
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("remove", &path, &format!("{:?}", e));
+                self.emit_error("remove", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -353,13 +346,17 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(file)
             }
             Err(e) => {
-                self.emit_error("open", &path, &format!("{:?}", e));
+                self.emit_error("open", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         let version = self.next_version();
         match self.inner.open_seekable_async(path.clone(), mode).await {
             Ok(file) => {
@@ -371,7 +368,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(file)
             }
             Err(e) => {
-                self.emit_error("open_seekable", &path, &format!("{:?}", e));
+                self.emit_error("open_seekable", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -381,14 +378,11 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.open_directory_async(path.clone()).await {
             Ok(dir) => {
-                self.emit(VfsEvent::DirectoryOpened {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::DirectoryOpened { path, version });
                 Ok(dir)
             }
             Err(e) => {
-                self.emit_error("open_directory", &path, &format!("{:?}", e));
+                self.emit_error("open_directory", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -406,7 +400,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
                 Ok(file)
             }
             Err(e) => {
-                self.emit_error("create", &path, &format!("{:?}", e));
+                self.emit_error("create", &path, &format!("{e:?}"));
                 Err(e)
             }
         }
@@ -416,14 +410,11 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.mkdir_async(path.clone()).await {
             Ok(()) => {
-                self.emit(VfsEvent::DirectoryCreated {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::DirectoryCreated { path, version });
                 Ok(())
             }
             Err(e) => {
-                self.emit_error("mkdir", &path, &format!("{:?}", e));
+                self.emit_error("mkdir", &path, &format!("{e:?}"));
                 Err(e)
             }
         }

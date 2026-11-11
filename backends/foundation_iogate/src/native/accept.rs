@@ -18,42 +18,18 @@
 
 use std::io;
 use std::net::{SocketAddr, TcpStream};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use foundation_nativeapis::native::fd::Reactor;
 use foundation_nativeapis::native::poll::BackendPreference;
-use foundation_nativeapis::Token;
 use foundation_netio::netcap::Connection;
+use foundation_reactor::next_token;
 
 use crate::native::CompletionSocket;
 use crate::ServerIo;
 
-/// Per-process token counter for reactor registrations.
-///
-/// The completion selector reserves the top two bits of a `Token` (`POLL_TAG`),
-/// so tokens must stay below `2^62`; the mask in [`next_token`] enforces that.
-/// Starts at 1 — `Token(0)` is left free as a conventional sentinel.
-static NEXT_TOKEN: AtomicUsize = AtomicUsize::new(1);
-
-/// WHY: every reactor registration needs a distinct `Token`, and the completion
-/// selector reserves the two high bits, so a naive counter could eventually
-/// collide with the tag space.
-///
-/// WHAT: the next registration token, wrapped into the low 62 bits.
-///
-/// HOW: a relaxed fetch-add masked to `2^62 - 1`. Collision requires `2^62`
-/// concurrently-live registrations, which is not reachable.
-///
-/// # Panics
-/// Never panics.
-fn next_token() -> Token {
-    let n = NEXT_TOKEN.fetch_add(1, Ordering::Relaxed) & ((1usize << 62) - 1);
-    Token(n)
-}
-
 /// Initialise the shared reactor on the backend `mode` requires.
 ///
-/// WHY: an operator asking for [`ServerIo::Completion`] must get io_uring or a
+/// WHY: an operator asking for [`ServerIo::Completion`] must get `io_uring` or a
 /// hard error at startup — never a silent demotion to epoll discovered later
 /// from latency graphs (Feature 48, no-silent-defaults). Call this once before
 /// the accept loop begins.
@@ -67,7 +43,7 @@ fn next_token() -> Token {
 /// `AlreadyInitialised`.
 ///
 /// # Errors
-/// The probe's failure if `Completion` is asked for on a host without io_uring,
+/// The probe's failure if `Completion` is asked for on a host without `io_uring`,
 /// or `AlreadyInitialised` if the reactor is already up on a different backend.
 ///
 /// # Panics
@@ -144,7 +120,7 @@ pub fn accept_connection(
 /// WHY: a proxy's *upstream* leg is an outbound `TcpStream::connect`, never
 /// registered with the reactor, so its reads are `read(2)` and there is no inbox
 /// to park on. Dialing through here registers the connected socket exactly as the
-/// accept path does, so both legs of a relay read from the io_uring inbox. RECV
+/// accept path does, so both legs of a relay read from the `io_uring` inbox. RECV
 /// on a freshly connected client socket is as valid as on an accepted one.
 ///
 /// WHAT: `Std` yields a plain `Connection::Tcp`; every other mode registers the
@@ -162,7 +138,32 @@ pub fn accept_connection(
 /// # Panics
 /// Never panics.
 pub fn connect_completion(addr: SocketAddr, mode: ServerIo) -> io::Result<Connection> {
-    let tcp = TcpStream::connect(addr)?;
+    // Blocking: waits for the whole connect. An async caller uses
+    // `adopt_connected` after a non-blocking connect instead.
+    adopt_connected(TcpStream::connect(addr)?, addr, mode)
+}
+
+/// Build the netio [`Connection`] for an already connected upstream `tcp` under
+/// `mode` — the second half of [`connect_completion`], without the blocking
+/// connect.
+///
+/// WHY: the `io_uring` dial must not hold a worker thread while the connect is in
+/// flight. A caller starts a non-blocking `connect(2)`, parks on write
+/// readiness until it finishes, and then hands the connected socket here to be
+/// registered with the shared reactor.
+///
+/// WHAT: `Std` yields a plain `Connection::Tcp`; every other mode registers the
+/// fd with the reactor and yields `Connection::Completion` (see
+/// [`connect_completion`]). `addr` is the captured peer address. `tcp` is set
+/// non-blocking.
+///
+/// # Errors
+/// The socket mode could not be set, the reactor could not start, or the socket
+/// could not be registered.
+///
+/// # Panics
+/// Never panics.
+pub fn adopt_connected(tcp: TcpStream, addr: SocketAddr, mode: ServerIo) -> io::Result<Connection> {
     // A dialed upstream is always spliced non-blocking (the reactor read paths
     // require it, and the `Std` splice loop expects `WouldBlock` too).
     tcp.set_nonblocking(true)?;

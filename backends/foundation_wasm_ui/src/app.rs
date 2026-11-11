@@ -27,10 +27,10 @@ use foundation_ui_traits::Html;
 
 use crate::theme::{inject_theme_css, BODY_NODE_ID};
 
-use crate::protocol::{ColumnarV1, FrameSink, FrameSinkV1, JsonV1, MockProtocol, ProtocolMethods};
 use crate::protocol::CollectedFrames;
-use foundation_ui_traits::ProtocolEncoder;
+use crate::protocol::{ColumnarV1, FrameSink, FrameSinkV1, JsonV1, MockProtocol, ProtocolMethods};
 use crate::runtime::{Runtime, SharedInstructionReceiver};
+use foundation_ui_traits::ProtocolEncoder;
 
 /// The batches a [`MockProtocol`] captured — what `App::mock` hands back
 /// for assertions.
@@ -116,10 +116,7 @@ impl App {
     pub fn with_protocol(protocol: impl ProtocolMethods<Vec<DomOp>> + 'static) -> Self {
         let signals = Rc::new(SignalsRuntime::new());
         let ctx = Context::new(Rc::clone(&signals));
-        let runtime = Runtime::builder()
-            .protocol(protocol)
-            .global_arena()
-            .build();
+        let runtime = Runtime::builder().protocol(protocol).global_arena().build();
         runtime.attach(&signals);
         let receiver = runtime.receiver();
         Self {

@@ -4,7 +4,7 @@
 //! cannot be checked by reading the code — a stray `read(2)` anywhere under
 //! `poll()` would silently reintroduce the syscall this feature exists to
 //! remove. The feature's acceptance criterion says so directly: *"Hot-path reads
-//! show zero read() syscalls under strace on a supporting kernel."*
+//! show zero `read()` syscalls under strace on a supporting kernel."*
 //!
 //! WHAT: run the completion read path under a syscall tracer and assert that no
 //! read-family syscall is ever issued against the socket, while the bytes still
@@ -16,7 +16,7 @@
 //! steps it with `PTRACE_SYSCALL`, decoding `orig_rax` (syscall number) and `rdi`
 //! (first argument, the fd) at each syscall-entry stop.
 //!
-//! x86_64 only: `PTRACE_GETREGS` and `user_regs_struct` are architecture
+//! `x86_64` only: `PTRACE_GETREGS` and `user_regs_struct` are architecture
 //! specific, and aarch64 needs `PTRACE_GETREGSET` instead.
 
 #![cfg(all(target_os = "linux", target_arch = "x86_64", feature = "uring"))]
@@ -25,9 +25,10 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::poll::probe;
 use foundation_nativeapis::native::poll::sys::unix::selector::{uring, uring_completion};
 use foundation_nativeapis::{Events, Interest, Token};
+
+mod common;
 
 /// x86_64 syscall numbers for every way a process can read from an fd.
 const SYS_READ: u64 = 0;
@@ -101,7 +102,12 @@ fn socketpair() -> (RawFd, RawFd) {
     let mut fds = [0 as libc::c_int; 2];
     // SAFETY: `fds` is a valid 2-element array for socketpair to fill.
     let rc = unsafe {
-        libc::socketpair(libc::AF_UNIX, libc::SOCK_STREAM | libc::SOCK_CLOEXEC, 0, fds.as_mut_ptr())
+        libc::socketpair(
+            libc::AF_UNIX,
+            libc::SOCK_STREAM | libc::SOCK_CLOEXEC,
+            0,
+            fds.as_mut_ptr(),
+        )
     };
     assert!(rc == 0, "socketpair: {}", io::Error::last_os_error());
     (fds[0], fds[1])
@@ -110,7 +116,12 @@ fn socketpair() -> (RawFd, RawFd) {
 fn write_all(fd: RawFd, data: &[u8]) {
     // SAFETY: writing `data.len()` bytes from a valid slice to an owned fd.
     let n = unsafe { libc::write(fd, data.as_ptr().cast(), data.len()) };
-    assert_eq!(n, data.len() as isize, "write: {}", io::Error::last_os_error());
+    assert_eq!(
+        n,
+        data.len() as isize,
+        "write: {}",
+        io::Error::last_os_error()
+    );
 }
 
 fn close(fd: RawFd) {
@@ -136,7 +147,12 @@ fn trace_hot_path(watch_fd: RawFd, hot_path: impl FnOnce() -> bool) -> SyscallCo
         // SAFETY: standard PTRACE_TRACEME handshake; the parent is already in
         // waitpid. `_exit` avoids running the test harness's atexit handlers.
         unsafe {
-            libc::ptrace(libc::PTRACE_TRACEME, 0, std::ptr::null_mut::<libc::c_void>(), std::ptr::null_mut::<libc::c_void>());
+            libc::ptrace(
+                libc::PTRACE_TRACEME,
+                0,
+                std::ptr::null_mut::<libc::c_void>(),
+                std::ptr::null_mut::<libc::c_void>(),
+            );
             libc::raise(libc::SIGSTOP);
         }
         let ok = hot_path();
@@ -168,7 +184,12 @@ fn trace_hot_path(watch_fd: RawFd, hot_path: impl FnOnce() -> bool) -> SyscallCo
     loop {
         // SAFETY: resume the stopped, traced child until its next syscall stop.
         unsafe {
-            libc::ptrace(libc::PTRACE_SYSCALL, pid, std::ptr::null_mut::<libc::c_void>(), std::ptr::null_mut::<libc::c_void>());
+            libc::ptrace(
+                libc::PTRACE_SYSCALL,
+                pid,
+                std::ptr::null_mut::<libc::c_void>(),
+                std::ptr::null_mut::<libc::c_void>(),
+            );
             libc::waitpid(pid, &mut status, 0);
         }
 
@@ -236,16 +257,11 @@ fn spin_until(budget: Duration, mut done: impl FnMut() -> bool) -> bool {
 
 #[test]
 fn completion_mode_reads_the_socket_without_a_read_syscall() {
-    match probe::probe() {
-        Ok(caps) if caps.supports_completion() => {}
-        Ok(caps) => {
-            eprintln!("skipping: kernel lacks the completion tier ({caps})");
-            return;
-        }
-        Err(e) => {
-            eprintln!("skipping: io_uring unavailable ({e})");
-            return;
-        }
+    if common::io_uring_missing(
+        "completion read syscall count",
+        common::Requires::Completion,
+    ) {
+        return;
     }
 
     let (a, b) = socketpair();
@@ -253,14 +269,18 @@ fn completion_mode_reads_the_socket_without_a_read_syscall() {
 
     // Build and arm before forking, so the traced region is only the hot path.
     let sel = uring_completion::Selector::new().expect("completion selector");
-    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     write_all(b, b"kernel read this");
 
     let counts = trace_hot_path(a, move || {
         let mut events = Events::with_capacity(16);
         spin_until(Duration::from_secs(3), || {
             events.clear();
-            if sel.poll(&mut events, Some(Duration::from_millis(20))).is_err() {
+            if sel
+                .poll(&mut events, Some(Duration::from_millis(20)))
+                .is_err()
+            {
                 return false;
             }
             sel.take_completions(token).iter().any(|c| match c {
@@ -307,7 +327,10 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
 
     let reactor = Reactor::get().expect("reactor");
     if reactor.backend() != Backend::UringCompletion {
-        eprintln!("skipping: reactor is on {} — completion mode unavailable", reactor.backend());
+        eprintln!(
+            "skipping: reactor is on {} — completion mode unavailable",
+            reactor.backend()
+        );
         return;
     }
 
@@ -316,8 +339,13 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
     let owned_a = unsafe { OwnedFd::from_raw_fd(a) };
     let raw_a = owned_a.as_raw_fd();
 
-    let sock = RegisteredFd::with_completion(owned_a, reactor.registry(), Token(0xF43_9001), Interest::READABLE)
-        .expect("register socket");
+    let sock = RegisteredFd::with_completion(
+        owned_a,
+        reactor.registry(),
+        Token(0xF43_9001),
+        Interest::READABLE,
+    )
+    .expect("register socket");
     write_all(b, b"popped from the inbox");
 
     // Let the drain thread deliver into the inbox before we fork away from it.
@@ -325,7 +353,10 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
     while Instant::now() < deadline && !sock.has_completions() {
         std::thread::sleep(Duration::from_millis(5));
     }
-    assert!(sock.has_completions(), "the kernel never delivered into the inbox");
+    assert!(
+        sock.has_completions(),
+        "the kernel never delivered into the inbox"
+    );
 
     let counts = trace_hot_path(raw_a, move || {
         let mut buf = [0u8; 64];
@@ -364,16 +395,11 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
 /// buffer and puts the bytes on the wire via `io_uring_enter`, not `write(2)`.
 #[test]
 fn completion_mode_writes_the_socket_without_a_write_syscall() {
-    match probe::probe() {
-        Ok(caps) if caps.supports_completion() => {}
-        Ok(caps) => {
-            eprintln!("skipping: kernel lacks the completion tier ({caps})");
-            return;
-        }
-        Err(e) => {
-            eprintln!("skipping: io_uring unavailable ({e})");
-            return;
-        }
+    if common::io_uring_missing(
+        "completion write syscall count",
+        common::Requires::Completion,
+    ) {
+        return;
     }
 
     let (a, b) = socketpair();
@@ -392,7 +418,10 @@ fn completion_mode_writes_the_socket_without_a_write_syscall() {
         let mut events = Events::with_capacity(16);
         spin_until(Duration::from_secs(3), || {
             events.clear();
-            if sel.poll(&mut events, Some(Duration::from_millis(20))).is_err() {
+            if sel
+                .poll(&mut events, Some(Duration::from_millis(20)))
+                .is_err()
+            {
                 return false;
             }
             sel.take_send_completions(token)
@@ -433,8 +462,7 @@ fn completion_mode_writes_the_socket_without_a_write_syscall() {
 /// that silently counts nothing would make the test above pass vacuously.
 #[test]
 fn readiness_mode_does_issue_a_read_syscall() {
-    if probe::probe().is_err() {
-        eprintln!("skipping: io_uring unavailable");
+    if common::io_uring_missing("readiness read syscall count", common::Requires::IoUring) {
         return;
     }
 
@@ -442,14 +470,18 @@ fn readiness_mode_does_issue_a_read_syscall() {
     let token = Token(1);
 
     let sel = uring::Selector::new().expect("readiness selector");
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_fd(a, token, Interest::READABLE)
+        .expect("register socket");
     write_all(b, b"read me");
 
     let counts = trace_hot_path(a, move || {
         let mut events = Events::with_capacity(16);
         spin_until(Duration::from_secs(3), || {
             events.clear();
-            if sel.poll(&mut events, Some(Duration::from_millis(20))).is_err() {
+            if sel
+                .poll(&mut events, Some(Duration::from_millis(20)))
+                .is_err()
+            {
                 return false;
             }
             if !events.iter().any(|e| e.token() == token && e.is_readable()) {

@@ -2,9 +2,11 @@
 // Wakeable primitive can be notified after some expired duration
 // registered with.
 
+use foundation_context::Ctx;
 use std::{collections::HashMap, sync::Arc, time};
 
 use super::{Entry, EntryList};
+use foundation_context::Clock;
 use foundation_nostd::comp::basic::RwLock;
 
 static DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::from_millis(10);
@@ -13,11 +15,22 @@ pub trait Waker {
     fn wake(&self);
 }
 
-#[derive(Debug)]
 pub struct DurationWaker<T> {
     pub handle: T,
-    pub from: time::Instant,
+    pub from: foundation_compact::Instant,
     pub how_long: time::Duration,
+    /// The clock that says when this waker matures.
+    ctx: Ctx,
+}
+
+impl<T: core::fmt::Debug> core::fmt::Debug for DurationWaker<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("DurationWaker")
+            .field("handle", &self.handle)
+            .field("from", &self.from)
+            .field("how_long", &self.how_long)
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Debug)]
@@ -53,16 +66,25 @@ impl<T> DurationStore<T> {
 // --- core implementation methods
 
 impl<T: std::fmt::Debug> DurationStore<T> {
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Inserts a new Wakeable.
     pub fn insert(&self, wakeable: DurationWaker<T>) -> Entry {
         self.store.write().unwrap().insert(wakeable)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Update an existing Wakeable returning the old handle used.
     pub fn update(&self, handle: &Entry, wakeable: DurationWaker<T>) -> Option<DurationWaker<T>> {
         self.store.write().unwrap().update(handle, wakeable)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Removes a previously inserted sleeping ticker.
     ///
     /// Returns `true` if the ticker was notified.
@@ -71,16 +93,23 @@ impl<T: std::fmt::Debug> DurationStore<T> {
         self.store.write().unwrap().take(handle)
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         self.store.read().unwrap().active_slots() > 0
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn count(&self) -> usize {
         self.store.read().unwrap().active_slots()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the list of
     #[must_use]
     pub fn get_matured(&self) -> Vec<DurationWaker<T>> {
@@ -90,6 +119,9 @@ impl<T: std::fmt::Debug> DurationStore<T> {
             .select_take(|t| t.is_ready(None))
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the minimum duration of time of all entries in the
     /// sleeper, providing you the minimum time when one of the task is
     /// guaranteed to be ready for progress.
@@ -108,6 +140,9 @@ impl<T: std::fmt::Debug> DurationStore<T> {
             .copied()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the maximum duration of time of all entries in the
     /// sleeper, providing you the maximum time to potentially wait
     /// for all tasks to be ready.
@@ -128,6 +163,12 @@ impl<T: std::fmt::Debug> DurationStore<T> {
 
 pub trait Timeable {
     fn remaining_duration(&self) -> Option<time::Duration>;
+
+    /// Whether the sleeper must be re-checked on a timer because it can become
+    /// ready without a wake. Defaults to `false`: a pure timer needs none.
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 impl<T: Waker> Timeable for DurationWaker<T> {
@@ -153,41 +194,57 @@ impl<T: Waker> Waker for DurationWaker<T> {
 }
 
 impl<T> DurationWaker<T> {
-    pub fn new(handle: T, from: time::Instant, how_long: time::Duration) -> Self {
+    pub fn new(
+        handle: T,
+        from: foundation_compact::Instant,
+        how_long: time::Duration,
+        ctx: Ctx,
+    ) -> Self {
         Self {
             handle,
             from,
             how_long,
+            ctx,
         }
     }
 
-    pub fn from_now(handle: T, how_long: time::Duration) -> Self {
-        Self::new(handle, time::Instant::now(), how_long)
+    pub fn from_now(handle: T, how_long: time::Duration, ctx: Ctx) -> Self {
+        let from = ctx.clock().now();
+        Self::new(handle, from, how_long, ctx)
     }
 
     pub fn remaining(&self) -> Option<time::Duration> {
-        let now = std::time::Instant::now();
-        match self.from.checked_add(self.how_long) {
-            Some(when_ready) => when_ready.checked_duration_since(now),
-            None => None,
-        }
+        let now = self.ctx.clock().now();
+        // A deadline that has already passed is due NOW, not "no deadline".
+        // Returning `None` here made `Sleepers::time_until_next` drop a past-due
+        // timer, so a worker picked the next far deadline and slept past a task
+        // that was already runnable (spec 70 feature 121: a 10 ms H2 pump poll
+        // next to a 60 s idle deadline slept for 60 s).
+        self.from
+            .checked_add(self.how_long)
+            .map(|when_ready| when_ready.saturating_duration_since(now))
     }
 
     pub fn try_is_ready(&self) -> Option<bool> {
-        let now = std::time::Instant::now();
+        let now = self.ctx.clock().now();
+        // `now == when_ready` is due, not early. `remaining` and
+        // `time_until_next` already treat equality as due (zero wait), so a
+        // strict "past" test here made a sleeper that a simulated clock moved
+        // exactly onto its deadline never mature: the executor then spun with a
+        // zero wait (GitHub issue #305).
         self.from
             .checked_add(self.how_long)
-            .map(|when_ready| when_ready.checked_duration_since(now).is_none())
+            .map(|when_ready| now >= when_ready)
     }
 
     /// Returns the deadline when this waker will be ready.
-    pub fn deadline(&self) -> time::Instant {
+    pub fn deadline(&self) -> foundation_compact::Instant {
         self.from + self.how_long
     }
 }
 
 /// Sleepers manages sleeping tasks keyed by their task Entry.
-/// Uses HashMap to avoid entry ID collisions from EntryList.
+/// Uses `HashMap` to avoid entry ID collisions from `EntryList`.
 ///
 /// # Design Note
 /// Previously used `EntryList<T>` which generated new entry IDs for each insert,
@@ -197,12 +254,25 @@ impl<T> DurationWaker<T> {
 ///
 /// The HashMap-based approach keys sleepers directly by the task's Entry,
 /// eliminating this collision issue entirely.
-#[derive(Debug)]
+#[allow(
+    clippy::struct_field_names,
+    reason = "the field names the directory that stores the sleepers"
+)]
 pub struct Sleepers<T: Waiter> {
     /// Map from task entry to sleeper data.
     sleepers: Arc<RwLock<HashMap<Entry, T>>>,
     /// max wait for readiness checks
     max_readiness_wait: std::time::Duration,
+    /// The clock that says when a sleeper matures.
+    ctx: Ctx,
+}
+
+impl<T: Waiter + core::fmt::Debug> core::fmt::Debug for Sleepers<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Sleepers")
+            .field("max_readiness_wait", &self.max_readiness_wait)
+            .finish_non_exhaustive()
+    }
 }
 
 pub trait Timing {
@@ -218,7 +288,7 @@ impl<T: Timeable + Waiter + std::fmt::Debug> Timing for Sleepers<T> {
         let sleepers = self.sleepers.read().unwrap();
         sleepers
             .values()
-            .filter_map(|sleeper| sleeper.remaining_duration())
+            .filter_map(Timeable::remaining_duration)
             .min()
     }
 
@@ -229,7 +299,7 @@ impl<T: Timeable + Waiter + std::fmt::Debug> Timing for Sleepers<T> {
         let sleepers = self.sleepers.read().unwrap();
         sleepers
             .values()
-            .filter_map(|sleeper| sleeper.remaining_duration())
+            .filter_map(Timeable::remaining_duration)
             .max()
     }
 }
@@ -247,70 +317,100 @@ impl<T: Waiter + std::fmt::Debug> Clone for Sleepers<T> {
         Self {
             sleepers: self.sleepers.clone(),
             max_readiness_wait: self.max_readiness_wait,
+            ctx: self.ctx.clone(),
         }
-    }
-}
-
-impl<T: Waiter + std::fmt::Debug> Default for Sleepers<T> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
 impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new(ctx: Ctx) -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(HashMap::new())),
             max_readiness_wait: DEFAULT_READINESS_WAIT,
+            ctx,
         }
     }
 
     #[must_use]
-    pub fn with_max_readiness_wait(dur: std::time::Duration) -> Self {
+    pub fn with_max_readiness_wait(dur: std::time::Duration, ctx: Ctx) -> Self {
         Self {
             sleepers: Arc::new(RwLock::new(HashMap::new())),
             max_readiness_wait: dur,
+            ctx,
         }
+    }
+
+    /// The clock this directory reads to decide when a sleeper matures.
+    /// Kept: a getter that returns the clock of the stored `Ctx`.
+    #[must_use]
+    pub fn clock(&self) -> Arc<dyn Clock> {
+        self.ctx.clock()
     }
 
     pub fn set_max_readiness_wait(&mut self, dur: std::time::Duration) {
         self.max_readiness_wait = dur;
     }
 
+    /// The maximum wait a readiness check may block (see
+    /// [`Self::get_matured`]).
+    #[must_use]
+    pub fn max_readiness_wait(&self) -> std::time::Duration {
+        self.max_readiness_wait
+    }
+
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Inserts a new Wakeable keyed by the task entry.
     /// The entry is the task's entry, not a new sleeper entry.
     pub fn insert(&self, entry: Entry, wakeable: T) {
         self.sleepers.write().unwrap().insert(entry, wakeable);
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Update an existing Wakeable returning the old handle used.
     pub fn update(&self, handle: &Entry, wakeable: T) -> Option<T> {
         self.sleepers.write().unwrap().insert(*handle, wakeable)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Removes a previously inserted sleeping ticker.
     #[must_use]
     pub fn remove(&self, handle: &Entry) -> Option<T> {
         self.sleepers.write().unwrap().remove(handle)
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns true if a sleeper exists for the given entry.
     #[must_use]
     pub fn contains(&self, handle: &Entry) -> bool {
         self.sleepers.read().unwrap().contains_key(handle)
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn has_pending_tasks(&self) -> bool {
         !self.sleepers.read().unwrap().is_empty()
     }
 
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     #[must_use]
     pub fn count(&self) -> usize {
         self.sleepers.read().unwrap().len()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the list of matured (ready) sleepers.
     #[must_use]
     pub fn get_matured(&self) -> Vec<T> {
@@ -329,32 +429,54 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         matured
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the earliest deadline among all Timable sleepers.
     ///
     /// Used to calculate how long a thread should sleep when no work is available.
     /// Returns None if no sleepers have deadlines (e.g., all are Atomic).
-    pub fn minimum_deadline(&self) -> Option<time::Instant>
+    #[must_use]
+    pub fn minimum_deadline(&self) -> Option<foundation_compact::Instant>
     where
         T: crate::synca::sleepers::Timeable,
     {
         let sleepers = self.sleepers.read().unwrap();
+        let now = self.ctx.clock().now();
         sleepers
             .values()
-            .filter_map(|sleeper| sleeper.remaining_duration())
-            .map(|remaining| time::Instant::now() + remaining)
+            .filter_map(Timeable::remaining_duration)
+            .map(|remaining| now + remaining)
             .min()
     }
 
+    ///
+    /// # Panics
+    /// Panics if the internal lock is poisoned.
     /// Returns the duration until the earliest sleeper deadline.
     ///
+    /// Whether any sleeper must be re-checked on a timer (see
+    /// [`Timeable::needs_polling`]).
+    pub fn needs_polling(&self) -> bool
+    where
+        T: crate::synca::sleepers::Timeable,
+    {
+        self.sleepers
+            .read()
+            .unwrap()
+            .values()
+            .any(Timeable::needs_polling)
+    }
+
     /// Returns None if no sleepers have deadlines.
-    /// Returns Duration::ZERO if a sleeper is already past its deadline.
+    /// Returns `Duration::ZERO` if a sleeper is already past its deadline.
+    #[must_use]
     pub fn time_until_next(&self) -> Option<time::Duration>
     where
         T: crate::synca::sleepers::Timeable,
     {
         self.minimum_deadline().map(|deadline| {
-            let now = time::Instant::now();
+            let now = self.ctx.clock().now();
             if deadline > now {
                 deadline - now
             } else {

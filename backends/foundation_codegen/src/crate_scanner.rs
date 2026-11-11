@@ -207,13 +207,12 @@ impl CrateScanner {
             .get("workspace")
             .and_then(|w| w.get("members"))
             .and_then(|m| m.as_array())
-            .map(|arr| {
+            .map_or_default(|arr| {
                 arr.iter()
                     .filter_map(|v| v.as_str())
                     .map(ToString::to_string)
                     .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+            });
 
         // Collect crate paths (glob patterns are NOT expanded — documented limitation)
         let mut crate_paths = Vec::new();

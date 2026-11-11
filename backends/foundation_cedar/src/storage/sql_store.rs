@@ -1,7 +1,7 @@
 use foundation_db::{DataValue, QueryStore, SqlRow};
 use futures_lite::StreamExt;
 
-use super::traits::PolicyStore;
+use super::traits::{PolicyBundle, PolicyStore};
 use crate::core::errors::CedarError;
 
 pub const CREATE_TABLE_SQL: &str = "\
@@ -36,7 +36,7 @@ impl<'a> SqlPolicyStore<'a> {
     /// Returns [`CedarError`] if the statement fails.
     pub async fn ensure_table(&self) -> Result<(), CedarError> {
         self.store
-            .execute_batch_async(CREATE_TABLE_SQL)
+            .execute_batch(CREATE_TABLE_SQL)
             .await
             .map_err(|e| CedarError::PolicyParse(format!("SQL table creation failed: {e}")))
     }
@@ -44,7 +44,7 @@ impl<'a> SqlPolicyStore<'a> {
     async fn load_row(&self) -> Result<SqlRow, CedarError> {
         let mut stream = self
             .store
-            .query_async(
+            .query(
                 "SELECT policy_text, schema_text, entities_json, version FROM cedar_policies WHERE namespace = ?",
                 &[DataValue::Text(self.namespace.clone())],
             )
@@ -91,6 +91,25 @@ impl PolicyStore for SqlPolicyStore<'_> {
 
     async fn version(&self) -> Result<String, CedarError> {
         self.load_column("version").await
+    }
+
+    async fn load_all(&self) -> Result<PolicyBundle, CedarError> {
+        let row = self.load_row().await?;
+        Ok(PolicyBundle {
+            schema: row
+                .get_by_name::<String>("schema_text")
+                .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))?,
+            policies: row
+                .get_by_name::<String>("policy_text")
+                .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))?,
+            entities: row
+                .get_by_name::<Option<String>>("entities_json")
+                .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))?
+                .filter(|v| !v.is_empty()),
+            version: row
+                .get_by_name::<String>("version")
+                .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))?,
+        })
     }
 }
 

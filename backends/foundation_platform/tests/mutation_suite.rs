@@ -3,7 +3,9 @@
 use foundation_platform::*;
 
 fn queue() -> MutationQueue {
-    MutationQueue::in_memory()
+    MutationQueue::in_memory(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )))
 }
 
 // ── Enqueue ──────────────────────────────────────────────────
@@ -12,7 +14,7 @@ fn queue() -> MutationQueue {
 fn enqueue_produces_uuid() {
     let q = queue();
     let id = q.enqueue("test", serde_json::Value::String("data".into()));
-    assert!(!id.is_empty());
+    assert_ne!(id, "");
     assert_eq!(q.pending_count(), 1);
 }
 
@@ -35,8 +37,8 @@ fn enqueue_preserves_order() {
 #[test]
 fn replay_applies_all_pending() {
     let q = queue();
-    q.enqueue("t1", serde_json::Value::String("a".into()));
-    q.enqueue("t2", serde_json::Value::String("b".into()));
+    let _ = q.enqueue("t1", serde_json::Value::String("a".into()));
+    let _ = q.enqueue("t2", serde_json::Value::String("b".into()));
 
     let result = q.replay(|_m| Ok(serde_json::Value::String("ok".into())));
 
@@ -51,11 +53,9 @@ fn replay_applies_all_pending() {
 #[test]
 fn replay_handles_conflict_with_lww() {
     let q = queue();
-    q.enqueue("update", serde_json::Value::String("local".into()));
+    let _ = q.enqueue("update", serde_json::Value::String("local".into()));
 
-    let result = q.replay(|m| {
-        Err(ReplayError::Conflict(format!("server-state-for-{}", m.id)))
-    });
+    let result = q.replay(|m| Err(ReplayError::Conflict(format!("server-state-for-{}", m.id))));
 
     assert_eq!(result.applied.len(), 0);
     assert_eq!(result.conflicts.len(), 1);
@@ -67,9 +67,9 @@ fn replay_handles_conflict_with_lww() {
 #[test]
 fn replay_stops_on_non_retryable_error() {
     let q = queue();
-    q.enqueue("t1", serde_json::Value::String("a".into()));
-    q.enqueue("t2", serde_json::Value::String("b".into())); // will fail
-    q.enqueue("t3", serde_json::Value::String("c".into())); // never replayed
+    let _ = q.enqueue("t1", serde_json::Value::String("a".into()));
+    let _ = q.enqueue("t2", serde_json::Value::String("b".into())); // will fail
+    let _ = q.enqueue("t3", serde_json::Value::String("c".into())); // never replayed
 
     let result = q.replay(|m| {
         if m.payload == serde_json::Value::String("b".into()) {
@@ -80,8 +80,8 @@ fn replay_stops_on_non_retryable_error() {
     });
 
     assert_eq!(result.applied.len(), 1); // only t1 applied
-    assert_eq!(result.failed.len(), 1);  // t2 failed
-    // t3 still pending — replay stopped
+    assert_eq!(result.failed.len(), 1); // t2 failed
+                                        // t3 still pending — replay stopped
     assert_eq!(q.pending_count(), 1);
 }
 
@@ -90,7 +90,7 @@ fn replay_stops_on_non_retryable_error() {
 #[test]
 fn replay_keeps_retryable_pending() {
     let q = queue();
-    q.enqueue("t1", serde_json::Value::String("a".into()));
+    let _ = q.enqueue("t1", serde_json::Value::String("a".into()));
 
     let result = q.replay(|_| Err(ReplayError::Retryable("timeout".into())));
 
@@ -103,13 +103,12 @@ fn replay_keeps_retryable_pending() {
 #[test]
 fn replay_mixed_results() {
     let q = queue();
-    q.enqueue("apply", serde_json::Value::String("a".into()));
-    q.enqueue("conflict", serde_json::Value::String("c".into()));
-    q.enqueue("fail", serde_json::Value::String("f".into()));
-    q.enqueue("never", serde_json::Value::String("n".into()));
+    let _ = q.enqueue("apply", serde_json::Value::String("a".into()));
+    let _ = q.enqueue("conflict", serde_json::Value::String("c".into()));
+    let _ = q.enqueue("fail", serde_json::Value::String("f".into()));
+    let _ = q.enqueue("never", serde_json::Value::String("n".into()));
 
     let result = q.replay(|m| match m.payload.as_str().unwrap() {
-        "a" => Ok(serde_json::Value::String("ok".into())),
         "c" => Err(ReplayError::Conflict("server-state".into())),
         "f" => Err(ReplayError::NonRetryable("bad".into())),
         _ => Ok(serde_json::Value::String("ok".into())),
@@ -144,7 +143,7 @@ fn applied_mutations_are_deleted_from_queue() {
 #[test]
 fn conflicted_mutations_preserve_status() {
     let q = queue();
-    q.enqueue("t1", serde_json::Value::String("a".into()));
+    let _ = q.enqueue("t1", serde_json::Value::String("a".into()));
     q.replay(|_| Err(ReplayError::Conflict("server-data".into())));
 
     let all = q.all();
@@ -168,7 +167,7 @@ fn each_mutation_gets_unique_uuid() {
 fn mutation_preserves_type_and_payload() {
     let q = queue();
     let payload = serde_json::json!({"key": "value", "num": 42});
-    q.enqueue("order_update", payload.clone());
+    let _ = q.enqueue("order_update", payload.clone());
 
     let pending = q.pending_items();
     assert_eq!(pending[0].mutation_type, "order_update");

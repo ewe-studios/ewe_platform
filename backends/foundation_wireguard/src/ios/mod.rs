@@ -24,12 +24,11 @@
 //!
 //! The header is then imported into the Xcode project alongside the static library.
 
-use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int, c_long, c_void};
+use std::ffi::CString;
+use std::os::raw::{c_char, c_int, c_void};
 use std::sync::Mutex;
 
 use crate::native::WgNode;
-use crate::shared::config::WgConfig;
 
 // ---------------------------------------------------------------------------
 // Opaque handle type
@@ -45,6 +44,9 @@ pub type WgNodeHandle = *mut c_void;
 // ---------------------------------------------------------------------------
 
 struct NodeState {
+    // Read when the iOS tunnel driver is implemented; the exported stubs keep
+    // the state machine so `wg_node_destroy` can drop it.
+    #[allow(dead_code)]
     node: WgNode,
     _pool_guard: foundation_core::valtron::PoolGuard,
 }
@@ -68,7 +70,7 @@ pub extern "C" fn wg_node_create_from_toml(toml_config: *const c_char) -> WgNode
     if toml_config.is_null() {
         return std::ptr::null_mut();
     }
-    let _ = unsafe { CStr::from_ptr(toml_config) };
+    // The stub does not read the string.
     // On a non-iOS target, this is a stub.
     tracing::warn!("wg_node_create_from_toml: stub on non-iOS target");
     std::ptr::null_mut()
@@ -111,11 +113,7 @@ pub extern "C" fn wg_node_destroy(handle: WgNodeHandle) {
 /// int wg_node_set_tun_fd(WgNodeHandle handle, int tun_fd, int mtu);
 /// ```
 #[no_mangle]
-pub extern "C" fn wg_node_set_tun_fd(
-    handle: WgNodeHandle,
-    tun_fd: c_int,
-    mtu: c_int,
-) -> c_int {
+pub extern "C" fn wg_node_set_tun_fd(handle: WgNodeHandle, tun_fd: c_int, mtu: c_int) -> c_int {
     let _ = (handle, tun_fd, mtu);
     tracing::warn!("wg_node_set_tun_fd: stub on non-iOS target");
     -1
@@ -189,8 +187,13 @@ pub extern "C" fn wg_node_overlay_ip(handle: WgNodeHandle) -> *mut c_char {
 /// ```c
 /// void wg_node_free_string(char *s);
 /// ```
+///
+/// # Safety
+///
+/// `s` must be null or a pointer returned by this library, and it must not be
+/// freed twice.
 #[no_mangle]
-pub extern "C" fn wg_node_free_string(s: *mut c_char) {
+pub unsafe extern "C" fn wg_node_free_string(s: *mut c_char) {
     if !s.is_null() {
         unsafe {
             let _ = CString::from_raw(s);
@@ -218,48 +221,19 @@ pub extern "C" fn wg_node_is_joined(handle: WgNodeHandle) -> c_int {
 /// ```
 #[no_mangle]
 pub extern "C" fn wg_node_generate_seed() -> *mut c_char {
-    let seed = crate::shared::keys::WgSeed::generate();
-    let b64 = seed.to_base64url();
-    CString::new(b64)
-        .map(|c| c.into_raw())
-        .unwrap_or(std::ptr::null_mut())
+    use crate::shared::keys::{SeedBits, WgSeed};
+
+    // A null pointer reports a failed CSPRNG read or an interior NUL in the
+    // base64 text. Both cannot happen with valid input, but the C ABI has no
+    // error channel.
+    match WgSeed::generate(SeedBits::Bits256) {
+        Ok(seed) => {
+            CString::new(seed.to_base64url()).map_or(std::ptr::null_mut(), CString::into_raw)
+        }
+        Err(_) => std::ptr::null_mut(),
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn smoke_create_null_config() {
-        let h = wg_node_create_from_toml(std::ptr::null());
-        assert!(h.is_null(), "null config should return null handle");
-    }
-
-    #[test]
-    fn smoke_generate_seed() {
-        let s = wg_node_generate_seed();
-        assert!(!s.is_null(), "seed generation should return a string");
-        wg_node_free_string(s);
-    }
-
-    #[test]
-    fn smoke_tick_null() {
-        let ms = wg_node_tick(std::ptr::null_mut());
-        assert!(ms > 0, "tick should return a positive poll interval");
-    }
-
-    #[test]
-    fn smoke_destroy_null() {
-        wg_node_destroy(std::ptr::null_mut());
-        // Must not crash on null.
-    }
-
-    #[test]
-    fn smoke_stop_null() {
-        assert_eq!(wg_node_stop(std::ptr::null_mut()), 0);
-    }
-}

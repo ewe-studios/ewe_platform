@@ -23,14 +23,13 @@
 
 use std::sync::Arc;
 
-use foundation_db::{QueryStore, DataValue};
+use foundation_db::{DataValue, QueryStore};
 use futures_lite::StreamExt;
 
 use crate::flat::TopK;
 use crate::sql_store::count_rows;
 use crate::store::{
-    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
-    VectorStoreError,
+    VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use crate::vector::Vector;
 
@@ -75,11 +74,11 @@ impl<Q: QueryStore + 'static> LibsqlVectorStore<Q> {
             dim = config.dimension
         );
         backend
-            .execute_batch_async(&create)
+            .execute_batch(&create)
             .await
             .map_err(backend_err("create table"))?;
         backend
-            .execute_batch_async(&format!(
+            .execute_batch(&format!(
                 "CREATE INDEX IF NOT EXISTS {INDEX} ON {TABLE}(libsql_vector_idx(embedding));"
             ))
             .await
@@ -133,23 +132,32 @@ fn vec_to_str(v: &[f32]) -> String {
 /// Parse `vector_extract`'s `[a,b,c]` output back to floats. A component that
 /// doesn't parse is an error (dropping it would shift every later dimension).
 fn parse_vec_str(s: &str) -> Result<Vec<f32>, VectorStoreError> {
-    let inner = s.trim().trim_start_matches('[').trim_end_matches(']').trim();
+    let inner = s
+        .trim()
+        .trim_start_matches('[')
+        .trim_end_matches(']')
+        .trim();
     if inner.is_empty() {
         return Ok(Vec::new());
     }
     inner
         .split(',')
-        .map(|p| p.trim().parse::<f32>().map_err(backend_err("parse embedding")))
+        .map(|p| {
+            p.trim()
+                .parse::<f32>()
+                .map_err(backend_err("parse embedding"))
+        })
         .collect()
 }
 
 #[async_trait::async_trait]
 impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
-    async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
-        let meta = serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;
+        let meta =
+            serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;
         self.backend
-            .execute_async(
+            .execute(
                 &format!(
                     "INSERT OR REPLACE INTO {TABLE}(id, namespace, embedding, metadata) \
                      VALUES (?, ?, vector(?), ?)"
@@ -166,10 +174,10 @@ impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
         Ok(())
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let affected = self
             .backend
-            .execute_async(
+            .execute(
                 &format!("DELETE FROM {TABLE} WHERE namespace = ? AND id = ?"),
                 &[
                     DataValue::Text(namespace.to_string()),
@@ -184,7 +192,7 @@ impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
         Ok(())
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -201,7 +209,7 @@ impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
         // DiskANN candidate retrieval (whole index), then namespace filter.
         let mut rows = self
             .backend
-            .query_async(
+            .query(
                 &format!(
                     "SELECT t.id, vector_extract(t.embedding) \
                      FROM vector_top_k('{INDEX}', vector(?), ?) AS knn \
@@ -229,10 +237,14 @@ impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
         Ok(top.finish())
     }
 
-    async fn get_async(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+    async fn get(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<Option<VectorEntry>, VectorStoreError> {
         let mut rows = self
             .backend
-            .query_async(
+            .query(
                 &format!(
                     "SELECT vector_extract(embedding), metadata FROM {TABLE} \
                      WHERE namespace = ? AND id = ?"
@@ -259,7 +271,7 @@ impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
         }))
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         count_rows(
             self.backend.as_ref(),
             &format!("SELECT COUNT(*) FROM {TABLE} WHERE namespace = ?"),

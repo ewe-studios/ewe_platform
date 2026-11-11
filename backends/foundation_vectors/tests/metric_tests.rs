@@ -75,7 +75,7 @@ fn ordered_score_nan_is_least() {
 
 #[test]
 fn ordered_score_sorts_correctly() {
-    let mut scores = vec![
+    let mut scores = [
         OrderedScore(0.5),
         OrderedScore(f32::NAN),
         OrderedScore(0.9),

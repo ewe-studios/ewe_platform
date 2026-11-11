@@ -1,4 +1,4 @@
-//! Native-only ConnectRPC modules (non-wasm).
+//! Native-only `ConnectRPC` modules (non-wasm).
 //!
 //! The server connection-owner adapters and the HTTP/2 + HTTP/3 client
 //! transports live here because they drive native-only substrate: TCP
@@ -15,6 +15,9 @@ mod conn_io;
 
 /// The deadline timer of the HTTP/2 and HTTP/3 servers.
 pub(crate) mod deadline_timer;
+
+/// HTTP/2 server dispatch (frame pipes, body collection) — native only.
+pub(crate) mod dispatch_h2;
 
 /// HTTP/2 server connection-owner adapter (foundation_http `H2Serve`).
 pub mod h2_serve;

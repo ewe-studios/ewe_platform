@@ -70,8 +70,7 @@ fn spec() -> Value {
 fn schemas(spec: &Value) -> Vec<String> {
     spec.pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|m| m.keys().cloned().collect())
-        .unwrap_or_default()
+        .map_or_default(|m| m.keys().cloned().collect())
 }
 
 #[test]
@@ -83,14 +82,29 @@ fn keeps_the_transitive_chain_and_drops_the_rest() {
     // Reached through Server -> Datacenter -> Location.
     assert!(kept.contains(&"Server".to_string()));
     assert!(kept.contains(&"Datacenter".to_string()), "one hop");
-    assert!(kept.contains(&"Location".to_string()), "two hops — the closure is transitive");
+    assert!(
+        kept.contains(&"Location".to_string()),
+        "two hops — the closure is transitive"
+    );
     // Reached through the shared 429 response envelope.
-    assert!(kept.contains(&"Error".to_string()), "reached via components/responses");
+    assert!(
+        kept.contains(&"Error".to_string()),
+        "reached via components/responses"
+    );
 
     // Nothing extra: this is the half a keep-everything pruner would fail.
-    assert!(!kept.contains(&"Cluster".to_string()), "belongs to the unselected path");
-    assert!(!kept.contains(&"Unused".to_string()), "referenced by nothing");
-    assert!(!kept.contains(&"Tree".to_string()), "recursive, but unreachable");
+    assert!(
+        !kept.contains(&"Cluster".to_string()),
+        "belongs to the unselected path"
+    );
+    assert!(
+        !kept.contains(&"Unused".to_string()),
+        "referenced by nothing"
+    );
+    assert!(
+        !kept.contains(&"Tree".to_string()),
+        "recursive, but unreachable"
+    );
     assert!(stats.components_removed > 0);
 }
 
@@ -102,10 +116,22 @@ fn follows_refs_into_responses_and_parameters_not_just_schemas() {
     let mut spec = spec();
     prune_to_selection(&mut spec, &Selection::all().paths(["/servers"]));
 
-    assert!(spec.pointer("/components/responses/RateLimited").is_some(), "kept: the 429 refs it");
-    assert!(spec.pointer("/components/parameters/Page").is_some(), "kept: the operation refs it");
-    assert!(spec.pointer("/components/responses/NotUsed").is_none(), "dropped");
-    assert!(spec.pointer("/components/parameters/Unused").is_none(), "dropped");
+    assert!(
+        spec.pointer("/components/responses/RateLimited").is_some(),
+        "kept: the 429 refs it"
+    );
+    assert!(
+        spec.pointer("/components/parameters/Page").is_some(),
+        "kept: the operation refs it"
+    );
+    assert!(
+        spec.pointer("/components/responses/NotUsed").is_none(),
+        "dropped"
+    );
+    assert!(
+        spec.pointer("/components/parameters/Unused").is_none(),
+        "dropped"
+    );
 }
 
 #[test]
@@ -125,7 +151,10 @@ fn a_recursive_type_terminates_and_is_kept_when_reached() {
     // If the walk did not guard against cycles this would hang rather than fail.
     prune_to_selection(&mut spec, &Selection::all().paths(["/servers"]));
 
-    assert!(schemas(&spec).contains(&"Tree".to_string()), "self-referential, still reachable");
+    assert!(
+        schemas(&spec).contains(&"Tree".to_string()),
+        "self-referential, still reachable"
+    );
     assert_eq!(dangling_refs(&spec), Vec::<String>::new());
 }
 
@@ -146,7 +175,10 @@ fn follows_a_discriminator_mapping() {
 
     prune_to_selection(&mut spec, &Selection::all().paths(["/servers"]));
 
-    assert!(schemas(&spec).contains(&"ServiceTCP".to_string()), "mapping is a ref site");
+    assert!(
+        schemas(&spec).contains(&"ServiceTCP".to_string()),
+        "mapping is a ref site"
+    );
     assert_eq!(dangling_refs(&spec), Vec::<String>::new());
 }
 
@@ -161,8 +193,14 @@ fn drops_operations_but_keeps_a_path_that_still_has_one() {
 
     let stats = prune_to_selection(&mut spec, &Selection::all().operations(["list-servers"]));
 
-    assert!(spec.pointer("/paths/~1servers/get").is_some(), "the selected operation stays");
-    assert!(spec.pointer("/paths/~1servers/post").is_none(), "its sibling goes");
+    assert!(
+        spec.pointer("/paths/~1servers/get").is_some(),
+        "the selected operation stays"
+    );
+    assert!(
+        spec.pointer("/paths/~1servers/post").is_none(),
+        "its sibling goes"
+    );
     assert_eq!(stats.operations_removed, 1);
     assert!(
         !schemas(&spec).contains(&"Unused".to_string()),
@@ -177,8 +215,14 @@ fn an_empty_selection_still_drops_orphans() {
     let mut spec = spec();
     prune_to_selection(&mut spec, &Selection::all());
 
-    assert!(spec.pointer("/paths/~1kubernetes").is_some(), "nothing was selected away");
-    assert!(!schemas(&spec).contains(&"Unused".to_string()), "but orphans still go");
+    assert!(
+        spec.pointer("/paths/~1kubernetes").is_some(),
+        "nothing was selected away"
+    );
+    assert!(
+        !schemas(&spec).contains(&"Unused".to_string()),
+        "but orphans still go"
+    );
     assert!(!schemas(&spec).contains(&"Tree".to_string()));
 }
 
@@ -197,7 +241,10 @@ fn dangling_refs_finds_a_broken_pointer() {
     spec["paths"]["/servers"]["get"]["responses"]["200"]["content"]["application/json"]["schema"] =
         json!({ "$ref": "#/components/schemas/DoesNotExist" });
 
-    assert_eq!(dangling_refs(&spec), vec!["#/components/schemas/DoesNotExist".to_string()]);
+    assert_eq!(
+        dangling_refs(&spec),
+        vec!["#/components/schemas/DoesNotExist".to_string()]
+    );
 }
 
 // ── the real specs ───────────────────────────────────────────────────────────
@@ -232,7 +279,11 @@ fn the_full_pipeline_on_the_real_linode_spec() {
     //    and nothing else drops what it did not.
     let stats = foundation_openapi::prune_to_selection(&mut spec, &selection);
 
-    assert_eq!(spec["paths"].as_object().unwrap().len(), 3, "of {paths_before}");
+    assert_eq!(
+        spec["paths"].as_object().unwrap().len(),
+        3,
+        "of {paths_before}"
+    );
     assert_eq!(
         foundation_openapi::validate_canonical(&spec),
         Ok(()),

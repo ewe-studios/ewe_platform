@@ -10,7 +10,8 @@ use std::{
     sync::{self, Arc},
     task::Context,
 };
-use thiserror::Error;
+use derive_more::{Display, Error};
+use foundation_errstacks::ErrorTrace;
 
 use crate::mspc;
 
@@ -58,19 +59,25 @@ pub fn create<E: Send + 'static>() -> (ExecutionService<E>, Executor<E>) {
     )
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Display, Error)]
 pub enum ExecutorError {
-    #[error("executor is no more usable")]
+    #[display("executor is no more usable")]
     Decommission,
 
-    #[error("executor requires retry")]
+    #[display("executor requires retry")]
     ChannelFull,
 
-    #[error("executor has no tasks")]
+    #[display("executor has no tasks")]
     NoTasks,
 }
 
-pub type ExecutorResult<E> = anyhow::Result<E, ExecutorError>;
+impl From<ExecutorError> for ErrorTrace<ExecutorError> {
+    fn from(err: ExecutorError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
+pub type ExecutorResult<E> = Result<E, ErrorTrace<ExecutorError>>;
 
 pub struct ExecutionService<E: Send + 'static> {
     completed_notification: async_channel::Receiver<()>,
@@ -138,7 +145,7 @@ impl<E: Send + 'static> ExecutionService<E> {
     /// Returns an error if there are no tasks to schedule or if the executor is decommissioned.
     pub fn schedule_serve(&mut self) -> ExecutorResult<()> {
         if self.receiver.is_empty() {
-            return ExecutorResult::Err(ExecutorError::NoTasks);
+            return ExecutorResult::Err(ExecutorError::NoTasks.into());
         }
 
         self.serve_and_capture_pending();
@@ -222,8 +229,8 @@ impl<E: Send + 'static> Executor<E> {
 
         match self.sender.try_send(task) {
             Ok(()) => Ok(()),
-            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
-            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
+            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission.into()),
+            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull.into()),
         }
     }
 
@@ -246,278 +253,8 @@ impl<E: Send + 'static> Executor<E> {
 
         match self.sender.try_send(task) {
             Ok(()) => Ok(()),
-            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission),
-            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull),
+            Err(async_channel::TrySendError::Closed(_)) => Err(ExecutorError::Decommission.into()),
+            Err(async_channel::TrySendError::Full(_)) => Err(ExecutorError::ChannelFull.into()),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::time::Duration;
-
-    use crate::{executor, mspc};
-
-    #[test]
-    fn can_execute_a_task_without_an_async_runtime_with_scheduled_serve() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create::<String>();
-
-        let (mut sr, rr) = mspc::create::<String>();
-
-        let mut sender_clone = sender.clone();
-        executor
-            .schedule(rr.clone(), move |item| async move {
-                sender_clone
-                    .async_send(item.unwrap())
-                    .await
-                    .expect("to have sent message");
-            })
-            .expect("should have scheduled task");
-
-        executor
-            .spawn(async move {
-                sender
-                    .async_send(String::from("second"))
-                    .await
-                    .expect("to have sent message");
-            })
-            .expect("should have scheduled task");
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.block_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-
-        let recv_message = receiver.block_receive().unwrap();
-        assert_eq!(String::from("second"), recv_message);
-    }
-
-    #[test]
-    fn can_execute_a_task_without_an_async_runtime() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create::<String>();
-
-        let (mut sr, rr) = mspc::create::<String>();
-        executor
-            .schedule(rr.clone(), move |item| async move {
-                sender
-                    .async_send(item.unwrap())
-                    .await
-                    .expect("to have sent message");
-            })
-            .expect("should have scheduled task");
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.block_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[test]
-    fn can_execute_work_without_a_receiver_and_no_async_runtime() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create::<String>();
-
-        executor
-            .spawn(async move {
-                sender.try_send(String::from("new text")).unwrap();
-            })
-            .expect("should have scheduled task");
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.try_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn can_execute_a_task_with_an_async_runtime() {
-        let (mut servicer, executor) = executor::create();
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut sr, rr) = mspc::create::<String>();
-
-        tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-
-            executor
-                .schedule(rr, move |item| async move {
-                    sender
-                        .async_send(item.unwrap())
-                        .await
-                        .expect("should have sent result");
-                })
-                .expect("should have scheduled task");
-        })
-        .await
-        .expect("should have completed");
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.try_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn can_execute_work_without_a_receiver_and_a_async_runtime() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create::<String>();
-
-        tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-
-            executor
-                .spawn(async move {
-                    sender.try_send(String::from("new text")).unwrap();
-                })
-                .expect("should have scheduled task");
-        })
-        .await
-        .expect("should have completed");
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.try_receive().unwrap();
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn can_execution_in_runtime_while_waiting_for_reciever_lead_to_panic() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create();
-
-        let (mut sr, rr) = mspc::create::<String>();
-
-        executor
-            .schedule(rr.clone(), move |item| async {
-                tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_millis(100)).await;
-                    sender
-                        .async_send(item.unwrap())
-                        .await
-                        .expect("should have sent result");
-                })
-                .await
-                .expect("should have completed");
-            })
-            .expect("should have scheduled task");
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.block_receive().unwrap();
-
-        assert_eq!(String::from("new text"), recv_message);
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn can_execute_with_closed_sender_with_runtime_and_no_panic() {
-        let (mut sender, receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create();
-
-        let (sr, rr) = mspc::create::<String>();
-
-        executor
-            .schedule(rr.clone(), move |item| async {
-                tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_millis(100)).await;
-                    if let Ok(value) = item {
-                        sender
-                            .async_send(value)
-                            .await
-                            .expect("should have sent result");
-                    }
-                })
-                .await
-                .expect("should complete");
-            })
-            .expect("should have scheduled task");
-
-        // send on first channel
-        drop(sr);
-        drop(receiver);
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-    async fn can_execute_with_async_serve_with_async_runtime() {
-        let (mut sender, mut receiver) = mspc::create::<String>();
-
-        let (mut servicer, executor) = executor::create();
-
-        let (mut sr, rr) = mspc::create::<String>();
-
-        executor
-            .schedule(rr.clone(), move |item| async {
-                tokio::spawn(async move {
-                    tokio::time::sleep(Duration::from_millis(500)).await;
-                    sender
-                        .async_send(item.unwrap())
-                        .await
-                        .expect("should have sent result");
-                })
-                .await
-                .expect("should have completed");
-            })
-            .expect("should have scheduled task");
-
-        // send on first channel
-        sr.try_send(String::from("new text")).unwrap();
-
-        assert!(matches!(
-            servicer.schedule_serve(),
-            executor::ExecutorResult::Ok(())
-        ));
-
-        // expect to receive from second channel
-        let recv_message = receiver.block_receive().unwrap();
-
-        assert_eq!(String::from("new text"), recv_message);
     }
 }

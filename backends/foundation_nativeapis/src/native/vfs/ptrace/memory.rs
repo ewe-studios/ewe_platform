@@ -2,7 +2,6 @@
 ///
 /// These are significantly faster than `ptrace(PTRACE_PEEKDATA/POKEDATA)` for bulk transfers
 /// because they don't require a context switch per word.
-
 use std::io::IoSlice;
 
 use nix::libc::{iovec, process_vm_readv, process_vm_writev};
@@ -22,7 +21,8 @@ pub fn read_tracee_string(pid: nix::unistd::Pid, addr: u64, max_len: usize) -> V
         if buf.len() >= max_len {
             return Err(VfsError::Backend {
                 message: format!("string at {addr:#x} exceeds max_len={max_len}"),
-            }.into());
+            }
+            .into());
         }
 
         let remaining = max_len - buf.len();
@@ -41,9 +41,12 @@ pub fn read_tracee_string(pid: nix::unistd::Pid, addr: u64, max_len: usize) -> V
         pos += chunk.len() as u64;
     }
 
-    String::from_utf8(buf).map_err(|e| VfsError::Backend {
-        message: format!("invalid UTF-8 in tracee string: {e}"),
-    }.into())
+    String::from_utf8(buf).map_err(|e| {
+        VfsError::Backend {
+            message: format!("invalid UTF-8 in tracee string: {e}"),
+        }
+        .into()
+    })
 }
 
 /// Read a buffer from the tracee's memory.
@@ -83,10 +86,12 @@ fn read_tracee_buf_raw(pid: nix::unistd::Pid, addr: u64, buf: &mut [u8]) -> VfsR
     match ret {
         -1 => Err(VfsError::Backend {
             message: format!("process_vm_readv failed at {addr:#x}: len={}", buf.len()),
-        }.into()),
+        }
+        .into()),
         n if n < 0 => Err(VfsError::Backend {
             message: format!("process_vm_readv returned negative: {n}"),
-        }.into()),
+        }
+        .into()),
         n => Ok(n as usize),
     }
 }
@@ -107,32 +112,51 @@ pub fn write_tracee_buf(pid: nix::unistd::Pid, addr: u64, data: &[u8]) -> VfsRes
         iov_len: local_iov.len(),
     };
 
-    let ret = unsafe {
-        process_vm_writev(
-            pid.as_raw(),
-            &local_iov_c,
-            1,
-            &remote_iov,
-            1,
-            0,
-        )
-    };
+    let ret = unsafe { process_vm_writev(pid.as_raw(), &local_iov_c, 1, &remote_iov, 1, 0) };
 
     match ret {
         -1 => Err(VfsError::Backend {
             message: format!("process_vm_writev failed at {addr:#x}: len={}", data.len()),
-        }.into()),
+        }
+        .into()),
         n if (n as usize) < data.len() => Err(VfsError::Backend {
-            message: format!("process_vm_writev partial write: wrote {n} of {}", data.len()),
-        }.into()),
+            message: format!(
+                "process_vm_writev partial write: wrote {n} of {}",
+                data.len()
+            ),
+        }
+        .into()),
         _ => Ok(()),
+    }
+}
+
+/// The whole seconds of a timestamp since the Unix epoch.
+///
+/// A missing or pre-epoch time is zero, because `st_*time` has no value the
+/// tracee can observe for it.
+fn stat_seconds(time: Option<std::time::SystemTime>) -> i64 {
+    match time.and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()) {
+        Some(elapsed) => elapsed.as_secs().cast_signed(),
+        None => 0,
+    }
+}
+
+/// The nanosecond part of a timestamp. A missing or pre-epoch time is zero.
+fn stat_nanoseconds(time: Option<std::time::SystemTime>) -> i64 {
+    match time.and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()) {
+        Some(elapsed) => i64::from(elapsed.subsec_nanos()),
+        None => 0,
     }
 }
 
 /// Write a `libc::stat` struct to the tracee's memory for `stat`/`fstat`/`lstat` syscalls.
 ///
 /// Uses `nix::sys::stat::Mode` to build the stat struct in a platform-independent way.
-pub fn write_tracee_stat(pid: nix::unistd::Pid, addr: u64, meta: &crate::shared::vfs::types::VfsMetadata) -> VfsResult<()> {
+pub fn write_tracee_stat(
+    pid: nix::unistd::Pid,
+    addr: u64,
+    meta: &crate::shared::vfs::types::VfsMetadata,
+) -> VfsResult<()> {
     use crate::shared::vfs::types::VfsFileType;
 
     // Build stat manually using known x86_64 Linux layout.
@@ -149,22 +173,8 @@ pub fn write_tracee_stat(pid: nix::unistd::Pid, addr: u64, meta: &crate::shared:
         VfsFileType::Regular => libc::S_IFREG,
         VfsFileType::Directory => libc::S_IFDIR,
         VfsFileType::Symlink => libc::S_IFLNK,
-    } as u32 | meta.permissions;
-
-    let (mtime_sec, mtime_nsec) = meta.modified
-        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-        .map(|d| (d.as_secs() as i64, d.subsec_nanos() as i64))
-        .unwrap_or((0, 0));
-
-    let (atime_sec, atime_nsec) = meta.accessed
-        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-        .map(|d| (d.as_secs() as i64, d.subsec_nanos() as i64))
-        .unwrap_or((0, 0));
-
-    let (ctime_sec, ctime_nsec) = meta.created
-        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-        .map(|d| (d.as_secs() as i64, d.subsec_nanos() as i64))
-        .unwrap_or((0, 0));
+    } as u32
+        | meta.permissions;
 
     let size = meta.size as i64;
     let blocks = (meta.size + 511) / 512;
@@ -204,12 +214,12 @@ pub fn write_tracee_stat(pid: nix::unistd::Pid, addr: u64, meta: &crate::shared:
         st_size: size,
         st_blksize: 4096,
         st_blocks: blocks as i64,
-        st_atime: atime_sec,
-        st_atime_nsec: atime_nsec,
-        st_mtime: mtime_sec,
-        st_mtime_nsec: mtime_nsec,
-        st_ctime: ctime_sec,
-        st_ctime_nsec: ctime_nsec,
+        st_atime: stat_seconds(meta.accessed),
+        st_atime_nsec: stat_nanoseconds(meta.accessed),
+        st_mtime: stat_seconds(meta.modified),
+        st_mtime_nsec: stat_nanoseconds(meta.modified),
+        st_ctime: stat_seconds(meta.created),
+        st_ctime_nsec: stat_nanoseconds(meta.created),
         _unused: [0; 3],
     };
 

@@ -6,5 +6,6 @@ mod package;
 
 pub mod tinytemplate;
 
-pub(crate) use files::*;
+pub use error::BoxedError;
+pub use files::*;
 pub use package::*;

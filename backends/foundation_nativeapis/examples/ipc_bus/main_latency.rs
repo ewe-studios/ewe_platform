@@ -21,11 +21,14 @@ fn main() {
         seq: u32,
     }
 
-    let opts = Options::new("com.ewe.latency-demo", Label::new("controller"))
-        .controller_affinity(true);
-    let (sender, mut receiver) =
-        ipc::join::<TimedMessage, TimedMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("join failed");
+    let opts =
+        Options::new("com.ewe.latency-demo", Label::new("controller")).controller_affinity(true);
+    let (sender, mut receiver) = ipc::join::<TimedMessage, TimedMessage>(
+        opts,
+        Some(Duration::from_secs(5)),
+        foundation_context::Ctx::host(),
+    )
+    .expect("join failed");
 
     let count = 20;
     thread::spawn(move || {
@@ -44,15 +47,17 @@ fn main() {
 
     let mut total_us = 0u128;
     for _ in 0..count {
-        let msg = receiver
-            .recv(Some(Duration::from_secs(5)))
-            .expect("recv");
+        let msg = receiver.recv(Some(Duration::from_secs(5))).expect("recv");
         let latency = SystemTime::now()
             .duration_since(msg.payload.create)
             .unwrap_or_default();
         let us = latency.as_micros();
         total_us += us;
-        println!("seq={:>3}  latency={:.3}ms", msg.payload.seq, us as f64 / 1000.0);
+        println!(
+            "seq={:>3}  latency={:.3}ms",
+            msg.payload.seq,
+            us as f64 / 1000.0
+        );
     }
     println!(
         "\nAverage latency: {:.3}ms over {} messages",

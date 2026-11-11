@@ -7,7 +7,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Cipher type classification.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
 pub enum CipherType {
     Login = 1,
@@ -17,7 +19,9 @@ pub enum CipherType {
 }
 
 /// Secure note subtype.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
 pub enum SecureNoteType {
     Generic = 0,
@@ -109,9 +113,13 @@ pub struct SecureNoteData {
     pub note_type: SecureNoteType,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
+#[derive(Default)]
 pub enum CipherRepromptType {
+    #[default]
     None = 0,
     Password = 1,
 }
@@ -149,10 +157,4 @@ pub struct CipherUpdateRequest {
     pub data: Option<String>,
     pub favorite: Option<bool>,
     pub folder_id: Option<String>,
-}
-
-impl Default for CipherRepromptType {
-    fn default() -> Self {
-        Self::None
-    }
 }

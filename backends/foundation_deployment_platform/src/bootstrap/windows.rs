@@ -1,4 +1,4 @@
-//! Windows bootstrap via WinRM + SSH — step-by-step idempotent.
+//! Windows bootstrap via `WinRM` + SSH — step-by-step idempotent.
 //!
 //! Each step checks concrete artifacts before running. If bootstrap fails
 //! mid-way, re-running picks up where it left off.
@@ -9,8 +9,10 @@ use std::thread;
 use std::time::Duration;
 use tracing::{debug, warn};
 
-use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
+use foundation_context::Ctx;
+
 use crate::bootstrap::BootstrapLogger;
+use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::config::{Result, TestbedError, VmProfile};
 use crate::ssh::VmSession;
 use crate::winrm::WinRM;
@@ -18,41 +20,55 @@ use crate::winrm::elevated::{self, ProgressCallback};
 
 const CHECK_VIRTIO_PS1: &str = include_str!("../../scripts/windows/check_virtio.ps1");
 const INSTALL_VIRTIO_PS1: &str = include_str!("../../scripts/windows/install_virtio.ps1");
-const REGISTER_VIRTIOFS_STARTUP_PS1: &str = include_str!("../../scripts/windows/register_virtiofs_startup.ps1");
+const REGISTER_VIRTIOFS_STARTUP_PS1: &str =
+    include_str!("../../scripts/windows/register_virtiofs_startup.ps1");
 const INSTALL_OPENSSH_PS1: &str = include_str!("../../scripts/windows/install_openssh.ps1");
 const CONFIGURE_SSHD_PS1: &str = include_str!("../../scripts/windows/configure_sshd.ps1");
 const SETUP_SSH_KEYS_PS1: &str = include_str!("../../scripts/windows/setup_ssh_keys.ps1");
-const SET_LOCAL_ACCOUNT_TOKEN_FILTER_PS1: &str = include_str!("../../scripts/windows/set_local_account_token_filter.ps1");
+const SET_LOCAL_ACCOUNT_TOKEN_FILTER_PS1: &str =
+    include_str!("../../scripts/windows/set_local_account_token_filter.ps1");
 const SET_AUTOLOGIN_PS1: &str = include_str!("../../scripts/windows/set_autologin.ps1");
 const INSTALL_MISE_PS1: &str = include_str!("../../scripts/windows/install_mise.ps1");
-const INSTALL_CARGO_BINSTALL_PS1: &str = include_str!("../../scripts/windows/install_cargo_binstall.ps1");
-const CONFIGURE_MISE_CARGO_BINSTALL_PS1: &str = include_str!("../../scripts/windows/configure_mise_cargo_binstall.ps1");
-const CHECK_VS_BUILD_TOOLS_PS1: &str = include_str!("../../scripts/windows/check_vs_build_tools.ps1");
-const INSTALL_VS_BUILD_TOOLS_PS1: &str = include_str!("../../scripts/windows/install_vs_build_tools.ps1");
+const INSTALL_CARGO_BINSTALL_PS1: &str =
+    include_str!("../../scripts/windows/install_cargo_binstall.ps1");
+const CONFIGURE_MISE_CARGO_BINSTALL_PS1: &str =
+    include_str!("../../scripts/windows/configure_mise_cargo_binstall.ps1");
+const CHECK_VS_BUILD_TOOLS_PS1: &str =
+    include_str!("../../scripts/windows/check_vs_build_tools.ps1");
+const INSTALL_VS_BUILD_TOOLS_PS1: &str =
+    include_str!("../../scripts/windows/install_vs_build_tools.ps1");
 const INSTALL_WEBVIEW2_PS1: &str = include_str!("../../scripts/windows/install_webview2.ps1");
 const CHECK_WEBVIEW2_PS1: &str = include_str!("../../scripts/windows/check_webview2.ps1");
 const DEBLOAT_PS1: &str = include_str!("../../scripts/windows/debloat.ps1");
 const DEBLOAT_ACTION_PS1: &str = include_str!("../../scripts/windows/debloat_action.ps1");
-const SET_DEFENDER_EXCLUSIONS_PS1: &str = include_str!("../../scripts/windows/set_defender_exclusions.ps1");
+const SET_DEFENDER_EXCLUSIONS_PS1: &str =
+    include_str!("../../scripts/windows/set_defender_exclusions.ps1");
 const CLEAN_MAIN_PS1: &str = include_str!("../../scripts/windows/clean/main.ps1");
 const CLEAN_ACTION_PS1: &str = include_str!("../../scripts/windows/clean/action.ps1");
 const CLEAN_DEEP_PS1: &str = include_str!("../../scripts/windows/clean/deep.ps1");
-const CLEAN_COMPACTOS_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_compactos.ps1");
-const CLEAN_HIBERNATION_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_hibernation.ps1");
+const CLEAN_COMPACTOS_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_compactos.ps1");
+const CLEAN_HIBERNATION_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_hibernation.ps1");
 const CLEAN_VSS_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_vss.ps1");
-const CLEAN_EVENT_LOGS_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_event_logs.ps1");
-const CLEAN_PAGEFILE_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_pagefile.ps1");
-const CONFIGURE_RUSTUP_ARM64_PS1: &str = include_str!("../../scripts/windows/configure_rustup_arm64.ps1");
+const CLEAN_EVENT_LOGS_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_event_logs.ps1");
+const CLEAN_PAGEFILE_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_pagefile.ps1");
+const CONFIGURE_RUSTUP_ARM64_PS1: &str =
+    include_str!("../../scripts/windows/configure_rustup_arm64.ps1");
 const INSTALL_TOOLS_MISE_PS1: &str = include_str!("../../scripts/windows/install_tools_mise.ps1");
-const SET_NUSHELL_DEFAULT_SHELL_PS1: &str = include_str!("../../scripts/windows/set_nushell_default_shell.ps1");
-const WRITE_BOOTSTRAP_MARKER_PS1: &str = include_str!("../../scripts/windows/write_bootstrap_marker.ps1");
+const SET_NUSHELL_DEFAULT_SHELL_PS1: &str =
+    include_str!("../../scripts/windows/set_nushell_default_shell.ps1");
+const WRITE_BOOTSTRAP_MARKER_PS1: &str =
+    include_str!("../../scripts/windows/write_bootstrap_marker.ps1");
 const INSTALL_WINFSP_PS1: &str = include_str!("../../scripts/windows/install_winfsp.ps1");
 const CHECK_PROJECT_MOUNT_PS1: &str = include_str!("../../scripts/windows/check_project_mount.ps1");
 const INTERACTIVE_LAUNCH_PS1: &str = include_str!("../../scripts/windows/interactive_launch.ps1");
 const SCREENSHOT_WINDOWS_PS1: &str = include_str!("../../scripts/windows/screenshot_windows.ps1");
 const SETUP_SMB_MOUNT_PS1: &str = include_str!("../../scripts/windows/setup_smb_mount.ps1");
 
-/// Result from running PowerShell — mirrors WinRM's `CmdResult`.
+/// Result from running PowerShell — mirrors `WinRM`'s `CmdResult`.
 struct PsResult {
     stdout: String,
     #[allow(dead_code)]
@@ -61,15 +77,19 @@ struct PsResult {
     exit_code: i32,
 }
 
-/// Run PowerShell over SSH, falling back to WinRM if SSH fails.
+/// Run PowerShell over SSH, falling back to `WinRM` if SSH fails.
 ///
 /// Tries `ssh::exec_ps_windows` first (proper UTF-16LE + Base64 encoding
 /// with CLIXML stripping). If SSH fails for any reason, falls back to
 /// `winrm.run_ps_quiet`. This allows the bootstrap SSH phase to be
-/// resilient — WinRM is available as a safety net.
+/// resilient — `WinRM` is available as a safety net.
 fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResult> {
     if let Ok((stdout, exit_code)) = crate::ssh::exec_ps_windows(session, script) {
-        return Ok(PsResult { stdout, stderr: String::new(), exit_code });
+        return Ok(PsResult {
+            stdout,
+            stderr: String::new(),
+            exit_code,
+        });
     }
     debug!("SSH exec failed, falling back to WinRM for PowerShell");
     let cmd = winrm.run_ps_quiet(script)?;
@@ -84,7 +104,17 @@ fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResu
 ///
 /// Phase 1 (WinRM): install OpenSSH, setup keys, autologin.
 /// Phase 2 (SSH): install mise, build tools, runtimes.
-pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
+///
+/// # Errors
+/// Returns an error if a bootstrap step fails.
+pub fn bootstrap_windows(
+    profile: &VmProfile,
+    winrm: &WinRM,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+    force_vsbuild: bool,
+) -> Result<()> {
     // Phase 1: WinRM-only steps (no SSH required)
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
@@ -92,7 +122,8 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 
     // Phase 2: SSH key authorization (now via WinRM)
     logger::step(logger, "authorise host SSH key", || {
-        setup_ssh_keys(winrm)
+        setup_ssh_keys(winrm);
+        Ok(())
     })?;
 
     // Phase 3: LocalAccountTokenFilterPolicy
@@ -102,9 +133,12 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 
     // Phase 4: Configure autologin (Winlogon registry keys)
     logger.step_start("configure autologin");
-    let autologin_start = std::time::Instant::now();
+    let autologin_start = logger.clock().now();
     let needs_reboot = set_autologin(winrm)?;
-    logger.step_done("configure autologin", autologin_start.elapsed());
+    logger.step_done(
+        "configure autologin",
+        logger.clock().now().duration_since(autologin_start),
+    );
 
     // Autologin keys only take effect after reboot
     if needs_reboot {
@@ -116,9 +150,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     thread::sleep(std::time::Duration::from_secs(5));
 
     // Phase 5+: SSH-required steps
-    logger::step(logger, "install mise", || {
-        install_mise(session)
-    })?;
+    logger::step(logger, "install mise", || install_mise(session))?;
 
     logger::step(logger, "install cargo-binstall", || {
         install_cargo_binstall(session, winrm)
@@ -132,16 +164,14 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
-    logger::step(logger, "install WinFsp", || {
-        install_winfsp(winrm)
-    })?;
+    logger::step(logger, "install WinFsp", || install_winfsp(winrm))?;
 
     logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session, winrm, &["virtiofs", "smb"])
+        setup_project_mount(session, winrm, &["virtiofs", "smb"], logger.ctx())
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
@@ -152,13 +182,13 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         set_defender_exclusions(session)
     })?;
 
-    logger::step(logger, "configure rustup for x86_64 (ARM64 workaround)", || {
-        configure_rustup_arm64(session)
-    })?;
+    logger::step(
+        logger,
+        "configure rustup for x86_64 (ARM64 workaround)",
+        || configure_rustup_arm64(session),
+    )?;
 
-    logger::step(logger, "install tools via mise", || {
-        install_tools(session)
-    })?;
+    logger::step(logger, "install tools via mise", || install_tools(session))?;
 
     logger::step(logger, "set nushell as default shell", || {
         set_nushell_default_shell(session)
@@ -176,13 +206,22 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 ///
 /// Runs before SSH is available. After this completes, callers should
 /// wait for SSH to become reachable, then call `bootstrap_windows_ssh_phase`.
-pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+///
+/// # Errors
+/// Returns an error if a `WinRM` bootstrap step fails.
+pub fn bootstrap_windows_winrm_phase(
+    profile: &VmProfile,
+    winrm: &WinRM,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+) -> Result<()> {
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
     })?;
 
     logger::step(logger, "authorise host SSH key", || {
-        setup_ssh_keys(winrm)
+        setup_ssh_keys(winrm);
+        Ok(())
     })?;
 
     logger::step(logger, "set LocalAccountTokenFilterPolicy", || {
@@ -191,9 +230,9 @@ pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger:
 
     // Autologin registry keys only take effect after a reboot.
     logger.step_start("configure autologin");
-    let start = std::time::Instant::now();
+    let start = logger.clock().now();
     let needs_reboot = set_autologin(winrm)?;
-    let elapsed = start.elapsed();
+    let elapsed = logger.clock().now().duration_since(start);
     logger.step_done("configure autologin", elapsed);
 
     if needs_reboot {
@@ -210,10 +249,18 @@ pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger:
 /// Phase 2: SSH-required bootstrap (installs dev tools).
 ///
 /// Call after `bootstrap_windows_winrm_phase` and waiting for SSH.
-pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
-    logger::step(logger, "install mise", || {
-        install_mise(session)
-    })?;
+///
+/// # Errors
+/// Returns an error if an SSH bootstrap step fails.
+pub fn bootstrap_windows_ssh_phase(
+    profile: &VmProfile,
+    winrm: &WinRM,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+    force_vsbuild: bool,
+) -> Result<()> {
+    logger::step(logger, "install mise", || install_mise(session))?;
 
     logger::step(logger, "install cargo-binstall", || {
         install_cargo_binstall(session, winrm)
@@ -227,16 +274,14 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
         install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
-    logger::step(logger, "install WinFsp", || {
-        install_winfsp(winrm)
-    })?;
+    logger::step(logger, "install WinFsp", || install_winfsp(winrm))?;
 
     logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
     })?;
 
     logger::step(logger, "set up project mount", || {
-        setup_project_mount(session, winrm, &["virtiofs", "smb"])
+        setup_project_mount(session, winrm, &["virtiofs", "smb"], logger.ctx())
     })?;
 
     logger::step(logger, "install WebView2 Runtime", || {
@@ -247,13 +292,13 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
         set_defender_exclusions(session)
     })?;
 
-    logger::step(logger, "configure rustup for x86_64 (ARM64 workaround)", || {
-        configure_rustup_arm64(session)
-    })?;
+    logger::step(
+        logger,
+        "configure rustup for x86_64 (ARM64 workaround)",
+        || configure_rustup_arm64(session),
+    )?;
 
-    logger::step(logger, "install tools via mise", || {
-        install_tools(session)
-    })?;
+    logger::step(logger, "install tools via mise", || install_tools(session))?;
 
     logger::step(logger, "set nushell as default shell", || {
         set_nushell_default_shell(session)
@@ -277,10 +322,10 @@ fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Resu
     let state = winrm.run_ps_quiet(
         "Get-Service sshd -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
     );
-    if let Ok(s) = state {
-        if s.stdout.contains("Running") {
-            return Ok(());
-        }
+    if let Ok(s) = state
+        && s.stdout.contains("Running")
+    {
+        return Ok(());
     }
 
     elevated::run_elevated(winrm, INSTALL_OPENSSH_PS1, 1800, progress)?;
@@ -289,22 +334,24 @@ fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Resu
     Ok(())
 }
 
-/// Set up SSH key authorization on Windows (both user + admin paths) via WinRM.
-fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
+/// Set up SSH key authorization on Windows (both user + admin paths) via `WinRM`.
+fn setup_ssh_keys(winrm: &WinRM) {
     let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
     let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
     let mut pub_key = String::new();
 
     for key_name in key_names {
         let path = home.join(".ssh").join(key_name);
-        if path.exists() && let Ok(key) = std::fs::read_to_string(&path) {
+        if path.exists()
+            && let Ok(key) = std::fs::read_to_string(&path)
+        {
             pub_key = key.trim().to_string();
             break;
         }
     }
 
     if pub_key.is_empty() {
-        return Ok(());
+        return;
     }
 
     let script = SETUP_SSH_KEYS_PS1.replace("{{KEY}}", &pub_key);
@@ -313,10 +360,9 @@ fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     if let Err(e) = result {
         warn!("[bootstrap] SSH key setup via WinRM had issues: {e:?}");
     }
-    Ok(())
 }
 
-/// Set LocalAccountTokenFilterPolicy registry key.
+/// Set `LocalAccountTokenFilterPolicy` registry key.
 fn set_local_account_token_filter(winrm: &WinRM) -> Result<()> {
     elevated::run_elevated(winrm, SET_LOCAL_ACCOUNT_TOKEN_FILTER_PS1, 30, None)?;
     Ok(())
@@ -329,7 +375,7 @@ fn set_autologin(winrm: &WinRM) -> Result<bool> {
     let check = winrm.run_ps_quiet(
         "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' -Name AutoAdminLogon -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoAdminLogon",
     )?;
-    if check.stdout.contains("1") {
+    if check.stdout.contains('1') {
         return Ok(false);
     }
 
@@ -337,7 +383,10 @@ fn set_autologin(winrm: &WinRM) -> Result<bool> {
     Ok(true)
 }
 
-/// Reboot the Windows VM and wait for WinRM to come back.
+/// Reboot the Windows VM and wait for `WinRM` to come back.
+///
+/// # Errors
+/// Returns an error if `WinRM` does not return within the timeout.
 pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     logger.message("rebooting VM for autologin to take effect...");
 
@@ -345,8 +394,8 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     let _ = winrm.run_ps("Restart-Computer -Force");
 
     // Wait for WinRM to go down (reboot in progress)
-    let deadline = std::time::Instant::now() + Duration::from_secs(30);
-    while std::time::Instant::now() < deadline {
+    let deadline = logger.clock().now() + Duration::from_secs(30);
+    while logger.clock().now() < deadline {
         thread::sleep(Duration::from_secs(2));
         if winrm.run_ps_quiet("echo 1").is_err() {
             break;
@@ -354,9 +403,9 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     }
 
     // Wait for WinRM to come back (autologin should be active now)
-    let deadline = std::time::Instant::now() + Duration::from_secs(300);
+    let deadline = logger.clock().now() + Duration::from_secs(300);
     loop {
-        if std::time::Instant::now() > deadline {
+        if logger.clock().now() > deadline {
             return Err(crate::config::TestbedError::BootstrapFailed {
                 step: "wait for VM after reboot".to_string(),
                 message: "timed out waiting for WinRM after autologin reboot".to_string(),
@@ -372,7 +421,10 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
 
 /// Install mise on Windows — downloads binary on host, SCPs to VM.
 fn install_mise(session: &mut VmSession) -> Result<()> {
-    let (check, _) = crate::ssh::exec_ps_windows(session, "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name")?;
+    let (check, _) = crate::ssh::exec_ps_windows(
+        session,
+        "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name",
+    )?;
     if !check.trim().is_empty() {
         return Ok(());
     }
@@ -405,25 +457,37 @@ fn install_cargo_binstall(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
 
 /// Download a file to `$HOME/.testbed/` if not already cached, return the local path.
 fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
-    let cache_dir = dirs::home_dir()
-        .map(|h| h.join(".testbed/windows"))
-        .unwrap_or_else(|| PathBuf::from("/tmp/.testbed/windows"));
+    let cache_dir = dirs::home_dir().map_or_else(
+        || PathBuf::from("/tmp/.testbed/windows"),
+        |h| h.join(".testbed/windows"),
+    );
     std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
-        step: format!("create cache dir {cache_dir:?}"),
+        step: format!("create cache dir {}", cache_dir.display()),
         message: e.to_string(),
     })?;
 
     let dest = cache_dir.join(filename);
     if dest.exists() {
-        debug!("using cached: {} ({} bytes)", filename, dest.metadata().unwrap().len());
+        debug!(
+            "using cached: {} ({} bytes)",
+            filename,
+            dest.metadata().unwrap().len()
+        );
         return Ok(dest);
     }
 
     debug!("downloading {filename} from {url} to {cache_dir:?}...");
     let status = Command::new("curl")
         .args([
-            "-fSL", "--retry", "3", "--retry-delay", "5", "-C", "-",
-            "-o", dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
+            "-fSL",
+            "--retry",
+            "3",
+            "--retry-delay",
+            "5",
+            "-C",
+            "-",
+            "-o",
+            dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
                 step: format!("download {filename}"),
                 message: "cache path is not valid UTF-8".to_string(),
             })?,
@@ -449,32 +513,37 @@ fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
     Ok(dest)
 }
 
-/// Persist mise's cargo_binstall = true setting.
+/// Persist mise's `cargo_binstall` = true setting.
 fn configure_mise_cargo_binstall(session: &mut VmSession) -> Result<()> {
     crate::ssh::exec_ps_windows(session, CONFIGURE_MISE_CARGO_BINSTALL_PS1)?;
     Ok(())
 }
 
 /// Install VS Build Tools with C++ workload.
-fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>, force: bool) -> Result<()> {
-    if !force {
+fn install_vs_build_tools(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    progress: ProgressCallback<'_>,
+    force: bool,
+) -> Result<()> {
+    if force {
+        debug!("--force-vsbuild-install: skipping precheck, running installer");
+    } else {
         let vc_check = ssh_ps(session, winrm, CHECK_VS_BUILD_TOOLS_PS1)?;
         if vc_check.stdout.contains("present") {
             debug!("VS Build Tools already installed — link.exe and SDK verified");
             return Ok(());
         }
-    } else {
-        debug!("--force-vsbuild-install: skipping precheck, running installer");
     }
 
     elevated::run_elevated(winrm, INSTALL_VS_BUILD_TOOLS_PS1, 2000, progress)?;
     Ok(())
 }
 
-/// Install WebView2 Runtime (required by Tauri).
+/// Install `WebView2` Runtime (required by Tauri).
 ///
-/// Includes retry logic with WinRM reconnection — after long-running operations
-/// (like project mount setup), WinRM may become temporarily unavailable.
+/// Includes retry logic with `WinRM` reconnection — after long-running operations
+/// (like project mount setup), `WinRM` may become temporarily unavailable.
 fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM) -> Result<()> {
     // Retry loop: check if already installed
     let mut last_error = None;
@@ -502,14 +571,14 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
         tracing::info!("WinRM unreachable, attempting recovery via SSH...");
 
         // Try to restart WinRM service via SSH PowerShell
-        let restart_script = r#"
+        let restart_script = r"
             try {
                 Restart-Service -Name 'WinRM' -Force -ErrorAction Stop
                 Start-Sleep -Seconds 3
                 $svc = Get-Service -Name 'WinRM'
                 if ($svc.Status -eq 'Running') { 'RESTARTED' } else { 'FAILED' }
             } catch { 'FAILED: ' + $_.Exception.Message }
-        "#;
+        ";
 
         match crate::ssh::exec_ps_windows(session, restart_script) {
             Ok((output, _)) => {
@@ -530,7 +599,7 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
         }
 
         // Use fresh WinRM connection for each attempt
-        let fresh_winrm = crate::winrm::WinRM::from_profile(profile)?;
+        let fresh_winrm = crate::winrm::WinRM::from_profile(profile, winrm.ctx().clone())?;
         match fresh_winrm.run_ps(INSTALL_WEBVIEW2_PS1) {
             Ok(_) => return Ok(()),
             Err(e) => {
@@ -542,7 +611,7 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
                         .map(|_| ())
                         .map_err(|e| TestbedError::BootstrapFailed {
                             step: "install WebView2 Runtime".to_string(),
-                            message: format!("All WinRM and SSH attempts failed: {}", e),
+                            message: format!("All WinRM and SSH attempts failed: {e}"),
                         });
                 }
             }
@@ -559,21 +628,47 @@ fn set_defender_exclusions(session: &mut VmSession) -> Result<()> {
 }
 
 /// Remove pre-installed bloatware packages from Windows.
+///
+/// # Errors
+/// Returns an error if the elevated cleanup script fails.
 pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
     const DEBLOAT_PREFIXES: &[&str] = &[
-        "Microsoft.BingWeather", "Microsoft.GetHelp", "Microsoft.Getstarted",
-        "Microsoft.MicrosoftSolitaireCollection", "Microsoft.MicrosoftStickyNotes",
-        "Microsoft.MixedReality.Portal", "Microsoft.Office.OneNote",
-        "Microsoft.OneDriveSync", "Microsoft.People", "Microsoft.PowerAutomateDesktop",
-        "Microsoft.ScreenSketch", "Microsoft.SkypeApp", "Microsoft.Todos",
-        "Microsoft.WindowsAlarms", "Microsoft.WindowsCamera", "Microsoft.WindowsFeedbackHub",
-        "Microsoft.WindowsMaps", "Microsoft.WindowsSoundRecorder", "Microsoft.Xbox.TCUI",
-        "Microsoft.XboxApp", "Microsoft.XboxGameOverlay", "Microsoft.XboxGamingOverlay",
-        "Microsoft.XboxIdentityProvider", "Microsoft.XboxSpeechToTextOverlay",
-        "Microsoft.YourPhone", "Microsoft.ZuneMusic", "Microsoft.ZuneVideo",
-        "Clipchamp.Clipchamp", "MicrosoftTeams", "SpotifyAB.SpotifyMusic",
+        "Microsoft.BingWeather",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Office.OneNote",
+        "Microsoft.OneDriveSync",
+        "Microsoft.People",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.ScreenSketch",
+        "Microsoft.SkypeApp",
+        "Microsoft.Todos",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsCamera",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.WindowsMaps",
+        "Microsoft.WindowsSoundRecorder",
+        "Microsoft.Xbox.TCUI",
+        "Microsoft.XboxApp",
+        "Microsoft.XboxGameOverlay",
+        "Microsoft.XboxGamingOverlay",
+        "Microsoft.XboxIdentityProvider",
+        "Microsoft.XboxSpeechToTextOverlay",
+        "Microsoft.YourPhone",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Clipchamp.Clipchamp",
+        "MicrosoftTeams",
+        "SpotifyAB.SpotifyMusic",
     ];
-    let prefixes_ps = DEBLOAT_PREFIXES.iter().map(|p| format!("'{p}'")).collect::<Vec<_>>().join(", ");
+    let prefixes_ps = DEBLOAT_PREFIXES
+        .iter()
+        .map(|p| format!("'{p}'"))
+        .collect::<Vec<_>>()
+        .join(", ");
     let script = DEBLOAT_PS1
         .replace("__PREFIXES__", &prefixes_ps)
         .replace("__ACTION__", DEBLOAT_ACTION_PS1);
@@ -584,10 +679,15 @@ pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
 /// Set up the project mount for Windows guests.
 ///
 /// Registers a persistent Windows Scheduled Task that auto-mounts virtiofs
-/// on every boot (runs as 'vagrant' in the interactive session so WinFsp
+/// on every boot (runs as 'vagrant' in the interactive session so `WinFsp`
 /// can create a user-visible mount at `C:\Users\vagrant\project`).
 /// Then starts the task immediately and waits for the mount to appear.
-fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]) -> Result<()> {
+fn setup_project_mount(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    _methods: &[&str],
+    ctx: &Ctx,
+) -> Result<()> {
     // Check if already mounted with content verification
     let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
     let stdout = check.stdout.trim();
@@ -601,9 +701,11 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
 
     if stdout.starts_with("starting|") {
         debug!("virtiofs process starting, waiting for completion...");
-        let deadline = std::time::Instant::now() + Duration::from_secs(30);
+        let deadline = ctx.clock().now() + Duration::from_secs(30);
         loop {
-            if std::time::Instant::now() > deadline { break; }
+            if ctx.clock().now() > deadline {
+                break;
+            }
             thread::sleep(Duration::from_secs(3));
             let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
             if check.stdout.starts_with("mounted|") {
@@ -618,9 +720,11 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     elevated::run_elevated(winrm, REGISTER_VIRTIOFS_STARTUP_PS1, 60, None)?;
 
     // Wait for virtiofs mount to appear
-    let deadline = std::time::Instant::now() + Duration::from_secs(90);
+    let deadline = ctx.clock().now() + Duration::from_secs(90);
     loop {
-        if std::time::Instant::now() > deadline { break; }
+        if ctx.clock().now() > deadline {
+            break;
+        }
         thread::sleep(Duration::from_secs(5));
         let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
         let stdout = check.stdout.trim();
@@ -642,15 +746,27 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
         }
         if stdout == "missing" {
             // Check if virtiofs.exe is installed
-            let virtio_check = ssh_ps(session, winrm, "if (Test-Path 'C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe') { 'EXISTS' } else { 'MISSING' }")?;
+            let virtio_check = ssh_ps(
+                session,
+                winrm,
+                "if (Test-Path 'C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe') { 'EXISTS' } else { 'MISSING' }",
+            )?;
             debug!("virtiofs.exe check: {}", virtio_check.stdout.trim());
 
             // Check VirtIO-FS driver status
-            let driver_check = ssh_ps(session, winrm, "Get-PnpDevice -Class System -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' } | Select-Object -First 3 | ForEach-Object { $_.FriendlyName }")?;
+            let driver_check = ssh_ps(
+                session,
+                winrm,
+                "Get-PnpDevice -Class System -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' } | Select-Object -First 3 | ForEach-Object { $_.FriendlyName }",
+            )?;
             debug!("VirtIO drivers found: {}", driver_check.stdout.trim());
 
             // Check WinFsp service
-            let winfsp_check = ssh_ps(session, winrm, "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status")?;
+            let winfsp_check = ssh_ps(
+                session,
+                winrm,
+                "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
+            )?;
             debug!("WinFsp.Launcher status: {}", winfsp_check.stdout.trim());
         }
     }
@@ -659,9 +775,11 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     debug!("virtiofs startup mount failed, falling back to SMB");
     elevated::run_interactive(winrm, SETUP_SMB_MOUNT_PS1, "vagrant")?;
 
-    let deadline = std::time::Instant::now() + Duration::from_secs(60);
+    let deadline = ctx.clock().now() + Duration::from_secs(60);
     loop {
-        if std::time::Instant::now() > deadline { break; }
+        if ctx.clock().now() > deadline {
+            break;
+        }
         thread::sleep(Duration::from_secs(5));
         let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
         if check.stdout.starts_with("mounted|") {
@@ -675,19 +793,19 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     Ok(())
 }
 
-/// Install WinFsp — userspace filesystem framework required by virtiofs.exe.
+/// Install `WinFsp` — userspace filesystem framework required by virtiofs.exe.
 ///
-/// virtiofs.exe on Windows uses WinFsp to mount the host filesystem. Without
-/// WinFsp, the VirtIO-FS service fails with "failed to load WinFsp DLL".
+/// virtiofs.exe on Windows uses `WinFsp` to mount the host filesystem. Without
+/// `WinFsp`, the VirtIO-FS service fails with "failed to load `WinFsp` DLL".
 fn install_winfsp(winrm: &WinRM) -> Result<()> {
     // Check if already installed
     let check = winrm.run_ps_quiet(
         "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
     );
-    if let Ok(s) = check {
-        if s.stdout.contains("Running") {
-            return Ok(());
-        }
+    if let Ok(s) = check
+        && s.stdout.contains("Running")
+    {
+        return Ok(());
     }
 
     elevated::run_elevated(winrm, INSTALL_WINFSP_PS1, 600, None)?;
@@ -712,7 +830,7 @@ fn install_virtio_drivers(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
     Ok(())
 }
 
-/// Configure rustup default-host to x86_64 on ARM64 Windows hosts.
+/// Configure rustup default-host to `x86_64` on ARM64 Windows hosts.
 fn configure_rustup_arm64(session: &mut VmSession) -> Result<()> {
     let (arch, _) = crate::ssh::exec_ps_windows(session, "$env:PROCESSOR_ARCHITECTURE")?;
     if !arch.contains("ARM64") {
@@ -744,6 +862,9 @@ fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
 }
 
 /// Clean transient files from the Windows guest.
+///
+/// # Errors
+/// Returns an error if the cleanup script fails.
 pub fn clean_windows(winrm: &WinRM, deep: bool) -> crate::config::Result<()> {
     let deep_block = if deep { CLEAN_DEEP_PS1 } else { "" };
     let script = CLEAN_MAIN_PS1
@@ -753,7 +874,10 @@ pub fn clean_windows(winrm: &WinRM, deep: bool) -> crate::config::Result<()> {
     Ok(())
 }
 
-/// Aggressive cleanup — CompactOS, hibernation, VSS, event logs.
+/// Aggressive cleanup — `CompactOS`, hibernation, VSS, event logs.
+///
+/// # Errors
+/// Returns an error if a cleanup script fails.
 pub fn aggressive_clean(winrm: &WinRM) -> crate::config::Result<()> {
     for (_name, script) in [
         ("CompactOS", CLEAN_COMPACTOS_PS1),
@@ -771,11 +895,18 @@ pub fn aggressive_clean(winrm: &WinRM) -> crate::config::Result<()> {
 ///
 /// Uses `/RU vagrant /IT` so GUI apps actually appear on screen (unlike
 /// headless SSH/WinRM execution where Win32 GUI windows are silently exited).
+///
+/// # Errors
+/// Returns an error if the interactive launch fails.
 pub fn run_interactive_windows(winrm: &WinRM, bin_path: &str, args: &[String]) -> Result<()> {
     let arglist = if args.is_empty() {
         String::new()
     } else {
-        let quoted = args.iter().map(|a| format!("'{a}'")).collect::<Vec<_>>().join(",");
+        let quoted = args
+            .iter()
+            .map(|a| format!("'{a}'"))
+            .collect::<Vec<_>>()
+            .join(",");
         format!(" -ArgumentList @({quoted})")
     };
     let script = INTERACTIVE_LAUNCH_PS1
@@ -789,7 +920,14 @@ pub fn run_interactive_windows(winrm: &WinRM, bin_path: &str, args: &[String]) -
 ///
 /// Runs in a Scheduled Task with `/RU vagrant /IT` so `Graphics.CopyFromScreen`
 /// sees the real desktop. The PNG is written to a VM path, then SCP'd back.
-pub fn screenshot_windows(winrm: &WinRM, session: &mut VmSession, output: &std::path::Path) -> Result<()> {
+///
+/// # Errors
+/// Returns an error if the screenshot or download fails.
+pub fn screenshot_windows(
+    winrm: &WinRM,
+    session: &mut VmSession,
+    output: &std::path::Path,
+) -> Result<()> {
     let vm_path = "$env:USERPROFILE\\.testbed-screenshot.png";
     let script = SCREENSHOT_WINDOWS_PS1.replace("__OUTPUT_PATH__", vm_path);
 
@@ -800,11 +938,17 @@ pub fn screenshot_windows(winrm: &WinRM, session: &mut VmSession, output: &std::
     thread::sleep(std::time::Duration::from_secs(3));
 
     // Download to host
-    crate::ssh::download(session, "C:\\Users\\vagrant\\.testbed-screenshot.png", output)?;
+    crate::ssh::download(
+        session,
+        "C:\\Users\\vagrant\\.testbed-screenshot.png",
+        output,
+    )?;
 
     // Clean up on VM
-    crate::ssh::exec_ps_windows(session, "Remove-Item 'C:\\Users\\vagrant\\.testbed-screenshot.png' -Force -ErrorAction SilentlyContinue")?;
+    crate::ssh::exec_ps_windows(
+        session,
+        "Remove-Item 'C:\\Users\\vagrant\\.testbed-screenshot.png' -Force -ErrorAction SilentlyContinue",
+    )?;
 
     Ok(())
 }
-

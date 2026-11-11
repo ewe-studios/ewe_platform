@@ -34,9 +34,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, 
-    self, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator,
-    TaskStatus, TryRecvError, TrySendError,
+use foundation_context::Ctx;
+use foundation_core::valtron::{
+    self, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator, TaskStatus,
+    TryRecvError, TrySendError,
 };
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::H3Error;
@@ -46,8 +47,8 @@ use foundation_netio::shared::http::{
 };
 
 use crate::shared::transport::{
-    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities,
-    TransportError, TransportStream,
+    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities, TransportError,
+    TransportStream,
 };
 
 /// How long the pump yields for when neither direction can make progress.
@@ -59,6 +60,8 @@ pub struct H3Transport {
     client_config: ClientConfig,
     /// The name the server certificate is validated against.
     server_name: Option<String>,
+    /// The context whose clock each QUIC connection reads.
+    ctx: Ctx,
 }
 
 impl H3Transport {
@@ -66,12 +69,17 @@ impl H3Transport {
     /// `H2Transport` this cannot be constructed without a TLS configuration.
     ///
     /// WHAT: an HTTP/3 transport using `client_config` for every connection.
+    /// Each connection reads the time from the clock of `ctx`.
     ///
     /// HOW: pair with [`foundation_netio::quic::client_config_trusting_pem`] for a
     /// pinned certificate.
     #[must_use]
-    pub fn new(client_config: ClientConfig) -> Self {
-        Self { client_config, server_name: None }
+    pub fn new(client_config: ClientConfig, ctx: Ctx) -> Self {
+        Self {
+            client_config,
+            server_name: None,
+            ctx,
+        }
     }
 
     /// Validate the server certificate against `name` rather than the URI host.
@@ -100,7 +108,10 @@ impl Transport for H3Transport {
     }
 
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let host = request.request_uri.host_str().unwrap_or_else(|| "localhost".into());
+        let host = request
+            .request_uri
+            .host_str()
+            .unwrap_or_else(|| "localhost".into());
         let port = request.request_uri.port_or_default();
         let path = request.request_uri.path().to_string();
         // QUIC is always encrypted, so an HTTP/3 request is always `https`.
@@ -121,7 +132,7 @@ impl Transport for H3Transport {
 
         let server_name = self.server_name.clone().unwrap_or_else(|| host.clone());
         let (driver, quic_conn) =
-            QuicDriver::connect(addr, self.client_config.clone(), &server_name)
+            QuicDriver::connect(addr, self.client_config.clone(), &server_name, &self.ctx)
                 .map_err(|e| TransportError::Connect(Arc::new(e)))?;
 
         let (send_tx, send_rx) = Pipe::<Bytes>::new();
@@ -151,9 +162,8 @@ impl Transport for H3Transport {
             response_ended: false,
         };
 
-        valtron::send(pump).map_err(|e| {
-            TransportError::Connect(Arc::new(io::Error::other(e.to_string())))
-        })?;
+        valtron::send(pump)
+            .map_err(|e| TransportError::Connect(Arc::new(io::Error::other(e.to_string()))))?;
 
         Ok(TransportStream {
             send_body: Arc::new(send_tx),
@@ -216,9 +226,18 @@ impl H3Pump {
     /// The request's field section, pseudo-headers first (RFC 9114 §4.3).
     fn request_fields(&self) -> Vec<(Bytes, Bytes)> {
         let mut fields = vec![
-            (Bytes::from_static(b":method"), Bytes::from(self.method.clone())),
-            (Bytes::from_static(b":scheme"), Bytes::from(self.scheme.clone())),
-            (Bytes::from_static(b":authority"), Bytes::from(self.authority.clone())),
+            (
+                Bytes::from_static(b":method"),
+                Bytes::from(self.method.clone()),
+            ),
+            (
+                Bytes::from_static(b":scheme"),
+                Bytes::from(self.scheme.clone()),
+            ),
+            (
+                Bytes::from_static(b":authority"),
+                Bytes::from(self.authority.clone()),
+            ),
             (Bytes::from_static(b":path"), Bytes::from(self.path.clone())),
         ];
 
@@ -364,17 +383,18 @@ impl H3Pump {
         if let Some(req) = self.req.as_mut() {
             req.reset(error_code::H3_NO_ERROR);
         }
-        self.head_tx.close();
-        self.body_tx.close();
-        self.trailer_tx.close();
+        // Closing is idempotent; the bool only reports who closed each pipe.
+        let _ = self.head_tx.close();
+        let _ = self.body_tx.close();
+        let _ = self.trailer_tx.close();
         self.phase = Phase::Done;
     }
 
     /// Everything has been delivered; close the pipes.
     fn finish(&mut self) {
-        self.body_tx.close();
-        self.head_tx.close();
-        self.trailer_tx.close();
+        let _ = self.body_tx.close();
+        let _ = self.head_tx.close();
+        let _ = self.trailer_tx.close();
         self.conn.close(error_code::H3_NO_ERROR, b"done");
         self.phase = Phase::Done;
     }
@@ -391,7 +411,9 @@ fn split_response_fields(fields: &[(Bytes, Bytes)]) -> (Status, SimpleHeaders) {
             continue;
         }
         headers
-            .entry(SimpleHeader::from(String::from_utf8_lossy(name).to_string()))
+            .entry(SimpleHeader::from(
+                String::from_utf8_lossy(name).to_string(),
+            ))
             .or_default()
             .push(String::from_utf8_lossy(value).to_string());
     }

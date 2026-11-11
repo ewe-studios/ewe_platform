@@ -1,6 +1,6 @@
 //! `OverlayReadWrite` impl — bridges `OverlayStream` into `Connection::Overlay` (spec-55, F11).
 //!
-//! WHY: ConnectRPC/HTTP/any-netio-consumer works over the WireGuard mesh through
+//! WHY: ConnectRPC/HTTP/any-netio-consumer works over the `WireGuard` mesh through
 //! one `Connection`. The `OverlayReadWrite` trait in `foundation_netio` provides the
 //! interface; this module provides the impl wrapping a smoltcp `OverlayStream`.
 //!
@@ -62,5 +62,13 @@ impl OverlayReadWrite for OverlayConnection {
 
     fn set_write_waker(&self, waker: ConnWaker) {
         self.stream.set_write_waker(waker);
+    }
+
+    fn readable(&self) -> bool {
+        self.stream.readable()
+    }
+
+    fn writable(&self) -> bool {
+        self.stream.writable()
     }
 }

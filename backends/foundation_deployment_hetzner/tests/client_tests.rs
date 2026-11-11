@@ -43,7 +43,10 @@ fn every_override_is_tried_before_every_vendor_name() {
     // token for this workspace", and that intent should beat any vendor variable
     // lying around in the environment.
     let vars = credential_vars();
-    let last_override = vars.iter().rposition(|v| v.starts_with("EWE_")).expect("has overrides");
+    let last_override = vars
+        .iter()
+        .rposition(|v| v.starts_with("EWE_"))
+        .expect("has overrides");
     let first_vendor = vars
         .iter()
         .position(|v| !v.starts_with("EWE_"))
@@ -104,7 +107,9 @@ fn from_env_without_any_variable_set_fails_rather_than_building_an_anonymous_cli
         eprintln!("SKIP: a Hetzner token is exported in this environment");
         return;
     }
-    match HetznerClient::from_env() {
+    match HetznerClient::from_env(&foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))) {
         Err(HetznerError::NoCredentials { looked_for }) => {
             assert_eq!(looked_for, credential_vars());
         }
@@ -119,7 +124,12 @@ fn from_env_without_any_variable_set_fails_rather_than_building_an_anonymous_cli
 fn debug_never_prints_the_token() {
     // Decision 02 §4. A derived Debug on a struct holding a bearer token is one
     // tracing::debug! away from a token in a log — and logs get shipped.
-    let client = HetznerClient::new("super-secret-token-value");
+    let client = HetznerClient::new(
+        "super-secret-token-value",
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     let debug = format!("{client:?}");
     assert!(
         !debug.contains("super-secret-token-value"),
@@ -129,7 +139,10 @@ fn debug_never_prints_the_token() {
 
     // The alternate/pretty formatter is a separate code path.
     let pretty = format!("{client:#?}");
-    assert!(!pretty.contains("super-secret-token-value"), "leaked in {{:#?}}: {pretty}");
+    assert!(
+        !pretty.contains("super-secret-token-value"),
+        "leaked in {{:#?}}: {pretty}"
+    );
 }
 
 #[test]
@@ -138,14 +151,18 @@ fn no_error_variant_interpolates_a_token() {
     // to carry the secret, so none of them holds it in the first place.
     let errors = [
         HetznerError::Unauthorized,
-        HetznerError::RateLimited { retry_after_secs: Some(30) },
+        HetznerError::RateLimited {
+            retry_after_secs: Some(30),
+        },
         HetznerError::Api {
             status: 422,
             code: "invalid_input".into(),
             message: "server_type is required".into(),
         },
         HetznerError::Transport("connection refused".into()),
-        HetznerError::NoCredentials { looked_for: credential_vars() },
+        HetznerError::NoCredentials {
+            looked_for: credential_vars(),
+        },
     ];
     for err in errors {
         let rendered = format!("{err} {err:?}");
@@ -169,7 +186,12 @@ fn unauthorized_is_its_own_variant_and_says_what_to_check() {
 #[test]
 fn the_api_version_is_pinned_not_passed() {
     // An API version is not a per-call decision (feature 00 §3).
-    let client = HetznerClient::new("t");
+    let client = HetznerClient::new(
+        "t",
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    );
     assert_eq!(client.api_version(), "v1");
     assert_eq!(API_VERSION, "v1");
     assert!(client.base_url().ends_with("/v1"), "{}", client.base_url());
@@ -177,7 +199,13 @@ fn the_api_version_is_pinned_not_passed() {
 
 #[test]
 fn with_base_url_points_the_client_at_a_mock() {
-    let client = HetznerClient::new("t").with_base_url("http://127.0.0.1:8080");
+    let client = HetznerClient::new(
+        "t",
+        foundation_context::Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        )),
+    )
+    .with_base_url("http://127.0.0.1:8080");
     assert_eq!(client.base_url(), "http://127.0.0.1:8080");
     assert_eq!(client.token(), "t", "the token survives the rebuild");
 }

@@ -3,11 +3,13 @@
 //! Keys are generated server-side, the private key `age`-encrypted at rest with
 //! the server master key, and returned in full only on create/get.
 
-use chrono::{Duration, Utc};
+use chrono::Duration;
+
+use crate::core::clock::wall_now_utc;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::provisioning::keygen;
 use crate::core::provisioning::store::{self, SshKeyRow};
@@ -54,12 +56,16 @@ async fn owned(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<S
         .await?
         .ok_or_else(|| AppError::NotFound("ssh key not found".into()))?;
     if key.app_uuid != app_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     Ok(key)
 }
 
 /// `POST /api/credentials/ssh-keys` — generate + store a key for the app.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn create(
     ctx: &KeychainContext,
     master_key: &str,
@@ -67,15 +73,18 @@ pub async fn create(
     req: CreateSshKeyRequest,
 ) -> AppResult<SshKeyResponse> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("key name is required".into()));
+        return Err(AppError::BadRequest("key name is required".into()).into());
     }
     let comment = req.comment.clone().unwrap_or_default();
     let generated = keygen::generate(req.key_type.as_deref().unwrap_or("ed25519"), &comment)?;
 
-    let now = Utc::now();
-    let expires_at = req.ttl_hours.filter(|h| *h > 0).map(|h| now + Duration::hours(h));
+    let now = wall_now_utc(ctx.ctx());
+    let expires_at = req
+        .ttl_hours
+        .filter(|h| *h > 0)
+        .map(|h| now + Duration::hours(h));
     let row = SshKeyRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         app_uuid: app_id.to_string(),
         name: req.name,
         key_type: generated.key_type,
@@ -90,6 +99,10 @@ pub async fn create(
 }
 
 /// `GET /api/credentials/ssh-keys` — the app's keys (public only).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, app_id: &str) -> AppResult<Vec<SshKeyResponse>> {
     Ok(store::find_keys_by_app(ctx.db(), app_id)
         .await?
@@ -99,6 +112,10 @@ pub async fn list(ctx: &KeychainContext, app_id: &str) -> AppResult<Vec<SshKeyRe
 }
 
 /// `GET /api/credentials/ssh-keys/:id` — one key with the decrypted private key.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn get(
     ctx: &KeychainContext,
     master_key: &str,
@@ -113,6 +130,10 @@ pub async fn get(
 }
 
 /// `DELETE /api/credentials/ssh-keys/:id` — delete an owned key.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, app_id: &str, key_id: &str) -> AppResult<()> {
     owned(ctx, app_id, key_id).await?;
     store::delete_key(ctx.db(), key_id).await

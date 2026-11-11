@@ -7,15 +7,17 @@
 //! ```
 
 use foundation_ai::harness::RouterPreset;
+
+use foundation_context::Ctx;
 use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("ANTHROPIC_API_KEY")
-        .expect("ANTHROPIC_API_KEY must be set");
+    let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // One-call: Claude Opus (main) + Claude Sonnet (memory) wired for you.
-    let builder = RouterPreset::claude(&api_key)?.into_agent_builder();
+    let ctx = Ctx::host();
+    let builder = RouterPreset::claude(&api_key, ctx.clone())?.into_agent_builder(ctx);
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
@@ -23,7 +25,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .await?;
 
     println!("Asking Claude...");
-    let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
+    let turn = agent
+        .run_turn("Hello! Please say hi back in one sentence.")
+        .await?;
 
     // Partial output first, then the error if the turn ended early.
     println!("{}", turn.text());

@@ -2,28 +2,34 @@
 
 use std::sync::Arc;
 
-use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, QueueReadiness, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{EventQueue, EventReadinessPtr, TaskIterator, TaskStatus};
 
 use crate::signal::{SignalBus, SignalEvent, SignalHandle};
 
-#[allow(dead_code)]
+/// A valtron task that receives signals from a [`SignalBus`].
+///
+/// The task parks on the platform handle. Each readiness poll of the handle
+/// delivers the signals that the handler recorded, and the task then returns
+/// them from its queue. This task is the one in-process driver of the handle,
+/// so a signal is delivered only while an executor polls this task.
 pub struct SignalTask {
-    bus: Arc<SignalBus>,
-    my_queue: Arc<ConcurrentQueue<SignalEvent>>,
-    my_ready: QueueReadiness<SignalEvent>,
-    handle: SignalHandle,
+    /// Holds the bus for the lifetime of the task, so a caller that passes its
+    /// only `Arc` keeps a live subscriber list. The task reaches the bus
+    /// through `my_queue`, so it never reads this field.
+    _bus: Arc<SignalBus>,
+    my_queue: EventQueue<SignalEvent>,
+    readiness: EventReadinessPtr,
 }
 
 impl SignalTask {
     pub fn new(bus: Arc<SignalBus>, handle: SignalHandle) -> Self {
-        let my_queue = bus.subscribe();
-        let my_ready = QueueReadiness::new(my_queue.clone());
+        let my_queue = bus.subscribe_events();
+        let readiness: EventReadinessPtr = Arc::new(handle);
         Self {
-            bus,
+            _bus: bus,
             my_queue,
-            my_ready,
-            handle,
+            readiness,
         }
     }
 }
@@ -33,11 +39,13 @@ impl TaskIterator for SignalTask {
     type Pending = ();
 
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        // Drain received signals
+        // Drain signals that a readiness poll has already delivered.
         if let Ok(event) = self.my_queue.pop() {
             return Some(TaskStatus::Ready(event));
         }
-        // Park until signal arrives — uses the platform-specific handle
-        Some(TaskStatus::Depends(Arc::new(self.handle.clone())))
+        // Park on the platform handle. Its readiness poll delivers the signal
+        // that the handler recorded, and then wakes this task through the
+        // queue.
+        Some(TaskStatus::Depends(Arc::clone(&self.readiness)))
     }
 }

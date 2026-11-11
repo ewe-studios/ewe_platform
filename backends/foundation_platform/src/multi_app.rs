@@ -1,18 +1,18 @@
-//! Per-app WebView isolation (F29 Stage 6).
+//! Per-app `WebView` isolation (F29 Stage 6).
 //!
 //! WHY: When multiple `wasm_app`s run in the same process, each needs its
-//! own WebView with its own `Profile`, `CachePolicy`, and capability
+//! own `WebView` with its own `Profile`, `CachePolicy`, and capability
 //! allowlist. Without isolation, one app could access another app's
 //! capabilities or cached data.
 //!
-//! WHAT: `AppConfig` maps a route prefix to a WebView label, `Profile`,
+//! WHAT: `AppConfig` maps a route prefix to a `WebView` label, `Profile`,
 //! `CachePolicy`, and capability allowlist. `AppIsolation` holds the
 //! registry of app configs and resolves them for each navigation.
 //!
 //! HOW: During route resolution, `AppIsolation::resolve()` returns the
-//! target WebView label and capability allowlist. The session's
+//! target `WebView` label and capability allowlist. The session's
 //! `execute_decision()` uses this to route navigation to the correct
-//! WebView and enforce per-app capability gates.
+//! `WebView` and enforce per-app capability gates.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::RwLock;
@@ -21,14 +21,14 @@ use foundation_ui_traits::{CachePolicy, Profile};
 
 // ── App config ──────────────────────────────────────────────────────────
 
-/// Configuration for a single app's WebView isolation.
+/// Configuration for a single app's `WebView` isolation.
 #[derive(Debug, Clone)]
 pub struct AppConfig {
     /// The route prefix this app handles (e.g. "/app/", "/app-hello/").
     pub route_prefix: String,
-    /// The WebView label used for this app's WebView.
+    /// The `WebView` label used for this app's `WebView`.
     pub webview_label: String,
-    /// Minimum profile for this app's WebView.
+    /// Minimum profile for this app's `WebView`.
     pub profile: Profile,
     /// Cache policy for this app's routes.
     pub cache_policy: CachePolicy,
@@ -137,7 +137,7 @@ impl AppIsolation {
             .map(|(_, config)| config.clone())
     }
 
-    /// Get the WebView label for a route. Returns `"main"` if no app matches.
+    /// Get the `WebView` label for a route. Returns `"main"` if no app matches.
     ///
     /// # Panics
     ///
@@ -145,8 +145,7 @@ impl AppIsolation {
     #[must_use]
     pub fn webview_label_for(&self, route: &str) -> String {
         self.resolve(route)
-            .map(|c| c.webview_label)
-            .unwrap_or_else(|| "main".to_string())
+            .map_or_else(|| "main".to_string(), |c| c.webview_label)
     }
 
     /// Check if a capability is allowed for the given route.
@@ -157,8 +156,7 @@ impl AppIsolation {
     #[must_use]
     pub fn is_capability_allowed(&self, route: &str, capability: &str) -> bool {
         self.resolve(route)
-            .map(|c| c.allowed_capabilities.contains(capability))
-            .unwrap_or(false)
+            .is_some_and(|c| c.allowed_capabilities.contains(capability))
     }
 
     /// Return all registered app prefixes.
@@ -179,51 +177,3 @@ impl Default for AppIsolation {
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn app_isolation_longest_prefix_match() {
-        let isolation = AppIsolation::new();
-        isolation.register(AppConfig::new("/app/", "app"));
-        isolation.register(AppConfig::new("/app/settings/", "app-settings"));
-
-        assert_eq!(isolation.webview_label_for("/app/home"), "app");
-        assert_eq!(
-            isolation.webview_label_for("/app/settings/profile"),
-            "app-settings"
-        );
-        assert_eq!(isolation.webview_label_for("/api/status"), "main");
-    }
-
-    #[test]
-    fn app_isolation_capability_check() {
-        let isolation = AppIsolation::new();
-        isolation.register(
-            AppConfig::new("/app/", "app").with_capabilities(["camera", "storage"]),
-        );
-
-        assert!(isolation.is_capability_allowed("/app/home", "camera"));
-        assert!(!isolation.is_capability_allowed("/app/home", "bluetooth"));
-        assert!(!isolation.is_capability_allowed("/api/status", "camera"));
-    }
-
-    #[test]
-    fn app_config_builders() {
-        let config = AppConfig::new("/app/", "app")
-            .with_profile(Profile::TrustedRemote)
-            .with_cache(CachePolicy::NetworkFirst)
-            .with_capabilities(["camera", "location"])
-            .with_remote_fetch(true)
-            .with_ipc(true);
-
-        assert_eq!(config.webview_label, "app");
-        assert_eq!(config.profile, Profile::TrustedRemote);
-        assert_eq!(config.cache_policy, CachePolicy::NetworkFirst);
-        assert!(config.allow_remote_fetch);
-        assert!(config.allow_ipc);
-        assert_eq!(config.allowed_capabilities.len(), 2);
-    }
-}

@@ -1,4 +1,4 @@
-//! # BrowserDriver + Page (spec-43 §5)
+//! # `BrowserDriver` + Page (spec-43 §5)
 //!
 //! WHY: The public entrypoint — launch a browser, open a page, drive it from
 //! Rust. Owns the process + engine as RAII so teardown is deterministic.
@@ -8,52 +8,112 @@
 //!
 //! HOW: `launch` spawns the browser ([`crate::supervisor`]) and connects the
 //! engine ([`crate::jsonrpc`]); `new_page` builds the protocol [`Backend`] —
-//! CDP (Chromium) or BiDi (Firefox) — behind one `Page` API.
+//! CDP (Chromium) or `BiDi` (Firefox) — behind one `Page` API.
 
 use std::path::Path;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
+use foundation_context::Ctx;
 use serde_json::Value;
 
 use crate::backend::Backend;
 use crate::bidi::backend::BiDiBackend;
 use crate::cdp::backend::CdpBackend;
 use crate::cdp::launch::{Browser, LaunchConfig};
-use crate::error::Result;
+use crate::error::{BrowserError, Result};
 use crate::jsonrpc::RpcEngine;
+use crate::pause::{pause, WaitConfig};
 use crate::supervisor::BrowserProcess;
+
+/// The context a driver reads: an owned [`Ctx`], or a borrow from the host.
+///
+/// A launch with a [`LaunchConfig`] owns its `Ctx`; the testbed browser runner
+/// already holds a `&Ctx`, so it borrows that same instance.
+enum CtxSource<'a> {
+    Shared(Ctx),
+    Borrowed(&'a Ctx),
+}
+
+impl CtxSource<'_> {
+    fn ctx_ref(&self) -> &Ctx {
+        match self {
+            Self::Shared(ctx) => ctx,
+            Self::Borrowed(ctx) => ctx,
+        }
+    }
+}
 
 /// A launched browser: the process + the JSON-RPC engine over its socket.
 ///
 /// Drop order (fields, declaration order): `engine` (close socket / stop reader)
 /// then `process` (kill + remove profile) — i.e. session before process.
-pub struct BrowserDriver {
+pub struct BrowserDriver<'a> {
     engine: RpcEngine,
     browser: Browser,
+    ctx: CtxSource<'a>,
     #[allow(dead_code)] // held for its Drop (kills the process)
     process: BrowserProcess,
 }
 
-impl BrowserDriver {
+impl BrowserDriver<'static> {
     /// Launch a browser and connect the driver.
     ///
     /// # Errors
     /// [`BrowserError`] if the browser is missing, the launch fails, or the
     /// CDP/BiDi socket can't be reached.
+    ///
+    ///
+    /// # Errors
+    /// [`BrowserError::Launch`] if `config` has no context. Call
+    /// [`LaunchConfig::ctx`] first.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "public API takes LaunchConfig by value; a reference would break every caller"
+    )]
     pub fn launch(config: LaunchConfig) -> Result<Self> {
+        let ctx = config.ctx.clone().ok_or_else(|| {
+            BrowserError::Launch("LaunchConfig has no Ctx: call .ctx(ctx) before launch".into())
+        })?;
+        Self::launch_inner(&config, CtxSource::Shared(ctx))
+    }
+}
+
+impl<'a> BrowserDriver<'a> {
+    /// Launch a browser and connect the driver, borrowing `ctx`.
+    ///
+    /// Use this when the caller already holds a `&Ctx`, so no second
+    /// context enters the launch path.
+    ///
+    /// # Errors
+    /// [`BrowserError`] if the browser is missing, the launch fails, or the
+    /// CDP/BiDi socket can't be reached.
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "public API takes LaunchConfig by value; a reference would break every caller"
+    )]
+    pub fn launch_borrowed(config: LaunchConfig, ctx: &'a Ctx) -> Result<Self> {
+        Self::launch_inner(&config, CtxSource::Borrowed(ctx))
+    }
+
+    fn launch_inner(config: &LaunchConfig, ctx: CtxSource<'a>) -> Result<Self> {
         let browser = config.browser;
-        let process = BrowserProcess::launch(&config)?;
+        let process = BrowserProcess::launch(config, ctx.ctx_ref())?;
         // Firefox's remote agent takes a beat to start listening; CDP's endpoint
         // is ready as soon as DevToolsActivePort appears, so one shot suffices.
-        let engine = connect_with_retry(process.ws_url(), browser)?;
+        let engine = connect_with_retry(process.ws_url(), browser, &config.wait, ctx.ctx_ref())?;
         // BiDi is connection-scoped: open the session once, up front.
         if browser == Browser::Firefox {
             crate::bidi::new_session(&engine)?;
         }
-        Ok(Self { engine, browser, process })
+        Ok(Self {
+            engine,
+            browser,
+            ctx,
+            process,
+        })
     }
 
-    /// Open a fresh page (a CDP target session, or a BiDi browsing context).
+    /// Open a fresh page (a CDP target session, or a `BiDi` browsing context).
     ///
     /// # Errors
     /// Protocol errors during session/context setup.
@@ -62,29 +122,44 @@ impl BrowserDriver {
             Browser::Chromium => Box::new(CdpBackend::attach(&self.engine)?),
             Browser::Firefox => Box::new(BiDiBackend::create(&self.engine)?),
         };
-        Ok(Page { backend })
+        Ok(Page {
+            backend,
+            ctx: self.ctx.ctx_ref(),
+        })
     }
 }
 
 /// Connect the engine, retrying briefly (Firefox needs a moment to listen).
-fn connect_with_retry(ws_url: &str, browser: Browser) -> Result<RpcEngine> {
+///
+/// The retry deadline and the pause between attempts follow the `ctx` clock.
+///
+/// # Errors
+/// The last connect error when the deadline passes.
+#[doc(hidden)]
+pub fn connect_with_retry(
+    ws_url: &str,
+    browser: Browser,
+    wait: &WaitConfig,
+    ctx: &Ctx,
+) -> Result<RpcEngine> {
     let call_timeout = Duration::from_secs(30);
     if browser == Browser::Chromium {
         return RpcEngine::connect(ws_url, call_timeout);
     }
-    let deadline = Instant::now() + Duration::from_secs(20);
+    let deadline = ctx.clock().now() + Duration::from_secs(20);
     loop {
         match RpcEngine::connect(ws_url, call_timeout) {
             Ok(engine) => return Ok(engine),
-            Err(e) if Instant::now() >= deadline => return Err(e),
-            Err(_) => std::thread::sleep(Duration::from_millis(100)),
+            Err(e) if ctx.clock().now() >= deadline => return Err(e),
+            Err(_) => pause(ctx, wait.poll_interval, wait),
         }
     }
 }
 
-/// A browser page (one CDP target session or BiDi browsing context).
+/// A browser page (one CDP target session or `BiDi` browsing context).
 pub struct Page<'d> {
     backend: Box<dyn Backend + 'd>,
+    ctx: &'d Ctx,
 }
 
 impl Page<'_> {
@@ -96,7 +171,7 @@ impl Page<'_> {
     /// A [`Locator`](crate::locator::Locator) for `selector`.
     #[must_use]
     pub fn locator<'s>(&'s self, selector: &str) -> crate::locator::Locator<'s> {
-        crate::locator::Locator::new(self, selector)
+        crate::locator::Locator::new(self, selector, self.ctx)
     }
 
     /// Navigate to `url` and wait for load to complete.
@@ -136,7 +211,7 @@ impl Page<'_> {
     /// # Errors
     /// Protocol error from the evaluate call.
     pub fn wait_for_reactive(&self, quiet_ms: u64, timeout_ms: u64) -> Result<bool> {
-        let step = quiet_ms.min(25).max(1);
+        let step = quiet_ms.clamp(1, 25);
         let expr = format!(
             "(async () => {{ const t=()=>performance.now(); const start=t(); \
              for(;;) {{ const f=globalThis.__primalFrames; \

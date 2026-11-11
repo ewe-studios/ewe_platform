@@ -1,3 +1,7 @@
+// Database columns store KDF parameters and counters as i64; the API wire
+// fields are i32/u32 and the stored values are always in range.
+#![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+
 //! Events API — portable audit-log handlers (spec-57, F008 Stage 1).
 //!
 //! WHY: Bitwarden clients `POST /events/collect` a batch of user-activity events;
@@ -5,8 +9,11 @@
 //! OrangeVault) from `api/events.rs`.
 
 use chrono::{DateTime, Utc};
+
+use crate::core::clock::wall_now_utc;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
+use crate::core::crypto;
 
 use crate::core::context::KeychainContext;
 use crate::core::error::AppResult;
@@ -46,6 +53,10 @@ fn to_response(row: &EventRow) -> EventResponse {
 }
 
 /// `POST /api/events/collect` — record a batch of events.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn collect(
     ctx: &KeychainContext,
     user_uuid: &str,
@@ -56,16 +67,17 @@ pub async fn collect(
             .date
             .as_deref()
             .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
-            .map_or_else(Utc::now, |d| d.with_timezone(&Utc));
+            .map_or_else(|| wall_now_utc(ctx.ctx()), |d| d.with_timezone(&Utc));
         store::insert(
             ctx.db(),
             &EventRow {
-                uuid: Uuid::new_v4().to_string(),
+                uuid: crypto::new_uuid_v4()?.to_string(),
                 user_uuid: user_uuid.to_string(),
                 atype: i64::from(event.event_type),
                 cipher_uuid: event.cipher_id,
                 event_date: date,
             },
+            ctx.ctx(),
         )
         .await?;
     }
@@ -73,6 +85,10 @@ pub async fn collect(
 }
 
 /// `GET /api/events` — the user's recorded events (newest first).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn list(ctx: &KeychainContext, user_uuid: &str) -> AppResult<Vec<EventResponse>> {
     Ok(store::find_by_user(ctx.db(), user_uuid)
         .await?

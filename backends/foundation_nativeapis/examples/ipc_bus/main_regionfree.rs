@@ -8,13 +8,16 @@
 fn main() {
     use foundation_nativeapis::ipc::MemoryRegistry;
 
-    let mut registry = MemoryRegistry::default();
+    let mut registry = MemoryRegistry::new(foundation_context::Ctx::host());
 
     println!("Allocating with free callback...");
     let region = registry.alloc_with_free(64, None, || {
         println!("  [callback] Region freed from cache.");
     });
-    println!("  Allocated: size={}", region.as_ref().map(|r| r.buffer_size()).unwrap_or(0));
+    println!(
+        "  Allocated: size={}",
+        region.as_ref().map(|r| r.buffer_size()).unwrap_or(0)
+    );
 
     println!("Dropping region (returns to cache, ref_count=1)...");
     drop(region);

@@ -1,7 +1,7 @@
 use crate::flat::flat_top_k;
 use crate::index::{
-    IndexKind, Reader, VectorError, VectorIndex, validate_insert, write_common_header,
-    write_f32, write_str, write_u32, write_u64,
+    validate_insert, write_common_header, write_f32, write_str, write_u32, write_u64, IndexKind,
+    Reader, VectorError, VectorIndex,
 };
 use crate::metric::DistanceMetric;
 use crate::store::VectorMatch;
@@ -55,11 +55,7 @@ impl IvfIndex {
         }
     }
 
-    fn nearest_centroid(
-        centroids: &[Vec<f32>],
-        vector: &[f32],
-        metric: DistanceMetric,
-    ) -> usize {
+    fn nearest_centroid(centroids: &[Vec<f32>], vector: &[f32], metric: DistanceMetric) -> usize {
         centroids
             .iter()
             .enumerate()
@@ -121,9 +117,7 @@ impl IvfIndex {
     }
 
     fn maybe_rebuild(&self, inner: &mut IvfInner) {
-        if inner.size_at_build > 0
-            && inner.insert_count_since_build > inner.size_at_build
-        {
+        if inner.size_at_build > 0 && inner.insert_count_since_build > inner.size_at_build {
             self.build_centroids(inner);
         }
     }
@@ -168,9 +162,7 @@ impl VectorIndex for IvfIndex {
         let ci = inner
             .assignments
             .remove(id)
-            .ok_or_else(|| VectorError::NotFound {
-                id: id.to_string(),
-            })?;
+            .ok_or_else(|| VectorError::NotFound { id: id.to_string() })?;
         if let Some(posting) = inner.postings.get_mut(ci) {
             posting.retain(|(pid, _)| pid != id);
         }
@@ -418,7 +410,10 @@ impl SimpleRng {
     }
 
     fn next_u64(&mut self) -> u64 {
-        self.state = self.state.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+        self.state = self
+            .state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
         let mut x = self.state;
         x ^= x >> 30;
         x = x.wrapping_mul(0xbf58_476d_1ce4_e5b9);

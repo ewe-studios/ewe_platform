@@ -78,7 +78,10 @@ impl Read for ChunkedReader {
 }
 
 fn framed(payload: &[u8]) -> Vec<u8> {
-    let mut out = (payload.len() as u32).to_be_bytes().to_vec();
+    let mut out = u32::try_from(payload.len())
+        .expect("payload length fits in u32")
+        .to_be_bytes()
+        .to_vec();
     out.extend_from_slice(payload);
     out
 }
@@ -137,7 +140,10 @@ fn short_read_yields_pending_with_state_retained() {
         DecodeStep::Frame(frame) => assert_eq!(frame.as_ref(), payload),
         DecodeStep::Pending => panic!("frame should complete once the rest arrives"),
     }
-    assert!(!decoder.has_partial(), "no partial state after the frame completes");
+    assert!(
+        !decoder.has_partial(),
+        "no partial state after the frame completes"
+    );
 }
 
 /// WHY: Completed payloads must be zero-copy `Bytes` slices of the accumulated
@@ -165,7 +171,11 @@ fn completed_payload_is_a_zero_copy_bytes_slice() {
     assert_eq!(f2.as_ref(), b"second");
     // A cheap clone of a Bytes shares storage — proves these are views, not copies.
     let f1_clone = f1.clone();
-    assert_eq!(f1_clone.as_ptr(), f1.as_ptr(), "clone shares the same backing storage");
+    assert_eq!(
+        f1_clone.as_ptr(),
+        f1.as_ptr(),
+        "clone shares the same backing storage"
+    );
 }
 
 /// WHY: The blocking wrapper must return a full frame, then clean EOS as `Ok(None)`.

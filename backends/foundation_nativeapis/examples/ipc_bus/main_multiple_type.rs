@@ -32,11 +32,14 @@ fn main() {
         Bytes(ipc::BytesMessage),
     }
 
-    let opts = Options::new("com.ewe.multi-type-demo", Label::new("node"))
-        .controller_affinity(true);
-    let (sender, mut receiver) =
-        ipc::join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("join failed");
+    let opts =
+        Options::new("com.ewe.multi-type-demo", Label::new("node")).controller_affinity(true);
+    let (sender, mut receiver) = ipc::join::<AppMessage, AppMessage>(
+        opts,
+        Some(Duration::from_secs(5)),
+        foundation_context::Ctx::host(),
+    )
+    .expect("join failed");
 
     let s = sender.clone();
     thread::spawn(move || {

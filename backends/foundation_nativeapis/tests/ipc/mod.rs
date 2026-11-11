@@ -1,16 +1,25 @@
+#[cfg(feature = "ipc")]
+mod memory_registry;
+#[cfg(feature = "ipc")]
+mod shared_message;
+#[cfg(feature = "ipc")]
+mod shared_version;
+#[cfg(all(windows, feature = "ipc"))]
+mod windows_remote;
+
 /// Integration tests for the IPC message bus (Linux).
 ///
 /// Tests the ipmb-adapted bus: join, send/recv, multicast routing,
-/// shared memory (MemoryRegion), custom message types, and reconnection.
+/// shared memory (`MemoryRegion`), custom message types, and reconnection.
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 mod tests {
+    use foundation_macros::{MessageBox, TypeUuid};
     use foundation_nativeapis::ipc::{
         join, BytesMessage, Label, LabelOp, MemoryRegion, Message, Options, Selector,
     };
     use serde::{Deserialize, Serialize};
     use std::thread;
     use std::time::Duration;
-    use foundation_macros::{TypeUuid, MessageBox};
 
     fn unique_bus(name: &str) -> String {
         format!(
@@ -37,9 +46,14 @@ mod tests {
     fn controller_loopback() {
         let bus = unique_bus("loopback");
         let opts = Options::new(&bus, Label::new("ctrl")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join failed");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("join failed");
 
         let payload = BytesMessage {
             format: 1,
@@ -48,11 +62,11 @@ mod tests {
         let msg = Message::new(Selector::multicast(LabelOp::True), payload);
         sender.send(msg).expect("send failed");
 
-        let received = receiver
+        let inbound = receiver
             .recv(Some(Duration::from_secs(2)))
             .expect("recv failed");
-        assert_eq!(received.payload.data, b"hello loopback");
-        assert_eq!(received.payload.format, 1);
+        assert_eq!(inbound.payload.data, b"hello loopback");
+        assert_eq!(inbound.payload.format, 1);
     }
 
     // -- Test 2: Two-thread bus — endpoint sends, controller receives ------
@@ -63,11 +77,15 @@ mod tests {
 
         let bus_clone = bus.clone();
         let ctrl = thread::spawn(move || {
-            let opts =
-                Options::new(&bus_clone, Label::new("controller")).controller_affinity(true);
-            let (_sender, mut receiver) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("controller join");
+            let opts = Options::new(&bus_clone, Label::new("controller")).controller_affinity(true);
+            let (_sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .expect("controller join");
 
             let msg = receiver
                 .recv(Some(Duration::from_secs(5)))
@@ -78,9 +96,14 @@ mod tests {
         thread::sleep(Duration::from_millis(100));
 
         let opts = Options::new(&bus, Label::new("client")).controller_affinity(false);
-        let (sender, _receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("client join");
+        let (sender, _receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("client join");
 
         let payload = BytesMessage {
             format: 0,
@@ -102,9 +125,14 @@ mod tests {
     fn custom_message_type() {
         let bus = unique_bus("custom-type");
         let opts = Options::new(&bus, Label::new("node")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<TestEvent, TestEvent>(opts, Some(Duration::from_secs(5)))
-                .expect("join failed");
+        let (sender, mut receiver) = join::<TestEvent, TestEvent>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("join failed");
 
         let event = TestEvent {
             path: "/src/main.rs".into(),
@@ -113,11 +141,11 @@ mod tests {
         let msg = Message::new(Selector::multicast(LabelOp::True), event);
         sender.send(msg).expect("send failed");
 
-        let received = receiver
+        let inbound = receiver
             .recv(Some(Duration::from_secs(2)))
             .expect("recv failed");
-        assert_eq!(received.payload.path, "/src/main.rs");
-        assert_eq!(received.payload.kind, 42);
+        assert_eq!(inbound.payload.path, "/src/main.rs");
+        assert_eq!(inbound.payload.kind, 42);
     }
 
     // -- Test 4: Multicast routing — controller broadcasts to client ------
@@ -130,9 +158,14 @@ mod tests {
         let endpoint_b = thread::spawn(move || {
             thread::sleep(Duration::from_millis(100));
             let opts = Options::new(&bus_c, Label::new("b")).controller_affinity(false);
-            let (_sender, mut receiver) =
-                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                    .expect("b join");
+            let (_sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .expect("b join");
             receiver
                 .recv(Some(Duration::from_secs(5)))
                 .expect("b recv")
@@ -141,9 +174,14 @@ mod tests {
         });
 
         let opts = Options::new(&bus, Label::new("a")).controller_affinity(true);
-        let (sender, mut receiver_a) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("a join");
+        let (sender, mut receiver_a) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("a join");
 
         thread::sleep(Duration::from_millis(300));
 
@@ -172,8 +210,14 @@ mod tests {
         let bus_c = bus.clone();
         let target = thread::spawn(move || {
             let opts = Options::new(&bus_c, Label::new("target")).controller_affinity(true);
-            let (_s, mut r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("target join");
+            let (_s, mut r) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .expect("target join");
             r.recv(Some(Duration::from_secs(5)))
                 .expect("target recv")
                 .payload
@@ -185,17 +229,28 @@ mod tests {
         let bus_c = bus.clone();
         let other = thread::spawn(move || {
             let opts = Options::new(&bus_c, Label::new("other")).controller_affinity(false);
-            let (_s, mut r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("other join");
+            let (_s, mut r) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .expect("other join");
             r.recv(Some(Duration::from_millis(500)))
         });
 
         thread::sleep(Duration::from_millis(100));
 
         let opts = Options::new(&bus, Label::new("sender")).controller_affinity(false);
-        let (sender, _r) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("sender join");
+        let (sender, _r) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("sender join");
 
         let msg = Message::new(
             Selector::unicast(LabelOp::Leaf("target".into())),
@@ -222,9 +277,14 @@ mod tests {
     fn shared_memory_region() {
         let bus = unique_bus("shmem");
         let opts = Options::new(&bus, Label::new("mem")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join failed");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("join failed");
 
         let mut region = MemoryRegion::new(4096).expect("MemoryRegion::new failed");
         {
@@ -241,13 +301,13 @@ mod tests {
         msg.memory_regions.push(region);
         sender.send(msg).expect("send with region");
 
-        let received = receiver
+        let inbound = receiver
             .recv(Some(Duration::from_secs(2)))
             .expect("recv with region");
-        assert_eq!(received.payload.format, 99);
-        assert_eq!(received.memory_regions.len(), 1);
+        assert_eq!(inbound.payload.format, 99);
+        assert_eq!(inbound.memory_regions.len(), 1);
 
-        let mut recv_region = received.memory_regions.into_iter().next().unwrap();
+        let mut recv_region = inbound.memory_regions.into_iter().next().unwrap();
         let buf = recv_region.map(..).expect("recv map failed");
         assert_eq!(&buf[..5], b"hello");
     }
@@ -263,8 +323,14 @@ mod tests {
             let opts = Options::new(&bus_c, Label::new("ctrl"))
                 .controller_affinity(true)
                 .token("secret123");
-            let (_s, mut r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("ctrl join");
+            let (_s, mut r) = join::<BytesMessage, BytesMessage>(
+                opts,
+                Some(Duration::from_secs(5)),
+                foundation_context::Ctx::fixed(std::sync::Arc::new(
+                    foundation_context::MonotonicClock::new(),
+                )),
+            )
+            .expect("ctrl join");
             let _ = r.recv(Some(Duration::from_secs(3)));
         });
 
@@ -273,7 +339,13 @@ mod tests {
         let opts = Options::new(&bus, Label::new("intruder"))
             .controller_affinity(false)
             .token("wrong-token");
-        let result = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(2)));
+        let result = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(2)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        );
 
         assert!(result.is_err(), "join with wrong token should fail");
     }
@@ -284,9 +356,14 @@ mod tests {
     fn multiple_messages_sequence() {
         let bus = unique_bus("sequence");
         let opts = Options::new(&bus, Label::new("seq")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("join");
 
         for i in 0..10u16 {
             let msg = Message::new(
@@ -300,11 +377,9 @@ mod tests {
         }
 
         for i in 0..10u16 {
-            let received = receiver
-                .recv(Some(Duration::from_secs(2)))
-                .expect("recv");
-            assert_eq!(received.payload.format, i);
-            assert_eq!(received.payload.data, format!("msg-{i}").into_bytes());
+            let inbound = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
+            assert_eq!(inbound.payload.format, i);
+            assert_eq!(inbound.payload.data, format!("msg-{i}").into_bytes());
         }
     }
 
@@ -314,9 +389,14 @@ mod tests {
     fn sender_clone_multithreaded() {
         let bus = unique_bus("clone-send");
         let opts = Options::new(&bus, Label::new("hub")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join");
+        let (sender, mut receiver) = join::<BytesMessage, BytesMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("join");
 
         let mut handles = vec![];
         for i in 0..4u16 {
@@ -326,7 +406,7 @@ mod tests {
                     Selector::multicast(LabelOp::True),
                     BytesMessage {
                         format: i,
-                        data: vec![i as u8; 64],
+                        data: vec![u8::try_from(i).expect("i is below 4"); 64],
                     },
                 );
                 s.send(msg).expect("clone send");
@@ -339,12 +419,10 @@ mod tests {
 
         let mut received_formats = vec![];
         for _ in 0..4 {
-            let msg = receiver
-                .recv(Some(Duration::from_secs(2)))
-                .expect("recv");
+            let msg = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
             received_formats.push(msg.payload.format);
         }
-        received_formats.sort();
+        received_formats.sort_unstable();
         assert_eq!(received_formats, vec![0, 1, 2, 3]);
     }
 
@@ -374,9 +452,14 @@ mod tests {
     fn heterogeneous_message_types() {
         let bus = unique_bus("hetero");
         let opts = Options::new(&bus, Label::new("app")).controller_affinity(true);
-        let (sender, mut receiver) =
-            join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join");
+        let (sender, mut receiver) = join::<AppMessage, AppMessage>(
+            opts,
+            Some(Duration::from_secs(5)),
+            foundation_context::Ctx::fixed(std::sync::Arc::new(
+                foundation_context::MonotonicClock::new(),
+            )),
+        )
+        .expect("join");
 
         // Send a FileEvent
         sender
@@ -407,7 +490,7 @@ mod tests {
                 assert_eq!(e.path, "/src/main.rs");
                 assert_eq!(e.kind, 1);
             }
-            _ => panic!("expected FileEvent, got {:?}", std::mem::discriminant(&msg1.payload)),
+            AppMessage::Log(_) => panic!("expected FileEvent, got LogEntry"),
         }
 
         let msg2 = receiver.recv(Some(Duration::from_secs(2))).expect("recv 2");
@@ -416,7 +499,7 @@ mod tests {
                 assert_eq!(e.level, 3);
                 assert_eq!(e.message, "build complete");
             }
-            _ => panic!("expected LogEntry"),
+            AppMessage::File(_) => panic!("expected LogEntry"),
         }
     }
 

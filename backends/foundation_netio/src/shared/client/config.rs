@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::framing::FrameLimits;
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
 use super::proxy;
@@ -67,10 +67,21 @@ pub struct ClientConfig {
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
     pub headers_to_add: Option<SimpleHeaders>,
     /// Connect via a Unix domain socket instead of TCP (Docker daemon,
-    /// BuildKitd). When set, connection routing bypasses DNS/proxy and dials
+    /// `BuildKitd`). When set, connection routing bypasses DNS/proxy and dials
     /// this socket path. `None` (default) uses the normal TCP/TLS path.
     #[cfg(unix)]
     pub unix_socket: Option<std::path::PathBuf>,
+    /// Read timeout applied to a Unix-domain socket connection.
+    ///
+    /// WHY: Docker and `BuildKitd` close the socket after each response. A
+    /// blocking read on a dead socket hangs forever, so a read timeout turns
+    /// that read into `WouldBlock`, which the buffer layer handles.
+    ///
+    /// Default 5 s: the value `Connection::connect_unix` used hard-coded before
+    /// issue #420. A valid response that sends no bytes for more than 5 s still
+    /// ends the read; raise this for a server with longer pauses.
+    #[cfg(unix)]
+    pub unix_read_timeout: Duration,
 }
 
 impl ClientConfig {
@@ -143,11 +154,17 @@ impl ClientConfig {
     /// WHY: the body iterators (`body_reader::collect_string`, the
     /// `RequestIntro::Success` stream) rely on blocking reads. Their
     /// `WouldBlock`/`TimedOut` retry budget assumes each retry waited a read
-    /// timeout. The blocking client always left the expect-continue read timeout
-    /// on the socket at this point, so the handoff restores exactly that.
+    /// timeout. The blocking client left a read timeout on the socket at this
+    /// point, so the handoff restores one: the larger of the expect-continue wait
+    /// and the configured minimum read timeout. The builder's `read_timeout` sets
+    /// the minimum, so a long `read_timeout` still gives long body reads without
+    /// also lengthening the `Expect: 100-continue` wait (spec 70 feature 43).
     #[must_use]
     pub fn blocking_body_read_timeout(&self) -> Duration {
-        self.expect_continue_read_timeout
+        std::cmp::max(
+            self.expect_continue_read_timeout,
+            self.timeout_calculator.config().min_read_timeout,
+        )
     }
 
     #[must_use]
@@ -159,6 +176,14 @@ impl ClientConfig {
     #[must_use]
     pub fn timeout_config(&self) -> &TimeoutConfig {
         self.timeout_calculator.config()
+    }
+
+    /// DNS resolution timeout (feature 36).
+    ///
+    /// Default 30 s, matching nginx's `resolver_timeout` default.
+    #[must_use]
+    pub fn dns_timeout(&self) -> Duration {
+        self.timeout_calculator.config().dns_timeout
     }
 
     #[must_use]
@@ -252,6 +277,15 @@ impl ClientConfig {
         self
     }
 
+    /// Set the DNS resolution timeout (feature 36).
+    #[must_use]
+    pub fn with_dns_timeout(mut self, timeout: Duration) -> Self {
+        let mut config = *self.timeout_calculator.config();
+        config.dns_timeout = timeout;
+        self.timeout_calculator = TimeoutCalculator::with_config(config);
+        self
+    }
+
     #[must_use]
     pub fn with_inline_processing_timeout(mut self, timeout: Duration) -> Self {
         self.inline_processing_timeout = timeout;
@@ -263,6 +297,15 @@ impl ClientConfig {
         let mut config = *self.timeout_calculator.config();
         config.min_read_timeout = timeout;
         self.timeout_calculator = TimeoutCalculator::with_config(config);
+        self
+    }
+
+    /// Set the read timeout on a Unix-domain socket connection (default 5 s,
+    /// see [`ClientConfig::unix_read_timeout`]).
+    #[cfg(unix)]
+    #[must_use]
+    pub fn with_unix_read_timeout(mut self, timeout: Duration) -> Self {
+        self.unix_read_timeout = timeout;
         self
     }
 
@@ -314,6 +357,8 @@ impl Default for ClientConfig {
             headers_to_add: None,
             #[cfg(unix)]
             unix_socket: None,
+            #[cfg(unix)]
+            unix_read_timeout: Duration::from_secs(5),
         }
     }
 }

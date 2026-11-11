@@ -1,12 +1,13 @@
-//! Integration tests for ReconnectingEventSourceTask with real TCP connections.
+//! Integration tests for `ReconnectingEventSourceTask` with real TCP connections.
 //!
 //! WHY: Reconnection logic must be verified against real SSE streams
 //! to confirm Last-Event-ID tracking, backoff behavior, and event delivery
 //! across reconnection cycles.
 //!
-//! HOW: Uses TestHttpServer with SSE-formatted responses.
+//! HOW: Uses `TestHttpServer` with SSE-formatted responses.
 
-use foundation_core::valtron::{Ctx, TaskIterator};
+use foundation_context::Ctx;
+use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
 use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
 use foundation_netio::shared::client::StaticSocketAddr;
@@ -15,7 +16,7 @@ use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-/// Parse the SocketAddr from a TestHttpServer's base_url.
+/// Parse the `SocketAddr` from a `TestHttpServer`'s `base_url`.
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
         .base_url()
@@ -39,7 +40,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
     }
 }
 
-/// WHY: ReconnectingEventSourceTask should receive events from a real server.
+/// WHY: `ReconnectingEventSourceTask` should receive events from a real server.
 /// WHAT: Verify events are delivered through the reconnecting wrapper.
 #[test]
 fn test_reconnecting_task_receives_events() {
@@ -58,7 +59,7 @@ fn test_reconnecting_task_receives_events() {
     let mut got_event = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(ParseResult {
                 event: Event::Message { ref data, .. },
@@ -78,7 +79,7 @@ fn test_reconnecting_task_receives_events() {
     assert!(got_event, "Should have received the event");
 }
 
-/// WHY: ReconnectingEventSourceTask should track Last-Event-ID from events.
+/// WHY: `ReconnectingEventSourceTask` should track Last-Event-ID from events.
 /// WHAT: Verify events with id field update internal tracking.
 #[test]
 fn test_reconnecting_task_tracks_event_id() {
@@ -99,7 +100,7 @@ fn test_reconnecting_task_tracks_event_id() {
     let mut event_ids: Vec<String> = Vec::new();
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { id: Some(id), .. },
             ..
@@ -116,7 +117,7 @@ fn test_reconnecting_task_tracks_event_id() {
     assert_eq!(event_ids, vec!["42", "43"]);
 }
 
-/// WHY: ReconnectingEventSourceTask should handle connection refused with reconnection.
+/// WHY: `ReconnectingEventSourceTask` should handle connection refused with reconnection.
 /// WHAT: Verify task attempts reconnection and eventually exhausts.
 #[test]
 fn test_reconnecting_task_connection_refused_retries() {
@@ -136,7 +137,7 @@ fn test_reconnecting_task_connection_refused_retries() {
     let mut delayed_count = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Delayed(_) = status {
             delayed_count += 1;
         }
@@ -150,7 +151,7 @@ fn test_reconnecting_task_connection_refused_retries() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should deliver multiple events.
+/// WHY: `ReconnectingEventSourceTask` should deliver multiple events.
 /// WHAT: Verify all events in a multi-event stream are received.
 #[test]
 fn test_reconnecting_task_multiple_events() {
@@ -171,7 +172,7 @@ fn test_reconnecting_task_multiple_events() {
     let mut data_values: Vec<String> = Vec::new();
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
             ..
@@ -188,7 +189,7 @@ fn test_reconnecting_task_multiple_events() {
     assert_eq!(data_values, vec!["first", "second", "third"]);
 }
 
-/// WHY: ReconnectingEventSourceTask should pass through comments.
+/// WHY: `ReconnectingEventSourceTask` should pass through comments.
 /// WHAT: Verify Comment events are delivered through the reconnecting wrapper.
 #[test]
 fn test_reconnecting_task_passes_comments() {
@@ -210,7 +211,7 @@ fn test_reconnecting_task_passes_comments() {
     let mut saw_message = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(ParseResult {
                 event: Event::Comment(c),
@@ -238,10 +239,10 @@ fn test_reconnecting_task_passes_comments() {
     assert!(saw_message, "Should have received message after comment");
 }
 
-/// WHY: ReconnectingEventSourceTask should NOT retry on legitimate server EOF.
+/// WHY: `ReconnectingEventSourceTask` should NOT retry on legitimate server EOF.
 /// WHAT: Verify task exhausts immediately when server closes connection normally.
 ///
-/// This tests the fix where ReconnectingEventSourceTask checks close_reason()
+/// This tests the fix where `ReconnectingEventSourceTask` checks `close_reason()`
 /// and only retries on errors, not on legitimate EOF.
 #[test]
 fn test_reconnecting_task_eof_does_not_retry() {
@@ -262,7 +263,7 @@ fn test_reconnecting_task_eof_does_not_retry() {
     let mut backoff_delays = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         match status {
             TaskStatus::Ready(ParseResult {
                 event: Event::Message { ref data, .. },
@@ -288,7 +289,7 @@ fn test_reconnecting_task_eof_does_not_retry() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should retry on connection errors.
+/// WHY: `ReconnectingEventSourceTask` should retry on connection errors.
 /// WHAT: Verify task attempts reconnection with backoff when connection fails.
 ///
 /// This tests that errors (not EOF) trigger the reconnection logic.
@@ -310,7 +311,7 @@ fn test_reconnecting_task_error_triggers_retry() {
     let mut backoff_delays = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Delayed(_) = status {
             backoff_delays += 1;
         }
@@ -325,8 +326,8 @@ fn test_reconnecting_task_error_triggers_retry() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should track close reason after exhaustion.
-/// WHAT: Verify close_reason() returns Eof for legitimate server close.
+/// WHY: `ReconnectingEventSourceTask` should track close reason after exhaustion.
+/// WHAT: Verify `close_reason()` returns Eof for legitimate server close.
 #[test]
 fn test_reconnecting_task_close_reason_eof() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
@@ -343,7 +344,7 @@ fn test_reconnecting_task_close_reason_eof() {
         .with_max_retries(3);
 
     // Exhaust the task
-    while task.next_status(Ctx::new()).is_some() {}
+    while task.next_status(Ctx::host()).is_some() {}
 
     // Verify: Close reason should be None or EOF (no error occurred)
     // The inner task closes with EOF, but ReconnectingEventSourceTask
@@ -351,8 +352,8 @@ fn test_reconnecting_task_close_reason_eof() {
     // This test confirms the task exhausts cleanly on EOF
 }
 
-/// WHY: ReconnectingEventSourceTask should respect max_reconnect_duration.
-/// WHAT: Verify task configuration accepts and stores max_reconnect_duration.
+/// WHY: `ReconnectingEventSourceTask` should respect `max_reconnect_duration`.
+/// WHAT: Verify task configuration accepts and stores `max_reconnect_duration`.
 ///
 /// Note: Actual duration enforcement happens in production with real timing.
 /// This test verifies the builder method works and task exhausts eventually.
@@ -376,7 +377,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
     let mut backoff_delays = 0;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Delayed(_) = status {
             backoff_delays += 1;
         }
@@ -391,7 +392,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should handle server retry field.
+/// WHY: `ReconnectingEventSourceTask` should handle server retry field.
 /// WHAT: Verify server-specified retry duration is respected.
 #[test]
 fn test_reconnecting_task_respects_server_retry() {
@@ -411,7 +412,7 @@ fn test_reconnecting_task_respects_server_retry() {
     let mut received_data = Vec::new();
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..
@@ -428,7 +429,7 @@ fn test_reconnecting_task_respects_server_retry() {
     assert_eq!(received_data, vec!["hello"]);
 }
 
-/// WHY: `with_body` on ReconnectingEventSourceTask should use POST.
+/// WHY: `with_body` on `ReconnectingEventSourceTask` should use POST.
 /// WHAT: Verify the server receives a POST request with the body on first connection.
 #[test]
 fn test_reconnecting_task_with_body_uses_post() {
@@ -473,7 +474,7 @@ fn test_reconnecting_task_with_body_uses_post() {
     let mut steps = 0;
 
     tracing::trace!("Checking status");
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..
@@ -507,7 +508,7 @@ fn test_reconnecting_task_with_body_uses_post() {
     );
 }
 
-/// WHY: Without `with_body`, ReconnectingEventSourceTask default method should be GET.
+/// WHY: Without `with_body`, `ReconnectingEventSourceTask` default method should be GET.
 /// WHAT: Verify the server receives a GET request when no body is set.
 #[test]
 fn test_reconnecting_task_default_method_is_get() {
@@ -532,7 +533,7 @@ fn test_reconnecting_task_default_method_is_get() {
     let mut got_event = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status(Ctx::new()) {
+    while let Some(status) = task.next_status(Ctx::host()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..

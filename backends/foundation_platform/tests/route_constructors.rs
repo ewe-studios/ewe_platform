@@ -10,7 +10,7 @@ fn webview_app_sets_correct_defaults() {
     assert_eq!(d.presentation, Presentation::Morph);
     assert!(d.native_view_id.is_none());
     assert!(d.target.is_none());
-    assert!(d.capabilities.is_empty());
+    assert_eq!(d.capabilities, [] as [foundation_platform::CapabilityId; 0]);
 }
 
 #[test]
@@ -51,9 +51,15 @@ fn builder_chain_overrides_defaults() {
 
 #[test]
 fn protocol_content_type_is_correct() {
-    assert_eq!(Protocol::Columnar.content_type(), "application/primal-columnar");
+    assert_eq!(
+        Protocol::Columnar.content_type(),
+        "application/primal-columnar"
+    );
     assert_eq!(Protocol::Arrow.content_type(), "application/primal-arrow");
-    assert_eq!(Protocol::ArrowIpc.content_type(), "application/vnd.apache.arrow.stream");
+    assert_eq!(
+        Protocol::ArrowIpc.content_type(),
+        "application/vnd.apache.arrow.stream"
+    );
     assert_eq!(Protocol::Json.content_type(), "application/primal-json");
     assert_eq!(Protocol::Html.content_type(), "text/html; charset=utf-8");
 }
@@ -84,7 +90,9 @@ fn mobile_directory_serves_app_index_html() {
     let file = if Path::new(&path).extension().is_some() {
         path.clone()
     } else {
-        format!("{path}index.html").trim_start_matches('/').to_string()
+        format!("{path}index.html")
+            .trim_start_matches('/')
+            .to_string()
     };
     assert_eq!(file, "app/index.html");
 
@@ -92,7 +100,7 @@ fn mobile_directory_serves_app_index_html() {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/platform_android/src-tauri/public");
     let location = root.join(&file);
-    assert!(location.exists(), "expected file at {:?}", location);
+    assert!(location.exists(), "expected file at {location:?}");
 
     let data = std::fs::read(&location).unwrap();
     let body = String::from_utf8_lossy(&data);
@@ -112,14 +120,16 @@ fn mobile_directory_serves_app_bundle_js() {
     let file = if Path::new(&path).extension().is_some() {
         path.clone()
     } else {
-        format!("{path}index.html").trim_start_matches('/').to_string()
+        format!("{path}index.html")
+            .trim_start_matches('/')
+            .to_string()
     };
     assert_eq!(file, "app/bundle.js");
 
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/platform_android/src-tauri/public");
     let location = root.join(&file);
-    assert!(location.exists(), "expected file at {:?}", location);
+    assert!(location.exists(), "expected file at {location:?}");
 
     let data = std::fs::read(&location).unwrap();
     assert!(!data.is_empty(), "bundle.js should not be empty");

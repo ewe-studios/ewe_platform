@@ -64,7 +64,7 @@ impl Ctx {
 }
 
 impl Clone for Ctx { /* clones the Arc — SHARES the map */ }
-impl Default for Ctx { /* Ctx::new() */ }
+impl Default for Ctx { /* Ctx::fixed() */ }
 // Ctx: Send + Sync automatically — Arc<CtxInner> is Send + Sync iff CtxInner is
 // Send + Sync, and every field (Mutex<HashMap<…>>, Arc<dyn Any + Send + Sync>,
 // Arc<dyn Clock>, Arc<Config>, Arc<Mutex<Rng>>) is Send + Sync.

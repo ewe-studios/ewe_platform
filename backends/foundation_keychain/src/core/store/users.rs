@@ -1,6 +1,6 @@
 //! User persistence (spec-57, F008 Stage 1).
 //!
-//! Ported from OrangeVault `db/queries.rs` (users) onto `foundation_db`'s
+//! Ported from `OrangeVault` `db/queries.rs` (users) onto `foundation_db`'s
 //! `QueryStore`. The row carries the server-side password verifier
 //! (`password_hash` + `salt` + `password_iterations`), the client KDF params the
 //! prelogin endpoint echoes back, and the `security_stamp` that invalidates
@@ -8,7 +8,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -38,6 +38,8 @@ const COLUMNS: &str = "uuid, email, name, password_hash, salt, password_iteratio
      security_stamp, akey, client_kdf_type, client_kdf_iter, client_kdf_memory, \
      client_kdf_parallelism, master_password_hint, email_verified, created_at, updated_at";
 
+// Callers hold the row fields by reference; `&Option` avoids a clone.
+#[allow(clippy::ref_option)]
 fn opt_text(o: &Option<String>) -> DataValue {
     match o {
         Some(s) => DataValue::Text(s.clone()),
@@ -68,7 +70,9 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
         client_kdf_type: row.get_by_name("client_kdf_type").map_err(store_err)?,
         client_kdf_iter: row.get_by_name("client_kdf_iter").map_err(store_err)?,
         client_kdf_memory: row.get_by_name("client_kdf_memory").map_err(store_err)?,
-        client_kdf_parallelism: row.get_by_name("client_kdf_parallelism").map_err(store_err)?,
+        client_kdf_parallelism: row
+            .get_by_name("client_kdf_parallelism")
+            .map_err(store_err)?,
         master_password_hint: row.get_by_name("master_password_hint").map_err(store_err)?,
         email_verified: email_verified != 0,
         created_at: parse_ts(&created_at)?,
@@ -77,8 +81,12 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
 }
 
 /// Insert a new user.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_accounts \
          (uuid, email, name, password_hash, salt, password_iterations, security_stamp, akey, \
           client_kdf_type, client_kdf_iter, client_kdf_memory, client_kdf_parallelism, \
@@ -108,13 +116,9 @@ pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
     Ok(())
 }
 
-async fn find_one(
-    db: &dyn QueryStore,
-    where_col: &str,
-    value: &str,
-) -> AppResult<Option<UserRow>> {
+async fn find_one(db: &dyn QueryStore, where_col: &str, value: &str) -> AppResult<Option<UserRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM vault_accounts WHERE {where_col} = ?"),
             &[DataValue::Text(value.to_string())],
         )
@@ -127,16 +131,28 @@ async fn find_one(
 }
 
 /// Find a user by (already-normalized) email.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_email(db: &dyn QueryStore, email: &str) -> AppResult<Option<UserRow>> {
     find_one(db, "email", email).await
 }
 
 /// Find a user by uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn find_by_uuid(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<UserRow>> {
     find_one(db, "uuid", uuid).await
 }
 
 /// Update the mutable profile fields (name, master password hint).
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn update_profile(
     db: &dyn QueryStore,
     uuid: &str,
@@ -144,7 +160,7 @@ pub async fn update_profile(
     hint: &Option<String>,
     updated_at: DateTime<Utc>,
 ) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE vault_accounts SET name = ?, master_password_hint = ?, updated_at = ? WHERE uuid = ?",
         &[
             opt_text(name),

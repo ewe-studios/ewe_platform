@@ -19,11 +19,11 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::shared::client::request_task::HttpExchange;
-use foundation_netio::DynNetClient;
 use foundation_netio::shared::http::{
-    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
-    SimpleHeader, SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
+    pushable_request_body_with_readiness, HttpClientError, Proto, RequestDescriptor, SimpleHeader,
+    SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
+use foundation_netio::DynNetClient;
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use super::{
@@ -79,17 +79,17 @@ impl Transport for H1Transport {
         // transport. Synthesise it from the request URI when absent — mirroring
         // `ClientRequestBuilder::new` — so a caller behind a host-routing
         // intermediary (e.g. the proxy) is not misrouted.
-        if !headers.contains_key(&SimpleHeader::HOST) {
-            let host_str = request.request_uri.host_str().unwrap_or_default();
-            let host = if request.request_uri.port().is_some() {
-                format!("{host_str}:{}", request.request_uri.port_or_default())
-            } else {
-                host_str
-            };
-            headers.insert(SimpleHeader::HOST, vec![host]);
-        }
+        let uri = &request.request_uri;
+        headers.entry(SimpleHeader::HOST).or_insert_with(|| {
+            let host = uri.host_str().unwrap_or_default();
+            vec![match uri.port() {
+                Some(_) => format!("{host}:{}", uri.port_or_default()),
+                None => host,
+            }]
+        });
 
-        let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
+        let (pushable, body_stream, readiness) =
+            pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
         let send_body: ByteSink = pushable.into_sender();
 
         // `headers` replaces the builder's own headers; it already carries
@@ -100,10 +100,11 @@ impl Transport for H1Transport {
             })?
             .headers(headers)
             .body(body_stream)
+            .with_body_readiness(readiness)
             .build();
 
         // F51: the client owns the pool, resolver, and config — the transport
-        // just asks for the task. No more reaching into SimpleHttpClient internals.
+        // just asks for the task; it never reaches into the client internals.
         let pump = self.client.open_exchange(prepared);
 
         // Peel the response head (or a *pre-head* failure) into an observer whose
@@ -142,12 +143,8 @@ impl Transport for H1Transport {
         // (F45 Resolution 8). This is the only task spawned; the two observers are
         // drained by the caller through the erased `HeadStream`/`BodyStream`.
         let drive = body_cont.map_ready(|_| ());
-        valtron::send(drive).map_err(|e| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            )))
-        })?;
+        valtron::send(drive)
+            .map_err(|e| TransportError::Connect(Arc::new(std::io::Error::other(e.to_string()))))?;
 
         // Bridge the split observers into the erased FutureStream handles. Any
         // `StreamIterator` (a split observer here) becomes a `Stream` via the
@@ -160,7 +157,7 @@ impl Transport for H1Transport {
 
         // HTTP/1.1 has no trailing headers — close immediately.
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        trailer_tx.close();
+        let _ = trailer_tx.close();
 
         Ok(TransportStream {
             send_body: Arc::new(send_body),
@@ -187,11 +184,7 @@ fn failed_to_transport_error(
 }
 
 fn request_url_string(req: &RequestDescriptor) -> String {
-    let query = req
-        .request_uri
-        .query()
-        .map(|q| format!("?{q}"))
-        .unwrap_or_default();
+    let query = req.request_uri.query().map_or_default(|q| format!("?{q}"));
     format!(
         "http://{}:{}{}{}",
         req.request_uri

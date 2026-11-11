@@ -110,7 +110,7 @@ fn extracts_query_params_from_operation() {
         ep.query_params,
         vec!["org_slug".to_string(), "app_role".to_string()]
     );
-    assert!(ep.path_params.is_empty());
+    assert_eq!(ep.path_params, Vec::<String>::new());
 }
 
 #[test]
@@ -161,7 +161,7 @@ fn extracts_path_params_from_operation() {
     let ep = &endpoints[0];
     assert_eq!(ep.operation_id, "listIpAssignments");
     assert_eq!(ep.path_params, vec!["app_name".to_string()]);
-    assert!(ep.query_params.is_empty());
+    assert_eq!(ep.query_params, Vec::<String>::new());
 }
 
 #[test]

@@ -28,7 +28,7 @@ pub fn fill_inner(dest: &mut [MaybeUninit<u8>]) -> Result<(), Error> {
     for chunk in dest.chunks_mut(GETENTROPY_MAX) {
         let ret = unsafe { libc::getentropy(chunk.as_mut_ptr().cast::<c_void>(), chunk.len()) };
         match ret {
-            0 => continue,
+            0 => {}
             -1 => return Err(Error::from_errno(utils::get_errno())),
             _ => return Err(Error::UNEXPECTED),
         }

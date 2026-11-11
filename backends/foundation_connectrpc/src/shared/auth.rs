@@ -1,6 +1,6 @@
-//! Auth module — authentication & authorization for ConnectRPC.
+//! Auth module — authentication & authorization for `ConnectRPC`.
 //!
-//! WHY: ConnectRPC middleware needs authentication (bearer token extraction, JWT
+//! WHY: `ConnectRPC` middleware needs authentication (bearer token extraction, JWT
 //! verification, composite auth chains, per-procedure auth configuration, and
 //! scope-based authorization interceptors).
 //!
@@ -36,7 +36,7 @@ use foundation_netio::shared::http::{
     SimpleOutgoingResponse, SimpleUrl,
 };
 
-use crate::shared::context::Ctx;
+use crate::shared::context::RpcCtx;
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::error_writer::{status_from_code, ErrorWriter};
 use crate::shared::interceptor::{
@@ -56,7 +56,7 @@ use crate::shared::transport::BoxFuture;
 pub struct AuthInfo {
     /// Principal identity — subject, scopes, roles.
     pub context: AuthContext,
-    /// Raw artifacts: VerifiedClaims, session object, PeerCertificates, ...
+    /// Raw artifacts: `VerifiedClaims`, session object, `PeerCertificates`, ...
     pub artifacts: Extensions,
 }
 
@@ -78,12 +78,12 @@ impl AuthInfo {
     }
 }
 
-/// Retrieve the [`AuthInfo`] from a per-call [`Ctx`].
+/// Retrieve the [`AuthInfo`] from a per-call [`RpcCtx`].
 ///
 /// Returns `None` if no auth info has been inserted into the context's
 /// extensions (i.e. the request is not authenticated).
 #[must_use]
-pub fn get_auth_info(ctx: &Ctx) -> Option<&AuthInfo> {
+pub fn get_auth_info(ctx: &RpcCtx) -> Option<&AuthInfo> {
     ctx.request.extensions.get::<AuthInfo>()
 }
 
@@ -91,7 +91,7 @@ pub fn get_auth_info(ctx: &Ctx) -> Option<&AuthInfo> {
 ///
 /// Returns `None` if no auth info is present or the artifact type is not stored.
 #[must_use]
-pub fn get_auth_artifact<T: 'static>(ctx: &Ctx) -> Option<&T> {
+pub fn get_auth_artifact<T: 'static>(ctx: &RpcCtx) -> Option<&T> {
     get_auth_info(ctx)?.artifacts.get::<T>()
 }
 
@@ -158,8 +158,7 @@ pub fn infer_protocol(request: &SimpleIncomingRequest) -> Option<&'static str> {
         .headers
         .get(&SimpleHeader::CONTENT_TYPE)
         .and_then(|v| v.first())
-        .map(String::as_str)
-        .unwrap_or("");
+        .map_or("", String::as_str);
     let canonical = canonicalize_content_type(ct);
 
     if request.method == SimpleMethod::POST {
@@ -181,7 +180,7 @@ pub fn infer_protocol(request: &SimpleIncomingRequest) -> Option<&'static str> {
             .queries
             .as_ref()
             .and_then(|q| q.get("connect"))
-            .map_or(false, |v| v == "v1")
+            .is_some_and(|v| v == "v1")
         {
             return Some("connect");
         }
@@ -287,9 +286,8 @@ impl AuthFunc for JwtAuthenticator {
         let path = url.url.clone();
 
         Box::pin(async move {
-            let token = match token {
-                Some(t) => t,
-                None => return Ok(None),
+            let Some(token) = token else {
+                return Ok(None);
             };
 
             match self.verifier.verify(&token) {
@@ -299,7 +297,7 @@ impl AuthFunc for JwtAuthenticator {
 
                     let auth_token = AuthToken::Jwt {
                         token: ConfidentialText::new(token),
-                        expires_at: claims.exp.timestamp() as f64,
+                        expires_at: claims.exp.timestamp(),
                         issuer: Some(claims.iss.clone()),
                         audience: Some(claims.aud.clone()),
                     };
@@ -372,7 +370,7 @@ impl AuthFunc for CompositeAuthenticator {
             for auth in &self.authenticators {
                 match auth.authenticate(headers, url).await {
                     Ok(Some(info)) => return Ok(Some(info)),
-                    Ok(None) => continue,
+                    Ok(None) => {}
                     Err(e) => last_err = Some(e),
                 }
             }
@@ -425,11 +423,7 @@ impl PerProcedureAuth {
 
     /// Register an authenticator for a specific procedure.
     #[must_use]
-    pub fn with_procedure(
-        mut self,
-        procedure: impl Into<String>,
-        auth: impl AuthFunc,
-    ) -> Self {
+    pub fn with_procedure(mut self, procedure: impl Into<String>, auth: impl AuthFunc) -> Self {
         self.procedure_auth.insert(procedure.into(), Arc::new(auth));
         self
     }
@@ -455,9 +449,8 @@ impl AuthFunc for PerProcedureAuth {
         url: &'a SimpleUrl,
     ) -> BoxFuture<'a, ConnectResult<Option<AuthInfo>>> {
         Box::pin(async move {
-            let procedure = match infer_procedure(url) {
-                Some(p) => p,
-                None => return Ok(None),
+            let Some(procedure) = infer_procedure(url) else {
+                return Ok(None);
             };
 
             // 1. Check if explicitly unauthenticated
@@ -603,6 +596,13 @@ impl Interceptor for AuthzInterceptor {
 ///
 /// Returns `Err(SimpleOutgoingResponse)` if authentication fails. The response
 /// is fully formed in the correct protocol format.
+///
+/// # Panics
+///
+/// Panics if the error response cannot be encoded, which is an internal bug.
+// The error is the complete protocol response, which is large by design; boxing
+// it would change this public signature.
+#[allow(clippy::result_large_err)]
 pub async fn authenticate_request(
     auth: &dyn AuthFunc,
     request: &mut SimpleIncomingRequest,

@@ -8,8 +8,10 @@
 //!
 //! HOW: Creates realistic HTTP request scenarios using public client APIs.
 
+use foundation_core::valtron::valtron_test;
 use foundation_netio::shared::client::{
-    ClientRequestBuilder, DnsResolver, MockDnsResolver, SimpleHttpClient, SystemDnsResolver,
+    resolve_blocking, ClientRequestBuilder, DnsResolver, MockDnsResolver, NativeHttpClient,
+    SystemDnsResolver,
 };
 use std::net::SocketAddr;
 
@@ -17,23 +19,23 @@ use std::net::SocketAddr;
 // Public API Integration Tests
 // ========================================================================
 
-/// WHY: Verify SimpleHttpClient can be constructed with default resolver
-/// WHAT: Tests that SimpleHttpClient::new() works and creates GET requests
+/// WHY: Verify NativeHttpClient can be constructed with default resolver
+/// WHAT: Tests that NativeHttpClient::new() works and creates GET requests
 #[test]
 fn test_simple_http_client_construction() {
-    let client = SimpleHttpClient::new();
+    let client = NativeHttpClient::new();
     let builder = client.get("http://example.com").unwrap();
     let request = builder.build();
 
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient can be constructed with custom resolver
-/// WHAT: Tests that SimpleHttpClient::with_resolver() accepts custom resolvers
+/// WHY: Verify NativeHttpClient can be constructed with custom resolver
+/// WHAT: Tests that NativeHttpClient::with_resolver() accepts custom resolvers
 #[test]
 fn test_simple_http_client_with_custom_resolver() {
     let resolver = SystemDnsResolver::new();
-    let client = SimpleHttpClient::with_resolver(resolver);
+    let client = NativeHttpClient::with_resolver(resolver);
     let builder = client.get("http://example.com").unwrap();
     let request = builder.build();
 
@@ -41,18 +43,18 @@ fn test_simple_http_client_with_custom_resolver() {
 }
 
 /// WHY: Verify MockDnsResolver can be used for testing
-/// WHAT: Tests that MockDnsResolver integrates with SimpleHttpClient
+/// WHAT: Tests that MockDnsResolver integrates with NativeHttpClient
 #[test]
 fn test_simple_http_client_with_mock_resolver() {
     let addr = SocketAddr::new("127.0.0.1".parse().unwrap(), 8080);
     let resolver = MockDnsResolver::new().with_response("example.com", vec![addr]);
 
-    let client = SimpleHttpClient::with_resolver(resolver.clone());
+    let client = NativeHttpClient::with_resolver(resolver.clone());
     let builder = client.get("http://example.com").unwrap();
     let request = builder.build();
 
     // Verify resolver works independently
-    let resolved = resolver.resolve("example.com", 80);
+    let resolved = resolve_blocking(&resolver, "example.com", 80);
     assert!(resolved.is_ok());
 
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -98,11 +100,11 @@ fn test_client_request_builder_methods() {
     assert_eq!(patch.url.scheme().as_str(), "http");
 }
 
-/// WHY: Verify SimpleHttpClient has all HTTP method helpers
+/// WHY: Verify NativeHttpClient has all HTTP method helpers
 /// WHAT: Tests that client provides convenient methods for all HTTP verbs
 #[test]
 fn test_simple_http_client_all_methods() {
-    let client = SimpleHttpClient::new();
+    let client = NativeHttpClient::new();
 
     let _get = client.get("http://example.com").unwrap();
     let _post = client.post("http://example.com").unwrap();
@@ -128,12 +130,12 @@ fn test_client_request_builder_with_headers() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient configuration is flexible
+/// WHY: Verify NativeHttpClient configuration is flexible
 /// WHAT: Tests that client can be constructed with SystemDnsResolver
 #[test]
 fn test_simple_http_client_configuration() {
     let resolver = SystemDnsResolver::new();
-    let client = SimpleHttpClient::with_resolver(resolver);
+    let client = NativeHttpClient::with_resolver(resolver);
 
     let builder = client.get("http://example.com").unwrap();
     let request = builder.build();
@@ -141,11 +143,11 @@ fn test_simple_http_client_configuration() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify SimpleHttpClient::default() provides sensible defaults
+/// WHY: Verify NativeHttpClient::default() provides sensible defaults
 /// WHAT: Tests that Default trait implementation works
 #[test]
 fn test_simple_http_client_default() {
-    let client = SimpleHttpClient::default();
+    let client = NativeHttpClient::default();
 
     // Verify default client works
     let builder = client.get("http://example.com").unwrap();
@@ -157,7 +159,7 @@ fn test_simple_http_client_default() {
 /// WHAT: Tests the advanced request() API
 #[test]
 fn test_simple_http_client_request_method() {
-    let client = SimpleHttpClient::new();
+    let client = NativeHttpClient::new();
     let builder = ClientRequestBuilder::get("http://example.com").unwrap();
 
     let _result = client.request(builder);
@@ -170,14 +172,14 @@ fn test_simple_http_client_request_method() {
 
 /// WHY: Verify DnsResolver trait includes Clone bound
 /// WHAT: Tests that resolvers can be cloned (required for RedirectAction)
-#[test]
+#[valtron_test]
 fn test_dns_resolver_clone() {
     let resolver1 = SystemDnsResolver::new();
     let resolver2 = resolver1.clone();
 
     // Both resolvers should work
-    assert!(resolver1.resolve("localhost", 80).is_ok());
-    assert!(resolver2.resolve("localhost", 80).is_ok());
+    assert!(resolve_blocking(&resolver1, "localhost", 80).is_ok());
+    assert!(resolve_blocking(&resolver2, "localhost", 80).is_ok());
 }
 
 /// WHY: Verify MockDnsResolver cloning preserves configuration
@@ -189,15 +191,15 @@ fn test_mock_dns_resolver_clone_preserves_config() {
     let resolver2 = resolver1.clone();
 
     // Both should return the same configured response
-    let result1 = resolver1.resolve("secure.example.com", 443);
-    let result2 = resolver2.resolve("secure.example.com", 443);
+    let result1 = resolve_blocking(&resolver1, "secure.example.com", 443);
+    let result2 = resolve_blocking(&resolver2, "secure.example.com", 443);
 
     assert!(result1.is_ok());
     assert!(result2.is_ok());
     assert_eq!(result1.unwrap(), result2.unwrap());
 }
 
-/// WHY: Verify SimpleHttpClient can use cloned resolvers
+/// WHY: Verify NativeHttpClient can use cloned resolvers
 /// WHAT: Tests that client works with cloned resolver instances
 #[test]
 fn test_simple_http_client_with_cloned_resolver() {
@@ -205,8 +207,8 @@ fn test_simple_http_client_with_cloned_resolver() {
     let resolver1 = MockDnsResolver::new().with_response("api.example.com", vec![addr]);
     let resolver2 = resolver1.clone();
 
-    let client1 = SimpleHttpClient::with_resolver(resolver1);
-    let client2 = SimpleHttpClient::with_resolver(resolver2);
+    let client1 = NativeHttpClient::with_resolver(resolver1);
+    let client2 = NativeHttpClient::with_resolver(resolver2);
 
     // Both clients should work
     assert!(client1.get("http://api.example.com").is_ok());

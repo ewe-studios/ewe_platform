@@ -9,6 +9,16 @@ mystery:
     python3 scripts/ci/ci.py run foundation_ai        # fmt + clippy + tests for one package
     python3 scripts/ci/ci.py run foundation_ai --step test
 
+On a macOS host (`sys.platform == "darwin"`) `run` does only the test step, with
+the feature sets of the package's `macos-runs` key. A package without that key
+is not tested on macOS. `plan` also writes the `macos-matrix` output.
+A Windows host (`sys.platform == "win32"`) works the same way with the
+`windows-runs` key and the `windows-matrix` output.
+
+`plan` also runs a guard. A package with macOS or Windows specific code must
+set `macos-runs` / `windows-runs`, or opt out with `macos-tests = "none"` /
+`windows-tests = "none"` and a reason. See `platform_guard`.
+
 Per-package settings live in `ci/packages.toml`. Everything else (the package
 list, which packages need the llama.cpp submodule, who depends on whom) comes
 from `cargo metadata`, so a new crate is picked up without editing CI.
@@ -21,9 +31,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
+import threading
+import time
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -31,6 +44,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT / "ci" / "packages.toml"
 IN_GITHUB = bool(os.environ.get("GITHUB_ACTIONS"))
+
+
+def target_dir() -> str:
+    """The cargo target directory for this worktree.
+
+    Parallel worktrees must not share one ``CARGO_TARGET_DIR``. They build
+    crates with the same hashes and overwrite each other's artifacts mid-run.
+    Use ``<repo>/target`` by default. When ``CARGO_TARGET_DIR`` is set, use
+    ``<CARGO_TARGET_DIR>/<checkout-name>`` instead, where ``<checkout-name>``
+    is the basename of the repository root. Each worktree has its own checkout
+    name, so its target directory stays separate.
+    """
+    base = os.environ.get("CARGO_TARGET_DIR")
+    if base:
+        return str(Path(base) / ROOT.name)
+    return str(ROOT / "target")
 
 # Crates whose build compiles the `tools/llama.cpp` submodule.
 LLAMA_CRATES = {"infrastructure_llama_bindings", "infrastructure_llama_cpp"}
@@ -58,6 +87,20 @@ GLOBAL_PATHS = (
 
 STEPS = ("fmt", "build", "clippy", "test", "wasm")
 MODES = ("enforce", "report", "off")
+PLATFORMS = ("linux", "macos", "windows")
+
+
+def host_platform() -> str:
+    """The platform this script runs on: "macos", "windows" or "linux".
+
+    One `sys.platform` check is enough. The macOS and Windows jobs run this
+    script on the runner itself, with no container, so no flag is needed.
+    """
+    if sys.platform == "darwin":
+        return "macos"
+    if sys.platform == "win32":
+        return "windows"
+    return "linux"
 
 
 
@@ -83,23 +126,89 @@ class Settings:
     clippy: str
     test: str
     runs: list[str]  # one `cargo test` per entry; each entry is its feature flags
+    clippy_runs: list[str]  # one `cargo clippy` per entry; empty means `[runs[0]]`
+    # True: every clippy run of the package gets `--no-deps -- -D warnings`, so a clippy
+    # warning fails CI. Set it only for packages already at zero warnings.
+    clippy_deny_warnings: bool
     wasm: str  # wasm32-unknown-unknown compile check mode
     wasm_runs: list[str]  # one `cargo check --target wasm32` per entry; feature flags
+    # True: every wasm run of the package gets `RUSTFLAGS=-D warnings`, so a
+    # warning fails the wasm gate. `cargo check` takes no trailing rustc args,
+    # so the flag travels in the environment of that command only.
+    wasm_deny_warnings: bool
     test_args: list[str]
     timeout_minutes: int
+    # Most failure lines kept per command for the end-of-run summary. The
+    # `failure-lines` setting; the default is 200.
+    failure_lines: int
     reason: str | None
     # Extra environment for this package's cargo commands (the `env` table).
+    env: dict[str, str] = field(default_factory=dict)
+    # Extra Docker options for this package's `container:` job. Only the io_uring
+    # packages set it: Docker's default seccomp profile blocks `io_uring_setup`.
+    container_options: str = ""
+    # A wasm32 build that must fail with a named compile error, as a table with
+    # `run` (feature flags) and `contains` (the message). Checks the documented
+    # minimum feature set instead of dropping the configuration.
+    wasm_expect_error: dict | None = None
+    # Feature sets for the macOS test job, in the same syntax as `runs`. None
+    # means the package is not tested on macOS. The Linux-only sets (`uring`,
+    # `ptrace`, `fuse`, `preload`) stay out of this list.
+    macos_runs: list[str] | None = None
+    # Environment for the macOS test commands. It replaces `env` on macOS, so
+    # the Linux-only `EWE_REQUIRE_*` variables never reach a macOS run.
+    macos_env: dict[str, str] = field(default_factory=dict)
+    # The same two keys for the Windows test job (`windows-runs`, `windows-env`).
+    windows_runs: list[str] | None = None
+    windows_env: dict[str, str] = field(default_factory=dict)
+    # `macos-tests = "none"` / `windows-tests = "none"` with a reason: the
+    # package has platform code but is not tested on that platform. The guard
+    # in `platform_guard` accepts it. The value is the reason text.
+    macos_opt_out: str | None = None
+    windows_opt_out: str | None = None
+
+    def platform_runs(self, platform: str) -> list[str] | None:
+        """The feature sets of the test job for `platform`, or None."""
+        return {"macos": self.macos_runs, "windows": self.windows_runs}.get(platform)
+
+    def platform_env(self, platform: str) -> dict[str, str]:
+        """The environment for `platform`; the Linux `env` otherwise."""
+        if platform == "macos":
+            return self.macos_env
+        if platform == "windows":
+            return self.windows_env
+        return self.env
+
+
+@dataclass
+class PlannedCommand:
+    """One planned command: the argv and extra environment for just this run.
+
+    Most planned commands are plain argv lists. A command that needs a variable
+    for itself (the wasm deny gate sets `RUSTFLAGS`) carries it here, so the
+    package-wide `env` stays unchanged.
+    """
+
+    argv: list[str]
     env: dict[str, str] = field(default_factory=dict)
 
 
 def cargo_metadata() -> dict:
-    out = subprocess.run(
-        ["cargo", "metadata", "--format-version", "1"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
+    try:
+        out = subprocess.run(
+            ["cargo", "metadata", "--format-version", "1"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    except subprocess.CalledProcessError as err:
+        # Without this the traceback names only the exit code. The reason
+        # (missing submodule, unparsable manifest, offline registry) is in
+        # stderr, and CI captured it away.
+        raise SystemExit(
+            f"cargo metadata failed with exit {err.returncode}:\n{err.stderr}"
+        ) from err
     return json.loads(out)
 
 
@@ -137,6 +246,28 @@ def load_workspace() -> dict[str, Package]:
             dep_name = by_id[dep]["name"]
             if dep_name in packages and dep_name != name:
                 packages[dep_name].dependents.add(name)
+
+    # The `examples/` directory holds self-contained workspaces (excluded from
+    # this workspace), so cargo metadata never lists them. Add one synthetic
+    # package that owns that directory; its build step (see `examples_commands`)
+    # compiles every `examples/cf-*` to wasm32 and the native `answerme-agent`.
+    # It builds answerme-agent, so it inherits that app's llama.cpp need.
+    packages["examples"] = Package(
+        name="examples",
+        dir="examples",
+        needs_llama=packages["answerme-agent"].needs_llama,
+    )
+
+    # The wasm runtime test suites live in wasm32-only test targets and in a
+    # self-contained crate outside the root workspace, so cargo metadata's
+    # library-only view never exercises them. Add one synthetic package whose
+    # build step compiles those tests and whose test step runs the embedded-Deno
+    # harnesses (feature 22 E4). See `wasm_tests_commands`.
+    packages["wasm-tests"] = Package(
+        name="wasm-tests",
+        dir="backends/foundation_core/integration/wasm_tests",
+        needs_llama=False,
+    )
     return packages
 
 
@@ -149,38 +280,90 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
     if unknown:
         raise SystemExit(f"ci/packages.toml names packages not in the workspace: {unknown}")
 
-    settings: dict[str, Settings] = {}
-    for name in packages:
-        package = overrides.get(name, {})
-        merged = {**defaults, **package}
-        # `env` merges key by key, so a package adds to [defaults.env] rather
-        # than replacing it.
-        for table, where in ((defaults, "[defaults]"), (package, f"[packages.{name}]")):
-            if not isinstance(table.get("env", {}), dict):
-                raise SystemExit(f"{where}: `env` must be a table of strings")
-        env = {**defaults.get("env", {}), **package.get("env", {})}
-        for key, value in env.items():
-            if not isinstance(value, str):
-                raise SystemExit(f"{name}: env.{key} must be a string, got {value!r}")
-        s = Settings(
-            skip=merged.get("skip"),
-            fmt=merged.get("fmt", "report"),
-            build=merged.get("build", "enforce"),
-            clippy=merged.get("clippy", "enforce"),
-            test=merged.get("test", "enforce"),
-            runs=list(merged.get("runs", [""])) or [""],
-            wasm=merged.get("wasm", "off"),
-            wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
-            test_args=list(merged.get("test-args", [])),
-            timeout_minutes=int(merged.get("timeout-minutes", 60)),
-            reason=merged.get("reason"),
-            env=env,
-        )
-        for step in STEPS:
-            if getattr(s, step) not in MODES:
-                raise SystemExit(f"{name}: `{step}` must be one of {MODES}, got {getattr(s, step)!r}")
-        settings[name] = s
-    return settings
+    return {
+        name: settings_for(name, defaults, overrides.get(name, {}))
+        for name in packages
+    }
+
+
+def settings_for(name: str, defaults: dict, package: dict) -> Settings:
+    """Merge `[defaults]` with one `[packages.<name>]` table and validate it."""
+    merged = {**defaults, **package}
+    # `env` merges key by key, so a package adds to [defaults.env] rather
+    # than replacing it.
+    for table, where in ((defaults, "[defaults]"), (package, f"[packages.{name}]")):
+        if not isinstance(table.get("env", {}), dict):
+            raise SystemExit(f"{where}: `env` must be a table of strings")
+    env = {**defaults.get("env", {}), **package.get("env", {})}
+    for key, value in env.items():
+        if not isinstance(value, str):
+            raise SystemExit(f"{name}: env.{key} must be a string, got {value!r}")
+    container_options = merged.get("container-options", "")
+    if not isinstance(container_options, str):
+        raise SystemExit(f"{name}: `container-options` must be a string")
+    wasm_expect_error = merged.get("wasm-expect-error")
+    if wasm_expect_error is not None:
+        if not isinstance(wasm_expect_error, dict):
+            raise SystemExit(f"{name}: `wasm-expect-error` must be a table")
+        for key in ("run", "contains"):
+            if not isinstance(wasm_expect_error.get(key), str):
+                raise SystemExit(f"{name}: wasm-expect-error.{key} must be a string")
+    platform_keys: dict[str, tuple] = {}
+    for plat in ("macos", "windows"):
+        runs_key = package.get(f"{plat}-runs")
+        if runs_key is not None:
+            if (
+                not isinstance(runs_key, list)
+                or not runs_key
+                or not all(isinstance(r, str) for r in runs_key)
+            ):
+                raise SystemExit(f"{name}: `{plat}-runs` must be a non-empty list of strings")
+        env_key = package.get(f"{plat}-env", {})
+        if not isinstance(env_key, dict) or not all(isinstance(v, str) for v in env_key.values()):
+            raise SystemExit(f"{name}: `{plat}-env` must be a table of strings")
+        opt_out = None
+        if f"{plat}-tests" in package:
+            if package[f"{plat}-tests"] != "none":
+                raise SystemExit(f'{name}: `{plat}-tests` must be "none"')
+            if runs_key is not None:
+                raise SystemExit(f"{name}: `{plat}-tests` and `{plat}-runs` exclude each other")
+            opt_out = package.get(f"{plat}-reason") or package.get("reason")
+            if not isinstance(opt_out, str) or not opt_out.strip():
+                raise SystemExit(f'{name}: `{plat}-tests = "none"` needs a `{plat}-reason` or a `reason`')
+        platform_keys[plat] = (runs_key, env_key, opt_out)
+    macos_runs, macos_env, macos_opt_out = platform_keys["macos"]
+    windows_runs, windows_env, windows_opt_out = platform_keys["windows"]
+    s = Settings(
+        skip=merged.get("skip"),
+        fmt=merged.get("fmt", "report"),
+        build=merged.get("build", "enforce"),
+        clippy=merged.get("clippy", "enforce"),
+        test=merged.get("test", "enforce"),
+        runs=list(merged.get("runs", [""])) or [""],
+        clippy_runs=list(merged.get("clippy-runs", [])),
+        clippy_deny_warnings=bool(merged.get("clippy-deny-warnings", False)),
+        wasm=merged.get("wasm", "off"),
+        wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
+        wasm_deny_warnings=bool(merged.get("wasm-deny-warnings", False)),
+        test_args=list(merged.get("test-args", [])),
+        timeout_minutes=int(merged.get("timeout-minutes", 60)),
+        # Default 200 lines: enough for many failed tests, small for a log tail.
+        failure_lines=int(merged.get("failure-lines", 200)),
+        reason=merged.get("reason"),
+        env=env,
+        container_options=container_options,
+        wasm_expect_error=wasm_expect_error,
+        macos_runs=list(macos_runs) if macos_runs is not None else None,
+        macos_env=dict(macos_env),
+        windows_runs=list(windows_runs) if windows_runs is not None else None,
+        windows_env=dict(windows_env),
+        macos_opt_out=macos_opt_out,
+        windows_opt_out=windows_opt_out,
+    )
+    for step in STEPS:
+        if getattr(s, step) not in MODES:
+            raise SystemExit(f"{name}: `{step}` must be one of {MODES}, got {getattr(s, step)!r}")
+    return s
 
 
 # ---------------------------------------------------------------------------
@@ -263,10 +446,106 @@ def feature_flags(spec: str) -> list[str]:
     return ["--features", ",".join(spec.split())]
 
 
-def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]:
+def examples_commands(profile: str) -> dict[str, list[list[str]]]:
+    """Build commands for the synthetic `examples` package.
+
+    The `examples/cf-*` directories are self-contained wasm32 workspaces (the
+    workspace `[workspace] exclude`s them), so they are compiled directly by
+    manifest rather than by `-p`. The `answerme-agent` app is a workspace
+    member and gets a normal native build.
+    """
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    for manifest in sorted((ROOT / "examples").glob("cf-*/Cargo.toml")):
+        plan["build"].append(
+            ["cargo", "build", "--target", "wasm32-unknown-unknown", "--manifest-path", manifest.as_posix()]
+        )
+    plan["build"].append(["cargo", "build", "--profile", profile, "-p", "answerme-agent"])
+    return plan
+
+
+def wasm_tests_commands() -> dict[str, list[list[str]]]:
+    """Commands for the synthetic `wasm-tests` package (feature 22 E4).
+
+    (1) Compile every crate with wasm tests, plus the standalone wasm_tests
+    crate outside the root workspace, with `--tests --target wasm32` so the
+    test code itself is checked (the default wasm gate checks libraries only,
+    which let the `wasm_bindgen_test` suites rot). (2) Run the two embedded-Deno
+    runtime suites. `MISE_ENV=wasm` (set in `ci/packages.toml`) selects
+    `mise.wasm.toml`, which pins only deno + wasm-bindgen and turns off
+    auto_install.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    plan["build"] = [
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_core", *feature_flags("--no-default-features --features std,js-wasmbindgen")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+        # Spec 70 feature 76: the standalone Cloudflare wasm store tests. The
+        # wrangler run below compiles them too, but this step names a compile
+        # break directly, before the harness starts.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_db/integration/wasm_cf/Cargo.toml"],
+        # This package sets fmt = "off" (the workspace fmt step cannot see a
+        # crate outside the workspace), so the standalone crate's formatting
+        # is checked here.
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
+    ]
+    plan["test"] = [
+        ["mise", "run", "test:wasm-testbed:deno"],
+        ["mise", "run", "test:wasm-bindgen:deno"],
+        # Spec 70 feature 76: the D1/R2/KV wasm stores on the real local
+        # bindings (`wrangler dev --local`). The REST clients use the same
+        # local D1/R2 state through the explorer API.
+        ["mise", "run", "test:wasm-testbed:wrangler"],
+    ]
+    return plan
+
+
+def test_command(name: str, run: str, profile: str, test_args: list[str]) -> list[str]:
+    """One `cargo test` for one feature set."""
+    cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
+    # `--nocapture` prints every test's output, so a failing or hanging
+    # test leaves its own trace instead of a bare "FAILED" line.
+    return cmd + ["--", "--nocapture", *test_args]
+
+
+def commands(
+    name: str, s: Settings, profile: str, platform: str = "linux"
+) -> dict[str, list[list[str] | PlannedCommand]]:
+    if platform in ("macos", "windows"):
+        # The macOS and Windows jobs run tests only. Format, clippy and the wasm
+        # gate stay on Linux. `cargo test` builds the targets, so no build step.
+        host_plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
+        host_runs = s.platform_runs(platform)
+        if host_runs and s.test != "off":
+            for run in host_runs:
+                host_plan["test"].append(test_command(name, run, profile, s.test_args))
+        return host_plan
+    if name == "examples":
+        return examples_commands(profile)
+    if name == "wasm-tests":
+        return wasm_tests_commands()
+    plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])
+    if name == "foundation_core" and s.build == "enforce":
+        # Spec 70 feature 80: the executor wake functions are private to valtron.
+        # One repository-wide scan, run with the package that owns them (in the
+        # enforced `build` step), and the test of the scan itself.
+        plan["build"].append([sys.executable, "scripts/ci/check_executor_wake.py"])
+        # Spec 70 feature 117: a crate reads the time from the injected `Clock`,
+        # never from the global. The allowlist names every remaining offender.
+        plan["build"].append(
+            [sys.executable, "scripts/ci/check_time_sources.py", "--check"]
+        )
+        plan["build"].append([sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci/tests"])
     if s.build != "off":
         # Library, binaries, tests, examples and benches: compile errors show
         # up here, separately from test failures.
@@ -274,32 +553,120 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
             ["cargo", "build", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
         )
     if s.clippy != "off":
-        plan["clippy"].append(
-            ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
-        )
+        for run in s.clippy_runs or [s.runs[0]]:
+            cmd = ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(run)]
+            if s.clippy_deny_warnings:
+                cmd += ["--no-deps", "--", "-D", "warnings"]
+            plan["clippy"].append(cmd)
     if s.test != "off":
         for run in s.runs:
-            cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
-            if s.test_args:
-                cmd += ["--", *s.test_args]
-            plan["test"].append(cmd)
+            plan["test"].append(test_command(name, run, profile, s.test_args))
     if s.wasm != "off":
         # A wasm32 compile gate: no `--all-targets`/profile (wasm has no test
         # binaries or uat tuning), just `cargo check` on the wasm-relevant
         # feature set. Catches the `multi`-into-`!Send`-wasm leak and other
         # native-dep regressions that native-only builds never see.
+        wasm_commands: list[list[str]] = []
         for run in s.wasm_runs:
-            plan["wasm"].append(
+            wasm_commands.append(
                 ["cargo", "check", "--target", "wasm32-unknown-unknown", "-p", name, *feature_flags(run)]
             )
+        if s.wasm_expect_error:
+            # The configuration is unsupported, and the crate refuses it with a
+            # `compile_error!`. Require that exact failure, so the message and
+            # the documented minimum cannot drift apart.
+            expect = s.wasm_expect_error
+            check = [
+                "cargo",
+                "check",
+                "--target",
+                "wasm32-unknown-unknown",
+                "-p",
+                name,
+                *feature_flags(expect["run"]),
+            ]
+            wasm_commands.append(
+                [sys.executable, "scripts/ci/expect_compile_error.py", expect["contains"], "--", *check]
+            )
+        for cmd in wasm_commands:
+            if s.wasm_deny_warnings:
+                # `cargo check` rejects trailing rustc args, so the deny flag
+                # goes through `RUSTFLAGS` for this command only.
+                plan["wasm"].append(PlannedCommand(cmd, {"RUSTFLAGS": "-D warnings"}))
+            else:
+                plan["wasm"].append(cmd)
     return plan
+
+
+def display_command(cmd: list[str]) -> str:
+    """The command as one line for the log. Display only: no shell runs it.
+
+    Every command runs as an argument list, so no POSIX shell is involved. The
+    quoting follows the host (`shlex` on POSIX, `list2cmdline` on Windows).
+    """
+    if os.name == "nt":
+        return subprocess.list2cmdline(cmd)
+    return shlex.join(cmd)
 
 
 def annotate(level: str, message: str) -> None:
     print(f"::{level}::{message}" if IN_GITHUB else f"{level}: {message}", flush=True)
 
 
-def run_package(name: str, steps: list[str], profile: str) -> int:
+# Lines that show why a test run failed. Kept for the end-of-run summary.
+FAILURE_LINE = re.compile(r"^test .* \.\.\. FAILED$|^---- .* stdout ----$|panicked at")
+
+
+def run_streamed(
+    cmd: list[str], env: dict[str, str], timeout: float, limit: int
+) -> tuple[int, list[str]]:
+    """Run `cmd`, stream its merged output, and keep the failure lines.
+
+    Returns (exit code, kept lines). Raises `subprocess.TimeoutExpired` after it
+    kills the process when `timeout` seconds pass. At most `limit` lines are kept.
+    """
+    proc = subprocess.Popen(
+        cmd,
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        # Cargo prints UTF-8 on every host. The Windows default code page
+        # (cp1252) would garble or reject it.
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    )
+    kept: list[str] = []
+    timer = threading.Timer(timeout, proc.kill)
+    timer.start()
+    try:
+        after_panic = False
+        assert proc.stdout is not None
+        for raw in proc.stdout:
+            sys.stdout.write(raw)
+            sys.stdout.flush()
+            text = raw.rstrip("\n")
+            if FAILURE_LINE.search(text) or after_panic:
+                if len(kept) < limit:
+                    kept.append(text)
+            # The line after `panicked at` holds the panic message.
+            after_panic = "panicked at" in text
+        code = proc.wait()
+    finally:
+        expired = not timer.is_alive()
+        timer.cancel()
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+    if expired:
+        raise subprocess.TimeoutExpired(cmd, timeout)
+    return code, kept
+
+
+def run_package(name: str, steps: list[str], profile: str, platform: str | None = None) -> int:
+    platform = platform or host_platform()
     packages = load_workspace()
     if name not in packages:
         raise SystemExit(f"unknown package: {name}")
@@ -308,31 +675,186 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
         print(f"skipping {name}: {s.skip}")
         return 0
 
-    plan = commands(name, s, profile)
+    if platform != "linux" and s.platform_runs(platform) is None:
+        label = {"macos": "macOS", "windows": "Windows"}[platform]
+        print(f"skipping {name}: no `{platform}-runs` in ci/packages.toml, so it is not tested on {label}")
+        return 0
+
+    plan = commands(name, s, profile, platform)
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
-    env = {**s.env, **os.environ}
-    if s.env:
-        print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
+    # On macOS and Windows the package's `<platform>-env` replaces `env`.
+    package_env = s.platform_env(platform)
+    env = {**package_env, **os.environ}
+    env["CARGO_TARGET_DIR"] = target_dir()
+    if package_env:
+        print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(package_env.items())), flush=True)
+    print(f"{name}: target dir {env['CARGO_TARGET_DIR']}", flush=True)
+    # One message per failed or timed-out command. Used for the summary below.
     failures: list[str] = []
+    # Kept failure lines per failure note, printed under it in the summary.
+    details: dict[str, list[str]] = {}
+    timed_out = False
+    # One hard deadline for the whole package. GitHub gives the same job
+    # `timeout-minutes`; a local run had no kill switch, so a step that looped
+    # (a hung test, a deadlocked build) never returned. Each command borrows
+    # the time still left, and a command that overruns is fatal for the package.
+    deadline = time.monotonic() + s.timeout_minutes * 60
     for step in steps:
         mode = getattr(s, step)
-        for cmd in plan[step]:
-            line = shlex.join(cmd)
+        for entry in plan[step]:
+            if isinstance(entry, PlannedCommand):
+                cmd, cmd_env = entry.argv, entry.env
+            else:
+                cmd, cmd_env = entry, {}
+            line = display_command(cmd)
+            if cmd_env:
+                # Show the command-only environment in the log, so a reader can
+                # see the deny flag that the runner applies.
+                line = " ".join(
+                    f"{k}={display_command([v])}" for k, v in sorted(cmd_env.items())
+                ) + " " + line
             print(f"::group::{step}: {line}" if IN_GITHUB else f"$ {line}", flush=True)
-            code = subprocess.run(cmd, cwd=ROOT, env=env).returncode
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                if IN_GITHUB:
+                    print("::endgroup::", flush=True)
+                note = f"{name}: `{line}` timed out after {s.timeout_minutes} minutes"
+                failures.append(note)
+                annotate("error", note)
+                timed_out = True
+                break
+            try:
+                code, kept = run_streamed(
+                    cmd, {**env, **cmd_env}, remaining, s.failure_lines
+                )
+            except subprocess.TimeoutExpired:
+                if IN_GITHUB:
+                    print("::endgroup::", flush=True)
+                note = f"{name}: `{line}` timed out after {s.timeout_minutes} minutes"
+                failures.append(note)
+                annotate("error", note)
+                timed_out = True
+                break
             if IN_GITHUB:
                 print("::endgroup::", flush=True)
             if code == 0:
                 continue
             if mode == "enforce":
-                failures.append(line)
-                annotate("error", f"{name}: `{line}` failed")
+                note = f"{name}: `{line}` failed"
+                failures.append(note)
+                details[note] = kept
+                annotate("error", note)
             else:
                 why = f" — {s.reason}" if s.reason else ""
                 annotate("warning", f"{name}: `{line}` failed (report-only{why})")
+        if timed_out:
+            # A timeout ends the package, as it always did. Skip later steps.
+            break
+
+    if failures:
+        # Why this summary: the per-command error line can scroll out of the log
+        # tail. GitHub's log API returns only the last 5000 lines. A later command
+        # can print thousands of lines and push the error out of that window.
+        # This block prints last, so every failed command stays visible.
+        steps_text = ", ".join(steps)
+        header = f"{name}: {len(failures)} failed command(s) in step {steps_text}"
+        if IN_GITHUB:
+            print(f"::group::{header}", flush=True)
+        else:
+            print(header, flush=True)
+        for note in failures:
+            print(note, flush=True)
+            for kept_line in details.get(note, []):
+                print(f"    {kept_line}", flush=True)
+        if IN_GITHUB:
+            print("::endgroup::", flush=True)
+        annotate("error", f"{header}: " + "; ".join(failures))
 
     return 1 if failures else 0
+
+
+# ---------------------------------------------------------------------------
+# Platform guard
+#
+# A package with macOS or Windows specific code must be tested on that OS, or
+# say why not. The guard runs in `plan`, so every CI run checks it.
+
+# `cfg(...)`, `cfg!(...)` and `cfg_attr(...)` openers. The scan reads the text
+# inside the balanced brackets.
+CFG_OPEN = re.compile(r"\bcfg(?:_attr)?!?\s*\(")
+STRING_LITERAL = re.compile(r'"(?:[^"\\]|\\.)*"')
+MACOS_CFG = re.compile(r'target_os\s*=\s*"macos"|target_vendor\s*=\s*"apple"')
+WINDOWS_CFG = re.compile(r'target_(?:os|family)\s*=\s*"windows"')
+# A bare `windows` predicate, as in `cfg(windows)`. Checked after string
+# literals are blanked, so `feature = "windows"` does not match.
+WINDOWS_BARE = re.compile(r"(?<![\w.])windows(?![\w=])")
+COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.DOTALL)
+
+
+def cfg_expressions(source: str) -> list[str]:
+    """The text inside every real `cfg(...)` / `cfg!(...)` in Rust `source`.
+
+    Comments are removed first, so a cfg in a comment or doc comment is ignored.
+    """
+    text = COMMENTS.sub("", source)
+    found = []
+    for match in CFG_OPEN.finditer(text):
+        depth, i = 1, match.end()
+        while i < len(text) and depth:
+            depth += {"(": 1, ")": -1}.get(text[i], 0)
+            i += 1
+        found.append(text[match.end() : i - 1])
+    return found
+
+
+def platform_cfg_sites(source: str) -> dict[str, int]:
+    """Count the macOS and Windows cfg sites in Rust `source`."""
+    counts = {"macos": 0, "windows": 0}
+    for expr in cfg_expressions(source):
+        if MACOS_CFG.search(expr):
+            counts["macos"] += 1
+        if WINDOWS_CFG.search(expr) or WINDOWS_BARE.search(STRING_LITERAL.sub('""', expr)):
+            counts["windows"] += 1
+    return counts
+
+
+def package_platform_sites(package_dir: Path) -> dict[str, int]:
+    """Count the platform cfg sites in the `src/` and `tests/` of one package."""
+    total = {"macos": 0, "windows": 0}
+    for sub in ("src", "tests"):
+        for path in sorted((package_dir / sub).rglob("*.rs")):
+            counts = platform_cfg_sites(path.read_text(encoding="utf-8", errors="replace"))
+            for plat in total:
+                total[plat] += counts[plat]
+    return total
+
+
+def platform_guard(
+    packages: dict[str, Package], settings: dict[str, Settings], root: Path = ROOT
+) -> list[str]:
+    """One error message per package with platform code and no test on it.
+
+    The synthetic packages (`examples`, `wasm-tests`) and skipped packages are
+    not checked.
+    """
+    errors = []
+    for name in sorted(packages):
+        s = settings[name]
+        if s.skip or name in ("examples", "wasm-tests"):
+            continue
+        sites = package_platform_sites(root / packages[name].dir)
+        for plat, label in (("macos", "macOS"), ("windows", "Windows")):
+            if sites[plat] == 0 or s.platform_runs(plat) is not None:
+                continue
+            if (s.macos_opt_out if plat == "macos" else s.windows_opt_out) is not None:
+                continue
+            errors.append(
+                f"{name}: {sites[plat]} {label}-specific cfg site(s) but no `{plat}-runs` in "
+                f"ci/packages.toml. Add `{plat}-runs`, or set `{plat}-tests = \"none\"` "
+                f"with a `reason`."
+            )
+    return errors
 
 
 # ---------------------------------------------------------------------------
@@ -344,7 +866,7 @@ def cmd_list(_: argparse.Namespace) -> int:
     settings = load_settings(packages)
     for name in sorted(packages):
         p, s = packages[name], settings[name]
-        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test} wasm={s.wasm}"
+        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy}{'+deny' if s.clippy_deny_warnings else ''} test={s.test} wasm={s.wasm}"
         runs = ", ".join(repr(r) for r in s.runs)
         env = "".join(f"  {k}={v}" for k, v in sorted(s.env.items()))
         print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}{env}")
@@ -354,6 +876,10 @@ def cmd_list(_: argparse.Namespace) -> int:
 def cmd_plan(args: argparse.Namespace) -> int:
     packages = load_workspace()
     settings = load_settings(packages)
+    if problems := platform_guard(packages, settings):
+        for problem in problems:
+            annotate("error", problem)
+        return 1
     selected, why = select(args, packages)
 
     include = [
@@ -361,23 +887,46 @@ def cmd_plan(args: argparse.Namespace) -> int:
             "package": name,
             "llama": packages[name].needs_llama,
             "timeout": settings[name].timeout_minutes,
+            "container-options": settings[name].container_options,
         }
         for name in sorted(selected)
         if not settings[name].skip
     ]
     skipped = sorted(n for n in selected if settings[n].skip)
     matrix = json.dumps({"include": include})
+    # The macOS test matrix: the selected packages that set `macos-runs`.
+    macos_include = [
+        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
+        for item in include
+        if settings[item["package"]].macos_runs is not None and settings[item["package"]].test != "off"
+    ]
+    macos_matrix = json.dumps({"include": macos_include})
+    # The Windows test matrix: the selected packages that set `windows-runs`.
+    windows_include = [
+        {"package": item["package"], "llama": item["llama"], "timeout": item["timeout"]}
+        for item in include
+        if settings[item["package"]].windows_runs is not None and settings[item["package"]].test != "off"
+    ]
+    windows_matrix = json.dumps({"include": windows_include})
     summary = f"{len(include)} package(s) selected ({why})"
     print(summary, file=sys.stderr)
 
     if out := os.environ.get("GITHUB_OUTPUT"):
         with open(out, "a") as fh:
             fh.write(f"matrix={matrix}\ncount={len(include)}\n")
+            fh.write(f"macos-matrix={macos_matrix}\nmacos-count={len(macos_include)}\n")
+            fh.write(f"windows-matrix={windows_matrix}\nwindows-count={len(windows_include)}\n")
     if step_summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(step_summary, "a") as fh:
             fh.write(f"### CI plan\n\n{summary}\n\n")
             for item in include:
                 fh.write(f"- `{item['package']}`{' (needs llama.cpp)' if item['llama'] else ''}\n")
+            if macos_include:
+                names = ", ".join(f"`{i['package']}`" for i in macos_include)
+                fh.write(f"\nmacOS tests: {names}\n\n")
+            if windows_include:
+                names = ", ".join(f"`{i['package']}`" for i in windows_include)
+                fh.write(f"\nWindows tests: {names}\n\n")
             for name in skipped:
                 fh.write(f"- ~~`{name}`~~ skipped: {settings[name].skip}\n")
     print(matrix)
@@ -405,6 +954,12 @@ def main() -> int:
     run.add_argument("--step", action="append", choices=STEPS, help="repeatable; default: all steps")
     run.add_argument("--profile", default=os.environ.get("CI_PROFILE", "uat"))
     run.set_defaults(func=cmd_run)
+
+    # Cargo output and package names can hold non-ASCII text. The Windows
+    # console code page cannot print it, so write UTF-8 on every host.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
     args = parser.parse_args()
     return args.func(args)

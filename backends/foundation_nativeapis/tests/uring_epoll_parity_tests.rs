@@ -19,6 +19,8 @@
 
 #![cfg(all(target_os = "linux", feature = "uring"))]
 
+mod common;
+
 use std::collections::BTreeMap;
 use std::io;
 use std::os::fd::RawFd;
@@ -67,12 +69,20 @@ impl Selector for uring::Selector {
     }
 }
 
-/// Build one selector of each backend.
-fn backends() -> Vec<Box<dyn Selector>> {
-    vec![
+/// Build one selector of each backend, or `None` when the kernel has no io_uring.
+///
+/// The parity claim compares both backends, so a kernel without io_uring cannot
+/// make it. Skipping is correct on a developer machine, but CI sets
+/// `EWE_REQUIRE_IO_URING=1`, so a missing io_uring tier fails with a reason
+/// instead of quietly dropping the suite.
+fn backends(what: &str) -> Option<Vec<Box<dyn Selector>>> {
+    if common::io_uring_missing(what, common::Requires::IoUring) {
+        return None;
+    }
+    Some(vec![
         Box::new(epoll::Selector::new().expect("epoll selector")),
         Box::new(uring::Selector::new().expect("io_uring selector")),
-    ]
+    ])
 }
 
 // ── Observation model ───────────────────────────────────────────────────────
@@ -177,8 +187,11 @@ fn drain_fd(fd: RawFd) {
 /// scenario therefore also asserts the *expected* readiness inside its closure,
 /// where it knows the stimulus. This function only catches divergence.
 fn assert_parity(what: &str, scenario: impl Fn(&dyn Selector) -> Observed) {
+    let Some(backends) = backends(what) else {
+        return;
+    };
     let mut results: Vec<(&'static str, Observed)> = Vec::new();
-    for sel in backends() {
+    for sel in backends {
         let observed = scenario(sel.as_ref());
         results.push((sel.name(), observed));
     }
@@ -209,14 +222,27 @@ fn sole_entry(observed: &Observed, sel: &dyn Selector, what: &str) -> Flags {
 fn parity_readable_after_write() {
     assert_parity("a written pipe reports readable", |sel| {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
         write_byte(w);
         let observed = drain_until_nonempty(sel, Duration::from_secs(2));
 
         let flags = sole_entry(&observed, sel, "a write");
-        assert!(flags.readable, "{}: a written pipe must be readable", sel.name());
-        assert!(!flags.read_closed, "{}: the write end is still open", sel.name());
-        assert!(!flags.error, "{}: a plain write is not an error", sel.name());
+        assert!(
+            flags.readable,
+            "{}: a written pipe must be readable",
+            sel.name()
+        );
+        assert!(
+            !flags.read_closed,
+            "{}: the write end is still open",
+            sel.name()
+        );
+        assert!(
+            !flags.error,
+            "{}: a plain write is not an error",
+            sel.name()
+        );
 
         sel.deregister(r).ok();
         close(r);
@@ -229,7 +255,8 @@ fn parity_readable_after_write() {
 fn parity_idle_fd_reports_nothing() {
     assert_parity("an idle pipe reports nothing", |sel| {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
         let observed = drain_once(sel, Some(Duration::from_millis(50)));
 
         assert!(
@@ -249,7 +276,8 @@ fn parity_idle_fd_reports_nothing() {
 fn parity_edge_triggered_does_not_refire_without_new_data() {
     assert_parity("unread data does not re-fire (edge semantics)", |sel| {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
 
         write_byte(w);
         let first = drain_until_nonempty(sel, Duration::from_secs(2));
@@ -279,7 +307,8 @@ fn parity_edge_triggered_does_not_refire_without_new_data() {
 fn parity_second_write_refires_after_drain() {
     assert_parity("a fresh edge after draining re-fires", |sel| {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
 
         write_byte(w);
         drain_until_nonempty(sel, Duration::from_secs(2));
@@ -306,7 +335,8 @@ fn parity_second_write_refires_after_drain() {
 fn parity_write_end_closed_mid_poll() {
     assert_parity("closing the write end mid-poll surfaces hangup", |sel| {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
 
         // Close from another thread while this one is parked in poll().
         let handle = std::thread::spawn(move || {
@@ -335,7 +365,8 @@ fn parity_write_end_closed_mid_poll() {
 fn parity_deregistered_fd_reports_nothing() {
     assert_parity("a deregistered fd stops reporting", |sel| {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
         sel.deregister(r).expect("deregister");
 
         write_byte(w);
@@ -358,7 +389,8 @@ fn parity_drain_reports_every_ready_fd() {
     assert_parity("all ready fds appear in the drain", |sel| {
         let pipes: Vec<(RawFd, RawFd)> = (0..4).map(|_| nonblocking_pipe()).collect();
         for (i, (r, _)) in pipes.iter().enumerate() {
-            sel.register(*r, Token(100 + i), Interest::READABLE).expect("register");
+            sel.register(*r, Token(100 + i), Interest::READABLE)
+                .expect("register");
         }
         for (_, w) in &pipes {
             write_byte(*w);
@@ -398,9 +430,13 @@ fn parity_drain_reports_every_ready_fd() {
 
 #[test]
 fn parity_zero_timeout_never_blocks() {
-    for sel in backends() {
+    let Some(backends) = backends("parity_zero_timeout_never_blocks") else {
+        return;
+    };
+    for sel in backends {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
 
         let start = Instant::now();
         let observed = drain_once(sel.as_ref(), Some(Duration::ZERO));
@@ -425,9 +461,13 @@ fn parity_zero_timeout_never_blocks() {
 
 #[test]
 fn parity_timeout_expires_and_returns() {
-    for sel in backends() {
+    let Some(backends) = backends("parity_timeout_expires_and_returns") else {
+        return;
+    };
+    for sel in backends {
         let (r, w) = nonblocking_pipe();
-        sel.register(r, Token(1), Interest::READABLE).expect("register");
+        sel.register(r, Token(1), Interest::READABLE)
+            .expect("register");
 
         let budget = Duration::from_millis(150);
         let start = Instant::now();

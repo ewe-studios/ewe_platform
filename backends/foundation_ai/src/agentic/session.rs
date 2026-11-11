@@ -19,6 +19,7 @@
 
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_core::valtron::execute;
 use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -133,7 +134,12 @@ pub struct AgentSessionBuilder<D = MemoryDocumentStore, M = KvMemoryStore<Memory
     memory_config: MemoryConfig,
     message_config: MessageApiConfig,
     /// Optional embedding capability for real semantic recall (F16).
-    embedder: Option<(Arc<dyn crate::agentic::embedding::EmbeddingProvider>, String)>,
+    embedder: Option<(
+        Arc<dyn crate::agentic::embedding::EmbeddingProvider>,
+        String,
+    )>,
+    /// The context. The session's memory records read their clock from it.
+    ctx: Ctx,
 }
 
 impl AgentSession {
@@ -152,7 +158,7 @@ impl AgentSession {
     /// carries no model, so `build()` then fails with "no model set" unless
     /// `with_model` is called.
     #[must_use]
-    pub fn builder(router: impl Into<RouterPreset>) -> AgentSessionBuilder {
+    pub fn builder(router: impl Into<RouterPreset>, ctx: Ctx) -> AgentSessionBuilder {
         let RouterPreset {
             router,
             primary_model,
@@ -163,6 +169,7 @@ impl AgentSession {
             router,
             MemoryDocumentStore::new(),
             KvMemoryStore::new(MemoryStorage::new()),
+            ctx,
         );
         builder.model = primary_model;
         builder.memory_model = memory_model;
@@ -182,13 +189,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         router: ProviderRouter,
         doc_store: D,
         memory_store: M,
+        ctx: Ctx,
     ) -> AgentSessionBuilder<D, M> {
-        AgentSessionBuilder::new(router, doc_store, memory_store).with_session_id(session_id)
+        AgentSessionBuilder::new(router, doc_store, memory_store, ctx).with_session_id(session_id)
     }
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
-    fn new(router: ProviderRouter, doc_store: D, memory_store: M) -> Self {
+    fn new(router: ProviderRouter, doc_store: D, memory_store: M, ctx: Ctx) -> Self {
         Self {
             session_id: SessionId::new(),
             require_existing: false,
@@ -208,6 +216,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             memory_config: MemoryConfig::default(),
             message_config: MessageApiConfig::default(),
             embedder: None,
+            ctx,
         }
     }
 
@@ -233,6 +242,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             memory_config: self.memory_config,
             message_config: self.message_config,
             embedder: self.embedder,
+            ctx: self.ctx,
         }
     }
 
@@ -468,6 +478,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             coordinator,
             ledger.clone(),
             memory_config,
+            self.ctx.clone(),
         ));
 
         // The shed's output is the session's tool manager.

@@ -25,10 +25,8 @@ fn text_escapes_amp_lt_gt() {
 #[test]
 fn attributes_quote_and_escape() {
     let mut a = element("a");
-    a.attributes.push((
-        AttrName::from_static("href"),
-        "/q?x=1&y=\"z\"".into(),
-    ));
+    a.attributes
+        .push((AttrName::from_static("href"), "/q?x=1&y=\"z\"".into()));
     assert_eq!(a.to_markup(), "<a href=\"/q?x=1&amp;y=&quot;z&quot;\"></a>");
 }
 

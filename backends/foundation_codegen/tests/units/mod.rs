@@ -1,7 +1,9 @@
 mod foundation_codegen_cargo_toml_tests;
 mod foundation_codegen_error_tests;
+mod foundation_codegen_error_trace_tests;
 mod foundation_codegen_file_walker_tests;
 mod foundation_codegen_parser_tests;
 mod foundation_codegen_scanner_tests;
 mod foundation_codegen_types_tests;
 mod foundation_codegen_visitor_tests;
+mod module_path_tests;

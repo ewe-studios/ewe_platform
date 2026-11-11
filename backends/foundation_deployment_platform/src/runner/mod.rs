@@ -27,6 +27,10 @@ pub struct RunResult {
 ///
 /// Sets up Xvfb + openbox on Linux, or Start-Process on Windows.
 /// Redirects output to ~/.testbed-run/run.log.
+///
+/// # Errors
+///
+/// Returns an error if the binary cannot be detected or launched.
 pub fn run_in_vm(
     profile: &VmProfile,
     session: &mut VmSession,
@@ -40,8 +44,7 @@ pub fn run_in_vm(
     };
 
     match profile.os {
-        GuestOs::Linux => run_linux(session, &binary)?,
-        GuestOs::MacOS => run_linux(session, &binary)?,
+        GuestOs::Linux | GuestOs::MacOS => run_linux(session, &binary)?,
         GuestOs::Windows => run_windows(session, winrm, &binary)?,
     }
 
@@ -60,10 +63,12 @@ fn run_linux(session: &mut VmSession, binary: &str) -> Result<()> {
     // Kill any prior instances
     let bin_name = Path::new(binary)
         .file_name()
-        .map(|n| n.to_string_lossy())
-        .unwrap_or_default();
+        .map_or_default(|n| n.to_string_lossy());
 
-    crate::ssh::exec(session, &format!("pkill -f '{bin_name}' 2>/dev/null || true"))?;
+    crate::ssh::exec(
+        session,
+        &format!("pkill -f '{bin_name}' 2>/dev/null || true"),
+    )?;
     crate::ssh::exec(session, "pkill Xvfb 2>/dev/null || true")?;
     crate::ssh::exec(session, "pkill openbox 2>/dev/null || true")?;
 
@@ -95,7 +100,7 @@ fn run_linux(session: &mut VmSession, binary: &str) -> Result<()> {
 ///
 /// Uses a Scheduled Task with `/RU vagrant /IT` so GUI apps (Tauri, etc.)
 /// actually appear on screen. Falls back to headless Start-Process if
-/// WinRM is not available.
+/// `WinRM` is not available.
 fn run_windows(session: &mut VmSession, winrm: Option<&WinRM>, binary: &str) -> Result<()> {
     // Try interactive launch first (GUI apps work)
     if let Some(winrm) = winrm {
@@ -104,7 +109,7 @@ fn run_windows(session: &mut VmSession, winrm: Option<&WinRM>, binary: &str) -> 
     }
 
     // Fallback: headless (no GUI, but won't crash)
-    let escaped = binary.replace("'", "''");
+    let escaped = binary.replace('\'', "''");
     let script = format!(
         r#"
 $run_dir = "$env:USERPROFILE\.testbed-run"
@@ -140,22 +145,22 @@ fn auto_detect_bin(session: &mut VmSession, profile: &VmProfile) -> Result<Strin
         // Check if directory exists
         let check_cmd = format!("test -d {dir} && echo EXISTS || echo MISSING");
         if let Ok(output) = crate::ssh::exec(session, &check_cmd)
-            && output.trim() == "EXISTS" {
-                // Find the most recent executable file
-                let find_cmd = format!(
-                    "find {dir} -maxdepth 1 -type f -name '*{ext}' -printf '%T@ %p\\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-"
-                );
-                if let Ok(output) = crate::ssh::exec(session, &find_cmd) {
-                    let path = output.trim();
-                    if !path.is_empty() {
-                        return Ok(path.to_string());
-                    }
+            && output.trim() == "EXISTS"
+        {
+            // Find the most recent executable file
+            let find_cmd = format!(
+                "find {dir} -maxdepth 1 -type f -name '*{ext}' -printf '%T@ %p\\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-"
+            );
+            if let Ok(output) = crate::ssh::exec(session, &find_cmd) {
+                let path = output.trim();
+                if !path.is_empty() {
+                    return Ok(path.to_string());
                 }
             }
+        }
     }
 
     Err(TestbedError::ArtifactNotFound {
         path: "no compiled binary found in target/".to_string(),
     })
 }
-

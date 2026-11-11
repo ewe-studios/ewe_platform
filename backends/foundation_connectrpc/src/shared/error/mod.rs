@@ -1,4 +1,4 @@
-//! The protocol-agnostic ConnectRPC error model (Decision 03).
+//! The protocol-agnostic `ConnectRPC` error model (Decision 03).
 //!
 //! WHY: One error vocabulary serves all three wire protocols. The canonical RPC
 //! error is [`ConnectResult`] = `Result<T, ErrorTrace<ConnectError>>`: an
@@ -84,7 +84,9 @@ pub fn wrap_if_context(err: &(dyn StdError + 'static)) -> Option<Code> {
 #[must_use]
 pub fn wrap_if_rst(err: &(dyn StdError + 'static)) -> Option<Code> {
     let text = chain_text(err);
-    if text.contains("rst_stream") || text.contains("stream reset") || text.contains("stream closed")
+    if text.contains("rst_stream")
+        || text.contains("stream reset")
+        || text.contains("stream closed")
     {
         Some(Code::Canceled)
     } else {

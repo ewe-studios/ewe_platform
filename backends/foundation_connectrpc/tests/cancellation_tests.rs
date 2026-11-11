@@ -1,12 +1,12 @@
 //! Call cancellation and deadlines on the server side.
 //!
 //! WHY: a handler waiting on `ctx.cancelled()` must stop when the call is over
-//! for its peer: an h2 RST_STREAM, a stream the connection drops, an HTTP/1.1
+//! for its peer: an h2 `RST_STREAM`, a stream the connection drops, an HTTP/1.1
 //! client that closes its connection, or the call's deadline passing. Nothing
-//! fired the `Ctx` cancel signal before, and an h2 reset read like a clean end
+//! fired the `RpcCtx` cancel signal before, and an h2 reset read like a clean end
 //! of the request body.
 //!
-//! HOW: each handler parks its `Ctx` in a [`Slot`] and awaits `cancelled()`.
+//! HOW: each handler parks its `RpcCtx` in a [`Slot`] and awaits `cancelled()`.
 //! The h2 tests drive `ConnectRpcHandler::dispatch_h2` directly over its frame
 //! pipes, standing in for the h2 connection; the HTTP/1.1 tests use a real
 //! `HttpServer` over a loopback socket.
@@ -17,19 +17,18 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::{valtron_test, Pipe, PipeReceiver, PipeSender};
+use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame};
 use foundation_netio::netcap::ConnectionContext;
 
 use foundation_connectrpc::{
-    ConnectError, ConnectRpcHandler, ConnectRpcServe, Ctx, HandlerOptions, JsonCodec,
-    ProcedureCodecs, Request, RequestStream, Response, Router,
+    ConnectError, ConnectRpcHandler, ConnectRpcServe, HandlerOptions, JsonCodec, ProcedureCodecs,
+    Request, RequestStream, Response, Router, RpcCtx,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -41,17 +40,17 @@ const UNARY: &str = "/t.Svc/Unary";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const SERVER_STREAM: &str = "/t.Svc/ServerStream";
 
-/// Where a handler leaves its `Ctx` for the test to watch.
+/// Where a handler leaves its `RpcCtx` for the test to watch.
 #[derive(Clone, Default)]
-struct Slot(Arc<Mutex<Option<Ctx>>>);
+struct Slot(Arc<Mutex<Option<RpcCtx>>>);
 
 impl Slot {
-    fn put(&self, ctx: &Ctx) {
+    fn put(&self, ctx: &RpcCtx) {
         *self.0.lock().unwrap() = Some(ctx.clone());
     }
 
-    /// Wait until a handler parked its `Ctx`.
-    fn wait_entered(&self) -> Ctx {
+    /// Wait until a handler parked its `RpcCtx`.
+    fn wait_entered(&self) -> RpcCtx {
         let start = Instant::now();
         loop {
             if let Some(ctx) = self.0.lock().unwrap().clone() {
@@ -67,12 +66,12 @@ impl Slot {
 }
 
 /// Wait until `ctx` is cancelled; panics after `limit`.
-fn assert_cancelled_within(ctx: &Ctx, limit: Duration) {
+fn assert_cancelled_within(ctx: &RpcCtx, limit: Duration) {
     let start = Instant::now();
     while !ctx.is_canceled() {
         assert!(
             start.elapsed() < limit,
-            "the handler's Ctx was not cancelled within {limit:?}"
+            "the handler's RpcCtx was not cancelled within {limit:?}"
         );
         std::thread::sleep(Duration::from_millis(5));
     }
@@ -82,14 +81,14 @@ fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
 }
 
-/// Every procedure parks its `Ctx` in `slot` and waits to be cancelled.
+/// Every procedure parks its `RpcCtx` in `slot` and waits to be cancelled.
 fn router(slot: &Slot) -> Router {
     let mut router = Router::new();
     let s = slot.clone();
     router.unary(
         UNARY,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let s = s.clone();
             async move {
                 s.put(&ctx);
@@ -103,7 +102,7 @@ fn router(slot: &Slot) -> Router {
     router.client_stream(
         CLIENT_STREAM,
         codecs(),
-        move |ctx: Ctx, _reqs: RequestStream<Msg>| {
+        move |ctx: RpcCtx, _reqs: RequestStream<Msg>| {
             let s = s.clone();
             async move {
                 s.put(&ctx);
@@ -117,7 +116,7 @@ fn router(slot: &Slot) -> Router {
     router.server_stream(
         SERVER_STREAM,
         codecs(),
-        move |ctx: Ctx, _req: Request<Msg>| {
+        move |ctx: RpcCtx, _req: Request<Msg>| {
             let s = s.clone();
             async move {
                 s.put(&ctx);
@@ -169,7 +168,7 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
     let (resp_tx, resp_rx) = Pipe::<H2Frame>::with_depth(8);
     let (done_tx, done) = std::sync::mpsc::channel();
     std::thread::spawn(move || {
-        let fut = handler.dispatch_h2(Arc::new(ContextBag::new()), header, body_rx, resp_tx);
+        let fut = handler.dispatch_h2(foundation_context::Ctx::host(), header, body_rx, resp_tx);
         let _ = done_tx.send(futures::executor::block_on(fut));
     });
     H2Stream {
@@ -181,7 +180,7 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
 
 const STREAMING_JSON: (&str, &str) = ("content-type", "application/connect+json");
 
-/// A peer RST_STREAM mid-request cancels the handler's `Ctx` instead of reading
+/// A peer `RST_STREAM` mid-request cancels the handler's `RpcCtx` instead of reading
 /// as a clean end of the request stream.
 #[test]
 fn h2_reset_cancels_the_handlers_ctx() {
@@ -200,7 +199,7 @@ fn h2_reset_cancels_the_handlers_ctx() {
         .body
         .try_send(H2IncomingFrame::Reset(ErrorCode::Cancel))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
     assert_cancelled_within(&ctx, Duration::from_secs(5));
     let outcome = stream
         .done
@@ -213,6 +212,57 @@ fn h2_reset_cancels_the_handlers_ctx() {
     assert!(
         stream.response.try_recv().is_err(),
         "nothing is sent on a reset stream"
+    );
+}
+
+/// A streaming handler that awaits its own cancellation sees it complete: the
+/// call's cancel fires before the handler future is dropped, and the handler
+/// is polled once more. The cancel used to fire only after the handler was
+/// dropped, so code after `ctx.cancelled().await` never ran on a peer reset.
+#[test]
+fn h2_reset_lets_a_streaming_handler_observe_its_cancellation() {
+    let observed = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let entered = Slot::default();
+    let mut router = Router::new();
+    let (seen, slot) = (Arc::clone(&observed), entered.clone());
+    router.client_stream(
+        CLIENT_STREAM,
+        codecs(),
+        move |ctx: RpcCtx, _reqs: RequestStream<Msg>| {
+            let (seen, slot) = (Arc::clone(&seen), slot.clone());
+            async move {
+                slot.put(&ctx);
+                ctx.cancelled().await;
+                seen.store(true, std::sync::atomic::Ordering::SeqCst);
+                Err::<Response<Msg>, _>(ConnectError::canceled("cancelled").into())
+            }
+        },
+        HandlerOptions::new(),
+    );
+    let stream = open_h2(
+        Arc::new(router.into_handler()),
+        CLIENT_STREAM,
+        &[STREAMING_JSON],
+    );
+
+    stream
+        .body
+        .try_send(H2IncomingFrame::Data(json_envelope("a")))
+        .unwrap();
+    entered.wait_entered();
+    stream
+        .body
+        .try_send(H2IncomingFrame::Reset(ErrorCode::Cancel))
+        .unwrap();
+    let _ = stream.body.close();
+    stream
+        .done
+        .recv_timeout(Duration::from_secs(5))
+        .expect("dispatch ends once the stream is reset")
+        .expect("a reset stream has nothing to answer");
+    assert!(
+        observed.load(std::sync::atomic::Ordering::SeqCst),
+        "the handler's `ctx.cancelled().await` never completed"
     );
 }
 
@@ -229,7 +279,7 @@ fn h2_dropped_stream_after_request_end_cancels_the_call() {
         .body
         .try_send(H2IncomingFrame::Data(json_envelope("a")))
         .unwrap();
-    stream.body.close(); // END_STREAM
+    let _ = stream.body.close(); // END_STREAM
     let ctx = slot.wait_entered();
     assert!(!ctx.is_canceled());
 
@@ -256,14 +306,14 @@ fn h2_dropped_unary_stream_cancels_the_call() {
             b"{\"text\":\"a\"}",
         )))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
     let ctx = slot.wait_entered();
 
     drop(stream.response);
     assert_cancelled_within(&ctx, Duration::from_secs(5));
 }
 
-/// A `connect-timeout-ms` deadline is enforced: the handler's `Ctx` is
+/// A `connect-timeout-ms` deadline is enforced: the handler's `RpcCtx` is
 /// cancelled when it passes and the call is answered `deadline_exceeded`.
 #[test]
 fn h2_deadline_cancels_and_answers_deadline_exceeded() {
@@ -283,7 +333,7 @@ fn h2_deadline_cancels_and_answers_deadline_exceeded() {
             b"{\"text\":\"a\"}",
         )))
         .unwrap();
-    stream.body.close();
+    let _ = stream.body.close();
 
     let ctx = slot.wait_entered();
     assert_cancelled_within(&ctx, Duration::from_secs(5));
@@ -309,11 +359,11 @@ fn h2_deadline_cancels_and_answers_deadline_exceeded() {
 
 // ── HTTP/1.1 ────────────────────────────────────────────────────────────────
 
-fn start_h1_server(slot: &Slot) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_h1_server(slot: &Slot) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router(slot).into_handler()));
     let mut app = HttpApp::new_serve();
     app.router.add_route_any(UNARY, &serve);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(

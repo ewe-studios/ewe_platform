@@ -9,19 +9,18 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, RwLock};
-use std::time::{SystemTime, UNIX_EPOCH};
+
+use foundation_context::Ctx;
+
+use crate::clock::wall_millis;
 
 // ── ID generation ────────────────────────────────────────────────────
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
-#[allow(clippy::cast_possible_truncation)]
-fn generate_id() -> String {
+fn generate_id(ctx: &Ctx) -> String {
     let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    let ts = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64;
+    let ts = wall_millis(ctx);
     format!("{ts:x}-{id:x}")
 }
 
@@ -78,7 +77,11 @@ impl Default for ReplayResult {
 impl ReplayResult {
     #[must_use]
     pub fn new() -> Self {
-        Self { applied: vec![], conflicts: vec![], failed: vec![] }
+        Self {
+            applied: vec![],
+            conflicts: vec![],
+            failed: vec![],
+        }
     }
 }
 
@@ -119,13 +122,17 @@ impl MemoryQueueStorage {
 impl QueueStorage for MemoryQueueStorage {
     fn enqueue(&self, mutation: &Mutation) {
         self.order.lock().unwrap().push(mutation.id.clone());
-        self.mutations.write().unwrap().insert(mutation.id.clone(), mutation.clone());
+        self.mutations
+            .write()
+            .unwrap()
+            .insert(mutation.id.clone(), mutation.clone());
     }
 
     fn pending(&self) -> Vec<Mutation> {
         let map = self.mutations.read().unwrap();
         let order = self.order.lock().unwrap();
-        order.iter()
+        order
+            .iter()
             .filter_map(|id| map.get(id))
             .filter(|m| m.status == MutationStatus::Pending)
             .cloned()
@@ -154,28 +161,31 @@ impl QueueStorage for MemoryQueueStorage {
 /// Offline mutation queue with LWW conflict resolution.
 pub struct MutationQueue {
     storage: Box<dyn QueueStorage>,
+    /// The context whose clock every mutation id and timestamp reads; set by the host.
+    ctx: Ctx,
 }
 
 impl MutationQueue {
-    pub fn new(storage: impl QueueStorage) -> Self {
-        Self { storage: Box::new(storage) }
+    /// A queue over `storage` that stamps mutations with the clock of `ctx`.
+    pub fn new(storage: impl QueueStorage, ctx: Ctx) -> Self {
+        Self {
+            storage: Box::new(storage),
+            ctx,
+        }
     }
 
+    /// An in-memory queue that stamps mutations with the clock of `ctx`.
     #[must_use]
-    pub fn in_memory() -> Self {
-        Self::new(MemoryQueueStorage::new())
+    pub fn in_memory(ctx: Ctx) -> Self {
+        Self::new(MemoryQueueStorage::new(), ctx)
     }
 
     /// Enqueue a mutation. Generates a UUID and timestamp.
     /// Validates the mutation locally before enqueuing.
     #[must_use]
     pub fn enqueue(&self, mutation_type: &str, payload: serde_json::Value) -> String {
-        let id = generate_id();
-        #[allow(clippy::cast_possible_truncation)]
-        let created_at = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis() as u64;
+        let id = generate_id(&self.ctx);
+        let created_at = wall_millis(&self.ctx);
 
         let mutation = Mutation {
             id,
@@ -212,7 +222,8 @@ impl MutationQueue {
         for mutation in &pending {
             match replay_fn(mutation) {
                 Ok(response) => {
-                    self.storage.update_status(&mutation.id, MutationStatus::Applied);
+                    self.storage
+                        .update_status(&mutation.id, MutationStatus::Applied);
                     result.applied.push((mutation.id.clone(), response));
                 }
                 Err(ReplayError::Conflict(server_state)) => {
@@ -224,10 +235,8 @@ impl MutationQueue {
                     result.conflicts.push((mutation.id.clone(), server_state));
                 }
                 Err(ReplayError::NonRetryable(msg)) => {
-                    self.storage.update_status(
-                        &mutation.id,
-                        MutationStatus::Failed(msg.clone()),
-                    );
+                    self.storage
+                        .update_status(&mutation.id, MutationStatus::Failed(msg.clone()));
                     result.failed.push((mutation.id.clone(), msg));
                     // Stop replay on non-retryable error
                     break;

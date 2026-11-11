@@ -1,11 +1,15 @@
-//! TokenService tests.
+//! `TokenService` tests.
 
-use std::sync::Arc;
-use chrono::Utc;
 use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::models::client::OAuthClient;
 use foundation_auth::server::models::user::User;
 use foundation_auth::server::services::token_service::TokenService;
+use foundation_context::{Ctx, MonotonicClock};
+use std::sync::Arc;
+
+fn test_clock() -> Ctx {
+    Ctx::fixed(Arc::new(MonotonicClock::new()))
+}
 
 fn test_config() -> Arc<IdpConfig> {
     Arc::new(IdpConfig::new("https://auth.test.com".into()))
@@ -43,33 +47,32 @@ fn test_client() -> OAuthClient {
 
 #[test]
 fn test_generate_tokens() {
-    let svc = TokenService::new(test_config());
+    let svc = TokenService::new(test_config(), test_clock());
     let result = svc.generate_tokens(&test_user(), &test_client(), "openid profile", None);
     assert!(result.is_ok());
     let pair = result.unwrap();
-    assert!(!pair.access_token.is_empty());
-    assert!(!pair.id_token.is_empty());
-    assert!(!pair.refresh_token.is_empty());
+    assert_ne!(pair.access_token, "");
+    assert_ne!(pair.id_token, "");
+    assert_ne!(pair.refresh_token, "");
     assert_eq!(pair.scope, "openid profile");
 }
 
 #[test]
 fn test_generate_tokens_with_nonce() {
-    let svc = TokenService::new(test_config());
-    let result =
-        svc.generate_tokens(&test_user(), &test_client(), "openid", Some("nonce123"));
+    let svc = TokenService::new(test_config(), test_clock());
+    let result = svc.generate_tokens(&test_user(), &test_client(), "openid", Some("nonce123"));
     assert!(result.is_ok());
 }
 
 #[test]
 fn test_generate_client_credentials() {
-    let svc = TokenService::new(test_config());
+    let svc = TokenService::new(test_config(), test_clock());
     let result = svc.generate_client_credentials_tokens(&test_client(), "openid");
     assert!(result.is_ok());
     let pair = result.unwrap();
-    assert!(!pair.access_token.is_empty());
-    assert!(pair.id_token.is_empty());
-    assert!(pair.refresh_token.is_empty());
+    assert_ne!(pair.access_token, "");
+    assert_eq!(pair.id_token, "");
+    assert_eq!(pair.refresh_token, "");
 }
 
 #[test]

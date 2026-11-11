@@ -3,10 +3,16 @@
 //! Owner CRUD + anonymous access controls (password, max-access-count, disabled)
 //! over a real Turso store.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::sends;
@@ -33,13 +39,22 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 fn text_send(name: &str) -> SendCreateRequest {
@@ -70,7 +85,12 @@ fn create_list_get_and_password_not_echoed() {
     assert!(created.password.is_none(), "password must never be echoed");
 
     let c = ctx.clone();
-    assert_eq!(drive(async move { sends::list(&c, USER_A).await }).expect("list").len(), 1);
+    assert_eq!(
+        drive(async move { sends::list(&c, USER_A).await })
+            .expect("list")
+            .len(),
+        1
+    );
 
     let id = created.id.clone();
     let c = ctx.clone();
@@ -92,7 +112,7 @@ fn anonymous_access_enforces_password_and_counts() {
     let c = ctx.clone();
     let id2 = id.clone();
     let bad = drive(async move { sends::access(&c, &id2, Some("nope")).await });
-    assert!(matches!(bad, Err(AppError::Unauthorized)));
+    assert!(matches!(bad, Err(trace) if matches!(trace.current_context(), AppError::Unauthorized)));
 
     // Correct password: first two accesses succeed, counter climbs.
     let c = ctx.clone();
@@ -108,7 +128,7 @@ fn anonymous_access_enforces_password_and_counts() {
     let c = ctx.clone();
     let id2 = id.clone();
     let a3 = drive(async move { sends::access(&c, &id2, Some("secret")).await });
-    assert!(matches!(a3, Err(AppError::NotFound(_))));
+    assert!(matches!(a3, Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))));
 }
 
 #[valtron_test]
@@ -124,19 +144,20 @@ fn disabled_and_expired_sends_are_gone() {
     let id = off.id.clone();
     assert!(matches!(
         drive(async move { sends::access(&c, &id, None).await }),
-        Err(AppError::NotFound(_))
+        Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))
     ));
 
     // Already past deletion date.
     let c = ctx.clone();
     let mut req = text_send("Expired");
     req.deletion_date = Some((Utc::now() - Duration::hours(1)).to_rfc3339());
-    let expired = drive(async move { sends::create(&c, USER_A, req).await }).expect("create expired");
+    let expired =
+        drive(async move { sends::create(&c, USER_A, req).await }).expect("create expired");
     let c = ctx.clone();
     let id = expired.id.clone();
     assert!(matches!(
         drive(async move { sends::access(&c, &id, None).await }),
-        Err(AppError::NotFound(_))
+        Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))
     ));
 }
 
@@ -144,8 +165,8 @@ fn disabled_and_expired_sends_are_gone() {
 fn update_delete_and_ownership() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
-    let created = drive(async move { sends::create(&c, USER_A, text_send("Orig")).await })
-        .expect("create");
+    let created =
+        drive(async move { sends::create(&c, USER_A, text_send("Orig")).await }).expect("create");
     let id = created.id.clone();
 
     // Update.
@@ -179,7 +200,7 @@ fn update_delete_and_ownership() {
     let id2 = id.clone();
     assert!(matches!(
         drive(async move { sends::get(&c, USER_B, &id2).await }),
-        Err(AppError::Forbidden)
+        Err(trace) if matches!(trace.current_context(), AppError::Forbidden)
     ));
 
     // Delete.
@@ -189,6 +210,6 @@ fn update_delete_and_ownership() {
     let c = ctx.clone();
     assert!(matches!(
         drive(async move { sends::get(&c, USER_A, &id).await }),
-        Err(AppError::NotFound(_))
+        Err(trace) if matches!(trace.current_context(), AppError::NotFound(_))
     ));
 }

@@ -3,15 +3,23 @@
 //! These tests verify that bounded channels correctly apply backpressure
 //! without losing messages using the store-and-retry pattern.
 
+#![cfg_attr(
+    not(feature = "multi"),
+    expect(
+        clippy::arc_with_non_send_sync,
+        reason = "one Arc queue serves both trees; the single-threaded task payload is not Send + Sync and never crosses a thread"
+    )
+)]
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask};
+use foundation_context::Ctx;
 use foundation_core::valtron::{
-    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor,
-    NotifyQueue, PriorityOrder, NotificationItem,
+    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotificationItem,
+    NotifyQueue, PriorityOrder,
 };
+use foundation_core::valtron::{SharedTaskQueue, TaskIterator, TaskStatus, WrapTask};
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
@@ -101,7 +109,6 @@ fn test_store_and_retry_pattern() {
 #[test]
 // producer/produced/consumer/consumed are the domain vocabulary here — renaming
 // them to satisfy similar_names would make the test harder to follow.
-#[allow(clippy::similar_names)]
 fn test_bounded_queue_producer_consumer_coordination() {
     use std::thread;
 
@@ -155,13 +162,13 @@ fn test_bounded_queue_producer_consumer_coordination() {
         consumed
     });
 
-    let (produced, pending) = producer.join().expect("producer should complete");
-    let consumed = consumer.join().expect("consumer should complete");
+    let (sent, sent_pending) = producer.join().expect("producer should complete");
+    let received = consumer.join().expect("consumer should complete");
 
     // All consumed values should have been produced
-    for c in &consumed {
+    for c in &received {
         assert!(
-            produced.contains(c) || pending == Some(*c),
+            sent.contains(c) || sent_pending == Some(*c),
             "Consumed value {c:} should be in produced or pending",
         );
     }
@@ -176,8 +183,7 @@ fn test_bounded_queue_producer_consumer_coordination() {
 /// values are eventually delivered.
 #[test]
 fn test_executor_fast_producer_slow_consumer_no_loss() {
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -205,6 +211,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
         InlineActionBehaviour::Lift,
         task,
         Duration::from_micros(50),
+        crate::valtron::real_ctx(),
     );
 
     let receiver = Arc::new(Mutex::new(receiver));
@@ -237,8 +244,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 #[test]
 fn test_executor_ready_iter_no_message_loss() {
     // Use a simple test with multiple values to stress the channel
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -266,6 +272,7 @@ fn test_executor_ready_iter_no_message_loss() {
         InlineActionBehaviour::Lift,
         task,
         Duration::from_micros(50),
+        crate::valtron::real_ctx(),
     );
 
     let receiver = Arc::new(Mutex::new(receiver));
@@ -307,10 +314,7 @@ impl TaskIterator for SeqTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }
@@ -326,7 +330,7 @@ impl TaskIterator for SeqTask {
 fn test_split_continuation_parks_on_full_observer_no_loss() {
     use foundation_core::valtron::{Stream, TaskIteratorExt};
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     // Three matched items through a depth-1 (queue_size = 1) observer queue.
     let task = SeqTask {
         items: vec![
@@ -340,7 +344,10 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 
     // Step 1: pushes 10 into the depth-1 queue and forwards Ready(10).
     assert!(
-        matches!(continuation.next_status(ctx.clone()), Some(TaskStatus::Ready(10))),
+        matches!(
+            continuation.next_status(ctx.clone()),
+            Some(TaskStatus::Ready(10))
+        ),
         "first step forwards the source value and fills the observer queue"
     );
 
@@ -364,14 +371,17 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
     // Drain one slot: the stashed copy of 20 now lands and the source advances.
     assert!(matches!(observer.next(), Some(Stream::Next(10))));
     assert!(
-        matches!(continuation.next_status(ctx.clone()), Some(TaskStatus::Ready(20))),
+        matches!(
+            continuation.next_status(ctx.clone()),
+            Some(TaskStatus::Ready(20))
+        ),
         "draining a slot unparks the source and delivers the stashed item"
     );
 
     // Finish in lockstep and prove every matched item reached the observer.
     let mut received = vec![10u32];
     loop {
-        while let Some(stream) = observer.next() {
+        for stream in observer.by_ref() {
             match stream {
                 Stream::Next(v) => received.push(v),
                 _ => break,
@@ -402,7 +412,7 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 fn test_split_continuation_survives_dropped_observer() {
     use foundation_core::valtron::TaskIteratorExt;
 
-    let ctx = Ctx::new();
+    let ctx = Ctx::host();
     let task = SeqTask {
         items: vec![
             TaskStatus::Ready(1),

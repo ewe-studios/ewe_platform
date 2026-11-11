@@ -359,8 +359,8 @@ ensures the images like the Linux ones.)
 | | Windows (unattended) | macOS (after the one-time manual install) |
 |---|---|---|
 | How | dockurr runs `C:\OEM\install.bat` at the end of its unattended install. It runs `provision.ps1` (layer 1), then each `C:\OEM\layers\<name>\install.ps1` (layer 2). | `vm.nu provision` copies `guest/` (and the layers) in over SSH and runs `provision.sh`, then each `layers/<name>/install.sh`. |
-| System | OpenSSH Server (key auth, default shell pwsh), long paths, no Windows Update reboots, Defender real-time scanning off (best effort) | Xcode Command Line Tools (via `softwareupdate`) |
-| Toolchain | Visual Studio 2022 Build Tools (MSVC + Windows SDK), LLVM 22 (`LIBCLANG_PATH`), Git for Windows (+ bash), PowerShell 7, Vulkan SDK (`VULKAN_SDK`), WebView2 | clang, git, make, macOS SDK (CLT), Vulkan SDK / MoltenVK (`VULKAN_SDK`) |
+| System | OpenSSH Server (key auth, default shell pwsh), long paths, no Windows Update reboots, Defender real-time scanning off (best effort) | Xcode Command Line Tools (via `softwareupdate`), full Xcode 26.3 and its iOS platform (one-time manual install, see below) |
+| Toolchain | Visual Studio 2022 Build Tools (MSVC + Windows SDK), LLVM 22 (`LIBCLANG_PATH`), Git for Windows (+ bash), PowerShell 7, Vulkan SDK (`VULKAN_SDK`), WebView2 | clang, git, make, macOS SDK (CLT), iOS SDK (pinned by `IOS_SDK_VERSION`), Vulkan SDK / MoltenVK (`VULKAN_SDK`) |
 | mise tools | nushell, node, python 3.12, cmake, ninja, protoc, sccache, deno, binaryen, wasm-pack, wasmtime, actionlint, cargo-binstall: the same versions as Linux, from the same lock | same |
 | Rust | rustup, no toolchain (`C:\rust`); layer 2 installs the pinned one | rustup (`/usr/local/rust`); layer 2 installs the pinned one |
 | CI | GitHub Actions runner (`C:\actions-runner`), started per job with a JIT config | GitHub Actions runner (`/usr/local/actions-runner`) |
@@ -374,6 +374,19 @@ Provisioning stops at the first failure. It records the outcome in
 `C:\OEM\status\` or `/usr/local/platform-images/status/` (`provisioned.ok`
 or `provision.failed`, `provision.log`, `versions.txt`), and `vm.nu wait`
 reports it.
+
+On macOS, full Xcode is part of the one-time manual install (see below);
+the Command Line Tools have no iOS SDK. `provision.sh` selects
+`/Applications/Xcode.app`, installs the iOS platform pinned by
+`IOS_SDK_VERSION` in `guest/components.env`
+(`xcodebuild -downloadPlatform iOS -buildVersion`), verifies it with
+`xcodebuild -showsdks`, and writes
+`/usr/local/platform-images/status/ios-sdk.txt`. The `macos-ssh` job in
+`.github/workflows/platform-vms.yaml` sources `components.env` and reads the
+recorded `DEVELOPER_DIR` and version from that file. It fails when the SDK
+is absent or its version differs from the pin. Full Xcode is about 15 GB and
+the iOS platform about 8 GB; reserve about 25 GB in the persistent disk
+named by the `macos-storage` input.
 
 ### Two ways to use a VM in a workflow
 
@@ -482,6 +495,9 @@ Not publicly, and not on GitHub-hosted runners:
   on a self-hosted Linux host that is Apple hardware (e.g. an Intel Mac
   running Linux). ewe_platform's workflow targets runners labelled
   `apple-hardware` and never GitHub-hosted runners.
+- **iOS SDK:** Xcode and the iOS SDK follow the same Apple licence as
+  macOS. They live inside the private VM disk on the Apple-hardware host and
+  are not redistributed.
 - **Windows:** the image defaults to `VERSION=2022`, **Windows Server 2022
   Standard Evaluation**: dockurr downloads Microsoft's evaluation ISO, valid
   for **180 days** from installation. Fresh-disk CI runs never get near
@@ -505,11 +521,16 @@ directory:
 2. Follow dockurr's install steps: Disk Utility → erase the largest
    `Apple Inc. VirtIO Block Media` disk → Reinstall macOS → skip Apple ID.
    Create the user `ci` (or set `PI_VM_USER`).
-3. In the VM: System Settings → General → Sharing → **Remote Login** on.
+3. Install Xcode 26.3: the newest Xcode that runs on macOS 15 (Sequoia,
+   the image's default `VERSION`); it needs macOS 15.6 or later. Open Xcode
+   once and accept the licence
+   (`sudo xcodebuild -license accept`). Provisioning then installs the
+   pinned iOS 26.2 platform into it.
+4. In the VM: System Settings → General → Sharing → **Remote Login** on.
    Then add the public key to `~ci/.ssh/authorized_keys`, and give `ci`
    passwordless sudo:
    `echo 'ci ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/ci`.
-4. From then on, workflows (or `vm.nu provision`) run the provisioning over
+5. From then on, workflows (or `vm.nu provision`) run the provisioning over
    SSH. It's idempotent, so re-running it after an image update is fine.
 
 ### Running a VM by hand

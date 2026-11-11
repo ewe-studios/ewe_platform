@@ -77,8 +77,8 @@ Each variant maps to a specific HTTP status in `ServeAdapter`.
 
 ```rust
 impl Serve for ServeAdapter {
-    fn serve(&self, bag: &ContextBag, req: Request, conn: &mut Connection) -> ConnectionResult {
-        let response = core.dispatch(&bag, &req).await?;
+    fn serve(&self, ctx: &Ctx, req: Request, conn: &mut Connection) -> ConnectionResult {
+        let response = core.dispatch(&ctx, &req).await?;
         // response.status, response.body, response.headers
         respond::json_with_status(&mut conn, response.status, &response.body, &response.headers)
     }
@@ -107,7 +107,7 @@ Services available: `TokenService`, `UserService`, `SessionService`,
 impl IdpHandlerCore {
     pub async fn authorize(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Extract query params: client_id, redirect_uri, response_type, scope, state,
@@ -134,7 +134,7 @@ impl IdpHandlerCore {
 impl IdpHandlerCore {
     pub async fn token(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // Parse form-urlencoded body → TokenRequest (existing type)
@@ -153,7 +153,7 @@ impl IdpHandlerCore {
 impl IdpHandlerCore {
     pub async fn userinfo(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Extract Authorization: Bearer header
@@ -171,7 +171,7 @@ impl IdpHandlerCore {
 impl IdpHandlerCore {
     pub async fn introspect(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Parse form: token, client_id, client_secret
@@ -188,7 +188,7 @@ impl IdpHandlerCore {
 impl IdpHandlerCore {
     pub async fn device_authorize(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<serde_json::Value, IdpError> {
         // 1. Parse form: client_id, scope
@@ -219,7 +219,7 @@ dispatch table:
 impl IdpHandlerCore {
     pub async fn dispatch(
         &self,
-        bag: &ContextBag,
+        ctx: &Ctx,
         req: &Request,
     ) -> Result<HandlerResponse, IdpError> {
         let path = req.request_url.url.as_str();
@@ -227,13 +227,13 @@ impl IdpHandlerCore {
         let method = req.method;
 
         match (method, path) {
-            (GET, p) if p.ends_with("/.well-known/openid-configuration") => self.discovery(bag, req).await,
-            (GET, p) if p.ends_with("/.well-known/jwks.json") => self.jwks(bag, req).await,
-            (GET, p) if p.ends_with("/authorize") && !p.contains("/device/") => self.authorize(bag, req).await,
-            (POST, p) if p.ends_with("/token") && !p.contains("/introspect") => self.token(bag, req).await,
-            (GET, p) if p.ends_with("/userinfo") => self.userinfo(bag, req).await,
-            (POST, p) if p.ends_with("/introspect") => self.introspect(bag, req).await,
-            (POST, p) if p.ends_with("/device/authorize") => self.device_authorize(bag, req).await,
+            (GET, p) if p.ends_with("/.well-known/openid-configuration") => self.discovery(ctx, req).await,
+            (GET, p) if p.ends_with("/.well-known/jwks.json") => self.jwks(ctx, req).await,
+            (GET, p) if p.ends_with("/authorize") && !p.contains("/device/") => self.authorize(ctx, req).await,
+            (POST, p) if p.ends_with("/token") && !p.contains("/introspect") => self.token(ctx, req).await,
+            (GET, p) if p.ends_with("/userinfo") => self.userinfo(ctx, req).await,
+            (POST, p) if p.ends_with("/introspect") => self.introspect(ctx, req).await,
+            (POST, p) if p.ends_with("/device/authorize") => self.device_authorize(ctx, req).await,
             // F02–F09 routes added by their respective features
             _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
         }
@@ -250,7 +250,7 @@ if let Some(id) = path.strip_prefix("/auth/v1/users/").and_then(|rest| {
     rest.split('/').next()
 }) {
     if rest.ends_with("/reset") {
-        return self.reset_password(bag, req, id).await;
+        return self.reset_password(ctx, req, id).await;
     }
 }
 ```

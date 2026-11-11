@@ -38,6 +38,9 @@ pub struct ContainerGroup {
 impl ContainerGroup {
     /// Start all containers from their definitions. Returns a group
     /// handle that will clean up all containers on Drop.
+    ///
+    /// # Errors
+    /// Returns an error when any container fails to start.
     pub async fn start_async(configs: Vec<ContainerConfig>) -> DockerResult<Self> {
         let mut entries = Vec::with_capacity(configs.len());
         for cfg in configs {
@@ -54,7 +57,9 @@ impl ContainerGroup {
     /// annotated function.
     #[must_use]
     pub fn empty() -> Self {
-        Self { entries: Vec::new() }
+        Self {
+            entries: Vec::new(),
+        }
     }
 
     /// Add a started container under an optional logical lookup key.
@@ -66,7 +71,10 @@ impl ContainerGroup {
     pub fn insert(&mut self, key: Option<String>, handle: ContainerHandle) {
         if let Some(ref k) = key {
             assert!(
-                !self.entries.iter().any(|e| e.key.as_deref() == Some(k.as_str())),
+                !self
+                    .entries
+                    .iter()
+                    .any(|e| e.key.as_deref() == Some(k.as_str())),
                 "duplicate container key {k:?} in this group — give each container a distinct `as = \"...\"`"
             );
         }
@@ -74,6 +82,9 @@ impl ContainerGroup {
     }
 
     /// Sync convenience — delegates to `start_async()` via `block_on`.
+    ///
+    /// # Errors
+    /// Returns an error when any container fails to start.
     pub fn start(configs: Vec<ContainerConfig>) -> DockerResult<Self> {
         crate::block_on(Self::start_async(configs))
     }
@@ -127,7 +138,12 @@ impl std::fmt::Debug for ContainerGroup {
         let keys: Vec<&str> = self
             .entries
             .iter()
-            .map(|e| e.key.as_deref().or_else(|| e.handle.name()).unwrap_or("<unkeyed>"))
+            .map(|e| {
+                e.key
+                    .as_deref()
+                    .or_else(|| e.handle.name())
+                    .unwrap_or("<unkeyed>")
+            })
             .collect();
         f.debug_struct("ContainerGroup")
             .field("count", &self.entries.len())

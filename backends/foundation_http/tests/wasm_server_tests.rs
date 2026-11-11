@@ -4,13 +4,13 @@
 
 //! Tests for wasm server dispatch — middleware chain and short-circuit behavior.
 
-use foundation_http::wasm::serve_writer::run_middleware_writer;
 use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::context::Ctx;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::ServeWriter;
+use foundation_http::wasm::serve_writer::run_middleware_writer;
 use foundation_netio::shared::http::{
-    Proto, SendSafeBody, SimpleHeaders, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
+    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
 use std::sync::Arc;
@@ -18,7 +18,7 @@ use std::sync::Arc;
 /// Middleware that always continues — should not modify the request.
 struct PassThroughMiddleware;
 impl RequestMiddleware for PassThroughMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Continue
     }
 }
@@ -26,7 +26,7 @@ impl RequestMiddleware for PassThroughMiddleware {
 /// Middleware that short-circuits with 401.
 struct RejectMiddleware;
 impl RequestMiddleware for RejectMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         MiddlewareResult::Response(SimpleOutgoingResponse {
             proto: Proto::HTTP11,
             status: Status::Unauthorized,
@@ -40,7 +40,7 @@ impl RequestMiddleware for RejectMiddleware {
 /// Middleware that adds a custom header to the request.
 struct AddHeaderMiddleware;
 impl RequestMiddleware for AddHeaderMiddleware {
-    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         req.headers
             .entry(SimpleHeader::from("X-Middleware".to_string()))
             .or_default()
@@ -62,7 +62,7 @@ fn make_request() -> SimpleIncomingRequest {
 #[test]
 fn test_run_middleware_no_chain_returns_none() {
     let app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -74,7 +74,7 @@ fn test_run_middleware_no_chain_returns_none() {
 fn test_run_middleware_pass_through() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(PassThroughMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -86,7 +86,7 @@ fn test_run_middleware_pass_through() {
 fn test_run_middleware_short_circuit_401() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(RejectMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (_returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -100,13 +100,16 @@ fn test_run_middleware_short_circuit_401() {
 fn test_run_middleware_adds_header() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(AddHeaderMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
     assert!(short_circuit.is_none());
     let header_key = SimpleHeader::from("X-Middleware".to_string());
-    let values = returned_req.headers.get(&header_key).expect("header should exist");
+    let values = returned_req
+        .headers
+        .get(&header_key)
+        .expect("header should exist");
     assert_eq!(values[0], "passed");
 }
 
@@ -116,7 +119,7 @@ fn test_run_middleware_multiple_continue() {
     app.middleware(PassThroughMiddleware);
     app.middleware(AddHeaderMiddleware);
     app.middleware(PassThroughMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -130,7 +133,7 @@ fn test_run_middleware_first_blocks_skips_rest() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(RejectMiddleware);
     app.middleware(AddHeaderMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (_returned_req, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -143,7 +146,7 @@ fn test_run_middleware_first_blocks_skips_rest() {
 fn test_middleware_short_circuit_forbidden_text() {
     struct TextMiddleware;
     impl RequestMiddleware for TextMiddleware {
-        fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+        fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
             MiddlewareResult::Response(SimpleOutgoingResponse {
                 proto: Proto::HTTP11,
                 status: Status::Forbidden,
@@ -156,7 +159,7 @@ fn test_middleware_short_circuit_forbidden_text() {
 
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(TextMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (_, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -169,7 +172,7 @@ fn test_middleware_short_circuit_forbidden_text() {
 fn test_middleware_short_circuit_bytes_body() {
     struct BinaryMiddleware;
     impl RequestMiddleware for BinaryMiddleware {
-        fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+        fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
             MiddlewareResult::Response(SimpleOutgoingResponse {
                 proto: Proto::HTTP11,
                 status: Status::BadRequest,
@@ -182,7 +185,7 @@ fn test_middleware_short_circuit_bytes_body() {
 
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(BinaryMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (_, short_circuit) = run_middleware_writer(&app, bag, req);
@@ -195,7 +198,7 @@ fn test_middleware_short_circuit_bytes_body() {
 fn test_middleware_short_circuit_with_headers() {
     struct HeaderMiddleware;
     impl RequestMiddleware for HeaderMiddleware {
-        fn handle(&self, _ctx: &Arc<ContextBag>, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+        fn handle(&self, _ctx: &Ctx, _req: &mut SimpleIncomingRequest) -> MiddlewareResult {
             let mut headers = SimpleHeaders::new();
             headers
                 .entry(SimpleHeader::from("WWW-Authenticate".to_string()))
@@ -213,12 +216,18 @@ fn test_middleware_short_circuit_with_headers() {
 
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.middleware(HeaderMiddleware);
-    let bag = Arc::new(ContextBag::new());
+    let bag = foundation_context::Ctx::host();
     let req = make_request();
 
     let (_, short_circuit) = run_middleware_writer(&app, bag, req);
     let response = short_circuit.unwrap();
     assert_eq!(response.status, 401);
     assert_eq!(response.headers.len(), 1);
-    assert_eq!(response.headers[0], ("WWW-AUTHENTICATE".to_string(), "Bearer realm=\"test\"".to_string()));
+    assert_eq!(
+        response.headers[0],
+        (
+            "WWW-AUTHENTICATE".to_string(),
+            "Bearer realm=\"test\"".to_string()
+        )
+    );
 }

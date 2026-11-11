@@ -4,9 +4,12 @@
 //! into a single coherent interface. Handles authentication, token refresh,
 //! persistence, and logout.
 
+use foundation_context::Ctx;
+
+use crate::shared::clock::now_seconds;
 use crate::shared::credential_store::{CredentialStorage, CredentialStoreError, OAuthTokenStore};
-use crate::shared::jwt::{JwtError, JwtManager, JwtToken, JwtVerifier};
 use crate::shared::jwks::{JwksError, JwksManager};
+use crate::shared::jwt::{JwtError, JwtManager, JwtToken, JwtVerifier};
 use crate::shared::oauth_token::OAuthToken;
 use crate::shared::session::{SessionError, SessionManager};
 use crate::shared::types::{AuthCredential, AuthenticationErrors, ConfidentialText};
@@ -68,6 +71,7 @@ pub struct AuthManager {
     session_mgr: Option<SessionManager<CredentialStorage>>,
     jwt_verifier: Option<JwtVerifier>,
     jwks_manager: Option<JwksManager>,
+    ctx: Ctx,
 }
 
 /// Auth manager error type.
@@ -139,11 +143,11 @@ impl From<JwksError> for AuthManagerError {
 }
 
 impl AuthManager {
-    /// Create a new AuthManager.
+    /// Create a new `AuthManager`.
     #[must_use]
-    pub fn new(store: CredentialStorage, config: AuthManagerConfig) -> Self {
+    pub fn new(store: CredentialStorage, config: AuthManagerConfig, ctx: Ctx) -> Self {
         let jwt_manager =
-            JwtManager::new().with_refresh_buffer(config.refresh_buffer_seconds);
+            JwtManager::new(ctx.clone()).with_refresh_buffer(config.refresh_buffer_seconds);
         Self {
             store,
             jwt_manager,
@@ -152,6 +156,7 @@ impl AuthManager {
             session_mgr: None,
             jwt_verifier: None,
             jwks_manager: None,
+            ctx,
         }
     }
 
@@ -190,10 +195,11 @@ impl AuthManager {
         let token_result = self.store.get_oauth_token("default").await;
         match token_result {
             Ok(Some(oauth_token)) => {
-                let expires_at = oauth_token
-                    .expires_in
-                    .map(|exp| chrono::Utc::now().timestamp() + exp as i64)
-                    .unwrap_or_else(|| chrono::Utc::now().timestamp() + 3600);
+                let now = now_seconds(&self.ctx);
+                let expires_at = oauth_token.expires_in.map_or_else(
+                    || now + 3600,
+                    |exp| now.saturating_add(i64::try_from(exp).unwrap_or(i64::MAX)),
+                );
 
                 let jwt_token = JwtToken::from_parts(
                     oauth_token.access_token.clone(),
@@ -202,21 +208,22 @@ impl AuthManager {
                     oauth_token.scope.clone(),
                     None,
                     None,
+                    &self.ctx,
                 );
 
-                if !jwt_token.is_expired() {
+                if !jwt_token.is_expired(&self.ctx) {
                     self.jwt_manager.set_token(jwt_token);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateStarted);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateCompleted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateStarted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateCompleted);
                     return Ok(Some(AuthToken::OAuth {
                         access_token: ConfidentialText::new(oauth_token.access_token),
                         refresh_token: oauth_token.refresh_token.map(ConfidentialText::new),
                         token_type: oauth_token.token_type,
-                        expires_at: expires_at as f64,
+                        expires_at,
                         scope: oauth_token.scope,
                     }));
                 }
@@ -224,12 +231,12 @@ impl AuthManager {
                 // Token expired — keep refresh token available if present
                 if oauth_token.refresh_token.is_some() {
                     self.jwt_manager.set_token(jwt_token);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateStarted);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateCompleted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateStarted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateCompleted);
                     let _ = self.state_machine.transition_to(AuthEvent::TokenExpired);
                     return Ok(None);
                 }
@@ -260,38 +267,36 @@ impl AuthManager {
         self.state_machine
             .transition_to(AuthEvent::AuthenticateStarted)?;
 
-        match credential {
-            AuthCredential::OAuth(oauth) => {
-                let token = AuthToken::OAuth {
-                    access_token: oauth.access_token.clone(),
-                    refresh_token: oauth.refresh_token.clone(),
-                    token_type: "Bearer".to_string(),
-                    expires_at: oauth.expires,
-                    scope: None,
-                };
-                self.persist_token(&token).await?;
+        if let AuthCredential::OAuth(oauth) = credential {
+            let token = AuthToken::OAuth {
+                access_token: oauth.access_token.clone(),
+                refresh_token: oauth.refresh_token.clone(),
+                token_type: "Bearer".to_string(),
+                expires_at: oauth.expires,
+                scope: None,
+            };
+            self.persist_token(&token).await?;
 
-                // Build JwtToken for lifecycle tracking
-                let jwt_token = JwtToken::from_parts(
-                    oauth.access_token.get(),
-                    oauth.refresh_token.as_ref().map(|rt| rt.get()),
-                    oauth.expires as i64,
-                    None,
-                    None,
-                    None,
-                );
-                self.jwt_manager.set_token(jwt_token);
+            // Build JwtToken for lifecycle tracking
+            let jwt_token = JwtToken::from_parts(
+                oauth.access_token.get(),
+                oauth.refresh_token.as_ref().map(ConfidentialText::get),
+                oauth.expires,
+                None,
+                None,
+                None,
+                &self.ctx,
+            );
+            self.jwt_manager.set_token(jwt_token);
 
-                self.state_machine
-                    .transition_to(AuthEvent::AuthenticateCompleted)?;
-                Ok(token)
-            }
-            _ => {
-                let _ = self.state_machine.transition_to(AuthEvent::RefreshFailed);
-                Err(AuthManagerError::Authentication(
-                    AuthenticationErrors::InvalidCredentials,
-                ))
-            }
+            self.state_machine
+                .transition_to(AuthEvent::AuthenticateCompleted)?;
+            Ok(token)
+        } else {
+            let _ = self.state_machine.transition_to(AuthEvent::RefreshFailed);
+            Err(AuthManagerError::Authentication(
+                AuthenticationErrors::InvalidCredentials,
+            ))
         }
     }
 
@@ -307,22 +312,20 @@ impl AuthManager {
         match self.state_machine.current() {
             AuthState::Authenticated => {
                 if let Some(token) = self.jwt_manager.get_token() {
-                    if token.expires_within(self.config.refresh_buffer_seconds) {
+                    if token.expires_within(self.config.refresh_buffer_seconds, &self.ctx) {
                         return Err(AuthManagerError::TokenExpired);
                     }
                     return Ok(AuthToken::OAuth {
                         access_token: ConfidentialText::new(token.access_token()),
                         refresh_token: token.refresh_token().map(ConfidentialText::new),
                         token_type: "Bearer".to_string(),
-                        expires_at: token.expires_at as f64,
+                        expires_at: token.expires_at,
                         scope: token.scope.clone(),
                     });
                 }
                 Err(AuthManagerError::NoRefreshToken)
             }
-            AuthState::TokenExpired | AuthState::Refreshing => {
-                Err(AuthManagerError::TokenExpired)
-            }
+            AuthState::TokenExpired | AuthState::Refreshing => Err(AuthManagerError::TokenExpired),
             _ => Err(AuthManagerError::Authentication(
                 AuthenticationErrors::InvalidCredentials,
             )),
@@ -345,7 +348,7 @@ impl AuthManager {
         let Some(refresh_token) = self
             .jwt_manager
             .get_token()
-            .and_then(|t| t.refresh_token())
+            .and_then(JwtToken::refresh_token)
         else {
             return Err(AuthManagerError::NoRefreshToken);
         };
@@ -361,9 +364,7 @@ impl AuthManager {
             Ok(new_token) => {
                 self.jwt_manager.set_token(new_token.clone());
                 self.persist_jwt_token(&new_token).await?;
-                let _ = self
-                    .state_machine
-                    .handle_event(AuthEvent::RefreshCompleted);
+                let _ = self.state_machine.handle_event(AuthEvent::RefreshCompleted);
                 Ok(())
             }
             Err(e) => {
@@ -467,13 +468,15 @@ impl AuthManager {
                     access_token: access_token.get(),
                     token_type: "Bearer".to_string(),
                     expires_in: Some(
-                        (*expires_at as i64 - chrono::Utc::now().timestamp()).max(0) as u64,
+                        u64::try_from((*expires_at - now_seconds(&self.ctx)).max(0)).unwrap_or(0),
                     ),
-                    refresh_token: refresh_token.as_ref().map(|rt| rt.get()),
+                    refresh_token: refresh_token.as_ref().map(ConfidentialText::get),
                     scope: scope.clone(),
                     id_token: None,
                 };
-                self.store.store_oauth_token("default", &oauth_token).await?;
+                self.store
+                    .store_oauth_token("default", &oauth_token)
+                    .await?;
                 Ok(())
             }
             _ => Ok(()),
@@ -485,13 +488,15 @@ impl AuthManager {
             access_token: token.access_token(),
             token_type: "Bearer".to_string(),
             expires_in: Some(
-                (token.expires_at - chrono::Utc::now().timestamp()).max(0) as u64,
+                u64::try_from((token.expires_at - now_seconds(&self.ctx)).max(0)).unwrap_or(0),
             ),
             refresh_token: token.refresh_token(),
             scope: token.scope.clone(),
             id_token: None,
         };
-        self.store.store_oauth_token("default", &oauth_token).await?;
+        self.store
+            .store_oauth_token("default", &oauth_token)
+            .await?;
         Ok(())
     }
 

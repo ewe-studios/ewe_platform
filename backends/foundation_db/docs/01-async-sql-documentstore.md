@@ -12,9 +12,9 @@ SQL access is a single async trait:
 ```rust
 #[async_trait]
 trait QueryStore {
-    async fn query_async(&self, sql, params) -> StorageResult<AsyncQueryStream>;
-    async fn execute_async(&self, sql, params) -> StorageResult<u64>;
-    async fn execute_batch_async(&self, sql) -> StorageResult<()>;
+    async fn query(&self, sql, params) -> StorageResult<AsyncQueryStream>;
+    async fn execute(&self, sql, params) -> StorageResult<u64>;
+    async fn execute_batch(&self, sql) -> StorageResult<()>;
 }
 ```
 
@@ -44,7 +44,7 @@ latency spike and an OOM risk.
 Instead, scans return a **lazily-pulled stream**:
 
 ```rust
-let mut s = store.scan_from_async::<Record>("session:42", &cursor, 0).await?;
+let mut s = store.scan_from::<Record>("session:42", &cursor, 0).await?;
 while let Some(item) = s.next().await {       // one row at a time
     let rec = item?;
     handle(rec);                              // process + drop before pulling the next

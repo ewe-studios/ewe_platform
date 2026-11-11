@@ -47,7 +47,7 @@ use std::string::FromUtf8Error;
 pub mod context;
 pub mod llama_backend;
 pub mod llama_batch;
-mod log;
+pub mod log;
 pub mod model;
 #[cfg(feature = "mtmd")]
 pub mod mtmd;
@@ -527,7 +527,20 @@ impl LogOptions {
     }
 }
 
-extern "C" fn logs_to_trace(
+/// Native llama.cpp log callback.
+///
+/// The bindings call this function for every log line. It is public so the
+/// buffering and level-mapping behaviour has a test from `tests/`.
+///
+/// # Safety
+///
+/// `text` must point to a NUL-terminated C string, and `data` must point to a
+/// live [`log::State`] with a `'static` lifetime. The bindings guarantee both.
+///
+/// The function is `unsafe` because it dereferences both pointers. The
+/// `ggml_log_callback` binding type is already
+/// `Option<unsafe extern "C" fn(..)>`, so the two signatures match.
+pub unsafe extern "C" fn logs_to_trace(
     level: infrastructure_llama_bindings::ggml_log_level,
     text: *const ::std::os::raw::c_char,
     data: *mut ::std::os::raw::c_void,

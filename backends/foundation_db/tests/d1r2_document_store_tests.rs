@@ -1,7 +1,7 @@
 //! D1+R2 `DocumentStore` integration tests (F23) against a local
 //! wrangler/miniflare worker emulating Cloudflare D1 + R2.
 //!
-//! WHY: `D1R2DocumentStore` is the Cloudflare DocumentStore — D1 is the ordered
+//! WHY: `D1R2DocumentStore` is the Cloudflare `DocumentStore` — D1 is the ordered
 //! SQL index, R2 holds large document blobs offloaded past the 4 KB SQLite page
 //! threshold. The store logic is target-agnostic (`D1R2DocumentStore<Q, B>`), so
 //! we exercise the exact same code natively here over `D1Store` (D1 REST) +
@@ -24,7 +24,9 @@ use foundation_db::{D1R2DocumentStore, D1Store, DataValue, R2Store};
 use futures_lite::StreamExt;
 
 /// Full `documents` schema (migrations 020+021+022) under a unique table name so
-/// concurrent/rerun isolation holds against the persistent local D1.
+/// concurrent/rerun isolation holds against the persistent local D1. The unique
+/// index from migration 020 is what `append_with_id`'s idempotent
+/// `ON CONFLICT(collection_key, doc_id)` clause targets.
 async fn create_table(d1: &D1Store, table: &str) {
     let sql = format!(
         "CREATE TABLE IF NOT EXISTS {table} (\
@@ -34,9 +36,11 @@ async fn create_table(d1: &D1Store, table: &str) {
             content TEXT NOT NULL, \
             metadata TEXT NOT NULL DEFAULT '{{}}', \
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \
-            title TEXT, summary TEXT, record_type TEXT, r2_key TEXT)"
+            title TEXT, summary TEXT, record_type TEXT, r2_key TEXT); \
+         CREATE UNIQUE INDEX IF NOT EXISTS idx_{table}_collection_doc_id \
+            ON {table}(collection_key, doc_id)"
     );
-    d1.execute_batch_async(&sql).await.unwrap();
+    d1.execute_batch(&sql).await.unwrap();
 }
 
 fn unique(prefix: &str) -> String {
@@ -64,16 +68,28 @@ async fn append_orders_by_scru128_and_counts() {
         return;
     };
     let key = unique("order");
-    let a = store.append_async(&key, serde_json::json!({"n": 0})).await.unwrap();
-    let b = store.append_async(&key, serde_json::json!({"n": 1})).await.unwrap();
-    let c = store.append_async(&key, serde_json::json!({"n": 2})).await.unwrap();
+    let a = store
+        .append(&key, serde_json::json!({"n": 0}))
+        .await
+        .unwrap();
+    let b = store
+        .append(&key, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let c = store
+        .append(&key, serde_json::json!({"n": 2}))
+        .await
+        .unwrap();
     assert_eq!(a.id.len(), 25, "scru128 id");
-    assert!(b.id > a.id && c.id > b.id, "appends produce ascending scru128 ids");
-    assert_eq!(store.count_async(&key).await.unwrap(), 3);
+    assert!(
+        b.id > a.id && c.id > b.id,
+        "appends produce ascending scru128 ids"
+    );
+    assert_eq!(store.count(&key).await.unwrap(), 3);
 
-    let docs = store.scan_documents_async(&key, 10).await.unwrap();
+    let docs = store.scan_documents(&key, 10).await.unwrap();
     assert_eq!(docs.len(), 3);
-    // scan_documents_async returns newest-first (DESC).
+    // scan_documents returns newest-first (DESC).
     let ids: Vec<&str> = docs.iter().map(|d| d.id.as_str()).collect();
     assert_eq!(ids, vec![c.id.as_str(), b.id.as_str(), a.id.as_str()]);
 }
@@ -86,12 +102,21 @@ async fn scan_from_is_inclusive_and_ascending() {
         return;
     };
     let key = unique("from");
-    let _a = store.append_async(&key, serde_json::json!({"n": 0})).await.unwrap();
-    let b = store.append_async(&key, serde_json::json!({"n": 1})).await.unwrap();
-    let _c = store.append_async(&key, serde_json::json!({"n": 2})).await.unwrap();
+    let _a = store
+        .append(&key, serde_json::json!({"n": 0}))
+        .await
+        .unwrap();
+    let b = store
+        .append(&key, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let _c = store
+        .append(&key, serde_json::json!({"n": 2}))
+        .await
+        .unwrap();
 
     let from_b: Vec<serde_json::Value> = store
-        .scan_from_async::<serde_json::Value>(&key, &b.id, 0)
+        .scan_from::<serde_json::Value>(&key, &b.id, 0)
         .await
         .unwrap()
         .map(Result::unwrap)
@@ -116,12 +141,12 @@ async fn large_document_offloads_to_r2_and_reads_through() {
     let big_body = "y".repeat(8192);
     let big = serde_json::json!({"tag": "big", "body": big_body});
 
-    let small_doc = store.append_async(&key, small.clone()).await.unwrap();
-    let big_doc = store.append_async(&key, big.clone()).await.unwrap();
+    let small_doc = store.append(&key, small.clone()).await.unwrap();
+    let big_doc = store.append(&key, big.clone()).await.unwrap();
 
     // Transparent read-through: both come back fully, big one fetched from R2.
     let got: Vec<serde_json::Value> = store
-        .scan_all_async::<serde_json::Value>(&key)
+        .scan_all::<serde_json::Value>(&key)
         .await
         .unwrap()
         .map(Result::unwrap)
@@ -138,13 +163,14 @@ async fn large_document_offloads_to_r2_and_reads_through() {
     let d1 = make_d1_store().unwrap();
     let sql = format!("SELECT doc_id, r2_key FROM {table} WHERE collection_key = ?");
     let rows: Vec<(String, Option<String>)> = d1
-        .query_async(&sql, &[DataValue::Text(key.clone())])
+        .query(&sql, &[DataValue::Text(key.clone())])
         .await
         .unwrap()
         .map(|row| {
             let row = row.unwrap();
             let id: String = row.get_by_name("doc_id").unwrap();
-            let rk: Option<String> = row.get_by_name("r2_key").ok();
+            // `Option<String>`: a plain `String` reads NULL as "".
+            let rk: Option<String> = row.get_by_name("r2_key").unwrap();
             (id, rk)
         })
         .collect()
@@ -167,14 +193,14 @@ async fn delete_removes_row_and_r2_blob() {
     };
     let key = unique("del");
     let big = serde_json::json!({"body": "z".repeat(8192)});
-    let doc = store.append_async(&key, big).await.unwrap();
-    assert_eq!(store.count_async(&key).await.unwrap(), 1);
+    let doc = store.append(&key, big).await.unwrap();
+    assert_eq!(store.count(&key).await.unwrap(), 1);
 
-    store.delete_async(&key, &doc.id).await.unwrap();
-    assert_eq!(store.count_async(&key).await.unwrap(), 0);
+    store.delete(&key, &doc.id).await.unwrap();
+    assert_eq!(store.count(&key).await.unwrap(), 0);
 
     // The R2 blob is gone too: re-fetching the offloaded key would 404, so a
     // fresh scan returns nothing rather than a dangling-blob error.
-    let remaining = store.scan_documents_async(&key, 10).await.unwrap();
+    let remaining = store.scan_documents(&key, 10).await.unwrap();
     assert!(remaining.is_empty());
 }

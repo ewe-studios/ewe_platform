@@ -43,9 +43,7 @@ fn resolve_type(ty: &Type) -> (String, bool) {
 
             if ident == "Vec" {
                 if let PathArguments::AngleBracketed(args) = &segment.arguments {
-                    if let Some(GenericArgument::Type(Type::Path(inner_path))) =
-                        args.args.first()
-                    {
+                    if let Some(GenericArgument::Type(Type::Path(inner_path))) = args.args.first() {
                         if inner_path
                             .path
                             .segments

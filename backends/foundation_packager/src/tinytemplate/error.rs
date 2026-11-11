@@ -1,4 +1,4 @@
-//! Module containing the error type returned by TinyTemplate if an error occurs.
+//! Module containing the error type returned by `TinyTemplate` if an error occurs.
 
 use super::instruction::{path_to_str, PathSlice};
 use serde_json::Error as SerdeJsonError;
@@ -7,6 +7,7 @@ use std::error::Error as StdError;
 use std::fmt;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     ParseError {
         msg: String,
@@ -39,9 +40,6 @@ pub enum Error {
         line: usize,
         column: usize,
     },
-
-    #[doc(hidden)]
-    __NonExhaustive,
 }
 impl From<SerdeJsonError> for Error {
     fn from(err: SerdeJsonError) -> Error {
@@ -58,24 +56,22 @@ impl fmt::Display for Error {
         match self {
             Error::ParseError { msg, line, column } => write!(
                 f,
-                "Failed to parse the template (line {}, column {}). Reason: {}",
-                line, column, msg
+                "Failed to parse the template (line {line}, column {column}). Reason: {msg}"
             ),
             Error::RenderError { msg, line, column } => {
                 write!(
                     f,
-                    "Encountered rendering error on line {}, column {}. Reason: {}",
-                    line, column, msg
+                    "Encountered rendering error on line {line}, column {column}. Reason: {msg}"
                 )
             }
             Error::SerdeError { err } => {
-                write!(f, "Unexpected serde error while converting the context to a serde_json::Value. Error: {}", err)
+                write!(f, "Unexpected serde error while converting the context to a serde_json::Value. Error: {err}")
             }
             Error::GenericError { msg } => {
-                write!(f, "{}", msg)
+                write!(f, "{msg}")
             }
             Error::StdFormatError { err } => {
-                write!(f, "Unexpected formatting error: {}", err)
+                write!(f, "Unexpected formatting error: {err}")
             }
             Error::CalledTemplateError {
                 name,
@@ -85,8 +81,7 @@ impl fmt::Display for Error {
             } => {
                 write!(
                     f,
-                    "Call to sub-template \"{}\" on line {}, column {} failed. Reason: {}",
-                    name, line, column, err
+                    "Call to sub-template \"{name}\" on line {line}, column {column} failed. Reason: {err}"
                 )
             }
             Error::CalledFormatterError {
@@ -97,11 +92,9 @@ impl fmt::Display for Error {
             } => {
                 write!(
                     f,
-                    "Call to value formatter \"{}\" on line {}, column {} failed. Reason: {}",
-                    name, line, column, err
+                    "Call to value formatter \"{name}\" on line {line}, column {column} failed. Reason: {err}"
                 )
             }
-            Error::__NonExhaustive => unreachable!(),
         }
     }
 }
@@ -111,11 +104,10 @@ impl StdError for Error {
             Error::ParseError { .. } => "ParseError",
             Error::RenderError { .. } => "RenderError",
             Error::SerdeError { .. } => "SerdeError",
-            Error::GenericError { msg } => &msg,
+            Error::GenericError { msg } => msg,
             Error::StdFormatError { .. } => "StdFormatError",
             Error::CalledTemplateError { .. } => "CalledTemplateError",
             Error::CalledFormatterError { .. } => "CalledFormatterError",
-            Error::__NonExhaustive => unreachable!(),
         }
     }
 }
@@ -135,7 +127,7 @@ pub(crate) fn lookup_error(source: &str, step: &str, path: PathSlice, current: &
         }
         avail_str
     } else {
-        "".to_string()
+        String::new()
     };
 
     let (line, column) = get_offset(source, step);
@@ -185,7 +177,7 @@ pub(crate) fn not_iterable_error(source: &str, path: PathSlice) -> Error {
 pub(crate) fn unknown_template(source: &str, name: &str) -> Error {
     let (line, column) = get_offset(source, name);
     Error::RenderError {
-        msg: format!("Tried to call an unknown template '{}'", name),
+        msg: format!("Tried to call an unknown template '{name}'"),
         line,
         column,
     }
@@ -194,7 +186,7 @@ pub(crate) fn unknown_template(source: &str, name: &str) -> Error {
 pub(crate) fn unknown_formatter(source: &str, name: &str) -> Error {
     let (line, column) = get_offset(source, name);
     Error::RenderError {
-        msg: format!("Tried to call an unknown formatter '{}'", name),
+        msg: format!("Tried to call an unknown formatter '{name}'"),
         line,
         column,
     }
@@ -222,7 +214,8 @@ pub(crate) fn called_formatter_error(source: &str, formatter_name: &str, err: Er
 
 pub(crate) fn get_offset(source: &str, target: &str) -> (usize, usize) {
     let offset = target.as_ptr() as isize - source.as_ptr() as isize;
-    let to_scan = &source[0..(offset as usize)];
+    let offset = usize::try_from(offset).expect("target must be within source");
+    let to_scan = &source[0..offset];
 
     let mut line = 1;
     let mut column = 0;

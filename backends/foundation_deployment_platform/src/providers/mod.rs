@@ -4,11 +4,13 @@
 //! backends (QEMU on Linux, UTM on macOS) to be swapped transparently.
 
 #[cfg(feature = "vms")]
-use std::path::PathBuf;
-#[cfg(feature = "vms")]
 use crate::config::{DisplayMode, Result, VmProfile};
 #[cfg(feature = "vms")]
 use crate::doctor::HostHealth;
+#[cfg(feature = "vms")]
+use foundation_context::Ctx;
+#[cfg(feature = "vms")]
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
@@ -51,9 +53,11 @@ pub struct VmHandle {
 
 #[cfg(feature = "vms")]
 impl VmHandle {
+    #[must_use]
     pub fn is_qemu(&self) -> bool {
         self.provider_id == ProviderId::Qemu
     }
+    #[must_use]
     pub fn pid(&self) -> Option<i32> {
         if self.is_qemu() {
             self.internal_id.parse::<i32>().ok()
@@ -67,30 +71,63 @@ impl VmHandle {
 pub trait VmProvider: Send + Sync {
     fn name(&self) -> &'static str;
     fn id(&self) -> ProviderId;
+    /// Start a VM from a profile.
+    ///
+    /// # Errors
+    /// Returns an error when the backend cannot start the VM.
     fn launch(&self, profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle>;
+    /// Stop a running VM.
+    ///
+    /// # Errors
+    /// Returns an error when the backend cannot stop the VM.
     fn stop(&self, handle: &VmHandle) -> Result<()>;
     fn is_running(&self, handle: &VmHandle) -> bool;
+    /// Resolve the network ports of a running VM.
+    ///
+    /// # Errors
+    /// Returns an error when the backend cannot resolve the ports.
     fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts>;
+    /// Send a command to the VM monitor.
+    ///
+    /// # Errors
+    /// Returns an error when the backend has no monitor.
     fn monitor_command(&self, handle: &VmHandle, cmd: &str) -> Result<String>;
+    /// Ensure the VM disk image exists.
+    ///
+    /// # Errors
+    /// Returns an error when the image cannot be prepared.
     fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf>;
     fn host_health(&self) -> HostHealth;
 }
 
 #[cfg(feature = "vms")]
 #[cfg(target_os = "linux")]
-pub fn default_provider() -> Result<Box<dyn VmProvider>> {
-    Ok(Box::new(qemu::QemuProvider::new()))
+/// Return the default provider for the current platform.
+///
+/// # Errors
+/// Returns an error if the platform has no supported provider.
+pub fn default_provider(ctx: Ctx) -> Result<Box<dyn VmProvider>> {
+    Ok(Box::new(qemu::QemuProvider::new(ctx)))
 }
 
 #[cfg(feature = "vms")]
 #[cfg(target_os = "macos")]
-pub fn default_provider() -> Result<Box<dyn VmProvider>> {
-    Ok(Box::new(utm::UtmProvider::new()))
+/// Return the default provider for the current platform.
+///
+/// # Errors
+/// Returns an error if the platform has no supported provider.
+pub fn default_provider(ctx: Ctx) -> Result<Box<dyn VmProvider>> {
+    Ok(Box::new(utm::UtmProvider::new(ctx)))
 }
 
 #[cfg(feature = "vms")]
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-pub fn default_provider() -> Result<Box<dyn VmProvider>> {
+/// Return the default provider for the current platform.
+///
+/// # Errors
+/// Returns an error if the platform has no supported provider.
+pub fn default_provider(ctx: Ctx) -> Result<Box<dyn VmProvider>> {
+    let _ = ctx;
     Err(crate::config::TestbedError::Qcow2Error {
         message: "testbed only supports Linux (QEMU) and macOS (UTM)".to_string(),
     })
@@ -100,7 +137,7 @@ pub fn default_provider() -> Result<Box<dyn VmProvider>> {
 
 /// A backend provider with associated types for handle, config, and error.
 ///
-/// DockerProvider implements this directly. QEMU/UTM will migrate from
+/// `DockerProvider` implements this directly. QEMU/UTM will migrate from
 /// [`VmProvider`] to this trait (Feature 10).
 pub trait Provider: Send + Sync {
     type Handle;
@@ -109,10 +146,19 @@ pub trait Provider: Send + Sync {
 
     fn name(&self) -> &'static str;
     fn id(&self) -> ProviderId;
+    /// # Errors
+    /// Returns an error when the backend cannot start the VM or container.
     fn launch(&self, config: &Self::Config) -> std::result::Result<Self::Handle, Self::Error>;
+    /// # Errors
+    /// Returns an error when the backend cannot stop the VM or container.
     fn stop(&self, handle: &Self::Handle) -> std::result::Result<(), Self::Error>;
     fn is_running(&self, handle: &Self::Handle) -> bool;
-    fn resolved_ports(&self, handle: &Self::Handle) -> std::result::Result<ResolvedPorts, Self::Error>;
+    /// # Errors
+    /// Returns an error when the backend cannot resolve the running ports.
+    fn resolved_ports(
+        &self,
+        handle: &Self::Handle,
+    ) -> std::result::Result<ResolvedPorts, Self::Error>;
     fn host_health(&self) -> Vec<(String, bool, String)>;
 }
 
@@ -125,4 +171,3 @@ pub mod http;
 pub mod qemu;
 #[cfg(feature = "vms")]
 pub mod utm;
-

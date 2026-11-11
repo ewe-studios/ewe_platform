@@ -1,5 +1,5 @@
-//! Tests for `http2::stream` — StreamState FSM (idle→open→half-closed→closed)
-//! with HEADERS/DATA/RST_STREAM transition validation (Feature 29).
+//! Tests for `http2::stream` — `StreamState` FSM (idle→open→half-closed→closed)
+//! with `HEADERS/DATA/RST_STREAM` transition validation (Feature 29).
 
 use foundation_netio::http2::stream::*;
 
@@ -110,7 +110,7 @@ fn all_states_exhaustive() {
         let result = s.send_headers(false);
         match *state {
             StreamState::Idle | StreamState::ReservedLocal | StreamState::Open => {
-                assert!(result.is_ok(), "{state:?}: send_headers should succeed")
+                assert!(result.is_ok(), "{state:?}: send_headers should succeed");
             }
             _ => assert!(result.is_err(), "{state:?}: send_headers should fail"),
         }
@@ -121,7 +121,7 @@ fn all_states_exhaustive() {
             | StreamState::ReservedRemote
             | StreamState::Open
             | StreamState::HalfClosedLocal => {
-                assert!(result.is_ok(), "{state:?}: recv_headers should succeed")
+                assert!(result.is_ok(), "{state:?}: recv_headers should succeed");
             }
             _ => assert!(result.is_err(), "{state:?}: recv_headers should fail"),
         }
@@ -129,7 +129,7 @@ fn all_states_exhaustive() {
         let result = s.send_data(false);
         match *state {
             StreamState::Open | StreamState::HalfClosedRemote => {
-                assert!(result.is_ok(), "{state:?}: send_data should succeed")
+                assert!(result.is_ok(), "{state:?}: send_data should succeed");
             }
             _ => assert!(result.is_err(), "{state:?}: send_data should fail"),
         }
@@ -137,7 +137,7 @@ fn all_states_exhaustive() {
         let result = s.recv_data(false);
         match *state {
             StreamState::Open | StreamState::HalfClosedLocal => {
-                assert!(result.is_ok(), "{state:?}: recv_data should succeed")
+                assert!(result.is_ok(), "{state:?}: recv_data should succeed");
             }
             _ => assert!(result.is_err(), "{state:?}: recv_data should fail"),
         }

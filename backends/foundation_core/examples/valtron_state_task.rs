@@ -18,10 +18,11 @@
 //! back, and keeps going — only returning `None` ends it. That is what lets a
 //! single transition cleanly express "one `Ready` value, then stop".
 
+use foundation_context::Ctx;
 use foundation_core::valtron;
-use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
+use foundation_core::valtron::{execute, task, valtron, StreamIteratorExt, TaskStatus};
 
-/// --- Enum state -----------------------------------------------------------
+// --- Enum state -----------------------------------------------------------
 
 /// The stages a house passes through on its way to completion.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,6 +41,10 @@ struct House {
 
 /// One building step per poll. The final step emits `Ready(House)` and advances
 /// to `Stage::Done`; that variant's `None` is what ends the machine.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)> {
     let _ = ctx;
@@ -51,7 +56,7 @@ fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)>
     }
 }
 
-/// --- Struct state ---------------------------------------------------------
+// --- Struct state ---------------------------------------------------------
 
 /// A struct state carrying the whole recipe's progress in its fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -68,13 +73,26 @@ struct Cake {
 
 /// Advances the struct state one field at a time. `baked` doubles as the
 /// completion marker: once it is set, the next turn returns `None`.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "the #[task] macro generates a fn(Ctx, T) transition, so ctx is by value"
+)]
 #[task]
 fn bake_cake(ctx: Ctx, recipe: Recipe) -> Option<(Recipe, TaskStatus<Cake, ()>)> {
     let _ = ctx;
     match (recipe.mixed, recipe.baked) {
-        (false, _) => Some((Recipe { mixed: true, ..recipe }, TaskStatus::Ignore)),
+        (false, _) => Some((
+            Recipe {
+                mixed: true,
+                ..recipe
+            },
+            TaskStatus::Ignore,
+        )),
         (true, false) => Some((
-            Recipe { mixed: true, baked: true },
+            Recipe {
+                mixed: true,
+                baked: true,
+            },
             TaskStatus::Ready(Cake { layers: 3 }),
         )),
         (true, true) => None,
@@ -93,11 +111,17 @@ async fn main() {
     assert_eq!(house, House { walls: 4 });
 
     // Struct-state task, driven the same way.
-    let (cake, _rest) = execute(bake_cake::new(Recipe { mixed: false, baked: false }), None)
-        .expect("engine live")
-        .into_ready_future()
-        .await
-        .expect("a cake was baked");
+    let (cake, _rest) = execute(
+        bake_cake::new(Recipe {
+            mixed: false,
+            baked: false,
+        }),
+        None,
+    )
+    .expect("engine live")
+    .into_ready_future()
+    .await
+    .expect("a cake was baked");
     assert_eq!(cake, Cake { layers: 3 });
 
     println!("enum   build_house -> {house:?}");
@@ -105,11 +129,23 @@ async fn main() {
 
     // The transition functions themselves remain directly callable:
     assert_eq!(
-        build_house(Ctx::new(), Stage::Walls),
+        build_house(Ctx::host(), Stage::Walls),
         Some((Stage::Roof, TaskStatus::Ignore))
     );
     assert_eq!(
-        bake_cake(Ctx::new(), Recipe { mixed: false, baked: false }),
-        Some((Recipe { mixed: true, baked: false }, TaskStatus::Ignore))
+        bake_cake(
+            Ctx::host(),
+            Recipe {
+                mixed: false,
+                baked: false
+            }
+        ),
+        Some((
+            Recipe {
+                mixed: true,
+                baked: false
+            },
+            TaskStatus::Ignore
+        ))
     );
 }

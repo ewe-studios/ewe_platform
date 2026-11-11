@@ -13,7 +13,7 @@ async fn default_json_file_storage_persists_under_dot_ewe() {
     std::env::set_current_dir(dir.path()).unwrap();
 
     let storage = JsonFileStorage::default();
-    storage.set_async("k", "v").await.unwrap();
+    storage.set("k", "v").await.unwrap();
     assert!(
         dir.path().join(JsonFileStorage::DEFAULT_PATH).is_file(),
         "default store writes to {}",
@@ -22,6 +22,6 @@ async fn default_json_file_storage_persists_under_dot_ewe() {
 
     // A second default store reads back what the first one wrote.
     let reopened = JsonFileStorage::default();
-    let value: Option<String> = reopened.get_async("k").await.unwrap();
+    let value: Option<String> = reopened.get("k").await.unwrap();
     assert_eq!(value.as_deref(), Some("v"));
 }

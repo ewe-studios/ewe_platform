@@ -78,7 +78,7 @@ impl TypeResolver {
 
     /// Resolve a request body type, handling arrays by wrapping in Vec<>.
     ///
-    /// For array types, returns `Vec<ItemType>` where ItemType is resolved from the items schema.
+    /// For array types, returns `Vec<ItemType>` where `ItemType` is resolved from the items schema.
     /// For object types, returns the type name directly.
     /// For non-generatable types, returns None.
     #[must_use]
@@ -106,8 +106,8 @@ impl TypeResolver {
         }
 
         // Object type - resolve normally
-        if schema.ref_path.is_some() {
-            return self.resolve_ref(schema.ref_path.as_ref().unwrap());
+        if let Some(ref_path) = schema.ref_path.as_ref() {
+            return self.resolve_ref(ref_path);
         }
 
         // Inline schema with properties
@@ -120,6 +120,7 @@ impl TypeResolver {
     }
 
     /// Resolve the item type for an array schema, wrapping in Vec<>.
+    #[allow(clippy::ref_option)] // Takes the schema field as stored; both callers pass `&schema.items`.
     fn resolve_array_items_type(&self, items: &Option<Box<Schema>>) -> Option<String> {
         let items_schema = items.as_ref()?;
 
@@ -289,8 +290,7 @@ impl TypeResolver {
                 let mut chars = part.chars();
                 chars
                     .next()
-                    .map(|c| c.to_uppercase().collect::<String>())
-                    .unwrap_or_default()
+                    .map_or_default(|c| c.to_uppercase().collect::<String>())
                     + chars.as_str()
             })
             .collect()

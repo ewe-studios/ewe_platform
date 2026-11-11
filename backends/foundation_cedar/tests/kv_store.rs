@@ -14,15 +14,15 @@ async fn seed_store(store: &MemoryStorage, ns: &str) {
     let version = "42".to_string();
 
     store
-        .set_async(&format!("{ns}:schema"), schema)
+        .set(&format!("{ns}:schema"), schema)
         .await
         .expect("seed the store");
     store
-        .set_async(&format!("{ns}:policies"), policies)
+        .set(&format!("{ns}:policies"), policies)
         .await
         .expect("seed the store");
     store
-        .set_async(&format!("{ns}:version"), version)
+        .set(&format!("{ns}:version"), version)
         .await
         .expect("seed the store");
 }
@@ -43,7 +43,7 @@ async fn test_kv_store_loads_all() {
 async fn test_kv_store_with_entities() {
     let mem = memory_store();
     seed_store(&mem, "authz").await;
-    mem.set_async("authz:entities", "[]".to_string())
+    mem.set("authz:entities", "[]".to_string())
         .await
         .expect("seed the store");
 
@@ -63,16 +63,16 @@ async fn test_kv_store_namespacing() {
     let mem = memory_store();
     seed_store(&mem, "ns1").await;
 
-    mem.set_async("ns2:schema", "entity Admin;".to_string())
+    mem.set("ns2:schema", "entity Admin;".to_string())
         .await
         .expect("seed the store");
-    mem.set_async(
+    mem.set(
         "ns2:policies",
         "forbid(principal, action, resource);".to_string(),
     )
     .await
     .expect("seed the store");
-    mem.set_async("ns2:version", "1".to_string())
+    mem.set("ns2:version", "1".to_string())
         .await
         .expect("seed the store");
 

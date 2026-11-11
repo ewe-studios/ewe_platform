@@ -319,7 +319,9 @@ impl Uri {
     /// This function does not panic.
     pub fn set_query(&mut self, key: impl Into<String>, value: impl Into<String>) {
         let k = key.into();
-        self.path_and_query.query.retain(|existing, _| existing != k);
+        self.path_and_query
+            .query
+            .retain(|existing, _| existing != k);
         self.path_and_query.query.append(k, value);
     }
 
@@ -491,7 +493,11 @@ impl UriBuilder {
     #[must_use]
     pub fn path(mut self, path: impl Into<String>) -> Self {
         let p = path.into();
-        self.path = if p.starts_with('/') { p } else { format!("/{p}") };
+        self.path = if p.starts_with('/') {
+            p
+        } else {
+            format!("/{p}")
+        };
         self
     }
 
@@ -506,7 +512,7 @@ impl UriBuilder {
     /// Sets the query from a [`Query`] builder.
     #[must_use]
     pub fn query(mut self, query: Query) -> Self {
-        let q = query.to_string();
+        let q = query.into_string();
         self.query = if q.is_empty() { None } else { Some(q) };
         self
     }

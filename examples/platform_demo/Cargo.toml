@@ -7,6 +7,8 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.20" }
+foundation_context = { path = "../../backends/foundation_context", version = "0.0.2" }
 foundation_platform = { path = "../../backends/foundation_platform" }
 tauri = { version = "2.11.5", features = [] }
 serde = { workspace = true }

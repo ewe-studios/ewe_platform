@@ -99,24 +99,35 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
 
     /// Record a memory `SessionRecord`: audit first, then cache (OD-07-3 ordering).
     ///
-    /// A non-memory variant is rejected by `MemoryStore::set_async`. If the audit
+    /// A non-memory variant is rejected by `MemoryStore::set`. If the audit
     /// append fails the error propagates and the cache is left untouched; if the
     /// cache write fails afterwards it is logged and `Ok` is returned (the audit is
     /// the source of truth and the cache rebuilds on the next hydrate fallback).
+    /// The audit write is idempotent on the record's own id, so a retried write
+    /// of the same record does not create a duplicate document (F16 E8).
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be stored.
-    pub async fn record_async(
-        &self,
-        session: &SessionId,
-        record: &SessionRecord,
-    ) -> StorageResult<()> {
+    pub async fn record(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()> {
         // Audit first — promoted columns (record_type/summary) come from
         // `PromotableDocument for SessionRecord` above.
-        self.audit
-            .append_promotable_async(&Self::audit_key(session), record.clone())
-            .await?;
+        let key = Self::audit_key(session);
+        match record {
+            SessionRecord::WorkingMemory { id, .. }
+            | SessionRecord::Observation { id, .. }
+            | SessionRecord::Reflection { id, .. } => {
+                // The record's own id is stable across a retry. A second write
+                // of the same record is a no-op, so no duplicate is created.
+                self.audit
+                    .append_promotable_with_id(&key, &id.to_string(), record.clone())
+                    .await?;
+            }
+            // A non-memory record carries no stable id. Keep the old path.
+            _ => {
+                self.audit.append_promotable(&key, record.clone()).await?;
+            }
+        }
 
-        if let Err(e) = self.memory.set_async(session, record).await {
+        if let Err(e) = self.memory.set(session, record).await {
             tracing::warn!(
                 session = %session,
                 error = %e,
@@ -130,8 +141,8 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// fallback + re-populate for any missing tier.
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be retrieved.
-    pub async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
-        let mut memory = self.memory.hydrate_async(session).await?;
+    pub async fn hydrate(&self, session: &SessionId) -> StorageResult<SessionMemory> {
+        let mut memory = self.memory.hydrate(session).await?;
 
         let missing: Vec<MemoryTier> = [
             MemoryTier::Working,
@@ -152,11 +163,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         let audit_key = Self::audit_key(session);
         // The scan stream is `!Send` on wasm (JS-backed stores); this future
         // must stay `Send` for the `MemoryAccess` trait, and wasm has one thread.
-        let mut records = SendWrapper::new(
-            self.audit
-                .scan_all_async::<SessionRecord>(&audit_key)
-                .await?,
-        );
+        let mut records = SendWrapper::new(self.audit.scan_all::<SessionRecord>(&audit_key).await?);
         while let Some(item) = SendWrapper::new(records.next()).await {
             let record = item?;
             if let Some(tier) = MemoryTier::of(&record) {
@@ -166,16 +173,22 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
             }
         }
 
+        // End the scan before writing: a SQL store keeps its connection locked
+        // while a scan stream is open, so a write on the same store would wait
+        // for the stream.
+        drop(records);
+
         for tier in missing {
             if let Some(record) = tier_ref(&memory, tier).cloned() {
-                self.memory.set_async(session, &record).await?;
+                self.memory.set(session, &record).await?;
             }
         }
 
         Ok(memory)
     }
 
-    /// Borrow the underlying cache (e.g. for direct `get_async` of a single tier).
+    /// Borrow the underlying cache (e.g. for direct `get` of a single tier).
+    #[must_use]
     pub fn memory(&self) -> &M {
         &self.memory
     }

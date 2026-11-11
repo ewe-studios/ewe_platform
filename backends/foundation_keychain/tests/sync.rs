@@ -3,6 +3,10 @@
 //! Verifies `GET /api/sync` assembles the profile + the user's folders + ciphers
 //! into one payload, over a real Turso store.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
 use foundation_core::valtron::{
@@ -33,13 +37,22 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
     let db_path = dir.path().join("keychain_test.db");
     let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
-        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        async move {
+            StorageProvider::new(StorageBackend::Turso {
+                url,
+                ctx: foundation_context::Ctx::host().into(),
+            })
+            .await
+        }
     })
     .expect("init turso");
     let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
-    (KeychainContext::new(db), dir)
+    (
+        KeychainContext::new(db, foundation_context::Ctx::host()),
+        dir,
+    )
 }
 
 fn note_cipher(name: &str) -> CipherCreateRequest {
@@ -107,6 +120,6 @@ fn sync_returns_profile_folders_and_ciphers() {
     assert_eq!(snapshot.folders.len(), 2);
     assert_eq!(snapshot.ciphers.len(), 2);
     assert!(snapshot.sends.is_empty());
-    assert!(snapshot.collections.is_empty());
+    assert_eq!(snapshot.collections, [] as [serde_json::value::Value; 0]);
     assert!(snapshot.domains.is_some());
 }

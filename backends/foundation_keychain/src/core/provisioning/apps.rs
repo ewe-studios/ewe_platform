@@ -4,17 +4,17 @@
 //! `{app_uuid}.{random}`. The secret is Argon2id-hashed at rest; on every
 //! provisioning call the app presents it and we verify + resolve the app uuid.
 
+use crate::core::clock::wall_now_utc;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use foundation_auth::shared::password_hash::{
     argon2id_derive, argon2id_verify, ARGON2ID_ITERATIONS, ARGON2ID_MEMORY_KB, ARGON2ID_PARALLELISM,
 };
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::provisioning::store::{self, AppRow};
 
@@ -46,12 +46,6 @@ pub struct AppResponse {
     pub created_at: String,
 }
 
-fn random_secret_value() -> String {
-    let mut bytes = Uuid::new_v4().as_bytes().to_vec();
-    bytes.extend_from_slice(Uuid::new_v4().as_bytes());
-    STANDARD.encode(&bytes)
-}
-
 fn hash_secret(secret: &str, salt: &[u8]) -> String {
     let key = argon2id_derive(
         secret.as_bytes(),
@@ -65,18 +59,22 @@ fn hash_secret(secret: &str, salt: &[u8]) -> String {
 }
 
 /// `POST /api/apps/register` — create an app, returning the one-time secret.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn register(
     ctx: &KeychainContext,
     req: RegisterAppRequest,
 ) -> AppResult<RegisterAppResponse> {
     if req.name.trim().is_empty() {
-        return Err(AppError::BadRequest("app name is required".into()));
+        return Err(AppError::BadRequest("app name is required".into()).into());
     }
-    let uuid = Uuid::new_v4().to_string();
+    let uuid = crypto::new_uuid_v4()?.to_string();
     // Secret embeds the uuid so it resolves the app on later calls.
-    let secret = format!("{uuid}.{}", random_secret_value());
-    let salt = Uuid::new_v4().as_bytes().to_vec();
-    let now = Utc::now();
+    let secret = format!("{uuid}.{}", crypto::random_key()?);
+    let salt = crypto::random_salt()?;
+    let now = wall_now_utc(ctx.ctx());
 
     let row = AppRow {
         uuid: uuid.clone(),
@@ -97,10 +95,14 @@ pub async fn register(
 }
 
 /// Resolve + verify an app secret, returning the app uuid.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<String> {
     let app_id = secret.split('.').next().unwrap_or_default();
     if app_id.is_empty() {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Unauthorized.into());
     }
     let app = store::find_app(ctx.db(), app_id)
         .await?
@@ -123,14 +125,22 @@ pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<Stri
     if ok {
         Ok(app.uuid)
     } else {
-        Err(AppError::Unauthorized)
+        Err(AppError::Unauthorized.into())
     }
 }
 
 /// `GET /api/apps/:id` — app details (the caller must own it).
-pub async fn get(ctx: &KeychainContext, app_id: &str, requested_id: &str) -> AppResult<AppResponse> {
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
+pub async fn get(
+    ctx: &KeychainContext,
+    app_id: &str,
+    requested_id: &str,
+) -> AppResult<AppResponse> {
     if app_id != requested_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     let app = store::find_app(ctx.db(), app_id)
         .await?
@@ -144,9 +154,13 @@ pub async fn get(ctx: &KeychainContext, app_id: &str, requested_id: &str) -> App
 }
 
 /// `DELETE /api/apps/:id` — delete the app + its keys.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn delete(ctx: &KeychainContext, app_id: &str, requested_id: &str) -> AppResult<()> {
     if app_id != requested_id {
-        return Err(AppError::Forbidden);
+        return Err(AppError::Forbidden.into());
     }
     store::delete_app(ctx.db(), app_id).await
 }

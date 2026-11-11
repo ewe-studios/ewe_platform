@@ -1,11 +1,11 @@
-//! ## TinyTemplate
+//! ## `TinyTemplate`
 //!
-//! TinyTemplate is a minimal templating library originally designed for use in [Criterion.rs].
+//! `TinyTemplate` is a minimal templating library originally designed for use in [Criterion.rs].
 //! It deliberately does not provide all of the features of a full-power template engine, but in
 //! return it provides a simple API, clear templating syntax, decent performance and very few
 //! dependencies.
 //!
-//! Vendored from https://github.com/ewe-studios/TinyTemplate.git as an in-tree module.
+//! Vendored from <https://github.com/ewe-studios/TinyTemplate.git> as an in-tree module.
 
 mod compiler;
 pub mod error;
@@ -13,7 +13,7 @@ mod instruction;
 pub mod syntax;
 mod template;
 
-use error::*;
+use error::{unprintable_error, Error, Result};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -53,15 +53,19 @@ pub fn escape(value: &str, output: &mut String) {
 
 /// The format function is used as the default value formatter for all values unless the user
 /// specifies another. It is provided publicly so that it can be called as part of custom formatters.
+///
+/// # Errors
+///
+/// Returns an error when the value is an array or an object, or when writing fails.
 pub fn format(value: &Value, output: &mut String) -> Result<()> {
     match value {
         Value::Null => Ok(()),
         Value::Bool(b) => {
-            write!(output, "{}", b)?;
+            write!(output, "{b}")?;
             Ok(())
         }
         Value::Number(n) => {
-            write!(output, "{}", n)?;
+            write!(output, "{n}")?;
             Ok(())
         }
         Value::String(s) => {
@@ -73,15 +77,19 @@ pub fn format(value: &Value, output: &mut String) -> Result<()> {
 }
 
 /// Identical to [`format`](fn.format.html) except that this does not perform HTML escaping.
+///
+/// # Errors
+///
+/// Returns an error when the value is an array or an object, or when writing fails.
 pub fn format_unescaped(value: &Value, output: &mut String) -> Result<()> {
     match value {
         Value::Null => Ok(()),
         Value::Bool(b) => {
-            write!(output, "{}", b)?;
+            write!(output, "{b}")?;
             Ok(())
         }
         Value::Number(n) => {
-            write!(output, "{}", n)?;
+            write!(output, "{n}")?;
             Ok(())
         }
         Value::String(s) => {
@@ -92,7 +100,7 @@ pub fn format_unescaped(value: &Value, output: &mut String) -> Result<()> {
     }
 }
 
-/// The TinyTemplate struct is the entry point for the TinyTemplate library.
+/// The `TinyTemplate` struct is the entry point of the library.
 pub struct TinyTemplate<'template> {
     templates: HashMap<&'template str, Template<'template>>,
     formatters: HashMap<&'template str, Box<ValueFormatter>>,
@@ -109,6 +117,11 @@ impl<'template> TinyTemplate<'template> {
         tt
     }
 
+    /// Adds a template with the given name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the template text cannot be compiled.
     pub fn add_template(&mut self, name: &'template str, text: &'template str) -> Result<()> {
         let template = Template::compile(text)?;
         self.templates.insert(name, template);
@@ -129,6 +142,12 @@ impl<'template> TinyTemplate<'template> {
         self.formatters.insert(name, Box::new(formatter));
     }
 
+    /// Renders the template with the given name and context.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the context cannot be serialized, when the template is unknown,
+    /// or when rendering fails.
     pub fn render<C>(&self, template: &str, context: &C) -> Result<String>
     where
         C: Serialize,
@@ -142,7 +161,7 @@ impl<'template> TinyTemplate<'template> {
                 self.default_formatter,
             ),
             None => Err(Error::GenericError {
-                msg: format!("Unknown template '{}'", template),
+                msg: format!("Unknown template '{template}'"),
             }),
         }
     }

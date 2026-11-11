@@ -17,7 +17,6 @@ use foundation_ai::types::{
     ModelStreamBox, TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream, StreamIter};
-use foundation_netio::DynNetClient;
 use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
@@ -29,6 +28,7 @@ use foundation_netio::websocket::shared::client::{
 };
 use foundation_netio::websocket::shared::connector::{WebSocketConnector, WsExchangeTask};
 use foundation_netio::websocket::shared::error::WebSocketError;
+use foundation_netio::DynNetClient;
 
 /// A mock `HttpClient` whose `send_sse` yields a single
 /// `Stream::Pending(SseProgress::Failed(..))` before ending.
@@ -72,7 +72,9 @@ impl WebSocketConnector for FailedSseClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 
     fn open_websocket_task(
@@ -80,7 +82,9 @@ impl WebSocketConnector for FailedSseClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 }
 
@@ -110,16 +114,27 @@ fn assert_maps_failed(mut stream: ModelStreamBox) {
         Stream::Pending(ModelState::Error(msg)) => assert_eq!(msg, "boom"),
         other => panic!("expected Pending(ModelState::Error), got {other:?}"),
     }
-    assert!(stream.next().is_none(), "Failed should terminate the stream");
+    assert!(
+        stream.next().is_none(),
+        "Failed should terminate the stream"
+    );
+}
+
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }
 
 #[valtron_test]
 fn openai_stream_maps_failed_to_model_error() {
     let client: DynNetClient = Arc::new(FailedSseClient);
     let config = OpenAIConfig::new().with_base_url("http://localhost");
-    let provider = OpenAIProvider::with_http_client_and_config(client, config.clone())
-        .create(Some(config))
-        .unwrap();
+    let provider =
+        OpenAIProvider::with_http_client_and_config(client, config.clone(), test_clock())
+            .create(Some(config))
+            .unwrap();
     let model = provider
         .get_model(ModelId::Name("gpt-4".into(), None))
         .unwrap();
@@ -133,9 +148,10 @@ fn workers_ai_stream_maps_failed_to_model_error() {
     let config = WorkersAiConfig::new()
         .with_base_url("http://localhost")
         .with_account_id("test-account");
-    let provider = WorkersAiProvider::with_http_client_and_config(client, config.clone())
-        .create(Some(config))
-        .unwrap();
+    let provider =
+        WorkersAiProvider::with_http_client_and_config(client, config.clone(), test_clock())
+            .create(Some(config))
+            .unwrap();
     let model = provider
         .get_model(ModelId::Name("@cf/meta/llama-3-8b-instruct".into(), None))
         .unwrap();

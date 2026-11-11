@@ -7,6 +7,7 @@
 #
 # Installs (pins in components.env, tools in mise/):
 #   Xcode Command Line Tools (clang, git, make, the macOS SDK)
+#   the pinned iOS platform into the manually installed full Xcode
 #   mise + the shared tools (nushell, node, python, cmake, ninja, protoc, ...)
 #   rustup without a toolchain (RUSTUP_HOME/CARGO_HOME under /usr/local/rust)
 #   Vulkan SDK (MoltenVK, glslc; VULKAN_SDK)
@@ -66,6 +67,19 @@ if ! xcode-select -p >/dev/null 2>&1; then
   rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
   xcode-select -p >/dev/null 2>&1 || fail "the Command Line Tools did not install"
 fi
+
+# --- full Xcode and the pinned iOS platform -----------------------------------
+# The Command Line Tools have no iOS SDK. Xcode is a one-time manual install
+# (README). Select it and install the pinned iOS platform into it.
+[ -d /Applications/Xcode.app ] || fail "full Xcode is missing; install Xcode 26.3 once by hand (see the README)"
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+log "Xcode $(xcodebuild -version | head -1); installing the iOS $IOS_SDK_VERSION platform"
+xcodebuild -downloadPlatform iOS -buildVersion "$IOS_SDK_VERSION"
+xcodebuild -showsdks | grep -q "iphoneos$IOS_SDK_VERSION" \
+  || fail "the iOS $IOS_SDK_VERSION SDK did not install; xcodebuild -showsdks lists no iphoneos$IOS_SDK_VERSION"
+printf 'developer_dir=%s\nversion=%s\n' "$DEVELOPER_DIR" "$IOS_SDK_VERSION" > "$STATUS/ios-sdk.txt"
+log "verified the iOS $IOS_SDK_VERSION SDK"
 
 # --- environment shared by every shell ----------------------------------------
 cat > "$ROOT/env.sh" <<EOF
@@ -167,6 +181,8 @@ fi
   for c in "clang --version" "git --version" "nu --version" "node --version" "python3 --version" "cmake --version" "rustup --version" "glslc --version"; do
     printf '%s: %s\n' "${c%% *}" "$($c 2>&1 | head -1)"
   done
+  printf 'xcodebuild -version: %s\n' "$(xcodebuild -version 2>&1 | tr '\n' ' ')"
+  printf 'xcodebuild -showsdks:\n%s\n' "$(xcodebuild -showsdks 2>&1)"
 } > "$STATUS/versions.txt"
 cat "$STATUS/versions.txt"
 echo ok > "$STATUS/provisioned.ok"

@@ -2,7 +2,7 @@
 //!
 //! WHY: `HttpServer` takes a generic `Acceptor` trait (defined in `foundation_netio`).
 //! `OverlayAcceptor` wraps a smoltcp `OverlayListener` so `HttpServer` can serve
-//! on a WireGuard overlay IP with zero transport changes — `accept_connection`
+//! on a `WireGuard` overlay IP with zero transport changes — `accept_connection`
 //! returns `Connection::Overlay(...)` just like TCP returns `Connection::Tcp(...)`.
 //!
 //! WHAT: [`OverlayAcceptor`] wraps an [`OverlayListener`] + overlay IP behind a
@@ -28,6 +28,7 @@ pub struct OverlayAcceptor {
 
 impl OverlayAcceptor {
     /// Create from an `OverlayListener` (obtained via `WgHandle::tcp_listen`).
+    #[must_use]
     pub fn new(listener: OverlayListener, local_ip: std::net::IpAddr, port: u16) -> Self {
         Self {
             listener: Arc::new(Mutex::new(listener)),
@@ -49,7 +50,10 @@ impl Clone for OverlayAcceptor {
 
 impl Acceptor for OverlayAcceptor {
     fn accept_connection(&self) -> io::Result<(Connection, SocketAddr)> {
-        let mut guard = self.listener.lock().expect("OverlayAcceptor::accept_connection: Mutex poisoned");
+        let mut guard = self
+            .listener
+            .lock()
+            .expect("OverlayAcceptor::accept_connection: Mutex poisoned");
         let stream = guard.accept()?;
         let peer = stream.peer_addr();
         drop(guard);
@@ -108,6 +112,14 @@ impl OverlayReadWrite for OverlayConn {
 
     fn set_write_waker(&self, waker: ConnWaker) {
         self.stream.set_write_waker(waker);
+    }
+
+    fn readable(&self) -> bool {
+        self.stream.readable()
+    }
+
+    fn writable(&self) -> bool {
+        self.stream.writable()
     }
 }
 

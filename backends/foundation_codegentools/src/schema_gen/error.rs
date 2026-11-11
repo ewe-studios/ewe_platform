@@ -8,7 +8,7 @@ pub enum SchemaGenError {
         path: PathBuf,
         source: toml::de::Error,
     },
-    ScanError(foundation_codegen::CodegenError),
+    ScanError(foundation_errstacks::ErrorTrace<foundation_codegen::CodegenError>),
     ParseError {
         path: PathBuf,
         message: String,
@@ -26,7 +26,11 @@ impl std::fmt::Display for SchemaGenError {
             Self::CrateNotFound(p) => write!(f, "crate directory not found: {}", p.display()),
             Self::NoCargoToml(p) => write!(f, "no Cargo.toml found in {}", p.display()),
             Self::CargoTomlParse { path, source } => {
-                write!(f, "failed to parse Cargo.toml at {}: {source}", path.display())
+                write!(
+                    f,
+                    "failed to parse Cargo.toml at {}: {source}",
+                    path.display()
+                )
             }
             Self::ScanError(e) => write!(f, "source scanning failed: {e}"),
             Self::ParseError { path, message } => {
@@ -57,6 +61,12 @@ impl std::error::Error for SchemaGenError {
 
 impl From<foundation_codegen::CodegenError> for SchemaGenError {
     fn from(e: foundation_codegen::CodegenError) -> Self {
+        Self::ScanError(e.into())
+    }
+}
+
+impl From<foundation_errstacks::ErrorTrace<foundation_codegen::CodegenError>> for SchemaGenError {
+    fn from(e: foundation_errstacks::ErrorTrace<foundation_codegen::CodegenError>) -> Self {
         Self::ScanError(e)
     }
 }

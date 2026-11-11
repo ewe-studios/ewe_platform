@@ -3,11 +3,11 @@
 //! Arm Architecture Reference Manual for A-profile architecture:
 //! ARM DDI 0487K.a, ID032224, D23.2.147 RNDR, Random Number
 use crate::entropy::{
-    Error,
     util::{slice_as_uninit, truncate},
+    Error,
 };
 use core::arch::asm;
-use core::mem::{MaybeUninit, size_of};
+use core::mem::{size_of, MaybeUninit};
 
 #[cfg(not(target_arch = "aarch64"))]
 compile_error!("the `rndr` backend can be enabled only for AArch64 targets!");

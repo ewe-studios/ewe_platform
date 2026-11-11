@@ -15,10 +15,11 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::http::HttpConnectionPool;
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::shared::http::{Http11, HttpClientError, RenderHttp};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_context::Ctx;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -72,7 +73,11 @@ where
     type Pending = HttpOperationState;
     type Ready = super::HttpStreamReady;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one match covers every connection and response phase"
+    )]
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.0.take()? {
             HttpOperationState::Init => {
                 if self.1.request.is_none() {
@@ -108,9 +113,12 @@ where
                 let stream = if let Some(socket_path) = unix_socket {
                     #[cfg(unix)]
                     {
-                        self.1
-                            .pool
-                            .create_connection_unix(&request.url, &socket_path)
+                        self.1.pool.create_connection_unix(
+                            &request.url,
+                            &socket_path,
+                            self.1.config.unix_read_timeout,
+                            &ctx,
+                        )
                     }
                     #[cfg(not(unix))]
                     {
@@ -132,7 +140,7 @@ where
                     // Try to get connection from pool or create new one (with proxy support).
                     self.1
                         .pool
-                        .create_connection_with_proxy(&request.url, proxy_config, None)
+                        .create_connection_with_proxy(&request.url, proxy_config, None, &ctx)
                 };
 
                 match stream {

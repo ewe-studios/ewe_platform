@@ -57,8 +57,7 @@ fn unary_error_status_and_body_match_spec() {
     let body = unary_error_body(&err).unwrap();
     assert_eq!(&body, br#"{"code":"unavailable","message":"overloaded"}"#);
 
-    let nf: foundation_errstacks::ErrorTrace<ConnectError> =
-        ConnectError::not_found("nope").into();
+    let nf: foundation_errstacks::ErrorTrace<ConnectError> = ConnectError::not_found("nope").into();
     assert_eq!(unary_error_status(&nf), 404);
 }
 
@@ -68,10 +67,7 @@ fn unary_error_status_and_body_match_spec() {
 fn get_query_text_codec_is_percent_encoded() {
     // JSON (text) codec, no compression → percent-encoded message, no base64 flag.
     let q = encode_get_query("json", br#"{"a":1}"#, false, None).unwrap();
-    assert_eq!(
-        q,
-        "connect=v1&encoding=json&message=%7B%22a%22%3A1%7D"
-    );
+    assert_eq!(q, "connect=v1&encoding=json&message=%7B%22a%22%3A1%7D");
 }
 
 #[test]
@@ -109,22 +105,23 @@ fn client_headers_unary_vs_streaming() {
         &vec!["1".to_string()]
     );
     // Unary uses standard Content-Encoding.
-    assert!(unary
-        .get(&SimpleHeader::from("content-encoding".to_string()))
-        .is_some());
+    assert!(unary.contains_key(&SimpleHeader::from("content-encoding".to_string())));
 
     let mut streaming = SimpleHeaders::new();
-    client.write_request_headers(StreamType::ServerStream, &mut streaming, "json", Some("gzip"));
+    client.write_request_headers(
+        StreamType::ServerStream,
+        &mut streaming,
+        "json",
+        Some("gzip"),
+    );
     assert_eq!(
         streaming.get(&SimpleHeader::CONTENT_TYPE).unwrap(),
         &vec!["application/connect+json".to_string()]
     );
     // Streaming uses Connect-Content-Encoding.
-    assert!(streaming
-        .get(&SimpleHeader::from(
-            constants::HEADER_STREAMING_CONTENT_ENCODING.to_string()
-        ))
-        .is_some());
+    assert!(streaming.contains_key(&SimpleHeader::from(
+        constants::HEADER_STREAMING_CONTENT_ENCODING.to_string()
+    )));
 }
 
 // ── streaming round-trip (both reader/writer stacks) ──────────────────────────
@@ -149,7 +146,7 @@ fn run_all(mut futs: Vec<BoxFut>) {
         while i < futs.len() {
             match futs[i].as_mut().poll(&mut cx) {
                 Poll::Ready(()) => {
-                    let _ = futs.swap_remove(i);
+                    drop(futs.swap_remove(i));
                 }
                 Poll::Pending => i += 1,
             }
@@ -172,6 +169,10 @@ fn streaming_request() -> SimpleIncomingRequest {
 }
 
 #[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one end-to-end round-trip reads best as a single scenario"
+)]
 fn streaming_roundtrip_normalizes_endstream() {
     let registry = CompressionRegistry::new();
 
@@ -225,17 +226,23 @@ fn streaming_roundtrip_normalizes_endstream() {
                 send_body: Arc::new(req_tx),
                 // F45 Part D: TransportStream now speaks FutureStream; bridge the
                 // pipe-fed test harness through the pipe→FutureStream adapters.
-                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(client_head_rx),
+                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(
+                    client_head_rx,
+                ),
                 recv_body: foundation_connectrpc::shared::transport::body_stream_from_pipe(resp_rx),
                 trailers: {
                     let (tx, rx) = Pipe::with_depth(1);
-                    tx.close();
+                    let _ = tx.close();
                     rx
                 },
             },
             foundation_connectrpc::ClientExchangeConfig {
                 cancel: CancelSignal::new(),
                 read_max_bytes: 0,
+                compression: &registry,
+                send_compressor: None,
+                compress_min_bytes: 0,
+                send_max_bytes: 0,
             },
         )
         .expect("client exchange");
@@ -260,7 +267,10 @@ fn streaming_roundtrip_normalizes_endstream() {
             server_sender.send(bytes).await.unwrap();
         }
         let mut trailers = SimpleHeaders::new();
-        trailers.insert(SimpleHeader::from("x-count".to_string()), vec!["2".to_string()]);
+        trailers.insert(
+            SimpleHeader::from("x-count".to_string()),
+            vec!["2".to_string()],
+        );
         server_sender.close(None, trailers).await.unwrap();
     });
 
@@ -269,12 +279,11 @@ fn streaming_roundtrip_normalizes_endstream() {
     let eos = Arc::clone(&got_clean_eos);
     let cr: BoxFut = Box::pin(async move {
         loop {
-            match client_rx.receive().await.unwrap() {
-                Some(b) => recv.lock().unwrap().push(b),
-                None => {
-                    *eos.lock().unwrap() = true;
-                    break;
-                }
+            if let Some(b) = client_rx.receive().await.unwrap() {
+                recv.lock().unwrap().push(b);
+            } else {
+                *eos.lock().unwrap() = true;
+                break;
             }
         }
     });
@@ -287,10 +296,18 @@ fn streaming_roundtrip_normalizes_endstream() {
         cs,
         srv,
         cr,
-        Box::pin(async move { let _ = s_read.await; }),
-        Box::pin(async move { let _ = s_write.await; }),
-        Box::pin(async move { let _ = c_read.await; }),
-        Box::pin(async move { let _ = c_write.await; }),
+        Box::pin(async move {
+            let _ = s_read.await;
+        }),
+        Box::pin(async move {
+            let _ = s_write.await;
+        }),
+        Box::pin(async move {
+            let _ = c_read.await;
+        }),
+        Box::pin(async move {
+            let _ = c_write.await;
+        }),
     ]);
 
     let msgs = received.lock().unwrap();
@@ -298,5 +315,8 @@ fn streaming_roundtrip_normalizes_endstream() {
         &*msgs,
         &[Bytes::from_static(b"m1"), Bytes::from_static(b"m2")]
     );
-    assert!(*got_clean_eos.lock().unwrap(), "EndStream normalized to Ok(None)");
+    assert!(
+        *got_clean_eos.lock().unwrap(),
+        "EndStream normalized to Ok(None)"
+    );
 }

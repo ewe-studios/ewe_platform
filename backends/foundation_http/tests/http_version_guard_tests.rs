@@ -27,18 +27,16 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::writer::send_text;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 use foundation_http::{
+    native::serve::{Serve, ServeFactory},
     native::server::{HttpServer, ServerConfig},
-    shared::{
-        app::HttpApp,
-        context::ContextBag,
-        serve::{respond, ConnectionResult, Serve, ServeFactory},
-    },
+    shared::{app::HttpApp, context::Ctx, serve::ConnectionResult},
 };
 
 /// Set by `EchoHandler::serve`. If a rejected request ever reaches routing this
@@ -48,7 +46,7 @@ static HANDLER_CALLED: AtomicBool = AtomicBool::new(false);
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self {
+    fn create(_ctx: &Ctx) -> Self {
         Self
     }
 }
@@ -56,19 +54,18 @@ impl ServeFactory for EchoHandler {
 impl Serve for EchoHandler {
     fn serve(
         &self,
-        _bag: Arc<ContextBag>,
+        _ctx: Ctx,
         _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         HANDLER_CALLED.store(true, Ordering::SeqCst);
-        respond::text(&mut conn, 200, "ok")
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        send_text(conn, 200, "ok", &foundation_core::valtron::Ctx::host())
     }
 }
 
 /// Start a server routing `GET /echo`; returns its address and shutdown signal.
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("local_addr");
     let bind_addr = format!("127.0.0.1:{}", addr.port());
@@ -228,7 +225,6 @@ fn serves_request_line_without_version() {
 fn serves_lowercase_http_11_token() {
     assert_served("http/1.1");
 }
-
 
 // -- Persistence defaults are version-dependent (RFC 9112 §9.3).
 //

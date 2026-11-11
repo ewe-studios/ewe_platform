@@ -29,8 +29,9 @@ pub struct BuildOutput {
 
 /// Read the package name from a Cargo.toml file.
 fn read_package_name(cargo_toml: &Path) -> Result<String> {
-    let content = std::fs::read_to_string(cargo_toml)
-        .map_err(|_e| WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())?;
+    let content = std::fs::read_to_string(cargo_toml).map_err(|_e| {
+        WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace()
+    })?;
 
     let mut in_package = false;
     for line in content.lines() {
@@ -43,11 +44,12 @@ fn read_package_name(cargo_toml: &Path) -> Result<String> {
             in_package = false;
             continue;
         }
-        if in_package && trimmed.starts_with("name") {
-            if let Some(value) = trimmed.split('=').nth(1) {
-                let value = value.trim().trim_matches('"').trim_matches('\'');
-                return Ok(value.to_string());
-            }
+        if in_package
+            && trimmed.starts_with("name")
+            && let Some(value) = trimmed.split('=').nth(1)
+        {
+            let value = value.trim().trim_matches('"').trim_matches('\'');
+            return Ok(value.to_string());
         }
     }
 
@@ -87,11 +89,7 @@ fn find_workspace_root(crate_path: &Path) -> Option<PathBuf> {
 /// - the build fails
 /// - the wasm binary is not found after a successful build
 /// - the crate has no [package].name
-pub fn run(
-    crate_path: &Path,
-    release: bool,
-    features: Option<&str>,
-) -> Result<BuildOutput> {
+pub fn run(crate_path: &Path, release: bool, features: Option<&str>) -> Result<BuildOutput> {
     run_for_target(crate_path, release, features, "wasm32-unknown-unknown")
 }
 
@@ -122,7 +120,13 @@ pub fn run_with_tests(
     release: bool,
     features: Option<&str>,
 ) -> Result<BuildOutput> {
-    run_impl(crate_path, release, features, true, "wasm32-unknown-unknown")
+    run_impl(
+        crate_path,
+        release,
+        features,
+        true,
+        "wasm32-unknown-unknown",
+    )
 }
 
 fn run_impl(
@@ -137,20 +141,130 @@ fn run_impl(
 
     let profile = if release { "release" } else { "debug" };
 
-    which::which("cargo").map_err(|_| WasmTestbedError::CargoNotFound.trace())?;
-
-    info!("Running cargo build --target {target_triple}...");
-
     // Determine target directory: workspace members use workspace root's target.
     let target_dir = find_workspace_root(crate_path)
         .map_or_else(|| crate_path.join("target"), |root| root.join("target"));
+
+    let artifacts = run_cargo(
+        crate_path,
+        release,
+        features,
+        include_tests,
+        target_triple,
+        &target_dir,
+    )?;
+
+    // Prefer what cargo reported. Tests: the test binary carrying
+    // `__wbgt_` exports. Library: the package's own cdylib.
+    let reported = if include_tests {
+        artifacts
+            .iter()
+            .filter(|(_, is_test)| *is_test)
+            .find(|(path, _)| has_wasm_bindgen_tests(path))
+            .map(|(path, _)| path.clone())
+    } else {
+        artifacts
+            .iter()
+            .filter(|(_, is_test)| !*is_test)
+            .find(|(path, _)| {
+                path.file_stem()
+                    .is_some_and(|stem| stem.to_string_lossy() == package_name.replace('-', "_"))
+            })
+            .map(|(path, _)| path.clone())
+    };
+    if let Some(wasm_path) = reported {
+        info!("Built wasm: {}", wasm_path.display());
+        return Ok(BuildOutput {
+            wasm_path,
+            package_name,
+            profile: profile.to_string(),
+        });
+    }
+
+    let deps_dir = target_dir.join(target_triple).join(profile).join("deps");
+
+    // When building with --tests, find the test wasm binary containing
+    // __wbgt_ exports (wasm-bindgen). Scan ALL .wasm files in deps/ —
+    // cargo names them mod-<hash>.wasm, {pkg}-<hash>.wasm, or
+    // {test_target}-<hash>.wasm depending on how the test target is defined.
+    if include_tests && deps_dir.exists() {
+        for entry in std::fs::read_dir(&deps_dir)
+            .ok()
+            .into_iter()
+            .flatten()
+            .flatten()
+        {
+            let Ok(meta) = entry.metadata() else { continue };
+            if !meta.is_file() {
+                continue;
+            }
+            let name = entry.file_name();
+            let name = name.to_string_lossy();
+            if !name.ends_with(".wasm") {
+                continue;
+            }
+            // Skip the bare library wasm (no tests, no __wbgt_).
+            if name == format!("{package_name}.wasm") {
+                continue;
+            }
+            let path = entry.path();
+            if has_wasm_bindgen_tests(&path) {
+                info!("Built test wasm: {}", path.display());
+                return Ok(BuildOutput {
+                    wasm_path: path,
+                    package_name,
+                    profile: profile.to_string(),
+                });
+            }
+        }
+    }
+
+    // Try top-level path first, then deps/ fallback for library wasm
+    let wasm_path = target_dir
+        .join(target_triple)
+        .join(profile)
+        .join(format!("{package_name}.wasm"));
+
+    if !wasm_path.exists() {
+        let deps_wasm = deps_dir.join(format!("{package_name}.wasm"));
+        if deps_wasm.exists() {
+            info!("Built wasm (deps/): {}", deps_wasm.display());
+            return Ok(BuildOutput {
+                wasm_path: deps_wasm,
+                package_name,
+                profile: profile.to_string(),
+            });
+        }
+        return Err(WasmTestbedError::WasmBinaryNotFound(wasm_path.display().to_string()).trace());
+    }
+    info!("Built wasm: {}", wasm_path.display());
+
+    Ok(BuildOutput {
+        wasm_path,
+        package_name,
+        profile: profile.to_string(),
+    })
+}
+
+/// Run `cargo build` for one target and collect the `.wasm` artifacts.
+fn run_cargo(
+    crate_path: &Path,
+    release: bool,
+    features: Option<&str>,
+    include_tests: bool,
+    target_triple: &str,
+    target_dir: &Path,
+) -> Result<Vec<(PathBuf, bool)>> {
+    which::which("cargo").map_err(|_| WasmTestbedError::CargoNotFound.trace())?;
+
+    info!("Running cargo build --target {target_triple}...");
 
     let mut cmd = Command::new("cargo");
     cmd.arg("build")
         .arg("--target")
         .arg(target_triple)
         .arg("--target-dir")
-        .arg(&target_dir);
+        .arg(target_dir);
 
     if include_tests {
         cmd.arg("--tests");
@@ -209,94 +323,7 @@ fn run_impl(
         return Err(WasmTestbedError::CargoBuildFailed(status.code()).trace());
     }
 
-    // Prefer what cargo reported. Tests: the test binary carrying
-    // `__wbgt_` exports. Library: the package's own cdylib.
-    let reported = if include_tests {
-        artifacts
-            .iter()
-            .filter(|(_, is_test)| *is_test)
-            .find(|(path, _)| has_wasm_bindgen_tests(path))
-            .map(|(path, _)| path.clone())
-    } else {
-        artifacts
-            .iter()
-            .filter(|(_, is_test)| !*is_test)
-            .find(|(path, _)| {
-                path.file_stem()
-                    .is_some_and(|stem| stem.to_string_lossy() == package_name.replace('-', "_"))
-            })
-            .map(|(path, _)| path.clone())
-    };
-    if let Some(wasm_path) = reported {
-        info!("Built wasm: {}", wasm_path.display());
-        return Ok(BuildOutput {
-            wasm_path,
-            package_name,
-            profile: profile.to_string(),
-        });
-    }
-
-    let deps_dir = target_dir
-        .join(target_triple)
-        .join(profile)
-        .join("deps");
-
-    // When building with --tests, find the test wasm binary containing
-    // __wbgt_ exports (wasm-bindgen). Scan ALL .wasm files in deps/ —
-    // cargo names them mod-<hash>.wasm, {pkg}-<hash>.wasm, or
-    // {test_target}-<hash>.wasm depending on how the test target is defined.
-    if include_tests && deps_dir.exists() {
-        for entry in std::fs::read_dir(&deps_dir).ok().into_iter().flatten().flatten() {
-            let Ok(meta) = entry.metadata() else { continue };
-            if !meta.is_file() {
-                continue;
-            }
-            let name = entry.file_name();
-            let name = name.to_string_lossy();
-            if !name.ends_with(".wasm") {
-                continue;
-            }
-            // Skip the bare library wasm (no tests, no __wbgt_).
-            if name == format!("{package_name}.wasm") {
-                continue;
-            }
-            let path = entry.path();
-            if has_wasm_bindgen_tests(&path) {
-                info!("Built test wasm: {}", path.display());
-                return Ok(BuildOutput {
-                    wasm_path: path,
-                    package_name,
-                    profile: profile.to_string(),
-                });
-            }
-        }
-    }
-
-    // Try top-level path first, then deps/ fallback for library wasm
-    let wasm_path = target_dir
-        .join(target_triple)
-        .join(profile)
-        .join(format!("{package_name}.wasm"));
-
-    if !wasm_path.exists() {
-        let deps_wasm = deps_dir.join(format!("{package_name}.wasm"));
-        if deps_wasm.exists() {
-            info!("Built wasm (deps/): {}", deps_wasm.display());
-            return Ok(BuildOutput {
-                wasm_path: deps_wasm,
-                package_name,
-                profile: profile.to_string(),
-            });
-        }
-        return Err(WasmTestbedError::WasmBinaryNotFound(wasm_path.display().to_string()).trace());
-    }
-    info!("Built wasm: {}", wasm_path.display());
-
-    Ok(BuildOutput {
-        wasm_path,
-        package_name,
-        profile: profile.to_string(),
-    })
+    Ok(artifacts)
 }
 
 /// The `.wasm` files a cargo `compiler-artifact` JSON message reports, each
@@ -319,7 +346,11 @@ fn wasm_artifacts(line: &str) -> Vec<(PathBuf, bool)> {
         .into_iter()
         .flatten()
         .filter_map(serde_json::Value::as_str)
-        .filter(|name| name.ends_with(".wasm"))
+        .filter(|name| {
+            Path::new(name)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("wasm"))
+        })
         .map(|name| (PathBuf::from(name), is_test))
         .collect()
 }
@@ -328,4 +359,3 @@ fn wasm_artifacts(line: &str) -> Vec<(PathBuf, bool)> {
 fn has_wasm_bindgen_tests(path: &Path) -> bool {
     std::fs::read(path).is_ok_and(|content| content.windows(7).any(|w| w == b"__wbgt_"))
 }
-

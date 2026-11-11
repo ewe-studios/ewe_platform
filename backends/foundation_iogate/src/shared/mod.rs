@@ -23,7 +23,7 @@ use core::fmt;
 ///
 /// WHAT: four modes. `Std` never touches the reactor; the other three register
 /// the accepted fd with the shared reactor and differ only in whether reads pop
-/// the io_uring completion inbox or issue `read(2)`.
+/// the `io_uring` completion inbox or issue `read(2)`.
 ///
 /// HOW: the native accept helper
 /// (`crate::native::accept_connection`) branches on this to build either a plain
@@ -38,13 +38,13 @@ pub enum ServerIo {
     Std,
 
     /// Register with the shared reactor; still `read(2)` on the socket, but park
-    /// on `Depends(RegisteredFd)` (epoll, or io_uring multishot poll) instead of
+    /// on `Depends(RegisteredFd)` (epoll, or `io_uring` multishot poll) instead of
     /// spinning.
     Readiness,
 
     /// Register with the shared reactor in completion mode: the kernel fills a
     /// buffer ring and `read` pops the inbox with **no syscall**. Falls back to
-    /// `read(2)` transparently when the backend is not io_uring.
+    /// `read(2)` transparently when the backend is not `io_uring`.
     Completion,
 
     /// Ask for the best available path; the choice is surfaced in a log line.
@@ -61,7 +61,7 @@ impl ServerIo {
         !matches!(self, ServerIo::Std)
     }
 
-    /// Whether this mode opts the fd into the io_uring completion read path.
+    /// Whether this mode opts the fd into the `io_uring` completion read path.
     ///
     /// # Panics
     /// Never panics.

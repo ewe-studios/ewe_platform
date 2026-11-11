@@ -1,7 +1,7 @@
 //! User provisioning service for social login (spec-57, F005).
 //!
 //! WHY: After receiving an upstream user profile (from Google, GitHub, etc.),
-//! the IdP must either find an existing local user linked to that upstream
+//! the `IdP` must either find an existing local user linked to that upstream
 //! identity, create a new local user, or link the upstream identity to an
 //! existing session-authenticated user.
 //!
@@ -14,7 +14,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{QueryStore, AsyncQueryStream, DataValue, SqlRow, StorageResult};
+use foundation_db::{AsyncQueryStream, DataValue, QueryStore, SqlRow, StorageResult};
 use futures_lite::StreamExt;
 
 use crate::server::models::provider::UpstreamProvider;
@@ -32,11 +32,17 @@ pub enum ProvisioningError {
     /// Storage error.
     Storage(String),
     /// The user already has a link for this provider.
-    LinkAlreadyExists { provider_id: String, user_id: String },
+    LinkAlreadyExists {
+        provider_id: String,
+        user_id: String,
+    },
     /// Multiple local users share the same verified email (ambiguous).
     AmbiguousEmail(String),
     /// The email is already taken by a different user (manual link required).
-    EmailConflict { email: String, existing_user_id: String },
+    EmailConflict {
+        email: String,
+        existing_user_id: String,
+    },
     /// The upstream provider is not trusted for auto-linking.
     UnsupportedProvider(String),
 }
@@ -46,12 +52,24 @@ impl core::fmt::Display for ProvisioningError {
         match self {
             Self::MissingField(s) => write!(f, "missing field: {s}"),
             Self::Storage(s) => write!(f, "storage error: {s}"),
-            Self::LinkAlreadyExists { provider_id, user_id } => {
-                write!(f, "link already exists: provider={provider_id}, user={user_id}")
+            Self::LinkAlreadyExists {
+                provider_id,
+                user_id,
+            } => {
+                write!(
+                    f,
+                    "link already exists: provider={provider_id}, user={user_id}"
+                )
             }
             Self::AmbiguousEmail(s) => write!(f, "multiple users with email: {s}"),
-            Self::EmailConflict { email, existing_user_id } => {
-                write!(f, "email {email} already belongs to user {existing_user_id}")
+            Self::EmailConflict {
+                email,
+                existing_user_id,
+            } => {
+                write!(
+                    f,
+                    "email {email} already belongs to user {existing_user_id}"
+                )
             }
             Self::UnsupportedProvider(s) => write!(f, "unsupported provider: {s}"),
         }
@@ -125,7 +143,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     /// Provision a user from an upstream profile.
     ///
     /// The provisioning flow:
-    /// 1. Look up the user_provider_link table for `(provider_id, upstream_sub)`
+    /// 1. Look up the `user_provider_link` table for `(provider_id, upstream_sub)`
     /// 2. If found → return `Linked { user_id }`
     /// 3. If the upstream profile has a verified email and auto-linking is
     ///    enabled → find a local user by that email. If exactly one match →
@@ -149,13 +167,11 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         // 2. Try auto-link by verified email
         if self.auto_link_by_email && profile.email_verified {
             if let Some(email) = &profile.email {
-                match self.find_user_by_email(email).await? {
-                    Some(user_id) => {
-                        self.create_link(provider, &profile.sub, &user_id).await?;
-                        return Ok(ProvisioningResult::Linked { user_id });
-                    }
-                    None => { /* fall through to create */ }
+                if let Some(user_id) = self.find_user_by_email(email).await? {
+                    self.create_link(provider, &profile.sub, &user_id).await?;
+                    return Ok(ProvisioningResult::Linked { user_id });
                 }
+                // Otherwise fall through to create.
             }
         }
 
@@ -177,7 +193,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     ) -> Result<Option<String>, ProvisioningError> {
         let mut stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT user_id FROM user_provider_links \
                  WHERE provider_id = ? AND upstream_subject = ?",
                 &[
@@ -194,13 +210,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         }
     }
 
-    async fn find_user_by_email(
-        &self,
-        email: &str,
-    ) -> Result<Option<String>, ProvisioningError> {
+    async fn find_user_by_email(&self, email: &str) -> Result<Option<String>, ProvisioningError> {
         let stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT id FROM users WHERE email = ? AND email_verified = 1 LIMIT 2",
                 &[DataValue::Text(email.to_string())],
             )
@@ -224,7 +237,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         user_id: &str,
     ) -> Result<(), ProvisioningError> {
         self.query_store
-            .execute_async(
+            .execute(
                 "INSERT OR IGNORE INTO user_provider_links \
                  (id, provider_id, upstream_subject, user_id) VALUES (?, ?, ?, ?)",
                 &[
@@ -239,17 +252,14 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         Ok(())
     }
 
-    async fn create_user(
-        &self,
-        profile: &UpstreamProfile,
-    ) -> Result<String, ProvisioningError> {
+    async fn create_user(&self, profile: &UpstreamProfile) -> Result<String, ProvisioningError> {
         let user_id = uuid::Uuid::new_v4().to_string();
         let email = profile.email.clone().unwrap_or_default();
         let name = profile.name.clone().unwrap_or_default();
         let email_verified = i64::from(profile.email_verified);
 
         self.query_store
-            .execute_async(
+            .execute(
                 "INSERT INTO users (id, email, username, email_verified, created_at, updated_at) \
                  VALUES (?, ?, ?, ?, strftime('%s', 'now') * 1000, strftime('%s', 'now') * 1000)",
                 &[
@@ -274,7 +284,9 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         provider: &UpstreamProvider,
         upstream_sub: &str,
     ) -> Result<bool, ProvisioningError> {
-        self.find_link(provider, upstream_sub).await.map(|r| r.is_some())
+        self.find_link(provider, upstream_sub)
+            .await
+            .map(|r| r.is_some())
     }
 
     /// Get all provider links for a local user.
@@ -282,13 +294,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     /// # Errors
     ///
     /// Returns a `ProvisioningError` on storage failure.
-    pub async fn get_user_links(
-        &self,
-        user_id: &str,
-    ) -> Result<Vec<String>, ProvisioningError> {
+    pub async fn get_user_links(&self, user_id: &str) -> Result<Vec<String>, ProvisioningError> {
         let stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT provider_id FROM user_provider_links WHERE user_id = ?",
                 &[DataValue::Text(user_id.to_string())],
             )
@@ -300,10 +309,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
 }
 
 /// Read one text column from a row result.
-fn string_column(
-    row: StorageResult<SqlRow>,
-    column: &str,
-) -> Result<String, ProvisioningError> {
+fn string_column(row: StorageResult<SqlRow>, column: &str) -> Result<String, ProvisioningError> {
     row.and_then(|row| row.get_by_name(column))
         .map_err(|e| ProvisioningError::Storage(e.to_string()))
 }

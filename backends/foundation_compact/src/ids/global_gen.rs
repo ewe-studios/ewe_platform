@@ -6,8 +6,8 @@
 
 use std::sync;
 
-use crate::ids::{Generator, generator::RandSource};
 use crate::ids::Id;
+use crate::ids::{generator::RandSource, Generator};
 
 /// Generates a new SCRU128 ID object using the global generator.
 ///

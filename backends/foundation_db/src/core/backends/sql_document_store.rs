@@ -10,8 +10,8 @@
 
 use crate::core::errors::StorageResult;
 use crate::core::storage_provider::{
-    DocumentStore, QueryStore, AsyncQueryStream, AsyncStorageItemStream, DataValue,
-    Document, PromotableDocument, StorageError,
+    AsyncQueryStream, AsyncStorageItemStream, DataValue, Document, DocumentStore,
+    PromotableDocument, QueryStore, StorageError,
 };
 use futures_lite::StreamExt;
 use serde::{de::DeserializeOwned, Serialize};
@@ -39,12 +39,15 @@ pub(crate) mod sql {
         }
     }
 
-    /// `INSERT` with all promoted columns.
+    /// `INSERT` with all promoted columns, idempotent on `(collection_key, doc_id)`
+    /// (F16 E7). The unique index from migration 020 makes a re-append of the same
+    /// id a no-op; fresh-id appends never hit the conflict path.
     pub fn insert_sql(table: &str) -> String {
         format!(
             "INSERT INTO {table} \
              (collection_key, doc_id, content, metadata, title, summary, record_type) \
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?) \
+             ON CONFLICT(collection_key, doc_id) DO NOTHING"
         )
     }
 
@@ -201,7 +204,7 @@ impl<Q: QueryStore> SqlDocumentStore<Q> {
             record_type.as_deref(),
         );
         self.query_store
-            .execute_async(&sql::insert_sql(&self.table), &params)
+            .execute(&sql::insert_sql(&self.table), &params)
             .await?;
         Ok(Document {
             id: doc_id,
@@ -223,14 +226,19 @@ impl<Q: QueryStore> SqlDocumentStore<Q> {
     ) -> StorageResult<Vec<Document>> {
         let stmt = sql::scan_sql(&self.table, sql::DOC_COLUMNS, from_id.is_some(), desc, true);
         let params = sql::scan_params(key, from_id, Some(limit));
-        let rows = self.query_store.query_async(&stmt, &params).await?.collect_all().await?;
+        let rows = self
+            .query_store
+            .query(&stmt, &params)
+            .await?
+            .collect_all()
+            .await?;
         rows.iter().map(sql::row_to_document).collect()
     }
 }
 
 #[async_trait::async_trait]
 impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
-    async fn append_async<V: Serialize + Send + 'static>(
+    async fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
@@ -241,7 +249,7 @@ impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
         self.insert_row(key, doc_id, json, None, None, None).await
     }
 
-    async fn append_with_id_async<V: Serialize + Send + 'static>(
+    async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -249,10 +257,11 @@ impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
     ) -> StorageResult<Document> {
         let json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        self.insert_row(key, doc_id.to_string(), json, None, None, None).await
+        self.insert_row(key, doc_id.to_string(), json, None, None, None)
+            .await
     }
 
-    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: V,
@@ -264,7 +273,7 @@ impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
         self.insert_row(key, doc_id, json, t, s, rt).await
     }
 
-    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -273,42 +282,45 @@ impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
         let json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        self.insert_row(key, doc_id.to_string(), json, t, s, rt).await
+        self.insert_row(key, doc_id.to_string(), json, t, s, rt)
+            .await
     }
 
-    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
-        self.collect_documents(None, key, true, sql::limit_to_i64(limit)).await
+    async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+        self.collect_documents(None, key, true, sql::limit_to_i64(limit))
+            .await
     }
 
-    async fn scan_documents_from_async(
+    async fn scan_documents_from(
         &self,
         key: &str,
         from_id: &str,
         limit: usize,
     ) -> StorageResult<Vec<Document>> {
-        self.collect_documents(Some(from_id), key, false, sql::limit_or_unlimited(limit)).await
+        self.collect_documents(Some(from_id), key, false, sql::limit_or_unlimited(limit))
+            .await
     }
 
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         let stmt = sql::scan_sql(&self.table, "content", false, true, true);
         let params = sql::scan_params(key, None, Some(sql::limit_to_i64(limit)));
-        Ok(map_content(self.query_store.query_async(&stmt, &params).await?))
+        Ok(map_content(self.query_store.query(&stmt, &params).await?))
     }
 
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         let stmt = sql::scan_sql(&self.table, "content", false, false, false);
         let params = sql::scan_params(key, None, None);
-        Ok(map_content(self.query_store.query_async(&stmt, &params).await?))
+        Ok(map_content(self.query_store.query(&stmt, &params).await?))
     }
 
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_from<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         from_id: &str,
@@ -316,28 +328,32 @@ impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         let stmt = sql::scan_sql(&self.table, "content", true, false, true);
         let params = sql::scan_params(key, Some(from_id), Some(sql::limit_or_unlimited(limit)));
-        Ok(map_content(self.query_store.query_async(&stmt, &params).await?))
+        Ok(map_content(self.query_store.query(&stmt, &params).await?))
     }
 
-    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let params = [
             DataValue::Text(key.to_string()),
             DataValue::Text(doc_id.to_string()),
         ];
-        self.query_store.execute_async(&sql::delete_sql(&self.table), &params).await?;
+        self.query_store
+            .execute(&sql::delete_sql(&self.table), &params)
+            .await?;
         Ok(())
     }
 
-    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+    async fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let params = [DataValue::Text(key.to_string())];
-        self.query_store.execute_async(&sql::delete_all_sql(&self.table), &params).await
+        self.query_store
+            .execute(&sql::delete_all_sql(&self.table), &params)
+            .await
     }
 
-    async fn count_async(&self, key: &str) -> StorageResult<u64> {
+    async fn count(&self, key: &str) -> StorageResult<u64> {
         let params = [DataValue::Text(key.to_string())];
         let rows = self
             .query_store
-            .query_async(&sql::count_sql(&self.table), &params)
+            .query(&sql::count_sql(&self.table), &params)
             .await?
             .collect_all()
             .await?;

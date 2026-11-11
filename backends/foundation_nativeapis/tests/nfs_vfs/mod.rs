@@ -1,14 +1,16 @@
 #![cfg(feature = "vfs-nfs")]
 
+use foundation_core::valtron::{collect_one, execute, from_future, initialize_pool, PoolGuard};
 use foundation_nativeapis::native::vfs::nfs::VfsNfs;
 use foundation_nativeapis::shared::vfs::memory_fs::MemoryFs;
 use foundation_nativeapis::shared::vfs::VfsFileSystem;
-use foundation_core::valtron::{collect_one, execute, from_future, initialize_pool, PoolGuard};
 use nfsserve::nfs::{nfsstat3, nfsstring};
 use nfsserve::vfs::NFSFileSystem;
 use std::sync::Arc;
 
-fn ns(s: &str) -> nfsstring { nfsstring(s.as_bytes().to_vec()) }
+fn ns(s: &str) -> nfsstring {
+    nfsstring(s.as_bytes().to_vec())
+}
 
 fn init_pool() -> PoolGuard {
     initialize_pool(42, Some(3))
@@ -34,21 +36,30 @@ where
 
 #[test]
 fn test_nfs_root_dir() {
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = VfsNfs::new(fs);
     assert_eq!(nfs.root_dir(), 1);
 }
 
 #[test]
 fn test_nfs_capabilities() {
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = VfsNfs::new(fs);
-    assert!(matches!(nfs.capabilities(), nfsserve::vfs::VFSCapabilities::ReadWrite));
+    assert!(matches!(
+        nfs.capabilities(),
+        nfsserve::vfs::VFSCapabilities::ReadWrite
+    ));
 }
 
 #[test]
 fn test_nfs_id_to_fh_to_id() {
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = VfsNfs::new(fs);
 
     let id: nfsserve::nfs::fileid3 = 42;
@@ -65,13 +76,16 @@ fn test_nfs_id_to_fh_to_id() {
 #[tracing_test::traced_test]
 fn test_nfs_getattr_root() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let attr = run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.getattr(1).await }
-    }).unwrap();
+    })
+    .unwrap();
     assert!(matches!(attr.ftype, nfsserve::nfs::ftype3::NF3DIR));
 }
 
@@ -81,13 +95,16 @@ fn test_nfs_getattr_root() {
 #[tracing_test::traced_test]
 fn test_nfs_fsinfo() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let info = run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.fsinfo(1).await }
-    }).unwrap();
+    })
+    .unwrap();
     assert!(info.rtmax > 0);
     assert!(info.wtmax > 0);
 }
@@ -98,25 +115,33 @@ fn test_nfs_fsinfo() {
 #[tracing_test::traced_test]
 fn test_nfs_create_and_write() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let (id, _) = run_nfs_async({
         let nfs = nfs.clone();
-        async move { nfs.create(1, &ns("test.txt"), nfsserve::nfs::sattr3::default()).await }
-    }).unwrap();
+        async move {
+            nfs.create(1, &ns("test.txt"), nfsserve::nfs::sattr3::default())
+                .await
+        }
+    })
+    .unwrap();
     assert!(id > 0);
 
     let data = b"Hello, NFS!";
     run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.write(id, 0, data).await }
-    }).unwrap();
+    })
+    .unwrap();
 
     let (read_data, eof) = run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.read(id, 0, data.len() as u32).await }
-    }).unwrap();
+    })
+    .unwrap();
     assert_eq!(read_data, data);
     assert!(eof);
 }
@@ -127,7 +152,9 @@ fn test_nfs_create_and_write() {
 #[tracing_test::traced_test]
 fn test_nfs_path_to_id() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let result = run_nfs_async({
@@ -149,7 +176,9 @@ fn test_nfs_path_to_id() {
 #[tracing_test::traced_test]
 fn test_nfs_readdir_root() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     fs.mkdir("/subdir1").unwrap();
     fs.mkdir("/subdir2").unwrap();
     fs.create("/file1.txt", 0o644).unwrap();
@@ -158,12 +187,14 @@ fn test_nfs_readdir_root() {
     let dir_id = run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.path_to_id(b"/").await }
-    }).unwrap();
+    })
+    .unwrap();
 
     let result = run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.readdir(dir_id, 0, 10).await }
-    }).unwrap();
+    })
+    .unwrap();
     assert!(result.entries.len() >= 3);
 }
 
@@ -173,13 +204,23 @@ fn test_nfs_readdir_root() {
 #[tracing_test::traced_test]
 fn test_nfs_symlink() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     fs.mkdir("/target").unwrap();
     let nfs = Arc::new(VfsNfs::new(fs));
 
     let result = run_nfs_async({
         let nfs = nfs.clone();
-        async move { nfs.symlink(1, &ns("link"), &ns("/target"), &nfsserve::nfs::sattr3::default()).await }
+        async move {
+            nfs.symlink(
+                1,
+                &ns("link"),
+                &ns("/target"),
+                &nfsserve::nfs::sattr3::default(),
+            )
+            .await
+        }
     });
     assert!(result.is_ok());
 }
@@ -190,17 +231,24 @@ fn test_nfs_symlink() {
 #[tracing_test::traced_test]
 fn test_nfs_remove_file() {
     let _guard = init_pool();
-    let fs = MemoryFs::new();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
     let nfs = Arc::new(VfsNfs::new(fs));
 
     run_nfs_async({
         let nfs = nfs.clone();
-        async move { nfs.create(1, &ns("toremove.txt"), nfsserve::nfs::sattr3::default()).await }
-    }).unwrap();
+        async move {
+            nfs.create(1, &ns("toremove.txt"), nfsserve::nfs::sattr3::default())
+                .await
+        }
+    })
+    .unwrap();
     run_nfs_async({
         let nfs = nfs.clone();
         async move { nfs.remove(1, &ns("toremove.txt")).await }
-    }).unwrap();
+    })
+    .unwrap();
 }
 
 /// Bug fixes: `remove` and `rename` ignored the directory id and used the
@@ -210,21 +258,28 @@ fn test_nfs_remove_file() {
 #[serial_test::serial]
 fn test_nfs_remove_and_rename_in_subdirectory() {
     let _guard = init_pool();
-    let nfs = Arc::new(VfsNfs::new(MemoryFs::new()));
+    let nfs = Arc::new(VfsNfs::new(MemoryFs::new(foundation_context::Ctx::fixed(
+        std::sync::Arc::new(foundation_context::MonotonicClock::new()),
+    ))));
 
     let n = Arc::clone(&nfs);
     let (sub, _) = run_nfs_async(async move { n.mkdir(1, &ns("sub")).await }).unwrap();
     assert_ne!(sub, 1, "a new entry must not reuse the root id");
     let n = Arc::clone(&nfs);
-    assert_eq!(run_nfs_async(async move { n.lookup(1, &ns("sub")).await }).unwrap(), sub);
+    assert_eq!(
+        run_nfs_async(async move { n.lookup(1, &ns("sub")).await }).unwrap(),
+        sub
+    );
     let n = Arc::clone(&nfs);
     run_nfs_async(async move {
-        n.create(sub, &ns("a.txt"), nfsserve::nfs::sattr3::default()).await
+        n.create(sub, &ns("a.txt"), nfsserve::nfs::sattr3::default())
+            .await
     })
     .unwrap();
     let n = Arc::clone(&nfs);
     run_nfs_async(async move {
-        n.create(sub, &ns("gone.txt"), nfsserve::nfs::sattr3::default()).await
+        n.create(sub, &ns("gone.txt"), nfsserve::nfs::sattr3::default())
+            .await
     })
     .unwrap();
 
@@ -245,4 +300,78 @@ fn test_nfs_remove_and_rename_in_subdirectory() {
         run_nfs_async(async move { n.lookup(sub, &ns("gone.txt")).await }),
         Err(nfsstat3::NFS3ERR_NOENT)
     ));
+}
+
+// ── E8: readdir pagination and attribute times ──
+
+#[test]
+#[foundation_macros::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn nfs_readdir_pages_without_repeats() {
+    let _guard = init_pool();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
+    fs.mkdir("/dir").unwrap();
+    for i in 0..1000 {
+        fs.create(&format!("/dir/file_{i:04}"), 0o644).unwrap();
+    }
+
+    let nfs = Arc::new(VfsNfs::new(fs));
+    let dir_id = run_nfs_async({
+        let nfs = nfs.clone();
+        async move { nfs.path_to_id(b"/dir").await }
+    })
+    .unwrap();
+
+    let mut seen = std::collections::HashSet::new();
+    let mut cookie = 0u64;
+    loop {
+        let result = run_nfs_async({
+            let nfs = nfs.clone();
+            async move { nfs.readdir(dir_id, cookie, 100).await }
+        })
+        .unwrap();
+
+        for entry in &result.entries {
+            let name = String::from_utf8_lossy(&entry.name).to_string();
+            assert!(seen.insert(name.clone()), "repeated entry: {name}");
+        }
+        if result.entries.is_empty() {
+            break;
+        }
+        cookie = result.entries.last().unwrap().fileid;
+        if result.end {
+            break;
+        }
+    }
+    assert_eq!(seen.len(), 1000);
+}
+
+#[test]
+#[foundation_macros::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn nfs_attrs_have_mtime() {
+    let _guard = init_pool();
+    let fs = MemoryFs::new(foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    )));
+    fs.create("/file.txt", 0o644).unwrap();
+    fs.write_file("/file.txt", b"data").unwrap();
+
+    let nfs = Arc::new(VfsNfs::new(fs));
+    let id = run_nfs_async({
+        let nfs = nfs.clone();
+        async move { nfs.path_to_id(b"/file.txt").await }
+    })
+    .unwrap();
+
+    let attr = run_nfs_async({
+        let nfs = nfs.clone();
+        async move { nfs.getattr(id).await }
+    })
+    .unwrap();
+    assert!(attr.mtime.seconds > 0, "mtime must come from VfsMetadata");
 }

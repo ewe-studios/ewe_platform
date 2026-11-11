@@ -38,10 +38,18 @@ fn smollm_spec() -> ModelSpec {
     }
 }
 
+/// The explicit real clock backend for tests.
+fn test_clock() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 /// Enabling MTP on a model without an MTP head must error at load time.
+
 #[valtron_test]
 fn test_mtp_on_unsupported_model_errors() {
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let config = LlamaBackendConfig::builder().mtp(None, 4).build();
 
     let result = backend.load_model(smollm_spec(), &config);
@@ -60,7 +68,7 @@ fn test_mtp_on_unsupported_model_errors() {
 /// The same model loads fine with MTP disabled (control).
 #[valtron_test]
 fn test_no_mtp_loads_normally() {
-    let backend = LlamaBackends::LLamaCPU;
+    let backend = LlamaBackends::cpu(test_clock());
     let result = backend.load_model(smollm_spec(), &LlamaBackendConfig::default());
     assert!(
         result.is_ok(),

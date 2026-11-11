@@ -1,0 +1,22 @@
+[package]
+name = "foundation_cloudflare_shares"
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Generated Cloudflare API client: shares group"
+
+[dependencies]
+foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.1" }
+foundation_deployment = { path = "../foundation_deployment", version = "0.0.5" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.20" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.13", default-features = false, features = ["ssl", "multi"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+base85rs = "0.1"
+sha2 = "0.10"
+
+[lints]
+workspace = true

@@ -1,4 +1,4 @@
-//! Tests for the no_std tracing subscriber (`foundation_nostd::trace`).
+//! Tests for the `no_std` tracing subscriber (`foundation_nostd::trace`).
 
 #![cfg(feature = "trace")]
 
@@ -26,11 +26,17 @@ fn forwards_enabled_events_and_filters_levels() {
     tracing::info!(target: "test", answer = 42u64, name = "bob", "a message");
 
     let out = CAPTURED.lock().unwrap().clone();
-    assert!(!out.contains("trace is filtered out"), "trace! leaked: {out}");
+    assert!(
+        !out.contains("trace is filtered out"),
+        "trace! leaked: {out}"
+    );
     assert!(out.contains("INFO test:"), "level/target missing: {out}");
     assert!(out.contains("answer=42"), "i64 field missing: {out}");
     assert!(out.contains("name=\"bob\""), "str field missing: {out}");
     // The message field is a `fmt::Arguments` value, so its `Debug` (and this
     // visitor) print it unquoted, unlike the `&str` `name` field.
-    assert!(out.contains("message=a message"), "message field missing: {out}");
+    assert!(
+        out.contains("message=a message"),
+        "message field missing: {out}"
+    );
 }

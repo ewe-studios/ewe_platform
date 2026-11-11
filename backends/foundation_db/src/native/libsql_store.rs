@@ -7,9 +7,9 @@
 //! `libsql::Connection`, shared across all modes.
 //!
 //! HOW: Different constructors for different usage modes:
-//!   - `LibsqlStore::new_kv()` — KV/query/rate-limit/blob store (kv_store, rate_limits, blobs tables)
-//!   - `LibsqlStore::new_state()` — StateStore (table: `{project}_{stage}_resources`)
-//!   - `LibsqlStore::new_state_remote()` — StateStore with Turso remote sync
+//!   - `LibsqlStore::new_kv()` — KV/query/rate-limit/blob store (`kv_store`, `rate_limits`, blobs tables)
+//!   - `LibsqlStore::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
+//!   - `LibsqlStore::new_state_remote()` — `StateStore` with Turso remote sync
 //!
 //! The KV/query/rate-limit/blob side implements only the `Async*` storage
 //! traits, and the constructors are `async fn`s. Its `StateStore` impl is async too: queries
@@ -20,19 +20,21 @@ use std::sync::Arc;
 
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_context::Ctx;
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
-use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit;
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
+use crate::native::conn_gate::{is_read_only_sql, ConnGate, ReadGuard, WriteGuard};
 
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
-    RateLimiterStore, DataValue, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore, SqlRow,
 };
 
 // ============================================================================
@@ -51,6 +53,24 @@ fn state_upsert_sql(table_name: &str) -> String {
     )
 }
 
+/// `INSERT` that does nothing if the id exists (for `set_if_version` with no
+/// expected version).
+fn state_insert_if_absent_sql(table_name: &str) -> String {
+    format!(
+        "INSERT INTO {table_name} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING",
+    )
+}
+
+/// `UPDATE` that changes the row only if its `updated_at` is the expected one
+/// (for `set_if_version`). Parameters: `kind`, `provider`, `status`,
+/// `environment`, `config_hash`, `output`, `config_snapshot`, the new
+/// `updated_at`, `id`, and the expected `updated_at`.
+fn state_update_if_version_sql(table_name: &str) -> String {
+    format!(
+        "UPDATE {table_name} SET kind = ?, provider = ?, status = ?, environment = ?, config_hash = ?, output = ?, config_snapshot = ?, updated_at = ? WHERE id = ? AND updated_at = ?",
+    )
+}
+
 fn state_create_indexes_sql(table_name: &str) -> String {
     format!(
         "CREATE INDEX IF NOT EXISTS idx_{table_name}_kind ON {table_name}(kind);\
@@ -65,7 +85,12 @@ fn escape_like(s: &str) -> String {
 }
 
 fn parse_state_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
-    let get = |idx: usize| row.get::<String>(idx as i32).map_err(|e| StorageError::SqlConversion(e.to_string()));
+    let get = |idx: usize| {
+        let column = i32::try_from(idx)
+            .map_err(|e| StorageError::SqlConversion(format!("column index {idx}: {e}")))?;
+        row.get::<String>(column)
+            .map_err(|e| StorageError::SqlConversion(e.to_string()))
+    };
     let id = get(0)?;
     let kind = get(1)?;
     let provider = get(2)?;
@@ -89,19 +114,36 @@ fn parse_state_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
     let updated_at = chrono::DateTime::parse_from_rfc3339(&updated_str)
         .map(|dt| dt.with_timezone(&chrono::Utc))
         .map_err(|e| StorageError::Serialization(format!("updated_at parse: {e}")))?;
-    Ok(ResourceState { id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at })
+    Ok(ResourceState {
+        id,
+        kind,
+        provider,
+        status,
+        environment,
+        config_hash,
+        output,
+        config_snapshot,
+        created_at,
+        updated_at,
+    })
 }
 
 fn state_to_params(state: &ResourceState) -> Result<Vec<libsql::Value>, StorageError> {
-    let status_json = serde_json::to_string(&state.status).map_err(|e| StorageError::Serialization(e.to_string()))?;
-    let output_json = serde_json::to_string(&state.output).map_err(|e| StorageError::Serialization(e.to_string()))?;
-    let snapshot_json = serde_json::to_string(&state.config_snapshot).map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let status_json = serde_json::to_string(&state.status)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let output_json = serde_json::to_string(&state.output)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let snapshot_json = serde_json::to_string(&state.config_snapshot)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
     Ok(vec![
         libsql::Value::Text(state.id.clone()),
         libsql::Value::Text(state.kind.clone()),
         libsql::Value::Text(state.provider.clone()),
         libsql::Value::Text(status_json),
-        state.environment.as_ref().map_or(libsql::Value::Null, |e| libsql::Value::Text(e.clone())),
+        state
+            .environment
+            .as_ref()
+            .map_or(libsql::Value::Null, |e| libsql::Value::Text(e.clone())),
         libsql::Value::Text(state.config_hash.clone()),
         libsql::Value::Text(output_json),
         libsql::Value::Text(snapshot_json),
@@ -111,13 +153,15 @@ fn state_to_params(state: &ResourceState) -> Result<Vec<libsql::Value>, StorageE
 }
 
 /// Stream the rows of a query, mapped one at a time (nothing is collected).
-fn libsql_rows<T: Send + 'static>(
+fn libsql_rows<T: Send + 'static, G: Send + 'static>(
     conn: Arc<libsql::Connection>,
+    guard: G,
     sql: String,
     params: Vec<libsql::Value>,
     map: fn(&libsql::Row) -> StorageResult<T>,
 ) -> StateStoreStream<T> {
     Box::pin(try_stream! {
+        let _guard = guard;
         let mut stmt = conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
         let mut rows = stmt.query(params).await.map_err(|e| StorageError::Backend(e.to_string()))?;
         while let Some(row) = rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
@@ -127,7 +171,8 @@ fn libsql_rows<T: Send + 'static>(
 }
 
 fn row_id(row: &libsql::Row) -> StorageResult<String> {
-    row.get::<String>(0).map_err(|e| StorageError::SqlConversion(e.to_string()))
+    row.get::<String>(0)
+        .map_err(|e| StorageError::SqlConversion(e.to_string()))
 }
 
 /// A `SELECT COUNT(*)`'s single value.
@@ -136,11 +181,23 @@ async fn libsql_count(
     sql: &str,
     params: Vec<libsql::Value>,
 ) -> StorageResult<usize> {
-    let mut stmt = conn.prepare(sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-    let mut rows = stmt.query(params).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-    match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+    let mut stmt = conn
+        .prepare(sql)
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+    let mut rows = stmt
+        .query(params)
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+    match rows
+        .next()
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?
+    {
         Some(row) => {
-            let n: i64 = row.get(0).map_err(|e| StorageError::SqlConversion(e.to_string()))?;
+            let n: i64 = row
+                .get(0)
+                .map_err(|e| StorageError::SqlConversion(e.to_string()))?;
             usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("count: {e}")))
         }
         None => Ok(0),
@@ -156,11 +213,13 @@ const STATE_COLUMNS: &str =
 
 #[derive(Clone)]
 enum LibsqlMode {
-    /// KV/query/rate-limit/blob store. Uses kv_store, rate_limits, blobs tables.
-    KeyValue { encryption_key: Option<EncryptionKey> },
-    /// StateStore. Table name = `{project}_{stage}_resources`.
+    /// KV/query/rate-limit/blob store. Uses `kv_store`, `rate_limits`, blobs tables.
+    KeyValue {
+        encryption_key: Option<EncryptionKey>,
+    },
+    /// `StateStore`. Table name = `{project}_{stage}_resources`.
     State { table_name: String },
-    /// StateStore with Turso remote sync. Table name = `{project}_{stage}_resources`.
+    /// `StateStore` with Turso remote sync. Table name = `{project}_{stage}_resources`.
     StateRemote { table_name: String },
 }
 
@@ -168,9 +227,25 @@ enum LibsqlMode {
 // LibsqlStore
 // ============================================================================
 
+/// libsql-backed store. It keeps one connection and an async read/write lock
+/// (shared by clones): reads run together; a write, a raw statement or a batch
+/// (`BEGIN` to `COMMIT`/`ROLLBACK`) has the connection to itself.
+///
+/// Row streams hold their guard until they end or are dropped. A batch or write
+/// waits until open row streams from this store end; do not start a batch or a
+/// write on the same task while you hold a row stream from this store (it would
+/// wait for itself). The raw `QueryStore::query` stream holds the read guard
+/// when the SQL is a single `SELECT` or `EXPLAIN`, and the write guard for any
+/// other statement (raw SQL can write, for example `INSERT ... RETURNING`).
+///
+/// The lock prefers writers, so a nested call on the same task can wait for a
+/// writer that waits for your stream. Every wait ends after `lock_timeout`
+/// (default 30 s, see `with_lock_timeout`) with `StorageError::LockTimeout`
+/// naming the read or write side, so the mistake fails instead of hanging.
 #[derive(Clone)]
 pub struct LibsqlStore {
     conn: Arc<libsql::Connection>,
+    gate: ConnGate,
     db: Option<Arc<libsql::Database>>,
     mode: LibsqlMode,
 }
@@ -186,8 +261,8 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database can't be opened or migrated.
-    pub async fn in_memory() -> StorageResult<Self> {
-        let store = Self::new_kv(":memory:", None).await?;
+    pub async fn in_memory(ctx: Ctx) -> StorageResult<Self> {
+        let store = Self::new_kv(":memory:", None, ctx.clone()).await?;
         MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
         Ok(store)
     }
@@ -197,11 +272,18 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub async fn new_kv(db_path: &str, encryption_key: Option<EncryptionKey>) -> StorageResult<Self> {
+    pub async fn new_kv(
+        db_path: &str,
+        encryption_key: Option<EncryptionKey>,
+        ctx: Ctx,
+    ) -> StorageResult<Self> {
         let db = libsql::Builder::new_local(db_path).build().await?;
-        let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            gate: ConnGate::new(ctx),
             db: None,
             mode: LibsqlMode::KeyValue { encryption_key },
         })
@@ -209,14 +291,19 @@ impl LibsqlStore {
 
     // ========== State-mode constructors ==========
 
-    /// Local-only StateStore.
+    /// Local-only `StateStore`.
     ///
     /// Table name = `{project}_{stage}_resources`.
     ///
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub async fn new_state(db_path: &str, project: &str, stage: &str) -> StorageResult<Self> {
+    pub async fn new_state(
+        db_path: &str,
+        project: &str,
+        stage: &str,
+        ctx: Ctx,
+    ) -> StorageResult<Self> {
         if let Some(parent) = Path::new(db_path).parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -226,15 +313,18 @@ impl LibsqlStore {
             stage.replace(['-', ' '], "_"),
         );
         let db = libsql::Builder::new_local(db_path).build().await?;
-        let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            gate: ConnGate::new(ctx),
             db: None,
             mode: LibsqlMode::State { table_name },
         })
     }
 
-    /// StateStore with Turso remote sync.
+    /// `StateStore` with Turso remote sync.
     ///
     /// Table name = `{project}_{stage}_resources`.
     ///
@@ -247,6 +337,7 @@ impl LibsqlStore {
         auth_token: &str,
         project: &str,
         stage: &str,
+        ctx: Ctx,
     ) -> StorageResult<Self> {
         if let Some(parent) = Path::new(local_path).parent() {
             std::fs::create_dir_all(parent)?;
@@ -259,10 +350,15 @@ impl LibsqlStore {
             project.replace(['-', ' '], "_"),
             stage.replace(['-', ' '], "_"),
         );
-        let db = libsql::Builder::new_remote_replica(path, url, token).build().await?;
-        let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        let db = libsql::Builder::new_remote_replica(path, url, token)
+            .build()
+            .await?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            gate: ConnGate::new(ctx),
             db: Some(Arc::new(db)),
             mode: LibsqlMode::StateRemote { table_name },
         })
@@ -275,13 +371,13 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub async fn from_env_kv() -> StorageResult<Self> {
+    pub async fn from_env_kv(ctx: Ctx) -> StorageResult<Self> {
         let path = std::env::var("DEPLOYMENT_STATE_DB")
             .unwrap_or_else(|_| ".deployment/state.db".to_string());
-        Self::new_kv(&path, None).await
+        Self::new_kv(&path, None, ctx.clone()).await
     }
 
-    /// StateStore from environment.
+    /// `StateStore` from environment.
     ///
     /// Priority:
     ///   1. `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` → remote Turso
@@ -292,7 +388,12 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub async fn from_env_state(project_dir: &Path, project: &str, stage: &str) -> StorageResult<Self> {
+    pub async fn from_env_state(
+        project_dir: &Path,
+        project: &str,
+        stage: &str,
+        ctx: Ctx,
+    ) -> StorageResult<Self> {
         // Remote Turso
         if let (Ok(url), Ok(token)) = (
             std::env::var("TURSO_DATABASE_URL"),
@@ -300,7 +401,7 @@ impl LibsqlStore {
         ) {
             let local = std::env::var("TURSO_LOCAL_REPLICA")
                 .unwrap_or_else(|_| ".deployment/turso_replica.db".to_string());
-            return Self::new_state_remote(&local, &url, &token, project, stage).await;
+            return Self::new_state_remote(&local, &url, &token, project, stage, ctx.clone()).await;
         }
 
         // Embedded replica via libsql env
@@ -310,14 +411,14 @@ impl LibsqlStore {
         ) {
             let local = std::env::var("LIBSQL_LOCAL_PATH")
                 .unwrap_or_else(|_| ".deployment/libsql.db".to_string());
-            return Self::new_state_remote(&local, &url, &token, project, stage).await;
+            return Self::new_state_remote(&local, &url, &token, project, stage, ctx.clone()).await;
         }
 
         // Local-only
         let path = std::env::var("LIBSQL_LOCAL_PATH")
             .or_else(|_| std::env::var("DEPLOYMENT_STATE_DB"))
             .unwrap_or_else(|_| format!("{}/.deployment/state.db", project_dir.display()));
-        Self::new_state(&path, project, stage).await
+        Self::new_state(&path, project, stage, ctx.clone()).await
     }
 
     // ========== Shared helpers ==========
@@ -330,13 +431,16 @@ impl LibsqlStore {
     }
 
     fn to_libsql_params(params: &[DataValue]) -> Vec<libsql::Value> {
-        params.iter().map(|v| match v {
-            DataValue::Null => libsql::Value::Null,
-            DataValue::Integer(i) => libsql::Value::Integer(*i),
-            DataValue::Real(r) => libsql::Value::Real(*r),
-            DataValue::Text(s) => libsql::Value::Text(s.clone()),
-            DataValue::Blob(b) => libsql::Value::Blob(b.clone()),
-        }).collect()
+        params
+            .iter()
+            .map(|v| match v {
+                DataValue::Null => libsql::Value::Null,
+                DataValue::Integer(i) => libsql::Value::Integer(*i),
+                DataValue::Real(r) => libsql::Value::Real(*r),
+                DataValue::Text(s) => libsql::Value::Text(s.clone()),
+                DataValue::Blob(b) => libsql::Value::Blob(b.clone()),
+            })
+            .collect()
     }
 
     fn libsql_row_to_sql_row(row: &libsql::Row, column_count: i32) -> StorageResult<SqlRow> {
@@ -361,7 +465,9 @@ impl LibsqlStore {
 
     fn maybe_encrypt(&self, json_str: &str) -> StorageResult<String> {
         match &self.mode {
-            LibsqlMode::KeyValue { encryption_key: Some(key) } => {
+            LibsqlMode::KeyValue {
+                encryption_key: Some(key),
+            } => {
                 let encrypted = encrypt(key, json_str.as_bytes())?;
                 Ok(STANDARD.encode(&encrypted))
             }
@@ -371,16 +477,99 @@ impl LibsqlStore {
 
     fn maybe_decrypt(&self, stored_value: &str) -> StorageResult<String> {
         match &self.mode {
-            LibsqlMode::KeyValue { encryption_key: Some(key) } => {
-                let encrypted = STANDARD.decode(stored_value)
+            LibsqlMode::KeyValue {
+                encryption_key: Some(key),
+            } => {
+                let encrypted = STANDARD
+                    .decode(stored_value)
                     .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
                 let decrypted = decrypt(key, &encrypted)?;
                 core::str::from_utf8(&decrypted)
                     .map(String::from)
-                    .map_err(|e| StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}")))
+                    .map_err(|e| {
+                        StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                    })
             }
             _ => Ok(stored_value.to_string()),
         }
+    }
+
+    /// Set how long a call waits for the connection lock before it fails with
+    /// [`StorageError::LockTimeout`]. Default: 30 s, the default acquire
+    /// timeout of the `sqlx` pool. A task that holds a row stream and calls
+    /// another operation on the same store waits for itself; this limit turns
+    /// that mistake into an error instead of a hang. Call it before the first
+    /// operation; clones made afterwards share the new limit.
+    #[must_use]
+    pub fn with_lock_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.gate = self.gate.with_timeout(timeout);
+        self
+    }
+
+    // ========== Connection gate ==========
+
+    /// Shared guard for an operation that only reads. Waits while a write or a
+    /// batch is open. If an earlier rollback failed, the connection is checked
+    /// first.
+    async fn read(&self) -> StorageResult<ReadGuard> {
+        loop {
+            let guard = self.gate.read().await?;
+            if !self.gate.needs_check() {
+                return Ok(guard);
+            }
+            drop(guard);
+            let _writer = self.write().await?;
+        }
+    }
+
+    /// Exclusive guard for a write, a raw statement or a batch. If an earlier
+    /// rollback failed, the connection is checked first.
+    async fn write(&self) -> StorageResult<WriteGuard> {
+        let guard = self.gate.write().await?;
+        if self.gate.needs_check() {
+            // Backend check: `libsql::Connection::is_autocommit`. A connection
+            // that is not in autocommit mode is still inside a transaction.
+            if !self.conn.is_autocommit() {
+                self.conn.execute_batch("ROLLBACK").await.map_err(|e| {
+                    StorageError::Backend(format!(
+                        "connection is inside a transaction and rollback failed: {e}"
+                    ))
+                })?;
+            }
+            self.gate.clear_needs_check();
+        }
+        Ok(guard)
+    }
+
+    /// Roll back after `cause` failed a batch. The caller holds the write
+    /// guard. Returns the error for the caller: the statement error, with the
+    /// rollback error attached when the rollback failed too. A failed rollback
+    /// marks the store so the next operation checks for an open transaction.
+    async fn rollback_after(&self, cause: String) -> StorageError {
+        let rollback = if self.gate.take_injected_rollback_failure() {
+            Err("injected rollback failure".to_string())
+        } else {
+            self.conn
+                .execute_batch("ROLLBACK")
+                .await
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        };
+        match rollback {
+            Ok(()) => StorageError::Backend(cause),
+            Err(rollback_error) => {
+                self.gate.mark_needs_check();
+                StorageError::Backend(format!("{cause}; rollback also failed: {rollback_error}"))
+            }
+        }
+    }
+
+    /// Test hook: make the next batch rollback fail without running it, so the
+    /// transaction stays open. Not part of the stable API.
+    #[cfg(feature = "test-hooks")]
+    #[doc(hidden)]
+    pub fn inject_rollback_failure(&self) {
+        self.gate.inject_rollback_failure();
     }
 
     // ========== KV init ==========
@@ -400,6 +589,7 @@ impl LibsqlStore {
             );
             CREATE INDEX IF NOT EXISTS idx_kv_store_key ON kv_store(key);
         ";
+        let _guard = self.write().await?;
         self.conn.execute_batch(schema_sql).await?;
         Ok(())
     }
@@ -408,7 +598,11 @@ impl LibsqlStore {
     // Async-First internal methods (source of truth for all KV/blob/SQL ops)
     // ========================================================================
 
-    async fn get_async_internal<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get_async_internal<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let storage = self.clone();
@@ -441,6 +635,7 @@ impl LibsqlStore {
     }
 
     async fn set_async_internal<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let serialized = serde_json::to_string(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let stored_value = self.maybe_encrypt(&serialized)?;
@@ -457,6 +652,7 @@ impl LibsqlStore {
     }
 
     async fn delete_async_internal(&self, key: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         conn.execute("DELETE FROM kv_store WHERE key = ?", [key])
@@ -465,7 +661,42 @@ impl LibsqlStore {
         Ok(())
     }
 
+    /// One `DELETE ... RETURNING`, so only one caller gets the row.
+    async fn take_async_internal<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        let _guard = self.write().await?;
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        let opt = conn
+            .prepare("DELETE FROM kv_store WHERE key = ? RETURNING value")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        match opt {
+            Some(row) => {
+                let stored: String = row
+                    .get(0)
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let json_str = self
+                    .maybe_decrypt(&stored)
+                    .map_err(|e| StorageError::Encryption(e.to_string()))?;
+                let value: V = serde_json::from_str(&json_str)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
     async fn exists_async_internal(&self, key: &str) -> StorageResult<bool> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let exists = conn
@@ -488,12 +719,14 @@ impl LibsqlStore {
     /// The `.await` calls inside `try_stream!` are lazy: they only execute when
     /// the stream is polled. This function just constructs and returns the
     /// generator state machine.
-    fn query_rows_stream(
+    fn query_rows_stream<G: Send + 'static>(
         conn: Arc<libsql::Connection>,
+        guard: G,
         sql: String,
         params: Vec<libsql::Value>,
     ) -> impl AsyncStream<Item = StorageResult<SqlRow>> + Send {
         try_stream! {
+            let _guard = guard;
             let mut stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query(params).await
@@ -510,12 +743,14 @@ impl LibsqlStore {
 
     /// Creates a lazy async stream that yields KV keys one at a time.
     /// Same pattern as `query_rows_stream` — sync function returning a lazy stream.
-    fn list_keys_stream(
+    fn list_keys_stream<G: Send + 'static>(
         conn: Arc<libsql::Connection>,
+        guard: G,
         sql: String,
         param: libsql::Value,
     ) -> impl AsyncStream<Item = StorageResult<String>> + Send {
         try_stream! {
+            let _guard = guard;
             let mut stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query([param]).await
@@ -531,6 +766,7 @@ impl LibsqlStore {
     }
 
     async fn execute_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        let _guard = self.write().await?;
         let libsql_params = Self::to_libsql_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
@@ -540,6 +776,7 @@ impl LibsqlStore {
     }
 
     async fn execute_batch_async_internal(&self, sql: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
         conn.execute_batch(&sql)
@@ -549,9 +786,11 @@ impl LibsqlStore {
     }
 
     async fn put_blob_async_internal(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let create_table = "CREATE TABLE IF NOT EXISTS blobs (key TEXT PRIMARY KEY, data BLOB NOT NULL, size INTEGER NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))";
         let conn = Arc::clone(&self.conn);
-        conn.execute_batch(create_table).await
+        conn.execute_batch(create_table)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let encoded = STANDARD.encode(data);
@@ -569,6 +808,7 @@ impl LibsqlStore {
     }
 
     async fn get_blob_async_internal(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
@@ -585,15 +825,19 @@ impl LibsqlStore {
 
         match opt {
             Some(row) => {
-                let encoded: String = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok(Some(STANDARD.decode(&encoded)
-                    .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?))
+                let encoded: String = row
+                    .get(0)
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok(Some(STANDARD.decode(&encoded).map_err(|e| {
+                    StorageError::Backend(format!("Base64 decode failed: {e}"))
+                })?))
             }
             None => Ok(None),
         }
     }
 
     async fn delete_blob_async_internal(&self, key: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         conn.execute("DELETE FROM blobs WHERE key = ?", [key])
@@ -603,6 +847,7 @@ impl LibsqlStore {
     }
 
     async fn blob_exists_async_internal(&self, key: &str) -> StorageResult<bool> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let exists = conn
@@ -627,8 +872,13 @@ impl LibsqlStore {
 #[async_trait::async_trait]
 impl StateStore for LibsqlStore {
     async fn init(&self) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let table = self.state_table();
-        let sql = format!("{};\n{}", state_create_table_sql(table), state_create_indexes_sql(table));
+        let sql = format!(
+            "{};\n{}",
+            state_create_table_sql(table),
+            state_create_indexes_sql(table)
+        );
         self.conn
             .execute_batch(&sql)
             .await
@@ -637,44 +887,94 @@ impl StateStore for LibsqlStore {
     }
 
     async fn list(&self) -> StorageResult<StateStoreStream<String>> {
+        let guard = self.read().await?;
         let sql = format!("SELECT id FROM {} ORDER BY id", self.state_table());
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, Vec::new(), row_id))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            Vec::new(),
+            row_id,
+        ))
     }
 
     async fn count(&self) -> StorageResult<usize> {
-        libsql_count(&self.conn, &format!("SELECT COUNT(*) FROM {}", self.state_table()), Vec::new()).await
+        let _guard = self.read().await?;
+        libsql_count(
+            &self.conn,
+            &format!("SELECT COUNT(*) FROM {}", self.state_table()),
+            Vec::new(),
+        )
+        .await
     }
 
     async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE id = ?", self.state_table());
-        let mut stmt = self.conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
+        let _guard = self.read().await?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE id = ?",
+            self.state_table()
+        );
+        let mut stmt = self
+            .conn
+            .prepare(&sql)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
         let mut rows = stmt
             .query([resource_id.to_string()])
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
-        match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+        match rows
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+        {
             Some(row) => Ok(Some(parse_state_row(&row)?)),
             None => Ok(None),
         }
     }
 
     async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>> {
+        let guard = self.read().await?;
         if ids.is_empty() {
             return Ok(Box::pin(futures_lite::stream::empty()));
         }
         let placeholders = vec!["?"; ids.len()].join(",");
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})", self.state_table());
-        let params = ids.iter().map(|id| libsql::Value::Text((*id).to_string())).collect();
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})",
+            self.state_table()
+        );
+        let params = ids
+            .iter()
+            .map(|id| libsql::Value::Text((*id).to_string()))
+            .collect();
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} ORDER BY id", self.state_table());
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, Vec::new(), parse_state_row))
+        let guard = self.read().await?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} ORDER BY id",
+            self.state_table()
+        );
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            Vec::new(),
+            parse_state_row,
+        ))
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        let params = state_to_params(state)?;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let _guard = self.write().await?;
+        let state = state.with_id(resource_id);
+        let params = state_to_params(&state)?;
         self.conn
             .execute(&state_upsert_sql(self.state_table()), params)
             .await
@@ -682,7 +982,41 @@ impl StateStore for LibsqlStore {
         Ok(())
     }
 
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        // One statement under the write guard: the row changes only if the
+        // condition holds, so two writers cannot both win.
+        let _guard = self.write().await?;
+        let state = state.with_id(resource_id);
+        let mut params = state_to_params(&state)?;
+        let (sql, params) = match expected {
+            None => (state_insert_if_absent_sql(self.state_table()), params),
+            Some(version) => {
+                // id, kind, provider, status, environment, hash, output,
+                // snapshot, created_at, updated_at  ->  the UPDATE order.
+                let updated_at = params.pop().unwrap_or(libsql::Value::Null);
+                params.pop(); // created_at is not changed
+                let id = params.remove(0);
+                params.push(updated_at);
+                params.push(id);
+                params.push(libsql::Value::Text(version.to_rfc3339()));
+                (state_update_if_version_sql(self.state_table()), params)
+            }
+        };
+        let changed = self
+            .conn
+            .execute(&sql, params)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(changed == 1)
+    }
+
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let sql = format!("DELETE FROM {} WHERE id = ?", self.state_table());
         self.conn
             .execute(&sql, [resource_id.to_string()])
@@ -692,55 +1026,121 @@ impl StateStore for LibsqlStore {
     }
 
     async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
-        let sql = format!("SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id", self.state_table());
+        let guard = self.read().await?;
+        let sql = format!(
+            "SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
+            self.state_table()
+        );
         let params = vec![libsql::Value::Text(escape_like(prefix))];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, row_id))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            params,
+            row_id,
+        ))
     }
 
     async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        let sql = format!("SELECT COUNT(*) FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
-        libsql_count(&self.conn, &sql, vec![libsql::Value::Text(escape_like(prefix))]).await
+        let _guard = self.read().await?;
+        let sql = format!(
+            "SELECT COUNT(*) FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.state_table()
+        );
+        libsql_count(
+            &self.conn,
+            &sql,
+            vec![libsql::Value::Text(escape_like(prefix))],
+        )
+        .await
     }
 
     async fn all_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+        let guard = self.read().await?;
         let sql = format!(
             "SELECT {STATE_COLUMNS} FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
             self.state_table()
         );
         let params = vec![libsql::Value::Text(escape_like(prefix))];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn find_by_kind(&self, kind: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id", self.state_table());
+        let guard = self.read().await?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id",
+            self.state_table()
+        );
         let params = vec![libsql::Value::Text(kind.to_string())];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn find_by_status(&self, status: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id", self.state_table());
-        let status = status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let guard = self.read().await?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id",
+            self.state_table()
+        );
+        let status =
+            status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let params = vec![libsql::Value::Text(status)];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
-    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id", self.state_table());
+    async fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
+        let guard = self.read().await?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id",
+            self.state_table()
+        );
         let params = vec![libsql::Value::Text(provider.to_string())];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            guard,
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn delete_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        let sql = format!("DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
+        let _guard = self.write().await?;
+        let sql = format!(
+            "DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.state_table()
+        );
         let deleted = self
             .conn
             .execute(&sql, [libsql::Value::Text(escape_like(prefix))])
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
-        usize::try_from(deleted).map_err(|e| StorageError::SqlConversion(format!("deleted count: {e}")))
+        usize::try_from(deleted)
+            .map_err(|e| StorageError::SqlConversion(format!("deleted count: {e}")))
     }
 
     async fn sync_remote(&self) -> StorageResult<()> {
+        let _guard = self.write().await?;
         if let (LibsqlMode::StateRemote { .. }, Some(db)) = (&self.mode, &self.db) {
             db.sync()
                 .await
@@ -756,19 +1156,32 @@ impl StateStore for LibsqlStore {
 
 #[async_trait::async_trait]
 impl KeyValueStore for LibsqlStore {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
     }
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         self.set_async_internal(key, value).await
     }
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str) -> StorageResult<()> {
         self.delete_async_internal(key).await
     }
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        self.take_async_internal::<V>(key).await
+    }
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
         self.exists_async_internal(key).await
     }
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let (sql, param) = match prefix {
             Some(p) => (
                 "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
@@ -779,55 +1192,99 @@ impl KeyValueStore for LibsqlStore {
                 Self::to_libsql_params(&[DataValue::Null]),
             ),
         };
+        let guard = self.read().await?;
         let conn = Arc::clone(&self.conn);
         let param = param.into_iter().next().unwrap_or(libsql::Value::Null);
-        let stream = Self::list_keys_stream(conn, sql.to_string(), param);
+        let stream = Self::list_keys_stream(conn, guard, sql.to_string(), param);
         Ok(AsyncListStream::new(stream))
     }
 }
 
 #[async_trait::async_trait]
 impl QueryStore for LibsqlStore {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        // A statement that can only read shares the connection. Anything else
+        // (raw SQL can write, e.g. `INSERT ... RETURNING`) holds the write
+        // guard until the stream ends or is dropped.
+        let guard: Box<dyn Send> = if is_read_only_sql(sql) {
+            Box::new(self.read().await?)
+        } else {
+            Box::new(self.write().await?)
+        };
         let conn = Arc::clone(&self.conn);
         let sql = sql.to_string();
         let params = Self::to_libsql_params(params);
-        let stream = Self::query_rows_stream(conn, sql, params);
+        let stream = Self::query_rows_stream(conn, guard, sql, params);
         Ok(AsyncQueryStream::new(stream))
     }
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         self.execute_async_internal(sql, params).await
     }
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+    async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_batch_async_internal(sql).await
+    }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        // The write guard covers BEGIN .. COMMIT/ROLLBACK, so no other task
+        // can run a statement inside this transaction.
+        let _guard = self.write().await?;
+        let conn = Arc::clone(&self.conn);
+        conn.execute_batch("BEGIN")
+            .await
+            .map(|_| ())
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        for (sql, params) in statements {
+            let params = Self::to_libsql_params(params);
+            if let Err(e) = conn.execute(sql, params).await {
+                return Err(self.rollback_after(e.to_string()).await);
+            }
+        }
+        if let Err(e) = conn.execute_batch("COMMIT").await {
+            return Err(self.rollback_after(e.to_string()).await);
+        }
+        Ok(())
     }
 }
 
 #[async_trait::async_trait]
 impl RateLimiterStore for LibsqlStore {
-    async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        rate_limit::sql_check(self, key, max_count, window_seconds).await
+    async fn check_rate_limit(
+        &self,
+        ctx: &Ctx,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
+        rate_limit::sql_check(self, ctx, key, max_count, window_seconds).await
     }
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
-        rate_limit::sql_record(self, key, window_seconds).await
+    async fn record_rate_limit(
+        &self,
+        ctx: &Ctx,
+        key: &str,
+        window_seconds: u64,
+    ) -> StorageResult<u32> {
+        rate_limit::sql_record(self, ctx, key, window_seconds).await
     }
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         rate_limit::sql_reset(self, key).await
     }
 }
 
 #[async_trait::async_trait]
 impl BlobStore for LibsqlStore {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_blob_async_internal(key, data).await
     }
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         self.get_blob_async_internal(key).await
     }
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         self.delete_blob_async_internal(key).await
     }
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         self.blob_exists_async_internal(key).await
     }
 }

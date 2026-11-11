@@ -2,7 +2,7 @@
 //!
 //! WHY: Proves the generated async `*_request` functions + hand-written
 //! `DockerClient` actually round-trip over the Unix-socket transport (Feature 02)
-//! — version negotiation and serde (de)serialization of PascalCase Docker JSON
+//! — version negotiation and serde (de)serialization of `PascalCase` Docker JSON
 //! via per-field `#[serde(rename)]` — without a real dockerd.
 //!
 //! WHAT: A tiny `UnixListener` HTTP server that routes by request path and
@@ -22,16 +22,16 @@ use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_docker::DockerClient;
 use foundation_deployment_docker::generated::version::SystemVersion;
+use foundation_deployment_docker::DockerClient;
 
 fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
-    let path = std::env::temp_dir().join(format!("ewe_docker_{tag}_{pid}_{nanos}.sock"));
+        .map_or(0, |d| d.as_nanos());
+    let path =
+        std::path::PathBuf::from("/tmp").join(format!("ewe_docker_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -79,14 +79,22 @@ fn route(method: &str, path: &str, api_version: Option<&str>) -> (u16, String) {
         ),
         ("GET", "_ping") => (200, "OK".to_string()),
         ("GET", "info") => (200, r#"{"Containers":0}"#.to_string()),
-        _ => (404, format!("{{\"message\":\"no route for {method} {p}\"}}")),
+        _ => (
+            404,
+            format!("{{\"message\":\"no route for {method} {p}\"}}"),
+        ),
     }
 }
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
 /// `api_version` is the `ApiVersion` value the mock reports in `GET /version`.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>, api_version: Option<&'static str>) {
-    mock_daemon_recording(socket_path, stop, api_version, Arc::new(Mutex::new(Vec::new())));
+    mock_daemon_recording(
+        socket_path,
+        stop,
+        api_version,
+        Arc::new(Mutex::new(Vec::new())),
+    );
 }
 
 /// [`mock_daemon`], also recording every request's path into `seen`.
@@ -96,12 +104,14 @@ fn mock_daemon_recording(
     api_version: Option<&'static str>,
     seen: Arc<Mutex<Vec<String>>>,
 ) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         let Some(req) = mock_socket::read_request(&mut stream) else {
             return;
         };
         let (method, path) = (req.method.as_str(), req.target.as_str());
-        seen.lock().expect("request log lock").push(path.to_string());
+        seen.lock()
+            .expect("request log lock")
+            .push(path.to_string());
         let (status, body) = route(method, path, api_version);
         let reason = match status {
             204 => "No Content",
@@ -212,16 +222,26 @@ async fn first_request_negotiates_with_an_older_daemon() {
     mock_daemon_recording(socket.clone(), stop.clone(), Some("1.47"), seen.clone());
 
     let client = DockerClient::connect_unix(&socket);
-    let info = client.system_info().await.expect("info against a 1.47 daemon");
-    assert_eq!(info["Containers"], 0);
+    let info = client
+        .system_info()
+        .await
+        .expect("info against a 1.47 daemon");
+    assert_eq!(info.containers, Some(0));
     assert_eq!(client.api_version(), "1.47");
 
     // A clone shares the negotiated version: no second /version round trip.
     let clone = client.clone();
-    clone.system_ping().await.expect("ping with the negotiated version");
+    clone
+        .system_ping()
+        .await
+        .expect("ping with the negotiated version");
 
     let paths = seen.lock().expect("request log lock").clone();
-    assert_eq!(paths, vec!["/version", "/v1.47/info", "/v1.47/_ping"], "requests sent");
+    assert_eq!(
+        paths,
+        vec!["/version", "/v1.47/info", "/v1.47/_ping"],
+        "requests sent"
+    );
 
     mock_socket::stop(&socket, &stop);
 }
@@ -238,7 +258,11 @@ async fn a_too_new_version_is_an_api_error_not_unreachable() {
     // Bypass negotiation on purpose: build the URL with the default version.
     let url = format!("{}/_ping", client.base_url());
     let builder = foundation_netio::PreparedRequestBuilder::get(&url).expect("request");
-    let response = client.http().send_async(builder.build()).await.expect("daemon answers");
+    let response = client
+        .http()
+        .send_async(builder.build())
+        .await
+        .expect("daemon answers");
     let status: usize = response.get_status().into();
     assert_eq!(status, 400, "an older daemon rejects /v1.53/");
 
@@ -267,10 +291,17 @@ async fn negotiation_reports_a_daemon_with_no_common_version() {
     let client = DockerClient::connect_unix(&socket);
     let v = client.version().await.expect("version");
     assert_eq!(v.min_api_version.as_deref(), Some("1.24"));
-    let err = foundation_deployment_docker::client::negotiate_api_version("1.20", v.api_version.as_deref(), v.min_api_version.as_deref())
-        .expect_err("1.20 is older than the daemon's minimum");
+    let err = foundation_deployment_docker::client::negotiate_api_version(
+        "1.20",
+        v.api_version.as_deref(),
+        v.min_api_version.as_deref(),
+    )
+    .expect_err("1.20 is older than the daemon's minimum");
     assert!(
-        matches!(err, foundation_deployment_docker::DockerError::UnsupportedApiVersion { .. }),
+        matches!(
+            err,
+            foundation_deployment_docker::DockerError::UnsupportedApiVersion { .. }
+        ),
         "{err:?}"
     );
     assert!(!err.is_unreachable());
@@ -284,7 +315,10 @@ async fn negotiation_reports_a_daemon_with_no_common_version() {
 async fn negotiation_with_no_daemon_is_unreachable_and_not_cached() {
     let socket = temp_socket_path("absent");
     let client = DockerClient::connect_unix(&socket);
-    let err = client.negotiate_version().await.expect_err("no daemon there");
+    let err = client
+        .negotiate_version()
+        .await
+        .expect_err("no daemon there");
     assert!(err.is_unreachable(), "{err:?}");
     assert_eq!(client.api_version(), "1.53");
 
