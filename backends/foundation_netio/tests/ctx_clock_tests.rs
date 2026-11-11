@@ -1,5 +1,9 @@
 //! A deadline built from a `Ctx` over a simulated clock expires when the test
 //! moves that clock. The deadline reads the time only through the `Ctx`.
+//!
+//! `DeadlineReadiness` is in the `native` module, so this file is for native
+//! targets only.
+#![cfg(not(target_family = "wasm"))]
 
 use std::sync::Arc;
 use std::time::Duration;

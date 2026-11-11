@@ -429,6 +429,7 @@ name = "foundation_core_wasm_tests"
 version = "0.0.1"
 dependencies = [
  "foundation_compact",
+ "foundation_context",
  "foundation_core",
  "foundation_macros",
  "foundation_wasm",
