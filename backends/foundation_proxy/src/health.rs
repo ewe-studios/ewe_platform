@@ -340,7 +340,13 @@ async fn grpc_health_check(url: String, timeout: Duration, ctx: Ctx) -> Result<b
         headers,
         method: SimpleMethod::POST,
     };
+    // `open` dials and runs the h2 handshake before the timer race below starts,
+    // so it needs its own bounds. The probe timeout bounds the dial, the
+    // handshake and every read: a backend that accepts the connection and then
+    // stays silent fails the probe in `timeout`, not in the 10 s transport default.
     let stream = H2Transport::new()
+        .with_connect_timeout(timeout)
+        .with_handshake_timeout(timeout)
         .with_read_timeout(timeout)
         .open(out_request)
         .map_err(|e| format!("open h2 health upstream {url}: {e}"))?;
