@@ -221,6 +221,7 @@ jobs:
         # failed `fd,uring` run names its cause. The step never fails.
         if: matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy'
         run: |
+          {
           echo "kernel: $(uname -r)"
           echo "kernel.io_uring_disabled: $(cat /proc/sys/kernel/io_uring_disabled 2>&1)"
           grep -E '^Seccomp' /proc/self/status || true
@@ -236,6 +237,7 @@ jobs:
               e = ctypes.get_errno()
               print(f"io_uring_setup: failed errno={e} ({os.strerror(e)})")
           PY
+          } 2>&1 | tee /tmp/io_uring_probe.txt
 
       - name: ptrace probe
         # Record whether this kernel lets a tracer read its child's registers
@@ -251,6 +253,13 @@ jobs:
 
       - name: wasm
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+
+      - name: io_uring probe result
+        # Print the probe result again at the end of the job. The test step
+        # prints thousands of lines, and the log API returns only the last
+        # 5000, so the first copy is often out of reach.
+        if: always() && (matrix.package == 'foundation_nativeapis' || matrix.package == 'foundation_proxy')
+        run: cat /tmp/io_uring_probe.txt || echo "the io_uring probe did not run"
 
   package-artifact:
     name: ${{ matrix.package }}
