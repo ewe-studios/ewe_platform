@@ -3,7 +3,8 @@ feature: "Guest artifacts"
 status: "pending"
 priority: "high"
 model: "sonnet"
-depends_on: ["00-protocol-and-api-types"]
+phase: "MVP"
+depends_on: ["00-contract"]
 crates: ["foundation_platform_sandbox"]
 ---
 
@@ -27,10 +28,11 @@ cache, with a checked hash:
 | Alpine root directory | libkrun | The Alpine "minirootfs" release archive, unpacked. |
 | Ubuntu squashfs image | Firecracker | The Firecracker CI root file system. |
 | Kernel | Firecracker | The Firecracker CI kernel. |
-| Agent initramfs | Firecracker | Built in memory from the agent program. |
+| Slave initramfs | Firecracker | Built in memory from the `agent-slave` program. |
 
-Only the Alpine root directory is on the path to M1. An agent can deliver part A first as
-its own PR, then part B.
+Part B (kernel, Firecracker root image, initramfs) is on the path to MVP-A. Part A also
+gives the Alpine root directory, which the libkrun driver (feature 09) and the ext4 test of
+feature 05 use. One PR can deliver both parts.
 
 ## A. Story
 
@@ -43,17 +45,17 @@ its own PR, then part B.
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Get a pinned artifact | backend, test, example | `ensure(spec)` | The path of a ready entry. |
+| U1 | Get a pinned artifact | driver, test, program | `ensure(spec)` | The path of a ready entry. |
 | U2 | Get the Alpine directory | libkrun user | `alpine_rootfs_dir` | An unpacked tree. |
 | U3 | Get the Firecracker kernel and root | Firecracker user | `firecracker_kernel`, `firecracker_ci_rootfs` | Two verified files. |
-| U4 | Build the agent initramfs | Firecracker backend | `agent_initramfs(agent)` | A `newc` archive with the agent as `/init`. |
+| U4 | Build the slave initramfs | Firecracker driver | `slave_initramfs(slave)` | A `newc` archive with the slave as `/init`. |
 
 ## B. Bounded context
 
 **Inside this feature:** the cache of guest files on the host, and the code that fills it.
 
-**Outside:** who uses the files (features 04, 06, 07, 10 to 13); the HTTP client
-(`foundation_netio`); the agent program (feature 01, an input here).
+**Outside:** who uses the files (features 05, 06, 09, 12 to 15); the HTTP client
+(`foundation_netio`); the slave program (features 01 and 06, an input here).
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
@@ -94,7 +96,7 @@ Idempotent verbs:        write_newc (same input, same bytes)
 Ordering pairs:          entries appear in the given order; the trailer is last
 Monotone values:         none
 Freeze points:           modification time field is 0
-Links to other entities: cache key = SHA-256 of the agent file
+Links to other entities: cache key = SHA-256 of the slave file
 ```
 
 ### Invariants
@@ -178,7 +180,7 @@ Feature: Guest artifacts
     Then both return the same path with the correct bytes
 
   Scenario: The initramfs is the same each time
-    When agent_initramfs is called two times for one agent file
+    When slave_initramfs is called two times for one slave file
     Then the two archives are byte-equal
     And the archive equals the reference made by GNU cpio
 ```
@@ -211,11 +213,11 @@ Feature: Guest artifacts
 ### 3.1 `ArtifactStore`
 
 ```rust
-pub struct ArtifactStore { /* ctx, host, root: PathBuf */ }
+pub struct ArtifactStore { /* ctx, fs, root: PathBuf */ }
 
 impl ArtifactStore {
-    /// `root` is `HostConfig.cache_dir`.
-    pub fn new(ctx: Ctx, host: SandboxHost) -> Self;
+    /// `fs` is the host file system; `cache_dir` is `HostConfig.cache_dir`.
+    pub fn new(ctx: Ctx, fs: Arc<dyn HostFs>, cache_dir: PathBuf) -> Self;
 
     /// Returns the path of a ready artifact. Downloads or builds it when the cache
     /// does not have it.
@@ -227,12 +229,19 @@ impl ArtifactStore {
     pub async fn alpine_rootfs_dir(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
     pub async fn firecracker_ci_rootfs(&self, arch: GuestArch) -> SandboxResult<PathBuf>;   // squashfs
     pub async fn firecracker_kernel(&self, arch: GuestArch) -> SandboxResult<PathBuf>;
-    pub async fn agent_initramfs(&self, agent_path: &Path) -> SandboxResult<PathBuf>;
+    pub async fn slave_initramfs(&self, slave_path: &Path) -> SandboxResult<PathBuf>;
 }
 
 pub enum ArtifactProgress { Downloading { done: u64, total: Option<u64> }, Verifying, Unpacking, Building }
 pub enum GuestArch { X86_64, Aarch64 }
 ```
+
+The store needs only files and HTTP, not processes. This feature writes `NativeFs`, the
+real `HostFs`, as the first content of `src/native/host.rs`; feature 05 adds the process
+spawner and the connector to that file. `HostFs` gets two more methods for this feature:
+`rename(from, to)` and `create_file(path) -> SandboxResult<Box<dyn std::io::Write + Send>>`
+(a file for streamed writes). The HTTP client is `foundation_netio` and is not behind a
+trait of this crate: tests use a local HTTP server.
 
 Cache layout: `<cache_dir>/<kind>/<sha256-prefix-16>/<file-or-dir>`. A ready entry has a
 marker file `.ready` beside it. `ensure` builds into `<entry>.tmp-<random>` (the suffix from
@@ -302,17 +311,17 @@ name size with the zero byte, check sum = 0), then the name with a zero byte, th
 bytes up to a multiple of 4, then the data, then zero bytes up to a multiple of 4. A
 directory has mode `040755` and no data. A file has mode `0100755`.
 
-`agent_initramfs(agent_path)` writes these entries: directories `dev`, `proc`, `sys`,
-`run`; the file `init` with the agent bytes. The modification time field is 0, so the same
-agent gives the same archive. The cache key is the SHA-256 of the agent file.
+`slave_initramfs(slave_path)` writes these entries: directories `dev`, `proc`, `sys`,
+`run`; the file `init` with the slave bytes. The modification time field is 0, so the same
+slave gives the same archive. The cache key is the SHA-256 of the slave file.
 
-The agent file is about 1 MiB. Reading it whole is allowed: it is small and its content is
+The slave file is a few MiB. Reading it whole is allowed: it is small and its content is
 the input of the next step (root rule 4).
 
 ### 4.2 Firecracker root file system
 
 `firecracker_ci_rootfs(arch)` is `ensure` on the manifest entry `firecracker-ci-rootfs`. The
-file is used as it is: Firecracker attaches it read-only, and the agent mounts it as the
+file is used as it is: Firecracker attaches it read-only, and the slave mounts it as the
 lower layer.
 
 Why not an ext4 image made from the Alpine directory: `mkfs.ext4 -d <directory>` copies the
@@ -332,7 +341,7 @@ Firecracker with the squashfs image, which already has correct owners.
 |---|---|---|
 | `cpio_matches_reference` | nothing | `write_newc` output for a fixed input is equal, byte for byte, to a fixture made with GNU `cpio -o -H newc` (the fixture is in `tests/fixtures/`, with the command in a comment). |
 | `cpio_is_deterministic` | nothing | Two calls give the same bytes. |
-| `cpio_kernel_accepts_it` | KVM | Covered by the microVM test of feature 06. Named here so the link is clear. |
+| `cpio_kernel_accepts_it` | KVM | Covered by the microVM tests of feature 05. Named here so the link is clear. |
 | `fetch_checks_hash` | nothing | A local HTTP server (the test server of `foundation_netio` or `foundation_testing`) gives a body; a wrong expected hash fails and leaves no file. |
 | `fetch_stops_at_limit` | nothing | A body larger than `max_download_bytes` fails before the end. |
 | `fetch_reads_bounded_error` | nothing | A 500 answer with a 10 MiB body gives an error message of at most `max_error_message` bytes. |
@@ -355,7 +364,7 @@ cargo test -p foundation_platform_sandbox --profile uat artifacts
 
 - Part A: `alpine_rootfs_dir` returns a directory with a working Alpine tree on Linux and
   on macOS.
-- Part B: `agent_initramfs`, `firecracker_ci_rootfs` and `firecracker_kernel` return ready
+- Part B: `slave_initramfs`, `firecracker_ci_rootfs` and `firecracker_kernel` return ready
   files on Linux.
 - Each download is streamed, hashed and bounded.
 - `learnings.md` has the pinned versions and how each hash was made.

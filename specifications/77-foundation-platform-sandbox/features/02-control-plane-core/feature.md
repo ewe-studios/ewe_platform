@@ -420,7 +420,7 @@ The task holds an `Arc` of the manager internals through the state (not shown).
 | Driver choice or validation | Nothing was started. | `InvalidSpec`, `Unsupported*`, `NoDriver`, `DriverUnavailable`, `TooManySessions` | nothing |
 | The launch stream gives `Err(e)` | Removes the record. (The driver cleaned up its own partial work; feature 05, section 6.) | `e` | nothing |
 | `connector.connect` fails | `kill`, `cleanup`, removes the record. | the error | nothing |
-| The substrate exits in `AwaitSlave` or `Prepare` | Reads `log_tail`; `cleanup`; removes the record. | `SubstrateExited { code, log_tail }` | nothing |
+| The substrate exits in `AwaitSlave` or `Prepare` | Reads `log_tail`; `cleanup`; removes the record. | `handle.exit_error(exit, log_tail)`: `SubstrateExited { code, log_tail }` unless the driver gives a more exact error | nothing |
 | The deadline passes in `AwaitSlave` | `log_tail`; `kill`; `cleanup`; removes the record. | `BootTimeout { stage: "slave" }` | nothing |
 | `Prepare` returns an error | `kill`; `cleanup`; removes the record. | the `SlaveError` | nothing |
 | The caller drops the create future or stream | `kill`; `cleanup`; removes the record. | (gone) | nothing |

@@ -3,11 +3,12 @@ feature: "Firecracker API client"
 status: "pending"
 priority: "high"
 model: "sonnet"
-depends_on: ["00-protocol-and-api-types"]
+phase: "MVP"
+depends_on: ["00-contract"]
 crates: ["foundation_platform_sandbox"]
 ---
 
-# Feature 05: The Firecracker API client
+# Feature 04: The Firecracker API client
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -22,11 +23,11 @@ standard ASD-STE100.
 
 Give the crate typed request functions for the Firecracker REST API, generated from the
 Firecracker Swagger file (root rule 5), and a small client on a UDS. This feature starts no
-VM. Feature 06 uses it.
+VM. Feature 05 uses it.
 
 ## A. Story
 
-- **S1**: "The backend tells a Firecracker process how the VM looks and starts it, through
+- **S1**: "The driver tells a Firecracker process how the VM looks and starts it, through
   typed calls."
 - **S2**: "Firecracker rejects a setting and says why."
 - **S3**: "Firecracker does not answer."
@@ -34,9 +35,9 @@ VM. Feature 06 uses it.
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
-| U1 | Configure | Firecracker backend | `put_machine_config`, `put_boot_source`, `put_drive`, `put_vsock` | 204, or `VmmApi { status, fault_message }`. |
-| U2 | Start | Firecracker backend | `instance_start` | 204, or `VmmApi`. |
-| U3 | Ask | backend, host check | `describe_instance`, `version` | Typed answers. |
+| U1 | Configure | Firecracker driver | `put_machine_config`, `put_boot_source`, `put_drive`, `put_vsock` | 204, or `SubstrateApi { status, message }`. |
+| U2 | Start | Firecracker driver | `instance_start` | 204, or `SubstrateApi`. |
+| U3 | Ask | driver, host check | `describe_instance`, `version` | Typed answers. |
 | U4 | Regenerate | maintainer | a new Swagger file | New generated code, no hand edit. |
 
 ## B. Bounded context
@@ -44,13 +45,13 @@ VM. Feature 06 uses it.
 **Inside this feature:** the vendored API file, the generated types and request functions,
 and the small client on a UDS.
 
-**Outside:** the `firecracker` process and its life (feature 06); the generator
+**Outside:** the `firecracker` process and its life (feature 05); the generator
 (`foundation_openapi`, `gen_api`); the HTTP client (`foundation_netio`).
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
 | API file | `specs/firecracker-v1.19.yaml`, a copy of upstream. | upstream; we only vendor |
-| Generated code | `src/firecracker/generated/`. | the generator only |
+| Generated code | `src/native/firecracker/generated/`. | the generator only |
 | `FirecrackerClient` | A UDS path, a `DynNetClient`, the limits. | `firecracker::client` |
 | API error | Status and `fault_message`. | Firecracker; we map it |
 
@@ -58,7 +59,7 @@ and the small client on a UDS.
 |---|---|---|---|
 | generate | entity | maintainer | Writes `generated/` from the API file. |
 | call | entity | a client method | One HTTP request; one typed answer or error. |
-| map error | entity | a non-2xx status | `VmmApi` with a bounded message. |
+| map error | entity | a non-2xx status | `SubstrateApi` with a bounded message. |
 
 ## C. Rules
 
@@ -80,7 +81,7 @@ Conserved value:         one method call = one HTTP request
 Bound:                   call time <= api_timeout; error message <= max_error_message
 Inverse pairs:           none
 Idempotent verbs:        describe_instance, version (read only)
-Ordering pairs:          none in the client; the order of calls belongs to feature 06
+Ordering pairs:          none in the client; the order of calls belongs to feature 05
 Monotone values:         none
 Freeze points:           socket path and limits at construction
 Links to other entities: none
@@ -92,7 +93,7 @@ Links to other entities: none
 |---|---|
 | I1 | Every request body and answer uses a generated type. No hand-written copy and no `serde_json::Value`. |
 | I2 | A field that is `None` is not in the JSON. No `null` reaches Firecracker. |
-| I3 | A non-2xx answer becomes `VmmApi { status, fault_message }`; the body read is at most `max_error_message` bytes. |
+| I3 | A non-2xx answer becomes `SubstrateApi { status, message }`; the body read is at most `max_error_message` bytes. |
 | I4 | Each call ends in `api_timeout` or sooner. |
 | I5 | A second generator run gives no diff. |
 | I6 | The crate builds with no `firecracker` feature, and then has no generated code and no `foundation_deployment` dependency. |
@@ -142,7 +143,7 @@ Feature: Firecracker API client
   Scenario: Firecracker's reason reaches the caller
     Given the server answers 400 with {"fault_message":"bad"}
     When put_vsock is called
-    Then the result is VmmApi { status: 400, fault_message: "bad" }
+    Then the result is SubstrateApi { status: 400, message: "bad" }
 
   Scenario: A huge error body is bounded
     Given the server answers 400 with a 10 MiB body
@@ -175,9 +176,9 @@ Feature: Firecracker API client
   `DynNetClient` for a UDS (`foundation_deployment_docker/src/client/mod.rs`, line 11).
 - The generated code uses `ApiClient`, `ApiError`, `ApiResponse` and `BodyLimits` from
   `foundation_deployment::providers::common`. So this crate gets a dependency on
-  `foundation_deployment`, behind the `firecracker` feature. Check the weight of that
-  dependency with `cargo tree -p foundation_deployment -e normal --depth 1`. If it pulls
-  cloud provider code that is not behind features, report it; do not copy the common types.
+  `foundation_deployment`, behind the `firecracker` feature. The Docker client crate has the same dependency
+  for the same reason (`backends/foundation_deployment_docker/Cargo.toml`), so this is the
+  repository's pattern. Do not copy the common types.
 
 ## 3. Work
 
@@ -196,10 +197,10 @@ Feature: Firecracker API client
 cargo run --bin ewe_platform gen_api analyze --provider firecracker \
   --spec artefacts/cloud_providers/firecracker/firecracker-v1.19.json
 cargo run --bin ewe_platform gen_api generate --provider firecracker \
-  --output-dir backends/foundation_platform_sandbox/src/firecracker
+  --output-dir backends/foundation_platform_sandbox/src/native/firecracker
 ```
 
-The output goes to `src/firecracker/generated/`. Check these points and fix the
+The output goes to `src/native/firecracker/generated/`. Check these points and fix the
 **generator** when one is wrong (root rule 5). Record each generator fix in `learnings.md`.
 
 | Point | Expected |
@@ -214,7 +215,7 @@ The output goes to `src/firecracker/generated/`. Check these points and fix the
 
 ### 3.3 The client
 
-File `src/firecracker/client.rs`:
+File `src/native/firecracker/client.rs`:
 
 ```rust
 #[derive(Clone)]
@@ -235,16 +236,16 @@ impl FirecrackerClient {
 ```
 
 - Each method calls the generated `*_request` function and maps the result.
-- A status that is not 2xx becomes `SandboxError::VmmApi { status, fault_message }`. The
+- A status that is not 2xx becomes `SandboxError::SubstrateApi { status, message }`. The
   generated code reads at most `BodyLimits::max_error_body` bytes of the body; the client
   sets that from `limits.max_error_message`.
 - Each call has the time-out `limits.api_timeout`, from `ctx.clock()`.
 - The client has only the calls that 0.1 uses. The other generated functions stay public
-  in `firecracker::generated` for later features and for callers. This is not a stub:
+  in `native::firecracker::generated` for later features and for callers. This is not a stub:
   every method that exists is complete.
 
-The client connects through `foundation_netio`, not through `SandboxHost.transport`. The
-simulation tests of feature 06 need to replace it, so feature 06 puts a trait in front of
+The client connects through `foundation_netio` directly. The
+simulation tests of feature 05 need to replace it, so feature 05 puts a trait in front of
 it (`FirecrackerApi`). This feature keeps the concrete type.
 
 ## 4. Tests
@@ -261,7 +262,7 @@ Docker client tests in `backends/foundation_deployment_docker/tests/`; use the s
 | `vsock_body` | `guest_cid` and `uds_path`. |
 | `instance_start_body` | `{"action_type":"InstanceStart"}`. |
 | `describe_instance_parses_state` | The answer `{"app_name":"Firecracker","id":"x","state":"Not started","vmm_version":"1.19.0"}` parses to the right enum value. |
-| `fault_message_is_surfaced` | A 400 answer with `{"fault_message":"bad"}` gives `VmmApi { status: 400, fault_message: "bad" }`. |
+| `fault_message_is_surfaced` | A 400 answer with `{"fault_message":"bad"}` gives `SubstrateApi { status: 400, message: "bad" }`. |
 | `error_body_is_bounded` | A 400 answer with a 10 MiB body gives a message of at most `max_error_message` bytes. |
 | `call_times_out` | A server that does not answer gives a time-out error after `api_timeout`. |
 | `types_match_real_firecracker` | Needs the `firecracker` program. Starts `firecracker --api-sock`, calls `version()` and `describe_instance()`, and puts a machine configuration. It returns with a message when the program is not found. This is the test against the real service (specifications rule 3). |
@@ -281,7 +282,7 @@ dependency are behind the `firecracker` feature.
 
 ## 6. Done when
 
-- `src/firecracker/generated/` comes from the generator, with no hand edit that the
+- `src/native/firecracker/generated/` comes from the generator, with no hand edit that the
   generator does not make. A second generator run gives no diff.
 - The client methods of section 3.3 exist, and the tests of section 4 pass.
 - The crate builds without the `firecracker` feature.

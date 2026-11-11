@@ -562,6 +562,12 @@ pub trait SubstrateHandle: Send + Sync + 'static {
     fn log_tail(&self, max: usize) -> BoxFuture<'_, Vec<u8>>;
     /// Removes every host resource. Safe to call two times.
     fn cleanup(&self) -> BoxFuture<'_, SandboxResult<()>>;
+    /// The error for a substrate that stopped during a start. The default is
+    /// `SubstrateExited { code, log_tail }`. A driver whose exit codes have a meaning
+    /// (libkrun, feature 09) gives a more exact error.
+    fn exit_error(&self, exit: &SubstrateExit, log_tail: Vec<u8>) -> SandboxError {
+        SandboxError::SubstrateExited { code: exit.code, log_tail }
+    }
 }
 pub struct SubstrateExit { pub code: Option<i32>, pub signal: Option<i32>, pub forced: bool }
 pub struct HostReport { pub driver: DriverId, pub usable: bool, pub checks: Vec<HostCheck>, pub capabilities: Capabilities }
@@ -605,6 +611,9 @@ pub struct ProcessSpec {
     pub cwd: PathBuf,
     pub stdout: PathBuf, pub stderr: PathBuf,   // files, opened for append
     pub kill_with_parent: bool,
+    /// File descriptors that the child inherits, as (number in the child, descriptor).
+    /// Empty except for the libkrun lifeline on macOS (feature 09).
+    pub extra_fds: Vec<(i32, std::os::fd::OwnedFd)>,
 }
 pub trait ChildProcess: Send + Sync + 'static {
     fn pid(&self) -> u32;
