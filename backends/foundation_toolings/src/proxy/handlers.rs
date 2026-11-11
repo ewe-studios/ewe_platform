@@ -55,7 +55,8 @@ impl Serve for SseReloadHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let reload_rx = Arc::clone(&self.reload_rx);
-        let clock = self.ctx.clock();
+        let ctx = self.ctx.clone();
+        let clock = ctx.clock();
 
         // The response head and every event go through the async
         // `ResponseWriter`: a slow client parks on write readiness instead of
@@ -71,7 +72,7 @@ impl Serve for SseReloadHandler {
                 }
             };
 
-            let mut response = ResponseWriter::new(conn, WriterConfig::default());
+            let mut response = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
             if let Err(e) = response.write_all(&head).await {
                 tracing::debug!("SSE head write failed: {e}");
                 return ServeOutcome::Take;
@@ -100,7 +101,7 @@ impl Serve for SseReloadHandler {
                     next_keepalive = clock.now() + Duration::from_secs(1);
                 }
 
-                timer::sleep_for(Duration::from_millis(50)).await;
+                timer::sleep_for(Duration::from_millis(50), &ctx).await;
             }
         }))
     }

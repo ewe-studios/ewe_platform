@@ -15,7 +15,11 @@ use foundation_db::{DocumentStore, LibsqlStore, SqlDocumentStore};
 use futures_lite::StreamExt;
 
 async fn store() -> SqlDocumentStore<LibsqlStore> {
-    SqlDocumentStore::new(LibsqlStore::in_memory().await.unwrap())
+    SqlDocumentStore::new(
+        LibsqlStore::in_memory(foundation_context::Ctx::host())
+            .await
+            .unwrap(),
+    )
 }
 
 #[valtron_test]

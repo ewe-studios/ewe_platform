@@ -317,6 +317,7 @@ fn store_for(mock: &Mock, metric: DistanceMetric) -> TurboPufferVectorStore {
         client,
         "test-key".into(),
         VectorStoreConfig::new(3, metric),
+        foundation_core::valtron::Ctx::host(),
     )
     .unwrap()
     .with_base_url(format!("http://{}", mock.addr))
@@ -432,6 +433,7 @@ async fn dot_metric_is_unsupported() {
         client,
         "k".into(),
         VectorStoreConfig::new(3, DistanceMetric::Dot),
+        foundation_core::valtron::Ctx::host(),
     )
     .err()
     .expect("dot is refused");
@@ -440,15 +442,21 @@ async fn dot_metric_is_unsupported() {
 
 #[valtron_test]
 async fn new_builds_the_default_client() {
-    let store =
-        TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::L2))
-            .expect("cosine and L2 are accepted");
+    let store = TurboPufferVectorStore::new(
+        "k".into(),
+        VectorStoreConfig::new(3, DistanceMetric::L2),
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("cosine and L2 are accepted");
     assert_eq!(store.config().metric, DistanceMetric::L2);
 
-    let err =
-        TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::Dot))
-            .err()
-            .expect("dot is refused");
+    let err = TurboPufferVectorStore::new(
+        "k".into(),
+        VectorStoreConfig::new(3, DistanceMetric::Dot),
+        foundation_core::valtron::Ctx::host(),
+    )
+    .err()
+    .expect("dot is refused");
     assert!(matches!(err, VectorStoreError::Unsupported(_)));
 }
 
@@ -568,7 +576,9 @@ async fn live_service_deleted_ids_and_vector() {
     };
 
     let cfg = VectorStoreConfig::new(3, DistanceMetric::Cosine);
-    let store = TurboPufferVectorStore::new(key.clone(), cfg).expect("cosine builds");
+    let store =
+        TurboPufferVectorStore::new(key.clone(), cfg, foundation_core::valtron::Ctx::host())
+            .expect("cosine builds");
 
     let suffix = format!(
         "{}_{}",

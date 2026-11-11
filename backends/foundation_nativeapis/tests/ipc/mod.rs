@@ -4,11 +4,13 @@ mod memory_registry;
 mod shared_message;
 #[cfg(feature = "ipc")]
 mod shared_version;
+#[cfg(all(windows, feature = "ipc"))]
+mod windows_remote;
 
 /// Integration tests for the IPC message bus (Linux).
 ///
 /// Tests the ipmb-adapted bus: join, send/recv, multicast routing,
-/// shared memory (MemoryRegion), custom message types, and reconnection.
+/// shared memory (`MemoryRegion`), custom message types, and reconnection.
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 mod tests {
     use foundation_macros::{MessageBox, TypeUuid};
@@ -60,11 +62,11 @@ mod tests {
         let msg = Message::new(Selector::multicast(LabelOp::True), payload);
         sender.send(msg).expect("send failed");
 
-        let received = receiver
+        let inbound = receiver
             .recv(Some(Duration::from_secs(2)))
             .expect("recv failed");
-        assert_eq!(received.payload.data, b"hello loopback");
-        assert_eq!(received.payload.format, 1);
+        assert_eq!(inbound.payload.data, b"hello loopback");
+        assert_eq!(inbound.payload.format, 1);
     }
 
     // -- Test 2: Two-thread bus — endpoint sends, controller receives ------
@@ -139,11 +141,11 @@ mod tests {
         let msg = Message::new(Selector::multicast(LabelOp::True), event);
         sender.send(msg).expect("send failed");
 
-        let received = receiver
+        let inbound = receiver
             .recv(Some(Duration::from_secs(2)))
             .expect("recv failed");
-        assert_eq!(received.payload.path, "/src/main.rs");
-        assert_eq!(received.payload.kind, 42);
+        assert_eq!(inbound.payload.path, "/src/main.rs");
+        assert_eq!(inbound.payload.kind, 42);
     }
 
     // -- Test 4: Multicast routing — controller broadcasts to client ------
@@ -299,13 +301,13 @@ mod tests {
         msg.memory_regions.push(region);
         sender.send(msg).expect("send with region");
 
-        let received = receiver
+        let inbound = receiver
             .recv(Some(Duration::from_secs(2)))
             .expect("recv with region");
-        assert_eq!(received.payload.format, 99);
-        assert_eq!(received.memory_regions.len(), 1);
+        assert_eq!(inbound.payload.format, 99);
+        assert_eq!(inbound.memory_regions.len(), 1);
 
-        let mut recv_region = received.memory_regions.into_iter().next().unwrap();
+        let mut recv_region = inbound.memory_regions.into_iter().next().unwrap();
         let buf = recv_region.map(..).expect("recv map failed");
         assert_eq!(&buf[..5], b"hello");
     }
@@ -375,9 +377,9 @@ mod tests {
         }
 
         for i in 0..10u16 {
-            let received = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
-            assert_eq!(received.payload.format, i);
-            assert_eq!(received.payload.data, format!("msg-{i}").into_bytes());
+            let inbound = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
+            assert_eq!(inbound.payload.format, i);
+            assert_eq!(inbound.payload.data, format!("msg-{i}").into_bytes());
         }
     }
 
@@ -404,7 +406,7 @@ mod tests {
                     Selector::multicast(LabelOp::True),
                     BytesMessage {
                         format: i,
-                        data: vec![i as u8; 64],
+                        data: vec![u8::try_from(i).expect("i is below 4"); 64],
                     },
                 );
                 s.send(msg).expect("clone send");
@@ -420,7 +422,7 @@ mod tests {
             let msg = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
             received_formats.push(msg.payload.format);
         }
-        received_formats.sort();
+        received_formats.sort_unstable();
         assert_eq!(received_formats, vec![0, 1, 2, 3]);
     }
 
@@ -488,10 +490,7 @@ mod tests {
                 assert_eq!(e.path, "/src/main.rs");
                 assert_eq!(e.kind, 1);
             }
-            _ => panic!(
-                "expected FileEvent, got {:?}",
-                std::mem::discriminant(&msg1.payload)
-            ),
+            AppMessage::Log(_) => panic!("expected FileEvent, got LogEntry"),
         }
 
         let msg2 = receiver.recv(Some(Duration::from_secs(2))).expect("recv 2");
@@ -500,7 +499,7 @@ mod tests {
                 assert_eq!(e.level, 3);
                 assert_eq!(e.message, "build complete");
             }
-            _ => panic!("expected LogEntry"),
+            AppMessage::File(_) => panic!("expected LogEntry"),
         }
     }
 

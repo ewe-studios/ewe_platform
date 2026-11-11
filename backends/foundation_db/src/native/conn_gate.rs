@@ -35,6 +35,7 @@ use crate::core::errors::{LockMode, StorageError, StorageResult};
 #[cfg(feature = "libsql")]
 use async_lock::RwLockReadGuardArc;
 use async_lock::{RwLock, RwLockWriteGuardArc};
+use foundation_context::Ctx;
 use foundation_core::valtron::timer::sleep_for;
 use futures_lite::future::or;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -59,6 +60,8 @@ pub(crate) struct ConnGate {
     lock: Arc<RwLock<()>>,
     /// How long a call waits for the lock.
     timeout: Duration,
+    /// The context whose clock measures `timeout`.
+    ctx: Ctx,
     /// Set when a `ROLLBACK` failed: the connection may still be in a transaction.
     needs_check: Arc<AtomicBool>,
     /// Test hook: the next rollback is not run and counts as failed.
@@ -66,22 +69,17 @@ pub(crate) struct ConnGate {
     inject_rollback_failure: Arc<AtomicBool>,
 }
 
-impl Default for ConnGate {
-    fn default() -> Self {
+impl ConnGate {
+    /// A new gate with no holders. The wait limit is measured on the clock of `ctx`.
+    pub(crate) fn new(ctx: Ctx) -> Self {
         Self {
             lock: Arc::default(),
             timeout: DEFAULT_LOCK_TIMEOUT,
+            ctx,
             needs_check: Arc::default(),
             #[cfg(feature = "test-hooks")]
             inject_rollback_failure: Arc::default(),
         }
-    }
-}
-
-impl ConnGate {
-    /// A new gate with no holders.
-    pub(crate) fn new() -> Self {
-        Self::default()
     }
 
     /// The same lock and flags, with a different wait limit.
@@ -151,7 +149,7 @@ impl ConnGate {
 
     /// Completes with `LockTimeout` once the wait limit has passed.
     async fn expire<G>(&self, mode: LockMode) -> StorageResult<G> {
-        sleep_for(self.timeout).await;
+        sleep_for(self.timeout, &self.ctx).await;
         Err(StorageError::LockTimeout {
             mode,
             waited: self.timeout,

@@ -165,27 +165,28 @@ impl StaticFileHandler {
         path: &str,
         head_only: bool,
         conn: SharedByteBufferStream<RawStream>,
+        ctx: &Ctx,
     ) -> ConnectionResult {
         // Prevent path traversal
         let safe_path = path.trim_start_matches('/');
         if safe_path.contains("..") {
-            return send_text(conn, 403, "Forbidden");
+            return send_text(conn, 403, "Forbidden", ctx);
         }
 
         let file_path = self.root.join(safe_path);
 
         // Verify the resolved path is still under root
         if !file_path.starts_with(&self.root) {
-            return send_text(conn, 403, "Forbidden");
+            return send_text(conn, 403, "Forbidden", ctx);
         }
 
         // Check if it's a directory — try index.html
         if file_path.is_dir() {
             let index_path = file_path.join("index.html");
-            return self.serve_file_path(&index_path, head_only, conn);
+            return self.serve_file_path(&index_path, head_only, conn, ctx);
         }
 
-        self.serve_file_path(&file_path, head_only, conn)
+        self.serve_file_path(&file_path, head_only, conn, ctx)
     }
 
     fn serve_file_path(
@@ -193,6 +194,7 @@ impl StaticFileHandler {
         path: &Path,
         head_only: bool,
         conn: SharedByteBufferStream<RawStream>,
+        ctx: &Ctx,
     ) -> ConnectionResult {
         let opened = File::open(path).and_then(|file| {
             let meta = file.metadata()?;
@@ -201,14 +203,14 @@ impl StaticFileHandler {
         let (file, meta) = match opened {
             Ok((file, meta)) if meta.is_file() => (file, meta),
             Ok(_) => {
-                return send_not_found(conn);
+                return send_not_found(conn, ctx);
             }
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
-                return send_not_found(conn);
+                return send_not_found(conn, ctx);
             }
             Err(e) => {
                 tracing::error!("Failed to open static file {path:?}: {e}");
-                return send_server_error(conn, None);
+                return send_server_error(conn, None, ctx);
             }
         };
         let len = meta.len();
@@ -224,7 +226,7 @@ impl StaticFileHandler {
             }
         };
 
-        let writer = ResponseWriter::new(conn, self.config.writer_config());
+        let writer = ResponseWriter::new(conn, self.config.writer_config(), ctx.clone());
         let job = SendFile {
             writer,
             head,
@@ -245,14 +247,14 @@ impl ServeFactory for StaticFileHandler {
 impl Serve for StaticFileHandler {
     fn serve(
         &self,
-        _ctx: Ctx,
+        ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or(full_url);
         let head_only = matches!(req.method, SimpleMethod::HEAD);
-        self.serve_file(path, head_only, conn)
+        self.serve_file(path, head_only, conn, &ctx)
     }
 }
 

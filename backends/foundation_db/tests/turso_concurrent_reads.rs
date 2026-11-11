@@ -23,7 +23,9 @@ const ROWS: usize = 200;
 /// A store with a table of `ROWS` rows. Each row holds 2 KiB, so one step does
 /// real work and the window for a concurrent step is wide.
 async fn store_with_rows() -> TursoStorage {
-    let store = TursoStorage::in_memory().await.unwrap();
+    let store = TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
     store
         .execute_batch("CREATE TABLE reads_test (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
         .await

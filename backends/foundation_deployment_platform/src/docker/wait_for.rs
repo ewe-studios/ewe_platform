@@ -205,7 +205,7 @@ pub async fn wait_for_port_at(
                 }));
             }
             Err(_) => {
-                sleep_async(backoff).await;
+                sleep_async(backoff, ctx).await;
                 backoff = (backoff * 2).min(Duration::from_secs(1));
             }
         }
@@ -243,7 +243,7 @@ pub(crate) async fn wait_for_udp(
                 }));
             }
             false => {
-                sleep_async(backoff).await;
+                sleep_async(backoff, ctx).await;
                 backoff = (backoff * 2).min(Duration::from_secs(1));
             }
         }
@@ -333,7 +333,7 @@ pub async fn wait_for_stdout(
         let outcome = futures_lite::future::race(
             async { FrameOrTimeout::Frame(frames.next().await) },
             async {
-                sleep_async(remaining).await;
+                sleep_async(remaining, ctx).await;
                 FrameOrTimeout::TimedOut
             },
         )
@@ -399,7 +399,7 @@ async fn wait_for_http(
             }));
         }
 
-        sleep_async(backoff).await;
+        sleep_async(backoff, ctx).await;
         backoff = (backoff * 2).min(Duration::from_secs(1));
     }
 }

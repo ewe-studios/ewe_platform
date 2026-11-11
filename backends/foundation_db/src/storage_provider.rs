@@ -39,15 +39,33 @@ use crate::core::storage_provider::{
     RateLimiterStore,
 };
 
+/// The [`Ctx`] a SQL backend reads its clock from, with a `Debug` impl.
+///
+/// WHY: `Ctx` has no `Debug` impl, and `StorageBackend` derives it.
+#[derive(Clone)]
+pub struct BackendCtx(pub Ctx);
+
+impl std::fmt::Debug for BackendCtx {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("BackendCtx(..)")
+    }
+}
+
+impl From<Ctx> for BackendCtx {
+    fn from(ctx: Ctx) -> Self {
+        Self(ctx)
+    }
+}
+
 /// Storage backend enumeration for runtime selection.
 #[derive(Debug, Clone)]
 pub enum StorageBackend {
-    /// Turso backend with database URL (native only).
+    /// Turso backend with database URL (native only). `ctx` times the lock wait.
     #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-    Turso { url: String },
-    /// libsql backend with database URL (native only).
+    Turso { url: String, ctx: BackendCtx },
+    /// libsql backend with database URL (native only). `ctx` times the lock wait.
     #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-    Libsql { url: String },
+    Libsql { url: String, ctx: BackendCtx },
     #[cfg(all(feature = "d1", not(target_family = "wasm")))]
     D1,
     /// Cloudflare R2 backend with bucket configuration (native only).
@@ -128,16 +146,16 @@ impl StorageProvider {
     pub async fn new(backend: StorageBackend) -> StorageResult<Self> {
         match backend {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageBackend::Turso { url } => {
-                let storage = TursoStorage::new(&url).await?;
+            StorageBackend::Turso { url, ctx } => {
+                let storage = TursoStorage::new(&url, ctx.0).await?;
                 storage.init_schema().await?;
                 Ok(Self {
                     inner: StorageProviderInner::Turso(Box::new(storage)),
                 })
             }
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageBackend::Libsql { url } => {
-                let storage = LibsqlStore::new_kv(&url, None).await?;
+            StorageBackend::Libsql { url, ctx } => {
+                let storage = LibsqlStore::new_kv(&url, None, ctx.0).await?;
                 storage.init_kv().await?;
                 Ok(Self {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),

@@ -52,7 +52,12 @@ impl Serve for SecretHandler {
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        send_text(conn, 200, "smuggled-secret")
+        send_text(
+            conn,
+            200,
+            "smuggled-secret",
+            &foundation_core::valtron::Ctx::host(),
+        )
     }
 }
 

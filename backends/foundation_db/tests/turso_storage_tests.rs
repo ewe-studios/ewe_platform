@@ -11,7 +11,9 @@ use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, SqlRow,
 use tempfile::TempDir;
 
 async fn open(url: &str, key: Option<EncryptionKey>) -> TursoStorage {
-    TursoStorage::with_encryption(url, key).await.unwrap()
+    TursoStorage::with_encryption(url, key, foundation_context::Ctx::host())
+        .await
+        .unwrap()
 }
 
 async fn init_schema(storage: &TursoStorage) {

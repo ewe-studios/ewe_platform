@@ -56,7 +56,7 @@ fn sleeping_task_eventually_completes() {
 #[valtron_test]
 async fn sleep_async_completes() {
     let start = Instant::now();
-    sleep_async(Duration::from_millis(50)).await;
+    sleep_async(Duration::from_millis(50), &crate::valtron::real_ctx()).await;
     assert!(
         start.elapsed() >= Duration::from_millis(40),
         "sleep_async should wait at least ~40ms"
@@ -66,7 +66,7 @@ async fn sleep_async_completes() {
 #[valtron_test]
 async fn sleep_async_zero_is_immediate() {
     let start = Instant::now();
-    sleep_async(Duration::ZERO).await;
+    sleep_async(Duration::ZERO, &crate::valtron::real_ctx()).await;
     assert!(
         start.elapsed() < Duration::from_millis(100),
         "zero-duration sleep should return quickly"
@@ -77,9 +77,9 @@ async fn sleep_async_zero_is_immediate() {
 async fn sleep_async_consecutive() {
     // Two consecutive sleeps should each wait
     let start = Instant::now();
-    sleep_async(Duration::from_millis(30)).await;
+    sleep_async(Duration::from_millis(30), &crate::valtron::real_ctx()).await;
     let first = start.elapsed();
-    sleep_async(Duration::from_millis(30)).await;
+    sleep_async(Duration::from_millis(30), &crate::valtron::real_ctx()).await;
     let total = start.elapsed();
     assert!(first >= Duration::from_millis(20), "first sleep too short");
     assert!(
@@ -116,7 +116,10 @@ fn sleep_async_fires_without_an_executor() {
         let waker = thread_waker();
         let mut cx = Context::from_waker(&waker);
         let started = foundation_compact::Instant::now();
-        let mut sleep = std::pin::pin!(sleep_async(Duration::from_millis(30)));
+        let mut sleep = std::pin::pin!(sleep_async(
+            Duration::from_millis(30),
+            &crate::valtron::real_ctx()
+        ));
         loop {
             if let Poll::Ready(()) = sleep.as_mut().poll(&mut cx) {
                 return started.elapsed();
@@ -143,7 +146,8 @@ fn timer_wakes_its_waker_at_the_deadline() {
     let waker = thread_waker();
     let mut cx = Context::from_waker(&waker);
     let mut sleep = std::pin::pin!(foundation_core::valtron::timer::sleep_for(
-        Duration::from_millis(20)
+        Duration::from_millis(20),
+        &crate::valtron::real_ctx()
     ));
     assert!(sleep.as_mut().poll(&mut cx).is_pending());
     let started = foundation_compact::Instant::now();

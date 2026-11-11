@@ -71,7 +71,7 @@ impl StaticAssetHandler {
 impl Serve for StaticAssetHandler {
     fn serve(
         &self,
-        _ctx: Ctx,
+        ctx: Ctx,
         _req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
@@ -87,7 +87,7 @@ impl Serve for StaticAssetHandler {
                 return ConnectionResult::Close(None);
             }
         };
-        let writer = ResponseWriter::new(conn, self.writer_config);
+        let writer = ResponseWriter::new(conn, self.writer_config, ctx);
         ConnectionResult::Async(Box::pin(write_response(
             writer,
             head,

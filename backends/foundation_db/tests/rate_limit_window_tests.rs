@@ -101,20 +101,28 @@ async fn memory_json_store() {
 
 #[valtron_test]
 async fn turso_storage() {
-    all(&TursoStorage::in_memory().await.unwrap()).await;
+    all(&TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap())
+    .await;
 }
 
 #[cfg(feature = "libsql")]
 #[valtron_test]
 async fn libsql_store() {
-    all(&LibsqlStore::in_memory().await.unwrap()).await;
+    all(&LibsqlStore::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap())
+    .await;
 }
 
 /// A store without the core migrations creates the same `rate_limits` table
 /// itself.
 #[valtron_test]
 async fn turso_storage_without_migrations() {
-    let store = TursoStorage::new(":memory:").await.unwrap();
+    let store = TursoStorage::new(":memory:", foundation_context::Ctx::host())
+        .await
+        .unwrap();
     counts_and_limits(&store).await;
     zero_window_never_accumulates(&store).await;
 }
@@ -124,7 +132,9 @@ async fn turso_storage_without_migrations() {
 /// updates, so exactly ten are within a limit of ten.
 #[valtron_test]
 async fn rate_limit_counts_concurrent_hits() {
-    let store = TursoStorage::in_memory().await.unwrap();
+    let store = TursoStorage::in_memory(foundation_context::Ctx::host())
+        .await
+        .unwrap();
     let clock = Arc::new(clock());
     let ctx = Ctx::fixed(clock.clone());
     let futures = (0..50).map(|_| store.record_rate_limit(&ctx, "k", 60));

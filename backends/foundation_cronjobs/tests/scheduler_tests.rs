@@ -36,7 +36,11 @@ async fn turso() -> (Arc<TursoStorage>, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let url = dir.path().join("cron.db").to_string_lossy().into_owned();
     (
-        Arc::new(TursoStorage::new(&url).await.expect("open turso")),
+        Arc::new(
+            TursoStorage::new(&url, foundation_context::Ctx::host())
+                .await
+                .expect("open turso"),
+        ),
         dir,
     )
 }

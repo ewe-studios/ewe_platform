@@ -24,6 +24,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::task::{Context, Poll};
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::sleep_async;
 use foundation_http::native::writer::{ResponseWriter, WriterConfig};
@@ -155,6 +156,7 @@ pub async fn dial_tcp(
     authority: &str,
     io_mode: ServerIo,
     connect_timeout: Duration,
+    ctx: &Ctx,
 ) -> io::Result<SharedByteBufferStream<RawStream>> {
     let (host, port) = authority
         .rsplit_once(':')
@@ -211,7 +213,12 @@ pub async fn dial_tcp(
             Poll::Pending
         }
     });
-    match select(Box::pin(writable), Box::pin(sleep_async(connect_timeout))).await {
+    match select(
+        Box::pin(writable),
+        Box::pin(sleep_async(connect_timeout, ctx)),
+    )
+    .await
+    {
         Either::Left((done, _)) => done?,
         Either::Right(((), _)) => {
             return Err(io::Error::new(
@@ -237,6 +244,7 @@ async fn read_some(
     buf: &mut [u8],
     wake: Option<&ReadWakeSource>,
     fallback: Duration,
+    ctx: &Ctx,
 ) -> io::Result<usize> {
     loop {
         match src.read(buf) {
@@ -246,7 +254,7 @@ async fn read_some(
             Err(e) => return Err(e),
         }
         let Some(wake) = wake else {
-            sleep_async(fallback).await;
+            sleep_async(fallback, ctx).await;
             continue;
         };
         // Arm the waker, then read once more before parking, so no wake is lost.
@@ -270,6 +278,7 @@ async fn pump(
     mut src: SharedByteBufferStream<RawStream>,
     dst: SharedByteBufferStream<RawStream>,
     config: WriterConfig,
+    ctx: &Ctx,
 ) -> io::Result<()> {
     let wake = src.with_inner_ref(RawStream::read_wake_source);
     let mut buf = vec![0u8; 16 * 1024];
@@ -279,6 +288,7 @@ async fn pump(
             &mut buf,
             wake.as_ref(),
             config.poll_fallback_interval,
+            ctx,
         )
         .await?;
         if n == 0 {
@@ -286,7 +296,7 @@ async fn pump(
         }
         // A fresh writer per chunk: its send timeout counts from this write, not
         // from the last time this direction moved a byte (a tunnel can idle).
-        let mut writer = ResponseWriter::new(dst.clone(), config);
+        let mut writer = ResponseWriter::new(dst.clone(), config, ctx.clone());
         writer.write_all(&buf[..n]).await?;
         writer.flush().await?;
     }
@@ -300,9 +310,10 @@ pub async fn splice(
     a: SharedByteBufferStream<RawStream>,
     b: SharedByteBufferStream<RawStream>,
     config: WriterConfig,
+    ctx: &Ctx,
 ) {
-    let a_to_b = Box::pin(pump(a.clone(), b.clone(), config));
-    let b_to_a = Box::pin(pump(b, a, config));
+    let a_to_b = Box::pin(pump(a.clone(), b.clone(), config, ctx));
+    let b_to_a = Box::pin(pump(b, a, config, ctx));
     let (finished, outcome) = match select(a_to_b, b_to_a).await {
         Either::Left((r, _)) => ("client to backend", r),
         Either::Right((r, _)) => ("backend to client", r),

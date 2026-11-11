@@ -28,7 +28,7 @@ fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("docs.db").to_str().unwrap().to_owned();
     let storage = async move {
-        let storage = TursoStorage::new(&url).await?;
+        let storage = TursoStorage::new(&url, foundation_context::Ctx::host()).await?;
         storage.init_schema().await?;
         Ok::<_, StorageError>(storage)
     }

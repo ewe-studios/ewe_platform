@@ -16,7 +16,9 @@ name: "Audit: Checks & Tests"
 # ci/platform-images/README.md.
 #
 # A `macos-test` job runs the tests of the packages with macOS-specific code
-# (`macos-runs` in ci/packages.toml) on a macOS runner.
+# (`macos-runs` in ci/packages.toml) on a macOS runner. A `windows-test` job
+# does the same for Windows-specific code (`windows-runs`). The plan step fails
+# when a crate has macOS or Windows code and neither runs nor an opt-out.
 #
 # Pull requests test only what they affect. Pushes to master, the nightly
 # schedule and manual runs test the whole workspace (or the packages you name).
@@ -74,6 +76,9 @@ jobs:
       # The selected packages that set `macos-runs` in ci/packages.toml.
       macos-matrix: ${{ steps.plan.outputs.macos-matrix }}
       macos-count: ${{ steps.plan.outputs.macos-count }}
+      # The selected packages that set `windows-runs` in ci/packages.toml.
+      windows-matrix: ${{ steps.plan.outputs.windows-matrix }}
+      windows-count: ${{ steps.plan.outputs.windows-count }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@v1
@@ -335,6 +340,60 @@ jobs:
       - name: wasm
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
 
+  windows:
+    name: Windows check
+    needs: plan
+    # The Windows branches of foundation_netio and foundation_nativeapis are
+    # compiled nowhere else on a pull request: the Linux image cannot build
+    # them, and the Windows virtual machine run is nightly only (issue #484).
+    # The job runs when the plan selected either package. Master, nightly and
+    # manual runs select every package, so it always runs there.
+    # The matrix JSON holds each name in quotes, so this match is exact.
+    if: >-
+      needs.plan.result == 'success' &&
+      (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
+      contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
+    # Same Blacksmith Windows image as `windows-test`.
+    runs-on: blacksmith-4vcpu-windows-2025
+    # Limit, not a measurement: a cold build of both packages takes about 15 to
+    # 20 minutes on this runner, and a warm cache cuts that to a few minutes.
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Same pin as the other jobs. The environment variable also stops
+        # rustup from installing every target and component that
+        # rust-toolchain.toml lists. rustfmt is here because the build scripts
+        # of some generated crates run it.
+        shell: bash
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: windows-check
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Check foundation_netio
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_netio
+
+      - name: Check foundation_netio with QUIC
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_netio --features quic
+
+      - name: Check foundation_nativeapis with IPC
+        run: cargo check --profile "$env:CI_PROFILE" --all-targets -p foundation_nativeapis --features ipc
+
   macos-test:
     name: macOS ${{ matrix.package }}
     needs: plan
@@ -386,11 +445,64 @@ jobs:
         # On a macOS host, ci.py runs only the test step, with `macos-runs`.
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
+  windows-test:
+    name: Windows ${{ matrix.package }}
+    needs: plan
+    # Runs the tests of the selected packages that have Windows-specific code
+    # (`windows-runs` in ci/packages.toml). Path-filtered like `macos-test`.
+    # No container: the job runs on the Windows runner itself.
+    if: needs.plan.outputs.windows-count != '0'
+    # RUNNER LABEL: change it on this line only. The `env` context is not
+    # available in `runs-on`, so a workflow-level variable cannot hold it.
+    # Blacksmith Windows Server 2025: Visual Studio 2022 (MSVC), Windows SDK
+    # 10.0.26100, LLVM, Git, Python 3.12 and 67 GB free disk (probe 2026-11-11).
+    runs-on: blacksmith-4vcpu-windows-2025
+    timeout-minutes: ${{ matrix.timeout }}
+    env:
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.windows-matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Fetch llama.cpp
+        if: matrix.llama
+        run: git submodule update --init --depth 1 tools/llama.cpp
+
+      - name: Install the pinned toolchain
+        # Same logic as `macos-test`. `python` is the Windows interpreter name.
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: windows-test-${{ matrix.package }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: test
+        # On a Windows host, ci.py runs only the test step, with `windows-runs`.
+        run: python scripts/ci/ci.py run ${{ matrix.package }} --step test
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact, macos-test]
+    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test]
     if: always()
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
@@ -400,11 +512,13 @@ jobs:
           PLAN: ${{ needs.plan.result }}
           PACKAGES: ${{ needs.package.result }}
           PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
+          WINDOWS: ${{ needs.windows.result }}
           MACOS_TESTS: ${{ needs.macos-test.result }}
+          WINDOWS_TESTS: ${{ needs.windows-test.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, macOS tests: $MACOS_TESTS"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$MACOS_TESTS"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;

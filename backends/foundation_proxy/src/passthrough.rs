@@ -105,8 +105,12 @@ impl PassthroughConfig {
 }
 
 /// Wait for `fut`, or give up after `tick`: `None` means the tick came first.
-async fn or_tick<T>(fut: impl std::future::Future<Output = T>, tick: Duration) -> Option<T> {
-    match select(Box::pin(fut), Box::pin(sleep_async(tick))).await {
+async fn or_tick<T>(
+    fut: impl std::future::Future<Output = T>,
+    tick: Duration,
+    ctx: &Ctx,
+) -> Option<T> {
+    match select(Box::pin(fut), Box::pin(sleep_async(tick, ctx))).await {
         Either::Left((value, _)) => Some(value),
         Either::Right(((), _)) => None,
     }
@@ -158,8 +162,13 @@ impl TcpPassthrough {
     /// # Errors
     /// Returns the bind error if `listen_addr` cannot be bound, or an error if
     /// the loop cannot be started on the pool.
-    pub fn start(listen_addr: &str, backend_authority: &str) -> std::io::Result<Self> {
-        Self::start_with(listen_addr, backend_authority, PassthroughConfig::default())
+    pub fn start(listen_addr: &str, backend_authority: &str, ctx: Ctx) -> std::io::Result<Self> {
+        Self::start_with(
+            listen_addr,
+            backend_authority,
+            PassthroughConfig::default(),
+            ctx,
+        )
     }
 
     /// Like [`Self::start`], with explicit limits.
@@ -170,6 +179,7 @@ impl TcpPassthrough {
         listen_addr: &str,
         backend_authority: &str,
         config: PassthroughConfig,
+        ctx: Ctx,
     ) -> std::io::Result<Self> {
         let listener = TcpListener::bind(listen_addr)?;
         listener.set_nonblocking(true)?;
@@ -180,7 +190,7 @@ impl TcpPassthrough {
         let (done_tx, done_rx) = std::sync::mpsc::channel();
 
         spawn_loop(
-            accept_loop(listener, backend, Arc::clone(&shutdown), config),
+            accept_loop(listener, backend, Arc::clone(&shutdown), config, ctx),
             done_tx,
         )?;
 
@@ -216,19 +226,24 @@ async fn accept_loop(
     backend: String,
     shutdown: Arc<OnSignal>,
     config: PassthroughConfig,
+    ctx: Ctx,
 ) {
     while !shutdown.probe() {
         let accepted = or_tick(
             listener.read_with(std::net::TcpListener::accept),
             config.shutdown_poll,
+            &ctx,
         )
         .await;
         match accepted {
             None => {}
             Some(Ok((client, _addr))) => {
                 let backend = backend.clone();
+                let relay_ctx = ctx.clone();
                 let task = async move {
-                    if let Err(e) = splice_client_to_backend(client, &backend, config).await {
+                    if let Err(e) =
+                        splice_client_to_backend(client, &backend, config, &relay_ctx).await
+                    {
                         tracing::warn!(%backend, "tcp passthrough failed: {e}");
                     }
                 };
@@ -239,7 +254,7 @@ async fn accept_loop(
             Some(Err(e)) => {
                 tracing::error!("tcp passthrough accept error: {e}");
                 // Back off one poll so a persistent error does not spin.
-                sleep_async(config.shutdown_poll).await;
+                sleep_async(config.shutdown_poll, &ctx).await;
             }
         }
     }
@@ -250,10 +265,17 @@ async fn splice_client_to_backend(
     client: std::net::TcpStream,
     backend_authority: &str,
     config: PassthroughConfig,
+    ctx: &Ctx,
 ) -> std::io::Result<()> {
     let client = wrap_tcp(client)?;
-    let backend = dial_tcp(backend_authority, config.io_mode, config.connect_timeout).await?;
-    splice(client, backend, config.writer).await;
+    let backend = dial_tcp(
+        backend_authority,
+        config.io_mode,
+        config.connect_timeout,
+        ctx,
+    )
+    .await?;
+    splice(client, backend, config.writer, ctx).await;
     Ok(())
 }
 
@@ -363,6 +385,7 @@ async fn relay_udp(
         let received = or_tick(
             socket.read_with(|s| s.recv_from(&mut buf)),
             config.shutdown_poll,
+            &ctx,
         )
         .await;
         let (n, client_addr) = match received {
@@ -385,7 +408,7 @@ async fn relay_udp(
             let slice = config
                 .shutdown_poll
                 .min(deadline.saturating_duration_since(clock.now()));
-            match or_tick(socket.read_with(|s| s.recv_from(&mut buf)), slice).await {
+            match or_tick(socket.read_with(|s| s.recv_from(&mut buf)), slice, &ctx).await {
                 None => {}
                 Some(Ok((m, _from))) => {
                     if let Err(e) = socket

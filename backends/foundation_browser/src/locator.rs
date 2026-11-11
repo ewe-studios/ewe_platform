@@ -21,6 +21,7 @@ use serde_json::{json, Value};
 use crate::browser::Page;
 use crate::error::{BrowserError, Result};
 use crate::geometry::Rect;
+use crate::pause::{pause, WaitConfig};
 
 /// An element handle addressed by CSS selector (resolved lazily per operation).
 pub struct Locator<'p> {
@@ -225,6 +226,7 @@ impl LocatorAssertions<'_, '_> {
     where
         F: FnMut() -> Result<(bool, String)>,
     {
+        let wait = WaitConfig::default();
         let end = self.locator.ctx.clock().now() + self.deadline;
         loop {
             let actual = match probe() {
@@ -240,7 +242,7 @@ impl LocatorAssertions<'_, '_> {
                     actual,
                 });
             }
-            std::thread::sleep(Duration::from_millis(50));
+            pause(self.locator.ctx, wait.poll_interval, &wait);
         }
     }
 

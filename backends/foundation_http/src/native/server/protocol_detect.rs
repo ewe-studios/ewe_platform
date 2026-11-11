@@ -200,7 +200,12 @@ impl ProtocolDetectHandler {
             );
             let guard = self.drain_guard.take();
             self.finish_after_write(
-                send_text(self.stream.clone(), 505, "HTTP Version Not Supported"),
+                send_text(
+                    self.stream.clone(),
+                    505,
+                    "HTTP Version Not Supported",
+                    &self.ctx,
+                ),
                 guard,
             );
             return;
@@ -228,7 +233,7 @@ impl ProtocolDetectHandler {
             Err(e) => {
                 tracing::error!(client = %self.client_ip, err = ?e, "failed to submit connection");
                 self.finish_after_write(
-                    send_text(self.stream.clone(), 503, "Service Unavailable"),
+                    send_text(self.stream.clone(), 503, "Service Unavailable", &self.ctx),
                     None,
                 );
             }

@@ -54,8 +54,9 @@ where
         Some(handler) => iter.with_panic_handler(handler),
         None => iter,
     };
+    let ctx = config.engine.fork_ctx();
     dispatch(&config.engine, iter, parent)
-        .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait))
+        .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait, ctx))
 }
 
 /// Build a `StreamConsumingIter` delivery and dispatch it, returning a `stream`.
@@ -92,8 +93,9 @@ where
         Some(handler) => iter.with_panic_handler(handler),
         None => iter,
     };
+    let ctx = config.engine.fork_ctx();
     dispatch(&config.engine, iter, parent)
-        .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait))
+        .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait, ctx))
 }
 
 /// Emit the uniform `recv`/`stream`/`stream_with_config` terminals for a local
@@ -208,7 +210,11 @@ macro_rules! action_terminal {
                 if let Some(handler) = self.config.panic_handler {
                     action = action.with_panic_handler(handler);
                 }
-                let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
+                let receiver = NotifyRecvIterator::from_notify_queue(
+                    channel,
+                    wait,
+                    self.config.engine.fork_ctx(),
+                );
                 (action, receiver)
             }
         }
@@ -350,7 +356,8 @@ where
         if let Some(handler) = self.config.panic_handler {
             action = action.with_panic_handler(handler);
         }
-        let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
+        let receiver =
+            NotifyRecvIterator::from_notify_queue(channel, wait, self.config.engine.fork_ctx());
         (action, receiver)
     }
 }

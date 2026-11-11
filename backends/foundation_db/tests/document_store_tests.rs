@@ -18,7 +18,9 @@ use tempfile::TempDir;
 async fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("docs.db").to_str().unwrap().to_owned();
-    let storage = TursoStorage::new(&url).await.unwrap();
+    let storage = TursoStorage::new(&url, foundation_context::Ctx::host())
+        .await
+        .unwrap();
     storage.init_schema().await.unwrap();
     (dir, SqlDocumentStore::new(storage))
 }
@@ -159,7 +161,9 @@ async fn migration_runner_applies_all_then_is_idempotent() {
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("migrate.db").to_str().unwrap().to_owned();
     {
-        let storage = TursoStorage::new(&url).await.unwrap();
+        let storage = TursoStorage::new(&url, foundation_context::Ctx::host())
+            .await
+            .unwrap();
 
         // First run applies every migration; second run applies none.
         let applied = MigrationRunner::new(MIGRATIONS)

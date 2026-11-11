@@ -9,20 +9,41 @@ use std::{
 pub struct Fd(OwnedFd);
 
 impl Fd {
-    pub fn clone(&self) -> io::Result<Self> {
+    /// Duplicate this file descriptor with `dup`.
+    ///
+    /// # Errors
+    ///
+    /// Returns the operating system error when the descriptor cannot be duplicated.
+    pub fn duplicate(&self) -> io::Result<Self> {
         self.0.try_clone().map(Self)
     }
 
+    /// Take ownership of a raw file descriptor.
+    ///
+    /// # Safety
+    ///
+    /// `raw` must be an open file descriptor that no other owner closes.
+    #[must_use]
     pub unsafe fn from_raw(raw: RawFd) -> Self {
         Self(OwnedFd::from_raw_fd(raw))
     }
 
+    /// Give up ownership and return the raw file descriptor.
+    #[must_use]
     pub fn into_raw(self) -> RawFd {
         self.0.into_raw_fd()
     }
 
+    /// The raw file descriptor. This `Fd` keeps the ownership.
+    #[must_use]
     pub fn as_raw(&self) -> RawFd {
         self.0.as_raw_fd()
+    }
+
+    /// The epoll event token of this descriptor: its raw value as an unsigned number.
+    #[must_use]
+    pub fn event_token(&self) -> u64 {
+        u64::from(self.as_raw().cast_unsigned())
     }
 }
 
@@ -46,6 +67,8 @@ pub struct Remote {
 }
 
 impl Remote {
+    /// Wrap a file descriptor as the remote end.
+    #[must_use]
     pub fn new(fd: Fd) -> Self {
         Self {
             v: fd.as_raw(),
@@ -53,6 +76,11 @@ impl Remote {
         }
     }
 
+    /// Lock the file descriptor for writing.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the lock is poisoned.
     pub fn lock(&self) -> MutexGuard<'_, Fd> {
         self.fd.lock().unwrap()
     }
@@ -60,14 +88,14 @@ impl Remote {
     /// Check if the remote socket is dead via `getsockopt(SO_ERROR)`.
     pub fn is_dead(&self) -> bool {
         let mut err: i32 = 0;
-        let mut len: u32 = mem::size_of_val(&err) as _;
+        let mut len = libc::socklen_t::try_from(mem::size_of_val(&err)).unwrap_or(4);
         let r = unsafe {
             libc::getsockopt(
                 self.v,
                 libc::SOL_SOCKET,
                 libc::SO_ERROR,
-                &mut err as *mut _ as *mut _,
-                &mut len,
+                (&raw mut err).cast::<libc::c_void>(),
+                &raw mut len,
             )
         };
         r == -1 || err != 0

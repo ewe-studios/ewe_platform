@@ -518,6 +518,7 @@
 //         },
 //         None,
 //         None,
+//         ctx.clone(), // the `Ctx` whose clock bounds the consumer's waits
 //     )
 //     .map_err(|e| StorageError::Backend(e.to_string()))?;
 //
@@ -534,7 +535,7 @@
 //
 // | Component | Role |
 // |-----------|------|
-// | `run_future_iter(future_factory, None, None)` | Spawns worker thread, owns !Send iterator forever |
+// | `run_future_iter(future_factory, None, None, ctx)` | Spawns worker thread, owns !Send iterator forever |
 // | Generic iterator (`LibsqlRowsIterator<T, F>`) | Consumes !Send rows, transforms to `T: Send` via closure `F` |
 // | Transformation closure | Inline per-use-site logic: `FnMut(&Row) -> Result<T, Error>` |
 // | `ThreadedValue<T>` | Crosses thread boundary from worker to main |

@@ -209,8 +209,12 @@ fn proxy_tcp_tunnel_does_not_spawn_threads() {
 fn tcp_passthrough_does_not_spawn_threads() {
     let _serial = one_at_a_time();
     let echo = EchoServer::start(false);
-    let passthrough = TcpPassthrough::start("127.0.0.1:0", &format!("127.0.0.1:{}", echo.port))
-        .expect("start passthrough");
+    let passthrough = TcpPassthrough::start(
+        "127.0.0.1:0",
+        &format!("127.0.0.1:{}", echo.port),
+        foundation_core::valtron::Ctx::host(),
+    )
+    .expect("start passthrough");
     let open = |addr: SocketAddr| TcpStream::connect(addr).expect("connect");
     let (before, during) = hold_tunnels(passthrough.local_addr(), open);
     passthrough.shutdown();

@@ -13,6 +13,13 @@ use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
 
+/// The caller context for the requests in this file.
+fn call_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
+}
+
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 fn spawn_redirect_server() -> u16 {
@@ -56,7 +63,7 @@ fn redirect_limit_triggers_too_many_redirects() {
     let request = client.get(&url).unwrap().build_client().unwrap();
 
     // Send the request – should fail with TooManyRedirects
-    let send_result = request.send();
+    let send_result = request.send(&call_ctx());
 
     if let Err(err) = send_result {
         println!("Actual error: {err:?}");

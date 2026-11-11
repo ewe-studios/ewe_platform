@@ -27,9 +27,11 @@ fn process_cpu() -> Duration {
         tv_nsec: 0,
     };
     // SAFETY: `ts` is a valid out pointer for the call.
-    let rc = unsafe { libc::clock_gettime(libc::CLOCK_PROCESS_CPUTIME_ID, &mut ts) };
+    let rc = unsafe { libc::clock_gettime(libc::CLOCK_PROCESS_CPUTIME_ID, &raw mut ts) };
     assert_eq!(rc, 0, "clock_gettime");
-    Duration::new(ts.tv_sec as u64, ts.tv_nsec as u32)
+    let secs = u64::try_from(ts.tv_sec).expect("process CPU seconds are not negative");
+    let nanos = u32::try_from(ts.tv_nsec).expect("process CPU nanoseconds fit in u32");
+    Duration::new(secs, nanos)
 }
 
 #[test]
@@ -57,7 +59,9 @@ fn idle_quic_listener_uses_no_cpu() {
     std::thread::sleep(Duration::from_millis(500));
     let before = process_cpu();
     std::thread::sleep(Duration::from_secs(1));
-    let used = process_cpu() - before;
+    let used = process_cpu()
+        .checked_sub(before)
+        .expect("process CPU time does not go back");
     proxy.shutdown();
     let _ = std::fs::remove_dir_all(&dir);
 

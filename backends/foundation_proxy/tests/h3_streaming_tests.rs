@@ -133,14 +133,19 @@ fn send_frame(
         } else {
             request.poll_send_data(&mut pending)
         };
-        match step {
-            Stream::Next(_) => return,
-            _ => {
-                assert!(Instant::now() < deadline, "client send timed out");
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(_) = step {
+            return;
         }
+        assert!(Instant::now() < deadline, "client send timed out");
+        std::thread::sleep(ms(1));
     }
+}
+
+/// A fixed context over a real monotonic clock, for the client connection.
+fn test_ctx() -> foundation_context::Ctx {
+    foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ))
 }
 
 #[test]
@@ -174,15 +179,8 @@ fn h3_forward_streams_large_body() {
     let started = Instant::now();
     let deadline = started + TIME_LIMIT;
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(
-        h3_addr,
-        client_cfg,
-        "localhost",
-        &foundation_context::Ctx::fixed(std::sync::Arc::new(
-            foundation_context::MonotonicClock::new(),
-        )),
-    )
-    .expect("connect");
+    let (driver, conn) =
+        QuicDriver::connect(h3_addr, client_cfg, "localhost", &test_ctx()).expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
     let mut h3 = H3Connection::new(conn);
     drive(|| h3.poll_setup(), deadline).expect("client h3 setup");
@@ -204,13 +202,11 @@ fn h3_forward_streams_large_body() {
     ]);
     send_frame(&mut request, head, true, deadline);
     loop {
-        match request.poll_finish() {
-            Stream::Next(_) => break,
-            _ => {
-                assert!(Instant::now() < deadline, "finish timed out");
-                std::thread::sleep(ms(1));
-            }
+        if let Stream::Next(_) = request.poll_finish() {
+            break;
         }
+        assert!(Instant::now() < deadline, "finish timed out");
+        std::thread::sleep(ms(1));
     }
 
     let headers = drive(|| request.poll_headers(), deadline).expect("response headers");

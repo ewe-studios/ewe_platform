@@ -546,8 +546,13 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         }
 
         let request = self.request(builder)?;
-        let response = request.send_async().await?;
-        let (status, headers, body, _pool, conn) = response.into_parts();
+        let (response, conn, _pool) = request.send_detached_async().await?;
+        let conn = Some(conn);
+        let (status, headers, body) = {
+            let status = response.get_status();
+            let headers = response.get_headers_ref().clone();
+            (status, headers, response.take_body())
+        };
         // This method is asynchronous, so its caller reads the body with an
         // async reader. `ClientRequest::send_async` hands the socket back in
         // blocking mode; a blocking body read would hold the valtron worker
@@ -591,10 +596,11 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         }
 
         let request = self.request(builder)?;
-        let response = request.send()?;
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        // The caller owns the response body. No guard returns the connection
+        // to the pool, so no `Ctx` is needed here.
+        let (response, _conn, _pool) = request.send_detached()?;
 
-        Ok(SimpleResponse::new(status, headers, body))
+        Ok(response)
     }
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {

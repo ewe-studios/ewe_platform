@@ -66,12 +66,12 @@ fn thread_cpu_nanos() -> u64 {
 
 #[cfg(feature = "turso")]
 async fn open_turso_file(path: &str) -> foundation_db::StorageResult<foundation_db::TursoStorage> {
-    foundation_db::TursoStorage::new(path).await
+    foundation_db::TursoStorage::new(path, foundation_context::Ctx::host()).await
 }
 
 #[cfg(feature = "libsql")]
 async fn open_libsql_file(path: &str) -> foundation_db::StorageResult<foundation_db::LibsqlStore> {
-    foundation_db::LibsqlStore::new_kv(path, None).await
+    foundation_db::LibsqlStore::new_kv(path, None, foundation_context::Ctx::host()).await
 }
 
 macro_rules! lock_tests {
@@ -459,7 +459,7 @@ lock_tests!(
     foundation_db::TursoStorage,
     "turso",
     false,
-    foundation_db::TursoStorage::in_memory(),
+    foundation_db::TursoStorage::in_memory(foundation_context::Ctx::host()),
     open_turso_file
 );
 lock_tests!(
@@ -467,6 +467,6 @@ lock_tests!(
     foundation_db::LibsqlStore,
     "libsql",
     true,
-    foundation_db::LibsqlStore::in_memory(),
+    foundation_db::LibsqlStore::in_memory(foundation_context::Ctx::host()),
     open_libsql_file
 );

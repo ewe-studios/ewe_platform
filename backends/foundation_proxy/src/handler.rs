@@ -91,14 +91,19 @@ impl Serve for ProxyHandler {
     )]
     fn serve(
         &self,
-        _ctx: Ctx,
+        serve_ctx: Ctx,
         req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         // Decision 22: during draining, respond 503 so clients retry elsewhere.
         if self.state.is_draining() {
             tracing::info!("proxy draining — returning 503");
-            return closing(send_text(conn, 503, "Service Unavailable — draining"));
+            return closing(send_text(
+                conn,
+                503,
+                "Service Unavailable — draining",
+                &self.ctx,
+            ));
         }
 
         let host = header_first(&req, &SimpleHeader::HOST).unwrap_or_default();
@@ -108,7 +113,7 @@ impl Serve for ProxyHandler {
 
         let Some(service) = self.state.router().route(&host, &path) else {
             tracing::debug!(%host, %path, "no service matched host/path — 404");
-            return closing(send_not_found(conn));
+            return closing(send_not_found(conn, &self.ctx));
         };
 
         // Writer affinity (Decision 23): extract sticky cookie if present.
@@ -116,7 +121,7 @@ impl Serve for ProxyHandler {
 
         let Some((lease, backend_idx)) = service.pick_sticky(sticky_idx) else {
             tracing::warn!(service = %service.config().name, "no available backend — 503");
-            return closing(send_text(conn, 503, "Service Unavailable"));
+            return closing(send_text(conn, 503, "Service Unavailable", &self.ctx));
         };
 
         // Build Set-Cookie header for stickiness (one backend: omitted).
@@ -152,12 +157,18 @@ impl Serve for ProxyHandler {
         if matches!(protocol, BackendProtocol::Udp) {
             tracing::error!(url = %lease.backend().url(), "UDP backend reached via HTTP handler — must use UdpPassthrough");
             drop(lease);
-            return closing(send_text(conn, 502, "UDP backend not reachable via HTTP"));
+            return closing(send_text(
+                conn,
+                502,
+                "UDP backend not reachable via HTTP",
+                &self.ctx,
+            ));
         }
 
         // Access log: method, host, path, status (filled by relay), duration.
         let log_start = self.ctx.clock().now();
         let log_ctx = self.ctx.clone();
+        let relay_ctx = self.ctx.clone();
         let log_host = host.clone();
         let log_path = path.clone();
         let log_method = method.clone();
@@ -188,7 +199,15 @@ impl Serve for ProxyHandler {
                 // HTTP-fronted raw backend: tunnel the connection through. The
                 // bytes already parsed as the HTTP request are not replayed. The
                 // dedicated raw entry point is `passthrough::TcpPassthrough`.
-                relay_tcp_tunnel(conn, &backend, io_mode, connect_timeout, writer_config).await;
+                relay_tcp_tunnel(
+                    conn,
+                    &backend,
+                    io_mode,
+                    connect_timeout,
+                    writer_config,
+                    &relay_ctx,
+                )
+                .await;
             } else if upgrade {
                 // The splice owns the connection until either side closes. A
                 // failure before it starts leaves the connection ours: answer.
@@ -201,18 +220,19 @@ impl Serve for ProxyHandler {
                     io_mode,
                     connect_timeout,
                     writer_config,
+                    &relay_ctx,
                 )
                 .await;
                 if let Err(e) = outcome {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed, sending 502: {e}");
-                    let mut writer = ResponseWriter::new(conn, writer_config);
+                    let mut writer = ResponseWriter::new(conn, writer_config, relay_ctx.clone());
                     let _ = write_error_page(&mut writer, 502).await;
                 }
             } else if matches!(protocol, BackendProtocol::Grpc) && is_grpc_web {
                 // D leg (spec 63): a `grpc://` backend speaks native gRPC over
                 // H2. An inbound gRPC-Web request (H1) is translated at the
                 // frame level.
-                let mut writer = ResponseWriter::new(conn, writer_config);
+                let mut writer = ResponseWriter::new(conn, writer_config, relay_ctx.clone());
                 let ctx = RpcContext {
                     client_ip: &client_ip,
                     scheme: &scheme,
@@ -225,7 +245,7 @@ impl Serve for ProxyHandler {
                         .await;
                 finish_relay(&mut writer, &backend, result, "grpc-web").await;
             } else if matches!(protocol, BackendProtocol::Grpc) && is_connect {
-                let mut writer = ResponseWriter::new(conn, writer_config);
+                let mut writer = ResponseWriter::new(conn, writer_config, relay_ctx.clone());
                 let ctx = RpcContext {
                     client_ip: &client_ip,
                     scheme: &scheme,
@@ -237,7 +257,7 @@ impl Serve for ProxyHandler {
                     crate::rpc_relay::relay_connect_to_grpc(&mut writer, &backend, req, &ctx).await;
                 finish_relay(&mut writer, &backend, result, "connect").await;
             } else {
-                let mut writer = ResponseWriter::new(conn, writer_config);
+                let mut writer = ResponseWriter::new(conn, writer_config, relay_ctx.clone());
                 let ctx = ForwardContext {
                     client_ip: &client_ip,
                     scheme: &scheme,
@@ -245,6 +265,7 @@ impl Serve for ProxyHandler {
                     extra_headers: sticky_header.as_ref(),
                     client_read_wake,
                     max_request_body,
+                    call_ctx: &serve_ctx,
                 };
                 let result = forward_http(&mut writer, &backend, req, &ctx).await;
                 finish_relay(&mut writer, &backend, result, "forward").await;
@@ -264,14 +285,15 @@ async fn relay_tcp_tunnel(
     io_mode: foundation_iogate::ServerIo,
     connect_timeout: std::time::Duration,
     writer_config: foundation_http::native::writer::WriterConfig,
+    relay_ctx: &Ctx,
 ) {
     let authority = backend.target().authority();
-    match crate::aio::dial_tcp(&authority, io_mode, connect_timeout).await {
-        Ok(upstream) => crate::aio::splice(conn, upstream, writer_config).await,
+    match crate::aio::dial_tcp(&authority, io_mode, connect_timeout, relay_ctx).await {
+        Ok(upstream) => crate::aio::splice(conn, upstream, writer_config, relay_ctx).await,
         Err(e) => {
             // The connection is untouched: answer so the client sees a response.
             tracing::warn!(url = %backend.url(), "tcp tunnel failed, sending 502: {e}");
-            let mut writer = ResponseWriter::new(conn, writer_config);
+            let mut writer = ResponseWriter::new(conn, writer_config, relay_ctx.clone());
             let _ = write_error_page(&mut writer, 502).await;
         }
     }

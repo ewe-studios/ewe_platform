@@ -68,10 +68,7 @@ fn test_notify_queue_blocks_until_item_available() {
     let start = Instant::now();
     let mut result = None;
     loop {
-        match queue.wait_for_item(
-            Duration::from_micros(100),
-            &foundation_context::MonotonicClock::new(),
-        ) {
+        match queue.wait_for_item(Duration::from_micros(100), &crate::valtron::real_ctx()) {
             Some(NotificationItem::Ready(val)) => {
                 result = Some(val);
                 break;
@@ -101,10 +98,7 @@ fn test_notify_queue_returns_none_when_closed() {
     queue.close();
 
     // Should return None immediately since queue is closed
-    let result = queue.wait_for_item(
-        Duration::from_millis(100),
-        &foundation_context::MonotonicClock::new(),
-    );
+    let result = queue.wait_for_item(Duration::from_millis(100), &crate::valtron::real_ctx());
     assert!(result.is_none());
 }
 
@@ -117,10 +111,7 @@ fn test_notify_queue_receives_item_with_notification() {
     queue.push(42).expect("push should succeed");
 
     // Should receive immediately with short timeout
-    let result = queue.wait_for_item(
-        Duration::from_micros(100),
-        &foundation_context::MonotonicClock::new(),
-    );
+    let result = queue.wait_for_item(Duration::from_micros(100), &crate::valtron::real_ctx());
     assert_eq!(result, Some(NotificationItem::Ready(42)));
 }
 
@@ -144,10 +135,7 @@ fn test_notify_queue_multiple_items_blocking() {
     let mut received = Vec::new();
     for _ in 0..5 {
         loop {
-            match queue.wait_for_item(
-                Duration::from_micros(100),
-                &foundation_context::MonotonicClock::new(),
-            ) {
+            match queue.wait_for_item(Duration::from_micros(100), &crate::valtron::real_ctx()) {
                 Some(NotificationItem::Ready(item)) => {
                     received.push(item);
                     break;
@@ -175,10 +163,7 @@ fn test_notify_queue_race_condition_handling() {
     // Wait with timeout should return immediately with the item
     // This tests the race condition where item is added before lock
     let start = Instant::now();
-    let result = queue.wait_for_item(
-        Duration::from_millis(100),
-        &foundation_context::MonotonicClock::new(),
-    );
+    let result = queue.wait_for_item(Duration::from_millis(100), &crate::valtron::real_ctx());
     let elapsed = start.elapsed();
 
     assert_eq!(result, Some(NotificationItem::Ready(100)));
@@ -230,10 +215,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
     let start = Instant::now();
     let mut result = None;
     loop {
-        match queue.wait_for_item(
-            Duration::from_micros(1),
-            &foundation_context::MonotonicClock::new(),
-        ) {
+        match queue.wait_for_item(Duration::from_micros(1), &crate::valtron::real_ctx()) {
             Some(NotificationItem::Ready(val)) => {
                 result = Some(val);
                 break;
@@ -263,7 +245,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
 #[test]
 fn test_notify_recv_iterator_blocks_until_item() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
-    let recv_iter = NotifyRecvIter::new(queue.clone());
+    let recv_iter = NotifyRecvIter::new(queue.clone(), crate::valtron::real_ctx());
     let queue_clone = queue.clone();
 
     // Producer pushes item after delay
@@ -301,7 +283,11 @@ fn test_notify_recv_iterator_blocks_until_item() {
 #[test]
 fn test_notify_recv_iterator_iterates_with_notification() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyRecvIterator::from_notify_queue(queue.clone(), Duration::from_micros(100));
+    let iterator = NotifyRecvIterator::from_notify_queue(
+        queue.clone(),
+        Duration::from_micros(100),
+        crate::valtron::real_ctx(),
+    );
 
     // Push items
     queue.push(1).unwrap();
@@ -330,7 +316,12 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let queue_clone = queue.clone();
 
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     // Producer pushes values after delay
     let producer = std::thread::spawn(move || {
@@ -374,7 +365,12 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
 fn test_notify_queue_stream_iterator_returns_none_when_closed() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
 
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     // Push a value then close
     queue.push(Stream::Next(42)).unwrap();
@@ -391,7 +387,12 @@ fn test_notify_queue_stream_iterator_returns_none_when_closed() {
 fn test_notify_queue_stream_iterator_receives_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
 
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
 
     // Push values
     queue.push(Stream::Next(1)).unwrap();
@@ -442,6 +443,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
         task,
         // CRITICAL: Very short timeout for single-threaded mode
         Duration::from_micros(50),
+        crate::valtron::real_ctx(),
     );
 
     // Wrap receiver in Arc<Mutex<>> to allow access from closure
@@ -516,6 +518,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
         task,
         // Very short timeout for single-threaded
         Duration::from_micros(10),
+        crate::valtron::real_ctx(),
     );
 
     // Wrap receiver in Arc<Mutex<>> for closure access
@@ -567,7 +570,7 @@ fn test_single_threaded_producer_consumer_interleaved() {
 
         // Consume with short timeout
         if let Some(NotificationItem::Ready(val)) =
-            queue.wait_for_item(short_timeout, &foundation_context::MonotonicClock::new())
+            queue.wait_for_item(short_timeout, &crate::valtron::real_ctx())
         {
             assert_eq!(val, i);
             consumed += 1;

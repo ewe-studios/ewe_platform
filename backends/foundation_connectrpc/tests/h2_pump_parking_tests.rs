@@ -257,7 +257,11 @@ async fn a_response_body_pop_does_not_wake_the_pump() {
     let before = h2_pump_poll_count();
     for expected in 0..3 {
         // Wait until the chunk is buffered and the pump has parked, then pop.
-        foundation_core::valtron::sleep_async(BODY_POP_DELAY).await;
+        foundation_core::valtron::sleep_async(
+            BODY_POP_DELAY,
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
         let chunk = call
             .recv_body
             .next()
@@ -268,7 +272,11 @@ async fn a_response_body_pop_does_not_wake_the_pump() {
     }
     // Give a wake that a pop triggers on the old signal time to reach the
     // pump's executor before the count is read.
-    foundation_core::valtron::sleep_async(Duration::from_millis(50)).await;
+    foundation_core::valtron::sleep_async(
+        Duration::from_millis(50),
+        &foundation_core::valtron::Ctx::host(),
+    )
+    .await;
 
     let turns = h2_pump_poll_count() - before;
     eprintln!("body phase: {turns} pump turns for three socket edges");

@@ -234,3 +234,58 @@ standard ASD-STE100.
   `claude/friendly-ritchie-7acn6p`. This branch does not edit them. Its callers do not compile
   here until that work lands.
 
+
+- Lane C (2026-11-10): the sync client had no `Ctx` to give `FinalizedResponse`, so it took the
+  root `Ctx` of the executor. A caller with a simulated clock got a real-clock stamp on the
+  pooled connection. The fix is to take the `Ctx` at the entry point.
+- Lane C: a TCP listener with `listen(0)` that never calls `accept` makes a later connect hang
+  on Linux. The kernel drops the SYN when the accept queue is full and `tcp_abort_on_overflow`
+  is 0. Fill the queue with non-blocking connects, then prove the hang with a probe connect.
+  This replaces the address `10.255.255.1`, which a sandbox may refuse at once.
+- Lane C: a worktree can start from an old commit. Check that `foundation_netio` exists before
+  you start.
+
+- 2026-11-10 (issue #482): the timer is a process-wide thread, so it cannot hold one `Ctx`. The
+  fix keeps one ordered map of deadlines per clock. Each entry carries its clock. The thread asks
+  that clock for the time and parks on the real operating system only until the nearest deadline.
+  A simulated clock does not wake that park. `SimulatedClock::advance` now calls a crate-private
+  `timer::nudge`.
+- 2026-11-10 (issue #482): `mpp::RecvIterator` reads no clock. It parks on the operating system
+  and has no deadline, so it needed no change.
+- 2026-11-10 (issue #482): `NotifyQueue` is not `Send` without the `multi` feature. A test that
+  waits on a thread must build the queue on that thread.
+- 2026-11-10 (issue #482): these callers have no `Ctx` in scope and use the engine root
+  (`valtron::fork_ctx`): the `sleep_async` callers in foundation_ai, foundation_auth,
+  foundation_connectrpc client, foundation_deployment_hetzner, foundation_deployment_platform,
+  foundation_proxy and foundation_vectors; `ResponseWriter::new` in the foundation_http handlers,
+  foundation_keychain and foundation_proxy; `Hangup` and the deadline timer in
+  foundation_connectrpc; the connection gate of foundation_db (unless `with_ctx` is called).
+  `fork_ctx` panics when no pool runs. Next step: thread a `Ctx` through those handler APIs.
+
+- Issue 474: a deadline read from a `Ctx` clock is not enough. The pause in the loop must
+  read the same clock. A real sleep never moves a `SimulatedClock`, so the loop runs forever.
+- Issue 474: the driver stays blocking. `launch`, `Page` and `Locator` block on a socket and
+  the `wasm_ui_server` macro generates blocking tests. An async `launch` would change every
+  generated test. A blocking `pause` on the `Ctx` clock is the smallest correct change.
+  `valtron::sleep_async` does not help here: it waits on the real timer thread, not on the
+  `Ctx` clock.
+- Issue 474: `RpcEngine::connect` is lazy. It succeeds on a closed port. So the retry loop in
+  `connect_with_retry` only retries on a bad URL, not on a refused connection. A test needs a
+  bad URL to make every attempt fail.
+- Issue 474: a frozen clock must not hide a launch failure. A test that steps the clock from
+  the start ends a failed browser launch on its clock deadline.
+- The wasm-tests job runs `cargo check --tests` for wasm32. A new test file that uses a
+  native-only module (for example `foundation_netio::native`) needs
+  `#![cfg(not(target_family = "wasm"))]`. Otherwise the wasm job fails.
+- The standalone crates under `integration/` have their own manifest. When a shared test file
+  imports a new crate (`foundation_context`), add that crate to each standalone manifest too.
+- `ci.py` runs every build command and then fails. So the last lines in the log (here, the
+  two `cargo fmt` checks) are not the cause. Search the log for `##[error]` to find the failed command.
+- The io_uring completion selector lost a wakeup (#506). It re-armed a starved recv only when
+  the buffer recycle counter moved. A buffer that came back before the `-ENOBUFS` completion
+  was read used up that move, and the token parked for good. A level check (a buffer is free)
+  does not miss it. Kernels before 6.12 post `-ENOBUFS` early, so only the 6.6 runner showed it.
+- A CI job that tests on one runner type can hide kernel-dependent bugs. Moving the Linux jobs
+  to Blacksmith (kernel 6.6) found #506, which GitHub's newer kernel never showed.
+- CI ran clippy on foundation_reactor without the `uring` feature, so 65 findings stayed
+  hidden (#507). Check that `clippy-runs` covers every feature that gates code.

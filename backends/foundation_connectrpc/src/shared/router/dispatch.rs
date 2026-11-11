@@ -166,7 +166,9 @@ impl ConnectRpcHandler {
 /// sleeping or spinning. Each connection owner supplies the timer that fits.
 pub trait DeadlineTimer: Send + Sync {
     /// Resolve once `deadline` has passed.
-    fn sleep_until(&self, deadline: Instant) -> BoxFuture<'_, ()>;
+    ///
+    /// `ctx` supplies the clock that `deadline` is measured on.
+    fn sleep_until(&self, deadline: Instant, ctx: &Ctx) -> BoxFuture<'_, ()>;
 }
 
 /// What the connection owner gives dispatch besides the request: the call's
@@ -202,9 +204,13 @@ impl<'a> CallHooks<'a> {
 
 /// Resolves when the call's deadline passes; never when there is no deadline
 /// or no timer to enforce it with.
-pub(crate) async fn deadline_expiry(timer: Option<&dyn DeadlineTimer>, deadline: Option<Instant>) {
+pub(crate) async fn deadline_expiry(
+    timer: Option<&dyn DeadlineTimer>,
+    deadline: Option<Instant>,
+    ctx: &Ctx,
+) {
     match (timer, deadline) {
-        (Some(timer), Some(deadline)) => timer.sleep_until(deadline).await,
+        (Some(timer), Some(deadline)) => timer.sleep_until(deadline, ctx).await,
         _ => std::future::pending().await,
     }
 }
@@ -581,6 +587,7 @@ pub(crate) async fn run_unary_until_deadline(
     timer: Option<&dyn DeadlineTimer>,
 ) -> SimpleOutgoingResponse {
     let deadline = ctx.request.deadline;
+    let timer_ctx = ctx.ctx.clone();
     let (Some(timer), Some(deadline)) = (timer, deadline) else {
         return run_unary_body(
             handler,
@@ -606,7 +613,7 @@ pub(crate) async fn run_unary_until_deadline(
         ctx,
         read_max_bytes,
     ));
-    match select(call, timer.sleep_until(deadline)).await {
+    match select(call, timer.sleep_until(deadline, &timer_ctx)).await {
         Either::Left((response, _)) => response,
         Either::Right(((), _call)) => {
             cancel.cancel();
@@ -726,6 +733,7 @@ async fn run_streaming(
 
     let cancel = ctx.cancel_signal().clone();
     let deadline = ctx.request.deadline;
+    let timer_ctx = ctx.ctx.clone();
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
@@ -801,7 +809,7 @@ async fn run_streaming(
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
         response_side,
-        deadline_expiry(timer, deadline),
+        deadline_expiry(timer, deadline, &timer_ctx),
         std::future::pending::<()>(),
         &cancel,
     ));

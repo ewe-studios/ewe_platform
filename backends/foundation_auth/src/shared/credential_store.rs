@@ -107,9 +107,13 @@ impl CredentialStorage {
     /// Returns [`CredentialStoreError`] if the Turso backend cannot be
     /// initialized.
     #[cfg(feature = "turso")]
-    pub async fn turso(url: &str) -> Result<Self, CredentialStoreError> {
+    pub async fn turso(
+        url: &str,
+        ctx: foundation_context::Ctx,
+    ) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
+            ctx: ctx.into(),
         })
         .await?;
         Ok(Self::new(storage))

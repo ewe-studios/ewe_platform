@@ -49,7 +49,7 @@ pub use core::schema::*;
 pub use core::storage_provider as traits;
 
 // Central StorageProvider + StorageBackend (always available)
-pub use storage_provider::{StorageBackend, StorageProvider};
+pub use storage_provider::{BackendCtx, StorageBackend, StorageProvider};
 
 // Re-export trait types at top level for convenience
 pub use core::storage_provider::{

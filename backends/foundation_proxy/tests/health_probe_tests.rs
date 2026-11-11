@@ -73,21 +73,27 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
             }
             match listener.accept() {
                 Ok((mut stream, _)) => {
-                    // The accepted socket inherits non-blocking from the
-                    // listener on some platforms. Make it blocking so the
-                    // read below waits for the client instead of failing fast.
-                    let _ = stream.set_nonblocking(false);
-                    // Complete the handshake, then read-and-discard until the
-                    // client closes the connection (at its read timeout).
-                    let _ = stream.write_all(&SILENT_SETTINGS);
-                    let _ = stream.flush();
-                    let mut buf = [0u8; 1024];
-                    loop {
-                        match stream.read(&mut buf) {
-                            Ok(0) | Err(_) => break,
-                            Ok(_) => {}
+                    // Serve each connection on its own thread. One thread for
+                    // all of them made a probe wait while the backend still read
+                    // the previous probe's socket, so that probe never got the
+                    // SETTINGS frame and ran into its handshake timeout.
+                    std::thread::spawn(move || {
+                        // The accepted socket inherits non-blocking from the
+                        // listener on some platforms. Make it blocking so the
+                        // read below waits for the client instead of failing fast.
+                        let _ = stream.set_nonblocking(false);
+                        // Complete the handshake, then read-and-discard until the
+                        // client closes the connection (at its read timeout).
+                        let _ = stream.write_all(&SILENT_SETTINGS);
+                        let _ = stream.flush();
+                        let mut buf = [0u8; 1024];
+                        loop {
+                            match stream.read(&mut buf) {
+                                Ok(0) | Err(_) => break,
+                                Ok(_) => {}
+                            }
                         }
-                    }
+                    });
                 }
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     std::thread::sleep(Duration::from_millis(5));
@@ -109,7 +115,7 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
     #[cfg(target_os = "linux")]
     let fds_before_warmup = fd_count();
     assert!(
-        !probe_grpc_health(&base_url, timeout),
+        !probe_grpc_health(&base_url, timeout, &foundation_core::valtron::Ctx::host()),
         "a silent backend must fail its health probe"
     );
     // The warm-up pump closes its socket just after the probe returns. Wait for
@@ -130,7 +136,7 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
     let mut all_bounded = true;
     for _ in 0..20 {
         let start = Instant::now();
-        let ok = probe_grpc_health(&base_url, timeout);
+        let ok = probe_grpc_health(&base_url, timeout, &foundation_core::valtron::Ctx::host());
         let elapsed = start.elapsed();
         assert!(!ok, "a silent backend must fail its health probe");
         // The probe must finish in about `timeout`, not the 10 s handshake budget.

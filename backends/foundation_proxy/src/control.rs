@@ -36,6 +36,7 @@ use serde_json::Value;
 use crate::aio::AsyncFd;
 use crate::config::BackendState;
 use crate::state::ProxyState;
+use foundation_context::Ctx;
 
 /// Limits for the control socket.
 #[derive(Debug, Clone, Copy)]
@@ -215,10 +216,11 @@ async fn accept_loop(
     shutdown: &Arc<ShutdownSignal>,
     config: ControlConfig,
 ) {
+    let ctx = state.ctx().clone();
     while !shutdown.probe() {
         let accepted = match select(
             Box::pin(listener.read_with(std::os::unix::net::UnixListener::accept)),
-            Box::pin(sleep_async(config.shutdown_poll)),
+            Box::pin(sleep_async(config.shutdown_poll, &ctx)),
         )
         .await
         {
@@ -247,7 +249,7 @@ async fn handle_connection(stream: UnixStream, state: Arc<ProxyState>, config: C
     }
     let Ok(io) = AsyncFd::new(stream) else { return };
 
-    let line = match read_request_line(&io, config).await {
+    let line = match read_request_line(&io, config, state.ctx()).await {
         Ok(line) if !line.trim().is_empty() => line,
         Ok(_) | Err(_) => {
             let _ = respond(&io, false, Some("empty request".into()), None).await;
@@ -272,6 +274,7 @@ async fn handle_connection(stream: UnixStream, state: Arc<ProxyState>, config: C
 async fn read_request_line(
     io: &AsyncFd<UnixStream>,
     config: ControlConfig,
+    ctx: &Ctx,
 ) -> std::io::Result<String> {
     let read = async {
         let mut line = Vec::new();
@@ -297,7 +300,12 @@ async fn read_request_line(
         }
         String::from_utf8(line).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
     };
-    match select(Box::pin(read), Box::pin(sleep_async(config.read_timeout))).await {
+    match select(
+        Box::pin(read),
+        Box::pin(sleep_async(config.read_timeout, ctx)),
+    )
+    .await
+    {
         Either::Left((line, _)) => line,
         Either::Right(((), _)) => Err(std::io::ErrorKind::TimedOut.into()),
     }

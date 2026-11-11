@@ -123,8 +123,12 @@ impl TaskIterator for ListItems {
                     if let Some(inner) = items.take() {
                         let task = WrapTask::new(inner.into_iter());
 
-                        let (inline_action, receiver) =
-                            InlineAction::new(self.0, task, std::time::Duration::from_millis(100));
+                        let (inline_action, receiver) = InlineAction::new(
+                            self.0,
+                            task,
+                            std::time::Duration::from_millis(100),
+                            crate::valtron::real_ctx(),
+                        );
 
                         self.1 = Some(ListItemInner::Response(receiver));
 
@@ -196,6 +200,7 @@ fn test_task_line_action_directly() {
         InlineActionBehaviour::Lift,
         task,
         std::time::Duration::from_millis(10),
+        crate::valtron::real_ctx(),
     );
 
     inline_action

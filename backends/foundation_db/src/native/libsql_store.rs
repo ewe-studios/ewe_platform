@@ -261,8 +261,8 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database can't be opened or migrated.
-    pub async fn in_memory() -> StorageResult<Self> {
-        let store = Self::new_kv(":memory:", None).await?;
+    pub async fn in_memory(ctx: Ctx) -> StorageResult<Self> {
+        let store = Self::new_kv(":memory:", None, ctx.clone()).await?;
         MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
         Ok(store)
     }
@@ -275,6 +275,7 @@ impl LibsqlStore {
     pub async fn new_kv(
         db_path: &str,
         encryption_key: Option<EncryptionKey>,
+        ctx: Ctx,
     ) -> StorageResult<Self> {
         let db = libsql::Builder::new_local(db_path).build().await?;
         let conn = db
@@ -282,7 +283,7 @@ impl LibsqlStore {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
-            gate: ConnGate::new(),
+            gate: ConnGate::new(ctx),
             db: None,
             mode: LibsqlMode::KeyValue { encryption_key },
         })
@@ -297,7 +298,12 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub async fn new_state(db_path: &str, project: &str, stage: &str) -> StorageResult<Self> {
+    pub async fn new_state(
+        db_path: &str,
+        project: &str,
+        stage: &str,
+        ctx: Ctx,
+    ) -> StorageResult<Self> {
         if let Some(parent) = Path::new(db_path).parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -312,7 +318,7 @@ impl LibsqlStore {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
-            gate: ConnGate::new(),
+            gate: ConnGate::new(ctx),
             db: None,
             mode: LibsqlMode::State { table_name },
         })
@@ -331,6 +337,7 @@ impl LibsqlStore {
         auth_token: &str,
         project: &str,
         stage: &str,
+        ctx: Ctx,
     ) -> StorageResult<Self> {
         if let Some(parent) = Path::new(local_path).parent() {
             std::fs::create_dir_all(parent)?;
@@ -351,7 +358,7 @@ impl LibsqlStore {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
-            gate: ConnGate::new(),
+            gate: ConnGate::new(ctx),
             db: Some(Arc::new(db)),
             mode: LibsqlMode::StateRemote { table_name },
         })
@@ -364,10 +371,10 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub async fn from_env_kv() -> StorageResult<Self> {
+    pub async fn from_env_kv(ctx: Ctx) -> StorageResult<Self> {
         let path = std::env::var("DEPLOYMENT_STATE_DB")
             .unwrap_or_else(|_| ".deployment/state.db".to_string());
-        Self::new_kv(&path, None).await
+        Self::new_kv(&path, None, ctx.clone()).await
     }
 
     /// `StateStore` from environment.
@@ -385,6 +392,7 @@ impl LibsqlStore {
         project_dir: &Path,
         project: &str,
         stage: &str,
+        ctx: Ctx,
     ) -> StorageResult<Self> {
         // Remote Turso
         if let (Ok(url), Ok(token)) = (
@@ -393,7 +401,7 @@ impl LibsqlStore {
         ) {
             let local = std::env::var("TURSO_LOCAL_REPLICA")
                 .unwrap_or_else(|_| ".deployment/turso_replica.db".to_string());
-            return Self::new_state_remote(&local, &url, &token, project, stage).await;
+            return Self::new_state_remote(&local, &url, &token, project, stage, ctx.clone()).await;
         }
 
         // Embedded replica via libsql env
@@ -403,14 +411,14 @@ impl LibsqlStore {
         ) {
             let local = std::env::var("LIBSQL_LOCAL_PATH")
                 .unwrap_or_else(|_| ".deployment/libsql.db".to_string());
-            return Self::new_state_remote(&local, &url, &token, project, stage).await;
+            return Self::new_state_remote(&local, &url, &token, project, stage, ctx.clone()).await;
         }
 
         // Local-only
         let path = std::env::var("LIBSQL_LOCAL_PATH")
             .or_else(|_| std::env::var("DEPLOYMENT_STATE_DB"))
             .unwrap_or_else(|_| format!("{}/.deployment/state.db", project_dir.display()));
-        Self::new_state(&path, project, stage).await
+        Self::new_state(&path, project, stage, ctx.clone()).await
     }
 
     // ========== Shared helpers ==========

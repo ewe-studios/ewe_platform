@@ -56,9 +56,15 @@ fn make_store() -> (Arc<StorageProvider>, tempfile::TempDir) {
         .to_str()
         .unwrap()
         .to_string();
-    let provider = async move { StorageProvider::new(StorageBackend::Turso { url }).await }
-        .block()
-        .expect("init turso");
+    let provider = async move {
+        StorageProvider::new(StorageBackend::Turso {
+            url,
+            ctx: foundation_context::Ctx::host().into(),
+        })
+        .await
+    }
+    .block()
+    .expect("init turso");
     (Arc::new(provider), dir)
 }
 

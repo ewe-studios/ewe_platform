@@ -25,7 +25,12 @@ use foundation_core::valtron::{
 #[test]
 fn notify_queue_wake_fires_on_push_and_close() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
     let counter = Arc::new(AtomicUsize::new(0));
 
     // Consumer registers a wake through the iterator.
@@ -64,19 +69,34 @@ fn notify_queue_wake_fires_on_push_and_close() {
 fn combinator_wake_forward_and_default_split() {
     // Forward: FilterDone reaches the waking terminal.
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50));
+    let iterator = NotifyQueueStreamIterator::new(
+        queue,
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
     let mut filtered = iterator.filter_done(|x| *x > 5);
     assert_eq!(filtered.wake(Box::new(|| {})), WakeResult::Successful);
 
     // Default: StreamIter (plain-iterator entry point) must NOT forward.
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50));
+    let iterator = NotifyQueueStreamIterator::new(
+        queue,
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
     let mut stream_iter = iterator.into_stream_iter();
     assert_eq!(stream_iter.wake(Box::new(|| {})), WakeResult::NotSupported);
 
     // Default: Collect (buffering) must NOT forward.
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50));
+    let iterator = NotifyQueueStreamIterator::new(
+        queue,
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
     let mut collected = StreamIteratorExt::collect_stream(iterator);
     assert_eq!(collected.wake(Box::new(|| {})), WakeResult::NotSupported);
 }
@@ -89,7 +109,12 @@ fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
     use foundation_core::valtron::{park_on, TaskStatus};
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
     let status: TaskStatus<usize, ()> = park_on(&mut iterator);
     let TaskStatus::Depends(signal) = status else {
         panic!("a waking stream parks on Depends");
@@ -103,6 +128,7 @@ fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
         queue,
         5,
         Duration::from_micros(50),
+        crate::valtron::real_ctx(),
     ));
     let status: TaskStatus<(), ()> = park_on(&mut buffered);
     assert!(
@@ -122,7 +148,12 @@ fn an_async_bridge_does_not_block_on_its_first_empty_pull() {
     use std::task::{Context, Poll, Waker};
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(50));
+    let iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        20,
+        Duration::from_millis(50),
+        crate::valtron::real_ctx(),
+    );
     let mut ready = std::pin::pin!(iterator.into_ready_future());
     let mut cx = Context::from_waker(Waker::noop());
 
@@ -145,7 +176,12 @@ fn an_async_bridge_does_not_block_on_its_first_empty_pull() {
 
     // The task path: `TaskStatus::from_stream` parks at once too.
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let mut iterator = NotifyQueueStreamIterator::new(queue, 20, Duration::from_millis(50));
+    let mut iterator = NotifyQueueStreamIterator::new(
+        queue,
+        20,
+        Duration::from_millis(50),
+        crate::valtron::real_ctx(),
+    );
     let started = std::time::Instant::now();
     let status: Option<TaskStatus<usize, ()>> = TaskStatus::from_stream(&mut iterator);
     assert!(matches!(status, Some(TaskStatus::Depends(_))));
@@ -174,7 +210,12 @@ fn first_empty_pull_does_not_block() {
     use std::task::{Context, Poll, Waker};
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let iterator = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(200));
+    let iterator = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        20,
+        Duration::from_millis(200),
+        crate::valtron::real_ctx(),
+    );
     let mut ready = std::pin::pin!(iterator.into_ready_future());
 
     let counter = Arc::new(CountWake(AtomicUsize::new(0)));
@@ -251,7 +292,12 @@ fn item_pushed_between_empty_pull_and_registration_is_not_lost() {
     use std::task::{Context, Poll, Waker};
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let inner = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(200));
+    let inner = NotifyQueueStreamIterator::new(
+        queue.clone(),
+        20,
+        Duration::from_millis(200),
+        crate::valtron::real_ctx(),
+    );
     let racing = RacingStream {
         inner,
         queue,

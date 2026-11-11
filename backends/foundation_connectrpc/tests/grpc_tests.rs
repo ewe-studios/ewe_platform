@@ -811,7 +811,11 @@ async fn client_cancel_resets_the_stream_on_the_server() {
             started.elapsed() < Duration::from_secs(5),
             "the server never learned the client cancelled"
         );
-        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
+        foundation_core::valtron::sleep_async(
+            Duration::from_millis(10),
+            &foundation_core::valtron::Ctx::host(),
+        )
+        .await;
     }
     drop(stream);
     shutdown.turn_on();

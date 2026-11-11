@@ -199,6 +199,7 @@ fn idle_stream_then_blocked_write_does_not_time_out() {
     let mut writer = ResponseWriter::new(
         conn,
         WriterConfig::new().with_send_timeout(Duration::from_millis(300)),
+        foundation_core::valtron::Ctx::host(),
     );
 
     // Idle for longer than the timeout, as an open gRPC stream does.
@@ -241,6 +242,7 @@ fn buffered_flush_restarts_idle_timer() {
     let mut writer = ResponseWriter::new(
         conn,
         WriterConfig::new().with_send_timeout(Duration::from_millis(400)),
+        foundation_core::valtron::Ctx::host(),
     );
     // Smaller than the stream's 8 KiB write buffer, so it is buffered, not sent.
     let buffered = vec![0x33u8; 7000];

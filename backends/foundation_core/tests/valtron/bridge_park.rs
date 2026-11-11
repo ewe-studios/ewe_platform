@@ -80,7 +80,12 @@ type WakingIter<D, P> = (
 fn waking_iter<D, P>() -> WakingIter<D, P> {
     let queue: Arc<NotifyQueue<Stream<D, P>>> = Arc::new(NotifyQueue::unbounded());
     queue.set_max_spins(1);
-    let iterator = NotifyQueueStreamIterator::new(Arc::clone(&queue), 5, Duration::from_micros(50));
+    let iterator = NotifyQueueStreamIterator::new(
+        Arc::clone(&queue),
+        5,
+        Duration::from_micros(50),
+        crate::valtron::real_ctx(),
+    );
     (iterator, queue)
 }
 

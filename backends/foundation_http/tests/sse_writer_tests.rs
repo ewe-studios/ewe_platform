@@ -116,7 +116,11 @@ fn sse_writer_delivers_a_whole_event_to_a_slow_client() {
 
     let writer_event = event.clone();
     let result = run_writer(async move {
-        let mut writer = SseWriter::new(conn, WriterConfig::default());
+        let mut writer = SseWriter::new(
+            conn,
+            WriterConfig::default(),
+            &foundation_core::valtron::Ctx::host(),
+        );
         writer.send(&writer_event).await
     });
     assert!(

@@ -72,7 +72,7 @@ async fn should_be_able_to_send_channel_into_another_thread() {
     execute(
         from_future(async move {
             sender.try_send(String::from("new text")).unwrap();
-            sleep_async(Duration::from_millis(100)).await;
+            sleep_async(Duration::from_millis(100), &foundation_core::valtron::Ctx::host()).await;
         }),
         None,
     )
