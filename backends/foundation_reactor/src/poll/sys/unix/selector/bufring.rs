@@ -44,7 +44,7 @@
 use std::alloc::{alloc_zeroed, dealloc, Layout};
 use std::io;
 use std::ptr::NonNull;
-use std::sync::atomic::{AtomicU16, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU16, AtomicU64, AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 use io_uring::Submitter;
@@ -90,6 +90,14 @@ pub struct BufRing {
     /// pool is still empty. The selector instead parks the token and re-arms it
     /// once this counter moves, which is precisely "a consumer freed a buffer".
     recycles: AtomicU64,
+    /// How many buffers consumers hold right now (handed out by a completion,
+    /// not yet returned). The pool is empty for the kernel when this equals
+    /// `entries`.
+    ///
+    /// The selector reads this, not `recycles`, to decide if a starved token
+    /// can re-arm. A change counter can miss a buffer that came back before the
+    /// `-ENOBUFS` completion was seen; a level cannot.
+    held: AtomicUsize,
 }
 
 // SAFETY: the raw pointers are unique owning handles to allocations that live
@@ -173,6 +181,7 @@ impl BufRing {
             bgid,
             tail: Mutex::new(0),
             recycles: AtomicU64::new(0),
+            held: AtomicUsize::new(0),
         })
     }
 
@@ -266,7 +275,17 @@ impl BufRing {
             self.store_tail(*tail);
         }
         drop(tail);
+        self.held.fetch_sub(1, Ordering::AcqRel);
         self.recycles.fetch_add(1, Ordering::Release);
+    }
+
+    /// True when at least one buffer is not held by a consumer.
+    ///
+    /// A buffer the kernel used, whose completion the selector has not read
+    /// yet, still counts as free here. A re-arm on that basis ends with a new
+    /// `-ENOBUFS` and the token parks again, so it cannot spin.
+    pub fn has_free_buffer(&self) -> bool {
+        self.held.load(Ordering::Acquire) < usize::from(self.entries)
     }
 
     /// How many buffers have been returned to the pool since it was created.
@@ -370,6 +389,7 @@ impl ProvidedBuf {
             len <= ring.buf_size,
             "completion length {len} exceeds buffer size"
         );
+        ring.held.fetch_add(1, Ordering::AcqRel);
         Self { ring, bid, len }
     }
 
