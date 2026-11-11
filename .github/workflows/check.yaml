@@ -24,6 +24,10 @@ name: "Audit: Checks & Tests"
 # Pushes to master, the nightly schedule and manual runs test the whole
 # workspace (or the packages you name) on all three.
 #
+# On a pull request every package job also passes `--if-affected` to ci.py. The
+# runner then decides from the change and the dependency graph whether the
+# package must run, with the same rule as the plan job (`ci.py affected`).
+#
 # Each matrix sets `max-parallel` from ci/packages.toml ([defaults]
 # `max-parallel-*`), so jobs queue on the free GitHub and Blacksmith plans and
 # do not stampede. GitHub allows 256 jobs per matrix; the workspace has about
@@ -63,6 +67,10 @@ env:
   # `dev` on Cranelift, which CI does not install and which can't do
   # catch_unwind.)
   CI_PROFILE: uat
+  # The pull request base commit. `ci.py run --if-affected` diffs against it, so
+  # a package job skips itself when the change does not affect the package. It
+  # is empty on master, nightly and manual runs, which test everything.
+  CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
 jobs:
   image:
@@ -190,6 +198,13 @@ jobs:
           fetch-depth: 1
           submodules: false
 
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
       - name: Link the baked submodules
         uses: ./ci/platform-images/actions/link-submodules
 
@@ -219,13 +234,13 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: rustfmt
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: build
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step build
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: clippy
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: io_uring probe
         # Record whether the kernel and the container's seccomp profile allow
@@ -268,10 +283,10 @@ jobs:
         run: cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
       - name: test
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: io_uring probe result
         # Print the probe result again at the end of the job. The test step
@@ -304,6 +319,13 @@ jobs:
           fetch-depth: 1
           submodules: false
 
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
       - name: Download the image
         uses: actions/download-artifact@v8.0.2
         with:
@@ -332,13 +354,13 @@ jobs:
         run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
 
       - name: rustfmt
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: build
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step build
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: clippy
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: io_uring probe
         if: matrix.package == 'foundation_iogate'
@@ -351,10 +373,10 @@ jobs:
         run: docker exec --env EWE_REQUIRE_PTRACE=1 ci cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
       - name: test
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
-        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
   windows:
     name: Windows check
@@ -435,6 +457,13 @@ jobs:
           fetch-depth: 1
           submodules: false
 
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
       - name: Fetch llama.cpp
         if: matrix.llama
         run: git submodule update --init --depth 1 tools/llama.cpp
@@ -460,7 +489,7 @@ jobs:
 
       - name: test
         # On a macOS host, ci.py runs only the test step, with the macOS runs.
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
   windows-test:
     name: Windows ${{ matrix.package }}
@@ -491,6 +520,13 @@ jobs:
           fetch-depth: 1
           submodules: false
 
+      - name: Fetch the pull request base
+        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # a depth-1 merge commit, so fetch the base commit (one commit, no history).
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: git fetch --no-tags --depth=1 origin "$CI_BASE_SHA"
+
       - name: Fetch llama.cpp
         if: matrix.llama
         run: git submodule update --init --depth 1 tools/llama.cpp
@@ -514,7 +550,7 @@ jobs:
 
       - name: test
         # On a Windows host, ci.py runs only the test step, with the Windows runs.
-        run: python scripts/ci/ci.py run ${{ matrix.package }} --step test
+        run: python scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.

@@ -8,6 +8,8 @@ mystery:
     python3 scripts/ci/ci.py plan                     # GitHub matrix for the current event
     python3 scripts/ci/ci.py run foundation_ai        # fmt + clippy + tests for one package
     python3 scripts/ci/ci.py run foundation_ai --step test
+    python3 scripts/ci/ci.py affected --base origin/master   # what a change affects, and why
+    python3 scripts/ci/ci.py run foundation_ai --if-affected # skip when the change does not affect it
 
 On a macOS host (`sys.platform == "darwin"`) `run` does only the test step.
 Every package is tested on macOS by default, with the feature sets of its `runs`
@@ -40,6 +42,7 @@ import sys
 import threading
 import time
 import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -68,9 +71,12 @@ LLAMA_CRATES = {"infrastructure_llama_bindings", "infrastructure_llama_cpp"}
 
 # A change under any of these can affect every package, so on a pull request it
 # selects the whole workspace. Entries ending in "/" are directory prefixes.
+# Three files are not here because `affected` reads their content: Cargo.lock
+# (only the users of a changed crate), the root Cargo.toml (only its workspace,
+# patch and profile sections) and ci/packages.toml (`[defaults]` is global, a
+# `[packages.X]` section marks X). Workflow files other than the two named below
+# mark nothing: GitHub reruns the jobs of a changed workflow by itself.
 GLOBAL_PATHS = (
-    "Cargo.toml",
-    "Cargo.lock",
     "rust-toolchain.toml",
     "build.rs",
     ".cargo/",
@@ -116,6 +122,10 @@ class Package:
     dir: str  # relative to the workspace root
     needs_llama: bool
     dependents: set[str] = field(default_factory=set)
+    # Names of the external (non-workspace) crates in the dependency closure.
+    external: set[str] = field(default_factory=set)
+    # Names of the direct dependencies, for `[workspace.dependencies]` changes.
+    direct_deps: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -244,6 +254,9 @@ def load_workspace() -> dict[str, Package]:
             name=meta_pkg["name"],
             dir=Path(meta_pkg["manifest_path"]).parent.relative_to(ROOT).as_posix(),
             needs_llama=bool((dep_names | {meta_pkg["name"]}) & LLAMA_CRATES),
+            external={by_id[d]["name"] for d in closures[pid] if d not in members},
+            direct_deps={d.get("rename") or d["name"] for d in meta_pkg["dependencies"]}
+            | {d["name"] for d in meta_pkg["dependencies"]},
         )
 
     # Reverse edges between workspace members: who is affected by a change.
@@ -439,15 +452,14 @@ def settings_for(name: str, defaults: dict, package: dict) -> Settings:
 # Selection
 
 
-def changed_files(base: str, head: str) -> list[str]:
-    out = subprocess.run(
-        ["git", "diff", "--name-only", f"{base}...{head}"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout
-    return [line for line in out.splitlines() if line]
+def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=ROOT, check=check, capture_output=True, text=True)
+
+
+def merge_base(base: str, head: str) -> str | None:
+    """The common ancestor of `base` and `head`, or None (shallow clone)."""
+    proc = git("merge-base", base, head, check=False)
+    return proc.stdout.strip() or None if proc.returncode == 0 else None
 
 
 def is_global(path: str) -> bool:
@@ -455,31 +467,212 @@ def is_global(path: str) -> bool:
 
 
 def owning_package(path: str, packages: dict[str, Package]) -> str | None:
-    """The package whose directory contains `path` (the deepest one wins)."""
+    """The package whose directory contains `path` (the deepest one wins).
+
+    The root package (directory ".") owns only `src/`, `tests/` and `benches/`.
+    """
     best: str | None = None
     for pkg in packages.values():
-        if pkg.dir in ("", ".") or not path.startswith(pkg.dir + "/"):
+        if pkg.dir in ("", "."):
+            if best is None and path.split("/", 1)[0] in ("src", "tests", "benches"):
+                best = pkg.name
             continue
-        if best is None or len(pkg.dir) > len(packages[best].dir):
+        if not path.startswith(pkg.dir + "/"):
+            continue
+        if best is None or packages[best].dir in ("", ".") or len(pkg.dir) > len(packages[best].dir):
             best = pkg.name
     return best
 
 
-def affected(files: list[str], packages: dict[str, Package]) -> tuple[set[str], str]:
-    """The packages a change touches, plus every workspace package that depends on them."""
-    files = [f for f in files if not f.endswith(".md")]  # prose doesn't change what code does
-    if any(is_global(f) for f in files):
-        return set(packages), "a workspace-wide file changed"
+@dataclass
+class Changes:
+    """The files a change touches and a way to read each one before and after.
 
-    direct: set[str] = set()
-    for path in files:
-        if owner := owning_package(path, packages):
-            direct.add(owner)
+    `old` and `new` return a file's text, or None when the file does not exist
+    on that side. Tests inject dictionaries; `git_changes` reads git.
+    """
 
-    selected = set(direct)
-    for name in direct:
-        selected |= packages[name].dependents
-    return selected, f"{len(direct)} changed package(s) plus dependents"
+    files: list[str]
+    old: Callable[[str], str | None] = lambda path: None
+    new: Callable[[str], str | None] = lambda path: None
+
+
+def git_changes(base: str, head: str = "HEAD", include_local: bool = False) -> Changes:
+    """The change from `base` to `head`, plus the working tree when `include_local`.
+
+    The pull request diff is `base...head` (from the merge base). In a shallow
+    clone with no merge base it falls back to `base..head`, which is the same
+    when `head` is a merge commit on top of `base`.
+    """
+    mb = merge_base(base, head)
+    if mb:
+        diff = git("diff", "--name-only", f"{base}...{head}").stdout
+    else:
+        mb = base
+        diff = git("diff", "--name-only", base, head).stdout
+    files = {line for line in diff.splitlines() if line}
+    if include_local:
+        files |= set(git("diff", "--name-only", "HEAD").stdout.splitlines())
+        files |= set(git("ls-files", "--others", "--exclude-standard").stdout.splitlines())
+
+    def old(path: str) -> str | None:
+        proc = git("show", f"{mb}:{path}", check=False)
+        return proc.stdout if proc.returncode == 0 else None
+
+    def new(path: str) -> str | None:
+        if include_local:
+            target = ROOT / path
+            return target.read_text(encoding="utf-8", errors="replace") if target.is_file() else None
+        proc = git("show", f"{head}:{path}", check=False)
+        return proc.stdout if proc.returncode == 0 else None
+
+    return Changes(sorted(f for f in files if f), old, new)
+
+
+def lock_changed_crates(old: str | None, new: str | None) -> set[str] | None:
+    """Names of the crates whose version or source differ between two lock files.
+
+    None means a lock file is missing or unreadable, so the caller must assume
+    every package changed.
+    """
+    if old is None or new is None:
+        return None
+    try:
+        def entries(text: str) -> set[tuple]:
+            return {
+                (p["name"], p.get("version"), p.get("source"))
+                for p in tomllib.loads(text).get("package", [])
+            }
+
+        old_entries, new_entries = entries(old), entries(new)
+    except (tomllib.TOMLDecodeError, KeyError):
+        return None
+    return {entry[0] for entry in old_entries ^ new_entries}
+
+
+def root_manifest_changes(old: str | None, new: str | None) -> tuple[bool, set[str]]:
+    """What a root Cargo.toml change means: (is it global?, changed workspace dependencies).
+
+    Global: any part other than `[workspace.dependencies]` changed (members,
+    `[patch]`, profiles, lints, the root package). A changed workspace
+    dependency affects the packages that use it.
+    """
+    if old is None or new is None:
+        return True, set()
+    try:
+        old_doc, new_doc = tomllib.loads(old), tomllib.loads(new)
+    except tomllib.TOMLDecodeError:
+        return True, set()
+    old_deps = old_doc.get("workspace", {}).pop("dependencies", {})
+    new_deps = new_doc.get("workspace", {}).pop("dependencies", {})
+    if old_doc != new_doc:
+        return True, set()
+    return False, {k for k in set(old_deps) | set(new_deps) if old_deps.get(k) != new_deps.get(k)}
+
+
+def config_changes(old: str | None, new: str | None) -> tuple[bool, set[str]]:
+    """What a ci/packages.toml change means: (is it global?, packages whose section changed)."""
+    if old is None or new is None:
+        return True, set()
+    try:
+        old_doc, new_doc = tomllib.loads(old), tomllib.loads(new)
+    except tomllib.TOMLDecodeError:
+        return True, set()
+    old_pkgs, new_pkgs = old_doc.pop("packages", {}), new_doc.pop("packages", {})
+    if old_doc != new_doc:  # [defaults] or any other top-level table
+        return True, set()
+    return False, {k for k in set(old_pkgs) | set(new_pkgs) if old_pkgs.get(k) != new_pkgs.get(k)}
+
+
+def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dict[str, str]:
+    """Map each affected package to the reason it must run.
+
+    Rules:
+    - a file maps to the package with the longest matching directory, and the
+      packages that depend on it (any dependency kind) are affected too;
+    - Cargo.lock marks the packages that use a crate whose version or source
+      changed, plus their dependents;
+    - a global file marks every package (see `GLOBAL_PATHS`);
+    - a `[packages.X]` section change in ci/packages.toml marks only X;
+    - anything else (docs, specifications, prose) marks nothing.
+    """
+    everything = lambda why: {name: why for name in packages}  # noqa: E731
+    direct: dict[str, str] = {}  # reasons that also reach the dependents
+    only: dict[str, str] = {}  # reasons that do not
+    workspace_deps: set[str] = set()
+
+    for path in changes.files:
+        if path.endswith(".md"):
+            continue  # prose does not change what code does
+        if path == "Cargo.lock":
+            crates = lock_changed_crates(changes.old(path), changes.new(path))
+            if crates is None:
+                return everything("Cargo.lock changed and could not be compared")
+            crates -= set(packages)  # a workspace crate is covered by its own manifest
+            for name, pkg in sorted(packages.items()):
+                if used := sorted(crates & pkg.external):
+                    direct.setdefault(name, f"Cargo.lock changed {used[0]}")
+        elif path == "Cargo.toml":
+            whole, deps = root_manifest_changes(changes.old(path), changes.new(path))
+            if whole:
+                return everything("the root Cargo.toml workspace, patch or profile settings changed")
+            workspace_deps |= deps
+        elif path == "ci/packages.toml":
+            whole, names = config_changes(changes.old(path), changes.new(path))
+            if whole:
+                return everything("ci/packages.toml [defaults] changed")
+            for name in names & set(packages):
+                only.setdefault(name, "its section of ci/packages.toml changed")
+        elif is_global(path):
+            return everything(f"{path} changed")
+        elif owner := owning_package(path, packages):
+            direct.setdefault(owner, f"{path} changed")
+
+    for dep in sorted(workspace_deps):
+        for name, pkg in sorted(packages.items()):
+            if dep in pkg.direct_deps:
+                direct.setdefault(name, f"the workspace dependency {dep} changed")
+
+    reasons = dict(only)
+    for name in sorted(direct):
+        reasons.setdefault(name, direct[name])
+    for name in sorted(direct):
+        for dependent in sorted(packages[name].dependents):
+            reasons.setdefault(dependent, f"depends on {name} ({direct[name]})")
+    return reasons
+
+
+def resolve_base(explicit: str | None = None) -> str:
+    """The base ref of a change: `--base`, CI_BASE_SHA, GITHUB_BASE_REF, or master.
+
+    Order: the argument, `$CI_BASE_SHA`, `origin/$GITHUB_BASE_REF` (fetched when
+    missing), then the merge base of HEAD and origin/master.
+    """
+    if explicit:
+        return explicit
+    if sha := os.environ.get("CI_BASE_SHA"):
+        return sha
+    if ref := os.environ.get("GITHUB_BASE_REF"):
+        remote = f"origin/{ref}"
+        if git("rev-parse", "--verify", "--quiet", remote, check=False).returncode != 0:
+            git("fetch", "--no-tags", "origin", ref, check=False)
+        return remote
+    for candidate in ("origin/master", "master"):
+        if git("rev-parse", "--verify", "--quiet", candidate, check=False).returncode == 0:
+            return merge_base("HEAD", candidate) or candidate
+    raise SystemExit("cannot find a base: pass --base, or fetch origin/master")
+
+
+def compute_affected(
+    packages: dict[str, Package], base: str, head: str = "HEAD"
+) -> dict[str, str]:
+    """The one implementation behind `plan`, `affected` and `run --if-affected`.
+
+    Local changes (uncommitted and untracked files) count only for a local run
+    on HEAD, never inside GitHub Actions.
+    """
+    include_local = head == "HEAD" and not os.environ.get("GITHUB_ACTIONS")
+    return affected_with_reasons(git_changes(base, head, include_local), packages)
 
 
 def select(args: argparse.Namespace, packages: dict[str, Package]) -> tuple[set[str], str]:
@@ -496,7 +689,8 @@ def select(args: argparse.Namespace, packages: dict[str, Package]) -> tuple[set[
     base = args.base or os.environ.get("CI_BASE_SHA", "")
     head = args.head or os.environ.get("CI_HEAD_SHA", "") or "HEAD"
     if base:
-        return affected(changed_files(base, head), packages)
+        reasons = compute_affected(packages, base, head)
+        return set(reasons), f"{len(reasons)} package(s) affected by the change"
     return set(packages), "full run"
 
 
@@ -999,7 +1193,42 @@ def cmd_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_affected(args: argparse.Namespace) -> int:
+    packages = load_workspace()
+    base = resolve_base(args.base)
+    head = args.head or "HEAD"
+    reasons = compute_affected(packages, base, head)
+    if args.json:
+        print(json.dumps({"base": base, "head": head, "affected": reasons}, indent=2, sort_keys=True))
+    else:
+        print(f"{len(reasons)} of {len(packages)} package(s) affected by {base}..{head}")
+        for name in sorted(reasons):
+            print(f"{name:36} {reasons[name]}")
+    return 0
+
+
+def not_affected(name: str, base_arg: str | None, head_arg: str | None) -> bool:
+    """True when `--if-affected` says to skip `name`.
+
+    It fails open: when git cannot say, the package runs.
+    """
+    try:
+        packages = load_workspace()
+        base = resolve_base(base_arg)
+        head = head_arg or "HEAD"
+        reasons = compute_affected(packages, base, head)
+    except (subprocess.CalledProcessError, SystemExit, OSError) as err:
+        print(f"{name}: cannot tell what changed ({err}); running", file=sys.stderr)
+        return False
+    if name in reasons:
+        return False
+    print(f"{name}: not affected by {base}..{head}, skipping")
+    return True
+
+
 def cmd_run(args: argparse.Namespace) -> int:
+    if args.if_affected and not_affected(args.package, args.base, args.head):
+        return 0
     return run_package(args.package, args.step or list(STEPS), args.profile)
 
 
@@ -1015,10 +1244,23 @@ def main() -> int:
     plan.add_argument("--head", help="head commit for change detection")
     plan.set_defaults(func=cmd_plan)
 
+    aff = sub.add_parser("affected", help="list the packages a change affects, and why")
+    aff.add_argument("--base", help="base ref (default: $CI_BASE_SHA, origin/$GITHUB_BASE_REF, or the merge base with origin/master)")
+    aff.add_argument("--head", help="head ref (default: HEAD, plus uncommitted changes)")
+    aff.add_argument("--json", action="store_true", help="print JSON")
+    aff.set_defaults(func=cmd_affected)
+
     run = sub.add_parser("run", help="run fmt / clippy / tests for one package")
     run.add_argument("package")
     run.add_argument("--step", action="append", choices=STEPS, help="repeatable; default: all steps")
     run.add_argument("--profile", default=os.environ.get("CI_PROFILE", "uat"))
+    run.add_argument(
+        "--if-affected",
+        action="store_true",
+        help="skip the package, with exit 0, when the change since the base does not affect it",
+    )
+    run.add_argument("--base", help="base ref for --if-affected (default: see `affected`)")
+    run.add_argument("--head", help="head ref for --if-affected (default: HEAD)")
     run.set_defaults(func=cmd_run)
 
     # Cargo output and package names can hold non-ASCII text. The Windows
