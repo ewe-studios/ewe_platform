@@ -66,14 +66,32 @@ The hand-written formats become generated code.
 ### 3.1 Tier 1: `OpBatch`
 
 ```flatbuffers
+enum SelectorKind : ubyte { NodeId = 0, Id = 1, Class = 2, Query = 3 }
+enum MorphAction : ubyte { ReplaceChildren = 0, ReplaceElement = 1, InsertBefore = 2,
+                           InsertAfter = 3, AppendSibling = 4 }
+table TargetSelector { kind: SelectorKind; node_id: uint; text: string; }
+
+table HtmlMorph {
+  target: TargetSelector;   // node id, CSS id, class or query
+  action: MorphAction;      // which part of the target to reconcile
+  content: string;          // HTML fragment
+}
+
 union Op { CreateNode: CreateNode, SetText: SetText, SetProp: SetProp,
-           AppendChild: AppendChild, Remove: Remove, ReplaceSubtree: ReplaceSubtree }
+           AppendChild: AppendChild, Remove: Remove, ReplaceSubtree: ReplaceSubtree,
+           HtmlMorph: HtmlMorph }        // web target only (D8)
 table OpRow  { op: Op; }
 table OpBatch { ops: [OpRow]; }
 ```
 
 The client walks the vector and reads each table through generated accessors. Cost per
 operation is a few offset reads. For a handful of operations this is as fast as tier 2.
+
+`HtmlMorph` carries the existing `DomOp::MorphNode` (op 16, decision 027) as a schema type.
+The web applicator passes `content` to `MorphDom`, unchanged. This is the only operation whose
+payload is markup, and it is valid only for the web target. The server never sends it to a
+native client. Section [11](./11-app-store-and-command-bus.md) explains why that keeps the app
+store rule.
 
 ### 3.2 Tier 2: `ColumnarBatch` as a schema type
 
@@ -97,6 +115,9 @@ table ColumnarBatch {
 - Strings stay one block. JS decodes a string only when an operation needs it
   (`TextDecoder` on a `subarray`). The document's "zero object allocation" claim is true for
   the numeric columns only. The design must say this.
+- Tier 1 and tier 2 use **one consolidated representation**: the schema types and the
+  generated readers. The web reads both through the same path, not through two parsers
+  (D27, owner answer 2026-11-11).
 
 ### 3.3 Tier 3: `DataTable`
 
@@ -125,17 +146,25 @@ goes to such a tool. UI frames do not use it.
 ### 3.5 Improvements over the document
 
 - Tiers are chosen by the framework, not by the action author, from a configured threshold.
+- Tier 1 and tier 2 share one consolidated representation, so the web has one read path for
+  both (D27).
 - Tier 2 and tier 3 are generated types. No hand-written parser on any platform.
+- Arrow IPC stays as a union member for data that goes to Arrow tools (D28).
 - One more tier boundary is made explicit: streaming. A large table goes as a stream of
   `DataTable` frames with a row cap per frame (configuration), never as one large frame.
 
 ## 4. What this changes for us
 
-- `ColumnarBatch` (`columnar_encoder.rs`) and the JS `ColumnarParser` retire after the generated
-  form matches them in a benchmark (1, 10, 100 and 10 000 operations).
+- `ColumnarBatch` (`columnar_encoder.rs`) and the JS `ColumnarParser` retire when the
+  consolidated form delivers the same functionality on the web (D27). One representation
+  serves tier 1 and tier 2.
 - The Arrow `DomOp` encoder (`foundation_arrow/src/dom_ops.rs`) is not needed for UI frames.
+  Arrow IPC stays for data that goes to Arrow tools (D28).
+- The columnar op code 16 (`MORPH_NODE`) and the JS branch stay. They read the same
+  `HtmlMorph` fields from the generated reader.
 
 ## 5. Open questions
 
-Q6 to Q8 in [`questions.md`](./questions.md): the tier threshold default, the benchmark gate,
-and the fate of Arrow IPC on the UI wire.
+Q6 in [`questions.md`](./questions.md): the tier threshold default. Q7 is answered: retire the
+hand-written form when the consolidated form delivers the same web functionality (D27). Q8 is
+answered: keep Arrow IPC and the other data formats (D28).

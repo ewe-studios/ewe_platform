@@ -42,11 +42,16 @@ what it needs for local logic._
 | JS `ColumnarParser` with a zero-copy view and copy fallback | `backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js:94-187` |
 | JS `columnarHandler`: parse, then apply | `foundation-wasm-ui.js:802` |
 | Server frames already arrive in JS and JS applies them | the `<mount-stream>` and `<mount-data>` paths, `foundation-wasm-ui.js:2353`, `:2374` |
+| The HTML morph: `MorphDom` reconciles a fragment (decision 027) | `foundation-wasm-ui.js:276-604` |
 | WASM-originated ops go out through `host_apply` | `backends/foundation_wasm_ui/src/protocol/mod.rs` |
 | 14-byte `WasmEnvelope` at the WASM-to-JS boundary, with an arena memory id | `backends/foundation_wasm/src/protocol.rs:96` |
 
 So the "bypass WASM" path exists for server frames today. What is hand-written is the parser
 and the envelope.
+
+**Keep the mount primitives.** `<mount-stream>` and `<mount-data>` are the island mechanism: a
+region of reactive, dynamic state that mounts and renders on its own. The new system must keep
+them and must keep them working (owner review, 2026-11-11).
 
 ## 3. The new way
 
@@ -54,10 +59,12 @@ and the envelope.
    `ColumnarParser`. The applicator keeps only the apply loop.
 2. **One apply loop for every tier.** Tier 1 (`OpBatch`) and tier 2 (`ColumnarBatch`) feed the
    same switch on the operation code ([03](./03-payload-tiers.md)). Tier 3 (`DataTable`) goes to
-   the component that owns the grid or chart, as typed arrays.
+   the component that owns the grid or chart, as typed arrays. The switch handles `HtmlMorph`
+   by passing its content to `MorphDom` (D8).
 3. **WASM-originated frames use the same schema.** A local action in WASM writes a `Frame` into
-   its memory. JS reads it through the same generated reader over the WASM memory buffer. One
-   format, one applicator, two sources. The 14-byte `WasmEnvelope` goes away.
+   its memory. JS reads it through the same generated reader over the WASM memory buffer. The
+   server, WASM and Rust all send frames, and the receiver applies them (D29). One format, one
+   applicator, two sources. The 14-byte `WasmEnvelope` goes away.
 4. **Frame scheduling.** The applicator applies frames in `sequence_id` order and batches the
    writes of one animation frame (`requestAnimationFrame`). A frame that arrives out of order
    waits for the gap; a gap that does not close in a configured time triggers a resume
@@ -82,11 +89,14 @@ _The diagram shows one applicator for frames from the server and from local WASM
 
 ## 4. What this changes for us
 
-- `foundation-wasm-ui.js` loses its hand-written parser and the `WasmEnvelope` handling. It
-  gains the generated reader.
-- The web is not the first target (native first). This work comes after the native renderer.
+- `foundation-wasm-ui.js` loses its hand-written parser and its own envelope struct. It keeps
+  the apply loop, the mount primitives and the island paths. It gains the generated reader.
+- **The web comes first** (D4, revised by the 2026-11-11 review). Make the web work
+  consistently on the new schema, and keep the `<mount-stream>` and `<mount-data>` paths
+  working as they do today. Then the native work starts ([06](./06-native-rendering.md)).
 
 ## 5. Open questions
 
-Q10 and Q11 in [`questions.md`](./questions.md): does the web render the layout vocabulary
-through this applicator, and do frames from local WASM logic use the same schema and applicator?
+No open questions in this file. Q11 is answered: the native side processes frames, so the
+server, WASM and Rust use the same schema and applicator (D29). Q10 is answered by D10: the
+web renders the core vocabulary and maps it to HTML.

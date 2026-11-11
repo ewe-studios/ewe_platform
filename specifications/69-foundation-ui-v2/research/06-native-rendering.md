@@ -1,39 +1,45 @@
-# 06. Native rendering: SwiftUI and Jetpack Compose, no WebView
+# 06. Native rendering: SwiftUI and Jetpack Compose, with an optional WebView
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
 **Abbreviations in this file.** user interface (UI); server-driven user interface (SDUI);
-Document Object Model (DOM); WebAssembly (WASM); JavaScript (JS); foreign function interface
-(FFI); application binary interface (ABI); Unified Foreign Function Interface generator
-(UniFFI); central processing unit (CPU); identifier (id); AeroSpace and Defence Industries
-Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+Document Object Model (DOM); browser view embedded in an app (WebView); WebAssembly (WASM);
+JavaScript (JS); foreign function interface (FFI); application binary interface (ABI); Unified
+Foreign Function Interface generator (UniFFI); application programming interface (API); central
+processing unit (CPU); identifier (id); AeroSpace and Defence Industries Association of Europe
+(ASD), the owner of the STE standard ASD-STE100.
 
 ## 1. The idea, laid out
 
 Source: `foundation_ui_rearchitecture.md` §3 ("Mobile Engine Integration") and §6.
 
-**Mobile apps have no WebView, no JS engine and no downloaded bytecode.** Owner decision D4
-makes this the first target.
+**A mobile app has three mount surfaces: SwiftUI, Jetpack Compose and a WebView.** The owner's
+2026-11-11 review allows a WebView (D11): whatever is mounted there renders the same server
+frames as a normal web page. The native surfaces are the speed target. They are not the first
+target: the web comes first (D4, revised).
 
 - The framework core (`foundation_signals`, `foundation_ui_components`) is compiled into the app
   as native `aarch64` code, through UniFFI or static C bindings.
 - The app receives layout operations in a FlatBuffers frame. It loops over the typed operations
   with direct memory offsets.
 - It maps each operation to a native declarative view: SwiftUI on iOS, Jetpack Compose on
-  Android. This happens "synchronously at native machine execution speeds".
+  Android. The apply is synchronous. The views then recompose in the platform render pass.
+- A WebView mounts the web runtime from [05](./05-web-zero-copy-applicator.md) and applies the
+  same frames. The app needs no second server mode.
 
 ```mermaid
 flowchart LR
     S[Server or local Rust logic] -->|Frame bytes| R[Generated FlatBuffers reader<br/>Swift or Kotlin]
+    S -->|same Frame bytes| W[WebView<br/>web runtime from 05]
     R -->|typed ops| T[(Node store<br/>id to node)]
     T -->|observable state| V[SwiftUI or Compose views]
     V -->|tap, change| E[Event bridge]
     E -->|ActionRequest| S
 ```
 
-_The diagram shows the native loop: frame in, node store edited, views recompose, events go
-back as action requests._
+_The diagram shows the two mount surfaces: the native node store and the WebView web runtime.
+Both read the same frames and send the same action requests._
 
 ## 2. Current state
 
@@ -81,6 +87,19 @@ Recommendation: **A** for rendering. Rust stays on device for local logic, signa
 action registry, and talks to the view layer in frames, the same as the server does. So the
 render path has one input format, whatever the source.
 
+**How Rust triggers native behaviour.** Local Rust logic has two outputs:
+
+| Output | Path | Example |
+|---|---|---|
+| View change | A `Frame` from Rust edits the node store, the same as a server frame | A counter increments after a tap |
+| Platform effect | A typed `NativeCommand`, executed by the Swift or Kotlin host | Haptic pulse, camera, share sheet, permission prompt, open a URL |
+
+The `NativeCommand` set is a generated enum from the action registry
+([11](./11-app-store-and-command-bus.md), [12](./12-scoped-behaviour.md)). The app compiles it
+in, so it is data and not downloaded code. Rust sends a command id and typed arguments. The
+platform host switches on the id and calls the platform API. An unknown id is a typed error,
+never a silent no-op. Rust never calls platform code directly.
+
 ### 3.3 Binding layer
 
 - UniFFI generates Swift and Kotlin bindings for the Rust logic API (start, send action, receive
@@ -98,13 +117,27 @@ stays small and semantic for this reason.
 
 | Document | New way |
 |---|---|
-| Uses HTML tag ids for mobile (`DIV`, `SPAN`) | A layout vocabulary of native primitives |
-| "Synchronously at native speed" | Operations edit a node store; the platform recomposes on its own frame clock. Fast, but not synchronous. The design must say this. |
+| Uses HTML tag ids for mobile (`DIV`, `SPAN`) | The core vocabulary of native primitives ([04](./04-vocabulary-and-interning.md)) |
+| "Synchronously at native speed" | The apply is synchronous: the reader edits the node store before it returns. The platform then recomposes in its own render pass. SwiftUI and Compose own that pass. We add no scheduler between them. |
 | Core compiled in, decoding path not stated | Platform-language readers on the render path; Rust for logic |
-| Components assumed to exist natively | Behaviour must be rebuilt natively: focus, dismiss, gestures |
+| Components assumed to exist natively | Do not rebuild the platform. The native control provides focus, dismiss, gestures, dynamic type and accessibility. We implement only the small parts the platform does not have, for example a focus trap across a custom modal |
+
+### 3.6 The WebView mount surface
+
+A mobile app may mount a WebView (D11). It loads the web runtime
+([05](./05-web-zero-copy-applicator.md)) and receives the same `Frame` stream as a browser. It
+needs no second server mode.
+
+- `ClientHello` carries the mount surface: `Native` or `Web`
+  ([02](./02-unified-wire-contract.md)). The server uses it to decide the web-only ops. A
+  `Web` surface (a browser or a WebView) can receive `HtmlMorph`. A `Native` surface cannot
+  ([11](./11-app-store-and-command-bus.md)).
+- A hybrid screen is allowed: native chrome, with a WebView island inside it.
+- The WebView adds no new wire format. It is the web path in an app shell.
 
 ## 4. What this changes for us
 
+- The work order follows D4: the web first, then these native surfaces.
 - New Swift and Kotlin packages: generated readers, the node store, the view layer, the event
   bridge.
 - New Rust crate with the UniFFI surface for on-device logic.
@@ -113,6 +146,6 @@ stays small and semantic for this reason.
 
 ## 5. Open questions
 
-Q12 to Q14 in [`questions.md`](./questions.md): option A or B, the minimum OS versions (they
-decide the observation API), and the first spike (one screen, one button, one action round
-trip on both platforms).
+Q26 in [`questions.md`](./questions.md): when to use the WebView surface. Q12 to Q14 are
+answered: the platform-language readers edit the node store, the minimum versions are iOS 17
+and Android API 26, and the first spike runs before the design spec is final.

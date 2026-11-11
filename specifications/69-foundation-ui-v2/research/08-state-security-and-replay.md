@@ -40,11 +40,12 @@ reading.)
 
 | Part | Where |
 |---|---|
-| HMAC-SHA256 signer for session tokens, private to `foundation_auth`, one key, no key id | `backends/foundation_auth/src/shared/session.rs:348-386` |
-| Its tag compare is not constant time (recorded in `docs/bug-backlog.md`) | same file, `:384` |
+| HMAC-SHA256 signer for session tokens, private to `foundation_auth`; key ring with key ids and rotation | `backends/foundation_auth/src/shared/session.rs` (`TokenSigner`, `KeyRing`); commits `25cab64fe`, `540611b30` |
+| Its tag compare is constant time (`Mac::verify_slice`) | same file |
 | ChaCha20-Poly1305 | `backends/foundation_compact/src/crypto/chacha.rs:24`, `:50` |
 | Key type that zeroes on drop | `backends/foundation_compact/src/crypto/key.rs:15` |
-| No state token, no key ring, no failure counter, no nonce store | — |
+| No UI state token and no failure counter | — |
+| No nonce store | By design: single use is a domain rule (D14) |
 
 ## 4. The new way
 
@@ -88,15 +89,11 @@ flowchart TD
     B --> D[Decode body into the one generated type]
     D --> A{Authorize action from server data}
     A -->|no| X6[Reject]
-    A --> N{Action single-use?}
-    N -->|yes| S{Nonce unused in shared store?}
-    S -->|used| X7[Reject: replay]
-    S --> RUN[Run action]
-    N -->|no| RUN
+    A --> RUN[Run action<br/>domain rule rejects a second request]
 ```
 
 _The diagram shows the checks in order. Cheap checks run first. Decode happens only after the
-tag passes._
+tag passes. Single use is a domain rule, not a store._
 
 ### 4.3 Keys
 
@@ -116,11 +113,16 @@ on the server, or accepts a time window. So the new way has layers:
    constant-time compare, typed decode, authorization on every action.
 2. **Stale writes:** domain data carries a row version. A write is a compare-and-swap on it. Two
    clicks with the same old state: the second write fails cleanly.
-3. **Opt-in single use** (payments, deletes): the request carries a random nonce. The server
-   records it in a shared store until expiry and rejects a second use. Only these actions pay
-   for shared state.
+3. **Single use is a domain rule** (payments, deletes). The server knows when it first creates a
+   payment or accepts a delete. A second request for the same resource is rejected by the
+   domain data, for example a unique constraint or a state machine on the row. No nonce store
+   and no used-id list. The server owns this decision (D14).
 4. **Web only:** a CSRF guard on the action endpoint (token or required custom header, plus
    `SameSite` cookies). Native uses bearer auth with no cookies, so CSRF does not apply.
+
+The server may also ignore the returned state and load the authoritative state from the backend
+(D13, [07](./07-element-riding-state.md) §3.5). A valid tag is not a claim of authority. The
+domain data is.
 
 ### 4.5 What we take from the study
 
@@ -130,17 +132,19 @@ on the server, or accepts a time window. So the new way has layers:
 | Phoenix LiveView | Token format version; expiry; purpose separation; authorize every event; a way to end all live connections of a user |
 | ASP.NET ViewState | Bind the tag to the user or session |
 | Hotwire | Keep state small: ids and flags, not domain data |
-| JWT practice | `kid` for rotation; a used-id store only where single use is needed |
+| JWT practice | `kid` for rotation; single use stays a domain rule, not a used-id list (D14) |
 | Livewire CVE-2025-54068, ViewState RCE | Never decode attacker-chosen types; decode only after the tag passes, into one fixed type |
 
 ## 5. What this changes for us
 
-- A new signer module with a key ring, constant-time compare and an AEAD mode. `foundation_auth`
-  session tokens move to it later, which also fixes the timing bug.
-- A failure counter and an optional nonce store, both behind traits, with limits as
-  configuration.
+- A new signer module with a purpose label, expiry, component and session binding, and an AEAD
+  mode. `foundation_auth` session tokens move to it later. The key ring and constant-time
+  compare already exist there.
+- A failure counter behind a trait, with limits as configuration. Single use needs no new
+  store: the domain data rejects a second request (D14).
 
 ## 6. Open questions
 
-Q17 to Q19 in [`questions.md`](./questions.md): the D5 reading, the default expiry window, and the
-store for single-use nonces.
+Q18 in [`questions.md`](./questions.md): the default expiry window. Q17 is answered: yes, a
+browser-signed tag is checked only by the same browser runtime. Q19 is answered by D14: no
+nonce store; the domain owns single use.

@@ -42,18 +42,27 @@ table SetAttributeOp  { node_id: uint; attr_id: AttrNameId; custom_attr_name: st
 
 ## 3. The new way
 
-### 3.1 Two vocabularies, one interning rule
+### 3.1 One vocabulary, with a web mapping
 
 The document's names are HTML names. A native renderer has no `DIV`, no `CLASS` and no
-`STYLE`. So the new way has **two vocabularies** in the schema, both interned the same way:
+`STYLE`. The owner's review gives the rule (D10): **one vocabulary**. The core names work on
+every platform. The web maps each core name to its HTML name. HTML tags and attributes are
+custom names for the core names, not a second vocabulary.
 
-| Vocabulary | For | Elements | Properties |
+| Layer | For | Elements | Properties |
 |---|---|---|---|
-| Layout (native first) | SwiftUI, Compose, later the web | Stack, Text, Image, Button, TextInput, Toggle, List, Scroll, Spacer, Overlay (the primitive families) | Typed: padding, spacing, alignment, colour token, font token, accessibility label, enabled |
-| Web | The DOM, when the web needs raw HTML | HTML tags | HTML attributes |
+| Core (every platform) | SwiftUI, Compose, the DOM, WebView | Stack, Text, Image, Button, TextInput, Toggle, List, Scroll, Spacer, Overlay (the primitive families) | Typed: padding, spacing, alignment, colour token, font token, accessibility label, enabled |
+| Web-only subset | The DOM, when a screen needs a tag that the core does not have | HTML tags | HTML attributes, plus the `HtmlMorph` op (D8) |
 
-The web can render the layout vocabulary too (a Stack becomes a flex `div`). So most screens
-need only the layout vocabulary on every platform.
+Mapping rules:
+
+- The core name is the wire name. The web applicator maps it locally: `Stack` becomes a flex
+  `div`, `Text` becomes a `span`, and so on.
+- A core name is valid on every platform.
+- A web-only name is valid on the web only. A native client reports it and shows a safe
+  fallback ([11](./11-app-store-and-command-bus.md)). The web supports every name.
+- The old `TAG_NAMES` and `ATTR_NAMES` tables become the web mapping. A known name keeps its
+  number. A custom name falls back to a string. The numbers are append-only.
 
 ### 3.2 Typed properties, not strings
 
@@ -76,20 +85,29 @@ is a token table change, not a payload change.
 - Every enum is append-only. An id is never reused or renumbered.
 - `0` is always `UNKNOWN`. A client that reads an unknown id shows a safe fallback and reports
   it.
-- The custom-name string fallback exists only in the web vocabulary. The layout vocabulary has
-  no free-form names, because a native app cannot build an element it does not have
+- The custom-name string fallback exists only in the web subset. The core vocabulary has no
+  free-form names, because a native app cannot build an element it does not have
   ([11](./11-app-store-and-command-bus.md)).
+- A native client that reads a web-only name reports it and shows a safe fallback. It never
+  guesses a core name for it.
 - The `ClientHello` carries the vocabulary version, so the server never sends ids that the
   client does not know ([02](./02-unified-wire-contract.md)).
 
 ## 4. What this changes for us
 
-- `DomOp` stays for the web vocabulary. The layout vocabulary is new.
+- `DomOp` does **not** stay as a second vocabulary (D10). Its 19 variants become the web subset
+  of the one vocabulary, including the HTML morph. The `DomOp` Rust type is replaced by the
+  schema types. The morph is the one web op that carries free-form markup
+  ([01](./01-compile-time-targeting.md), [03](./03-payload-tiers.md)).
+- Scoped JavaScript (JS) stays, web only. It is the behaviour path for an island. A native
+  platform gets a compiled equivalent for the same behaviour
+  ([12](./12-scoped-behaviour.md), [11](./11-app-store-and-command-bus.md)).
 - The primitive families must be defined, with their properties, as a decision before code.
   `foundation_ui_components` behaviour (focus trap, dismiss, gestures) must be expressed with
-  these primitives plus native behaviour, not scoped JS.
+  these primitives plus a platform binding, not only scoped JS.
 
 ## 5. Open questions
 
-Q9 and Q10 in [`questions.md`](./questions.md): the exact primitive set, and whether the web
-renders the layout vocabulary by default.
+Q9 in [`questions.md`](./questions.md): the exact primitive set. Q10 is answered by D10: one
+consistent vocabulary, extended with the web-only parts, with a string fallback at the bottom.
+The web maps the core vocabulary to HTML by default.

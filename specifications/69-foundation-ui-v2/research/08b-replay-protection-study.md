@@ -105,6 +105,11 @@ Source: `phoenixframework/phoenix_live_view`, `lib/phoenix_live_view/static.ex` 
   no fully stateless replay protection.** Every system above that stops replay keeps some
   state on the server (a process, a session, a used-id list) or accepts a time window.
 
+The owner's answer (D14, 2026-11-11): the state that stops a repeat already exists, in the
+domain data. A payment is created once. A delete changes the row once. The domain rejects the
+second request. A framework nonce store is a second source of truth for the same fact, so we
+do not add one.
+
 ## 3. Threats and which control stops each
 
 | # | Threat | Livewire | LiveView | What we should do |
@@ -112,7 +117,7 @@ Source: `phoenixframework/phoenix_live_view`, `lib/phoenix_live_view/static.ex` 
 | T1 | User edits state | HMAC | State not sent | HMAC (or AEAD) over the exact wire bytes. Constant-time compare. |
 | T2 | User sends a state from component A to an action of component B | Partly (memo has name and id) | Salt, view in token | Sign component type id, node id, and the action set id. Use a purpose label in the MAC input (domain separation). |
 | T3 | User B replays a state captured from user A | No | Session in token | Bind a hash of the session id (anonymous sessions too). Reject on mismatch. |
-| T4 | User replays their own old state (stale tab, double submit, back button) | No | State not sent | Expiry window (configurable). Domain-level version check (compare-and-swap on a row version) for writes. Optional single-use nonce for sensitive actions. |
+| T4 | User replays their own old state (stale tab, double submit, back button) | No | State not sent | Expiry window (configurable). Domain-level version check (compare-and-swap on a row version) for writes. A second request for the same resource is a domain error; the server owns it (D14). |
 | T5 | State grants rights that the server has since removed | Docs: authorize | Authorize every event | Never put authority (role, owner, price) in state. Authorize every action from server data. |
 | T6 | Old token after a format change or a key change | No (until key change) | `@token_vsn` | Format version and `kid` in the token. Key ring with current and old keys. |
 | T7 | Attacker brute-forces or probes tags | Rate limit by IP | — | Count check failures. Rate-limit by session and by IP. Limits are configuration (rule 8). |
@@ -131,26 +136,29 @@ Source: `phoenixframework/phoenix_live_view`, `lib/phoenix_live_view/static.ex` 
    "authorize every event". Also: a way to end all of a user's live connections.
 3. **From ViewState:** bind to the user or session.
 4. **From Hotwire:** keep state small. Ids and view flags, not domain data.
-5. **From JWT practice:** `kid` for rotation; `jti` with a shared used-id store only where
-   single use is needed.
+5. **From JWT practice:** `kid` for rotation. A `jti` is not used: single use is a domain rule
+   (D14), not a used-id list.
 
-**Refinement for us.** A layered default plus an opt-in:
+**Refinement for us.** One default, and one answer for single use:
 
 - **Default (stateless, every action):** format version, `kid`, issued-at, expires-at,
   component type id, node id, action-set id, session-id hash, state bytes. HMAC-SHA256 over
   a purpose label plus these exact bytes. Constant-time compare. Typed decode. Authorize the
   action. Domain row versions catch stale writes.
-- **Opt-in (single use):** an action marked single-use (for example payment, delete) also
-  carries a random nonce. The server records the nonce in a shared store until expiry and
-  rejects a second use. This adds state only for those actions.
+- **Single use (payment, delete):** the domain data owns it. The server knows when it first
+  creates a payment or accepts a delete. A second request for the same resource is rejected
+  by a unique constraint, a row state, or a compare-and-swap. The framework adds no nonce
+  store, because a second state store adds a failure mode and a cost (owner decision D14,
+  PR #157 review 2026-11-11).
 
 ## 5. Gap against the repository
 
-- No state token, no key ring, no failure counter, no nonce store.
-- The only HMAC code (`backends/foundation_auth/src/shared/session.rs:348-386`) has no `kid`
-  and compares tags in non-constant time (`:384`). This is now in `docs/bug-backlog.md`.
+- No state token and no failure counter.
+- The only HMAC code (`backends/foundation_auth/src/shared/session.rs`) now has a key ring with
+  `kid` values and a constant-time compare (`Mac::verify_slice`; commits `25cab64fe`,
+  `540611b30`). It does not sign UI state.
 
-## 6. Recommendation: **adopt** the layered model in §4
+## 6. Recommendation: **adopt** the model in §4
 
 See Q17 to Q19 in [`questions.md`](questions.md), and the design in [`08-state-security-and-replay.md`](08-state-security-and-replay.md).
 

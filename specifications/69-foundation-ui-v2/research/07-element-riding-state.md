@@ -93,11 +93,17 @@ table SignedState {
 
 ### 3.3 Harvest without parsing
 
-- Web: the root element holds the `SignedState` bytes as a binary property set by the
-  applicator (a reference to an `ArrayBuffer` slice), not as a base64 `data-*` string. The
-  runtime copies the slice into the request builder. No decode.
+- Web: the root element holds the `SignedState` as one base64url string in a `data-` attribute
+  (D12). base64url is the base64 text encoding with `+` and `/` replaced, so the text is safe
+  in a URL and in an attribute. A DOM attribute holds text, so binary cannot ride it. The
+  runtime copies the string into the request builder. It does not decode it; the server does.
 - Native: the node record holds the bytes. The event bridge copies them into the request.
-- The client never edits the bytes. Any change breaks the tag.
+- The client never edits the state. Any change breaks the tag.
+
+Why not a binary property: a JavaScript expando property can hold bytes, but the markup cannot
+see it, it does not survive a server render or a page reload, and an HTML parser cannot copy
+it. The base64url string needs 4 bytes for each 3 bytes of state. A state is small, and the
+server decodes it once.
 
 ### 3.4 Secrecy and size
 
@@ -107,15 +113,38 @@ table SignedState {
 - State is small: ids and view flags, not domain data. Domain data stays in the database. A
   size cap per component is configuration with a documented default (`CLAUDE.md` rule 8).
 
-### 3.5 Improvements over the document
+### 3.5 The server owns the truth
+
+The signed state is a handle, not the truth. The server can ignore the content that the client
+returns. It can read a key from the signed state, for example a row id, and load the
+authoritative state from the backend. Owner decision D13.
+
+So a client cannot cheat with state, even with a real tag. The tag proves that the server made
+the bytes. The backend proves that the values are current and that they belong to this user.
+
+The server has three inputs. It chooses which to use for each action (D15,
+[09](./09-stateless-execution.md)):
+
+| Input | What it proves |
+|---|---|
+| The signed state | The server made these bytes, and nobody changed them |
+| The session | Who is asking |
+| The backend data | The current, authoritative values |
+
+A state that passes the tag but is stale is still stale. The domain check catches it. A state
+that names another user's row fails authorization. This is the rule from
+[08](./08-state-security-and-replay.md) §4.1: never put authority in state.
+
+### 3.6 Improvements over the document
 
 | Document | New way |
 |---|---|
 | Signed state per element | One per component root |
 | Eight formats on the wire | One `SignedState` with a generated body type |
 | Tag covers the state bytes only | Tag covers version, key id, times, component, node, session and body ([08](./08-state-security-and-replay.md)) |
-| `data-*` string attributes | Binary property on web, field on native node record |
+| `data-*` string attributes | One base64url `data-` attribute on web, field on the native node record (D12) |
 | No secrecy option | Authenticated encryption for private state |
+| The client copy of state is the truth | The state is a handle; the server loads the truth from the backend (D13) |
 
 ## 4. What this changes for us
 
@@ -124,5 +153,5 @@ each action. Its spirit stays: the client never **authors** state.
 
 ## 5. Open questions
 
-Q15 and Q16 in [`questions.md`](./questions.md): the default state size cap, and whether private
-state is opt-in or the default.
+No open questions in this file. Q15 is answered: the default cap is 4 KiB as configuration.
+Q16 is answered: HMAC by default, authenticated encryption for private state.

@@ -52,19 +52,22 @@ Why FlatBuffers:
 Spec 36 decision 10 (`specifications/completed/36-agentic-api/decisions/10-serialization-format.md`)
 is about how `foundation_ai` **stores conversation data** (messages, tool calls, memory
 snapshots, events): always as JSON and as Arrow. It once kept FlatBuffers as a fallback if Arrow
-did not build on WASM, and dropped that fallback (lines 116-118). It does not cover the UI wire.
+did not build on WASM, and dropped that fallback (lines 116-118). It does not cover the UI wire,
+and stored `foundation_ai` data is out of scope for this design (D26).
 
 ## 3. The new way
 
 ### 3.1 The schema is the product
 
-- `.fbs` files in one crate (for example `foundation_ui_wire`) are the single source of truth.
+- `.fbs` files in the `foundation_ui_wire` crate are the single source of truth (owner answer
+  to Q2, 2026-11-11).
 - `flatc`, pinned to one version, generates Rust, TS, Swift and Kotlin. A pure-Rust generator
   (`planus`) is not enough, because it generates only Rust.
 - Generated code is checked in. CI regenerates and fails on any difference, so a normal build
   does not need `flatc`.
-- Every body is a schema type. There are no opaque `[ubyte]` bodies, except one explicit
-  escape hatch for Arrow IPC bytes when data goes to Arrow tools ([03](./03-payload-tiers.md)).
+- Every body is a schema type. Two schema types hold opaque `[ubyte]` blocks: Arrow IPC, for
+  data that goes to Arrow tools ([03](./03-payload-tiers.md)), and MessagePack (D9). No
+  generated reader reads those blocks.
 
 ### 3.2 Outbound frame
 
@@ -84,11 +87,23 @@ union Body {
   Columnar: ColumnarBatch,     // tier 2: aligned columns (03)
   Table: DataTable,            // tier 3: typed bulk rows (03)
   ArrowIpc: ArrowIpcBlob,      // escape hatch for Arrow consumers (03)
+  MessagePack: MessagePackBlob, // opaque bytes, kept (D9)
   StateUpdate: SignedState,    // new signed state for a component (07, 08)
   Capabilities: ServerCaps,    // answer to the client hello (11)
   Error: ActionError
 }
+
+table MessagePackBlob { bytes: [ubyte]; }   // no generated reader
 ```
+
+MessagePack stays (D9). It is a schema type that carries one opaque byte block, like the
+Arrow escape hatch. The difference is that no generated code reads its content. A client that
+needs it decodes it itself. New features use the typed bodies.
+
+The `Ops` body holds typed operations. One of them, `HtmlMorph`, carries an HTML fragment for
+the web target ([01](./01-compile-time-targeting.md), [03](./03-payload-tiers.md)). It is not a
+body type. The server sends it only to a client that declares `mount: Web` in `ClientHello`
+(D8, D11, [11](./11-app-store-and-command-bus.md)).
 
 ### 3.3 Inbound request
 
@@ -97,7 +112,7 @@ table ActionRequest {
   schema_version: ushort;
   stream_id: ulong;
   sequence_id: ulong;          // client counter, for ordering and duplicate detection
-  action_id: uint;             // generated numeric id, not a string (10, 11)
+  action: string;              // the action name in the compiled registry (10, 11, D31)
   node_id: uint;
   input: ActionInput;          // typed, unsigned user input (10)
   state: SignedState;          // returned as received, never edited (07, 08)
@@ -108,9 +123,17 @@ table ClientHello {            // first message on a connection (11)
   vocabulary_version: uint;
   action_registry_hash: [ubyte];
   platform: Platform;          // Web, Ios, Android, Desktop
+  mount: MountSurface;         // Native or Web (D11)
   resume_from: ulong;          // last sequence_id seen, for reconnect
 }
+
+enum MountSurface : ubyte { Native = 0, Web = 1 }
 ```
+
+`platform` says what the machine is. `mount` says what renders the frames. A browser declares
+`Web`. A native app can declare `Native` or `Web` (a WebView). `mount: Web` can receive
+`HtmlMorph`; `mount: Native` cannot (D11, [06](./06-native-rendering.md),
+[11](./11-app-store-and-command-bus.md)).
 
 ### 3.4 Ordering and resume
 
@@ -120,7 +143,7 @@ sequenceDiagram
     participant S as Server (any replica)
     C->>S: ClientHello(resume_from = 17)
     S->>C: Frame(seq 18), Frame(seq 19)
-    C->>S: ActionRequest(seq 5, action 12)
+    C->>S: ActionRequest(seq 5, action increment_counter)
     S->>C: Frame(seq 20, ack_action 5, Ops)
     Note over C: gap at seq 21? ask to resume from 20
 ```
@@ -131,24 +154,28 @@ _The diagram shows how sequence ids let a client detect a gap and resume on any 
 
 | Document | New way | Why |
 |---|---|---|
-| `MessagePack` body | Removed | No schema, so no generated reader in every language. |
+| `MessagePack` body | Kept as an opaque schema type (`MessagePackBlob`) | The owner keeps it (D9). It has no generated reader; a client that needs it decodes it itself. |
 | `Columnar` and `Arrow` as opaque bytes | Typed schema tables ([03](./03-payload-tiers.md)) | Generated readers; no hand-written parsers. |
-| `event_name: string` | `action_id: uint` plus `node_id` | Smaller; no typo class of bug; matches the static registry ([11](./11-app-store-and-command-bus.md)). |
+| `event_name: string` | `action: string` plus `node_id` | The name is the tag the compiled registry uses. No derived numeric id (D31, [11](./11-app-store-and-command-bus.md)). |
 | `sequence_id: uint` only | `stream_id` plus 64-bit `sequence_id` plus `ack_action` | Per-stream ordering, resume after reconnect, request and response pairing. |
 | No handshake | `ClientHello` / `ServerCaps` | Version skew is handled before the first frame. |
 | Eight-way state union | One `SignedState` table ([07](./07-element-riding-state.md)) | The client never reads state, so its format is a server choice. |
+| HTML morph as a separate path | `HtmlMorph`, a web-only member of the `Op` union ([01](./01-compile-time-targeting.md)) | The morph works on the web; the schema carries it and the platform gate keeps it off native (D8). |
 
 ## 4. What this changes for us
 
 - The 6-byte `Envelope`, the protocol byte table and the hand-written body encoders are
-  replaced, not extended.
-- A new crate holds the schema and the generated Rust. `foundation_ui_traits` stays
-  dependency-free and `no_std`.
+  replaced, not extended. This includes the hand-written JavaScript (JS) parser: the web
+  runtime keeps its apply loop and its `<mount-stream>` and `<mount-data>` paths, and reads
+  frames through the generated TypeScript reader ([05](./05-web-zero-copy-applicator.md)). No
+  web feature is dropped.
+- The new `foundation_ui_wire` crate holds the schema and the generated Rust.
+  `foundation_ui_traits` stays dependency-free and `no_std`.
 - Frame size caps and resume backlog length are configuration with documented defaults
   (`CLAUDE.md` rule 8).
 
 ## 5. Open questions
 
-Q2 to Q5 in [`questions.md`](./questions.md): crate layout and generation step, 8-byte vector
-alignment in the generated readers, transport framing (WebSocket, SSE, HTTP/2 streams), and
-whether stored `foundation_ai` data also moves to FlatBuffers.
+Q3 in [`questions.md`](./questions.md) is answered: enforce 8-byte alignment (D24). Q4 is
+answered: the transport is a boundary concern, and SSE, HTTP and WebSocket already work (D25).
+Q5 is removed (D26). Q2 is answered: `foundation_ui_wire`.
